@@ -1,0 +1,24 @@
+{
+  "name": "FARRUKH AI Mobile",
+  "short_name": "FARRUKH AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06090b",
+  "theme_color": "#07100b",
+  "orientation": "portrait",
+  "description": "Персональный AI-командный центр бренд-шефа",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

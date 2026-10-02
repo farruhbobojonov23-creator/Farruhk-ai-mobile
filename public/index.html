@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07100b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>FARRUKH AI Mobile</title>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="orb-mini"></div>
+      <div><b>FARRUKH AI</b><span>MOBILE • CHEF OS</span></div>
+    </div>
+    <button id="wakeBtn" class="icon-btn">🟢</button>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="hero">
+        <div class="orb">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="core"></div>
+        </div>
+        <span class="pill">AI CORE</span>
+        <h1 id="greeting">Фаррух AI</h1>
+        <p id="sub">Готов к работе.</p>
+        <button id="talkBtn" class="talk">🎙 Говорить</button>
+      </div>
+
+      <div class="quick-grid">
+        <button data-cmd="Что у меня сегодня по задачам?">Сегодня</button>
+        <button data-cmd="Напиши сообщение поварам">Поварам</button>
+        <button data-cmd="Помоги посчитать себестоимость ролла">Себестоимость</button>
+        <button data-cmd="Покажи проекты Суши Бери">Проекты</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>ЗАДАЧИ</span><button id="addTask">+ Добавить</button></div>
+        <div id="taskList"></div>
+      </div>
+    </section>
+
+    <section id="chat" class="screen">
+      <div class="chat-wrap">
+        <div id="messages" class="messages"></div>
+        <div class="composer">
+          <textarea id="msgInput" rows="1" placeholder="Напиши команду..."></textarea>
+          <button id="sendBtn">➤</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="cost" class="screen">
+      <div class="section-title"><span>КАЛЬКУЛЯТОР</span><h2>Себестоимость</h2></div>
+      <div class="card">
+        <input id="dishName" class="field" placeholder="Название блюда">
+        <div id="ingredients"></div>
+        <button id="addIng">+ Ингредиент</button>
+      </div>
+      <div class="card total">
+        <span>СЕБЕСТОИМОСТЬ</span>
+        <strong id="totalCost">0 ₽</strong>
+        <input id="salePrice" class="field" type="number" placeholder="Цена продажи, ₽">
+        <div class="line"><span>Food cost</span><b id="foodCost">—</b></div>
+        <div class="line"><span>Маржа</span><b id="margin">—</b></div>
+        <button id="askCost" class="primary">Спросить AI</button>
+      </div>
+    </section>
+
+    <section id="projects" class="screen">
+      <div class="section-title"><span>ПРОЕКТЫ</span><h2>Суши Бери</h2></div>
+      <div class="project-list">
+        <div class="card project"><b>Меню A3</b><span>Холодные + запечённые</span></div>
+        <div class="card project"><b>Экраны</b><span>Контент для 3 мониторов</span></div>
+        <div class="card project"><b>Шеф на дому</b><span>Японская кухня</span></div>
+        <div class="card project"><b>Техкарты</b><span>КБЖУ и себестоимость</span></div>
+      </div>
+    </section>
+
+    <section id="settings" class="screen">
+      <div class="section-title"><span>НАСТРОЙКИ</span><h2>FARRUKH AI Mobile</h2></div>
+      <div class="card settings">
+        <div class="line"><span>Сервер</span><b id="serverState">проверка...</b></div>
+        <div class="line"><span>AI</span><b id="aiState">проверка...</b></div>
+        <label>Озвучка ответа <input id="ttsToggle" type="checkbox" checked></label>
+        <button id="installBtn" class="primary" hidden>Установить на телефон</button>
+        <p>После размещения приложения на HTTPS его можно установить на главный экран как обычное приложение.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav active" data-screen="home">⌂<span>Главная</span></button>
+    <button class="nav" data-screen="chat">✦<span>AI</span></button>
+    <button class="nav" data-screen="cost">₽<span>Расчёт</span></button>
+    <button class="nav" data-screen="projects">▦<span>Проекты</span></button>
+    <button class="nav" data-screen="settings">⚙<span>Ещё</span></button>
+  </nav>
+</div>
+
+<div id="taskModal" class="modal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Новая задача</h3>
+    <input id="taskText" class="field" placeholder="Что нужно сделать?">
+    <select id="taskPriority" class="field">
+      <option value="normal">Обычная</option>
+      <option value="high">Важная</option>
+    </select>
+    <button id="saveTask" class="primary">Сохранить</button>
+    <button id="cancelTask">Отмена</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
