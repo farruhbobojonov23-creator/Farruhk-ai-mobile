@@ -9,7 +9,7 @@ app.use(express.json({limit:'20mb'}));
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
     const html=await fs.readFile(new URL('./public/index.html', import.meta.url),'utf8');
-    const injected=html.replace('</body>','<script src="/analytics.js?v=4"></script></body>');
+    const injected=html.includes('data-chef-studio')?html:html.replace('</body>','<script src="/analytics.js?v=4"></script></body>');
     res.type('html').send(injected);
   }catch(err){next(err);}
 });
@@ -248,4 +248,5 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
 
 const port=Number(process.env.PORT||3000);
 app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`));
+
 
