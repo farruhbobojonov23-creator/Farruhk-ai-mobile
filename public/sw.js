@@ -1,4 +1,4 @@
-const CACHE='farrukh-ai-mobile-v3-admin-kb';
+const CACHE='farrukh-ai-mobile-v3-stylefix-1';
 const ASSETS=['/','/index.html','/style.css','/app.js','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([
