@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import OpenAI from 'openai';
 import fs from 'node:fs/promises';
 
 const app = express();
@@ -16,8 +15,9 @@ app.get(['/', '/index.html'], async (req,res,next)=>{
 
 app.use(express.static('public'));
 
-const hasKey = Boolean(process.env.OPENAI_API_KEY);
-const client = hasKey ? new OpenAI({apiKey:process.env.OPENAI_API_KEY}) : null;
+const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
+const hasKey = Boolean(geminiKey);
+const geminiModel = String(process.env.GEMINI_MODEL||'gemini-2.5-flash-lite').trim();
 
 const frontpadConfigured=()=>Boolean(String(process.env.FRONTPAD_LOGIN||'').trim()&&String(process.env.FRONTPAD_PASSWORD||'').trim());
 
@@ -86,7 +86,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,frontpadConfigured:frontpadConfigured(),version:'chef-4.0'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-4.1'}));
 
 app.get('/api/frontpad/status',async(req,res)=>{
   const configured=frontpadConfigured();
@@ -144,15 +144,29 @@ app.post('/api/chat',async(req,res)=>{
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
 
   try{
-    const response=await client.responses.create({
-      model:process.env.OPENAI_MODEL||'gpt-6-luna',
-      instructions:buildInstructions(context),
-      input:[...(Array.isArray(req.body?.history)?req.body.history:[]).slice(-12).filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string').map(m=>({role:m.role,content:m.content.slice(0,6000)})),{role:'user',content:message}]
+    const history=(Array.isArray(req.body?.history)?req.body.history:[])
+      .slice(-12)
+      .filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string')
+      .map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content.slice(0,6000)}]}));
+    const body={
+      systemInstruction:{parts:[{text:buildInstructions(context)}]},
+      contents:[...history,{role:'user',parts:[{text:message}]}],
+      generationConfig:{temperature:0.5}
+    };
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent?key='+encodeURIComponent(geminiKey);
+    const r=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body),
+      signal:AbortSignal.timeout(30000)
     });
-    res.json({reply:response.output_text||'Ответ без текста.',mode:'online'});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data?.error?.message||('Gemini HTTP '+r.status));
+    const reply=(data?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
+    res.json({reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model:geminiModel});
   }catch(err){
     console.error(err);
-    res.status(500).json({error:'Ошибка AI API: '+(err?.message||'unknown')});
+    res.status(500).json({error:'Ошибка Gemini API: '+(err?.message||'unknown')});
   }
 });
 
