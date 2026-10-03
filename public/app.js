@@ -5,6 +5,14 @@ const state={
     {text:'Проверить меню A3',priority:'high',done:false},
     {text:'Сверить закупки и остатки',priority:'normal',done:false}
   ],
+  projects:[
+    'Меню A3: холодные + запечённые',
+    'Экраны: контент для 3 мониторов',
+    'Шеф на дому: японская кухня',
+    'Техкарты: КБЖУ и себестоимость',
+    'Личный сайт и бренд',
+    'Новые блюда и R&D'
+  ],
   chat:JSON.parse(localStorage.getItem('farrukh_mobile_chat')||'[]'),
   tts:JSON.parse(localStorage.getItem('farrukh_mobile_tts')??'true')
 };
@@ -39,7 +47,14 @@ async function askAI(text){
  state.chat.push({role:'user',text});renderChat();show('chat');
  state.chat.push({role:'ai',text:'Думаю…',temp:true});renderChat();
  try{
-   const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+   const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      message:text,
+      context:{
+        tasks:state.tasks,
+        projects:state.projects,
+        app:{brand:'Суши Бери',points:4,role:'бренд-шеф японской кухни'}
+      }
+    })});
    const d=await r.json();
    state.chat=state.chat.filter(x=>!x.temp);
    const reply=d.reply||d.error||'Нет ответа';
