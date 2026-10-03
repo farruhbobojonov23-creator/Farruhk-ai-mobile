@@ -33,13 +33,13 @@ function home(){
  const todays=data.tasks.filter(t=>taskDate(t)===day()),done=todays.filter(t=>t.done).length;
  const taskRows=todays.slice(0,3).length?todays.slice(0,3).map(t=>{const i=data.tasks.indexOf(t);return `<div class="north-task ${t.done?'done':''}"><input aria-label="Выполнено: ${E(t.text)}" type="checkbox" data-toggle-task="${i}" ${t.done?'checked':''}><div><b>${E(t.text)}</b><small>${E(t.time||'Сегодня')}${t.priority==='high'?' · Важная':''}</small></div></div>`}).join(''):`<div class="north-empty">На сегодня задач пока нет</div>`;
  return `<section class="north-home">
-   <div class="aurora-layer aurora-a"></div><div class="aurora-layer aurora-b"></div><div class="weather-fx" id="weatherFx"></div>
+   <div class="aurora-layer aurora-a"></div><div class="aurora-layer aurora-b"></div><div class="weather-fx" id="weatherFx"></div><div class="north-model" aria-hidden="true"></div>
    <div class="north-top">
      <div class="north-time"><strong id="homeClock">--:--</strong><span id="homeDate">Сегодня</span><small>Мурманск</small></div>
      <div class="north-weather" id="homeWeather"><div class="weather-icon" id="weatherIcon">☁️</div><div><b id="weatherTemp">—°</b><span id="weatherLabel">Погода</span><small id="weatherFeels">Обновляю…</small></div></div>
    </div>
    <div class="north-assistant">
-     <img src="/assets/assistant.png" alt="Помощница FARRUKH AI">
+     <div class="assistant-mini" aria-hidden="true"></div>
      <div class="assistant-orb"></div>
      <div class="assistant-copy"><b id="northGreeting">Здравствуйте, шеф!</b><span id="northWish">Хорошего дня!</span><p>Сегодня у вас ${todays.length} ${todays.length===1?'задача':'задачи'}. Какие планы? Есть что-то ещё, что нужно взять под контроль?</p></div>
      <div class="assistant-wave">${waves}</div>
@@ -166,7 +166,7 @@ let title=text.replace(/^(?:добавь|создай|сохрани|запиш�
 function proposeTask(t,editIndex=null){if(!t.text){reply('Что записать в задачу? Назови действие.');return}pending={description:`${editIndex===null?'Сохранить':'Перенести'} задачу «${t.text}» на ${t.dueDate}${t.time?' в '+t.time:''}?`,run:()=>{const list=[...data.tasks],obj={...t,id:t.id||id(),dueAt:t.time?new Date(t.dueDate+'T'+t.time+':00+03:00').toISOString():null};if(editIndex===null)list.unshift(obj);else list[editIndex]=obj;persist('tasks',list);lastTask=obj.id;return 'Сохранила задачу на '+t.dueDate+(t.time?' в '+t.time:'')+': '+t.text+'.'}};reply(pending.description+' Скажи «да» или нажми «Подтвердить».');renderMessages()}
 function confirmPending(){if(!pending)return;const p=pending;try{const message=p.run();pending=null;renderMessages();reply(message)}catch(e){reply('Запись не сохранена. Проверь свободное место и повтори.')}}
 async function handle(text){try{saveChat('user',text);if(awaitingDailyPlans)return queueDailyPlans(text);if(pending&&/^(да|подтверждаю|сохрани|верно)[.!]?$/i.test(text))return confirmPending();if(/^(отмена|не сохраняй|нет)[.!]?$/i.test(text)&&pending){pending=null;renderMessages();return reply('Запись отменена.')}if(/^(сохрани|запиши|добавь|создай).*задач|^напомни/i.test(text)){proposeTask(parseTask(text));return}if(/^(перенеси|давай лучше)/i.test(text)&&lastTask){const i=data.tasks.findIndex(t=>t.id===lastTask);if(i>=0){const parsed=parseTask(text);proposeTask({...data.tasks[i],dueDate:parsed.dueDate,time:parsed.time||data.tasks[i].time},i);return}}if(/^(сохрани|запиши|добавь)\s+(идею|решение|заметку)/i.test(text)){const note=text.replace(/^(сохрани|запиши|добавь)\s+(идею|решение|заметку)\s*[:,-]?\s*/i,'').trim();if(!note)return reply('Какую мысль сохранить?');persist('notes',[...data.notes,{id:id(),text:note,date:day()}]);return reply('Сохранила заметку: '+note)}if(/(?:создай|открой|новая|новую).*ттк|(?:создай|новое).*блюдо/i.test(text)){reply('Открываю черновик рецептуры.');go('recipes');recipeEditor();return}if(/открой.*журнал|запиши.*температур/i.test(text)){journalType=/дефрост/i.test(text)?'defrost':/бракераж/i.test(text)?'quality':'temperature';reply('Открываю журнал. Укажи фактические данные проверки.');go('journals');journalEditor();return}if(/открой.*(?:расчёт|расчет|калькулятор)/i.test(text)){go('cost');return}if(/(?:какие|покажи|что).*задач|что.*сегодня/i.test(text)){const list=data.tasks.filter(t=>!t.done&&taskDate(t)===day());return reply(list.length?'На сегодня: '+list.map(t=>t.text).join('; '):'На сегодня нет незавершённых задач с указанной датой.')}if(!aiConnected){return reply('Сейчас могу сохранить задачу, заметку, открыть рецептуру или журнал. Для свободного разговора нужно подключить AI-модель в настройках сервера.')}busy=true;renderMessages();const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(60000),body:JSON.stringify({message:text,history:data.chat.slice(0,-1).slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.text})),context:{tasks:data.tasks,projects:read('farrukh_mobile_projects',[]),knowledge:localStorage.getItem('farrukh_mobile_knowledge')||'',recipes:data.recipes,notes:data.notes,journals:data.journals.slice(-20)}})});const result=await response.json();if(!response.ok)throw Error('Не удалось получить ответ AI.');reply(result.reply||'Ответ не получен.')}catch(e){reply(e.message||'Не получилось выполнить команду. Попробуй ещё раз.')}finally{busy=false;renderMessages()}}
-let wakeRecognition=null,wakeRestartTimer=null,wakeEnabled=true;
+let wakeRecognition=null,wakeRestartTimer=null,wakeEnabled=false;
 function stopWakeListener(){clearTimeout(wakeRestartTimer);if(wakeRecognition){const r=wakeRecognition;wakeRecognition=null;try{r.onend=null;r.abort()}catch(e){}}}
 function startWakeListener(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -187,11 +187,11 @@ document.addEventListener('change',e=>{if(e.target.dataset.grossMode!==undefined
 main.addEventListener('input',e=>{if(view!=='cost')return;const t=e.target;if(t.dataset.row!==undefined){const r=draft.rows[+t.dataset.row];r[t.dataset.key]=t.value;if(t.dataset.key==='name'){fillFood(r,true);for(const k of ['kcal','p','f','c']){const input=$(`input[data-row="${t.dataset.row}"][data-key="${k}"]`);if(input)input.value=r[k]??''}}else if(['kcal','p','f','c'].includes(t.dataset.key)){r.nutritionAuto=false;r.nutritionSource=''}}else if(t.name){const k=t.name==='dish'?'name':t.name;draft[k]=t.value}safe(()=>put('farrukh_studio_cost',draft));renderCost()});
 window.addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(v!==view)go(v)});
 window.addEventListener('storage',e=>{const k=Object.keys(keys).find(k=>keys[k]===e.key);if(k){data[k]=read(keys[k],[]);render()}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){stopWakeListener();stop()}else setTimeout(startWakeListener,700)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopWakeListener();stop()}});
 
 $('#todayLabel').textContent=new Date().toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',weekday:'short'});
 go(location.hash.slice(1)||'home');
-setTimeout(startupGreeting,700);setTimeout(startWakeListener,9000);
+setTimeout(startupGreeting,700);
 window.addEventListener('pointerdown',()=>{if(!startupGreetingSpoken)setTimeout(startupGreeting,80)},{once:true});
 fetch('/api/status').then(r=>r.json()).then(s=>{aiConnected=!!s.aiConnected;statusKnown=true;if(['settings','home'].includes(view))render();else if(view==='chat')voiceStatus(aiConnected?'AI подключён':'Команды доступны · AI-модель не подключена')}).catch(()=>{statusKnown=true;toast('Сервер недоступен. Локальные записи работают.')});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
