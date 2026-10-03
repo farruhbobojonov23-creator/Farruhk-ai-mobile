@@ -1,0 +1,78 @@
+/* FARRUKH AI — Northern Lights theme */
+:root{
+  color-scheme:light;
+  --bg:#edf8ff;
+  --panel:rgba(255,255,255,.72);
+  --line:rgba(107,141,176,.20);
+  --muted:#6e7f95;
+  --text:#17314f;
+  --accent:#71a9ff;
+  --bright:#0d5fbf;
+  --serif:Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 520px at 70% -10%,rgba(119,221,255,.42),transparent 62%),
+    radial-gradient(700px 460px at 95% 15%,rgba(169,138,255,.25),transparent 62%),
+    linear-gradient(180deg,#f6fbff 0%,#eaf7ff 48%,#f8fbff 100%);
+  color:var(--text);
+}
+body:before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background:
+    radial-gradient(800px 260px at 65% 10%,rgba(93,255,220,.23),transparent 66%),
+    radial-gradient(760px 260px at 88% 7%,rgba(96,129,255,.20),transparent 70%);
+  filter:blur(14px);
+}
+.sidebar{
+  background:rgba(246,251,255,.78)!important;
+  border-right:1px solid rgba(87,123,164,.16)!important;
+  backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:18px 0 60px rgba(88,128,173,.08);
+}
+.brand{color:#16314f!important}.brand b{color:#2f81dd!important}.brand small,.nav-caption{color:#7d90a9!important}
+.brand-mark span{color:#78b7ff!important}.nav-item{color:#6e8098!important}.nav-item.active{background:linear-gradient(135deg,rgba(188,223,255,.75),rgba(221,242,255,.85))!important;color:#17528d!important;box-shadow:inset 0 0 0 1px rgba(101,158,214,.16)}
+.sidebar-bottom small{color:#8798ad!important}.avatar-initial{background:linear-gradient(135deg,#cceaff,#edf7ff)!important;color:#2c6da9!important}
+.workspace{max-width:1800px}
+header{background:rgba(255,255,255,.38);border:1px solid rgba(112,148,184,.12);backdrop-filter:blur(18px);padding:14px 18px;border-radius:20px;box-shadow:0 14px 45px rgba(83,125,169,.07)}
+.eyebrow{color:#7d90a9!important}h1,h2,h3,.brand{color:#153250}.header-right{color:#6f8299!important}.icon-button{border-color:rgba(104,145,183,.22)!important;color:#2d639b!important;background:rgba(255,255,255,.56)!important}
+.hero-layout{grid-template-columns:minmax(0,1.75fr) minmax(290px,.9fr)}
+.hero{
+  min-height:500px!important;
+  border:1px solid rgba(106,150,192,.18)!important;
+  background:
+    radial-gradient(700px 300px at 82% 5%,rgba(109,233,230,.42),transparent 68%),
+    radial-gradient(560px 300px at 100% 14%,rgba(113,132,255,.28),transparent 68%),
+    linear-gradient(135deg,#eef9ff 0%,#dff3ff 46%,#dfe9ff 100%)!important;
+  border-radius:30px!important;
+  box-shadow:0 28px 80px rgba(80,126,170,.17),inset 0 1px 0 rgba(255,255,255,.85);
+}
+.hero:before{
+  content:'МУРМАНСК';position:absolute;right:28px;top:24px;z-index:2;
+  font-size:10px;letter-spacing:.18em;color:#4b6f93;background:rgba(255,255,255,.66);padding:9px 12px;border-radius:999px;border:1px solid rgba(95,135,176,.16);backdrop-filter:blur(10px)
+}
+.hero:after{background:linear-gradient(90deg,rgba(244,251,255,.98) 0%,rgba(238,249,255,.82) 42%,rgba(222,240,255,.16) 72%)!important}
+.portrait{height:112%!important;width:56%!important;right:-1%!important;bottom:-18%!important;object-position:50% 0!important;filter:saturate(.94) contrast(.98) drop-shadow(0 26px 32px rgba(42,92,134,.18))}
+.hero-copy{width:55%!important;padding:44px 38px!important}.badge{border-color:rgba(84,145,199,.18)!important;background:rgba(255,255,255,.58)!important;color:#2b6697!important;backdrop-filter:blur(10px)}.dot{background:#61b4ff!important}
+.hero h2{font-family:Manrope,system-ui,sans-serif!important;font-size:48px!important;font-weight:600!important;color:#183c65!important;line-height:1.08!important;margin:34px 0 18px!important}
+.hero-copy p{color:#627b96!important;font-size:13px!important;max-width:265px!important}.hero-status{color:#4f7398!important}.waves i{background:#5aa3e8!important}
+.primary{background:linear-gradient(135deg,#6da9ff,#8fcaff)!important;color:#fff!important;box-shadow:0 10px 24px rgba(72,136,208,.24)}
+.secondary{border-color:rgba(104,145,183,.20)!important;background:rgba(255,255,255,.60)!important;color:#315d87!important}.subtle{color:#2f77bd!important}
+.card,.tool,.stat{
+  background:var(--panel)!important;
+  border:1px solid rgba(100,139,177,.16)!important;
+  box-shadow:0 16px 46px rgba(79,121,164,.09),inset 0 1px 0 rgba(255,255,255,.78);
+  backdrop-filter:blur(20px) saturate(135%);
+}
+.card{border-radius:24px!important}.tool{border-radius:22px!important;min-height:170px!important;overflow:hidden}.tool:before{content:'';position:absolute;inset:auto -35px -42px auto;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(123,194,255,.20),transparent 70%)}
+.tool .tool-icon{background:linear-gradient(145deg,rgba(214,239,255,.9),rgba(239,247,255,.98))!important;color:#3f78ae!important;border:1px solid rgba(111,161,205,.16);box-shadow:0 8px 20px rgba(75,122,165,.10)}
+.tool b{color:#214564!important}.tool small,.caption,.section-label span,.muted{color:#778ba2!important}.tool .arrow{color:#79a5cd!important}
+.task-row{border-bottom-color:rgba(105,140,174,.14)!important}.task-row small{color:#7b8ea4!important}.tag{background:#dff1ff!important;color:#3473aa!important}.progress-track{background:#dfeef8!important}.progress-track span{background:linear-gradient(90deg,#6aa8f4,#91d5ff)!important}
+.stat strong{color:#2d6ea8!important}.field{border-color:rgba(104,145,183,.22)!important;color:#224460!important;background:rgba(255,255,255,.72)!important}.notice{background:#eef7ff!important;border-color:#cee5f8!important;color:#54728d!important}.tabs button{border-color:rgba(104,145,183,.18)!important;background:rgba(255,255,255,.38)!important;color:#71869d!important}.tabs button.active{background:#dcefff!important;color:#28699f!important;border-color:#bcdcf6!important}.metric{border-bottom-color:rgba(105,140,174,.14)!important}.chat-panel,.message.assistant{background:rgba(255,255,255,.42)!important}.message.user{background:#d9edff!important;color:#214b70!important}.message.assistant{border-color:rgba(104,145,183,.16)!important;color:#31516d!important}.chat-portrait{background-color:#ddecf8!important}.chat-portrait:after{background:linear-gradient(transparent,rgba(218,236,249,.95))!important;color:#245172!important}
+footer{color:#8799ad!important}dialog{color:#23435f!important;background:rgba(247,252,255,.98)!important;border-color:rgba(104,145,183,.22)!important}#toast{background:#d8eeff!important;color:#22527c!important}
+#northClock{position:fixed;right:28px;bottom:28px;z-index:15;background:rgba(255,255,255,.72);border:1px solid rgba(104,145,183,.16);backdrop-filter:blur(18px);box-shadow:0 16px 50px rgba(72,116,158,.13);border-radius:20px;padding:12px 16px;color:#173c61;min-width:126px;text-align:right}#northClock strong{display:block;font-size:24px;letter-spacing:-.04em}#northClock span{display:block;font-size:9px;letter-spacing:.13em;color:#7890a8;margin-top:3px}
+@media(max-width:800px){
+  .sidebar{background:rgba(240,249,255,.90)!important;border-top:1px solid rgba(90,131,171,.16)!important}.nav-item.active{background:#dcefff!important}.workspace{padding-top:14px!important}.hero-layout{grid-template-columns:1fr!important}.hero{min-height:480px!important}.hero-copy{width:62%!important;padding:32px 22px!important}.hero h2{font-size:36px!important}.portrait{width:69%!important;height:105%!important;right:-13%!important;bottom:-15%!important}.hero:before{right:16px;top:16px}.tools-grid{grid-template-columns:repeat(2,1fr)!important}.tool{min-height:155px!important}#northClock{right:14px;bottom:88px;padding:9px 12px;border-radius:15px}#northClock strong{font-size:20px}header{padding:11px 13px;border-radius:16px}.card{border-radius:20px!important}
+}
