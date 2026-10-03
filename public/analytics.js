@@ -19,6 +19,7 @@
     .branch-card small{display:block;color:#7f9098;margin-top:5px;line-height:1.4}
     .report-pill{display:inline-block;border:1px solid #2a5b3e;background:#102019;color:#75ffad;border-radius:999px;padding:5px 8px;font-size:9px;margin:3px 4px 3px 0}
     .report-note{padding:10px 12px;border-radius:12px;background:#0c1518;border:1px solid #17302a;color:#aebbc0;font-size:11px;line-height:1.5}
+    .frontpad-ok{border-color:#285d3e;color:#8affb7}.frontpad-warn{border-color:#6a5424;color:#f5d98a}
     .analytics-refresh{width:100%;border:none;border-radius:14px;padding:12px;background:linear-gradient(135deg,#5dffa1,#20d86d);color:#062211;font-weight:800;margin-top:10px}
   `;
   document.head.appendChild(style);
@@ -32,7 +33,8 @@
   screen.className='screen';
   screen.innerHTML=`
     <div class="section-title"><span>FRONTPAD</span><h2>Аналитика продаж</h2></div>
-    <div id="analyticsStatus" class="report-note">Загружаю данные…</div>
+    <div id="frontpadConnection" class="report-note">Проверяю подключение Frontpad…</div>
+    <div id="analyticsStatus" class="report-note" style="margin-top:8px">Загружаю данные…</div>
     <div id="analyticsBody" style="margin-top:12px"></div>
   `;
   main.appendChild(screen);
@@ -43,7 +45,7 @@
   btn.innerHTML='▥<span>Аналитика</span>';
   nav.insertBefore(btn,nav.lastElementChild);
   nav.style.gridTemplateColumns='repeat(7,1fr)';
-  btn.onclick=()=>{try{show(ANALYTICS_ID)}catch(e){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===ANALYTICS_ID));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x===btn));}loadAnalytics();};
+  btn.onclick=()=>{try{show(ANALYTICS_ID)}catch(e){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===ANALYTICS_ID));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x===btn));}loadFrontpadStatus();loadAnalytics();};
 
   const fmt=n=>new Intl.NumberFormat('ru-RU').format(Number(n||0));
   const escA=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -51,6 +53,28 @@
   function bars(branches){
     const max=Math.max(...branches.map(x=>x.units),1);
     return branches.map(x=>`<div class="bar-row"><label>${escA(x.name)}</label><div class="bar-track"><div class="bar-fill" style="width:${Math.max(4,Math.round(x.units/max*100))}%"></div></div><b>${fmt(x.units)}</b></div>`).join('');
+  }
+
+  async function loadFrontpadStatus(){
+    const el=document.getElementById('frontpadConnection');
+    if(!el)return;
+    try{
+      const r=await fetch('/api/frontpad/status',{cache:'no-store'});
+      const d=await r.json();
+      if(d.configured&&d.reachable){
+        el.className='report-note frontpad-ok';
+        el.innerHTML='<b>Frontpad: доступ сохранён ✓</b><br>Сервер видит Frontpad. Автоматическая выгрузка отчётов пока не включена: вход Frontpad требует дополнительный код, а отдельный API отчётов не подтверждён.';
+      }else if(d.configured){
+        el.className='report-note frontpad-warn';
+        el.innerHTML='<b>Frontpad: данные доступа сохранены</b><br>Сейчас сервер не смог подтвердить доступность страницы входа. Повторим проверку позже.';
+      }else{
+        el.className='report-note frontpad-warn';
+        el.innerHTML='<b>Frontpad не настроен</b><br>Добавь FRONTPAD_LOGIN и FRONTPAD_PASSWORD в Render.';
+      }
+    }catch(e){
+      el.className='report-note frontpad-warn';
+      el.textContent='Не удалось проверить подключение Frontpad.';
+    }
   }
 
   function render(data){
@@ -76,7 +100,7 @@
       <div class="analytics-card"><h3>Отчёт шефу</h3>
         <span class="report-pill">Сильные точки</span><span class="report-pill">Слабые позиции</span><span class="report-pill">Нулевые продажи</span><span class="report-pill">Категории</span><span class="report-pill">Сравнение филиалов</span>
         <p>${escA(data.summary||'')}</p>
-        <div class="report-note">Ежедневный полный отчёт настроен на вечер. Для автоматического обновления без ручной выгрузки следующим этапом подключаем получение свежих данных Frontpad.</div>
+        <div class="report-note">Ежедневный полный отчёт настроен на вечер. Сейчас данные берутся из последних загруженных отчётов Frontpad. Автоматическую выгрузку включим только через поддерживаемый Frontpad способ, без обхода кода входа.</div>
         <button id="frontpadReportBtn" class="analytics-refresh">Сформировать отчёт сейчас</button>
       </div>
     `;
@@ -95,5 +119,6 @@
       if(status)status.textContent='Не удалось загрузить аналитику: '+e.message;
     }
   }
+  loadFrontpadStatus();
   loadAnalytics();
 })();
