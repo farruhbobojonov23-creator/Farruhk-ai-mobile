@@ -1,16 +1,11 @@
-(()=>{
-  const root=document.createElement('div');
-  root.id='northClock';
-  root.innerHTML='<strong>--:--</strong><span>МОСКОВСКОЕ ВРЕМЯ</span>';
-  document.body.appendChild(root);
-  const time=root.querySelector('strong');
-  const update=()=>{
-    try{
-      time.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date());
-    }catch{
-      time.textContent=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-    }
-  };
-  update();
-  setInterval(update,30000);
+(()=>{'use strict';
+const q=s=>document.querySelector(s);
+const setPortrait=async()=>{try{const r=await fetch('/assets/north-woman.b64?v=6',{cache:'force-cache'});if(!r.ok)throw Error('portrait');const b=(await r.text()).trim();document.documentElement.style.setProperty('--north-woman',`url("data:image/webp;base64,${b}")`)}catch(e){document.documentElement.style.setProperty('--north-woman',"url('/assets/assistant.png')")}};
+const updateClock=()=>{const d=new Date();let h='00',m='00';try{const p=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);h=p.find(x=>x.type==='hour')?.value||'00';m=p.find(x=>x.type==='minute')?.value||'00'}catch{h=String(d.getHours()).padStart(2,'0');m=String(d.getMinutes()).padStart(2,'0')}const c=q('#homeClock'),date=q('#homeDate');if(c)c.textContent=h+':'+m;if(date)date.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'}).format(d);const n=Number(h),g=q('#northGreeting'),w=q('#northWish');if(g)g.textContent=n<6?'Доброй ночи, шеф!':n<12?'Доброе утро, шеф!':n<18?'Здравствуйте, шеф!':'Добрый вечер, шеф!';if(w)w.textContent=n<6?'Спокойной ночи!':n<12?'Хорошего утра!':n<18?'Хорошего дня!':'Хорошего вечера!'};
+const info=code=>{if([71,73,75,77,85,86].includes(code))return['snow','🌨️','Снег'];if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return['rain','🌧️','Дождь'];if([95,96,99].includes(code))return['rain','⛈️','Гроза'];if(code===0)return['clear','☀️','Ясно'];if([1,2].includes(code))return['clear','🌤️','Переменная облачность'];return['cloud','☁️','Облачно']};
+const fx=kind=>{const box=q('#weatherFx');if(!box)return;box.className='weather-fx '+kind;box.innerHTML='';if(!['snow','rain'].includes(kind))return;const n=kind==='snow'?42:30;for(let i=0;i<n;i++){const p=document.createElement('i');p.style.left=(Math.random()*100)+'%';p.style.animationDuration=((kind==='snow'?5:1.15)+Math.random()*(kind==='snow'?5:1.7))+'s';p.style.animationDelay=(-Math.random()*8)+'s';p.style.opacity=(.22+Math.random()*.65).toFixed(2);if(kind==='snow'){const z=3+Math.random()*5;p.style.width=z+'px';p.style.height=z+'px'}box.appendChild(p)}};
+const weather=async()=>{try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=68.9707&longitude=33.07497&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Europe%2FMoscow',{cache:'no-store'});if(!r.ok)throw Error('weather');const j=await r.json(),c=j.current||{},[kind,icon,label]=info(Number(c.weather_code));if(q('#weatherTemp'))q('#weatherTemp').textContent=Math.round(Number(c.temperature_2m))+'°';if(q('#weatherIcon'))q('#weatherIcon').textContent=icon;if(q('#weatherLabel'))q('#weatherLabel').textContent=label;if(q('#weatherFeels'))q('#weatherFeels').textContent='Ощущается '+Math.round(Number(c.apparent_temperature))+'° · ветер '+Math.round(Number(c.wind_speed_10m))+' м/с';fx(kind)}catch(e){if(q('#weatherLabel'))q('#weatherLabel').textContent='Мурманск';if(q('#weatherFeels'))q('#weatherFeels').textContent='Погода временно недоступна';fx('clear')}};
+const refresh=()=>{updateClock();weather();setPortrait()};
+const boot=()=>{refresh();setInterval(updateClock,30000);setInterval(weather,600000);new MutationObserver(()=>{if(q('#homeClock')){updateClock();weather()}}).observe(document.querySelector('#main')||document.body,{childList:true,subtree:false})};
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot,{once:true}):boot();
 })();
