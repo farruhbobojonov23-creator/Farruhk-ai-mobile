@@ -41,8 +41,8 @@ if('speechSynthesis' in window){
  refreshVoices();
  speechSynthesis.onvoiceschanged=refreshVoices;
 }
-function speak(text){
- if(!state.tts || !('speechSynthesis' in window) || !text) return;
+function speak(text,onDone){
+ if(!state.tts || !('speechSynthesis' in window) || !text){if(onDone)onDone();return}
  speechSynthesis.cancel();
  speechSynthesis.resume();
  const u=new SpeechSynthesisUtterance(String(text));
@@ -50,7 +50,10 @@ function speak(text){
  refreshVoices();
  const ru=ttsVoices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ru'))||ttsVoices.find(v=>v.default);
  if(ru)u.voice=ru;
- u.onerror=e=>console.warn('TTS error',e.error);
+ let finished=false;
+ const done=()=>{if(finished)return;finished=true;if(onDone)onDone()};
+ u.onend=done;
+ u.onerror=e=>{console.warn('TTS error',e.error);done()};
  setTimeout(()=>{speechSynthesis.resume();speechSynthesis.speak(u)},80);
 }
 function renderChat(){
@@ -78,18 +81,146 @@ $('#msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e
 $('[data-cmd]').forEach(b=>b.onclick=()=>{unlockTTS();askAI(b.dataset.cmd)});
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let wakeRecognition=null;
+let commandRecognition=null;
+let wakeEnabled=true;
+let commandActive=false;
+let wakeRestartTimer=null;
+
+function setWakeUI(mode){
+ const btn=$('#wakeBtn');
+ if(!btn)return;
+ if(mode==='listening'){btn.textContent='🟢';btn.title='Ведьма слушает ключевое слово';}
+ else if(mode==='command'){btn.textContent='🎙';btn.title='Ведьма слушает команду';}
+ else {btn.textContent='⚪';btn.title='Нажмите, чтобы включить Ведьму';}
+}
+
+function stopWakeRecognition(){
+ clearTimeout(wakeRestartTimer);
+ if(wakeRecognition){
+   const r=wakeRecognition;
+   wakeRecognition=null;
+   try{r.onend=null;r.stop()}catch(e){}
+ }
+}
+
+function scheduleWakeRestart(delay=500){
+ clearTimeout(wakeRestartTimer);
+ if(wakeEnabled&&!commandActive&&!document.hidden){
+   wakeRestartTimer=setTimeout(startWakeListener,delay);
+ }
+}
+
+function startWakeListener(){
+ if(!SR||!wakeEnabled||commandActive||document.hidden||wakeRecognition)return;
+ const r=new SR();
+ wakeRecognition=r;
+ r.lang='ru-RU';
+ r.continuous=true;
+ r.interimResults=true;
+ setWakeUI('listening');
+ r.onresult=e=>{
+   for(let i=e.resultIndex;i<e.results.length;i++){
+     const heard=(e.results[i][0].transcript||'').toLowerCase().trim();
+     if(/(^|\s)(ведьма|ведма)(\s|$|[,.!?])/.test(heard)){
+       stopWakeRecognition();
+       activateWitch();
+       return;
+     }
+   }
+ };
+ r.onerror=e=>{
+   wakeRecognition=null;
+   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+     wakeEnabled=false;
+     setWakeUI('off');
+   }else{
+     scheduleWakeRestart(900);
+   }
+ };
+ r.onend=()=>{
+   if(wakeRecognition===r)wakeRecognition=null;
+   scheduleWakeRestart(500);
+ };
+ try{r.start()}catch(e){wakeRecognition=null;scheduleWakeRestart(900)}
+}
+
+function startCommandListening(){
+ if(!SR)return;
+ stopWakeRecognition();
+ commandActive=true;
+ setWakeUI('command');
+ const r=new SR();
+ commandRecognition=r;
+ r.lang='ru-RU';
+ r.continuous=false;
+ r.interimResults=false;
+ let gotResult=false;
+ r.onresult=e=>{
+   gotResult=true;
+   const text=e.results[0][0].transcript.trim();
+   commandActive=false;
+   commandRecognition=null;
+   if(text)askAI(text).finally(()=>scheduleWakeRestart(700));
+   else scheduleWakeRestart(500);
+ };
+ r.onerror=()=>{
+   commandActive=false;
+   commandRecognition=null;
+   setWakeUI('listening');
+   scheduleWakeRestart(700);
+ };
+ r.onend=()=>{
+   if(commandRecognition===r){
+     commandRecognition=null;
+     commandActive=false;
+     if(!gotResult)scheduleWakeRestart(500);
+   }
+ };
+ try{r.start()}catch(e){commandActive=false;commandRecognition=null;scheduleWakeRestart(700)}
+}
+
+function activateWitch(){
+ commandActive=true;
+ setWakeUI('command');
+ unlockTTS();
+ speak('Я слушаю.',()=>{
+   commandActive=false;
+   startCommandListening();
+ });
+}
+
 function listen(){
  unlockTTS();
  if(!SR){alert('Голосовой ввод лучше всего работает в Chrome на Android.');return}
- const r=new SR();r.lang='ru-RU';r.continuous=false;r.interimResults=false;
+ stopWakeRecognition();
+ commandActive=true;
+ const r=new SR();commandRecognition=r;
+ r.lang='ru-RU';r.continuous=false;r.interimResults=false;
  $('#talkBtn').textContent='🎙 Слушаю...';
- r.onresult=e=>askAI(e.results[0][0].transcript);
- r.onend=()=>$('#talkBtn').textContent='🎙 Говорить';
- r.onerror=()=>$('#talkBtn').textContent='🎙 Говорить';
+ r.onresult=e=>{
+   commandActive=false;commandRecognition=null;
+   askAI(e.results[0][0].transcript).finally(()=>scheduleWakeRestart(700));
+ };
+ r.onend=()=>{
+   $('#talkBtn').textContent='🎙 Говорить';
+   if(commandRecognition===r){commandRecognition=null;commandActive=false;scheduleWakeRestart(500)}
+ };
+ r.onerror=()=>{$('#talkBtn').textContent='🎙 Говорить';commandRecognition=null;commandActive=false;scheduleWakeRestart(700)};
  r.start();
 }
 $('#talkBtn').onclick=listen;
-$('#wakeBtn').onclick=listen;
+$('#wakeBtn').onclick=()=>{
+ unlockTTS();
+ wakeEnabled=!wakeEnabled;
+ if(wakeEnabled){setWakeUI('listening');startWakeListener()}
+ else{stopWakeRecognition();setWakeUI('off')}
+};
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)stopWakeRecognition();
+ else scheduleWakeRestart(300);
+});
+setTimeout(()=>startWakeListener(),1200);
 
 function addIng(name='',g='',p=''){
  const row=document.createElement('div');row.className='ingredient';
