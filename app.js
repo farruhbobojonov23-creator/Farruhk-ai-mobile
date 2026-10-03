@@ -23,12 +23,35 @@ $('#addTask').onclick=()=>$('#taskModal').classList.add('show');
 $('#cancelTask').onclick=()=>$('#taskModal').classList.remove('show');
 $('#saveTask').onclick=()=>{const text=$('#taskText').value.trim();if(!text)return;state.tasks.unshift({text,priority:$('#taskPriority').value,done:false});$('#taskText').value='';$('#taskModal').classList.remove('show');renderTasks()};
 
+let ttsVoices=[];
+function refreshVoices(){
+ if('speechSynthesis' in window) ttsVoices=speechSynthesis.getVoices()||[];
+}
+function unlockTTS(){
+ if(!state.tts || !('speechSynthesis' in window)) return;
+ try{
+   speechSynthesis.resume();
+   const u=new SpeechSynthesisUtterance(' ');
+   u.volume=0;u.lang='ru-RU';
+   speechSynthesis.speak(u);
+   setTimeout(()=>speechSynthesis.cancel(),60);
+ }catch(e){}
+}
+if('speechSynthesis' in window){
+ refreshVoices();
+ speechSynthesis.onvoiceschanged=refreshVoices;
+}
 function speak(text){
  if(!state.tts || !('speechSynthesis' in window) || !text) return;
  speechSynthesis.cancel();
- const u=new SpeechSynthesisUtterance(text);u.lang='ru-RU';u.rate=.96;u.pitch=.96;
- const voices=speechSynthesis.getVoices();const ru=voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ru'));if(ru)u.voice=ru;
- speechSynthesis.speak(u);
+ speechSynthesis.resume();
+ const u=new SpeechSynthesisUtterance(String(text));
+ u.lang='ru-RU';u.rate=.96;u.pitch=.96;u.volume=1;
+ refreshVoices();
+ const ru=ttsVoices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ru'))||ttsVoices.find(v=>v.default);
+ if(ru)u.voice=ru;
+ u.onerror=e=>console.warn('TTS error',e.error);
+ setTimeout(()=>{speechSynthesis.resume();speechSynthesis.speak(u)},80);
 }
 function renderChat(){
  $('#messages').innerHTML=state.chat.map(m=>`<div class="msg ${m.role==='user'?'user':'ai'}">${esc(m.text)}</div>`).join('');
@@ -50,12 +73,13 @@ async function askAI(text){
    state.chat.push({role:'ai',text:reply});renderChat();speak(reply);
  }
 }
-$('#sendBtn').onclick=()=>{const t=$('#msgInput').value;$('#msgInput').value='';askAI(t)};
+$('#sendBtn').onclick=()=>{unlockTTS();const t=$('#msgInput').value;$('#msgInput').value='';askAI(t)};
 $('#msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#sendBtn').click()}});
-$$('[data-cmd]').forEach(b=>b.onclick=()=>askAI(b.dataset.cmd));
+$('[data-cmd]').forEach(b=>b.onclick=()=>{unlockTTS();askAI(b.dataset.cmd)});
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function listen(){
+ unlockTTS();
  if(!SR){alert('Голосовой ввод лучше всего работает в Chrome на Android.');return}
  const r=new SR();r.lang='ru-RU';r.continuous=false;r.interimResults=false;
  $('#talkBtn').textContent='🎙 Слушаю...';
