@@ -1,48 +1,48 @@
-// Free local Piper TTS for FARRUKH AI Mobile.
-// Runs in the browser; no API key and no paid voice service required.
-let piperModulePromise = null;
-let piperAudio = null;
+// Reliable free TTS for FARRUKH AI Mobile.
+// Prefer the phone/browser system voice because it works after async AI replies
+// without a paid API or remote audio autoplay.
+const originalSpeak = typeof speak === 'function' ? speak : null;
 
-async function loadPiper(){
-  if(!piperModulePromise){
-    piperModulePromise = import('https://esm.sh/@mintplex-labs/piper-tts-web@1.0.5');
+function nativeSpeak(text){
+  if(!state.tts || !text || !('speechSynthesis' in window)) return false;
+  try{
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
+
+    const u=new SpeechSynthesisUtterance(String(text));
+    u.lang='ru-RU';
+    u.rate=0.96;
+    u.pitch=0.98;
+    u.volume=1;
+
+    const voices=speechSynthesis.getVoices()||[];
+    const ru=voices.find(v=>/^ru(-|_)/i.test(v.lang||'')) ||
+             voices.find(v=>/russian|рус/i.test((v.name||'')+' '+(v.lang||''))) ||
+             voices.find(v=>v.default);
+    if(ru) u.voice=ru;
+
+    u.onerror=e=>console.warn('Native TTS error:',e.error);
+    speechSynthesis.speak(u);
+
+    // Some Android builds pause synthesis after an async fetch.
+    setTimeout(()=>{ try{ speechSynthesis.resume(); }catch(e){} },250);
+    return true;
+  }catch(err){
+    console.warn('Native TTS failed:',err);
+    return false;
   }
-  return piperModulePromise;
 }
 
-const systemSpeak = typeof speak === 'function' ? speak : null;
-
-speak = async function(text){
+speak=function(text){
   if(!state.tts || !text) return;
-
-  try{
-    if('speechSynthesis' in window) speechSynthesis.cancel();
-    if(piperAudio){
-      piperAudio.pause();
-      piperAudio = null;
-    }
-
-    const tts = await loadPiper();
-    const wav = await tts.predict({
-      text: String(text),
-      voiceId: 'ru_RU-dmitri-medium'
-    });
-
-    const url = URL.createObjectURL(wav);
-    piperAudio = new Audio(url);
-    piperAudio.onended = () => {
-      URL.revokeObjectURL(url);
-      piperAudio = null;
-    };
-    piperAudio.onerror = () => URL.revokeObjectURL(url);
-    await piperAudio.play();
-  }catch(err){
-    console.warn('Piper TTS unavailable, using system voice:', err);
-    if(systemSpeak) systemSpeak(text);
-  }
+  if(nativeSpeak(text)) return;
+  if(originalSpeak) originalSpeak(text);
 };
 
-// Warm up the library after the page is interactive without blocking startup.
-window.addEventListener('load', () => {
-  setTimeout(() => loadPiper().catch(() => {}), 1500);
-});
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+  window.addEventListener('pageshow',()=>{ try{speechSynthesis.resume();}catch(e){} });
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden){ try{speechSynthesis.resume();}catch(e){} }
+  });
+}
