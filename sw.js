@@ -1,4 +1,4 @@
-const CACHE='farrukh-ai-mobile-v3';
+const CACHE='farrukh-ai-mobile-v4';
 const ASSETS=['/','/index.html','/style.css','/app.js','/piper.js','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 
 self.addEventListener('install',e=>{
