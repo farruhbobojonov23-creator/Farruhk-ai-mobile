@@ -9,7 +9,7 @@ app.use(express.json({limit:'20mb'}));
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
     const html=await fs.readFile(new URL('./public/index.html', import.meta.url),'utf8');
-    const injected=html.replace('</body>','<script src="/analytics.js?v=1"></script></body>');
+    const injected=html.replace('</body>','<script src="/analytics.js?v=4"></script></body>');
     res.type('html').send(injected);
   }catch(err){next(err);}
 });
@@ -51,7 +51,7 @@ const staticKnowledge = {
 };
 
 function buildInstructions(clientContext={}) {
-  return `Ты — FARRUKH AI Mobile, персональный рабочий ассистент Фарруха Ака.\nОтвечай по-русски, кратко, профессионально и практично.\n\nПОСТОЯННЫЙ КОНТЕКСТ:\n${JSON.stringify(staticKnowledge, null, 2)}\n\nТЕКУЩИЕ ДАННЫЕ ИЗ ПРИЛОЖЕНИЯ (включая пользовательскую базу знаний, задачи и проекты):\n${JSON.stringify(clientContext, null, 2)}\n\nПравила:\n- Если пользователь спрашивает про задачи — используй текущий список tasks из контекста.\n- Если спрашивает про проекты — используй projects из контекста плюс постоянную базу выше.\n- Если спрашивает \"что сегодня\" — сначала покажи незакрытые важные задачи, затем обычные.\n- Если данные уже есть в контексте, не говори, что у тебя нет к ним доступа.\n- Поле knowledge — это пользовательская база знаний. Считай её главным рабочим контекстом, если она не противоречит текущим данным.\n- Не выдумывай закупочные цены, граммовки, санитарные нормы и факты.\n- Для себестоимости используй только присланные пользователем числа.\n- Можно предлагать готовые сообщения поварам, чек-листы и рабочие планы.\n- Не утверждай, что можешь переключить системный голос сам.`;
+  return `Ты — FARRUKH AI Mobile, персональный рабочий ассистент Фарруха Ака.\nОтвечай по-русски, кратко, профессионально и практично.\n\nПОСТОЯННЫЙ КОНТЕКСТ:\n${JSON.stringify(staticKnowledge, null, 2)}\n\nТЕКУЩИЕ ДАННЫЕ ИЗ ПРИЛОЖЕНИЯ (включая пользовательскую базу знаний, задачи и проекты):\n${JSON.stringify(clientContext, null, 2)}\n\nПравила:\n- Если пользователь спрашивает про задачи — используй текущий список tasks из контекста.\n- Если спрашивает про проекты — используй projects из контекста плюс постоянную базу выше.\n- Если спрашивает \"что сегодня\" — сначала покажи незакрытые важные задачи, затем обычные.\n- Если данные уже есть в контексте, не говори, что у тебя нет к ним доступа.\n- Поле knowledge — это пользовательская база знаний. Считай её главным рабочим контекстом, если она не противоречит текущим данным.\n- Не выдумывай закупочные цены, граммовки, санитарные нормы и факты.\n- Frontpad: всегда называй дату снимка и источник. Это частичная ручная выгрузка, не полный день и не живые данные. Количество единиц не равно заказам или выручке. Не обещай автозагрузку, отправку или напоминания в фоне. Если нет выручки, прибыли или прошлых периодов, прямо скажи об этом. Отделяй факты от гипотез. Не называй точку плохой по одному неполному снимку.\n- Для себестоимости используй только присланные пользователем числа.\n- Можно предлагать готовые сообщения поварам, чек-листы и рабочие планы.\n- Не утверждай, что можешь переключить системный голос сам.`;
 }
 
 function localReply(message, ctx={}) {
@@ -59,6 +59,11 @@ function localReply(message, ctx={}) {
   const tasks = Array.isArray(ctx.tasks) ? ctx.tasks : [];
   const active = tasks.filter(t => !t.done);
   const projects = Array.isArray(ctx.projects) ? ctx.projects : staticKnowledge.projects;
+
+  if (/frontpad|фронтпад|продаж|выручк|аналитик/.test(x)) {
+    const d=ctx.frontpad||analyticsSnapshot();
+    return `Снимок Frontpad за ${d.date}. Источник: ${d.source}. Период неполный, время выгрузки не указано.\n\n${d.branches.map(b=>`${b.name}: ${b.units} ед.`).join('\n')}\n\nВсего: ${d.totalUnits} ед. Выручка, количество заказов и прошлые периоды не загружены. Автоматическая выгрузка не подключена.`;
+  }
 
   if (x.includes('задач') || x.includes('сегодня')) {
     if (!active.length) return 'Активных задач сейчас нет.';
@@ -81,7 +86,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,frontpadConfigured:frontpadConfigured(),version:'mobile-3.7'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,frontpadConfigured:frontpadConfigured(),version:'chef-4.0'}));
 
 app.get('/api/frontpad/status',async(req,res)=>{
   const configured=frontpadConfigured();
@@ -89,7 +94,7 @@ app.get('/api/frontpad/status',async(req,res)=>{
   let loginPageHasCode=false;
   let httpStatus=null;
   try{
-    const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',headers:{'User-Agent':'FARRUKH-AI/1.0'}});
+    const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',signal:AbortSignal.timeout(8000),headers:{'User-Agent':'FARRUKH-AI/1.0'}});
     httpStatus=r.status;
     const html=await r.text();
     reachable=r.ok;
@@ -110,26 +115,30 @@ app.get('/api/frontpad/status',async(req,res)=>{
   });
 });
 
-app.get('/api/analytics/snapshot',(req,res)=>{
+function analyticsSnapshot(){
   const branches=[
     {name:'Полярные зори 43/1',units:49,strongCategory:'Роллы',strongCategoryUnits:23,topItem:'Чизкейк Классический',topItemUnits:9},
     {name:'Баумана 18',units:30,strongCategory:'Роллы',strongCategoryUnits:12,topItem:'Огурец маки',topItemUnits:3},
     {name:'ГС 33а',units:62,strongCategory:'Роллы',strongCategoryUnits:34,topItem:'Филадельфия',topItemUnits:4},
     {name:'Плазма',units:41,strongCategory:'Интеграция Яндекс',strongCategoryUnits:18,topItem:'Запеченная калифорния / Набор на персону',topItemUnits:2}
   ];
-  res.json({
+  return {
     ok:true,
+    automaticReports:false,
+    periodComplete:false,
+    capturedAt:null,
     date:'03.10.2026',
     source:'ручные выгрузки Frontpad «Товары»',
     totalUnits:182,
     branches,
     summary:'По объёму проданных единиц лидирует ГС 33а — 62. Затем Полярные зори 43/1 — 49, Плазма — 41 и Баумана 18 — 30. На всех точках основная категория — роллы, кроме Плазмы, где заметная доля проходит через категорию «Интеграция Яндекс». Для управленческих выводов по выручке и прибыли нужно дополнительно подключить отчёты «Выручка», «Себестоимость» и «Прибыль и убытки».'
-  });
-});
+  };
+}
+app.get('/api/analytics/snapshot',(req,res)=>res.json(analyticsSnapshot()));
 
 app.post('/api/chat',async(req,res)=>{
   const message=String(req.body?.message||'').trim();
-  const context=req.body?.context||{};
+  const context={...(req.body?.context||{}),frontpad:analyticsSnapshot()};
   if(!message)return res.status(400).json({error:'Пустая команда'});
 
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
@@ -138,7 +147,7 @@ app.post('/api/chat',async(req,res)=>{
     const response=await client.responses.create({
       model:process.env.OPENAI_MODEL||'gpt-6-luna',
       instructions:buildInstructions(context),
-      input:message
+      input:[...(Array.isArray(req.body?.history)?req.body.history:[]).slice(-12).filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string').map(m=>({role:m.role,content:m.content.slice(0,6000)})),{role:'user',content:message}]
     });
     res.json({reply:response.output_text||'Ответ без текста.',mode:'online'});
   }catch(err){
@@ -239,3 +248,4 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
 
 const port=Number(process.env.PORT||3000);
 app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`));
+

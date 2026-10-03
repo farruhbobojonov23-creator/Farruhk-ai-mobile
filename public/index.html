@@ -43,16 +43,17 @@
 .wake-note{font-size:11px;line-height:1.45;color:#7f9098;margin-top:8px}
 .wake-listening{box-shadow:inset 0 0 0 1px rgba(80,255,150,.12)}.storage-path{margin-top:10px}.storage-hint{color:#7f9098;font-size:11px;line-height:1.45;margin-top:8px}.storage-status{color:#77ffab;font-size:11px;margin-top:8px}
 </style>
-  <title>FARRUKH AI Mobile</title>
+  <link rel="stylesheet" href="/professional.css?v=4">
+  <title>FARRUKH AI · Кабинет шефа</title>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <div class="brand">
       <div class="orb-mini"></div>
-      <div><b>FARRUKH AI</b><span>MOBILE • CHEF OS</span></div>
+      <div><b>FARRUKH AI</b><span>СУШИ БЕРИ / КАБИНЕТ ШЕФА</span></div>
     </div>
-    <button id="wakeBtn" class="icon-btn">🟢</button>
+    <button id="wakeBtn" class="icon-btn" aria-label="Голосовой ввод">♩</button>
   </header>
 
   <main>
@@ -63,12 +64,13 @@
           <div class="ring r2"></div>
           <div class="core"></div>
         </div>
-        <span class="pill">AI CORE</span>
+        <span class="pill">ЛИЧНЫЙ АССИСТЕНТ · 4 ТОЧКИ</span>
         <h1 id="greeting">Фаррух AI</h1>
-        <p id="sub">Готов к работе.</p>
+        <p id="sub">Всё важное для твоей кухни.</p>
         <button id="talkBtn" class="talk">🎙 Говорить</button>
       </div>
 
+      <div id="chefOverview" class="overview" aria-live="polite"></div>
       <div class="quick-grid">
         <button data-cmd="Что у меня сегодня по задачам?">Сегодня</button>
         <button data-cmd="Напиши сообщение поварам">Поварам</button>
@@ -86,8 +88,8 @@
       <div class="chat-wrap">
         <div id="messages" class="messages"></div>
         <div class="composer">
-          <textarea id="msgInput" rows="1" placeholder="Напиши команду..."></textarea>
-          <button id="sendBtn">➤</button>
+          <textarea aria-label="Сообщение ассистенту" id="msgInput" rows="1" placeholder="Напиши команду..."></textarea>
+          <button aria-label="Отправить сообщение" id="sendBtn">➤</button>
         </div>
       </div>
     </section>
@@ -104,7 +106,7 @@
         <strong id="totalCost">0 ₽</strong>
         <input id="salePrice" class="field" type="number" placeholder="Цена продажи, ₽">
         <div class="line"><span>Food cost</span><b id="foodCost">—</b></div>
-        <div class="line"><span>Маржа</span><b id="margin">—</b></div>
+        <div class="line"><span>До прочих расходов</span><b id="margin">—</b></div>
         <button id="askCost" class="primary">Спросить AI</button>
       </div>
     </section>
@@ -121,10 +123,10 @@
 
 
     <section id="admin" class="screen">
-      <div class="section-title"><span>УПРАВЛЕНИЕ</span><h2>Админ-панель</h2></div>
+      <div class="section-title"><span>УПРАВЛЕНИЕ</span><h2>Рабочее пространство</h2></div>
 
       <div class="card admin-card">
-        <div class="admin-head"><div><b>Задачи</b><span>Добавляй и редактируй без GitHub</span></div><button id="adminAddTask">+ Задача</button></div>
+        <div class="admin-head"><div><b>Задачи</b><span>Приоритеты и контроль исполнения</span></div><button id="adminAddTask">+ Задача</button></div>
         <div id="adminTasks"></div>
       </div>
 
@@ -246,6 +248,8 @@
   });
 })();
 </script>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
+<script src="/features.js?v=4"></script>
+<script src="/professional.js?v=4"></script>
 </body>
 </html>

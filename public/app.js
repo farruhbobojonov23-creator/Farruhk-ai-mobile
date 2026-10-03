@@ -25,13 +25,14 @@ const DEFAULT_KNOWLEDGE=`ПРОФИЛЬ
 Личный сайт и бренд.
 Новые блюда и R&D.`;
 
+function storedJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key)??'null')??fallback}catch{return fallback}}
 const state={
-  tasks:JSON.parse(localStorage.getItem('farrukh_mobile_tasks')||'null')||[
+  tasks:storedJSON('farrukh_mobile_tasks',null)||[
     {text:'Проверить чистоту и маркировки на точке №2',priority:'high',done:false},
     {text:'Проверить меню A3',priority:'high',done:false},
     {text:'Сверить закупки и остатки',priority:'normal',done:false}
   ],
-  projects:JSON.parse(localStorage.getItem('farrukh_mobile_projects')||'null')||[
+  projects:storedJSON('farrukh_mobile_projects',null)||[
     'Меню A3: холодные + запечённые',
     'Экраны: контент для 3 мониторов',
     'Шеф на дому: японская кухня',
@@ -40,9 +41,9 @@ const state={
     'Новые блюда и R&D'
   ],
   knowledge:localStorage.getItem('farrukh_mobile_knowledge')||DEFAULT_KNOWLEDGE,
-  chat:JSON.parse(localStorage.getItem('farrukh_mobile_chat')||'[]'),
-  tts:JSON.parse(localStorage.getItem('farrukh_mobile_tts')??'true'),
-  wakeWord:JSON.parse(localStorage.getItem('farrukh_mobile_wakeword')??'false')
+  chat:storedJSON('farrukh_mobile_chat',[]),
+  tts:storedJSON('farrukh_mobile_tts',true),
+  wakeWord:false
 };
 function save(){localStorage.setItem('farrukh_mobile_tasks',JSON.stringify(state.tasks));localStorage.setItem('farrukh_mobile_projects',JSON.stringify(state.projects));localStorage.setItem('farrukh_mobile_knowledge',state.knowledge);localStorage.setItem('farrukh_mobile_chat',JSON.stringify(state.chat));localStorage.setItem('farrukh_mobile_tts',JSON.stringify(state.tts));localStorage.setItem('farrukh_mobile_wakeword',JSON.stringify(!!state.wakeWord))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -59,8 +60,18 @@ function speakWithPreset(text,presetKey=voicePreset){if(!state.tts||!('speechSyn
 function speak(text){speakWithPreset(text,voicePreset)}
 function updateVoiceUI(){document.querySelectorAll('.voice-card').forEach(card=>{const key=card.dataset.voicePreset;card.classList.toggle('selected',key===voicePreset);const btn=card.querySelector('.select-voice');if(btn){btn.classList.toggle('active',key===voicePreset);btn.textContent=key===voicePreset?'✓ Выбран':'Выбрать'}})}
 function initVoiceSettings(){document.querySelectorAll('[data-preview]').forEach(btn=>{btn.onclick=()=>{const key=btn.dataset.preview;const p=voicePresets[key];if(p)speakWithPreset(p.sample,key)}});document.querySelectorAll('[data-select]').forEach(btn=>{btn.onclick=()=>{voicePreset=btn.dataset.select;localStorage.setItem('farrukh_voice_preset',voicePreset);updateVoiceUI();const p=voicePresets[voicePreset];if(p)speakWithPreset(`Голос ${p.label} выбран.`,voicePreset)}});const slider=$('#voiceRate');const value=$('#voiceRateValue');if(slider){const saved=localStorage.getItem('farrukh_voice_rate');if(saved)slider.value=saved;if(value)value.textContent=Number(slider.value).toFixed(2)+'×';slider.oninput=e=>{localStorage.setItem('farrukh_voice_rate',e.target.value);if(value)value.textContent=Number(e.target.value).toFixed(2)+'×'}}updateVoiceUI();if('speechSynthesis'in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>updateVoiceUI()}}
-function renderChat(){$('#messages').innerHTML=state.chat.map(m=>`<div class="msg ${m.role==='user'?'user':'ai'}">${esc(m.text)}</div>`).join('');$('#messages').scrollTop=$('#messages').scrollHeight;save()}
-async function askAI(text){if(!text.trim())return;state.chat.push({role:'user',text});renderChat();show('chat');state.chat.push({role:'ai',text:'Думаю…',temp:true});renderChat();try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,context:{tasks:state.tasks,projects:state.projects,app:{brand:'Суши Бери',points:4,role:'бренд-шеф японской кухни'},knowledge:state.knowledge}})});const d=await r.json();state.chat=state.chat.filter(x=>!x.temp);const reply=d.reply||d.error||'Нет ответа';state.chat.push({role:'ai',text:reply});renderChat();speak(reply)}catch(e){state.chat=state.chat.filter(x=>!x.temp);const reply='Сервер сейчас недоступен. После размещения приложения на сервере AI заработает здесь же.';state.chat.push({role:'ai',text:reply});renderChat();speak(reply)}}
+function renderChat(){$('#messages').innerHTML=state.chat.filter(m=>m&&typeof m.text==='string').map(m=>`<div class="msg ${m.role==='user'?'user':'ai'}">${esc(m.text)}</div>`).join('');$('#messages').scrollTop=$('#messages').scrollHeight;save()}
+let chatBusy=false;
+async function askAI(text){
+ text=String(text||'').trim();if(!text||chatBusy)return;
+ chatBusy=true;$('#sendBtn').disabled=true;
+ const history=state.chat.filter(x=>!x.temp).slice(-12).map(x=>({role:x.role==='user'?'user':'assistant',content:String(x.text).slice(0,6000)}));
+ state.chat.push({role:'user',text});show('chat');state.chat.push({role:'ai',text:'Думаю…',temp:true});renderChat();
+ try{const r=await fetch('/api/chat',{method:'POST',signal:AbortSignal.timeout(60000),headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,context:{tasks:state.tasks,projects:state.projects,knowledge:state.knowledge}})});const d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось получить ответ');state.chat=state.chat.filter(x=>!x.temp);const reply=d.reply||'Ответ не получен. Попробуй ещё раз.';state.chat.push({role:'ai',text:reply});renderChat();speak(reply)}
+ catch(e){state.chat=state.chat.filter(x=>!x.temp);state.chat.push({role:'ai',text:'Не удалось получить ответ. Проверь подключение и повтори запрос. Сообщение сохранено.'});renderChat()}
+ finally{chatBusy=false;$('#sendBtn').disabled=false}
+}
+
 $('#sendBtn').onclick=()=>{const t=$('#msgInput').value;$('#msgInput').value='';askAI(t)};$('#msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#sendBtn').click()}});$$('[data-cmd]').forEach(b=>b.onclick=()=>askAI(b.dataset.cmd));
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;function listen(){if(!SR){alert('Голосовой ввод лучше всего работает в Chrome на Android.');return}const r=new SR();r.lang='ru-RU';r.continuous=false;r.interimResults=false;$('#talkBtn').textContent='🎙 Слушаю...';r.onresult=e=>askAI(e.results[0][0].transcript);r.onend=()=>$('#talkBtn').textContent='🎙 Говорить';r.onerror=()=>$('#talkBtn').textContent='🎙 Говорить';r.start()}$('#talkBtn').onclick=listen;$('#wakeBtn').onclick=listen;
 function addIng(name='',g='',p=''){const row=document.createElement('div');row.className='ingredient';row.innerHTML=`<input placeholder="Продукт" value="${esc(name)}"><input class="g" type="number" placeholder="г" value="${g}"><input class="p" type="number" placeholder="₽/кг" value="${p}"><button>×</button>`;$('#ingredients').appendChild(row);row.querySelectorAll('input').forEach(x=>x.oninput=calc);row.querySelector('button').onclick=()=>{row.remove();calc()}}

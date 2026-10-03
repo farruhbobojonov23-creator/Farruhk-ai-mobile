@@ -1,146 +1,34 @@
 ;(()=>{
-  const ANALYTICS_ID='analytics';
-  const style=document.createElement('style');
-  style.textContent=`
-    .analytics-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-    .analytics-kpi{background:linear-gradient(180deg,#0f181b,#0a1012);border:1px solid #183028;border-radius:16px;padding:14px}
-    .analytics-kpi small{display:block;color:#7f9098;font-size:10px;letter-spacing:.08em;margin-bottom:6px}
-    .analytics-kpi strong{font-size:24px;color:#74ffad}
-    .analytics-kpi span{display:block;color:#91a0a6;font-size:10px;margin-top:4px}
-    .analytics-card{background:linear-gradient(180deg,#0e161a,#0a0f12);border:1px solid #17262d;border-radius:18px;padding:16px;margin-bottom:12px}
-    .analytics-card h3{font-size:15px;margin:0 0 12px}.analytics-card p{color:#98a6ab;font-size:12px;line-height:1.5;margin:8px 0}
-    .bar-row{display:grid;grid-template-columns:118px 1fr 34px;gap:8px;align-items:center;margin:10px 0}
-    .bar-row label{font-size:11px;color:#dce4e7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .bar-track{height:11px;background:#111c20;border:1px solid #1a2c31;border-radius:99px;overflow:hidden}
-    .bar-fill{height:100%;background:linear-gradient(90deg,#23d66e,#72ffad);border-radius:99px}
-    .bar-row b{font-size:11px;text-align:right;color:#b9c5c9}
-    .branch-card{padding:11px 0;border-bottom:1px solid #17242a}.branch-card:last-child{border-bottom:0}
-    .branch-card .head{display:flex;justify-content:space-between;gap:10px}.branch-card .head b{font-size:13px}.branch-card .head span{font-size:12px;color:#72ffad}
-    .branch-card small{display:block;color:#7f9098;margin-top:5px;line-height:1.4}
-    .report-pill{display:inline-block;border:1px solid #2a5b3e;background:#102019;color:#75ffad;border-radius:999px;padding:5px 8px;font-size:9px;margin:3px 4px 3px 0}
-    .report-note{padding:10px 12px;border-radius:12px;background:#0c1518;border:1px solid #17302a;color:#aebbc0;font-size:11px;line-height:1.5}
-    .frontpad-ok{border-color:#285d3e;color:#8affb7}.frontpad-warn{border-color:#6a5424;color:#f5d98a}
-    .analytics-refresh{width:100%;border:none;border-radius:14px;padding:12px;background:linear-gradient(135deg,#5dffa1,#20d86d);color:#062211;font-weight:800;margin-top:10px}
-    .metric-list{display:grid;gap:8px}.metric-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #17242a}.metric-row:last-child{border-bottom:0}.metric-row b{font-size:12px}.metric-row span{font-size:11px;color:#8fa0a7;text-align:right}.metric-row .good{color:#72ffad}.metric-row .warn{color:#f5d98a}
-  `;
-  document.head.appendChild(style);
-
-  const main=document.querySelector('main');
-  const nav=document.querySelector('.bottom-nav');
-  if(!main||!nav||document.getElementById(ANALYTICS_ID))return;
-
-  const screen=document.createElement('section');
-  screen.id=ANALYTICS_ID;
-  screen.className='screen';
-  screen.innerHTML=`
-    <div class="section-title"><span>FRONTPAD</span><h2>Аналитика продаж</h2></div>
-    <div id="frontpadConnection" class="report-note">Проверяю подключение Frontpad…</div>
-    <div id="analyticsStatus" class="report-note" style="margin-top:8px">Загружаю данные…</div>
-    <div id="analyticsBody" style="margin-top:12px"></div>
-  `;
-  main.appendChild(screen);
-
-  const btn=document.createElement('button');
-  btn.className='nav';
-  btn.dataset.screen=ANALYTICS_ID;
-  btn.innerHTML='▥<span>Аналитика</span>';
-  nav.insertBefore(btn,nav.lastElementChild);
-  nav.style.gridTemplateColumns='repeat(7,1fr)';
-  btn.onclick=()=>{try{show(ANALYTICS_ID)}catch(e){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===ANALYTICS_ID));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x===btn));}loadFrontpadStatus();loadAnalytics();};
-
-  const fmt=n=>new Intl.NumberFormat('ru-RU').format(Number(n||0));
-  const escA=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]));
-
-  function bars(branches){
-    const max=Math.max(...branches.map(x=>x.units),1);
-    return branches.map(x=>`<div class="bar-row"><label>${escA(x.name)}</label><div class="bar-track"><div class="bar-fill" style="width:${Math.max(4,Math.round(x.units/max*100))}%"></div></div><b>${fmt(x.units)}</b></div>`).join('');
-  }
-
-  async function loadFrontpadStatus(){
-    const el=document.getElementById('frontpadConnection');
-    if(!el)return;
-    try{
-      const r=await fetch('/api/frontpad/status',{cache:'no-store'});
-      const d=await r.json();
-      if(d.configured&&d.reachable){
-        el.className='report-note frontpad-ok';
-        el.innerHTML='<b>Frontpad: доступ сохранён ✓</b><br>Сервер видит Frontpad. Автоматическая выгрузка отчётов пока не включена: вход Frontpad требует дополнительный код, а отдельный API отчётов не подтверждён.';
-      }else if(d.configured){
-        el.className='report-note frontpad-warn';
-        el.innerHTML='<b>Frontpad: данные доступа сохранены</b><br>Сейчас сервер не смог подтвердить доступность страницы входа. Повторим проверку позже.';
-      }else{
-        el.className='report-note frontpad-warn';
-        el.innerHTML='<b>Frontpad не настроен</b><br>Добавь FRONTPAD_LOGIN и FRONTPAD_PASSWORD в Render.';
-      }
-    }catch(e){
-      el.className='report-note frontpad-warn';
-      el.textContent='Не удалось проверить подключение Frontpad.';
-    }
-  }
-
-  function render(data){
-    const status=document.getElementById('analyticsStatus');
-    const body=document.getElementById('analyticsBody');
-    if(!body||!status)return;
-    const branches=data.branches||[];
-    const strongest=[...branches].sort((a,b)=>b.units-a.units)[0];
-    const weakest=[...branches].sort((a,b)=>a.units-b.units)[0];
-    status.innerHTML=`Последние данные: <b>${escA(data.date)}</b> · ${escA(data.source)}<br><span style="color:#78ffad">4 точки подключены к отчёту</span>`;
-    body.innerHTML=`
-      <div class="analytics-kpis">
-        <div class="analytics-kpi"><small>ПРОДАНО ЕДИНИЦ</small><strong>${fmt(data.totalUnits)}</strong><span>по 4 точкам</span></div>
-        <div class="analytics-kpi"><small>ТОЧЕК</small><strong>${branches.length}</strong><span>в сравнении</span></div>
-        <div class="analytics-kpi"><small>СИЛЬНЕЕ ПО ОБЪЁМУ</small><strong style="font-size:16px">${escA(strongest?.name||'—')}</strong><span>${fmt(strongest?.units||0)} ед.</span></div>
-        <div class="analytics-kpi"><small>ЗОНА ВНИМАНИЯ</small><strong style="font-size:16px">${escA(weakest?.name||'—')}</strong><span>${fmt(weakest?.units||0)} ед.</span></div>
-      </div>
-
-      <div class="analytics-card"><h3>Продажи по точкам</h3>${bars(branches)}<p>Показатель — количество проданных единиц из отчёта Frontpad «Товары». Это не выручка и не количество заказов.</p></div>
-
-      <div class="analytics-card"><h3>Выручка по 4 точкам</h3>
-        <div class="report-note frontpad-warn"><b>Жду данные «Выручка»</b><br>Сейчас у нас есть только отчёты «Товары». Как только подключим или загрузим отчёт «Выручка», здесь появятся суммы по каждой точке и общая выручка.</div>
-      </div>
-
-      <div class="analytics-card"><h3>Сравнение с прошлым днём / прошлой пятницей</h3>
-        <div class="metric-list">
-          <div class="metric-row"><b>Сегодня</b><span class="good">${fmt(data.totalUnits)} ед.</span></div>
-          <div class="metric-row"><b>Прошлый день</b><span>нет данных</span></div>
-          <div class="metric-row"><b>Прошлая пятница</b><span>нет данных</span></div>
-        </div>
-        <p>Когда появятся ежедневные снимки, FARRUKH AI будет автоматически показывать рост/падение в процентах по каждой точке.</p>
-      </div>
-
-      <div class="analytics-card"><h3>Слабые места и что проверить</h3>
-        <div class="metric-list">
-          <div class="metric-row"><b>${escA(weakest?.name||'—')}</b><span class="warn">минимальный объём: ${fmt(weakest?.units||0)} ед.</span></div>
-          ${branches.map(x=>`<div class="metric-row"><b>${escA(x.name)}</b><span>Лидер: ${escA(x.topItem||'—')} · ${fmt(x.topItemUnits||0)} шт.</span></div>`).join('')}
-        </div>
-        <p>Для точного списка слабых блюд нужны отчёты «Товары» по каждой точке с включённым «Не было продаж». Тогда здесь покажем позиции 0–1 шт., нулевые продажи и повторяющиеся просадки.</p>
-      </div>
-
-      <div class="analytics-card"><h3>Точки</h3>${branches.map(x=>`<div class="branch-card"><div class="head"><b>${escA(x.name)}</b><span>${fmt(x.units)} ед.</span></div><small>Сильная категория: ${escA(x.strongCategory||'—')} · ${fmt(x.strongCategoryUnits||0)} ед.</small><small>Лидер: ${escA(x.topItem||'—')} · ${fmt(x.topItemUnits||0)} шт.</small></div>`).join('')}</div>
-
-      <div class="analytics-card"><h3>Отчёт шефу</h3>
-        <span class="report-pill">Сильные точки</span><span class="report-pill">Слабые позиции</span><span class="report-pill">Нулевые продажи</span><span class="report-pill">Категории</span><span class="report-pill">Сравнение филиалов</span>
-        <p>${escA(data.summary||'')}</p>
-        <div class="report-note">Ежедневный полный отчёт настроен на вечер. Сейчас данные берутся из последних загруженных отчётов Frontpad. Автоматическую выгрузку включим только через поддерживаемый Frontpad способ, без обхода кода входа.</div>
-        <button id="frontpadReportBtn" class="analytics-refresh">Сформировать отчёт сейчас</button>
-      </div>
-    `;
-    const reportBtn=document.getElementById('frontpadReportBtn');
-    if(reportBtn)reportBtn.onclick=()=>{if(typeof askAI==='function')askAI('Сформируй полный отчёт Frontpad по четырём точкам на основе последних доступных данных: сильные и слабые точки, категории, топ-позиции, слабые позиции и что проверить шефу.');};
-  }
-
-  async function loadAnalytics(){
-    try{
-      const r=await fetch('/api/analytics/snapshot',{cache:'no-store'});
-      const d=await r.json();
-      if(!r.ok)throw new Error(d.error||'Ошибка');
-      render(d);
-    }catch(e){
-      const status=document.getElementById('analyticsStatus');
-      if(status)status.textContent='Не удалось загрузить аналитику: '+e.message;
-    }
-  }
-  loadFrontpadStatus();
-  loadAnalytics();
+ const main=document.querySelector('main');if(!main||document.getElementById('analytics'))return;
+ const section=document.createElement('section');section.id='analytics';section.className='screen';
+ section.innerHTML='<div class="section-title"><span>СУШИ БЕРИ / FRONTPAD</span><h2>Аналитика четырёх точек</h2></div><div id="analyticsStatus" class="notice">Загружаю последний снимок…</div><div id="analyticsBody"></div>';
+ main.append(section);
+ const nav=document.createElement('button');nav.className='nav';nav.dataset.screen='analytics';nav.innerHTML='▥<span>Аналитика</span>';
+ document.querySelector('.bottom-nav').append(nav);
+ nav.onclick=()=>show('analytics');
+ // Five main destinations; projects and management are accessible from the workspace.
+ const bar=document.querySelector('.bottom-nav');['home','analytics','chat','cost','settings'].forEach(id=>{const b=bar.querySelector('[data-screen="'+id+'"]');if(b){b.hidden=false;bar.append(b)}});
+ bar.querySelectorAll('[data-screen="projects"],[data-screen="admin"]').forEach(b=>b.hidden=true);bar.style.gridTemplateColumns='repeat(5,1fr)';
+ const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const n=v=>new Intl.NumberFormat('ru-RU').format(v);let snapshot=null;
+ function report(d,branches){return 'СУШИ БЕРИ · СНИМОК ПРОДАЖ\nДата: '+d.date+'\nИсточник: '+d.source+'\nПериод неполный. Время выгрузки не указано.\n\n'+branches.map(b=>b.name+': '+n(b.units)+' ед.\nЛидер по количеству: '+b.topItem+' — '+n(b.topItemUnits)+' шт.').join('\n\n')+'\n\nВсего в выбранных точках: '+n(branches.reduce((s,b)=>s+b.units,0))+' ед.\n\nКоличество единиц не равно количеству заказов. Данных о выручке, прибыли и прошлых периодах нет. Автовыгрузка не подключена.\n\nЧто проверить: одинаковый период выгрузок, стоп-лист, доступность популярных блюд. Это пункты проверки, а не установленные причины различий.';}
+ function render(){
+ const d=snapshot;const selected=document.getElementById('branchFilter')?.value||'';
+ const branches=d.branches.filter(b=>!selected||b.name===selected);const total=branches.reduce((s,b)=>s+b.units,0);const max=Math.max(1,...branches.map(b=>b.units));
+ const today=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow'}).format(new Date());
+ document.getElementById('analyticsStatus').innerHTML='<b>'+ (d.date===today?'Частичный снимок':'Архивный снимок')+' за '+e(d.date)+'</b><br>'+e(d.source)+'. Время выгрузки неизвестно. Автоматическое обновление не подключено.';
+ const body=document.getElementById('analyticsBody');
+ body.innerHTML='<div class="report-toolbar"><select id="branchFilter" class="field" aria-label="Выбрать точку"><option value="">Все четыре точки</option>'+d.branches.map(b=>'<option '+(selected===b.name?'selected':'')+' value="'+e(b.name)+'">'+e(b.name)+'</option>').join('')+'</select><button class="secondary" id="refreshSnapshot">Обновить снимок</button></div>'+ 
+ '<div class="metrics"><div class="metric"><small>ПРОДАНО ЕДИНИЦ</small><strong>'+n(total)+'</strong><p>В загруженном периоде</p></div><div class="metric"><small>ТОЧЕК В ВЫБОРКЕ</small><strong>'+branches.length+'</strong><p>Из четырёх точек сети</p></div><div class="metric"><small>ВЫРУЧКА</small><strong>—</strong><p>Отчёт не загружен</p></div><div class="metric"><small>СРЕДНИЙ ЧЕК</small><strong>—</strong><p>Нет суммы и числа заказов</p></div></div>'+
+ '<div class="analytics-columns"><div class="card"><h3>Объём продаж</h3>'+[...branches].sort((a,b)=>b.units-a.units).map(b=>'<div class="branch-row"><div><b>'+e(b.name)+'</b><small>'+n(b.units/Math.max(total,1)*100)+'% выбранного объёма</small></div><strong>'+n(b.units)+' ед.</strong><div class="branch-bar"><i style="width:'+Math.round(b.units/max*100)+'%"></i></div></div>').join('')+'<p class="muted">Сравнение по количеству единиц. По неполному снимку нельзя оценить прибыльность или качество работы точки.</p></div><div class="card"><h3>Лидеры в загруженном отчёте</h3>'+branches.map(b=>'<div class="branch-row"><div><b>'+e(b.name)+'</b><small>'+e(b.topItem)+'</small></div><strong>'+n(b.topItemUnits)+' шт.</strong></div>').join('')+'<p class="muted">Для нулевых продаж и динамики нужны полные выгрузки товаров за сопоставимые периоды.</p></div></div>'+
+ '<div class="card"><h3>Отчёт шефу</h3><div class="report-copy" id="reportText"></div><div class="report-toolbar"><button class="secondary" id="copyReport">Копировать отчёт</button><button class="secondary" id="downloadReport">Скачать TXT</button><button class="secondary" id="askReport">Разобрать с AI</button></div></div><div class="notice"><b>Ежедневный отчёт · 21:00 МСК</b><br>Это целевое время. Получение свежих данных из Frontpad и автоматическая доставка в этом приложении ещё не подключены.</div>';
+ document.getElementById('reportText').textContent=report(d,branches);
+ document.getElementById('branchFilter').onchange=render;
+ document.getElementById('refreshSnapshot').onclick=load;
+ document.getElementById('copyReport').onclick=async()=>{try{await navigator.clipboard.writeText(report(d,branches));window.chefToast('Отчёт скопирован')}catch{window.chefToast('Не удалось скопировать. Используй «Скачать TXT».')}};
+ document.getElementById('downloadReport').onclick=()=>{const u=URL.createObjectURL(new Blob([report(d,branches)],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='Sushi-Beri-'+d.date+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+ document.getElementById('askReport').onclick=()=>askAI('Разбери снимок Frontpad. Отдели факты от гипотез и предложи три действия шефу. Не считай этот снимок полным днём. Выбранные точки: '+branches.map(b=>b.name).join(', '));
+ }
+ async function load(){const button=document.getElementById('refreshSnapshot');if(button)button.disabled=true;try{const r=await fetch('/api/analytics/snapshot',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const d=await r.json();if(!Array.isArray(d.branches)||!d.branches.every(b=>typeof b.name==='string'&&Number.isFinite(b.units)&&b.units>=0))throw Error();snapshot=d;render();}catch{document.getElementById('analyticsStatus').textContent='Не удалось получить снимок. Проверь интернет и повтори.';if(!snapshot)document.getElementById('analyticsBody').innerHTML='<button id="retryAnalytics" class="secondary">Повторить</button>';const retry=document.getElementById('retryAnalytics');if(retry)retry.onclick=load;}finally{const b=document.getElementById('refreshSnapshot');if(b)b.disabled=false}}
+ load();
 })();
