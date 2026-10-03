@@ -19,6 +19,7 @@
   return {text:title,date,time:tm?`${tm[1].padStart(2,'0')}:${tm[2]||'00'}`:''};
  }
  window.parseVoiceTask=parse;
+ document.getElementById('adminAddTask').onclick=()=>document.getElementById('taskModal').classList.add('show');
  const dateInput=document.createElement('input');dateInput.type='date';dateInput.id='taskDate';dateInput.className='field';dateInput.value=day();dateInput.setAttribute('aria-label','Дата задачи');document.getElementById('taskPriority').before(dateInput);
  document.getElementById('saveTask').onclick=()=>{const text=document.getElementById('taskText').value.trim();if(!text)return;persist({text,date:dateInput.value||day(),time:''},false);document.getElementById('taskText').value='';document.getElementById('taskModal').classList.remove('show')};
  let filter='all';const filters=document.createElement('div');filters.className='segmented';filters.innerHTML='<button data-date-filter="all">Все даты</button><button data-date-filter="today">Сегодня</button><button data-date-filter="tomorrow">Завтра</button><button data-date-filter="later">Позже</button>';document.getElementById('adminTasks').before(filters);
