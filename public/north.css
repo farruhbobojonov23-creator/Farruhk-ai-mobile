@@ -76,3 +76,102 @@ footer{color:#8799ad!important}dialog{color:#23435f!important;background:rgba(24
 @media(max-width:800px){
   .sidebar{background:rgba(240,249,255,.90)!important;border-top:1px solid rgba(90,131,171,.16)!important}.nav-item.active{background:#dcefff!important}.workspace{padding-top:14px!important}.hero-layout{grid-template-columns:1fr!important}.hero{min-height:480px!important}.hero-copy{width:62%!important;padding:32px 22px!important}.hero h2{font-size:36px!important}.portrait{width:69%!important;height:105%!important;right:-13%!important;bottom:-15%!important}.hero:before{right:16px;top:16px}.tools-grid{grid-template-columns:repeat(2,1fr)!important}.tool{min-height:155px!important}#northClock{right:14px;bottom:88px;padding:9px 12px;border-radius:15px}#northClock strong{font-size:20px}header{padding:11px 13px;border-radius:16px}.card{border-radius:20px!important}
 }
+
+
+/* === Northern Lights home — reference concept === */
+body{background:#061222!important;color:#eef8ff!important}
+body:before{
+  background:
+    radial-gradient(950px 440px at 18% -8%,rgba(41,235,190,.30),transparent 60%),
+    radial-gradient(900px 500px at 78% 0%,rgba(116,64,255,.34),transparent 62%),
+    linear-gradient(180deg,#071526 0%,#08172c 45%,#06111f 100%)!important;
+  filter:none!important;
+}
+.sidebar{background:rgba(4,15,28,.78)!important;border-color:rgba(123,197,255,.12)!important}
+.sidebar .brand,.sidebar-bottom{color:#eff8ff!important}.brand b{color:#8bdcff!important}.brand small,.nav-caption,.sidebar-bottom small{color:#7f9cb6!important}
+.nav-item{color:#87a1b8!important}.nav-item.active{background:rgba(61,153,255,.14)!important;color:#e8f8ff!important;box-shadow:inset 0 0 0 1px rgba(92,197,255,.18)}
+.workspace{max-width:1440px}
+header{background:rgba(5,20,36,.46)!important;border-color:rgba(110,194,255,.12)!important;box-shadow:0 12px 44px rgba(0,0,0,.16)!important}
+header h1,.workspace h2,.workspace h3{color:#f3fbff!important}.eyebrow,.header-right{color:#83a1b9!important}.icon-button{background:rgba(7,26,45,.6)!important;color:#cfeeff!important;border-color:rgba(104,192,255,.18)!important}
+.card,.tool,.stat{background:rgba(7,23,40,.58)!important;border-color:rgba(104,191,255,.14)!important;color:#eaf7ff!important;box-shadow:0 18px 50px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.04)!important}
+.card,.tool,.stat,.north-home .glass-panel{backdrop-filter:blur(22px) saturate(125%)}
+.caption,.section-label span,.muted,.tool small,.task-row small,footer{color:#819bb0!important}
+.primary{background:linear-gradient(135deg,#35d6ff,#795cff)!important;color:#fff!important}
+.secondary{background:rgba(11,36,60,.75)!important;color:#dff5ff!important;border-color:rgba(111,195,255,.18)!important}
+.subtle{color:#76dfff!important}
+.field{background:rgba(4,17,30,.76)!important;color:#eaf8ff!important;border-color:rgba(106,186,242,.2)!important}
+.tag{background:rgba(43,144,215,.2)!important;color:#9fe4ff!important}
+.progress-track{background:rgba(118,184,225,.12)!important}.progress-track span{background:linear-gradient(90deg,#35e2be,#5bc5ff,#886cff)!important}
+
+.north-home{
+  position:relative;isolation:isolate;overflow:hidden;
+  min-height:calc(100dvh - 150px);border-radius:30px;padding:28px;
+  background:
+    radial-gradient(900px 360px at 18% 0%,rgba(60,255,205,.19),transparent 62%),
+    radial-gradient(800px 400px at 78% 3%,rgba(131,70,255,.28),transparent 66%),
+    linear-gradient(180deg,rgba(2,17,34,.92),rgba(3,15,30,.98));
+  border:1px solid rgba(125,211,255,.15);
+  box-shadow:0 28px 90px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.north-home:before{
+  content:'';position:absolute;inset:38% -8% -4%;z-index:-3;opacity:.9;
+  background:
+    radial-gradient(120% 54% at 50% 100%,rgba(7,12,24,.98) 0 44%,transparent 45%),
+    linear-gradient(168deg,transparent 0 48%,rgba(12,31,49,.95) 49% 58%,transparent 59%) 0 100%/58% 58% no-repeat,
+    linear-gradient(195deg,transparent 0 49%,rgba(11,26,43,.96) 50% 62%,transparent 63%) 100% 100%/65% 66% no-repeat;
+}
+.north-home:after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:32%;z-index:-2;
+  background:
+    linear-gradient(180deg,transparent,rgba(1,8,18,.82)),
+    radial-gradient(ellipse at 50% 78%,rgba(34,142,255,.22),transparent 62%);
+}
+.aurora-layer{position:absolute;inset:-22% -12% 45%;z-index:-1;filter:blur(28px);opacity:.75;pointer-events:none;transform-origin:50% 0}
+.aurora-a{background:conic-gradient(from 205deg at 30% 0%,transparent 0 18%,rgba(39,255,196,.75) 24%,transparent 31%,rgba(45,175,255,.62) 39%,transparent 47%);animation:auroraFloat 12s ease-in-out infinite alternate}
+.aurora-b{background:conic-gradient(from 175deg at 76% -4%,transparent 0 22%,rgba(130,74,255,.68) 29%,transparent 36%,rgba(52,255,209,.48) 44%,transparent 52%);animation:auroraFloat2 15s ease-in-out infinite alternate}
+@keyframes auroraFloat{to{transform:translate3d(4%,-2%,0) scale(1.08) rotate(2deg);opacity:.92}}
+@keyframes auroraFloat2{to{transform:translate3d(-5%,3%,0) scale(1.1) rotate(-2deg);opacity:.62}}
+
+.north-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;position:relative;z-index:2}
+.north-time strong{display:block;font-size:56px;font-weight:400;line-height:.92;letter-spacing:-.065em;color:#fff;text-shadow:0 6px 24px rgba(0,0,0,.25)}
+.north-time span{display:block;margin-top:10px;font-size:13px;color:#d8eaff}.north-time small{display:block;margin-top:4px;color:#8fa9bd;font-size:11px}
+.north-weather{display:flex;align-items:center;gap:13px;min-width:190px;padding:15px 18px;border-radius:22px;background:rgba(7,24,44,.56);border:1px solid rgba(129,213,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px)}
+.weather-icon{font-size:34px;filter:drop-shadow(0 4px 12px rgba(98,204,255,.24))}
+.north-weather b{display:block;font-size:28px;line-height:1;color:#fff}.north-weather span{display:block;font-size:12px;margin-top:4px;color:#eef8ff}.north-weather small{display:block;font-size:9px;margin-top:4px;color:#8ea6ba}
+
+.north-assistant{
+  margin:88px auto 18px;position:relative;display:grid;grid-template-columns:86px 1fr auto;align-items:center;gap:16px;
+  max-width:760px;padding:16px 18px;border-radius:26px;
+  background:linear-gradient(135deg,rgba(9,31,51,.72),rgba(10,22,46,.55));
+  border:1px solid rgba(114,207,255,.20);box-shadow:0 18px 44px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(24px)
+}
+.north-assistant img{width:78px;height:78px;object-fit:cover;object-position:50% 13%;border-radius:50%;position:relative;z-index:2;border:2px solid rgba(116,232,255,.72);box-shadow:0 0 0 7px rgba(55,180,255,.08),0 0 30px rgba(77,203,255,.28)}
+.assistant-orb{position:absolute;width:92px;height:92px;left:11px;border-radius:50%;border:1px solid rgba(129,97,255,.62);box-shadow:0 0 30px rgba(86,96,255,.25);animation:orbPulse 3.2s ease-in-out infinite}
+@keyframes orbPulse{50%{transform:scale(1.07);opacity:.66}}
+.assistant-copy b{display:block;font-size:16px;color:#fff}.assistant-copy span{display:block;color:#a9f4ff;font-size:12px;margin-top:3px}.assistant-copy p{margin:8px 0 0;font-size:12px;line-height:1.55;color:#a9c5d8;max-width:540px}.assistant-wave{padding:0 6px}.assistant-wave .waves i{background:#65ddff!important}
+
+.glass-panel{background:rgba(5,22,39,.58);border:1px solid rgba(106,190,243,.14);box-shadow:0 18px 50px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.04)}
+.north-tasks{max-width:760px;margin:0 auto;border-radius:24px;padding:18px 20px;position:relative;z-index:2}
+.north-section-head{display:flex;justify-content:space-between;gap:16px;align-items:center}.north-section-head b{font-size:14px;color:#f5fbff}.north-section-head button{border:0;background:none;color:#8ca8bd;font-size:10px}
+.north-progress{height:3px;margin:12px 0 3px;background:rgba(125,185,225,.12);border-radius:5px;overflow:hidden}.north-progress span{display:block;height:100%;background:linear-gradient(90deg,#45f0bb,#4bc7ff,#8d68ff)}
+.north-task{display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(118,180,222,.10)}.north-task:last-child{border-bottom:0}.north-task input{appearance:none;width:20px;height:20px;border-radius:7px;border:1px solid rgba(117,225,255,.5);background:rgba(7,30,48,.7);position:relative;flex:0 0 auto}.north-task input:checked{background:linear-gradient(135deg,#21d7aa,#47c3ff)}.north-task input:checked:after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:white;font-size:12px}.north-task b{display:block;font-size:12px;font-weight:600}.north-task small{display:block;margin-top:3px;color:#7895ad;font-size:9px}.north-task.done{opacity:.48}.north-empty{padding:20px 0 8px;color:#7895ad;font-size:11px}
+
+.north-shortcuts{max-width:760px;margin:14px auto;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative;z-index:2}
+.north-shortcuts button{border:1px solid rgba(110,196,250,.14);background:rgba(7,24,41,.58);border-radius:18px;padding:14px 8px;color:#eaf8ff;backdrop-filter:blur(18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:transform .18s,background .18s}
+.north-shortcuts button:active{transform:scale(.97)}.north-shortcuts span{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 8px;border-radius:13px;background:linear-gradient(145deg,rgba(74,217,255,.18),rgba(126,70,255,.18));font-size:20px;box-shadow:0 0 24px rgba(69,173,255,.12)}.north-shortcuts b{font-size:10px;font-weight:600}
+.north-talk{max-width:760px;width:100%;margin:0 auto;display:grid;grid-template-columns:42px 1fr 36px;align-items:center;text-align:left;padding:8px 12px 8px 8px;border-radius:999px;border:1px solid rgba(115,206,255,.24);background:rgba(6,24,42,.72);color:#dff6ff;backdrop-filter:blur(24px);box-shadow:0 16px 42px rgba(0,0,0,.2);position:relative;z-index:2}.north-talk span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#21bff0,#596eff);box-shadow:0 0 26px rgba(53,183,255,.28)}.north-talk b{padding-left:7px;font-size:12px;font-weight:500}.north-talk i{font-style:normal;text-align:center;color:#c486ff;font-size:18px}
+
+.weather-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}.weather-fx i{position:absolute;top:-10%;display:block}
+.weather-fx.snow i{width:6px;height:6px;border-radius:50%;background:rgba(238,250,255,.78);box-shadow:0 0 8px rgba(255,255,255,.45);animation:snowFall linear infinite}
+.weather-fx.rain i{width:1px;height:38px;background:linear-gradient(transparent,rgba(165,222,255,.7));animation:rainFall linear infinite}
+.weather-fx.clear{background:radial-gradient(circle at 83% 14%,rgba(255,220,143,.08),transparent 16%)}
+@keyframes snowFall{to{transform:translate3d(36px,120vh,0) rotate(180deg)}}@keyframes rainFall{to{transform:translate3d(-34px,120vh,0)}}
+
+#northClock{display:none!important}
+
+@media(max-width:800px){
+  body{background:#061222!important}.workspace{padding:10px 10px 88px!important}.workspace>header{display:none!important}.north-home{min-height:calc(100dvh - 104px);padding:22px 16px 18px;border-radius:24px}.north-time strong{font-size:46px}.north-weather{min-width:152px;padding:11px 12px;border-radius:18px;gap:9px}.weather-icon{font-size:27px}.north-weather b{font-size:23px}.north-assistant{margin-top:92px;grid-template-columns:68px 1fr;border-radius:22px;padding:13px}.north-assistant img{width:60px;height:60px}.assistant-orb{width:72px;height:72px;left:7px}.assistant-copy p{font-size:11px}.assistant-wave{display:none}.north-tasks{padding:15px 16px;border-radius:20px}.north-shortcuts{gap:7px}.north-shortcuts button{padding:11px 4px;border-radius:15px}.north-shortcuts span{width:34px;height:34px;font-size:17px;margin-bottom:6px}.north-talk{grid-template-columns:38px 1fr 30px;padding:6px 10px 6px 6px}.north-talk span{width:34px;height:34px}.sidebar{background:rgba(3,14,27,.90)!important;border-top-color:rgba(97,182,240,.13)!important}.nav-item.active{background:rgba(48,141,220,.18)!important;color:#dff7ff!important}
+}
+@media(max-width:430px){
+  .north-home{padding-left:13px;padding-right:13px}.north-time strong{font-size:43px}.north-weather{min-width:145px}.north-assistant{margin-top:80px}.north-assistant .assistant-copy p{max-height:54px;overflow:hidden}.north-shortcuts b{font-size:9px}
+}
