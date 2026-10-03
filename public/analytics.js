@@ -21,6 +21,7 @@
     .report-note{padding:10px 12px;border-radius:12px;background:#0c1518;border:1px solid #17302a;color:#aebbc0;font-size:11px;line-height:1.5}
     .frontpad-ok{border-color:#285d3e;color:#8affb7}.frontpad-warn{border-color:#6a5424;color:#f5d98a}
     .analytics-refresh{width:100%;border:none;border-radius:14px;padding:12px;background:linear-gradient(135deg,#5dffa1,#20d86d);color:#062211;font-weight:800;margin-top:10px}
+    .metric-list{display:grid;gap:8px}.metric-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #17242a}.metric-row:last-child{border-bottom:0}.metric-row b{font-size:12px}.metric-row span{font-size:11px;color:#8fa0a7;text-align:right}.metric-row .good{color:#72ffad}.metric-row .warn{color:#f5d98a}
   `;
   document.head.appendChild(style);
 
@@ -48,7 +49,7 @@
   btn.onclick=()=>{try{show(ANALYTICS_ID)}catch(e){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===ANALYTICS_ID));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x===btn));}loadFrontpadStatus();loadAnalytics();};
 
   const fmt=n=>new Intl.NumberFormat('ru-RU').format(Number(n||0));
-  const escA=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const escA=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]));
 
   function bars(branches){
     const max=Math.max(...branches.map(x=>x.units),1);
@@ -94,6 +95,27 @@
       </div>
 
       <div class="analytics-card"><h3>Продажи по точкам</h3>${bars(branches)}<p>Показатель — количество проданных единиц из отчёта Frontpad «Товары». Это не выручка и не количество заказов.</p></div>
+
+      <div class="analytics-card"><h3>Выручка по 4 точкам</h3>
+        <div class="report-note frontpad-warn"><b>Жду данные «Выручка»</b><br>Сейчас у нас есть только отчёты «Товары». Как только подключим или загрузим отчёт «Выручка», здесь появятся суммы по каждой точке и общая выручка.</div>
+      </div>
+
+      <div class="analytics-card"><h3>Сравнение с прошлым днём / прошлой пятницей</h3>
+        <div class="metric-list">
+          <div class="metric-row"><b>Сегодня</b><span class="good">${fmt(data.totalUnits)} ед.</span></div>
+          <div class="metric-row"><b>Прошлый день</b><span>нет данных</span></div>
+          <div class="metric-row"><b>Прошлая пятница</b><span>нет данных</span></div>
+        </div>
+        <p>Когда появятся ежедневные снимки, FARRUKH AI будет автоматически показывать рост/падение в процентах по каждой точке.</p>
+      </div>
+
+      <div class="analytics-card"><h3>Слабые места и что проверить</h3>
+        <div class="metric-list">
+          <div class="metric-row"><b>${escA(weakest?.name||'—')}</b><span class="warn">минимальный объём: ${fmt(weakest?.units||0)} ед.</span></div>
+          ${branches.map(x=>`<div class="metric-row"><b>${escA(x.name)}</b><span>Лидер: ${escA(x.topItem||'—')} · ${fmt(x.topItemUnits||0)} шт.</span></div>`).join('')}
+        </div>
+        <p>Для точного списка слабых блюд нужны отчёты «Товары» по каждой точке с включённым «Не было продаж». Тогда здесь покажем позиции 0–1 шт., нулевые продажи и повторяющиеся просадки.</p>
+      </div>
 
       <div class="analytics-card"><h3>Точки</h3>${branches.map(x=>`<div class="branch-card"><div class="head"><b>${escA(x.name)}</b><span>${fmt(x.units)} ед.</span></div><small>Сильная категория: ${escA(x.strongCategory||'—')} · ${fmt(x.strongCategoryUnits||0)} ед.</small><small>Лидер: ${escA(x.topItem||'—')} · ${fmt(x.topItemUnits||0)} шт.</small></div>`).join('')}</div>
 
