@@ -3,7 +3,7 @@ import express from 'express';
 import OpenAI from 'openai';
 
 const app = express();
-app.use(express.json({limit:'2mb'}));
+app.use(express.json({limit:'20mb'}));
 app.use(express.static('public'));
 
 const hasKey = Boolean(process.env.OPENAI_API_KEY);
@@ -87,7 +87,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,version:'mobile-2.0'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,version:'mobile-3.4'}));
 
 app.post('/api/chat',async(req,res)=>{
   const message=String(req.body?.message||'').trim();
@@ -109,5 +109,96 @@ app.post('/api/chat',async(req,res)=>{
   }
 });
 
+// ---- Yandex Disk integration ----
+const YANDEX_API='https://cloud-api.yandex.net/v1/disk';
+const yandexToken=()=>String(process.env.YANDEX_DISK_TOKEN||'').trim();
+const yandexHeaders=()=>({Authorization:`OAuth ${yandexToken()}`,'Content-Type':'application/json'});
+
+function normalizeDiskPath(input='/FARRUKH_AI_STORAGE/'){
+  let p=String(input||'').trim()||'/FARRUKH_AI_STORAGE/';
+  if(!p.startsWith('/'))p='/'+p;
+  p=p.replace(/\/{2,}/g,'/');
+  if(!p.endsWith('/'))p+='/';
+  return p;
+}
+
+async function yandexRequest(path, options={}){
+  if(!yandexToken())throw new Error('YANDEX_DISK_TOKEN_NOT_CONFIGURED');
+  const r=await fetch(`${YANDEX_API}${path}`,{...options,headers:{...yandexHeaders(),...(options.headers||{})}});
+  if(r.status===204)return {ok:true,status:204};
+  const text=await r.text();
+  let data={};
+  try{data=text?JSON.parse(text):{}}catch{data={message:text}}
+  if(!r.ok){const e=new Error(data.message||data.description||`Yandex Disk HTTP ${r.status}`);e.status=r.status;e.data=data;throw e;}
+  return data;
+}
+
+async function ensureFolder(path){
+  const q=encodeURIComponent(path.replace(/\/$/,''));
+  try{
+    await yandexRequest(`/resources?path=${q}`,{method:'PUT'});
+    return true;
+  }catch(e){
+    // 409 means the resource already exists, which is fine for setup.
+    if(e.status===409)return true;
+    throw e;
+  }
+}
+
+app.get('/api/yandex/status',async(req,res)=>{
+  if(!yandexToken())return res.json({configured:false,connected:false,reason:'token_missing'});
+  try{
+    const disk=await yandexRequest('/',{method:'GET'});
+    res.json({configured:true,connected:true,totalSpace:disk.total_space,usedSpace:disk.used_space,user:disk.user||null});
+  }catch(err){
+    res.status(502).json({configured:true,connected:false,error:err.message});
+  }
+});
+
+app.post('/api/yandex/setup',async(req,res)=>{
+  const basePath=normalizeDiskPath(req.body?.basePath);
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск ещё не авторизован на сервере.',code:'token_missing'});
+  try{
+    await ensureFolder(basePath);
+    const folders=['Menus','Photos','TechCards','Reports','Backups'];
+    for(const folder of folders)await ensureFolder(`${basePath}${folder}/`);
+    res.json({ok:true,basePath,folders});
+  }catch(err){
+    res.status(502).json({ok:false,error:err.message});
+  }
+});
+
+app.get('/api/yandex/list',async(req,res)=>{
+  const basePath=normalizeDiskPath(req.query?.path);
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск ещё не авторизован на сервере.',code:'token_missing'});
+  try{
+    const q=encodeURIComponent(basePath);
+    const data=await yandexRequest(`/resources?path=${q}&limit=100`,{method:'GET'});
+    const items=(data?._embedded?.items||[]).map(x=>({name:x.name,type:x.type,path:x.path,size:x.size||0,modified:x.modified||null}));
+    res.json({ok:true,path:basePath,items});
+  }catch(err){
+    res.status(502).json({ok:false,error:err.message});
+  }
+});
+
+app.post('/api/yandex/upload-json',async(req,res)=>{
+  const basePath=normalizeDiskPath(req.body?.basePath);
+  const folder=String(req.body?.folder||'Backups').replace(/[^a-zA-Z0-9_-]/g,'')||'Backups';
+  const fileName=String(req.body?.fileName||`backup-${Date.now()}.json`).replace(/[^a-zA-Z0-9._-]/g,'_');
+  const payload=req.body?.data??{};
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск ещё не авторизован на сервере.',code:'token_missing'});
+  try{
+    await ensureFolder(basePath);
+    await ensureFolder(`${basePath}${folder}/`);
+    const diskPath=`${basePath}${folder}/${fileName}`;
+    const hrefData=await yandexRequest(`/resources/upload?path=${encodeURIComponent(diskPath)}&overwrite=true`,{method:'GET'});
+    const upload=await fetch(hrefData.href,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload,null,2)});
+    if(!upload.ok)throw new Error(`Ошибка загрузки файла: HTTP ${upload.status}`);
+    res.json({ok:true,path:diskPath});
+  }catch(err){
+    res.status(502).json({ok:false,error:err.message});
+  }
+});
+
 const port=Number(process.env.PORT||3000);
-app.listen(port,()=>console.log(`FARRUKH AI Mobile V2: http://localhost:${port}`));
+app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.4: http://localhost:${port}`));
