@@ -1,9 +1,19 @@
 import 'dotenv/config';
 import express from 'express';
 import OpenAI from 'openai';
+import fs from 'node:fs/promises';
 
 const app = express();
 app.use(express.json({limit:'20mb'}));
+
+app.get(['/', '/index.html'], async (req,res,next)=>{
+  try{
+    const html=await fs.readFile(new URL('./public/index.html', import.meta.url),'utf8');
+    const injected=html.replace('</body>','<script src="/analytics.js?v=1"></script></body>');
+    res.type('html').send(injected);
+  }catch(err){next(err);}
+});
+
 app.use(express.static('public'));
 
 const hasKey = Boolean(process.env.OPENAI_API_KEY);
@@ -87,7 +97,24 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,version:'mobile-3.4'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,version:'mobile-3.6'}));
+
+app.get('/api/analytics/snapshot',(req,res)=>{
+  const branches=[
+    {name:'Полярные зори 43/1',units:49,strongCategory:'Роллы',strongCategoryUnits:23,topItem:'Чизкейк Классический',topItemUnits:9},
+    {name:'Баумана 18',units:30,strongCategory:'Роллы',strongCategoryUnits:12,topItem:'Огурец маки',topItemUnits:3},
+    {name:'ГС 33а',units:62,strongCategory:'Роллы',strongCategoryUnits:34,topItem:'Филадельфия',topItemUnits:4},
+    {name:'Плазма',units:41,strongCategory:'Интеграция Яндекс',strongCategoryUnits:18,topItem:'Запеченная калифорния / Набор на персону',topItemUnits:2}
+  ];
+  res.json({
+    ok:true,
+    date:'03.10.2026',
+    source:'ручные выгрузки Frontpad «Товары»',
+    totalUnits:182,
+    branches,
+    summary:'По объёму проданных единиц лидирует ГС 33а — 62. Затем Полярные зори 43/1 — 49, Плазма — 41 и Баумана 18 — 30. На всех точках основная категория — роллы, кроме Плазмы, где заметная доля проходит через категорию «Интеграция Яндекс». Для управленческих выводов по выручке и прибыли нужно дополнительно подключить отчёты «Выручка», «Себестоимость» и «Прибыль и убытки».'
+  });
+});
 
 app.post('/api/chat',async(req,res)=>{
   const message=String(req.body?.message||'').trim();
@@ -139,7 +166,6 @@ async function ensureFolder(path){
     await yandexRequest(`/resources?path=${q}`,{method:'PUT'});
     return true;
   }catch(e){
-    // 409 means the resource already exists, which is fine for setup.
     if(e.status===409)return true;
     throw e;
   }
@@ -201,4 +227,4 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
 });
 
 const port=Number(process.env.PORT||3000);
-app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.4: http://localhost:${port}`));
+app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.6: http://localhost:${port}`));
