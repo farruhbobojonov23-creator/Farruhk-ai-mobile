@@ -17,7 +17,7 @@ app.use(express.static('public'));
 
 const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
 const hasKey = Boolean(geminiKey);
-const geminiModel = String(process.env.GEMINI_MODEL||'gemini-2.5-flash-lite').trim();
+const geminiModel = String(process.env.GEMINI_MODEL||'gemini-3.8-flash').trim();
 
 const frontpadConfigured=()=>Boolean(String(process.env.FRONTPAD_LOGIN||'').trim()&&String(process.env.FRONTPAD_PASSWORD||'').trim());
 
