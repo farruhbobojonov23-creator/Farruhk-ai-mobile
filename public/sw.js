@@ -1,4 +1,4 @@
-const CACHE='farrukh-ai-mobile-v3-4-yandex-disk';
+const CACHE='farrukh-ai-mobile-v3-5-smart-voice';
 const ASSETS=['/','/index.html','/style.css','/app.js','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 
 const BUTTON_VOICE_PATCH=`
@@ -48,6 +48,155 @@ const BUTTON_VOICE_PATCH=`
   const wake=document.querySelector('#wakeBtn');if(wake)wake.onclick=startStableVoice;
 })();`;
 
+const SMART_ASSISTANT_PATCH=`
+;(()=>{
+  function cleanSpeechText(text){
+    return String(text||'')
+      .replace(/https?:\\/\\/\\S+/gi,'')
+      .replace(/[*#_~`>|\\[\\]{}]/g,' ')
+      .replace(/\\(([^)]{0,120})\\)/g,' $1 ')
+      .replace(/[-–—]{2,}/g,' ')
+      .replace(/\\s*[,;:]\\s*/g,', ')
+      .replace(/\\s+/g,' ')
+      .trim();
+  }
+
+  try{
+    speakWithPreset=function(text,presetKey=voicePreset){
+      const clean=cleanSpeechText(text);
+      if(!state.tts||!('speechSynthesis'in window)||!clean)return;
+      const preset=voicePresets[presetKey]||voicePresets.ai;
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(clean);
+      u.lang='ru-RU';
+      const customRate=parseFloat(localStorage.getItem('farrukh_voice_rate')||'0');
+      u.rate=customRate||Math.min(1.0,Math.max(0.9,preset.rate));
+      u.pitch=preset.gender==='female'?1.02:0.96;
+      const chosen=getPreferredVoice(preset);if(chosen)u.voice=chosen;
+      speechSynthesis.speak(u);
+    };
+    speak=function(text){speakWithPreset(text,voicePreset)};
+  }catch(e){}
+
+  function addChat(role,text){
+    state.chat.push({role,text});
+    renderChat();
+  }
+
+  function parseTime(text){
+    const now=new Date();
+    const lower=String(text||'').toLowerCase();
+    const m=lower.match(/(?:в|на)\\s*(\\d{1,2})(?:[:.](\\d{2}))?/);
+    if(!m)return null;
+    const d=new Date(now);
+    d.setHours(Math.min(23,Number(m[1])),Math.min(59,Number(m[2]||0)),0,0);
+    if(/завтра/.test(lower))d.setDate(d.getDate()+1);
+    else if(/послезавтра/.test(lower))d.setDate(d.getDate()+2);
+    else if(d<=now)d.setDate(d.getDate()+1);
+    return d;
+  }
+
+  function taskTextFromCommand(text){
+    return String(text||'')
+      .replace(/^(добавь|добавить|создай|создать|запиши|записать)\\s+/i,'')
+      .replace(/^(мне\\s+)?(задачу|напоминание)\\s*[:,-]?\\s*/i,'')
+      .replace(/^(напомни|напомнить)\\s*(мне)?\\s*/i,'')
+      .replace(/\\s+(сегодня|завтра|послезавтра)\\s*(?:в|на)?\\s*\\d{1,2}(?:[:.]\\d{2})?\\s*$/i,'')
+      .replace(/\\s+(?:в|на)\\s*\\d{1,2}(?:[:.]\\d{2})?\\s*$/i,'')
+      .trim();
+  }
+
+  function formatWhen(d){
+    if(!d)return '';
+    return d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+
+  function saveVoiceTask(text){
+    const due=parseTime(text);
+    const taskText=taskTextFromCommand(text)||'Новая задача';
+    state.tasks.unshift({text:taskText,priority:'normal',done:false,dueAt:due?due.toISOString():null,reminded:false,createdBy:'voice'});
+    save();renderTasks();
+    const reply=due?'Задача сохранена. Напомню '+formatWhen(due)+': '+taskText+'.':'Задача сохранена: '+taskText+'.';
+    addChat('ai',reply);speak(reply);
+    return true;
+  }
+
+  function reportText(kind){
+    const active=(state.tasks||[]).filter(t=>!t.done);
+    const done=(state.tasks||[]).filter(t=>t.done);
+    const high=active.filter(t=>t.priority==='high');
+    const due=active.filter(t=>t.dueAt&&new Date(t.dueAt)<=new Date(Date.now()+24*60*60*1000));
+    if(kind==='morning'){
+      let s='Доброе утро, шеф. На сегодня '+active.length+' активных задач.';
+      if(high.length)s+=' Важных: '+high.length+'. '+high.slice(0,3).map(t=>t.text).join('. ')+'.';
+      if(due.length)s+=' С напоминанием в ближайшие сутки: '+due.length+'.';
+      if(!active.length)s+=' Активных задач нет.';
+      return s;
+    }
+    let s='Вечерний отчёт, шеф. Выполнено задач: '+done.length+'. Осталось: '+active.length+'.';
+    if(active.length)s+=' На контроле: '+active.slice(0,3).map(t=>t.text).join('. ')+'.';
+    return s;
+  }
+
+  function showReport(kind,automatic=false){
+    const text=reportText(kind);
+    addChat('ai',text);speak(text);
+    if(automatic)show('chat');
+  }
+
+  const originalAskAI=askAI;
+  askAI=async function(text){
+    const t=String(text||'').trim();
+    const low=t.toLowerCase();
+    if(/^(добавь|добавить|создай|создать|запиши|записать).*(задач|напомин)|^напомни|^напомнить/.test(low)){
+      addChat('user',t);show('chat');return saveVoiceTask(t);
+    }
+    if(/утренн.*отч[её]т|отч[её]т.*утр/.test(low)){addChat('user',t);show('chat');showReport('morning');return;}
+    if(/вечерн.*отч[её]т|отч[её]т.*вечер/.test(low)){addChat('user',t);show('chat');showReport('evening');return;}
+    return originalAskAI(t);
+  };
+
+  function maybeNotify(task){
+    const body=task.text||'Напоминание';
+    if('Notification'in window&&Notification.permission==='granted'){
+      try{new Notification('FARRUKH AI',{body});}catch(e){}
+    }
+    addChat('ai','Напоминание: '+body);speak('Шеф, напоминаю: '+body);
+    task.reminded=true;save();
+  }
+
+  async function ensureNotifications(){
+    if(!('Notification'in window))return;
+    if(Notification.permission==='default'){
+      try{await Notification.requestPermission();}catch(e){}
+    }
+  }
+  setTimeout(ensureNotifications,3000);
+
+  function reminderTick(){
+    const now=Date.now();
+    (state.tasks||[]).forEach(t=>{
+      if(!t.done&&!t.reminded&&t.dueAt&&new Date(t.dueAt).getTime()<=now)maybeNotify(t);
+    });
+  }
+  reminderTick();setInterval(reminderTick,30000);
+
+  function dailyReportsTick(){
+    const now=new Date();
+    const day=now.toISOString().slice(0,10);
+    const mins=now.getHours()*60+now.getMinutes();
+    const morningKey='farrukh_report_morning_'+day;
+    const eveningKey='farrukh_report_evening_'+day;
+    if(mins>=540&&mins<720&&!localStorage.getItem(morningKey)){
+      localStorage.setItem(morningKey,'1');showReport('morning',true);
+    }
+    if(mins>=1260&&!localStorage.getItem(eveningKey)){
+      localStorage.setItem(eveningKey,'1');showReport('evening',true);
+    }
+  }
+  dailyReportsTick();setInterval(dailyReportsTick,60000);
+})();`;
+
 const YANDEX_UI_PATCH=`
 ;(()=>{
   const pathInput=document.querySelector('#yandexDiskPath');
@@ -77,111 +226,54 @@ const YANDEX_UI_PATCH=`
     connectBtn.insertAdjacentElement('afterend',backupBtn);
   }
 
-  function setStatus(text,ok=false){
-    statusEl.textContent=text;
-    statusEl.style.color=ok?'#77ffab':'#f4c66a';
-  }
-  function path(){
-    let p=(pathInput.value||'/FARRUKH_AI_STORAGE/').trim();
-    if(!p.startsWith('/'))p='/'+p;
-    if(!p.endsWith('/'))p+='/';
-    return p;
-  }
+  function setStatus(text,ok=false){statusEl.textContent=text;statusEl.style.color=ok?'#77ffab':'#f4c66a';}
+  function path(){let p=(pathInput.value||'/FARRUKH_AI_STORAGE/').trim();if(!p.startsWith('/'))p='/'+p;if(!p.endsWith('/'))p+='/';return p;}
 
-  saveBtn.onclick=()=>{
-    const p=path();
-    pathInput.value=p;
-    localStorage.setItem('farrukh_yandex_disk_path',p);
-    setStatus('Путь сохранён: '+p,true);
-  };
+  saveBtn.onclick=()=>{const p=path();pathInput.value=p;localStorage.setItem('farrukh_yandex_disk_path',p);setStatus('Путь сохранён: '+p,true);};
 
   async function checkYandex(){
     try{
       setStatus('Проверяю подключение…');
-      const r=await fetch('/api/yandex/status');
-      const d=await r.json();
-      if(d.connected){
-        setStatus('Яндекс Диск подключён. Можно создавать папки и резервные копии.',true);
-        connectBtn.textContent='Создать рабочие папки';
-        return true;
-      }
-      if(d.reason==='token_missing'){
-        setStatus('Нужен безопасный токен Яндекс Диска на сервере Render.');
-        connectBtn.textContent='Яндекс Диск не авторизован';
-        return false;
-      }
-      setStatus('Не удалось подключиться к Яндекс Диску: '+(d.error||'ошибка'));
-      return false;
-    }catch(e){
-      setStatus('Ошибка связи с сервером.');
-      return false;
-    }
+      const r=await fetch('/api/yandex/status');const d=await r.json();
+      if(d.connected){setStatus('Яндекс Диск подключён ✓',true);connectBtn.textContent='Создать рабочие папки';return true;}
+      if(d.reason==='token_missing'){setStatus('Нужен безопасный токен Яндекс Диска на сервере Render.');connectBtn.textContent='Яндекс Диск не авторизован';return false;}
+      setStatus('Не удалось подключиться к Яндекс Диску: '+(d.error||'ошибка'));return false;
+    }catch(e){setStatus('Ошибка связи с сервером.');return false;}
   }
 
   connectBtn.onclick=async()=>{
     const connected=await checkYandex();
-    if(!connected){
-      alert('Код приложения уже готов. Осталось один раз добавить OAuth-токен Яндекс Диска в Render как YANDEX_DISK_TOKEN. Токен нельзя хранить прямо в браузере — это небезопасно.');
-      return;
-    }
+    if(!connected){alert('Добавь OAuth-токен Яндекс Диска в Render как YANDEX_DISK_TOKEN.');return;}
     try{
-      connectBtn.disabled=true;
-      connectBtn.textContent='Создаю папки…';
+      connectBtn.disabled=true;connectBtn.textContent='Создаю папки…';
       const r=await fetch('/api/yandex/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({basePath:path()})});
-      const d=await r.json();
-      if(!r.ok)throw new Error(d.error||'Ошибка');
-      setStatus('Готово: '+d.basePath+' — Menus, Photos, TechCards, Reports, Backups.',true);
-      connectBtn.textContent='Папки готовы ✓';
-    }catch(e){
-      setStatus('Ошибка: '+e.message);
-      connectBtn.textContent='Повторить подключение';
-    }finally{connectBtn.disabled=false;}
+      const d=await r.json();if(!r.ok)throw new Error(d.error||'Ошибка');
+      setStatus('Яндекс Диск подключён ✓ Папки готовы.',true);connectBtn.textContent='Папки готовы ✓';
+    }catch(e){setStatus('Ошибка: '+e.message);connectBtn.textContent='Повторить подключение';}finally{connectBtn.disabled=false;}
   };
 
   backupBtn.onclick=async()=>{
     try{
-      backupBtn.disabled=true;
-      backupBtn.textContent='Сохраняю…';
-      const backup={
-        createdAt:new Date().toISOString(),
-        tasks:state.tasks||[],
-        projects:state.projects||[],
-        knowledge:state.knowledge||'',
-        settings:{voicePreset:localStorage.getItem('farrukh_voice_preset')||'ai'}
-      };
+      backupBtn.disabled=true;backupBtn.textContent='Сохраняю…';
+      const backup={createdAt:new Date().toISOString(),tasks:state.tasks||[],projects:state.projects||[],knowledge:state.knowledge||'',settings:{voicePreset:localStorage.getItem('farrukh_voice_preset')||'ai'}};
       const fileName='farrukh-ai-backup-'+new Date().toISOString().slice(0,10)+'.json';
       const r=await fetch('/api/yandex/upload-json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({basePath:path(),folder:'Backups',fileName,data:backup})});
-      const d=await r.json();
-      if(!r.ok)throw new Error(d.error||'Ошибка');
-      setStatus('Резервная копия сохранена: '+d.path,true);
-      backupBtn.textContent='Резервная копия готова ✓';
-    }catch(e){
-      setStatus('Не удалось сохранить копию: '+e.message);
-      backupBtn.textContent='Сделать резервную копию';
-    }finally{backupBtn.disabled=false;}
+      const d=await r.json();if(!r.ok)throw new Error(d.error||'Ошибка');
+      setStatus('Резервная копия сохранена: '+d.path,true);backupBtn.textContent='Резервная копия готова ✓';
+    }catch(e){setStatus('Не удалось сохранить копию: '+e.message);backupBtn.textContent='Сделать резервную копию';}finally{backupBtn.disabled=false;}
   };
 
   checkYandex();
 })();`;
 
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
-self.addEventListener('activate',e=>e.waitUntil(Promise.all([
-  self.clients.claim(),
-  caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
-])));
+self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
 self.addEventListener('fetch',e=>{
   if(e.request.url.includes('/api/')) return;
   const url=new URL(e.request.url);
   if(url.origin===self.location.origin && url.pathname==='/app.js'){
-    e.respondWith(fetch(e.request).then(async r=>{
-      const text=await r.text();
-      return new Response(text+'\n'+BUTTON_VOICE_PATCH+'\n'+YANDEX_UI_PATCH,{status:r.status,statusText:r.statusText,headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store'}});
-    }).catch(()=>caches.match(e.request)));
+    e.respondWith(fetch(e.request).then(async r=>{const text=await r.text();return new Response(text+'\n'+BUTTON_VOICE_PATCH+'\n'+SMART_ASSISTANT_PATCH+'\n'+YANDEX_UI_PATCH,{status:r.status,statusText:r.statusText,headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store'}});}).catch(()=>caches.match(e.request)));
     return;
   }
-  e.respondWith(fetch(e.request).then(r=>{
-    const copy=r.clone();
-    caches.open(CACHE).then(c=>c.put(e.request,copy));
-    return r;
-  }).catch(()=>caches.match(e.request)));
+  e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r;}).catch(()=>caches.match(e.request)));
 });
