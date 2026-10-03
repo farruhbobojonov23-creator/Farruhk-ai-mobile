@@ -19,6 +19,8 @@ app.use(express.static('public'));
 const hasKey = Boolean(process.env.OPENAI_API_KEY);
 const client = hasKey ? new OpenAI({apiKey:process.env.OPENAI_API_KEY}) : null;
 
+const frontpadConfigured=()=>Boolean(String(process.env.FRONTPAD_LOGIN||'').trim()&&String(process.env.FRONTPAD_PASSWORD||'').trim());
+
 const staticKnowledge = {
   profile: {
     name: "Фаррух Ака",
@@ -49,25 +51,7 @@ const staticKnowledge = {
 };
 
 function buildInstructions(clientContext={}) {
-  return `Ты — FARRUKH AI Mobile, персональный рабочий ассистент Фарруха Ака.
-Отвечай по-русски, кратко, профессионально и практично.
-
-ПОСТОЯННЫЙ КОНТЕКСТ:
-${JSON.stringify(staticKnowledge, null, 2)}
-
-ТЕКУЩИЕ ДАННЫЕ ИЗ ПРИЛОЖЕНИЯ (включая пользовательскую базу знаний, задачи и проекты):
-${JSON.stringify(clientContext, null, 2)}
-
-Правила:
-- Если пользователь спрашивает про задачи — используй текущий список tasks из контекста.
-- Если спрашивает про проекты — используй projects из контекста плюс постоянную базу выше.
-- Если спрашивает "что сегодня" — сначала покажи незакрытые важные задачи, затем обычные.
-- Если данные уже есть в контексте, не говори, что у тебя нет к ним доступа.
-- Поле knowledge — это пользовательская база знаний. Считай её главным рабочим контекстом, если она не противоречит текущим данным.
-- Не выдумывай закупочные цены, граммовки, санитарные нормы и факты.
-- Для себестоимости используй только присланные пользователем числа.
-- Можно предлагать готовые сообщения поварам, чек-листы и рабочие планы.
-- Не утверждай, что можешь переключить системный голос сам.`;
+  return `Ты — FARRUKH AI Mobile, персональный рабочий ассистент Фарруха Ака.\nОтвечай по-русски, кратко, профессионально и практично.\n\nПОСТОЯННЫЙ КОНТЕКСТ:\n${JSON.stringify(staticKnowledge, null, 2)}\n\nТЕКУЩИЕ ДАННЫЕ ИЗ ПРИЛОЖЕНИЯ (включая пользовательскую базу знаний, задачи и проекты):\n${JSON.stringify(clientContext, null, 2)}\n\nПравила:\n- Если пользователь спрашивает про задачи — используй текущий список tasks из контекста.\n- Если спрашивает про проекты — используй projects из контекста плюс постоянную базу выше.\n- Если спрашивает \"что сегодня\" — сначала покажи незакрытые важные задачи, затем обычные.\n- Если данные уже есть в контексте, не говори, что у тебя нет к ним доступа.\n- Поле knowledge — это пользовательская база знаний. Считай её главным рабочим контекстом, если она не противоречит текущим данным.\n- Не выдумывай закупочные цены, граммовки, санитарные нормы и факты.\n- Для себестоимости используй только присланные пользователем числа.\n- Можно предлагать готовые сообщения поварам, чек-листы и рабочие планы.\n- Не утверждай, что можешь переключить системный голос сам.`;
 }
 
 function localReply(message, ctx={}) {
@@ -97,7 +81,34 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,version:'mobile-3.6'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,frontpadConfigured:frontpadConfigured(),version:'mobile-3.7'}));
+
+app.get('/api/frontpad/status',async(req,res)=>{
+  const configured=frontpadConfigured();
+  let reachable=false;
+  let loginPageHasCode=false;
+  let httpStatus=null;
+  try{
+    const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',headers:{'User-Agent':'FARRUKH-AI/1.0'}});
+    httpStatus=r.status;
+    const html=await r.text();
+    reachable=r.ok;
+    loginPageHasCode=/Код|captcha|captcha/i.test(html);
+  }catch(e){}
+  res.json({
+    ok:true,
+    configured,
+    reachable,
+    httpStatus,
+    loginPageHasCode,
+    credentialsStoredOnServer:configured,
+    automaticReports:false,
+    reason:loginPageHasCode?'interactive_login_code_required':'report_api_not_confirmed',
+    message:configured
+      ? 'Доступ Frontpad сохранён на сервере. Сервер видит страницу входа. Автоматическое получение отчётов пока не включено: стандартная форма входа Frontpad требует дополнительный код, а публичный API отчётов не подтверждён.'
+      : 'Логин и пароль Frontpad ещё не настроены на сервере.'
+  });
+});
 
 app.get('/api/analytics/snapshot',(req,res)=>{
   const branches=[
@@ -227,4 +238,4 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
 });
 
 const port=Number(process.env.PORT||3000);
-app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.6: http://localhost:${port}`));
+app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`));
