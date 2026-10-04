@@ -338,5 +338,19 @@ app.post('/api/telegram/booking',async(req,res)=>{
 });
 
 const port=Number(process.env.PORT||3000);
-app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`));
+app.listen(port,()=>{
+  console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`);
+  setTimeout(async()=>{
+    try{
+      console.log('[telegram-check] tokenConfigured='+Boolean(telegramToken()));
+      if(telegramToken()){
+        const me=await telegramRequest('getMe',{});
+        const chatId=await telegramChatId();
+        console.log('[telegram-check] botConnected=true username='+(me?.username||'unknown')+' chatReady='+Boolean(chatId));
+      }
+    }catch(err){
+      console.log('[telegram-check] botConnected=false error='+(err?.message||'unknown'));
+    }
+  },1500);
+});
 
