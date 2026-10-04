@@ -117,8 +117,7 @@ app.get('/api/frontpad/status',async(req,res)=>{
 
 function analyticsSnapshot(){
   const branches=[
-    {name:'Полярные зори 43/1',units:49,strongCategory:'Роллы',strongCategoryUnits:23,topItem:'Чизкейк Классический',topItemUnits:9},
-    {name:'Баумана 18',units:30,strongCategory:'Роллы',strongCategoryUnits:12,topItem:'Огурец маки',topItemUnits:3},
+    {name:'Полярные зори 43/1',units:49,strongCategory:'Роллы',strongCategoryUnits:23,topItem:'Чизкейк Классический',topItemUnits:9},    {name:'Баумана 18',units:30,strongCategory:'Роллы',strongCategoryUnits:12,topItem:'Огурец маки',topItemUnits:3},
     {name:'ГС 33а',units:62,strongCategory:'Роллы',strongCategoryUnits:34,topItem:'Филадельфия',topItemUnits:4},
     {name:'Плазма',units:41,strongCategory:'Интеграция Яндекс',strongCategoryUnits:18,topItem:'Запеченная калифорния / Набор на персону',topItemUnits:2}
   ];
@@ -237,8 +236,7 @@ app.get('/api/yandex/list',async(req,res)=>{
     const items=(data?._embedded?.items||[]).map(x=>({name:x.name,type:x.type,path:x.path,size:x.size||0,modified:x.modified||null}));
     res.json({ok:true,path:basePath,items});
   }catch(err){
-    res.status(502).json({ok:false,error:err.message});
-  }
+    res.status(502).json({ok:false,error:err.message});  }
 });
 
 app.post('/api/yandex/upload-json',async(req,res)=>{
@@ -260,7 +258,90 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
   }
 });
 
+
+// ---- SHEF51 Telegram booking ----
+const telegramToken=()=>String(process.env.TELEGRAM_BOT_TOKEN||'').trim();
+
+async function telegramRequest(method,payload={}){
+  const token=telegramToken();
+  if(!token)throw new Error('TELEGRAM_BOT_TOKEN_NOT_CONFIGURED');
+  const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload),
+    signal:AbortSignal.timeout(12000)
+  });
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok||!data.ok)throw new Error(data?.description||`Telegram HTTP ${r.status}`);
+  return data.result;
+}
+
+async function telegramChatId(){
+  const updates=await telegramRequest('getUpdates',{limit:50,timeout:0});
+  const chats=(Array.isArray(updates)?updates:[])
+    .map(u=>u?.message?.chat||u?.edited_message?.chat||u?.callback_query?.message?.chat)
+    .filter(c=>c&&c.type==='private'&&c.id);
+  return chats.length?String(chats[chats.length-1].id):'';
+}
+
+function bookingCors(req,res){
+  const origin=String(req.headers.origin||'');
+  if(origin==='https://shef51.onrender.com'){
+    res.setHeader('Access-Control-Allow-Origin',origin);
+    res.setHeader('Vary','Origin');
+  }
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  res.setHeader('Access-Control-Allow-Methods','POST,OPTIONS');
+  return origin;
+}
+
+app.options('/api/telegram/booking',(req,res)=>{
+  bookingCors(req,res);
+  res.sendStatus(204);
+});
+
+app.get('/api/telegram/status',async(req,res)=>{
+  try{
+    if(!telegramToken())return res.json({configured:false,connected:false,chatReady:false});
+    const me=await telegramRequest('getMe',{});
+    const chatId=await telegramChatId();
+    res.json({configured:true,connected:true,chatReady:Boolean(chatId),botUsername:me?.username||null});
+  }catch(err){
+    res.status(502).json({configured:Boolean(telegramToken()),connected:false,chatReady:false,error:err.message});
+  }
+});
+
+app.post('/api/telegram/booking',async(req,res)=>{
+  const origin=bookingCors(req,res);
+  if(origin&&origin!=='https://shef51.onrender.com')return res.status(403).json({ok:false,error:'Origin not allowed'});
+  const service=String(req.body?.service||'').trim().slice(0,120);
+  const date=String(req.body?.date||'').trim().slice(0,40);
+  const guests=String(req.body?.guests||'').trim().slice(0,20);
+  const name=String(req.body?.name||'').trim().slice(0,120);
+  const contact=String(req.body?.contact||'').trim().slice(0,120);
+  const comment=String(req.body?.comment||'').trim().slice(0,1000);
+  if(!service||!date||!guests||!name||!contact)return res.status(400).json({ok:false,error:'Заполните обязательные поля.'});
+  try{
+    const chatId=await telegramChatId();
+    if(!chatId)return res.status(503).json({ok:false,error:'Откройте бота в Telegram и отправьте /start.'});
+    const text=[
+      '🍣 Новая заявка SHEF51',
+      '',
+      'Услуга: '+service,
+      'Дата: '+date,
+      'Гостей: '+guests,
+      'Имя: '+name,
+      'Телефон / WhatsApp: '+contact,
+      'Пожелания: '+(comment||'—')
+    ].join('\n');
+    await telegramRequest('sendMessage',{chat_id:chatId,text});
+    res.json({ok:true});
+  }catch(err){
+    console.error('Telegram booking error',err);
+    res.status(502).json({ok:false,error:'Не удалось отправить заявку в Telegram.'});
+  }
+});
+
 const port=Number(process.env.PORT||3000);
 app.listen(port,()=>console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`));
-
 
