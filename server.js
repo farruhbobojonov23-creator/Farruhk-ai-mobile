@@ -2,20 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
-import pg from 'pg';
-
-const {Pool}=pg;
-const dbUrl=()=>String(process.env.DATABASE_URL||'').trim();
-const pool=dbUrl()?new Pool({connectionString:dbUrl(),ssl:{rejectUnauthorized:false}}):null;
-let shefDbReady=null;
-async function ensureShefDb(){
-  if(!pool)throw new Error('DATABASE_URL_NOT_CONFIGURED');
-  if(!shefDbReady)shefDbReady=(async()=>{
-    await pool.query('CREATE TABLE IF NOT EXISTS shef51_menu (id INTEGER PRIMARY KEY DEFAULT 1, payload JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
-    await pool.query('CREATE TABLE IF NOT EXISTS shef51_images (id TEXT PRIMARY KEY, mime TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
-  })();
-  return shefDbReady;
-}
 
 const app = express();
 app.use(express.json({limit:'20mb'}));
@@ -278,6 +264,9 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
 // ---- SHEF51 Admin + persistent menu ----
 const shef51AdminPassword=()=>String(process.env.SHEF51_ADMIN_PASSWORD||'').trim();
 const shef51AdminSecret=()=>String(process.env.SHEF51_ADMIN_SECRET||'').trim();
+const SHEF51_BASE='/FARRUKH_AI_STORAGE/SHEF51/';
+const SHEF51_MENU_PATH=SHEF51_BASE+'menu.json';
+const SHEF51_PHOTOS_PATH=SHEF51_BASE+'Photos/';
 
 const defaultShef51Menu=()=>[
   {id:'philadelphia',category:'rolls',name:'Филадельфия',description:'Нежный лосось, обволакивающий ролл снаружи, сливочный сыр с мягким кремовым вкусом и свежий хрустящий огурец внутри — классическое сочетание, где каждый кусочек получается сочным и сбалансированным.',portion:'Порция — 8 шт.',visible:true,order:10,imageUrl:''},
@@ -294,12 +283,34 @@ function shef51Cors(req,res){
   res.setHeader('Access-Control-Allow-Methods','GET,OPTIONS');
   res.setHeader('Cache-Control','no-store');
 }
-async function getShef51Menu(){
-  if(!pool)return defaultShef51Menu();
+
+async function yandexDownloadLink(path){
+  return yandexRequest('/resources/download?path='+encodeURIComponent(path),{method:'GET'});
+}
+async function readYandexJson(path){
   try{
-    await ensureShefDb();
-    const r=await pool.query('SELECT payload FROM shef51_menu WHERE id=1');
-    return Array.isArray(r.rows?.[0]?.payload?.items)?r.rows[0].payload.items:defaultShef51Menu();
+    const d=await yandexDownloadLink(path);
+    const r=await fetch(d.href,{signal:AbortSignal.timeout(15000)});
+    if(!r.ok)throw new Error('Download HTTP '+r.status);
+    return await r.json();
+  }catch(err){
+    if(err?.status===404)return null;
+    throw err;
+  }
+}
+async function writeYandexFile(path,body,contentType='application/octet-stream'){
+  const dir=path.slice(0,path.lastIndexOf('/')+1);
+  await ensureFolder(SHEF51_BASE);
+  if(dir&&dir!==SHEF51_BASE)await ensureFolder(dir);
+  const hrefData=await yandexRequest('/resources/upload?path='+encodeURIComponent(path)+'&overwrite=true',{method:'GET'});
+  const upload=await fetch(hrefData.href,{method:'PUT',headers:{'Content-Type':contentType},body});
+  if(!upload.ok)throw new Error('Yandex upload HTTP '+upload.status);
+}
+async function getShef51Menu(){
+  if(!yandexToken())return defaultShef51Menu();
+  try{
+    const stored=await readYandexJson(SHEF51_MENU_PATH);
+    return Array.isArray(stored?.items)?stored.items:defaultShef51Menu();
   }catch(err){
     console.error('SHEF51 menu read',err);
     return defaultShef51Menu();
@@ -385,23 +396,19 @@ app.get('/api/shef51/admin/session',(req,res)=>{
   res.json({ok:Boolean(verifySession(cookieValue(req,'shef51_admin')))});
 });
 app.get('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
-  res.json({ok:true,items:await getShef51Menu(),storage:pool?'render-postgres':'fallback'});
+  res.json({ok:true,items:await getShef51Menu(),storage:yandexToken()?'yandex':'fallback'});
 });
 app.put('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
-  if(!pool)return res.status(503).json({ok:false,error:'Постоянное хранилище Render ещё не подключено.'});
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён — постоянное сохранение недоступно.'});
   const raw=Array.isArray(req.body?.items)?req.body.items:[];
   const items=raw.slice(0,200).map(cleanItem).sort((a,b)=>a.order-b.order);
   try{
-    await ensureShefDb();
-    await pool.query(
-      'INSERT INTO shef51_menu(id,payload,updated_at) VALUES(1,$1::jsonb,NOW()) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=NOW()',
-      [JSON.stringify({updatedAt:new Date().toISOString(),items})]
-    );
+    await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items},null,2),'application/json');
     res.json({ok:true,items});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось сохранить меню: '+err.message});}
 });
 app.post('/api/shef51/admin/upload',requireShef51Admin,async(req,res)=>{
-  if(!pool)return res.status(503).json({ok:false,error:'Постоянное хранилище Render ещё не подключено.'});
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён.'});
   const data=String(req.body?.data||'');
   const name=cleanText(req.body?.name,80).toLowerCase().replace(/[^a-z0-9_-]/g,'-')||'photo';
   const m=data.match(/^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=\s]+)$/);
@@ -412,8 +419,7 @@ app.post('/api/shef51/admin/upload',requireShef51Admin,async(req,res)=>{
   if(!buf.length||buf.length>8*1024*1024)return res.status(400).json({ok:false,error:'Фото должно быть до 8 МБ.'});
   const id=name+'-'+Date.now()+'.'+ext;
   try{
-    await ensureShefDb();
-    await pool.query('INSERT INTO shef51_images(id,mime,data) VALUES($1,$2,$3)',[id,'image/'+subtype,buf]);
+    await writeYandexFile(SHEF51_PHOTOS_PATH+id,buf,'image/'+subtype);
     res.json({ok:true,imageId:id,imageUrl:'/api/shef51/image/'+encodeURIComponent(id)});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось загрузить фото: '+err.message});}
 });
@@ -427,16 +433,11 @@ app.get('/api/shef51/menu',async(req,res)=>{
 app.get('/api/shef51/image/:id',async(req,res)=>{
   const id=String(req.params.id||'');
   if(!/^[a-z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(id))return res.sendStatus(400);
-  if(!pool)return res.sendStatus(404);
   try{
-    await ensureShefDb();
-    const r=await pool.query('SELECT mime,data FROM shef51_images WHERE id=$1',[id]);
-    const row=r.rows?.[0];
-    if(!row)return res.sendStatus(404);
-    res.setHeader('Content-Type',row.mime);
-    res.setHeader('Cache-Control','public, max-age=31536000, immutable');
-    res.send(row.data);
-  }catch(err){console.error(err);res.sendStatus(404);}
+    const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
+    res.setHeader('Cache-Control','public, max-age=300');
+    res.redirect(302,d.href);
+  }catch(err){res.sendStatus(404);}
 });
 
 // ---- SHEF51 Telegram booking ----
