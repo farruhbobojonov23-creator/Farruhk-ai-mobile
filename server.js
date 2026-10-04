@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
 
 const app = express();
 app.use(express.json({limit:'20mb'}));
@@ -259,6 +260,185 @@ app.post('/api/yandex/upload-json',async(req,res)=>{
   }
 });
 
+
+// ---- SHEF51 Admin + persistent menu ----
+const shef51AdminPassword=()=>String(process.env.SHEF51_ADMIN_PASSWORD||'').trim();
+const shef51AdminSecret=()=>String(process.env.SHEF51_ADMIN_SECRET||'').trim();
+const SHEF51_BASE='/FARRUKH_AI_STORAGE/SHEF51/';
+const SHEF51_MENU_PATH=SHEF51_BASE+'menu.json';
+const SHEF51_PHOTOS_PATH=SHEF51_BASE+'Photos/';
+
+const defaultShef51Menu=()=>[
+  {id:'philadelphia',category:'rolls',name:'Филадельфия',description:'Нежный лосось, обволакивающий ролл снаружи, сливочный сыр с мягким кремовым вкусом и свежий хрустящий огурец внутри — классическое сочетание, где каждый кусочек получается сочным и сбалансированным.',portion:'Порция — 8 шт.',visible:true,order:10,imageUrl:''},
+  {id:'philadelphia-premium',category:'rolls',name:'Филадельфия Премиум',description:'Щедрый слой нежного лосося снаружи, внутри — ещё больше сочного лосося, мягкий сливочный сыр, свежий хрустящий огурец, рис и нори.',portion:'Порция — 8 шт.',visible:true,order:20,imageUrl:''},
+  {id:'philadelphia-tiger',category:'rolls',name:'Филадельфия Тигровая',description:'Нежная тигровая креветка сверху, кремовый сливочный сыр и свежий хрустящий огурец внутри.',portion:'Порция — 8 шт.',visible:true,order:30,imageUrl:''},
+  {id:'philadelphia-tiger-premium',category:'rolls',name:'Филадельфия Тигровая Премиум',description:'Тигровая креветка под пикантным сладко-острым соусом, сочный лосось внутри, нежный сливочный сыр и свежий хрустящий огурец.',portion:'Порция — 8 шт.',visible:true,order:40,imageUrl:''},
+  {id:'sushi-salmon',category:'sushi',name:'Суши лосось',description:'рис, лосось',portion:'Порция — 8 шт.',visible:true,order:50,imageUrl:''},
+  {id:'udon-cream',category:'wok',name:'Удон сливочный',description:'лапша удон, сливочный соус',portion:'Порция — 8 шт.',visible:true,order:60,imageUrl:''}
+];
+
+function shef51Cors(req,res){
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  res.setHeader('Access-Control-Allow-Methods','GET,OPTIONS');
+  res.setHeader('Cache-Control','no-store');
+}
+
+async function yandexDownloadLink(path){
+  return yandexRequest('/resources/download?path='+encodeURIComponent(path),{method:'GET'});
+}
+async function readYandexJson(path){
+  try{
+    const d=await yandexDownloadLink(path);
+    const r=await fetch(d.href,{signal:AbortSignal.timeout(15000)});
+    if(!r.ok)throw new Error('Download HTTP '+r.status);
+    return await r.json();
+  }catch(err){
+    if(err?.status===404)return null;
+    throw err;
+  }
+}
+async function writeYandexFile(path,body,contentType='application/octet-stream'){
+  const dir=path.slice(0,path.lastIndexOf('/')+1);
+  await ensureFolder(SHEF51_BASE);
+  if(dir&&dir!==SHEF51_BASE)await ensureFolder(dir);
+  const hrefData=await yandexRequest('/resources/upload?path='+encodeURIComponent(path)+'&overwrite=true',{method:'GET'});
+  const upload=await fetch(hrefData.href,{method:'PUT',headers:{'Content-Type':contentType},body});
+  if(!upload.ok)throw new Error('Yandex upload HTTP '+upload.status);
+}
+async function getShef51Menu(){
+  if(!yandexToken())return defaultShef51Menu();
+  try{
+    const stored=await readYandexJson(SHEF51_MENU_PATH);
+    return Array.isArray(stored?.items)?stored.items:defaultShef51Menu();
+  }catch(err){
+    console.error('SHEF51 menu read',err);
+    return defaultShef51Menu();
+  }
+}
+function cleanText(v,max=500){return String(v??'').trim().slice(0,max);}
+function cleanItem(x,i){
+  const id=(cleanText(x?.id,80)||('item-'+Date.now()+'-'+i)).toLowerCase().replace(/[^a-z0-9_-]/g,'-');
+  const category=['rolls','sushi','wok'].includes(x?.category)?x.category:'rolls';
+  return {
+    id,category,
+    name:cleanText(x?.name,120)||'Без названия',
+    description:cleanText(x?.description,1200),
+    portion:cleanText(x?.portion,120),
+    visible:x?.visible!==false,
+    order:Number.isFinite(Number(x?.order))?Number(x.order):i*10,
+    imageUrl:cleanText(x?.imageUrl,500)
+  };
+}
+
+function b64url(input){return Buffer.from(input).toString('base64url');}
+function signSession(payload){
+  const body=b64url(JSON.stringify(payload));
+  const sig=crypto.createHmac('sha256',shef51AdminSecret()).update(body).digest('base64url');
+  return body+'.'+sig;
+}
+function verifySession(token){
+  try{
+    const [body,sig]=String(token||'').split('.');
+    if(!body||!sig||!shef51AdminSecret())return null;
+    const expected=crypto.createHmac('sha256',shef51AdminSecret()).update(body).digest('base64url');
+    if(sig.length!==expected.length||!crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(expected)))return null;
+    const p=JSON.parse(Buffer.from(body,'base64url').toString('utf8'));
+    if(!p?.exp||Date.now()>p.exp)return null;
+    return p;
+  }catch{return null;}
+}
+function cookieValue(req,name){
+  const raw=String(req.headers.cookie||'');
+  for(const part of raw.split(';')){
+    const [k,...rest]=part.trim().split('=');
+    if(k===name)return decodeURIComponent(rest.join('='));
+  }
+  return '';
+}
+function requireShef51Admin(req,res,next){
+  const session=verifySession(cookieValue(req,'shef51_admin'));
+  if(!session)return res.status(401).json({ok:false,error:'Нужен вход владельца'});
+  req.shef51Admin=session; next();
+}
+const loginAttempts=new Map();
+function loginAllowed(ip){
+  const now=Date.now(), row=loginAttempts.get(ip)||{count:0,reset:now+10*60*1000};
+  if(now>row.reset){row.count=0;row.reset=now+10*60*1000;}
+  loginAttempts.set(ip,row);
+  return row.count<8;
+}
+function noteBadLogin(ip){
+  const row=loginAttempts.get(ip)||{count:0,reset:Date.now()+10*60*1000};
+  row.count++;loginAttempts.set(ip,row);
+}
+
+app.get('/shef51-admin',(req,res)=>res.redirect('/shef51-admin.html'));
+
+app.post('/api/shef51/admin/login',(req,res)=>{
+  const ip=String(req.ip||req.socket?.remoteAddress||'unknown');
+  if(!loginAllowed(ip))return res.status(429).json({ok:false,error:'Слишком много попыток. Попробуйте позже.'});
+  const expected=shef51AdminPassword(), got=String(req.body?.password||'');
+  if(!expected||!shef51AdminSecret())return res.status(503).json({ok:false,error:'Админка ещё не настроена на сервере.'});
+  const a=Buffer.from(got), b=Buffer.from(expected);
+  const ok=a.length===b.length&&crypto.timingSafeEqual(a,b);
+  if(!ok){noteBadLogin(ip);return res.status(401).json({ok:false,error:'Неверный пароль'});}
+  loginAttempts.delete(ip);
+  const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
+  res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
+  res.json({ok:true});
+});
+app.post('/api/shef51/admin/logout',(req,res)=>{
+  res.setHeader('Set-Cookie','shef51_admin=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+  res.json({ok:true});
+});
+app.get('/api/shef51/admin/session',(req,res)=>{
+  res.json({ok:Boolean(verifySession(cookieValue(req,'shef51_admin')))});
+});
+app.get('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
+  res.json({ok:true,items:await getShef51Menu(),storage:yandexToken()?'yandex':'fallback'});
+});
+app.put('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён — постоянное сохранение недоступно.'});
+  const raw=Array.isArray(req.body?.items)?req.body.items:[];
+  const items=raw.slice(0,200).map(cleanItem).sort((a,b)=>a.order-b.order);
+  try{
+    await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items},null,2),'application/json');
+    res.json({ok:true,items});
+  }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось сохранить меню: '+err.message});}
+});
+app.post('/api/shef51/admin/upload',requireShef51Admin,async(req,res)=>{
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён.'});
+  const data=String(req.body?.data||'');
+  const name=cleanText(req.body?.name,80).toLowerCase().replace(/[^a-z0-9_-]/g,'-')||'photo';
+  const m=data.match(/^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=\s]+)$/);
+  if(!m)return res.status(400).json({ok:false,error:'Поддерживаются JPG, PNG и WEBP.'});
+  const subtype=m[1]==='jpg'?'jpeg':m[1];
+  const ext=subtype==='jpeg'?'jpg':subtype;
+  const buf=Buffer.from(m[2].replace(/\s+/g,''),'base64');
+  if(!buf.length||buf.length>8*1024*1024)return res.status(400).json({ok:false,error:'Фото должно быть до 8 МБ.'});
+  const id=name+'-'+Date.now()+'.'+ext;
+  try{
+    await writeYandexFile(SHEF51_PHOTOS_PATH+id,buf,'image/'+subtype);
+    res.json({ok:true,imageId:id,imageUrl:'/api/shef51/image/'+encodeURIComponent(id)});
+  }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось загрузить фото: '+err.message});}
+});
+
+app.options('/api/shef51/menu',(req,res)=>{shef51Cors(req,res);res.sendStatus(204);});
+app.get('/api/shef51/menu',async(req,res)=>{
+  shef51Cors(req,res);
+  const items=(await getShef51Menu()).filter(x=>x.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
+  res.json({ok:true,items});
+});
+app.get('/api/shef51/image/:id',async(req,res)=>{
+  const id=String(req.params.id||'');
+  if(!/^[a-z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(id))return res.sendStatus(400);
+  try{
+    const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
+    res.setHeader('Cache-Control','public, max-age=300');
+    res.redirect(302,d.href);
+  }catch(err){res.sendStatus(404);}
+});
 
 // ---- SHEF51 Telegram booking ----
 const telegramToken=()=>String(process.env.TELEGRAM_BOT_TOKEN||'').trim();
