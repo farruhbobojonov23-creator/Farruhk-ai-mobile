@@ -8,7 +8,7 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 </style></head><body>
 <header><div class="wrap nav"><div class="brand"><b>SHEF51</b> · FARRUKH AKA</div><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></nav><a class="btn" href="book.html">Забронировать</a></div></header><main>
 <style>.book{display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:start}.panel{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form .full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#111;border:1px solid #303030;color:#fff;border-radius:14px;padding:15px;font:inherit}.field textarea{min-height:120px;resize:vertical}.notice{font-size:13px;color:#858585;margin-top:12px}.status{display:none;margin-top:14px;padding:14px 16px;border-radius:14px;background:#111;border:1px solid #303030;line-height:1.5}.status.ok{display:block;border-color:#2b6f42;color:#baf5ca}.status.err{display:block;border-color:#7d3037;color:#ffc2c7}@media(max-width:850px){.book{grid-template-columns:1fr}}@media(max-width:560px){.form{grid-template-columns:1fr}.form .full{grid-column:auto}}</style>
-<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><p class="lead">Выберите услугу, дату, количество гостей и оставьте контакт. После отправки откроется WhatsApp с уже заполненной заявкой — останется только нажать «Отправить».</p></div>
+<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><p class="lead">Выберите услугу, дату, количество гостей и оставьте контакт. После отправки заявка сразу придёт шефу в Telegram. Вы останетесь на этой странице.</p></div>
 <div class="panel"><form id="bookingForm" class="form">
 <div class="field"><label>Услуга</label><select id="service" name="Услуга"><option>Ужин на дому</option><option>День рождения</option><option>Свадьба</option><option>Вечеринка</option><option>Корпоратив</option><option>Индивидуальный формат</option></select></div>
 <div class="field"><label>Дата</label><input id="date" name="Дата" type="date" required></div>
@@ -18,30 +18,42 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 <div class="field full"><label>Пожелания</label><textarea id="comment" name="Пожелания" placeholder="Что планируется, меню, адрес, особые пожелания..."></textarea></div>
 <input type="hidden" name="_subject" value="Новая заявка SHEF51">
 <input type="hidden" name="_template" value="table">
-<button id="submitBtn" class="btn full" type="submit">Отправить заявку в WhatsApp</button>
-</form><div id="status" class="status" aria-live="polite"></div><div class="notice">WhatsApp откроется с готовым текстом заявки.</div></div></section>
+<button id="submitBtn" class="btn full" type="submit">Отправить заявку</button>
+</form><div id="status" class="status" aria-live="polite"></div><div class="notice">После отправки появится подтверждение, а заявка сразу поступит в Telegram.</div></div></section>
 <script>
 const q=new URLSearchParams(location.search).get('service');if(q)document.getElementById('service').value=q;
 const form=document.getElementById('bookingForm'),statusBox=document.getElementById('status'),submitBtn=document.getElementById('submitBtn');
-form.addEventListener('submit',e=>{
+form.addEventListener('submit',async e=>{
   e.preventDefault();
-  const service=document.getElementById('service').value;
-  const date=document.getElementById('date').value;
-  const guests=document.getElementById('guests').value;
-  const name=document.getElementById('name').value.trim();
-  const contact=document.getElementById('contact').value.trim();
-  const comment=document.getElementById('comment').value.trim();
-  const message=[
-    'Здравствуйте! Хочу оставить заявку на SHEF51.',
-    '',
-    'Услуга: '+service,
-    'Дата: '+date,
-    'Количество гостей: '+guests,
-    'Имя: '+name,
-    'Телефон / WhatsApp: '+contact,
-    'Пожелания: '+(comment||'—')
-  ].join('\n');
-  const url='https://wa.me/79661232992?text='+encodeURIComponent(message);
-  window.location.href=url;
+  statusBox.className='status';
+  statusBox.textContent='';
+  submitBtn.disabled=true;
+  submitBtn.textContent='Отправляем…';
+  const payload={
+    service:document.getElementById('service').value,
+    date:document.getElementById('date').value,
+    guests:document.getElementById('guests').value,
+    name:document.getElementById('name').value.trim(),
+    contact:document.getElementById('contact').value.trim(),
+    comment:document.getElementById('comment').value.trim()
+  };
+  try{
+    const r=await fetch('https://farruhk-ai-mobile.onrender.com/api/telegram/booking',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||'Ошибка отправки');
+    statusBox.className='status ok';
+    statusBox.textContent='Заявка отправлена. Я скоро свяжусь с вами для подтверждения.';
+    form.reset();
+  }catch(err){
+    statusBox.className='status err';
+    statusBox.textContent='Не удалось отправить заявку. Попробуйте ещё раз чуть позже.';
+  }finally{
+    submitBtn.disabled=false;
+    submitBtn.textContent='Отправить заявку';
+  }
 });
 </script></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer></body></html>
