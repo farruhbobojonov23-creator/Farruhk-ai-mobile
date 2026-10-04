@@ -38,10 +38,10 @@ form.addEventListener('submit',async e=>{
     comment:document.getElementById('comment').value.trim()
   };
   try{
+    const body=new URLSearchParams(payload);
     const r=await fetch('https://farruhk-ai-mobile.onrender.com/api/telegram/booking',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+      body
     });
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Ошибка отправки');
