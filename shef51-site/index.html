@@ -3,49 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SHEF51 — Фаррух Ака | Private Chef</title>
-<meta name="description" content="Личный шеф японской кухни. Один заказ в день. Домашние ужины, дни рождения, вечеринки и события.">
+<title>SHEF51 — Фаррух Ака</title>
+<meta name="description" content="Личный шеф японской кухни. Домашние ужины, дни рождения, вечеринки и особенные события.">
 <style>
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#070707;color:#fff;font-family:Arial,Helvetica,sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1160px,90%);margin:auto}
-header{position:sticky;top:0;z-index:20;background:rgba(7,7,7,.9);backdrop-filter:blur(14px);border-bottom:1px solid #222}.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:#ef2634}.links{display:flex;gap:22px;color:#bbb;font-size:14px}.btn{display:inline-block;background:#ef2634;border:0;color:#fff;font-weight:800;padding:13px 20px;border-radius:999px;cursor:pointer}.ghost{background:transparent;border:1px solid #555}
-.hero{min-height:82vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:50px;padding:72px 0}.kicker{color:#ff3946;font-weight:900;letter-spacing:.16em;font-size:12px;text-transform:uppercase}h1,.title{font-family:Georgia,serif}.hero h1{font-size:clamp(48px,7vw,92px);line-height:.96;margin:14px 0 24px}.hero p,.muted{color:#b8b8b8;line-height:1.7}.hero p{font-size:19px;max-width:680px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.visual{min-height:560px;border-radius:30px;background:
-radial-gradient(circle at 60% 20%,rgba(239,38,52,.38),transparent 28%),
-linear-gradient(145deg,#191919,#0b0b0b);border:1px solid #292929;position:relative;overflow:hidden;box-shadow:0 30px 80px #0008}
-.visual:before{content:"和食";position:absolute;right:40px;top:35px;font-family:Georgia,serif;font-size:120px;color:#ffffff08}.plate{position:absolute;width:330px;height:330px;border-radius:50%;left:50%;top:51%;transform:translate(-50%,-50%);background:radial-gradient(circle at 40% 35%,#2b2b2b,#0d0d0d 70%);border:1px solid #383838;box-shadow:0 30px 60px #000c}
-.sushi{position:absolute;width:120px;height:46px;border-radius:24px;background:linear-gradient(#f5b89c,#d77968);box-shadow:0 10px 30px #0007}.s1{left:65px;top:92px;transform:rotate(-12deg)}.s2{right:55px;top:130px;transform:rotate(9deg)}.s3{left:105px;bottom:75px;transform:rotate(10deg)}.stamp{position:absolute;left:28px;bottom:26px;background:#ef2634;padding:17px 20px;border-radius:18px;font-weight:900}
-section{padding:88px 0}.title{font-size:clamp(36px,5vw,62px);margin:10px 0 16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:linear-gradient(145deg,#151515,#0d0d0d);border:1px solid #292929;border-radius:22px;padding:26px}.card h3{font-family:Georgia,serif;font-size:27px;margin:10px 0}.num{color:#ef2634;font-weight:900}
-.showcase{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.dish{min-height:260px;border-radius:22px;border:1px solid #292929;background:
-radial-gradient(circle at 30% 30%,rgba(239,38,52,.26),transparent 24%),
-linear-gradient(150deg,#171717,#0a0a0a);display:flex;align-items:end;padding:22px}.dish strong{font-family:Georgia,serif;font-size:24px}
-.booking{background:linear-gradient(135deg,#230307,#0c0c0c);border:1px solid #481016;border-radius:28px;padding:38px;display:grid;grid-template-columns:1fr 1fr;gap:34px}form{display:grid;gap:12px}input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;background:#0b0b0b;color:#fff;border:1px solid #3b3b3b;font:inherit}textarea{min-height:110px;resize:vertical}.phone{font-size:26px;font-weight:900;margin-top:18px}
-footer{border-top:1px solid #222;padding:42px 0 58px;color:#999}
-@media(max-width:850px){.links{display:none}.hero,.booking{grid-template-columns:1fr}.visual{min-height:430px}.grid3,.showcase{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.grid3,.showcase{grid-template-columns:1fr}.hero{padding-top:36px}section{padding:64px 0}.visual{min-height:380px}.plate{width:270px;height:270px}}
+:root{--bg:#080808;--card:#111;--line:#252525;--red:#ef2634;--muted:#b9b9b9}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:#fff;font-family:Arial,Helvetica,sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1160px,90%);margin:auto}
+header{position:sticky;top:0;z-index:20;background:rgba(8,8,8,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{height:72px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:var(--red)}.links{display:flex;gap:22px;color:#aaa;font-size:14px}
+.btn{display:inline-block;background:var(--red);padding:13px 20px;border-radius:999px;font-weight:800;border:0;color:#fff;cursor:pointer}.btn.alt{background:transparent;border:1px solid #4b4b4b}
+.hero{min-height:82vh;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:72px 0}.kicker{color:#ff4854;font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.hero h1,.title{font-family:Georgia,serif}.hero h1{font-size:clamp(48px,7vw,92px);line-height:.96;margin:14px 0 24px}.hero p,.muted{color:var(--muted);line-height:1.7}.hero p{font-size:19px;max-width:680px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.hero-visual{min-height:560px;border-radius:30px;border:1px solid var(--line);background:radial-gradient(circle at 70% 20%,rgba(239,38,52,.34),transparent 28%),linear-gradient(145deg,#171717,#0b0b0b);position:relative;overflow:hidden;box-shadow:0 30px 80px #0008}
+.hero-visual:before{content:"和食";position:absolute;right:34px;top:28px;font-family:Georgia,serif;font-size:120px;color:#ffffff09}.hero-badge{position:absolute;left:28px;bottom:26px;background:var(--red);padding:16px 20px;border-radius:18px;font-weight:900}.hero-mark{position:absolute;inset:0;display:grid;place-items:center;font-family:Georgia,serif;font-size:clamp(44px,7vw,86px);font-weight:700;letter-spacing:.03em;text-align:center;padding:40px}
+section{padding:88px 0}.title{font-size:clamp(36px,5vw,62px);margin:10px 0 16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:linear-gradient(145deg,#151515,#0d0d0d);border:1px solid var(--line);border-radius:22px;padding:26px}.card h3{font-family:Georgia,serif;font-size:26px;margin:10px 0}.num{color:var(--red);font-weight:900}
+.showcase{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.dish{min-height:250px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(150deg,#171717,#0a0a0a);display:flex;align-items:end;padding:22px}.dish strong{font-family:Georgia,serif;font-size:24px}
+.booking{background:linear-gradient(135deg,#230307,#0c0c0c);border:1px solid #481016;border-radius:28px;padding:38px;display:grid;grid-template-columns:1fr 1fr;gap:34px}form{display:grid;gap:12px}input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;background:#0b0b0b;color:#fff;border:1px solid #3b3b3b;font:inherit}textarea{min-height:110px;resize:vertical}.phone{font-size:25px;font-weight:900;margin-top:18px}
+footer{border-top:1px solid var(--line);padding:42px 0 58px;color:#999}
+@media(max-width:850px){.links{display:none}.hero,.booking{grid-template-columns:1fr}.hero-visual{min-height:430px}.grid3,.showcase{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid3,.showcase{grid-template-columns:1fr}.hero{padding-top:36px}section{padding:64px 0}.hero-visual{min-height:380px}}
 </style>
 </head>
 <body>
 <header><div class="wrap nav"><div class="brand"><b>SHEF51</b> · FARRUKH AKA</div><div class="links"><a href="#about">О шефе</a><a href="#formats">Форматы</a><a href="#menu">Блюда</a><a href="#book">Бронь</a></div><a class="btn" href="#book">Забронировать</a></div></header>
 <main>
 <section class="wrap hero">
-<div><div class="kicker">Private Chef · японская кухня</div><h1>Ресторанный вечер у вас дома</h1><p>Личный шеф японской кухни для семейных ужинов, дней рождения, вечеринок и особенных событий. Только один заказ в день — всё внимание вашему вечеру.</p><div class="actions"><a class="btn" href="#book">Выбрать дату</a><a class="btn ghost" href="#menu">Посмотреть блюда</a></div></div>
-<div class="visual"><div class="plate"><span class="sushi s1"></span><span class="sushi s2"></span><span class="sushi s3"></span></div><div class="stamp">Один заказ в день</div></div>
+<div><div class="kicker">Private Chef · японская кухня</div><h1>Ресторанный вечер у вас дома</h1><p>Личный шеф японской кухни для семейных ужинов, дней рождения, вечеринок и особенных событий. Один заказ в день — всё внимание вашему вечеру.</p><div class="actions"><a class="btn" href="#book">Выбрать дату</a><a class="btn alt" href="#menu">Посмотреть блюда</a></div></div>
+<div class="hero-visual"><div class="hero-mark">FARRUKH<br>AKA</div><div class="hero-badge">Один заказ в день</div></div>
 </section>
-
 <section id="about"><div class="wrap"><div class="kicker">О шефе</div><h2 class="title">Фаррух Ака</h2><p class="muted">Шеф японской кухни. Подбираю меню под формат события, закупаю продукты, готовлю и собираю блюда так, чтобы дома получился полноценный ресторанный опыт без суеты для хозяев.</p></div></section>
-
 <section id="formats"><div class="wrap"><div class="kicker">Форматы</div><h2 class="title">Выберите повод</h2><div class="grid3">
 <div class="card"><div class="num">01</div><h3>Ужин дома</h3><p class="muted">Для пары, семьи или близких друзей.</p></div>
 <div class="card"><div class="num">02</div><h3>День рождения</h3><p class="muted">Праздничное меню и подача под компанию.</p></div>
 <div class="card"><div class="num">03</div><h3>Особое событие</h3><p class="muted">Вечеринка, свадьба или индивидуальный формат.</p></div>
 </div></div></section>
-
 <section id="menu"><div class="wrap"><div class="kicker">Блюда</div><h2 class="title">Японская кухня в центре вечера</h2><div class="showcase">
 <div class="dish"><strong>Роллы и суши</strong></div>
 <div class="dish"><strong>Авторские сеты</strong></div>
 <div class="dish"><strong>Индивидуальное меню</strong></div>
 </div></div></section>
-
 <section id="book"><div class="wrap"><div class="booking">
 <div><div class="kicker">Бронирование</div><h2 class="title">Оставьте заявку</h2><p class="muted">Выберите дату и формат. После нажатия откроется WhatsApp с готовой заявкой.</p><div class="phone">+7 966 123-29-92</div></div>
 <form id="f"><input id="name" placeholder="Ваше имя" required><input id="date" type="date" required><select id="guests"><option>2–4 гостя</option><option>5–8 гостей</option><option>9–15 гостей</option><option>Больше 15 гостей</option></select><select id="event"><option>Ужин дома</option><option>День рождения</option><option>Вечеринка</option><option>Свадьба</option><option>Другое событие</option></select><textarea id="note" placeholder="Пожелания по меню или событию"></textarea><button class="btn" type="submit">Отправить в WhatsApp</button></form>
@@ -53,6 +47,6 @@ footer{border-top:1px solid #222;padding:42px 0 58px;color:#999}
 </main>
 <footer><div class="wrap"><div class="brand"><b>SHEF51</b> · FARRUKH AKA</div><p>Private Chef · Japanese Cuisine · 和食</p></div></footer>
 <script>
-document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();const name=document.getElementById('name').value.trim();const date=document.getElementById('date').value;const guests=document.getElementById('guests').value;const eventType=document.getElementById('event').value;const note=document.getElementById('note').value.trim()||'—';const text='Здравствуйте! Хочу забронировать SHEF51.\n\nИмя: '+name+'\nДата: '+date+'\nГости: '+guests+'\nФормат: '+eventType+'\nПожелания: '+note;window.location.href='https://wa.me/79661232992?text='+encodeURIComponent(text);});
+document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();const n=document.getElementById('name').value.trim(),d=document.getElementById('date').value,g=document.getElementById('guests').value,t=document.getElementById('event').value,o=document.getElementById('note').value.trim()||'—';const text='Здравствуйте! Хочу забронировать SHEF51.\n\nИмя: '+n+'\nДата: '+d+'\nГости: '+g+'\nФормат: '+t+'\nПожелания: '+o;location.href='https://wa.me/79661232992?text='+encodeURIComponent(text);});
 </script>
 </body></html>
