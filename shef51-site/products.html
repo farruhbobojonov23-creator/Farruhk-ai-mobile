@@ -13,15 +13,12 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.products{grid-template-columns:1fr}}
 </style>
 <section class="wrap pageHead"><div class="eyebrow">НАШЕ МЕНЮ</div><h1>Товары</h1><p class="lead">Выберите категорию. Ваши фотографии позже поставим без фона — крупно, объёмно и прямо на фоне сайта.</p>
-<div class="cats"><button class="chip active" data-cat="all">Все</button><button class="chip" data-cat="rolls">Роллы</button><button class="chip" data-cat="hot">Запечённые</button><button class="chip" data-cat="sushi">Суши</button><button class="chip" data-cat="wok">Воки</button><button class="chip" data-cat="dessert">Десерты</button></div>
+<div class="cats"><button class="chip active" data-cat="all">Все</button><button class="chip" data-cat="rolls">Роллы</button><button class="chip" data-cat="sushi">Суши</button><button class="chip" data-cat="wok">Воки</button></div>
 <div class="products">
-<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Филадельфия</h3><div class="mini">рис, лосось, сливочный сыр, огурец</div><div class="price">649 ₽</div></article>
-<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Канада</h3><div class="mini">рис, угорь, огурец, сливочный сыр</div><div class="price">679 ₽</div></article>
-<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Тигровая</h3><div class="mini">рис, креветка тигровая, сливочный сыр, огурец</div><div class="price">559 ₽</div></article>
-<article class="prod" data-cat="hot"><div class="prodVisual"><div class="demoFood"></div></div><h3>Сливочный лосось</h3><div class="mini">рис, лосось, сливочный соус</div><div class="price">649 ₽</div></article>
-<article class="prod" data-cat="hot"><div class="prodVisual"><div class="demoFood"></div></div><h3>Сырная креветка</h3><div class="mini">рис, креветка, сырный соус</div><div class="price">549 ₽</div></article>
-<article class="prod" data-cat="sushi"><div class="prodVisual"><div class="demoFood"></div></div><h3>Суши лосось</h3><div class="mini">рис, лосось</div><div class="price">390 ₽</div></article>
-<article class="prod" data-cat="wok"><div class="prodVisual"><div class="demoFood"></div></div><h3>Удон сливочный</h3><div class="mini">лапша удон, сливочный соус</div><div class="price">от 490 ₽</div></article>
-<article class="prod" data-cat="dessert"><div class="prodVisual"><div class="demoFood"></div></div><h3>Десерт</h3><div class="mini">добавим ваш товар</div><div class="price">от 390 ₽</div></article>
+<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Филадельфия</h3><div class="mini">рис, лосось, сливочный сыр, огурец</div><div class="price">Порция — 8 шт.</div></article>
+<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Канада</h3><div class="mini">рис, угорь, огурец, сливочный сыр</div><div class="price">Порция — 8 шт.</div></article>
+<article class="prod" data-cat="rolls"><div class="prodVisual"><div class="demoFood"></div></div><h3>Тигровая</h3><div class="mini">рис, креветка тигровая, сливочный сыр, огурец</div><div class="price">Порция — 8 шт.</div></article>
+<article class="prod" data-cat="sushi"><div class="prodVisual"><div class="demoFood"></div></div><h3>Суши лосось</h3><div class="mini">рис, лосось</div><div class="price">Порция — 8 шт.</div></article>
+<article class="prod" data-cat="wok"><div class="prodVisual"><div class="demoFood"></div></div><h3>Удон сливочный</h3><div class="mini">лапша удон, сливочный соус</div><div class="price">Порция — 8 шт.</div></article>
 </div></section>
 <script>document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');const c=b.dataset.cat;document.querySelectorAll('.prod').forEach(p=>p.style.display=(c==='all'||p.dataset.cat===c)?'block':'none')});</script></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer></body></html>
