@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 
 const app = express();
 app.use(express.json({limit:'20mb'}));
+app.use(express.urlencoded({extended:false,limit:'1mb'}));
 
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
@@ -285,14 +286,9 @@ async function telegramChatId(){
 }
 
 function bookingCors(req,res){
-  const origin=String(req.headers.origin||'');
-  if(origin==='https://shef51.onrender.com'){
-    res.setHeader('Access-Control-Allow-Origin',origin);
-    res.setHeader('Vary','Origin');
-  }
+  res.setHeader('Access-Control-Allow-Origin','*');
   res.setHeader('Access-Control-Allow-Headers','Content-Type');
   res.setHeader('Access-Control-Allow-Methods','POST,OPTIONS');
-  return origin;
 }
 
 app.options('/api/telegram/booking',(req,res)=>{
@@ -312,8 +308,7 @@ app.get('/api/telegram/status',async(req,res)=>{
 });
 
 app.post('/api/telegram/booking',async(req,res)=>{
-  const origin=bookingCors(req,res);
-  if(origin&&origin!=='https://shef51.onrender.com')return res.status(403).json({ok:false,error:'Origin not allowed'});
+  bookingCors(req,res);
   const service=String(req.body?.service||'').trim().slice(0,120);
   const date=String(req.body?.date||'').trim().slice(0,40);
   const guests=String(req.body?.guests||'').trim().slice(0,20);
