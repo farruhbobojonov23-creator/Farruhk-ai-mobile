@@ -101,10 +101,25 @@ function render(){
     };
   });
 }
+async function refreshStorageStatus(){
+  try{
+    const r=await fetch('/api/yandex/status',{cache:'no-store'});
+    const d=await r.json().catch(()=>({}));
+    if(d.connected){
+      $('#storageBadge').textContent='Яндекс Диск ✓';
+      $('#storageBadge').className='pill';
+    }else{
+      $('#storageBadge').textContent=d.configured?'Токен Яндекса отклонён':'Хранилище не подключено';
+      $('#storageBadge').className='pill';
+    }
+  }catch{
+    $('#storageBadge').textContent='Ошибка проверки хранилища';
+  }
+}
 async function loadAdmin(){
   const d=await api('/api/shef51/admin/menu');
   menu=d.items||[];
-  $('#storageBadge').textContent=d.storage==='yandex'?'Яндекс Диск ✓':'Временное хранение';
+  await refreshStorageStatus();
   render();
 }
 async function showState(){
