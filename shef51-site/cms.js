@@ -33,5 +33,25 @@ fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Pr
  if(path==='services.html')txt(document.querySelector('h1'),p.servicesTitle);
  if(path==='about.html')txt(document.querySelector('h1'),p.aboutTitle);
  if(path==='book.html')txt(document.querySelector('h1'),p.bookingTitle);
+
+ const applyCustom=()=>{
+   const ct=c.customText||{}, ci=c.customImages||{}, hidden=c.hiddenElements||{};
+   const texts=[...document.querySelectorAll('h1,h2,h3,p,.eyebrow,.lead,.mini,.price,.svc .num,footer .foot>div')];
+   texts.forEach((el,i)=>{
+     const key=path+':text:'+i;
+     if(Object.prototype.hasOwnProperty.call(ct,key))el.textContent=ct[key];
+     if(hidden[key])el.style.display='none';
+   });
+   const imgs=[...document.querySelectorAll('img')];
+   imgs.forEach((el,i)=>{
+     const key=path+':image:'+i;
+     if(ci[key]){let src=ci[key];if(src.startsWith('/api/'))src=API+src;el.src=src}
+     if(hidden[key])el.style.display='none';
+   });
+ };
+ applyCustom();
+ const mo=new MutationObserver(()=>applyCustom());
+ mo.observe(document.body,{childList:true,subtree:true});
+ setTimeout(()=>mo.disconnect(),12000);
 }).catch(()=>{});
 })();
