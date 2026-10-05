@@ -420,3 +420,50 @@ main:before{
     font-size:15px!important;
   }
 }
+
+
+/* PREMIUM 3D HOME ICONS */
+.premium3dIcon{
+  width:38px!important;
+  height:38px!important;
+  flex:0 0 38px!important;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 5px 10px rgba(0,0,0,.48));
+  transform:translateZ(0);
+}
+.heroPhilosophy .luxPill,
+.heroContacts .luxPill{
+  gap:10px!important;
+  padding-left:8px!important;
+}
+.heroPhilosophy .luxPill{
+  min-height:50px!important;
+  background:
+    radial-gradient(circle at 12% 10%,rgba(215,176,106,.07),transparent 30%),
+    linear-gradient(180deg,rgba(18,15,12,.9),rgba(7,7,7,.94))!important;
+}
+.heroContacts .luxPill{
+  min-height:50px!important;
+  background:
+    radial-gradient(circle at 12% 10%,rgba(239,38,52,.06),transparent 30%),
+    linear-gradient(180deg,rgba(16,14,13,.92),rgba(7,7,7,.95))!important;
+}
+.heroPhilosophy .luxPill:hover .premium3dIcon,
+.heroContacts .luxPill:hover .premium3dIcon{
+  transform:translateY(-1px) scale(1.04);
+}
+@media(max-width:768px){
+  .premium3dIcon{
+    width:36px!important;
+    height:36px!important;
+    flex-basis:36px!important;
+  }
+  .heroPhilosophy .luxPill,
+  .heroContacts .luxPill{
+    min-height:54px!important;
+    padding:9px 13px 9px 8px!important;
+    border-radius:18px!important;
+    font-size:12px!important;
+  }
+}
