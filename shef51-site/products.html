@@ -103,12 +103,19 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 .prod.philadelphia-motion .prodVisual{perspective:900px}
 .prod.philadelphia-motion .foodPhoto{
   transform-origin:50% 55%;
-  animation:philadelphiaSpin 12s linear infinite;
+  animation:philadelphiaFloat 4.8s ease-in-out infinite;
   will-change:transform;
 }
-@keyframes philadelphiaSpin{
-  from{transform:scale(1.045) rotate(0deg)}
-  to{transform:scale(1.045) rotate(360deg)}
+.prod.philadelphia-motion .prodVisual:before{
+  animation:philadelphiaGlow 4.8s ease-in-out infinite;
+}
+@keyframes philadelphiaFloat{
+  0%,100%{transform:scale(1.045) translateY(0)}
+  50%{transform:scale(1.075) translateY(-10px)}
+}
+@keyframes philadelphiaGlow{
+  0%,100%{opacity:.55;transform:scale(.96)}
+  50%{opacity:1;transform:scale(1.06)}
 }
 @media (prefers-reduced-motion:reduce){
   .prod.philadelphia-motion .foodPhoto{animation:none;transform:scale(1.03)}
