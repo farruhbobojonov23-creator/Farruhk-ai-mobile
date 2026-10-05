@@ -779,6 +779,17 @@ app.listen(port,()=>{
     }catch(err){
       console.log('[telegram-check] botConnected=false error='+(err?.message||'unknown'));
     }
+    try{
+      const items=await getShef51Menu();
+      const incomplete=items.filter(x=>{
+        const d=String(x?.description||'').trim();
+        const words=d.split(/\s+/).filter(Boolean);
+        return !d || d.length<70 || words.length<8 || (/^[^.!?]+(?:,[^.!?]+){0,4}$/.test(d) && d.length<120);
+      }).map(x=>({name:x.name,description:x.description||'',category:x.category}));
+      console.log('[shef51-description-audit] '+JSON.stringify(incomplete));
+    }catch(err){
+      console.log('[shef51-description-audit] error='+(err?.message||'unknown'));
+    }
   },1500);
 });
 
