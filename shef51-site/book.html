@@ -54,10 +54,23 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
     color:#fff
   }
 }
+</style>
+<style id="site-svg-icons">
+.siteIcon{width:26px;height:26px;flex:0 0 26px;display:inline-grid;place-items:center;border-radius:50%;vertical-align:middle;margin-right:8px;border:1px solid rgba(216,183,125,.28);background:linear-gradient(180deg,rgba(216,183,125,.10),rgba(92,62,35,.05));color:#e2c793}
+.siteIcon svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconText{display:inline-flex;align-items:center;gap:2px}
+.lead .siteIcon{transform:translateY(2px)}
+.badge .siteIcon,.serviceBadge .siteIcon{width:24px;height:24px;flex-basis:24px;margin-right:6px}
+.svc .siteIcon,.profileCard .siteIcon{width:38px;height:38px;flex-basis:38px;margin:0 0 10px 0}
+.svc .siteIcon svg,.profileCard .siteIcon svg{width:19px;height:19px}
+.fact b{display:flex;align-items:center}
+.fullDesc{position:relative}
+.fullDesc .siteIcon{float:left;margin:1px 9px 4px 0}
+@media(max-width:560px){.siteIcon{width:24px;height:24px;flex-basis:24px}.svc .siteIcon,.profileCard .siteIcon{width:34px;height:34px;flex-basis:34px}}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>.book{display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:start}.panel{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form .full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#111;border:1px solid #303030;color:#fff;border-radius:14px;padding:15px;font:inherit}.field textarea{min-height:120px;resize:vertical}.notice{font-size:13px;color:#858585;margin-top:12px}.status{display:none;margin-top:14px;padding:14px 16px;border-radius:14px;background:#111;border:1px solid #303030;line-height:1.5}.status.ok{display:block;border-color:#2b6f42;color:#baf5ca}.status.err{display:block;border-color:#7d3037;color:#ffc2c7}@media(max-width:850px){.book{grid-template-columns:1fr}}@media(max-width:560px){.form{grid-template-columns:1fr}.form .full{grid-column:auto}}</style>
-<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><p class="lead">📅 Выберите услугу и удобную дату, 👥 укажите количество гостей и оставьте контакт. 💬 Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
+<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><p class="lead"><span class="siteIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span>Выберите услугу и удобную дату, <span class="siteIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M4 20c.5-4 2.5-6 5-6s4.5 2 5 6M14 15c2.5 0 4.3 1.5 5 4"/></svg></span>укажите количество гостей и оставьте контакт. <span class="siteIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/></svg></span>Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
 <div class="panel"><form id="bookingForm" class="form">
 <div class="field"><label>Услуга</label><select id="service" name="Услуга"><option>Ужин на дому</option><option>День рождения</option><option>Свадьба</option><option>Вечеринка</option><option>Корпоратив</option><option>Индивидуальный формат</option></select></div>
 <div class="field"><label>Дата</label><input id="date" name="Дата" type="date" required></div>
@@ -68,7 +81,7 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 <input type="hidden" name="_subject" value="Новая заявка SHEF51">
 <input type="hidden" name="_template" value="table">
 <button id="submitBtn" class="btn full" type="submit">Отправить заявку</button>
-</form><div id="status" class="status" aria-live="polite"></div><div class="notice">💬 После отправки заявки администратор шеф-повара свяжется с вами для подтверждения и уточнения деталей.</div></div></section>
+</form><div id="status" class="status" aria-live="polite"></div><div class="notice"><span class="siteIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/></svg></span>После отправки заявки администратор шеф-повара свяжется с вами для подтверждения и уточнения деталей.</div></div></section>
 <script>
 const q=new URLSearchParams(location.search).get('service');if(q)document.getElementById('service').value=q;
 const form=document.getElementById('bookingForm'),statusBox=document.getElementById('status'),submitBtn=document.getElementById('submitBtn');
