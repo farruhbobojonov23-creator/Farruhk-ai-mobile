@@ -1,104 +1,81 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Обо мне — SHEF51</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1180px,92%);margin:auto}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1180px,92%);margin:auto}
 header{position:sticky;top:0;z-index:50;background:#050505e8;border-bottom:1px solid #1b1b1b;backdrop-filter:blur(18px)}.nav{height:74px;display:flex;align-items:center;gap:28px}.brand{font-weight:900;letter-spacing:.13em;white-space:nowrap}.brand b{color:#ef2634}.links{display:flex;gap:24px;margin-left:auto}.links a{color:#d9d9d9;font-size:14px}.btn{display:inline-flex;align-items:center;justify-content:center;background:#ef2634;padding:14px 22px;border-radius:999px;font-weight:800;border:none;color:white;cursor:pointer}.btn.alt{background:transparent;border:1px solid #494949}
-main{min-height:calc(100vh - 150px)}.pageHead{padding:72px 0 30px}.eyebrow{color:#ff4a55;letter-spacing:.22em;font-size:12px;font-weight:900;text-transform:uppercase}h1{font:700 clamp(46px,7vw,82px)/.95 Georgia,serif;margin:12px 0 16px}.lead,.muted{color:#aaa;line-height:1.7}.lead{font-size:18px;max-width:760px}
+main{min-height:calc(100vh - 150px)}.pageHead{padding:72px 0 30px}.eyebrow{color:#d9b97a;letter-spacing:.22em;font-size:12px;font-weight:900;text-transform:uppercase}h1{font:700 clamp(46px,7vw,82px)/.95 Georgia,serif;margin:12px 0 16px}.lead,.muted{color:#aaa;line-height:1.7}.lead{font-size:18px;max-width:760px}
 footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px}.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-@media(max-width:760px){.links{display:none}.nav .btn{margin-left:auto}.brand{font-size:14px}}
-</style><style id="mobile-nav-fix">
-.menuToggle{display:none;border:1px solid #333;background:#111;color:#fff;width:44px;height:44px;border-radius:14px;font-size:22px;line-height:1;align-items:center;justify-content:center;cursor:pointer}
-.mobileMenu{display:none}
-@media(max-width:900px){
-  .nav{gap:10px}
-  .nav .brand{flex:1}
-  .navBook{display:none!important}
-  .menuToggle{display:inline-flex}
-  .mobileMenu{display:none;background:#0a0a0a;border-top:1px solid #1d1d1d;padding:10px 4%;gap:8px;flex-direction:column}
-  .mobileMenu.open{display:flex}
-  .mobileMenu a{display:block;padding:14px 16px;border:1px solid #222;border-radius:14px;background:#101010;color:#fff;font-weight:700}
-  .mobileMenu a:last-child{background:#ef2634;border-color:#ef2634}
-}
-</style><style id="mobile-quick-tabs-style">
-.brandHome{display:inline-flex;align-items:center;color:inherit;text-decoration:none}
-.mobileQuickTabs{display:none}
-@media(max-width:900px){
-  .mobileQuickTabs{
-    display:flex;
-    gap:8px;
-    overflow-x:auto;
-    padding:9px 4% 11px;
-    background:#080808;
-    border-top:1px solid #171717;
-    border-bottom:1px solid #1e1e1e;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch
-  }
-  .mobileQuickTabs::-webkit-scrollbar{display:none}
-  .mobileQuickTabs a{
-    flex:0 0 auto;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px 14px;
-    border:1px solid #292929;
-    border-radius:999px;
-    background:#101010;
-    color:#e8e8e8;
-    font-size:13px;
-    font-weight:800;
-    text-decoration:none
-  }
-  .mobileQuickTabs a[href="book.html"]{
-    background:#ef2634;
-    border-color:#ef2634;
-    color:#fff
-  }
-}
+.menuToggle{display:none;border:1px solid #333;background:#111;color:#fff;width:44px;height:44px;border-radius:14px;font-size:22px;line-height:1;align-items:center;justify-content:center;cursor:pointer}.mobileMenu{display:none}.brandHome{display:inline-flex;align-items:center;color:inherit;text-decoration:none}.mobileQuickTabs{display:none}
+
+.aboutHero{position:relative;overflow:hidden;padding:72px 0 42px}.aboutHero:before{content:"";position:absolute;inset:-120px auto auto 52%;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(239,38,52,.13),rgba(189,143,67,.05) 42%,transparent 70%);filter:blur(20px);pointer-events:none}
+.aboutTop{display:grid;grid-template-columns:1.12fr .88fr;gap:34px;align-items:start;position:relative;z-index:1}.introPanel{padding-right:18px}.introPanel h1{margin-bottom:24px}.kinetic{font:700 clamp(25px,3.2vw,42px)/1.12 Georgia,serif;margin:0 0 22px;color:#f1e8d5;min-height:1.2em}.typed{color:#ef2634;position:relative}.typed:after{content:"";display:inline-block;width:1px;height:.95em;background:#ef2634;margin-left:4px;vertical-align:-.08em;animation:blink .8s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.story{display:grid;gap:18px}.story p{margin:0;color:#b8b8b8;font-size:17px;line-height:1.75}.story strong{color:#fff}.badgeRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.badge{padding:10px 14px;border:1px solid rgba(213,177,111,.28);border-radius:999px;background:linear-gradient(180deg,rgba(19,19,19,.92),rgba(9,9,9,.95));color:#ddd;font-size:13px;font-weight:800;letter-spacing:.02em}
+.specialty{background:linear-gradient(180deg,#0e0e0e,#080808);border:1px solid #27221b;border-radius:28px;padding:28px;box-shadow:0 28px 80px rgba(0,0,0,.3)}.specItem{padding:22px 0;border-bottom:1px solid #25221e}.specItem:first-child{padding-top:0}.specItem:last-child{border-bottom:0;padding-bottom:0}.specLabel{font-size:11px;letter-spacing:.2em;color:#d8b573;text-transform:uppercase;font-weight:900;margin-bottom:9px}.specItem h3{font:700 27px Georgia,serif;margin:0 0 8px}.specItem p{color:#9f9f9f;line-height:1.65;margin:0}
+
+.expertise{padding:34px 0 20px}.expertiseHead{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}.expertiseHead h2{font:700 clamp(34px,5vw,58px)/1 Georgia,serif;margin:6px 0 0}.expertiseHead p{max-width:470px;color:#9d9d9d;line-height:1.65;margin:0}
+.expertiseGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.expertCard{position:relative;min-height:390px;overflow:hidden;border-radius:28px;border:1px solid #2d2922;background:#0a0a0a;isolation:isolate;transition:transform .45s ease,border-color .45s ease,box-shadow .45s ease}.expertCard:before{content:"";position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:transform .7s ease,filter .7s ease}.expertCard:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,5,5,.04) 0%,rgba(5,5,5,.32) 36%,rgba(5,5,5,.96) 90%)}.expertCard.team:before{background-image:radial-gradient(circle at 72% 20%,rgba(222,181,104,.24),transparent 30%),linear-gradient(135deg,#21150d,#080808 55%,#19070a)}.expertCard.quality:before{background-image:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.48)),url('philadelphia.jpg')}.expertCard.launch:before{background-image:radial-gradient(circle at 30% 25%,rgba(239,38,52,.28),transparent 28%),linear-gradient(140deg,#20080b,#0a0a0a 52%,#21170c)}.expertCard:hover{transform:translateY(-7px);border-color:#5d4a2b;box-shadow:0 26px 70px rgba(0,0,0,.38)}.expertCard:hover:before{transform:scale(1.045)}.cardInner{position:absolute;inset:auto 0 0;padding:28px}.cardKicker{display:inline-flex;padding:8px 11px;border:1px solid rgba(221,189,123,.35);border-radius:999px;background:rgba(8,8,8,.58);backdrop-filter:blur(8px);font-size:10px;font-weight:900;letter-spacing:.19em;color:#e1c38a;text-transform:uppercase}.expertCard h3{font:700 31px/1.05 Georgia,serif;margin:15px 0 10px}.expertCard p{margin:0;color:#b7b7b7;line-height:1.58}
+.signature{margin-top:26px;padding:26px 28px;border:1px solid #2c2922;border-left:3px solid #c89a4b;background:linear-gradient(100deg,#0d0b08,#080808);border-radius:0 20px 20px 0;color:#d8d8d8;line-height:1.75;font-size:17px}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .75s ease,transform .75s ease}.reveal.on{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.reveal{opacity:1;transform:none;transition:none}.typed:after{display:none}.expertCard,.expertCard:before{transition:none}}
+@media(max-width:900px){.links{display:none}.nav{gap:10px}.nav .brand{flex:1}.navBook{display:none!important}.menuToggle{display:inline-flex}.mobileMenu{display:none;background:#0a0a0a;border-top:1px solid #1d1d1d;padding:10px 4%;gap:8px;flex-direction:column}.mobileMenu.open{display:flex}.mobileMenu a{display:block;padding:14px 16px;border:1px solid #222;border-radius:14px;background:#101010;color:#fff;font-weight:700}.mobileMenu a:last-child{background:#ef2634;border-color:#ef2634}.mobileQuickTabs{display:flex;gap:8px;overflow-x:auto;padding:9px 4% 11px;background:#080808;border-top:1px solid #171717;border-bottom:1px solid #1e1e1e;scrollbar-width:none;-webkit-overflow-scrolling:touch}.mobileQuickTabs::-webkit-scrollbar{display:none}.mobileQuickTabs a{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #292929;border-radius:999px;background:#101010;color:#e8e8e8;font-size:13px;font-weight:800}.mobileQuickTabs a[href="book.html"]{background:#ef2634;border-color:#ef2634;color:#fff}.aboutTop{grid-template-columns:1fr}.expertiseGrid{grid-template-columns:1fr 1fr}.expertCard:last-child{grid-column:1/-1;min-height:330px}}
+@media(max-width:620px){.brand{font-size:14px}.aboutHero{padding:48px 0 22px}.aboutTop{gap:22px}.introPanel{padding-right:0}.story p{font-size:16px}.specialty{padding:22px;border-radius:23px}.expertiseHead{display:block}.expertiseHead p{margin-top:12px}.expertiseGrid{grid-template-columns:1fr}.expertCard,.expertCard:last-child{grid-column:auto;min-height:320px}.cardInner{padding:22px}.expertCard h3{font-size:28px}.signature{font-size:16px;padding:22px}.pageHead{padding-top:48px}}
 </style></head><body>
-<header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
-<style>
-.bio{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:start}
-.card{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}
-.intro{display:grid;gap:18px}.intro .lead{margin:0}
-.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}.badge{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border:1px solid #2b2b2b;border-radius:999px;background:#101010;color:#ddd;font-size:14px;font-weight:700}
-.facts{display:grid;gap:0}.fact{padding:20px 0;border-bottom:1px solid #222}.fact:first-child{padding-top:0}.fact:last-child{border-bottom:0;padding-bottom:0}.fact b{display:block;font-size:19px;margin-bottom:8px}.fact .muted{font-size:16px;line-height:1.6}
-.profileGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px}.profileCard{background:linear-gradient(180deg,#101010,#090909);border:1px solid #242424;border-radius:22px;padding:22px;min-height:185px}.profileCard .icon{font-size:26px;margin-bottom:15px}.profileCard h3{font:700 24px Georgia,serif;margin:0 0 10px}.profileCard p{color:#aaa;line-height:1.6;margin:0}
-.signature{margin-top:26px;padding:24px;border-left:3px solid #ef2634;background:#0a0a0a;border-radius:0 18px 18px 0;color:#d8d8d8;line-height:1.75;font-size:17px}
-@media(max-width:900px){.profileGrid{grid-template-columns:1fr 1fr}}@media(max-width:800px){.bio{grid-template-columns:1fr}.profileGrid{grid-template-columns:1fr}}
-</style>
-<section class="wrap pageHead">
-  <div class="eyebrow">ОБО МНЕ</div>
-  <h1>FARRUKH AKA</h1>
-  <div class="bio">
-    <div class="intro">
-      <p class="lead">🍣 <b>Бренд‑шеф японской кухни «Суши Бери» в Мурманске.</b> Управляю гастрономическим направлением сети из 4 точек: от разработки меню и стандартов до обучения команды, качества продукта и стабильной работы кухни.</p>
-      <p class="lead">👨‍🍳 Моя работа — не просто приготовить красивое блюдо. Я выстраиваю кухню как систему: вкус, технология, скорость, подача, себестоимость, закупки, хранение, санитарные стандарты и обучение сотрудников должны работать вместе.</p>
-      <p class="lead">🏨 Ежегодно участвую в профессиональных выставках, встречах и событиях индустрии <b>HoReCa</b>, слежу за новыми продуктами, оборудованием, технологиями и трендами ресторанного рынка.</p>
-      <div class="badges"><span class="badge">📍 Мурманск</span><span class="badge">🍱 4 точки</span><span class="badge">🎌 Японская кухня</span><span class="badge">📈 Управление и развитие</span></div>
+<header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header>
+<main>
+<section class="aboutHero"><div class="wrap aboutTop">
+  <div class="introPanel reveal">
+    <div class="eyebrow">ОБО МНЕ · BRAND CHEF</div>
+    <h1>FARRUKH AKA</h1>
+    <div class="kinetic">Моя специализация — <span class="typed" data-words="Японская кухня|Меню и R&D|Управление кухней|Запуск проектов"></span></div>
+    <div class="story">
+      <p><strong>Бренд‑шеф японской кухни «Суши Бери» в Мурманске.</strong> Управляю гастрономическим направлением сети из 4 точек: от разработки меню и стандартов до обучения команды, качества продукта и стабильной работы кухни.</p>
+      <p>Я выстраиваю кухню как систему: вкус, технология, скорость, подача, себестоимость, закупки, хранение, санитарные стандарты и обучение сотрудников должны работать вместе.</p>
+      <p>Ежегодно участвую в профессиональных выставках, встречах и событиях индустрии <strong>HoReCa</strong>, слежу за новыми продуктами, оборудованием, технологиями и трендами ресторанного рынка.</p>
     </div>
-    <div class="card facts">
-      <div class="fact"><b>🍣 Кухня</b><div class="muted">Японская кухня — основная профессиональная специализация. Роллы, суши, горячие блюда, супы, воки, новые продукты и авторские позиции. Для частных мероприятий также формирую индивидуальные гастрономические решения под формат события.</div></div>
-      <div class="fact"><b>🎉 Форматы</b><div class="muted">Частные ужины, дни рождения, свадьбы, вечеринки, корпоративы и персональные события. Меню и подача адаптируются под количество гостей, бюджет, площадку и пожелания заказчика.</div></div>
-      <div class="fact"><b>🎯 Подход</b><div class="muted">Индивидуальное меню, внимание к деталям и полный контроль результата. Для меня важно, чтобы гость получил не просто еду, а цельное впечатление — от первого блюда до последней подачи.</div></div>
-    </div>
+    <div class="badgeRow"><span class="badge">Мурманск</span><span class="badge">4 точки</span><span class="badge">Japanese Cuisine</span><span class="badge">Управление и развитие</span></div>
   </div>
+  <aside class="specialty reveal">
+    <div class="specItem"><div class="specLabel">01 · Кухня</div><h3>Japanese Cuisine</h3><p>Роллы, суши, горячие блюда, супы, воки, новые продукты и авторские позиции. Для частных мероприятий — индивидуальные гастрономические решения под формат события.</p></div>
+    <div class="specItem"><div class="specLabel">02 · Форматы</div><h3>От частного ужина до события</h3><p>Дни рождения, свадьбы, вечеринки, корпоративы и персональные мероприятия. Меню адаптируется под гостей, бюджет, площадку и задачу.</p></div>
+    <div class="specItem"><div class="specLabel">03 · Подход</div><h3>Результат под контролем</h3><p>Вкус, подача и впечатление гостя — на первом плане. За ними стоят технология, дисциплина команды и понятный стандарт.</p></div>
+  </aside>
+</div></section>
 
-  <div class="profileGrid">
-    <div class="profileCard"><div class="icon">🧠</div><h3>Меню и R&D</h3><p>Разрабатываю новые блюда, обновляю ассортимент, тестирую вкусовые сочетания и превращаю идеи в стабильные технологические процессы.</p></div>
-    <div class="profileCard"><div class="icon">👥</div><h3>Команда</h3><p>Обучаю поваров, внедряю стандарты приготовления, подачи, чистоты и организации рабочего места, чтобы качество не зависело от одной смены.</p></div>
-    <div class="profileCard"><div class="icon">⚙️</div><h3>Управление</h3><p>Контролирую работу нескольких точек, закупки, поставщиков, хранение, процессы кухни и качество готового продукта.</p></div>
-    <div class="profileCard"><div class="icon">📋</div><h3>Стандарты</h3><p>Работаю с технологическими картами, маркировками, сроками хранения, санитарными требованиями и внутренними чек‑листами.</p></div>
-    <div class="profileCard"><div class="icon">🚀</div><h3>Запуск кухни</h3><p>Помогаю запускать и перестраивать японскую кухню: оборудование, рабочие зоны, ассортимент, технологии, команда и контроль запуска.</p></div>
-    <div class="profileCard"><div class="icon">✨</div><h3>SHEF51</h3><p>Мой персональный формат для гостей, которые хотят ресторанный уровень, индивидуальное внимание и профессиональную кухню на своём событии.</p></div>
+<section class="expertise"><div class="wrap">
+  <div class="expertiseHead reveal"><div><div class="eyebrow">SHEF51 EXPERTISE</div><h2>Не просто готовлю.<br>Выстраиваю кухню.</h2></div><p>Три направления, в которых соединяются продукт, команда, стандарты и запуск — без визуального шума и случайных элементов.</p></div>
+  <div class="expertiseGrid">
+    <article class="expertCard team reveal"><div class="cardInner"><span class="cardKicker">Team & Management</span><h3>Команда и управление</h3><p>Обучение поваров, организация смен, контроль нескольких точек, закупки, поставщики и стабильность результата.</p></div></article>
+    <article class="expertCard quality reveal"><div class="cardInner"><span class="cardKicker">Standards & Quality</span><h3>Стандарты и качество</h3><p>Технологические карты, маркировки, сроки хранения, санитарные требования, подача и контроль готового продукта.</p></div></article>
+    <article class="expertCard launch reveal"><div class="cardInner"><span class="cardKicker">Launch · SHEF51</span><h3>Запуск кухни</h3><p>Оборудование, рабочие зоны, ассортимент, технологии, команда и сопровождение запуска японской кухни как единой системы.</p></div></article>
   </div>
+  <div class="signature reveal">«Для меня сильная кухня — это когда гость видит красивую подачу и отличный вкус, а за кулисами всё работает точно: команда, технология, продукт и стандарт.»</div>
+</div></section>
+</main>
+<footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer>
+<script src="cms.js?v=1"></script>
+<script>
+document.addEventListener('click',function(e){const b=e.target.closest('.menuToggle');if(b){const m=document.querySelector('.mobileMenu');if(m){m.classList.toggle('open');b.textContent=m.classList.contains('open')?'✕':'☰';}}});
 
-  <div class="signature">«Для меня сильная кухня — это когда гость видит красивую подачу и отличный вкус, а за кулисами всё работает точно: команда, технология, продукт и стандарт.»</div>
-</section></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer><script src="cms.js?v=1"></script><script id="mobile-nav-script">
-document.addEventListener('click',function(e){
-  const b=e.target.closest('.menuToggle');
-  if(b){
-    const m=document.querySelector('.mobileMenu');
-    if(m){m.classList.toggle('open');b.textContent=m.classList.contains('open')?'✕':'☰';}
+(function(){
+  const el=document.querySelector('.typed');
+  if(!el)return;
+  const words=(el.dataset.words||'').split('|');
+  let wi=0,ci=0,deleting=false;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){el.textContent=words[0]||'';return;}
+  function tick(){
+    const word=words[wi]||'';
+    if(!deleting){ci++;el.textContent=word.slice(0,ci);if(ci>=word.length){deleting=true;return setTimeout(tick,1700);}}
+    else{ci--;el.textContent=word.slice(0,Math.max(ci,0));if(ci<=0){deleting=false;wi=(wi+1)%words.length;}}
+    setTimeout(tick,deleting?45:78);
   }
-});
-</script></body></html>
+  tick();
+})();
+
+(function(){
+  const items=[...document.querySelectorAll('.reveal')];
+  if(!('IntersectionObserver' in window)){items.forEach(x=>x.classList.add('on'));return;}
+  const io=new IntersectionObserver((entries)=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target);}}),{threshold:.14});
+  items.forEach(x=>io.observe(x));
+})();
+</script>
+</body></html>
