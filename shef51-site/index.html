@@ -100,6 +100,46 @@ header{position:sticky;top:0;z-index:50;background:#050505e8;border-bottom:1px s
   margin-top:38px;
   max-width:610px;
 }
+.heroContacts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-top:18px;
+  max-width:680px;
+}
+.heroContacts a,.heroContacts span{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 13px;
+  border:1px solid #2b2b2b;
+  border-radius:999px;
+  background:rgba(10,10,10,.66);
+  color:#e7e7e7;
+  font-size:12px;
+  font-weight:800;
+  backdrop-filter:blur(12px)
+}
+.heroContacts a:hover{border-color:#5a3a3d}
+.heroPhilosophy{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+  max-width:680px;
+}
+.heroPhilosophy span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 12px;
+  border-radius:14px;
+  border:1px solid #302821;
+  background:linear-gradient(180deg,rgba(24,20,16,.68),rgba(12,11,10,.62));
+  color:#e9d9bf;
+  font-size:12px;
+  font-weight:800
+}
 .heroMeta .meta{
   position:relative;
   padding:15px 14px;
@@ -196,6 +236,10 @@ footer{border-top:1px solid #1c1c1c;padding:36px 0;color:#8d8d8d}.foot{display:f
   .heroActions .btn{flex:1 1 150px;padding:14px 15px}
   .heroMeta{grid-template-columns:1fr;gap:8px;margin-top:20px}
   .heroMeta .meta{padding:11px 12px;border-radius:15px}
+  .heroPhilosophy{margin-top:15px;gap:7px}
+  .heroPhilosophy span{font-size:11px;padding:8px 10px}
+  .heroContacts{margin-top:15px;gap:7px}
+  .heroContacts a,.heroContacts span{font-size:11px;padding:9px 10px}
   .heroMeta b{font-size:18px;margin-bottom:1px}
   .heroMeta span{font-size:11px}
   .heroBadge{font-size:10px;padding:10px 12px}
@@ -266,6 +310,20 @@ footer{border-top:1px solid #1c1c1c;padding:36px 0;color:#8d8d8d}.foot{display:f
         <div class="meta"><b>4 точки</b><span>управление гастрономическим направлением</span></div>
         <div class="meta"><b>Japanese</b><span>основная специализация кухни</span></div>
         <div class="meta"><b>Мурманск</b><span>частные события и выездной формат</span></div>
+      </div>
+      <div class="heroPhilosophy">
+        <span>🥬 Свежие продукты</span>
+        <span>🍣 Чистый вкус продукта</span>
+        <span>✨ Умами и баланс</span>
+        <span>🔥 Текстуры и температура</span>
+        <span>🎌 Японская точность</span>
+      </div>
+      <div class="heroContacts">
+        <a href="tel:+79661232992">📞 +7 966 123-29-92</a>
+        <a href="https://t.me/+79661232992" target="_blank" rel="noopener">✈️ Telegram</a>
+        <a href="https://wa.me/79661232992" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <span>🔵 MAX</span>
+        <a href="mailto:Farruh.bobojonov23@gmail.com">✉️ Farruh.bobojonov23@gmail.com</a>
       </div>
     </div>
     <div class="heroBadge">✦ Private Chef · Murmansk</div>
