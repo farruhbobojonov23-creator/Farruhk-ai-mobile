@@ -450,7 +450,7 @@ app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
    els.forEach((el,i)=>{el.dataset.shefEdit=all?(key+'.'+i):key;el.contentEditable='true';el.spellcheck=false;});
  };
  const photo=(sel,key)=>{const el=document.querySelector(sel);if(el){el.dataset.shefPhoto=key;}};
- const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+ const path=${JSON.stringify(page)};
  if(path==='index.html'||path===''){
    tag('.hero .eyebrow','home.eyebrow');tag('.hero h1','home.title');tag('.hero .lead','home.lead');
    const acts=document.querySelectorAll('.hero .actions .btn');if(acts[0]){acts[0].dataset.shefEdit='home.primaryButton';acts[0].contentEditable='true'};if(acts[1]){acts[1].dataset.shefEdit='home.secondaryButton';acts[1].contentEditable='true'};
