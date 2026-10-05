@@ -467,3 +467,197 @@ main:before{
     font-size:12px!important;
   }
 }
+
+/* SHEF51 PROFESSIONAL HERO v4 */
+.heroPhilosophy,.heroContacts{
+  gap:12px!important;
+}
+.heroPhilosophy .luxPill,.heroContacts .luxPill{
+  min-height:58px!important;
+  padding:9px 17px 9px 11px!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(20,17,13,.90),rgba(8,8,8,.96))!important;
+  border:1px solid rgba(215,176,106,.22)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 30px rgba(0,0,0,.22)!important;
+  font-size:13px!important;
+  letter-spacing:.01em!important;
+}
+.premium3dIcon{
+  width:48px!important;
+  height:48px!important;
+  flex:0 0 48px!important;
+  object-fit:contain!important;
+  display:block!important;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.42))!important;
+  margin:0!important;
+}
+.heroPhilosophy .premium3dIcon{width:54px!important;height:54px!important;flex-basis:54px!important}
+.heroContacts .premium3dIcon{width:44px!important;height:44px!important;flex-basis:44px!important}
+.heroPhilosophy .luxPill:hover,.heroContacts .luxPill:hover{
+  transform:translateY(-2px);
+  border-color:rgba(215,176,106,.42)!important;
+}
+
+@media (max-width:768px){
+  header .nav{
+    height:66px!important;
+    gap:12px!important;
+  }
+  header .brand{
+    font-size:15px!important;
+    letter-spacing:.08em!important;
+  }
+  header .links,header .navBook,.mobileQuickTabs{
+    display:none!important;
+  }
+  .menuToggle{
+    display:inline-flex!important;
+    margin-left:auto!important;
+    width:42px!important;
+    height:42px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:13px!important;
+    border:1px solid rgba(215,176,106,.24)!important;
+    background:#0b0b0b!important;
+    color:#f3d99f!important;
+  }
+
+  .hero{
+    padding:12px 0 30px!important;
+  }
+  .heroShell{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    border-radius:24px!important;
+    background:linear-gradient(180deg,#090909 0%,#060606 100%)!important;
+  }
+  .heroShell:after{display:none!important}
+  .heroCopy{
+    order:1!important;
+    width:100%!important;
+    padding:30px 20px 22px!important;
+    text-align:left!important;
+  }
+  .heroKicker{
+    margin-bottom:14px!important;
+    font-size:10px!important;
+    letter-spacing:.17em!important;
+  }
+  .hero h1{
+    font-size:clamp(42px,12vw,58px)!important;
+    line-height:.92!important;
+    max-width:100%!important;
+    margin:0 0 16px!important;
+  }
+  .hero h1 .accent{
+    display:block!important;
+    margin-top:4px!important;
+  }
+  .heroLead{
+    font-size:15px!important;
+    line-height:1.55!important;
+    max-width:100%!important;
+  }
+  .heroActions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+    margin-top:20px!important;
+  }
+  .heroActions .btn{
+    width:100%!important;
+    min-height:52px!important;
+    padding:13px 12px!important;
+    border-radius:15px!important;
+    font-size:14px!important;
+  }
+  .heroMeta{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:7px!important;
+    margin-top:18px!important;
+  }
+  .heroMeta .meta{
+    padding:11px 9px!important;
+    border-radius:14px!important;
+    min-width:0!important;
+  }
+  .heroMeta b{font-size:16px!important}
+  .heroMeta span{font-size:9.5px!important;line-height:1.25!important}
+
+  .heroPhilosophy{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+    margin-top:18px!important;
+  }
+  .heroPhilosophy .luxPill{
+    min-height:78px!important;
+    padding:10px!important;
+    border-radius:17px!important;
+    align-items:center!important;
+    font-size:11px!important;
+    line-height:1.25!important;
+  }
+  .heroPhilosophy .premium3dIcon{
+    width:50px!important;height:50px!important;flex-basis:50px!important;
+  }
+  .heroContacts{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+    margin-top:10px!important;
+  }
+  .heroContacts .luxPill{
+    min-height:58px!important;
+    padding:8px 10px!important;
+    border-radius:16px!important;
+    font-size:11px!important;
+    overflow:hidden!important;
+  }
+  .heroContacts .premium3dIcon{
+    width:38px!important;height:38px!important;flex-basis:38px!important;
+  }
+  .heroContacts .luxPill span{
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+
+  .heroArt{
+    order:2!important;
+    position:relative!important;
+    inset:auto!important;
+    width:calc(100% - 24px)!important;
+    height:420px!important;
+    margin:0 12px 12px!important;
+    border-radius:20px!important;
+    overflow:hidden!important;
+    background:#080808!important;
+  }
+  .heroArt img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center 18%!important;
+    border-radius:20px!important;
+    filter:contrast(1.04) saturate(.94) brightness(.93)!important;
+  }
+  .heroBadge{
+    display:none!important;
+  }
+}
+@media (max-width:430px){
+  .heroCopy{padding:26px 16px 18px!important}
+  .hero h1{font-size:clamp(40px,12.6vw,52px)!important}
+  .heroActions{grid-template-columns:1fr!important}
+  .heroMeta{grid-template-columns:1fr!important}
+  .heroMeta .meta{display:grid!important;grid-template-columns:90px 1fr!important;align-items:center!important;gap:8px!important}
+  .heroMeta b{margin:0!important}
+  .heroPhilosophy{grid-template-columns:1fr!important}
+  .heroPhilosophy .luxPill{min-height:68px!important}
+  .heroContacts{grid-template-columns:1fr!important}
+  .heroArt{height:380px!important}
+}
