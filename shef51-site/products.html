@@ -58,19 +58,118 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>
 .cats{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 34px}.chip{padding:11px 18px;border:1px solid #333;border-radius:999px;background:#0b0b0b;color:#ddd;cursor:pointer}.chip.active{background:#ef2634;border-color:#ef2634}
-.products{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 20px}
-.prod{background:#0a0a0a;border:1px solid #202020;border-radius:24px;padding:18px;overflow:hidden}
-.prodVisual{height:210px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
-.prodVisual:before{content:"";position:absolute;width:72%;height:35%;bottom:18px;border-radius:50%;background:radial-gradient(ellipse,#3a1114 0,#150708 45%,transparent 72%);filter:blur(12px)}
-.foodPhoto{position:relative;z-index:2;display:block;width:100%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 18px 24px rgba(0,0,0,.55))}
-.demoFood{position:relative;z-index:2;width:170px;height:112px;border-radius:50% 50% 44% 44%;background:linear-gradient(145deg,#ff8c55,#f03434 40%,#f5efe8 42%,#eee 67%,#1e7b42 68%,#163b25 78%,#111 79%);box-shadow:0 28px 40px #000,0 8px 18px #ef263455;transform:perspective(600px) rotateX(14deg) rotateZ(-5deg)}
-.prod h3{font:700 25px Georgia,serif;margin:8px 0 12px}.price{font-weight:900;font-size:18px;margin-top:10px}
-.detailsBtn{margin-top:14px;width:100%;border:1px solid #333;background:#111;color:#fff;border-radius:999px;padding:11px 14px;font-weight:800;cursor:pointer}
-.fullDesc{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #222;font-size:14px;color:#aaa;line-height:1.65}
-.prod.open .fullDesc{display:block}.prod.open .price{display:block}.prod.open .detailsBtn{background:#ef2634;border-color:#ef2634}.prod .price{display:none}
-@media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}}
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 22px}
+.prod{
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 22%,rgba(239,38,52,.16),transparent 38%),
+    linear-gradient(180deg,#0b0b0b 0%,#080808 100%);
+  border:1px solid #2a2a2a;
+  border-radius:30px;
+  padding:16px 16px 18px;
+  overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.45);
+}
+.prod:after{
+  content:"";
+  position:absolute;
+  inset:auto 18% 112px 18%;
+  height:2px;
+  background:linear-gradient(90deg,transparent,#ff3344 35%,#ff3344 65%,transparent);
+  box-shadow:0 0 14px rgba(255,51,68,.7);
+  opacity:.75;
+  pointer-events:none;
+}
+.prodVisual{
+  height:360px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:2px;
+}
+.prodVisual:before{
+  content:"";
+  position:absolute;
+  width:82%;
+  height:42%;
+  bottom:26px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,45,61,.28) 0%,rgba(112,9,17,.16) 45%,transparent 72%);
+  filter:blur(18px);
+}
+.foodPhoto{
+  position:relative;
+  z-index:2;
+  display:block;
+  width:96%;
+  height:96%;
+  object-fit:contain;
+  object-position:center;
+  transform:scale(1.03);
+  filter:drop-shadow(0 22px 30px rgba(0,0,0,.7));
+}
+.demoFood{position:relative;z-index:2;width:260px;height:175px;border-radius:50% 50% 44% 44%;background:linear-gradient(145deg,#ff8c55,#f03434 40%,#f5efe8 42%,#eee 67%,#1e7b42 68%,#163b25 78%,#111 79%);box-shadow:0 28px 40px #000,0 8px 18px #ef263455;transform:perspective(600px) rotateX(14deg) rotateZ(-5deg)}
+.prod h3{
+  font:700 31px Georgia,serif;
+  margin:6px 0 22px;
+  text-align:center;
+  letter-spacing:-.01em;
+}
+.detailsBtn{
+  position:relative;
+  margin-top:0;
+  width:100%;
+  border:1.5px solid #ff3344;
+  background:linear-gradient(180deg,#141414,#0d0d0d);
+  color:#fff;
+  border-radius:999px;
+  padding:14px 52px 14px 18px;
+  font-weight:900;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(255,51,68,.08) inset,0 0 18px rgba(255,51,68,.14);
+}
+.detailsBtn:after{
+  content:"›";
+  position:absolute;
+  right:24px;
+  top:50%;
+  transform:translateY(-53%);
+  color:#ff3344;
+  font-size:30px;
+  line-height:1;
+  font-weight:300;
+}
+.fullDesc{
+  display:none;
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid #252525;
+  font-size:14px;
+  color:#aaa;
+  line-height:1.7
+}
+.price{
+  display:none;
+  font-weight:900;
+  font-size:18px;
+  margin-top:12px;
+  color:#fff
+}
+.prod.open .fullDesc{display:block}
+.prod.open .price{display:block}
+.prod.open .detailsBtn{background:#ef2634;border-color:#ef2634;box-shadow:0 0 24px rgba(239,38,52,.24)}
+.prod.open .detailsBtn:after{color:#fff}
+@media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}.prodVisual{height:330px}}
 @media(max-width:560px){
-  .products{grid-template-columns:1fr;gap:18px}.prod{padding:16px}.prodVisual{height:190px}.prod h3{font-size:26px}.pageHead{padding-top:54px}
+  .products{grid-template-columns:1fr;gap:20px}
+  .prod{padding:14px 14px 16px;border-radius:28px}
+  .prodVisual{height:430px}
+  .foodPhoto{width:100%;height:100%;transform:scale(1.06)}
+  .prod h3{font-size:34px;margin:0 0 22px}
+  .detailsBtn{padding:15px 54px 15px 18px;font-size:17px}
+  .pageHead{padding-top:54px}
 }
 </style>
 <section class="wrap pageHead"><div class="eyebrow">МЕНЮ</div><h1>Японская кухня</h1><p class="lead">🍣 Авторские и классические позиции японской кухни. Выберите категорию и познакомьтесь с меню SHEF51.</p>
