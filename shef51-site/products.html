@@ -101,42 +101,75 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
   filter:drop-shadow(0 22px 30px rgba(0,0,0,.7));
 }
 .prod.philadelphia-motion .prodVisual{perspective:900px}
+.prod.philadelphia-motion .prodVisual{
+  perspective:1100px;
+}
 .prod.philadelphia-motion .foodPhoto{
   transform-origin:50% 55%;
-  animation:philadelphiaCinema 6.8s ease-in-out infinite;
+  animation:philadelphiaLuxury 7.2s cubic-bezier(.45,.05,.2,1) infinite;
+  transition:transform .55s cubic-bezier(.2,.75,.25,1),filter .55s ease;
   will-change:transform,filter;
 }
 .prod.philadelphia-motion .prodVisual:before{
-  animation:philadelphiaCinemaGlow 6.8s ease-in-out infinite;
+  animation:philadelphiaLuxuryGlow 7.2s ease-in-out infinite;
+  transition:transform .55s ease,opacity .55s ease,filter .55s ease;
 }
 .prod.philadelphia-motion .prodVisual:after{
   content:"";
   position:absolute;
   z-index:3;
-  top:7%;
-  bottom:7%;
-  width:28%;
-  left:-38%;
-  transform:skewX(-18deg);
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.02),rgba(255,255,255,.20),rgba(255,255,255,.03),transparent);
+  top:6%;
+  bottom:8%;
+  width:24%;
+  left:-32%;
+  transform:skewX(-16deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.025),rgba(255,255,255,.22),rgba(255,255,255,.035),transparent);
   filter:blur(8px);
   mix-blend-mode:screen;
   pointer-events:none;
-  animation:philadelphiaShine 6.8s ease-in-out infinite;
+  animation:philadelphiaLuxuryShine 7.2s ease-in-out infinite;
 }
-@keyframes philadelphiaCinema{
-  0%,100%{transform:scale(1.035) translateY(0)}
-  50%{transform:scale(1.075) translateY(-4px)}
+@keyframes philadelphiaLuxury{
+  0%,100%{transform:scale(1.04) translateY(0) rotateY(-3.2deg) rotateX(1.2deg) rotateZ(-.6deg)}
+  25%{transform:scale(1.065) translateY(-5px) rotateY(1.8deg) rotateX(-1deg) rotateZ(.3deg)}
+  50%{transform:scale(1.075) translateY(-7px) rotateY(3.8deg) rotateX(.7deg) rotateZ(.7deg)}
+  75%{transform:scale(1.06) translateY(-4px) rotateY(-1.8deg) rotateX(-.8deg) rotateZ(-.2deg)}
 }
-@keyframes philadelphiaCinemaGlow{
-  0%,100%{opacity:.58;transform:scale(.96)}
-  50%{opacity:.95;transform:scale(1.05)}
+@keyframes philadelphiaLuxuryGlow{
+  0%,100%{opacity:.56;transform:scale(.95) translateX(-2%)}
+  25%{opacity:.78;transform:scale(1.01) translateX(1%)}
+  50%{opacity:1;transform:scale(1.07) translateX(3%)}
+  75%{opacity:.76;transform:scale(1.01) translateX(-1%)}
 }
-@keyframes philadelphiaShine{
-  0%,18%{left:-38%;opacity:0}
-  32%{opacity:.8}
-  52%{left:112%;opacity:0}
+@keyframes philadelphiaLuxuryShine{
+  0%,24%{left:-32%;opacity:0}
+  36%{opacity:.9}
+  54%{left:112%;opacity:0}
   100%{left:112%;opacity:0}
+}
+@media (hover:hover) and (pointer:fine){
+  .prod.philadelphia-motion:hover .foodPhoto{
+    animation-play-state:paused;
+    transform:scale(1.11) translateY(-8px) rotateY(4deg) rotateX(-1deg);
+    filter:drop-shadow(0 30px 42px rgba(0,0,0,.82));
+  }
+  .prod.philadelphia-motion:hover .prodVisual:before{
+    animation-play-state:paused;
+    opacity:1;
+    transform:scale(1.11);
+    filter:blur(14px);
+  }
+}
+.prod.philadelphia-motion.motion-active .foodPhoto{
+  animation-play-state:paused;
+  transform:scale(1.11) translateY(-8px) rotateY(4deg) rotateX(-1deg);
+  filter:drop-shadow(0 30px 42px rgba(0,0,0,.82));
+}
+.prod.philadelphia-motion.motion-active .prodVisual:before{
+  animation-play-state:paused;
+  opacity:1;
+  transform:scale(1.11);
+  filter:blur(14px);
 }
 @media (prefers-reduced-motion:reduce){
   .prod.philadelphia-motion .foodPhoto{animation:none;transform:scale(1.03)}
@@ -267,6 +300,17 @@ function renderMenu(items){
   root.querySelectorAll('.detailsBtn').forEach(b=>b.onclick=()=>{
     const card=b.closest('.prod');card.classList.toggle('open');b.textContent=card.classList.contains('open')?'Скрыть':'Подробнее';
   });
+  const motionCard=root.querySelector('.prod.philadelphia-motion');
+  if(motionCard){
+    const visual=motionCard.querySelector('.prodVisual');
+    if(visual){
+      visual.addEventListener('pointerdown',()=>motionCard.classList.add('motion-active'));
+      const stop=()=>setTimeout(()=>motionCard.classList.remove('motion-active'),550);
+      visual.addEventListener('pointerup',stop);
+      visual.addEventListener('pointercancel',()=>motionCard.classList.remove('motion-active'));
+      visual.addEventListener('pointerleave',()=>motionCard.classList.remove('motion-active'));
+    }
+  }
   applyFilter();
 }
 fetch(API_BASE+'/api/shef51/menu',{cache:'no-store'})
