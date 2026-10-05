@@ -313,7 +313,10 @@ const defaultShef51Config=()=>({
   seo:{
     title:'SHEF51 — Фаррух Ака',
     description:'Персональный шеф японской кухни. Частные ужины, мероприятия и профессиональные услуги.'
-  }
+  },
+  customText:{},
+  customImages:{},
+  hiddenElements:{}
 });
 
 const defaultShef51Menu=()=>[
@@ -460,12 +463,12 @@ app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
  document.querySelectorAll('.links a').forEach(a=>{const href=a.getAttribute('href');const m={'index.html':'navigation.home','products.html':'navigation.products','services.html':'navigation.services','about.html':'navigation.about','book.html':'navigation.book'};if(m[href]){a.dataset.shefEdit=m[href];a.contentEditable='true'}});
  document.addEventListener('click',e=>{
    const a=e.target.closest('a[href]');if(a&&!a.hasAttribute('data-shef-edit')){const href=a.getAttribute('href');if(/^(index|products|services|about|book)\.html$/.test(href)){e.preventDefault();parent.postMessage({type:'shef-nav',page:href},'*');return}}
-   const el=e.target.closest('[data-shef-edit],[data-shef-photo]');
+   const el=e.target.closest('[data-shef-edit],[data-shef-photo],[data-shef-generic],[data-shef-generic-photo]');
    document.querySelectorAll('.shef-editor-selected').forEach(x=>x.classList.remove('shef-editor-selected'));
-   if(el){el.classList.add('shef-editor-selected');parent.postMessage({type:'shef-select',edit:el.dataset.shefEdit||null,photo:el.dataset.shefPhoto||null,text:el.innerText||''},'*')}
+   if(el){el.classList.add('shef-editor-selected');parent.postMessage({type:'shef-select',edit:el.dataset.shefEdit||null,photo:el.dataset.shefPhoto||null,generic:el.dataset.shefGeneric||null,genericPhoto:el.dataset.shefGenericPhoto||null,text:el.innerText||'',tag:el.tagName},'*')}
  },true);
  document.addEventListener('input',e=>{
-   const el=e.target.closest('[data-shef-edit]');if(el)parent.postMessage({type:'shef-change',key:el.dataset.shefEdit,value:el.innerText},'*')
+   const el=e.target.closest('[data-shef-edit],[data-shef-generic]');if(el)parent.postMessage({type:'shef-change',key:el.dataset.shefEdit||null,generic:el.dataset.shefGeneric||null,value:el.innerText},'*')
  });
  document.addEventListener('keydown',e=>{if(e.target.closest('[data-shef-edit]')&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
 })();
@@ -523,7 +526,10 @@ function mergeShef51Config(raw={}){
     pages:{...d.pages,...(raw.pages||{})},
     design:{...d.design,...(raw.design||{})},
     sections:{...d.sections,...(raw.sections||{})},
-    seo:{...d.seo,...(raw.seo||{})}
+    seo:{...d.seo,...(raw.seo||{})},
+    customText:{...(raw.customText||{})},
+    customImages:{...(raw.customImages||{})},
+    hiddenElements:{...(raw.hiddenElements||{})}
   };
   for(const k of Object.keys(cfg.general))cfg.general[k]=cleanText(cfg.general[k],300);
   for(const k of Object.keys(cfg.navigation))cfg.navigation[k]=cleanText(cfg.navigation[k],80);
@@ -540,6 +546,9 @@ function mergeShef51Config(raw={}){
   for(const k of Object.keys(cfg.sections))cfg.sections[k]=cfg.sections[k]!==false;
   cfg.seo.title=cleanText(cfg.seo.title,180);
   cfg.seo.description=cleanText(cfg.seo.description,320);
+  cfg.customText=Object.fromEntries(Object.entries(cfg.customText||{}).slice(0,1000).map(([k,v])=>[cleanText(k,180),cleanText(v,5000)]));
+  cfg.customImages=Object.fromEntries(Object.entries(cfg.customImages||{}).slice(0,500).map(([k,v])=>[cleanText(k,180),cleanText(v,600)]));
+  cfg.hiddenElements=Object.fromEntries(Object.entries(cfg.hiddenElements||{}).slice(0,1000).map(([k,v])=>[cleanText(k,180),Boolean(v)]));
   return cfg;
 }
 
