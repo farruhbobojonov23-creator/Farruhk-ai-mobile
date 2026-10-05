@@ -1,50 +1,67 @@
 <!doctype html><html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
-<title>SHEF51 — Редактор сайта</title>
+<title>SHEF51 — Простой редактор</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Inter,Arial,sans-serif;height:100vh;overflow:hidden}.app{height:100vh;display:grid;grid-template-rows:auto 1fr auto}.top{background:#090909;border-bottom:1px solid #202020;padding:10px;display:flex;gap:8px;align-items:center}.brand{font-weight:900;letter-spacing:.1em;margin-right:6px}.brand b{color:#ff3344}.pages{display:flex;gap:7px;overflow:auto;flex:1}.pill,.btn{border:1px solid #303030;background:#151515;color:#fff;border-radius:999px;padding:10px 13px;font-weight:800;white-space:nowrap}.pill.active,.btn.primary{background:#ff2e3f;border-color:#ff2e3f}.stage{min-height:0;background:#111}.stage iframe{width:100%;height:100%;border:0;background:#fff}.bottom{background:#090909;border-top:1px solid #222;padding:10px;display:flex;gap:8px;align-items:center}.grow{flex:1}.status{font-size:13px;color:#aaa}.ok{color:#55d187}.err{color:#ff7680}
-.sheet{position:fixed;left:50%;bottom:74px;transform:translate(-50%,120%);width:min(560px,94%);background:#0d0d0d;border:1px solid #2a2a2a;border-radius:24px;padding:16px;z-index:50;transition:.22s;box-shadow:0 20px 60px #000a}.sheet.open{transform:translate(-50%,0)}.handle{width:64px;height:5px;border-radius:99px;background:#343434;margin:0 auto 12px}.sheet h3{margin:0 0 5px}.muted{color:#929292}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:1px solid #303030;background:#151515;color:#fff;border-radius:16px;padding:15px;font-weight:800;text-align:center}.action.danger{background:#2b1014}.editor{margin-top:14px}.editor textarea{width:100%;min-height:110px;background:#060606;border:1px solid #333;border-radius:16px;color:#fff;padding:13px;font:inherit}.hidden{display:none!important}.photoInput{width:100%;background:#111;border:1px solid #333;border-radius:14px;padding:12px;color:#ddd}
-@media(max-width:760px){.top{flex-wrap:wrap}.brand{width:100%}.pages{order:2;width:100%}.bottom{padding-bottom:max(10px,env(safe-area-inset-bottom))}.status{display:none}.btn{padding:10px 12px;font-size:13px}.sheet{bottom:72px}}
-</style></head><body>
-<div class="app">
-<header class="top"><div class="brand"><b>SHEF51</b> · РЕДАКТОР</div><div class="pages">
-<button class="pill active" data-page="index.html">Главная</button><button class="pill" data-page="products.html">Товары</button><button class="pill" data-page="services.html">Услуги</button><button class="pill" data-page="about.html">Обо мне</button><button class="pill" data-page="book.html">Бронирование</button></div></header>
-<main class="stage"><iframe id="frame"></iframe></main>
-<footer class="bottom"><button id="adminBtn" class="btn">Настройки</button><div class="grow"></div><span id="status" class="status">Нажми на текст или фото</span><button id="saveBtn" class="btn">Черновик</button><button id="publishBtn" class="btn primary">Опубликовать</button></footer>
+*{box-sizing:border-box}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}.wrap{width:min(920px,94%);margin:auto;padding:18px 0 110px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:#ff3344}.tabs{display:flex;gap:8px;overflow:auto;padding:6px 0 14px;position:sticky;top:0;background:#050505e8;backdrop-filter:blur(14px);z-index:20}.tab,.btn{border:1px solid #303030;background:#151515;color:#fff;border-radius:999px;padding:11px 14px;font-weight:800;white-space:nowrap}.tab.active,.btn.primary{background:#ff2e3f;border-color:#ff2e3f}.panel{display:none}.panel.active{display:block}.card{background:#0b0b0b;border:1px solid #222;border-radius:22px;padding:18px;margin:12px 0}.card h3{margin:0 0 12px}.field{display:grid;gap:6px;margin:10px 0}.field label{font-size:12px;color:#999}.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #2d2d2d;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:100px;resize:vertical}.photo{height:210px;border:1px dashed #333;border-radius:18px;background:#070707;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px}.photo img{width:100%;height:100%;object-fit:contain}.muted,.status{color:#969696}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1}.switch{display:flex;gap:8px;align-items:center}.switch input{width:20px;height:20px}.product{display:grid;grid-template-columns:180px 1fr;gap:16px}.toolbar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(900px,94%);background:#090909ed;border:1px solid #242424;border-radius:22px;padding:10px;display:flex;gap:8px;align-items:center;backdrop-filter:blur(18px);z-index:30}.ok{color:#55d187}.err{color:#ff7680}
+@media(max-width:700px){.top{align-items:flex-start;flex-direction:column}.product{grid-template-columns:1fr}.photo{height:230px}.toolbar .status{display:none}.toolbar .btn{flex:1;padding:12px 8px;font-size:13px}}
+</style></head><body><div class="wrap">
+<div class="top"><div><div class="brand"><b>SHEF51</b> · РЕДАКТОР</div><div class="muted">Выбери страницу и меняй всё по карточкам</div></div><button id="adminBtn" class="btn">Настройки</button></div>
+<div class="tabs">
+<button class="tab active" data-tab="home">Главная</button>
+<button class="tab" data-tab="products">Товары</button>
+<button class="tab" data-tab="services">Услуги</button>
+<button class="tab" data-tab="about">Обо мне</button>
+<button class="tab" data-tab="book">Бронирование</button>
 </div>
 
-<div class="sheet" id="sheet"><div class="handle"></div><h3 id="sheetTitle">Редактировать</h3><div id="sheetHint" class="muted">Выбранный элемент</div>
-<div class="actions">
-<button id="editTextBtn" class="action">Изменить текст</button>
-<button id="photoBtn" class="action">Заменить фото</button>
-<button id="hideBtn" class="action">Скрыть</button>
-<button id="closeSheet" class="action">Готово</button>
+<section id="panel-home" class="panel active">
+<div class="card"><h3>Главное фото</h3><div id="heroPhoto" class="photo"></div><input id="heroFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
+<div class="card"><h3>Главный экран</h3><div class="field"><label>Маленькая надпись сверху</label><input data-cfg="home.eyebrow"></div><div class="field"><label>Большой заголовок</label><input data-cfg="home.title"></div><div class="field"><label>Описание</label><textarea data-cfg="home.lead"></textarea></div><div class="field"><label>Первая кнопка</label><input data-cfg="home.primaryButton"></div><div class="field"><label>Вторая кнопка</label><input data-cfg="home.secondaryButton"></div></div>
+</section>
+
+<section id="panel-products" class="panel">
+<div id="productsList"></div><button id="addProduct" class="btn">+ Добавить товар</button>
+</section>
+
+<section id="panel-services" class="panel">
+<div class="card"><h3>Страница «Услуги»</h3><div class="field"><label>Заголовок страницы</label><input data-cfg="pages.servicesTitle"></div><p class="muted">Остальные блоки страницы добавим сюда следующими карточками: фото, названия и описания услуг.</p></div>
+</section>
+
+<section id="panel-about" class="panel">
+<div class="card"><h3>Страница «Обо мне»</h3><div class="field"><label>Заголовок страницы</label><input data-cfg="pages.aboutTitle"></div><p class="muted">Дальше здесь будут отдельные карточки для фото, биографии, опыта и кнопок.</p></div>
+</section>
+
+<section id="panel-book" class="panel">
+<div class="card"><h3>Страница «Бронирование»</h3><div class="field"><label>Заголовок страницы</label><input data-cfg="pages.bookingTitle"></div><p class="muted">Форма заявок остаётся рабочей. Здесь можно будет менять названия полей и тексты формы.</p></div>
+</section>
 </div>
-<div id="textEditor" class="editor hidden"><textarea id="textValue"></textarea><button id="applyText" class="btn primary" style="margin-top:9px;width:100%">Применить текст</button></div>
-<div id="photoEditor" class="editor hidden"><input id="photoFile" class="photoInput" type="file" accept="image/jpeg,image/png,image/webp"><div id="photoStatus" class="status" style="display:block;margin-top:8px"></div></div>
-</div>
+
+<div class="toolbar"><span id="status" class="status">Готово к редактированию</span><div class="grow"></div><button id="saveBtn" class="btn">Сохранить</button><button id="publishBtn" class="btn primary">Опубликовать</button></div>
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-let cfg={},menu=[],page='index.html',sel={};
+let cfg={},menu=[];
 async function api(url,opt={}){const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'HTTP '+r.status);return d}
-function getPath(obj,path){return path?.split('.').reduce((o,k)=>o?.[k],obj)}
+function getPath(obj,path){return path.split('.').reduce((o,k)=>o?.[k],obj)}
 function setPath(obj,path,val){const a=path.split('.');let o=obj;for(let i=0;i<a.length-1;i++)o=o[a[i]]??={};o[a.at(-1)]=val}
-function keyOf(){return sel.generic||sel.genericPhoto||sel.edit||sel.photo||''}
-function openSheet(){const k=keyOf();$('#sheet').classList.add('open');$('#sheetTitle').textContent=sel.photo||sel.genericPhoto?'Фотография':'Текст';$('#sheetHint').textContent='Нажми нужное действие';$('#editTextBtn').classList.toggle('hidden',!!(sel.photo||sel.genericPhoto));$('#photoBtn').classList.toggle('hidden',!(sel.photo||sel.genericPhoto));const hidden=cfg.hiddenElements?.[k];$('#hideBtn').textContent=hidden?'Показать':'Скрыть';$('#textEditor').classList.add('hidden');$('#photoEditor').classList.add('hidden')}
-function closeSheet(){$('#sheet').classList.remove('open')}
-function loadPage(p){page=p;$$('.pill').forEach(b=>b.classList.toggle('active',b.dataset.page===p));$('#frame').src='/api/shef51/admin/visual-page?page='+encodeURIComponent(p)+'&t='+Date.now();closeSheet()}
-window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='shef-select'){sel=d;openSheet()}else if(d.type==='shef-change'){if(d.key)setPath(cfg,d.key,d.value);if(d.generic){cfg.customText=cfg.customText||{};cfg.customText[d.generic]=d.value}}else if(d.type==='shef-nav'&&d.page)loadPage(d.page)});
-$('#editTextBtn').onclick=()=>{const v=sel.edit?getPath(cfg,sel.edit):(cfg.customText?.[sel.generic]??sel.text??'');$('#textValue').value=v||'';$('#textEditor').classList.remove('hidden');$('#photoEditor').classList.add('hidden')};
-$('#applyText').onclick=()=>{const v=$('#textValue').value;if(sel.edit)setPath(cfg,sel.edit,v);else if(sel.generic){cfg.customText=cfg.customText||{};cfg.customText[sel.generic]=v}const doc=$('#frame').contentDocument;const q=sel.edit?'[data-shef-edit="'+CSS.escape(sel.edit)+'"]':'[data-shef-generic="'+CSS.escape(sel.generic)+'"]';const el=doc?.querySelector(q);if(el)el.innerText=v;$('#status').textContent='Текст изменён';closeSheet()};
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function imgUrl(src){return src?.startsWith('/api/')?location.origin+src:src}
+function bindCfg(){$$('[data-cfg]').forEach(el=>{const p=el.dataset.cfg;el.value=getPath(cfg,p)??'';el.oninput=()=>setPath(cfg,p,el.value)});renderHero()}
+function renderHero(){const src=imgUrl(cfg?.home?.heroImage||'');$('#heroPhoto').innerHTML=src?'<img src="'+esc(src)+'">':'<span class="muted">Фото не выбрано</span>'}
 async function fileData(file){return new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=fail;r.readAsDataURL(file)})}
-$('#photoBtn').onclick=()=>{$('#photoEditor').classList.remove('hidden');$('#textEditor').classList.add('hidden')};
-$('#photoFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>8*1024*1024){$('#photoStatus').textContent='Фото больше 8 МБ';return}$('#photoStatus').textContent='Загрузка…';try{const d=await api('/api/shef51/admin/upload',{method:'POST',body:JSON.stringify({name:'site-photo',data:await fileData(f)})});if(sel.photo)setPath(cfg,sel.photo,d.imageUrl);else if(sel.genericPhoto){cfg.customImages=cfg.customImages||{};cfg.customImages[sel.genericPhoto]=d.imageUrl}const doc=$('#frame').contentDocument;const q=sel.photo?'[data-shef-photo="'+CSS.escape(sel.photo)+'"]':'[data-shef-generic-photo="'+CSS.escape(sel.genericPhoto)+'"]';const img=doc?.querySelector(q);if(img)img.src=location.origin+d.imageUrl+'?t='+Date.now();$('#photoStatus').textContent='Фото заменено ✓';$('#status').textContent='Фото изменено'}catch(err){$('#photoStatus').textContent=err.message}};
-$('#hideBtn').onclick=()=>{const k=keyOf();if(!k)return;cfg.hiddenElements=cfg.hiddenElements||{};cfg.hiddenElements[k]=!cfg.hiddenElements[k];const doc=$('#frame').contentDocument;let q='';if(sel.edit)q='[data-shef-edit="'+CSS.escape(sel.edit)+'"]';else if(sel.photo)q='[data-shef-photo="'+CSS.escape(sel.photo)+'"]';else if(sel.generic)q='[data-shef-generic="'+CSS.escape(sel.generic)+'"]';else if(sel.genericPhoto)q='[data-shef-generic-photo="'+CSS.escape(sel.genericPhoto)+'"]';const el=doc?.querySelector(q);if(el)el.style.opacity=cfg.hiddenElements[k]?'.25':'1';$('#hideBtn').textContent=cfg.hiddenElements[k]?'Показать':'Скрыть'};
-$('#closeSheet').onclick=closeSheet;
-async function saveDraft(){const c=await api('/api/shef51/admin/site-config',{method:'PUT',body:JSON.stringify({config:cfg})});cfg=c.config||cfg;await api('/api/shef51/admin/menu',{method:'PUT',body:JSON.stringify({items:menu})});$('#status').textContent='Черновик сохранён ✓';$('#status').className='status ok'}
-$('#saveBtn').onclick=()=>saveDraft().catch(e=>{$('#status').textContent=e.message;$('#status').className='status err'});
-$('#publishBtn').onclick=async()=>{try{await saveDraft();await api('/api/shef51/admin/publish',{method:'POST'});$('#status').textContent='Опубликовано ✓';$('#status').className='status ok'}catch(e){$('#status').textContent=e.message;$('#status').className='status err'}};
-$$('.pill').forEach(b=>b.onclick=()=>loadPage(b.dataset.page));$('#adminBtn').onclick=()=>location.href='/shef51-admin';
-(async()=>{try{const s=await api('/api/shef51/admin/session');if(!s.ok)return location.href='/shef51-admin';const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];loadPage('index.html')}catch{location.href='/shef51-admin'}})();
+async function upload(file,name){if(!file)return'';if(file.size>8*1024*1024)throw new Error('Фото должно быть до 8 МБ');const d=await api('/api/shef51/admin/upload',{method:'POST',body:JSON.stringify({name,data:await fileData(file)})});return d.imageUrl}
+$('#heroFile').onchange=async e=>{try{$('#status').textContent='Загружаю фото…';const url=await upload(e.target.files?.[0],'hero');if(url){cfg.home.heroImage=url;renderHero();$('#status').textContent='Фото заменено ✓';$('#status').className='status ok'}}catch(err){$('#status').textContent=err.message;$('#status').className='status err'}};
+
+function renderProducts(){
+ $('#productsList').innerHTML=menu.map((x,i)=>`<div class="card product" data-i="${i}"><div><div class="photo">${x.imageUrl?'<img src="'+esc(imgUrl(x.imageUrl))+'">':'<span class="muted">Нет фото</span>'}</div><input class="photoInput" type="file" accept="image/jpeg,image/png,image/webp"></div><div><div class="field"><label>Название</label><input data-k="name" value="${esc(x.name)}"></div><div class="field"><label>Описание / состав</label><textarea data-k="description">${esc(x.description||'')}</textarea></div><div class="field"><label>Порция / цена</label><input data-k="portion" value="${esc(x.portion||'')}"></div><div class="field"><label>Категория</label><select data-k="category"><option value="rolls" ${x.category==='rolls'?'selected':''}>Роллы</option><option value="sushi" ${x.category==='sushi'?'selected':''}>Суши</option><option value="wok" ${x.category==='wok'?'selected':''}>Воки</option></select></div><div class="row"><label class="switch"><input type="checkbox" data-k="visible" ${x.visible!==false?'checked':''}> Показывать</label><div class="grow"></div><button class="btn up">↑</button><button class="btn down">↓</button><button class="btn del">Удалить</button></div></div></div>`).join('');
+ $$('.product').forEach(card=>{const i=Number(card.dataset.i);card.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;const fn=()=>menu[i][k]=el.type==='checkbox'?el.checked:el.value;el.oninput=fn;el.onchange=fn});card.querySelector('.photoInput').onchange=async e=>{try{$('#status').textContent='Загружаю фото…';const url=await upload(e.target.files?.[0],menu[i].id||'product');if(url){menu[i].imageUrl=url;renderProducts();$('#status').textContent='Фото заменено ✓'}}catch(err){$('#status').textContent=err.message}};card.querySelector('.up').onclick=()=>{if(i>0){[menu[i-1],menu[i]]=[menu[i],menu[i-1]];menu.forEach((x,j)=>x.order=(j+1)*10);renderProducts()}};card.querySelector('.down').onclick=()=>{if(i<menu.length-1){[menu[i+1],menu[i]]=[menu[i],menu[i+1]];menu.forEach((x,j)=>x.order=(j+1)*10);renderProducts()}};card.querySelector('.del').onclick=()=>{if(confirm('Удалить товар?')){menu.splice(i,1);renderProducts()}}});
+}
+$('#addProduct').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name:'Новый товар',description:'',portion:'',visible:true,order:(menu.length+1)*10,imageUrl:''});renderProducts()};
+
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active')});
+async function save(){const c=await api('/api/shef51/admin/site-config',{method:'PUT',body:JSON.stringify({config:cfg})});cfg=c.config||cfg;const m=await api('/api/shef51/admin/menu',{method:'PUT',body:JSON.stringify({items:menu})});menu=m.items||menu;$('#status').textContent='Сохранено ✓';$('#status').className='status ok'}
+$('#saveBtn').onclick=()=>save().catch(e=>{$('#status').textContent=e.message;$('#status').className='status err'});
+$('#publishBtn').onclick=async()=>{try{await save();await api('/api/shef51/admin/publish',{method:'POST'});$('#status').textContent='Опубликовано ✓';$('#status').className='status ok'}catch(e){$('#status').textContent=e.message;$('#status').className='status err'}};
+$('#adminBtn').onclick=()=>location.href='/shef51-admin';
+(async()=>{try{const s=await api('/api/shef51/admin/session');if(!s.ok)return location.href='/shef51-admin';const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];bindCfg();renderProducts()}catch{location.href='/shef51-admin'}})();
 </script></body></html>
