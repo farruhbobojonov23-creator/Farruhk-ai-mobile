@@ -421,6 +421,64 @@ function noteBadLogin(ip){
   row.count++;loginAttempts.set(ip,row);
 }
 
+
+app.get('/shef51-editor',(req,res)=>res.redirect('/shef51-editor.html'));
+
+app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
+  const allowed=new Set(['index.html','products.html','services.html','about.html','book.html']);
+  const page=allowed.has(String(req.query?.page||''))?String(req.query.page):'index.html';
+  try{
+    const r=await fetch('https://shef51.onrender.com/'+page,{signal:AbortSignal.timeout(15000),headers:{'User-Agent':'SHEF51-Editor/1.0'}});
+    if(!r.ok)throw new Error('SHEF51 HTTP '+r.status);
+    let html=await r.text();
+    const inject=`
+<style id="shef51-editor-style">
+[data-shef-edit]{outline:2px dashed transparent;outline-offset:5px;transition:.15s;cursor:text}
+[data-shef-edit]:hover{outline-color:#ff3344;background:#ff33440b}
+[data-shef-photo]{outline:2px dashed transparent;outline-offset:6px;cursor:pointer}
+[data-shef-photo]:hover{outline-color:#ff3344}
+.shef-editor-selected{outline:2px solid #ff3344!important;box-shadow:0 0 0 4px #ff334422!important}
+</style>
+<script>
+(function(){
+ const map=[];
+ const tag=(sel,key,all=false)=>{
+   const els=all?[...document.querySelectorAll(sel)]:[document.querySelector(sel)].filter(Boolean);
+   els.forEach((el,i)=>{el.dataset.shefEdit=all?(key+'.'+i):key;el.contentEditable='true';el.spellcheck=false;});
+ };
+ const photo=(sel,key)=>{const el=document.querySelector(sel);if(el){el.dataset.shefPhoto=key;}};
+ const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+ if(path==='index.html'||path===''){
+   tag('.hero .eyebrow','home.eyebrow');tag('.hero h1','home.title');tag('.hero .lead','home.lead');
+   const acts=document.querySelectorAll('.hero .actions .btn');if(acts[0]){acts[0].dataset.shefEdit='home.primaryButton';acts[0].contentEditable='true'};if(acts[1]){acts[1].dataset.shefEdit='home.secondaryButton';acts[1].contentEditable='true'};
+   photo('.heroArt img','home.heroImage');
+ }
+ if(path==='products.html'){tag('.pageHead h1','pages.productsTitle');tag('.pageHead .lead','pages.productsLead');}
+ if(path==='services.html')tag('h1','pages.servicesTitle');
+ if(path==='about.html')tag('h1','pages.aboutTitle');
+ if(path==='book.html')tag('h1','pages.bookingTitle');
+ document.querySelectorAll('.links a').forEach(a=>{const href=a.getAttribute('href');const m={'index.html':'navigation.home','products.html':'navigation.products','services.html':'navigation.services','about.html':'navigation.about','book.html':'navigation.book'};if(m[href]){a.dataset.shefEdit=m[href];a.contentEditable='true'}});
+ document.addEventListener('click',e=>{
+   const a=e.target.closest('a[href]');if(a&&!a.hasAttribute('data-shef-edit')){const href=a.getAttribute('href');if(/^(index|products|services|about|book)\.html$/.test(href)){e.preventDefault();parent.postMessage({type:'shef-nav',page:href},'*');return}}
+   const el=e.target.closest('[data-shef-edit],[data-shef-photo]');
+   document.querySelectorAll('.shef-editor-selected').forEach(x=>x.classList.remove('shef-editor-selected'));
+   if(el){el.classList.add('shef-editor-selected');parent.postMessage({type:'shef-select',edit:el.dataset.shefEdit||null,photo:el.dataset.shefPhoto||null,text:el.innerText||''},'*')}
+ },true);
+ document.addEventListener('input',e=>{
+   const el=e.target.closest('[data-shef-edit]');if(el)parent.postMessage({type:'shef-change',key:el.dataset.shefEdit,value:el.innerText},'*')
+ });
+ document.addEventListener('keydown',e=>{if(e.target.closest('[data-shef-edit]')&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
+})();
+<\/script>`;
+    html=html.replace(/<script[^>]+src=["']cms\.js[^>]*><\/script>/ig,'');
+    html=html.replace('</body>',inject+'</body>');
+    res.setHeader('Cache-Control','no-store');
+    res.type('html').send(html);
+  }catch(err){
+    console.error('visual editor page error',err);
+    res.status(502).type('html').send('<h1 style="font-family:sans-serif">Не удалось загрузить страницу сайта</h1>');
+  }
+});
 app.get('/shef51-admin',(req,res)=>res.redirect('/shef51-admin.html'));
 
 app.post('/api/shef51/admin/login',(req,res)=>{
