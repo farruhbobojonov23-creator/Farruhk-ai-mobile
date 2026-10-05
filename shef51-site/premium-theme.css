@@ -661,3 +661,219 @@ main:before{
   .heroContacts{grid-template-columns:1fr!important}
   .heroArt{height:380px!important}
 }
+
+
+/* === SHEF51 MOBILE HERO V5: desktop character, stable layout === */
+.heroShell,.heroCopy,.heroArt,.hero h1,.hero h1 .accent,.heroLead,.heroActions,.heroMeta,.heroPhilosophy,.heroContacts{
+  animation:none!important;
+}
+.hero h1,.hero h1 .accent{
+  transition:none!important;
+}
+.heroArt img{
+  transition:none!important;
+}
+.heroPhilosophy{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+.heroPhilosophy .luxPill{
+  min-height:118px!important;
+  padding:16px 12px!important;
+  border-radius:22px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  background:
+    radial-gradient(circle at 25% 10%,rgba(211,164,83,.10),transparent 38%),
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012))!important;
+  border:1px solid rgba(214,170,91,.26)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 16px 34px rgba(0,0,0,.22)!important;
+}
+.heroPhilosophy .premium3dIcon{
+  width:64px!important;
+  height:64px!important;
+  flex:0 0 64px!important;
+  margin:0!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 10px 13px rgba(0,0,0,.5))!important;
+}
+.heroPhilosophy .luxPill>span{
+  font-size:13px!important;
+  line-height:1.25!important;
+  font-weight:750!important;
+  letter-spacing:.005em!important;
+}
+@media (max-width:768px){
+  .hero{
+    padding:12px 0 28px!important;
+  }
+  .heroShell{
+    min-height:0!important;
+    overflow:hidden!important;
+    border-radius:28px!important;
+    padding:0!important;
+    background:
+      radial-gradient(circle at 74% 4%,rgba(151,15,24,.14),transparent 32%),
+      linear-gradient(180deg,#090909 0%,#050505 100%)!important;
+  }
+  .heroArt{
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    height:clamp(330px,82vw,430px)!important;
+    min-height:330px!important;
+    margin:0!important;
+    border-radius:0!important;
+    overflow:hidden!important;
+  }
+  .heroArt:after{
+    content:""!important;
+    position:absolute!important;
+    inset:0!important;
+    background:linear-gradient(180deg,rgba(0,0,0,.02) 46%,rgba(5,5,5,.42) 75%,#050505 100%)!important;
+    pointer-events:none!important;
+  }
+  .heroArt img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center 18%!important;
+    border-radius:0!important;
+    filter:contrast(1.04) saturate(.94) brightness(.84)!important;
+  }
+  .heroCopy{
+    position:relative!important;
+    z-index:5!important;
+    width:100%!important;
+    padding:0 18px 22px!important;
+    margin-top:-42px!important;
+    text-align:left!important;
+  }
+  .heroKicker{
+    margin:0 0 12px!important;
+    font-size:10px!important;
+    line-height:1.45!important;
+    letter-spacing:.17em!important;
+  }
+  .hero h1{
+    min-height:0!important;
+    margin:0 0 16px!important;
+    font-size:clamp(44px,12vw,58px)!important;
+    line-height:.91!important;
+    letter-spacing:-.045em!important;
+    text-wrap:balance!important;
+  }
+  .hero h1 .accent{
+    display:block!important;
+    margin-top:3px!important;
+    line-height:.94!important;
+  }
+  .heroLead{
+    margin:0!important;
+    font-size:15px!important;
+    line-height:1.58!important;
+    color:#c9c4be!important;
+  }
+  .heroBadge{
+    position:absolute!important;
+    right:14px!important;
+    top:14px!important;
+    margin:0!important;
+    max-width:calc(100% - 28px)!important;
+    padding:9px 12px!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    z-index:8!important;
+    backdrop-filter:blur(10px)!important;
+  }
+  .heroActions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+    margin-top:20px!important;
+  }
+  .heroActions .btn{
+    min-height:54px!important;
+    width:100%!important;
+    padding:13px 12px!important;
+    border-radius:17px!important;
+    font-size:15px!important;
+  }
+  .heroMeta{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+    margin-top:16px!important;
+  }
+  .heroMeta .meta{
+    min-height:92px!important;
+    padding:12px 10px!important;
+    border-radius:17px!important;
+  }
+  .heroMeta b{
+    font-size:16px!important;
+    line-height:1.05!important;
+  }
+  .heroMeta span{
+    font-size:9px!important;
+    line-height:1.35!important;
+  }
+  .heroPhilosophy{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-top:18px!important;
+  }
+  .heroPhilosophy .luxPill{
+    min-height:86px!important;
+    width:100%!important;
+    padding:11px 14px!important;
+    border-radius:20px!important;
+    display:grid!important;
+    grid-template-columns:66px 1fr!important;
+    align-items:center!important;
+    justify-content:stretch!important;
+    gap:13px!important;
+  }
+  .heroPhilosophy .premium3dIcon{
+    width:66px!important;
+    height:66px!important;
+    flex:0 0 66px!important;
+  }
+  .heroPhilosophy .luxPill>span{
+    font-size:14px!important;
+    line-height:1.28!important;
+  }
+  .heroContacts{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    margin-top:12px!important;
+  }
+  .heroContacts .luxPill{
+    min-height:58px!important;
+    padding:8px 10px!important;
+    border-radius:17px!important;
+    font-size:10px!important;
+  }
+  .heroContacts .premium3dIcon{
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+  }
+}
+@media (max-width:420px){
+  .heroActions{
+    grid-template-columns:1fr!important;
+  }
+  .heroMeta{
+    grid-template-columns:1fr!important;
+  }
+  .heroMeta .meta{
+    min-height:0!important;
+  }
+  .heroContacts{
+    grid-template-columns:1fr!important;
+  }
+}
