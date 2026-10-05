@@ -29,7 +29,7 @@ fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Pr
    if(h.heroImage){let src=h.heroImage;if(src.startsWith('/api/'))src=API+src;const img=document.querySelector('.heroArt img');if(img)img.src=src}
    if(c.sections){const sec=[...document.querySelectorAll('section')];if(c.sections.products===false)sec.filter(x=>x.querySelector('.products')).forEach(x=>x.style.display='none');if(c.sections.services===false)sec.filter(x=>x.querySelector('.services')).forEach(x=>x.style.display='none');if(c.sections.booking===false)sec.filter(x=>x.querySelector('.book,.form')).forEach(x=>x.style.display='none')}
  }
- if(path==='products.html'){txt(document.querySelector('.pageHead h1'),p.productsTitle);txt(document.querySelector('.pageHead .lead'),p.productsLead)}
+ if(path==='products.html'){}
  if(path==='services.html'){}
  if(path==='about.html'){}
  if(path==='book.html'){}
