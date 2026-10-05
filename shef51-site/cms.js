@@ -26,7 +26,7 @@ fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Pr
  const foot=document.querySelector('footer .foot');if(foot){const parts=foot.children;if(parts[0])txt(parts[0],g.footerText||((g.siteName||'SHEF51')+' · '+(g.brandLine||'')));if(parts[1])txt(parts[1],g.whatsapp?'WhatsApp: '+g.whatsapp:'')}
  const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
  if(path===''||path==='index.html'){
-   txt(document.querySelector('.hero .eyebrow'),h.eyebrow);txt(document.querySelector('.hero h1'),h.title);txt(document.querySelector('.hero .lead'),h.lead);
+   txt(document.querySelector('.hero .eyebrow'),h.eyebrow);
    const acts=document.querySelectorAll('.hero .actions .btn');if(acts[0])txt(acts[0],h.primaryButton);if(acts[1])txt(acts[1],h.secondaryButton);
    if(h.heroImage){let src=h.heroImage;if(src.startsWith('/api/'))src=API+src;const img=document.querySelector('.heroArt img');if(img)img.src=src}
    if(c.sections){const sec=[...document.querySelectorAll('section')];if(c.sections.products===false)sec.filter(x=>x.querySelector('.products')).forEach(x=>x.style.display='none');if(c.sections.services===false)sec.filter(x=>x.querySelector('.services')).forEach(x=>x.style.display='none');if(c.sections.booking===false)sec.filter(x=>x.querySelector('.book,.form')).forEach(x=>x.style.display='none')}
