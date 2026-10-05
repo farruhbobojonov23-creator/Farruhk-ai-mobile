@@ -31,8 +31,8 @@ fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Pr
  }
  if(path==='products.html'){txt(document.querySelector('.pageHead h1'),p.productsTitle);txt(document.querySelector('.pageHead .lead'),p.productsLead)}
  if(path==='services.html')txt(document.querySelector('h1'),p.servicesTitle);
- if(path==='about.html')txt(document.querySelector('h1'),p.aboutTitle);
- if(path==='book.html')txt(document.querySelector('h1'),p.bookingTitle);
+ if(path==='about.html'){}
+ if(path==='book.html'){}
 
  const applyCustom=()=>{
    const ct=c.customText||{}, ci=c.customImages||{}, hidden=c.hiddenElements||{};
