@@ -319,13 +319,29 @@ const defaultShef51Config=()=>({
   hiddenElements:{}
 });
 
+const shef51Descriptions={
+  'Филадельфия':'🍣 Нежный лосось, прохладный сливочный сыр и свежий хрустящий огурец — мягкий, сливочный вкус с сочным морским акцентом. Классика, к которой хочется возвращаться. ✨',
+  'Филадельфия Премиум':'🔥 Щедрый слой сочного лосося снаружи и ещё больше лосося внутри, нежный сливочный сыр и свежий огурец. Насыщенный, кремовый и по-настоящему премиальный вкус. 🍣',
+  'Филадельфия Тигровая':'🦐 Сочная тигровая креветка, нежный сливочный сыр и свежий хрустящий огурец — лёгкое сочетание морского вкуса, кремовой текстуры и свежести. ✨',
+  'Филадельфия Тигровая Премиум':'🦐🔥 Тигровая креветка под пикантным сладко-острым соусом, сочный лосось, нежный сливочный сыр и свежий огурец. Яркий, насыщенный ролл с аппетитной остринкой. ✨',
+  'Суши лосось':'🍣 Нежный охлаждённый лосось на аккуратной подушке риса — чистый, сочный вкус без лишнего. Простая классика, где главное — качество продукта. ✨',
+  'Удон сливочный':'🍜 Упругая лапша удон в нежном сливочном соусе — горячая, кремовая и очень уютная текстура. Мягкий насыщенный вкус, который хочется доесть до последней вилки. 🤍'
+};
+const shef51OldDescriptions={
+  'Филадельфия':'Нежный лосось, обволакивающий ролл снаружи, сливочный сыр с мягким кремовым вкусом и свежий хрустящий огурец внутри — классическое сочетание, где каждый кусочек получается сочным и сбалансированным.',
+  'Филадельфия Премиум':'Щедрый слой нежного лосося снаружи, внутри — ещё больше сочного лосося, мягкий сливочный сыр, свежий хрустящий огурец, рис и нори.',
+  'Филадельфия Тигровая':'Нежная тигровая креветка сверху, кремовый сливочный сыр и свежий хрустящий огурец внутри.',
+  'Филадельфия Тигровая Премиум':'Тигровая креветка под пикантным сладко-острым соусом, сочный лосось внутри, нежный сливочный сыр и свежий хрустящий огурец.',
+  'Суши лосось':'рис, лосось',
+  'Удон сливочный':'лапша удон, сливочный соус'
+};
 const defaultShef51Menu=()=>[
-  {id:'philadelphia',category:'rolls',name:'Филадельфия',description:'Нежный лосось, обволакивающий ролл снаружи, сливочный сыр с мягким кремовым вкусом и свежий хрустящий огурец внутри — классическое сочетание, где каждый кусочек получается сочным и сбалансированным.',portion:'Порция — 8 шт.',visible:true,order:10,imageUrl:''},
-  {id:'philadelphia-premium',category:'rolls',name:'Филадельфия Премиум',description:'Щедрый слой нежного лосося снаружи, внутри — ещё больше сочного лосося, мягкий сливочный сыр, свежий хрустящий огурец, рис и нори.',portion:'Порция — 8 шт.',visible:true,order:20,imageUrl:''},
-  {id:'philadelphia-tiger',category:'rolls',name:'Филадельфия Тигровая',description:'Нежная тигровая креветка сверху, кремовый сливочный сыр и свежий хрустящий огурец внутри.',portion:'Порция — 8 шт.',visible:true,order:30,imageUrl:''},
-  {id:'philadelphia-tiger-premium',category:'rolls',name:'Филадельфия Тигровая Премиум',description:'Тигровая креветка под пикантным сладко-острым соусом, сочный лосось внутри, нежный сливочный сыр и свежий хрустящий огурец.',portion:'Порция — 8 шт.',visible:true,order:40,imageUrl:''},
-  {id:'sushi-salmon',category:'sushi',name:'Суши лосось',description:'рис, лосось',portion:'Порция — 8 шт.',visible:true,order:50,imageUrl:''},
-  {id:'udon-cream',category:'wok',name:'Удон сливочный',description:'лапша удон, сливочный соус',portion:'Порция — 8 шт.',visible:true,order:60,imageUrl:''}
+  {id:'philadelphia',category:'rolls',name:'Филадельфия',description:shef51Descriptions['Филадельфия'],portion:'Порция — 8 шт.',visible:true,order:10,imageUrl:''},
+  {id:'philadelphia-premium',category:'rolls',name:'Филадельфия Премиум',description:shef51Descriptions['Филадельфия Премиум'],portion:'Порция — 8 шт.',visible:true,order:20,imageUrl:''},
+  {id:'philadelphia-tiger',category:'rolls',name:'Филадельфия Тигровая',description:shef51Descriptions['Филадельфия Тигровая'],portion:'Порция — 8 шт.',visible:true,order:30,imageUrl:''},
+  {id:'philadelphia-tiger-premium',category:'rolls',name:'Филадельфия Тигровая Премиум',description:shef51Descriptions['Филадельфия Тигровая Премиум'],portion:'Порция — 8 шт.',visible:true,order:40,imageUrl:''},
+  {id:'sushi-salmon',category:'sushi',name:'Суши лосось',description:shef51Descriptions['Суши лосось'],portion:'Порция — 8 шт.',visible:true,order:50,imageUrl:''},
+  {id:'udon-cream',category:'wok',name:'Удон сливочный',description:shef51Descriptions['Удон сливочный'],portion:'Порция — 8 шт.',visible:true,order:60,imageUrl:''}
 ];
 
 function shef51Cors(req,res){
@@ -361,7 +377,21 @@ async function getShef51Menu(){
   if(!yandexToken())return defaultShef51Menu();
   try{
     const stored=await readYandexJson(SHEF51_MENU_PATH);
-    return Array.isArray(stored?.items)?stored.items:defaultShef51Menu();
+    if(!Array.isArray(stored?.items))return defaultShef51Menu();
+    let changed=false;
+    const items=stored.items.map(x=>{
+      const old=shef51OldDescriptions[x?.name];
+      const fresh=shef51Descriptions[x?.name];
+      if(fresh && (!x.description || x.description===old)){
+        changed=true;
+        return {...x,description:fresh};
+      }
+      return x;
+    });
+    if(changed){
+      writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({items},null,2),'application/json').catch(err=>console.error('SHEF51 description migration',err));
+    }
+    return items;
   }catch(err){
     console.error('SHEF51 menu read',err);
     return defaultShef51Menu();
