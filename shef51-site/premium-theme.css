@@ -1110,3 +1110,95 @@ header{
   .heroContacts .luxPill:last-child{grid-column:auto!important}
   .heroArt{height:270px!important;min-height:270px!important}
 }
+
+
+/* HOTFIX V6 — stable desktop/mobile hero after aurora */
+@media (min-width:769px){
+  .hero{
+    min-height:calc(100vh - 78px)!important;
+    padding:28px 0 42px!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  .heroShell{
+    position:relative!important;
+    min-height:720px!important;
+    overflow:hidden!important;
+    border-radius:38px!important;
+  }
+  .heroArt{
+    position:absolute!important;
+    z-index:2!important;
+    inset:0 0 0 42%!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    min-height:0!important;
+    border-radius:0!important;
+  }
+  .heroArt img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center 18%!important;
+    border-radius:0!important;
+  }
+  .heroCopy{
+    position:relative!important;
+    z-index:6!important;
+    width:min(650px,52%)!important;
+    padding:74px 0 64px 5.8%!important;
+    margin:0!important;
+  }
+  .heroBadge{
+    position:absolute!important;
+    z-index:7!important;
+    right:28px!important;
+    bottom:24px!important;
+    top:auto!important;
+    left:auto!important;
+  }
+  .heroShell:after{
+    z-index:3!important;
+  }
+  .heroPhilosophy{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    max-width:760px!important;
+  }
+  .heroContacts{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    max-width:760px!important;
+  }
+  .heroPhilosophy .luxPill{
+    min-height:105px!important;
+  }
+  .heroContacts .luxPill{
+    min-height:58px!important;
+  }
+}
+@media (max-width:768px){
+  .heroShell{
+    min-height:0!important;
+  }
+  .heroArt{
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    height:290px!important;
+    min-height:290px!important;
+    margin:0!important;
+  }
+  .heroCopy{
+    position:relative!important;
+    width:100%!important;
+    margin:0!important;
+    padding:22px 18px 24px!important;
+  }
+  .heroBadge{
+    position:absolute!important;
+    right:14px!important;
+    top:14px!important;
+    bottom:auto!important;
+  }
+}
