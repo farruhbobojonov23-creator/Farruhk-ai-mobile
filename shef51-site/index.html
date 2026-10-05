@@ -100,45 +100,73 @@ header{position:sticky;top:0;z-index:50;background:#050505e8;border-bottom:1px s
   margin-top:38px;
   max-width:610px;
 }
-.heroContacts{
+.heroPhilosophy,.heroContacts{
   display:flex;
   flex-wrap:wrap;
-  gap:9px;
-  margin-top:18px;
-  max-width:680px;
+  gap:10px;
+  max-width:720px;
 }
-.heroContacts a,.heroContacts span{
+.heroPhilosophy{margin-top:20px}
+.heroContacts{margin-top:12px}
+.luxPill{
+  position:relative;
   display:inline-flex;
   align-items:center;
-  gap:8px;
-  padding:10px 13px;
-  border:1px solid #2b2b2b;
+  gap:10px;
+  min-height:42px;
+  padding:7px 14px 7px 8px;
+  border:1px solid rgba(213,170,98,.24);
   border-radius:999px;
-  background:rgba(10,10,10,.66);
-  color:#e7e7e7;
+  background:
+    radial-gradient(circle at 18% 0%,rgba(213,170,98,.10),transparent 38%),
+    linear-gradient(180deg,rgba(18,18,18,.82),rgba(7,7,7,.72));
+  color:#ece7de;
   font-size:12px;
-  font-weight:800;
-  backdrop-filter:blur(12px)
+  font-weight:850;
+  letter-spacing:.01em;
+  backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 8px 26px rgba(0,0,0,.18);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
 }
-.heroContacts a:hover{border-color:#5a3a3d}
-.heroPhilosophy{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:18px;
-  max-width:680px;
+a.luxPill{text-decoration:none}
+.luxPill:hover{
+  transform:translateY(-2px);
+  border-color:rgba(239,38,52,.46);
+  background:
+    radial-gradient(circle at 18% 0%,rgba(239,38,52,.13),transparent 40%),
+    linear-gradient(180deg,rgba(20,17,17,.9),rgba(8,8,8,.76));
+  box-shadow:0 10px 30px rgba(0,0,0,.24),0 0 0 1px rgba(239,38,52,.06) inset;
 }
-.heroPhilosophy span{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:9px 12px;
-  border-radius:14px;
-  border:1px solid #302821;
-  background:linear-gradient(180deg,rgba(24,20,16,.68),rgba(12,11,10,.62));
-  color:#e9d9bf;
-  font-size:12px;
-  font-weight:800
+.luxIcon{
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#d8b77d;
+  border:1px solid rgba(216,183,125,.28);
+  background:linear-gradient(180deg,rgba(216,183,125,.10),rgba(92,62,35,.06));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055);
+}
+.luxIcon svg{width:15px;height:15px;display:block;stroke:currentColor}
+.heroContacts .luxPill:hover .luxIcon{
+  color:#fff;
+  border-color:rgba(239,38,52,.38);
+  background:linear-gradient(180deg,rgba(239,38,52,.26),rgba(105,12,19,.18));
+}
+.heroPhilosophy .luxPill{
+  color:#e8d7b9;
+  border-color:rgba(216,183,125,.20);
+}
+.heroPhilosophy .luxIcon{color:#e1c48f}
+.heroContacts .luxPill:last-child{
+  max-width:100%;
+}
+@media(max-width:620px){
+  .heroPhilosophy,.heroContacts{gap:8px}
+  .luxPill{min-height:39px;padding:6px 11px 6px 7px;font-size:11px}
+  .luxIcon{width:26px;height:26px;flex-basis:26px}
 }
 .heroMeta .meta{
   position:relative;
@@ -312,18 +340,18 @@ footer{border-top:1px solid #1c1c1c;padding:36px 0;color:#8d8d8d}.foot{display:f
         <div class="meta"><b>Мурманск</b><span>частные события и выездной формат</span></div>
       </div>
       <div class="heroPhilosophy">
-        <span>🥬 Свежие продукты</span>
-        <span>🍣 Чистый вкус продукта</span>
-        <span>✨ Умами и баланс</span>
-        <span>🔥 Текстуры и температура</span>
-        <span>🎌 Японская точность</span>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4c-7.5 0-13 3.8-13 9.2 0 3.1 2.3 5.3 5.5 5.3C18 18.5 20 12 20 4Z"/><path d="M5 20c2.6-4.8 6.3-8.1 11.2-10.3"/></svg></span><span>Свежие продукты</span></span>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><path d="M8.5 12h7M10 9.5c1.2-.8 2.8-.8 4 0M10 14.5c1.2.8 2.8.8 4 0"/></svg></span><span>Чистый вкус продукта</span></span>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"/><path d="M18.5 16.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg></span><span>Умами и баланс</span></span>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v10.3a4 4 0 1 0 4 0V4a2 2 0 1 0-4 0Z"/><path d="M10 9v7"/></svg></span><span>Текстуры и температура</span></span>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span>Японская точность</span></span>
       </div>
       <div class="heroContacts">
-        <a href="tel:+79661232992">📞 +7 966 123-29-92</a>
-        <a href="https://t.me/+79661232992" target="_blank" rel="noopener">✈️ Telegram</a>
-        <a href="https://wa.me/79661232992" target="_blank" rel="noopener">💬 WhatsApp</a>
-        <span>🔵 MAX</span>
-        <a href="mailto:Farruh.bobojonov23@gmail.com">✉️ Farruh.bobojonov23@gmail.com</a>
+        <a class="luxPill" href="tel:+79661232992"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.7 3.5 9.2 8l-1.8 1.7c1 2.3 2.8 4.1 5.1 5.1l1.7-1.8 4.5 2.5-.8 4c-.2.8-.9 1.4-1.8 1.4C9 20.9 3.1 15 3.1 7.9c0-.9.6-1.6 1.4-1.8l2.2-.6Z"/></svg></span><span>+7 966 123-29-92</span></a>
+        <a class="luxPill" href="https://t.me/+79661232992" target="_blank" rel="noopener"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 3.8 10.3c-.9.4-.9 1.7.1 2l4.4 1.4 1.4 4.4c.3 1 1.6 1 2 .1L21 3Z"/><path d="m8.3 13.7 7.2-6.1"/></svg></span><span>Telegram</span></a>
+        <a class="luxPill" href="https://wa.me/79661232992" target="_blank" rel="noopener"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M9 9.5c.7 1.9 2.1 3.3 4 4"/></svg></span><span>WhatsApp</span></a>
+        <span class="luxPill"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17V7l7 7 7-7v10"/><path d="M5 7h3l4 4 4-4h3"/></svg></span><span>MAX</span></span>
+        <a class="luxPill" href="mailto:Farruh.bobojonov23@gmail.com"><span class="luxIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></span><span>Farruh.bobojonov23@gmail.com</span></a>
       </div>
     </div>
     <div class="heroBadge">✦ Private Chef · Murmansk</div>
