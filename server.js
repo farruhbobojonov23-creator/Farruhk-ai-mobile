@@ -435,9 +435,21 @@ app.get('/api/shef51/image/:id',async(req,res)=>{
   if(!/^[a-z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(id))return res.sendStatus(400);
   try{
     const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
+    const r=await fetch(d.href,{signal:AbortSignal.timeout(20000),redirect:'follow'});
+    if(!r.ok)throw new Error('Image download HTTP '+r.status);
+    const buf=Buffer.from(await r.arrayBuffer());
+    const type=r.headers.get('content-type')||(
+      /\.png$/i.test(id)?'image/png':
+      /\.webp$/i.test(id)?'image/webp':'image/jpeg'
+    );
+    res.setHeader('Content-Type',type);
+    res.setHeader('Content-Length',String(buf.length));
     res.setHeader('Cache-Control','public, max-age=300');
-    res.redirect(302,d.href);
-  }catch(err){res.sendStatus(404);}
+    res.send(buf);
+  }catch(err){
+    console.error('SHEF51 image proxy error',id,err?.message||err);
+    res.sendStatus(404);
+  }
 });
 
 // ---- SHEF51 Telegram booking ----
