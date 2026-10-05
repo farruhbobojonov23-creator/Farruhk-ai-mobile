@@ -56,15 +56,24 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 }
 </style></head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
-<style>.services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:30px}.svc{background:linear-gradient(180deg,#111,#090909);border:1px solid #242424;border-radius:26px;padding:28px;min-height:190px;transition:.2s}.svc:hover{transform:translateY(-4px);border-color:#5b2024}.svc .num{color:#ef2634;font-weight:900}.svc h3{font:700 28px Georgia,serif;margin:24px 0 10px}@media(max-width:850px){.services{grid-template-columns:1fr 1fr}}@media(max-width:560px){.services{grid-template-columns:1fr}}</style>
-<section class="wrap pageHead"><div class="eyebrow">УСЛУГИ</div><h1>Выберите формат</h1><p class="lead">Каждая услуга ведёт сразу к форме бронирования, где можно выбрать дату и оставить детали события.</p>
+<style>
+.services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:30px}
+.svc{background:linear-gradient(180deg,#111,#090909);border:1px solid #242424;border-radius:26px;padding:28px;min-height:285px;transition:.2s;display:flex;flex-direction:column}
+.svc:hover{transform:translateY(-4px);border-color:#5b2024}.svc .num{color:#ef2634;font-weight:900}.svc .emoji{font-size:26px;margin-top:18px}
+.svc h3{font:700 28px Georgia,serif;margin:12px 0 12px}.svc .muted{font-size:16px;line-height:1.65}.svc .more{margin-top:auto;padding-top:18px;color:#fff;font-weight:800;font-size:14px}
+.serviceBadges{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 30px}.serviceBadge{padding:10px 14px;border:1px solid #2b2b2b;border-radius:999px;background:#101010;color:#ddd;font-size:14px;font-weight:700}
+@media(max-width:850px){.services{grid-template-columns:1fr 1fr}}@media(max-width:560px){.services{grid-template-columns:1fr}.svc{min-height:auto}}
+</style>
+<section class="wrap pageHead"><div class="eyebrow">УСЛУГИ</div><h1>Форматы событий</h1>
+<p class="lead">Выберите подходящий формат события. Для каждого заказа меню, подача и организация подбираются индивидуально — с учётом количества гостей, площадки, бюджета и ваших пожеланий.</p>
+<div class="serviceBadges"><span class="serviceBadge">👨‍🍳 Персональный подход</span><span class="serviceBadge">🍣 Японская кухня</span><span class="serviceBadge">📋 Индивидуальное меню</span><span class="serviceBadge">✨ Ресторанная подача</span><span class="serviceBadge">📍 Мурманск</span></div>
 <div class="services">
-<a class="svc" href="book.html?service=Ужин%20на%20дому"><div class="num">01</div><h3>Ужин на дому</h3><div class="muted">Персональный ужин у вас дома.</div></a>
-<a class="svc" href="book.html?service=День%20рождения"><div class="num">02</div><h3>День рождения</h3><div class="muted">Меню и подача под формат праздника.</div></a>
-<a class="svc" href="book.html?service=Свадьба"><div class="num">03</div><h3>Свадьба</h3><div class="muted">Гастрономическая часть события под ключ.</div></a>
-<a class="svc" href="book.html?service=Вечеринка"><div class="num">04</div><h3>Вечеринка</h3><div class="muted">Яркий формат для компании друзей.</div></a>
-<a class="svc" href="book.html?service=Корпоратив"><div class="num">05</div><h3>Корпоратив</h3><div class="muted">Меню для команды и деловых событий.</div></a>
-<a class="svc" href="book.html?service=Индивидуальный%20формат"><div class="num">06</div><h3>Индивидуальный формат</h3><div class="muted">Соберём формат полностью под ваш запрос.</div></a>
+<a class="svc" href="book.html?service=Ужин%20на%20дому"><div class="num">01</div><div class="emoji">🍽️</div><h3>Ужин на дому</h3><div class="muted">Персональный гастрономический вечер у вас дома. Меню, приготовление на месте и подача выстраиваются под ваш формат, количество гостей и пожелания.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" href="book.html?service=День%20рождения"><div class="num">02</div><div class="emoji">🎂</div><h3>День рождения</h3><div class="muted">Меню и подача под атмосферу праздника — от камерного семейного вечера до полноценного праздничного стола с ресторанной подачей.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" href="book.html?service=Свадьба"><div class="num">03</div><div class="emoji">💍</div><h3>Свадьба</h3><div class="muted">Гастрономическая часть события под ключ: индивидуальное меню, тайминг подачи и организация кухни с учётом площадки и количества гостей.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" href="book.html?service=Вечеринка"><div class="num">04</div><div class="emoji">🎉</div><h3>Вечеринка</h3><div class="muted">Яркий формат для компании друзей: роллы, горячие блюда, закуски и эффектная подача, чтобы гости могли пробовать разные позиции в течение вечера.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" href="book.html?service=Корпоратив"><div class="num">05</div><div class="emoji">🏢</div><h3>Корпоратив</h3><div class="muted">Продуманное меню для команды и деловых событий. Учитываю формат мероприятия, количество гостей, скорость подачи и удобство сервиса.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" href="book.html?service=Индивидуальный%20формат"><div class="num">06</div><div class="emoji">✨</div><h3>Индивидуальный формат</h3><div class="muted">Если у вас необычная идея — соберём решение полностью под ваш запрос: меню, подачу, количество блюд, стиль события и дополнительные пожелания.</div><div class="more">Обсудить формат →</div></a>
 </div></section></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer><script src="cms.js?v=1"></script><script id="mobile-nav-script">
 document.addEventListener('click',function(e){
   const b=e.target.closest('.menuToggle');
