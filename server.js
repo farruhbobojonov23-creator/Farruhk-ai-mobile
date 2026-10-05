@@ -267,6 +267,54 @@ const shef51AdminSecret=()=>String(process.env.SHEF51_ADMIN_SECRET||'').trim();
 const SHEF51_BASE='/FARRUKH_AI_STORAGE/SHEF51/';
 const SHEF51_MENU_PATH=SHEF51_BASE+'menu.json';
 const SHEF51_PHOTOS_PATH=SHEF51_BASE+'Photos/';
+const SHEF51_DRAFT_PATH=SHEF51_BASE+'site-draft.json';
+const SHEF51_PUBLISHED_PATH=SHEF51_BASE+'site-published.json';
+const SHEF51_BACKUPS_PATH=SHEF51_BASE+'Backups/';
+
+const defaultShef51Config=()=>({
+  general:{
+    siteName:'SHEF51',
+    brandLine:'FARRUKH AKA',
+    whatsapp:'+7 966 123-29-92',
+    telegram:'',
+    footerText:'SHEF51 · FARRUKH AKA'
+  },
+  navigation:{
+    home:'Главная',products:'Товары',services:'Услуги',about:'Обо мне',book:'Забронировать'
+  },
+  home:{
+    eyebrow:'PRIVATE CHEF · JAPANESE & ITALIAN CUISINE',
+    title:'Ресторанный вечер у вас дома',
+    lead:'Персональный шеф для ужинов, дней рождения, свадеб, вечеринок и особенных событий. Только один заказ в день — всё внимание вашему вечеру.',
+    primaryButton:'Выбрать дату',
+    secondaryButton:'Смотреть товары',
+    heroImage:''
+  },
+  pages:{
+    productsTitle:'Товары',
+    productsLead:'Выберите категорию. Актуальное меню и фотографии обновляются владельцем сайта.',
+    servicesTitle:'Услуги',
+    aboutTitle:'Обо мне',
+    bookingTitle:'Забронировать'
+  },
+  design:{
+    background:'#050505',
+    surface:'#0b0b0b',
+    text:'#ffffff',
+    muted:'#9b9b9b',
+    accent:'#ef2634',
+    border:'#242424',
+    radius:24,
+    fontScale:100
+  },
+  sections:{
+    products:true,services:true,booking:true
+  },
+  seo:{
+    title:'SHEF51 — Фаррух Ака',
+    description:'Персональный шеф японской кухни. Частные ужины, мероприятия и профессиональные услуги.'
+  }
+});
 
 const defaultShef51Menu=()=>[
   {id:'philadelphia',category:'rolls',name:'Филадельфия',description:'Нежный лосось, обволакивающий ролл снаружи, сливочный сыр с мягким кремовым вкусом и свежий хрустящий огурец внутри — классическое сочетание, где каждый кусочек получается сочным и сбалансированным.',portion:'Порция — 8 шт.',visible:true,order:10,imageUrl:''},
@@ -395,6 +443,97 @@ app.post('/api/shef51/admin/logout',(req,res)=>{
 app.get('/api/shef51/admin/session',(req,res)=>{
   res.json({ok:Boolean(verifySession(cookieValue(req,'shef51_admin')))});
 });
+
+async function getShef51Config(kind='draft'){
+  const path=kind==='published'?SHEF51_PUBLISHED_PATH:SHEF51_DRAFT_PATH;
+  if(!yandexToken())return defaultShef51Config();
+  try{
+    const stored=await readYandexJson(path);
+    return stored&&typeof stored==='object'?stored:defaultShef51Config();
+  }catch(err){
+    console.error('SHEF51 config read',kind,err);
+    return defaultShef51Config();
+  }
+}
+function mergeShef51Config(raw={}){
+  const d=defaultShef51Config();
+  const safe=(obj,key,max=300)=>cleanText(obj?.[key],max)||d?.[key];
+  const cfg={
+    general:{...d.general,...(raw.general||{})},
+    navigation:{...d.navigation,...(raw.navigation||{})},
+    home:{...d.home,...(raw.home||{})},
+    pages:{...d.pages,...(raw.pages||{})},
+    design:{...d.design,...(raw.design||{})},
+    sections:{...d.sections,...(raw.sections||{})},
+    seo:{...d.seo,...(raw.seo||{})}
+  };
+  for(const k of Object.keys(cfg.general))cfg.general[k]=cleanText(cfg.general[k],300);
+  for(const k of Object.keys(cfg.navigation))cfg.navigation[k]=cleanText(cfg.navigation[k],80);
+  for(const k of Object.keys(cfg.home))cfg.home[k]=cleanText(cfg.home[k],1200);
+  for(const k of Object.keys(cfg.pages))cfg.pages[k]=cleanText(cfg.pages[k],700);
+  cfg.design.background=/^#[0-9a-f]{6}$/i.test(cfg.design.background)?cfg.design.background:d.design.background;
+  cfg.design.surface=/^#[0-9a-f]{6}$/i.test(cfg.design.surface)?cfg.design.surface:d.design.surface;
+  cfg.design.text=/^#[0-9a-f]{6}$/i.test(cfg.design.text)?cfg.design.text:d.design.text;
+  cfg.design.muted=/^#[0-9a-f]{6}$/i.test(cfg.design.muted)?cfg.design.muted:d.design.muted;
+  cfg.design.accent=/^#[0-9a-f]{6}$/i.test(cfg.design.accent)?cfg.design.accent:d.design.accent;
+  cfg.design.border=/^#[0-9a-f]{6}$/i.test(cfg.design.border)?cfg.design.border:d.design.border;
+  cfg.design.radius=Math.max(0,Math.min(60,Number(cfg.design.radius)||d.design.radius));
+  cfg.design.fontScale=Math.max(80,Math.min(130,Number(cfg.design.fontScale)||d.design.fontScale));
+  for(const k of Object.keys(cfg.sections))cfg.sections[k]=cfg.sections[k]!==false;
+  cfg.seo.title=cleanText(cfg.seo.title,180);
+  cfg.seo.description=cleanText(cfg.seo.description,320);
+  return cfg;
+}
+
+app.get('/api/shef51/admin/site-config',requireShef51Admin,async(req,res)=>{
+  res.json({ok:true,config:await getShef51Config('draft')});
+});
+app.put('/api/shef51/admin/site-config',requireShef51Admin,async(req,res)=>{
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён.'});
+  try{
+    const config=mergeShef51Config(req.body?.config||{});
+    await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(config,null,2),'application/json');
+    res.json({ok:true,config});
+  }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось сохранить черновик: '+err.message});}
+});
+app.post('/api/shef51/admin/publish',requireShef51Admin,async(req,res)=>{
+  if(!yandexToken())return res.status(503).json({ok:false,error:'Яндекс Диск не подключён.'});
+  try{
+    const config=mergeShef51Config(await getShef51Config('draft'));
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+    await ensureFolder(SHEF51_BACKUPS_PATH);
+    const current=await readYandexJson(SHEF51_PUBLISHED_PATH);
+    if(current)await writeYandexFile(SHEF51_BACKUPS_PATH+'site-'+stamp+'.json',JSON.stringify(current,null,2),'application/json');
+    await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(config,null,2),'application/json');
+    res.json({ok:true,publishedAt:new Date().toISOString(),config});
+  }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось опубликовать: '+err.message});}
+});
+app.get('/api/shef51/admin/history',requireShef51Admin,async(req,res)=>{
+  try{
+    await ensureFolder(SHEF51_BACKUPS_PATH);
+    const q=encodeURIComponent(SHEF51_BACKUPS_PATH);
+    const data=await yandexRequest('/resources?path='+q+'&limit=50&sort=-modified',{method:'GET'});
+    const items=(data?._embedded?.items||[]).filter(x=>x.type==='file'&&/^site-.*\.json$/i.test(x.name)).map(x=>({name:x.name,modified:x.modified||null,size:x.size||0}));
+    res.json({ok:true,items});
+  }catch(err){res.status(502).json({ok:false,error:err.message});}
+});
+app.post('/api/shef51/admin/restore',requireShef51Admin,async(req,res)=>{
+  const name=String(req.body?.name||'');
+  if(!/^site-[a-z0-9T-]+\.json$/i.test(name))return res.status(400).json({ok:false,error:'Неверная версия'});
+  try{
+    const cfg=await readYandexJson(SHEF51_BACKUPS_PATH+name);
+    if(!cfg)return res.status(404).json({ok:false,error:'Версия не найдена'});
+    const config=mergeShef51Config(cfg);
+    await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(config,null,2),'application/json');
+    res.json({ok:true,config});
+  }catch(err){res.status(502).json({ok:false,error:err.message});}
+});
+app.options('/api/shef51/site-config',(req,res)=>{shef51Cors(req,res);res.sendStatus(204);});
+app.get('/api/shef51/site-config',async(req,res)=>{
+  shef51Cors(req,res);
+  res.json({ok:true,config:await getShef51Config('published')});
+});
+
 app.get('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
   res.json({ok:true,items:await getShef51Menu(),storage:yandexToken()?'yandex':'fallback'});
 });
