@@ -175,7 +175,7 @@ async function completeFrontpadAuth(){
 
 let frontpadReports=null;
 function reportsPage(){
- return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Отчёты Frontpad</h2><p class="muted">Самый надёжный способ: скачай отчёт из Frontpad и загрузи файл сюда.</p></div><label class="primary" style="display:inline-flex;align-items:center;cursor:pointer">Загрузить выгрузку<input id="frontpadExportInput" type="file" accept=".xlsx,.csv" hidden></label></div><div class="notice"><b>Поддерживается Excel (.xlsx) и CSV</b><br>FARRUKH AI сам прочитает листы, найдёт таблицы и покажет распознанные показатели. Никакая капча для этого не нужна.</div><div id="frontpadReports" style="margin-top:16px"><div class="empty"><strong>Загрузи выгрузку Frontpad</strong>После выбора файла данные появятся здесь.</div></div>';
+ return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Отчёты Frontpad</h2><p class="muted">Самый надёжный способ: скачай отчёт из Frontpad и загрузи файл сюда.</p></div><label class="primary" style="display:inline-flex;align-items:center;cursor:pointer">Загрузить выгрузку<input id="frontpadExportInput" type="file" accept=".xls,.xlsx,.csv" hidden></label></div><div class="notice"><b>Поддерживаются Excel (.xls, .xlsx) и CSV</b><br>FARRUKH AI сам прочитает листы, найдёт таблицы и покажет распознанные показатели. Никакая капча для этого не нужна.</div><div id="frontpadReports" style="margin-top:16px"><div class="empty"><strong>Загрузи выгрузку Frontpad</strong>После выбора файла данные появятся здесь.</div></div>';
 }
 function reportTable(rows){
  if(!Array.isArray(rows)||!rows.length)return '';
