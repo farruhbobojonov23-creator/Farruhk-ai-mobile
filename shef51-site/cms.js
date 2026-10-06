@@ -9,7 +9,7 @@ fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Pr
  const css=document.createElement('style');
  css.textContent=`
  :root{--cms-bg:${d.background||'#050505'};--cms-surface:${d.surface||'#0b0b0b'};--cms-text:${d.text||'#fff'};--cms-muted:${d.muted||'#9b9b9b'};--cms-accent:${d.accent||'#ef2634'};--cms-border:${d.border||'#242424'};--cms-radius:${Number(d.radius)||24}px}
- html{font-size:${Number(d.fontScale)||100}%}
+${Number(d.fontScale)&&Number(d.fontScale)!==100?` html{font-size:${Number(d.fontScale)}%}`:''}
  body{background:var(--cms-bg)!important;color:var(--cms-text)!important}
  header{background:color-mix(in srgb,var(--cms-bg) 92%,transparent)!important;border-color:var(--cms-border)!important}
  .brand b,.eyebrow,.svc .num{color:var(--cms-accent)!important}
