@@ -91,17 +91,41 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 .svc h3{font:700 28px Georgia,serif;margin:12px 0 12px}.svc .muted{font-size:16px;line-height:1.65}.svc .more{margin-top:auto;padding-top:18px;color:#fff;font-weight:800;font-size:14px}
 .serviceBadges{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 30px}.serviceBadge{padding:10px 14px;border:1px solid #2b2b2b;border-radius:999px;background:#101010;color:#ddd;font-size:14px;font-weight:700}
 @media(max-width:850px){.services{grid-template-columns:1fr 1fr}}@media(max-width:560px){.services{grid-template-columns:1fr}.svc{min-height:auto}}
+
+/* animated service titles — same language as About */
+.svc h3{min-height:1.2em}
+.serviceTyped{display:inline-block;position:relative;white-space:nowrap;color:#f5eee1}
+.serviceTyped.isTyping{color:#ef2634}
+.serviceTyped.isTyping:after{
+  content:"";
+  display:inline-block;
+  width:1px;
+  height:.95em;
+  margin-left:4px;
+  vertical-align:-.08em;
+  background:#ef2634;
+  animation:svcBlink .8s steps(1) infinite;
+}
+@keyframes svcBlink{50%{opacity:0}}
+.svc .muted,.svc .more{transition:opacity .45s ease,transform .45s ease}
+.svc.svcTyping .muted,.svc.svcTyping .more{opacity:.28;transform:translateY(3px)}
+.svc.svcTypedDone .muted,.svc.svcTypedDone .more{opacity:1;transform:none}
+@media(max-width:560px){.serviceTyped{white-space:normal}}
+@media(prefers-reduced-motion:reduce){
+  .serviceTyped:after{display:none!important}
+  .svc .muted,.svc .more{transition:none}
+}
 </style>
 <section class="wrap pageHead"><div class="eyebrow">УСЛУГИ</div><h1>Форматы событий</h1><div class="pageKinetic">Ваш формат — <span class="pageTyped" data-words="частный ужин|день рождения|свадьба|вечеринка|корпоратив|индивидуальное событие"></span></div>
 <p class="lead">Выберите подходящий формат события. Для каждого заказа меню, подача и организация подбираются индивидуально — с учётом количества гостей, площадки, бюджета и ваших пожеланий.</p>
 <div class="serviceBadges" data-motion><span class="serviceBadge">👨‍🍳 Персональный подход</span><span class="serviceBadge">🍣 Японская кухня</span><span class="serviceBadge">📋 Индивидуальное меню</span><span class="serviceBadge">✨ Ресторанная подача</span><span class="serviceBadge">📍 Мурманск</span></div>
 <div class="services">
-<a class="svc" data-motion href="book.html?service=Ужин%20на%20дому"><div class="num">01</div><div class="emoji">🍽️</div><h3>Ужин на дому</h3><div class="muted">Персональный гастрономический вечер у вас дома. Меню, приготовление на месте и подача выстраиваются под ваш формат, количество гостей и пожелания.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=День%20рождения"><div class="num">02</div><div class="emoji">🎂</div><h3>День рождения</h3><div class="muted">Меню и подача под атмосферу праздника — от камерного семейного вечера до полноценного праздничного стола с ресторанной подачей.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Свадьба"><div class="num">03</div><div class="emoji">💍</div><h3>Свадьба</h3><div class="muted">Гастрономическая часть события под ключ: индивидуальное меню, тайминг подачи и организация кухни с учётом площадки и количества гостей.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Вечеринка"><div class="num">04</div><div class="emoji">🎉</div><h3>Вечеринка</h3><div class="muted">Яркий формат для компании друзей: роллы, горячие блюда, закуски и эффектная подача, чтобы гости могли пробовать разные позиции в течение вечера.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Корпоратив"><div class="num">05</div><div class="emoji">🏢</div><h3>Корпоратив</h3><div class="muted">Продуманное меню для команды и деловых событий. Учитываю формат мероприятия, количество гостей, скорость подачи и удобство сервиса.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Индивидуальный%20формат"><div class="num">06</div><div class="emoji">✨</div><h3>Индивидуальный формат</h3><div class="muted">Если у вас необычная идея — соберём решение полностью под ваш запрос: меню, подачу, количество блюд, стиль события и дополнительные пожелания.</div><div class="more">Обсудить формат →</div></a>
+<a class="svc" data-motion href="book.html?service=Ужин%20на%20дому"><div class="num">01</div><div class="emoji">🍽️</div><h3><span class="serviceTyped" data-text="Ужин на дому">Ужин на дому</span></h3><div class="muted">Персональный гастрономический вечер у вас дома. Меню, приготовление на месте и подача выстраиваются под ваш формат, количество гостей и пожелания.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" data-motion href="book.html?service=День%20рождения"><div class="num">02</div><div class="emoji">🎂</div><h3><span class="serviceTyped" data-text="День рождения">День рождения</span></h3><div class="muted">Меню и подача под атмосферу праздника — от камерного семейного вечера до полноценного праздничного стола с ресторанной подачей.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" data-motion href="book.html?service=Свадьба"><div class="num">03</div><div class="emoji">💍</div><h3><span class="serviceTyped" data-text="Свадьба">Свадьба</span></h3><div class="muted">Гастрономическая часть события под ключ: индивидуальное меню, тайминг подачи и организация кухни с учётом площадки и количества гостей.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" data-motion href="book.html?service=Вечеринка"><div class="num">04</div><div class="emoji">🎉</div><h3><span class="serviceTyped" data-text="Вечеринка">Вечеринка</span></h3><div class="muted">Яркий формат для компании друзей: роллы, горячие блюда, закуски и эффектная подача, чтобы гости могли пробовать разные позиции в течение вечера.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" data-motion href="book.html?service=Корпоратив"><div class="num">05</div><div class="emoji">🏢</div><h3><span class="serviceTyped" data-text="Корпоратив">Корпоратив</span></h3><div class="muted">Продуманное меню для команды и деловых событий. Учитываю формат мероприятия, количество гостей, скорость подачи и удобство сервиса.</div><div class="more">Выбрать формат →</div></a>
+<a class="svc" data-motion href="book.html?service=Индивидуальный%20формат"><div class="num">06</div><div class="emoji">✨</div><h3><span class="serviceTyped" data-text="Индивидуальный формат">Индивидуальный формат</span></h3><div class="muted">Если у вас необычная идея — соберём решение полностью под ваш запрос: меню, подачу, количество блюд, стиль события и дополнительные пожелания.</div><div class="more">Обсудить формат →</div></a>
 </div></section></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer><script src="cms.js?v=1"></script><script id="mobile-nav-script">
 document.addEventListener('click',function(e){
   const b=e.target.closest('.menuToggle');
@@ -137,6 +161,56 @@ document.addEventListener('click',function(e){
     tick();
     window.addEventListener('pagehide',()=>clearTimeout(timer),{once:true});
   });
+})();
+</script>
+
+<script id="service-title-typing">
+(function(){
+  const grid=document.querySelector('.services');
+  const items=[...document.querySelectorAll('.svc .serviceTyped')];
+  if(!grid||!items.length)return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  let started=false;
+
+  function typeOne(el){
+    return new Promise(resolve=>{
+      const card=el.closest('.svc');
+      const full=el.dataset.text||el.textContent||'';
+      el.textContent='';
+      el.classList.add('isTyping');
+      if(card)card.classList.add('svcTyping');
+      let i=0;
+      function step(){
+        i++;
+        el.textContent=full.slice(0,i);
+        if(i<full.length){
+          setTimeout(step,58);
+        }else{
+          el.classList.remove('isTyping');
+          if(card){
+            card.classList.remove('svcTyping');
+            card.classList.add('svcTypedDone');
+          }
+          setTimeout(resolve,180);
+        }
+      }
+      step();
+    });
+  }
+
+  async function run(){
+    if(started)return;
+    started=true;
+    for(const el of items)await typeOne(el);
+  }
+
+  if(!('IntersectionObserver' in window)){run();return}
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){run();io.disconnect()}
+    });
+  },{threshold:.18});
+  io.observe(grid);
 })();
 </script>
 </body></html>
