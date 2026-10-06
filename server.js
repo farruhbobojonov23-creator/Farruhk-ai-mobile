@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
+import { Readable } from 'node:stream';
 
 const app = express();
 app.use(express.json({limit:'20mb'}));
@@ -636,6 +637,7 @@ app.post('/api/shef51/admin/restore',requireShef51Admin,async(req,res)=>{
 app.options('/api/shef51/site-config',(req,res)=>{shef51Cors(req,res);res.sendStatus(204);});
 app.get('/api/shef51/site-config',async(req,res)=>{
   shef51Cors(req,res);
+  res.setHeader('Cache-Control','public, max-age=30, stale-while-revalidate=300');
   res.json({ok:true,config:await getShef51Config('published')});
 });
 
@@ -671,6 +673,7 @@ app.post('/api/shef51/admin/upload',requireShef51Admin,async(req,res)=>{
 app.options('/api/shef51/menu',(req,res)=>{shef51Cors(req,res);res.sendStatus(204);});
 app.get('/api/shef51/menu',async(req,res)=>{
   shef51Cors(req,res);
+  res.setHeader('Cache-Control','public, max-age=60, stale-while-revalidate=600');
   const items=(await getShef51Menu()).filter(x=>x.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
   res.json({ok:true,items});
 });
@@ -681,18 +684,31 @@ app.get('/api/shef51/image/:id',async(req,res)=>{
     const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
     const r=await fetch(d.href,{signal:AbortSignal.timeout(20000),redirect:'follow'});
     if(!r.ok)throw new Error('Image download HTTP '+r.status);
-    const buf=Buffer.from(await r.arrayBuffer());
     const type=r.headers.get('content-type')||(
       /\.png$/i.test(id)?'image/png':
       /\.webp$/i.test(id)?'image/webp':'image/jpeg'
     );
     res.setHeader('Content-Type',type);
-    res.setHeader('Content-Length',String(buf.length));
-    res.setHeader('Cache-Control','public, max-age=300');
-    res.send(buf);
+    const len=r.headers.get('content-length');
+    if(len)res.setHeader('Content-Length',len);
+    // Image ids are unique on every upload, so the original can be cached for a year safely.
+    res.setHeader('Cache-Control','public, max-age=31536000, immutable');
+    res.setHeader('X-Content-Type-Options','nosniff');
+
+    // Stream the original bytes immediately instead of waiting for the whole file to
+    // download to Render first. Quality is unchanged and first paint starts sooner.
+    if(r.body){
+      Readable.fromWeb(r.body).on('error',err=>{
+        console.error('SHEF51 image stream error',id,err?.message||err);
+        if(!res.headersSent)res.sendStatus(502); else res.destroy(err);
+      }).pipe(res);
+    }else{
+      const buf=Buffer.from(await r.arrayBuffer());
+      res.send(buf);
+    }
   }catch(err){
     console.error('SHEF51 image proxy error',id,err?.message||err);
-    res.sendStatus(404);
+    if(!res.headersSent)res.sendStatus(404);
   }
 });
 
