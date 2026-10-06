@@ -387,11 +387,29 @@ async function writeYandexFile(path,body,contentType='application/octet-stream')
   const upload=await fetch(hrefData.href,{method:'PUT',headers:{'Content-Type':contentType},body});
   if(!upload.ok)throw new Error('Yandex upload HTTP '+upload.status);
 }
+const SHEF51_FAST_CACHE_MS=5*60*1000;
+let shef51MenuCache={value:null,at:0};
+const shef51ConfigCache=new Map();
+const shef51ImageCache=new Map();
+const SHEF51_IMAGE_CACHE_MAX=6;
+
+function shef51PutImageCache(id,buf,type){
+  if(!buf||!buf.length)return;
+  if(shef51ImageCache.has(id))shef51ImageCache.delete(id);
+  shef51ImageCache.set(id,{buf,type,at:Date.now()});
+  while(shef51ImageCache.size>SHEF51_IMAGE_CACHE_MAX){
+    const oldest=shef51ImageCache.keys().next().value;
+    shef51ImageCache.delete(oldest);
+  }
+}
+
 async function getShef51Menu(){
-  if(!yandexToken())return defaultShef51Menu();
+  const now=Date.now();
+  if(shef51MenuCache.value&&now-shef51MenuCache.at<SHEF51_FAST_CACHE_MS)return shef51MenuCache.value;
+  if(!yandexToken())return shef51MenuCache.value||defaultShef51Menu();
   try{
     const stored=await readYandexJson(SHEF51_MENU_PATH);
-    if(!Array.isArray(stored?.items))return defaultShef51Menu();
+    if(!Array.isArray(stored?.items))return shef51MenuCache.value||defaultShef51Menu();
     let changed=false;
     const items=stored.items.map(x=>{
       const old=shef51OldDescriptions[x?.name];
@@ -402,13 +420,14 @@ async function getShef51Menu(){
       }
       return x;
     });
+    shef51MenuCache={value:items,at:now};
     if(changed){
       writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({items},null,2),'application/json').catch(err=>console.error('SHEF51 description migration',err));
     }
     return items;
   }catch(err){
-    console.error('SHEF51 menu read',err);
-    return defaultShef51Menu();
+    console.error('SHEF51 menu read',err?.message||err);
+    return shef51MenuCache.value||defaultShef51Menu();
   }
 }
 function cleanText(v,max=500){return String(v??'').trim().slice(0,max);}
@@ -957,13 +976,18 @@ app.get('/api/shef51/admin/session',(req,res)=>{
 
 async function getShef51Config(kind='draft'){
   const path=kind==='published'?SHEF51_PUBLISHED_PATH:SHEF51_DRAFT_PATH;
-  if(!yandexToken())return defaultShef51Config();
+  const cached=shef51ConfigCache.get(kind);
+  const now=Date.now();
+  if(cached?.value&&now-cached.at<SHEF51_FAST_CACHE_MS)return cached.value;
+  if(!yandexToken())return cached?.value||defaultShef51Config();
   try{
     const stored=await readYandexJson(path);
-    return stored&&typeof stored==='object'?stored:defaultShef51Config();
+    const value=stored&&typeof stored==='object'?stored:(cached?.value||defaultShef51Config());
+    shef51ConfigCache.set(kind,{value,at:now});
+    return value;
   }catch(err){
-    console.error('SHEF51 config read',kind,err);
-    return defaultShef51Config();
+    console.error('SHEF51 config read',kind,err?.message||err);
+    return cached?.value||defaultShef51Config();
   }
 }
 function mergeShef51Config(raw={}){
@@ -1168,6 +1192,7 @@ app.put('/api/shef51/admin/site-config',requireShef51Admin,async(req,res)=>{
   try{
     const config=mergeShef51Config(req.body?.config||{});
     await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(config,null,2),'application/json');
+    shef51ConfigCache.set('draft',{value:config,at:Date.now()});
     res.json({ok:true,config});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось сохранить черновик: '+err.message});}
 });
@@ -1180,6 +1205,7 @@ app.post('/api/shef51/admin/publish',requireShef51Admin,async(req,res)=>{
     const current=await readYandexJson(SHEF51_PUBLISHED_PATH);
     if(current)await writeYandexFile(SHEF51_BACKUPS_PATH+'site-'+stamp+'.json',JSON.stringify(current,null,2),'application/json');
     await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(config,null,2),'application/json');
+    shef51ConfigCache.set('published',{value:config,at:Date.now()});
     res.json({ok:true,publishedAt:new Date().toISOString(),config});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось опубликовать: '+err.message});}
 });
@@ -1219,6 +1245,7 @@ app.put('/api/shef51/admin/menu',requireShef51Admin,async(req,res)=>{
   const items=raw.slice(0,200).map(cleanItem).sort((a,b)=>a.order-b.order);
   try{
     await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items},null,2),'application/json');
+    shef51MenuCache={value:items,at:Date.now()};
     res.json({ok:true,items});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось сохранить меню: '+err.message});}
 });
@@ -1235,6 +1262,7 @@ app.post('/api/shef51/admin/upload',requireShef51Admin,async(req,res)=>{
   const id=name+'-'+Date.now()+'.'+ext;
   try{
     await writeYandexFile(SHEF51_PHOTOS_PATH+id,buf,'image/'+subtype);
+    shef51PutImageCache(id,buf,'image/'+subtype);
     res.json({ok:true,imageId:id,imageUrl:'/api/shef51/image/'+encodeURIComponent(id)});
   }catch(err){console.error(err);res.status(502).json({ok:false,error:'Не удалось загрузить фото: '+err.message});}
 });
@@ -1249,32 +1277,38 @@ app.get('/api/shef51/menu',async(req,res)=>{
 app.get('/api/shef51/image/:id',async(req,res)=>{
   const id=String(req.params.id||'');
   if(!/^[a-z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(id))return res.sendStatus(400);
-  try{
-    const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
-    const r=await fetch(d.href,{signal:AbortSignal.timeout(20000),redirect:'follow'});
-    if(!r.ok)throw new Error('Image download HTTP '+r.status);
-    const type=r.headers.get('content-type')||(
-      /\.png$/i.test(id)?'image/png':
-      /\.webp$/i.test(id)?'image/webp':'image/jpeg'
-    );
-    res.setHeader('Content-Type',type);
-    const len=r.headers.get('content-length');
-    if(len)res.setHeader('Content-Length',len);
-    // Image ids are unique on every upload, so the original can be cached for a year safely.
+  const cached=shef51ImageCache.get(id);
+  if(cached?.buf){
+    res.setHeader('Content-Type',cached.type||'application/octet-stream');
+    res.setHeader('Content-Length',cached.buf.length);
     res.setHeader('Cache-Control','public, max-age=31536000, immutable');
     res.setHeader('X-Content-Type-Options','nosniff');
-
-    // Stream the original bytes immediately instead of waiting for the whole file to
-    // download to Render first. Quality is unchanged and first paint starts sooner.
-    if(r.body){
-      Readable.fromWeb(r.body).on('error',err=>{
-        console.error('SHEF51 image stream error',id,err?.message||err);
-        if(!res.headersSent)res.sendStatus(502); else res.destroy(err);
-      }).pipe(res);
-    }else{
-      const buf=Buffer.from(await r.arrayBuffer());
-      res.send(buf);
+    return res.send(cached.buf);
+  }
+  try{
+    let lastErr=null;
+    for(let attempt=0;attempt<2;attempt++){
+      try{
+        const d=await yandexDownloadLink(SHEF51_PHOTOS_PATH+id);
+        const r=await fetch(d.href,{signal:AbortSignal.timeout(12000),redirect:'follow'});
+        if(!r.ok)throw new Error('Image download HTTP '+r.status);
+        const type=r.headers.get('content-type')||(
+          /\.png$/i.test(id)?'image/png':
+          /\.webp$/i.test(id)?'image/webp':'image/jpeg'
+        );
+        const buf=Buffer.from(await r.arrayBuffer());
+        shef51PutImageCache(id,buf,type);
+        res.setHeader('Content-Type',type);
+        res.setHeader('Content-Length',buf.length);
+        res.setHeader('Cache-Control','public, max-age=31536000, immutable');
+        res.setHeader('X-Content-Type-Options','nosniff');
+        return res.send(buf);
+      }catch(err){
+        lastErr=err;
+        if(attempt===0)await new Promise(r=>setTimeout(r,250));
+      }
     }
+    throw lastErr||new Error('Image unavailable');
   }catch(err){
     console.error('SHEF51 image proxy error',id,err?.message||err);
     if(!res.headersSent)res.sendStatus(404);
