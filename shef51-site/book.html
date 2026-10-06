@@ -54,15 +54,43 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
     color:#fff
   }
 }
+
+/* SHEF51 MOTION SYSTEM */
+.motionReveal{opacity:0;transform:translateY(18px);transition:opacity .72s cubic-bezier(.2,.7,.2,1),transform .72s cubic-bezier(.2,.7,.2,1)}
+.motionReveal.on{opacity:1;transform:none}
+.pageHead>.eyebrow,.pageHead>h1,.pageHead>.lead{animation:pageRise .75s cubic-bezier(.2,.7,.2,1) both}
+.pageHead>h1{animation-delay:.08s}.pageHead>.lead{animation-delay:.18s}
+@keyframes pageRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.pageKinetic{
+  min-height:34px;
+  margin:4px 0 18px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font:700 clamp(18px,2vw,25px)/1.25 Georgia,serif;
+  color:#eee5d7;
+}
+.pageTyped{display:inline-block;min-width:16.5em;color:#ef2634;white-space:nowrap}
+.pageTyped:after{content:"";display:inline-block;width:1px;height:.95em;margin-left:4px;background:#ef2634;vertical-align:-.08em;animation:pageBlink .8s steps(1) infinite}
+@keyframes pageBlink{50%{opacity:0}}
+@media(max-width:620px){
+  .pageKinetic{min-height:58px;align-items:flex-start;flex-direction:column;gap:2px}
+  .pageTyped{min-width:0;white-space:normal;min-height:1.35em}
+}
+@media(prefers-reduced-motion:reduce){
+  .motionReveal{opacity:1;transform:none;transition:none}
+  .pageHead>.eyebrow,.pageHead>h1,.pageHead>.lead{animation:none!important}
+  .pageTyped:after{display:none}
+}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>.book{display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:start}.panel{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form .full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#111;border:1px solid #303030;color:#fff;border-radius:14px;padding:15px;font:inherit}.field textarea{min-height:120px;resize:vertical}.notice{font-size:13px;color:#858585;margin-top:12px}.status{display:none;margin-top:14px;padding:14px 16px;border-radius:14px;background:#111;border:1px solid #303030;line-height:1.5}.status.ok{display:block;border-color:#2b6f42;color:#baf5ca}.status.err{display:block;border-color:#7d3037;color:#ffc2c7}@media(max-width:850px){.book{grid-template-columns:1fr}}@media(max-width:560px){.form{grid-template-columns:1fr}.form .full{grid-column:auto}}</style>
-<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><p class="lead">📅 Выберите услугу и удобную дату, 👥 укажите количество гостей и оставьте контакт. 💬 Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
-<div class="panel"><form id="bookingForm" class="form">
-<div class="field"><label>Услуга</label><select id="service" name="Услуга"><option>Ужин на дому</option><option>День рождения</option><option>Свадьба</option><option>Вечеринка</option><option>Корпоратив</option><option>Индивидуальный формат</option></select></div>
-<div class="field"><label>Дата</label><input id="date" name="Дата" type="date" required></div>
-<div class="field"><label>Количество гостей</label><input id="guests" name="Количество гостей" type="number" min="1" placeholder="Например, 8" required></div>
-<div class="field"><label>Ваше имя</label><input id="name" name="Имя" placeholder="Имя" required></div>
+<section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><div class="pageKinetic">Организуем — <span class="pageTyped" data-words="частный ужин|день рождения|свадьбу|вечеринку|корпоратив|особенное событие"></span></div><p class="lead">📅 Выберите услугу и удобную дату, 👥 укажите количество гостей и оставьте контакт. 💬 Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
+<div class="panel" data-motion><form id="bookingForm" class="form">
+<div class="field" data-motion><label>Услуга</label><select id="service" name="Услуга"><option>Ужин на дому</option><option>День рождения</option><option>Свадьба</option><option>Вечеринка</option><option>Корпоратив</option><option>Индивидуальный формат</option></select></div>
+<div class="field" data-motion><label>Дата</label><input id="date" name="Дата" type="date" required></div>
+<div class="field" data-motion><label>Количество гостей</label><input id="guests" name="Количество гостей" type="number" min="1" placeholder="Например, 8" required></div>
+<div class="field" data-motion><label>Ваше имя</label><input id="name" name="Имя" placeholder="Имя" required></div>
 <div class="field full"><label>Телефон / WhatsApp</label><input id="contact" name="Контакт" placeholder="Например, +7..." required></div>
 <div class="field full"><label>Пожелания</label><textarea id="comment" name="Пожелания" placeholder="Что планируется, меню, адрес, особые пожелания..."></textarea></div>
 <input type="hidden" name="_subject" value="Новая заявка SHEF51">
@@ -113,4 +141,33 @@ document.addEventListener('click',function(e){
     if(m){m.classList.toggle('open');b.textContent=m.classList.contains('open')?'✕':'☰';}
   }
 });
-</script></body></html>
+</script>
+<script id="shef51-motion-system">
+(function(){
+  document.querySelectorAll('[data-motion]').forEach((el,i)=>{
+    el.classList.add('motionReveal');
+    el.style.transitionDelay=Math.min(i*55,330)+'ms';
+  });
+  const reveals=[...document.querySelectorAll('.motionReveal')];
+  if(!('IntersectionObserver' in window)){reveals.forEach(x=>x.classList.add('on'))}
+  else{
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.12});
+    reveals.forEach(x=>io.observe(x));
+  }
+  document.querySelectorAll('.pageTyped').forEach(el=>{
+    const words=(el.dataset.words||'').split('|').filter(Boolean);
+    if(!words.length)return;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=words[0];return}
+    let wi=0,ci=0,deleting=false,timer;
+    function tick(){
+      const w=words[wi];
+      if(!deleting){ci++;el.textContent=w.slice(0,ci);if(ci>=w.length){deleting=true;timer=setTimeout(tick,1500);return}}
+      else{ci--;el.textContent=w.slice(0,Math.max(ci,0));if(ci<=0){deleting=false;wi=(wi+1)%words.length}}
+      timer=setTimeout(tick,deleting?42:72);
+    }
+    tick();
+    window.addEventListener('pagehide',()=>clearTimeout(timer),{once:true});
+  });
+})();
+</script>
+</body></html>
