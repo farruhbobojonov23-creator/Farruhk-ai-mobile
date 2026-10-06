@@ -4,7 +4,7 @@ const $=s=>document.querySelector(s), main=$('#main'), id=()=>crypto.randomUUID(
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function read(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
 function put(k,v){localStorage.setItem(k,JSON.stringify(v))}
-const keys={tasks:'farrukh_mobile_tasks',chat:'farrukh_mobile_chat',recipes:'farrukh_studio_recipes',journals:'farrukh_studio_journals',notes:'farrukh_studio_notes'};
+const keys={tasks:'farrukh_mobile_tasks',chat:'farrukh_mobile_chat',recipes:'farrukh_studio_recipes',journals:'farrukh_studio_journals',notes:'farrukh_studio_notes',reports:'farrukh_frontpad_reports'};
 let data=Object.fromEntries(Object.entries(keys).map(([k,v])=>[k,read(v,[])]));
 for(const k of Object.keys(data))if(!Array.isArray(data[k]))data[k]=[];
 try{if(!localStorage.getItem('farrukh_studio_backup_v5'))put('farrukh_studio_backup_v5',{at:new Date().toISOString(),values:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('farrukh_')).map(k=>[k,localStorage.getItem(k)]))})}catch{console.warn('Local backup unavailable')}
@@ -175,7 +175,7 @@ async function completeFrontpadAuth(){
 
 let frontpadReports=null;
 function reportsPage(){
- return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Отчёты Frontpad</h2><p class="muted">Самый надёжный способ: скачай отчёт из Frontpad и загрузи файл сюда.</p></div><label class="primary" style="display:inline-flex;align-items:center;cursor:pointer">Загрузить выгрузку<input id="frontpadExportInput" type="file" accept=".xls,.xlsx,.csv" hidden></label></div><div class="notice"><b>Поддерживаются Excel (.xls, .xlsx) и CSV</b><br>FARRUKH AI сам прочитает листы, найдёт таблицы и покажет распознанные показатели. Никакая капча для этого не нужна.</div><div id="frontpadReports" style="margin-top:16px"><div class="empty"><strong>Загрузи выгрузку Frontpad</strong>После выбора файла данные появятся здесь.</div></div>';
+ return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Центр аналитики</h2><p class="muted">Один файл = одна точка и один тип отчёта. FARRUKH AI распознаёт его автоматически.</p></div><label class="primary" style="display:inline-flex;align-items:center;cursor:pointer">+ Загрузить отчёт<input id="frontpadExportInput" type="file" accept=".xls,.xlsx,.csv" hidden></label></div><div class="fp-guide"><b>Как работает</b><span>Скачай любой отчёт Frontpad для одной точки: «Выручка», «Скидки и наценки», «Каналы продаж», «Товары», «Себестоимость» и другие. После загрузки откроется свой дашборд.</span></div><div id="frontpadHistory"></div><div id="frontpadReports" style="margin-top:16px"><div class="empty"><strong>Загрузи выгрузку Frontpad</strong>После выбора файла появится профессиональный отчёт по этой точке.</div></div>';
 }
 function reportTable(rows){
  if(!Array.isArray(rows)||!rows.length)return '';
@@ -196,6 +196,57 @@ function fpPeriod(name=''){
  const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
  const a=dates[0].split('.'),b=dates[1].split('.');
  return a[1]===b[1]&&a[2]===b[2]?months[Number(a[1])-1]+' '+a[2]:dates[0]+' — '+dates[1];
+}
+function fpReportType(d){
+ const sheet=(d?.sheets||[])[0]||{}, hay=[d?.fileName,sheet.name,...(sheet.headers||[]),...(sheet.meta||[]).flat()].join(' ').toLowerCase();
+ const types=[
+  ['revenue','Выручка',/выручк|оборот/],['discounts','Скидки и наценки',/скидк|наценк/],['employees','Сотрудники',/сотрудник/],
+  ['users','Пользователи',/пользоват/],['channels','Каналы продаж',/канал.*продаж|источник.*заказ/],['marks','Отметки заказов',/отметк.*заказ|статус.*заказ/],
+  ['execution','Время исполнения',/время.*исполн|время.*заказ/],['hourly','Продажи по часам',/продаж.*час|по часам/],['pnl','Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл/],
+  ['cohort','Когортный анализ',/когорт/],['products','Товары',/товар|наименован.*блюд/],['cost','Себестоимость',/себестоим/],
+  ['movement','Движение сырья',/движен.*сыр|приход|расход.*сыр/],['purchases','История закупок',/истори.*закуп|закупк/],['abc','ABC-анализ',/abc/],['expenses','Прочие расходы',/проч.*расход/]
+ ];
+ return types.find(([, ,re])=>re.test(hay))||['generic','Отчёт Frontpad',/.*/];
+}
+function fpPointName(d){
+ const sheet=(d?.sheets||[])[0]||{}, hay=[d?.fileName,...(sheet.meta||[]).flat()].join(' ');
+ const known=['Полярные зори 43/1','Баумана 18','ГС 33а','Плазма'];
+ const hit=known.find(x=>hay.toLowerCase().includes(x.toLowerCase()));if(hit)return hit;
+ const meta=(sheet.meta||[]).flat().map(x=>String(x||'').trim()).filter(Boolean);
+ const tagged=meta.find(x=>/(точк|филиал|подраздел|ресторан|объект)\s*[:—-]/i.test(x));
+ return tagged?tagged.replace(/^.*?(?:точк\w*|филиал\w*|подраздел\w*|ресторан\w*|объект\w*)\s*[:—-]\s*/i,'').trim():'Точка не определена';
+}
+function fpCompactReport(d,m,type){
+ return {id:id(),type:type[0],typeTitle:type[1],point:fpPointName(d),period:fpPeriod(d.fileName),fileName:d.fileName,uploadedAt:d.uploadedAt||new Date().toISOString(),revenue:m.revenue||0,orders:m.orders||0,avg:m.avg||0,cancel:m.cancel};
+}
+function fpSaveReport(item){
+ const same=data.reports.findIndex(x=>x.type===item.type&&x.point===item.point&&x.period===item.period);
+ const next=[...data.reports];if(same>=0)next[same]=item;else next.unshift(item);persist('reports',next.slice(0,80));
+}
+function fpHistoryHtml(){
+ const rev=data.reports.filter(x=>x.type==='revenue');
+ const usable=rev.filter(x=>x.point&&x.point!=='Точка не определена');
+ let compare='';
+ if(usable.length){
+  const byPoint=[...new Map(usable.map(x=>[x.point,x])).values()].slice(0,8);
+  const max=Math.max(1,...byPoint.map(x=>x.revenue||0));
+  compare='<section class="card fp-compare"><div class="card-head"><div><span class="eyebrow">СЕТЬ</span><h3>Сравнение загруженных точек</h3></div><span class="tag">'+byPoint.length+' точек</span></div><div class="fp-bars">'+byPoint.map(x=>'<div class="fp-bar-row"><div class="fp-bar-head"><b>'+E(x.point)+'</b><span>'+fpMoney(x.revenue)+'</span></div><div class="fp-track"><i style="width:'+Math.max(4,Math.round((x.revenue||0)/max*100))+'%"></i></div><small>'+fmt(x.orders)+' заказов · '+fpMoney(x.avg)+' средний чек · '+E(x.period)+'</small></div>').join('')+'</div></section>';
+ }
+ const recent=data.reports.slice(0,8);
+ return (compare||'')+(recent.length?'<section class="card fp-history"><div class="card-head"><div><span class="eyebrow">ИСТОРИЯ</span><h3>Последние загруженные отчёты</h3></div><span class="tag">'+data.reports.length+'</span></div><div class="fp-history-list">'+recent.map(x=>'<div><span><b>'+E(x.typeTitle)+'</b><small>'+E(x.point)+' · '+E(x.period)+'</small></span><time>'+new Date(x.uploadedAt).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'})+'</time></div>').join('')+'</div></section>':'');
+}
+function renderSavedFrontpadHistory(){const el=$('#frontpadHistory');if(el)el.innerHTML=fpHistoryHtml()}
+function fpGenericDashboard(d,sheet,type){
+ const h=sheet.headers||[],rows=sheet.rows||[];const categoryI=fpHeader(h,/наимен|категор|канал|сотруд|пользоват|статус|отметк|час|постав|статья|сыр|товар|блюд/i);
+ const numeric=h.map((x,i)=>({i,label:String(x||'')})).filter(x=>/(сумм|выруч|оборот|кол-?во|количество|заказ|скидк|наценк|прибыл|убыт|себестоим|расход|приход|остат|минут|время|процент|доля|марж)/i.test(x.label));
+ const sums=numeric.slice(0,4).map(x=>{const vals=rows.map(r=>fpNum(r[x.i])).filter(v=>v!==null);return {label:x.label,value:vals.reduce((a,b)=>a+b,0)}}).filter(x=>Number.isFinite(x.value));
+ const kpis=(sums.length?sums:[{label:'Строк в отчёте',value:rows.length}]).slice(0,4).map(x=>fpKpi(x.label,/(сумм|выруч|оборот|прибыл|убыт|себестоим|расход|приход)/i.test(x.label)?fpMoney(x.value):fmt(x.value),'по загруженному файлу')).join('');
+ let bars='';
+ if(categoryI>=0&&numeric.length){
+  const ni=numeric[0].i,items=rows.map(r=>({name:String(r[categoryI]||'').trim(),value:fpNum(r[ni])})).filter(x=>x.name&&x.value!==null).slice(0,12),max=Math.max(1,...items.map(x=>Math.abs(x.value)));
+  if(items.length)bars='<div class="fp-bars">'+items.map(x=>'<div class="fp-bar-row"><div class="fp-bar-head"><b>'+E(x.name)+'</b><span>'+fmt(x.value)+'</span></div><div class="fp-track"><i style="width:'+Math.max(4,Math.round(Math.abs(x.value)/max*100))+'%"></i></div><small>'+E(numeric[0].label)+'</small></div>').join('')+'</div>';
+ }
+ return '<div class="fp-report-head"><div><span class="eyebrow">'+E(type[1].toUpperCase())+'</span><h2>'+E(fpPeriod(d.fileName))+'</h2><p>'+E(fpPointName(d))+' · Frontpad · '+E(d.fileName)+'</p></div><span class="tag">Распознано автоматически</span></div><div class="fp-kpis">'+kpis+'</div><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">ДЕТАЛИ</span><h3>'+E(type[1])+'</h3></div></div>'+(bars||'<div class="fp-no-detail"><b>Данных для диаграммы недостаточно</b><span>Таблица всё равно показана ниже без выдуманных показателей.</span></div>')+'</section><details class="card fp-raw" open><summary>Подробная таблица</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
 }
 function fpSheetModel(s){
  const h=s.headers||[],rows=(s.rows||[]).filter(r=>Array.isArray(r)&&r.some(x=>String(x??'').trim()));
@@ -241,28 +292,15 @@ function renderUploadedFrontpad(d){
  const box=$('#frontpadReports');if(!box)return;
  if(!d?.ok){box.innerHTML='<div class="notice">'+E(d?.error||'Не удалось прочитать файл.')+'</div>';return}
  const when=d.uploadedAt?new Date(d.uploadedAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'';
- const sheet=(d.sheets||[])[0];
- if(!sheet){box.innerHTML='<div class="notice">В файле нет данных.</div>';return}
- const m=fpSheetModel(sheet),period=fpPeriod(d.fileName);
- const completed=m.cancel===null?null:Math.max(0,m.orders-m.cancel);
- const cancelRate=m.cancel===null||!m.orders?null:(m.cancel/m.orders*100);
- const kpis=fpKpi('Выручка',fpMoney(m.revenue),period)+
-   fpKpi('Заказы',fmt(m.orders),'за период')+
-   fpKpi('Средний чек',fpMoney(m.avg),'на один заказ')+
-   fpKpi('Отмены',m.cancel===null?'Нет данных':fmt(m.cancel),cancelRate===null?'нет колонки в файле':cancelRate.toFixed(1)+'% от заказов');
- const quality=m.cancel===null
-   ? '<div class="fp-quality-empty"><b>Отмены не найдены в этой выгрузке</b><span>Когда в файле будет колонка «Отмены» или «Возвраты», здесь появятся количество, процент и сравнение по точкам.</span></div>'
-   : '<div class="fp-quality"><div><span>Выполнено</span><b>'+fmt(completed)+'</b></div><div><span>Отменено</span><b>'+fmt(m.cancel)+'</b></div><div><span>Доля отмен</span><b>'+cancelRate.toFixed(1)+'%</b></div></div>';
- const detailTitle=m.points.length?'Результат по точкам':'Структура отчёта';
- box.innerHTML=
-   '<div class="fp-report-head"><div><span class="eyebrow">УПРАВЛЕНЧЕСКИЙ ОТЧЁТ</span><h2>'+E(period)+'</h2><p>Frontpad · '+E(d.fileName)+'</p></div><span class="tag">Обработан '+E(when||'только что')+'</span></div>'+
-   '<div class="fp-kpis">'+kpis+'</div>'+
-   '<div class="fp-dashboard-grid"><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">СРАВНЕНИЕ</span><h3>'+detailTitle+'</h3></div><span class="tag">'+m.points.length+' точек</span></div>'+fpBars(m.points,m.revenue)+'</section>'+
-   '<section class="card"><div class="card-head"><div><span class="eyebrow">КАЧЕСТВО</span><h3>Заказы и отмены</h3></div></div>'+quality+'</section></div>'+
-   (m.points.length?'<section class="card fp-points"><div class="card-head"><div><span class="eyebrow">ДЕТАЛИЗАЦИЯ</span><h3>Точки</h3></div><span class="tag">по выручке и заказам</span></div>'+fpPointsTable(m.points,m.cancelI>=0)+'</section>':'')+
-   '<details class="card fp-raw"><summary>Показать исходную таблицу из Frontpad</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
+ const sheet=(d.sheets||[])[0];if(!sheet){box.innerHTML='<div class="notice">В файле нет данных.</div>';return}
+ const type=fpReportType(d),m=fpSheetModel(sheet),period=fpPeriod(d.fileName),point=fpPointName(d);
+ fpSaveReport(fpCompactReport(d,m,type));renderSavedFrontpadHistory();
+ if(type[0]!=='revenue'){box.innerHTML=fpGenericDashboard(d,sheet,type);return}
+ const completed=m.cancel===null?null:Math.max(0,m.orders-m.cancel),cancelRate=m.cancel===null||!m.orders?null:(m.cancel/m.orders*100);
+ const kpis=fpKpi('Общая выручка',fpMoney(m.revenue),period)+fpKpi('Заказы',fmt(m.orders),'за период')+fpKpi('Средний чек',fpMoney(m.avg),'на один заказ')+fpKpi('Отмены',m.cancel===null?'Нет данных':fmt(m.cancel),cancelRate===null?'нет колонки в файле':cancelRate.toFixed(1)+'% от заказов');
+ const quality=m.cancel===null?'<div class="fp-quality-empty"><b>Отмены не входят в файл «Выручка»</b><span>Для отмен загрузи отдельный отчёт Frontpad «Отметки заказов». FARRUKH AI покажет его своим дашбордом.</span></div>':'<div class="fp-quality"><div><span>Выполнено</span><b>'+fmt(completed)+'</b></div><div><span>Отменено</span><b>'+fmt(m.cancel)+'</b></div><div><span>Доля отмен</span><b>'+cancelRate.toFixed(1)+'%</b></div></div>';
+ box.innerHTML='<div class="fp-report-head"><div><span class="eyebrow">ВЫРУЧКА · ОДНА ТОЧКА</span><h2>'+E(point)+'</h2><p>'+E(period)+' · Frontpad · '+E(d.fileName)+'</p></div><span class="tag">Обработан '+E(when||'только что')+'</span></div><div class="fp-kpis">'+kpis+'</div><div class="fp-dashboard-grid"><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">ДИНАМИКА</span><h3>Детализация периода</h3></div></div>'+fpBars(m.points,m.revenue)+'</section><section class="card"><div class="card-head"><div><span class="eyebrow">КАЧЕСТВО</span><h3>Заказы и отмены</h3></div></div>'+quality+'</section></div>'+(m.points.length?'<section class="card fp-points"><div class="card-head"><div><span class="eyebrow">ДЕТАЛИЗАЦИЯ</span><h3>Строки отчёта</h3></div></div>'+fpPointsTable(m.points,m.cancelI>=0)+'</section>':'')+'<details class="card fp-raw"><summary>Показать исходную таблицу Frontpad</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
 }
-
 async function uploadFrontpadExport(file){
  const box=$('#frontpadReports');if(!file)return;
  if(box)box.innerHTML='<div class="notice">Разбираю выгрузку Frontpad…</div>';
@@ -302,7 +340,7 @@ async function loadFrontpadReports(){
  }
 }
 function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Frontpad</h2><div id="frontpadConnection" class="help">Проверяю подключение…</div><div id="frontpadAuthBox" style="margin-top:16px"></div><p class="help">Подключение Frontpad сохранено для совместимости. Для отчётов используй выгрузку Excel/CSV в разделе «Отчёты» — это стабильнее и не требует повторной капчи.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
-function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,reports:reportsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='reports'){const inp=$('#frontpadExportInput');if(inp)inp.onchange=e=>uploadFrontpadExport(e.target.files?.[0])}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
+function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,reports:reportsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='reports'){renderSavedFrontpadHistory();const inp=$('#frontpadExportInput');if(inp)inp.onchange=e=>uploadFrontpadExport(e.target.files?.[0])}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
 function saveChat(role,text){persist('chat',[...data.chat,{role,text}].slice(-200));renderMessages()}
 function voiceStatus(t){const el=$('#voiceState');if(el)el.textContent=t}
 function stop(){conversation=false;if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();speaking=false;document.body.classList.remove('listening','speaking');voiceStatus('Голос остановлен')}
