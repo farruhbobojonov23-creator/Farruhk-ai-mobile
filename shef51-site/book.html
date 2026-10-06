@@ -222,6 +222,16 @@ form.addEventListener('submit',async e=>{
   statusBox.textContent='';
   submitBtn.disabled=true;
   submitBtn.textContent='Отправляем…';
+  let analyticsCtx={};
+  try{
+    analyticsCtx=window.shefAnalyticsContext?window.shefAnalyticsContext():{};
+    if(!analyticsCtx.visitorId)analyticsCtx.visitorId=localStorage.getItem('shef51_visitor_id')||'';
+    if(!analyticsCtx.sessionId)analyticsCtx.sessionId=sessionStorage.getItem('shef51_session_id')||'';
+    if(!analyticsCtx.source){
+      const ft=JSON.parse(localStorage.getItem('shef51_first_touch_v1')||'{}');
+      analyticsCtx={...ft,...analyticsCtx};
+    }
+  }catch{}
   const payload={
     service:document.getElementById('service').value,
     date:document.getElementById('date').value,
@@ -231,7 +241,13 @@ form.addEventListener('submit',async e=>{
     budget:document.getElementById('budget').value,
     address:document.getElementById('address').value.trim(),
     contactMethod:document.getElementById('contactMethod').value,
-    comment:document.getElementById('comment').value.trim()
+    comment:document.getElementById('comment').value.trim(),
+    visitorId:analyticsCtx.visitorId||'',
+    sessionId:analyticsCtx.sessionId||'',
+    source:analyticsCtx.source||'',
+    referrer:analyticsCtx.referrer||'',
+    landingPage:analyticsCtx.landingPage||'',
+    utmCampaign:analyticsCtx.utmCampaign||''
   };
   try{
     const body=new URLSearchParams(payload);
