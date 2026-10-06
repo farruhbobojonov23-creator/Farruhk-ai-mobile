@@ -271,6 +271,7 @@ const SHEF51_PHOTOS_PATH=SHEF51_BASE+'Photos/';
 const SHEF51_DRAFT_PATH=SHEF51_BASE+'site-draft.json';
 const SHEF51_PUBLISHED_PATH=SHEF51_BASE+'site-published.json';
 const SHEF51_BACKUPS_PATH=SHEF51_BASE+'Backups/';
+const SHEF51_BOOKINGS_PATH=SHEF51_BASE+'Bookings/';
 
 const defaultShef51Config=()=>({
   general:{
@@ -768,25 +769,51 @@ app.post('/api/telegram/booking',async(req,res)=>{
   const contact=String(req.body?.contact||'').trim().slice(0,120);
   const comment=String(req.body?.comment||'').trim().slice(0,1000);
   if(!service||!date||!guests||!name||!contact)return res.status(400).json({ok:false,error:'Заполните обязательные поля.'});
+
+  const booking={
+    id:'booking-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),
+    createdAt:new Date().toISOString(),
+    service,date,guests,name,contact,comment
+  };
+
+  let saved=false,telegramSent=false,lastError='';
+  if(yandexToken()){
+    try{
+      await writeYandexFile(SHEF51_BOOKINGS_PATH+booking.id+'.json',JSON.stringify(booking,null,2),'application/json');
+      saved=true;
+    }catch(err){
+      lastError=err?.message||'booking storage error';
+      console.error('SHEF51 booking save error',lastError);
+    }
+  }
+
   try{
     const chatId=await telegramChatId();
-    if(!chatId)return res.status(503).json({ok:false,error:'Откройте бота в Telegram и отправьте /start.'});
-    const text=[
-      '🍣 Новая заявка SHEF51',
-      '',
-      'Услуга: '+service,
-      'Дата: '+date,
-      'Гостей: '+guests,
-      'Имя: '+name,
-      'Телефон / WhatsApp: '+contact,
-      'Пожелания: '+(comment||'—')
-    ].join('\n');
-    await telegramRequest('sendMessage',{chat_id:chatId,text});
-    res.json({ok:true});
+    if(chatId){
+      const text=[
+        '🍣 Новая заявка SHEF51',
+        '',
+        'Услуга: '+service,
+        'Дата: '+date,
+        'Гостей: '+guests,
+        'Имя: '+name,
+        'Телефон / WhatsApp: '+contact,
+        'Пожелания: '+(comment||'—')
+      ].join('\n');
+      await telegramRequest('sendMessage',{chat_id:chatId,text});
+      telegramSent=true;
+    }else{
+      lastError='Telegram chat is not ready';
+    }
   }catch(err){
-    console.error('Telegram booking error',err);
-    res.status(502).json({ok:false,error:'Не удалось отправить заявку в Telegram.'});
+    lastError=err?.message||'Telegram delivery error';
+    console.error('Telegram booking error',lastError);
   }
+
+  if(saved||telegramSent){
+    return res.json({ok:true,bookingId:booking.id,saved,telegramSent});
+  }
+  res.status(502).json({ok:false,error:'Не удалось сохранить заявку. Попробуйте ещё раз чуть позже.',detail:lastError});
 });
 
 const port=Number(process.env.PORT||3000);
