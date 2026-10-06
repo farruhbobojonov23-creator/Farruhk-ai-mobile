@@ -325,9 +325,10 @@ function numCell(v){
   const n=Number(s);return Number.isFinite(n)?n:null;
 }
 function frontpadUploadSummary(rows){
-  if(!Array.isArray(rows)||!rows.length)return {metrics:[],headers:[],data:[]};
+  if(!Array.isArray(rows)||!rows.length)return {metrics:[],headers:[],data:[],meta:[]};
   let headerIndex=rows.findIndex(r=>Array.isArray(r)&&r.filter(x=>normalizeCell(x)).length>=2);
   if(headerIndex<0)headerIndex=0;
+  const meta=rows.slice(0,headerIndex).map(r=>(r||[]).map(normalizeCell)).filter(r=>r.some(Boolean)).slice(0,20);
   const headers=(rows[headerIndex]||[]).map(normalizeCell);
   const data=rows.slice(headerIndex+1).filter(r=>Array.isArray(r)&&r.some(x=>normalizeCell(x))).slice(0,500);
   const metrics=[];
@@ -347,7 +348,7 @@ function frontpadUploadSummary(rows){
     const agg=/средн.*чек/i.test(headers[idx])?vals.reduce((a,b)=>a+b,0)/vals.length:vals.reduce((a,b)=>a+b,0);
     metrics.push({label,value:agg,source:headers[idx]});
   }
-  return {metrics,headers,data};
+  return {metrics,headers,data,meta};
 }
 function parseCsvText(text){
   const firstLine=String(text||'').split(/\r?\n/,1)[0]||'';
@@ -375,7 +376,7 @@ app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
     if(name.endsWith('.csv')){
       const rows=parseCsvText(req.file.buffer.toString('utf8'));
       const summary=frontpadUploadSummary(rows);
-      sheets.push({name:'CSV',rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,totalRows:summary.data.length});
+      sheets.push({name:'CSV',rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,meta:summary.meta,totalRows:summary.data.length});
     }else if(name.endsWith('.xlsx')){
       const wb=new ExcelJS.Workbook();
       await wb.xlsx.load(req.file.buffer);
@@ -388,7 +389,7 @@ app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
           rows.push(vals);
         });
         const summary=frontpadUploadSummary(rows);
-        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:ws.name,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,totalRows:summary.data.length});
+        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:ws.name,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,meta:summary.meta,totalRows:summary.data.length});
       });
     }else if(name.endsWith('.xls')){
       const wb=XLSX.read(req.file.buffer,{type:'buffer',cellText:true,cellDates:true});
@@ -396,7 +397,7 @@ app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
         const ws=wb.Sheets[sheetName];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false});
         const summary=frontpadUploadSummary(rows);
-        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:sheetName,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,totalRows:summary.data.length});
+        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:sheetName,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,meta:summary.meta,totalRows:summary.data.length});
       }
     }else{
       return res.status(400).json({ok:false,error:'Поддерживаются файлы .xls, .xlsx и .csv'});
