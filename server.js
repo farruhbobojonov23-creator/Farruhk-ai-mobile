@@ -952,7 +952,7 @@ app.post('/api/shef51/analytics',async(req,res)=>{
   const href=cleanText(req.body?.href,300);
   const meta=(req.body?.meta&&typeof req.body.meta==='object')?req.body.meta:{};
   const safeMeta={};
-  for(const [k,v] of Object.entries(meta).slice(0,12)){
+  for(const [k,v] of Object.entries(meta).slice(0,20)){
     safeMeta[cleanText(k,40)]=cleanText(v,160);
   }
   const now=new Date();
@@ -1056,12 +1056,19 @@ app.post('/api/telegram/booking',async(req,res)=>{
   const address=String(req.body?.address||'').trim().slice(0,220);
   const contactMethod=String(req.body?.contactMethod||'').trim().slice(0,80);
   const comment=String(req.body?.comment||'').trim().slice(0,1000);
+  const visitorId=String(req.body?.visitorId||'').trim().slice(0,120);
+  const sessionId=String(req.body?.sessionId||'').trim().slice(0,120);
+  const source=String(req.body?.source||'').trim().slice(0,120);
+  const referrer=String(req.body?.referrer||'').trim().slice(0,300);
+  const landingPage=String(req.body?.landingPage||'').trim().slice(0,300);
+  const utmCampaign=String(req.body?.utmCampaign||'').trim().slice(0,160);
   if(!service||!date||!guests||!name||!contact)return res.status(400).json({ok:false,error:'Заполните обязательные поля.'});
 
   const booking={
     id:'booking-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),
     createdAt:new Date().toISOString(),
-    service,date,guests,name,contact,budget,address,contactMethod,comment
+    service,date,guests,name,contact,budget,address,contactMethod,comment,
+    visitorId,sessionId,source,referrer,landingPage,utmCampaign
   };
 
   let saved=false,telegramSent=false,lastError='';
