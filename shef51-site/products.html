@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Товары — SHEF51</title>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Товары — SHEF51</title><link rel="preconnect" href="https://farruhk-ai-mobile.onrender.com" crossorigin><link rel="dns-prefetch" href="//farruhk-ai-mobile.onrender.com">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1180px,92%);margin:auto}
 header{position:sticky;top:0;z-index:50;background:#050505e8;border-bottom:1px solid #1b1b1b;backdrop-filter:blur(18px)}.nav{height:74px;display:flex;align-items:center;gap:28px}.brand{font-weight:900;letter-spacing:.13em;white-space:nowrap}.brand b{color:#ef2634}.links{display:flex;gap:24px;margin-left:auto}.links a{color:#d9d9d9;font-size:14px}.btn{display:inline-flex;align-items:center;justify-content:center;background:#ef2634;padding:14px 22px;border-radius:999px;font-weight:800;border:none;color:white;cursor:pointer}.btn.alt{background:transparent;border:1px solid #494949}
@@ -277,9 +277,23 @@ function renderMenu(items){
   activateProductImages(root);
 }
 activateProductImages();
+
+// Show the last successfully loaded menu immediately on repeat visits.
+// The original high-resolution image URLs stay unchanged.
+const MENU_CACHE_KEY='shef51_menu_cache_v1';
+try{
+  const cached=JSON.parse(localStorage.getItem(MENU_CACHE_KEY)||'null');
+  if(cached&&Array.isArray(cached.items)&&cached.items.length)renderMenu(cached.items);
+}catch(e){}
+
 fetch(API_BASE+'/api/shef51/menu',{cache:'default'})
   .then(r=>r.ok?r.json():Promise.reject(new Error('menu')))
-  .then(d=>{if(d&&Array.isArray(d.items)&&d.items.length)renderMenu(d.items)})
+  .then(d=>{
+    if(d&&Array.isArray(d.items)&&d.items.length){
+      try{localStorage.setItem(MENU_CACHE_KEY,JSON.stringify({items:d.items,savedAt:Date.now()}))}catch(e){}
+      renderMenu(d.items);
+    }
+  })
   .catch(()=>{});
 </script></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer><script src="cms.js?v=1"></script><script id="mobile-nav-script">
 document.addEventListener('click',function(e){
