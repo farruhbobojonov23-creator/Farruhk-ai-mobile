@@ -29,6 +29,55 @@ linear-gradient(150deg,#15100c 0%,#0a0a0a 52%,#050505 100%)}.expertCard:hover{tr
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.reveal{opacity:1;transform:none;transition:none}.typed:after,.specTyped:after{display:none}.expertCard,.expertCard:before{transition:none}.specItem p{transition:none}}
 @media(max-width:900px){.links{display:none}.nav{gap:10px}.nav .brand{flex:1}.navBook{display:none!important}.menuToggle{display:inline-flex}.mobileMenu{display:none;background:#0a0a0a;border-top:1px solid #1d1d1d;padding:10px 4%;gap:8px;flex-direction:column}.mobileMenu.open{display:flex}.mobileMenu a{display:block;padding:14px 16px;border:1px solid #222;border-radius:14px;background:#101010;color:#fff;font-weight:700}.mobileMenu a:last-child{background:#ef2634;border-color:#ef2634}.mobileQuickTabs{display:flex;gap:8px;overflow-x:auto;padding:9px 4% 11px;background:#080808;border-top:1px solid #171717;border-bottom:1px solid #1e1e1e;scrollbar-width:none;-webkit-overflow-scrolling:touch}.mobileQuickTabs::-webkit-scrollbar{display:none}.mobileQuickTabs a{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #292929;border-radius:999px;background:#101010;color:#e8e8e8;font-size:13px;font-weight:800}.mobileQuickTabs a[href="book.html"]{background:#ef2634;border-color:#ef2634;color:#fff}.aboutTop{grid-template-columns:1fr}.expertiseGrid{grid-template-columns:1fr 1fr}.expertCard:last-child{grid-column:1/-1;min-height:330px}}
 @media(max-width:620px){.brand{font-size:14px}.aboutHero{padding:48px 0 22px}.aboutTop{gap:22px}.introPanel{padding-right:0}.kinetic{min-height:3.5em}.typed{min-width:0;white-space:normal}.story p{font-size:16px}.specialty{padding:22px;border-radius:23px}.expertiseHead{display:block}.expertiseHead p{margin-top:12px}.expertiseGrid{grid-template-columns:1fr}.expertCard,.expertCard:last-child{grid-column:auto;min-height:320px}.cardInner{padding:22px}.expertCard h3{font-size:28px}.signature{font-size:16px;padding:22px}.pageHead{padding-top:48px}}
+
+/* lock About typing layout on mobile */
+html,body{max-width:100%;overflow-x:hidden}
+.introPanel,.aboutTop,.specialty,.specItem{min-width:0}
+.kinetic{
+  width:100%;
+  min-width:0;
+  min-height:2.5em;
+  overflow:hidden;
+}
+.typed{
+  display:inline-block;
+  min-width:10.5em;
+  max-width:100%;
+  white-space:nowrap;
+}
+.specItem h3{
+  width:100%;
+  min-width:0;
+  min-height:1.35em;
+  overflow:hidden;
+}
+.specTyped{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  min-height:1.35em;
+  white-space:normal!important;
+  overflow-wrap:break-word;
+  word-break:normal;
+}
+@media(max-width:620px){
+  .kinetic{
+    min-height:4.8em;
+    display:block;
+  }
+  .typed{
+    display:block;
+    min-width:0;
+    width:100%;
+    min-height:1.35em;
+    white-space:normal!important;
+    overflow-wrap:break-word;
+  }
+  .specItem h3,.specTyped{
+    min-height:2.5em;
+  }
+}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header>
 <main>
