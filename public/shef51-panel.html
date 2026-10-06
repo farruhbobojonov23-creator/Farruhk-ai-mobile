@@ -27,6 +27,7 @@
 .field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #2a2a2a;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:96px;resize:vertical}
 .product{display:grid;grid-template-columns:140px 1fr;gap:16px}.photo{height:130px;background:#070707;border:1px dashed #333;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:contain}
 .rank{display:grid;gap:9px}.rankItem{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #1c1c1c}.rankItem:last-child{border-bottom:0}
+.people{display:grid;gap:10px}.person{border:1px solid #202020;background:#080808;border-radius:18px;padding:14px}.personTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.personTitle{font-weight:900}.personMeta{color:#8f8f8f;font-size:12px;line-height:1.5;margin-top:6px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.mini{border:1px solid #262626;border-radius:999px;padding:6px 9px;font-size:11px;color:#cfcfcf;background:#101010}.leadCard{border-color:#3a2b17;background:#100d08}.leadPhone{font-size:20px;font-weight:900;color:#f0dfbf;margin-top:7px}
 .hidden{display:none!important}.ok{color:#59d18b}.err{color:#ff7783}
 .toolbar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(1120px,94%);background:#090909ed;border:1px solid #252525;border-radius:22px;padding:10px;display:flex;gap:10px;align-items:center;z-index:20;backdrop-filter:blur(18px)}
 .grow{flex:1}
@@ -95,10 +96,12 @@
       <div class="card"><h3>Интерес к услугам</h3><div id="servicesRank" class="rank"></div></div>
     </div>
     <div class="card"><h3>Интерес к товарам</h3><div id="productsRank" class="rank"></div></div>
+    <div class="card"><h3>Посетители</h3><p class="muted">Источник → устройство → просмотренные страницы → действия.</p><div id="visitorsList" class="people"><div class="muted">Загрузка…</div></div></div>
   </section>
 
   <section id="panel-requests" class="panel">
-    <div class="hero"><h1>Заявки</h1><p class="muted">Статус канала заявок.</p></div>
+    <div class="hero"><h1>Заявки</h1><p class="muted">Контакты появляются только после того, как гость сам отправил форму.</p></div>
+    <div class="card"><h3>Новые заявки · 30 дней</h3><div id="bookingsList" class="people"><div class="muted">Загрузка…</div></div></div>
     <div class="card"><h3>Telegram</h3><p id="telegramStatus" class="muted">Проверяю…</p></div>
   </section>
 
@@ -131,10 +134,22 @@ function renderProducts(){
  $$('.product').forEach(card=>{const i=Number(card.dataset.i);card.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;const fn=()=>menu[i][k]=el.type==='checkbox'?el.checked:el.value;el.oninput=fn;el.onchange=fn});card.querySelector('.del').onclick=()=>{if(confirm('Удалить товар?')){menu.splice(i,1);renderProducts()}};card.querySelector('.photoInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;const data=await new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=fail;r.readAsDataURL(file)});const d=await api('/api/shef51/admin/upload',{method:'POST',body:JSON.stringify({name:menu[i].id||menu[i].name,data})});menu[i].imageUrl=d.imageUrl;renderProducts()}})
 }
 function rank(id,rows){$(id).innerHTML=rows?.length?rows.map(x=>'<div class="rankItem"><span>'+esc(x.name||'—')+'</span><b>'+Number(x.count||0).toLocaleString('ru-RU')+'</b></div>').join(''):'<div class="muted">Пока нет данных</div>'}
-async function loadAnalytics(d=7){days=Number(d);$$('.period').forEach(b=>{b.classList.toggle('primary',Number(b.dataset.days)===days)});const a=await api('/api/shef51/admin/analytics-summary?days='+days);const t=a.totals||{};$('#aViews').textContent=t.views??0;$('#aVisitors').textContent=t.visitors??'—';$('#aCta').textContent=t.bookingCta??0;$('#aBookings').textContent=t.bookings??0;rank('#pagesRank',a.pages);rank('#servicesRank',a.services);rank('#productsRank',a.products);if(days===7){$('#dashViews').textContent=t.views??0;$('#dashVisitors').textContent=t.visitors??'—';$('#dashCta').textContent=t.bookingCta??0;$('#dashBookings').textContent=t.bookings??0}}
+function fmtDate(v){try{return new Date(v).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return '—'}}
+function pageName(p){return ({'index.html':'Главная','products.html':'Товары','services.html':'Услуги','about.html':'Обо мне','book.html':'Бронирование'})[p]||p||'—'}
+async function loadVisitors(d=7){
+  const x=await api('/api/shef51/admin/visitors?days='+d);
+  const rows=x.visitors||[];
+  $('#visitorsList').innerHTML=rows.length?rows.map(v=>'<div class="person"><div class="personTop"><div><div class="personTitle">'+esc(v.source||'Прямой заход')+'</div><div class="personMeta">'+esc([v.device,v.os,v.browser].filter(Boolean).join(' · '))+'<br>Последний визит: '+fmtDate(v.lastSeen)+'</div></div><b>'+Number(v.actions||0)+' действий</b></div><div class="chips">'+(v.pages||[]).map(p=>'<span class="mini">'+esc(pageName(p))+'</span>').join('')+'</div></div>').join(''):'<div class="muted">Пока нет данных по посетителям.</div>';
+}
+async function loadBookings(d=30){
+  const x=await api('/api/shef51/admin/bookings?days='+d);
+  const rows=x.bookings||[];
+  $('#bookingsList').innerHTML=rows.length?rows.map(b=>'<div class="person leadCard"><div class="personTop"><div><div class="personTitle">'+esc(b.name||'Без имени')+'</div><div class="leadPhone">'+esc(b.contact||'—')+'</div><div class="personMeta">'+esc(b.service||'—')+' · '+esc(b.date||'—')+' · гостей: '+esc(b.guests||'—')+'<br>Источник: '+esc(b.source||'Не определён')+' · '+fmtDate(b.createdAt)+'</div></div><span class="mini">'+esc(b.contactMethod||'Контакт')+'</span></div>'+(b.budget?'<div class="chips"><span class="mini">'+esc(b.budget)+'</span>'+(b.landingPage?'<span class="mini">Старт: '+esc(b.landingPage)+'</span>':'')+'</div>':'')+'</div>').join(''):'<div class="muted">За выбранный период заявок нет.</div>';
+}
+async function loadAnalytics(d=7){days=Number(d);$$('.period').forEach(b=>{b.classList.toggle('primary',Number(b.dataset.days)===days)});const a=await api('/api/shef51/admin/analytics-summary?days='+days);const t=a.totals||{};$('#aViews').textContent=t.views??0;$('#aVisitors').textContent=t.visitors??'—';$('#aCta').textContent=t.bookingCta??0;$('#aBookings').textContent=t.bookings??0;rank('#pagesRank',a.pages);rank('#servicesRank',a.services);rank('#productsRank',a.products);await loadVisitors(days).catch(()=>{});if(days===7){$('#dashViews').textContent=t.views??0;$('#dashVisitors').textContent=t.visitors??'—';$('#dashCta').textContent=t.bookingCta??0;$('#dashBookings').textContent=t.bookings??0}}
 async function load(){
  const s=await api('/api/shef51/admin/session').catch(()=>({ok:false}));if(!s.ok){location.href='/shef51-panel-login';return}
- const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];bindCfg();renderProducts();await loadAnalytics(7).catch(()=>{});
+ const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];bindCfg();renderProducts();await loadAnalytics(7).catch(()=>{});await loadBookings(30).catch(()=>{});
  $('#dashStatus').textContent='Панель подключена к SHEF51 ✓';$('#dashStatus').className='ok';
  try{const t=await api('/api/telegram/status');$('#telegramStatus').textContent=t.connected?(t.chatReady?'Telegram подключён ✓':'Бот подключён, нужен /start'):'Telegram не подключён'}catch(e){$('#telegramStatus').textContent=e.message}
  try{const r=await fetch('/api/yandex/status',{cache:'no-store'});const d=await r.json();$('#storageStatus').textContent=d.connected?'Яндекс Диск подключён ✓':'Хранилище не подключено'}catch(e){$('#storageStatus').textContent='Ошибка проверки'}
@@ -144,7 +159,7 @@ async function save(){const m=await api('/api/shef51/admin/menu',{method:'PUT',b
 $('#save').onclick=()=>save().catch(e=>{$('#saveStatus').textContent=e.message;$('#saveStatus').className='status err'});
 $('#publish').onclick=async()=>{try{await save();await api('/api/shef51/admin/publish',{method:'POST'});$('#saveStatus').textContent='Опубликовано ✓'}catch(e){$('#saveStatus').textContent=e.message;$('#saveStatus').className='status err'}};
 $('#addProduct').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name:'Новый товар',description:'',portion:'',visible:true,order:(menu.length+1)*10,imageUrl:''});renderProducts()};
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active')});
+$('.tab').forEach(b=>b.onclick=()=>{$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='requests')loadBookings(30).catch(()=>{})});
 $$('.period').forEach(b=>b.onclick=()=>loadAnalytics(b.dataset.days).catch(e=>alert(e.message)));
 $('#logout').onclick=async()=>{try{await api('/api/shef51/panel/logout',{method:'POST'})}catch{}sessionStorage.removeItem('shef51_panel_token');location.href='/shef51-panel-login'};
 load().catch(()=>location.href='/shef51-panel-login');
