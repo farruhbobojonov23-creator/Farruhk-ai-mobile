@@ -142,12 +142,26 @@ async function frontpadFetch(url,options={}){
   frontpadSession.cookies=mergeFrontpadCookies(frontpadSession.cookies,frontpadCookiePairs(r.headers));
   return r;
 }
+const FRONTPAD_UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/141.0 Safari/537.36';
 async function frontpadBeginAuth(){
-  frontpadSession.authenticated=false;frontpadSession.lastError='';
-  const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',signal:AbortSignal.timeout(12000),headers:{'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/141.0 Safari/537.36','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8','Accept-Language':'ru-RU,ru;q=0.9,en;q=0.8'}});
-  frontpadSession.cookies=mergeFrontpadCookies('',frontpadCookiePairs(r.headers));
+  frontpadSession.authenticated=false;frontpadSession.lastError='';frontpadSession.cookies='';
+  let url='https://app.frontpad.ru/login/';
+  let r=null;
+  for(let i=0;i<6;i++){
+    r=await frontpadFetch(url,{method:'GET',redirect:'manual',headers:{
+      'User-Agent':FRONTPAD_UA,
+      'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language':'ru-RU,ru;q=0.9,en;q=0.8'
+    }});
+    if(r.status>=300&&r.status<400&&r.headers.get('location')){
+      url=new URL(r.headers.get('location'),url).toString();
+      continue;
+    }
+    break;
+  }
+  if(!r)throw new Error('Frontpad login page unavailable');
   const html=await r.text();
-  const url=r.url||'https://app.frontpad.ru/login/';
+  url=r.url||url;
   const fields=parseFrontpadLogin(html,url);
   frontpadSession={...frontpadSession,loginHtml:html,loginUrl:url,formAction:fields.action,captchaUrl:fields.captcha,fields,updatedAt:new Date().toISOString()};
   return fields;
@@ -194,7 +208,7 @@ app.get('/api/frontpad/auth/captcha',async(req,res)=>{
   try{
     if(!frontpadSession.captchaUrl)await frontpadBeginAuth();
     if(!frontpadSession.captchaUrl)return res.status(404).send('Captcha not found');
-    const r=await frontpadFetch(frontpadSession.captchaUrl,{method:'GET'});
+    const r=await frontpadFetch(frontpadSession.captchaUrl,{method:'GET',headers:{'Referer':frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA,'Accept':'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'}});
     if(!r.ok)return res.sendStatus(r.status);
     const buf=Buffer.from(await r.arrayBuffer());
     res.setHeader('Content-Type',r.headers.get('content-type')||'image/png');
@@ -216,12 +230,12 @@ app.post('/api/frontpad/auth/complete',async(req,res)=>{
     body.set(f.password,String(process.env.FRONTPAD_PASSWORD||'').trim());
     if(f.code)body.set(f.code,code);
     Object.entries(f.submits||{}).forEach(([k,v])=>{if(!body.has(k))body.set(k,String(v??''))});
-    let r=await frontpadFetch(frontpadSession.formAction||frontpadSession.loginUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Referer':frontpadSession.loginUrl,'User-Agent':'Mozilla/5.0 FARRUKH-AI'},body:body.toString()});
+    let r=await frontpadFetch(frontpadSession.formAction||frontpadSession.loginUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Referer':frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA},body:body.toString()});
     let html='';
     for(let i=0;i<4;i++){
       if(r.status>=300&&r.status<400&&r.headers.get('location')){
         const next=new URL(r.headers.get('location'),r.url||frontpadSession.formAction).toString();
-        r=await frontpadFetch(next,{method:'GET',headers:{'Referer':frontpadSession.loginUrl,'User-Agent':'Mozilla/5.0 FARRUKH-AI'}});
+        r=await frontpadFetch(next,{method:'GET',headers:{'Referer':frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA}});
         continue;
       }
       html=await r.text();break;
