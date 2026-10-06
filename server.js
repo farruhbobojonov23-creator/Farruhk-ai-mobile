@@ -816,6 +816,64 @@ app.get('/api/shef51/admin/analytics-summary',requireShef51Admin,async(req,res)=
   }
 });
 
+
+async function shef51Bookings(days=30){
+  if(!yandexToken())return [];
+  const start=shef51MoscowStart(days);
+  const rows=[];
+  try{
+    await ensureFolder(SHEF51_BOOKINGS_PATH);
+    const q=encodeURIComponent(SHEF51_BOOKINGS_PATH);
+    const d=await yandexRequest('/resources?path='+q+'&limit=1000&sort=-modified',{method:'GET'});
+    const files=(d?._embedded?.items||[]).filter(x=>x.type==='file'&&/\.json$/i.test(x.name)).slice(0,1000);
+    for(let i=0;i<files.length;i+=12){
+      const got=await Promise.all(files.slice(i,i+12).map(x=>readYandexJson(SHEF51_BOOKINGS_PATH+x.name).catch(()=>null)));
+      for(const row of got){
+        const ts=Date.parse(row?.createdAt||'');
+        if(row&&Number.isFinite(ts)&&ts>=start)rows.push(row);
+      }
+    }
+  }catch(err){
+    console.error('SHEF51 bookings list error',err?.message||err);
+  }
+  return rows.sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
+}
+
+app.get('/api/shef51/admin/visitors',requireShef51Admin,async(req,res)=>{
+  const days=Math.max(1,Math.min(30,Number(req.query?.days)||7));
+  try{
+    const events=await shef51AnalyticsEvents(days);
+    const map=new Map();
+    for(const r of events){
+      const vid=String(r.meta?.visitorId||'').trim();
+      if(!vid)continue;
+      let v=map.get(vid);
+      if(!v){
+        v={visitorId:vid,firstSeen:r.createdAt,lastSeen:r.createdAt,source:r.meta?.source||'Прямой заход',referrerHost:r.meta?.referrerHost||'',landingPage:r.meta?.landingPage||'',device:r.meta?.device||'',browser:r.meta?.browser||'',os:r.meta?.os||'',pages:[],actions:0};
+        map.set(vid,v);
+      }
+      if(Date.parse(r.createdAt)<Date.parse(v.firstSeen))v.firstSeen=r.createdAt;
+      if(Date.parse(r.createdAt)>Date.parse(v.lastSeen))v.lastSeen=r.createdAt;
+      if(r.event==='page_view'&&r.page&&!v.pages.includes(r.page))v.pages.push(r.page);
+      if(['booking_cta','form_start','service_details','product_details','whatsapp_click','booking_submit_success'].includes(r.event))v.actions++;
+    }
+    const visitors=[...map.values()].sort((a,b)=>Date.parse(b.lastSeen)-Date.parse(a.lastSeen)).slice(0,300);
+    res.json({ok:true,days,visitors});
+  }catch(err){
+    res.status(502).json({ok:false,error:'Не удалось загрузить посетителей: '+(err?.message||'unknown')});
+  }
+});
+
+app.get('/api/shef51/admin/bookings',requireShef51Admin,async(req,res)=>{
+  const days=Math.max(1,Math.min(90,Number(req.query?.days)||30));
+  try{
+    const bookings=await shef51Bookings(days);
+    res.json({ok:true,days,bookings:bookings.slice(0,300)});
+  }catch(err){
+    res.status(502).json({ok:false,error:'Не удалось загрузить заявки: '+(err?.message||'unknown')});
+  }
+});
+
 app.get('/api/shef51/admin/site-config',requireShef51Admin,async(req,res)=>{
   res.json({ok:true,config:await getShef51Config('draft')});
 });
