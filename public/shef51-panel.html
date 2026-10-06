@@ -122,8 +122,7 @@
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 let cfg={},menu=[],days=7;
-const token=()=>sessionStorage.getItem('shef51_panel_token')||'';
-async function api(url,opt={}){const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(token()?{Authorization:'Bearer '+token()}:{}),...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+async function api(url,opt={}){const r=await fetch(url,{...opt,credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function getPath(o,p){return p.split('.').reduce((a,k)=>a?.[k],o)}
 function setPath(o,p,v){const a=p.split('.');let x=o;for(let i=0;i<a.length-1;i++)x=x[a[i]]??={};x[a.at(-1)]=v}
@@ -148,12 +147,35 @@ async function loadBookings(d=30){
 }
 async function loadAnalytics(d=7){days=Number(d);$$('.period').forEach(b=>{b.classList.toggle('primary',Number(b.dataset.days)===days)});const a=await api('/api/shef51/admin/analytics-summary?days='+days);const t=a.totals||{};$('#aViews').textContent=t.views??0;$('#aVisitors').textContent=t.visitors??'—';$('#aCta').textContent=t.bookingCta??0;$('#aBookings').textContent=t.bookings??0;rank('#pagesRank',a.pages);rank('#servicesRank',a.services);rank('#productsRank',a.products);await loadVisitors(days).catch(()=>{});if(days===7){$('#dashViews').textContent=t.views??0;$('#dashVisitors').textContent=t.visitors??'—';$('#dashCta').textContent=t.bookingCta??0;$('#dashBookings').textContent=t.bookings??0}}
 async function load(){
- const s=await api('/api/shef51/admin/session').catch(()=>({ok:false}));if(!s.ok){location.href='/shef51-panel-login';return}
- const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];bindCfg();renderProducts();await loadAnalytics(7).catch(()=>{});await loadBookings(30).catch(()=>{});
+ const s=await api('/api/shef51/admin/session').catch(()=>({ok:false}));
+ if(!s.ok){location.replace('/shef51-panel-login');return}
  $('#dashStatus').textContent='Панель подключена к SHEF51 ✓';$('#dashStatus').className='ok';
+
+ try{
+   const c=await api('/api/shef51/admin/site-config');
+   cfg=c.config||{};bindCfg();
+ }catch(e){
+   $('#saveStatus').textContent='Тексты: '+e.message;$('#saveStatus').className='status err';
+ }
+
+ try{
+   const m=await api('/api/shef51/admin/menu');
+   menu=m.items||[];renderProducts();
+ }catch(e){
+   $('#productsList').innerHTML='<div class="card err">Не удалось загрузить товары: '+esc(e.message)+'</div>';
+ }
+
+ try{await loadAnalytics(7)}catch(e){
+   $('#visitorsList').innerHTML='<div class="err">Статистика временно недоступна: '+esc(e.message)+'</div>';
+ }
+
+ try{await loadBookings(30)}catch(e){
+   $('#bookingsList').innerHTML='<div class="err">Заявки временно недоступны: '+esc(e.message)+'</div>';
+ }
+
  try{const t=await api('/api/telegram/status');$('#telegramStatus').textContent=t.connected?(t.chatReady?'Telegram подключён ✓':'Бот подключён, нужен /start'):'Telegram не подключён'}catch(e){$('#telegramStatus').textContent=e.message}
- try{const r=await fetch('/api/yandex/status',{cache:'no-store'});const d=await r.json();$('#storageStatus').textContent=d.connected?'Яндекс Диск подключён ✓':'Хранилище не подключено'}catch(e){$('#storageStatus').textContent='Ошибка проверки'}
- try{const r=await fetch('/api/status',{cache:'no-store'});const d=await r.json();$('#apiStatus').textContent=d.ok?'API работает ✓':'Ошибка API'}catch(e){$('#apiStatus').textContent='API недоступен'}
+ try{const r=await fetch('/api/yandex/status',{cache:'no-store',credentials:'same-origin'});const d=await r.json();$('#storageStatus').textContent=d.connected?'Яндекс Диск подключён ✓':'Хранилище не подключено'}catch(e){$('#storageStatus').textContent='Ошибка проверки'}
+ $('#apiStatus').textContent='API панели работает ✓';$('#apiStatus').className='ok';
 }
 async function save(){const m=await api('/api/shef51/admin/menu',{method:'PUT',body:JSON.stringify({items:menu})});menu=m.items||menu;const c=await api('/api/shef51/admin/site-config',{method:'PUT',body:JSON.stringify({config:cfg})});cfg=c.config||cfg;$('#saveStatus').textContent='Сохранено ✓';$('#saveStatus').className='status ok'}
 $('#save').onclick=()=>save().catch(e=>{$('#saveStatus').textContent=e.message;$('#saveStatus').className='status err'});
@@ -161,8 +183,8 @@ $('#publish').onclick=async()=>{try{await save();await api('/api/shef51/admin/pu
 $('#addProduct').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name:'Новый товар',description:'',portion:'',visible:true,order:(menu.length+1)*10,imageUrl:''});renderProducts()};
 $('.tab').forEach(b=>b.onclick=()=>{$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='requests')loadBookings(30).catch(()=>{})});
 $$('.period').forEach(b=>b.onclick=()=>loadAnalytics(b.dataset.days).catch(e=>alert(e.message)));
-$('#logout').onclick=async()=>{try{await api('/api/shef51/panel/logout',{method:'POST'})}catch{}sessionStorage.removeItem('shef51_panel_token');location.href='/shef51-panel-login'};
-load().catch(()=>location.href='/shef51-panel-login');
+$('#logout').onclick=async()=>{try{await api('/api/shef51/panel/logout',{method:'POST'})}catch{}location.href='/shef51-panel-login'};
+load().catch(e=>{$('#dashStatus').textContent='Ошибка панели: '+e.message;$('#dashStatus').className='err'});
 </script>
 </body>
 </html>
