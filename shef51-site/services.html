@@ -143,17 +143,198 @@ html,body{max-width:100%;overflow-x:hidden}
   .services{grid-template-columns:1fr!important}
   .svc h3,.serviceTyped{min-height:2.4em}
 }
+
+/* service commercial details */
+.svc{
+  display:block;
+  color:inherit;
+}
+.svcMeta{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid #25221e;
+}
+.svcMeta span{
+  color:#8f8f8f;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.svcMeta strong{
+  color:#f2e7d2;
+  font:700 20px Georgia,serif;
+  text-align:right;
+}
+.svcDetails{
+  width:100%;
+  margin-top:18px;
+  padding:13px 0 2px;
+  border:0;
+  border-top:1px solid transparent;
+  background:transparent;
+  color:#d8b573;
+  font:800 13px Inter,Arial,sans-serif;
+  letter-spacing:.03em;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+}
+.svcDetails span{font-size:18px;transition:transform .28s ease}
+.svc.open .svcDetails span{transform:rotate(45deg)}
+.svcBody{
+  display:grid;
+  grid-template-rows:0fr;
+  opacity:0;
+  transition:grid-template-rows .42s cubic-bezier(.2,.7,.2,1),opacity .28s ease,margin .42s ease;
+  overflow:hidden;
+  margin-top:0;
+}
+.svcBody>*{min-height:0}
+.svc.open .svcBody{
+  grid-template-rows:1fr;
+  opacity:1;
+  margin-top:16px;
+}
+.svcLine{
+  display:grid;
+  grid-template-columns:105px 1fr;
+  gap:12px;
+  padding:12px 0;
+  border-top:1px solid #1f1f1f;
+}
+.svcLine b{
+  color:#f0e5d1;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.svcLine span{
+  color:#a7a7a7;
+  font-size:13px;
+  line-height:1.55;
+}
+.svcNote{
+  margin-top:8px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#0d0d0d;
+  border:1px solid #26221c;
+  color:#8f8f8f;
+  font-size:12px;
+  line-height:1.5;
+}
+.svcBook{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:14px;
+  min-height:44px;
+  padding:0 17px;
+  border-radius:999px;
+  background:#ef2634;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+}
+@media(max-width:560px){
+  .svcMeta{align-items:center}
+  .svcMeta strong{font-size:19px}
+  .svcLine{grid-template-columns:1fr;gap:5px}
+}
 </style>
 <section class="wrap pageHead"><div class="eyebrow">УСЛУГИ</div><h1>Форматы событий</h1><div class="pageKinetic">Ваш формат — <span class="pageTyped" data-words="частный ужин|день рождения|свадьба|вечеринка|корпоратив|индивидуальное событие"></span></div>
 <p class="lead">Выберите подходящий формат события. Для каждого заказа меню, подача и организация подбираются индивидуально — с учётом количества гостей, площадки, бюджета и ваших пожеланий.</p>
 <div class="serviceBadges" data-motion><span class="serviceBadge">Персональный подход</span><span class="serviceBadge">Japanese Cuisine</span><span class="serviceBadge">Индивидуальное меню</span><span class="serviceBadge">Ресторанная подача</span><span class="serviceBadge">Мурманск</span></div>
 <div class="services">
-<a class="svc" data-motion href="book.html?service=Ужин%20на%20дому"><div class="num">01</div><h3><span class="serviceTyped" data-text="Ужин на дому">Ужин на дому</span></h3><div class="muted">Персональный гастрономический вечер у вас дома. Меню, приготовление на месте и подача выстраиваются под ваш формат, количество гостей и пожелания.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=День%20рождения"><div class="num">02</div><h3><span class="serviceTyped" data-text="День рождения">День рождения</span></h3><div class="muted">Меню и подача под атмосферу праздника — от камерного семейного вечера до полноценного праздничного стола с ресторанной подачей.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Свадьба"><div class="num">03</div><h3><span class="serviceTyped" data-text="Свадьба">Свадьба</span></h3><div class="muted">Гастрономическая часть события под ключ: индивидуальное меню, тайминг подачи и организация кухни с учётом площадки и количества гостей.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Вечеринка"><div class="num">04</div><h3><span class="serviceTyped" data-text="Вечеринка">Вечеринка</span></h3><div class="muted">Яркий формат для компании друзей: роллы, горячие блюда, закуски и эффектная подача, чтобы гости могли пробовать разные позиции в течение вечера.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Корпоратив"><div class="num">05</div><h3><span class="serviceTyped" data-text="Корпоратив">Корпоратив</span></h3><div class="muted">Продуманное меню для команды и деловых событий. Учитываю формат мероприятия, количество гостей, скорость подачи и удобство сервиса.</div><div class="more">Выбрать формат →</div></a>
-<a class="svc" data-motion href="book.html?service=Индивидуальный%20формат"><div class="num">06</div><h3><span class="serviceTyped" data-text="Индивидуальный формат">Индивидуальный формат</span></h3><div class="muted">Если у вас необычная идея — соберём решение полностью под ваш запрос: меню, подачу, количество блюд, стиль события и дополнительные пожелания.</div><div class="more">Обсудить формат →</div></a>
+<article class="svc" data-motion>
+  <div class="num">01</div>
+  <h3><span class="serviceTyped" data-text="Ужин на дому">Ужин на дому</span></h3>
+  <div class="muted">Персональный гастрономический вечер у вас дома: японское меню, приготовление и ресторанная подача.</div>
+  <div class="svcMeta"><span>Работа шефа</span><strong>от 3 500 ₽</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Что входит</b><span>Подготовка, приготовление, подача и организация рабочего места.</span></div>
+    <div class="svcLine"><b>Меню</b><span>Суши, роллы, воки и горячие позиции — подбираются под ваш формат.</span></div>
+    <div class="svcNote">Продукты рассчитываются отдельно после согласования меню.</div>
+    <a class="svcBook" href="book.html?service=Ужин%20на%20дому">Обсудить ужин →</a>
+  </div>
+</article>
+
+<article class="svc" data-motion>
+  <div class="num">02</div>
+  <h3><span class="serviceTyped" data-text="День рождения">День рождения</span></h3>
+  <div class="muted">Праздничное меню и подача для семейного вечера или компании гостей.</div>
+  <div class="svcMeta"><span>Работа шефа</span><strong>от 5 000 ₽</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Что входит</b><span>Согласование формата, приготовление, сервировка блюд и контроль подачи.</span></div>
+    <div class="svcLine"><b>Подходит</b><span>Для камерного праздника и полноценного праздничного стола.</span></div>
+    <div class="svcNote">Продукты и итоговый объём меню рассчитываются отдельно.</div>
+    <a class="svcBook" href="book.html?service=День%20рождения">Обсудить праздник →</a>
+  </div>
+</article>
+
+<article class="svc" data-motion>
+  <div class="num">03</div>
+  <h3><span class="serviceTyped" data-text="Свадьба">Свадьба</span></h3>
+  <div class="muted">Японское направление для свадебного события с индивидуальным меню и таймингом подачи.</div>
+  <div class="svcMeta"><span>Стоимость</span><strong>индивидуально</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Что учитывается</b><span>Количество гостей, площадка, состав меню, объём кухни и формат подачи.</span></div>
+    <div class="svcLine"><b>Формат</b><span>Роллы, суши, горячие блюда, закуски и индивидуальные позиции.</span></div>
+    <div class="svcNote">Сначала обсуждаем событие, затем фиксируем смету без скрытых пунктов.</div>
+    <a class="svcBook" href="book.html?service=Свадьба">Получить расчёт →</a>
+  </div>
+</article>
+
+<article class="svc" data-motion>
+  <div class="num">04</div>
+  <h3><span class="serviceTyped" data-text="Вечеринка">Вечеринка</span></h3>
+  <div class="muted">Динамичный формат для компании: роллы, горячие блюда и позиции для общей подачи.</div>
+  <div class="svcMeta"><span>Работа шефа</span><strong>от 5 000 ₽</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Что входит</b><span>Подбор меню, приготовление и удобная подача в течение вечера.</span></div>
+    <div class="svcLine"><b>Акцент</b><span>Разнообразие блюд, скорость подачи и удобство для компании.</span></div>
+    <div class="svcNote">Продукты рассчитываются отдельно по выбранному меню.</div>
+    <a class="svcBook" href="book.html?service=Вечеринка">Обсудить вечеринку →</a>
+  </div>
+</article>
+
+<article class="svc" data-motion>
+  <div class="num">05</div>
+  <h3><span class="serviceTyped" data-text="Корпоратив">Корпоратив</span></h3>
+  <div class="muted">Продуманное японское меню для команды, делового события или закрытого мероприятия.</div>
+  <div class="svcMeta"><span>Работа шефа</span><strong>от 7 000 ₽</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Что входит</b><span>План меню, организация приготовления и контроль выдачи.</span></div>
+    <div class="svcLine"><b>Расчёт</b><span>Зависит от количества гостей, продолжительности и выбранных блюд.</span></div>
+    <div class="svcNote">Для крупных форматов заранее готовится индивидуальная смета.</div>
+    <a class="svcBook" href="book.html?service=Корпоратив">Получить расчёт →</a>
+  </div>
+</article>
+
+<article class="svc" data-motion>
+  <div class="num">06</div>
+  <h3><span class="serviceTyped" data-text="Индивидуальный формат">Индивидуальный формат</span></h3>
+  <div class="muted">Необычная идея или особый запрос — собираем формат полностью под ваше событие.</div>
+  <div class="svcMeta"><span>Стоимость</span><strong>по запросу</strong></div>
+  <button class="svcDetails" type="button" aria-expanded="false">Подробнее <span>＋</span></button>
+  <div class="svcBody">
+    <div class="svcLine"><b>Можно собрать</b><span>Авторское меню, отдельные японские станции, специальную подачу или смешанный формат.</span></div>
+    <div class="svcLine"><b>Принцип</b><span>Сначала задача и бюджет — затем решение без лишних позиций.</span></div>
+    <div class="svcNote">Финальная стоимость формируется после короткого обсуждения.</div>
+    <a class="svcBook" href="book.html?service=Индивидуальный%20формат">Обсудить идею →</a>
+  </div>
+</article>
 </div></section></main><footer><div class="wrap foot"><div>SHEF51 · FARRUKH AKA</div><div>WhatsApp: +7 966 123-29-92</div></div></footer><script src="cms.js?v=1"></script><script id="mobile-nav-script">
 document.addEventListener('click',function(e){
   const b=e.target.closest('.menuToggle');
@@ -240,5 +421,15 @@ document.addEventListener('click',function(e){
   },{threshold:.18});
   io.observe(grid);
 })();
+</script>
+
+<script id="service-details">
+document.querySelectorAll('.svcDetails').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const card=btn.closest('.svc');
+    const open=card.classList.toggle('open');
+    btn.setAttribute('aria-expanded',String(open));
+  });
+});
 </script>
 </body></html>
