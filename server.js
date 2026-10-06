@@ -529,6 +529,30 @@ app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
 app.get('/shef51-admin',(req,res)=>res.redirect('/shef51-admin.html'));
 app.get('/shef51-owner',async(req,res,next)=>{
   try{
+    const existing=verifySession(cookieValue(req,'shef51_admin'));
+    if(!existing){
+      const auth=String(req.headers.authorization||'');
+      let user='',pass='';
+      if(auth.startsWith('Basic ')){
+        try{
+          const raw=Buffer.from(auth.slice(6),'base64').toString('utf8');
+          const i=raw.indexOf(':');
+          user=i>=0?raw.slice(0,i):raw;
+          pass=i>=0?raw.slice(i+1):'';
+        }catch{}
+      }
+      const expected=shef51AdminPassword();
+      const userOk=user==='owner';
+      const a=Buffer.from(pass),b=Buffer.from(expected||'');
+      const passOk=Boolean(expected)&&a.length===b.length&&crypto.timingSafeEqual(a,b);
+      if(!userOk||!passOk){
+        res.setHeader('WWW-Authenticate','Basic realm="SHEF51 Owner", charset="UTF-8"');
+        res.setHeader('Cache-Control','no-store');
+        return res.status(401).type('text').send('SHEF51 OWNER');
+      }
+      const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
+      res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
+    }
     const html=await fs.readFile(new URL('./public/shef51-admin.html', import.meta.url),'utf8');
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma','no-cache');
