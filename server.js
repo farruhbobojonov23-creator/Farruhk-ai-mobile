@@ -245,6 +245,17 @@ function frontpadLinks(html,baseUrl){
   for(const m of source.matchAll(/["']((?:\/|https:\/\/app\.frontpad\.ru\/)[^"'<> \n\r\t]{2,180}\.(?:php|html)(?:\?[^"'<>]*)?)["']/gi))add(m[1],'');
   return out;
 }
+
+function frontpadFrames(html,baseUrl){
+  const out=[];
+  for(const m of String(html||'').matchAll(/<(?:iframe|frame)\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi)){
+    try{
+      const url=new URL(m[1],baseUrl).toString();
+      if(url.startsWith('https://app.frontpad.ru/'))out.push(url);
+    }catch{}
+  }
+  return [...new Set(out)].slice(0,12);
+}
 function frontpadScripts(html,baseUrl){
   const out=[];
   for(const m of String(html||'').matchAll(/<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi)){
@@ -311,6 +322,20 @@ app.get('/api/frontpad/reports',async(req,res)=>{
     }
     let links=frontpadLinks(home.html,home.url);
     links.push(...frontpadKeywordRoutes(home.html,home.url));
+    const frames=frontpadFrames(home.html,home.url);
+    for(const frameUrl of frames){
+      try{
+        const fp=await frontpadGetPage(frameUrl);
+        links.push(...frontpadLinks(fp.html,fp.url),...frontpadKeywordRoutes(fp.html,fp.url));
+        const nested=frontpadFrames(fp.html,fp.url);
+        for(const nestedUrl of nested.slice(0,6)){
+          try{
+            const np=await frontpadGetPage(nestedUrl);
+            links.push(...frontpadLinks(np.html,np.url),...frontpadKeywordRoutes(np.html,np.url));
+          }catch{}
+        }
+      }catch{}
+    }
     const scripts=frontpadScripts(home.html,home.url);
     for(const scriptUrl of scripts){
       try{
@@ -320,7 +345,7 @@ app.get('/api/frontpad/reports',async(req,res)=>{
       }catch{}
     }
     links=[...new Map(links.map(x=>[x.url+'|'+x.title,x])).values()];
-    console.log('[frontpad-reports] discovered',{links:links.length,scripts:scripts.length,sample:links.slice(0,20).map(x=>({title:x.title,url:x.url}))});
+    console.log('[frontpad-reports] discovered',{links:links.length,scripts:scripts.length,frames:frames.length,frameSample:frames.slice(0,8),sample:links.slice(0,30).map(x=>({title:x.title,url:x.url}))});
     const wanted=[
       ['Выручка',/выручк/i],
       ['Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл/i],
