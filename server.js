@@ -506,6 +506,8 @@ function shef51PanelBadLogin(ip){
 }
 app.get('/shef51-panel-login',async(req,res,next)=>{
   try{
+    const existing=verifySession(cookieValue(req,'shef51_admin'));
+    if(existing)return res.redirect(302,'/shef51-panel');
     let html=await fs.readFile(new URL('./public/shef51-panel-login.html', import.meta.url),'utf8');
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
     res.setHeader('Pragma','no-cache');
@@ -729,7 +731,8 @@ app.post('/shef51-panel/settings-save',async(req,res,next)=>{
       }
     });
     await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
-    if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
+    shef51ConfigCache.set('draft',{value:cfg,at:Date.now()});
+    if(String(req.body?.mode||'')==='publish'){await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');shef51ConfigCache.set('published',{value:cfg,at:Date.now()});}
     res.redirect(303,'/shef51-panel?tab=settings');
   }catch(err){next(err);}
 });
@@ -744,7 +747,8 @@ app.post('/shef51-panel/site-save',async(req,res,next)=>{
       home:{...current.home,eyebrow:String(req.body?.eyebrow||'').trim(),title:String(req.body?.title||'').trim(),lead:String(req.body?.lead||'').trim(),primaryButton:String(req.body?.primaryButton||'').trim(),secondaryButton:String(req.body?.secondaryButton||'').trim()}
     });
     await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
-    if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
+    shef51ConfigCache.set('draft',{value:cfg,at:Date.now()});
+    if(String(req.body?.mode||'')==='publish'){await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');shef51ConfigCache.set('published',{value:cfg,at:Date.now()});}
     res.redirect(303,'/shef51-panel?tab=site');
   }catch(err){next(err);}
 });
@@ -1037,8 +1041,13 @@ function shef51MoscowStart(days=7){
 function shef51MoscowDay(ts){
   return new Date(Number(ts)+3*3600000).toISOString().slice(0,10);
 }
+const shef51AnalyticsCache=new Map();
+const shef51BookingsCache=new Map();
 async function shef51AnalyticsEvents(days=30){
-  if(!yandexToken())return [];
+  const key=String(days);
+  const cached=shef51AnalyticsCache.get(key);
+  if(cached&&Date.now()-cached.at<60000)return cached.rows;
+  if(!yandexToken())return cached?.rows||[];
   const DAY=86400000;
   const start=shef51MoscowStart(days);
   const folderStart=Math.floor((start-DAY)/DAY)*DAY;
@@ -1066,6 +1075,7 @@ async function shef51AnalyticsEvents(days=30){
       if(row&&Number.isFinite(ts)&&ts>=start&&ts<=Date.now()+60000)rows.push(row);
     }
   }
+  shef51AnalyticsCache.set(key,{rows,at:Date.now()});
   return rows;
 }
 app.get('/api/shef51/admin/analytics-summary',requireShef51Admin,async(req,res)=>{
@@ -1128,7 +1138,10 @@ app.get('/api/shef51/admin/analytics-summary',requireShef51Admin,async(req,res)=
 
 
 async function shef51Bookings(days=30){
-  if(!yandexToken())return [];
+  const key=String(days);
+  const cached=shef51BookingsCache.get(key);
+  if(cached&&Date.now()-cached.at<60000)return cached.rows;
+  if(!yandexToken())return cached?.rows||[];
   const start=shef51MoscowStart(days);
   const rows=[];
   try{
@@ -1146,7 +1159,9 @@ async function shef51Bookings(days=30){
   }catch(err){
     console.error('SHEF51 bookings list error',err?.message||err);
   }
-  return rows.sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
+  const out=rows.sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
+  shef51BookingsCache.set(key,{rows:out,at:Date.now()});
+  return out;
 }
 
 app.get('/api/shef51/admin/visitors',requireShef51Admin,async(req,res)=>{
@@ -1349,6 +1364,7 @@ app.post('/api/shef51/analytics',async(req,res)=>{
         JSON.stringify(item,null,2),
         'application/json'
       );
+      shef51AnalyticsCache.clear();
     }catch(err){
       console.error('SHEF51 analytics save error',err?.message||err);
     }
@@ -1453,6 +1469,7 @@ app.post('/api/telegram/booking',async(req,res)=>{
   if(yandexToken()){
     try{
       await writeYandexFile(SHEF51_BOOKINGS_PATH+booking.id+'.json',JSON.stringify(booking,null,2),'application/json');
+      shef51BookingsCache.clear();
       saved=true;
     }catch(err){
       lastError=err?.message||'booking storage error';
