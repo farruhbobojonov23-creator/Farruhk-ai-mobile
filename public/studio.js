@@ -10,7 +10,7 @@ for(const k of Object.keys(data))if(!Array.isArray(data[k]))data[k]=[];
 try{if(!localStorage.getItem('farrukh_studio_backup_v5'))put('farrukh_studio_backup_v5',{at:new Date().toISOString(),values:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('farrukh_')).map(k=>[k,localStorage.getItem(k)]))})}catch{console.warn('Local backup unavailable')}
 let view='home',filter='today',journalType='temperature',aiConnected=false,statusKnown=false,busy=false,recognition=null,voiceTarget=null,conversation=false,speaking=false,pending=null,lastTask=null,awaitingDailyPlans=false,startupGreetingSpoken=false;
 let tts=read('farrukh_mobile_tts',true);let draft=read('farrukh_studio_cost',{name:'',yield:0,portions:1,sale:0,pack:0,rows:[]});
-const pages=[['home','⌂','Главная','Обзор дня'],['tasks','✓','Задачи','Мой день'],['recipes','▤','ТТК','Рецептуры и ТТК'],['cost','◷','Расчёт','Калькулятор блюда'],['journals','▥','Журналы','Журналы кухни'],['chat','✦','Помощница','Разговор с помощницей'],['settings','⚙','Ещё','Настройки и данные']];
+const pages=[['home','⌂','Главная','Обзор дня'],['tasks','✓','Задачи','Мой день'],['recipes','▤','ТТК','Рецептуры и ТТК'],['cost','◷','Расчёт','Калькулятор блюда'],['journals','▥','Журналы','Журналы кухни'],['reports','▦','Отчёты','Frontpad · живые данные'],['chat','✦','Помощница','Разговор с помощницей'],['settings','⚙','Ещё','Настройки и данные']];
 const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2});
 function day(offset=0){const d=new Date();const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);const v=Object.fromEntries(p.map(x=>[x.type,x.value]));const t=new Date(`${v.year}-${v.month}-${v.day}T12:00:00Z`);t.setUTCDate(t.getUTCDate()+offset);return t.toISOString().slice(0,10)}
 const taskDate=t=>t.dueDate||t.date||(t.dueAt?new Date(t.dueAt).toLocaleDateString('en-CA',{timeZone:'Europe/Moscow'}):'');
@@ -134,7 +134,7 @@ async function loadFrontpadStatus(){
   const r=await fetch('/api/frontpad/status',{cache:'no-store',signal:AbortSignal.timeout(15000)}),d=await r.json();
   frontpadUi.status=d;
   if(!d.configured){box.innerHTML='<div class="notice">Логин и пароль Frontpad ещё не настроены на сервере.</div>';auth.innerHTML='';return}
-  if(d.authenticated){box.innerHTML='<div class="notice"><b>✓ Frontpad подключён</b><br>Сессия активна. Логин и пароль берутся с защищённых переменных Render.</div>';auth.innerHTML='';return}
+  if(d.authenticated){box.innerHTML='<div class="notice"><b>✓ Frontpad подключён</b><br>Сессия активна. Логин и пароль берутся с защищённых переменных Render.</div>';auth.innerHTML=button('Открыть отчёты','data-open-frontpad-reports','primary');auth.querySelector('[data-open-frontpad-reports]').onclick=()=>go('reports');return}
   box.innerHTML='<div class="notice"><b>Frontpad готов к подключению</b><br>Нужен только первый вход. Пароль в приложении не показывается и не вводится.</div>';
   auth.innerHTML=button('Начать подключение','data-frontpad-start','primary');
   const b=auth.querySelector('[data-frontpad-start]');if(b)b.onclick=startFrontpadAuth;
@@ -172,8 +172,45 @@ async function completeFrontpadAuth(){
   const input=$('#frontpadCode');if(input){input.value='';input.focus()}
  }finally{frontpadUi.busy=false;if(btn)btn.disabled=false}
 }
+
+let frontpadReports=null;
+function reportsPage(){
+ return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Живые отчёты</h2><p class="muted">Данные загружаются из текущей авторизованной сессии Frontpad.</p></div>'+button('Обновить','data-refresh-frontpad-reports','primary')+'</div><div id="frontpadReports"><div class="notice">Загружаю отчёты Frontpad…</div></div>';
+}
+function reportTable(rows){
+ if(!Array.isArray(rows)||!rows.length)return '';
+ const width=Math.max(...rows.map(r=>r.length));
+ const head=rows[0]||[];
+ const body=rows.slice(1,31);
+ return '<div class="table-wrap"><table><thead><tr>'+Array.from({length:width},(_,i)=>'<th>'+E(head[i]||'')+'</th>').join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+Array.from({length:width},(_,i)=>'<td>'+E(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function renderFrontpadReports(d){
+ const box=$('#frontpadReports');if(!box)return;
+ if(!d?.ok){box.innerHTML='<div class="notice">'+E(d?.error||'Не удалось загрузить отчёты Frontpad.')+'</div>';return}
+ const updated=d.updatedAt?new Date(d.updatedAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'';
+ const cards=(d.reports||[]).map(r=>{
+   const tables=(r.tables||[]).map(reportTable).join('');
+   let preview='';
+   if(!tables){
+     const lines=String(r.text||'').split('\n').map(x=>x.trim()).filter(Boolean).filter(x=>x.length<180).slice(0,14);
+     preview=lines.length?'<div class="report-copy">'+lines.map(x=>'<div>'+E(x)+'</div>').join('')+'</div>':'<p class="help">Frontpad открыл раздел, но таблицу на этой странице не отдал. Нажми «Обновить» после выбора периода в самом Frontpad, если отчёт требует фильтр.</p>';
+   }
+   return '<section class="card"><div class="card-head"><div><span class="eyebrow">ОТЧЁТ</span><h3>'+E(r.title)+'</h3></div><span class="tag">Live</span></div>'+tables+preview+'</section>';
+ }).join('');
+ box.innerHTML='<div class="notice"><b>✓ Frontpad подключён</b><br>Последнее обновление: '+E(updated||'только что')+'. Показываю то, что доступно твоему пользователю Frontpad.</div>'+(cards?'<div class="grid2" style="margin-top:16px">'+cards+'</div>':'<div class="empty"><strong>Отчёты не найдены</strong>У этого пользователя Frontpad может не быть прав на отчёты, либо меню загружается другим способом.</div>');
+}
+async function loadFrontpadReports(){
+ const box=$('#frontpadReports');if(box)box.innerHTML='<div class="notice">Получаю свежие данные из Frontpad…</div>';
+ try{
+  const r=await fetch('/api/frontpad/reports',{cache:'no-store',signal:AbortSignal.timeout(30000)}),d=await r.json();
+  frontpadReports=d;renderFrontpadReports(d);
+  if(d.needsAuth)toast('Нужно заново подключить Frontpad в настройках');
+ }catch(e){
+  if(box)box.innerHTML='<div class="notice">Не удалось получить отчёты. Проверь подключение Frontpad и повтори.</div>';
+ }
+}
 function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Frontpad</h2><div id="frontpadConnection" class="help">Проверяю подключение…</div><div id="frontpadAuthBox" style="margin-top:16px"></div><p class="help">После первого входа FARRUKH AI сможет использовать эту сессию для автоматического получения данных. Пароль на этой странице не отображается.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
-function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
+function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,reports:reportsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='reports'){loadFrontpadReports();const rb=document.querySelector('[data-refresh-frontpad-reports]');if(rb)rb.onclick=loadFrontpadReports}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
 function saveChat(role,text){persist('chat',[...data.chat,{role,text}].slice(-200));renderMessages()}
 function voiceStatus(t){const el=$('#voiceState');if(el)el.textContent=t}
 function stop(){conversation=false;if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();speaking=false;document.body.classList.remove('listening','speaking');voiceStatus('Голос остановлен')}
