@@ -175,7 +175,7 @@ async function completeFrontpadAuth(){
 
 let frontpadReports=null;
 function reportsPage(){
- return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Живые отчёты</h2><p class="muted">Данные загружаются из текущей авторизованной сессии Frontpad.</p></div>'+button('Обновить','data-refresh-frontpad-reports','primary')+'</div><div id="frontpadReports"><div class="notice">Загружаю отчёты Frontpad…</div></div>';
+ return '<div class="toolbar"><div><span class="eyebrow">FRONTPAD</span><h2 style="margin:.35rem 0 0">Отчёты Frontpad</h2><p class="muted">Самый надёжный способ: скачай отчёт из Frontpad и загрузи файл сюда.</p></div><label class="primary" style="display:inline-flex;align-items:center;cursor:pointer">Загрузить выгрузку<input id="frontpadExportInput" type="file" accept=".xlsx,.xls,.csv" hidden></label></div><div class="notice"><b>Поддерживается Excel и CSV</b><br>FARRUKH AI сам прочитает листы, найдёт таблицы и покажет распознанные показатели. Никакая капча для этого не нужна.</div><div id="frontpadReports" style="margin-top:16px"><div class="empty"><strong>Загрузи выгрузку Frontpad</strong>После выбора файла данные появятся здесь.</div></div>';
 }
 function reportTable(rows){
  if(!Array.isArray(rows)||!rows.length)return '';
@@ -183,6 +183,34 @@ function reportTable(rows){
  const head=rows[0]||[];
  const body=rows.slice(1,31);
  return '<div class="table-wrap"><table><thead><tr>'+Array.from({length:width},(_,i)=>'<th>'+E(head[i]||'')+'</th>').join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+Array.from({length:width},(_,i)=>'<td>'+E(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function uploadTable(headers,rows){
+ const width=Math.max(headers?.length||0,...(rows||[]).map(r=>r.length),1);
+ const head=Array.from({length:width},(_,i)=>headers?.[i]||'');
+ return '<div class="table-wrap"><table><thead><tr>'+head.map(h=>'<th>'+E(h)+'</th>').join('')+'</tr></thead><tbody>'+(rows||[]).slice(0,80).map(r=>'<tr>'+Array.from({length:width},(_,i)=>'<td>'+E(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function renderUploadedFrontpad(d){
+ const box=$('#frontpadReports');if(!box)return;
+ if(!d?.ok){box.innerHTML='<div class="notice">'+E(d?.error||'Не удалось прочитать файл.')+'</div>';return}
+ const when=d.uploadedAt?new Date(d.uploadedAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'';
+ const sheets=(d.sheets||[]).map(s=>{
+   const metrics=(s.metrics||[]).length?'<div class="grid2">'+s.metrics.map(m=>'<div class="card"><div class="metric"><span>'+E(m.label)+'</span><b>'+fmt(m.value)+'</b></div><p class="help">'+E(m.source||'')+'</p></div>').join('')+'</div>':'';
+   return '<section class="card"><div class="card-head"><div><span class="eyebrow">ЛИСТ</span><h3>'+E(s.name)+'</h3></div><span class="tag">'+E(s.totalRows)+' строк</span></div>'+metrics+uploadTable(s.headers,s.rows)+'</section>';
+ }).join('');
+ box.innerHTML='<div class="notice"><b>✓ Файл загружен: '+E(d.fileName)+'</b><br>Обработан: '+E(when||'только что')+'.</div><div style="display:grid;gap:16px;margin-top:16px">'+sheets+'</div>';
+}
+async function uploadFrontpadExport(file){
+ const box=$('#frontpadReports');if(!file)return;
+ if(box)box.innerHTML='<div class="notice">Разбираю выгрузку Frontpad…</div>';
+ try{
+   const fd=new FormData();fd.append('file',file);
+   const r=await fetch('/api/frontpad/upload',{method:'POST',body:fd,signal:AbortSignal.timeout(45000)});
+   const d=await r.json();
+   if(!r.ok)throw Error(d.error||'Не удалось загрузить файл');
+   renderUploadedFrontpad(d);toast('Выгрузка Frontpad загружена');
+ }catch(e){
+   if(box)box.innerHTML='<div class="notice">'+E(e.message||'Не удалось прочитать выгрузку.')+'</div>';
+ }
 }
 function renderFrontpadReports(d){
  const box=$('#frontpadReports');if(!box)return;
@@ -209,8 +237,8 @@ async function loadFrontpadReports(){
   if(box)box.innerHTML='<div class="notice">Не удалось получить отчёты. Проверь подключение Frontpad и повтори.</div>';
  }
 }
-function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Frontpad</h2><div id="frontpadConnection" class="help">Проверяю подключение…</div><div id="frontpadAuthBox" style="margin-top:16px"></div><p class="help">После первого входа FARRUKH AI сможет использовать эту сессию для автоматического получения данных. Пароль на этой странице не отображается.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
-function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,reports:reportsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='reports'){loadFrontpadReports();const rb=document.querySelector('[data-refresh-frontpad-reports]');if(rb)rb.onclick=loadFrontpadReports}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
+function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Frontpad</h2><div id="frontpadConnection" class="help">Проверяю подключение…</div><div id="frontpadAuthBox" style="margin-top:16px"></div><p class="help">Подключение Frontpad сохранено для совместимости. Для отчётов используй выгрузку Excel/CSV в разделе «Отчёты» — это стабильнее и не требует повторной капчи.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
+function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,reports:reportsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='reports'){const inp=$('#frontpadExportInput');if(inp)inp.onchange=e=>uploadFrontpadExport(e.target.files?.[0])}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
 function saveChat(role,text){persist('chat',[...data.chat,{role,text}].slice(-200));renderMessages()}
 function voiceStatus(t){const el=$('#voiceState');if(el)el.textContent=t}
 function stop(){conversation=false;if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();speaking=false;document.body.classList.remove('listening','speaking');voiceStatus('Голос остановлен')}
