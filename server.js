@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import multer from 'multer';
 import ExcelJS from 'exceljs';
+import * as XLSX from 'xlsx';
 
 const app = express();
 const shef51Upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1}});
@@ -389,8 +390,16 @@ app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
         const summary=frontpadUploadSummary(rows);
         if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:ws.name,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,totalRows:summary.data.length});
       });
+    }else if(name.endsWith('.xls')){
+      const wb=XLSX.read(req.file.buffer,{type:'buffer',cellText:true,cellDates:true});
+      for(const sheetName of wb.SheetNames||[]){
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false});
+        const summary=frontpadUploadSummary(rows);
+        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:sheetName,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,totalRows:summary.data.length});
+      }
     }else{
-      return res.status(400).json({ok:false,error:'Поддерживаются файлы .xlsx и .csv'});
+      return res.status(400).json({ok:false,error:'Поддерживаются файлы .xls, .xlsx и .csv'});
     }
     if(!sheets.length)return res.status(422).json({ok:false,error:'В файле не нашлось таблиц с данными.'});
     res.json({ok:true,fileName:req.file.originalname,uploadedAt:new Date().toISOString(),sheets});
