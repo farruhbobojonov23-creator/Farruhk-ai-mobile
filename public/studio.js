@@ -198,13 +198,17 @@ function fpPeriod(name=''){
  return a[1]===b[1]&&a[2]===b[2]?months[Number(a[1])-1]+' '+a[2]:dates[0]+' — '+dates[1];
 }
 function fpReportType(d){
- const sheet=(d?.sheets||[])[0]||{}, hay=[d?.fileName,sheet.name,...(sheet.headers||[]),...(sheet.meta||[]).flat()].join(' ').toLowerCase();
+ const sheet=(d?.sheets||[])[0]||{};
+ const sampleRows=(sheet.rows||[]).slice(0,25).flat();
+ const hay=[d?.fileName,sheet.name,...(sheet.headers||[]),...(sheet.meta||[]).flat(),...sampleRows].join(' ').toLowerCase();
  const types=[
-  ['revenue','Выручка',/выручк|оборот/],['discounts','Скидки и наценки',/скидк|наценк/],['employees','Сотрудники',/сотрудник/],
-  ['users','Пользователи',/пользоват/],['channels','Каналы продаж',/канал.*продаж|источник.*заказ/],['marks','Отметки заказов',/отметк.*заказ|статус.*заказ/],
-  ['execution','Время исполнения',/время.*исполн|время.*заказ/],['hourly','Продажи по часам',/продаж.*час|по часам/],['pnl','Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл/],
-  ['cohort','Когортный анализ',/когорт/],['products','Товары',/товар|наименован.*блюд/],['cost','Себестоимость',/себестоим/],
-  ['movement','Движение сырья',/движен.*сыр|приход|расход.*сыр/],['purchases','История закупок',/истори.*закуп|закупк/],['abc','ABC-анализ',/abc/],['expenses','Прочие расходы',/проч.*расход/]
+  ['revenue','Выручка',/выручк|оборот|сумма продаж/],['discounts','Скидки и наценки',/скидк|наценк/],['employees','Сотрудники',/сотрудник/],
+  ['users','Пользователи',/пользоват/],['channels','Каналы продаж',/канал.*продаж|источник.*заказ/],['marks','Отметки заказов',/отметк.*заказ|статус.*заказ|отмен/],
+  ['execution','Время исполнения',/время.*исполн|время.*заказ/],['hourly','Продажи по часам',/продаж.*час|по часам/],['pnl','Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл|валов.*прибыл|маржинальн/],
+  ['cohort','Когортный анализ',/когорт/],['cost','Себестоимость',/себестоим|стоимост.*сыр|фактич.*себест/],
+  ['movement','Движение сырья',/движен.*сыр|движен.*товар|приход.*расход|начальн.*остат.*конечн.*остат/],
+  ['purchases','История закупок',/истори.*закуп|закупк|поставщик.*приход|приход.*поставщик/],['abc','ABC-анализ',/abc|групп[аы]?\s*[abc]|класс\s*[abc]/],
+  ['products','Товары',/товар|наименован.*блюд|наименован.*товар|продан.*колич|продажи.*товар/],['expenses','Прочие расходы',/проч.*расход/]
  ];
  return types.find(([, ,re])=>re.test(hay))||['generic','Отчёт Frontpad',/.*/];
 }
@@ -237,16 +241,26 @@ function fpHistoryHtml(){
 }
 function renderSavedFrontpadHistory(){const el=$('#frontpadHistory');if(el)el.innerHTML=fpHistoryHtml()}
 function fpGenericDashboard(d,sheet,type){
- const h=sheet.headers||[],rows=sheet.rows||[];const categoryI=fpHeader(h,/наимен|категор|канал|сотруд|пользоват|статус|отметк|час|постав|статья|сыр|товар|блюд/i);
- const numeric=h.map((x,i)=>({i,label:String(x||'')})).filter(x=>/(сумм|выруч|оборот|кол-?во|количество|заказ|скидк|наценк|прибыл|убыт|себестоим|расход|приход|остат|минут|время|процент|доля|марж)/i.test(x.label));
+ const h=sheet.headers||[],rows=sheet.rows||[];
+ const cfg={
+  cost:{category:/наимен|товар|блюд|сыр|ингредиент/i,metrics:/себестоим|стоимост|сумм|кол-?во|количество|цена|доля|процент/i,title:'Структура себестоимости'},
+  movement:{category:/наимен|сыр|товар|ингредиент|склад/i,metrics:/приход|расход|остат|кол-?во|количество|сумм|стоимост/i,title:'Движение и остатки'},
+  purchases:{category:/постав|наимен|товар|сыр|документ/i,metrics:/закуп|приход|сумм|стоимост|кол-?во|количество|цена/i,title:'Закупки и поставщики'},
+  abc:{category:/наимен|товар|блюд|категор|групп|класс/i,metrics:/выруч|оборот|сумм|кол-?во|количество|доля|процент|марж|прибыл/i,title:'ABC-структура'},
+  products:{category:/наимен|товар|блюд|категор/i,metrics:/выруч|оборот|сумм|кол-?во|количество|продаж|себестоим|марж|прибыл/i,title:'Продажи по товарам'}
+ }[type[0]]||{category:/наимен|категор|канал|сотруд|пользоват|статус|отметк|час|постав|статья|сыр|товар|блюд/i,metrics:/сумм|выруч|оборот|кол-?во|количество|заказ|скидк|наценк|прибыл|убыт|себестоим|расход|приход|остат|минут|время|процент|доля|марж/i,title:type[1]};
+ const categoryI=fpHeader(h,cfg.category);
+ const numeric=h.map((x,i)=>({i,label:String(x||'')})).filter(x=>cfg.metrics.test(x.label));
  const sums=numeric.slice(0,4).map(x=>{const vals=rows.map(r=>fpNum(r[x.i])).filter(v=>v!==null);return {label:x.label,value:vals.reduce((a,b)=>a+b,0)}}).filter(x=>Number.isFinite(x.value));
- const kpis=(sums.length?sums:[{label:'Строк в отчёте',value:rows.length}]).slice(0,4).map(x=>fpKpi(x.label,/(сумм|выруч|оборот|прибыл|убыт|себестоим|расход|приход)/i.test(x.label)?fpMoney(x.value):fmt(x.value),'по загруженному файлу')).join('');
+ const moneyLike=/сумм|выруч|оборот|прибыл|убыт|себестоим|расход|приход|стоимост|цена|закуп/i;
+ const kpis=(sums.length?sums:[{label:'Строк в отчёте',value:rows.length}]).slice(0,4).map(x=>fpKpi(x.label,moneyLike.test(x.label)?fpMoney(x.value):fmt(x.value),'по загруженному файлу')).join('');
  let bars='';
  if(categoryI>=0&&numeric.length){
-  const ni=numeric[0].i,items=rows.map(r=>({name:String(r[categoryI]||'').trim(),value:fpNum(r[ni])})).filter(x=>x.name&&x.value!==null).slice(0,12),max=Math.max(1,...items.map(x=>Math.abs(x.value)));
-  if(items.length)bars='<div class="fp-bars">'+items.map(x=>'<div class="fp-bar-row"><div class="fp-bar-head"><b>'+E(x.name)+'</b><span>'+fmt(x.value)+'</span></div><div class="fp-track"><i style="width:'+Math.max(4,Math.round(Math.abs(x.value)/max*100))+'%"></i></div><small>'+E(numeric[0].label)+'</small></div>').join('')+'</div>';
+  const ni=numeric[0].i,items=rows.map(r=>({name:String(r[categoryI]||'').trim(),value:fpNum(r[ni])})).filter(x=>x.name&&x.value!==null).sort((a,b)=>Math.abs(b.value)-Math.abs(a.value)).slice(0,12),max=Math.max(1,...items.map(x=>Math.abs(x.value)));
+  if(items.length)bars='<div class="fp-bars">'+items.map(x=>'<div class="fp-bar-row"><div class="fp-bar-head"><b>'+E(x.name)+'</b><span>'+(moneyLike.test(numeric[0].label)?fpMoney(x.value):fmt(x.value))+'</span></div><div class="fp-track"><i style="width:'+Math.max(4,Math.round(Math.abs(x.value)/max*100))+'%"></i></div><small>'+E(numeric[0].label)+'</small></div>').join('')+'</div>';
  }
- return '<div class="fp-report-head"><div><span class="eyebrow">'+E(type[1].toUpperCase())+'</span><h2>'+E(fpPeriod(d.fileName))+'</h2><p>'+E(fpPointName(d))+' · Frontpad · '+E(d.fileName)+'</p></div><span class="tag">Распознано автоматически</span></div><div class="fp-kpis">'+kpis+'</div><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">ДЕТАЛИ</span><h3>'+E(type[1])+'</h3></div></div>'+(bars||'<div class="fp-no-detail"><b>Данных для диаграммы недостаточно</b><span>Таблица всё равно показана ниже без выдуманных показателей.</span></div>')+'</section><details class="card fp-raw" open><summary>Подробная таблица</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
+ const badge=type[0]==='generic'?'Формат не определён':'Распознано автоматически';
+ return '<div class="fp-report-head"><div><span class="eyebrow">'+E(type[1].toUpperCase())+'</span><h2>'+E(fpPointName(d))+'</h2><p>'+E(fpPeriod(d.fileName))+' · Frontpad · '+E(d.fileName)+'</p></div><span class="tag">'+badge+'</span></div><div class="fp-kpis">'+kpis+'</div><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">АНАЛИТИКА</span><h3>'+E(cfg.title)+'</h3></div></div>'+(bars||'<div class="fp-no-detail"><b>Данных для диаграммы недостаточно</b><span>Все строки файла доступны в подробной таблице ниже.</span></div>')+'</section><details class="card fp-raw" open><summary>Подробная таблица</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
 }
 function fpSheetModel(s){
  const h=s.headers||[],rows=(s.rows||[]).filter(r=>Array.isArray(r)&&r.some(x=>String(x??'').trim()));
