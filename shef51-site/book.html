@@ -231,7 +231,7 @@ form.addEventListener('submit',async e=>{
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Ошибка отправки');
     statusBox.className='status ok';
-    statusBox.textContent='Заявка отправлена. Я скоро свяжусь с вами для подтверждения.';
+    statusBox.textContent=d.telegramSent?'Заявка отправлена. Я скоро свяжусь с вами для подтверждения.':'Заявка принята и сохранена. Я скоро свяжусь с вами для подтверждения.';
     form.reset();
   }catch(err){
     statusBox.className='status err';
