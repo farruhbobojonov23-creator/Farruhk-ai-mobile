@@ -1,6 +1,6 @@
 (()=>{
 const API='https://farruhk-ai-mobile.onrender.com';
-const byHref=(s)=>[...document.querySelectorAll('a')].find(a=>a.getAttribute('href')===s);
+const byHref=(s)=>[...document.querySelectorAll('.links a,.mobileMenu a,.mobileQuickTabs a')].find(a=>a.getAttribute('href')===s);
 const txt=(el,v)=>{if(el&&typeof v==='string'&&v.length)el.textContent=v};
 const setMeta=(name,content)=>{let m=document.querySelector('meta[name="'+name+'"]');if(!m){m=document.createElement('meta');m.name=name;document.head.appendChild(m)}m.content=content||''};
 fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(({config:c})=>{
