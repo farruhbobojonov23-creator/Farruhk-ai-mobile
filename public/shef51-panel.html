@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>SHEF51 — Панель управления</title>
+<style>
+*{box-sizing:border-box}html{background:#050505}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}
+:root{--red:#ff3045;--card:#0b0b0b;--line:#232323;--muted:#8f8f8f}
+.wrap{width:min(1180px,94%);margin:auto;padding:20px 0 100px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}
+.brand{font-weight:900;letter-spacing:.14em}.brand b{color:var(--red)}
+.muted,.status{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid #303030;background:#151515;color:#fff;border-radius:999px;padding:11px 15px;font-weight:800;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--red);border-color:var(--red)}.btn.danger{background:#2b0d12;border-color:#4a151d}
+.tabs{display:flex;gap:8px;overflow:auto;padding:6px 0 14px;position:sticky;top:0;background:#050505e8;backdrop-filter:blur(14px);z-index:10}
+.tab{border:1px solid #303030;background:#151515;color:#ddd;border-radius:999px;padding:11px 14px;font-weight:800;white-space:nowrap}
+.tab.active{background:var(--red);border-color:var(--red);color:#fff}
+.panel{display:none}.panel.active{display:block}
+.hero{padding:18px 0}.hero h1{font:700 clamp(40px,7vw,70px)/.95 Georgia,serif;margin:6px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;margin:14px 0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat small{display:block;color:#888;text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font:700 34px Georgia,serif;color:#f2e6d2;margin-top:8px}
+.field{display:grid;gap:7px;margin:10px 0}.field label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em}
+.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #2a2a2a;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:96px;resize:vertical}
+.product{display:grid;grid-template-columns:140px 1fr;gap:16px}.photo{height:130px;background:#070707;border:1px dashed #333;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:contain}
+.rank{display:grid;gap:9px}.rankItem{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #1c1c1c}.rankItem:last-child{border-bottom:0}
+.hidden{display:none!important}.ok{color:#59d18b}.err{color:#ff7783}
+.toolbar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(1120px,94%);background:#090909ed;border:1px solid #252525;border-radius:22px;padding:10px;display:flex;gap:10px;align-items:center;z-index:20;backdrop-filter:blur(18px)}
+.grow{flex:1}
+@media(max-width:850px){.grid4{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.product{grid-template-columns:1fr}.photo{height:220px}.top{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.grid4{grid-template-columns:1fr}.toolbar{flex-direction:column}.toolbar .btn{width:100%}.toolbar .grow{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div class="brand"><b>SHEF51</b> · НОВАЯ ПАНЕЛЬ</div><div class="muted">Управление сайтом</div></div>
+    <div class="row"><a class="btn" href="https://shef51.onrender.com" target="_blank">Открыть сайт</a><button id="logout" class="btn danger">Выйти</button></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard">Главная</button>
+    <button class="tab" data-tab="products">Товары</button>
+    <button class="tab" data-tab="site">Сайт</button>
+    <button class="tab" data-tab="analytics">Статистика</button>
+    <button class="tab" data-tab="requests">Заявки</button>
+    <button class="tab" data-tab="system">Система</button>
+  </div>
+
+  <section id="panel-dashboard" class="panel active">
+    <div class="hero"><h1>Главная</h1><p class="muted">Коротко о состоянии SHEF51.</p></div>
+    <div class="grid4">
+      <div class="card stat"><small>Просмотры · 7 дней</small><strong id="dashViews">—</strong></div>
+      <div class="card stat"><small>Посетители</small><strong id="dashVisitors">—</strong></div>
+      <div class="card stat"><small>Переходы к брони</small><strong id="dashCta">—</strong></div>
+      <div class="card stat"><small>Заявки</small><strong id="dashBookings">—</strong></div>
+    </div>
+    <div class="card"><h3>Статус</h3><div id="dashStatus" class="muted">Проверяю…</div></div>
+  </section>
+
+  <section id="panel-products" class="panel">
+    <div class="hero"><h1>Товары</h1><p class="muted">Фото, название, состав, цена и видимость.</p></div>
+    <div id="productsList"></div>
+    <button id="addProduct" class="btn">+ Добавить товар</button>
+  </section>
+
+  <section id="panel-site" class="panel">
+    <div class="hero"><h1>Сайт</h1><p class="muted">Главные тексты и контакты.</p></div>
+    <div class="card">
+      <div class="field"><label>Верхняя подпись</label><input data-cfg="home.eyebrow"></div>
+      <div class="field"><label>Главный заголовок</label><input data-cfg="home.title"></div>
+      <div class="field"><label>Описание</label><textarea data-cfg="home.lead"></textarea></div>
+      <div class="grid2"><div class="field"><label>Главная кнопка</label><input data-cfg="home.primaryButton"></div><div class="field"><label>Вторая кнопка</label><input data-cfg="home.secondaryButton"></div></div>
+    </div>
+    <div class="card">
+      <div class="grid2"><div class="field"><label>WhatsApp</label><input data-cfg="general.whatsapp"></div><div class="field"><label>Название сайта</label><input data-cfg="general.siteName"></div></div>
+      <div class="field"><label>Подпись бренда</label><input data-cfg="general.brandLine"></div>
+    </div>
+  </section>
+
+  <section id="panel-analytics" class="panel">
+    <div class="hero"><h1>Статистика</h1><p class="muted">Сегодня / 7 дней / 30 дней.</p></div>
+    <div class="row"><button class="btn period" data-days="1">Сегодня</button><button class="btn primary period" data-days="7">7 дней</button><button class="btn period" data-days="30">30 дней</button></div>
+    <div class="grid4">
+      <div class="card stat"><small>Просмотры</small><strong id="aViews">—</strong></div>
+      <div class="card stat"><small>Посетители</small><strong id="aVisitors">—</strong></div>
+      <div class="card stat"><small>К бронированию</small><strong id="aCta">—</strong></div>
+      <div class="card stat"><small>Заявки</small><strong id="aBookings">—</strong></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Популярные страницы</h3><div id="pagesRank" class="rank"></div></div>
+      <div class="card"><h3>Интерес к услугам</h3><div id="servicesRank" class="rank"></div></div>
+    </div>
+    <div class="card"><h3>Интерес к товарам</h3><div id="productsRank" class="rank"></div></div>
+  </section>
+
+  <section id="panel-requests" class="panel">
+    <div class="hero"><h1>Заявки</h1><p class="muted">Статус канала заявок.</p></div>
+    <div class="card"><h3>Telegram</h3><p id="telegramStatus" class="muted">Проверяю…</p></div>
+  </section>
+
+  <section id="panel-system" class="panel">
+    <div class="hero"><h1>Система</h1><p class="muted">Состояние хранилища и API.</p></div>
+    <div class="card"><h3>Яндекс Диск</h3><p id="storageStatus" class="muted">Проверяю…</p></div>
+    <div class="card"><h3>API SHEF51</h3><p id="apiStatus" class="muted">Проверяю…</p></div>
+  </section>
+</div>
+
+<div class="toolbar">
+  <button id="save" class="btn">Сохранить</button>
+  <div class="grow"></div>
+  <span id="saveStatus" class="status"></span>
+  <button id="publish" class="btn primary">Опубликовать</button>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let cfg={},menu=[],days=7;
+const token=()=>sessionStorage.getItem('shef51_panel_token')||'';
+async function api(url,opt={}){const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(token()?{Authorization:'Bearer '+token()}:{}),...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function getPath(o,p){return p.split('.').reduce((a,k)=>a?.[k],o)}
+function setPath(o,p,v){const a=p.split('.');let x=o;for(let i=0;i<a.length-1;i++)x=x[a[i]]??={};x[a.at(-1)]=v}
+function bindCfg(){$$('[data-cfg]').forEach(el=>{const p=el.dataset.cfg;el.value=getPath(cfg,p)??'';el.oninput=()=>setPath(cfg,p,el.value)})}
+function img(src){return src?.startsWith('/api/')?location.origin+src:src}
+function renderProducts(){
+ $('#productsList').innerHTML=menu.map((x,i)=>`<div class="card product" data-i="${i}"><div><div class="photo">${x.imageUrl?'<img src="'+esc(img(x.imageUrl))+'">':'<span class="muted">Нет фото</span>'}</div><div class="field"><label>Фото</label><input class="photoInput" type="file" accept="image/jpeg,image/png,image/webp"></div></div><div><div class="grid2"><div class="field"><label>Название</label><input data-k="name" value="${esc(x.name)}"></div><div class="field"><label>Категория</label><select data-k="category"><option value="rolls" ${x.category==='rolls'?'selected':''}>Роллы</option><option value="sushi" ${x.category==='sushi'?'selected':''}>Суши</option><option value="wok" ${x.category==='wok'?'selected':''}>Воки</option></select></div></div><div class="field"><label>Описание</label><textarea data-k="description">${esc(x.description||'')}</textarea></div><div class="field"><label>Порция / цена</label><input data-k="portion" value="${esc(x.portion||'')}"></div><div class="row"><label><input type="checkbox" data-k="visible" ${x.visible!==false?'checked':''}> Показывать</label><div class="grow"></div><button class="btn danger del" type="button">Удалить</button></div></div></div>`).join('');
+ $$('.product').forEach(card=>{const i=Number(card.dataset.i);card.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;const fn=()=>menu[i][k]=el.type==='checkbox'?el.checked:el.value;el.oninput=fn;el.onchange=fn});card.querySelector('.del').onclick=()=>{if(confirm('Удалить товар?')){menu.splice(i,1);renderProducts()}};card.querySelector('.photoInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;const data=await new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=fail;r.readAsDataURL(file)});const d=await api('/api/shef51/admin/upload',{method:'POST',body:JSON.stringify({name:menu[i].id||menu[i].name,data})});menu[i].imageUrl=d.imageUrl;renderProducts()}})
+}
+function rank(id,rows){$(id).innerHTML=rows?.length?rows.map(x=>'<div class="rankItem"><span>'+esc(x.name||'—')+'</span><b>'+Number(x.count||0).toLocaleString('ru-RU')+'</b></div>').join(''):'<div class="muted">Пока нет данных</div>'}
+async function loadAnalytics(d=7){days=Number(d);$$('.period').forEach(b=>{b.classList.toggle('primary',Number(b.dataset.days)===days)});const a=await api('/api/shef51/admin/analytics-summary?days='+days);const t=a.totals||{};$('#aViews').textContent=t.views??0;$('#aVisitors').textContent=t.visitors??'—';$('#aCta').textContent=t.bookingCta??0;$('#aBookings').textContent=t.bookings??0;rank('#pagesRank',a.pages);rank('#servicesRank',a.services);rank('#productsRank',a.products);if(days===7){$('#dashViews').textContent=t.views??0;$('#dashVisitors').textContent=t.visitors??'—';$('#dashCta').textContent=t.bookingCta??0;$('#dashBookings').textContent=t.bookings??0}}
+async function load(){
+ const s=await api('/api/shef51/admin/session').catch(()=>({ok:false}));if(!s.ok){location.href='/shef51-panel-login';return}
+ const [c,m]=await Promise.all([api('/api/shef51/admin/site-config'),api('/api/shef51/admin/menu')]);cfg=c.config||{};menu=m.items||[];bindCfg();renderProducts();await loadAnalytics(7).catch(()=>{});
+ $('#dashStatus').textContent='Панель подключена к SHEF51 ✓';$('#dashStatus').className='ok';
+ try{const t=await api('/api/telegram/status');$('#telegramStatus').textContent=t.connected?(t.chatReady?'Telegram подключён ✓':'Бот подключён, нужен /start'):'Telegram не подключён'}catch(e){$('#telegramStatus').textContent=e.message}
+ try{const r=await fetch('/api/yandex/status',{cache:'no-store'});const d=await r.json();$('#storageStatus').textContent=d.connected?'Яндекс Диск подключён ✓':'Хранилище не подключено'}catch(e){$('#storageStatus').textContent='Ошибка проверки'}
+ try{const r=await fetch('/api/status',{cache:'no-store'});const d=await r.json();$('#apiStatus').textContent=d.ok?'API работает ✓':'Ошибка API'}catch(e){$('#apiStatus').textContent='API недоступен'}
+}
+async function save(){const m=await api('/api/shef51/admin/menu',{method:'PUT',body:JSON.stringify({items:menu})});menu=m.items||menu;const c=await api('/api/shef51/admin/site-config',{method:'PUT',body:JSON.stringify({config:cfg})});cfg=c.config||cfg;$('#saveStatus').textContent='Сохранено ✓';$('#saveStatus').className='status ok'}
+$('#save').onclick=()=>save().catch(e=>{$('#saveStatus').textContent=e.message;$('#saveStatus').className='status err'});
+$('#publish').onclick=async()=>{try{await save();await api('/api/shef51/admin/publish',{method:'POST'});$('#saveStatus').textContent='Опубликовано ✓'}catch(e){$('#saveStatus').textContent=e.message;$('#saveStatus').className='status err'}};
+$('#addProduct').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name:'Новый товар',description:'',portion:'',visible:true,order:(menu.length+1)*10,imageUrl:''});renderProducts()};
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active')});
+$$('.period').forEach(b=>b.onclick=()=>loadAnalytics(b.dataset.days).catch(e=>alert(e.message)));
+$('#logout').onclick=async()=>{try{await api('/api/shef51/panel/logout',{method:'POST'})}catch{}sessionStorage.removeItem('shef51_panel_token');location.href='/shef51-panel-login'};
+load().catch(()=>location.href='/shef51-panel-login');
+</script>
+</body>
+</html>
