@@ -127,8 +127,53 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
 
 function chatPage(){return `<div class="chat-layout"><div class="chat-portrait" aria-label="Образ помощницы"></div><section class="card chat-panel"><div class="card-head"><div><h3>Я рядом, Фаррух Ака</h3><span class="caption" id="voiceState">${aiConnected?'AI подключён':'Команды доступны · свободный диалог требует AI'}</span></div>${waves}</div><div class="messages" id="messages"></div><div id="pending"></div><form class="composer" id="chatForm"><textarea class="field" id="message" rows="1" aria-label="Сообщение помощнице" placeholder="Напиши или продиктуй…" required></textarea><button class="primary" type="submit" aria-label="Отправить" ${busy?'disabled':''}>↑</button></form><div class="chat-controls">${button('♩ Говорить','data-mic')}${button(conversation?'Остановить разговор':'Режим разговора','data-conversation')}${button('Остановить голос','data-stop','subtle')}</div><p class="help">Голос устройства. Нажми «Говорить» для одной команды; в режиме разговора микрофон включается после ответа и останавливается при тишине или ошибке.</p></section></div>`}
 function renderMessages(){const box=$('#messages');if(!box)return;box.innerHTML=data.chat.length?data.chat.filter(m=>!m.temp).slice(-60).map(m=>`<div class="message ${m.role==='user'?'user':'assistant'}">${E(m.text)}</div>`).join(''):empty('О чём поговорим?','«Запиши задачу на завтра проверить рис»<br>«Сохрани идею: новый соус»<br>«Открой журнал температуры»');if(busy)box.innerHTML+='<div class="message assistant">Обдумываю…</div>';box.scrollTop=box.scrollHeight;const p=$('#pending');p.innerHTML=pending?`<div class="pending"><p>${E(pending.description)}</p>${button('Подтвердить','data-confirm','primary')}${button('Отмена','data-cancel-pending')}</div>`:''}
-function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
-function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore}}
+let frontpadUi={status:null,busy:false};
+async function loadFrontpadStatus(){
+ const box=$('#frontpadConnection'),auth=$('#frontpadAuthBox');if(!box||!auth)return;
+ try{
+  const r=await fetch('/api/frontpad/status',{cache:'no-store',signal:AbortSignal.timeout(15000)}),d=await r.json();
+  frontpadUi.status=d;
+  if(!d.configured){box.innerHTML='<div class="notice">Логин и пароль Frontpad ещё не настроены на сервере.</div>';auth.innerHTML='';return}
+  if(d.authenticated){box.innerHTML='<div class="notice"><b>✓ Frontpad подключён</b><br>Сессия активна. Логин и пароль берутся с защищённых переменных Render.</div>';auth.innerHTML='';return}
+  box.innerHTML='<div class="notice"><b>Frontpad готов к подключению</b><br>Нужен только первый вход. Пароль в приложении не показывается и не вводится.</div>';
+  auth.innerHTML=button('Начать подключение','data-frontpad-start','primary');
+  const b=auth.querySelector('[data-frontpad-start]');if(b)b.onclick=startFrontpadAuth;
+ }catch{box.innerHTML='<div class="notice">Не удалось проверить Frontpad. Повтори чуть позже.</div>';auth.innerHTML=''}
+}
+async function startFrontpadAuth(){
+ if(frontpadUi.busy)return;frontpadUi.busy=true;
+ const box=$('#frontpadConnection'),auth=$('#frontpadAuthBox');if(box)box.innerHTML='<div class="notice">Открываю защищённую форму Frontpad…</div>';if(auth)auth.innerHTML='';
+ try{
+  const r=await fetch('/api/frontpad/auth/start',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(20000)}),d=await r.json();
+  if(!r.ok)throw Error(d.error||'Не удалось начать вход');
+  if(d.requiresCode){
+   box.innerHTML='<div class="notice"><b>Остался один шаг</b><br>Введите код с картинки Frontpad. Логин и пароль сервер подставит сам.</div>';
+   auth.innerHTML='<div style="display:grid;gap:12px;max-width:360px"><img id="frontpadCaptcha" src="'+E(d.captchaUrl)+'" alt="Код Frontpad" style="max-width:220px;background:#fff;border-radius:10px;padding:6px"><label>Код с картинки<input id="frontpadCode" class="field" inputmode="text" autocomplete="off"></label><div style="display:flex;gap:10px;flex-wrap:wrap">'+button('Подключить Frontpad','data-frontpad-complete','primary')+button('Обновить картинку','data-frontpad-refresh')+'</div><p class="help" id="frontpadError"></p></div>';
+   auth.querySelector('[data-frontpad-complete]').onclick=completeFrontpadAuth;
+   auth.querySelector('[data-frontpad-refresh]').onclick=startFrontpadAuth;
+   $('#frontpadCode')?.focus();
+  }else{
+   await completeFrontpadAuth();
+  }
+ }catch(e){if(box)box.innerHTML='<div class="notice">'+E(e.message||'Ошибка подключения Frontpad')+'</div>';if(auth)auth.innerHTML=button('Попробовать снова','data-frontpad-start','primary');auth?.querySelector('[data-frontpad-start]')?.addEventListener('click',startFrontpadAuth)}
+ finally{frontpadUi.busy=false}
+}
+async function completeFrontpadAuth(){
+ if(frontpadUi.busy)return;frontpadUi.busy=true;
+ const code=$('#frontpadCode')?.value.trim()||'',err=$('#frontpadError'),btn=document.querySelector('[data-frontpad-complete]');
+ if(btn)btn.disabled=true;if(err)err.textContent='Проверяю код…';
+ try{
+  const r=await fetch('/api/frontpad/auth/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code}),signal:AbortSignal.timeout(25000)}),d=await r.json();
+  if(!r.ok)throw Object.assign(new Error(d.error||'Frontpad не принял вход'),{data:d});
+  toast('Frontpad подключён');await loadFrontpadStatus();
+ }catch(e){
+  if(err)err.textContent=e.message||'Не удалось войти';
+  const img=$('#frontpadCaptcha');if(img&&e.data?.captchaUrl)img.src=e.data.captchaUrl+'&r='+Date.now();
+  const input=$('#frontpadCode');if(input){input.value='';input.focus()}
+ }finally{frontpadUi.busy=false;if(btn)btn.disabled=false}
+}
+function settingsPage(){return `<div class="grid2"><section class="card"><h2>Подключения и голос</h2><div class="metric"><span>AI-модель</span><b>${statusKnown?(aiConnected?'Подключена':'Не подключена'):'Проверяется'}</b></div><p class="help">Без модели доступны команды задач, заметок и навигации. Свободный разговор зависит от подключения AI.</p><label style="margin-top:20px"><input type="checkbox" id="tts" ${tts?'checked':''}> Озвучивать ответы голосом устройства</label><p class="help">Образ помощницы — анимированный портрет. Синхронизация губ и естественная голосовая модель пока не подключены.</p></section><section class="card"><h2>Frontpad</h2><div id="frontpadConnection" class="help">Проверяю подключение…</div><div id="frontpadAuthBox" style="margin-top:16px"></div><p class="help">После первого входа FARRUKH AI сможет использовать эту сессию для автоматического получения данных. Пароль на этой странице не отображается.</p></section><section class="card"><h2>Сохранность данных</h2><p class="help">Журналы, задачи, рецептуры и заметки автоматически сохраняются только в этом браузере на этом устройстве. Вход в Google или Яндекс не нужен. На другом устройстве будет отдельная база. При очистке данных браузера записи могут пропасть — скачивай резервную копию в файл.</p><div class="storage-actions">${button('Скачать копию','data-backup','primary')}${button('Восстановить','data-restore')}</div><input hidden id="restoreInput" type="file" accept="application/json"><p class="help">Перед первым запуском создана локальная копия прежних данных, если браузер разрешил запись.</p><a href="/classic.html" class="subtle">Открыть прежнее пространство: проекты и аналитика →</a></section></div>`}
+function render(){const p=pages.find(p=>p[0]===view);$('#pageTitle').textContent=p[3];$('#navigation').innerHTML=pages.map(([v,icon,l])=>`<button class="nav-item ${view===v?'active':''}" data-view="${v}"><span class="icon">${icon}</span>${l}</button>`).join('');main.innerHTML=({home,tasks:tasksPage,recipes:recipesPage,cost:costPage,journals:journalsPage,chat:chatPage,settings:settingsPage}[view])();if(view==='cost')renderCost();if(view==='chat'){renderMessages();$('#chatForm').onsubmit=e=>{e.preventDefault();const input=$('#message');const t=input.value.trim();if(!t||busy)return;input.value='';handle(t)};$('#message').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#chatForm').requestSubmit()}}}if(view==='settings'){$('#tts').onchange=e=>{tts=e.target.checked;put('farrukh_mobile_tts',tts);if(!tts)window.speechSynthesis?.cancel()};$('#restoreInput').onchange=restore;loadFrontpadStatus()}}
 function saveChat(role,text){persist('chat',[...data.chat,{role,text}].slice(-200));renderMessages()}
 function voiceStatus(t){const el=$('#voiceState');if(el)el.textContent=t}
 function stop(){conversation=false;if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();speaking=false;document.body.classList.remove('listening','speaking');voiceStatus('Голос остановлен')}
