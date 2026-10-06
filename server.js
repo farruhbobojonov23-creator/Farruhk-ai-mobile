@@ -557,12 +557,28 @@ app.get('/shef51-panel',async(req,res,next)=>{
     }
 
     if(tab==='products'){
-      title='Товары'; note='Редактирование названий, описаний, порций и видимости.';
+      title='Товары'; note='Добавление и редактирование товаров, категорий, фото и видимости.';
       const items=await getShef51Menu();
-      body=items.map((x,i)=>'<div class="card">'+
+      const categoryOptions=(selected)=>[
+        ['rolls','Роллы'],['sushi','Суши'],['wok','Вок']
+      ].map(([value,label])=>'<option value="'+value+'" '+(selected===value?'selected':'')+'>'+label+'</option>').join('');
+      body='<div class="card" style="border-color:#3a3a3a"><h3 style="margin-top:0">Добавить новый товар</h3><p class="muted">Заполни данные и выбери категорию. После создания можно сразу загрузить фото.</p>'+
+        '<form method="post" action="/shef51-panel/product-create">'+
+        '<div class="grid2"><div class="field"><label>Название</label><input name="name" required placeholder="Название товара"></div>'+
+        '<div class="field"><label>Категория</label><select name="category" required>'+categoryOptions('rolls')+'</select></div></div>'+
+        '<div class="field"><label>Описание</label><textarea name="description" placeholder="Состав или описание"></textarea></div>'+
+        '<div class="field"><label>Порция / цена</label><input name="portion" placeholder="Например: 8 шт. · 649 ₽"></div>'+
+        '<label><input type="checkbox" name="visible" value="1" checked> Показывать на сайте</label>'+
+        '<div style="margin-top:14px"><button class="btn red" type="submit">Добавить товар</button></div></form></div>'+
+        (items.length?items.map((x,i)=>'<div class="card">'+
         (x.imageUrl?'<div style="display:flex;justify-content:center;margin-bottom:14px"><img src="'+shef51PanelEsc(x.imageUrl)+'" alt="" style="width:min(260px,100%);height:180px;object-fit:contain;background:#070707;border:1px solid #222;border-radius:18px"></div>':'<div class="note muted">Фото пока не загружено</div>')+
-        '<form method="post" action="/shef51-panel/product-save"><input type="hidden" name="id" value="'+shef51PanelEsc(x.id)+'"><input type="hidden" name="category" value="'+shef51PanelEsc(x.category)+'"><input type="hidden" name="order" value="'+shef51PanelEsc(x.order)+'"><input type="hidden" name="imageUrl" value="'+shef51PanelEsc(x.imageUrl||'')+'"><div class="field"><label>Название</label><input name="name" value="'+shef51PanelEsc(x.name)+'"></div><div class="field"><label>Описание</label><textarea name="description">'+shef51PanelEsc(x.description||'')+'</textarea></div><div class="field"><label>Порция / цена</label><input name="portion" value="'+shef51PanelEsc(x.portion||'')+'"></div><label><input type="checkbox" name="visible" value="1" '+(x.visible!==false?'checked':'')+'> Показывать на сайте</label><div style="margin-top:14px"><button class="btn" type="submit">Сохранить товар</button></div></form>'+
-        '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #1f1f1f"><form method="post" action="/shef51-panel/product-photo" enctype="multipart/form-data"><input type="hidden" name="id" value="'+shef51PanelEsc(x.id)+'"><div class="field"><label>Фото товара · JPG / PNG / WEBP · до 8 МБ</label><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required style="width:100%;color:#ddd"></div><button class="btn red" type="submit">Загрузить / заменить фото</button></form></div></div>').join('');
+        '<form method="post" action="/shef51-panel/product-save"><input type="hidden" name="id" value="'+shef51PanelEsc(x.id)+'"><input type="hidden" name="order" value="'+shef51PanelEsc(x.order)+'"><input type="hidden" name="imageUrl" value="'+shef51PanelEsc(x.imageUrl||'')+'">'+
+        '<div class="grid2"><div class="field"><label>Название</label><input name="name" value="'+shef51PanelEsc(x.name)+'"></div><div class="field"><label>Категория</label><select name="category">'+categoryOptions(x.category)+'</select></div></div>'+
+        '<div class="field"><label>Описание</label><textarea name="description">'+shef51PanelEsc(x.description||'')+'</textarea></div>'+
+        '<div class="field"><label>Порция / цена</label><input name="portion" value="'+shef51PanelEsc(x.portion||'')+'"></div>'+
+        '<label><input type="checkbox" name="visible" value="1" '+(x.visible!==false?'checked':'')+'> Показывать на сайте</label>'+
+        '<div style="margin-top:14px"><button class="btn" type="submit">Сохранить товар</button></div></form>'+
+        '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #1f1f1f"><form method="post" action="/shef51-panel/product-photo" enctype="multipart/form-data"><input type="hidden" name="id" value="'+shef51PanelEsc(x.id)+'"><div class="field"><label>Фото товара · JPG / PNG / WEBP · до 8 МБ</label><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required style="width:100%;color:#ddd"></div><button class="btn red" type="submit">Загрузить / заменить фото</button></form></div></div>').join(''):'<div class="card"><p class="muted">Товаров пока нет.</p></div>');
     }
 
     if(tab==='site'){
@@ -711,6 +727,36 @@ app.post('/shef51-panel/site-save',async(req,res,next)=>{
     await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
     if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
     res.redirect(303,'/shef51-panel?tab=site');
+  }catch(err){next(err);}
+});
+app.post('/shef51-panel/product-create',async(req,res,next)=>{
+  try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
+    if(!yandexToken())return res.status(503).send('Yandex Disk not connected');
+    const stored=await readYandexJson(SHEF51_MENU_PATH);
+    const items=Array.isArray(stored?.items)?stored.items:await getShef51Menu();
+    const name=cleanText(req.body?.name,120);
+    if(!name)return res.status(400).send('Укажи название товара');
+    const base=(name.toLowerCase()
+      .replace(/[^a-zа-яё0-9]+/gi,'-')
+      .replace(/^-+|-+$/g,'')
+      .slice(0,48)||'item');
+    let id=base+'-'+Date.now().toString(36);
+    id=id.toLowerCase().replace(/[^a-z0-9_-]/g,'-');
+    const maxOrder=items.reduce((m,x)=>Math.max(m,Number(x?.order)||0),0);
+    const item=cleanItem({
+      id,
+      category:req.body?.category,
+      name,
+      description:req.body?.description,
+      portion:req.body?.portion,
+      visible:Boolean(req.body?.visible),
+      order:maxOrder+10,
+      imageUrl:''
+    },items.length);
+    const next=[...items,item].sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0));
+    await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items:next},null,2),'application/json');
+    res.redirect(303,'/shef51-panel?tab=products#'+encodeURIComponent(item.id));
   }catch(err){next(err);}
 });
 app.post('/shef51-panel/product-save',async(req,res,next)=>{
