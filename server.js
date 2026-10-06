@@ -277,7 +277,21 @@ app.post('/api/frontpad/auth/complete',async(req,res)=>{
       html=await r.text();break;
     }
     console.log('[frontpad-auth] response',{status:r.status,url:r.url||'',location:r.headers.get('location')||'',htmlTitle:(html.match(/<title[^>]*>([^<]*)<\/title>/i)||[])[1]||'',hasPassword:/<input\b[^>]*type=["']password["']/i.test(html),hasCaptcha:/(captcha|capcha|код)/i.test(html)});
-    const ok=frontpadLooksLoggedIn(r.url,html);
+    let ok=frontpadLooksLoggedIn(r.url,html);
+    if(!ok){
+      let probe=await frontpadFetch('https://app.frontpad.ru/',{method:'GET',redirect:'manual',headers:{'Referer':r.url||frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA,'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}});
+      let probeHtml='';
+      for(let i=0;i<5;i++){
+        if(probe.status>=300&&probe.status<400&&probe.headers.get('location')){
+          const next=new URL(probe.headers.get('location'),probe.url||'https://app.frontpad.ru/').toString();
+          probe=await frontpadFetch(next,{method:'GET',redirect:'manual',headers:{'Referer':'https://app.frontpad.ru/','User-Agent':FRONTPAD_UA}});
+          continue;
+        }
+        probeHtml=await probe.text();break;
+      }
+      ok=frontpadLooksLoggedIn(probe.url,probeHtml);
+      console.log('[frontpad-auth] probe',{status:probe.status,url:probe.url||'',htmlTitle:(probeHtml.match(/<title[^>]*>([^<]*)<\/title>/i)||[])[1]||'',loggedIn:ok});
+    }
     frontpadSession.authenticated=ok;frontpadSession.updatedAt=new Date().toISOString();
     if(!ok){
       const fresh=parseFrontpadLogin(html,r.url||frontpadSession.loginUrl);
