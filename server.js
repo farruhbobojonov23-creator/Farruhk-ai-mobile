@@ -113,11 +113,11 @@ function mergeFrontpadCookies(current='',pairs=[]){
   return [...map].map(([k,v])=>k+'='+v).join('; ');
 }
 function htmlAttr(tag,name){
-  const m=String(tag||'').match(new RegExp('\\\\b'+name+'\\\\s*=\\\\s*(?:"([^"]*)"|\\\'([^\\\']*)\\\'|([^\\\\s>]+))','i'));
+  const m=String(tag||'').match(new RegExp('\\b'+name+'\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))','i'));
   return m?(m[1]??m[2]??m[3]??''):'';
 }
 function parseFrontpadLogin(html,baseUrl){
-  const inputs=[...String(html||'').matchAll(/<input\\b[^>]*>/gi)].map(x=>{
+  const inputs=[...String(html||'').matchAll(/<input\b[^>]*>/gi)].map(x=>{
     const tag=x[0];return {name:htmlAttr(tag,'name'),id:htmlAttr(tag,'id'),type:(htmlAttr(tag,'type')||'text').toLowerCase(),value:htmlAttr(tag,'value')};
   }).filter(x=>x.name);
   const visible=inputs.filter(x=>!['hidden','submit','button','checkbox','radio','image'].includes(x.type));
@@ -125,10 +125,10 @@ function parseFrontpadLogin(html,baseUrl){
   const password=inputs.find(x=>x.type==='password'||/pass/i.test(x.name+' '+x.id))||null;
   const code=inputs.find(x=>!['hidden','submit','button'].includes(x.type)&&/(code|captcha|capcha|verify|security|check)/i.test(x.name+' '+x.id))||
     visible.find(x=>x!==email&&x!==password)||null;
-  const formMatch=String(html||'').match(/<form\\b[^>]*>/i);
+  const formMatch=String(html||'').match(/<form\b[^>]*>/i);
   const actionRaw=formMatch?htmlAttr(formMatch[0],'action'):'';
   const action=new URL(actionRaw||baseUrl,baseUrl).toString();
-  const imgs=[...String(html||'').matchAll(/<img\\b[^>]*>/gi)].map(x=>htmlAttr(x[0],'src')).filter(Boolean);
+  const imgs=[...String(html||'').matchAll(/<img\b[^>]*>/gi)].map(x=>htmlAttr(x[0],'src')).filter(Boolean);
   const captchaRaw=imgs.find(x=>/(captcha|capcha|code|verify|security)/i.test(x))||(code?imgs[imgs.length-1]:'');
   const captcha=captchaRaw?new URL(captchaRaw,baseUrl).toString():'';
   const hidden=inputs.filter(x=>x.type==='hidden'&&x.name).reduce((a,x)=>(a[x.name]=x.value,a),{});
@@ -154,7 +154,7 @@ async function frontpadBeginAuth(){
 }
 function frontpadLooksLoggedIn(url,html=''){
   const u=String(url||'');
-  if(!/\/login\/?(?:index\.php)?(?:\?|$)/i.test(u)&&!/<input\\b[^>]*type=["']password["']/i.test(html))return true;
+  if(!/\/login\/?(?:index\.php)?(?:\?|$)/i.test(u)&&!/<input\b[^>]*type=["']password["']/i.test(html))return true;
   return false;
 }
 
