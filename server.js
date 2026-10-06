@@ -869,6 +869,8 @@ app.post('/api/shef51/analytics',async(req,res)=>{
   };
   if(yandexToken()){
     try{
+      await ensureFolder(SHEF51_ANALYTICS_PATH);
+      await ensureFolder(SHEF51_ANALYTICS_PATH+day+'/');
       await writeYandexFile(
         SHEF51_ANALYTICS_PATH+day+'/'+item.id+'.json',
         JSON.stringify(item,null,2),
