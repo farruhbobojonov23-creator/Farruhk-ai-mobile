@@ -29,7 +29,7 @@
 @media(max-width:900px){.statsCards{grid-template-columns:1fr 1fr}.statsCols{grid-template-columns:1fr}}
 @media(max-width:560px){.statsCards{grid-template-columns:1fr}.funnelRow{grid-template-columns:110px 1fr 48px}}
 </style></head><body><div class="wrap">
-<div id="loginView" class="login card"><div class="brand"><b>SHEF51</b> · OWNER</div><h1>Control Panel</h1><p class="muted">Закрытая панель управления сайтом.</p><div class="field"><label>Пароль</label><input id="password" type="password"></div><div class="row"><button id="loginBtn" class="btn">Войти</button><span id="loginMsg" class="status"></span></div></div>
+<div id="loginView" class="login card"><div class="brand"><b>SHEF51</b> · OWNER</div><h1>Control Panel</h1><p class="muted">Закрытая панель управления сайтом.</p><form id="nativeLoginForm" action="/shef51-admin-login" method="post"><div class="field"><label>Пароль</label><input id="password" name="password" type="password" inputmode="numeric" autocomplete="current-password" required></div><div class="row"><button id="loginBtn" class="btn" type="submit">Войти</button><span id="loginMsg" class="status"></span></div></form></div>
 <div id="adminView" class="hidden">
 <div class="top"><div><div class="brand"><b>SHEF51</b> · CONTROL PANEL</div><div class="muted">Управление сайтом</div></div><div class="row"><a href="/shef51-editor" class="btn">Визуальный редактор</a><span id="storageBadge" class="pill">Проверка…</span><button id="logoutBtn" class="btn alt">Выйти</button></div></div>
 <div class="tabs" id="tabs">
@@ -190,8 +190,11 @@ $('#addBtn').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name
 $('#saveDraftBtn').onclick=()=>saveDraft().catch(e=>{$('#saveMsg').textContent=e.message;$('#saveMsg').className='status err'});
 $('#publishBtn').onclick=()=>publish().catch(e=>{$('#saveMsg').textContent=e.message;$('#saveMsg').className='status err'});
 $('.tab').forEach(b=>b.onclick=()=>{$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='history')loadHistory();if(b.dataset.tab==='analytics')loadAnalytics(statsDays)});
-$('#loginBtn').onclick=async()=>{try{await api('/api/shef51/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#loginView').classList.add('hidden');$('#adminView').classList.remove('hidden');await load()}catch(e){$('#loginMsg').textContent=e.message;$('#loginMsg').className='status err'}};
-$('#password').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
+const nativeLoginForm=$('#nativeLoginForm');
+if(nativeLoginForm){
+  nativeLoginForm.addEventListener('submit',()=>{$('#loginMsg').textContent='Проверяю…';});
+}
+
 $('#logoutBtn').onclick=async()=>{await api('/api/shef51/admin/logout',{method:'POST'});location.reload()};
 (async()=>{try{const s=await api('/api/shef51/admin/session');if(s.ok){$('#loginView').classList.add('hidden');$('#adminView').classList.remove('hidden');await load()}}catch{}})();
 </script></body></html>
