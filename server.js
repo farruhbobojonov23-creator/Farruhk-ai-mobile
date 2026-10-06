@@ -117,23 +117,51 @@ function htmlAttr(tag,name){
   return m?(m[1]??m[2]??m[3]??''):'';
 }
 function parseFrontpadLogin(html,baseUrl){
-  const inputs=[...String(html||'').matchAll(/<input\b[^>]*>/gi)].map(x=>{
-    const tag=x[0];return {name:htmlAttr(tag,'name'),id:htmlAttr(tag,'id'),type:(htmlAttr(tag,'type')||'text').toLowerCase(),value:htmlAttr(tag,'value')};
+  const source=String(html||'');
+  const forms=[...source.matchAll(/<form\b[^>]*>[\s\S]*?<\/form>/gi)].map(x=>x[0]);
+  const formHtml=forms.find(x=>/<input\b[^>]*type\s*=\s*["']?password/i.test(x))||forms[0]||source;
+  const formOpen=(formHtml.match(/<form\b[^>]*>/i)||[''])[0];
+
+  const inputs=[...formHtml.matchAll(/<input\b[^>]*>/gi)].map(x=>{
+    const tag=x[0];
+    return {
+      name:htmlAttr(tag,'name'),
+      id:htmlAttr(tag,'id'),
+      type:(htmlAttr(tag,'type')||'text').toLowerCase(),
+      value:htmlAttr(tag,'value')
+    };
   }).filter(x=>x.name);
+
+  const buttons=[...formHtml.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/gi)].map(x=>{
+    const tag=x[0];
+    const open=(tag.match(/<button\b[^>]*>/i)||[''])[0];
+    return {
+      name:htmlAttr(open,'name'),
+      type:(htmlAttr(open,'type')||'submit').toLowerCase(),
+      value:htmlAttr(open,'value')||String(tag.replace(/<[^>]+>/g,' ')).trim()
+    };
+  }).filter(x=>x.name);
+
   const visible=inputs.filter(x=>!['hidden','submit','button','checkbox','radio','image'].includes(x.type));
   const email=inputs.find(x=>x.type==='email'||/(^|_)(e?mail|login|user|username)(_|$)/i.test(x.name+' '+x.id))||visible.find(x=>x.type==='text')||null;
   const password=inputs.find(x=>x.type==='password'||/pass/i.test(x.name+' '+x.id))||null;
   const code=inputs.find(x=>!['hidden','submit','button'].includes(x.type)&&/(code|captcha|capcha|verify|security|check)/i.test(x.name+' '+x.id))||
     visible.find(x=>x!==email&&x!==password)||null;
-  const formMatch=String(html||'').match(/<form\b[^>]*>/i);
-  const actionRaw=formMatch?htmlAttr(formMatch[0],'action'):'';
+
+  const actionRaw=formOpen?htmlAttr(formOpen,'action'):'';
+  const method=(formOpen?htmlAttr(formOpen,'method'):'post').toLowerCase()||'post';
   const action=new URL(actionRaw||baseUrl,baseUrl).toString();
-  const imgs=[...String(html||'').matchAll(/<img\b[^>]*>/gi)].map(x=>htmlAttr(x[0],'src')).filter(Boolean);
+
+  const imgs=[...formHtml.matchAll(/<img\b[^>]*>/gi)].map(x=>htmlAttr(x[0],'src')).filter(Boolean);
   const captchaRaw=imgs.find(x=>/(captcha|capcha|code|verify|security)/i.test(x))||(code?imgs[imgs.length-1]:'');
   const captcha=captchaRaw?new URL(captchaRaw,baseUrl).toString():'';
+
   const hidden=inputs.filter(x=>x.type==='hidden'&&x.name).reduce((a,x)=>(a[x.name]=x.value,a),{});
-  const submits=inputs.filter(x=>['submit','image'].includes(x.type)&&x.name).reduce((a,x)=>(a[x.name]=x.value||'1',a),{});
-  return {email:email?.name||'',password:password?.name||'',code:code?.name||'',hidden,submits,action,captcha};
+  const submits={};
+  inputs.filter(x=>['submit','image'].includes(x.type)&&x.name).forEach(x=>submits[x.name]=x.value||'1');
+  buttons.filter(x=>x.type==='submit'&&x.name).forEach(x=>submits[x.name]=x.value||'1');
+
+  return {email:email?.name||'',password:password?.name||'',code:code?.name||'',hidden,submits,action,method,captcha};
 }
 async function frontpadFetch(url,options={}){
   const headers={...(options.headers||{})};
@@ -230,7 +258,12 @@ app.post('/api/frontpad/auth/complete',async(req,res)=>{
     body.set(f.password,String(process.env.FRONTPAD_PASSWORD||'').trim());
     if(f.code)body.set(f.code,code);
     Object.entries(f.submits||{}).forEach(([k,v])=>{if(!body.has(k))body.set(k,String(v??''))});
-    let r=await frontpadFetch(frontpadSession.formAction||frontpadSession.loginUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Referer':frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA},body:body.toString()});
+    const submitMethod=String(f.method||'post').toUpperCase()==='GET'?'GET':'POST';
+    const submitUrl=submitMethod==='GET'
+      ? (frontpadSession.formAction||frontpadSession.loginUrl)+(String(frontpadSession.formAction||frontpadSession.loginUrl).includes('?')?'&':'?')+body.toString()
+      : (frontpadSession.formAction||frontpadSession.loginUrl);
+    console.log('[frontpad-auth] submit',{url:submitUrl.split('?')[0],method:submitMethod,emailField:f.email,passwordField:f.password,codeField:f.code,hidden:Object.keys(f.hidden||{}),submits:Object.keys(f.submits||{}),cookieNames:String(frontpadSession.cookies||'').split(';').map(x=>x.trim().split('=')[0]).filter(Boolean)});
+    let r=await frontpadFetch(submitUrl,{method:submitMethod,headers:{'Content-Type':'application/x-www-form-urlencoded','Origin':'https://app.frontpad.ru','Referer':frontpadSession.loginUrl,'User-Agent':FRONTPAD_UA,'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Language':'ru-RU,ru;q=0.9,en;q=0.8'},...(submitMethod==='POST'?{body:body.toString()}:{})});
     let html='';
     for(let i=0;i<4;i++){
       if(r.status>=300&&r.status<400&&r.headers.get('location')){
@@ -240,6 +273,7 @@ app.post('/api/frontpad/auth/complete',async(req,res)=>{
       }
       html=await r.text();break;
     }
+    console.log('[frontpad-auth] response',{status:r.status,url:r.url||'',location:r.headers.get('location')||'',htmlTitle:(html.match(/<title[^>]*>([^<]*)<\/title>/i)||[])[1]||'',hasPassword:/<input\b[^>]*type=["']password["']/i.test(html),hasCaptcha:/(captcha|capcha|код)/i.test(html)});
     const ok=frontpadLooksLoggedIn(r.url,html);
     frontpadSession.authenticated=ok;frontpadSession.updatedAt=new Date().toISOString();
     if(!ok){
