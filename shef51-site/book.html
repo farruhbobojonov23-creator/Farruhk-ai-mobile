@@ -190,7 +190,12 @@ button,input,select,textarea{font:inherit}
   .notice{font-size:12px!important;line-height:1.55}
 }
 </style>
-<script src="analytics.js?v=1" defer></script></head><body>
+<script src="analytics.js?v=1" defer></script>
+<style id="booking-conversion-polish">
+.bookingHint{grid-column:1/-1;padding:13px 15px;border:1px solid #2a261f;border-radius:14px;background:#0e0d0b;color:#9d968a;font-size:12px;line-height:1.55}
+.bookingHint b{color:#ead8b5}
+@media(max-width:560px){.bookingHint{font-size:11px}}
+</style></head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>.book{display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:start}.panel{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form .full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#111;border:1px solid #303030;color:#fff;border-radius:14px;padding:15px;font:inherit}.field textarea{min-height:120px;resize:vertical}.notice{font-size:13px;color:#858585;margin-top:12px}.status{display:none;margin-top:14px;padding:14px 16px;border-radius:14px;background:#111;border:1px solid #303030;line-height:1.5}.status.ok{display:block;border-color:#2b6f42;color:#baf5ca}.status.err{display:block;border-color:#7d3037;color:#ffc2c7}@media(max-width:850px){.book{grid-template-columns:1fr}}@media(max-width:560px){.form{grid-template-columns:1fr}.form .full{grid-column:auto}}</style>
 <section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><div class="pageKinetic">Организуем — <span class="pageTyped" data-words="частный ужин|день рождения|свадьбу|вечеринку|корпоратив|особенное событие"></span></div><p class="lead">Выберите услугу и удобную дату, укажите количество гостей и оставьте контакт. Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
@@ -199,9 +204,12 @@ button,input,select,textarea{font:inherit}
 <div class="field" data-motion><label>Дата</label><input id="date" name="Дата" type="date" required></div>
 <div class="field" data-motion><label>Количество гостей</label><input id="guests" name="Количество гостей" type="number" min="1" placeholder="Например, 8" required></div>
 <div class="field" data-motion><label>Ваше имя</label><input id="name" name="Имя" placeholder="Имя" required></div>
-<div class="field full"><label>Телефон / WhatsApp</label><input id="contact" name="Контакт" placeholder="Например, +7..." required></div>
-<div class="field full"><label>Пожелания</label><textarea id="comment" name="Пожелания" placeholder="Что планируется, меню, адрес, особые пожелания..."></textarea></div>
-<input type="hidden" name="_subject" value="Новая заявка SHEF51">
+<div class="field"><label>Ориентировочный бюджет</label><select id="budget" name="Бюджет"><option value="">Не определился</option><option>до 10 000 ₽</option><option>10 000–20 000 ₽</option><option>20 000–40 000 ₽</option><option>40 000 ₽ и выше</option></select></div>
+<div class="field"><label>Как удобнее связаться</label><select id="contactMethod" name="Способ связи"><option>WhatsApp</option><option>Телефон</option><option>MAX</option><option>Email</option></select></div>
+<div class="field full"><label>Адрес / район мероприятия</label><input id="address" name="Адрес" placeholder="Например, Мурманск, район / улица"></div>
+<div class="field full"><label>Телефон / контакт</label><input id="contact" name="Контакт" placeholder="Например, +7..." required></div>
+<div class="field full"><label>Пожелания</label><textarea id="comment" name="Пожелания" placeholder="Какой формат планируется, любимые блюда, аллергии, пожелания по подаче..."></textarea></div>
+<div class="bookingHint"><b>Можно указать примерный бюджет.</b> Это не фиксирует стоимость — помогает сразу подобрать подходящий формат меню и не предлагать лишнее.</div><input type="hidden" name="_subject" value="Новая заявка SHEF51">
 <input type="hidden" name="_template" value="table">
 <button id="submitBtn" class="btn full" type="submit">Отправить заявку</button>
 </form><div id="status" class="status" aria-live="polite"></div><div class="notice">После отправки заявки администратор шеф-повара свяжется с вами для подтверждения и уточнения деталей.</div></div></section>
@@ -220,6 +228,9 @@ form.addEventListener('submit',async e=>{
     guests:document.getElementById('guests').value,
     name:document.getElementById('name').value.trim(),
     contact:document.getElementById('contact').value.trim(),
+    budget:document.getElementById('budget').value,
+    address:document.getElementById('address').value.trim(),
+    contactMethod:document.getElementById('contactMethod').value,
     comment:document.getElementById('comment').value.trim()
   };
   try{
@@ -232,8 +243,10 @@ form.addEventListener('submit',async e=>{
     if(!r.ok)throw new Error(d.error||'Ошибка отправки');
     statusBox.className='status ok';
     statusBox.textContent=d.telegramSent?'Заявка отправлена. Я скоро свяжусь с вами для подтверждения.':'Заявка принята и сохранена. Я скоро свяжусь с вами для подтверждения.';
+    if(window.shefTrack)window.shefTrack('booking_submit_success',{label:payload.service,meta:{guests:payload.guests,budget:payload.budget}});
     form.reset();
   }catch(err){
+    if(window.shefTrack)window.shefTrack('booking_submit_error',{label:payload.service});
     statusBox.className='status err';
     statusBox.textContent='Не удалось отправить заявку. Попробуйте ещё раз чуть позже.';
   }finally{
