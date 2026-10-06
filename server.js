@@ -3,8 +3,10 @@ import express from 'express';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
+import multer from 'multer';
 
 const app = express();
+const shef51Upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1}});
 app.use(express.json({limit:'20mb'}));
 app.use(express.urlencoded({extended:false,limit:'1mb'}));
 
@@ -558,7 +560,10 @@ app.get('/shef51-panel',async(req,res,next)=>{
       title='Товары'; note='Редактирование названий, описаний, порций и видимости.';
       const items=await getShef51Menu();
       body='<form method="post" action="/shef51-panel/products-save">'+
-        items.map((x,i)=>'<div class="card"><input type="hidden" name="id_'+i+'" value="'+shef51PanelEsc(x.id)+'"><input type="hidden" name="category_'+i+'" value="'+shef51PanelEsc(x.category)+'"><input type="hidden" name="order_'+i+'" value="'+shef51PanelEsc(x.order)+'"><input type="hidden" name="imageUrl_'+i+'" value="'+shef51PanelEsc(x.imageUrl||'')+'"><div class="field"><label>Название</label><input name="name_'+i+'" value="'+shef51PanelEsc(x.name)+'"></div><div class="field"><label>Описание</label><textarea name="description_'+i+'">'+shef51PanelEsc(x.description||'')+'</textarea></div><div class="field"><label>Порция / цена</label><input name="portion_'+i+'" value="'+shef51PanelEsc(x.portion||'')+'"></div><label><input type="checkbox" name="visible_'+i+'" value="1" '+(x.visible!==false?'checked':'')+'> Показывать на сайте</label></div>').join('')+
+        items.map((x,i)=>'<div class="card">'+
+        (x.imageUrl?'<div style="display:flex;justify-content:center;margin-bottom:14px"><img src="'+shef51PanelEsc(x.imageUrl)+'" alt="" style="width:min(260px,100%);height:180px;object-fit:contain;background:#070707;border:1px solid #222;border-radius:18px"></div>':'<div class="note muted">Фото пока не загружено</div>')+
+        '<input type="hidden" name="id_'+i+'" value="'+shef51PanelEsc(x.id)+'"><input type="hidden" name="category_'+i+'" value="'+shef51PanelEsc(x.category)+'"><input type="hidden" name="order_'+i+'" value="'+shef51PanelEsc(x.order)+'"><input type="hidden" name="imageUrl_'+i+'" value="'+shef51PanelEsc(x.imageUrl||'')+'"><div class="field"><label>Название</label><input name="name_'+i+'" value="'+shef51PanelEsc(x.name)+'"></div><div class="field"><label>Описание</label><textarea name="description_'+i+'">'+shef51PanelEsc(x.description||'')+'</textarea></div><div class="field"><label>Порция / цена</label><input name="portion_'+i+'" value="'+shef51PanelEsc(x.portion||'')+'"></div><label><input type="checkbox" name="visible_'+i+'" value="1" '+(x.visible!==false?'checked':'')+'> Показывать на сайте</label>'+
+        '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #1f1f1f"><form></form><div class="field"><label>Фото товара</label><form method="post" action="/shef51-panel/product-photo" enctype="multipart/form-data"><input type="hidden" name="id" value="'+shef51PanelEsc(x.id)+'"><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required style="width:100%;color:#ddd"><button class="btn" type="submit" style="margin-top:10px">Загрузить / заменить фото</button></form></div></div></div>').join('')+
         '<input type="hidden" name="count" value="'+items.length+'"><button class="btn red" type="submit">Сохранить товары</button></form>';
     }
 
@@ -631,6 +636,27 @@ app.post('/shef51-panel/site-save',async(req,res,next)=>{
     await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
     if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
     res.redirect(303,'/shef51-panel?tab=site');
+  }catch(err){next(err);}
+});
+app.post('/shef51-panel/product-photo',shef51Upload.single('photo'),async(req,res,next)=>{
+  try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
+    if(!yandexToken())return res.status(503).send('Yandex Disk not connected');
+    const id=String(req.body?.id||'').trim();
+    if(!/^[a-z0-9_-]{1,80}$/i.test(id))return res.status(400).send('Bad product id');
+    const file=req.file;
+    if(!file)return res.status(400).send('Файл не выбран');
+    const allowed=new Map([['image/jpeg','jpg'],['image/png','png'],['image/webp','webp']]);
+    const ext=allowed.get(file.mimetype);
+    if(!ext)return res.status(400).send('Поддерживаются JPG, PNG и WEBP');
+    const name=id+'-'+Date.now()+'.'+ext;
+    await ensureFolder(SHEF51_PHOTOS_PATH);
+    await writeYandexFile(SHEF51_PHOTOS_PATH+name,file.buffer,file.mimetype);
+    const stored=await readYandexJson(SHEF51_MENU_PATH);
+    const items=Array.isArray(stored?.items)?stored.items:await getShef51Menu();
+    const next=items.map(x=>String(x.id)===id?{...x,imageUrl:'/api/shef51/image/'+encodeURIComponent(name)}:x);
+    await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items:next},null,2),'application/json');
+    res.redirect(303,'/shef51-panel?tab=products');
   }catch(err){next(err);}
 });
 app.post('/shef51-panel/products-save',async(req,res,next)=>{
