@@ -184,6 +184,54 @@ function reportTable(rows){
  const body=rows.slice(1,31);
  return '<div class="table-wrap"><table><thead><tr>'+Array.from({length:width},(_,i)=>'<th>'+E(head[i]||'')+'</th>').join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+Array.from({length:width},(_,i)=>'<td>'+E(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 }
+function fpNum(v){
+ const s=String(v??'').replace(/\u00a0/g,' ').replace(/\s+/g,'').replace(',','.').replace(/[^\d.-]/g,'');
+ const n=Number(s);return Number.isFinite(n)?n:null;
+}
+function fpHeader(headers,re){return (headers||[]).findIndex(h=>re.test(String(h||'')))}
+function fpMoney(v){return Number(v||0).toLocaleString('ru-RU',{maximumFractionDigits:0})+' ₽'}
+function fpPeriod(name=''){
+ const dates=String(name).match(/\d{2}\.\d{2}\.\d{4}/g)||[];
+ if(dates.length<2)return 'Загруженный период';
+ const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+ const a=dates[0].split('.'),b=dates[1].split('.');
+ return a[1]===b[1]&&a[2]===b[2]?months[Number(a[1])-1]+' '+a[2]:dates[0]+' — '+dates[1];
+}
+function fpSheetModel(s){
+ const h=s.headers||[],rows=(s.rows||[]).filter(r=>Array.isArray(r)&&r.some(x=>String(x??'').trim()));
+ const nameI=fpHeader(h,/наимен|точк|филиал|подраздел|ресторан|объект/i);
+ const ordersI=fpHeader(h,/заказ/i),checkI=fpHeader(h,/чек/i),sumI=fpHeader(h,/сумм|выруч|оборот/i),cancelI=fpHeader(h,/отмен|возврат/i);
+ const total=rows.find(r=>/^(всего|итого|total)$/i.test(String(r[nameI>=0?nameI:0]||'').trim()))||rows[rows.length-1]||[];
+ const val=(i,row=total)=>i>=0?fpNum(row[i]):null;
+ const points=rows.filter(r=>{
+   const n=String(r[nameI>=0?nameI:0]||'').trim();
+   return n&&!/^(всего|итого|total)$/i.test(n)&&(ordersI<0||val(ordersI,r)!==null||sumI<0||val(sumI,r)!==null);
+ }).map(r=>({name:String(r[nameI>=0?nameI:0]||'Точка').trim(),orders:val(ordersI,r)||0,check:val(checkI,r)||0,revenue:val(sumI,r)||0,cancel:val(cancelI,r)||0}));
+ let orders=val(ordersI),avg=val(checkI),revenue=val(sumI),cancel=val(cancelI);
+ if(orders===null&&points.length)orders=points.reduce((a,x)=>a+x.orders,0);
+ if(revenue===null&&points.length)revenue=points.reduce((a,x)=>a+x.revenue,0);
+ if(cancel===null&&cancelI>=0&&points.length)cancel=points.reduce((a,x)=>a+x.cancel,0);
+ if((avg===null||!avg)&&orders&&revenue)avg=revenue/orders;
+ return {h,rows,total,nameI,ordersI,checkI,sumI,cancelI,points,orders:orders||0,avg:avg||0,revenue:revenue||0,cancel};
+}
+function fpKpi(label,value,sub=''){
+ return '<div class="fp-kpi"><span>'+E(label)+'</span><b>'+E(value)+'</b>'+(sub?'<small>'+E(sub)+'</small>':'')+'</div>';
+}
+function fpBars(points,totalRevenue){
+ if(!points.length)return '<div class="fp-no-detail"><b>В этой выгрузке нет разбивки по точкам</b><span>Сейчас файл содержит общий итог. Если выгрузить отчёт с филиалами/подразделениями, FARRUKH AI автоматически покажет сравнение каждой точки.</span></div>';
+ const max=Math.max(...points.map(x=>x.revenue||x.orders||0),1);
+ return '<div class="fp-bars">'+points.slice(0,12).map((p,i)=>{
+   const base=p.revenue||p.orders||0,pct=Math.max(4,Math.round(base/max*100));
+   const share=totalRevenue&&p.revenue?Math.round(p.revenue/totalRevenue*100):0;
+   return '<div class="fp-bar-row"><div class="fp-bar-head"><b>'+E(p.name)+'</b><span>'+(p.revenue?fpMoney(p.revenue):fmt(p.orders)+' заказов')+'</span></div><div class="fp-track"><i style="width:'+pct+'%"></i></div><small>'+(p.orders?fmt(p.orders)+' заказов · ':'')+(p.check?fpMoney(p.check)+' средний чек':'')+(share?' · '+share+'% выручки':'')+'</small></div>';
+ }).join('')+'</div>';
+}
+function fpPointsTable(points,hasCancel){
+ if(!points.length)return '';
+ return '<div class="table-wrap fp-table"><table><thead><tr><th>Точка</th><th>Заказы</th><th>Средний чек</th><th>Выручка</th>'+(hasCancel?'<th>Отмены</th><th>% отмен</th>':'')+'</tr></thead><tbody>'+
+ points.map(p=>'<tr><td><b>'+E(p.name)+'</b></td><td>'+fmt(p.orders)+'</td><td>'+fpMoney(p.check)+'</td><td><b>'+fpMoney(p.revenue)+'</b></td>'+(hasCancel?'<td>'+fmt(p.cancel)+'</td><td>'+(p.orders?((p.cancel/p.orders)*100).toFixed(1):'0')+'%</td>':'')+'</tr>').join('')+
+ '</tbody></table></div>';
+}
 function uploadTable(headers,rows){
  const width=Math.max(headers?.length||0,...(rows||[]).map(r=>r.length),1);
  const head=Array.from({length:width},(_,i)=>headers?.[i]||'');
@@ -193,12 +241,28 @@ function renderUploadedFrontpad(d){
  const box=$('#frontpadReports');if(!box)return;
  if(!d?.ok){box.innerHTML='<div class="notice">'+E(d?.error||'Не удалось прочитать файл.')+'</div>';return}
  const when=d.uploadedAt?new Date(d.uploadedAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'';
- const sheets=(d.sheets||[]).map(s=>{
-   const metrics=(s.metrics||[]).length?'<div class="grid2">'+s.metrics.map(m=>'<div class="card"><div class="metric"><span>'+E(m.label)+'</span><b>'+fmt(m.value)+'</b></div><p class="help">'+E(m.source||'')+'</p></div>').join('')+'</div>':'';
-   return '<section class="card"><div class="card-head"><div><span class="eyebrow">ЛИСТ</span><h3>'+E(s.name)+'</h3></div><span class="tag">'+E(s.totalRows)+' строк</span></div>'+metrics+uploadTable(s.headers,s.rows)+'</section>';
- }).join('');
- box.innerHTML='<div class="notice"><b>✓ Файл загружен: '+E(d.fileName)+'</b><br>Обработан: '+E(when||'только что')+'.</div><div style="display:grid;gap:16px;margin-top:16px">'+sheets+'</div>';
+ const sheet=(d.sheets||[])[0];
+ if(!sheet){box.innerHTML='<div class="notice">В файле нет данных.</div>';return}
+ const m=fpSheetModel(sheet),period=fpPeriod(d.fileName);
+ const completed=m.cancel===null?null:Math.max(0,m.orders-m.cancel);
+ const cancelRate=m.cancel===null||!m.orders?null:(m.cancel/m.orders*100);
+ const kpis=fpKpi('Выручка',fpMoney(m.revenue),period)+
+   fpKpi('Заказы',fmt(m.orders),'за период')+
+   fpKpi('Средний чек',fpMoney(m.avg),'на один заказ')+
+   fpKpi('Отмены',m.cancel===null?'Нет данных':fmt(m.cancel),cancelRate===null?'нет колонки в файле':cancelRate.toFixed(1)+'% от заказов');
+ const quality=m.cancel===null
+   ? '<div class="fp-quality-empty"><b>Отмены не найдены в этой выгрузке</b><span>Когда в файле будет колонка «Отмены» или «Возвраты», здесь появятся количество, процент и сравнение по точкам.</span></div>'
+   : '<div class="fp-quality"><div><span>Выполнено</span><b>'+fmt(completed)+'</b></div><div><span>Отменено</span><b>'+fmt(m.cancel)+'</b></div><div><span>Доля отмен</span><b>'+cancelRate.toFixed(1)+'%</b></div></div>';
+ const detailTitle=m.points.length?'Результат по точкам':'Структура отчёта';
+ box.innerHTML=
+   '<div class="fp-report-head"><div><span class="eyebrow">УПРАВЛЕНЧЕСКИЙ ОТЧЁТ</span><h2>'+E(period)+'</h2><p>Frontpad · '+E(d.fileName)+'</p></div><span class="tag">Обработан '+E(when||'только что')+'</span></div>'+
+   '<div class="fp-kpis">'+kpis+'</div>'+
+   '<div class="fp-dashboard-grid"><section class="card fp-chart-card"><div class="card-head"><div><span class="eyebrow">СРАВНЕНИЕ</span><h3>'+detailTitle+'</h3></div><span class="tag">'+m.points.length+' точек</span></div>'+fpBars(m.points,m.revenue)+'</section>'+
+   '<section class="card"><div class="card-head"><div><span class="eyebrow">КАЧЕСТВО</span><h3>Заказы и отмены</h3></div></div>'+quality+'</section></div>'+
+   (m.points.length?'<section class="card fp-points"><div class="card-head"><div><span class="eyebrow">ДЕТАЛИЗАЦИЯ</span><h3>Точки</h3></div><span class="tag">по выручке и заказам</span></div>'+fpPointsTable(m.points,m.cancelI>=0)+'</section>':'')+
+   '<details class="card fp-raw"><summary>Показать исходную таблицу из Frontpad</summary><div style="margin-top:14px">'+uploadTable(sheet.headers,sheet.rows)+'</div></details>';
 }
+
 async function uploadFrontpadExport(file){
  const box=$('#frontpadReports');if(!file)return;
  if(box)box.innerHTML='<div class="notice">Разбираю выгрузку Frontpad…</div>';
