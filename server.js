@@ -223,6 +223,103 @@ app.get('/api/frontpad/status',async(req,res)=>{
   });
 });
 
+
+function frontpadText(s=''){
+  return String(s).replace(/<script\b[\s\S]*?<\/script>/gi,' ').replace(/<style\b[\s\S]*?<\/style>/gi,' ').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|li|tr|h[1-6]|td|th)>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s*\n\s*/g,'\n').replace(/[ \t]+/g,' ').trim();
+}
+function frontpadLinks(html,baseUrl){
+  const out=[];
+  for(const m of String(html||'').matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)){
+    try{
+      const url=new URL(m[1],baseUrl).toString();
+      if(!url.startsWith('https://app.frontpad.ru/'))continue;
+      const title=frontpadText(m[2]);
+      if(title)out.push({title,url});
+    }catch{}
+  }
+  return out;
+}
+function frontpadTables(html){
+  const tables=[];
+  for(const tm of String(html||'').matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)){
+    const rows=[];
+    for(const rm of tm[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)){
+      const cells=[...rm[1].matchAll(/<(?:th|td)\b[^>]*>([\s\S]*?)<\/(?:th|td)>/gi)].map(x=>frontpadText(x[1])).filter(Boolean);
+      if(cells.length)rows.push(cells.slice(0,12));
+    }
+    if(rows.length)tables.push(rows.slice(0,80));
+  }
+  return tables.slice(0,6);
+}
+async function frontpadGetPage(url){
+  let r=await frontpadFetch(url,{method:'GET',redirect:'manual',headers:{'Referer':'https://app.frontpad.ru/','User-Agent':FRONTPAD_UA,'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}});
+  for(let i=0;i<5;i++){
+    if(r.status>=300&&r.status<400&&r.headers.get('location')){
+      const next=new URL(r.headers.get('location'),r.url||url).toString();
+      r=await frontpadFetch(next,{method:'GET',redirect:'manual',headers:{'Referer':url,'User-Agent':FRONTPAD_UA}});
+      continue;
+    }
+    break;
+  }
+  const html=await r.text();
+  return {url:r.url||url,html,status:r.status};
+}
+app.get('/api/frontpad/reports',async(req,res)=>{
+  if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Frontpad не настроен.'});
+  if(!frontpadSession.authenticated)return res.status(401).json({ok:false,error:'Сначала подключи Frontpad в настройках.',needsAuth:true});
+  try{
+    const home=await frontpadGetPage('https://app.frontpad.ru/');
+    if(!frontpadLooksLoggedIn(home.url,home.html)){
+      frontpadSession.authenticated=false;
+      return res.status(401).json({ok:false,error:'Сессия Frontpad закончилась. Подключи Frontpad заново.',needsAuth:true});
+    }
+    const links=frontpadLinks(home.html,home.url);
+    const wanted=[
+      ['Выручка',/выручк/i],
+      ['Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл/i],
+      ['Товары',/^товар/i],
+      ['Себестоимость',/себестоим/i],
+      ['Заказы',/^заказ/i]
+    ];
+    const picked=[];
+    const seen=new Set();
+    for(const [label,re] of wanted){
+      const hit=links.find(x=>re.test(x.title)&&!seen.has(x.url));
+      if(hit){picked.push({label,...hit});seen.add(hit.url)}
+    }
+    const reportHub=links.find(x=>/^отч[её]т/i.test(x.title));
+    if(reportHub&&!seen.has(reportHub.url)){
+      const hub=await frontpadGetPage(reportHub.url);
+      const more=frontpadLinks(hub.html,hub.url);
+      for(const [label,re] of wanted){
+        if(picked.some(x=>x.label===label))continue;
+        const hit=more.find(x=>re.test(x.title)&&!seen.has(x.url));
+        if(hit){picked.push({label,...hit});seen.add(hit.url)}
+      }
+    }
+    const reports=[];
+    for(const item of picked.slice(0,5)){
+      try{
+        const page=await frontpadGetPage(item.url);
+        reports.push({
+          key:item.label.toLowerCase().replace(/\s+/g,'-'),
+          title:item.label,
+          sourceTitle:item.title,
+          url:page.url,
+          tables:frontpadTables(page.html),
+          text:frontpadText(page.html).slice(0,5000)
+        });
+      }catch(err){
+        reports.push({key:item.label.toLowerCase(),title:item.label,url:item.url,tables:[],text:'',error:err?.message||'Не удалось загрузить отчёт'});
+      }
+    }
+    res.json({ok:true,authenticated:true,updatedAt:new Date().toISOString(),reports,availableLinks:links.filter(x=>/(отч[её]т|выруч|прибыл|себестоим|товар|заказ)/i.test(x.title)).slice(0,30)});
+  }catch(err){
+    console.error('[frontpad-reports]',err?.message||err);
+    res.status(502).json({ok:false,error:'Не удалось загрузить отчёты Frontpad: '+(err?.message||'unknown')});
+  }
+});
+
 app.post('/api/frontpad/auth/start',async(req,res)=>{
   if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Логин и пароль Frontpad не настроены.'});
   try{
