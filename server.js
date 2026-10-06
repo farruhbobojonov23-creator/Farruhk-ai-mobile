@@ -326,18 +326,29 @@ function numCell(v){
 }
 function frontpadUploadSummary(rows){
   if(!Array.isArray(rows)||!rows.length)return {metrics:[],headers:[],data:[],meta:[]};
-  let headerIndex=rows.findIndex(r=>Array.isArray(r)&&r.filter(x=>normalizeCell(x)).length>=2);
-  if(headerIndex<0)headerIndex=0;
-  const meta=rows.slice(0,headerIndex).map(r=>(r||[]).map(normalizeCell)).filter(r=>r.some(Boolean)).slice(0,20);
-  const headers=(rows[headerIndex]||[]).map(normalizeCell);
-  const data=rows.slice(headerIndex+1).filter(r=>Array.isArray(r)&&r.some(x=>normalizeCell(x))).slice(0,500);
+  const clean=rows.map(r=>Array.isArray(r)?r.map(normalizeCell):[]);
+  const headerWords=/дата|наимен|товар|блюд|категор|артикул|кол-?во|количество|ед\.?\s*изм|цена|сумм|выруч|оборот|чек|заказ|себестоим|стоимост|приход|расход|остат|движен|закуп|постав|abc|групп|доля|процент|марж|прибыл|убыт|сотруд|пользоват|канал|статус|отметк|час/i;
+  let headerIndex=0,best=-1;
+  clean.slice(0,35).forEach((r,i)=>{
+    const cells=r.filter(Boolean), textCells=cells.filter(x=>/[A-Za-zА-Яа-яЁё]/.test(x));
+    const hits=cells.filter(x=>headerWords.test(x)).length;
+    const numeric=cells.filter(x=>numCell(x)!==null&&!/[A-Za-zА-Яа-яЁё]/.test(x)).length;
+    const score=hits*8+Math.min(cells.length,12)*2+textCells.length-Math.min(numeric,4)*2-(cells.length<2?8:0);
+    if(score>best){best=score;headerIndex=i}
+  });
+  const meta=clean.slice(0,headerIndex).filter(r=>r.some(Boolean)).slice(0,30);
+  const headers=(clean[headerIndex]||[]).map(normalizeCell);
+  const data=clean.slice(headerIndex+1).filter(r=>r.some(Boolean)).slice(0,800);
   const metrics=[];
   const patterns=[
     ['Выручка',/выручк|сумма\s*продаж|оборот/i],
     ['Заказы',/^заказ|кол-?во\s*заказ/i],
     ['Средний чек',/средн.*чек/i],
     ['Прибыль',/прибыл/i],
-    ['Себестоимость',/себестоим/i],
+    ['Себестоимость',/себестоим|стоимост.*сыр|факт.*себест/i],
+    ['Закупки',/закуп|сумм.*приход/i],
+    ['Расход сырья',/расход/i],
+    ['Остаток',/остат/i],
     ['Количество',/кол-?во|количество|шт/i]
   ];
   for(const [label,re] of patterns){
