@@ -93,31 +93,153 @@ function localReply(message, ctx={}) {
 
 app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-4.1'}));
 
+let frontpadSession={cookies:'',loginHtml:'',loginUrl:'https://app.frontpad.ru/login/',formAction:'https://app.frontpad.ru/login/',captchaUrl:'',fields:null,authenticated:false,updatedAt:null,lastError:''};
+
+function frontpadCookiePairs(headers){
+  try{
+    const values=typeof headers.getSetCookie==='function'?headers.getSetCookie():[];
+    if(values?.length)return values.map(v=>v.split(';',1)[0]).filter(Boolean);
+  }catch{}
+  const raw=headers.get('set-cookie')||'';
+  const out=[];
+  const re=/(?:^|,\s*)([^=;,\s]+)=([^;]*)/g;
+  let m;while((m=re.exec(raw)))out.push(m[1]+'='+m[2]);
+  return out;
+}
+function mergeFrontpadCookies(current='',pairs=[]){
+  const map=new Map();
+  String(current||'').split(/;\s*/).filter(Boolean).forEach(p=>{const i=p.indexOf('=');if(i>0)map.set(p.slice(0,i),p.slice(i+1))});
+  pairs.forEach(p=>{const i=p.indexOf('=');if(i>0)map.set(p.slice(0,i),p.slice(i+1))});
+  return [...map].map(([k,v])=>k+'='+v).join('; ');
+}
+function htmlAttr(tag,name){
+  const m=String(tag||'').match(new RegExp('\\\\b'+name+'\\\\s*=\\\\s*(?:"([^"]*)"|\\\'([^\\\']*)\\\'|([^\\\\s>]+))','i'));
+  return m?(m[1]??m[2]??m[3]??''):'';
+}
+function parseFrontpadLogin(html,baseUrl){
+  const inputs=[...String(html||'').matchAll(/<input\\b[^>]*>/gi)].map(x=>{
+    const tag=x[0];return {name:htmlAttr(tag,'name'),id:htmlAttr(tag,'id'),type:(htmlAttr(tag,'type')||'text').toLowerCase(),value:htmlAttr(tag,'value')};
+  }).filter(x=>x.name);
+  const visible=inputs.filter(x=>!['hidden','submit','button','checkbox','radio','image'].includes(x.type));
+  const email=inputs.find(x=>x.type==='email'||/(^|_)(e?mail|login|user|username)(_|$)/i.test(x.name+' '+x.id))||visible.find(x=>x.type==='text')||null;
+  const password=inputs.find(x=>x.type==='password'||/pass/i.test(x.name+' '+x.id))||null;
+  const code=inputs.find(x=>!['hidden','submit','button'].includes(x.type)&&/(code|captcha|capcha|verify|security|check)/i.test(x.name+' '+x.id))||
+    visible.find(x=>x!==email&&x!==password)||null;
+  const formMatch=String(html||'').match(/<form\\b[^>]*>/i);
+  const actionRaw=formMatch?htmlAttr(formMatch[0],'action'):'';
+  const action=new URL(actionRaw||baseUrl,baseUrl).toString();
+  const imgs=[...String(html||'').matchAll(/<img\\b[^>]*>/gi)].map(x=>htmlAttr(x[0],'src')).filter(Boolean);
+  const captchaRaw=imgs.find(x=>/(captcha|capcha|code|verify|security)/i.test(x))||(code?imgs[imgs.length-1]:'');
+  const captcha=captchaRaw?new URL(captchaRaw,baseUrl).toString():'';
+  const hidden=inputs.filter(x=>x.type==='hidden'&&x.name).reduce((a,x)=>(a[x.name]=x.value,a),{});
+  const submits=inputs.filter(x=>['submit','image'].includes(x.type)&&x.name).reduce((a,x)=>(a[x.name]=x.value||'1',a),{});
+  return {email:email?.name||'',password:password?.name||'',code:code?.name||'',hidden,submits,action,captcha};
+}
+async function frontpadFetch(url,options={}){
+  const headers={...(options.headers||{})};
+  if(frontpadSession.cookies)headers.Cookie=frontpadSession.cookies;
+  const r=await fetch(url,{redirect:options.redirect||'manual',...options,headers,signal:options.signal||AbortSignal.timeout(12000)});
+  frontpadSession.cookies=mergeFrontpadCookies(frontpadSession.cookies,frontpadCookiePairs(r.headers));
+  return r;
+}
+async function frontpadBeginAuth(){
+  frontpadSession.authenticated=false;frontpadSession.lastError='';
+  const r=await fetch('https://app.frontpad.ru/login/',{redirect:'manual',signal:AbortSignal.timeout(12000),headers:{'User-Agent':'Mozilla/5.0 FARRUKH-AI'}});
+  frontpadSession.cookies=mergeFrontpadCookies('',frontpadCookiePairs(r.headers));
+  const html=await r.text();
+  const url=r.url||'https://app.frontpad.ru/login/';
+  const fields=parseFrontpadLogin(html,url);
+  frontpadSession={...frontpadSession,loginHtml:html,loginUrl:url,formAction:fields.action,captchaUrl:fields.captcha,fields,updatedAt:new Date().toISOString()};
+  return fields;
+}
+function frontpadLooksLoggedIn(url,html=''){
+  const u=String(url||'');
+  if(!/\/login\/?(?:index\.php)?(?:\?|$)/i.test(u)&&!/<input\\b[^>]*type=["']password["']/i.test(html))return true;
+  return false;
+}
+
 app.get('/api/frontpad/status',async(req,res)=>{
   const configured=frontpadConfigured();
-  let reachable=false;
-  let loginPageHasCode=false;
-  let httpStatus=null;
+  if(!configured)return res.json({ok:true,configured:false,authenticated:false,requiresCode:false,message:'Логин и пароль Frontpad не настроены на сервере.'});
   try{
-    const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',signal:AbortSignal.timeout(8000),headers:{'User-Agent':'FARRUKH-AI/1.0'}});
-    httpStatus=r.status;
-    const html=await r.text();
-    reachable=r.ok;
-    loginPageHasCode=/Код|captcha|captcha/i.test(html);
-  }catch(e){}
+    if(frontpadSession.authenticated){
+      const r=await frontpadFetch('https://app.frontpad.ru/',{method:'GET'});
+      const html=await r.text();
+      frontpadSession.authenticated=frontpadLooksLoggedIn(r.url,html);
+    }
+  }catch{}
   res.json({
-    ok:true,
-    configured,
-    reachable,
-    httpStatus,
-    loginPageHasCode,
-    credentialsStoredOnServer:configured,
-    automaticReports:false,
-    reason:loginPageHasCode?'interactive_login_code_required':'report_api_not_confirmed',
-    message:configured
-      ? 'Доступ Frontpad сохранён на сервере. Сервер видит страницу входа. Автоматическое получение отчётов пока не включено: стандартная форма входа Frontpad требует дополнительный код, а публичный API отчётов не подтверждён.'
-      : 'Логин и пароль Frontpad ещё не настроены на сервере.'
+    ok:true,configured:true,authenticated:frontpadSession.authenticated,
+    requiresCode:Boolean(frontpadSession.fields?.code),
+    authPrepared:Boolean(frontpadSession.fields),
+    captchaReady:Boolean(frontpadSession.captchaUrl),
+    updatedAt:frontpadSession.updatedAt,
+    message:frontpadSession.authenticated?'Frontpad подключён. Сессия активна.':'Frontpad настроен, требуется первый вход.'
   });
+});
+
+app.post('/api/frontpad/auth/start',async(req,res)=>{
+  if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Логин и пароль Frontpad не настроены.'});
+  try{
+    const f=await frontpadBeginAuth();
+    if(!f.email||!f.password)throw new Error('Не удалось определить поля входа Frontpad.');
+    res.json({ok:true,requiresCode:Boolean(f.code),captchaReady:Boolean(f.captcha),captchaUrl:f.captcha?'/api/frontpad/auth/captcha?t='+Date.now():'',message:f.code?'Введите код с картинки Frontpad.':'Форма входа подготовлена.'});
+  }catch(err){
+    frontpadSession.lastError=err?.message||'auth_start_failed';
+    res.status(502).json({ok:false,error:'Не удалось открыть форму входа Frontpad: '+frontpadSession.lastError});
+  }
+});
+
+app.get('/api/frontpad/auth/captcha',async(req,res)=>{
+  try{
+    if(!frontpadSession.captchaUrl)await frontpadBeginAuth();
+    if(!frontpadSession.captchaUrl)return res.status(404).send('Captcha not found');
+    const r=await frontpadFetch(frontpadSession.captchaUrl,{method:'GET'});
+    if(!r.ok)return res.sendStatus(r.status);
+    const buf=Buffer.from(await r.arrayBuffer());
+    res.setHeader('Content-Type',r.headers.get('content-type')||'image/png');
+    res.setHeader('Cache-Control','no-store, max-age=0');
+    res.send(buf);
+  }catch(err){res.status(502).send('Captcha unavailable');}
+});
+
+app.post('/api/frontpad/auth/complete',async(req,res)=>{
+  if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Frontpad не настроен.'});
+  try{
+    if(!frontpadSession.fields)await frontpadBeginAuth();
+    const f=frontpadSession.fields;
+    const code=String(req.body?.code||'').trim();
+    if(f.code&&!code)return res.status(400).json({ok:false,error:'Введите код с картинки Frontpad.',requiresCode:true,captchaUrl:'/api/frontpad/auth/captcha?t='+Date.now()});
+    const body=new URLSearchParams();
+    Object.entries(f.hidden||{}).forEach(([k,v])=>body.set(k,String(v??'')));
+    body.set(f.email,String(process.env.FRONTPAD_LOGIN||'').trim());
+    body.set(f.password,String(process.env.FRONTPAD_PASSWORD||'').trim());
+    if(f.code)body.set(f.code,code);
+    Object.entries(f.submits||{}).forEach(([k,v])=>{if(!body.has(k))body.set(k,String(v??''))});
+    let r=await frontpadFetch(frontpadSession.formAction||frontpadSession.loginUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Referer':frontpadSession.loginUrl,'User-Agent':'Mozilla/5.0 FARRUKH-AI'},body:body.toString()});
+    let html='';
+    for(let i=0;i<4;i++){
+      if(r.status>=300&&r.status<400&&r.headers.get('location')){
+        const next=new URL(r.headers.get('location'),r.url||frontpadSession.formAction).toString();
+        r=await frontpadFetch(next,{method:'GET',headers:{'Referer':frontpadSession.loginUrl,'User-Agent':'Mozilla/5.0 FARRUKH-AI'}});
+        continue;
+      }
+      html=await r.text();break;
+    }
+    const ok=frontpadLooksLoggedIn(r.url,html);
+    frontpadSession.authenticated=ok;frontpadSession.updatedAt=new Date().toISOString();
+    if(!ok){
+      const fresh=parseFrontpadLogin(html,r.url||frontpadSession.loginUrl);
+      if(fresh.email&&fresh.password){
+        frontpadSession.loginHtml=html;frontpadSession.loginUrl=r.url||frontpadSession.loginUrl;frontpadSession.formAction=fresh.action;frontpadSession.captchaUrl=fresh.captcha;frontpadSession.fields=fresh;
+      }
+      return res.status(401).json({ok:false,authenticated:false,error:'Frontpad не принял вход. Проверь код и попробуй ещё раз.',requiresCode:Boolean(frontpadSession.fields?.code),captchaUrl:frontpadSession.captchaUrl?'/api/frontpad/auth/captcha?t='+Date.now():''});
+    }
+    res.json({ok:true,authenticated:true,message:'Frontpad подключён. Сессия активна.'});
+  }catch(err){
+    frontpadSession.authenticated=false;frontpadSession.lastError=err?.message||'auth_failed';
+    res.status(502).json({ok:false,authenticated:false,error:'Ошибка входа Frontpad: '+frontpadSession.lastError});
+  }
 });
 
 function analyticsSnapshot(){
