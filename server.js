@@ -512,18 +512,14 @@ app.post('/shef51-panel-login',async(req,res,next)=>{
     }
     shef51PanelLoginAttempts.delete(ip);
     const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
-    let html=await fs.readFile(new URL('./public/shef51-panel.html', import.meta.url),'utf8');
-    const boot='<script>try{sessionStorage.setItem("shef51_panel_token",'+JSON.stringify(token)+')}catch(e){}</script>';
-    html=html.replace('</head>',boot+'</head>');
     res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
-    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
-    res.setHeader('Pragma','no-cache');
-    res.setHeader('Expires','0');
-    res.type('html').send(html);
+    res.redirect(303,'/shef51-panel');
   }catch(err){next(err);}
 });
 app.get('/shef51-panel',async(req,res,next)=>{
   try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));
+    if(!session)return res.redirect(302,'/shef51-panel-login');
     const html=await fs.readFile(new URL('./public/shef51-panel.html', import.meta.url),'utf8');
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
     res.setHeader('Pragma','no-cache');
