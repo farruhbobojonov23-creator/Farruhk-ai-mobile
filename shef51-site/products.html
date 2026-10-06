@@ -218,6 +218,68 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
 .foodPhoto{opacity:0;transition:opacity .28s ease}
 .foodPhoto.loaded{opacity:1}
 @media(prefers-reduced-motion:reduce){.foodPhoto{transition:none}}
+
+/* premium product motion */
+.prodVisual{
+  isolation:isolate;
+  overflow:visible;
+}
+.prodVisual:after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:14%;
+  right:14%;
+  bottom:18px;
+  height:24%;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(239,38,52,.20) 0%,rgba(216,181,115,.08) 38%,transparent 72%);
+  filter:blur(20px);
+  opacity:.72;
+  animation:productGlow 5.6s ease-in-out infinite;
+  pointer-events:none;
+}
+.foodPhoto,.demoFood{
+  will-change:transform;
+  animation:productFloat 5.8s ease-in-out infinite;
+}
+.prod:nth-child(2n) .foodPhoto,.prod:nth-child(2n) .demoFood{animation-delay:-1.4s}
+.prod:nth-child(3n) .foodPhoto,.prod:nth-child(3n) .demoFood{animation-delay:-2.7s}
+.prod{
+  transition:transform .34s ease,border-color .34s ease,box-shadow .34s ease;
+}
+.prod:hover{
+  transform:translateY(-5px);
+  border-color:#4a3827;
+  box-shadow:0 28px 70px rgba(0,0,0,.52);
+}
+.prod:hover .foodPhoto,.prod:hover .demoFood{
+  animation-play-state:paused;
+  transform:translateY(-6px) scale(1.1);
+}
+.prod:active{
+  transform:translateY(-2px) scale(.995);
+}
+@keyframes productFloat{
+  0%,100%{transform:translateY(0) scale(1.08)}
+  50%{transform:translateY(-7px) scale(1.095)}
+}
+@keyframes productGlow{
+  0%,100%{opacity:.55;transform:scale(.96)}
+  50%{opacity:.9;transform:scale(1.05)}
+}
+@media(max-width:620px){
+  .prod:hover{transform:none}
+  .prod:hover .foodPhoto,.prod:hover .demoFood{animation-play-state:running}
+  @keyframes productFloat{
+    0%,100%{transform:translateY(0) scale(1.06)}
+    50%{transform:translateY(-5px) scale(1.075)}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .foodPhoto,.demoFood,.prodVisual:after{animation:none!important}
+  .prod,.foodPhoto,.demoFood{transition:none!important}
+}
 </style>
 <section class="wrap pageHead"><div class="eyebrow">МЕНЮ</div><h1>Японская кухня</h1><div class="pageKinetic">В меню — <span class="pageTyped" data-words="роллы|суши|воки|авторские позиции|классика японской кухни"></span></div><p class="lead">🍣 Авторские и классические позиции японской кухни. Выберите категорию и познакомьтесь с меню SHEF51.</p>
 <div class="cats" data-motion><button class="chip active" data-cat="all">Все</button><button class="chip" data-cat="rolls">Роллы</button><button class="chip" data-cat="sushi">Суши</button><button class="chip" data-cat="wok">Воки</button></div>
