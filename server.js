@@ -272,6 +272,7 @@ const SHEF51_DRAFT_PATH=SHEF51_BASE+'site-draft.json';
 const SHEF51_PUBLISHED_PATH=SHEF51_BASE+'site-published.json';
 const SHEF51_BACKUPS_PATH=SHEF51_BASE+'Backups/';
 const SHEF51_BOOKINGS_PATH=SHEF51_BASE+'Bookings/';
+const SHEF51_ANALYTICS_PATH=SHEF51_BASE+'Analytics/';
 const SHEF51_TELEGRAM_CHAT_PATH=SHEF51_BASE+'telegram-chat.json';
 
 const defaultShef51Config=()=>({
@@ -714,6 +715,45 @@ app.get('/api/shef51/image/:id',async(req,res)=>{
   }
 });
 
+// ---- SHEF51 lightweight first-party analytics ----
+function analyticsCors(req,res){
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  res.setHeader('Access-Control-Allow-Methods','POST,OPTIONS');
+}
+app.options('/api/shef51/analytics',(req,res)=>{analyticsCors(req,res);res.sendStatus(204);});
+app.post('/api/shef51/analytics',async(req,res)=>{
+  analyticsCors(req,res);
+  const event=cleanText(req.body?.event,80).replace(/[^a-z0-9_.-]/gi,'_')||'unknown';
+  const page=cleanText(req.body?.page,180);
+  const label=cleanText(req.body?.label,180);
+  const href=cleanText(req.body?.href,300);
+  const meta=(req.body?.meta&&typeof req.body.meta==='object')?req.body.meta:{};
+  const safeMeta={};
+  for(const [k,v] of Object.entries(meta).slice(0,12)){
+    safeMeta[cleanText(k,40)]=cleanText(v,160);
+  }
+  const now=new Date();
+  const day=now.toISOString().slice(0,10);
+  const item={
+    id:'event-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),
+    createdAt:now.toISOString(),
+    event,page,label,href,meta:safeMeta
+  };
+  if(yandexToken()){
+    try{
+      await writeYandexFile(
+        SHEF51_ANALYTICS_PATH+day+'/'+item.id+'.json',
+        JSON.stringify(item,null,2),
+        'application/json'
+      );
+    }catch(err){
+      console.error('SHEF51 analytics save error',err?.message||err);
+    }
+  }
+  res.json({ok:true});
+});
+
 // ---- SHEF51 Telegram booking ----
 const telegramToken=()=>String(process.env.TELEGRAM_BOT_TOKEN||'').trim();
 
@@ -788,13 +828,16 @@ app.post('/api/telegram/booking',async(req,res)=>{
   const guests=String(req.body?.guests||'').trim().slice(0,20);
   const name=String(req.body?.name||'').trim().slice(0,120);
   const contact=String(req.body?.contact||'').trim().slice(0,120);
+  const budget=String(req.body?.budget||'').trim().slice(0,120);
+  const address=String(req.body?.address||'').trim().slice(0,220);
+  const contactMethod=String(req.body?.contactMethod||'').trim().slice(0,80);
   const comment=String(req.body?.comment||'').trim().slice(0,1000);
   if(!service||!date||!guests||!name||!contact)return res.status(400).json({ok:false,error:'Заполните обязательные поля.'});
 
   const booking={
     id:'booking-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),
     createdAt:new Date().toISOString(),
-    service,date,guests,name,contact,comment
+    service,date,guests,name,contact,budget,address,contactMethod,comment
   };
 
   let saved=false,telegramSent=false,lastError='';
@@ -818,7 +861,10 @@ app.post('/api/telegram/booking',async(req,res)=>{
         'Дата: '+date,
         'Гостей: '+guests,
         'Имя: '+name,
-        'Телефон / WhatsApp: '+contact,
+        'Телефон: '+contact,
+        'Бюджет: '+(budget||'—'),
+        'Адрес / район: '+(address||'—'),
+        'Связаться через: '+(contactMethod||'—'),
         'Пожелания: '+(comment||'—')
       ].join('\n');
       await telegramRequest('sendMessage',{chat_id:chatId,text});
