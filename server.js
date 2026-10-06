@@ -589,7 +589,7 @@ app.post('/shef51-admin-login',(req,res)=>{
   loginAttempts.delete(ip);
   const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
   res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
-  res.redirect(303,'/shef51-owner');
+  res.redirect(303,'/shef51-admin.html?login=ok&v=3');
 });
 
 app.post('/api/shef51/admin/logout',(req,res)=>{
