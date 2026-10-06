@@ -82,7 +82,38 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
   .pageHead>.eyebrow,.pageHead>h1,.pageHead>.lead{animation:none!important}
   .pageTyped:after{display:none}
 }
-</style></head><body>
+</style>
+<style id="viewport-stability-fix">
+html{
+  width:100%;
+  min-width:100%;
+  max-width:100%;
+  overflow-x:clip;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  scrollbar-gutter:stable;
+}
+body{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow-x:clip;
+}
+header,main,footer{width:100%;max-width:100%}
+img,svg,video,canvas{max-width:100%}
+.wrap{width:min(1180px,calc(100% - 32px))!important;max-width:1180px}
+@media(max-width:900px){
+  html{scrollbar-gutter:auto}
+  .wrap{width:calc(100% - 32px)!important;max-width:none!important}
+  header{contain:layout style}
+  .nav{width:100%}
+  .brand{min-width:0}
+}
+@media(max-width:560px){
+  .wrap{width:calc(100% - 28px)!important}
+}
+</style>
+</head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>.book{display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:start}.panel{background:#0b0b0b;border:1px solid #262626;border-radius:28px;padding:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form .full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#111;border:1px solid #303030;color:#fff;border-radius:14px;padding:15px;font:inherit}.field textarea{min-height:120px;resize:vertical}.notice{font-size:13px;color:#858585;margin-top:12px}.status{display:none;margin-top:14px;padding:14px 16px;border-radius:14px;background:#111;border:1px solid #303030;line-height:1.5}.status.ok{display:block;border-color:#2b6f42;color:#baf5ca}.status.err{display:block;border-color:#7d3037;color:#ffc2c7}@media(max-width:850px){.book{grid-template-columns:1fr}}@media(max-width:560px){.form{grid-template-columns:1fr}.form .full{grid-column:auto}}</style>
 <section class="wrap pageHead book"><div><div class="eyebrow">БРОНИРОВАНИЕ</div><h1>Оставить заявку</h1><div class="pageKinetic">Организуем — <span class="pageTyped" data-words="частный ужин|день рождения|свадьбу|вечеринку|корпоратив|особенное событие"></span></div><p class="lead">Выберите услугу и удобную дату, укажите количество гостей и оставьте контакт. Администратор шеф-повара свяжется с вами, чтобы согласовать меню, формат обслуживания и все важные детали события.</p></div>
