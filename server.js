@@ -144,7 +144,7 @@ async function frontpadFetch(url,options={}){
 }
 async function frontpadBeginAuth(){
   frontpadSession.authenticated=false;frontpadSession.lastError='';
-  const r=await fetch('https://app.frontpad.ru/login/',{redirect:'manual',signal:AbortSignal.timeout(12000),headers:{'User-Agent':'Mozilla/5.0 FARRUKH-AI'}});
+  const r=await fetch('https://app.frontpad.ru/login/',{redirect:'follow',signal:AbortSignal.timeout(12000),headers:{'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/141.0 Safari/537.36','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8','Accept-Language':'ru-RU,ru;q=0.9,en;q=0.8'}});
   frontpadSession.cookies=mergeFrontpadCookies('',frontpadCookiePairs(r.headers));
   const html=await r.text();
   const url=r.url||'https://app.frontpad.ru/login/';
