@@ -525,6 +525,16 @@ app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
   }
 });
 app.get('/shef51-admin',(req,res)=>res.redirect('/shef51-admin.html'));
+app.get('/shef51-owner',async(req,res,next)=>{
+  try{
+    const html=await fs.readFile(new URL('./public/shef51-admin.html', import.meta.url),'utf8');
+    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma','no-cache');
+    res.setHeader('Expires','0');
+    res.type('html').send(html);
+  }catch(err){next(err);}
+});
+
 
 app.post('/api/shef51/admin/login',(req,res)=>{
   const ip=String(req.ip||req.socket?.remoteAddress||'unknown');
@@ -553,7 +563,7 @@ app.post('/shef51-admin-login',(req,res)=>{
   loginAttempts.delete(ip);
   const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
   res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
-  res.redirect(303,'/shef51-admin');
+  res.redirect(303,'/shef51-owner');
 });
 
 app.post('/api/shef51/admin/logout',(req,res)=>{
