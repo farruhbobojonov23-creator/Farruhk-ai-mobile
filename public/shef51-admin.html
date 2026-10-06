@@ -4,12 +4,36 @@
 <style>
 *{box-sizing:border-box}html{background:#050505}body{margin:0;background:#050505;color:#fff;font-family:Inter,Arial,sans-serif}.wrap{width:min(1180px,94%);margin:auto;padding:22px 0 110px}.top{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:18px}.brand{font-weight:900;letter-spacing:.14em}.brand b{color:#ff3344}.muted,.status{color:#929292}.pill,.btn,.tab{border:0;border-radius:999px;padding:12px 17px;font-weight:800}.pill{background:#151515}.btn{background:#ff2e3f;color:#fff;cursor:pointer}.btn.alt,.tab{background:#151515;color:#ddd;border:1px solid #2b2b2b}.btn.danger{background:#301014}.tabs{display:flex;gap:8px;overflow:auto;padding:6px 0 16px;position:sticky;top:0;background:#050505e8;backdrop-filter:blur(14px);z-index:20}.tab{white-space:nowrap;cursor:pointer}.tab.active{background:#ff2e3f;border-color:#ff2e3f;color:#fff}.panel{display:none}.panel.active{display:block}.card{background:#0b0b0b;border:1px solid #202020;border-radius:24px;padding:20px;margin:14px 0}.hero{padding:18px 0}.hero h1{font:700 clamp(42px,7vw,72px)/.95 Georgia,serif;margin:6px 0 10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.field{display:grid;gap:7px;margin:10px 0}.field label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.11em}.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #2a2a2a;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:100px;resize:vertical}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1}.switch{display:flex;gap:9px;align-items:center}.switch input{width:20px;height:20px}.product{display:grid;grid-template-columns:180px 1fr;gap:18px}.photo{height:170px;border:1px dashed #333;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#060606}.photo img{width:100%;height:100%;object-fit:contain}.photo span{color:#666}.toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:min(1120px,94%);background:#090909ed;border:1px solid #252525;border-radius:24px;padding:12px;display:flex;gap:10px;align-items:center;z-index:30;backdrop-filter:blur(18px)}.login{max-width:460px;margin:11vh auto}.hidden{display:none!important}.color{height:48px;padding:4px!important}.historyItem{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #1d1d1d}.preview{border:1px solid #252525;border-radius:20px;padding:24px;background:var(--bg,#050505);color:var(--text,#fff)}.preview .pvbtn{display:inline-block;background:var(--accent,#ef2634);padding:10px 16px;border-radius:999px;font-weight:800}.ok{color:#58d48c}.err{color:#ff7580}
 @media(max-width:760px){.top{align-items:flex-start;flex-direction:column}.grid2,.grid3,.product{grid-template-columns:1fr}.photo{height:230px}.toolbar{flex-direction:column}.toolbar .btn{width:100%}.toolbar .grow{display:none}}
+
+.statsRange{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px}
+.statsRange .btn.active{background:#ff2e3f;border-color:#ff2e3f}
+.statsCards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.statCard{background:#0b0b0b;border:1px solid #222;border-radius:22px;padding:18px}
+.statCard small{display:block;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.statCard strong{display:block;font:700 34px Georgia,serif;color:#f3e7d3}
+.statCard em{display:block;font-style:normal;color:#777;font-size:12px;margin-top:5px}
+.statsCols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.funnel{display:grid;gap:12px}
+.funnelRow{display:grid;grid-template-columns:145px 1fr 60px;gap:10px;align-items:center}
+.funnelBar{height:10px;background:#171717;border-radius:999px;overflow:hidden}
+.funnelBar i{display:block;height:100%;background:linear-gradient(90deg,#ff2e3f,#d6aa62);border-radius:999px}
+.rankList{display:grid;gap:10px}
+.rankRow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #1d1d1d}
+.rankRow:last-child{border-bottom:0}
+.rankName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.miniChart{display:flex;align-items:flex-end;gap:7px;height:140px;padding-top:10px}
+.miniDay{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.miniDay i{width:100%;max-width:26px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#ff4150,#7d121b);min-height:3px}
+.miniDay span{font-size:9px;color:#777;white-space:nowrap}
+.statsEmpty{color:#777;padding:16px 0}
+@media(max-width:900px){.statsCards{grid-template-columns:1fr 1fr}.statsCols{grid-template-columns:1fr}}
+@media(max-width:560px){.statsCards{grid-template-columns:1fr}.funnelRow{grid-template-columns:110px 1fr 48px}}
 </style></head><body><div class="wrap">
 <div id="loginView" class="login card"><div class="brand"><b>SHEF51</b> · OWNER</div><h1>Control Panel</h1><p class="muted">Закрытая панель управления сайтом.</p><div class="field"><label>Пароль</label><input id="password" type="password"></div><div class="row"><button id="loginBtn" class="btn">Войти</button><span id="loginMsg" class="status"></span></div></div>
 <div id="adminView" class="hidden">
 <div class="top"><div><div class="brand"><b>SHEF51</b> · CONTROL PANEL</div><div class="muted">Управление сайтом</div></div><div class="row"><a href="/shef51-editor" class="btn">Визуальный редактор</a><span id="storageBadge" class="pill">Проверка…</span><button id="logoutBtn" class="btn alt">Выйти</button></div></div>
 <div class="tabs" id="tabs">
-<button class="tab active" data-tab="home">Главная</button><button class="tab" data-tab="products">Товары</button><button class="tab" data-tab="pages">Страницы</button><button class="tab" data-tab="design">Дизайн</button><button class="tab" data-tab="requests">Заявки</button><button class="tab" data-tab="settings">Настройки</button><button class="tab" data-tab="history">История</button>
+<button class="tab active" data-tab="home">Главная</button><button class="tab" data-tab="products">Товары</button><button class="tab" data-tab="pages">Страницы</button><button class="tab" data-tab="design">Дизайн</button><button class="tab" data-tab="requests">Заявки</button><button class="tab" data-tab="analytics">Статистика</button><button class="tab" data-tab="settings">Настройки</button><button class="tab" data-tab="history">История</button>
 </div>
 
 <section class="panel active" id="panel-home"><div class="hero"><h1>Главная</h1><p class="muted">Редактируй первый экран сайта и главное фото.</p></div>
@@ -29,6 +53,41 @@
 
 <section class="panel" id="panel-requests"><div class="hero"><h1>Заявки</h1><p class="muted">Статус канала заявок с сайта.</p></div><div class="card"><h3>Telegram</h3><p id="telegramStatus" class="muted">Проверяю…</p><p class="muted">Новые заявки с формы бронирования продолжают приходить в подключённого бота.</p></div></section>
 
+
+<section class="panel" id="panel-analytics">
+  <div class="hero"><h1>Статистика</h1><p class="muted">Реальное поведение посетителей SHEF51: просмотры, интерес к услугам и путь до заявки.</p></div>
+  <div class="statsRange">
+    <button class="btn alt statsPeriod" data-days="1">Сегодня</button>
+    <button class="btn alt statsPeriod active" data-days="7">7 дней</button>
+    <button class="btn alt statsPeriod" data-days="30">30 дней</button>
+  </div>
+  <div id="statsLoading" class="status">Загрузка статистики…</div>
+  <div id="statsContent" class="hidden">
+    <div class="statsCards">
+      <div class="statCard"><small>Просмотры страниц</small><strong id="statViews">0</strong><em>все открытия страниц</em></div>
+      <div class="statCard"><small>Посетители</small><strong id="statVisitors">—</strong><em>уникальные устройства</em></div>
+      <div class="statCard"><small>Переходы к брони</small><strong id="statCta">0</strong><em>нажатия на CTA</em></div>
+      <div class="statCard"><small>Заявки</small><strong id="statBookings">0</strong><em><span id="statConversion">0%</span> от просмотров</em></div>
+    </div>
+
+    <div class="card">
+      <h3>Воронка</h3>
+      <div class="funnel" id="statsFunnel"></div>
+    </div>
+
+    <div class="statsCols">
+      <div class="card"><h3>Популярные страницы</h3><div id="statsPages" class="rankList"></div></div>
+      <div class="card"><h3>Интерес к услугам</h3><div id="statsServices" class="rankList"></div></div>
+    </div>
+
+    <div class="statsCols">
+      <div class="card"><h3>Интерес к товарам</h3><div id="statsProducts" class="rankList"></div></div>
+      <div class="card"><h3>Динамика просмотров</h3><div id="statsDaily" class="miniChart"></div></div>
+    </div>
+
+    <div class="card"><div class="muted">Данные собираются только на SHEF51. Имена, телефоны и содержание заявок в аналитику не попадают.</div></div>
+  </div>
+</section>
 <section class="panel" id="panel-settings"><div class="hero"><h1>Настройки</h1><p class="muted">Бренд, контакты и SEO.</p></div>
 <div class="card"><div class="grid2"><div class="field"><label>Название сайта</label><input data-cfg="general.siteName"></div><div class="field"><label>Подпись бренда</label><input data-cfg="general.brandLine"></div><div class="field"><label>WhatsApp</label><input data-cfg="general.whatsapp"></div><div class="field"><label>Telegram</label><input data-cfg="general.telegram"></div></div><div class="field"><label>Текст внизу сайта</label><input data-cfg="general.footerText"></div></div>
 <div class="card"><h3>SEO</h3><div class="field"><label>Заголовок вкладки</label><input data-cfg="seo.title"></div><div class="field"><label>Описание для поисковиков</label><textarea data-cfg="seo.description"></textarea></div></div></section>
@@ -66,11 +125,71 @@ async function saveDraft(){const a=await api('/api/shef51/admin/menu',{method:'P
 async function publish(){await saveDraft();const d=await api('/api/shef51/admin/publish',{method:'POST'});$('#saveMsg').textContent='Опубликовано ✓';$('#saveMsg').className='status ok';loadHistory()}
 async function loadHistory(){try{const d=await api('/api/shef51/admin/history');$('#historyList').innerHTML=d.items?.length?d.items.map(x=>'<div class="historyItem"><div><b>'+esc(x.name)+'</b><div class="muted">'+esc(x.modified||'')+'</div></div><button class="btn alt restoreBtn" data-name="'+esc(x.name)+'">Восстановить</button></div>').join(''):'Пока нет предыдущих версий';$$('.restoreBtn').forEach(b=>b.onclick=async()=>{if(!confirm('Вернуть эту версию в черновик?'))return;const d=await api('/api/shef51/admin/restore',{method:'POST',body:JSON.stringify({name:b.dataset.name})});cfg=d.config;bindCfg();$('#saveMsg').textContent='Версия восстановлена в черновик';})}catch(e){$('#historyList').textContent=e.message}}
 async function loadTelegram(){try{const d=await api('/api/telegram/status');$('#telegramStatus').textContent=d.connected?(d.chatReady?'Telegram подключён ✓':'Бот подключён, отправьте ему /start'):'Telegram не подключён'}catch(e){$('#telegramStatus').textContent=e.message}}
+
+let statsDays=7,statsLoaded=false;
+const statPageNames={
+  'index.html':'Главная','products.html':'Товары','services.html':'Услуги','about.html':'Обо мне','book.html':'Бронирование'
+};
+function fmtNum(n){return new Intl.NumberFormat('ru-RU').format(Number(n)||0)}
+function renderRank(id,rows,mapName=false){
+  const el=$(id);
+  if(!el)return;
+  if(!rows?.length){el.innerHTML='<div class="statsEmpty">Пока недостаточно данных</div>';return}
+  el.innerHTML=rows.map((x,i)=>'<div class="rankRow"><div class="rankName">'+esc((mapName?statPageNames[x.name]:null)||x.name||'—')+'</div><b>'+fmtNum(x.count)+'</b></div>').join('');
+}
+function renderStats(d){
+  const t=d.totals||{};
+  $('#statViews').textContent=fmtNum(t.views);
+  $('#statVisitors').textContent=t.visitors==null?'—':fmtNum(t.visitors);
+  $('#statCta').textContent=fmtNum(t.bookingCta);
+  $('#statBookings').textContent=fmtNum(t.bookings);
+  $('#statConversion').textContent=(Number(t.conversion)||0).toFixed(1).replace('.0','')+'%';
+
+  const funnel=[
+    ['Просмотры',t.views||0],
+    ['К бронированию',t.bookingCta||0],
+    ['Начали форму',t.formStarts||0],
+    ['Заявки',t.bookings||0]
+  ];
+  const max=Math.max(1,...funnel.map(x=>x[1]));
+  $('#statsFunnel').innerHTML=funnel.map(([name,val])=>'<div class="funnelRow"><span>'+name+'</span><div class="funnelBar"><i style="width:'+Math.max(val?5:0,Math.round(val/max*100))+'%"></i></div><b>'+fmtNum(val)+'</b></div>').join('');
+
+  renderRank('#statsPages',d.pages,true);
+  renderRank('#statsServices',d.services,false);
+  renderRank('#statsProducts',d.products,false);
+
+  const daily=d.daily||[],m=Math.max(1,...daily.map(x=>x.views||0));
+  $('#statsDaily').innerHTML=daily.length?daily.map(x=>{
+    const h=Math.max(x.views?4:0,Math.round((x.views||0)/m*110));
+    const label=(x.date||'').slice(5).split('-').reverse().join('.');
+    return '<div class="miniDay" title="'+esc(x.date)+' — '+fmtNum(x.views)+'"><i style="height:'+h+'px"></i><span>'+label+'</span></div>';
+  }).join(''):'<div class="statsEmpty">Пока недостаточно данных</div>';
+
+  $('#statsLoading').classList.add('hidden');
+  $('#statsContent').classList.remove('hidden');
+}
+async function loadAnalytics(days=statsDays){
+  statsDays=Number(days)||7;
+  $('.statsPeriod').forEach(b=>b.classList.toggle('active',Number(b.dataset.days)===statsDays));
+  $('#statsLoading').classList.remove('hidden');
+  $('#statsLoading').textContent='Загрузка статистики…';
+  $('#statsContent').classList.add('hidden');
+  try{
+    const d=await api('/api/shef51/admin/analytics-summary?days='+statsDays);
+    renderStats(d);
+    statsLoaded=true;
+  }catch(e){
+    $('#statsLoading').textContent=e.message;
+    $('#statsLoading').className='status err';
+  }
+}
+$('.statsPeriod').forEach(b=>b.onclick=()=>loadAnalytics(b.dataset.days));
+
 $('#heroFile').onchange=async e=>{const st=$('#heroStatus');st.textContent='Загрузка…';try{const url=await uploadImage(e.target.files?.[0],'hero');if(url){cfg.home.heroImage=url;showHero();st.textContent='Фото загружено ✓';st.className='status ok'}}catch(err){st.textContent=err.message;st.className='status err'}};
 $('#addBtn').onclick=()=>{menu.push({id:'item-'+Date.now(),category:'rolls',name:'Новый товар',description:'',portion:'',visible:true,order:(menu.length+1)*10,imageUrl:''});renderProducts()};
 $('#saveDraftBtn').onclick=()=>saveDraft().catch(e=>{$('#saveMsg').textContent=e.message;$('#saveMsg').className='status err'});
 $('#publishBtn').onclick=()=>publish().catch(e=>{$('#saveMsg').textContent=e.message;$('#saveMsg').className='status err'});
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='history')loadHistory()});
+$('.tab').forEach(b=>b.onclick=()=>{$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('.panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='history')loadHistory();if(b.dataset.tab==='analytics')loadAnalytics(statsDays)});
 $('#loginBtn').onclick=async()=>{try{await api('/api/shef51/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#loginView').classList.add('hidden');$('#adminView').classList.remove('hidden');await load()}catch(e){$('#loginMsg').textContent=e.message;$('#loginMsg').className='status err'}};
 $('#password').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 $('#logoutBtn').onclick=async()=>{await api('/api/shef51/admin/logout',{method:'POST'});location.reload()};
