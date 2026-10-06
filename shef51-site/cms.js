@@ -3,7 +3,7 @@ const API='https://farruhk-ai-mobile.onrender.com';
 const byHref=(s)=>[...document.querySelectorAll('.links a,.mobileMenu a,.mobileQuickTabs a')].find(a=>a.getAttribute('href')===s);
 const txt=(el,v)=>{if(el&&typeof v==='string'&&v.length)el.textContent=v};
 const setMeta=(name,content)=>{let m=document.querySelector('meta[name="'+name+'"]');if(!m){m=document.createElement('meta');m.name=name;document.head.appendChild(m)}m.content=content||''};
-fetch(API+'/api/shef51/site-config',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(({config:c})=>{
+const getConfig=()=>{\n try{const raw=sessionStorage.getItem('shef51_cfg_cache_v2');if(raw){const x=JSON.parse(raw);if(x&&Date.now()-x.t<60000)return Promise.resolve(x.data)}}catch{}\n return fetch(API+'/api/shef51/site-config',{cache:'default'}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{try{sessionStorage.setItem('shef51_cfg_cache_v2',JSON.stringify({t:Date.now(),data}))}catch{}return data});\n};\ngetConfig().then(({config:c})=>{
  if(!c)return;
  const d=c.design||{},g=c.general||{},n=c.navigation||{},h=c.home||{},p=c.pages||{};
  const css=document.createElement('style');

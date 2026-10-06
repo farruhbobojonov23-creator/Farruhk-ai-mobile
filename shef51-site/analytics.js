@@ -99,7 +99,7 @@
   };
   window.shefTrack=send;
 
-  send('page_view',{meta:{title:document.title}});
+  const queuePageView=()=>send('page_view',{meta:{title:document.title}});\n  if('requestIdleCallback' in window) requestIdleCallback(queuePageView,{timeout:1800});\n  else if(document.readyState==='complete') setTimeout(queuePageView,700);\n  else addEventListener('load',()=>setTimeout(queuePageView,500),{once:true});
 
   document.addEventListener('click',e=>{
     const el=e.target.closest('a,button');
