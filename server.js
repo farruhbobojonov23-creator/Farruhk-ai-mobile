@@ -228,14 +228,50 @@ function frontpadText(s=''){
   return String(s).replace(/<script\b[\s\S]*?<\/script>/gi,' ').replace(/<style\b[\s\S]*?<\/style>/gi,' ').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|li|tr|h[1-6]|td|th)>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s*\n\s*/g,'\n').replace(/[ \t]+/g,' ').trim();
 }
 function frontpadLinks(html,baseUrl){
+  const source=String(html||''),out=[],seen=new Set();
+  const add=(raw,title='')=>{
+    try{
+      if(!raw||/^(javascript:|#|mailto:|tel:)/i.test(raw))return;
+      const url=new URL(raw,baseUrl).toString();
+      if(!url.startsWith('https://app.frontpad.ru/'))return;
+      const key=url+'|'+title;
+      if(seen.has(key))return;seen.add(key);
+      out.push({title:frontpadText(title)||url.split('/').pop()||url,url});
+    }catch{}
+  };
+  for(const m of source.matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi))add(m[1],m[2]);
+  for(const m of source.matchAll(/\b(?:data-url|data-href|data-link|action)\s*=\s*["']([^"']+)["']/gi))add(m[1],'');
+  for(const m of source.matchAll(/(?:window\.)?location(?:\.href)?\s*=\s*["']([^"']+)["']/gi))add(m[1],'');
+  for(const m of source.matchAll(/["']((?:\/|https:\/\/app\.frontpad\.ru\/)[^"'<> \n\r\t]{2,180}\.(?:php|html)(?:\?[^"'<>]*)?)["']/gi))add(m[1],'');
+  return out;
+}
+function frontpadScripts(html,baseUrl){
   const out=[];
-  for(const m of String(html||'').matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)){
+  for(const m of String(html||'').matchAll(/<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi)){
     try{
       const url=new URL(m[1],baseUrl).toString();
-      if(!url.startsWith('https://app.frontpad.ru/'))continue;
-      const title=frontpadText(m[2]);
-      if(title)out.push({title,url});
+      if(url.startsWith('https://app.frontpad.ru/'))out.push(url);
     }catch{}
+  }
+  return [...new Set(out)].slice(0,16);
+}
+function frontpadKeywordRoutes(source,baseUrl){
+  const text=String(source||''),out=[],seen=new Set();
+  const labels=[['Выручка',/выручк/ig],['Прибыль и убытки',/прибыл|убыт/ig],['Товары',/товар/ig],['Себестоимость',/себестоим/ig],['Заказы',/заказ/ig],['Отчёты',/отч[её]т/ig]];
+  const add=(raw,title)=>{
+    try{
+      const url=new URL(raw,baseUrl).toString();
+      if(!url.startsWith('https://app.frontpad.ru/')||seen.has(url))return;
+      seen.add(url);out.push({title,url});
+    }catch{}
+  };
+  for(const [title,re] of labels){
+    re.lastIndex=0;let m;
+    while((m=re.exec(text))){
+      const chunk=text.slice(Math.max(0,m.index-700),Math.min(text.length,m.index+700));
+      for(const u of chunk.matchAll(/["']((?:\/|https:\/\/app\.frontpad\.ru\/)[^"'<> \n\r\t]{2,220}(?:\.php|\/)(?:\?[^"'<>]*)?)["']/gi))add(u[1],title);
+      if(out.length>80)break;
+    }
   }
   return out;
 }
@@ -273,7 +309,18 @@ app.get('/api/frontpad/reports',async(req,res)=>{
       frontpadSession.authenticated=false;
       return res.status(401).json({ok:false,error:'Сессия Frontpad закончилась. Подключи Frontpad заново.',needsAuth:true});
     }
-    const links=frontpadLinks(home.html,home.url);
+    let links=frontpadLinks(home.html,home.url);
+    links.push(...frontpadKeywordRoutes(home.html,home.url));
+    const scripts=frontpadScripts(home.html,home.url);
+    for(const scriptUrl of scripts){
+      try{
+        const sr=await frontpadFetch(scriptUrl,{method:'GET',redirect:'follow',headers:{'Referer':home.url,'User-Agent':FRONTPAD_UA,'Accept':'*/*'}});
+        const js=await sr.text();
+        links.push(...frontpadLinks(js,home.url),...frontpadKeywordRoutes(js,home.url));
+      }catch{}
+    }
+    links=[...new Map(links.map(x=>[x.url+'|'+x.title,x])).values()];
+    console.log('[frontpad-reports] discovered',{links:links.length,scripts:scripts.length,sample:links.slice(0,20).map(x=>({title:x.title,url:x.url}))});
     const wanted=[
       ['Выручка',/выручк/i],
       ['Прибыль и убытки',/прибыл.*убыт|убыт.*прибыл/i],
