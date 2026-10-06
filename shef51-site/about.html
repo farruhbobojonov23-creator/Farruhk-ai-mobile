@@ -178,4 +178,83 @@ document.addEventListener('click',function(e){const b=e.target.closest('.menuTog
   items.forEach(x=>io.observe(x));
 })();
 </script>
-</body></html>
+
+<style id="mobile-polish-2026">
+html,body{max-width:100%;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+.btn,.menuToggle,.mobileQuickTabs a,.mobileMenu a{-webkit-tap-highlight-color:transparent}
+@media(max-width:900px){
+  .wrap{width:min(100% - 32px,1180px)}
+  .nav{height:66px!important;gap:10px!important}
+  .nav .brand{font-size:13px!important;letter-spacing:.105em;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .menuToggle{width:42px!important;height:42px!important;border-radius:13px!important;flex:0 0 42px}
+  .mobileQuickTabs{
+    gap:7px!important;
+    padding:8px 16px 10px!important;
+    scroll-snap-type:x proximity;
+    overscroll-behavior-x:contain;
+  }
+  .mobileQuickTabs a{
+    min-height:38px;
+    padding:9px 13px!important;
+    font-size:12px!important;
+    scroll-snap-align:start;
+    white-space:nowrap;
+  }
+  .mobileQuickTabs a.isCurrent{
+    border-color:#5c4930!important;
+    background:#17130e!important;
+    color:#f0dfbf!important;
+    box-shadow:inset 0 0 0 1px rgba(216,181,115,.08);
+  }
+  .mobileMenu{padding:10px 16px 14px!important}
+  .mobileMenu a{min-height:48px;display:flex!important;align-items:center}
+  .btn{min-height:48px;padding:13px 20px!important}
+  footer{padding:28px 0!important;margin-top:42px!important}
+  .foot{gap:8px!important;flex-direction:column;font-size:13px;line-height:1.5}
+  .pageHead{padding:44px 0 22px!important}
+  .pageHead h1{font-size:clamp(40px,12vw,58px)!important;line-height:.98!important;letter-spacing:-.025em}
+  .pageHead .lead{font-size:16px!important;line-height:1.62!important}
+  .eyebrow{font-size:10px!important;letter-spacing:.19em!important}
+}
+@media(max-width:560px){
+  .wrap{width:calc(100% - 28px)}
+  .btn{width:100%}
+  .actions{display:grid!important;grid-template-columns:1fr!important;width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+}
+</style>
+<script id="mobile-current-tab">
+(function(){
+ const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+ document.querySelectorAll('.mobileQuickTabs a').forEach(a=>{
+   if((a.getAttribute('href')||'').toLowerCase()===page){
+     a.classList.add('isCurrent');
+     a.setAttribute('aria-current','page');
+   }
+ });
+})();
+</script>
+
+<style id="mobile-polish-about">
+@media(max-width:900px){
+  .aboutHero{padding:44px 0 24px!important}
+  .aboutTop{gap:20px!important}
+  .introPanel h1{font-size:clamp(44px,12vw,60px)!important;line-height:.96!important;margin-bottom:20px!important}
+  .kinetic{font-size:clamp(25px,7.8vw,34px)!important;margin-bottom:18px!important}
+  .story{gap:14px!important}
+  .story p{font-size:16px!important;line-height:1.68!important}
+  .badgeRow{gap:7px!important;margin-top:18px!important}
+  .badge{font-size:11px!important;padding:8px 11px!important}
+  .specialty{padding:21px!important;border-radius:23px!important}
+  .specItem{padding:18px 0!important}
+  .specItem h3{font-size:25px!important}
+  .expertise{padding-top:28px!important}
+  .expertiseHead h2{font-size:clamp(36px,10vw,48px)!important}
+  .expertCard,.expertCard:last-child{min-height:300px!important;border-radius:24px!important}
+  .cardInner{padding:21px!important}
+  .signature{padding:20px!important;border-radius:0 18px 18px 0!important}
+}
+</style></body></html>
