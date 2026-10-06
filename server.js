@@ -143,9 +143,11 @@ function parseFrontpadLogin(html,baseUrl){
   }).filter(x=>x.name);
 
   const visible=inputs.filter(x=>!['hidden','submit','button','checkbox','radio','image'].includes(x.type));
-  const email=inputs.find(x=>x.type==='email'||/(^|_)(e?mail|login|user|username)(_|$)/i.test(x.name+' '+x.id))||visible.find(x=>x.type==='text')||null;
   const password=inputs.find(x=>x.type==='password'||/pass/i.test(x.name+' '+x.id))||null;
-  const code=inputs.find(x=>!['hidden','submit','button'].includes(x.type)&&/(code|captcha|capcha|verify|security|check)/i.test(x.name+' '+x.id))||
+  const isCodeField=x=>/(captcha|capcha|verify|security|check|(^|_)code(_|$)|login_code)/i.test((x?.name||'')+' '+(x?.id||''));
+  const email=inputs.find(x=>x!==password&&!isCodeField(x)&&(x.type==='email'||/(^|_)(e?mail|login|user|username)(_|$)/i.test(x.name+' '+x.id)))||
+    visible.find(x=>x!==password&&!isCodeField(x)&&x.type==='text')||null;
+  const code=inputs.find(x=>x!==email&&x!==password&&!['hidden','submit','button'].includes(x.type)&&isCodeField(x))||
     visible.find(x=>x!==email&&x!==password)||null;
 
   const actionRaw=formOpen?htmlAttr(formOpen,'action'):'';
@@ -161,6 +163,7 @@ function parseFrontpadLogin(html,baseUrl){
   inputs.filter(x=>['submit','image'].includes(x.type)&&x.name).forEach(x=>submits[x.name]=x.value||'1');
   buttons.filter(x=>x.type==='submit'&&x.name).forEach(x=>submits[x.name]=x.value||'1');
 
+  console.log('[frontpad-auth] fields',inputs.map(x=>({name:x.name,id:x.id,type:x.type})),{email:email?.name||'',password:password?.name||'',code:code?.name||'',action,method,captcha:Boolean(captcha)});
   return {email:email?.name||'',password:password?.name||'',code:code?.name||'',hidden,submits,action,method,captcha};
 }
 async function frontpadFetch(url,options={}){
