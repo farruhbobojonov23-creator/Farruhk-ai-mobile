@@ -450,7 +450,9 @@ function cookieValue(req,name){
   return '';
 }
 function requireShef51Admin(req,res,next){
-  const session=verifySession(cookieValue(req,'shef51_admin'));
+  const auth=String(req.headers.authorization||'');
+  const bearer=auth.startsWith('Bearer ')?auth.slice(7).trim():'';
+  const session=verifySession(cookieValue(req,'shef51_admin'))||verifySession(bearer);
   if(!session)return res.status(401).json({ok:false,error:'Нужен вход владельца'});
   req.shef51Admin=session; next();
 }
@@ -547,7 +549,7 @@ app.post('/api/shef51/admin/login',(req,res)=>{
   loginAttempts.delete(ip);
   const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
   res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
-  res.json({ok:true});
+  res.json({ok:true,token});
 });
 app.post('/shef51-admin-login',(req,res)=>{
   const ip=String(req.ip||req.socket?.remoteAddress||'unknown');
@@ -571,7 +573,9 @@ app.post('/api/shef51/admin/logout',(req,res)=>{
   res.json({ok:true});
 });
 app.get('/api/shef51/admin/session',(req,res)=>{
-  res.json({ok:Boolean(verifySession(cookieValue(req,'shef51_admin')))});
+  const auth=String(req.headers.authorization||'');
+  const bearer=auth.startsWith('Bearer ')?auth.slice(7).trim():'';
+  res.json({ok:Boolean(verifySession(cookieValue(req,'shef51_admin'))||verifySession(bearer))});
 });
 
 async function getShef51Config(kind='draft'){
