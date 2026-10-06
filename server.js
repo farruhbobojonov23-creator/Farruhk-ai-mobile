@@ -516,15 +516,137 @@ app.post('/shef51-panel-login',async(req,res,next)=>{
     res.redirect(303,'/shef51-panel');
   }catch(err){next(err);}
 });
+function shef51PanelEsc(v){
+  return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function shef51PanelShell(tab,title,body,note=''){
+  const tabs=[
+    ['dashboard','Главная'],['products','Товары'],['site','Сайт'],
+    ['analytics','Статистика'],['requests','Заявки'],['system','Система']
+  ];
+  const nav=tabs.map(([id,label])=>'<a class="tab '+(tab===id?'active':'')+'" href="/shef51-panel?tab='+id+'">'+label+'</a>').join('');
+  return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>SHEF51 — '+shef51PanelEsc(title)+'</title><style>'+
+  '*{box-sizing:border-box}html,body{margin:0;background:#050505;color:#fff;font-family:Arial,sans-serif}body{padding-bottom:32px}.wrap{width:min(1120px,calc(100% - 28px));margin:auto}.top{padding:18px 0 12px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:#ff3045}.muted{color:#8f8f8f}.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 18px;position:sticky;top:0;background:#050505;z-index:5}.tab{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #303030;background:#151515;color:#ddd;text-decoration:none;font-weight:800;white-space:nowrap}.tab.active{background:#ff3045;border-color:#ff3045;color:#fff}.hero{padding:8px 0 8px}.hero h1{font:700 clamp(42px,10vw,72px)/.98 Georgia,serif;margin:4px 0 8px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#0b0b0b;border:1px solid #242424;border-radius:24px;padding:20px;margin:12px 0;overflow:hidden}.stat small{display:block;color:#8f8f8f;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.stat strong{display:block;font:700 34px Georgia,serif;color:#f1e2cb;margin-top:8px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #303030;background:#161616;color:#fff;border-radius:999px;padding:12px 16px;font-weight:800;text-decoration:none}.btn.red{background:#ff3045;border-color:#ff3045}.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.08em}.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #303030;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:100px;resize:vertical}.item{padding:12px 0;border-bottom:1px solid #1f1f1f}.item:last-child{border-bottom:0}.item b{display:block}.meta{font-size:12px;color:#969696;line-height:1.55;margin-top:5px}.tag{display:inline-block;border:1px solid #2a2a2a;border-radius:999px;padding:5px 8px;font-size:11px;color:#cfcfcf;margin:5px 5px 0 0}.ok{color:#64d991}.warn{color:#f0c674}.err{color:#ff8590}.note{padding:12px 14px;border-radius:14px;background:#0e0e0e;border:1px solid #242424;margin:10px 0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 6px}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{width:calc(100% - 24px)}.hero h1{font-size:44px}.card{padding:18px;border-radius:22px}.tabs{margin:0 -12px;padding-left:12px;padding-right:12px}}'+
+  '</style></head><body><div class="wrap"><div class="top"><div class="brand"><b>SHEF51</b> · ПАНЕЛЬ УПРАВЛЕНИЯ</div><div class="muted">Серверная версия — работает без JavaScript</div></div><nav class="tabs">'+nav+'</nav><section class="hero"><h1>'+shef51PanelEsc(title)+'</h1>'+ (note?'<p class="muted">'+shef51PanelEsc(note)+'</p>':'') +'</section>'+body+'<div class="actions"><a class="btn" href="https://shef51.onrender.com" target="_blank">Открыть сайт</a><a class="btn" href="/shef51-panel-login">Войти заново</a></div></div></body></html>';
+}
+
 app.get('/shef51-panel',async(req,res,next)=>{
   try{
     const session=verifySession(cookieValue(req,'shef51_admin'));
     if(!session)return res.redirect(302,'/shef51-panel-login');
-    const html=await fs.readFile(new URL('./public/shef51-panel.html', import.meta.url),'utf8');
+    const tab=['dashboard','products','site','analytics','requests','system'].includes(String(req.query?.tab||''))?String(req.query.tab):'dashboard';
+    let title='Главная',note='',body='';
+
+    if(tab==='dashboard'){
+      title='Главная'; note='Коротко о состоянии SHEF51.';
+      let totals={views:0,visitors:0,bookingCta:0,bookings:0};
+      try{
+        const rows=await shef51AnalyticsEvents(7);
+        const vids=new Set();
+        for(const r of rows){if(r.event==='page_view')totals.views++;if(r.event==='booking_cta')totals.bookingCta++;if(r.event==='booking_submit_success')totals.bookings++;if(r.meta?.visitorId)vids.add(r.meta.visitorId)}
+        totals.visitors=vids.size;
+      }catch{}
+      body='<div class="grid">'+
+        '<div class="card stat"><small>Просмотры · 7 дней</small><strong>'+totals.views+'</strong></div>'+
+        '<div class="card stat"><small>Посетители</small><strong>'+totals.visitors+'</strong></div>'+
+        '<div class="card stat"><small>Переходы к брони</small><strong>'+totals.bookingCta+'</strong></div>'+
+        '<div class="card stat"><small>Заявки</small><strong>'+totals.bookings+'</strong></div>'+
+      '</div><div class="card"><h3>Статус</h3><p class="ok">Панель подключена к серверу ✓</p><p class="muted">Эта версия не зависит от JavaScript браузера.</p></div>';
+    }
+
+    if(tab==='products'){
+      title='Товары'; note='Редактирование названий, описаний, порций и видимости.';
+      const items=await getShef51Menu();
+      body='<form method="post" action="/shef51-panel/products-save">'+
+        items.map((x,i)=>'<div class="card"><input type="hidden" name="id_'+i+'" value="'+shef51PanelEsc(x.id)+'"><input type="hidden" name="category_'+i+'" value="'+shef51PanelEsc(x.category)+'"><input type="hidden" name="order_'+i+'" value="'+shef51PanelEsc(x.order)+'"><input type="hidden" name="imageUrl_'+i+'" value="'+shef51PanelEsc(x.imageUrl||'')+'"><div class="field"><label>Название</label><input name="name_'+i+'" value="'+shef51PanelEsc(x.name)+'"></div><div class="field"><label>Описание</label><textarea name="description_'+i+'">'+shef51PanelEsc(x.description||'')+'</textarea></div><div class="field"><label>Порция / цена</label><input name="portion_'+i+'" value="'+shef51PanelEsc(x.portion||'')+'"></div><label><input type="checkbox" name="visible_'+i+'" value="1" '+(x.visible!==false?'checked':'')+'> Показывать на сайте</label></div>').join('')+
+        '<input type="hidden" name="count" value="'+items.length+'"><button class="btn red" type="submit">Сохранить товары</button></form>';
+    }
+
+    if(tab==='site'){
+      title='Сайт'; note='Основные тексты и контакты.';
+      const cfg=await getShef51Config('draft');
+      body='<form method="post" action="/shef51-panel/site-save"><div class="card">'+
+        '<div class="field"><label>Верхняя подпись</label><input name="eyebrow" value="'+shef51PanelEsc(cfg.home?.eyebrow||'')+'"></div>'+
+        '<div class="field"><label>Главный заголовок</label><input name="title" value="'+shef51PanelEsc(cfg.home?.title||'')+'"></div>'+
+        '<div class="field"><label>Описание</label><textarea name="lead">'+shef51PanelEsc(cfg.home?.lead||'')+'</textarea></div>'+
+        '<div class="grid2"><div class="field"><label>Главная кнопка</label><input name="primaryButton" value="'+shef51PanelEsc(cfg.home?.primaryButton||'')+'"></div><div class="field"><label>Вторая кнопка</label><input name="secondaryButton" value="'+shef51PanelEsc(cfg.home?.secondaryButton||'')+'"></div></div>'+
+        '<div class="field"><label>WhatsApp</label><input name="whatsapp" value="'+shef51PanelEsc(cfg.general?.whatsapp||'')+'"></div>'+
+        '</div><button class="btn red" type="submit" name="mode" value="publish">Сохранить и опубликовать</button></form>';
+    }
+
+    if(tab==='analytics'){
+      title='Статистика'; note='Посетители, источники и действия.';
+      const rows=await shef51AnalyticsEvents(Math.max(1,Math.min(30,Number(req.query?.days)||7)));
+      const visitors=new Map(),sources={};
+      let views=0,cta=0,forms=0,bookingsCount=0;
+      for(const r of rows){
+        if(r.event==='page_view')views++;
+        if(r.event==='booking_cta')cta++;
+        if(r.event==='form_start')forms++;
+        if(r.event==='booking_submit_success')bookingsCount++;
+        const vid=String(r.meta?.visitorId||'').trim();
+        const source=String(r.meta?.source||'Прямой заход');
+        if(vid){
+          if(!visitors.has(vid))visitors.set(vid,{last:r.createdAt,source,device:r.meta?.device||'',os:r.meta?.os||'',browser:r.meta?.browser||'',pages:new Set(),actions:0});
+          const v=visitors.get(vid); if(Date.parse(r.createdAt)>Date.parse(v.last))v.last=r.createdAt;if(r.event==='page_view'&&r.page)v.pages.add(r.page);if(r.event!=='page_view')v.actions++;
+        }
+        sources[source]=(sources[source]||0)+(r.event==='page_view'?1:0);
+      }
+      const visitorRows=[...visitors.values()].sort((a,b)=>Date.parse(b.last)-Date.parse(a.last)).slice(0,80);
+      const sourceRows=Object.entries(sources).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      body='<div class="row"><a class="btn" href="/shef51-panel?tab=analytics&days=1">Сегодня</a><a class="btn" href="/shef51-panel?tab=analytics&days=7">7 дней</a><a class="btn" href="/shef51-panel?tab=analytics&days=30">30 дней</a></div>'+
+        '<div class="grid"><div class="card stat"><small>Просмотры</small><strong>'+views+'</strong></div><div class="card stat"><small>Посетители</small><strong>'+visitors.size+'</strong></div><div class="card stat"><small>К бронированию</small><strong>'+cta+'</strong></div><div class="card stat"><small>Заявки</small><strong>'+bookingsCount+'</strong></div></div>'+
+        '<div class="grid2"><div class="card"><h3>Источники</h3>'+ (sourceRows.length?sourceRows.map(([n,v])=>'<div class="item"><b>'+shef51PanelEsc(n)+'</b><span class="meta">'+v+' просмотров</span></div>').join(''):'<p class="muted">Пока нет данных</p>') +'</div>'+
+        '<div class="card"><h3>Воронка</h3><div class="item"><b>Просмотры</b><span class="meta">'+views+'</span></div><div class="item"><b>Начали форму</b><span class="meta">'+forms+'</span></div><div class="item"><b>Заявки</b><span class="meta">'+bookingsCount+'</span></div></div></div>'+
+        '<div class="card"><h3>Последние посетители</h3>'+ (visitorRows.length?visitorRows.map(v=>'<div class="item"><b>'+shef51PanelEsc(v.source||'Прямой заход')+'</b><div class="meta">'+shef51PanelEsc([v.device,v.os,v.browser].filter(Boolean).join(' · '))+' · '+shef51PanelEsc(new Date(v.last).toLocaleString('ru-RU'))+'</div><div>'+[...v.pages].slice(0,8).map(p=>'<span class="tag">'+shef51PanelEsc(p)+'</span>').join('')+'</div></div>').join(''):'<p class="muted">Пока нет данных</p>') +'</div>';
+    }
+
+    if(tab==='requests'){
+      title='Заявки'; note='Телефон виден только если гость сам оставил его в форме.';
+      const rows=await shef51Bookings(90);
+      body='<div class="card"><h3>Последние заявки</h3>'+ (rows.length?rows.slice(0,100).map(b=>'<div class="item"><b>'+shef51PanelEsc(b.name||'Без имени')+' · '+shef51PanelEsc(b.contact||'—')+'</b><div class="meta">'+shef51PanelEsc(b.service||'—')+' · '+shef51PanelEsc(b.date||'—')+' · гостей: '+shef51PanelEsc(b.guests||'—')+'<br>Источник: '+shef51PanelEsc(b.source||'Не определён')+' · '+shef51PanelEsc(new Date(b.createdAt).toLocaleString('ru-RU'))+'</div></div>').join(''):'<p class="muted">Заявок пока нет</p>') +'</div>';
+    }
+
+    if(tab==='system'){
+      title='Система'; note='Проверка основных подключений.';
+      let tele='Не подключён';
+      try{if(telegramToken()){const me=await telegramRequest('getMe',{});tele='Подключён: @'+(me?.username||'bot')}}catch{tele='Ошибка подключения'}
+      body='<div class="card"><h3>API</h3><p class="ok">Сервер работает ✓</p></div><div class="card"><h3>Яндекс Диск</h3><p class="'+(yandexToken()?'ok':'warn')+'">'+(yandexToken()?'Подключён ✓':'Не подключён')+'</p></div><div class="card"><h3>Telegram</h3><p class="'+(tele.startsWith('Подключён')?'ok':'warn')+'">'+shef51PanelEsc(tele)+'</p></div>';
+    }
+
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
-    res.setHeader('Pragma','no-cache');
-    res.setHeader('Expires','0');
-    res.type('html').send(html);
+    res.setHeader('Pragma','no-cache');res.setHeader('Expires','0');
+    res.type('html').send(shef51PanelShell(tab,title,body,note));
+  }catch(err){next(err);}
+});
+app.post('/shef51-panel/site-save',async(req,res,next)=>{
+  try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
+    if(!yandexToken())return res.status(503).send('Yandex Disk not connected');
+    const current=await getShef51Config('draft');
+    const cfg=mergeShef51Config({...current,
+      general:{...current.general,whatsapp:String(req.body?.whatsapp||'').trim()},
+      home:{...current.home,eyebrow:String(req.body?.eyebrow||'').trim(),title:String(req.body?.title||'').trim(),lead:String(req.body?.lead||'').trim(),primaryButton:String(req.body?.primaryButton||'').trim(),secondaryButton:String(req.body?.secondaryButton||'').trim()}
+    });
+    await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
+    if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
+    res.redirect(303,'/shef51-panel?tab=site');
+  }catch(err){next(err);}
+});
+app.post('/shef51-panel/products-save',async(req,res,next)=>{
+  try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
+    if(!yandexToken())return res.status(503).send('Yandex Disk not connected');
+    const count=Math.max(0,Math.min(200,Number(req.body?.count)||0));
+    const raw=[];
+    for(let i=0;i<count;i++)raw.push({
+      id:req.body?.['id_'+i],category:req.body?.['category_'+i],order:req.body?.['order_'+i],imageUrl:req.body?.['imageUrl_'+i],
+      name:req.body?.['name_'+i],description:req.body?.['description_'+i],portion:req.body?.['portion_'+i],
+      visible:Boolean(req.body?.['visible_'+i])
+    });
+    const items=raw.map(cleanItem).sort((a,b)=>a.order-b.order);
+    await writeYandexFile(SHEF51_MENU_PATH,JSON.stringify({updatedAt:new Date().toISOString(),items},null,2),'application/json');
+    res.redirect(303,'/shef51-panel?tab=products');
   }catch(err){next(err);}
 });
 app.post('/api/shef51/panel/logout',(req,res)=>{
