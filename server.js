@@ -469,6 +469,73 @@ function noteBadLogin(ip){
 }
 
 
+
+const shef51PanelLoginAttempts=new Map();
+function shef51PanelLoginAllowed(ip){
+  const now=Date.now();
+  const row=shef51PanelLoginAttempts.get(ip)||{count:0,reset:now+10*60*1000};
+  if(now>row.reset){row.count=0;row.reset=now+10*60*1000;}
+  shef51PanelLoginAttempts.set(ip,row);
+  return row.count<12;
+}
+function shef51PanelBadLogin(ip){
+  const row=shef51PanelLoginAttempts.get(ip)||{count:0,reset:Date.now()+10*60*1000};
+  row.count++;
+  shef51PanelLoginAttempts.set(ip,row);
+}
+app.get('/shef51-panel-login',async(req,res,next)=>{
+  try{
+    let html=await fs.readFile(new URL('./public/shef51-panel-login.html', import.meta.url),'utf8');
+    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma','no-cache');
+    res.setHeader('Expires','0');
+    res.type('html').send(html);
+  }catch(err){next(err);}
+});
+app.post('/shef51-panel-login',async(req,res,next)=>{
+  try{
+    const ip=String(req.ip||req.socket?.remoteAddress||'unknown');
+    if(!shef51PanelLoginAllowed(ip)){
+      let html=await fs.readFile(new URL('./public/shef51-panel-login.html', import.meta.url),'utf8');
+      html=html.replace('<!--LOGIN_ERROR-->','<div class="err">Слишком много попыток. Подожди несколько минут и попробуй снова.</div>');
+      return res.status(429).type('html').send(html);
+    }
+    const expected=shef51AdminPassword();
+    const got=String(req.body?.password||'').trim();
+    const a=Buffer.from(got),b=Buffer.from(expected||'');
+    const ok=Boolean(expected)&&a.length===b.length&&crypto.timingSafeEqual(a,b);
+    if(!ok){
+      shef51PanelBadLogin(ip);
+      let html=await fs.readFile(new URL('./public/shef51-panel-login.html', import.meta.url),'utf8');
+      html=html.replace('<!--LOGIN_ERROR-->','<div class="err">Неверный пароль.</div>');
+      return res.status(401).type('html').send(html);
+    }
+    shef51PanelLoginAttempts.delete(ip);
+    const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
+    let html=await fs.readFile(new URL('./public/shef51-panel.html', import.meta.url),'utf8');
+    const boot='<script>try{sessionStorage.setItem("shef51_panel_token",'+JSON.stringify(token)+')}catch(e){}</script>';
+    html=html.replace('</head>',boot+'</head>');
+    res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
+    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma','no-cache');
+    res.setHeader('Expires','0');
+    res.type('html').send(html);
+  }catch(err){next(err);}
+});
+app.get('/shef51-panel',async(req,res,next)=>{
+  try{
+    const html=await fs.readFile(new URL('./public/shef51-panel.html', import.meta.url),'utf8');
+    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma','no-cache');
+    res.setHeader('Expires','0');
+    res.type('html').send(html);
+  }catch(err){next(err);}
+});
+app.post('/api/shef51/panel/logout',(req,res)=>{
+  res.setHeader('Set-Cookie','shef51_admin=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+  res.json({ok:true});
+});
+
 app.get('/shef51-editor',(req,res)=>res.redirect('/shef51-editor.html'));
 
 app.get('/api/shef51/admin/visual-page',requireShef51Admin,async(req,res)=>{
