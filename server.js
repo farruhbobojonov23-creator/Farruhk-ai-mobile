@@ -272,6 +272,7 @@ const SHEF51_DRAFT_PATH=SHEF51_BASE+'site-draft.json';
 const SHEF51_PUBLISHED_PATH=SHEF51_BASE+'site-published.json';
 const SHEF51_BACKUPS_PATH=SHEF51_BASE+'Backups/';
 const SHEF51_BOOKINGS_PATH=SHEF51_BASE+'Bookings/';
+const SHEF51_TELEGRAM_CHAT_PATH=SHEF51_BASE+'telegram-chat.json';
 
 const defaultShef51Config=()=>({
   general:{
@@ -731,11 +732,31 @@ async function telegramRequest(method,payload={}){
 }
 
 async function telegramChatId(){
-  const updates=await telegramRequest('getUpdates',{limit:50,timeout:0});
+  const envId=String(process.env.TELEGRAM_CHAT_ID||'').trim();
+  if(envId)return envId;
+
+  if(yandexToken()){
+    try{
+      const saved=await readYandexJson(SHEF51_TELEGRAM_CHAT_PATH);
+      const savedId=String(saved?.chatId||'').trim();
+      if(savedId)return savedId;
+    }catch{}
+  }
+
+  const updates=await telegramRequest('getUpdates',{limit:100,timeout:0});
   const chats=(Array.isArray(updates)?updates:[])
     .map(u=>u?.message?.chat||u?.edited_message?.chat||u?.callback_query?.message?.chat)
     .filter(c=>c&&c.type==='private'&&c.id);
-  return chats.length?String(chats[chats.length-1].id):'';
+  const id=chats.length?String(chats[chats.length-1].id):'';
+
+  if(id&&yandexToken()){
+    writeYandexFile(
+      SHEF51_TELEGRAM_CHAT_PATH,
+      JSON.stringify({chatId:id,savedAt:new Date().toISOString()},null,2),
+      'application/json'
+    ).catch(err=>console.error('SHEF51 telegram chat save error',err?.message||err));
+  }
+  return id;
 }
 
 function bookingCors(req,res){
