@@ -539,6 +539,23 @@ app.post('/api/shef51/admin/login',(req,res)=>{
   res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
   res.json({ok:true});
 });
+app.post('/shef51-admin-login',(req,res)=>{
+  const ip=String(req.ip||req.socket?.remoteAddress||'unknown');
+  if(!loginAllowed(ip))return res.status(429).type('html').send('<meta charset="utf-8"><body style="background:#050505;color:#fff;font-family:Arial;padding:30px">Слишком много попыток. Попробуйте позже.<br><br><a style="color:#ff3344" href="/shef51-admin">Назад</a></body>');
+  const expected=shef51AdminPassword(), got=String(req.body?.password||'');
+  if(!expected||!shef51AdminSecret())return res.status(503).type('html').send('<meta charset="utf-8"><body style="background:#050505;color:#fff;font-family:Arial;padding:30px">Админка ещё не настроена на сервере.<br><br><a style="color:#ff3344" href="/shef51-admin">Назад</a></body>');
+  const a=Buffer.from(got), b=Buffer.from(expected);
+  const ok=a.length===b.length&&crypto.timingSafeEqual(a,b);
+  if(!ok){
+    noteBadLogin(ip);
+    return res.status(401).type('html').send('<meta charset="utf-8"><body style="background:#050505;color:#fff;font-family:Arial;padding:30px">Неверный пароль.<br><br><a style="color:#ff3344" href="/shef51-admin">Вернуться</a></body>');
+  }
+  loginAttempts.delete(ip);
+  const token=signSession({role:'owner',exp:Date.now()+7*24*60*60*1000});
+  res.setHeader('Set-Cookie','shef51_admin='+encodeURIComponent(token)+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800');
+  res.redirect(303,'/shef51-admin');
+});
+
 app.post('/api/shef51/admin/logout',(req,res)=>{
   res.setHeader('Set-Cookie','shef51_admin=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
   res.json({ok:true});
