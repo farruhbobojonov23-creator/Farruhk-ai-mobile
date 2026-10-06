@@ -82,7 +82,38 @@ footer{border-top:1px solid #1c1c1c;padding:32px 0;color:#8d8d8d;margin-top:60px
   .pageHead>.eyebrow,.pageHead>h1,.pageHead>.lead{animation:none!important}
   .pageTyped:after{display:none}
 }
-</style></head><body>
+</style>
+<style id="viewport-stability-fix">
+html{
+  width:100%;
+  min-width:100%;
+  max-width:100%;
+  overflow-x:clip;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  scrollbar-gutter:stable;
+}
+body{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow-x:clip;
+}
+header,main,footer{width:100%;max-width:100%}
+img,svg,video,canvas{max-width:100%}
+.wrap{width:min(1180px,calc(100% - 32px))!important;max-width:1180px}
+@media(max-width:900px){
+  html{scrollbar-gutter:auto}
+  .wrap{width:calc(100% - 32px)!important;max-width:none!important}
+  header{contain:layout style}
+  .nav{width:100%}
+  .brand{min-width:0}
+}
+@media(max-width:560px){
+  .wrap{width:calc(100% - 28px)!important}
+}
+</style>
+</head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>
 .cats{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 34px}.chip{padding:11px 18px;border:1px solid #333;border-radius:999px;background:#0b0b0b;color:#ddd;cursor:pointer}.chip.active{background:#ef2634;border-color:#ef2634}
