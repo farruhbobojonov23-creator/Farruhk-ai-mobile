@@ -17,7 +17,7 @@ ${Number(d.fontScale)&&Number(d.fontScale)!==100?` html{font-size:${Number(d.fon
  .panel,.svc,.card{background:var(--cms-surface)!important;border-color:var(--cms-border)!important;border-radius:var(--cms-radius)!important}
  .lead,.muted,.mini,footer{color:var(--cms-muted)!important}
  `;document.head.appendChild(css);
- if(c.seo){if(c.seo.title)document.title=c.seo.title;setMeta('description',c.seo.description||'')}
+ if(c.seo){const pth=(location.pathname.split('/').pop()||'index.html').toLowerCase();if((pth===''||pth==='index.html')&&c.seo.title)document.title=c.seo.title;if((pth===''||pth==='index.html')&&c.seo.description)setMeta('description',c.seo.description)}
  const brand=document.querySelector('.brand');if(brand)brand.innerHTML='<b>'+((g.siteName||'SHEF51').replace(/[<>&]/g,''))+'</b> · '+((g.brandLine||'FARRUKH AKA').replace(/[<>&]/g,''));
  txt(byHref('index.html'),n.home);txt(byHref('products.html'),n.products);txt(byHref('services.html'),n.services);txt(byHref('about.html'),n.about);
  document.querySelectorAll('a[href="book.html"]').forEach(a=>{if(a.closest('.links'))txt(a,n.book);else if(a.classList.contains('btn'))txt(a,n.book)});
