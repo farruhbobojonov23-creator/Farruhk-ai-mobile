@@ -524,11 +524,11 @@ function shef51PanelEsc(v){
 function shef51PanelShell(tab,title,body,note=''){
   const tabs=[
     ['dashboard','Главная'],['products','Товары'],['site','Сайт'],
-    ['analytics','Статистика'],['requests','Заявки'],['system','Система']
+    ['analytics','Статистика'],['requests','Заявки'],['settings','Настройки'],['system','Система']
   ];
   const nav=tabs.map(([id,label])=>'<a class="tab '+(tab===id?'active':'')+'" href="/shef51-panel?tab='+id+'">'+label+'</a>').join('');
   return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>SHEF51 — '+shef51PanelEsc(title)+'</title><style>'+
-  '*{box-sizing:border-box}html,body{margin:0;background:#050505;color:#fff;font-family:Arial,sans-serif}body{padding-bottom:32px}.wrap{width:min(1120px,calc(100% - 28px));margin:auto}.top{padding:18px 0 12px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:#ff3045}.muted{color:#8f8f8f}.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 18px;position:sticky;top:0;background:#050505;z-index:5}.tab{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #303030;background:#151515;color:#ddd;text-decoration:none;font-weight:800;white-space:nowrap}.tab.active{background:#ff3045;border-color:#ff3045;color:#fff}.hero{padding:8px 0 8px}.hero h1{font:700 clamp(42px,10vw,72px)/.98 Georgia,serif;margin:4px 0 8px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#0b0b0b;border:1px solid #242424;border-radius:24px;padding:20px;margin:12px 0;overflow:hidden}.stat small{display:block;color:#8f8f8f;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.stat strong{display:block;font:700 34px Georgia,serif;color:#f1e2cb;margin-top:8px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #303030;background:#161616;color:#fff;border-radius:999px;padding:12px 16px;font-weight:800;text-decoration:none}.btn.red{background:#ff3045;border-color:#ff3045}.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.08em}.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #303030;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:100px;resize:vertical}.item{padding:12px 0;border-bottom:1px solid #1f1f1f}.item:last-child{border-bottom:0}.item b{display:block}.meta{font-size:12px;color:#969696;line-height:1.55;margin-top:5px}.tag{display:inline-block;border:1px solid #2a2a2a;border-radius:999px;padding:5px 8px;font-size:11px;color:#cfcfcf;margin:5px 5px 0 0}.ok{color:#64d991}.warn{color:#f0c674}.err{color:#ff8590}.note{padding:12px 14px;border-radius:14px;background:#0e0e0e;border:1px solid #242424;margin:10px 0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 6px}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{width:calc(100% - 24px)}.hero h1{font-size:44px}.card{padding:18px;border-radius:22px}.tabs{margin:0 -12px;padding-left:12px;padding-right:12px}}'+
+  '*{box-sizing:border-box}html,body{margin:0;background:#050505;color:#fff;font-family:Arial,sans-serif}body{padding-bottom:32px}.wrap{width:min(1120px,calc(100% - 28px));margin:auto}.top{padding:18px 0 12px}.brand{font-weight:900;letter-spacing:.12em}.brand b{color:#ff3045}.muted{color:#8f8f8f}.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 18px;position:sticky;top:0;background:#050505;z-index:5}.tab{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #303030;background:#151515;color:#ddd;text-decoration:none;font-weight:800;white-space:nowrap}.tab.active{background:#ff3045;border-color:#ff3045;color:#fff}.hero{padding:8px 0 8px}.hero h1{font:700 clamp(42px,10vw,72px)/.98 Georgia,serif;margin:4px 0 8px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#0b0b0b;border:1px solid #242424;border-radius:24px;padding:20px;margin:12px 0;overflow:hidden}.stat small{display:block;color:#8f8f8f;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.stat strong{display:block;font:700 34px Georgia,serif;color:#f1e2cb;margin-top:8px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #303030;background:#161616;color:#fff;border-radius:999px;padding:12px 16px;font-weight:800;text-decoration:none}.btn.red{background:#ff3045;border-color:#ff3045}.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.08em}.field input,.field textarea,.field select{width:100%;background:#070707;border:1px solid #303030;color:#fff;border-radius:14px;padding:13px;font:inherit}.field textarea{min-height:100px;resize:vertical}.check{display:flex;align-items:center;gap:10px;padding:10px 0}.check input{width:20px;height:20px;accent-color:#ff3045}.check label{font-size:14px;color:#ddd}.item{padding:12px 0;border-bottom:1px solid #1f1f1f}.item:last-child{border-bottom:0}.item b{display:block}.meta{font-size:12px;color:#969696;line-height:1.55;margin-top:5px}.tag{display:inline-block;border:1px solid #2a2a2a;border-radius:999px;padding:5px 8px;font-size:11px;color:#cfcfcf;margin:5px 5px 0 0}.ok{color:#64d991}.warn{color:#f0c674}.err{color:#ff8590}.note{padding:12px 14px;border-radius:14px;background:#0e0e0e;border:1px solid #242424;margin:10px 0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 6px}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{width:calc(100% - 24px)}.hero h1{font-size:44px}.card{padding:18px;border-radius:22px}.tabs{margin:0 -12px;padding-left:12px;padding-right:12px}}'+
   '</style></head><body><div class="wrap"><div class="top"><div class="brand"><b>SHEF51</b> · ПАНЕЛЬ УПРАВЛЕНИЯ</div><div class="muted">Серверная версия — работает без JavaScript</div></div><nav class="tabs">'+nav+'</nav><section class="hero"><h1>'+shef51PanelEsc(title)+'</h1>'+ (note?'<p class="muted">'+shef51PanelEsc(note)+'</p>':'') +'</section>'+body+'<div class="actions"><a class="btn" href="https://shef51.onrender.com" target="_blank">Открыть сайт</a><a class="btn" href="/shef51-panel-login">Войти заново</a></div></div></body></html>';
 }
 
@@ -536,7 +536,7 @@ app.get('/shef51-panel',async(req,res,next)=>{
   try{
     const session=verifySession(cookieValue(req,'shef51_admin'));
     if(!session)return res.redirect(302,'/shef51-panel-login');
-    const tab=['dashboard','products','site','analytics','requests','system'].includes(String(req.query?.tab||''))?String(req.query.tab):'dashboard';
+    const tab=['dashboard','products','site','analytics','requests','settings','system'].includes(String(req.query?.tab||''))?String(req.query.tab):'dashboard';
     let title='Главная',note='',body='';
 
     if(tab==='dashboard'){
@@ -610,6 +610,42 @@ app.get('/shef51-panel',async(req,res,next)=>{
       body='<div class="card"><h3>Последние заявки</h3>'+ (rows.length?rows.slice(0,100).map(b=>'<div class="item"><b>'+shef51PanelEsc(b.name||'Без имени')+' · '+shef51PanelEsc(b.contact||'—')+'</b><div class="meta">'+shef51PanelEsc(b.service||'—')+' · '+shef51PanelEsc(b.date||'—')+' · гостей: '+shef51PanelEsc(b.guests||'—')+'<br>Источник: '+shef51PanelEsc(b.source||'Не определён')+' · '+shef51PanelEsc(new Date(b.createdAt).toLocaleString('ru-RU'))+'</div></div>').join(''):'<p class="muted">Заявок пока нет</p>') +'</div>';
     }
 
+    if(tab==='settings'){
+      title='Настройки'; note='Одинаковые настройки на телефоне и компьютере. Меняется только расположение под размер экрана.';
+      const cfg=await getShef51Config('draft');
+      const checked=v=>v!==false?' checked':'';
+      body='<form method="post" action="/shef51-panel/settings-save">'+
+        '<div class="grid2">'+
+          '<div class="card"><h3>Основные</h3>'+
+            '<div class="field"><label>Название сайта</label><input name="siteName" value="'+shef51PanelEsc(cfg.general?.siteName||'')+'"></div>'+
+            '<div class="field"><label>Подпись бренда</label><input name="brandLine" value="'+shef51PanelEsc(cfg.general?.brandLine||'')+'"></div>'+
+            '<div class="field"><label>WhatsApp</label><input name="whatsapp" inputmode="tel" value="'+shef51PanelEsc(cfg.general?.whatsapp||'')+'"></div>'+
+            '<div class="field"><label>Telegram</label><input name="telegram" value="'+shef51PanelEsc(cfg.general?.telegram||'')+'"></div>'+
+            '<div class="field"><label>Текст внизу сайта</label><input name="footerText" value="'+shef51PanelEsc(cfg.general?.footerText||'')+'"></div>'+
+          '</div>'+
+          '<div class="card"><h3>Меню сайта</h3>'+
+            '<div class="field"><label>Главная</label><input name="navHome" value="'+shef51PanelEsc(cfg.navigation?.home||'')+'"></div>'+
+            '<div class="field"><label>Товары</label><input name="navProducts" value="'+shef51PanelEsc(cfg.navigation?.products||'')+'"></div>'+
+            '<div class="field"><label>Услуги</label><input name="navServices" value="'+shef51PanelEsc(cfg.navigation?.services||'')+'"></div>'+
+            '<div class="field"><label>Обо мне</label><input name="navAbout" value="'+shef51PanelEsc(cfg.navigation?.about||'')+'"></div>'+
+            '<div class="field"><label>Забронировать</label><input name="navBook" value="'+shef51PanelEsc(cfg.navigation?.book||'')+'"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="grid2">'+
+          '<div class="card"><h3>Разделы</h3>'+
+            '<div class="check"><input id="set-products" type="checkbox" name="sectionProducts"'+checked(cfg.sections?.products)+'><label for="set-products">Показывать товары</label></div>'+
+            '<div class="check"><input id="set-services" type="checkbox" name="sectionServices"'+checked(cfg.sections?.services)+'><label for="set-services">Показывать услуги</label></div>'+
+            '<div class="check"><input id="set-booking" type="checkbox" name="sectionBooking"'+checked(cfg.sections?.booking)+'><label for="set-booking">Показывать бронирование</label></div>'+
+          '</div>'+
+          '<div class="card"><h3>Поиск и описание</h3>'+
+            '<div class="field"><label>Заголовок сайта</label><input name="seoTitle" value="'+shef51PanelEsc(cfg.seo?.title||'')+'"></div>'+
+            '<div class="field"><label>Описание сайта</label><textarea name="seoDescription">'+shef51PanelEsc(cfg.seo?.description||'')+'</textarea></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="actions"><button class="btn" type="submit" name="mode" value="draft">Сохранить</button><button class="btn red" type="submit" name="mode" value="publish">Сохранить и опубликовать</button></div>'+
+      '</form>';
+    }
+
     if(tab==='system'){
       title='Система'; note='Проверка основных подключений.';
       let tele='Не подключён';
@@ -622,6 +658,47 @@ app.get('/shef51-panel',async(req,res,next)=>{
     res.type('html').send(shef51PanelShell(tab,title,body,note));
   }catch(err){next(err);}
 });
+app.post('/shef51-panel/settings-save',async(req,res,next)=>{
+  try{
+    const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
+    if(!yandexToken())return res.status(503).send('Yandex Disk not connected');
+    const current=await getShef51Config('draft');
+    const cfg=mergeShef51Config({
+      ...current,
+      general:{
+        ...current.general,
+        siteName:String(req.body?.siteName||'').trim(),
+        brandLine:String(req.body?.brandLine||'').trim(),
+        whatsapp:String(req.body?.whatsapp||'').trim(),
+        telegram:String(req.body?.telegram||'').trim(),
+        footerText:String(req.body?.footerText||'').trim()
+      },
+      navigation:{
+        ...current.navigation,
+        home:String(req.body?.navHome||'').trim(),
+        products:String(req.body?.navProducts||'').trim(),
+        services:String(req.body?.navServices||'').trim(),
+        about:String(req.body?.navAbout||'').trim(),
+        book:String(req.body?.navBook||'').trim()
+      },
+      sections:{
+        ...current.sections,
+        products:Boolean(req.body?.sectionProducts),
+        services:Boolean(req.body?.sectionServices),
+        booking:Boolean(req.body?.sectionBooking)
+      },
+      seo:{
+        ...current.seo,
+        title:String(req.body?.seoTitle||'').trim(),
+        description:String(req.body?.seoDescription||'').trim()
+      }
+    });
+    await writeYandexFile(SHEF51_DRAFT_PATH,JSON.stringify(cfg,null,2),'application/json');
+    if(String(req.body?.mode||'')==='publish')await writeYandexFile(SHEF51_PUBLISHED_PATH,JSON.stringify(cfg,null,2),'application/json');
+    res.redirect(303,'/shef51-panel?tab=settings');
+  }catch(err){next(err);}
+});
+
 app.post('/shef51-panel/site-save',async(req,res,next)=>{
   try{
     const session=verifySession(cookieValue(req,'shef51_admin'));if(!session)return res.redirect(302,'/shef51-panel-login');
