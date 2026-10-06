@@ -594,6 +594,106 @@ function mergeShef51Config(raw={}){
   return cfg;
 }
 
+
+function shef51MoscowStart(days=7){
+  const DAY=86400000,H=3600000;
+  const now=Date.now();
+  const shifted=new Date(now+3*H);
+  const todayStart=Date.UTC(shifted.getUTCFullYear(),shifted.getUTCMonth(),shifted.getUTCDate())-3*H;
+  return todayStart-(Math.max(1,days)-1)*DAY;
+}
+function shef51MoscowDay(ts){
+  return new Date(Number(ts)+3*3600000).toISOString().slice(0,10);
+}
+async function shef51AnalyticsEvents(days=30){
+  if(!yandexToken())return [];
+  const DAY=86400000;
+  const start=shef51MoscowStart(days);
+  const folderStart=Math.floor((start-DAY)/DAY)*DAY;
+  const folderEnd=Math.floor(Date.now()/DAY)*DAY;
+  const files=[];
+  for(let t=folderStart;t<=folderEnd;t+=DAY){
+    const day=new Date(t).toISOString().slice(0,10);
+    const path=SHEF51_ANALYTICS_PATH+day+'/';
+    try{
+      const q=encodeURIComponent(path);
+      const d=await yandexRequest('/resources?path='+q+'&limit=1000&sort=name',{method:'GET'});
+      for(const x of (d?._embedded?.items||[])){
+        if(x.type==='file'&&/\.json$/i.test(x.name))files.push(path+x.name);
+      }
+    }catch(err){
+      if(err?.status!==404)console.error('SHEF51 analytics list',day,err?.message||err);
+    }
+  }
+  const rows=[];
+  for(let i=0;i<files.length;i+=12){
+    const batch=files.slice(i,i+12);
+    const got=await Promise.all(batch.map(p=>readYandexJson(p).catch(()=>null)));
+    for(const row of got){
+      const ts=Date.parse(row?.createdAt||'');
+      if(row&&Number.isFinite(ts)&&ts>=start&&ts<=Date.now()+60000)rows.push(row);
+    }
+  }
+  return rows;
+}
+app.get('/api/shef51/admin/analytics-summary',requireShef51Admin,async(req,res)=>{
+  const days=Math.max(1,Math.min(30,Number(req.query?.days)||7));
+  try{
+    const rows=await shef51AnalyticsEvents(days);
+    const byEvent={},byPage={},services={},products={},daily={};
+    const visitors=new Set(),sessions=new Set();
+    for(const r of rows){
+      const ev=String(r.event||'unknown');
+      byEvent[ev]=(byEvent[ev]||0)+1;
+      const day=shef51MoscowDay(Date.parse(r.createdAt));
+      daily[day]??={views:0,bookings:0,cta:0};
+      if(ev==='page_view'){
+        daily[day].views++;
+        const p=String(r.page||'index.html');
+        byPage[p]=(byPage[p]||0)+1;
+      }
+      if(ev==='booking_submit_success')daily[day].bookings++;
+      if(ev==='booking_cta')daily[day].cta++;
+      const vid=String(r.meta?.visitorId||'').trim();
+      const sid=String(r.meta?.sessionId||'').trim();
+      if(vid)visitors.add(vid);
+      if(sid)sessions.add(sid);
+      if(ev==='service_details'){
+        const label=String(r.label||'').trim();
+        if(label)services[label]=(services[label]||0)+1;
+      }
+      if(ev==='product_details'){
+        const label=String(r.label||'').trim();
+        if(label)products[label]=(products[label]||0)+1;
+      }
+    }
+    const views=byEvent.page_view||0;
+    const bookingCta=byEvent.booking_cta||0;
+    const formStarts=byEvent.form_start||0;
+    const bookings=byEvent.booking_submit_success||0;
+    const sortObj=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([name,count])=>({name,count}));
+    const daysOut=Object.entries(daily).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,v])=>({date,...v}));
+    res.json({
+      ok:true,days,generatedAt:new Date().toISOString(),
+      totals:{
+        views,
+        visitors:visitors.size||null,
+        sessions:sessions.size||null,
+        bookingCta,formStarts,bookings,
+        conversion:views?Number((bookings/views*100).toFixed(1)):0
+      },
+      events:byEvent,
+      pages:sortObj(byPage),
+      services:sortObj(services),
+      products:sortObj(products),
+      daily:daysOut
+    });
+  }catch(err){
+    console.error('SHEF51 analytics summary error',err);
+    res.status(502).json({ok:false,error:'Не удалось загрузить статистику: '+(err?.message||'unknown')});
+  }
+});
+
 app.get('/api/shef51/admin/site-config',requireShef51Admin,async(req,res)=>{
   res.json({ok:true,config:await getShef51Config('draft')});
 });
