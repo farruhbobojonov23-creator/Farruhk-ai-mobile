@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050403">
   <title>FARRUKH AI</title>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/north.css?v=17.0">
+  <link rel="stylesheet" href="/north.css?v=18.0">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -42,6 +42,31 @@
       </form>
     </section>
 
+    <section class="command-center" aria-label="Командный центр">
+      <div class="command-head">
+        <div><span>КОМАНДНЫЙ ЦЕНТР</span><h2>Сегодня</h2></div>
+        <button id="dashboardRefresh" class="dashboard-refresh" type="button" aria-label="Обновить командный центр">↻</button>
+      </div>
+      <div class="command-grid">
+        <button class="command-stat" data-action="chat">
+          <span>AI</span><b id="dashAi">Проверяю…</b><small id="dashAiNote">Статус ассистента</small>
+        </button>
+        <button class="command-stat" data-action="tasks">
+          <span>Сегодня</span><b id="dashTodayTasks">0</b><small>активных задач</small>
+        </button>
+        <button class="command-stat warning" data-action="tasks">
+          <span>Просрочено</span><b id="dashOverdue">0</b><small id="dashImportant">важных: 0</small>
+        </button>
+        <button class="command-stat" data-action="analytics">
+          <span>Frontpad</span><b id="dashFrontpad">Проверяю…</b><small id="dashFrontpadNote">Источник данных</small>
+        </button>
+      </div>
+      <div class="command-insight">
+        <div><span>Фокус</span><p id="dashboardInsight">Собираю главное на сегодня…</p></div>
+        <button id="dashboardAsk" type="button">Спросить AI →</button>
+      </div>
+    </section>
+
     <section class="cards" aria-label="Главные разделы">
       <button class="card" data-action="chat"><span class="icon">✦</span><div><b>Спросить AI</b><small>Общение, идеи и рабочие вопросы</small></div><span class="arrow">↗</span></button>
       <button class="card" data-action="tasks"><span class="icon">✓</span><div><b>Задачи</b><small>Планирование и контроль</small></div><span class="arrow">↗</span></button>
@@ -56,6 +81,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/north.js?v=17.0" defer></script>
+  <script src="/north.js?v=18.0" defer></script>
 </body>
 </html>
