@@ -118,7 +118,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-4.1'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.0'}));
 
 let frontpadSession={cookies:'',loginHtml:'',loginUrl:'https://app.frontpad.ru/login/',formAction:'https://app.frontpad.ru/login/',captchaUrl:'',fields:null,authenticated:false,updatedAt:null,lastError:''};
 
@@ -680,20 +680,31 @@ app.post('/api/chat',async(req,res)=>{
       generationConfig:{temperature:0.5}
     };
     const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(geminiKey);
-    const r=await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body),
-      signal:AbortSignal.timeout(30000)
-    });
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok){
-      const e=new Error(data?.error?.message||('Gemini HTTP '+r.status));
-      e.status=r.status;e.data=data;throw e;
+    let last=null;
+    for(let attempt=1;attempt<=2;attempt++){
+      try{
+        const r=await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(body),
+          signal:AbortSignal.timeout(30000)
+        });
+        const data=await r.json().catch(()=>({}));
+        if(!r.ok){
+          const e=new Error(data?.error?.message||('Gemini HTTP '+r.status));
+          e.status=r.status;e.data=data;throw e;
+        }
+        const candidate=data?.candidates?.[0]||{};
+        const reply=(candidate?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
+        return {reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model,sources:[],webSearch:false,webRequested:false,degraded:false};
+      }catch(err){
+        last=err;
+        const retryable=err?.status===429||err?.status>=500||/quota|rate limit|resource_exhausted|timeout|fetch failed/i.test(String(err?.message||''));
+        if(!retryable||attempt===2)throw err;
+        await new Promise(r=>setTimeout(r,450*attempt));
+      }
     }
-    const candidate=data?.candidates?.[0]||{};
-    const reply=(candidate?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
-    return {reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model,sources:[],webSearch:false,webRequested:false};
+    throw last||new Error('AI unavailable');
   }
 
   let lastErr=null;
@@ -714,13 +725,14 @@ app.post('/api/chat',async(req,res)=>{
   // Never leave the UI with a generic dead end when external AI quota is exhausted.
   const fallback=localReply(message,context);
   return res.status(200).json({
-    reply:fallback+'\n\nСейчас внешний AI временно упёрся в лимит API. Базовые функции FARRUKH AI продолжают работать.',
+    reply:fallback,
     mode:'local-fallback',
     provider:'local',
     model:null,
     sources:[],
     webSearch:false,
-    notice:'Лимит внешнего AI временно исчерпан.'
+    degraded:true,
+    notice:'Внешний AI временно недоступен — включён резервный режим.'
   });
 });
 
@@ -758,6 +770,79 @@ async function ensureFolder(path){
     throw e;
   }
 }
+
+const FARRUKH_AI_BASE='/FARRUKH_AI_STORAGE/FARRUKH_AI/';
+const FARRUKH_AI_STATE_PATH=FARRUKH_AI_BASE+'state.json';
+let fallbackAiState={tasks:[],memory:[],chat:[],tts:true,updatedAt:null,storage:'memory'};
+
+async function yandexReadJson(path){
+  const meta=await yandexRequest('/resources/download?path='+encodeURIComponent(path),{method:'GET'});
+  const r=await fetch(meta.href,{signal:AbortSignal.timeout(12000)});
+  if(!r.ok)throw new Error('Ошибка чтения облачного состояния: HTTP '+r.status);
+  return await r.json();
+}
+async function yandexWriteJson(path,data){
+  const dir=path.slice(0,path.lastIndexOf('/')+1);
+  await ensureFolder('/FARRUKH_AI_STORAGE/');
+  await ensureFolder(FARRUKH_AI_BASE);
+  if(dir&&dir!==FARRUKH_AI_BASE)await ensureFolder(dir);
+  const meta=await yandexRequest('/resources/upload?path='+encodeURIComponent(path)+'&overwrite=true',{method:'GET'});
+  const r=await fetch(meta.href,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(12000)});
+  if(!r.ok)throw new Error('Ошибка сохранения облачного состояния: HTTP '+r.status);
+  return true;
+}
+function sanitizeAiState(input={}){
+  const safeTask=t=>({
+    text:String(t?.text||'').slice(0,500),
+    done:Boolean(t?.done),
+    priority:t?.priority==='high'?'high':'normal',
+    due:t?.due?String(t.due).slice(0,64):null,
+    createdAt:t?.createdAt?String(t.createdAt).slice(0,64):null,
+    notifiedAt:t?.notifiedAt?String(t.notifiedAt).slice(0,64):null
+  });
+  const safeMemory=m=>({text:String(m?.text||'').slice(0,1000),createdAt:m?.createdAt?String(m.createdAt).slice(0,64):null});
+  const safeChat=m=>({role:m?.role==='user'?'user':'ai',text:String(m?.text||'').slice(0,6000)});
+  return {
+    tasks:(Array.isArray(input.tasks)?input.tasks:[]).slice(-300).map(safeTask).filter(x=>x.text),
+    memory:(Array.isArray(input.memory)?input.memory:[]).slice(-200).map(safeMemory).filter(x=>x.text),
+    chat:(Array.isArray(input.chat)?input.chat:[]).slice(-80).map(safeChat).filter(x=>x.text),
+    tts:input.tts!==false,
+    updatedAt:String(input.updatedAt||new Date().toISOString()).slice(0,64)
+  };
+}
+async function loadAiState(){
+  if(yandexToken()){
+    try{
+      const data=await yandexReadJson(FARRUKH_AI_STATE_PATH);
+      return {...sanitizeAiState(data),storage:'yandex'};
+    }catch(err){
+      if(err?.status!==404)console.warn('[ai-state] cloud read failed:',err.message);
+    }
+  }
+  return {...sanitizeAiState(fallbackAiState),storage:'memory'};
+}
+async function saveAiState(input){
+  const safe={...sanitizeAiState(input),updatedAt:new Date().toISOString()};
+  fallbackAiState={...safe,storage:'memory'};
+  if(yandexToken()){
+    try{
+      await yandexWriteJson(FARRUKH_AI_STATE_PATH,safe);
+      return {...safe,storage:'yandex'};
+    }catch(err){
+      console.warn('[ai-state] cloud write failed:',err.message);
+    }
+  }
+  return {...safe,storage:'memory'};
+}
+
+app.get('/api/state',async(req,res)=>{
+  try{res.json({ok:true,state:await loadAiState()})}
+  catch(err){res.status(500).json({ok:false,error:'Не удалось загрузить состояние',detail:err.message})}
+});
+app.put('/api/state',async(req,res)=>{
+  try{res.json({ok:true,state:await saveAiState(req.body||{})})}
+  catch(err){res.status(500).json({ok:false,error:'Не удалось сохранить состояние',detail:err.message})}
+});
 
 app.get('/api/yandex/status',async(req,res)=>{
   if(!yandexToken())return res.json({configured:false,connected:false,reason:'token_missing'});
