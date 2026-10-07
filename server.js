@@ -118,7 +118,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.1'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.2'}));
 
 let frontpadSession={cookies:'',loginHtml:'',loginUrl:'https://app.frontpad.ru/login/',formAction:'https://app.frontpad.ru/login/',captchaUrl:'',fields:null,authenticated:false,updatedAt:null,lastError:''};
 
@@ -774,6 +774,8 @@ async function ensureFolder(path){
 
 const FARRUKH_AI_BASE='/FARRUKH_AI_STORAGE/FARRUKH_AI/';
 const FARRUKH_AI_STATE_PATH=FARRUKH_AI_BASE+'state.json';
+const FARRUKH_AI_BACKUPS_PATH=FARRUKH_AI_BASE+'Backups/';
+let lastAutoBackupAt=0;
 let fallbackAiState={tasks:[],memory:[],chat:[],tts:true,updatedAt:null,storage:'memory'};
 
 async function yandexReadJson(path){
@@ -822,12 +824,47 @@ async function loadAiState(){
   }
   return {...sanitizeAiState(fallbackAiState),storage:'memory'};
 }
+async function createAiBackup(state,reason='manual'){
+  const safe=sanitizeAiState(state);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const payload={version:1,reason,createdAt:new Date().toISOString(),state:safe};
+  if(yandexToken()){
+    await ensureFolder('/FARRUKH_AI_STORAGE/');
+    await ensureFolder(FARRUKH_AI_BASE);
+    await ensureFolder(FARRUKH_AI_BACKUPS_PATH);
+    const path=FARRUKH_AI_BACKUPS_PATH+'backup-'+stamp+'.json';
+    await yandexWriteJson(path,payload);
+    return {path,createdAt:payload.createdAt,reason,storage:'yandex'};
+  }
+  return {path:null,createdAt:payload.createdAt,reason,storage:'memory'};
+}
+async function maybeAutoBackupAiState(state){
+  const now=Date.now();
+  if(now-lastAutoBackupAt<6*60*60*1000)return null;
+  try{
+    const out=await createAiBackup(state,'auto');
+    lastAutoBackupAt=now;
+    return out;
+  }catch(err){
+    console.warn('[ai-backup] auto failed:',err.message);
+    return null;
+  }
+}
+async function listAiBackups(){
+  if(!yandexToken())return [];
+  await ensureFolder('/FARRUKH_AI_STORAGE/');
+  await ensureFolder(FARRUKH_AI_BASE);
+  await ensureFolder(FARRUKH_AI_BACKUPS_PATH);
+  const data=await yandexRequest('/resources?path='+encodeURIComponent(FARRUKH_AI_BACKUPS_PATH)+'&limit=30&sort=-modified',{method:'GET'});
+  return (data?._embedded?.items||[]).filter(x=>x.type==='file'&&/\.json$/i.test(x.name)).map(x=>({name:x.name,path:x.path.replace(/^disk:/,''),size:x.size||0,modified:x.modified||null})).slice(0,20);
+}
 async function saveAiState(input){
   const safe={...sanitizeAiState(input),updatedAt:new Date().toISOString()};
   fallbackAiState={...safe,storage:'memory'};
   if(yandexToken()){
     try{
       await yandexWriteJson(FARRUKH_AI_STATE_PATH,safe);
+      await maybeAutoBackupAiState(safe);
       return {...safe,storage:'yandex'};
     }catch(err){
       console.warn('[ai-state] cloud write failed:',err.message);
@@ -843,6 +880,28 @@ app.get('/api/state',async(req,res)=>{
 app.put('/api/state',async(req,res)=>{
   try{res.json({ok:true,state:await saveAiState(req.body||{})})}
   catch(err){res.status(500).json({ok:false,error:'Не удалось сохранить состояние',detail:err.message})}
+});
+
+app.get('/api/backups',async(req,res)=>{
+  try{res.json({ok:true,backups:await listAiBackups(),storage:yandexToken()?'yandex':'memory'})}
+  catch(err){res.status(500).json({ok:false,error:'Не удалось получить резервные копии',detail:err.message})}
+});
+app.post('/api/backups',async(req,res)=>{
+  try{
+    const current=await loadAiState();
+    const backup=await createAiBackup(current,'manual');
+    res.json({ok:true,backup});
+  }catch(err){res.status(500).json({ok:false,error:'Не удалось создать резервную копию',detail:err.message})}
+});
+app.post('/api/backups/restore',async(req,res)=>{
+  try{
+    const path=String(req.body?.path||'');
+    if(!path.startsWith(FARRUKH_AI_BACKUPS_PATH)||!path.endsWith('.json'))return res.status(400).json({ok:false,error:'Некорректная резервная копия'});
+    const payload=await yandexReadJson(path);
+    const source=payload?.state||payload;
+    const saved=await saveAiState(source);
+    res.json({ok:true,state:saved,restoredFrom:path});
+  }catch(err){res.status(500).json({ok:false,error:'Не удалось восстановить резервную копию',detail:err.message})}
 });
 
 app.get('/api/yandex/status',async(req,res)=>{
