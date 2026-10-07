@@ -786,7 +786,21 @@ function autoListen(){
   if('speechSynthesis' in window&&speechSynthesis.speaking)return;
   listenFromChat(mic,input);
 }
-$('#micBtn').onclick=()=>{handsFree=true;runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)})};
+$('#micBtn').onclick=async()=>{
+  unlockVoice();
+  handsFree=true;
+  if(!state.tts){state.tts=true;save();syncPanelVoice()}
+  try{
+    if(navigator.permissions?.query){
+      const p=await navigator.permissions.query({name:'microphone'});
+      if(p.state==='denied'){
+        toast('Микрофон заблокирован. Нажми значок слева от адреса сайта → Разрешения → Микрофон → Разрешить');
+        return;
+      }
+    }
+  }catch{}
+  runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)});
+};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&activeRecognition){try{activeRecognition.abort()}catch{}}
@@ -796,6 +810,6 @@ window.addEventListener('online',()=>{toast('Интернет восстанов
 window.addEventListener('offline',()=>toast('Нет сети — данные сохраняются на устройстве'));
 const panelVoice=$('#panelVoice');
 function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
-if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен');if(state.tts)setTimeout(()=>speak('Голос включён. Я готов.'),80)}}
+if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен');if(state.tts)setTimeout(()=>speak('Голос включён. Я готов.'),120)}}
 
 updateDashboardLocal();refreshDashboard();bootstrapState();notifyDueTasks();
