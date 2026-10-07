@@ -13,7 +13,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/north.css?v=23.0">
   <link rel="stylesheet" href="/compact.css?v=1">
-  <link rel="stylesheet" href="/aurora.css?v=1">
+  <link rel="stylesheet" href="/aurora.css?v=2">
   <link rel="preload" href="/assets/aurora-assistant.webp" as="image">
 </head>
 <body>
@@ -43,7 +43,7 @@
         <input id="askInput" autocomplete="off" placeholder="Спросите меня…" aria-label="Запрос FARRUKH AI">
         <button class="go" type="submit" aria-label="Отправить">→</button>
       </form>
-      <div class="conversation-start"><div class="voice-wave" aria-hidden="true"><i style="--h:4px;--d:0.0s"></i><i style="--h:8px;--d:0.06s"></i><i style="--h:14px;--d:0.12s"></i><i style="--h:7px;--d:0.18s"></i><i style="--h:22px;--d:0.24s"></i><i style="--h:12px;--d:0.3s"></i><i style="--h:30px;--d:0.36s"></i><i style="--h:18px;--d:0.42s"></i><i style="--h:9px;--d:0.48s"></i><i style="--h:24px;--d:0.54s"></i><i style="--h:38px;--d:0.6s"></i><i style="--h:17px;--d:0.6599999999999999s"></i><i style="--h:28px;--d:0.72s"></i><i style="--h:12px;--d:0.78s"></i><i style="--h:35px;--d:0.84s"></i><i style="--h:20px;--d:0.8999999999999999s"></i><i style="--h:10px;--d:0.96s"></i><i style="--h:25px;--d:1.02s"></i><i style="--h:14px;--d:1.08s"></i><i style="--h:7px;--d:1.14s"></i><i style="--h:18px;--d:1.2s"></i><i style="--h:10px;--d:1.26s"></i><i style="--h:4px;--d:1.3199999999999998s"></i></div><button id="startConversation" type="button">Начать разговор <span aria-hidden="true">↗</span></button><small>Нажмите и разрешите микрофон</small></div>
+      <div class="conversation-start"><div class="voice-wave" aria-hidden="true"><i style="--h:4px;--d:0.0s"></i><i style="--h:8px;--d:0.06s"></i><i style="--h:14px;--d:0.12s"></i><i style="--h:7px;--d:0.18s"></i><i style="--h:22px;--d:0.24s"></i><i style="--h:12px;--d:0.3s"></i><i style="--h:30px;--d:0.36s"></i><i style="--h:18px;--d:0.42s"></i><i style="--h:9px;--d:0.48s"></i><i style="--h:24px;--d:0.54s"></i><i style="--h:38px;--d:0.6s"></i><i style="--h:17px;--d:0.6599999999999999s"></i><i style="--h:28px;--d:0.72s"></i><i style="--h:12px;--d:0.78s"></i><i style="--h:35px;--d:0.84s"></i><i style="--h:20px;--d:0.8999999999999999s"></i><i style="--h:10px;--d:0.96s"></i><i style="--h:25px;--d:1.02s"></i><i style="--h:14px;--d:1.08s"></i><i style="--h:7px;--d:1.14s"></i><i style="--h:18px;--d:1.2s"></i><i style="--h:10px;--d:1.26s"></i><i style="--h:4px;--d:1.3199999999999998s"></i></div><button id="startConversation" type="button">Говорить</button><small>Нажмите и разрешите микрофон</small></div>
     </section>
 
     <section class="command-center" aria-label="Командный центр">
@@ -72,20 +72,21 @@
     </section>
 
     <section class="cards" aria-label="Главные разделы">
-      <button class="card" data-action="tasks"><span class="icon">✓</span><div><b>Задачи</b><small>Планы и напоминания</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="documents"><span class="icon">▤</span><div><b>Документы</b><small>Файлы и техкарты</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="analytics"><span class="icon">▥</span><div><b>Аналитика</b><small>Показатели четырёх точек</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="tools"><span class="icon">⌘</span><div><b>Инструменты</b><small>Расчёты для кухни</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="tasks"><span class="icon">▣</span><div><b>Мой день</b><small>Задачи и напоминания</small></div><span class="arrow">›</span></button>
+      <button class="card" data-action="kitchen"><span class="icon">♧</span><div><b>Кухня</b><small>Техкарты · КБЖУ</small></div><span class="arrow">›</span></button>
+      <button class="card" data-action="business"><span class="icon">▥</span><div><b>Бизнес</b><small>Точки и отчёты</small></div><span class="arrow">›</span></button>
+      <button class="card" data-action="documents"><span class="icon">▤</span><div><b>Документы</b><small>Файлы и инструкции</small></div><span class="arrow">›</span></button>
     </section>
+    <section class="quick-actions" aria-label="Быстрые действия"><h2>Быстрые действия</h2><div><button data-action="cost">Рассчитать блюдо <span>›</span></button><button data-action="newtask">Создать задачу <span>›</span></button></div></section>
   </main>
 
-  <nav class="bottom-nav" aria-label="Основные разделы"><button data-nav="chat">Чат</button><button data-nav="tasks">Сегодня</button><button data-nav="documents">Документы</button><button data-nav="tools">Ещё</button></nav>
+  <nav class="bottom-nav" aria-label="Основные разделы"><button data-nav="home" class="active"><span>⌂</span>Главная</button><button data-nav="chat"><span>◯</span>Чат</button><button data-nav="tasks"><span>☑</span>Задачи</button><button data-nav="tools"><span>•••</span>Ещё</button></nav>
   <dialog id="panel">
     <div class="panel-head"><div><span class="panel-kicker">FARRUKH AI</span><h2 id="panelTitle">Ассистент</h2></div><div class="panel-actions"><button id="panelVoice" class="panel-voice" aria-label="Включить или выключить голос">🔊</button><button id="panelClose" aria-label="Закрыть">×</button></div></div>
     <div id="panelBody" class="panel-body"></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="/north.js?v=25.0"></script>
+  <script type="module" src="/north.js?v=26.0"></script>
 </body>
 </html>

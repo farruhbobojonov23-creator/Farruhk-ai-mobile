@@ -1,3 +1,4 @@
+import {formatChat} from './chat-format.js';
 import {taskCalendar} from './task-calendar.js';
 import {parseLiveReports} from './analytics-values.js';
 import {parseTaskCommand,zonedDate,zonedToUtc} from './task-commands.js';
@@ -200,13 +201,15 @@ if('speechSynthesis' in window){
 }
 function renderChat(){
   body.innerHTML=(selectedDocuments.length?'<div class="document-toolbar"><span>Документов для ответа: '+selectedDocuments.length+'</span><button id="clearChatDocs">Снять выбор</button></div>':'')+'<div class="conversation-mode '+(handsFree?'on':'')+'"><span>'+(handsFree?'Живой диалог включён':'Нажми микрофон один раз — дальше отвечай голосом без лишних нажатий')+'</span></div><div class="chatlog">'+
-    (state.chat.length?state.chat.map(m=>'<div class="msg '+m.role+'"><div class="msg-text">'+esc(m.text)+'</div></div>').join(''):'<div class="msg ai"><div class="msg-text">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div></div>')+
+    (state.chat.length?state.chat.map((m,index)=>'<div class="msg '+m.role+'"><div class="msg-text">'+formatChat(m.text)+'</div>'+(m.role==='ai'?'<div class="answer-actions"><button type="button" data-answer="copy" data-index="'+index+'">Копировать</button><button type="button" data-answer="speak" data-index="'+index+'">Озвучить</button><button type="button" data-answer="task" data-index="'+index+'">В задачу</button></div>':'')+'</div>').join(''):'<div class="msg ai"><div class="msg-text">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div></div>')+
     '</div>'+
     '<form class="chat-composer" id="chatComposer">'+
       '<button type="button" class="chat-mic" id="chatMic" aria-label="Ответить голосом">🎙</button>'+
       '<input id="chatInput" autocomplete="off" placeholder="Ответить FARRUKH AI…" aria-label="Ответить FARRUKH AI">'+
       '<button class="chat-send" type="submit" aria-label="Отправить">↑</button>'+
-    '</form>';
+    '</form><div class="voice-controls"><span id="voiceState" role="status">Готова к разговору</span><button id="stopConversation" type="button">Остановить</button></div>';
+  body.querySelectorAll('[data-answer]').forEach(button=>button.onclick=async()=>{const text=state.chat[Number(button.dataset.index)]?.text;if(!text)return;if(button.dataset.answer==='copy'){try{await navigator.clipboard.writeText(text);toast('Ответ скопирован')}catch{toast('Не удалось скопировать. Выделите текст ответа.')}}else if(button.dataset.answer==='speak'){unlockVoice();speak(text)}else{taskEditor(null,text)}});
+  $('#stopConversation').onclick=stopConversation;updateVoiceState();
   const clear=$('#clearChatDocs');if(clear)clear.onclick=()=>{selectedDocuments=[];renderChat()};
   const form=$('#chatComposer'),input=$('#chatInput'),mic=$('#chatMic');
   if(form)form.onsubmit=e=>{e.preventDefault();const v=input.value.trim();if(!v)return;input.value='';askAI(v)};
@@ -838,23 +841,24 @@ async function enablePushNotifications(){
 }
 function navigate(section,push=true){
   document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===section));
-  if(push){const url=new URL(location.href);url.searchParams.set('open',section);history.pushState({section},'',url)}
-  if(section==='chat'){openPanel('Спросить AI');renderChat()}else if(section==='tasks')renderTasks();else if(section==='documents')renderDocuments();else if(section==='analytics')renderAnalytics();else renderTools();
+  if(section!=='chat')stopConversation();
+  if(push){const url=new URL(location.href);if(section==='home')url.searchParams.delete('open');else url.searchParams.set('open',section);history.pushState({section},'',url)}
+  if(section==='home'){panel.close();window.scrollTo({top:0,behavior:'smooth'})}else if(section==='chat'){openPanel('Спросить AI');renderChat()}else if(section==='tasks')renderTasks();else if(section==='documents')renderDocuments();else if(section==='analytics')renderAnalytics();else if(section==='kitchen')renderKitchen();else if(section==='business')renderBusiness();else if(section==='cost')renderCostTool();else if(section==='newtask')taskEditor();else renderTools();
 }
 $$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));
 $$('[data-action]').forEach(b=>b.onclick=()=>navigate(b.dataset.action));
-window.addEventListener('popstate',()=>{const section=new URLSearchParams(location.search).get('open');if(section)navigate(section,false);else panel.close()});
+window.addEventListener('popstate',()=>{const section=new URLSearchParams(location.search).get('open');navigate(section||'home',false)});
 function renderSettings(){
   openPanel('Настройки');body.innerHTML='<form class="inline-form" id="settingsForm"><label>Часовой пояс<select name="zone"><option value="Europe/Moscow">Мурманск / Москва (UTC+3)</option><option value="'+esc(Intl.DateTimeFormat().resolvedOptions().timeZone)+'">По часовому поясу устройства</option></select></label><button>Сохранить</button></form><p>Сроки голосовых команд и даты задач используют выбранный часовой пояс.</p><button class="add-task" id="logoutOwner">Выйти</button>';
   $('#settingsForm').elements.zone.value=state.timeZone;$('#settingsForm').onsubmit=e=>{e.preventDefault();state.timeZone=e.target.elements.zone.value;localStorage.setItem('fai_timeZone',JSON.stringify(state.timeZone));save();toast('Настройки сохранены')};
   if(ownerSession?.passwordless){$('#logoutOwner').hidden=true;}
   $('#logoutOwner').onclick=async()=>{if(changeGeneration>savedGeneration&&!await syncStateNow())return toast('Сначала сохраните или скачайте изменения');await fetch('/api/auth/logout',{method:'POST'});for(const key of Object.keys(localStorage))if(key.startsWith('fai_'))localStorage.removeItem(key);location.reload()};
 }
-function taskEditor(index=null){
+function taskEditor(index=null,draft=''){
   const existing=index===null?null:state.tasks[index],wall=existing?.due?zonedDate(new Date(existing.due),state.timeZone):null;
   const pad=n=>String(n).padStart(2,'0');const due=wall?wall.getFullYear()+'-'+pad(wall.getMonth()+1)+'-'+pad(wall.getDate())+'T'+pad(wall.getHours())+':'+pad(wall.getMinutes()):'';
   openPanel(existing?'Изменить задачу':'Новая задача');
-  body.innerHTML='<form class="inline-form" id="taskEditor"><label>Задача<input name="text" required maxlength="500" value="'+esc(existing?.text||'')+'"></label><label>Дата и время · '+esc(state.timeZone)+'<input name="due" type="datetime-local" value="'+due+'"></label><label>Приоритет<select name="priority"><option value="normal">Обычная</option><option value="high">Важная</option></select></label><p>Без даты задача сохранится без напоминания.</p><div class="form-actions"><button>Сохранить</button><button type="button" id="cancelTaskEdit">Отмена</button></div><p id="taskError" role="alert"></p></form>';
+  body.innerHTML='<form class="inline-form" id="taskEditor"><label>Задача<input name="text" required maxlength="500" value="'+esc(existing?.text||draft.slice(0,500))+'"></label><label>Дата и время · '+esc(state.timeZone)+'<input name="due" type="datetime-local" value="'+due+'"></label><label>Приоритет<select name="priority"><option value="normal">Обычная</option><option value="high">Важная</option></select></label><p>Без даты задача сохранится без напоминания.</p><div class="form-actions"><button>Сохранить</button><button type="button" id="cancelTaskEdit">Отмена</button></div><p id="taskError" role="alert"></p></form>';
   $('#taskEditor').elements.priority.value=existing?.priority||'normal';$('#cancelTaskEdit').onclick=renderTasks;
   $('#taskEditor').onsubmit=e=>{e.preventDefault();try{const f=e.target.elements,value=f.due.value;const task={...(existing||{}),id:existing?.id||crypto.randomUUID(),text:f.text.value.trim(),due:value?zonedToUtc(new Date(value),state.timeZone).toISOString():null,priority:f.priority.value,done:existing?.done||false,createdAt:existing?.createdAt||new Date().toISOString(),notifiedAt:null};if(!task.text)return;if(existing)state.tasks[index]=task;else state.tasks.unshift(task);save();renderTasks();toast('Задача сохранена')}catch(e){$('#taskError').textContent=e.message}};
 }
@@ -862,3 +866,31 @@ function taskEditor(index=null){
 // The hero CTA uses the existing voice flow; the portrait is a static visual.
 const startConversation=document.querySelector('#startConversation');
 if(startConversation)startConversation.onclick=()=>document.querySelector('#micBtn').click();
+
+function stopConversation(){
+  handsFree=false;
+  if(activeRecognition){try{activeRecognition.abort()}catch{}}
+  if('speechSynthesis' in window)speechSynthesis.cancel();
+  updateVoiceState();
+}
+function updateVoiceState(){
+  const speaking='speechSynthesis' in window&&speechSynthesis.speaking;
+  const label=listeningNow?'Слушаю…':chatBusy?'Думаю…':speaking?'Отвечаю…':'Готова к разговору';
+  const el=document.querySelector('#voiceState');if(el)el.textContent=label;
+  const stop=document.querySelector('#stopConversation');if(stop)stop.disabled=!listeningNow&&!speaking&&!handsFree;
+  const cta=document.querySelector('#startConversation');if(cta)cta.textContent=listeningNow?'Завершить запись':speaking?'Остановить голос':'Говорить';
+}
+setInterval(updateVoiceState,300);
+if(startConversation)startConversation.onclick=()=>{
+ if('speechSynthesis' in window&&speechSynthesis.speaking){stopConversation();return}
+ document.querySelector('#micBtn').click();
+};
+function renderKitchen(){
+ openPanel('Кухня');body.innerHTML='<p class="section-intro">Всё для расчётов и работы с блюдами.</p><div class="chef-tools-grid">'+toolCard('cost','Себестоимость','Стоимость порции по вашим ценам','₽')+toolCard('kbju','КБЖУ','Калории и пищевая ценность','K')+toolCard('ttk','Техкарта','Составить вместе с AI','▤')+toolCard('scale','Перерасчёт рецепта','Изменить количество порций','×')+toolCard('foodcost','Food cost','Доля себестоимости в цене','%')+'</div>';
+ body.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>openChefTool(b.dataset.tool));
+}
+function renderBusiness(){
+ openPanel('Бизнес');body.innerHTML='<p class="section-intro">Суши Бери · четыре точки. Отчёты и рабочие материалы.</p><div class="chef-tools-grid">'+toolCard('analytics','Продажи и отчёты','Frontpad и загрузка XLSX/CSV','▥')+toolCard('documents','Документы','Инструкции и рабочие файлы','▤')+toolCard('tasks','Задачи по точкам','Контроль выполнения','✓')+'</div>';
+ body.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>navigate(b.dataset.tool));
+}
+panel.addEventListener('close',stopConversation);

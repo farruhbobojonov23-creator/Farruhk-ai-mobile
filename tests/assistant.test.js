@@ -116,3 +116,9 @@ test('Fresh report context does not inherit archived totals or branches',async()
   const html=context.analyticsHtml({totalUnits:182,date:'03.10.2026',summary:'Old',branches:[{name:'Archive',units:182}]},{},{ok:true,authenticated:true,updatedAt:'2026-10-08T00:00:00Z'},null);
   assert.equal(context.analyticsContext.totalUnits,null);assert.equal(context.analyticsContext.summary,'');assert.equal(html.includes('Archive'),false);assert.equal(html.includes('182'),false);
 });
+
+test('Chat formatting escapes untrusted HTML while rendering lists and tables',async()=>{
+ const {formatChat}=await import('../public/chat-format.js');
+ const html=formatChat('**Ответ**\n1. Рис\n2. Лосось\n<script>alert(1)</script>\n| Товар | Вес |\n| --- | --- |\n| Рис | 130 |');
+ assert.match(html,/<strong>Ответ<\/strong>/);assert.match(html,/<ol><li>Рис<\/li>/);assert.match(html,/<table>/);assert.equal(html.includes('<script>'),false);assert.match(html,/&lt;script&gt;/);
+});
