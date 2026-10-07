@@ -1,12 +1,15 @@
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-const state={chat:JSON.parse(localStorage.getItem('fai_chat')||'[]'),tasks:JSON.parse(localStorage.getItem('fai_tasks')||'[]'),memory:JSON.parse(localStorage.getItem('fai_memory')||'[]'),tts:JSON.parse(localStorage.getItem('fai_tts')??'true')};
+function readJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw===null?fallback:JSON.parse(raw)}catch{return fallback}}
+const state={chat:readJSON('fai_chat',[]),tasks:readJSON('fai_tasks',[]),memory:readJSON('fai_memory',[]),tts:readJSON('fai_tts',true)};
 let stateUpdatedAt=localStorage.getItem('fai_state_updated_at')||new Date(0).toISOString();
 let syncTimer=null,syncBusy=false,bootstrapping=true;
 function save(skipSync=false){
-  localStorage.setItem('fai_chat',JSON.stringify(state.chat.slice(-40)));
-  localStorage.setItem('fai_tasks',JSON.stringify(state.tasks));
-  localStorage.setItem('fai_memory',JSON.stringify(state.memory.slice(-100)));
-  localStorage.setItem('fai_tts',JSON.stringify(state.tts));
+  try{
+    localStorage.setItem('fai_chat',JSON.stringify(state.chat.slice(-40)));
+    localStorage.setItem('fai_tasks',JSON.stringify(state.tasks));
+    localStorage.setItem('fai_memory',JSON.stringify(state.memory.slice(-100)));
+    localStorage.setItem('fai_tts',JSON.stringify(state.tts));
+  }catch{toast('Не удалось сохранить данные на устройстве')}
   updateDashboardLocal();
   if(!skipSync){
     stateUpdatedAt=new Date().toISOString();
@@ -144,7 +147,7 @@ function getRussianVoice(){
     ||null;
 }
 function speak(text){
-  if(!state.tts||!text)return false;
+  if(!state.tts||!text){if(handsFree&&panel?.open)setTimeout(autoListen,350);return false;}
   if(!('speechSynthesis' in window)){toast('На этом браузере озвучивание недоступно');return false;}
   const clean=String(text).replace(/[*#_~`>]/g,' ').replace(/\s+/g,' ').trim();
   if(!clean)return;
@@ -208,6 +211,7 @@ function parseTaskCommand(raw){
   let text=original
     .replace(/^\s*(добавь|добавить|создай|создать|напомни|запиши|поставь|сделай)\s*/i,'')
     .replace(/^задач[уа]\s*/i,'')
+    .replace(/^мне\s+/i,'')
     .trim();
 
   const now=new Date();
@@ -215,8 +219,12 @@ function parseTaskCommand(raw){
   let target=new Date(now);
   const hasTomorrow=/\bзавтра\b/i.test(text);
   const hasToday=/\bсегодня\b/i.test(text);
+  const weekdays={понедельник:1,вторник:2,среду:3,среда:3,четверг:4,пятницу:5,пятница:5,субботу:6,суббота:6,воскресенье:0};
+  let weekdayTarget=null;
+  for(const [w,n] of Object.entries(weekdays)){if(new RegExp('\\b'+w+'\\b','i').test(text)){weekdayTarget=n;text=text.replace(new RegExp('\\b(?:на\\s+)?'+w+'\\b','ig'),' ').trim();break}}
   if(hasTomorrow){target.setDate(target.getDate()+1);text=text.replace(/\bна\s+завтра\b|\bзавтра\b/ig,' ').trim();}
   else if(hasToday){text=text.replace(/\bна\s+сегодня\b|\bсегодня\b/ig,' ').trim();}
+  else if(weekdayTarget!==null){const diff=(weekdayTarget-target.getDay()+7)%7||7;target.setDate(target.getDate()+diff)}
 
   let hour=null,minute=0;
   const hm=text.match(/(?:в|к)\s*(\d{1,2})(?::(\d{2}))?/i);
@@ -225,9 +233,10 @@ function parseTaskCommand(raw){
   else if(/\bдн[её]м\b/i.test(text)){hour=14;text=text.replace(/\bдн[её]м\b/ig,' ').trim();}
   else if(/\bвечером\b/i.test(text)){hour=19;text=text.replace(/\bвечером\b/ig,' ').trim();}
 
-  if(hasTomorrow||hasToday||hour!==null){
+  if(hasTomorrow||hasToday||weekdayTarget!==null||hour!==null){
     if(hour===null)hour=hasTomorrow?9:Math.min(23,now.getHours()+1);
     target.setHours(hour,minute,0,0);
+    if(!hasTomorrow&&!hasToday&&weekdayTarget===null&&target.getTime()<=now.getTime())target.setDate(target.getDate()+1);
     due=target.toISOString();
   }
 
@@ -272,7 +281,7 @@ async function askAI(text){text=String(text||'').trim();if(!text)return;
     const reply=todayTasksText();
     state.chat.push({role:'user',text},{role:'ai',text:reply});save();openPanel('Спросить AI');renderChat();speak(reply);return;
   }
-  const remember=text.match(/^\s*запомни(?:\s*,?\s*что)?\s+(.+)$/i);
+  const remember=text.match(/^\s*запомни\s*(?::|,?\s*что)?\s+(.+)$/i);
   if(remember){
     const note=remember[1].trim();
     addMemory(note);
@@ -378,12 +387,13 @@ async function sendTaskNotification(t){
 function notifyDueTasks(){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   const now=Date.now();
+  let changed=false;
   state.tasks.forEach(t=>{
     if(t.done||!t.due||t.notifiedAt)return;
     const due=Date.parse(t.due);
-    if(Number.isFinite(due)&&due<=now&&due>now-12*60*60*1000){t.notifiedAt=new Date().toISOString();sendTaskNotification(t)}
+    if(Number.isFinite(due)&&due<=now&&due>now-12*60*60*1000){t.notifiedAt=new Date().toISOString();sendTaskNotification(t);changed=true}
   });
-  save();
+  if(changed)save();
 }
 setInterval(notifyDueTasks,30000);
 
@@ -581,12 +591,13 @@ function renderBackupTool(){
   openPanel('Backup & Restore');
   body.innerHTML=toolBack()+'<div class="calc-head"><h3>Резервные копии</h3><p>Скачай копию на устройство или восстанови состояние из облака / файла.</p></div>'+
     '<div class="backup-actions"><button id="backupNow">Создать облачный backup</button><button id="backupDownload">Скачать JSON</button><label>Восстановить из файла<input id="backupFile" type="file" accept=".json,application/json" hidden></label></div>'+
-    '<div class="backup-status"><span>Автокопия</span><b>каждые 6 часов при изменениях</b></div>'+
+    '<div class="backup-status"><span>Автокопия</span><b id="backupCloudStatus">Проверяю…</b></div>'+
     '<h4 class="backup-title">История копий</h4><div id="backupHistory"></div>';
   bindToolBack();
   $('#backupDownload').onclick=downloadBackup;
   const file=$('#backupFile');file.onchange=async()=>{const f=file.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!confirm('Восстановить данные из файла?'))return;applyStateObject(data);await syncStateNow();toast('Данные восстановлены из файла');renderBackupTool()}catch(err){toast(err.message||'Некорректный backup')}};
   $('#backupNow').onclick=async()=>{const b=$('#backupNow');b.disabled=true;b.textContent='Создаю…';try{await syncStateNow();const r=await fetch('/api/backups',{method:'POST',signal:AbortSignal.timeout(20000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');toast('Облачная копия создана');loadBackupHistory()}catch(err){toast(err.message||'Не удалось создать backup')}finally{b.disabled=false;b.textContent='Создать облачный backup'}};
+  fetch('/api/yandex/status',{signal:AbortSignal.timeout(10000)}).then(r=>r.json()).then(d=>{const el=$('#backupCloudStatus');if(el)el.textContent=d.connected?'облако подключено · автокопия до 6 ч':'локальный режим · облако недоступно'}).catch(()=>{const el=$('#backupCloudStatus');if(el)el.textContent='локальный режим'});
   loadBackupHistory();
 }
 function renderCostTool(){
