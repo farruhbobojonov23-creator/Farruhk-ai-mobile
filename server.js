@@ -5,13 +5,40 @@ import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import multer from 'multer';
 import ExcelJS from 'exceljs';
-import * as XLSX from 'xlsx';
 
 const app = express();
 const shef51Upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1}});
 const frontpadUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:15*1024*1024,files:1}});
 app.use(express.json({limit:'20mb'}));
 app.use(express.urlencoded({extended:false,limit:'1mb'}));
+
+const apiRate=new Map();
+app.use((req,res,next)=>{
+  res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Referrer-Policy','same-origin');
+  res.setHeader('X-Frame-Options','DENY');
+  res.setHeader('Permissions-Policy','camera=(), geolocation=(), payment=()');
+  if(req.secure||req.headers['x-forwarded-proto']==='https')res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
+  if(req.path.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
+  if(req.path.startsWith('/api/')){
+    const key=(req.ip||req.socket?.remoteAddress||'unknown')+'|'+req.path.split('/').slice(0,3).join('/');
+    const now=Date.now(),bucket=apiRate.get(key)||{start:now,count:0};
+    if(now-bucket.start>60000){bucket.start=now;bucket.count=0}
+    bucket.count++;apiRate.set(key,bucket);
+    if(bucket.count>180)return res.status(429).json({ok:false,error:'Слишком много запросов. Попробуй через минуту.'});
+  }
+  next();
+});
+function requireSameOrigin(req,res,next){
+  const origin=String(req.headers.origin||'');
+  if(origin){
+    try{
+      const u=new URL(origin);
+      if(u.host!==req.get('host'))return res.status(403).json({ok:false,error:'Запрос отклонён'});
+    }catch{return res.status(403).json({ok:false,error:'Запрос отклонён'})}
+  }
+  next();
+}
 
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
@@ -118,7 +145,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.2'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.3'}));
 
 let frontpadSession={cookies:'',loginHtml:'',loginUrl:'https://app.frontpad.ru/login/',formAction:'https://app.frontpad.ru/login/',captchaUrl:'',fields:null,authenticated:false,updatedAt:null,lastError:''};
 
@@ -403,7 +430,7 @@ function parseCsvText(text){
   row.push(cell);if(row.some(x=>String(x).trim()))rows.push(row);
   return rows;
 }
-app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
+app.post('/api/frontpad/upload',requireSameOrigin,frontpadUpload.single('file'),async(req,res)=>{
   try{
     if(!req.file)return res.status(400).json({ok:false,error:'Выбери файл Frontpad.'});
     const name=String(req.file.originalname||'').toLowerCase();
@@ -426,16 +453,8 @@ app.post('/api/frontpad/upload',frontpadUpload.single('file'),async(req,res)=>{
         const summary=frontpadUploadSummary(rows);
         if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:ws.name,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,meta:summary.meta,totalRows:summary.data.length});
       });
-    }else if(name.endsWith('.xls')){
-      const wb=XLSX.read(req.file.buffer,{type:'buffer',cellText:true,cellDates:true});
-      for(const sheetName of wb.SheetNames||[]){
-        const ws=wb.Sheets[sheetName];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false});
-        const summary=frontpadUploadSummary(rows);
-        if(summary.headers.some(Boolean)||summary.data.length)sheets.push({name:sheetName,rows:summary.data.slice(0,200),headers:summary.headers,metrics:summary.metrics,meta:summary.meta,totalRows:summary.data.length});
-      }
     }else{
-      return res.status(400).json({ok:false,error:'Поддерживаются файлы .xls, .xlsx и .csv'});
+      return res.status(400).json({ok:false,error:'Поддерживаются .xlsx и .csv. Старый .xls сначала сохрани как .xlsx'});
     }
     if(!sheets.length)return res.status(422).json({ok:false,error:'В файле не нашлось таблиц с данными.'});
     res.json({ok:true,fileName:req.file.originalname,uploadedAt:new Date().toISOString(),sheets});
@@ -526,7 +545,7 @@ app.get('/api/frontpad/reports',async(req,res)=>{
   }
 });
 
-app.post('/api/frontpad/auth/start',async(req,res)=>{
+app.post('/api/frontpad/auth/start',requireSameOrigin,async(req,res)=>{
   if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Логин и пароль Frontpad не настроены.'});
   try{
     const f=await frontpadBeginAuth();
@@ -551,7 +570,7 @@ app.get('/api/frontpad/auth/captcha',async(req,res)=>{
   }catch(err){res.status(502).send('Captcha unavailable');}
 });
 
-app.post('/api/frontpad/auth/complete',async(req,res)=>{
+app.post('/api/frontpad/auth/complete',requireSameOrigin,async(req,res)=>{
   if(!frontpadConfigured())return res.status(503).json({ok:false,error:'Frontpad не настроен.'});
   try{
     if(!frontpadSession.fields)await frontpadBeginAuth();
@@ -877,7 +896,7 @@ app.get('/api/state',async(req,res)=>{
   try{res.json({ok:true,state:await loadAiState()})}
   catch(err){res.status(500).json({ok:false,error:'Не удалось загрузить состояние',detail:err.message})}
 });
-app.put('/api/state',async(req,res)=>{
+app.put('/api/state',requireSameOrigin,async(req,res)=>{
   try{res.json({ok:true,state:await saveAiState(req.body||{})})}
   catch(err){res.status(500).json({ok:false,error:'Не удалось сохранить состояние',detail:err.message})}
 });
@@ -886,14 +905,14 @@ app.get('/api/backups',async(req,res)=>{
   try{res.json({ok:true,backups:await listAiBackups(),storage:yandexToken()?'yandex':'memory'})}
   catch(err){res.status(500).json({ok:false,error:'Не удалось получить резервные копии',detail:err.message})}
 });
-app.post('/api/backups',async(req,res)=>{
+app.post('/api/backups',requireSameOrigin,async(req,res)=>{
   try{
     const current=await loadAiState();
     const backup=await createAiBackup(current,'manual');
     res.json({ok:true,backup});
   }catch(err){res.status(500).json({ok:false,error:'Не удалось создать резервную копию',detail:err.message})}
 });
-app.post('/api/backups/restore',async(req,res)=>{
+app.post('/api/backups/restore',requireSameOrigin,async(req,res)=>{
   try{
     const path=String(req.body?.path||'');
     if(!path.startsWith(FARRUKH_AI_BACKUPS_PATH)||!path.endsWith('.json'))return res.status(400).json({ok:false,error:'Некорректная резервная копия'});
