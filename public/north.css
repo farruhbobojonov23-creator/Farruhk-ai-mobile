@@ -328,3 +328,36 @@ body.thinking .north-model{filter:saturate(1.08) contrast(1.05) hue-rotate(5deg)
   .command-head{display:block}.command-kpis{justify-content:flex-start;margin-top:8px}.command-kpis span{font-size:7px}
   .attention-item,.attention-clear{padding:9px 10px}
 }
+
+
+/* === Live avatar motion v7.1 === */
+.assistant-mini:before{
+  content:'';position:absolute;left:50%;bottom:19%;width:16px;height:4px;transform:translateX(-50%);
+  border-radius:999px;background:rgba(85,224,255,.0);box-shadow:0 0 10px rgba(85,224,255,.0);
+  transition:.18s;pointer-events:none;z-index:4
+}
+body.speaking .assistant-mini:before,body.assistant-speaking .assistant-mini:before{
+  background:rgba(99,229,255,.75);box-shadow:0 0 14px rgba(85,224,255,.58);
+  animation:lipPulse .18s ease-in-out infinite alternate
+}
+body.speaking .north-model,body.assistant-speaking .north-model{
+  transform-origin:48% 62%;animation:avatarSpeak 1.55s ease-in-out infinite alternate!important
+}
+body.listening .north-model,body.assistant-listening .north-model{
+  transform-origin:50% 55%;animation:avatarListen 1.9s ease-in-out infinite alternate!important
+}
+body.thinking .north-model,body.assistant-thinking .north-model{
+  animation:avatarThink 2.4s ease-in-out infinite alternate!important
+}
+body.speaking .assistant-mini,body.assistant-speaking .assistant-mini{
+  transform-origin:50% 70%;animation:miniSpeak .34s ease-in-out infinite alternate!important
+}
+body.listening .assistant-mini,body.assistant-listening .assistant-mini{
+  animation:miniListen 1.3s ease-in-out infinite alternate!important
+}
+@keyframes lipPulse{from{transform:translateX(-50%) scaleX(.55);height:2px;opacity:.45}to{transform:translateX(-50%) scaleX(1.25);height:5px;opacity:1}}
+@keyframes avatarSpeak{from{transform:translate3d(0,-3px,0) rotateY(-.7deg) rotateZ(-.25deg) scale(1.008)}to{transform:translate3d(3px,-8px,0) rotateY(1.4deg) rotateZ(.35deg) scale(1.02)}}
+@keyframes avatarListen{from{transform:translate3d(0,-2px,0) rotateY(0) scale(1.006)}to{transform:translate3d(2px,-7px,0) rotateY(-2deg) rotateZ(-.2deg) scale(1.018)}}
+@keyframes avatarThink{from{transform:translate3d(0,-3px,0) rotateY(-1deg) scale(1.006)}to{transform:translate3d(-3px,-6px,0) rotateY(1.8deg) scale(1.012)}}
+@keyframes miniSpeak{from{transform:translateY(0) rotateZ(-.6deg) scale(1)}to{transform:translateY(-1px) rotateZ(.8deg) scale(1.025)}}
+@keyframes miniListen{to{transform:translateY(-2px) rotateY(-3deg) scale(1.018)}}
