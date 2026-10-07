@@ -1,5 +1,5 @@
-const CACHE='farrukh-chef-v22';
-const SHELL=['/','/index.html','/north.css?v=22.3','/north.js?v=22.3','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
+const CACHE='farrukh-chef-v23';
+const SHELL=['/','/index.html','/north.css?v=22.4','/north.js?v=22.4','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(x=>c.add(x)))).finally(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))])));
 self.addEventListener('fetch',e=>{
