@@ -118,7 +118,7 @@ function localReply(message, ctx={}) {
   return 'Команду принял. Использую задачи, проекты и рабочий контекст FARRUKH AI.';
 }
 
-app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.0'}));
+app.get('/api/status',(req,res)=>res.json({ok:true,aiConnected:hasKey,aiProvider:hasKey?'gemini':'local',aiModel:hasKey?geminiModel:null,frontpadConfigured:frontpadConfigured(),version:'chef-5.1'}));
 
 let frontpadSession={cookies:'',loginHtml:'',loginUrl:'https://app.frontpad.ru/login/',formAction:'https://app.frontpad.ru/login/',captchaUrl:'',fields:null,authenticated:false,updatedAt:null,lastError:''};
 
@@ -658,7 +658,8 @@ app.post('/api/transcribe',async(req,res)=>{
 
 app.post('/api/chat',async(req,res)=>{
   const message=String(req.body?.message||'').trim();
-  const context={...(req.body?.context||{}),frontpad:analyticsSnapshot()};
+  const clientContext=req.body?.context||{};
+  const context={...clientContext,frontpad:clientContext.frontpad||analyticsSnapshot()};
   if(!message)return res.status(400).json({error:'Пустая команда'});
 
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
