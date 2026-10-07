@@ -170,3 +170,17 @@
   .calc-row-cost input:first-child{grid-column:1/-1}
   .calc-row-cost button{justify-self:end}
 }
+
+.kbju-auto-note{margin:0 0 12px;padding:10px 12px;border:1px solid rgba(244,197,107,.14);border-radius:12px;background:#0f0d0a;color:#9f927f;font-size:11px;line-height:1.4}
+.kbju-auto-row{grid-template-columns:1.5fr .72fr .72fr .62fr .62fr .62fr .7fr 34px}
+.kbju-name{min-width:0;display:grid;gap:4px}
+.kbju-name input{width:100%}
+.kbju-name small{font-size:9px;color:#756a5b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbju-name small.found{color:#b9d48d}
+.kbju-auto-row [data-sub]{color:#e8c77e;font-size:10px;white-space:nowrap}
+@media(max-width:700px){
+  .kbju-auto-row{grid-template-columns:1fr 1fr;gap:7px;padding:10px;margin-bottom:10px;border:1px solid rgba(244,197,107,.13);border-radius:12px;background:#0e0c09}
+  .kbju-auto-row .kbju-name{grid-column:1/-1}
+  .kbju-auto-row [data-sub]{align-self:center}
+  .kbju-auto-row button{justify-self:end}
+}
