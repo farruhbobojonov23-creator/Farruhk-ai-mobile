@@ -6,6 +6,12 @@ const toast=t=>{const el=$('#toast');el.textContent=t;el.classList.add('show');s
 $('#today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
 (async()=>{try{const r=await fetch('/api/status');const d=await r.json();$('#aiStatus').textContent=d.aiConnected?'AI ONLINE':'AI';}catch{}})();
 const panel=$('#panel'),body=$('#panelBody'),title=$('#panelTitle');
+let voiceUnlocked=false;
+function unlockVoice(){
+  if(!('speechSynthesis' in window))return false;
+  try{speechSynthesis.resume();voiceUnlocked=true;return true}catch{return false}
+}
+document.addEventListener('pointerdown',()=>unlockVoice(),{once:true,passive:true});
 function openPanel(name){title.textContent=name;panel.showModal()}$('#panelClose').onclick=()=>panel.close();panel.addEventListener('click',e=>{if(e.target===panel)panel.close()});
 function getRussianVoice(){
   if(!('speechSynthesis' in window))return null;
@@ -16,7 +22,8 @@ function getRussianVoice(){
     ||null;
 }
 function speak(text){
-  if(!state.tts||!text||!('speechSynthesis' in window))return;
+  if(!state.tts||!text)return false;
+  if(!('speechSynthesis' in window)){toast('На этом браузере озвучивание недоступно');return false;}
   const clean=String(text).replace(/[*#_~`>]/g,' ').replace(/\s+/g,' ').trim();
   if(!clean)return;
   try{
@@ -29,18 +36,20 @@ function speak(text){
     const voice=getRussianVoice();
     if(voice)u.voice=voice;
     speechSynthesis.speak(u);
-  }catch{}
+    return true;
+  }catch{toast('Не удалось включить голос');return false}
 }
 if('speechSynthesis' in window){
   speechSynthesis.getVoices();
   speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
 }
 function renderChat(){
-  body.innerHTML='<div class="voice-line"><button class="voice-toggle" id="voiceToggle">'+(state.tts?'🔊 Голос включён':'🔇 Голос выключен')+'</button></div><div class="chatlog">'+
-    (state.chat.length?state.chat.map(m=>'<div class="msg '+m.role+'">'+esc(m.text)+'</div>').join(''):'<div class="msg ai">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div>')+
+  body.innerHTML='<div class="voice-line"><button class="voice-toggle" id="voiceToggle">'+(state.tts?'🔊 Голос включён':'🔇 Голос выключен')+'</button><span class="voice-hint">Нажми 🔊 у ответа, если автоозвучка не запустилась</span></div><div class="chatlog">'+
+    (state.chat.length?state.chat.map((m,i)=>'<div class="msg '+m.role+'"><div class="msg-text">'+esc(m.text)+'</div>'+(m.role==='ai'?'<button class="speak-msg" data-speak="'+i+'" aria-label="Озвучить ответ">🔊</button>':'')+'</div>').join(''):'<div class="msg ai"><div class="msg-text">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div><button class="speak-msg" data-welcome="1" aria-label="Озвучить ответ">🔊</button></div>')+
     '</div>';
   const vb=$('#voiceToggle');
-  if(vb)vb.onclick=()=>{state.tts=!state.tts;save();renderChat();toast(state.tts?'Голос включён':'Голос выключен')};
+  if(vb)vb.onclick=()=>{unlockVoice();state.tts=!state.tts;save();renderChat();toast(state.tts?'Голос включён':'Голос выключен')};
+  body.querySelectorAll('.speak-msg').forEach(btn=>btn.onclick=()=>{unlockVoice();const i=btn.dataset.speak;const text=i!==undefined?state.chat[+i]?.text:'Я готов. Говори или пиши — отвечу по делу.';speak(text)});
   body.scrollTop=body.scrollHeight
 }
 async function askAI(text){text=String(text||'').trim();if(!text)return;state.chat.push({role:'user',text});save();openPanel('Спросить AI');renderChat();const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;try{const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false})});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');const reply=d.reply||'Ответ не получен';state.chat.push({role:'ai',text:reply});save();renderChat();speak(reply)}catch(e){tmp.textContent='Не удалось получить ответ. Попробуй ещё раз.'}}
@@ -51,3 +60,6 @@ function renderTools(){openPanel('Инструменты');body.innerHTML='<div 
 $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;$('#micBtn').onclick=()=>{if(!SR){toast('Открой в Chrome на Android для голосового ввода');return}const r=new SR();r.lang='ru-RU';r.interimResults=false;$('#micBtn').classList.add('listening');r.onresult=e=>{const t=e.results[0][0].transcript;$('#askInput').value=t;askAI(t)};r.onend=()=>$('#micBtn').classList.remove('listening');r.onerror=()=>{toast('Не удалось распознать речь');$('#micBtn').classList.remove('listening')};r.start()};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+const panelVoice=$('#panelVoice');
+function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
+if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен')}}
