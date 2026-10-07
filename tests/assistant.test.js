@@ -58,6 +58,7 @@ test('Empty cells and percentages cannot become revenue; ambiguous rows remain u
   assert.equal(report(['Выручка','1000','2000'])[0],undefined);
 });
 test('API access rejects unauthenticated callers and cross-origin mutations',()=>{
+  const oldPasswordless=process.env.ASSISTANT_PASSWORDLESS;process.env.ASSISTANT_PASSWORDLESS='false';
   const oldPassword=process.env.ASSISTANT_PASSWORD,oldSecret=process.env.ASSISTANT_SESSION_SECRET;
   process.env.ASSISTANT_PASSWORD='test-password';process.env.ASSISTANT_SESSION_SECRET='test-secret';
   try{
@@ -68,7 +69,7 @@ test('API access rejects unauthenticated callers and cross-origin mutations',()=
     middlewares[0](req,res,()=>passed=true);assert.equal(res.code,401);assert.equal(passed,false);
     const auth=ownerAuth({password:'test-password',secret:'test-secret'});req.headers.cookie='fai_owner='+auth.login('test-password');req.method='PUT';req.headers.origin='https://evil.example';middlewares[0](req,res,()=>passed=true);assert.equal(res.code,403);
     req.headers.origin='https://example.com';middlewares[0](req,res,()=>passed=true);assert.equal(passed,true);
-  }finally{if(oldPassword===undefined)delete process.env.ASSISTANT_PASSWORD;else process.env.ASSISTANT_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.ASSISTANT_SESSION_SECRET;else process.env.ASSISTANT_SESSION_SECRET=oldSecret}
+  }finally{if(oldPasswordless===undefined)delete process.env.ASSISTANT_PASSWORDLESS;else process.env.ASSISTANT_PASSWORDLESS=oldPasswordless;if(oldPassword===undefined)delete process.env.ASSISTANT_PASSWORD;else process.env.ASSISTANT_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.ASSISTANT_SESSION_SECRET;else process.env.ASSISTANT_SESSION_SECRET=oldSecret}
 });
 test('Edits during in-flight sync schedule another save; conflict does not report success',async()=>{
   const source=await fs.readFile(new URL('../public/north.js',import.meta.url),'utf8');const fn=source.slice(source.indexOf('async function syncStateNow('),source.indexOf('function adoptRemote('));
