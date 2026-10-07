@@ -49,6 +49,53 @@ function renderChat(){
   box.scrollTop=box.scrollHeight; save();
 }
 
+
+let ttsPrimed=false;
+function primeTTS(){
+  if(!('speechSynthesis' in window)) return false;
+  try{
+    const u=new SpeechSynthesisUtterance(' ');
+    u.volume=0.01;
+    u.lang='ru-RU';
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
+    speechSynthesis.speak(u);
+    ttsPrimed=true;
+    return true;
+  }catch(e){ return false; }
+}
+
+function speakReply(text){
+  if(!state.tts || !text || !('speechSynthesis' in window)) return false;
+  try{
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
+    const u=new SpeechSynthesisUtterance(String(text).replace(/https?:\/\/\S+/g,'').slice(0,4000));
+    u.lang='ru-RU';
+    u.rate=0.96;
+    u.pitch=0.98;
+    u.volume=1;
+    const voices=speechSynthesis.getVoices()||[];
+    const ru=voices.find(v=>/^ru(-|_)/i.test(v.lang||'')) ||
+      voices.find(v=>/russian|рус/i.test((v.name||'')+' '+(v.lang||''))) ||
+      voices.find(v=>v.default);
+    if(ru) u.voice=ru;
+    u.onstart=()=>setCoreState('speaking');
+    u.onend=()=>setCoreState('idle');
+    u.onerror=()=>setCoreState('idle');
+    speechSynthesis.speak(u);
+    setTimeout(()=>{ try{ speechSynthesis.resume(); }catch(e){} },250);
+    return true;
+  }catch(e){
+    setCoreState('idle');
+    return false;
+  }
+}
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+  window.addEventListener('pageshow',()=>{ try{speechSynthesis.resume();}catch(e){} });
+}
+
 function historyForApi(){
   return state.chat
     .filter(m=>!m.temp && (m.role==='user'||m.role==='ai') && m.text)
@@ -78,7 +125,7 @@ async function askAI(text){
       webSearch:Boolean(d.webSearch),
       provider:d.provider||''
     });
-    renderChat(); setCoreState('idle');
+    renderChat(); speakReply(reply);
   }catch(e){
     state.chat=state.chat.filter(x=>!x.temp);
     state.chat.push({role:'ai',text:'Сейчас не удалось получить ответ от AI. Попробуйте ещё раз.'});
@@ -92,7 +139,7 @@ $('#sendBtn')?.addEventListener('click',()=>{const i=$('#msgInput');const t=i.va
 $('#msgInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#sendBtn').click()}});
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-$('#talkBtn')?.addEventListener('click',()=>{
+$('#talkBtn')?.addEventListener('click',()=>{\n  primeTTS();
   if(!SR){alert('Голосовой ввод лучше всего работает в Chrome на Android.');return}
   const r=new SR();r.lang='ru-RU';r.continuous=false;r.interimResults=false;setCoreState('listening');
   r.onresult=e=>askAI(e.results[0][0].transcript);
