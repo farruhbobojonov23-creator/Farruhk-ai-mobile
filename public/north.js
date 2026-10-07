@@ -70,6 +70,70 @@ function addMemory(note){
   save();return true;
 }
 function memoryText(){return state.memory.map(x=>x.text).filter(Boolean)}
+function taskDateLabel(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime()))return '';
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+  const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const time=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  if(day.getTime()===today.getTime())return 'Сегодня · '+time;
+  if(day.getTime()===tomorrow.getTime())return 'Завтра · '+time;
+  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' · '+time;
+}
+function parseTaskCommand(raw){
+  const original=String(raw||'').trim();
+  if(!original)return null;
+  const lower=original.toLowerCase();
+  if(!/^(добавь|добавить|создай|создать|напомни|запиши|поставь|сделай задач)/i.test(lower))return null;
+  let text=original
+    .replace(/^\s*(добавь|добавить|создай|создать|напомни|запиши|поставь|сделай)\s*/i,'')
+    .replace(/^задач[уа]\s*/i,'')
+    .trim();
+
+  const now=new Date();
+  let due=null;
+  let target=new Date(now);
+  const hasTomorrow=/\bзавтра\b/i.test(text);
+  const hasToday=/\bсегодня\b/i.test(text);
+  if(hasTomorrow){target.setDate(target.getDate()+1);text=text.replace(/\bна\s+завтра\b|\bзавтра\b/ig,' ').trim();}
+  else if(hasToday){text=text.replace(/\bна\s+сегодня\b|\bсегодня\b/ig,' ').trim();}
+
+  let hour=null,minute=0;
+  const hm=text.match(/(?:в|к)\s*(\d{1,2})(?::(\d{2}))?/i);
+  if(hm){hour=Math.min(23,Math.max(0,+hm[1]));minute=hm[2]?Math.min(59,+hm[2]):0;text=text.replace(hm[0],' ').trim();}
+  else if(/\bутром\b/i.test(text)){hour=9;text=text.replace(/\bутром\b/ig,' ').trim();}
+  else if(/\bдн[её]м\b/i.test(text)){hour=14;text=text.replace(/\bдн[её]м\b/ig,' ').trim();}
+  else if(/\bвечером\b/i.test(text)){hour=19;text=text.replace(/\bвечером\b/ig,' ').trim();}
+
+  if(hasTomorrow||hasToday||hour!==null){
+    if(hour===null)hour=hasTomorrow?9:Math.min(23,now.getHours()+1);
+    target.setHours(hour,minute,0,0);
+    due=target.toISOString();
+  }
+
+  const priority=/\b(важно|важная|срочно|приоритет)\b/i.test(text)?'high':'normal';
+  text=text.replace(/\b(важно|важная|срочно|приоритет)\b/ig,' ').replace(/\s+/g,' ').replace(/^[,.:;\-–—\s]+|[,.:;\-–—\s]+$/g,'').trim();
+  if(!text)return null;
+  return {text,due,priority,done:false,createdAt:new Date().toISOString()};
+}
+function addTaskFromCommand(raw){
+  const task=parseTaskCommand(raw);
+  if(!task)return null;
+  state.tasks.unshift(task);save();return task;
+}
+function todayTasksText(){
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const rows=state.tasks.filter(t=>!t.done).filter(t=>{
+    if(!t.due)return true;
+    const d=new Date(t.due);return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
+  });
+  if(!rows.length)return 'На сегодня активных задач нет.';
+  const important=rows.filter(t=>t.priority==='high');
+  const normal=rows.filter(t=>t.priority!=='high');
+  const format=t=>'• '+t.text+(t.due?' — '+taskDateLabel(t.due):'');
+  return [important.length?'Важное:\n'+important.map(format).join('\n'):'',normal.length?'Остальное:\n'+normal.map(format).join('\n'):''].filter(Boolean).join('\n\n');
+}
 function renderMemory(){
   openPanel('Память');
   body.innerHTML='<div class="memory-head"><button class="add-task" id="addMemory">+ Добавить факт</button><span>'+state.memory.length+' сохранено</span></div><div id="memoryList"></div>';
@@ -80,6 +144,15 @@ function renderMemory(){
   list.onclick=e=>{if(e.target.dataset.memoryDel!==undefined){state.memory.splice(+e.target.dataset.memoryDel,1);save();draw()}};
 }
 async function askAI(text){text=String(text||'').trim();if(!text)return;
+  const task=addTaskFromCommand(text);
+  if(task){
+    const reply='Добавил задачу: '+task.text+(task.due?' — '+taskDateLabel(task.due):'')+(task.priority==='high'?' · важная':'');
+    state.chat.push({role:'user',text},{role:'ai',text:reply});save();openPanel('Спросить AI');renderChat();speak(reply);return;
+  }
+  if(/^(что у меня сегодня|что сегодня важного|задачи на сегодня|что мне сегодня сделать)/i.test(text)){
+    const reply=todayTasksText();
+    state.chat.push({role:'user',text},{role:'ai',text:reply});save();openPanel('Спросить AI');renderChat();speak(reply);return;
+  }
   const remember=text.match(/^\s*запомни(?:\s*,?\s*что)?\s+(.+)$/i);
   if(remember){
     const note=remember[1].trim();
@@ -94,7 +167,21 @@ async function askAI(text){text=String(text||'').trim();if(!text)return;
   }
   state.chat.push({role:'user',text});save();openPanel('Спросить AI');renderChat();const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;try{const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false,context:{memory:memoryText(),tasks:state.tasks}})});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');const reply=d.reply||'Ответ не получен';state.chat.push({role:'ai',text:reply});save();renderChat();speak(reply)}catch(e){tmp.textContent='Не удалось получить ответ. Попробуй ещё раз.'}}
 $('#askForm').onsubmit=e=>{e.preventDefault();const v=$('#askInput').value;$('#askInput').value='';askAI(v)};$$('[data-prompt]').forEach(b=>b.onclick=()=>askAI(b.dataset.prompt));
-function renderTasks(){openPanel('Задачи');body.innerHTML='<button class="add-task" id="newTask">+ Новая задача</button><div id="taskList"></div>';const list=$('#taskList');const draw=()=>{list.innerHTML=state.tasks.length?state.tasks.map((t,i)=>'<label class="task-row"><span><input type="checkbox" data-i="'+i+'" '+(t.done?'checked':'')+'> '+esc(t.text)+'</span><button data-del="'+i+'">×</button></label>').join(''):'<p style="color:#a9a197">Список пуст. Добавь первую задачу.</p>'};draw();$('#newTask').onclick=()=>{const t=prompt('Новая задача:');if(t&&t.trim()){state.tasks.unshift({text:t.trim(),done:false});save();draw()}};list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save()}};list.onclick=e=>{if(e.target.dataset.del!==undefined){state.tasks.splice(+e.target.dataset.del,1);save();draw()}}}
+function renderTasks(){
+  openPanel('Задачи');
+  body.innerHTML='<button class="add-task" id="newTask">+ Новая задача</button><div id="taskList"></div>';
+  const list=$('#taskList');
+  const draw=()=>{
+    list.innerHTML=state.tasks.length?state.tasks.map((t,i)=>'<div class="task-row '+(t.done?'done':'')+'"><label><input type="checkbox" data-i="'+i+'" '+(t.done?'checked':'')+'><span class="task-copy"><b>'+esc(t.text)+'</b><small>'+(t.priority==='high'?'ВАЖНАЯ · ':'')+(t.due?esc(taskDateLabel(t.due)):'Без срока')+'</small></span></label><button data-del="'+i+'">×</button></div>').join(''):'<p style="color:#a9a197">Список пуст. Скажи: «Добавь на завтра проверить маркировки».</p>';
+  };
+  draw();
+  $('#newTask').onclick=()=>{
+    const t=prompt('Новая задача:');
+    if(t&&t.trim()){state.tasks.unshift({text:t.trim(),done:false,priority:'normal',due:null,createdAt:new Date().toISOString()});save();draw()}
+  };
+  list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save();draw()}};
+  list.onclick=e=>{if(e.target.dataset.del!==undefined){state.tasks.splice(+e.target.dataset.del,1);save();draw()}};
+}
 async function renderAnalytics(){openPanel('Аналитика');body.innerHTML='<p class="thinking">Загружаю данные…</p>';try{const r=await fetch('/api/analytics/snapshot');const d=await r.json();body.innerHTML='<div class="metric-row"><span>Источник</span><b>'+esc(d.source||'—')+'</b></div><div class="metric-row"><span>Всего единиц</span><b>'+esc(d.totalUnits??'—')+'</b></div>'+(d.branches||[]).map(x=>'<div class="metric-row"><span>'+esc(x.name)+'</span><b>'+esc(x.units)+' ед.</b></div>').join('')+'<p style="color:#c4b59d;line-height:1.55">'+esc(d.summary||'')+'</p>'}catch{body.innerHTML='<p>Данные аналитики сейчас недоступны.</p>'}}
 function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Память</span><button id="openMemory">'+state.memory.length+' фактов</button></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#openMemory').onclick=renderMemory;$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
 $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
