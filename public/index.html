@@ -1,11 +1,61 @@
 <!doctype html>
-<html lang="ru" data-chef-studio="6.0">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#061222"><title>FARRUKH AI — Chef Studio</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/studio.css?v=7.0"><link rel="stylesheet" href="/north.css?v=7.4"><link rel="stylesheet" href="/live-avatar.css?v=9.0"></head>
+<html lang="ru" data-ui="premium-gold">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070604">
+  <title>FARRUKH AI — Chef Studio</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/premium-gold.css?v=1.0">
+</head>
 <body>
-<aside class="sidebar"><a class="brand" href="#home"><span class="brand-mark">F<span>✦</span></span><span>FARRUKH <b>AI</b><small>CHEF STUDIO</small></span></a><div class="nav-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div><nav id="navigation"></nav><div class="sidebar-bottom"><span class="avatar-initial">Ф</span><div>Фаррух Ака<small>Бренд-шеф · Суши Бери</small></div></div></aside>
-<div class="workspace"><header><div><span class="eyebrow">ЛИЧНЫЙ КАБИНЕТ ШЕФА</span><h1 id="pageTitle">Обзор дня</h1></div><div class="header-right"><span id="todayLabel"></span><button class="icon-button" data-view="settings" aria-label="Настройки">⚙</button></div></header>
-<main id="main"></main><footer><span>FARRUKH AI / CHEF STUDIO</span><span>Рабочие данные сохраняются в этом браузере</span></footer></div>
-<dialog id="editor"><form id="editorForm"><div class="dialog-head"><h2 id="editorTitle"></h2><button type="button" class="icon-button" id="closeEditor" aria-label="Закрыть">×</button></div><div id="editorFields"></div><p id="formError" role="alert"></p><button class="primary" type="submit">Сохранить</button></form></dialog>
-<div id="toast" role="status" aria-live="polite"></div>
-<script src="/studio.js?v=7.3" defer></script><script src="/north.js?v=7.4" defer></script><script src="/piper-studio.js?v=1.3" defer></script>
-<script src="/live-avatar.js?v=9.0" defer></script></body></html>
+  <div class="ambient"></div>
+  <header class="topbar">
+    <div class="brand"><strong>FARRUKH AI</strong><span>CHEF STUDIO</span></div>
+    <div class="topmeta"><span id="today"></span><span class="status" id="aiStatus">AI</span></div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="planet" aria-hidden="true"><i></i></div>
+      <div class="mountains" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="kicker">ВАШ ЛИЧНЫЙ AI-БРЕНД-ШЕФ</p>
+        <h1>FARRUKH AI</h1>
+        <p class="tagline">ИДЕИ · АНАЛИЗ · РЕШЕНИЯ · РЕЗУЛЬТАТЫ</p>
+      </div>
+
+      <form class="askbar" id="askForm">
+        <button type="button" class="mic" id="micBtn" aria-label="Голосовой ввод">◉</button>
+        <input id="askInput" autocomplete="off" placeholder="Спроси что угодно…" aria-label="Запрос FARRUKH AI">
+        <button class="go" type="submit" aria-label="Отправить">→</button>
+      </form>
+    </section>
+
+    <section class="cards" aria-label="Главные разделы">
+      <button class="card" data-action="chat"><span class="icon">◌</span><b>Спросить AI</b><small>Ответы, поиск и идеи</small></button>
+      <button class="card" data-action="tasks"><span class="icon">✓</span><b>Задачи</b><small>Планирование и контроль</small></button>
+      <button class="card" data-action="analytics"><span class="icon">▥</span><b>Аналитика</b><small>Показатели и отчёты</small></button>
+      <button class="card" data-action="tools"><span class="icon">⌘</span><b>Инструменты</b><small>Полезные сервисы</small></button>
+    </section>
+
+    <section class="quick">
+      <div class="section-title"><span>✦</span> Быстрые запросы</div>
+      <div class="chips">
+        <button data-prompt="Найди в интернете актуальные цены конкурентов на суши в Мурманске и сравни их.">Цены конкурентов</button>
+        <button data-prompt="Проанализируй текущие данные по 4 точкам и скажи, где нужно внимание.">Анализ 4 точек</button>
+        <button data-prompt="Составь приоритетный план задач шефа на сегодня.">План на сегодня</button>
+        <button data-prompt="Найди актуальные новости HoReCa и японской кухни, которые полезны ресторанному бизнесу.">Новости HoReCa</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="panel">
+    <div class="panel-head"><div><span class="panel-kicker">FARRUKH AI</span><h2 id="panelTitle">Ассистент</h2></div><button id="panelClose" aria-label="Закрыть">×</button></div>
+    <div id="panelBody" class="panel-body"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/premium-gold.js?v=1.0" defer></script>
+</body>
+</html>
