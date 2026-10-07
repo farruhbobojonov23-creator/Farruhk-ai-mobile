@@ -644,15 +644,15 @@ app.post('/api/chat',async(req,res)=>{
     .filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string')
     .map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content.slice(0,6000)}]}));
 
-  const requestedWeb=req.body?.useWeb!==false;
+  // Web search is intentionally disabled: FARRUKH AI works as a focused conversational assistant.
+  const requestedWeb=false;
   const models=[geminiModel,'gemini-3.8-flash','gemini-3.7-flash']
     .filter((x,i,a)=>x&&a.indexOf(x)===i);
 
   async function callModel(model,useWeb){
     const body={
-      systemInstruction:{parts:[{text:buildInstructions(context)+'\n\nЕсли вопрос требует свежих данных, используй Google Search только когда инструмент доступен. Если свежие данные проверить нельзя, прямо скажи об этом и не выдумывай актуальные факты. В конце ответа кратко укажи использованные источники, когда они есть.'}]},
+      systemInstruction:{parts:[{text:buildInstructions(context)+'\n\nРаботай как разговорный рабочий ассистент. Не используй интернет и не утверждай, что проверил свежие данные. Если вопрос требует актуальной информации извне, прямо скажи, что веб-поиск сейчас отключён.'}]},
       contents:[...history,{role:'user',parts:[{text:message}]}],
-      ...(useWeb?{tools:[{google_search:{}}]}:{}),
       generationConfig:{temperature:0.5}
     };
     const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(geminiKey);
@@ -669,19 +669,14 @@ app.post('/api/chat',async(req,res)=>{
     }
     const candidate=data?.candidates?.[0]||{};
     const reply=(candidate?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
-    const sources=(candidate?.groundingMetadata?.groundingChunks||[]).map(x=>x?.web).filter(Boolean).map(x=>({title:x.title||'',url:x.uri||''})).filter(x=>x.url).slice(0,8);
-    return {reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model,sources,webSearch:Boolean(sources.length),webRequested:requestedWeb};
+    return {reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model,sources:[],webSearch:false,webRequested:false};
   }
 
   let lastErr=null;
   for(let i=0;i<models.length;i++){
     const model=models[i];
     try{
-      // Search grounding on the free tier can be unavailable. Try it only on the primary model,
-      // then fall back to plain chat on another model instead of showing a hard failure.
-      const useWeb=requestedWeb&&i===0;
-      const out=await callModel(model,useWeb);
-      if(requestedWeb&&!out.webSearch&&i>0)out.notice='Интернет-поиск временно недоступен: использован резервный AI без веб-поиска.';
+      const out=await callModel(model,false);
       return res.json(out);
     }catch(err){
       lastErr=err;
