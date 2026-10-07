@@ -12,3 +12,8 @@
 
 .conversation-mode{display:flex;align-items:center;justify-content:center;margin:0 0 10px;padding:7px 10px;border-radius:999px;border:1px solid rgba(244,197,107,.16);background:rgba(244,197,107,.04);color:#8f8577;font-size:10px;text-align:center}
 .conversation-mode.on{color:#efd28f;border-color:rgba(244,197,107,.34);background:rgba(244,197,107,.09);box-shadow:0 0 18px rgba(244,197,107,.06)}
+
+.memory-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;color:#a99b84;font-size:12px}
+.memory-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #211d17;line-height:1.45}
+.memory-row span{flex:1}
+.memory-row button{border:0;background:none;color:#806b45;font-size:22px}
