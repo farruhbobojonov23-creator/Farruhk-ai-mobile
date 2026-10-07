@@ -23,12 +23,21 @@
   <main>
     <section id="home" class="screen active">
       <div class="hero">
-        <div class="orb">
+        <div class="orb" id="aiCore" data-state="idle" aria-label="FARRUKH AI core">
+          <div class="aura"></div>
+          <div class="orbit o1"><i></i></div>
+          <div class="orbit o2"><i></i></div>
+          <div class="orbit o3"><i></i></div>
           <div class="ring r1"></div>
           <div class="ring r2"></div>
-          <div class="core"></div>
+          <div class="ring r3"></div>
+          <div class="core"><span class="core-glow"></span></div>
+          <div class="particles" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="voice-wave" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b></div>
         </div>
-        <span class="pill">AI CORE</span>
+        <span class="pill" id="coreState">ГОТОВ</span>
         <h1 id="greeting">Фаррух AI</h1>
         <p id="sub">Готов к работе.</p>
         <button id="talkBtn" class="talk">🎙 Говорить</button>
