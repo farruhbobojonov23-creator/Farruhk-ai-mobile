@@ -17,3 +17,13 @@
 .memory-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #211d17;line-height:1.45}
 .memory-row span{flex:1}
 .memory-row button{border:0;background:none;color:#806b45;font-size:22px}
+
+.task-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #211d17}
+.task-row label{display:flex;align-items:flex-start;gap:10px;flex:1}
+.task-row input{margin-top:4px;accent-color:#e5b45d}
+.task-copy{display:flex;flex-direction:column;gap:4px}
+.task-copy b{font-size:14px;color:#fff6e5}
+.task-copy small{font-size:10px;letter-spacing:.08em;color:#9a8b74;text-transform:uppercase}
+.task-row.done{opacity:.45}
+.task-row.done .task-copy b{text-decoration:line-through}
+.task-row>button{border:0;background:none;color:#806b45;font-size:22px}
