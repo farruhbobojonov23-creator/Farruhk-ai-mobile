@@ -623,14 +623,113 @@ function renderScaleTool(){
   const calc=()=>{const a=parseFloat($('#baseYield').value)||1,b=parseFloat($('#newYield').value)||0,k=b/a;rows.querySelectorAll('.scale-row').forEach(r=>{const q=parseFloat((r.querySelector('[data-base]').value||'').replace(',','.'))||0;r.querySelector('[data-new]').textContent=(q*k).toFixed(1)+' г'})};
   const add=()=>{const r=document.createElement('div');r.className='scale-row';r.innerHTML='<input placeholder="Ингредиент"><input inputmode="decimal" placeholder="Исходно, г" data-base><b data-new>0 г</b><button>×</button>';rows.appendChild(r);r.querySelector('[data-base]').oninput=calc;r.querySelector('button').onclick=()=>r.remove()};$('#addScaleRow').onclick=add;$('#baseYield').oninput=calc;$('#newYield').oninput=calc;add();add();
 }
+const KBJU_CATALOG=[
+  {n:'Рис варёный',a:['рис','рис готовый','рис для суши'],k:130,p:2.4,f:0.3,c:28.7},
+  {n:'Рис для суши с заправкой',a:['рис суши','суши рис','рис с заправкой'],k:150,p:2.3,f:0.3,c:34.0},
+  {n:'Лосось',a:['лосось','семга','сёмга'],k:208,p:20.0,f:13.0,c:0},
+  {n:'Тунец',a:['тунец'],k:132,p:29.0,f:1.0,c:0},
+  {n:'Угорь копчёный',a:['угорь','унаги'],k:236,p:23.7,f:15.0,c:0},
+  {n:'Креветка тигровая',a:['креветка','креветка тигровая','тигровая креветка'],k:99,p:24.0,f:0.3,c:0.2},
+  {n:'Крабовые палочки',a:['краб','крабовые палочки','сурими'],k:95,p:7.0,f:0.5,c:15.0},
+  {n:'Сливочный сыр',a:['сыр сливочный','сливочный сыр','крем сыр','крем-сыр'],k:342,p:5.9,f:34.2,c:4.1},
+  {n:'Огурец',a:['огурец'],k:15,p:0.7,f:0.1,c:3.6},
+  {n:'Авокадо',a:['авокадо'],k:160,p:2.0,f:14.7,c:8.5},
+  {n:'Нори',a:['нори'],k:306,p:41.4,f:3.7,c:44.3},
+  {n:'Масаго',a:['масаго','икра масаго'],k:143,p:22.3,f:6.4,c:1.5},
+  {n:'Тобико',a:['тобико','икра тобико'],k:143,p:22.3,f:6.4,c:1.5},
+  {n:'Майонез',a:['майонез'],k:680,p:1.0,f:75.0,c:2.6},
+  {n:'Соус спайси',a:['спайси','соус спайси','спайси соус'],k:500,p:2.0,f:52.0,c:6.0},
+  {n:'Соус унаги',a:['унаги соус','соус унаги'],k:150,p:3.0,f:0.2,c:34.0},
+  {n:'Соевый соус',a:['соевый соус'],k:53,p:8.1,f:0.6,c:4.9},
+  {n:'Кунжут',a:['кунжут'],k:573,p:17.7,f:49.7,c:23.5},
+  {n:'Кунжутное масло',a:['кунжутное масло'],k:884,p:0,f:100,c:0},
+  {n:'Лук зелёный',a:['лук зеленый','лук зелёный','зелёный лук','зеленый лук'],k:32,p:1.8,f:0.2,c:7.3},
+  {n:'Лук фри',a:['лук фри','жареный лук'],k:545,p:6.0,f:36.0,c:48.0},
+  {n:'Куриное филе',a:['курица','куриное филе','филе куриное'],k:165,p:31.0,f:3.6,c:0},
+  {n:'Курица терияки',a:['курица терияки'],k:190,p:24.0,f:7.0,c:8.0},
+  {n:'Яйцо куриное',a:['яйцо','яйцо куриное'],k:155,p:13.0,f:11.0,c:1.1},
+  {n:'Темпурная мука',a:['темпура','темпурная мука'],k:350,p:8.0,f:1.5,c:76.0},
+  {n:'Сухари панко',a:['панко','сухари панко'],k:395,p:13.0,f:5.0,c:73.0},
+  {n:'Растительное масло',a:['масло растительное','растительное масло','фритюр'],k:884,p:0,f:100,c:0},
+  {n:'Ананас',a:['ананас'],k:50,p:0.5,f:0.1,c:13.1},
+  {n:'Манго',a:['манго'],k:60,p:0.8,f:0.4,c:15.0},
+  {n:'Чука',a:['чука','салат чука'],k:90,p:1.5,f:4.0,c:12.0},
+  {n:'Тофу',a:['тофу'],k:76,p:8.1,f:4.8,c:1.9},
+  {n:'Удон варёный',a:['удон','лапша удон'],k:127,p:3.5,f:0.5,c:25.0},
+  {n:'Лапша соба варёная',a:['соба','лапша соба'],k:99,p:5.1,f:0.1,c:21.4},
+  {n:'Морковь',a:['морковь'],k:41,p:0.9,f:0.2,c:9.6},
+  {n:'Перец болгарский',a:['перец болгарский','болгарский перец'],k:31,p:1.0,f:0.3,c:6.0},
+  {n:'Шампиньоны',a:['шампиньоны','грибы'],k:22,p:3.1,f:0.3,c:3.3},
+  {n:'Капуста пекинская',a:['пекинская капуста','капуста пекинская'],k:16,p:1.2,f:0.2,c:3.2},
+  {n:'Сахар',a:['сахар'],k:387,p:0,f:0,c:100},
+  {n:'Мирин',a:['мирин'],k:241,p:0.4,f:0,c:43.9},
+  {n:'Рисовый уксус',a:['рисовый уксус','уксус рисовый'],k:18,p:0,f:0,c:0.6}
+];
+function normIngredient(s){return String(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,' ').trim()}
+function findKbjuIngredient(name){
+  const q=normIngredient(name);if(!q)return null;
+  let best=null,bestScore=0;
+  for(const item of KBJU_CATALOG){
+    for(const raw of [item.n,...item.a]){
+      const a=normIngredient(raw);
+      let score=0;
+      if(q===a)score=100;
+      else if(q.includes(a)||a.includes(q))score=Math.min(q.length,a.length)+20;
+      else{
+        const qWords=q.split(' '),aWords=a.split(' ');
+        score=qWords.filter(w=>aWords.includes(w)&&w.length>2).length*6;
+      }
+      if(score>bestScore){best=item;bestScore=score}
+    }
+  }
+  return bestScore>=6?best:null;
+}
 function renderKbjuTool(){
   openPanel('КБЖУ');
-  body.innerHTML=toolBack()+'<div class="calc-head"><h3>КБЖУ порции</h3><p>Введи значения ингредиентов на 100 г и их массу в блюде.</p></div><div id="kbjuRows"></div><button class="calc-add" id="addKbjuRow">+ Ингредиент</button><div class="kbju-result"><div><span>Ккал</span><b id="sumKcal">0</b></div><div><span>Белки</span><b id="sumP">0 г</b></div><div><span>Жиры</span><b id="sumF">0 г</b></div><div><span>Углеводы</span><b id="sumC">0 г</b></div></div>';
+  body.innerHTML=toolBack()+
+    '<div class="calc-head"><h3>Авто КБЖУ</h3><p>Введи название ингредиента и массу — КБЖУ на 100 г подставится автоматически из встроенной базы. Если продукт не найден, значения можно ввести вручную.</p></div>'+
+    '<datalist id="kbjuCatalog">'+KBJU_CATALOG.map(x=>'<option value="'+esc(x.n)+'"></option>').join('')+'</datalist>'+
+    '<div class="kbju-auto-note">База содержит основные продукты японской кухни. Для фирменных соусов и конкретных брендов точнее использовать данные с упаковки.</div>'+
+    '<div id="kbjuRows"></div><button class="calc-add" id="addKbjuRow">+ Ингредиент</button>'+
+    '<div class="kbju-result"><div><span>Ккал</span><b id="sumKcal">0</b></div><div><span>Белки</span><b id="sumP">0 г</b></div><div><span>Жиры</span><b id="sumF">0 г</b></div><div><span>Углеводы</span><b id="sumC">0 г</b></div></div>'+
+    '<div class="calc-result"><span>Общий вес</span><b id="sumWeight">0 г</b></div>';
   bindToolBack();const rows=$('#kbjuRows');
-  const calc=()=>{let K=0,P=0,F=0,C=0;rows.querySelectorAll('.kbju-row').forEach(r=>{const w=parseFloat(r.querySelector('[data-w]').value.replace(',','.'))||0;K+=(parseFloat(r.querySelector('[data-k]').value.replace(',','.'))||0)*w/100;P+=(parseFloat(r.querySelector('[data-p]').value.replace(',','.'))||0)*w/100;F+=(parseFloat(r.querySelector('[data-f]').value.replace(',','.'))||0)*w/100;C+=(parseFloat(r.querySelector('[data-c]').value.replace(',','.'))||0)*w/100});$('#sumKcal').textContent=K.toFixed(0);$('#sumP').textContent=P.toFixed(1)+' г';$('#sumF').textContent=F.toFixed(1)+' г';$('#sumC').textContent=C.toFixed(1)+' г'};
-  const add=()=>{const r=document.createElement('div');r.className='kbju-row';r.innerHTML='<input placeholder="Ингредиент"><input data-w inputmode="decimal" placeholder="масса г"><input data-k inputmode="decimal" placeholder="ккал"><input data-p inputmode="decimal" placeholder="Б"><input data-f inputmode="decimal" placeholder="Ж"><input data-c inputmode="decimal" placeholder="У"><button>×</button>';rows.appendChild(r);r.querySelectorAll('input').forEach(i=>i.oninput=calc);r.querySelector('button').onclick=()=>{r.remove();calc()}};$('#addKbjuRow').onclick=add;add();
+  const calc=()=>{
+    let K=0,P=0,F=0,C=0,W=0;
+    rows.querySelectorAll('.kbju-row').forEach(r=>{
+      const val=s=>parseFloat((r.querySelector(s)?.value||'').replace(',','.'))||0;
+      const w=val('[data-w]');W+=w;K+=val('[data-k]')*w/100;P+=val('[data-p]')*w/100;F+=val('[data-f]')*w/100;C+=val('[data-c]')*w/100;
+      const subtotal=r.querySelector('[data-sub]');if(subtotal)subtotal.textContent=w?Math.round(val('[data-k]')*w/100)+' ккал':'—';
+    });
+    $('#sumKcal').textContent=K.toFixed(0);$('#sumP').textContent=P.toFixed(1)+' г';$('#sumF').textContent=F.toFixed(1)+' г';$('#sumC').textContent=C.toFixed(1)+' г';$('#sumWeight').textContent=W.toFixed(1).replace('.0','')+' г';
+  };
+  const autofill=r=>{
+    const name=r.querySelector('[data-name]').value;
+    const item=findKbjuIngredient(name);
+    const badge=r.querySelector('[data-match]');
+    if(!item){badge.textContent=name?'не найдено':'авто';badge.classList.remove('found');return}
+    r.querySelector('[data-k]').value=item.k;r.querySelector('[data-p]').value=item.p;r.querySelector('[data-f]').value=item.f;r.querySelector('[data-c]').value=item.c;
+    badge.textContent='✓ '+item.n;badge.classList.add('found');calc();
+  };
+  const add=()=>{
+    const r=document.createElement('div');r.className='kbju-row kbju-auto-row';
+    r.innerHTML='<div class="kbju-name"><input data-name list="kbjuCatalog" autocomplete="off" placeholder="Например: лосось"><small data-match>авто</small></div>'+
+      '<input data-w inputmode="decimal" placeholder="масса, г">'+
+      '<input data-k inputmode="decimal" placeholder="ккал/100г">'+
+      '<input data-p inputmode="decimal" placeholder="Б/100г">'+
+      '<input data-f inputmode="decimal" placeholder="Ж/100г">'+
+      '<input data-c inputmode="decimal" placeholder="У/100г">'+
+      '<b data-sub>—</b><button type="button" aria-label="Удалить">×</button>';
+    rows.appendChild(r);
+    const name=r.querySelector('[data-name]');let t=null;
+    name.oninput=()=>{clearTimeout(t);t=setTimeout(()=>autofill(r),250)};
+    name.onchange=()=>autofill(r);
+    r.querySelectorAll('input:not([data-name])').forEach(i=>i.oninput=calc);
+    r.querySelector('button').onclick=()=>{r.remove();calc()};
+  };
+  $('#addKbjuRow').onclick=add;add();add();
 }
-$$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
+$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
 const dashRefresh=$('#dashboardRefresh');if(dashRefresh)dashRefresh.onclick=()=>{dashRefresh.classList.add('spin');refreshDashboard().finally(()=>setTimeout(()=>dashRefresh.classList.remove('spin'),450))};
 const dashAsk=$('#dashboardAsk');if(dashAsk)dashAsk.onclick=()=>askAI('Дай мне краткий рабочий приоритет на сегодня с учётом моих задач и текущей аналитики. Один главный фокус и следующий шаг.');
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
