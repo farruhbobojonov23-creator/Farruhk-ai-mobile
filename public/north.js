@@ -511,7 +511,59 @@ async function startFrontpadAuth(snapshot,status,uploaded){
     }
   }catch(e){box.innerHTML='<div class="analytics-note">'+esc(e.message||'Не удалось подключить Frontpad')+'</div>'}
 }
-function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Память</span><button id="openMemory">'+state.memory.length+' фактов</button></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#openMemory').onclick=renderMemory;$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
+function toolCard(id,title,desc,icon){return '<button class="chef-tool-card" data-tool="'+id+'"><span class="chef-tool-icon">'+icon+'</span><div><b>'+title+'</b><small>'+desc+'</small></div><span>↗</span></button>'}
+function renderTools(){
+  openPanel('Инструменты');
+  body.innerHTML='<div class="chef-tools-grid">'+
+    toolCard('cost','Себестоимость','Граммовки × закупочная цена','₽')+
+    toolCard('foodcost','Food cost','Себестоимость к цене продажи','%')+
+    toolCard('scale','Перерасчёт рецепта','Масштабирование граммовок','×')+
+    toolCard('kbju','КБЖУ','Белки, жиры, углеводы и ккал','K')+
+    toolCard('ttk','ТТК','Собрать техкарту через AI','≡')+
+    toolCard('memory','Память','Сохранённые рабочие факты','✦')+
+    '</div><div class="tool-footnote">Цены и КБЖУ не подставляются автоматически — расчёты используют только введённые тобой значения.</div>';
+  body.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>openChefTool(b.dataset.tool));
+}
+function openChefTool(type){
+  if(type==='memory'){renderMemory();return}
+  if(type==='ttk'){askAI('Помоги составить техкарту блюда. Сначала спроси название блюда, выход порции и ингредиенты с граммовками. Не придумывай цены и граммовки.');return}
+  if(type==='cost')return renderCostTool();
+  if(type==='foodcost')return renderFoodCostTool();
+  if(type==='scale')return renderScaleTool();
+  if(type==='kbju')return renderKbjuTool();
+}
+function toolBack(){return '<button class="tool-back" id="toolBack">← Инструменты</button>'}
+function bindToolBack(){const b=$('#toolBack');if(b)b.onclick=renderTools}
+function renderCostTool(){
+  openPanel('Себестоимость');
+  body.innerHTML=toolBack()+'<div class="calc-head"><h3>Себестоимость блюда</h3><p>Цена указывается за 1 кг / 1 л / 1 упаковку в той же единице, что и количество.</p></div><div id="costRows"></div><button class="calc-add" id="addCostRow">+ Ингредиент</button><div class="calc-result"><span>Себестоимость порции</span><b id="costTotal">0 ₽</b></div>';
+  bindToolBack();
+  const rows=$('#costRows');
+  const add=()=>{const row=document.createElement('div');row.className='calc-row calc-row-cost';row.innerHTML='<input placeholder="Ингредиент"><input inputmode="decimal" placeholder="г/мл" data-qty><input inputmode="decimal" placeholder="₽/кг или л" data-price><button type="button" aria-label="Удалить">×</button>';rows.appendChild(row);row.querySelectorAll('input').forEach(i=>i.oninput=calc);row.querySelector('button').onclick=()=>{row.remove();calc()}};
+  const calc=()=>{let total=0;rows.querySelectorAll('.calc-row').forEach(r=>{const q=parseFloat((r.querySelector('[data-qty]').value||'').replace(',','.'))||0;const p=parseFloat((r.querySelector('[data-price]').value||'').replace(',','.'))||0;total+=q*p/1000});$('#costTotal').textContent=money(total)};
+  $('#addCostRow').onclick=add;add();add();
+}
+function renderFoodCostTool(){
+  openPanel('Food cost');
+  body.innerHTML=toolBack()+'<div class="calc-head"><h3>Food cost</h3><p>Сравни себестоимость и цену продажи.</p></div><div class="calc-form"><label>Себестоимость, ₽<input id="fcCost" inputmode="decimal" placeholder="0"></label><label>Цена продажи, ₽<input id="fcPrice" inputmode="decimal" placeholder="0"></label></div><div class="calc-result-grid"><div><span>Food cost</span><b id="fcPercent">0%</b></div><div><span>Валовая маржа</span><b id="fcMargin">0 ₽</b></div></div>';
+  bindToolBack();
+  const calc=()=>{const c=parseFloat(($('#fcCost').value||'').replace(',','.'))||0,p=parseFloat(($('#fcPrice').value||'').replace(',','.'))||0;$('#fcPercent').textContent=p?((c/p)*100).toFixed(1)+'%':'0%';$('#fcMargin').textContent=money(Math.max(0,p-c))};
+  $('#fcCost').oninput=calc;$('#fcPrice').oninput=calc;
+}
+function renderScaleTool(){
+  openPanel('Перерасчёт рецепта');
+  body.innerHTML=toolBack()+'<div class="calc-head"><h3>Перерасчёт граммовок</h3><p>Задай исходный и новый выход блюда.</p></div><div class="calc-form two"><label>Исходный выход, г<input id="baseYield" inputmode="decimal" value="1000"></label><label>Новый выход, г<input id="newYield" inputmode="decimal" value="1500"></label></div><div id="scaleRows"></div><button class="calc-add" id="addScaleRow">+ Ингредиент</button>';
+  bindToolBack();const rows=$('#scaleRows');
+  const calc=()=>{const a=parseFloat($('#baseYield').value)||1,b=parseFloat($('#newYield').value)||0,k=b/a;rows.querySelectorAll('.scale-row').forEach(r=>{const q=parseFloat((r.querySelector('[data-base]').value||'').replace(',','.'))||0;r.querySelector('[data-new]').textContent=(q*k).toFixed(1)+' г'})};
+  const add=()=>{const r=document.createElement('div');r.className='scale-row';r.innerHTML='<input placeholder="Ингредиент"><input inputmode="decimal" placeholder="Исходно, г" data-base><b data-new>0 г</b><button>×</button>';rows.appendChild(r);r.querySelector('[data-base]').oninput=calc;r.querySelector('button').onclick=()=>r.remove()};$('#addScaleRow').onclick=add;$('#baseYield').oninput=calc;$('#newYield').oninput=calc;add();add();
+}
+function renderKbjuTool(){
+  openPanel('КБЖУ');
+  body.innerHTML=toolBack()+'<div class="calc-head"><h3>КБЖУ порции</h3><p>Введи значения ингредиентов на 100 г и их массу в блюде.</p></div><div id="kbjuRows"></div><button class="calc-add" id="addKbjuRow">+ Ингредиент</button><div class="kbju-result"><div><span>Ккал</span><b id="sumKcal">0</b></div><div><span>Белки</span><b id="sumP">0 г</b></div><div><span>Жиры</span><b id="sumF">0 г</b></div><div><span>Углеводы</span><b id="sumC">0 г</b></div></div>';
+  bindToolBack();const rows=$('#kbjuRows');
+  const calc=()=>{let K=0,P=0,F=0,C=0;rows.querySelectorAll('.kbju-row').forEach(r=>{const w=parseFloat(r.querySelector('[data-w]').value.replace(',','.'))||0;K+=(parseFloat(r.querySelector('[data-k]').value.replace(',','.'))||0)*w/100;P+=(parseFloat(r.querySelector('[data-p]').value.replace(',','.'))||0)*w/100;F+=(parseFloat(r.querySelector('[data-f]').value.replace(',','.'))||0)*w/100;C+=(parseFloat(r.querySelector('[data-c]').value.replace(',','.'))||0)*w/100});$('#sumKcal').textContent=K.toFixed(0);$('#sumP').textContent=P.toFixed(1)+' г';$('#sumF').textContent=F.toFixed(1)+' г';$('#sumC').textContent=C.toFixed(1)+' г'};
+  const add=()=>{const r=document.createElement('div');r.className='kbju-row';r.innerHTML='<input placeholder="Ингредиент"><input data-w inputmode="decimal" placeholder="масса г"><input data-k inputmode="decimal" placeholder="ккал"><input data-p inputmode="decimal" placeholder="Б"><input data-f inputmode="decimal" placeholder="Ж"><input data-c inputmode="decimal" placeholder="У"><button>×</button>';rows.appendChild(r);r.querySelectorAll('input').forEach(i=>i.oninput=calc);r.querySelector('button').onclick=()=>{r.remove();calc()}};$('#addKbjuRow').onclick=add;add();
+}
 $('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
 const dashRefresh=$('#dashboardRefresh');if(dashRefresh)dashRefresh.onclick=()=>{dashRefresh.classList.add('spin');refreshDashboard().finally(()=>setTimeout(()=>dashRefresh.classList.remove('spin'),450))};
 const dashAsk=$('#dashboardAsk');if(dashAsk)dashAsk.onclick=()=>askAI('Дай мне краткий рабочий приоритет на сегодня с учётом моих задач и текущей аналитики. Один главный фокус и следующий шаг.');
