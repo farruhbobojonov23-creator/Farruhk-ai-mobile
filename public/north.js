@@ -7,6 +7,7 @@ function save(skipSync=false){
   localStorage.setItem('fai_tasks',JSON.stringify(state.tasks));
   localStorage.setItem('fai_memory',JSON.stringify(state.memory.slice(-100)));
   localStorage.setItem('fai_tts',JSON.stringify(state.tts));
+  updateDashboardLocal();
   if(!skipSync){
     stateUpdatedAt=new Date().toISOString();
     localStorage.setItem('fai_state_updated_at',stateUpdatedAt);
@@ -49,7 +50,72 @@ async function bootstrapState(){
       toast('Синхронизация: '+storage);
     }
   }catch{toast('Работаю локально — синхронизация восстановится позже')}
-  finally{bootstrapping=false;renderCurrentIfOpen()}
+  finally{bootstrapping=false;renderCurrentIfOpen();refreshDashboard()}
+}
+function dashboardCounts(){
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let todayCount=0,overdue=0,important=0;
+  for(const t of state.tasks){
+    if(t.done)continue;
+    if(t.priority==='high')important++;
+    if(!t.due){todayCount++;continue}
+    const d=new Date(t.due);
+    if(Number.isNaN(d.getTime()))continue;
+    const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    if(d.getTime()<now.getTime())overdue++;
+    else if(day.getTime()===today.getTime())todayCount++;
+  }
+  return {todayCount,overdue,important};
+}
+function updateDashboardLocal(){
+  const c=dashboardCounts();
+  const a=$('#dashTodayTasks'),o=$('#dashOverdue'),i=$('#dashImportant');
+  if(a)a.textContent=String(c.todayCount);
+  if(o)o.textContent=String(c.overdue);
+  if(i)i.textContent='важных: '+c.important;
+  const insight=$('#dashboardInsight');
+  if(insight){
+    if(c.overdue>0)insight.textContent='Сначала закрой просроченные задачи: '+c.overdue+'.';
+    else if(c.important>0)insight.textContent='На сегодня есть '+c.important+' важн'+(c.important===1?'ая задача':'ых задач')+'.';
+    else if(c.todayCount>0)insight.textContent='На сегодня '+c.todayCount+' активн'+(c.todayCount===1?'ая задача':'ых задач')+'.';
+    else insight.textContent='Критичных задач на сегодня нет. Можно перейти к аналитике или текущему проекту.';
+  }
+}
+async function refreshDashboard(){
+  updateDashboardLocal();
+  const ai=$('#dashAi'),aiNote=$('#dashAiNote'),fp=$('#dashFrontpad'),fpNote=$('#dashFrontpadNote');
+  try{
+    const [statusR,frontpadR,snapshotR]=await Promise.allSettled([
+      fetch('/api/status',{signal:AbortSignal.timeout(10000)}),
+      fetch('/api/frontpad/status',{signal:AbortSignal.timeout(10000)}),
+      fetch('/api/analytics/snapshot',{signal:AbortSignal.timeout(10000)})
+    ]);
+    if(statusR.status==='fulfilled'){
+      const d=await statusR.value.json();
+      if(ai)ai.textContent=d.aiConnected?'ONLINE':'RESERVE';
+      if(aiNote)aiNote.textContent=d.aiConnected?'Основной AI доступен':'Работает резервный режим';
+    }else{
+      if(ai)ai.textContent='OFFLINE';
+      if(aiNote)aiNote.textContent='Нет связи с сервером';
+    }
+    let fpd=null;
+    if(frontpadR.status==='fulfilled')fpd=await frontpadR.value.json();
+    let snap=null;
+    if(snapshotR.status==='fulfilled')snap=await snapshotR.value.json();
+    if(fp){
+      if(fpd?.authenticated)fp.textContent='LIVE';
+      else if(fpd?.configured)fp.textContent='НУЖЕН ВХОД';
+      else fp.textContent='СНИМОК';
+    }
+    if(fpNote){
+      if(fpd?.authenticated)fpNote.textContent='Сессия Frontpad активна';
+      else if(snap?.date)fpNote.textContent='Снимок от '+snap.date;
+      else fpNote.textContent='Нет свежих данных';
+    }
+    if(!analyticsContext&&snap){
+      analyticsContext={source:'РУЧНОЙ СНИМОК',updatedAt:snap.date||null,metrics:[],branches:snap.branches||[],totalUnits:snap.totalUnits??null,summary:snap.summary||'',live:false,periodComplete:snap.periodComplete??false};
+    }
+  }catch{}
 }
 function renderCurrentIfOpen(){if(!panel?.open)return;const name=title.textContent;if(name==='Спросить AI')renderChat();else if(name==='Задачи')renderTasks();else if(name==='Память')renderMemory()}
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -446,7 +512,9 @@ async function startFrontpadAuth(snapshot,status,uploaded){
   }catch(e){box.innerHTML='<div class="analytics-note">'+esc(e.message||'Не удалось подключить Frontpad')+'</div>'}
 }
 function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Память</span><button id="openMemory">'+state.memory.length+' фактов</button></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#openMemory').onclick=renderMemory;$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
-$$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
+$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
+const dashRefresh=$('#dashboardRefresh');if(dashRefresh)dashRefresh.onclick=()=>{dashRefresh.classList.add('spin');refreshDashboard().finally(()=>setTimeout(()=>dashRefresh.classList.remove('spin'),450))};
+const dashAsk=$('#dashboardAsk');if(dashAsk)dashAsk.onclick=()=>askAI('Дай мне краткий рабочий приоритет на сегодня с учётом моих задач и текущей аналитики. Один главный фокус и следующий шаг.');
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function runRecognition(button,onText){
   if(!SR){toast('Открой в Chrome на Android для голосового ввода');return}
@@ -485,4 +553,4 @@ const panelVoice=$('#panelVoice');
 function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
 if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен')}}
 
-bootstrapState();notifyDueTasks();
+updateDashboardLocal();refreshDashboard();bootstrapState();notifyDueTasks();
