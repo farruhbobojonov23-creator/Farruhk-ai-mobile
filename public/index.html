@@ -1,52 +1,52 @@
 <!doctype html>
-<html lang="ru" data-ui="premium-gold">
+<html lang="ru" data-ui="premium-gold-v2">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#070604">
-  <title>FARRUKH AI — Chef Studio</title>
+  <meta name="theme-color" content="#050403">
+  <title>FARRUKH AI</title>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/north.css?v=8.0">
+  <link rel="stylesheet" href="/north.css?v=9.0">
 </head>
 <body>
-  <div class="ambient"></div>
+  <div class="scene" aria-hidden="true">
+    <div class="stars s1"></div><div class="stars s2"></div>
+    <div class="gold-haze"></div>
+  </div>
+
   <header class="topbar">
-    <div class="brand"><strong>FARRUKH AI</strong><span>CHEF STUDIO</span></div>
-    <div class="topmeta"><span id="today"></span><span class="status" id="aiStatus">AI</span></div>
+    <div class="brand"><strong>FARRUKH AI</strong><span>PREMIUM AI ASSISTANT</span></div>
+    <div class="topmeta"><span id="today"></span><span class="status"><i></i><b id="aiStatus">AI</b></span></div>
   </header>
 
   <main class="shell">
     <section class="hero">
-      <div class="planet" aria-hidden="true"><i></i></div>
-      <div class="mountains" aria-hidden="true"></div>
+      <div class="planet-wrap" aria-hidden="true">
+        <div class="planet">
+          <span class="rim"></span><span class="land l1"></span><span class="land l2"></span><span class="land l3"></span>
+          <span class="flare"></span>
+        </div>
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+      </div>
+
       <div class="hero-copy">
-        <p class="kicker">ВАШ ЛИЧНЫЙ AI-БРЕНД-ШЕФ</p>
-        <h1>FARRUKH AI</h1>
-        <p class="tagline">ИДЕИ · АНАЛИЗ · РЕШЕНИЯ · РЕЗУЛЬТАТЫ</p>
+        <p class="kicker">ВАШ ЛИЧНЫЙ AI-АССИСТЕНТ</p>
+        <h1>FARRUKH <em>AI</em></h1>
+        <p class="tagline">ИДЕИ <span>•</span> АНАЛИЗ <span>•</span> РЕШЕНИЯ <span>•</span> РЕЗУЛЬТАТ</p>
       </div>
 
       <form class="askbar" id="askForm">
-        <button type="button" class="mic" id="micBtn" aria-label="Голосовой ввод">◉</button>
-        <input id="askInput" autocomplete="off" placeholder="Спроси что угодно…" aria-label="Запрос FARRUKH AI">
+        <button type="button" class="mic" id="micBtn" aria-label="Голосовой ввод">●</button>
+        <input id="askInput" autocomplete="off" placeholder="Спроси FARRUKH AI…" aria-label="Запрос FARRUKH AI">
         <button class="go" type="submit" aria-label="Отправить">→</button>
       </form>
     </section>
 
     <section class="cards" aria-label="Главные разделы">
-      <button class="card" data-action="chat"><span class="icon">◌</span><b>Спросить AI</b><small>Ответы, поиск и идеи</small></button>
-      <button class="card" data-action="tasks"><span class="icon">✓</span><b>Задачи</b><small>Планирование и контроль</small></button>
-      <button class="card" data-action="analytics"><span class="icon">▥</span><b>Аналитика</b><small>Показатели и отчёты</small></button>
-      <button class="card" data-action="tools"><span class="icon">⌘</span><b>Инструменты</b><small>Полезные сервисы</small></button>
-    </section>
-
-    <section class="quick">
-      <div class="section-title"><span>✦</span> Быстрые запросы</div>
-      <div class="chips">
-        <button data-prompt="Найди в интернете актуальные цены конкурентов на суши в Мурманске и сравни их.">Цены конкурентов</button>
-        <button data-prompt="Проанализируй текущие данные по 4 точкам и скажи, где нужно внимание.">Анализ 4 точек</button>
-        <button data-prompt="Составь приоритетный план задач шефа на сегодня.">План на сегодня</button>
-        <button data-prompt="Найди актуальные новости HoReCa и японской кухни, которые полезны ресторанному бизнесу.">Новости HoReCa</button>
-      </div>
+      <button class="card" data-action="chat"><span class="icon">✦</span><div><b>Спросить AI</b><small>Общение, интернет-поиск, идеи</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="tasks"><span class="icon">✓</span><div><b>Задачи</b><small>Планирование и контроль</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="analytics"><span class="icon">▥</span><div><b>Аналитика</b><small>Показатели и отчёты</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="tools"><span class="icon">⌘</span><div><b>Инструменты</b><small>Рабочие сервисы и расчёты</small></div><span class="arrow">↗</span></button>
     </section>
   </main>
 
@@ -56,6 +56,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/north.js?v=8.0" defer></script>
+  <script src="/north.js?v=9.0" defer></script>
 </body>
 </html>
