@@ -260,7 +260,7 @@ function renderMemory(){
   const draw=()=>{list.innerHTML=state.memory.length?state.memory.slice().reverse().map((m,ri)=>{const i=state.memory.length-1-ri;return '<div class="memory-row"><span>'+esc(m.text)+'</span><button data-memory-del="'+i+'">×</button></div>'}).join(''):'<p style="color:#a9a197">Память пока пустая. Скажи: «Запомни, что …»</p>'};
   draw();
   $('#addMemory').onclick=()=>{const v=prompt('Что запомнить?');if(v&&addMemory(v)){draw();toast('Запомнил')}};
-  list.onclick=e=>{if(e.target.dataset.memoryDel!==undefined){state.memory.splice(+e.target.dataset.memoryDel,1);save();draw()}};
+  list.onclick=e=>{if(e.target.dataset.memoryDel!==undefined){if(!confirm('Удалить этот факт из памяти?'))return;state.memory.splice(+e.target.dataset.memoryDel,1);save();draw()}};
 }
 async function askAI(text){text=String(text||'').trim();if(!text)return;
   const task=addTaskFromCommand(text);
@@ -340,7 +340,7 @@ function renderTasks(){
   };
   list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save();draw()}};
   list.onclick=e=>{
-    if(e.target.dataset.del!==undefined){state.tasks.splice(+e.target.dataset.del,1);save();draw();return}
+    if(e.target.dataset.del!==undefined){if(!confirm('Удалить эту задачу?'))return;state.tasks.splice(+e.target.dataset.del,1);save();draw();return}
     if(e.target.dataset.edit!==undefined){
       const i=+e.target.dataset.edit,t=state.tasks[i];
       const name=prompt('Задача:',t.text);if(name===null)return;
@@ -521,11 +521,13 @@ function renderTools(){
     toolCard('kbju','КБЖУ','Белки, жиры, углеводы и ккал','K')+
     toolCard('ttk','ТТК','Собрать техкарту через AI','≡')+
     toolCard('memory','Память','Сохранённые рабочие факты','✦')+
+    toolCard('backup','Backup & Restore','Резервные копии и восстановление','↺')+
     '</div><div class="tool-footnote">Цены и КБЖУ не подставляются автоматически — расчёты используют только введённые тобой значения.</div>';
   body.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>openChefTool(b.dataset.tool));
 }
 function openChefTool(type){
   if(type==='memory'){renderMemory();return}
+  if(type==='backup'){renderBackupTool();return}
   if(type==='ttk'){askAI('Помоги составить техкарту блюда. Сначала спроси название блюда, выход порции и ингредиенты с граммовками. Не придумывай цены и граммовки.');return}
   if(type==='cost')return renderCostTool();
   if(type==='foodcost')return renderFoodCostTool();
@@ -534,6 +536,59 @@ function openChefTool(type){
 }
 function toolBack(){return '<button class="tool-back" id="toolBack">← Инструменты</button>'}
 function bindToolBack(){const b=$('#toolBack');if(b)b.onclick=renderTools}
+function applyStateObject(data){
+  const s=data?.state||data;
+  if(!s||typeof s!=='object')throw Error('Файл не похож на резервную копию FARRUKH AI');
+  state.tasks=Array.isArray(s.tasks)?s.tasks:[];
+  state.memory=Array.isArray(s.memory)?s.memory:[];
+  state.chat=Array.isArray(s.chat)?s.chat:[];
+  state.tts=s.tts!==false;
+  stateUpdatedAt=new Date().toISOString();
+  localStorage.setItem('fai_state_updated_at',stateUpdatedAt);
+  save(true);
+  syncPanelVoice();
+  updateDashboardLocal();
+}
+function downloadBackup(){
+  const payload={version:1,createdAt:new Date().toISOString(),state:statePayload()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='FARRUKH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function loadBackupHistory(){
+  const box=$('#backupHistory');if(!box)return;
+  box.innerHTML='<div class="analytics-loading">Проверяю облачные копии…</div>';
+  try{
+    const r=await fetch('/api/backups',{signal:AbortSignal.timeout(15000)});const d=await r.json();
+    if(!r.ok)throw Error(d.error||'Ошибка');
+    if(!d.backups?.length){box.innerHTML='<div class="empty-state">Облачных копий пока нет.</div>';return}
+    box.innerHTML=d.backups.map((b,i)=>'<div class="backup-row"><div><b>'+(b.modified?esc(new Date(b.modified).toLocaleString('ru-RU')):esc(b.name))+'</b><small>'+esc(b.name)+'</small></div><button data-restore="'+i+'">Восстановить</button></div>').join('');
+    box.onclick=async e=>{
+      const idx=e.target.dataset.restore;if(idx===undefined)return;
+      const b=d.backups[+idx];if(!b)return;
+      if(!confirm('Восстановить эту резервную копию? Текущее состояние будет заменено.'))return;
+      try{
+        const rr=await fetch('/api/backups/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:b.path}),signal:AbortSignal.timeout(20000)});
+        const dd=await rr.json();if(!rr.ok)throw Error(dd.error||'Ошибка восстановления');
+        applyStateObject(dd.state);await syncStateNow();toast('Резервная копия восстановлена');renderBackupTool();
+      }catch(err){toast(err.message||'Не удалось восстановить')}
+    };
+  }catch(err){box.innerHTML='<div class="analytics-note">История облачных копий сейчас недоступна.</div>'}
+}
+function renderBackupTool(){
+  openPanel('Backup & Restore');
+  body.innerHTML=toolBack()+'<div class="calc-head"><h3>Резервные копии</h3><p>Скачай копию на устройство или восстанови состояние из облака / файла.</p></div>'+
+    '<div class="backup-actions"><button id="backupNow">Создать облачный backup</button><button id="backupDownload">Скачать JSON</button><label>Восстановить из файла<input id="backupFile" type="file" accept=".json,application/json" hidden></label></div>'+
+    '<div class="backup-status"><span>Автокопия</span><b>каждые 6 часов при изменениях</b></div>'+
+    '<h4 class="backup-title">История копий</h4><div id="backupHistory"></div>';
+  bindToolBack();
+  $('#backupDownload').onclick=downloadBackup;
+  const file=$('#backupFile');file.onchange=async()=>{const f=file.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!confirm('Восстановить данные из файла?'))return;applyStateObject(data);await syncStateNow();toast('Данные восстановлены из файла');renderBackupTool()}catch(err){toast(err.message||'Некорректный backup')}};
+  $('#backupNow').onclick=async()=>{const b=$('#backupNow');b.disabled=true;b.textContent='Создаю…';try{await syncStateNow();const r=await fetch('/api/backups',{method:'POST',signal:AbortSignal.timeout(20000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');toast('Облачная копия создана');loadBackupHistory()}catch(err){toast(err.message||'Не удалось создать backup')}finally{b.disabled=false;b.textContent='Создать облачный backup'}};
+  loadBackupHistory();
+}
 function renderCostTool(){
   openPanel('Себестоимость');
   body.innerHTML=toolBack()+'<div class="calc-head"><h3>Себестоимость блюда</h3><p>Цена указывается за 1 кг / 1 л / 1 упаковку в той же единице, что и количество.</p></div><div id="costRows"></div><button class="calc-add" id="addCostRow">+ Ингредиент</button><div class="calc-result"><span>Себестоимость порции</span><b id="costTotal">0 ₽</b></div>';
