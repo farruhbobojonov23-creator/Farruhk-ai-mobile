@@ -184,3 +184,7 @@
   .kbju-auto-row [data-sub]{align-self:center}
   .kbju-auto-row button{justify-self:end}
 }
+
+.mic{display:grid;place-items:center;font-size:23px!important;line-height:1;cursor:pointer}
+.mic::after{content:"";position:absolute}
+.mic.listening{background:rgba(244,197,107,.14);box-shadow:0 0 0 8px rgba(244,197,107,.07)}
