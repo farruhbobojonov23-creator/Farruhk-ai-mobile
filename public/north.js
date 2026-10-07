@@ -736,9 +736,9 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micPermissionReady=false;
 async function ensureMicrophonePermission(){
   if(micPermissionReady)return true;
-  if(!navigator.mediaDevices?.getUserMedia)return true;
+  if(!navigator.mediaDevices?.getUserMedia){toast('Этот браузер не даёт сайту доступ к микрофону');return false}
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     stream.getTracks().forEach(t=>t.stop());
     micPermissionReady=true;
     return true;
@@ -750,30 +750,99 @@ async function ensureMicrophonePermission(){
     return false;
   }
 }
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+    reader.onerror=()=>reject(reader.error||new Error('Не удалось прочитать запись'));
+    reader.readAsDataURL(blob);
+  });
+}
+async function transcribeBlob(blob,mimeType){
+  const data=await blobToBase64(blob);
+  const r=await fetch('/api/transcribe',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({data,mimeType:mimeType||blob.type||'audio/webm'}),
+    signal:AbortSignal.timeout(35000)
+  });
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw Error(d.error||'Не удалось распознать голос');
+  return String(d.text||'').trim();
+}
+async function runRecordedRecognition(button,onText){
+  if(typeof MediaRecorder==='undefined'||!navigator.mediaDevices?.getUserMedia)return false;
+  if(listeningNow)return true;
+  let stream=null,recorder=null,stopTimer=null,chunks=[],finished=false;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported?.(t));
+    recorder=preferred?new MediaRecorder(stream,{mimeType:preferred}):new MediaRecorder(stream);
+    listeningNow=true;
+    button?.classList.add('listening');
+    if(button)button.setAttribute('aria-label','Слушаю');
+    toast('Слушаю… говори');
+    const finish=()=>new Promise(resolve=>{
+      if(finished){resolve();return}
+      finished=true;
+      const done=()=>resolve();
+      recorder.addEventListener('stop',done,{once:true});
+      try{if(recorder.state!=='inactive')recorder.stop();else resolve()}catch{resolve()}
+    });
+    activeRecognition={abort:()=>{clearTimeout(stopTimer);try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{}}};
+    recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+    recorder.start(250);
+    stopTimer=setTimeout(()=>finish(),6500);
+    await new Promise(resolve=>recorder.addEventListener('stop',resolve,{once:true}));
+    clearTimeout(stopTimer);
+    stream.getTracks().forEach(t=>t.stop());
+    const blob=new Blob(chunks,{type:recorder.mimeType||preferred||'audio/webm'});
+    if(blob.size<800){toast('Звук не записался — попробуй ещё раз');return true}
+    toast('Распознаю…');
+    const text=await transcribeBlob(blob,blob.type);
+    if(text){toast('Услышал: '+text.slice(0,60));onText(text)}
+    else toast('Речь не распознана — попробуй говорить чуть громче');
+    return true;
+  }catch(err){
+    try{stream?.getTracks().forEach(t=>t.stop())}catch{}
+    const name=String(err?.name||'');
+    if(/NotAllowed|Security/i.test(name))toast('Доступ к микрофону запрещён');
+    else toast('Не удалось записать голос');
+    return false;
+  }finally{
+    listeningNow=false;activeRecognition=null;
+    button?.classList.remove('listening');
+    if(button)button.setAttribute('aria-label','Ответить голосом');
+  }
+}
+async function runWebSpeech(button,onText){
+  if(!SR)return false;
+  if(listeningNow)return true;
+  return await new Promise(resolve=>{
+    const r=new SR();
+    activeRecognition=r;
+    listeningNow=true;
+    r.lang='ru-RU';r.interimResults=false;r.continuous=false;try{r.maxAlternatives=1}catch{}
+    button?.classList.add('listening');
+    if(button)button.setAttribute('aria-label','Слушаю');
+    toast('Слушаю…');
+    let got=false;
+    r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){got=true;toast('Услышал');onText(t)}};
+    const done=ok=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');resolve(ok)};
+    r.onend=()=>done(got);
+    r.onerror=e=>{const code=String(e?.error||'');if(code!=='aborted')toast(code==='no-speech'?'Речь не распознана':'Ошибка голосового ввода');done(false)};
+    try{r.start()}catch{done(false)}
+  });
+}
 async function runRecognition(button,onText){
-  if(!SR){toast('Этот браузер не поддерживает распознавание речи. Используй Chrome на Android.');return}
   if(listeningNow)return;
   if(!(await ensureMicrophonePermission()))return;
-  const r=new SR();
-  activeRecognition=r;
-  listeningNow=true;
-  r.lang='ru-RU';r.interimResults=false;r.continuous=false;try{r.maxAlternatives=1}catch{}
-  button?.classList.add('listening');
-  if(button)button.setAttribute('aria-label','Слушаю');
-  toast('Слушаю…');
-  r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){toast('Услышал');onText(t)}};
-  r.onend=()=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');if(handsFree&&panel?.open&&!document.hidden&&(!('speechSynthesis' in window)||!speechSynthesis.speaking))setTimeout(autoListen,900)};
-  r.onerror=e=>{
-    listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');
-    const code=String(e?.error||'');
-    if(code==='not-allowed'||code==='service-not-allowed')toast('Доступ к микрофону запрещён в браузере');
-    else if(code==='network')toast('Распознавание речи требует интернет — проверь соединение');
-    else if(code==='audio-capture')toast('Браузер не получает звук с микрофона');
-    else if(code!=='no-speech'&&code!=='aborted')toast('Ошибка распознавания: '+code);
-    else if(code==='no-speech')toast('Речь не распознана — говори ближе к микрофону');
-    if(code==='no-speech'&&handsFree&&panel?.open&&!document.hidden)setTimeout(autoListen,1500);
-  };
-  try{r.start()}catch{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');toast('Не удалось запустить микрофон')}
+  const recorded=await runRecordedRecognition(button,onText);
+  if(!recorded){
+    const webOk=await runWebSpeech(button,onText);
+    if(!webOk)toast('Голосовой ввод на этом устройстве не запустился');
+  }
+  if(handsFree&&panel?.open&&!document.hidden&&(!('speechSynthesis'in window)||!speechSynthesis.speaking))setTimeout(autoListen,1100);
 }
 function listenFromChat(button,input){
   unlockVoice();
@@ -783,22 +852,13 @@ function autoListen(){
   if(!handsFree||!panel?.open||listeningNow)return;
   const mic=$('#chatMic'),input=$('#chatInput');
   if(!mic||!input)return;
-  if('speechSynthesis' in window&&speechSynthesis.speaking)return;
+  if('speechSynthesis'in window&&speechSynthesis.speaking)return;
   listenFromChat(mic,input);
 }
 $('#micBtn').onclick=async()=>{
   unlockVoice();
   handsFree=true;
   if(!state.tts){state.tts=true;save();syncPanelVoice()}
-  try{
-    if(navigator.permissions?.query){
-      const p=await navigator.permissions.query({name:'microphone'});
-      if(p.state==='denied'){
-        toast('Микрофон заблокирован. Нажми значок слева от адреса сайта → Разрешения → Микрофон → Разрешить');
-        return;
-      }
-    }
-  }catch{}
   runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)});
 };
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
