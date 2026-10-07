@@ -173,8 +173,8 @@ function getRussianVoice(){
     ||voices[0]
     ||null;
 }
-function speak(text){
-  if(!state.tts||!text){if(handsFree&&panel?.open)setTimeout(autoListen,350);return false;}
+function speak(text,force=false){
+  if((!state.tts&&!force)||!text){if(handsFree&&panel?.open)setTimeout(autoListen,350);return false;}
   if(!('speechSynthesis' in window)){toast('На этом браузере озвучивание недоступно');return false;}
   const clean=String(text).replace(/[*#_~`>]/g,' ').replace(/\s+/g,' ').trim();
   if(!clean)return;
@@ -208,7 +208,7 @@ function renderChat(){
       '<input id="chatInput" autocomplete="off" placeholder="Ответить FARRUKH AI…" aria-label="Ответить FARRUKH AI">'+
       '<button class="chat-send" type="submit" aria-label="Отправить">↑</button>'+
     '</form><div class="voice-controls"><span id="voiceState" role="status">Готова к разговору</span><button id="stopConversation" type="button">Остановить</button></div>';
-  body.querySelectorAll('[data-answer]').forEach(button=>button.onclick=async()=>{const text=state.chat[Number(button.dataset.index)]?.text;if(!text)return;if(button.dataset.answer==='copy'){try{await navigator.clipboard.writeText(text);toast('Ответ скопирован')}catch{toast('Не удалось скопировать. Выделите текст ответа.')}}else if(button.dataset.answer==='speak'){unlockVoice();speak(text)}else{taskEditor(null,text)}});
+  body.querySelectorAll('[data-answer]').forEach(button=>button.onclick=async()=>{const text=state.chat[Number(button.dataset.index)]?.text;if(!text)return;if(button.dataset.answer==='copy'){try{await navigator.clipboard.writeText(text);toast('Ответ скопирован')}catch{toast('Не удалось скопировать. Выделите текст ответа.')}}else if(button.dataset.answer==='speak'){unlockVoice();speak(text,true)}else{taskEditor(null,text)}});
   $('#stopConversation').onclick=stopConversation;updateVoiceState();
   const clear=$('#clearChatDocs');if(clear)clear.onclick=()=>{selectedDocuments=[];renderChat()};
   const form=$('#chatComposer'),input=$('#chatInput'),mic=$('#chatMic');
