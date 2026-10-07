@@ -733,19 +733,47 @@ $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='c
 const dashRefresh=$('#dashboardRefresh');if(dashRefresh)dashRefresh.onclick=()=>{dashRefresh.classList.add('spin');refreshDashboard().finally(()=>setTimeout(()=>dashRefresh.classList.remove('spin'),450))};
 const dashAsk=$('#dashboardAsk');if(dashAsk)dashAsk.onclick=()=>askAI('Дай мне краткий рабочий приоритет на сегодня с учётом моих задач и текущей аналитики. Один главный фокус и следующий шаг.');
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-function runRecognition(button,onText){
-  if(!SR){toast('Открой в Chrome на Android для голосового ввода');return}
+let micPermissionReady=false;
+async function ensureMicrophonePermission(){
+  if(micPermissionReady)return true;
+  if(!navigator.mediaDevices?.getUserMedia)return true;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(t=>t.stop());
+    micPermissionReady=true;
+    return true;
+  }catch(err){
+    const name=String(err?.name||'');
+    if(/NotAllowed|Security/i.test(name))toast('Разреши микрофон для этого сайта в настройках браузера');
+    else if(/NotFound/i.test(name))toast('Микрофон на устройстве не найден');
+    else toast('Не удалось получить доступ к микрофону');
+    return false;
+  }
+}
+async function runRecognition(button,onText){
+  if(!SR){toast('Этот браузер не поддерживает распознавание речи. Используй Chrome на Android.');return}
   if(listeningNow)return;
+  if(!(await ensureMicrophonePermission()))return;
   const r=new SR();
   activeRecognition=r;
   listeningNow=true;
-  r.lang='ru-RU';r.interimResults=false;r.continuous=false;
+  r.lang='ru-RU';r.interimResults=false;r.continuous=false;try{r.maxAlternatives=1}catch{}
   button?.classList.add('listening');
   if(button)button.setAttribute('aria-label','Слушаю');
-  r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t)onText(t)};
+  toast('Слушаю…');
+  r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){toast('Услышал');onText(t)}};
   r.onend=()=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');if(handsFree&&panel?.open&&!document.hidden&&(!('speechSynthesis' in window)||!speechSynthesis.speaking))setTimeout(autoListen,900)};
-  r.onerror=e=>{listeningNow=false;activeRecognition=null;if(e?.error!=='no-speech'&&e?.error!=='aborted')toast('Не удалось распознать речь');button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');if(e?.error==='no-speech'&&handsFree&&panel?.open&&!document.hidden)setTimeout(autoListen,1200)};
-  try{r.start()}catch{toast('Микрофон уже используется')}
+  r.onerror=e=>{
+    listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');
+    const code=String(e?.error||'');
+    if(code==='not-allowed'||code==='service-not-allowed')toast('Доступ к микрофону запрещён в браузере');
+    else if(code==='network')toast('Распознавание речи требует интернет — проверь соединение');
+    else if(code==='audio-capture')toast('Браузер не получает звук с микрофона');
+    else if(code!=='no-speech'&&code!=='aborted')toast('Ошибка распознавания: '+code);
+    else if(code==='no-speech')toast('Речь не распознана — говори ближе к микрофону');
+    if(code==='no-speech'&&handsFree&&panel?.open&&!document.hidden)setTimeout(autoListen,1500);
+  };
+  try{r.start()}catch{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');toast('Не удалось запустить микрофон')}
 }
 function listenFromChat(button,input){
   unlockVoice();
@@ -768,6 +796,6 @@ window.addEventListener('online',()=>{toast('Интернет восстанов
 window.addEventListener('offline',()=>toast('Нет сети — данные сохраняются на устройстве'));
 const panelVoice=$('#panelVoice');
 function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
-if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен')}}
+if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен');if(state.tts)setTimeout(()=>speak('Голос включён. Я готов.'),80)}}
 
 updateDashboardLocal();refreshDashboard();bootstrapState();notifyDueTasks();
