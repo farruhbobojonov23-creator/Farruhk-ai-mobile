@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-const state={chat:JSON.parse(localStorage.getItem('fai_chat')||'[]'),tasks:JSON.parse(localStorage.getItem('fai_tasks')||'[]'),tts:JSON.parse(localStorage.getItem('fai_tts')??'true')};
-const save=()=>{localStorage.setItem('fai_chat',JSON.stringify(state.chat.slice(-40)));localStorage.setItem('fai_tasks',JSON.stringify(state.tasks));localStorage.setItem('fai_tts',JSON.stringify(state.tts))};
+const state={chat:JSON.parse(localStorage.getItem('fai_chat')||'[]'),tasks:JSON.parse(localStorage.getItem('fai_tasks')||'[]'),memory:JSON.parse(localStorage.getItem('fai_memory')||'[]'),tts:JSON.parse(localStorage.getItem('fai_tts')??'true')};
+const save=()=>{localStorage.setItem('fai_chat',JSON.stringify(state.chat.slice(-40)));localStorage.setItem('fai_tasks',JSON.stringify(state.tasks));localStorage.setItem('fai_memory',JSON.stringify(state.memory.slice(-100)));localStorage.setItem('fai_tts',JSON.stringify(state.tts))};
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const toast=t=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)};
 $('#today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
@@ -62,11 +62,41 @@ function renderChat(){
   if(mic)mic.onclick=()=>{handsFree=true;renderChat();setTimeout(()=>listenFromChat($('#chatMic'),$('#chatInput')),0)};
   requestAnimationFrame(()=>{body.scrollTop=body.scrollHeight})
 }
-async function askAI(text){text=String(text||'').trim();if(!text)return;state.chat.push({role:'user',text});save();openPanel('Спросить AI');renderChat();const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;try{const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false})});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');const reply=d.reply||'Ответ не получен';state.chat.push({role:'ai',text:reply});save();renderChat();speak(reply)}catch(e){tmp.textContent='Не удалось получить ответ. Попробуй ещё раз.'}}
+function addMemory(note){
+  note=String(note||'').trim().replace(/^[:\-–—\s]+/,'');
+  if(!note)return false;
+  const exists=state.memory.some(x=>String(x.text||'').toLowerCase()===note.toLowerCase());
+  if(!exists)state.memory.push({text:note,createdAt:new Date().toISOString()});
+  save();return true;
+}
+function memoryText(){return state.memory.map(x=>x.text).filter(Boolean)}
+function renderMemory(){
+  openPanel('Память');
+  body.innerHTML='<div class="memory-head"><button class="add-task" id="addMemory">+ Добавить факт</button><span>'+state.memory.length+' сохранено</span></div><div id="memoryList"></div>';
+  const list=$('#memoryList');
+  const draw=()=>{list.innerHTML=state.memory.length?state.memory.slice().reverse().map((m,ri)=>{const i=state.memory.length-1-ri;return '<div class="memory-row"><span>'+esc(m.text)+'</span><button data-memory-del="'+i+'">×</button></div>'}).join(''):'<p style="color:#a9a197">Память пока пустая. Скажи: «Запомни, что …»</p>'};
+  draw();
+  $('#addMemory').onclick=()=>{const v=prompt('Что запомнить?');if(v&&addMemory(v)){draw();toast('Запомнил')}};
+  list.onclick=e=>{if(e.target.dataset.memoryDel!==undefined){state.memory.splice(+e.target.dataset.memoryDel,1);save();draw()}};
+}
+async function askAI(text){text=String(text||'').trim();if(!text)return;
+  const remember=text.match(/^\s*запомни(?:\s*,?\s*что)?\s+(.+)$/i);
+  if(remember){
+    const note=remember[1].trim();
+    addMemory(note);
+    state.chat.push({role:'user',text},{role:'ai',text:'Запомнил: '+note});
+    save();openPanel('Спросить AI');renderChat();speak('Запомнил');return;
+  }
+  if(/^\s*(что ты помнишь|покажи память|моя память)\s*\??$/i.test(text)){
+    state.chat.push({role:'user',text});
+    const reply=state.memory.length?'Я помню:\n'+state.memory.map((x,i)=>(i+1)+'. '+x.text).join('\n'):'Пока в моей памяти нет сохранённых фактов.';
+    state.chat.push({role:'ai',text:reply});save();openPanel('Спросить AI');renderChat();speak(reply);return;
+  }
+  state.chat.push({role:'user',text});save();openPanel('Спросить AI');renderChat();const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;try{const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false,context:{memory:memoryText(),tasks:state.tasks}})});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');const reply=d.reply||'Ответ не получен';state.chat.push({role:'ai',text:reply});save();renderChat();speak(reply)}catch(e){tmp.textContent='Не удалось получить ответ. Попробуй ещё раз.'}}
 $('#askForm').onsubmit=e=>{e.preventDefault();const v=$('#askInput').value;$('#askInput').value='';askAI(v)};$$('[data-prompt]').forEach(b=>b.onclick=()=>askAI(b.dataset.prompt));
 function renderTasks(){openPanel('Задачи');body.innerHTML='<button class="add-task" id="newTask">+ Новая задача</button><div id="taskList"></div>';const list=$('#taskList');const draw=()=>{list.innerHTML=state.tasks.length?state.tasks.map((t,i)=>'<label class="task-row"><span><input type="checkbox" data-i="'+i+'" '+(t.done?'checked':'')+'> '+esc(t.text)+'</span><button data-del="'+i+'">×</button></label>').join(''):'<p style="color:#a9a197">Список пуст. Добавь первую задачу.</p>'};draw();$('#newTask').onclick=()=>{const t=prompt('Новая задача:');if(t&&t.trim()){state.tasks.unshift({text:t.trim(),done:false});save();draw()}};list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save()}};list.onclick=e=>{if(e.target.dataset.del!==undefined){state.tasks.splice(+e.target.dataset.del,1);save();draw()}}}
 async function renderAnalytics(){openPanel('Аналитика');body.innerHTML='<p class="thinking">Загружаю данные…</p>';try{const r=await fetch('/api/analytics/snapshot');const d=await r.json();body.innerHTML='<div class="metric-row"><span>Источник</span><b>'+esc(d.source||'—')+'</b></div><div class="metric-row"><span>Всего единиц</span><b>'+esc(d.totalUnits??'—')+'</b></div>'+(d.branches||[]).map(x=>'<div class="metric-row"><span>'+esc(x.name)+'</span><b>'+esc(x.units)+' ед.</b></div>').join('')+'<p style="color:#c4b59d;line-height:1.55">'+esc(d.summary||'')+'</p>'}catch{body.innerHTML='<p>Данные аналитики сейчас недоступны.</p>'}}
-function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
+function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Память</span><button id="openMemory">'+state.memory.length+' фактов</button></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#openMemory').onclick=renderMemory;$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
 $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function runRecognition(button,onText){
