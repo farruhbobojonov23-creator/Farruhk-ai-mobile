@@ -3,12 +3,17 @@
   "version": "3.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node tests/assistant.test.js",
+    "prestart": "npm test"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "multer": "^2.0.2",
-    "exceljs": "^4.4.0"
+    "exceljs": "^4.4.0",
+    "mammoth": "^1.10.0",
+    "pdf-parse": "^1.1.1",
+    "web-push": "^3.6.7"
   }
 }

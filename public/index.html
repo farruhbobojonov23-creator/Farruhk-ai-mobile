@@ -11,7 +11,8 @@
   <link rel="icon" href="/icon-192.svg" type="image/svg+xml">
   <title>FARRUKH AI</title>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/north.css?v=22.7">
+  <link rel="stylesheet" href="/north.css?v=23.0">
+  <link rel="stylesheet" href="/compact.css?v=1">
 </head>
 <body>
   <script data-clean-literal-newlines>(function(){for(const n of [...document.body.childNodes]){if(n.nodeType===3&&/^(?:\\n\s*)+$/.test(n.textContent.trim()))n.remove()}})();</script>
@@ -22,7 +23,7 @@
 
   <header class="topbar">
     <div class="brand"><strong>FARRUKH AI</strong><span>PREMIUM AI ASSISTANT</span></div>
-    <div class="topmeta"><span id="today"></span><span class="status"><i></i><b id="aiStatus">AI</b></span></div>
+    <div class="topmeta"><span id="syncStatus" role="status">Проверяю сохранение…</span><span id="today"></span><span class="status"><i></i><b id="aiStatus">AI</b></span></div>
   </header>
 
   <main class="shell">
@@ -81,12 +82,13 @@
     </section>
   </main>
 
+  <nav class="bottom-nav" aria-label="Основные разделы"><button data-nav="chat">Чат</button><button data-nav="tasks">Сегодня</button><button data-nav="documents">Документы</button><button data-nav="tools">Ещё</button></nav>
   <dialog id="panel">
     <div class="panel-head"><div><span class="panel-kicker">FARRUKH AI</span><h2 id="panelTitle">Ассистент</h2></div><div class="panel-actions"><button id="panelVoice" class="panel-voice" aria-label="Включить или выключить голос">🔊</button><button id="panelClose" aria-label="Закрыть">×</button></div></div>
     <div id="panelBody" class="panel-body"></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/north.js?v=22.7" defer></script>
+  <script type="module" src="/north.js?v=23.0"></script>
 </body>
 </html>

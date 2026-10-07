@@ -1,8 +1,17 @@
+import {parseLiveReports} from './analytics-values.js';
+import {parseTaskCommand,zonedDate,zonedToUtc} from './task-commands.js';
+import {requireOwner} from './owner-login.js';
+await requireOwner();
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 function readJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw===null?fallback:JSON.parse(raw)}catch{return fallback}}
-const state={chat:readJSON('fai_chat',[]),tasks:readJSON('fai_tasks',[]),memory:readJSON('fai_memory',[]),tts:readJSON('fai_tts',true)};
+let selectedDocuments=[];
+const state={chat:readJSON('fai_chat',[]),tasks:readJSON('fai_tasks',[]),memory:readJSON('fai_memory',[]),tts:readJSON('fai_tts',true),timeZone:readJSON('fai_timeZone','Europe/Moscow')};
+for(const key of ['chat','tasks','memory'])if(!Array.isArray(state[key]))state[key]=[];
+for(const item of [...state.tasks,...state.memory])if(!item.id)item.id=crypto.randomUUID();
 let stateUpdatedAt=localStorage.getItem('fai_state_updated_at')||new Date(0).toISOString();
-let syncTimer=null,syncBusy=false,bootstrapping=true;
+let syncTimer=null,syncBusy=false,bootstrapping=true,stateRevision=Number(localStorage.getItem('fai_revision')||0),changeGeneration=localStorage.getItem('fai_dirty')==='1'?1:0,savedGeneration=0,syncConflict=false;
+function syncLabel(text){const el=$('#syncStatus');if(el)el.textContent=text}
+
 function save(skipSync=false){
   try{
     localStorage.setItem('fai_chat',JSON.stringify(state.chat.slice(-40)));
@@ -12,57 +21,64 @@ function save(skipSync=false){
   }catch{toast('Не удалось сохранить данные на устройстве')}
   updateDashboardLocal();
   if(!skipSync){
+    changeGeneration++;localStorage.setItem('fai_dirty','1');syncLabel('Сохраняю…');
     stateUpdatedAt=new Date().toISOString();
     localStorage.setItem('fai_state_updated_at',stateUpdatedAt);
     if(!bootstrapping)scheduleStateSync();
   }
 }
-function statePayload(){return {tasks:state.tasks,memory:state.memory,chat:state.chat.slice(-40),tts:state.tts,updatedAt:stateUpdatedAt}}
+function statePayload(){return {tasks:state.tasks,memory:state.memory,chat:state.chat.slice(-40),tts:state.tts,timeZone:state.timeZone,revision:stateRevision,updatedAt:stateUpdatedAt}}
 function scheduleStateSync(){clearTimeout(syncTimer);syncTimer=setTimeout(syncStateNow,700)}
 async function syncStateNow(){
-  if(syncBusy)return;
-  syncBusy=true;
+  if(syncBusy||syncConflict||bootstrapping)return false;
+  syncBusy=true;const generation=changeGeneration;
   try{
-    const r=await fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(statePayload()),signal:AbortSignal.timeout(12000)});
+    const r=await fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(statePayload()),signal:AbortSignal.timeout(20000)});
     const d=await r.json();
-    if(r.ok&&d?.state?.updatedAt){stateUpdatedAt=d.state.updatedAt;localStorage.setItem('fai_state_updated_at',stateUpdatedAt)}
-  }catch{}
-  finally{syncBusy=false}
+    if(r.status===409){syncConflict=true;resolveConflict(d.state);return false}
+    if(!r.ok)throw Error(d.error||'Не удалось сохранить');
+    stateRevision=d.state.revision;localStorage.setItem('fai_revision',stateRevision);savedGeneration=generation;
+    if(changeGeneration===generation){localStorage.removeItem('fai_dirty');stateUpdatedAt=d.state.updatedAt;localStorage.setItem('fai_state_updated_at',stateUpdatedAt);syncLabel('Сохранено')}
+    return true;
+  }catch(e){syncLabel('Не сохранено · повторю');syncTimer=setTimeout(syncStateNow,10000);return false}
+  finally{syncBusy=false;if(!syncConflict&&changeGeneration>generation)scheduleStateSync()}
+}
+function adoptRemote(remote){
+  state.tasks=Array.isArray(remote.tasks)?remote.tasks:[];state.memory=Array.isArray(remote.memory)?remote.memory:[];state.chat=Array.isArray(remote.chat)?remote.chat:[];state.tts=remote.tts!==false;state.timeZone=remote.timeZone||'Europe/Moscow';
+  stateRevision=remote.revision;stateUpdatedAt=remote.updatedAt||new Date().toISOString();localStorage.setItem('fai_revision',stateRevision);localStorage.setItem('fai_state_updated_at',stateUpdatedAt);localStorage.setItem('fai_timeZone',JSON.stringify(state.timeZone));savedGeneration=changeGeneration;localStorage.removeItem('fai_dirty');save(true);syncLabel('Сохранено');renderCurrentIfOpen();
+}
+function resolveConflict(remote){
+  localStorage.setItem('fai_conflict_backup',JSON.stringify(statePayload()));
+  openPanel('Конфликт сохранения');body.innerHTML='<p>Данные изменились на другом устройстве. Локальная версия сохранена отдельно. Выберите, какую версию продолжить.</p><div class="conflict-actions"><button id="conflictDownload">Скачать мою копию</button><button id="conflictRemote">Загрузить серверную</button><button id="conflictLocal">Заменить серверную моей</button></div>';
+  $('#conflictDownload').onclick=downloadBackup;
+  $('#conflictRemote').onclick=()=>{adoptRemote(remote);syncConflict=false;panel.close();toast('Загружена серверная версия')};
+  $('#conflictLocal').onclick=()=>{if(!confirm('Заменить данные сервера локальной версией? Сначала скачайте копию, если обе версии нужны.'))return;stateRevision=remote.revision;syncConflict=false;changeGeneration++;panel.close();syncStateNow()};
+  syncLabel('Нужна сверка версий');
 }
 async function bootstrapState(){
   try{
-    const r=await fetch('/api/state',{signal:AbortSignal.timeout(12000)});
-    const d=await r.json();
-    const remote=d?.state;
-    if(r.ok&&remote){
-      const rt=Date.parse(remote.updatedAt||0)||0,lt=Date.parse(stateUpdatedAt||0)||0;
-      const remoteHasData=(remote.tasks?.length||remote.memory?.length||remote.chat?.length);
-      const localHasData=(state.tasks.length||state.memory.length||state.chat.length);
-      if(remoteHasData&&rt>=lt){
-        state.tasks=Array.isArray(remote.tasks)?remote.tasks:[];
-        state.memory=Array.isArray(remote.memory)?remote.memory:[];
-        state.chat=Array.isArray(remote.chat)?remote.chat:[];
-        state.tts=remote.tts!==false;
-        stateUpdatedAt=remote.updatedAt||new Date().toISOString();
-        localStorage.setItem('fai_state_updated_at',stateUpdatedAt);
-        save(true);
-      }else if(localHasData){
-        await syncStateNow();
-      }
-      const storage=remote.storage==='yandex'?'облако':'сервер';
-      toast('Синхронизация: '+storage);
-    }
-  }catch{toast('Работаю локально — синхронизация восстановится позже')}
-  finally{bootstrapping=false;renderCurrentIfOpen();refreshDashboard()}
+    const r=await fetch('/api/state',{signal:AbortSignal.timeout(15000)}),d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');
+    const remote=d.state,localHasData=state.tasks.length||state.memory.length||state.chat.length;
+    if(remote.revision===0&&localHasData){stateRevision=0;bootstrapping=false;changeGeneration++;await syncStateNow()}
+    else if(localHasData&&localStorage.getItem('fai_revision')===null){syncConflict=true;resolveConflict(remote)}
+    else if(changeGeneration>savedGeneration){if(remote.revision!==stateRevision){syncConflict=true;resolveConflict(remote)}else{bootstrapping=false;await syncStateNow()}}
+    else adoptRemote(remote);
+  }catch{syncLabel('Сервер недоступен');toast('Локальные данные сохранены. Синхронизация пока недоступна.')}
+  finally{bootstrapping=false;if(!syncConflict)renderCurrentIfOpen();refreshDashboard()}
 }
+async function refreshState(){
+  if(syncBusy||syncConflict||changeGeneration>savedGeneration)return;
+  try{const r=await fetch('/api/state',{signal:AbortSignal.timeout(10000)});if(!r.ok)return;const d=await r.json();if(d.state.revision>stateRevision)adoptRemote(d.state)}catch{}
+}
+setInterval(refreshState,30000);
 function dashboardCounts(){
-  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const now=zonedDate(new Date(),state.timeZone),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   let todayCount=0,overdue=0,important=0;
   for(const t of state.tasks){
     if(t.done)continue;
     if(t.priority==='high')important++;
     if(!t.due){todayCount++;continue}
-    const d=new Date(t.due);
+    const d=zonedDate(new Date(t.due),state.timeZone);
     if(Number.isNaN(d.getTime()))continue;
     const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());
     if(d.getTime()<now.getTime())overdue++;
@@ -95,8 +111,8 @@ async function refreshDashboard(){
     ]);
     if(statusR.status==='fulfilled'){
       const d=await statusR.value.json();
-      if(ai)ai.textContent=d.aiConnected?'ONLINE':'RESERVE';
-      if(aiNote)aiNote.textContent=d.aiConnected?'Основной AI доступен':'Работает резервный режим';
+      if(ai)ai.textContent=d.aiConnected?'НАСТРОЕН':'РЕЗЕРВ';
+      if(aiNote)aiNote.textContent=d.aiConnected?'Доступность проверяется при запросе':'Работают локальные команды';
     }else{
       if(ai)ai.textContent='OFFLINE';
       if(aiNote)aiNote.textContent='Нет связи с сервером';
@@ -124,14 +140,14 @@ function renderCurrentIfOpen(){if(!panel?.open)return;const name=title.textConte
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const toast=t=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)};
 $('#today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
-(async()=>{try{const r=await fetch('/api/status');const d=await r.json();$('#aiStatus').textContent=d.aiConnected?'AI ONLINE':'AI';}catch{}})();
+(async()=>{try{const r=await fetch('/api/status');const d=await r.json();$('#aiStatus').textContent=d.aiConnected?'AI НАСТРОЕН':'AI РЕЗЕРВ';}catch{}})();
 const panel=$('#panel'),body=$('#panelBody'),title=$('#panelTitle');
 let chatBusy=false;
 let analyticsContext=null;
 let voiceUnlocked=false;
 let handsFree=false;
 let listeningNow=false;
-let activeRecognition=null;
+let activeRecognition=null,recordingStop=null;
 function unlockVoice(){
   if(!('speechSynthesis' in window))return false;
   try{
@@ -146,7 +162,7 @@ function unlockVoice(){
   }catch{return false}
 }
 document.addEventListener('pointerdown',()=>unlockVoice(),{once:true,passive:true});
-function openPanel(name){title.textContent=name;panel.showModal()}$('#panelClose').onclick=()=>{handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()};panel.addEventListener('click',e=>{if(e.target===panel){handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()}});
+function openPanel(name){title.textContent=name;if(!panel.open)panel.show()}$('#panelClose').onclick=()=>{handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()};panel.addEventListener('click',e=>{if(e.target===panel){handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()}});
 function getRussianVoice(){
   if(!('speechSynthesis' in window))return null;
   const voices=speechSynthesis.getVoices()||[];
@@ -182,7 +198,7 @@ if('speechSynthesis' in window){
   speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
 }
 function renderChat(){
-  body.innerHTML='<div class="conversation-mode '+(handsFree?'on':'')+'"><span>'+(handsFree?'Живой диалог включён':'Нажми микрофон один раз — дальше отвечай голосом без лишних нажатий')+'</span></div><div class="chatlog">'+
+  body.innerHTML=(selectedDocuments.length?'<div class="document-toolbar"><span>Документов для ответа: '+selectedDocuments.length+'</span><button id="clearChatDocs">Снять выбор</button></div>':'')+'<div class="conversation-mode '+(handsFree?'on':'')+'"><span>'+(handsFree?'Живой диалог включён':'Нажми микрофон один раз — дальше отвечай голосом без лишних нажатий')+'</span></div><div class="chatlog">'+
     (state.chat.length?state.chat.map(m=>'<div class="msg '+m.role+'"><div class="msg-text">'+esc(m.text)+'</div></div>').join(''):'<div class="msg ai"><div class="msg-text">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div></div>')+
     '</div>'+
     '<form class="chat-composer" id="chatComposer">'+
@@ -190,6 +206,7 @@ function renderChat(){
       '<input id="chatInput" autocomplete="off" placeholder="Ответить FARRUKH AI…" aria-label="Ответить FARRUKH AI">'+
       '<button class="chat-send" type="submit" aria-label="Отправить">↑</button>'+
     '</form>';
+  const clear=$('#clearChatDocs');if(clear)clear.onclick=()=>{selectedDocuments=[];renderChat()};
   const form=$('#chatComposer'),input=$('#chatInput'),mic=$('#chatMic');
   if(form)form.onsubmit=e=>{e.preventDefault();const v=input.value.trim();if(!v)return;input.value='';askAI(v)};
   if(mic)mic.onclick=()=>{handsFree=true;renderChat();setTimeout(()=>listenFromChat($('#chatMic'),$('#chatInput')),0)};
@@ -207,65 +224,23 @@ function taskDateLabel(iso){
   if(!iso)return '';
   const d=new Date(iso);
   if(Number.isNaN(d.getTime()))return '';
-  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
-  const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  const time=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  const now=zonedDate(new Date(),state.timeZone),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+  const local=zonedDate(d,state.timeZone),day=new Date(local.getFullYear(),local.getMonth(),local.getDate());
+  const time=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:state.timeZone});
   if(day.getTime()===today.getTime())return 'Сегодня · '+time;
   if(day.getTime()===tomorrow.getTime())return 'Завтра · '+time;
-  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' · '+time;
-}
-function parseTaskCommand(raw){
-  const original=String(raw||'').trim();
-  if(!original)return null;
-  const lower=original.toLowerCase();
-  if(!/^(добавь|добавить|создай|создать|напомни|запиши|поставь|сделай задач)/i.test(lower))return null;
-  let text=original
-    .replace(/^\s*(добавь|добавить|создай|создать|напомни|запиши|поставь|сделай)\s*/i,'')
-    .replace(/^задач[уа]\s*/i,'')
-    .replace(/^мне\s+/i,'')
-    .trim();
-
-  const now=new Date();
-  let due=null;
-  let target=new Date(now);
-  const hasTomorrow=/\bзавтра\b/i.test(text);
-  const hasToday=/\bсегодня\b/i.test(text);
-  const weekdays={понедельник:1,вторник:2,среду:3,среда:3,четверг:4,пятницу:5,пятница:5,субботу:6,суббота:6,воскресенье:0};
-  let weekdayTarget=null;
-  for(const [w,n] of Object.entries(weekdays)){if(new RegExp('\\b'+w+'\\b','i').test(text)){weekdayTarget=n;text=text.replace(new RegExp('\\b(?:на\\s+)?'+w+'\\b','ig'),' ').trim();break}}
-  if(hasTomorrow){target.setDate(target.getDate()+1);text=text.replace(/\bна\s+завтра\b|\bзавтра\b/ig,' ').trim();}
-  else if(hasToday){text=text.replace(/\bна\s+сегодня\b|\bсегодня\b/ig,' ').trim();}
-  else if(weekdayTarget!==null){const diff=(weekdayTarget-target.getDay()+7)%7||7;target.setDate(target.getDate()+diff)}
-
-  let hour=null,minute=0;
-  const hm=text.match(/(?:в|к)\s*(\d{1,2})(?::(\d{2}))?/i);
-  if(hm){hour=Math.min(23,Math.max(0,+hm[1]));minute=hm[2]?Math.min(59,+hm[2]):0;text=text.replace(hm[0],' ').trim();}
-  else if(/\bутром\b/i.test(text)){hour=9;text=text.replace(/\bутром\b/ig,' ').trim();}
-  else if(/\bдн[её]м\b/i.test(text)){hour=14;text=text.replace(/\bдн[её]м\b/ig,' ').trim();}
-  else if(/\bвечером\b/i.test(text)){hour=19;text=text.replace(/\bвечером\b/ig,' ').trim();}
-
-  if(hasTomorrow||hasToday||weekdayTarget!==null||hour!==null){
-    if(hour===null)hour=hasTomorrow?9:Math.min(23,now.getHours()+1);
-    target.setHours(hour,minute,0,0);
-    if(!hasTomorrow&&!hasToday&&weekdayTarget===null&&target.getTime()<=now.getTime())target.setDate(target.getDate()+1);
-    due=target.toISOString();
-  }
-
-  const priority=/\b(важно|важная|срочно|приоритет)\b/i.test(text)?'high':'normal';
-  text=text.replace(/\b(важно|важная|срочно|приоритет)\b/ig,' ').replace(/\s+/g,' ').replace(/^[,.:;\-–—\s]+|[,.:;\-–—\s]+$/g,'').trim();
-  if(!text)return null;
-  return {text,due,priority,done:false,createdAt:new Date().toISOString()};
+  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short',timeZone:state.timeZone})+' · '+time;
 }
 function addTaskFromCommand(raw){
-  const task=parseTaskCommand(raw);
+  const task=parseTaskCommand(raw,new Date(),state.timeZone);
   if(!task)return null;
   state.tasks.unshift(task);save();return task;
 }
 function todayTasksText(){
-  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const now=zonedDate(new Date(),state.timeZone),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const rows=state.tasks.filter(t=>!t.done).filter(t=>{
     if(!t.due)return true;
-    const d=new Date(t.due);return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
+    const d=zonedDate(new Date(t.due),state.timeZone);return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
   });
   if(!rows.length)return 'На сегодня активных задач нет.';
   const important=rows.filter(t=>t.priority==='high');
@@ -279,11 +254,11 @@ function renderMemory(){
   const list=$('#memoryList');
   const draw=()=>{list.innerHTML=state.memory.length?state.memory.slice().reverse().map((m,ri)=>{const i=state.memory.length-1-ri;return '<div class="memory-row"><span>'+esc(m.text)+'</span><button data-memory-del="'+i+'">×</button></div>'}).join(''):'<p style="color:#a9a197">Память пока пустая. Скажи: «Запомни, что …»</p>'};
   draw();
-  $('#addMemory').onclick=()=>{const v=prompt('Что запомнить?');if(v&&addMemory(v)){draw();toast('Запомнил')}};
+  $('#addMemory').onclick=()=>{openPanel('Добавить в память');body.innerHTML='<form class="inline-form" id="memoryForm"><label>Что запомнить?<textarea name="note" required maxlength="1000" rows="5"></textarea></label><button>Сохранить</button></form>';$('#memoryForm').onsubmit=e=>{e.preventDefault();if(addMemory(e.target.elements.note.value)){renderMemory();toast('Факт сохранён')}}};
   list.onclick=e=>{if(e.target.dataset.memoryDel!==undefined){if(!confirm('Удалить этот факт из памяти?'))return;state.memory.splice(+e.target.dataset.memoryDel,1);save();draw()}};
 }
 async function askAI(text){text=String(text||'').trim();if(!text)return;
-  const task=addTaskFromCommand(text);
+  let task;try{task=addTaskFromCommand(text)}catch(e){toast(e.message);return}
   if(task){
     const reply='Добавил задачу: '+task.text+(task.due?' — '+taskDateLabel(task.due):'')+(task.priority==='high'?' · важная':'');
     state.chat.push({role:'user',text},{role:'ai',text:reply});save();openPanel('Спросить AI');renderChat();speak(reply);return;
@@ -310,16 +285,8 @@ async function askAI(text){text=String(text||'').trim();if(!text)return;
   const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;
   try{
     const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));
-    let d=null,lastErr=null;
-    for(let attempt=1;attempt<=2;attempt++){
-      try{
-        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false,context:{memory:memoryText(),tasks:state.tasks,frontpad:analyticsContext}}),signal:AbortSignal.timeout(45000)});
-        d=await r.json();
-        if(!r.ok)throw Error(d.error||'Ошибка');
-        break;
-      }catch(err){lastErr=err;if(attempt<2)await new Promise(r=>setTimeout(r,650));}
-    }
-    if(!d)throw lastErr||Error('AI unavailable');
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,documentIds:selectedDocuments,useWeb:false,context:{memory:memoryText(),tasks:state.tasks,frontpad:analyticsContext}}),signal:AbortSignal.timeout(40000)});
+    const d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось получить ответ');
     const reply=d.reply||'Ответ не получен';
     state.chat.push({role:'ai',text:reply});save();renderChat();
     $('#aiStatus').textContent=d.degraded?'AI RESERVE':'AI ONLINE';
@@ -333,7 +300,7 @@ function taskGroup(t){
   if(t.done)return 'done';
   if(!t.due)return 'all';
   const d=new Date(t.due),now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
-  const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const local=zonedDate(d,state.timeZone),day=new Date(local.getFullYear(),local.getMonth(),local.getDate());
   if(d.getTime()<now.getTime())return 'overdue';
   if(day.getTime()===today.getTime())return 'today';
   if(day.getTime()===tomorrow.getTime())return 'tomorrow';
@@ -354,59 +321,17 @@ function renderTasks(){
   draw();
   body.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{taskFilter=b.dataset.filter;draw()});
   $('#notifyTasks').onclick=requestTaskNotifications;
-  $('#newTask').onclick=()=>{
-    const t=prompt('Новая задача:');
-    if(t&&t.trim()){state.tasks.unshift({text:t.trim(),done:false,priority:'normal',due:null,createdAt:new Date().toISOString(),notifiedAt:null});save();draw()}
-  };
+  $('#newTask').onclick=()=>taskEditor();
   list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save();draw()}};
   list.onclick=e=>{
     if(e.target.dataset.del!==undefined){if(!confirm('Удалить эту задачу?'))return;state.tasks.splice(+e.target.dataset.del,1);save();draw();return}
     if(e.target.dataset.edit!==undefined){
       const i=+e.target.dataset.edit,t=state.tasks[i];
-      const name=prompt('Задача:',t.text);if(name===null)return;
-      const when=prompt('Срок: сегодня 18:00 / завтра 10:00 / без срока',t.due?taskDateLabel(t.due):'');
-      t.text=name.trim()||t.text;
-      if(when!==null)t.due=parseDueText(when,t.due);
-      const pr=confirm('Сделать задачу важной?');t.priority=pr?'high':'normal';t.notifiedAt=null;save();draw();
+      taskEditor(i);
     }
   };
 }
-function parseDueText(input,fallback=null){
-  const s=String(input||'').trim().toLowerCase();
-  if(!s||s==='без срока'||s==='нет')return null;
-  const now=new Date(),d=new Date(now);
-  if(s.includes('завтра'))d.setDate(d.getDate()+1);
-  const hm=s.match(/(\d{1,2})(?::(\d{2}))?/);
-  const h=hm?Math.min(23,+hm[1]):9,m=hm&&hm[2]?Math.min(59,+hm[2]):0;
-  d.setHours(h,m,0,0);return d.toISOString();
-}
-async function requestTaskNotifications(){
-  if(!('Notification' in window)){toast('Уведомления не поддерживаются этим браузером');return}
-  const p=await Notification.requestPermission();
-  toast(p==='granted'?'Напоминания включены':'Разрешение на уведомления не выдано');
-  if(p==='granted')notifyDueTasks();
-}
-async function sendTaskNotification(t){
-  const title='FARRUKH AI · задача';
-  const options={body:t.text,tag:'task-'+(t.createdAt||t.text),renotify:false,icon:'/icon-192.svg'};
-  try{
-    const reg=await navigator.serviceWorker?.ready;
-    if(reg?.showNotification)await reg.showNotification(title,options);
-    else new Notification(title,options);
-  }catch{try{new Notification(title,options)}catch{}}
-}
-function notifyDueTasks(){
-  if(!('Notification' in window)||Notification.permission!=='granted')return;
-  const now=Date.now();
-  let changed=false;
-  state.tasks.forEach(t=>{
-    if(t.done||!t.due||t.notifiedAt)return;
-    const due=Date.parse(t.due);
-    if(Number.isFinite(due)&&due<=now&&due>now-12*60*60*1000){t.notifiedAt=new Date().toISOString();sendTaskNotification(t);changed=true}
-  });
-  if(changed)save();
-}
-setInterval(notifyDueTasks,30000);
+async function requestTaskNotifications(){return enablePushNotifications()}
 
 function money(v){
   const n=Number(v);if(!Number.isFinite(n))return String(v??'—');
@@ -417,31 +342,6 @@ function num(v){
 }
 function metricValue(label,value){
   return /выруч|сумм|оборот|прибыл|себестоим|закуп|чек/i.test(label)?money(value):num(value);
-}
-function parseLiveReports(data){
-  const metrics=[];const seen=new Set();
-  const wanted=[
-    ['Выручка',/выручк|оборот|сумма продаж/i],
-    ['Заказы',/заказ/i],
-    ['Средний чек',/средн.*чек/i],
-    ['Прибыль',/прибыл/i],
-    ['Себестоимость',/себестоим/i]
-  ];
-  const toNumber=v=>{const s=String(v??'').replace(/\u00a0/g,' ').replace(/\s+/g,'').replace(',','.').replace(/[^\d.-]/g,'');const n=Number(s);return Number.isFinite(n)?n:null};
-  for(const report of data?.reports||[]){
-    for(const table of report.tables||[]){
-      const rows=Array.isArray(table)?table:[];
-      for(const row of rows){
-        const text=(row||[]).join(' ');
-        for(const [label,re] of wanted){
-          if(seen.has(label)||!re.test(text))continue;
-          const vals=(row||[]).map(toNumber).filter(v=>v!==null);
-          if(vals.length){metrics.push({label,value:vals[vals.length-1],source:report.title||report.sourceTitle||'Frontpad'});seen.add(label)}
-        }
-      }
-    }
-  }
-  return metrics;
 }
 function uploadMetrics(data){
   const out=[];const seen=new Set();
@@ -464,7 +364,7 @@ function analyticsHtml(snapshot,status,live,uploaded){
     source:sourceMode,
     updatedAt:updated||snapshot?.date||null,
     metrics,
-    branches:snapshot?.branches||[],
+    branches:liveOk||uploaded?[]:snapshot?.branches||[],
     totalUnits:snapshot?.totalUnits??null,
     summary:snapshot?.summary||'',
     live:liveOk,
@@ -479,10 +379,10 @@ function analyticsHtml(snapshot,status,live,uploaded){
   return '<div class="analytics-top"><div><span class="analytics-status '+(liveOk?'live':'manual')+'">'+sourceMode+'</span><h3>Аналитика бизнеса</h3><p>Обновлено: '+esc(freshness)+'</p></div><button id="refreshAnalytics" class="analytics-refresh">↻</button></div>'+
     '<div class="analytics-grid">'+cards+'</div>'+
     '<div class="analytics-note">'+esc(warning)+'</div>'+
-    (branches?'<div class="analytics-section"><h4>Точки</h4>'+branches+'</div>':'')+
+    (branches?'<div class="analytics-section"><h4>Точки · ручной снимок '+esc(snapshot?.date||'дата неизвестна')+'</h4>'+branches+'</div>':'')+
     '<div class="analytics-actions">'+
       (status?.configured&&!status?.authenticated?'<button id="connectFrontpad">Подключить Frontpad</button>':'')+
-      '<label class="upload-analytics">Загрузить XLS/CSV<input id="frontpadFile" type="file" accept=".xls,.xlsx,.csv" hidden></label>'+
+      '<label class="upload-analytics">Загрузить XLSX/CSV<input id="frontpadFile" type="file" accept=".xlsx,.csv" hidden></label>'+
       '<button id="askAnalytics">Спросить AI по цифрам</button>'+
     '</div><div id="frontpadAuthBox"></div>';
 }
@@ -496,7 +396,7 @@ async function loadAnalyticsData(){
   }
   return {snapshot,status,live};
 }
-async function renderAnalytics(uploaded=null){
+async function renderAnalytics(uploaded=readJSON('fai_frontpad_import',null)){
   openPanel('Аналитика');
   body.innerHTML='<div class="analytics-loading">Загружаю аналитику Frontpad…</div>';
   try{
@@ -514,7 +414,7 @@ async function uploadFrontpadFile(file){
   try{
     const r=await fetch('/api/frontpad/upload',{method:'POST',body:fd,signal:AbortSignal.timeout(45000)});
     const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка файла');
-    toast('Выгрузка Frontpad загружена');renderAnalytics(d);
+    localStorage.setItem('fai_frontpad_import',JSON.stringify(d));toast('Выгрузка Frontpad сохранена на устройстве');renderAnalytics(d);
   }catch(e){toast(e.message||'Не удалось прочитать файл');renderAnalytics()}
 }
 async function startFrontpadAuth(snapshot,status,uploaded){
@@ -542,11 +442,15 @@ function renderTools(){
     toolCard('kbju','КБЖУ','Белки, жиры, углеводы и ккал','K')+
     toolCard('ttk','ТТК','Собрать техкарту через AI','≡')+
     toolCard('memory','Память','Сохранённые рабочие факты','✦')+
+    toolCard('settings','Настройки','Часовой пояс и вход','⚙')+
+    toolCard('documents','Документы','Файлы и ответы по содержимому','▤')+
     toolCard('backup','Backup & Restore','Резервные копии и восстановление','↺')+
     '</div><div class="tool-footnote">Цены и КБЖУ не подставляются автоматически — расчёты используют только введённые тобой значения.</div>';
   body.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>openChefTool(b.dataset.tool));
 }
 function openChefTool(type){
+  if(type==='settings')return renderSettings();
+  if(type==='documents')return renderDocuments();
   if(type==='memory'){renderMemory();return}
   if(type==='backup'){renderBackupTool();return}
   if(type==='ttk'){askAI('Помоги составить техкарту блюда. Сначала спроси название блюда, выход порции и ингредиенты с граммовками. Не придумывай цены и граммовки.');return}
@@ -563,10 +467,10 @@ function applyStateObject(data){
   state.tasks=Array.isArray(s.tasks)?s.tasks:[];
   state.memory=Array.isArray(s.memory)?s.memory:[];
   state.chat=Array.isArray(s.chat)?s.chat:[];
-  state.tts=s.tts!==false;
+  state.tts=s.tts!==false;state.timeZone=s.timeZone||state.timeZone;
   stateUpdatedAt=new Date().toISOString();
   localStorage.setItem('fai_state_updated_at',stateUpdatedAt);
-  save(true);
+  save();
   syncPanelVoice();
   updateDashboardLocal();
 }
@@ -584,16 +488,16 @@ async function loadBackupHistory(){
   try{
     const r=await fetch('/api/backups',{signal:AbortSignal.timeout(15000)});const d=await r.json();
     if(!r.ok)throw Error(d.error||'Ошибка');
-    if(!d.backups?.length){box.innerHTML='<div class="empty-state">Облачных копий пока нет.</div>';return}
+    if(!d.backups?.length){box.innerHTML='<div class="empty-state">Резервных копий пока нет.</div>';return}
     box.innerHTML=d.backups.map((b,i)=>'<div class="backup-row"><div><b>'+(b.modified?esc(new Date(b.modified).toLocaleString('ru-RU')):esc(b.name))+'</b><small>'+esc(b.name)+'</small></div><button data-restore="'+i+'">Восстановить</button></div>').join('');
     box.onclick=async e=>{
       const idx=e.target.dataset.restore;if(idx===undefined)return;
       const b=d.backups[+idx];if(!b)return;
       if(!confirm('Восстановить эту резервную копию? Текущее состояние будет заменено.'))return;
       try{
-        const rr=await fetch('/api/backups/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:b.path}),signal:AbortSignal.timeout(20000)});
+        const rr=await fetch('/api/backups/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:b.path,revision:stateRevision}),signal:AbortSignal.timeout(20000)});
         const dd=await rr.json();if(!rr.ok)throw Error(dd.error||'Ошибка восстановления');
-        applyStateObject(dd.state);await syncStateNow();toast('Резервная копия восстановлена');renderBackupTool();
+        adoptRemote(dd.state);toast('Резервная копия восстановлена');renderBackupTool();
       }catch(err){toast(err.message||'Не удалось восстановить')}
     };
   }catch(err){box.innerHTML='<div class="analytics-note">История облачных копий сейчас недоступна.</div>'}
@@ -601,14 +505,14 @@ async function loadBackupHistory(){
 function renderBackupTool(){
   openPanel('Backup & Restore');
   body.innerHTML=toolBack()+'<div class="calc-head"><h3>Резервные копии</h3><p>Скачай копию на устройство или восстанови состояние из облака / файла.</p></div>'+
-    '<div class="backup-actions"><button id="backupNow">Создать облачный backup</button><button id="backupDownload">Скачать JSON</button><label>Восстановить из файла<input id="backupFile" type="file" accept=".json,application/json" hidden></label></div>'+
+    '<div class="backup-actions"><button id="backupNow">Создать резервную копию</button><button id="backupDownload">Скачать JSON</button><label>Восстановить из файла<input id="backupFile" type="file" accept=".json,application/json" hidden></label></div>'+
     '<div class="backup-status"><span>Автокопия</span><b id="backupCloudStatus">Проверяю…</b></div>'+
-    '<h4 class="backup-title">История копий</h4><div id="backupHistory"></div>';
+    '<p class="tool-footnote">Копия содержит чат, задачи и память. Документы хранятся отдельно в папке ассистента на Яндекс Диске.</p><h4 class="backup-title">История копий</h4><div id="backupHistory"></div>';
   bindToolBack();
   $('#backupDownload').onclick=downloadBackup;
   const file=$('#backupFile');file.onchange=async()=>{const f=file.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!confirm('Восстановить данные из файла?'))return;applyStateObject(data);await syncStateNow();toast('Данные восстановлены из файла');renderBackupTool()}catch(err){toast(err.message||'Некорректный backup')}};
-  $('#backupNow').onclick=async()=>{const b=$('#backupNow');b.disabled=true;b.textContent='Создаю…';try{await syncStateNow();const r=await fetch('/api/backups',{method:'POST',signal:AbortSignal.timeout(20000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');toast('Облачная копия создана');loadBackupHistory()}catch(err){toast(err.message||'Не удалось создать backup')}finally{b.disabled=false;b.textContent='Создать облачный backup'}};
-  fetch('/api/yandex/status',{signal:AbortSignal.timeout(10000)}).then(r=>r.json()).then(d=>{const el=$('#backupCloudStatus');if(el)el.textContent=d.connected?'облако подключено · автокопия до 6 ч':'локальный режим · облако недоступно'}).catch(()=>{const el=$('#backupCloudStatus');if(el)el.textContent='локальный режим'});
+  $('#backupNow').onclick=async()=>{const b=$('#backupNow');b.disabled=true;b.textContent='Создаю…';try{if(!await syncStateNow())throw Error('Сначала сохраните данные без конфликтов');const r=await fetch('/api/backups',{method:'POST',signal:AbortSignal.timeout(20000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');toast('Резервная копия создана');loadBackupHistory()}catch(err){toast(err.message||'Не удалось создать backup')}finally{b.disabled=false;b.textContent='Создать резервную копию'}};
+  fetch('/api/yandex/status',{signal:AbortSignal.timeout(10000)}).then(r=>r.json()).then(d=>{const el=$('#backupCloudStatus');if(el)el.textContent=d.connected?'Яндекс Диск подключён · копии на серверном диске':'Копии в хранилище ассистента'}).catch(()=>{const el=$('#backupCloudStatus');if(el)el.textContent='Копии в хранилище ассистента'});
   loadBackupHistory();
 }
 function renderCostTool(){
@@ -803,7 +707,9 @@ async function runRecordedRecognition(button,onText){
     activeRecognition={abort:()=>{clearTimeout(stopTimer);try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{}}};
     recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
     recorder.start(250);
-    stopTimer=setTimeout(()=>finish(),6500);
+    recordingStop=()=>finish();
+    toast('Записываю. Нажми микрофон ещё раз, чтобы закончить.');
+    stopTimer=setTimeout(()=>finish(),60000);
     await new Promise(resolve=>recorder.addEventListener('stop',resolve,{once:true}));
     clearTimeout(stopTimer);
     stream.getTracks().forEach(t=>t.stop());
@@ -823,7 +729,7 @@ async function runRecordedRecognition(button,onText){
     else toast('Не удалось записать голос');
     return false;
   }finally{
-    listeningNow=false;activeRecognition=null;
+    listeningNow=false;activeRecognition=null;recordingStop=null;
     button?.classList.remove('listening');
     if(button)button.setAttribute('aria-label','Ответить голосом');
   }
@@ -848,7 +754,7 @@ async function runWebSpeech(button,onText){
   });
 }
 async function runRecognition(button,onText){
-  if(listeningNow)return;
+  if(listeningNow){if(recordingStop)recordingStop();else try{activeRecognition?.stop()}catch{};return}
   if(!(await ensureMicrophonePermission()))return;
   // На Android/Chrome сначала используем встроенное распознавание:
   // оно быстрее и не зависит от загрузки Gemini.
@@ -881,12 +787,61 @@ $('#micBtn').onclick=async()=>{
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&activeRecognition){try{activeRecognition.abort()}catch{}}
-  else if(!document.hidden&&handsFree&&panel?.open)setTimeout(autoListen,700);
+  else if(!document.hidden){refreshState();if(handsFree&&panel?.open)setTimeout(autoListen,700);}
 });
 window.addEventListener('online',()=>{toast('Интернет восстановлен');syncStateNow()});
 window.addEventListener('offline',()=>toast('Нет сети — данные сохраняются на устройстве'));
 const panelVoice=$('#panelVoice');
 function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
-if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open)renderChat();toast(state.tts?'Голос включён':'Голос выключен');if(state.tts)setTimeout(()=>speak('Голос включён. Я готов.'),120)}}
+if(panelVoice){syncPanelVoice();panelVoice.onclick=()=>{unlockVoice();state.tts=!state.tts;save();syncPanelVoice();if(panel.open&&title.textContent==='Спросить AI')renderChat();toast(state.tts?'Голос включён':'Голос выключен');if(state.tts)setTimeout(()=>speak('Голос включён. Я готов.'),120)}}
 
-updateDashboardLocal();refreshDashboard();bootstrapState();notifyDueTasks();
+updateDashboardLocal();refreshDashboard();bootstrapState();
+const initial=new URLSearchParams(location.search).get('open');if(initial)setTimeout(()=>navigate(initial,false),0);
+
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.open){handsFree=false;try{activeRecognition?.abort()}catch{}panel.close()}});
+async function renderDocuments(){
+  openPanel('Документы');body.innerHTML='<p>Загружаю документы…</p>';
+  try{
+    const r=await fetch('/api/documents'),d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка загрузки');
+    selectedDocuments=selectedDocuments.filter(id=>d.documents.some(doc=>doc.id===id));
+    body.innerHTML='<p>Выберите до пяти документов для вопросов в чате. Ответы будут ссылаться на название и абзац.</p><div class="document-toolbar"><button id="documentUpload">Загрузить документ</button><button id="documentChat">Спросить по выбранным</button><input id="documentFile" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xlsx" hidden></div><p class="tool-footnote">До 10 МБ. Для PDF-сканов нужен текстовый вариант. Документы сохраняются в хранилище ассистента.</p><div id="documentList">'+(d.documents.length?d.documents.map(doc=>'<div class="document-row"><label><input type="checkbox" data-doc-select="'+doc.id+'" '+(selectedDocuments.includes(doc.id)?'checked':'')+'><span>'+esc(doc.name)+'<small>'+new Date(doc.createdAt).toLocaleDateString('ru-RU')+' · '+Math.ceil(doc.size/1024)+' КБ</small></span></label><button data-doc-view="'+doc.id+'">Открыть</button><button data-doc-delete="'+doc.id+'">Удалить</button></div>').join(''):'<p>Документов пока нет.</p>')+'</div>';
+    $('#documentUpload').onclick=()=>$('#documentFile').click();
+    $('#documentFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>10*1024*1024)return toast('Максимум 10 МБ');const fd=new FormData();fd.append('file',file);const b=$('#documentUpload');b.disabled=true;b.textContent='Загружаю…';try{const r=await fetch('/api/documents',{method:'POST',body:fd,signal:AbortSignal.timeout(45000)}),d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось загрузить');toast('Документ сохранён');renderDocuments()}catch(e){toast(e.message);b.disabled=false;b.textContent='Загрузить документ'}};
+    $('#documentChat').onclick=()=>{if(!selectedDocuments.length)return toast('Выберите документ');navigate('chat');toast('Документов для ответа: '+selectedDocuments.length)};
+    $('#documentList').onchange=e=>{const id=e.target.dataset.docSelect;if(!id)return;if(e.target.checked){if(selectedDocuments.length>=5){e.target.checked=false;return toast('Выберите не больше пяти документов')}selectedDocuments.push(id)}else selectedDocuments=selectedDocuments.filter(x=>x!==id)};
+    $('#documentList').onclick=async e=>{const id=e.target.dataset.docView||e.target.dataset.docDelete;if(!id)return;try{if(e.target.dataset.docDelete){if(!confirm('Удалить документ из хранилища?'))return;const r=await fetch('/api/documents/'+id,{method:'DELETE'});if(!r.ok)throw Error('Не удалось удалить');selectedDocuments=selectedDocuments.filter(x=>x!==id);renderDocuments()}else{const r=await fetch('/api/documents/'+id),d=await r.json();if(!r.ok)throw Error(d.error);openPanel(d.document.name);body.innerHTML='<button class="tool-back" id="docBack">← Документы</button><pre class="document-preview">'+esc(d.document.text)+'</pre>';$('#docBack').onclick=renderDocuments}}catch(e){toast(e.message)}};
+  }catch(e){body.innerHTML='<p>'+esc(e.message)+'</p>'}
+}
+async function enablePushNotifications(){
+  try{
+    if(!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window))throw Error('Push не поддерживается. На iPhone установите сайт на главный экран.');
+    const r=await fetch('/api/push/status'),d=await r.json();if(!r.ok||!d.configured)throw Error('Серверная доставка пока не настроена. Нужны VAPID-ключи.');
+    if(await Notification.requestPermission()!=='granted')throw Error('Разрешение на уведомления не выдано');
+    const reg=await navigator.serviceWorker.ready;
+    const base=d.publicKey.replace(/-/g,'+').replace(/_/g,'/');const decoded=atob(base+'='.repeat((4-base.length%4)%4));const key=Uint8Array.from(decoded,c=>c.charCodeAt(0));
+    const subscription=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+    const response=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(subscription)});const result=await response.json();if(!response.ok)throw Error(result.error||'Не удалось зарегистрировать');toast('Напоминания включены, в том числе при закрытом сайте');
+  }catch(e){toast(e.message)}
+}
+function navigate(section,push=true){
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===section));
+  if(push){const url=new URL(location.href);url.searchParams.set('open',section);history.pushState({section},'',url)}
+  if(section==='chat'){openPanel('Спросить AI');renderChat()}else if(section==='tasks')renderTasks();else if(section==='documents')renderDocuments();else if(section==='analytics')renderAnalytics();else renderTools();
+}
+$$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));
+$$('[data-action]').forEach(b=>b.onclick=()=>navigate(b.dataset.action));
+window.addEventListener('popstate',()=>{const section=new URLSearchParams(location.search).get('open');if(section)navigate(section,false);else panel.close()});
+function renderSettings(){
+  openPanel('Настройки');body.innerHTML='<form class="inline-form" id="settingsForm"><label>Часовой пояс<select name="zone"><option value="Europe/Moscow">Мурманск / Москва (UTC+3)</option><option value="'+esc(Intl.DateTimeFormat().resolvedOptions().timeZone)+'">По часовому поясу устройства</option></select></label><button>Сохранить</button></form><p>Сроки голосовых команд и даты задач используют выбранный часовой пояс.</p><button class="add-task" id="logoutOwner">Выйти</button>';
+  $('#settingsForm').elements.zone.value=state.timeZone;$('#settingsForm').onsubmit=e=>{e.preventDefault();state.timeZone=e.target.elements.zone.value;localStorage.setItem('fai_timeZone',JSON.stringify(state.timeZone));save();toast('Настройки сохранены')};
+  $('#logoutOwner').onclick=async()=>{if(changeGeneration>savedGeneration&&!await syncStateNow())return toast('Сначала сохраните или скачайте изменения');await fetch('/api/auth/logout',{method:'POST'});for(const key of Object.keys(localStorage))if(key.startsWith('fai_'))localStorage.removeItem(key);location.reload()};
+}
+function taskEditor(index=null){
+  const existing=index===null?null:state.tasks[index],wall=existing?.due?zonedDate(new Date(existing.due),state.timeZone):null;
+  const pad=n=>String(n).padStart(2,'0');const due=wall?wall.getFullYear()+'-'+pad(wall.getMonth()+1)+'-'+pad(wall.getDate())+'T'+pad(wall.getHours())+':'+pad(wall.getMinutes()):'';
+  openPanel(existing?'Изменить задачу':'Новая задача');
+  body.innerHTML='<form class="inline-form" id="taskEditor"><label>Задача<input name="text" required maxlength="500" value="'+esc(existing?.text||'')+'"></label><label>Дата и время · '+esc(state.timeZone)+'<input name="due" type="datetime-local" value="'+due+'"></label><label>Приоритет<select name="priority"><option value="normal">Обычная</option><option value="high">Важная</option></select></label><p>Без даты задача сохранится без напоминания.</p><div class="form-actions"><button>Сохранить</button><button type="button" id="cancelTaskEdit">Отмена</button></div><p id="taskError" role="alert"></p></form>';
+  $('#taskEditor').elements.priority.value=existing?.priority||'normal';$('#cancelTaskEdit').onclick=renderTasks;
+  $('#taskEditor').onsubmit=e=>{e.preventDefault();try{const f=e.target.elements,value=f.due.value;const task={...(existing||{}),id:existing?.id||crypto.randomUUID(),text:f.text.value.trim(),due:value?zonedToUtc(new Date(value),state.timeZone).toISOString():null,priority:f.priority.value,done:existing?.done||false,createdAt:existing?.createdAt||new Date().toISOString(),notifiedAt:null};if(!task.text)return;if(existing)state.tasks[index]=task;else state.tasks.unshift(task);save();renderTasks();toast('Задача сохранена')}catch(e){$('#taskError').textContent=e.message}};
+}

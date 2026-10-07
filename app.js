@@ -139,7 +139,8 @@ $('#sendBtn')?.addEventListener('click',()=>{const i=$('#msgInput');const t=i.va
 $('#msgInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#sendBtn').click()}});
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-$('#talkBtn')?.addEventListener('click',()=>{\n  primeTTS();
+$('#talkBtn')?.addEventListener('click',()=>{
+  primeTTS();
   if(!SR){alert('Голосовой ввод лучше всего работает в Chrome на Android.');return}
   const r=new SR();r.lang='ru-RU';r.continuous=false;r.interimResults=false;setCoreState('listening');
   r.onresult=e=>askAI(e.results[0][0].transcript);
