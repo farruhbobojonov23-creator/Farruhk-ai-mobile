@@ -800,8 +800,10 @@ async function runRecordedRecognition(button,onText){
     if(blob.size<800){toast('Звук не записался — попробуй ещё раз');return true}
     toast('Распознаю…');
     const text=await transcribeBlob(blob,blob.type);
-    if(text){toast('Услышал: '+text.slice(0,60));onText(text)}
-    else toast('Речь не распознана — попробуй говорить чуть громче');
+    if(text){
+      toast('Услышал: '+text.slice(0,60));
+      await onText(text);
+    } else toast('Речь не распознана — попробуй говорить чуть громче');
     return true;
   }catch(err){
     try{stream?.getTracks().forEach(t=>t.stop())}catch{}
@@ -827,7 +829,7 @@ async function runWebSpeech(button,onText){
     if(button)button.setAttribute('aria-label','Слушаю');
     toast('Слушаю…');
     let got=false;
-    r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){got=true;toast('Услышал');onText(t)}};
+    r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){got=true;toast('Услышал');Promise.resolve(onText(t)).catch(()=>{})}};
     const done=ok=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');resolve(ok)};
     r.onend=()=>done(got);
     r.onerror=e=>{const code=String(e?.error||'');if(code!=='aborted')toast(code==='no-speech'?'Речь не распознана':'Ошибка голосового ввода');done(false)};
@@ -842,11 +844,12 @@ async function runRecognition(button,onText){
     const webOk=await runWebSpeech(button,onText);
     if(!webOk)toast('Голосовой ввод на этом устройстве не запустился');
   }
-  if(handsFree&&panel?.open&&!document.hidden&&(!('speechSynthesis'in window)||!speechSynthesis.speaking))setTimeout(autoListen,1100);
+  // Следующий цикл запускается только после завершения ответа/озвучки.
+  // Иначе планшет снова открывает микрофон, пока AI ещё отвечает.
 }
 function listenFromChat(button,input){
   unlockVoice();
-  runRecognition(button,t=>{if(input)input.value=t;askAI(t)});
+  runRecognition(button,t=>{if(input)input.value=t;return askAI(t)});
 }
 function autoListen(){
   if(!handsFree||!panel?.open||listeningNow)return;
@@ -859,7 +862,7 @@ $('#micBtn').onclick=async()=>{
   unlockVoice();
   handsFree=true;
   if(!state.tts){state.tts=true;save();syncPanelVoice()}
-  runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)});
+  runRecognition($('#micBtn'),t=>{$('#askInput').value=t;return askAI(t)});
 };
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 document.addEventListener('visibilitychange',()=>{
