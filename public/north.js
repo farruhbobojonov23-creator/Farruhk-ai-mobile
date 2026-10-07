@@ -58,6 +58,7 @@ $('#today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',mon
 (async()=>{try{const r=await fetch('/api/status');const d=await r.json();$('#aiStatus').textContent=d.aiConnected?'AI ONLINE':'AI';}catch{}})();
 const panel=$('#panel'),body=$('#panelBody'),title=$('#panelTitle');
 let chatBusy=false;
+let analyticsContext=null;
 let voiceUnlocked=false;
 let handsFree=false;
 let listeningNow=false;
@@ -226,7 +227,7 @@ async function askAI(text){text=String(text||'').trim();if(!text)return;
     let d=null,lastErr=null;
     for(let attempt=1;attempt<=2;attempt++){
       try{
-        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false,context:{memory:memoryText(),tasks:state.tasks}}),signal:AbortSignal.timeout(45000)});
+        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false,context:{memory:memoryText(),tasks:state.tasks,frontpad:analyticsContext}}),signal:AbortSignal.timeout(45000)});
         d=await r.json();
         if(!r.ok)throw Error(d.error||'Ошибка');
         break;
@@ -320,7 +321,130 @@ function notifyDueTasks(){
 }
 setInterval(notifyDueTasks,30000);
 
-async function renderAnalytics(){openPanel('Аналитика');body.innerHTML='<p class="thinking">Загружаю данные…</p>';try{const r=await fetch('/api/analytics/snapshot');const d=await r.json();body.innerHTML='<div class="metric-row"><span>Источник</span><b>'+esc(d.source||'—')+'</b></div><div class="metric-row"><span>Всего единиц</span><b>'+esc(d.totalUnits??'—')+'</b></div>'+(d.branches||[]).map(x=>'<div class="metric-row"><span>'+esc(x.name)+'</span><b>'+esc(x.units)+' ед.</b></div>').join('')+'<p style="color:#c4b59d;line-height:1.55">'+esc(d.summary||'')+'</p>'}catch{body.innerHTML='<p>Данные аналитики сейчас недоступны.</p>'}}
+function money(v){
+  const n=Number(v);if(!Number.isFinite(n))return String(v??'—');
+  return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(n)+' ₽';
+}
+function num(v){
+  const n=Number(v);return Number.isFinite(n)?new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(n):String(v??'—');
+}
+function metricValue(label,value){
+  return /выруч|сумм|оборот|прибыл|себестоим|закуп|чек/i.test(label)?money(value):num(value);
+}
+function parseLiveReports(data){
+  const metrics=[];const seen=new Set();
+  const wanted=[
+    ['Выручка',/выручк|оборот|сумма продаж/i],
+    ['Заказы',/заказ/i],
+    ['Средний чек',/средн.*чек/i],
+    ['Прибыль',/прибыл/i],
+    ['Себестоимость',/себестоим/i]
+  ];
+  const toNumber=v=>{const s=String(v??'').replace(/\u00a0/g,' ').replace(/\s+/g,'').replace(',','.').replace(/[^\d.-]/g,'');const n=Number(s);return Number.isFinite(n)?n:null};
+  for(const report of data?.reports||[]){
+    for(const table of report.tables||[]){
+      const rows=Array.isArray(table)?table:[];
+      for(const row of rows){
+        const text=(row||[]).join(' ');
+        for(const [label,re] of wanted){
+          if(seen.has(label)||!re.test(text))continue;
+          const vals=(row||[]).map(toNumber).filter(v=>v!==null);
+          if(vals.length){metrics.push({label,value:vals[vals.length-1],source:report.title||report.sourceTitle||'Frontpad'});seen.add(label)}
+        }
+      }
+    }
+  }
+  return metrics;
+}
+function uploadMetrics(data){
+  const out=[];const seen=new Set();
+  for(const sheet of data?.sheets||[]){
+    for(const m of sheet.metrics||[]){
+      if(seen.has(m.label))continue;
+      seen.add(m.label);out.push({...m,source:sheet.name||'Файл Frontpad'});
+    }
+  }
+  return out;
+}
+function analyticsHtml(snapshot,status,live,uploaded){
+  const liveMetrics=parseLiveReports(live),fileMetrics=uploadMetrics(uploaded);
+  const metrics=liveMetrics.length?liveMetrics:fileMetrics;
+  const liveOk=Boolean(live?.ok&&live?.authenticated);
+  const sourceMode=liveOk?'LIVE FRONTPAD':uploaded?.ok?'ФАЙЛ FRONTPAD':'РУЧНОЙ СНИМОК';
+  const updated=liveOk?live.updatedAt:uploaded?.uploadedAt||snapshot?.capturedAt||null;
+  const freshness=updated?new Date(updated).toLocaleString('ru-RU'):(snapshot?.date||'дата снимка неизвестна');
+  analyticsContext={
+    source:sourceMode,
+    updatedAt:updated||snapshot?.date||null,
+    metrics,
+    branches:snapshot?.branches||[],
+    totalUnits:snapshot?.totalUnits??null,
+    summary:snapshot?.summary||'',
+    live:liveOk,
+    periodComplete:snapshot?.periodComplete??false
+  };
+  const cards=(metrics.length?metrics.slice(0,5):[
+    {label:'Продано единиц',value:snapshot?.totalUnits??'—'},
+    {label:'Точек',value:(snapshot?.branches||[]).length}
+  ]).map(m=>'<div class="analytics-card"><span>'+esc(m.label)+'</span><b>'+esc(metricValue(m.label,m.value))+'</b><small>'+esc(m.source||sourceMode)+'</small></div>').join('');
+  const branches=(snapshot?.branches||[]).slice().sort((a,b)=>(b.units||0)-(a.units||0)).map((b,i)=>'<div class="branch-row"><div><span class="rank">'+(i+1)+'</span><div><b>'+esc(b.name)+'</b><small>'+esc(b.strongCategory||'')+(b.topItem?' · '+esc(b.topItem):'')+'</small></div></div><strong>'+esc(b.units)+' ед.</strong></div>').join('');
+  const warning=liveOk?'Данные получены из активной сессии Frontpad. Проверяй период отчёта перед управленческими выводами.':uploaded?.ok?'Показатели рассчитаны из загруженной выгрузки Frontpad.':'Сейчас показан старый ручной снимок. Для актуальной выручки и заказов подключи Frontpad или загрузи выгрузку.';
+  return '<div class="analytics-top"><div><span class="analytics-status '+(liveOk?'live':'manual')+'">'+sourceMode+'</span><h3>Аналитика бизнеса</h3><p>Обновлено: '+esc(freshness)+'</p></div><button id="refreshAnalytics" class="analytics-refresh">↻</button></div>'+
+    '<div class="analytics-grid">'+cards+'</div>'+
+    '<div class="analytics-note">'+esc(warning)+'</div>'+
+    (branches?'<div class="analytics-section"><h4>Точки</h4>'+branches+'</div>':'')+
+    '<div class="analytics-actions">'+
+      (status?.configured&&!status?.authenticated?'<button id="connectFrontpad">Подключить Frontpad</button>':'')+
+      '<label class="upload-analytics">Загрузить XLS/CSV<input id="frontpadFile" type="file" accept=".xls,.xlsx,.csv" hidden></label>'+
+      '<button id="askAnalytics">Спросить AI по цифрам</button>'+
+    '</div><div id="frontpadAuthBox"></div>';
+}
+async function loadAnalyticsData(){
+  const [snapR,statusR]=await Promise.allSettled([fetch('/api/analytics/snapshot'),fetch('/api/frontpad/status')]);
+  const snapshot=snapR.status==='fulfilled'?await snapR.value.json():{};
+  const status=statusR.status==='fulfilled'?await statusR.value.json():{};
+  let live=null;
+  if(status?.authenticated){
+    try{const r=await fetch('/api/frontpad/reports',{signal:AbortSignal.timeout(30000)});live=await r.json()}catch{}
+  }
+  return {snapshot,status,live};
+}
+async function renderAnalytics(uploaded=null){
+  openPanel('Аналитика');
+  body.innerHTML='<div class="analytics-loading">Загружаю аналитику Frontpad…</div>';
+  try{
+    const {snapshot,status,live}=await loadAnalyticsData();
+    body.innerHTML=analyticsHtml(snapshot,status,live,uploaded);
+    $('#refreshAnalytics').onclick=()=>renderAnalytics(uploaded);
+    const connect=$('#connectFrontpad');if(connect)connect.onclick=()=>startFrontpadAuth(snapshot,status,uploaded);
+    const file=$('#frontpadFile');if(file)file.onchange=async()=>{if(!file.files?.[0])return;await uploadFrontpadFile(file.files[0])};
+    $('#askAnalytics').onclick=()=>askAI('Проанализируй текущие данные Frontpad. Скажи коротко: что происходит, какая точка требует внимания и какое одно действие сделать первым. Не придумывай отсутствующие показатели.');
+  }catch(e){body.innerHTML='<div class="analytics-note">Не удалось загрузить аналитику. Попробуй обновить через несколько секунд.</div>'}
+}
+async function uploadFrontpadFile(file){
+  const fd=new FormData();fd.append('file',file);
+  body.innerHTML='<div class="analytics-loading">Разбираю выгрузку '+esc(file.name)+'…</div>';
+  try{
+    const r=await fetch('/api/frontpad/upload',{method:'POST',body:fd,signal:AbortSignal.timeout(45000)});
+    const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка файла');
+    toast('Выгрузка Frontpad загружена');renderAnalytics(d);
+  }catch(e){toast(e.message||'Не удалось прочитать файл');renderAnalytics()}
+}
+async function startFrontpadAuth(snapshot,status,uploaded){
+  const box=$('#frontpadAuthBox');if(!box)return;
+  box.innerHTML='<div class="analytics-loading">Открываю вход Frontpad…</div>';
+  try{
+    const r=await fetch('/api/frontpad/auth/start',{method:'POST'});
+    const d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось начать вход');
+    if(d.requiresCode){
+      box.innerHTML='<div class="frontpad-auth"><p>Введите код с картинки Frontpad</p>'+(d.captchaUrl?'<img src="'+d.captchaUrl+'" alt="Код Frontpad">':'')+'<div><input id="frontpadCode" inputmode="numeric" placeholder="Код"><button id="finishFrontpad">Подключить</button></div></div>';
+      $('#finishFrontpad').onclick=async()=>{const code=$('#frontpadCode').value.trim();const rr=await fetch('/api/frontpad/auth/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});const dd=await rr.json();if(!rr.ok){toast(dd.error||'Frontpad не подключён');return}toast('Frontpad подключён');renderAnalytics(uploaded)};
+    }else{
+      const rr=await fetch('/api/frontpad/auth/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+      const dd=await rr.json();if(!rr.ok)throw Error(dd.error||'Frontpad не подключён');toast('Frontpad подключён');renderAnalytics(uploaded);
+    }
+  }catch(e){box.innerHTML='<div class="analytics-note">'+esc(e.message||'Не удалось подключить Frontpad')+'</div>'}
+}
 function renderTools(){openPanel('Инструменты');body.innerHTML='<div class="tool-row"><span>Интернет-поиск</span><b>Выключен</b></div><div class="tool-row"><span>Голосовой ввод и ответы</span><b>Включены</b></div><div class="tool-row"><span>Память</span><button id="openMemory">'+state.memory.length+' фактов</button></div><div class="tool-row"><span>Frontpad / аналитика</span><b>Подключение</b></div><div class="tool-row"><span>Калькуляторы и ТТК</span><button id="askTool">Спросить AI</button></div>';$('#openMemory').onclick=renderMemory;$('#askTool').onclick=()=>{panel.close();$('#askInput').value='Помоги рассчитать себестоимость или техкарту блюда: ';$('#askInput').focus()}}
 $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='chat'){openPanel('Спросить AI');renderChat()}if(a==='tasks')renderTasks();if(a==='analytics')renderAnalytics();if(a==='tools')renderTools()});
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
