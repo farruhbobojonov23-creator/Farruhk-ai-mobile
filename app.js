@@ -10,7 +10,12 @@ const state={
 };
 function save(){localStorage.setItem('farrukh_mobile_tasks',JSON.stringify(state.tasks));localStorage.setItem('farrukh_mobile_chat',JSON.stringify(state.chat));localStorage.setItem('farrukh_mobile_tts',JSON.stringify(state.tts))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function show(name){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===name));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.screen===name))}
+function show(name){$('.screen').forEach(x=>x.classList.toggle('active',x.id===name));$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.screen===name))}
+function setCoreState(mode='idle'){
+ const core=$('#aiCore'), label=$('#coreState');
+ if(core) core.dataset.state=mode;
+ if(label) label.textContent=({idle:'ГОТОВ',listening:'СЛУШАЮ',thinking:'ДУМАЮ',speaking:'ОТВЕЧАЮ',error:'НЕТ СВЯЗИ'})[mode]||'ГОТОВ';
+}
 $$('.nav').forEach(b=>b.onclick=()=>show(b.dataset.screen));
 
 function renderTasks(){
@@ -42,7 +47,8 @@ if('speechSynthesis' in window){
  speechSynthesis.onvoiceschanged=refreshVoices;
 }
 function speak(text,onDone){
- if(!state.tts || !('speechSynthesis' in window) || !text){if(onDone)onDone();return}
+ if(!state.tts || !('speechSynthesis' in window) || !text){setCoreState('idle');if(onDone)onDone();return}
+ setCoreState('speaking');
  speechSynthesis.cancel();
  speechSynthesis.resume();
  const u=new SpeechSynthesisUtterance(String(text));
@@ -51,7 +57,7 @@ function speak(text,onDone){
  const ru=ttsVoices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ru'))||ttsVoices.find(v=>v.default);
  if(ru)u.voice=ru;
  let finished=false;
- const done=()=>{if(finished)return;finished=true;if(onDone)onDone()};
+ const done=()=>{if(finished)return;finished=true;setCoreState('idle');if(onDone)onDone()};
  u.onend=done;
  u.onerror=e=>{console.warn('TTS error',e.error);done()};
  setTimeout(()=>{speechSynthesis.resume();speechSynthesis.speak(u)},80);
@@ -63,6 +69,7 @@ function renderChat(){
 async function askAI(text){
  if(!text.trim())return;
  state.chat.push({role:'user',text});renderChat();show('chat');
+ setCoreState('thinking');
  state.chat.push({role:'ai',text:'Думаю…',temp:true});renderChat();
  try{
    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
@@ -73,7 +80,7 @@ async function askAI(text){
  }catch(e){
    state.chat=state.chat.filter(x=>!x.temp);
    const reply='Сервер сейчас недоступен. После размещения приложения на сервере AI заработает здесь же.';
-   state.chat.push({role:'ai',text:reply});renderChat();speak(reply);
+   state.chat.push({role:'ai',text:reply});renderChat();setCoreState('error');setTimeout(()=>setCoreState('idle'),1800);speak(reply);
  }
 }
 $('#sendBtn').onclick=()=>{unlockTTS();const t=$('#msgInput').value;$('#msgInput').value='';askAI(t)};
@@ -147,6 +154,7 @@ function startWakeListener(){
 
 function startCommandListening(){
  if(!SR)return;
+ setCoreState('listening');
  stopWakeRecognition();
  commandActive=true;
  setWakeUI('command');
@@ -182,6 +190,7 @@ function startCommandListening(){
 
 function activateWitch(){
  commandActive=true;
+ setCoreState('speaking');
  setWakeUI('command');
  unlockTTS();
  speak('Я слушаю.',()=>{
@@ -197,6 +206,7 @@ function listen(){
  commandActive=true;
  const r=new SR();commandRecognition=r;
  r.lang='ru-RU';r.continuous=false;r.interimResults=false;
+ setCoreState('listening');
  $('#talkBtn').textContent='🎙 Слушаю...';
  r.onresult=e=>{
    commandActive=false;commandRecognition=null;
@@ -204,9 +214,10 @@ function listen(){
  };
  r.onend=()=>{
    $('#talkBtn').textContent='🎙 Говорить';
+   if(!state.chat.some(x=>x.temp)) setCoreState('idle');
    if(commandRecognition===r){commandRecognition=null;commandActive=false;scheduleWakeRestart(500)}
  };
- r.onerror=()=>{$('#talkBtn').textContent='🎙 Говорить';commandRecognition=null;commandActive=false;scheduleWakeRestart(700)};
+ r.onerror=()=>{$('#talkBtn').textContent='🎙 Говорить';setCoreState('error');setTimeout(()=>setCoreState('idle'),1200);commandRecognition=null;commandActive=false;scheduleWakeRestart(700)};
  r.start();
 }
 $('#talkBtn').onclick=listen;
