@@ -47,7 +47,7 @@ function home(){
    <div class="north-assistant" id="northAssistant">
      <div class="assistant-mini" aria-hidden="true"><span class="assistant-face-glow"></span></div>
      <div class="assistant-orb"></div>
-     <div class="assistant-copy"><div class="assistant-state"><i></i><span id="assistantStateLabel">Готова к работе</span></div><b id="northGreeting">Здравствуйте, шеф!</b><span id="northWish">Хорошего дня!</span><p>Сегодня у вас ${todays.length} ${todays.length===1?'задача':'задачи'}. Я могу открыть нужный раздел, записать задачу или разобрать рабочие данные голосом.</p></div>
+     <div class="assistant-copy"><div class="assistant-state"><i></i><span id="assistantStateLabel">Готов к работе</span></div><b id="northGreeting">Здравствуйте, шеф!</b><span id="northWish">Хорошего дня!</span><p>Сегодня у вас ${todays.length} ${todays.length===1?'задача':'задачи'}. Я могу открыть нужный раздел, записать задачу или разобрать рабочие данные голосом.</p></div>
      <div class="assistant-wave">${waves}</div>
    </div>
    <div class="command-center glass-panel">
