@@ -134,7 +134,16 @@ let listeningNow=false;
 let activeRecognition=null;
 function unlockVoice(){
   if(!('speechSynthesis' in window))return false;
-  try{speechSynthesis.resume();voiceUnlocked=true;return true}catch{return false}
+  try{
+    speechSynthesis.resume();
+    if(!voiceUnlocked){
+      const u=new SpeechSynthesisUtterance(' ');
+      u.lang='ru-RU';u.volume=.01;u.rate=1;
+      speechSynthesis.speak(u);
+    }
+    voiceUnlocked=true;
+    return true;
+  }catch{return false}
 }
 document.addEventListener('pointerdown',()=>unlockVoice(),{once:true,passive:true});
 function openPanel(name){title.textContent=name;panel.showModal()}$('#panelClose').onclick=()=>{handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()};panel.addEventListener('click',e=>{if(e.target===panel){handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()}});
@@ -158,11 +167,13 @@ function speak(text){
     u.lang='ru-RU';
     u.rate=0.98;
     u.pitch=1.02;
+    u.volume=1;
     const voice=getRussianVoice();
     if(voice)u.voice=voice;
     u.onend=()=>{if(handsFree&&panel?.open)setTimeout(()=>autoListen(),350)};
-    u.onerror=()=>{if(handsFree&&panel?.open)setTimeout(()=>autoListen(),600)};
+    u.onerror=e=>{toast('Не удалось озвучить ответ');if(handsFree&&panel?.open)setTimeout(()=>autoListen(),600)};
     speechSynthesis.speak(u);
+    setTimeout(()=>{try{speechSynthesis.resume()}catch{}},250);
     return true;
   }catch{toast('Не удалось включить голос');return false}
 }
@@ -839,13 +850,15 @@ async function runWebSpeech(button,onText){
 async function runRecognition(button,onText){
   if(listeningNow)return;
   if(!(await ensureMicrophonePermission()))return;
-  const recorded=await runRecordedRecognition(button,onText);
-  if(!recorded){
+  // На Android/Chrome сначала используем встроенное распознавание:
+  // оно быстрее и не зависит от загрузки Gemini.
+  if(SR){
     const webOk=await runWebSpeech(button,onText);
-    if(!webOk)toast('Голосовой ввод на этом устройстве не запустился');
+    if(webOk)return;
   }
-  // Следующий цикл запускается только после завершения ответа/озвучки.
-  // Иначе планшет снова открывает микрофон, пока AI ещё отвечает.
+  // Серверная расшифровка — только запасной путь.
+  const recorded=await runRecordedRecognition(button,onText);
+  if(!recorded)toast('Голосовой ввод не запустился. Попробуй ещё раз.');
 }
 function listenFromChat(button,input){
   unlockVoice();
@@ -860,6 +873,7 @@ function autoListen(){
 }
 $('#micBtn').onclick=async()=>{
   unlockVoice();
+  toast('Микрофон включается…');
   handsFree=true;
   if(!state.tts){state.tts=true;save();syncPanelVoice()}
   runRecognition($('#micBtn'),t=>{$('#askInput').value=t;return askAI(t)});
