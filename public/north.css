@@ -422,3 +422,121 @@ body.speaking .north-model{animation-duration:.8s!important}
   .north-model{width:min(54vw,225px)!important}
   .north-assistant{margin-top:235px!important}
 }
+
+
+/* === FARRUKH AI CONCEPT 3 v7.4 — Holographic Command Center === */
+.north-home{
+  background:
+    radial-gradient(900px 520px at 50% 17%,rgba(52,108,255,.22),transparent 58%),
+    radial-gradient(780px 500px at 76% 22%,rgba(255,153,64,.09),transparent 66%),
+    radial-gradient(1100px 650px at 50% 100%,rgba(6,36,72,.95),transparent 62%),
+    linear-gradient(180deg,#040813 0%,#05101f 54%,#030914 100%)!important;
+  border-color:rgba(92,161,255,.16)!important;
+  box-shadow:0 28px 110px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+.north-home:before{
+  opacity:.82!important;
+  background:
+    linear-gradient(180deg,transparent 35%,rgba(2,8,18,.88) 82%),
+    radial-gradient(ellipse at 50% 78%,rgba(32,102,197,.21),transparent 56%),
+    linear-gradient(167deg,transparent 0 54%,rgba(7,25,47,.95) 55% 63%,transparent 64%) 0 100%/58% 62% no-repeat,
+    linear-gradient(193deg,transparent 0 52%,rgba(8,26,50,.96) 53% 64%,transparent 65%) 100% 100%/64% 65% no-repeat!important;
+}
+.north-home:after{
+  height:38%!important;
+  background:linear-gradient(180deg,transparent,rgba(1,6,15,.94)),radial-gradient(ellipse at 50% 82%,rgba(38,113,228,.20),transparent 58%)!important;
+}
+.aurora-layer{opacity:.7!important;filter:blur(32px) saturate(150%)!important}
+.north-top{position:relative;z-index:5!important}
+.north-time strong{font-size:68px!important;font-weight:300!important;letter-spacing:-.07em!important}
+.north-weather{
+  background:linear-gradient(145deg,rgba(7,24,47,.72),rgba(17,28,63,.56))!important;
+  border-color:rgba(114,199,255,.18)!important;
+  box-shadow:0 20px 55px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+
+/* large central globe */
+.north-model{
+  left:50%!important;top:18.2%!important;width:min(41vw,470px)!important;height:auto!important;aspect-ratio:1!important;
+  transform:translateX(-50%)!important;
+  background:
+    radial-gradient(circle at 35% 29%,rgba(255,255,255,1) 0 2%,rgba(163,235,255,.98) 6%,rgba(53,172,255,.94) 18%,rgba(31,91,226,.94) 37%,rgba(19,43,115,.98) 58%,rgba(4,10,26,.88) 73%,transparent 74%)!important;
+  filter:drop-shadow(0 0 32px rgba(50,182,255,.56)) drop-shadow(0 0 110px rgba(49,96,255,.36))!important;
+  box-shadow:inset -30px -34px 52px rgba(0,4,18,.62),inset 18px 12px 32px rgba(122,220,255,.10),0 0 0 1px rgba(103,205,255,.13)!important;
+}
+.north-model:before{
+  width:140%!important;height:140%!important;
+  border:1px solid rgba(77,203,255,.30)!important;
+  background:
+    repeating-conic-gradient(from 0deg,rgba(102,219,255,.68) 0 1deg,transparent 1deg 12deg),
+    radial-gradient(circle,transparent 0 57%,rgba(81,163,255,.08) 58% 59%,transparent 60%)!important;
+  -webkit-mask:radial-gradient(circle,transparent 0 55%,#000 56% 57%,transparent 58%)!important;
+  mask:radial-gradient(circle,transparent 0 55%,#000 56% 57%,transparent 58%)!important;
+  box-shadow:0 0 40px rgba(55,177,255,.20),inset 0 0 34px rgba(66,86,255,.12)!important;
+}
+.north-model:after{
+  width:172%!important;height:88%!important;
+  border:1px solid rgba(255,168,76,.30)!important;
+  box-shadow:0 0 38px rgba(255,139,55,.14)!important;
+  transform:translate(-50%,-50%) rotate(-15deg)!important;
+}
+body.listening .north-model,body.speaking .north-model{
+  filter:brightness(1.16) drop-shadow(0 0 42px rgba(67,202,255,.72)) drop-shadow(0 0 125px rgba(67,89,255,.40))!important;
+}
+
+/* stack content under globe, like concept 3 */
+.north-assistant{
+  width:min(760px,72%)!important;max-width:760px!important;margin:430px auto 16px!important;
+  grid-template-columns:72px 1fr auto!important;
+  background:linear-gradient(145deg,rgba(6,20,43,.78),rgba(15,22,50,.69))!important;
+  border-color:rgba(95,192,255,.20)!important;
+  box-shadow:0 18px 58px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.assistant-mini{
+  background:radial-gradient(circle at 36% 30%,#fff 0 4%,#a8ecff 10%,#42c4ff 25%,#4355d9 53%,#091328 76%)!important;
+}
+.assistant-copy b{font-size:19px!important}.assistant-copy p{color:#9bb6cf!important}
+.command-center,.north-tasks{
+  width:min(920px,86%)!important;max-width:920px!important;margin-left:auto!important;margin-right:auto!important;
+  background:linear-gradient(145deg,rgba(5,18,37,.78),rgba(11,22,47,.66))!important;
+  border-color:rgba(97,181,255,.16)!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.23),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+.command-center{margin-top:10px!important}
+.command-kpis span{background:rgba(21,32,63,.48)!important;border:1px solid rgba(102,161,255,.12)!important;border-radius:14px!important}
+.attention-clear{background:linear-gradient(90deg,rgba(14,78,72,.31),rgba(12,46,66,.24))!important;border:1px solid rgba(88,214,190,.14)!important}
+.north-shortcuts,.north-talk{width:min(920px,86%)!important;max-width:920px!important;margin-left:auto!important;margin-right:auto!important}
+.north-shortcuts button{
+  background:linear-gradient(145deg,rgba(7,23,46,.82),rgba(15,21,48,.68))!important;
+  border-color:rgba(99,176,255,.15)!important;
+}
+.north-talk{
+  background:linear-gradient(90deg,rgba(11,40,75,.92),rgba(38,36,97,.84))!important;
+  border-color:rgba(104,192,255,.22)!important;
+}
+
+/* mobile: sphere dominates upper screen */
+@media(max-width:800px){
+  .north-home{min-height:1240px!important;padding:18px 14px 18px!important}
+  .north-time strong{font-size:52px!important}
+  .north-model{
+    left:50%!important;top:15.2%!important;width:min(86vw,380px)!important;
+    transform:translateX(-50%)!important;
+  }
+  @keyframes coreBreathe{50%{transform:translateX(-50%) scale(1.045);filter:brightness(1.12)}}
+  .north-assistant{
+    width:100%!important;max-width:none!important;margin:390px 0 14px!important;
+    grid-template-columns:62px 1fr auto!important;padding:15px!important;
+  }
+  .command-center,.north-tasks,.north-shortcuts,.north-talk{width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important}
+  .command-kpis{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:430px){
+  .north-model{top:15.6%!important;width:min(91vw,355px)!important}
+  .north-assistant{margin-top:365px!important}
+  .north-time strong{font-size:48px!important}
+}
+@media(max-height:740px) and (max-width:800px){
+  .north-model{width:min(75vw,305px)!important}
+  .north-assistant{margin-top:305px!important}
+}
