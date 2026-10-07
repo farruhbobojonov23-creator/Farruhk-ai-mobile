@@ -645,8 +645,9 @@ app.post('/api/chat',async(req,res)=>{
       .filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string')
       .map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content.slice(0,6000)}]}));
     const body={
-      systemInstruction:{parts:[{text:buildInstructions(context)}]},
+      systemInstruction:{parts:[{text:buildInstructions(context)+'\\n\\nЕсли вопрос требует свежих данных, используй Google Search. Не выдумывай актуальные факты. В конце ответа кратко укажи использованные источники, когда они есть.'}]},
       contents:[...history,{role:'user',parts:[{text:message}]}],
+      tools:req.body?.useWeb===false?undefined:[{google_search:{}}],
       generationConfig:{temperature:0.5}
     };
     const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent?key='+encodeURIComponent(geminiKey);
@@ -658,8 +659,10 @@ app.post('/api/chat',async(req,res)=>{
     });
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(data?.error?.message||('Gemini HTTP '+r.status));
-    const reply=(data?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
-    res.json({reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model:geminiModel});
+    const candidate=data?.candidates?.[0]||{};
+    const reply=(candidate?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
+    const sources=(candidate?.groundingMetadata?.groundingChunks||[]).map(x=>x?.web).filter(Boolean).map(x=>({title:x.title||'',url:x.uri||''})).filter(x=>x.url).slice(0,8);
+    res.json({reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model:geminiModel,sources,webSearch:Boolean(sources.length)});
   }catch(err){
     console.error(err);
     res.status(500).json({error:'Ошибка Gemini API: '+(err?.message||'unknown')});
