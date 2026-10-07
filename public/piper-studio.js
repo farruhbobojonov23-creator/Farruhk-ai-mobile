@@ -5,6 +5,8 @@
   let modPromise=null;
   let audio=null;
   let piperState='idle';
+  let audioUnlocked=false;
+  let unlockAudio=null;
   const nativeSpeak=window.speechSynthesis?.speak?.bind(window.speechSynthesis);
   const nativeCancel=window.speechSynthesis?.cancel?.bind(window.speechSynthesis);
 
@@ -14,6 +16,25 @@
   function timeout(promise,ms,label='timeout'){
     return Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(label)),ms))]);
   }
+  async function ensureAudioUnlocked(){
+    if(audioUnlocked) return true;
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(AC){
+        if(!unlockAudio) unlockAudio=new AC();
+        if(unlockAudio.state==='suspended') await unlockAudio.resume();
+        const o=unlockAudio.createOscillator(),g=unlockAudio.createGain();
+        g.gain.value=0.00001;o.connect(g);g.connect(unlockAudio.destination);o.start();o.stop(unlockAudio.currentTime+0.02);
+      }
+      audioUnlocked=true;
+      setStatus('Аудио разрешено');
+      return true;
+    }catch(e){
+      console.warn('Audio unlock failed',e);
+      return false;
+    }
+  }
+
   function nativeFallback(text, utterance){
     piperState='fallback';
     setStatus('Системный голос · бесплатно');
@@ -51,12 +72,18 @@
       audio.onplay=()=>{piperState='playing';setStatus('Piper · говорит');try{utterance?.onstart?.(new Event('start'))}catch{}};
       audio.onended=()=>{piperState='ready';setStatus('Piper · готов');try{utterance?.onend?.(new Event('end'))}catch{};try{URL.revokeObjectURL(url)}catch{};audio=null};
       audio.onerror=()=>{try{URL.revokeObjectURL(url)}catch{};audio=null;nativeFallback(clean,utterance)};
+      await ensureAudioUnlocked();
       await timeout(audio.play(),8000,'Браузер заблокировал воспроизведение');
     }catch(err){
       console.warn('Piper TTS unavailable, using device voice',err);
       nativeFallback(clean,utterance);
     }
   }
+
+  const armAudio=()=>{ensureAudioUnlocked();try{window.speechSynthesis?.resume?.()}catch{}};
+  window.addEventListener('pointerdown',armAudio,{once:true,capture:true});
+  window.addEventListener('touchstart',armAudio,{once:true,capture:true,passive:true});
+  window.addEventListener('click',armAudio,{once:true,capture:true});
 
   if(window.speechSynthesis&&nativeSpeak){
     try{
@@ -97,7 +124,7 @@
       setStatus('Проверка…');
       const u=new SpeechSynthesisUtterance('Фаррух Ака, голосовой помощник готов к работе.');
       u.lang='ru-RU';
-      piperSpeak(u.text,u);
+      ensureAudioUnlocked().finally(()=>piperSpeak(u.text,u));
     };
     badge.insertAdjacentElement('afterend',test);
 
