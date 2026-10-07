@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const VOICE_ID='ru_RU-dmitri-medium';
+  const VOICE_ID='ru_RU-irina-medium';
   const PIPER_MODULE='https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web/+esm';
   let modPromise=null;
   let audio=null;
@@ -81,7 +81,7 @@
     if(aiMetric){
       const voiceMetric=document.createElement('div');
       voiceMetric.className='metric';
-      voiceMetric.innerHTML='<span>Голос</span><b>Piper · Dmitri</b>';
+      voiceMetric.innerHTML='<span>Голос</span><b>Piper · Irina</b>';
       aiMetric.insertAdjacentElement('afterend',voiceMetric);
     }
     const badge=document.createElement('p');
@@ -102,7 +102,7 @@
     badge.insertAdjacentElement('afterend',test);
 
     const help=[...card.querySelectorAll('.help')].find(x=>x.textContent.includes('Синхронизация губ'));
-    if(help)help.textContent='Основная озвучка — Piper Dmitri. Если Piper не запустится, автоматически включится бесплатный системный голос телефона.';
+    if(help)help.textContent='Основная озвучка — Piper Irina. Если Piper не запустится, автоматически включится бесплатный системный голос телефона.';
     const labelText=card.querySelector('label');
     if(labelText)labelText.childNodes.forEach(n=>{if(n.nodeType===Node.TEXT_NODE&&n.textContent.includes('голосом устройства'))n.textContent=' Озвучивать ответы бесплатным голосом'});
   }
