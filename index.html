@@ -3,132 +3,150 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#07100b">
+  <meta name="theme-color" content="#050505">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
-  <title>FARRUKH AI Mobile</title>
+  <link rel="stylesheet" href="style.css?v=premium-gold-1">
+  <title>FARRUKH AI</title>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand">
-      <div class="orb-mini"></div>
-      <div><b>FARRUKH AI</b><span>MOBILE • CHEF OS</span></div>
-    </div>
-    <button id="wakeBtn" class="icon-btn">🟢</button>
+    <button class="brand" data-screen="home" aria-label="На главную">
+      <span class="brand-mark">F</span>
+      <span><b>FARRUKH AI</b><small>PRIVATE INTELLIGENCE</small></span>
+    </button>
+    <button id="talkBtn" class="voice-btn" aria-label="Голосовой запрос">◉</button>
   </header>
 
   <main>
-    <section id="home" class="screen active">
+    <section id="home" class="screen active premium-home">
       <div class="hero">
-        <div class="orb" id="aiCore" data-state="idle" aria-label="FARRUKH AI core">
-          <div class="aura"></div>
-          <div class="orbit o1"><i></i></div>
-          <div class="orbit o2"><i></i></div>
-          <div class="orbit o3"><i></i></div>
-          <div class="ring r1"></div>
-          <div class="ring r2"></div>
-          <div class="ring r3"></div>
-          <div class="core"><span class="core-glow"></span></div>
-          <div class="particles" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        <div class="eyebrow">YOUR PRIVATE AI</div>
+        <h1>FARRUKH <span>AI</span></h1>
+        <p>Персональный интеллект для работы, решений и контроля.</p>
+
+        <div class="gold-system" aria-hidden="true">
+          <div class="halo halo-a"></div>
+          <div class="halo halo-b"></div>
+          <div class="orbit-line orbit-one"></div>
+          <div class="orbit-line orbit-two"></div>
+          <div class="gold-planet">
+            <div class="planet-shine"></div>
+            <div class="planet-line line-one"></div>
+            <div class="planet-line line-two"></div>
           </div>
-          <div class="voice-wave" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b></div>
+          <div class="gold-spark s1"></div>
+          <div class="gold-spark s2"></div>
+          <div class="gold-spark s3"></div>
+          <div class="gold-spark s4"></div>
         </div>
-        <span class="pill" id="coreState">ГОТОВ</span>
-        <h1 id="greeting">Фаррух AI</h1>
-        <p id="sub">Готов к работе.</p>
-        <button id="talkBtn" class="talk">🎙 Говорить</button>
+
+        <div class="ask-box">
+          <input id="homeInput" autocomplete="off" placeholder="Спросите FARRUKH AI о чём угодно…">
+          <button id="homeSend" aria-label="Отправить">↑</button>
+        </div>
+        <div class="assistant-state"><i></i><span id="coreState">ГОТОВ К ЗАПРОСУ</span></div>
       </div>
 
-      <div class="quick-grid">
-        <button data-cmd="Что у меня сегодня по задачам?">Сегодня</button>
-        <button data-cmd="Напиши сообщение поварам">Поварам</button>
-        <button data-cmd="Помоги посчитать себестоимость ролла">Себестоимость</button>
-        <button data-cmd="Покажи проекты Суши Бери">Проекты</button>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><span>ЗАДАЧИ</span><button id="addTask">+ Добавить</button></div>
-        <div id="taskList"></div>
+      <div class="command-grid">
+        <button class="command-card primary-card" data-screen="chat">
+          <span class="card-icon">✦</span>
+          <span class="card-copy"><b>Спросить AI</b><small>Любой вопрос и свежая информация</small></span>
+          <span class="arrow">↗</span>
+        </button>
+        <button class="command-card" data-screen="tasks">
+          <span class="card-icon">✓</span>
+          <span class="card-copy"><b>Задачи</b><small>Планы, контроль и напоминания</small></span>
+          <span class="arrow">↗</span>
+        </button>
+        <button class="command-card" data-screen="analytics">
+          <span class="card-icon">⌁</span>
+          <span class="card-copy"><b>Аналитика</b><small>Показатели и бизнес-данные</small></span>
+          <span class="arrow">↗</span>
+        </button>
+        <button class="command-card" data-screen="tools">
+          <span class="card-icon">◇</span>
+          <span class="card-copy"><b>Инструменты</b><small>Расчёты и рабочие функции</small></span>
+          <span class="arrow">↗</span>
+        </button>
       </div>
     </section>
 
-    <section id="chat" class="screen">
+    <section id="chat" class="screen inner-screen">
+      <div class="section-head">
+        <button class="back" data-screen="home">←</button>
+        <div><span>FARRUKH AI</span><h2>Спросить AI</h2></div>
+      </div>
       <div class="chat-wrap">
         <div id="messages" class="messages"></div>
         <div class="composer">
-          <textarea id="msgInput" rows="1" placeholder="Напиши команду..."></textarea>
-          <button id="sendBtn">➤</button>
+          <textarea id="msgInput" rows="1" placeholder="Напишите сообщение…"></textarea>
+          <button id="sendBtn">↑</button>
         </div>
       </div>
     </section>
 
-    <section id="cost" class="screen">
-      <div class="section-title"><span>КАЛЬКУЛЯТОР</span><h2>Себестоимость</h2></div>
-      <div class="card">
-        <input id="dishName" class="field" placeholder="Название блюда">
-        <div id="ingredients"></div>
-        <button id="addIng">+ Ингредиент</button>
+    <section id="tasks" class="screen inner-screen">
+      <div class="section-head">
+        <button class="back" data-screen="home">←</button>
+        <div><span>CONTROL</span><h2>Задачи</h2></div>
+        <button id="addTask" class="gold-action">+ Добавить</button>
       </div>
-      <div class="card total">
+      <div class="gold-panel"><div id="taskList"></div></div>
+    </section>
+
+    <section id="analytics" class="screen inner-screen">
+      <div class="section-head">
+        <button class="back" data-screen="home">←</button>
+        <div><span>BUSINESS DATA</span><h2>Аналитика</h2></div>
+      </div>
+      <div class="gold-panel coming">
+        <div class="big-symbol">⌁</div>
+        <h3>Аналитический центр</h3>
+        <p>Следующим этапом подключим сюда отчёты и показатели. Внешний вид уже приведён к Premium Gold.</p>
+      </div>
+    </section>
+
+    <section id="tools" class="screen inner-screen">
+      <div class="section-head">
+        <button class="back" data-screen="home">←</button>
+        <div><span>WORKSPACE</span><h2>Инструменты</h2></div>
+      </div>
+      <div class="gold-panel">
+        <label class="field-label">Название блюда</label>
+        <input id="dishName" class="field" placeholder="Например: Филадельфия">
+        <div id="ingredients"></div>
+        <button id="addIng" class="ghost-action">+ Ингредиент</button>
+      </div>
+      <div class="gold-panel total">
         <span>СЕБЕСТОИМОСТЬ</span>
         <strong id="totalCost">0 ₽</strong>
         <input id="salePrice" class="field" type="number" placeholder="Цена продажи, ₽">
         <div class="line"><span>Food cost</span><b id="foodCost">—</b></div>
         <div class="line"><span>Маржа</span><b id="margin">—</b></div>
-        <button id="askCost" class="primary">Спросить AI</button>
-      </div>
-    </section>
-
-    <section id="projects" class="screen">
-      <div class="section-title"><span>ПРОЕКТЫ</span><h2>Суши Бери</h2></div>
-      <div class="project-list">
-        <div class="card project"><b>Меню A3</b><span>Холодные + запечённые</span></div>
-        <div class="card project"><b>Экраны</b><span>Контент для 3 мониторов</span></div>
-        <div class="card project"><b>Шеф на дому</b><span>Японская кухня</span></div>
-        <div class="card project"><b>Техкарты</b><span>КБЖУ и себестоимость</span></div>
-      </div>
-    </section>
-
-    <section id="settings" class="screen">
-      <div class="section-title"><span>НАСТРОЙКИ</span><h2>FARRUKH AI Mobile</h2></div>
-      <div class="card settings">
-        <div class="line"><span>Сервер</span><b id="serverState">проверка...</b></div>
-        <div class="line"><span>AI</span><b id="aiState">проверка...</b></div>
-        <label>Озвучка ответа <input id="ttsToggle" type="checkbox" checked></label>
-        <button id="installBtn" class="primary" hidden>Установить на телефон</button>
-        <p>После размещения приложения на HTTPS его можно установить на главный экран как обычное приложение.</p>
+        <button id="askCost" class="gold-action wide">Спросить AI</button>
       </div>
     </section>
   </main>
-
-  <nav class="bottom-nav">
-    <button class="nav active" data-screen="home">⌂<span>Главная</span></button>
-    <button class="nav" data-screen="chat">✦<span>AI</span></button>
-    <button class="nav" data-screen="cost">₽<span>Расчёт</span></button>
-    <button class="nav" data-screen="projects">▦<span>Проекты</span></button>
-    <button class="nav" data-screen="settings">⚙<span>Ещё</span></button>
-  </nav>
 </div>
 
 <div id="taskModal" class="modal">
   <div class="sheet">
     <div class="grab"></div>
-    <h3>Новая задача</h3>
-    <input id="taskText" class="field" placeholder="Что нужно сделать?">
+    <span>НОВАЯ ЗАДАЧА</span>
+    <h3>Что нужно сделать?</h3>
+    <input id="taskText" class="field" placeholder="Введите задачу">
     <select id="taskPriority" class="field">
       <option value="normal">Обычная</option>
       <option value="high">Важная</option>
     </select>
-    <button id="saveTask" class="primary">Сохранить</button>
-    <button id="cancelTask">Отмена</button>
+    <button id="saveTask" class="gold-action wide">Сохранить</button>
+    <button id="cancelTask" class="ghost-action wide">Отмена</button>
   </div>
 </div>
 
-<script src="app.js"></script>
-<script src="piper.js"></script>
+<script src="app.js?v=premium-gold-1"></script>
 </body>
 </html>
