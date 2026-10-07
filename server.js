@@ -639,18 +639,23 @@ app.post('/api/chat',async(req,res)=>{
 
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
 
-  try{
-    const history=(Array.isArray(req.body?.history)?req.body.history:[])
-      .slice(-12)
-      .filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string')
-      .map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content.slice(0,6000)}]}));
+  const history=(Array.isArray(req.body?.history)?req.body.history:[])
+    .slice(-12)
+    .filter(m=>['user','assistant'].includes(m?.role)&&typeof m.content==='string')
+    .map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content.slice(0,6000)}]}));
+
+  const requestedWeb=req.body?.useWeb!==false;
+  const models=[geminiModel,'gemini-3.8-flash','gemini-3.7-flash']
+    .filter((x,i,a)=>x&&a.indexOf(x)===i);
+
+  async function callModel(model,useWeb){
     const body={
-      systemInstruction:{parts:[{text:buildInstructions(context)+'\\n\\nЕсли вопрос требует свежих данных, используй Google Search. Не выдумывай актуальные факты. В конце ответа кратко укажи использованные источники, когда они есть.'}]},
+      systemInstruction:{parts:[{text:buildInstructions(context)+'\n\nЕсли вопрос требует свежих данных, используй Google Search только когда инструмент доступен. Если свежие данные проверить нельзя, прямо скажи об этом и не выдумывай актуальные факты. В конце ответа кратко укажи использованные источники, когда они есть.'}]},
       contents:[...history,{role:'user',parts:[{text:message}]}],
-      tools:req.body?.useWeb===false?undefined:[{google_search:{}}],
+      ...(useWeb?{tools:[{google_search:{}}]}:{}),
       generationConfig:{temperature:0.5}
     };
-    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent?key='+encodeURIComponent(geminiKey);
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(geminiKey);
     const r=await fetch(url,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -658,15 +663,46 @@ app.post('/api/chat',async(req,res)=>{
       signal:AbortSignal.timeout(30000)
     });
     const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data?.error?.message||('Gemini HTTP '+r.status));
+    if(!r.ok){
+      const e=new Error(data?.error?.message||('Gemini HTTP '+r.status));
+      e.status=r.status;e.data=data;throw e;
+    }
     const candidate=data?.candidates?.[0]||{};
     const reply=(candidate?.content?.parts||[]).map(p=>p?.text||'').join('').trim();
     const sources=(candidate?.groundingMetadata?.groundingChunks||[]).map(x=>x?.web).filter(Boolean).map(x=>({title:x.title||'',url:x.uri||''})).filter(x=>x.url).slice(0,8);
-    res.json({reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model:geminiModel,sources,webSearch:Boolean(sources.length)});
-  }catch(err){
-    console.error(err);
-    res.status(500).json({error:'Ошибка Gemini API: '+(err?.message||'unknown')});
+    return {reply:reply||'Ответ без текста.',mode:'online',provider:'gemini',model,sources,webSearch:Boolean(sources.length),webRequested:requestedWeb};
   }
+
+  let lastErr=null;
+  for(let i=0;i<models.length;i++){
+    const model=models[i];
+    try{
+      // Search grounding on the free tier can be unavailable. Try it only on the primary model,
+      // then fall back to plain chat on another model instead of showing a hard failure.
+      const useWeb=requestedWeb&&i===0;
+      const out=await callModel(model,useWeb);
+      if(requestedWeb&&!out.webSearch&&i>0)out.notice='Интернет-поиск временно недоступен: использован резервный AI без веб-поиска.';
+      return res.json(out);
+    }catch(err){
+      lastErr=err;
+      const msg=String(err?.message||'');
+      console.error('[ai-chat]',model,msg);
+      const retryable=err?.status===429||/quota|rate limit|resource_exhausted|not available|unsupported|tool/i.test(msg);
+      if(!retryable)break;
+    }
+  }
+
+  // Never leave the UI with a generic dead end when external AI quota is exhausted.
+  const fallback=localReply(message,context);
+  return res.status(200).json({
+    reply:fallback+'\n\nСейчас внешний AI временно упёрся в лимит API. Базовые функции FARRUKH AI продолжают работать.',
+    mode:'local-fallback',
+    provider:'local',
+    model:null,
+    sources:[],
+    webSearch:false,
+    notice:'Лимит внешнего AI временно исчерпан.'
+  });
 });
 
 // ---- Yandex Disk integration ----
