@@ -1,7 +1,8 @@
+import {taskCalendar} from './task-calendar.js';
 import {parseLiveReports} from './analytics-values.js';
 import {parseTaskCommand,zonedDate,zonedToUtc} from './task-commands.js';
 import {requireOwner} from './owner-login.js';
-await requireOwner();
+const ownerSession=await requireOwner();
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 function readJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw===null?fallback:JSON.parse(raw)}catch{return fallback}}
 let selectedDocuments=[];
@@ -299,7 +300,7 @@ $('#askForm').onsubmit=e=>{e.preventDefault();const v=$('#askInput').value;$('#a
 function taskGroup(t){
   if(t.done)return 'done';
   if(!t.due)return 'all';
-  const d=new Date(t.due),now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+  const d=new Date(t.due),now=new Date(),wallNow=zonedDate(now,state.timeZone),today=new Date(wallNow.getFullYear(),wallNow.getMonth(),wallNow.getDate()),tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
   const local=zonedDate(d,state.timeZone),day=new Date(local.getFullYear(),local.getMonth(),local.getDate());
   if(d.getTime()<now.getTime())return 'overdue';
   if(day.getTime()===today.getTime())return 'today';
@@ -309,7 +310,7 @@ function taskGroup(t){
 let taskFilter='today';
 function renderTasks(){
   openPanel('Задачи');
-  body.innerHTML='<div class="task-toolbar"><button id="notifyTasks" class="task-remind">🔔 Напоминания</button><button class="add-task" id="newTask">+ Новая задача</button></div>'+
+  body.innerHTML='<div class="task-toolbar"><button id="notifyTasks" class="task-remind">🔔 Напоминания</button><button id="calendarTasks" class="task-remind">В календарь телефона</button><button class="add-task" id="newTask">+ Новая задача</button></div>'+
     '<div class="task-filters">'+['today','tomorrow','overdue','all','done'].map(k=>'<button data-filter="'+k+'" class="'+(taskFilter===k?'active':'')+'">'+({today:'Сегодня',tomorrow:'Завтра',overdue:'Просрочено',all:'Все',done:'Готово'}[k])+'</button>').join('')+'</div>'+
     '<div id="taskList"></div>';
   const list=$('#taskList');
@@ -321,6 +322,7 @@ function renderTasks(){
   draw();
   body.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{taskFilter=b.dataset.filter;draw()});
   $('#notifyTasks').onclick=requestTaskNotifications;
+  $('#calendarTasks').onclick=exportTaskCalendar;
   $('#newTask').onclick=()=>taskEditor();
   list.onchange=e=>{if(e.target.dataset.i!==undefined){state.tasks[+e.target.dataset.i].done=e.target.checked;save();draw()}};
   list.onclick=e=>{
@@ -330,6 +332,14 @@ function renderTasks(){
       taskEditor(i);
     }
   };
+}
+function exportTaskCalendar(){
+  const tasks=state.tasks.filter(t=>!t.done&&t.due&&Date.parse(t.due)>Date.now());
+  if(!tasks.length)return toast('Добавьте задачу с будущей датой и временем');
+  const text=taskCalendar(tasks);
+  const url=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;link.download='Farrukh_AI_Tasks.ics';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('Импортируйте файл в календарь. При изменении задач календарь нужно обновить.');
 }
 async function requestTaskNotifications(){return enablePushNotifications()}
 
@@ -357,6 +367,7 @@ function analyticsHtml(snapshot,status,live,uploaded){
   const liveMetrics=parseLiveReports(live),fileMetrics=uploadMetrics(uploaded);
   const metrics=liveMetrics.length?liveMetrics:fileMetrics;
   const liveOk=Boolean(live?.ok&&live?.authenticated);
+  const archiveOnly=!liveOk&&!uploaded?.ok;
   const sourceMode=liveOk?'LIVE FRONTPAD':uploaded?.ok?'ФАЙЛ FRONTPAD':'РУЧНОЙ СНИМОК';
   const updated=liveOk?live.updatedAt:uploaded?.uploadedAt||snapshot?.capturedAt||null;
   const freshness=updated?new Date(updated).toLocaleString('ru-RU'):(snapshot?.date||'дата снимка неизвестна');
@@ -365,16 +376,16 @@ function analyticsHtml(snapshot,status,live,uploaded){
     updatedAt:updated||snapshot?.date||null,
     metrics,
     branches:liveOk||uploaded?[]:snapshot?.branches||[],
-    totalUnits:snapshot?.totalUnits??null,
-    summary:snapshot?.summary||'',
+    totalUnits:archiveOnly?(snapshot?.totalUnits??null):null,
+    summary:archiveOnly?(snapshot?.summary||''):'',
     live:liveOk,
     periodComplete:snapshot?.periodComplete??false
   };
-  const cards=(metrics.length?metrics.slice(0,5):[
+  const cards=(metrics.length?metrics.slice(0,5):archiveOnly?[
     {label:'Продано единиц',value:snapshot?.totalUnits??'—'},
     {label:'Точек',value:(snapshot?.branches||[]).length}
-  ]).map(m=>'<div class="analytics-card"><span>'+esc(m.label)+'</span><b>'+esc(metricValue(m.label,m.value))+'</b><small>'+esc(m.source||sourceMode)+'</small></div>').join('');
-  const branches=(snapshot?.branches||[]).slice().sort((a,b)=>(b.units||0)-(a.units||0)).map((b,i)=>'<div class="branch-row"><div><span class="rank">'+(i+1)+'</span><div><b>'+esc(b.name)+'</b><small>'+esc(b.strongCategory||'')+(b.topItem?' · '+esc(b.topItem):'')+'</small></div></div><strong>'+esc(b.units)+' ед.</strong></div>').join('');
+  ]:[{label:'Показатели не найдены',value:'—'}]).map(m=>'<div class="analytics-card"><span>'+esc(m.label)+'</span><b>'+esc(metricValue(m.label,m.value))+'</b><small>'+esc(m.source||sourceMode)+'</small></div>').join('');
+  const branches=(archiveOnly?(snapshot?.branches||[]):[]).slice().sort((a,b)=>(b.units||0)-(a.units||0)).map((b,i)=>'<div class="branch-row"><div><span class="rank">'+(i+1)+'</span><div><b>'+esc(b.name)+'</b><small>'+esc(b.strongCategory||'')+(b.topItem?' · '+esc(b.topItem):'')+'</small></div></div><strong>'+esc(b.units)+' ед.</strong></div>').join('');
   const warning=liveOk?'Данные получены из активной сессии Frontpad. Проверяй период отчёта перед управленческими выводами.':uploaded?.ok?'Показатели рассчитаны из загруженной выгрузки Frontpad.':'Сейчас показан старый ручной снимок. Для актуальной выручки и заказов подключи Frontpad или загрузи выгрузку.';
   return '<div class="analytics-top"><div><span class="analytics-status '+(liveOk?'live':'manual')+'">'+sourceMode+'</span><h3>Аналитика бизнеса</h3><p>Обновлено: '+esc(freshness)+'</p></div><button id="refreshAnalytics" class="analytics-refresh">↻</button></div>'+
     '<div class="analytics-grid">'+cards+'</div>'+
@@ -688,7 +699,7 @@ async function transcribeBlob(blob,mimeType){
 async function runRecordedRecognition(button,onText){
   if(typeof MediaRecorder==='undefined'||!navigator.mediaDevices?.getUserMedia)return false;
   if(listeningNow)return true;
-  let stream=null,recorder=null,stopTimer=null,chunks=[],finished=false;
+  let stream=null,recorder=null,stopTimer=null,chunks=[],finished=false,cancelled=false;
   try{
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported?.(t));
@@ -704,7 +715,7 @@ async function runRecordedRecognition(button,onText){
       recorder.addEventListener('stop',done,{once:true});
       try{if(recorder.state!=='inactive')recorder.stop();else resolve()}catch{resolve()}
     });
-    activeRecognition={abort:()=>{clearTimeout(stopTimer);try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{}}};
+    activeRecognition={abort:()=>{cancelled=true;clearTimeout(stopTimer);try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{}}};
     recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
     recorder.start(250);
     recordingStop=()=>finish();
@@ -713,6 +724,7 @@ async function runRecordedRecognition(button,onText){
     await new Promise(resolve=>recorder.addEventListener('stop',resolve,{once:true}));
     clearTimeout(stopTimer);
     stream.getTracks().forEach(t=>t.stop());
+    if(cancelled)return true;
     const blob=new Blob(chunks,{type:recorder.mimeType||preferred||'audio/webm'});
     if(blob.size<800){toast('Звук не записался — попробуй ещё раз');return true}
     toast('Распознаю…');
@@ -726,7 +738,7 @@ async function runRecordedRecognition(button,onText){
     try{stream?.getTracks().forEach(t=>t.stop())}catch{}
     const name=String(err?.name||'');
     if(/NotAllowed|Security/i.test(name))toast('Доступ к микрофону запрещён');
-    else toast('Не удалось записать голос');
+    else toast(err?.message||'Не удалось записать голос');
     return false;
   }finally{
     listeningNow=false;activeRecognition=null;recordingStop=null;
@@ -745,11 +757,11 @@ async function runWebSpeech(button,onText){
     button?.classList.add('listening');
     if(button)button.setAttribute('aria-label','Слушаю');
     toast('Слушаю…');
-    let got=false;
+    let got=false,settled=false;
     r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t){got=true;toast('Услышал');Promise.resolve(onText(t)).catch(()=>{})}};
-    const done=ok=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');resolve(ok)};
+    const done=ok=>{if(settled)return;settled=true;listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом');resolve(ok)};
     r.onend=()=>done(got);
-    r.onerror=e=>{const code=String(e?.error||'');if(code!=='aborted')toast(code==='no-speech'?'Речь не распознана':'Ошибка голосового ввода');done(false)};
+    r.onerror=e=>{const code=String(e?.error||'');if(code==='aborted'){done(true);return}if(code==='no-speech'){toast('Речь не услышана. Нажмите микрофон и повторите.');done(true);return}if(code==='not-allowed'||code==='service-not-allowed'){toast('Разрешите голосовой ввод в настройках браузера');done(true);return}toast('Встроенный ввод недоступен — попробую запись');done(false)};
     try{r.start()}catch{done(false)}
   });
 }
@@ -821,7 +833,7 @@ async function enablePushNotifications(){
     const reg=await navigator.serviceWorker.ready;
     const base=d.publicKey.replace(/-/g,'+').replace(/_/g,'/');const decoded=atob(base+'='.repeat((4-base.length%4)%4));const key=Uint8Array.from(decoded,c=>c.charCodeAt(0));
     const subscription=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-    const response=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(subscription)});const result=await response.json();if(!response.ok)throw Error(result.error||'Не удалось зарегистрировать');toast('Напоминания включены, в том числе при закрытом сайте');
+    const response=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(subscription)});const result=await response.json();if(!response.ok)throw Error(result.error||'Не удалось зарегистрировать');toast('Push включён. При остановке бесплатного сервера возможны задержки. Для независимых напоминаний используйте календарь.');
   }catch(e){toast(e.message)}
 }
 function navigate(section,push=true){
@@ -835,6 +847,7 @@ window.addEventListener('popstate',()=>{const section=new URLSearchParams(locati
 function renderSettings(){
   openPanel('Настройки');body.innerHTML='<form class="inline-form" id="settingsForm"><label>Часовой пояс<select name="zone"><option value="Europe/Moscow">Мурманск / Москва (UTC+3)</option><option value="'+esc(Intl.DateTimeFormat().resolvedOptions().timeZone)+'">По часовому поясу устройства</option></select></label><button>Сохранить</button></form><p>Сроки голосовых команд и даты задач используют выбранный часовой пояс.</p><button class="add-task" id="logoutOwner">Выйти</button>';
   $('#settingsForm').elements.zone.value=state.timeZone;$('#settingsForm').onsubmit=e=>{e.preventDefault();state.timeZone=e.target.elements.zone.value;localStorage.setItem('fai_timeZone',JSON.stringify(state.timeZone));save();toast('Настройки сохранены')};
+  if(ownerSession?.passwordless){$('#logoutOwner').hidden=true;}
   $('#logoutOwner').onclick=async()=>{if(changeGeneration>savedGeneration&&!await syncStateNow())return toast('Сначала сохраните или скачайте изменения');await fetch('/api/auth/logout',{method:'POST'});for(const key of Object.keys(localStorage))if(key.startsWith('fai_'))localStorage.removeItem(key);location.reload()};
 }
 function taskEditor(index=null){

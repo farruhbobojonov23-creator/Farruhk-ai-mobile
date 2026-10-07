@@ -6,13 +6,14 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   const store=process.env.YANDEX_DISK_TOKEN&&!process.env.ASSISTANT_DATA_DIR?new YandexAssistantStore(process.env.YANDEX_DISK_TOKEN):new AssistantStore(process.env.ASSISTANT_DATA_DIR||'./data/assistant');
   console.log('[assistant-storage] provider='+store.storage+' cloudConfigured='+Boolean(process.env.YANDEX_DISK_TOKEN));
   const auth=ownerAuth({password:process.env.ASSISTANT_PASSWORD,secret:process.env.ASSISTANT_SESSION_SECRET});
+  const passwordless=process.env.ASSISTANT_PASSWORDLESS==='true';
   const cookie=req=>String(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('fai_owner='))?.slice(10)||'';
   const trustedOrigin=req=>{try{return !req.headers.origin||new URL(req.headers.origin).host===req.get('host')}catch{return false}};
   const wrap=fn=>async(req,res,next)=>{try{await fn(req,res)}catch(e){if(e.status)res.status(e.status).json({ok:false,error:e.message,...(e.state?{state:e.state}:{})});else{console.error('[assistant]',e.message);res.status(500).json({ok:false,error:'Не удалось выполнить операцию. Данные не подтверждены как сохранённые.'})}}};
   let initialization;
   function initialize(){if(!initialization)initialization=(async()=>{const current=await store.state();if(current.revision===0&&migrateState){const old=await migrateState();if(old&&(old.tasks?.length||old.memory?.length||old.chat?.length))await store.save({...old,revision:0})}})().catch(e=>{initialization=null;throw httpError(503,'Не удалось проверить прежнее облачное хранилище. Повторите позже, чтобы не потерять данные.')});return initialization}
   const attempts=new Map();
-  app.get('/api/auth/session',(req,res)=>res.json({configured:auth.enabled,authenticated:auth.verify(cookie(req))}));
+  app.get('/api/auth/session',(req,res)=>res.json({configured:auth.enabled,authenticated:passwordless||auth.verify(cookie(req)),passwordless}));
   app.post('/api/auth/login',wrap(async(req,res)=>{
     if(!trustedOrigin(req))throw httpError(403,'Запрос отклонён');
     const key=req.ip,now=Date.now(),bucket=attempts.get(key)||{count:0,expires:now+600000};
@@ -26,8 +27,8 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   app.use((req,res,next)=>{
     const personal=/^\/api\/(?:state|backups|yandex|frontpad|analytics|chat|transcribe|status|documents|push)(?:\/|$)/.test(req.path);
     if(!personal)return next();
-    if(!auth.enabled)return res.status(503).json({error:'Вход владельца не настроен.'});
-    if(!auth.verify(cookie(req)))return res.status(401).json({error:'Войдите в личный ассистент.'});
+    if(!passwordless&&!auth.enabled)return res.status(503).json({error:'Вход владельца не настроен.'});
+    if(!passwordless&&!auth.verify(cookie(req)))return res.status(401).json({error:'Войдите в личный ассистент.'});
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);
     next();
   });

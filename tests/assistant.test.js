@@ -86,3 +86,32 @@ test('Cloud storage persists state without local disk and surfaces failed cloud 
   const store=new YandexAssistantStore('test-token',request);await store.save({revision:0,tasks:[{text:'Рис'}]});const restarted=new YandexAssistantStore('test-token',request);assert.equal((await restarted.state()).storage,'yandex');assert.equal((await restarted.state()).tasks[0].text,'Рис');
   const failure=new YandexAssistantStore('test-token',async()=>({ok:false,status:500,json:async()=>({message:'failed'})}));await assert.rejects(()=>failure.state(),{status:500});
 });
+
+test('Explicit passwordless mode opens assistant APIs but retains origin protection',()=>{
+  const previous=process.env.ASSISTANT_PASSWORDLESS;process.env.ASSISTANT_PASSWORDLESS='true';
+  try{
+    const middlewares=[],routes={};const app={use(fn){middlewares.push(fn)},get(p,...f){routes['GET '+p]=f},post(){},put(){},delete(){}};
+    const multer=()=>({single:()=>()=>{}});multer.memoryStorage=()=>({});installAssistantApi(app,{multer,ExcelJS:{}});
+    const req={path:'/api/state',method:'GET',headers:{},get:()=> 'example.com'};
+    let data,passed=false;const res={code:null,status(n){this.code=n;return this},json(d){data=d;return this},sendStatus(n){this.code=n;return this}};
+    routes['GET /api/auth/session'][0](req,res);assert.equal(data.authenticated,true);assert.equal(data.passwordless,true);
+    middlewares[0](req,res,()=>passed=true);assert.equal(passed,true);
+    passed=false;req.method='PUT';req.headers.origin='https://evil.example';middlewares[0](req,res,()=>passed=true);assert.equal(res.code,403);assert.equal(passed,false);
+    req.headers.origin='https://example.com';middlewares[0](req,res,()=>passed=true);assert.equal(passed,true);
+  }finally{if(previous===undefined)delete process.env.ASSISTANT_PASSWORDLESS;else process.env.ASSISTANT_PASSWORDLESS=previous}
+});
+
+test('Calendar reminders use UTC, escape text and fold UTF-8 lines',async()=>{
+  const {taskCalendar}=await import('../public/task-calendar.js');
+  const data=taskCalendar([{id:'task-1',text:'Рис, рыба; проверить\nхолодильник '+ 'я'.repeat(100),due:'2026-10-09T10:00:00+03:00'},{id:'done',text:'Done',done:true,due:'2026-10-09T10:00:00Z'}],new Date('2026-10-08T00:00:00Z'));
+  assert.match(data,/DTSTART:20261009T070000Z/);assert.match(data,/TRIGGER:PT0S/);assert.match(data,/Рис\\, рыба\\; проверить\\n/);assert.equal(data.includes('UID:done'),false);
+  for(const line of data.split('\r\n'))assert.ok(Buffer.byteLength(line)<=75);
+});
+
+test('Fresh report context does not inherit archived totals or branches',async()=>{
+  const source=await fs.readFile(new URL('../public/north.js',import.meta.url),'utf8');
+  const fn=source.slice(source.indexOf('function analyticsHtml('),source.indexOf('async function loadAnalyticsData('));
+  const context=vm.createContext({parseLiveReports:()=>[],uploadMetrics:()=>[],analyticsContext:null,esc:String,metricValue:(_,v)=>v});vm.runInContext(fn,context);
+  const html=context.analyticsHtml({totalUnits:182,date:'03.10.2026',summary:'Old',branches:[{name:'Archive',units:182}]},{},{ok:true,authenticated:true,updatedAt:'2026-10-08T00:00:00Z'},null);
+  assert.equal(context.analyticsContext.totalUnits,null);assert.equal(context.analyticsContext.summary,'');assert.equal(html.includes('Archive'),false);assert.equal(html.includes('182'),false);
+});

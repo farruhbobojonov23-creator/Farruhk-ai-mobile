@@ -50,7 +50,7 @@ const assistant=installAssistantApi(app,{multer,ExcelJS,migrateState:async()=>{
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
     const html=await fs.readFile(new URL('./public/index.html', import.meta.url),'utf8');
-    const injected=html.includes('data-chef-studio')?html:html.replace('</body>','<script src="/analytics.js?v=4"></script></body>');
+    const injected=(html.includes('data-chef-studio')||html.includes('/north.js'))?html:html.replace('</body>','<script src="/analytics.js?v=4"></script></body>');
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
     res.setHeader('Pragma','no-cache');
     res.type('html').send(injected);
