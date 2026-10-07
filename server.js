@@ -606,6 +606,32 @@ function analyticsSnapshot(){
 }
 app.get('/api/analytics/snapshot',(req,res)=>res.json(analyticsSnapshot()));
 
+app.post('/api/transcribe',async(req,res)=>{
+  if(!hasKey)return res.status(503).json({error:'AI-распознавание голоса не настроено на сервере.'});
+  try{
+    const data=String(req.body?.data||'').trim();
+    const mimeType=String(req.body?.mimeType||'audio/webm').trim().slice(0,80);
+    if(!data)return res.status(400).json({error:'Пустая аудиозапись'});
+    if(data.length>12*1024*1024)return res.status(413).json({error:'Аудиозапись слишком большая'});
+    const body={
+      contents:[{role:'user',parts:[
+        {text:'Точно расшифруй русскую речь из этой короткой аудиозаписи. Верни только произнесённый текст, без пояснений, кавычек и комментариев. Если речь неразборчива, верни пустую строку.'},
+        {inlineData:{mimeType,data}}
+      ]}],
+      generationConfig:{temperature:0}
+    };
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent?key='+encodeURIComponent(geminiKey);
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(30000)});
+    const result=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(result?.error?.message||('Gemini HTTP '+r.status));
+    const text=(result?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||'').join('').trim().replace(/^["«]|["»]$/g,'').trim();
+    res.json({text});
+  }catch(err){
+    console.error('[voice-transcribe]',err);
+    res.status(502).json({error:'Не удалось расшифровать голос: '+(err?.message||'unknown')});
+  }
+});
+
 app.post('/api/chat',async(req,res)=>{
   const message=String(req.body?.message||'').trim();
   const context={...(req.body?.context||{}),frontpad:analyticsSnapshot()};
