@@ -414,7 +414,56 @@ function startWakeListener(){
  r.onend=()=>{if(wakeRecognition===r)wakeRecognition=null;if(wakeEnabled&&!recognition&&!speaking&&!document.hidden)wakeRestartTimer=setTimeout(startWakeListener,600)};
  try{r.start()}catch(e){wakeRecognition=null;wakeRestartTimer=setTimeout(startWakeListener,1000)}
 }
-function mic(target=null){stopWakeListener();const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('В этом браузере голосовой ввод недоступен. Используй клавиатуру.');conversation=false;return}if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();const r=new SR();recognition=r;r.lang='ru-RU';r.interimResults=false;r.continuous=false;let heard=false;voiceTarget=target;r.onstart=()=>{document.body.classList.add('listening');voiceStatus('Слушаю…')};r.onresult=e=>{heard=true;const text=e.results[0][0].transcript;recognition=null;document.body.classList.remove('listening');if(voiceTarget){voiceTarget(text);voiceTarget=null}else{go('chat');handle(text)}};r.onerror=()=>{conversation=false;recognition=null;document.body.classList.remove('listening');voiceStatus('Микрофон остановлен. Проверь разрешение и попробуй снова.');toast('Не удалось распознать речь. Повтори или напиши текст.');setTimeout(startWakeListener,700)};r.onend=()=>{if(recognition===r)recognition=null;document.body.classList.remove('listening');if(!heard){conversation=false;voiceStatus('Речь не распознана. Скажи «Ведьма» ещё раз.');setTimeout(startWakeListener,600)}};try{r.start()}catch{recognition=null;conversation=false;toast('Микрофон занят. Попробуй ещё раз.')}}
+async function blobToBase64(blob){
+ return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=reject;reader.readAsDataURL(blob)});
+}
+async function androidVoiceMic(target=null){
+ stopWakeListener();conversation=false;
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast('Запись голоса недоступна. Попробуй Chrome или используй текст.');return}
+ let stream=null,rec=null,audioCtx=null,source=null,analyser=null,timer=null,silenceTimer=null,spoken=false,chunks=[];
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported?.(t))||'';
+  rec=new MediaRecorder(stream,preferred?{mimeType:preferred}:undefined);
+  rec.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+  const stopped=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||e)});
+  document.body.classList.add('listening');voiceStatus('Слушаю… говори');
+  rec.start(200);
+
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(AC){
+    audioCtx=new AC();if(audioCtx.state==='suspended')await audioCtx.resume();
+    source=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
+    const buf=new Uint8Array(analyser.fftSize),started=performance.now();
+    const check=()=>{
+      if(!rec||rec.state!=='recording')return;
+      analyser.getByteTimeDomainData(buf);let sum=0;for(const v of buf){const x=(v-128)/128;sum+=x*x}const rms=Math.sqrt(sum/buf.length);
+      if(rms>.025){spoken=true;clearTimeout(silenceTimer);silenceTimer=null}
+      else if(spoken&&!silenceTimer&&performance.now()-started>700){silenceTimer=setTimeout(()=>{try{if(rec.state==='recording')rec.stop()}catch{}},950)}
+      timer=requestAnimationFrame(check);
+    };check();
+  }
+  setTimeout(()=>{try{if(rec?.state==='recording')rec.stop()}catch{}},7000);
+  await stopped;
+  voiceStatus('Расшифровываю…');
+  const mimeType=rec.mimeType||chunks[0]?.type||'audio/webm';
+  const blob=new Blob(chunks,{type:mimeType});
+  if(blob.size<800){voiceStatus('Речь не услышана');toast('Голос не услышан. Нажми ещё раз и говори сразу.');return}
+  const data=await blobToBase64(blob);
+  const response=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(35000),body:JSON.stringify({data,mimeType})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Ошибка расшифровки');
+  const text=String(result.text||'').trim();
+  if(!text){voiceStatus('Речь не распознана');toast('Не удалось разобрать фразу. Попробуй ещё раз.');return}
+  voiceStatus('Услышала: '+text.slice(0,60));
+  if(target)target(text);else handle(text);
+ }catch(e){
+  console.warn('Android voice fallback failed',e);voiceStatus('Голосовой ввод недоступен');toast(e?.name==='NotAllowedError'?'Разреши микрофон для сайта в браузере.':(e?.message||'Не удалось обработать голос.'));
+ }finally{
+  if(timer)cancelAnimationFrame(timer);clearTimeout(silenceTimer);try{source?.disconnect()}catch{};try{audioCtx?.close()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{};document.body.classList.remove('listening');
+ }
+}
+function mic(target=null){if(/Android/i.test(navigator.userAgent))return androidVoiceMic(target);stopWakeListener();const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('В этом браузере голосовой ввод недоступен. Используй клавиатуру.');conversation=false;return}if(recognition){recognition.abort();recognition=null}window.speechSynthesis?.cancel();const r=new SR();recognition=r;r.lang='ru-RU';r.interimResults=false;r.continuous=false;let heard=false;voiceTarget=target;r.onstart=()=>{document.body.classList.add('listening');voiceStatus('Слушаю…')};r.onresult=e=>{heard=true;const text=e.results[0][0].transcript;recognition=null;document.body.classList.remove('listening');if(voiceTarget){voiceTarget(text);voiceTarget=null}else{go('chat');handle(text)}};r.onerror=e=>{conversation=false;recognition=null;document.body.classList.remove('listening');const code=e?.error||'unknown';const msg=code==='not-allowed'?'Нет доступа к микрофону.':code==='audio-capture'?'Микрофон недоступен или занят.':code==='network'?'Сервис распознавания браузера недоступен по сети.':code==='no-speech'?'Речь не услышана.':'Не удалось распознать речь.';voiceStatus(msg);toast(msg);setTimeout(startWakeListener,700)};r.onend=()=>{if(recognition===r)recognition=null;document.body.classList.remove('listening');if(!heard){conversation=false;voiceStatus('Речь не распознана. Скажи «Ведьма» ещё раз.');setTimeout(startWakeListener,600)}};try{r.start()}catch{recognition=null;conversation=false;toast('Микрофон занят. Попробуй ещё раз.')}}
 function download(name,text,type='application/json'){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}
 function exportJournal(){const rows=journalRows();if(!rows.length)return toast('Нет записей для выгрузки');const cols=[...new Set(rows.flatMap(r=>Object.keys(r)))];const cell=v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';download('journal-'+journalType+'-'+day()+'.csv','\uFEFF'+[cols,...rows.map(r=>cols.map(c=>r[c]))].map(r=>r.map(cell).join(';')).join('\r\n'),'text/csv;charset=utf-8')}
 async function restore(e){const file=e.target.files[0];if(!file)return;try{const backup=JSON.parse(await file.text());if(backup.version!==5||!backup.data||!Object.keys(keys).every(k=>Array.isArray(backup.data[k])))throw Error('Неверный формат копии');if(!confirm('Восстановление заменит текущие задачи, рецептуры, журналы и заметки. Продолжить?'))return;put('farrukh_before_restore',{at:new Date().toISOString(),data});for(const k of Object.keys(keys))persist(k,backup.data[k]);render();toast('Данные восстановлены')}catch(err){toast('Не удалось восстановить копию: '+err.message)}}
