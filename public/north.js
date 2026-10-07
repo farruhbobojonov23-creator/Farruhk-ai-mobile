@@ -7,12 +7,15 @@ $('#today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',mon
 (async()=>{try{const r=await fetch('/api/status');const d=await r.json();$('#aiStatus').textContent=d.aiConnected?'AI ONLINE':'AI';}catch{}})();
 const panel=$('#panel'),body=$('#panelBody'),title=$('#panelTitle');
 let voiceUnlocked=false;
+let handsFree=false;
+let listeningNow=false;
+let activeRecognition=null;
 function unlockVoice(){
   if(!('speechSynthesis' in window))return false;
   try{speechSynthesis.resume();voiceUnlocked=true;return true}catch{return false}
 }
 document.addEventListener('pointerdown',()=>unlockVoice(),{once:true,passive:true});
-function openPanel(name){title.textContent=name;panel.showModal()}$('#panelClose').onclick=()=>panel.close();panel.addEventListener('click',e=>{if(e.target===panel)panel.close()});
+function openPanel(name){title.textContent=name;panel.showModal()}$('#panelClose').onclick=()=>{handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()};panel.addEventListener('click',e=>{if(e.target===panel){handsFree=false;if(activeRecognition){try{activeRecognition.abort()}catch{}}panel.close()}});
 function getRussianVoice(){
   if(!('speechSynthesis' in window))return null;
   const voices=speechSynthesis.getVoices()||[];
@@ -35,6 +38,8 @@ function speak(text){
     u.pitch=1.02;
     const voice=getRussianVoice();
     if(voice)u.voice=voice;
+    u.onend=()=>{if(handsFree&&panel?.open)setTimeout(()=>autoListen(),350)};
+    u.onerror=()=>{if(handsFree&&panel?.open)setTimeout(()=>autoListen(),600)};
     speechSynthesis.speak(u);
     return true;
   }catch{toast('Не удалось включить голос');return false}
@@ -44,7 +49,7 @@ if('speechSynthesis' in window){
   speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
 }
 function renderChat(){
-  body.innerHTML='<div class="chatlog">'+
+  body.innerHTML='<div class="conversation-mode '+(handsFree?'on':'')+'"><span>'+(handsFree?'Живой диалог включён':'Нажми микрофон один раз — дальше отвечай голосом без лишних нажатий')+'</span></div><div class="chatlog">'+
     (state.chat.length?state.chat.map(m=>'<div class="msg '+m.role+'"><div class="msg-text">'+esc(m.text)+'</div></div>').join(''):'<div class="msg ai"><div class="msg-text">Я готов. Говори или пиши — отвечу по делу и продолжу разговор с учётом контекста.</div></div>')+
     '</div>'+
     '<form class="chat-composer" id="chatComposer">'+
@@ -54,7 +59,7 @@ function renderChat(){
     '</form>';
   const form=$('#chatComposer'),input=$('#chatInput'),mic=$('#chatMic');
   if(form)form.onsubmit=e=>{e.preventDefault();const v=input.value.trim();if(!v)return;input.value='';askAI(v)};
-  if(mic)mic.onclick=()=>listenFromChat(mic,input);
+  if(mic)mic.onclick=()=>{handsFree=true;renderChat();setTimeout(()=>listenFromChat($('#chatMic'),$('#chatInput')),0)};
   requestAnimationFrame(()=>{body.scrollTop=body.scrollHeight})
 }
 async function askAI(text){text=String(text||'').trim();if(!text)return;state.chat.push({role:'user',text});save();openPanel('Спросить AI');renderChat();const log=body.querySelector('.chatlog');const tmp=document.createElement('div');tmp.className='msg ai thinking';tmp.textContent='Думаю…';log.appendChild(tmp);body.scrollTop=body.scrollHeight;try{const history=state.chat.slice(-10,-1).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,useWeb:false})});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');const reply=d.reply||'Ответ не получен';state.chat.push({role:'ai',text:reply});save();renderChat();speak(reply)}catch(e){tmp.textContent='Не удалось получить ответ. Попробуй ещё раз.'}}
@@ -66,20 +71,30 @@ $$('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='c
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function runRecognition(button,onText){
   if(!SR){toast('Открой в Chrome на Android для голосового ввода');return}
+  if(listeningNow)return;
   const r=new SR();
+  activeRecognition=r;
+  listeningNow=true;
   r.lang='ru-RU';r.interimResults=false;r.continuous=false;
   button?.classList.add('listening');
   if(button)button.setAttribute('aria-label','Слушаю');
   r.onresult=e=>{const t=(e.results?.[0]?.[0]?.transcript||'').trim();if(t)onText(t)};
-  r.onend=()=>{button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом')};
-  r.onerror=()=>{toast('Не удалось распознать речь');button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом')};
+  r.onend=()=>{listeningNow=false;activeRecognition=null;button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом')};
+  r.onerror=e=>{listeningNow=false;activeRecognition=null;if(e?.error!=='no-speech')toast('Не удалось распознать речь');button?.classList.remove('listening');if(button)button.setAttribute('aria-label','Ответить голосом')};
   try{r.start()}catch{toast('Микрофон уже используется')}
 }
 function listenFromChat(button,input){
   unlockVoice();
   runRecognition(button,t=>{if(input)input.value=t;askAI(t)});
 }
-$('#micBtn').onclick=()=>runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)});
+function autoListen(){
+  if(!handsFree||!panel?.open||listeningNow)return;
+  const mic=$('#chatMic'),input=$('#chatInput');
+  if(!mic||!input)return;
+  if('speechSynthesis' in window&&speechSynthesis.speaking)return;
+  listenFromChat(mic,input);
+}
+$('#micBtn').onclick=()=>{handsFree=true;runRecognition($('#micBtn'),t=>{$('#askInput').value=t;askAI(t)})};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 const panelVoice=$('#panelVoice');
 function syncPanelVoice(){if(panelVoice)panelVoice.textContent=state.tts?'🔊':'🔇'}
