@@ -177,7 +177,7 @@ header h1,.workspace h2,.workspace h3{color:#f3fbff!important}.eyebrow,.header-r
 }
 
 /* === Exact reference v6 === */
-:root{--north-woman:none}
+:root{--north-woman:url('/assets/assistant.png?v=7.2')}
 .north-home{
   min-height:790px!important;
   padding:34px 36px 28px!important;
@@ -361,3 +361,5 @@ body.listening .assistant-mini,body.assistant-listening .assistant-mini{
 @keyframes avatarThink{from{transform:translate3d(0,-3px,0) rotateY(-1deg) scale(1.006)}to{transform:translate3d(-3px,-6px,0) rotateY(1.8deg) scale(1.012)}}
 @keyframes miniSpeak{from{transform:translateY(0) rotateZ(-.6deg) scale(1)}to{transform:translateY(-1px) rotateZ(.8deg) scale(1.025)}}
 @keyframes miniListen{to{transform:translateY(-2px) rotateY(-3deg) scale(1.018)}}
+
+@media(max-width:800px){.north-model{display:block!important;visibility:visible!important;opacity:1!important;z-index:1!important;background-image:var(--north-woman)!important;background-repeat:no-repeat!important;background-size:contain!important;background-position:center top!important;min-height:360px!important}.assistant-mini{display:block!important;background-image:var(--north-woman)!important;background-repeat:no-repeat!important;background-size:220% auto!important;background-position:48% 14%!important}}
