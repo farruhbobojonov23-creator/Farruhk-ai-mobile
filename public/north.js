@@ -858,3 +858,7 @@ function taskEditor(index=null){
   $('#taskEditor').elements.priority.value=existing?.priority||'normal';$('#cancelTaskEdit').onclick=renderTasks;
   $('#taskEditor').onsubmit=e=>{e.preventDefault();try{const f=e.target.elements,value=f.due.value;const task={...(existing||{}),id:existing?.id||crypto.randomUUID(),text:f.text.value.trim(),due:value?zonedToUtc(new Date(value),state.timeZone).toISOString():null,priority:f.priority.value,done:existing?.done||false,createdAt:existing?.createdAt||new Date().toISOString(),notifiedAt:null};if(!task.text)return;if(existing)state.tasks[index]=task;else state.tasks.unshift(task);save();renderTasks();toast('Задача сохранена')}catch(e){$('#taskError').textContent=e.message}};
 }
+
+// The hero CTA uses the existing voice flow; the portrait is a static visual.
+const startConversation=document.querySelector('#startConversation');
+if(startConversation)startConversation.onclick=()=>document.querySelector('#micBtn').click();

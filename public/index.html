@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru" data-ui="premium-gold-v2">
+<html lang="ru" data-ui="aurora-assistant-v1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#050403">
+  <meta name="theme-color" content="#061624">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +13,8 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/north.css?v=23.0">
   <link rel="stylesheet" href="/compact.css?v=1">
+  <link rel="stylesheet" href="/aurora.css?v=1">
+  <link rel="preload" href="/assets/aurora-assistant.webp" as="image">
 </head>
 <body>
   <script data-clean-literal-newlines>(function(){for(const n of [...document.body.childNodes]){if(n.nodeType===3&&/^(?:\\n\s*)+$/.test(n.textContent.trim()))n.remove()}})();</script>
@@ -22,31 +24,26 @@
   </div>
 
   <header class="topbar">
-    <div class="brand"><strong>FARRUKH AI</strong><span>PREMIUM AI ASSISTANT</span></div>
+    <div class="brand"><strong>FARRUKH AI</strong><span>ЛИЧНЫЙ АССИСТЕНТ</span></div>
+    <nav class="desktop-nav" aria-label="Разделы"><a href="/" aria-current="page">Главная</a><button data-action="chat">Чат</button><button data-action="tasks">Задачи</button><button data-action="documents">Документы</button><button data-action="analytics">Аналитика</button></nav>
     <div class="topmeta"><span id="syncStatus" role="status">Проверяю сохранение…</span><span id="today"></span><span class="status"><i></i><b id="aiStatus">AI</b></span></div>
   </header>
 
   <main class="shell">
     <section class="hero">
-      <div class="planet-wrap" aria-hidden="true">
-        <div class="planet">
-          <span class="rim"></span><span class="land l1"></span><span class="land l2"></span><span class="land l3"></span>
-          <span class="flare"></span>
-        </div>
-        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
-      </div>
-
       <div class="hero-copy">
         <p class="kicker">ВАШ ЛИЧНЫЙ AI-АССИСТЕНТ</p>
-        <h1>FARRUKH <em>AI</em></h1>
-        <p class="tagline">ИДЕИ <span>•</span> АНАЛИЗ <span>•</span> РЕШЕНИЯ <span>•</span> РЕЗУЛЬТАТ</p>
+        <h1>На связи,<br>Фаррух Ака</h1>
+        <p class="tagline">Идеи, задачи и решения — в одном месте.</p>
+        <span class="ready-badge"><i></i> Ваш помощник каждый день</span>
       </div>
 
       <form class="askbar" id="askForm">
         <button type="button" class="mic" id="micBtn" aria-label="Голосовой ввод" title="Говорить">🎙</button>
-        <input id="askInput" autocomplete="off" placeholder="Спроси FARRUKH AI…" aria-label="Запрос FARRUKH AI">
+        <input id="askInput" autocomplete="off" placeholder="Спросите меня…" aria-label="Запрос FARRUKH AI">
         <button class="go" type="submit" aria-label="Отправить">→</button>
       </form>
+      <div class="conversation-start"><div class="voice-wave" aria-hidden="true"><i style="--h:4px;--d:0.0s"></i><i style="--h:8px;--d:0.06s"></i><i style="--h:14px;--d:0.12s"></i><i style="--h:7px;--d:0.18s"></i><i style="--h:22px;--d:0.24s"></i><i style="--h:12px;--d:0.3s"></i><i style="--h:30px;--d:0.36s"></i><i style="--h:18px;--d:0.42s"></i><i style="--h:9px;--d:0.48s"></i><i style="--h:24px;--d:0.54s"></i><i style="--h:38px;--d:0.6s"></i><i style="--h:17px;--d:0.6599999999999999s"></i><i style="--h:28px;--d:0.72s"></i><i style="--h:12px;--d:0.78s"></i><i style="--h:35px;--d:0.84s"></i><i style="--h:20px;--d:0.8999999999999999s"></i><i style="--h:10px;--d:0.96s"></i><i style="--h:25px;--d:1.02s"></i><i style="--h:14px;--d:1.08s"></i><i style="--h:7px;--d:1.14s"></i><i style="--h:18px;--d:1.2s"></i><i style="--h:10px;--d:1.26s"></i><i style="--h:4px;--d:1.3199999999999998s"></i></div><button id="startConversation" type="button">Начать разговор <span aria-hidden="true">↗</span></button><small>Нажмите и разрешите микрофон</small></div>
     </section>
 
     <section class="command-center" aria-label="Командный центр">
@@ -75,10 +72,10 @@
     </section>
 
     <section class="cards" aria-label="Главные разделы">
-      <button class="card" data-action="chat"><span class="icon">✦</span><div><b>Спросить AI</b><small>Общение, идеи и рабочие вопросы</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="tasks"><span class="icon">✓</span><div><b>Задачи</b><small>Планирование и контроль</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="analytics"><span class="icon">▥</span><div><b>Аналитика</b><small>Показатели и отчёты</small></div><span class="arrow">↗</span></button>
-      <button class="card" data-action="tools"><span class="icon">⌘</span><div><b>Инструменты</b><small>Рабочие сервисы и расчёты</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="tasks"><span class="icon">✓</span><div><b>Задачи</b><small>Планы и напоминания</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="documents"><span class="icon">▤</span><div><b>Документы</b><small>Файлы и техкарты</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="analytics"><span class="icon">▥</span><div><b>Аналитика</b><small>Показатели четырёх точек</small></div><span class="arrow">↗</span></button>
+      <button class="card" data-action="tools"><span class="icon">⌘</span><div><b>Инструменты</b><small>Расчёты для кухни</small></div><span class="arrow">↗</span></button>
     </section>
   </main>
 
@@ -89,6 +86,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="/north.js?v=24.0"></script>
+  <script type="module" src="/north.js?v=25.0"></script>
 </body>
 </html>
