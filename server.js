@@ -2106,6 +2106,115 @@ app.post('/api/telegram/booking',async(req,res)=>{
   res.status(502).json({ok:false,error:'Не удалось сохранить заявку. Попробуйте ещё раз чуть позже.',detail:lastError});
 });
 
+
+// ---- Sushi Beri procurement PWA (Yandex Disk-backed, isolated from SHEF51 data) ----
+const PROCUREMENT_PATH='/FARRUKH_AI_STORAGE/SUSHI_BERI_PROCUREMENT/orders.json';
+const procurementAdminCode=()=>String(process.env.PROCUREMENT_ADMIN_CODE||'').trim();
+const procurementBranchCodes=()=>{
+  try{return JSON.parse(process.env.PROCUREMENT_BRANCH_CODES_JSON||'{}')}catch{return {}}
+};
+const procurementUnits=new Set(['кг','шт','л','уп','г','кор']);
+let procurementWriteQueue=Promise.resolve();
+
+async function procurementRead(){
+  const data=await readYandexJson(PROCUREMENT_PATH);
+  return data&&Array.isArray(data.orders)?data:{version:1,orders:[]};
+}
+async function procurementWrite(data){
+  await ensureFolder('/FARRUKH_AI_STORAGE/');
+  await ensureFolder('/FARRUKH_AI_STORAGE/SUSHI_BERI_PROCUREMENT/');
+  await writeYandexFile(PROCUREMENT_PATH,JSON.stringify(data,null,2),'application/json');
+}
+function procurementIdentity(req,res,next){
+  const code=String(req.headers['x-access-code']||'').trim();
+  const admin=code&&code===procurementAdminCode();
+  const branches=Object.entries(procurementBranchCodes()).filter(([,v])=>String(v)===code).map(([k])=>String(k));
+  if(!admin&&!branches.length)return res.status(401).json({error:'Неверный код доступа'});
+  req.proc={admin,branches,actor:admin?'admin':'branch:'+branches.join(',')};next();
+}
+function procurementCanBranch(req,b){return req.proc.admin||req.proc.branches.includes(String(b))}
+function procurementAdmin(req,res,next){if(!req.proc.admin)return res.status(403).json({error:'Только руководитель'});next()}
+function procurementValidBranch(b){return ['1','2','3','4'].includes(String(b))}
+function procurementValidSupplier(s){return ['1','2'].includes(String(s))}
+function procurementSanitizeName(v){return String(v||'').trim().replace(/\s+/g,' ').slice(0,100)}
+
+app.get('/api/procurement/health',async(req,res)=>{
+  try{const d=await procurementRead();res.json({ok:true,storage:'yandex',orders:d.orders.length})}
+  catch(e){res.status(503).json({ok:false,error:'Хранилище недоступно'})}
+});
+app.get('/api/procurement/me',procurementIdentity,(req,res)=>res.json({admin:req.proc.admin,branches:req.proc.branches}));
+app.get('/api/procurement/orders',procurementIdentity,async(req,res)=>{
+  try{
+    const d=await procurementRead();
+    const rows=req.proc.admin?d.orders:d.orders.filter(x=>req.proc.branches.includes(String(x.branch)));
+    res.json(rows.slice().sort((a,b)=>b.id-a.id).slice(0,1000));
+  }catch(e){res.status(503).json({error:'Нет связи с хранилищем'})}
+});
+app.post('/api/procurement/orders',procurementIdentity,async(req,res)=>{
+  const {branch,supplier,name,qty,unit}=req.body||{},b=String(branch),sp=String(supplier),nm=procurementSanitizeName(name),n=Number(qty);
+  if(!procurementValidBranch(b)||!procurementCanBranch(req,b)||!procurementValidSupplier(sp)||!nm||!Number.isFinite(n)||n<=0||n>999999||!procurementUnits.has(unit)||Math.round(n*1000)!==n*1000)return res.status(400).json({error:'Проверьте товар и количество'});
+  try{
+    let created;
+    procurementWriteQueue=procurementWriteQueue.then(async()=>{
+      const d=await procurementRead();
+      const nextId=(d.orders.reduce((m,x)=>Math.max(m,Number(x.id)||0),0)||0)+1;
+      created={id:nextId,branch:b,supplier:sp,name:nm,qty:n,unit,status:'draft',createdBy:req.proc.actor,createdAt:new Date().toISOString(),sentAt:null};
+      d.orders.push(created);await procurementWrite(d);
+    });
+    await procurementWriteQueue;res.status(201).json({ok:true,id:created.id});
+  }catch(e){res.status(503).json({error:'Не удалось сохранить'})}
+});
+app.delete('/api/procurement/orders/:id',procurementIdentity,async(req,res)=>{
+  try{
+    let removed=false;
+    procurementWriteQueue=procurementWriteQueue.then(async()=>{
+      const d=await procurementRead();const id=Number(req.params.id);
+      const idx=d.orders.findIndex(x=>Number(x.id)===id&&x.status==='draft'&&procurementCanBranch(req,x.branch));
+      if(idx>=0){d.orders.splice(idx,1);removed=true;await procurementWrite(d)}
+    });
+    await procurementWriteQueue;res.status(removed?200:403).json({ok:removed});
+  }catch(e){res.status(503).json({error:'Не удалось удалить'})}
+});
+app.post('/api/procurement/submit',procurementIdentity,async(req,res)=>{
+  const b=String(req.body?.branch);if(!procurementValidBranch(b)||!procurementCanBranch(req,b))return res.sendStatus(403);
+  try{
+    let count=0;
+    procurementWriteQueue=procurementWriteQueue.then(async()=>{
+      const d=await procurementRead();
+      for(const x of d.orders)if(x.branch===b&&x.status==='draft'){x.status='submitted';count++}
+      if(count)await procurementWrite(d);
+    });
+    await procurementWriteQueue;res.json({ok:true,count});
+  }catch(e){res.status(503).json({error:'Не удалось передать'})}
+});
+app.get('/api/procurement/summary',procurementIdentity,procurementAdmin,async(req,res)=>{
+  const sp=String(req.query.supplier);if(!procurementValidSupplier(sp))return res.sendStatus(400);
+  try{
+    const d=await procurementRead(), map=new Map();
+    for(const x of d.orders.filter(x=>x.supplier===sp&&x.status==='submitted')){
+      const k=x.name.toLowerCase()+'|'+x.unit;
+      if(map.has(k))map.get(k).qty+=Number(x.qty);else map.set(k,{name:x.name,qty:Number(x.qty),unit:x.unit});
+    }
+    res.json([...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'ru')));
+  }catch(e){res.status(503).json({error:'Не удалось собрать свод'})}
+});
+app.post('/api/procurement/finalize',procurementIdentity,procurementAdmin,async(req,res)=>{
+  const sp=String(req.body?.supplier);if(!procurementValidSupplier(sp))return res.sendStatus(400);
+  try{
+    let text='';
+    procurementWriteQueue=procurementWriteQueue.then(async()=>{
+      const d=await procurementRead(), rows=d.orders.filter(x=>x.supplier===sp&&x.status==='submitted');
+      if(!rows.length){const e=new Error('EMPTY');e.status=409;throw e}
+      const map=new Map();for(const x of rows){const k=x.name.toLowerCase()+'|'+x.unit;if(map.has(k))map.get(k).qty+=Number(x.qty);else map.set(k,{name:x.name,qty:Number(x.qty),unit:x.unit})}
+      const lines=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(x=>x.name+' — '+Number(x.qty.toFixed(3)).toLocaleString('ru-RU')+' '+x.unit);
+      text='СУШИ БЕРИ — '+(sp==='1'?'АЛИДИ':'ШАНХАЙ')+'\n\n'+lines.join('\n');
+      const now=new Date().toISOString();for(const x of rows){x.status='sent';x.sentAt=now}
+      await procurementWrite(d);
+    });
+    await procurementWriteQueue;res.json({ok:true,text});
+  }catch(e){res.status(e.status||503).json({error:e.status===409?'Нет новых подтверждённых заявок':'Не удалось сформировать заказ'})}
+});
+
 const port=Number(process.env.PORT||3000);
 app.listen(port,()=>{
   console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`);
@@ -2122,5 +2231,4 @@ app.listen(port,()=>{
     }
   },1500);
 });
-
 
