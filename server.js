@@ -2220,6 +2220,16 @@ app.listen(port,()=>{
   console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`);
   setTimeout(async()=>{
     try{
+      const current=await procurementRead();
+      if(!current||!Array.isArray(current.orders))throw new Error('invalid procurement storage');
+      if(!await readYandexJson(PROCUREMENT_PATH))await procurementWrite({version:1,orders:[]});
+      console.log('[procurement-check] ready=true storage=yandex adminCode='+Boolean(procurementAdminCode())+' branches='+Object.keys(procurementBranchCodes()).length);
+    }catch(err){
+      console.log('[procurement-check] ready=false error='+(err?.message||'unknown'));
+    }
+  },700);
+  setTimeout(async()=>{
+    try{
       console.log('[telegram-check] tokenConfigured='+Boolean(telegramToken()));
       if(telegramToken()){
         const me=await telegramRequest('getMe',{});
@@ -2231,4 +2241,3 @@ app.listen(port,()=>{
     }
   },1500);
 });
-
