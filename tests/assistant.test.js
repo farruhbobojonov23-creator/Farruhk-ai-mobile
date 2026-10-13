@@ -69,6 +69,7 @@ test('API access rejects unauthenticated callers and cross-origin mutations',()=
     middlewares[0](req,res,()=>passed=true);assert.equal(res.code,401);assert.equal(passed,false);
     const auth=ownerAuth({password:'test-password',secret:'test-secret'});req.headers.cookie='fai_owner='+auth.login('test-password');req.method='PUT';req.headers.origin='https://evil.example';middlewares[0](req,res,()=>passed=true);assert.equal(res.code,403);
     req.headers.origin='https://example.com';middlewares[0](req,res,()=>passed=true);assert.equal(passed,true);
+    req.path='/api/voice/speak';req.headers.cookie='';res.code=null;passed=false;middlewares[0](req,res,()=>passed=true);assert.equal(res.code,401);assert.equal(passed,false);
   }finally{if(oldPasswordless===undefined)delete process.env.ASSISTANT_PASSWORDLESS;else process.env.ASSISTANT_PASSWORDLESS=oldPasswordless;if(oldPassword===undefined)delete process.env.ASSISTANT_PASSWORD;else process.env.ASSISTANT_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.ASSISTANT_SESSION_SECRET;else process.env.ASSISTANT_SESSION_SECRET=oldSecret}
 });
 test('Edits during in-flight sync schedule another save; conflict does not report success',async()=>{
