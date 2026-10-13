@@ -6,10 +6,13 @@ export function httpError(status,message){return Object.assign(new Error(message
 export function cleanState(input={}){
   const text=(v,n)=>String(v??'').slice(0,n);
   const list=(v)=>Array.isArray(v)?v:[];
+  const positive=v=>Number.isFinite(Number(v))?Math.min(10000000,Math.max(0,Number(v))):0;
   return {
     tasks:list(input.tasks).slice(-300).map(t=>({id:text(t.id||crypto.randomUUID(),80),text:text(t.text,500),done:!!t.done,priority:t.priority==='high'?'high':'normal',due:t.due&&Number.isFinite(Date.parse(t.due))?new Date(t.due).toISOString():null,createdAt:text(t.createdAt,64)||new Date().toISOString(),notifiedAt:t.notifiedAt?text(t.notifiedAt,64):null})).filter(t=>t.text),
     memory:list(input.memory).slice(-200).map(m=>({id:text(m.id||crypto.randomUUID(),80),text:text(m.text,1000),createdAt:text(m.createdAt,64)})).filter(m=>m.text),
     chat:list(input.chat).slice(-80).map(m=>({role:m.role==='user'?'user':'ai',text:text(m.text,6000)})).filter(m=>m.text),
+    recipes:list(input.recipes).slice(-300).map(r=>({id:text(r.id||crypto.randomUUID(),80),name:text(r.name,200),category:text(r.category,100),status:['draft','ready'].includes(r.status)?r.status:'draft',technology:text(r.technology,10000),ingredients:list(r.ingredients).slice(0,100).map(i=>({name:text(i.name,200),grams:positive(i.grams),price:positive(i.price)}))})).filter(r=>r.name),
+    inspections:list(input.inspections).slice(-300).map(i=>({id:text(i.id||crypto.randomUUID(),80),point:text(i.point,120),text:text(i.text,1000),owner:text(i.owner,120),due:text(i.due,30),done:!!i.done})).filter(i=>i.text),
     tts:input.tts!==false,
     timeZone:validTimeZone(input.timeZone)?input.timeZone:'Europe/Moscow'
   };
@@ -30,7 +33,7 @@ export class AssistantStore{
   save(input){return this.transaction(async()=>{
     const current=await this.state();
     if(input.revision!==current.revision)throw Object.assign(httpError(409,'Данные изменились на другом устройстве. Сверьте версии перед сохранением.'),{state:current});
-    const next={...cleanState(input),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
+    const next={...cleanState({...input,recipes:input.recipes??current.recipes,inspections:input.inspections??current.inspections}),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
     await this.write('state.json',next);return next;
   })}
   mutate(fn){return this.transaction(async()=>{const current=await this.state();await fn(current);const next={...current,revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};await this.write('state.json',next);return next})}
