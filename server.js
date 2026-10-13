@@ -14,6 +14,18 @@ const frontpadUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:15*
 app.use(express.json({limit:'20mb'}));
 app.use(express.urlencoded({extended:false,limit:'1mb'}));
 
+app.use('/api/frontpad/browser-import',(req,res,next)=>{
+  const origin=String(req.headers.origin||'');
+  if(origin==='https://app.frontpad.ru'){
+    res.setHeader('Access-Control-Allow-Origin',origin);
+    res.setHeader('Vary','Origin');
+    res.setHeader('Access-Control-Allow-Headers','Content-Type');
+    res.setHeader('Access-Control-Allow-Methods','POST, OPTIONS');
+  }
+  if(req.method==='OPTIONS')return res.sendStatus(204);
+  next();
+});
+
 const apiRate=new Map();
 app.use((req,res,next)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
@@ -456,7 +468,16 @@ app.post('/api/frontpad/browser-import',async(req,res)=>{
     };
     await fs.mkdir(new URL('./data/',import.meta.url),{recursive:true});
     await fs.writeFile(new URL('./data/frontpad-browser-latest.json',import.meta.url),JSON.stringify(snapshot,null,2),'utf8');
-    res.json({ok:true,receivedAt:snapshot.receivedAt,tables:snapshot.tables.length});
+    if(yandexToken()){
+      const diskPath='/FARRUKH_AI_STORAGE/FARRUKH_AI/frontpad-browser-latest.json';
+      await ensureFolder('/FARRUKH_AI_STORAGE/');
+      await ensureFolder('/FARRUKH_AI_STORAGE/FARRUKH_AI/');
+      const hrefData=await yandexRequest('/resources/upload?path='+encodeURIComponent(diskPath)+'&overwrite=true',{method:'GET'});
+      const upload=await fetch(hrefData.href,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(snapshot,null,2),signal:AbortSignal.timeout(12000)});
+      if(!upload.ok)throw new Error('Frontpad cloud save HTTP '+upload.status);
+    }
+    console.log('[frontpad-browser-import] received',{url:snapshot.url,tables:snapshot.tables.length,receivedAt:snapshot.receivedAt,cloud:Boolean(yandexToken())});
+    res.json({ok:true,receivedAt:snapshot.receivedAt,tables:snapshot.tables.length,persistent:Boolean(yandexToken())});
   }catch(err){
     console.error('[frontpad-browser-import]',err?.message||err);
     res.status(500).json({ok:false,error:'Не удалось сохранить данные Frontpad.'});
@@ -663,11 +684,21 @@ app.post('/api/frontpad/auth/complete',requireSameOrigin,async(req,res)=>{
 });
 
 async function browserFrontpadSnapshot(){
+  let d=null;
   try{
     const raw=await fs.readFile(new URL('./data/frontpad-browser-latest.json',import.meta.url),'utf8');
-    const d=JSON.parse(raw);
-    return {ok:true,automaticReports:false,periodComplete:false,capturedAt:d.timestamp||d.receivedAt||null,date:String(d.timestamp||d.receivedAt||'').slice(0,10)||'не указана',source:'Frontpad через Tampermonkey',url:d.url||'',title:d.title||'',heading:d.heading||'',tables:Array.isArray(d.tables)?d.tables:[],text:String(d.text||'').slice(0,150000),receivedAt:d.receivedAt||null};
-  }catch{return null}
+    d=JSON.parse(raw);
+  }catch{}
+  if(!d&&yandexToken()){
+    try{
+      const diskPath='/FARRUKH_AI_STORAGE/FARRUKH_AI/frontpad-browser-latest.json';
+      const meta=await yandexRequest('/resources/download?path='+encodeURIComponent(diskPath),{method:'GET'});
+      const r=await fetch(meta.href,{signal:AbortSignal.timeout(12000)});
+      if(r.ok)d=await r.json();
+    }catch(e){if(e.status!==404)console.error('[frontpad-browser-load]',e?.message||e)}
+  }
+  if(!d)return null;
+  return {ok:true,automaticReports:true,periodComplete:false,capturedAt:d.timestamp||d.receivedAt||null,date:String(d.timestamp||d.receivedAt||'').slice(0,10)||'не указана',source:'Frontpad через Tampermonkey',url:d.url||'',title:d.title||'',heading:d.heading||'',tables:Array.isArray(d.tables)?d.tables:[],text:String(d.text||'').slice(0,150000),receivedAt:d.receivedAt||null};
 }
 
 function analyticsSnapshot(){
