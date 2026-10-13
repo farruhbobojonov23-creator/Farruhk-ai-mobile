@@ -662,6 +662,14 @@ app.post('/api/frontpad/auth/complete',requireSameOrigin,async(req,res)=>{
   }
 });
 
+async function browserFrontpadSnapshot(){
+  try{
+    const raw=await fs.readFile(new URL('./data/frontpad-browser-latest.json',import.meta.url),'utf8');
+    const d=JSON.parse(raw);
+    return {ok:true,automaticReports:false,periodComplete:false,capturedAt:d.timestamp||d.receivedAt||null,date:String(d.timestamp||d.receivedAt||'').slice(0,10)||'не указана',source:'Frontpad через Tampermonkey',url:d.url||'',title:d.title||'',heading:d.heading||'',tables:Array.isArray(d.tables)?d.tables:[],text:String(d.text||'').slice(0,150000),receivedAt:d.receivedAt||null};
+  }catch{return null}
+}
+
 function analyticsSnapshot(){
   const branches=[
     {name:'Полярные зори 43/1',units:49,strongCategory:'Роллы',strongCategoryUnits:23,topItem:'Чизкейк Классический',topItemUnits:9},    {name:'Баумана 18',units:30,strongCategory:'Роллы',strongCategoryUnits:12,topItem:'Огурец маки',topItemUnits:3},
@@ -680,7 +688,7 @@ function analyticsSnapshot(){
     summary:'По объёму проданных единиц лидирует ГС 33а — 62. Затем Полярные зори 43/1 — 49, Плазма — 41 и Баумана 18 — 30. На всех точках основная категория — роллы, кроме Плазмы, где заметная доля проходит через категорию «Интеграция Яндекс». Для управленческих выводов по выручке и прибыли нужно дополнительно подключить отчёты «Выручка», «Себестоимость» и «Прибыль и убытки».'
   };
 }
-app.get('/api/analytics/snapshot',(req,res)=>res.json(analyticsSnapshot()));
+app.get('/api/analytics/snapshot',async(req,res)=>res.json((await browserFrontpadSnapshot())||analyticsSnapshot()));
 
 app.post('/api/transcribe',async(req,res)=>{
   if(!hasKey)return res.status(503).json({error:'AI-распознавание голоса не настроено на сервере.'});
@@ -717,7 +725,7 @@ app.post('/api/chat',async(req,res)=>{
     const terms=message.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(x=>x.length>2);
     clientContext.documents=docs.filter(d=>selected.includes(d.id)).map(d=>{const parts=d.text.split(/\n\s*\n/).map((text,i)=>({text,index:i+1,score:terms.reduce((n,t)=>n+(text.toLowerCase().includes(t)?1:0),0)}));return {id:d.id,name:d.name,excerpts:parts.sort((a,b)=>b.score-a.score).slice(0,8).map(p=>({paragraph:p.index,text:p.text.slice(0,3000)}))}});
   }
-  const context={...clientContext,frontpad:clientContext.frontpad||analyticsSnapshot()};
+  const context={...clientContext,frontpad:clientContext.frontpad||(await browserFrontpadSnapshot())||analyticsSnapshot()};
   if(!message)return res.status(400).json({error:'Пустая команда'});
 
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
