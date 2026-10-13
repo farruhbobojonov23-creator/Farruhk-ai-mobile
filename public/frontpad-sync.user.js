@@ -1,10 +1,12 @@
 // ==UserScript==
-// @name         FARRUKH AI — Frontpad Reports Sync
+// @name         FARRUKH AI — Frontpad Live
 // @namespace    https://farruhk-ai-mobile.onrender.com/
-// @version      2.0.0
-// @description  Синхронизация отчётов Frontpad с FARRUKH AI
-// @match        https://app.frontpad.ru/*
-// @grant        none
+// @version      3.0.0
+// @description  Автоматически отправляет открытый отчёт Frontpad в FARRUKH AI
+// @match        *://*.frontpad.ru/*
+// @match        *://frontpad.ru/*
+// @grant        GM_xmlhttpRequest
+// @connect      farruhk-ai-mobile.onrender.com
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -23,153 +25,165 @@
   ];
   const PERIODS = ['Сегодня','Вчера','Неделя','Месяц','Год'];
 
-  let timer = null;
   let lastSignature = '';
   let lastSentAt = 0;
+  let timer = null;
 
   const clean = s => String(s || '').replace(/\s+/g, ' ').trim();
 
-  function visible(el) {
-    if (!el) return false;
-    const st = getComputedStyle(el);
-    const r = el.getBoundingClientRect();
-    return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 0 && r.height > 0;
-  }
-
-  function activeText() {
-    const selectors = [
-      '[aria-current="page"]','[aria-selected="true"]','[aria-pressed="true"]',
-      '.active','.selected','.current','.is-active','.nav-active',
-      'h1','h2','h3'
-    ];
-    const parts = [];
-    for (const sel of selectors) {
-      document.querySelectorAll(sel).forEach(el => {
-        if (visible(el)) {
-          const t = clean(el.innerText || el.textContent);
-          if (t && t.length < 180) parts.push(t);
-        }
+  function badge(text, ok) {
+    let el = document.getElementById('farrukh-ai-sync-badge');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'farrukh-ai-sync-badge';
+      Object.assign(el.style, {
+        position:'fixed', right:'14px', bottom:'14px', zIndex:'2147483647',
+        padding:'10px 13px', borderRadius:'999px', font:'600 12px Arial,sans-serif',
+        boxShadow:'0 10px 30px rgba(0,0,0,.22)', cursor:'default'
       });
+      document.documentElement.appendChild(el);
     }
-    return parts.join(' | ');
+    el.textContent = text;
+    el.style.background = ok ? '#0f8f55' : '#161616';
+    el.style.color = '#fff';
+    el.style.border = ok ? '1px solid #48c989' : '1px solid #4b4b4b';
   }
 
   function detectReport() {
-    const focused = activeText();
+    const all = clean(document.body?.innerText).toLowerCase();
     for (const [id, name] of REPORTS) {
-      if (focused.toLowerCase().includes(name.toLowerCase())) return {id, name};
-    }
-    const heading = clean(document.querySelector('h1,h2,h3')?.innerText);
-    for (const [id, name] of REPORTS) {
-      if (heading.toLowerCase().includes(name.toLowerCase())) return {id, name};
+      if (all.includes(name.toLowerCase())) return {id, name};
     }
     return {id:'', name:''};
   }
 
   function detectPeriod() {
-    const candidates = [...document.querySelectorAll('button,a,[role="button"],label,span')];
-    for (const p of PERIODS) {
-      const hit = candidates.find(el => visible(el) && clean(el.textContent) === p &&
-        (el.matches('[aria-selected="true"],[aria-pressed="true"],.active,.selected,.current,.is-active') ||
-         el.closest('[aria-selected="true"],[aria-pressed="true"],.active,.selected,.current,.is-active')));
-      if (hit) return p;
-    }
-    const dateInputs = [...document.querySelectorAll('input')].filter(el =>
-      visible(el) && /date|дата/i.test((el.type||'')+' '+(el.name||'')+' '+(el.placeholder||'')));
-    const vals = dateInputs.map(x => clean(x.value)).filter(Boolean);
-    if (vals.length >= 2) return vals[0] + ' — ' + vals[1];
+    const selected = [...document.querySelectorAll(
+      '[aria-selected="true"],[aria-pressed="true"],.active,.selected,.current,.is-active'
+    )].map(x => clean(x.innerText || x.textContent)).join(' | ');
+
+    for (const p of PERIODS) if (selected.includes(p)) return p;
+
+    const body = clean(document.body?.innerText);
+    for (const p of PERIODS) if (body.includes(p)) return p;
+
+    const inputs = [...document.querySelectorAll('input')].map(x => clean(x.value)).filter(Boolean);
+    if (inputs.length >= 2) return inputs[0] + ' — ' + inputs[1];
     return '';
   }
 
   function detectBranch() {
-    const selectors = [
-      'select[name*="branch" i]','select[name*="point" i]','select[name*="filial" i]',
-      'select[id*="branch" i]','select[id*="point" i]','select[id*="filial" i]'
-    ];
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      const t = clean(el?.selectedOptions?.[0]?.textContent);
-      if (t) return t;
+    const selects = [...document.querySelectorAll('select')];
+    for (const el of selects) {
+      const label = clean((el.name || '') + ' ' + (el.id || '') + ' ' + (el.previousElementSibling?.textContent || ''));
+      if (/точк|филиал|branch|point|restaurant|подраздел/i.test(label)) {
+        const t = clean(el.selectedOptions?.[0]?.textContent);
+        if (t) return t;
+      }
     }
     return '';
   }
 
   function extractTables() {
-    return [...document.querySelectorAll('table')].filter(visible).map((table, index) => {
+    const result = [];
+    document.querySelectorAll('table').forEach((table, index) => {
       const rows = [...table.querySelectorAll('tr')].map(tr =>
         [...tr.querySelectorAll('th,td')].map(td => clean(td.innerText || td.textContent))
       ).filter(r => r.some(Boolean));
+      if (!rows.length) return;
+
       const caption = clean(table.querySelector('caption')?.innerText);
-      const nearby = clean(table.closest('section,article,.card,.panel,.content,.tab-pane')?.querySelector('h1,h2,h3,h4,h5')?.innerText);
-      return {
+      const holder = table.closest('section,article,.card,.panel,.content,.tab-pane,.report');
+      const nearby = clean(holder?.querySelector('h1,h2,h3,h4,h5')?.innerText);
+
+      result.push({
         title: caption || nearby || ('Таблица ' + (index + 1)),
-        rows
-      };
-    }).filter(t => t.rows.length);
+        rows: rows.slice(0, 1000)
+      });
+    });
+    return result.slice(0, 50);
   }
 
-  function payload() {
+  function makePayload() {
     const report = detectReport();
-    const heading = clean(document.querySelector('h1,h2,h3')?.innerText);
-    const tables = extractTables();
     return {
-      source: 'frontpad',
-      url: location.href,
-      title: document.title,
-      heading,
-      report: report.id,
-      reportName: report.name,
-      period: detectPeriod(),
-      branch: detectBranch(),
-      timestamp: new Date().toISOString(),
-      tables,
-      text: clean(document.body?.innerText).slice(0, 150000)
+      source:'frontpad',
+      url:location.href,
+      title:document.title,
+      heading:clean(document.querySelector('h1,h2,h3')?.innerText),
+      report:report.id,
+      reportName:report.name,
+      period:detectPeriod(),
+      branch:detectBranch(),
+      timestamp:new Date().toISOString(),
+      tables:extractTables(),
+      text:clean(document.body?.innerText).slice(0,150000)
     };
   }
 
+  function post(data) {
+    return new Promise((resolve, reject) => {
+      GM_xmlhttpRequest({
+        method:'POST',
+        url:ENDPOINT,
+        headers:{'Content-Type':'application/json'},
+        data:JSON.stringify(data),
+        timeout:20000,
+        onload:r => r.status >= 200 && r.status < 300 ? resolve(r) : reject(new Error('HTTP ' + r.status)),
+        onerror:() => reject(new Error('network')),
+        ontimeout:() => reject(new Error('timeout'))
+      });
+    });
+  }
+
   async function send(force = false) {
+    const data = makePayload();
+    const signature = JSON.stringify({
+      url:data.url, report:data.report, period:data.period, branch:data.branch, tables:data.tables
+    });
+    const now = Date.now();
+    if (!force && signature === lastSignature && now - lastSentAt < 30000) return;
+
+    badge('FARRUKH AI · отправка…', false);
     try {
-      const data = payload();
-      const signature = JSON.stringify({
-        url:data.url, report:data.report, period:data.period, branch:data.branch,
-        tables:data.tables
-      });
-      const now = Date.now();
-      if (!force && signature === lastSignature && now - lastSentAt < 60000) return;
-
-      const r = await fetch(ENDPOINT, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'omit',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-
+      await post(data);
       lastSignature = signature;
       lastSentAt = now;
-      console.log('[FARRUKH AI] Frontpad sync OK', {
+      badge('FARRUKH AI ✓ данные отправлены', true);
+      console.log('[FARRUKH AI] sync ok', {
         report:data.reportName || 'не определён',
         period:data.period || 'не определён',
+        branch:data.branch || 'все точки',
         tables:data.tables.length
       });
     } catch (e) {
-      console.error('[FARRUKH AI] Frontpad sync error', e);
+      badge('FARRUKH AI · ошибка отправки', false);
+      console.error('[FARRUKH AI] sync error', e);
     }
   }
 
   function schedule(force = false) {
     clearTimeout(timer);
-    timer = setTimeout(() => send(force), 1400);
+    timer = setTimeout(() => send(force), 1200);
   }
 
+  badge('FARRUKH AI · скрипт запущен', false);
   window.addEventListener('load', () => schedule(true));
   document.addEventListener('click', () => schedule(false), true);
   document.addEventListener('change', () => schedule(true), true);
 
-  const observer = new MutationObserver(() => schedule(false));
-  observer.observe(document.documentElement, {subtree:true, childList:true, characterData:true});
+  let oldUrl = location.href;
+  setInterval(() => {
+    if (location.href !== oldUrl) {
+      oldUrl = location.href;
+      schedule(true);
+    } else {
+      send(false);
+    }
+  }, 15000);
 
-  setInterval(() => send(false), 60000);
+  new MutationObserver(() => schedule(false))
+    .observe(document.documentElement, {subtree:true, childList:true, characterData:true});
+
   schedule(true);
 })();
