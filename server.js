@@ -439,6 +439,30 @@ function parseCsvText(text){
   row.push(cell);if(row.some(x=>String(x).trim()))rows.push(row);
   return rows;
 }
+app.post('/api/frontpad/browser-import',async(req,res)=>{
+  try{
+    const payload=req.body;
+    if(!payload||typeof payload!=='object')return res.status(400).json({ok:false,error:'Некорректные данные Frontpad.'});
+    if(String(payload.source||'')!=='frontpad')return res.status(400).json({ok:false,error:'Неизвестный источник данных.'});
+    const snapshot={
+      source:'frontpad-browser',
+      url:String(payload.url||'').slice(0,2000),
+      title:String(payload.title||'').slice(0,500),
+      heading:String(payload.heading||'').slice(0,500),
+      timestamp:String(payload.timestamp||new Date().toISOString()),
+      tables:Array.isArray(payload.tables)?payload.tables.slice(0,100):[],
+      text:String(payload.text||'').slice(0,150000),
+      receivedAt:new Date().toISOString()
+    };
+    await fs.mkdir(new URL('./data/',import.meta.url),{recursive:true});
+    await fs.writeFile(new URL('./data/frontpad-browser-latest.json',import.meta.url),JSON.stringify(snapshot,null,2),'utf8');
+    res.json({ok:true,receivedAt:snapshot.receivedAt,tables:snapshot.tables.length});
+  }catch(err){
+    console.error('[frontpad-browser-import]',err?.message||err);
+    res.status(500).json({ok:false,error:'Не удалось сохранить данные Frontpad.'});
+  }
+});
+
 app.post('/api/frontpad/upload',requireSameOrigin,frontpadUpload.single('file'),async(req,res)=>{
   try{
     if(!req.file)return res.status(400).json({ok:false,error:'Выбери файл Frontpad.'});
