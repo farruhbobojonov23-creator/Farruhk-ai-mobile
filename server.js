@@ -487,7 +487,16 @@ app.post('/api/frontpad/browser-import',async(req,res)=>{
         if(!reportUpload.ok)throw new Error('Frontpad report cloud save HTTP '+reportUpload.status);
       }
     }
-    console.log('[frontpad-browser-import] received',{url:snapshot.url,report:snapshot.report||null,period:snapshot.period||null,tables:snapshot.tables.length,receivedAt:snapshot.receivedAt,cloud:Boolean(yandexToken())});
+    console.log('[frontpad-browser-import] received',{
+      url:snapshot.url,report:snapshot.report||null,period:snapshot.period||null,
+      tables:snapshot.tables.length,receivedAt:snapshot.receivedAt,cloud:Boolean(yandexToken()),
+      structure:snapshot.tables.slice(0,12).map((t,i)=>({
+        i,
+        title:String(t?.title||'').slice(0,120),
+        rows:Array.isArray(t?.rows)?t.rows.length:0,
+        first:Array.isArray(t?.rows?.[0])?t.rows[0].slice(0,16):[]
+      }))
+    });
     res.json({ok:true,receivedAt:snapshot.receivedAt,report:snapshot.report||null,period:snapshot.period||null,tables:snapshot.tables.length,persistent:Boolean(yandexToken())});
   }catch(err){
     console.error('[frontpad-browser-import]',err?.message||err);
