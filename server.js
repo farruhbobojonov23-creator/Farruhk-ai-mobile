@@ -733,6 +733,78 @@ app.get('/api/frontpad/browser-report/:id',async(req,res)=>{
   res.json({ok:true,automaticReports:true,report:def.id,reportName:def.name,period:d.period||'',branch:d.branch||'',capturedAt:d.timestamp||d.receivedAt||null,receivedAt:d.receivedAt||null,tables:Array.isArray(d.tables)?d.tables:[],text:String(d.text||'').slice(0,150000),url:d.url||''});
 });
 
+function summarizeBrowserFrontpad(d){
+  const tables=Array.isArray(d?.tables)?d.tables:[];
+  const branchDefs=[
+    {name:'Полярные зори 43/1',re:/полярн.*зор/i},
+    {name:'Баумана 18',re:/бауман/i},
+    {name:'ГС 33а',re:/\bгс\s*33\s*а?\b/i},
+    {name:'Плазма',re:/плазм/i}
+  ];
+  const found=new Map();
+  const revenueCandidates=[],orderCandidates=[],avgCandidates=[];
+
+  for(const table of tables){
+    const rows=Array.isArray(table)?table:(Array.isArray(table?.rows)?table.rows:[]);
+    if(!rows.length)continue;
+    const s=frontpadUploadSummary(rows);
+    const headers=s.headers||[];
+    const revIdx=headers.findIndex(h=>/выручк|сумма\s*продаж|оборот|итого.*сумм|сумм.*итог/i.test(h));
+    const orderIdx=headers.findIndex(h=>/^заказ|кол-?во\s*заказ|заказ.*кол/i.test(h));
+    const avgIdx=headers.findIndex(h=>/средн.*чек/i.test(h));
+
+    for(const m of s.metrics||[]){
+      if(m.label==='Выручка'&&Number.isFinite(m.value))revenueCandidates.push(m.value);
+      if(m.label==='Заказы'&&Number.isFinite(m.value))orderCandidates.push(m.value);
+      if(m.label==='Средний чек'&&Number.isFinite(m.value))avgCandidates.push(m.value);
+    }
+
+    for(const row of s.data||[]){
+      const joined=row.map(normalizeCell).join(' | ');
+      const def=branchDefs.find(x=>x.re.test(joined));
+      if(!def)continue;
+      const current=found.get(def.name)||{name:def.name};
+      if(revIdx>=0){
+        const v=numCell(row[revIdx]);
+        if(v!==null&&v>=0)current.revenue=Math.max(current.revenue??0,v);
+      }
+      if(orderIdx>=0){
+        const v=numCell(row[orderIdx]);
+        if(v!==null&&v>=0)current.orders=Math.max(current.orders??0,v);
+      }
+      if(avgIdx>=0){
+        const v=numCell(row[avgIdx]);
+        if(v!==null&&v>=0)current.averageCheck=Math.max(current.averageCheck??0,v);
+      }
+      found.set(def.name,current);
+    }
+  }
+
+  const branches=branchDefs.map(x=>found.get(x.name)||{name:x.name});
+  const revenueBranches=branches.filter(x=>Number.isFinite(x.revenue));
+  const ordersBranches=branches.filter(x=>Number.isFinite(x.orders));
+
+  let revenue=null,orders=null,averageCheck=null;
+  if(revenueBranches.length>=2) revenue=revenueBranches.reduce((a,b)=>a+b.revenue,0);
+  else if(revenueCandidates.length===1) revenue=revenueCandidates[0];
+  else if(revenueCandidates.length>1) revenue=Math.max(...revenueCandidates);
+
+  if(ordersBranches.length>=2) orders=ordersBranches.reduce((a,b)=>a+b.orders,0);
+  else if(orderCandidates.length===1) orders=orderCandidates[0];
+  else if(orderCandidates.length>1) orders=Math.max(...orderCandidates);
+
+  if(avgCandidates.length===1) averageCheck=avgCandidates[0];
+  else if(Number.isFinite(revenue)&&Number.isFinite(orders)&&orders>0) averageCheck=revenue/orders;
+  else if(avgCandidates.length>1) averageCheck=Math.max(...avgCandidates);
+
+  return {
+    revenue:Number.isFinite(revenue)?revenue:null,
+    orders:Number.isFinite(orders)?orders:null,
+    averageCheck:Number.isFinite(averageCheck)?averageCheck:null,
+    branches
+  };
+}
+
 async function browserFrontpadSnapshot(){
   let d=null;
   try{
@@ -748,7 +820,18 @@ async function browserFrontpadSnapshot(){
     }catch(e){if(e.status!==404)console.error('[frontpad-browser-load]',e?.message||e)}
   }
   if(!d)return null;
-  return {ok:true,automaticReports:true,periodComplete:false,capturedAt:d.timestamp||d.receivedAt||null,date:String(d.timestamp||d.receivedAt||'').slice(0,10)||'не указана',source:'Frontpad через Tampermonkey',url:d.url||'',title:d.title||'',heading:d.heading||'',report:d.report||'',reportName:d.reportName||'',period:d.period||'',branch:d.branch||'',tables:Array.isArray(d.tables)?d.tables:[],text:String(d.text||'').slice(0,150000),receivedAt:d.receivedAt||null};
+  const parsed=summarizeBrowserFrontpad(d);
+  return {
+    ok:true,automaticReports:true,periodComplete:false,
+    capturedAt:d.timestamp||d.receivedAt||null,
+    date:String(d.timestamp||d.receivedAt||'').slice(0,10)||'не указана',
+    source:'Frontpad через Tampermonkey',
+    url:d.url||'',title:d.title||'',heading:d.heading||'',
+    report:d.report||'',reportName:d.reportName||'',period:d.period||'',branch:d.branch||'',
+    revenue:parsed.revenue,orders:parsed.orders,averageCheck:parsed.averageCheck,branches:parsed.branches,
+    tables:Array.isArray(d.tables)?d.tables:[],
+    text:String(d.text||'').slice(0,150000),receivedAt:d.receivedAt||null
+  };
 }
 
 function analyticsSnapshot(){
