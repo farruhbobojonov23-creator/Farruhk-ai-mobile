@@ -1,92 +1,23 @@
 <!doctype html>
-<html lang="ru" data-ui="aurora-assistant-v1">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#061624">
-  <meta name="color-scheme" content="dark">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FARRUKH AI">
-  <link rel="icon" href="/icon-192.svg" type="image/svg+xml">
-  <title>FARRUKH AI</title>
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/north.css?v=23.0">
-  <link rel="stylesheet" href="/compact.css?v=1">
-  <link rel="stylesheet" href="/aurora.css?v=2">
-  <link rel="preload" href="/assets/aurora-assistant.webp" as="image">
-</head>
-<body>
-  <script data-clean-literal-newlines>(function(){for(const n of [...document.body.childNodes]){if(n.nodeType===3&&/^(?:\\n\s*)+$/.test(n.textContent.trim()))n.remove()}})();</script>
-  <div class="scene" aria-hidden="true">
-    <div class="stars s1"></div><div class="stars s2"></div>
-    <div class="gold-haze"></div>
-  </div>
-
-  <header class="topbar">
-    <div class="brand"><strong>FARRUKH AI</strong><span>ЛИЧНЫЙ АССИСТЕНТ</span></div>
-    <nav class="desktop-nav" aria-label="Разделы"><a href="/" aria-current="page">Главная</a><button data-action="chat">Чат</button><button data-action="tasks">Задачи</button><button data-action="documents">Документы</button><button data-action="analytics">Аналитика</button></nav>
-    <div class="topmeta"><span id="syncStatus" role="status">Проверяю сохранение…</span><span id="today"></span><span class="status"><i></i><b id="aiStatus">AI</b></span></div>
-  </header>
-
-  <main class="shell">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="kicker">ВАШ ЛИЧНЫЙ AI-АССИСТЕНТ</p>
-        <h1>На связи,<br>Фаррух Ака</h1>
-        <p class="tagline">Идеи, задачи и решения — в одном месте.</p>
-        <span class="ready-badge"><i></i> Ваш помощник каждый день</span>
-      </div>
-
-      <form class="askbar" id="askForm">
-        <button type="button" class="mic" id="micBtn" aria-label="Голосовой ввод" title="Говорить">🎙</button>
-        <input id="askInput" autocomplete="off" placeholder="Спросите меня…" aria-label="Запрос FARRUKH AI">
-        <button class="go" type="submit" aria-label="Отправить">→</button>
-      </form>
-      <div class="conversation-start"><div class="voice-wave" aria-hidden="true"><i style="--h:4px;--d:0.0s"></i><i style="--h:8px;--d:0.06s"></i><i style="--h:14px;--d:0.12s"></i><i style="--h:7px;--d:0.18s"></i><i style="--h:22px;--d:0.24s"></i><i style="--h:12px;--d:0.3s"></i><i style="--h:30px;--d:0.36s"></i><i style="--h:18px;--d:0.42s"></i><i style="--h:9px;--d:0.48s"></i><i style="--h:24px;--d:0.54s"></i><i style="--h:38px;--d:0.6s"></i><i style="--h:17px;--d:0.6599999999999999s"></i><i style="--h:28px;--d:0.72s"></i><i style="--h:12px;--d:0.78s"></i><i style="--h:35px;--d:0.84s"></i><i style="--h:20px;--d:0.8999999999999999s"></i><i style="--h:10px;--d:0.96s"></i><i style="--h:25px;--d:1.02s"></i><i style="--h:14px;--d:1.08s"></i><i style="--h:7px;--d:1.14s"></i><i style="--h:18px;--d:1.2s"></i><i style="--h:10px;--d:1.26s"></i><i style="--h:4px;--d:1.3199999999999998s"></i></div><button id="startConversation" type="button">Говорить</button><small>Нажмите и разрешите микрофон</small></div>
-    </section>
-
-    <section class="command-center" aria-label="Командный центр">
-      <div class="command-head">
-        <div><span>КОМАНДНЫЙ ЦЕНТР</span><h2>Сегодня</h2></div>
-        <button id="dashboardRefresh" class="dashboard-refresh" type="button" aria-label="Обновить командный центр">↻</button>
-      </div>
-      <div class="command-grid">
-        <button class="command-stat" data-action="chat">
-          <span>AI</span><b id="dashAi">Проверяю…</b><small id="dashAiNote">Статус ассистента</small>
-        </button>
-        <button class="command-stat" data-action="tasks">
-          <span>Сегодня</span><b id="dashTodayTasks">0</b><small>активных задач</small>
-        </button>
-        <button class="command-stat warning" data-action="tasks">
-          <span>Просрочено</span><b id="dashOverdue">0</b><small id="dashImportant">важных: 0</small>
-        </button>
-        <button class="command-stat" data-action="analytics">
-          <span>Frontpad</span><b id="dashFrontpad">Проверяю…</b><small id="dashFrontpadNote">Источник данных</small>
-        </button>
-      </div>
-      <div class="command-insight">
-        <div><span>Фокус</span><p id="dashboardInsight">Собираю главное на сегодня…</p></div>
-        <button id="dashboardAsk" type="button">Спросить AI →</button>
-      </div>
-    </section>
-
-    <section class="cards" aria-label="Главные разделы">
-      <button class="card" data-action="tasks"><span class="icon">▣</span><div><b>Мой день</b><small>Задачи и напоминания</small></div><span class="arrow">›</span></button>
-      <button class="card" data-action="kitchen"><span class="icon">♧</span><div><b>Кухня</b><small>Техкарты · КБЖУ</small></div><span class="arrow">›</span></button>
-      <button class="card" data-action="business"><span class="icon">▥</span><div><b>Бизнес</b><small>Точки и отчёты</small></div><span class="arrow">›</span></button>
-      <button class="card" data-action="documents"><span class="icon">▤</span><div><b>Документы</b><small>Файлы и инструкции</small></div><span class="arrow">›</span></button>
-    </section>
-    <section class="quick-actions" aria-label="Быстрые действия"><h2>Быстрые действия</h2><div><button data-action="cost">Рассчитать блюдо <span>›</span></button><button data-action="newtask">Создать задачу <span>›</span></button></div></section>
-  </main>
-
-  <nav class="bottom-nav" aria-label="Основные разделы"><button data-nav="home" class="active"><span>⌂</span>Главная</button><button data-nav="chat"><span>◯</span>Чат</button><button data-nav="tasks"><span>☑</span>Задачи</button><button data-nav="tools"><span>•••</span>Ещё</button></nav>
-  <dialog id="panel">
-    <div class="panel-head"><div><span class="panel-kicker">FARRUKH AI</span><h2 id="panelTitle">Ассистент</h2></div><div class="panel-actions"><button id="panelVoice" class="panel-voice" aria-label="Включить или выключить голос">🔊</button><button id="panelClose" aria-label="Закрыть">×</button></div></div>
-    <div id="panelBody" class="panel-body"></div>
-  </dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="/north.js?v=26.1"></script>
-</body>
-</html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f9fc"><title>FARRUKH AI — Аналитика</title><link rel="icon" href="/icon-192.svg">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#15243a;background:#f6f8fc}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #e7ebf2;padding:19px max(22px,calc((100vw - 1220px)/2));display:flex;justify-content:space-between;align-items:center;gap:15px}header strong{font-size:20px;letter-spacing:.06em}header small{display:block;color:#8590a2;font-size:11px;margin-top:4px}main{max-width:1220px;margin:auto;padding:32px 22px 70px}.eyebrow{font-size:12px;font-weight:750;color:#5675ad;text-transform:uppercase;letter-spacing:.12em}h1{font-size:clamp(27px,4vw,40px);letter-spacing:-.04em;margin:8px 0 7px}p{color:#758196;margin:0;line-height:1.6}.heading{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:26px}button{border:0;background:#2563eb;color:white;padding:12px 19px;border-radius:12px;font-weight:700;cursor:pointer}button:disabled{opacity:.5}.status{border-radius:30px;background:#edf2fb;color:#4d658a;padding:9px 14px;font-size:12px;font-weight:700}.status.ok{background:#e5f8ef;color:#148454}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card,.panel{background:white;border:1px solid #e8edf5;border-radius:18px;box-shadow:0 8px 30px #172f5d08}.card{padding:22px}.card label{font-size:13px;color:#78859a;display:block}.card b{font-size:clamp(24px,3vw,33px);display:block;margin:12px 0 5px;letter-spacing:-.04em}.card small{color:#8d98a8}.layout{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin-top:20px}.panel{padding:24px;min-width:0}.panel h2{font-size:18px;margin:0 0 7px}.sub{font-size:12px;color:#8b96a6}.chart{height:250px;display:flex;align-items:center;justify-content:center}.empty{color:#8692a5;text-align:center;max-width:380px;line-height:1.7;font-size:14px}.bars{display:flex;gap:15px;align-items:flex-end;width:100%;height:215px;border-bottom:1px solid #e7ebf2;padding:12px 5px 0}.barcol{flex:1;min-width:0;text-align:center}.bar{background:linear-gradient(180deg,#477bf0,#8fb4ff);border-radius:9px 9px 0 0;min-height:3px}.barcol span{display:block;font-size:11px;color:#6e7d91;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:8px}.barcol b{font-size:11px}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #edf0f6;padding:13px 0;font-size:13px}.row:last-child{border:0}.row b{font-size:13px}.data-panel{margin-top:20px}.tablewrap{overflow:auto;max-height:410px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid #edf0f6;padding:11px 12px;text-align:left;white-space:nowrap}th{background:#f8faff;color:#5d6d83;position:sticky;top:0}select{background:white;border:1px solid #dfe6f1;padding:10px;border-radius:10px;max-width:100%;margin-top:12px}.notice{background:#fff8e9;color:#92651b;border-radius:12px;padding:14px 16px;margin:20px 0;font-size:13px}.foot{font-size:12px;color:#8b96a6;margin-top:18px}@media(max-width:850px){.cards{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}main{padding-top:23px}}@media(max-width:440px){.cards{gap:10px}.card{padding:17px}.card b{font-size:24px}.panel{padding:18px}header{padding:16px 20px}}
+</style></head><body>
+<header><div><strong>FARRUKH AI</strong><small>БИЗНЕС-АНАЛИТИКА · FRONT​​PAD</small></div><span id="status" class="status">Подключение…</span></header>
+<main><div class="heading"><div><span class="eyebrow">Панель управления</span><h1>Аналитика бизнеса</h1><p id="caption">Актуальные данные из Frontpad</p></div><button id="refresh">↻ Обновить данные</button></div>
+<section class="cards"><div class="card"><label>Выручка</label><b id="revenue">—</b><small>Подтверждённые данные</small></div><div class="card"><label>Заказы</label><b id="orders">—</b><small>Подтверждённые данные</small></div><div class="card"><label>Средний чек</label><b id="avg">—</b><small>Подтверждённые данные</small></div><div class="card"><label>Таблицы Frontpad</label><b id="tablesCount">—</b><small id="captured">Ожидание синхронизации</small></div></section>
+<div id="notice" class="notice" hidden></div>
+<div class="layout"><section class="panel"><h2>Динамика продаж</h2><p class="sub">График появится при наличии датированных сумм продаж</p><div class="chart" id="trend"><div class="empty">Ожидаем данные о выручке по датам. Неподтверждённые суммы не показываем.</div></div></section><section class="panel"><h2>Точки продаж</h2><p class="sub">Сравнение филиалов по реальным данным</p><div id="branches" class="chart"><div class="empty">После распознавания филиалов здесь появится сравнение.</div></div></section></div>
+<section class="panel data-panel"><h2>Полученные отчёты Frontpad</h2><p class="sub">Сырые таблицы из последней отправки — можно проверить, что именно передалось</p><select id="tableSelect" aria-label="Выбрать таблицу"><option>Ожидание данных</option></select><p id="tableInfo" class="foot"></p><div class="tablewrap" id="tableView"></div></section><p class="foot">Данные обновляются при новой отправке из Tampermonkey. Время последней проверки: <span id="checked">—</span>.</p></main>
+<script>
+const $=id=>document.getElementById(id);let current=[];
+const fmt=n=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(n);
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function rowsOf(t){if(Array.isArray(t))return t;if(Array.isArray(t?.rows))return t.rows;if(Array.isArray(t?.data))return t.data;if(Array.isArray(t?.body))return t.body;return []}
+function labelOf(t,i){return String(t?.title||t?.name||t?.heading||t?.caption||'Таблица '+(i+1))}
+function renderTable(i){const t=current[i],rows=rowsOf(t);$('tableInfo').textContent=labelOf(t,i)+' · '+rows.length+' строк';if(!rows.length){$('tableView').innerHTML='<p class="empty">В этой таблице нет строк для отображения.</p>';return}const objects=rows.some(r=>r&&typeof r==='object'&&!Array.isArray(r));const keys=objects?[...new Set(rows.flatMap(r=>r&&typeof r==='object'?Object.keys(r):[]))].slice(0,25):[];const header=objects?keys:(Array.isArray(rows[0])?rows[0].map((_,i)=>'Колонка '+(i+1)):['Значение']);const cells=r=>objects?keys.map(k=>r?.[k]):Array.isArray(r)?r:[r];$('tableView').innerHTML='<table><thead><tr>'+header.map(x=>'<th>'+safe(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,250).map(r=>'<tr>'+cells(r).map(v=>'<td>'+safe(typeof v==='object'?JSON.stringify(v):v)+'</td>').join('')+'</tr>').join('')+'</tbody></table>'+(rows.length>250?'<p class="foot">Показаны первые 250 строк.</p>':'')}
+$('tableSelect').addEventListener('change',e=>renderTable(Number(e.target.value)));
+function metric(obj,keys){for(const k of keys){const v=obj?.[k];if(typeof v==='number'&&Number.isFinite(v))return v}return null}
+async function load(){ $('refresh').disabled=true;$('status').textContent='Обновление…';try{const res=await fetch('/api/analytics/snapshot',{cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);const d=await res.json();const live=d.automaticReports===true&&Array.isArray(d.tables);current=live?d.tables:[];$('status').textContent=live?'Frontpad подключён':'Нет актуального снимка';$('status').className='status'+(live?' ok':'');$('tablesCount').textContent=live?fmt(current.length):'—';const at=d.receivedAt||d.capturedAt;$('captured').textContent=at?'Получено '+new Date(at).toLocaleString('ru-RU'):'Нет даты получения';$('caption').textContent=live?'Источник: Frontpad · последняя отправка '+(at?new Date(at).toLocaleString('ru-RU'):'без времени'):'Ожидание реального снимка Frontpad';for(const [id,keys] of [['revenue',['revenue','totalRevenue']],['orders',['orders','totalOrders']],['avg',['averageCheck','averageOrderValue']]]){const v=live?metric(d,keys):null;$(id).textContent=v===null?'—':fmt(v)+(id==='orders'?'':' ₽')}const note=$('notice');note.hidden=false;note.textContent=live?'Получено '+current.length+' таблиц. Финансовые показатели появятся после проверки структуры отчётов Frontpad; старые ручные цифры не используются.':'Пока нет подтверждённой выгрузки Frontpad. Откройте Frontpad и отправьте данные через Tampermonkey.';const select=$('tableSelect');select.innerHTML=current.length?current.map((t,i)=>'<option value="'+i+'">'+safe(labelOf(t,i))+'</option>').join(''):'<option>Нет таблиц</option>';if(current.length)renderTable(0);else{$('tableInfo').textContent='';$('tableView').innerHTML=''}if(live&&Array.isArray(d.branches)&&d.branches.some(b=>typeof b.revenue==='number')){const bs=d.branches.filter(b=>Number.isFinite(b.revenue));const max=Math.max(1,...bs.map(b=>b.revenue));$('branches').innerHTML='<div class="bars">'+bs.map(b=>'<div class="barcol"><b>'+fmt(b.revenue)+'</b><div class="bar" style="height:'+Math.round(160*b.revenue/max)+'px"></div><span title="'+safe(b.name)+'">'+safe(b.name)+'</span></div>').join('')+'</div>'}if(live&&Array.isArray(d.dailyRevenue)&&d.dailyRevenue.length){const pts=d.dailyRevenue.filter(x=>Number.isFinite(x.revenue));const max=Math.max(1,...pts.map(x=>x.revenue));$('trend').innerHTML='<div class="bars">'+pts.slice(-14).map(x=>'<div class="barcol"><b>'+fmt(x.revenue)+'</b><div class="bar" style="height:'+Math.round(160*x.revenue/max)+'px"></div><span>'+safe(x.date)+'</span></div>').join('')+'</div>'}}catch(e){$('status').textContent='Ошибка соединения';$('status').className='status';$('notice').hidden=false;$('notice').textContent='Не удалось загрузить данные: '+e.message}finally{$('refresh').disabled=false;$('checked').textContent=new Date().toLocaleTimeString('ru-RU')}}
+$('refresh').addEventListener('click',load);load();setInterval(load,60000);
+</script></body></html>
