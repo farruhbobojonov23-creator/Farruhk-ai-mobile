@@ -1,3 +1,4 @@
+import {regulatoryBasis} from './recipe-math.js?v=blue-2';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
@@ -15,28 +16,28 @@ export function mountRecipeSheet(editor){
  const metadata=table();for(const pairs of [[['Блюдо:','recipe-name'],['Дата:','card-date']],[['Категория:','recipe-category'],['ТТК №:','card-number']],[['Статус:','recipe-status'],['Количество:','card-pieces']]]){const row=el('tr');for(const [caption,id] of pairs)pair(row,caption,id);metadata.append(row)}
  function section(text){const h=el('h3','ttk-section-title'),span=el('span');span.textContent=text;h.append(span);paper.append(h)}
  function full(id,caption){const body=table(),row=el('tr'),td=el('td');const input=get(id);input.setAttribute('aria-label',caption);td.append(input);row.append(td);body.append(row)}
- section('1. Требования к сырью');full('card-raw','Требования к сырью');
- section('2. Рецептура (Матрица ингредиентов)');
+ section('1. Область применения');full('card-scope','Область применения');section('2. Требования к сырью');full('card-raw','Требования к сырью');
+ section('3. Рецептура');
  const ingredients=el('div','ttk-ingredient-table');ingredients.setAttribute('role','table');ingredients.setAttribute('aria-label','Матрица ингредиентов');
  const header=el('div','ttk-ingredient-head');header.setAttribute('role','row');for(const text of ['Наименование сырья / полуфабриката','Брутто, г','Нетто, г','Отходы, %','']){const cell=el('span');cell.textContent=text;cell.setAttribute('role','columnheader');header.append(cell)}
  ingredients.append(header,get('ingredients'));paper.append(ingredients);
  const add=get('addingredient');add.classList.add('ttk-add');add.textContent='＋ Добавить ингредиент';paper.append(add);
  const output=table(),outputRow=el('tr');pair(outputRow,'ВЫХОД ГОТОВОГО БЛЮДА, г:','card-yield');get('card-yield').removeAttribute('aria-describedby');const outputNote=el('td');outputNote.colSpan=2;outputNote.textContent='Сумма нетто готовых ингредиентов';outputRow.append(outputNote);output.append(outputRow);
- section('3. Технологический процесс приготовления');
+ section('4. Технологический процесс');
  const process=table(),head=el('tr');for(const text of ['Этап','Описание действий']){const th=el('th');th.textContent=text;head.append(th)}process.append(head);
  for(const [caption,id] of [['Подготовка','card-prep'],['Формовка / приготовление','technology'],['Нарезка / подача','card-serving']]){const row=el('tr');pair(row,caption,id);process.append(row)}
- section('4. Требования к оформлению, подаче и хранению');full('card-storage','Оформление, подача и хранение');
- section('5. Органолептические показатели');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус и текстура','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
- section('6. Пищевая ценность (на 100 г / на порцию)');
+ section('5. Оформление, подача, реализация и хранение');full('card-storage','Оформление, подача и хранение');
+ section('6. Показатели качества и безопасности');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус и текстура','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
+ full('card-safety','Показатели безопасности');section('7. Пищевая ценность (на 100 г / на порцию)');
  const mode=el('label','ttk-nutrition-mode');mode.append(get('nutrition-auto'),document.createTextNode(' Автоматический расчёт по данным ингредиентов'));paper.append(mode);
  const nutrition=table(),nHead=el('tr');for(const caption of ['Показатель','Белки, г','Жиры, г','Углеводы, г','Ккал']){const th=el('th');th.textContent=caption;nHead.append(th)}nutrition.append(nHead);
  const per100=el('tr'),label=el('td');label.textContent='На 100 г';per100.append(label);for(const key of ['protein','fat','carbs','kcal']){const td=el('td'),input=get('card-'+key);td.append(input);per100.append(td)}nutrition.append(per100);
  const portion=el('tr'),portionLabel=el('td');portionLabel.textContent='На порцию';portion.append(portionLabel);for(const key of ['protein','fat','carbs','kcal']){const td=el('td'),out=el('output');out.id='sheet-portion-'+key;out.textContent='-';td.append(out);portion.append(td)}nutrition.append(portion);
  paper.append(get('nutrition-products'));
  const signatures=table(),signatureRow=el('tr');pair(signatureRow,'Разработал (Шеф):','card-chef');pair(signatureRow,'Утверждаю (Руководитель):','card-approver');signatures.append(signatureRow);signatures.parentNode.classList.add('ttk-signatures');
- const tools=el('div','ttk-template-tools');tools.append(get('apply-roll-template'));const note=el('p');note.textContent='Стандартные тексты доступны для правки. Проверь применимость к блюду перед утверждением.';tools.append(note);
+ const basis=el('p','ttk-regulatory');basis.textContent=regulatoryBasis;paper.append(basis);const tools=el('div','ttk-template-tools');tools.append(get('apply-roll-template'));const note=el('p');note.textContent='Стандартные тексты доступны для правки. Проверь применимость к блюду перед утверждением.';tools.append(note);
  editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
- function refresh(){if(editor.hidden)return;for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const yieldGrams=Number($('card-yield').value);for(const key of ['protein','fat','carbs','kcal']){const raw=$('card-'+key).value;$('sheet-portion-'+key).textContent=raw!==''&&yieldGrams>0?(Number(raw)*yieldGrams/100).toLocaleString('ru-RU',{maximumFractionDigits:2}):'-'}}
+ function refresh(){if(editor.hidden)return;const scope=$('card-scope');const text=scope.value;const automatic=text.startsWith('Настоящая ТТК распространяется на блюдо «')&&text.endsWith('включая отпуск на вынос и доставку.');if(automatic)scope.value=text.replace(/«[^»]*»/, '«'+($('recipe-name').value||'{name}')+'»');for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const yieldGrams=Number($('card-yield').value);for(const key of ['protein','fat','carbs','kcal']){const raw=$('card-'+key).value;$('sheet-portion-'+key).textContent=raw!==''&&yieldGrams>0?(Number(raw)*yieldGrams/100).toLocaleString('ru-RU',{maximumFractionDigits:2}):'-'}}
  editor.addEventListener('input',()=>queueMicrotask(refresh));editor.addEventListener('change',()=>queueMicrotask(refresh));
  return {refresh,downloadButton:download};
 }
