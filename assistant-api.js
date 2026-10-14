@@ -10,8 +10,18 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   const cookie=req=>String(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('fai_owner='))?.slice(10)||'';
   const trustedOrigin=req=>{try{return !req.headers.origin||new URL(req.headers.origin).host===req.get('host')}catch{return false}};
   const wrap=fn=>async(req,res,next)=>{try{await fn(req,res)}catch(e){if(e.status)res.status(e.status).json({ok:false,error:e.message,...(e.state?{state:e.state}:{})});else{console.error('[assistant]',e.message);res.status(500).json({ok:false,error:'Не удалось выполнить операцию. Данные не подтверждены как сохранённые.'})}}};
-  let initialization;
-  function initialize(){if(!initialization)initialization=(async()=>{const current=await store.state();if(current.revision===0&&migrateState){const old=await migrateState();if(old&&(old.tasks?.length||old.memory?.length||old.chat?.length))await store.save({...old,revision:0})}})().catch(e=>{initialization=null;throw httpError(503,'Не удалось проверить прежнее облачное хранилище. Повторите позже, чтобы не потерять данные.')});return initialization}
+  let initialization,initialRead;
+  function initialize(){
+    if(!initialization)initialization=(async()=>{
+      let current;
+      try{current=await store.state()}catch(e){console.error('[assistant-init] phase=current name='+e.name+' status='+(e.status||0));throw httpError(503,e instanceof SyntaxError?'Файл данных повреждён. Сохранение заблокировано до восстановления из резервной копии.':'Не удалось загрузить сохранённые данные из облака. Нажми «Повторить загрузку».')}
+      if(current.revision===0&&migrateState){
+        try{const old=await migrateState();if(old&&['tasks','memory','chat','recipes','inspections'].some(k=>old[k]?.length))current=await store.save({...old,revision:0})}
+        catch(e){console.error('[assistant-init] phase=legacy name='+e.name+' status='+(e.status||0));throw httpError(503,'Не удалось проверить прежнее облачное хранилище. Повторите позже, чтобы не потерять данные.')}
+      }
+      initialRead={state:current,at:Date.now()};
+    })().catch(e=>{initialization=null;throw e});return initialization;
+  }
   const attempts=new Map();
   app.get('/api/auth/session',(req,res)=>res.json({configured:auth.enabled,authenticated:passwordless||auth.verify(cookie(req)),passwordless}));
   app.post('/api/auth/login',wrap(async(req,res)=>{
@@ -32,8 +42,8 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);
     next();
   });
-  app.get('/api/state',wrap(async(req,res)=>{await initialize();res.json({ok:true,state:await store.state()})}));
-  app.put('/api/state',wrap(async(req,res)=>{await initialize();res.json({ok:true,state:await store.save(req.body||{})})}));
+  app.get('/api/state',wrap(async(req,res)=>{await initialize();const snapshot=initialRead;initialRead=null;res.json({ok:true,state:snapshot&&Date.now()-snapshot.at<1000?snapshot.state:await store.state()})}));
+  app.put('/api/state',wrap(async(req,res)=>{await initialize();initialRead=null;res.json({ok:true,state:await store.save(req.body||{})})}));
   app.get('/api/backups',wrap(async(req,res)=>res.json({ok:true,storage:store.storage,backups:await store.backups()})));
   app.post('/api/backups',wrap(async(req,res)=>{await initialize();res.json({ok:true,backup:await store.backup()})}));
   app.post('/api/backups/restore',wrap(async(req,res)=>{await initialize();res.json({ok:true,state:await store.restore(String(req.body?.path||''),req.body?.revision)})}));

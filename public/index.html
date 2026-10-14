@@ -114,5 +114,14 @@ $('device-test').onclick=()=>voice.testDevice();
 
 $('chat-form').onsubmit=guard(async()=>{const message=$('message').value.trim();if(message)await voice.sendText(message)});
 
-try{await requireOwner();state=(await api('/api/state')).state;render();state.chat.forEach(m=>bubble(m.role,m.text));$('connection').textContent='Данные загружены';notice('')}catch(e){$('connection').textContent='Нет подключения';notice(e.message,true)}
+const retryLoad=document.createElement('button');retryLoad.type='button';retryLoad.id='retry-data-load';retryLoad.textContent='Повторить загрузку';retryLoad.hidden=true;$('notice').after(retryLoad);
+let loadingState=false;
+async function loadAssistantState(){
+ if(loadingState)return;loadingState=true;retryLoad.hidden=true;
+ try{notice('Загружаю сохранённые данные…');state=(await api('/api/state')).state;render();$('messages').replaceChildren();state.chat.forEach(m=>bubble(m.role,m.text));$('connection').textContent='Данные загружены';notice('')}
+ catch(e){$('connection').textContent='Нет подключения к данным';notice(e.message,true);retryLoad.hidden=false}
+ finally{loadingState=false}
+}
+retryLoad.onclick=loadAssistantState;
+try{await requireOwner();await loadAssistantState()}catch(e){notice(e.message,true)}
 </script></body></html>
