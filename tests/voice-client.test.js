@@ -1,8 +1,9 @@
+import {speakDeviceText} from '../public/device-speech.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-const code=(await fs.readFile(new URL('../public/chef-voice.js',import.meta.url),'utf8')).replaceAll('export function','function');
+const code=(await fs.readFile(new URL('../public/chef-voice.js',import.meta.url),'utf8')).replaceAll('export function','function').replace(/^import .*;\n/,'');
 function setup({enabled=true,request,send,autoEnd=true,device=false}={}){
  const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{dataset:{},checked:true,value:'Sulafat'});return nodes.get(id)};node('voice-enabled').checked=enabled;
  const events=[],timers=new Set();let playback;
@@ -10,7 +11,7 @@ function setup({enabled=true,request,send,autoEnd=true,device=false}={}){
  const synth={getVoices:()=>[{lang:'ru-RU',localService:true,name:'Русский'}],speak(u){utterances.push(u);events.push('device-play');if(autoEnd)queueMicrotask(()=>u.onend?.())},cancel(){events.push('device-stop')}};
 
  class AudioContext{constructor(){events.push('audio-create');this.destination={}}async resume(){events.push('audio-resume')}async decodeAudioData(){events.push('decode');return {}}createAnalyser(){return {fftSize:1024,connect(){},disconnect(){},getFloatTimeDomainData(data){data.fill(.1)}}}createBufferSource(){playback={connect(){},start(){events.push('play');if(autoEnd)queueMicrotask(()=>playback.onended?.())},stop(){events.push('stop')}};return playback}}
- const context=vm.createContext({document:{getElementById:node,addEventListener(){}},window:{AudioContext,addEventListener(){},...(device?{speechSynthesis:synth,SpeechSynthesisUtterance:class{constructor(text){this.text=text}}}:{})},location:{hash:'#chat'},navigator:{mediaDevices:{getUserMedia(){throw Error('Text must not request microphone')}}},AbortController,setTimeout(fn){const id={fn};timers.add(id);return id},clearTimeout(id){timers.delete(id)},requestAnimationFrame(){return 1},cancelAnimationFrame(){},queueMicrotask,fetch:request||(async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(48)})),console});
+ const context=vm.createContext({speakDeviceText,document:{getElementById:node,addEventListener(){}},window:{AudioContext,addEventListener(){},...(device?{speechSynthesis:synth,SpeechSynthesisUtterance:class{constructor(text){this.text=text}}}:{})},location:{hash:'#chat'},navigator:{mediaDevices:{getUserMedia(){throw Error('Text must not request microphone')}}},AbortController,setTimeout(fn){const id={fn};timers.add(id);return id},clearTimeout(id){timers.delete(id)},requestAnimationFrame(){return 1},cancelAnimationFrame(){},queueMicrotask,fetch:request||(async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(48)})),console});
  vm.runInContext(code,context);const voice=context.createVoiceConversation({send:send||(async()=>{events.push('send');return 'Привет'})});return {voice,node,events,timers,utterances};
 }
 test('Typed reply unlocks audio before asynchronous chat, then plays without microphone',async()=>{const app=setup();await app.voice.sendText('Привет');assert.ok(app.events.indexOf('audio-resume')<app.events.indexOf('send'));assert.ok(app.events.includes('play'));assert.equal(app.node('voice-panel').dataset.phase,'idle');assert.equal(app.timers.size,0)});

@@ -12,7 +12,7 @@
 </div></main><aside class="right"><div class="glass"><h2>Быстрые действия</h2><button id="quickrecipe">＋ Создать техкарту</button><button data-view="calc">Пересчитать рецепт</button><button data-view="lab">Проработать новинку</button><button data-view="tasks">Поставить задачу</button><p class="small">Твои рецептуры, решения и стандарты — в одном месте.</p></div></aside></div>
 <script type="module">
 import {requireOwner} from '/owner-login.js';
-import {createVoiceConversation} from '/chef-voice.js?v=5';
+import {createVoiceConversation} from '/chef-voice.js?v=6';
 import {mountAuroraOrb} from '/aurora-orb.js?v=1';
 import {parseTaskCommand} from '/task-commands.js';
 const $=id=>document.getElementById(id);let state=null,editId=null,view='home',busy=false;
@@ -27,6 +27,7 @@ const settings=document.createElement('details');settings.className='voice-setti
 const summary=document.createElement('summary');summary.textContent='Настройки голоса';settings.append(summary);
 for(const label of [...panel.querySelectorAll('label')])settings.append(label);
 const privacy=panel.querySelector('p.small');if(privacy)settings.append(privacy);
+const testDeviceButton=document.createElement('button');testDeviceButton.type='button';testDeviceButton.id='device-test';testDeviceButton.textContent='Проверить голос устройства';settings.append(testDeviceButton);
 panel.append(settings);
 mountAuroraOrb(panel.querySelector('.voice-orb'),panel);
 $('message').placeholder='Напиши или нажми «Начать разговор»…';
@@ -83,6 +84,7 @@ async function sendChat(message,{signal,voice=false}={}){
  }finally{chatBusy=false;b.disabled=false}
 }
 const voice=createVoiceConversation({send:sendChat});
+$('device-test').onclick=()=>voice.testDevice();
 
 $('chat-form').onsubmit=guard(async()=>{const message=$('message').value.trim();if(message)await voice.sendText(message)});
 

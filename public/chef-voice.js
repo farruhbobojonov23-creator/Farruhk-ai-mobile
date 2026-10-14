@@ -1,3 +1,4 @@
+import {speakDeviceText} from '/device-speech.js?v=1';
 export function speechChunks(text){
  const clean=text.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*#_`]/g,'');
  const chunks=[];let rest=clean;
@@ -24,25 +25,15 @@ export function createVoiceConversation({send}){
  async function json(url,body,signal){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const data=await r.json();if(!r.ok)throw Error(data.error||'Ошибка голосового сервиса.');return data}
  async function encode(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let value='';for(let i=0;i<bytes.length;i+=8192)value+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(value)}
  async function speakDevice(text,token){
-  const synth=window.speechSynthesis,Utterance=window.SpeechSynthesisUtterance;
-  if(!synth||!Utterance)throw Error('Встроенный голос недоступен в этом браузере. Ответ сохранён текстом.');
   if(!active||token!==generation)return;
-  status('speaking','Отвечаю голосом устройства…');
-  for(const chunk of speechChunks(text)){
-   if(!active||token!==generation)return;
-   await new Promise((resolve,reject)=>{
-    const utterance=new Utterance(chunk);utterance.lang='ru-RU';
-    const russian=synth.getVoices().filter(v=>/^ru(?:-|_)/i.test(v.lang));
-    utterance.voice=russian.find(v=>v.localService)||russian[0]||null;
-    let settled=false;
-    const finish=error=>{if(settled)return;settled=true;deviceSpeaking=false;finishPlayback=null;resetLevel();if(error)reject(error);else resolve()};
-    finishPlayback=()=>finish();deviceSpeaking=true;
-    utterance.onend=()=>finish();
-    utterance.onerror=event=>finish(Error('Не удалось включить голос устройства: '+event.error));
-    utterance.onboundary=()=>panel.style?.setProperty('--voice-level','.35');
-    try{synth.speak(utterance)}catch(error){finish(error)}
-   });
-  }
+  deviceSpeaking=true;
+  try{
+   await speakDeviceText({synth:window.speechSynthesis,Utterance:window.SpeechSynthesisUtterance,text,signal:controller?.signal,onLevel:value=>panel.style?.setProperty('--voice-level',String(value)),onVoice:name=>status('speaking','Отвечаю голосом устройства: '+name)});
+  }finally{deviceSpeaking=false;resetLevel()}
+ }
+ async function testDevice(){
+  stop();const token=generation;active=true;lastReply='';
+  try{await unlock();if(!active||token!==generation)return;controller=new AbortController();status('connecting','Проверяю голос устройства…');await speakDevice('Фаррух Ака, голос устройства работает. Я на связи.',token);if(token===generation)stop('Проверка завершена. Если слышишь голос, можно начать разговор.')}catch(e){fail(e,token)}
  }
  async function speak(text,token){
   if(Date.now()<deviceVoiceUntil)return speakDevice(text,token);
@@ -155,5 +146,5 @@ export function createVoiceConversation({send}){
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
  window.addEventListener('pagehide',()=>stop());window.addEventListener('hashchange',()=>{if(!['#chat','#home',''].includes(location.hash)&&active)stop()});
- return {start,stop,read,sendText};
+ return {start,stop,read,sendText,testDevice};
 }
