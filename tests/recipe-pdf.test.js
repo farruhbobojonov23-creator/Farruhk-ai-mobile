@@ -16,7 +16,7 @@ test('Long technology and ingredient tables paginate without silently truncating
  const out=await bytes({name:'Длинная карта',preparation:'Подготовка сырья. '.repeat(1000),ingredients:Array.from({length:60},(_,i)=>({name:'Ингредиент '+i,grams:10,grossGrams:12})),taste:'Последний блок проверки'});const pdf=await parsePdf(out);assert.ok(pdf.numpages>1);assert.match(pdf.text,/Ингредиент 59/);assert.match(pdf.text,/Последний блок проверки/);assert.match(pdf.text,/Страница/);
 });
 test('Download rejects unknown recipes instead of rendering a different card',async()=>{
- let handler;installRecipePdfApi({get(_,fn){handler=fn}},{store:{state:async()=>({recipes:[]})}});let status;await handler({params:{id:'missing'}},{status(n){status=n;return this},json(){}});assert.equal(status,404);
+ let handler;installRecipePdfApi({post(){},get(_,fn){handler=fn}},{store:{state:async()=>({recipes:[]})}});let status;await handler({params:{id:'missing'}},{status(n){status=n;return this},json(){}});assert.equal(status,404);
 });
 
 test('Blue category templates fit one A4 page and preserve storage, scope and safety',async()=>{
