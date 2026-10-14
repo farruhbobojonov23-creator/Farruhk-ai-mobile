@@ -17,6 +17,6 @@ test('Every ingredient survives the single A4 export for 1, 10 and 100 rows',asy
  for(const count of [1,10,100,101]){
   const recipe={...templateFor('Холодные роллы'),name:'Тестовая карта',pieces:6,ingredients:Array.from({length:count},(_,i)=>({name:'Сырьё номер '+i,grams:10,grossGrams:12})),netYieldGrams:count*10};
   const bytes=await new Promise((resolve,reject)=>{const doc=recipePdf(cleanState({recipes:[recipe]}).recipes[0]),chunks=[];doc.on('data',b=>chunks.push(b));doc.on('error',reject);doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.end()});
-  const pdf=await parsePdf(bytes);assert.equal(pdf.numpages,1);assert.match(pdf.text,new RegExp('Сырьё номер '+(count-1)));assert.match(pdf.text,/«Тестовая карта»/);assert.match(pdf.text,/4282-26/);
+  const pdf=await parsePdf(bytes);pdf.text=pdf.text.replace(/\s+/g," ");assert.equal(pdf.numpages,1);assert.match(pdf.text,new RegExp('Сырьё номер '+(count-1)));assert.match(pdf.text,/«Тестовая карта»/);assert.match(pdf.text,/4282-26/);
  }
 });
