@@ -5,3 +5,6 @@
 .recipe-delete{color:#f1a6ac;border:1px solid #9a555b;background:#69303633}.recipe-delete[hidden]{display:none}
 
 .recipe-categories{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}.recipe-categories .active{background:#7f6cbc;color:white}.nutrition-ingredient{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:15px 0}.nutrition-ingredient strong{grid-column:1/-1}.nutrition-ingredient label{margin:0;font-size:12px}@media(max-width:700px){.nutrition-ingredient{grid-template-columns:1fr 1fr}}
+
+/* Keep the ingredient name and all three weights side by side on every device. */
+#ingredients{overflow-x:auto;padding-bottom:6px}#editor .ingredient{min-width:520px;grid-template-columns:minmax(160px,2fr) repeat(3,minmax(90px,1fr)) 36px;align-items:end}#editor .ingredient label:first-child{grid-column:auto}#editor .ingredient input:first-child{grid-column:auto}#editor .ingredient input{min-width:0;width:100%;padding:10px 8px}#editor .ingredient label{white-space:nowrap}#editor .ingredient button{min-height:44px;width:36px;padding:8px}@media(max-width:700px){#editor .ingredient{min-width:490px;padding:9px;gap:6px;grid-template-columns:minmax(145px,1.7fr) repeat(3,minmax(85px,1fr)) 32px}#editor .ingredient input{font-size:16px}#editor .ingredient button{width:32px}}
