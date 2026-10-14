@@ -12,7 +12,7 @@
 </div></main><aside class="right"><div class="glass"><h2>Быстрые действия</h2><button id="quickrecipe">＋ Создать техкарту</button><button data-view="calc">Пересчитать рецепт</button><button data-view="lab">Проработать новинку</button><button data-view="tasks">Поставить задачу</button><p class="small">Твои рецептуры, решения и стандарты — в одном месте.</p></div></aside></div>
 <script type="module">
 import {requireOwner} from '/owner-login.js';
-import {createVoiceConversation} from '/chef-voice.js?v=2';
+import {createVoiceConversation} from '/chef-voice.js?v=3';
 const $=id=>document.getElementById(id);let state=null,editId=null,view='home',busy=false;
 const titles={home:'Кабинет шефа',lab:'Лаборатория меню',recipes:'Техкарты',calc:'Калькулятор',tasks:'Задачи',checks:'Контроль точек',chat:'Ассистент'};
 const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2});
@@ -34,19 +34,21 @@ $('portions').oninput=calculate;$('calc-recipe').onchange=calculate;
 $('taskform').onsubmit=guard(async()=>{const text=$('tasktext').value.trim();if(!text)throw Error('Напиши задачу.');const due=$('taskdue').value?new Date($('taskdue').value).toISOString():null;await save(s=>s.tasks.push({id:crypto.randomUUID(),text,done:false,due,createdAt:new Date().toISOString()}));$('taskform').reset()});
 $('checkform').onsubmit=guard(async()=>{const item={id:crypto.randomUUID(),point:$('point').value.trim(),owner:$('owner').value.trim(),text:$('checktext').value.trim(),due:$('checkdue').value,done:false};if(!item.point||!item.text)throw Error('Укажи точку и замечание.');await save(s=>{s.inspections=s.inspections||[];s.inspections.push(item)});$('checkform').reset()});
 function bubble(role,text){const b=document.createElement('div');b.className='bubble '+role;const label=document.createElement('small');label.textContent=role==='user'?'Ты':'FARRUKH AI';b.append(label,document.createTextNode(text));if(role!=='user'){const play=document.createElement('button');play.type='button';play.textContent='▶ Прослушать';play.className='reply-play';play.onclick=()=>voice.read(text);b.append(play)}$('messages').append(b)}
-let chatBusy=false;
+let chatBusy=false,chatSaveTail=Promise.resolve();
 async function sendChat(message,{signal,voice=false}={}){
  if(!state)throw Error('Данные ещё не загрузились.');
  if(chatBusy)throw Error('Дождись ответа ассистента.');
  chatBusy=true;const b=$('chat-form').querySelector('button');b.disabled=true;
  try{
   notice('Ассистент думает…');
-  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:signal||AbortSignal.timeout(60000),body:JSON.stringify({message,voice,history:state.chat.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text})),context:{tasks:state.tasks}})});
+  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:signal||AbortSignal.timeout(60000),body:JSON.stringify({message,voice,history:state.chat.slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.text})),context:{tasks:state.tasks}})});
   const d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось получить ответ.');
   if(d.mode!=='online')throw Error('Gemini сейчас недоступен. Попробуй позже.');
   if(signal?.aborted)throw new DOMException('Остановлено','AbortError');
   bubble('user',message);bubble('ai',d.reply);$('message').value='';
-  try{await save(s=>s.chat.push({role:'user',text:message},{role:'ai',text:d.reply}))}catch(e){notice('Ответ получен, но история не сохранена: '+e.message,true)}
+  // Persist in parallel: cloud storage must not delay speaking the answer.
+  const turns=[{role:'user',text:message},{role:'ai',text:d.reply}];state.chat.push(...turns);
+  chatSaveTail=chatSaveTail.then(()=>save(s=>s.chat.push(...turns))).catch(e=>notice('Ответ получен, но история не сохранена: '+e.message,true));
   return d.reply;
  }finally{chatBusy=false;b.disabled=false}
 }

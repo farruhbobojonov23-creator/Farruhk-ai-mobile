@@ -1,3 +1,16 @@
+export function speechChunks(text){
+ const clean=text.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*#_`]/g,'');
+ const chunks=[];let rest=clean;
+ while(rest.length){
+  const limit=chunks.length?1000:280;
+  if(rest.length<=limit){chunks.push(rest);break}
+  const prefix=rest.slice(0,limit),ends=[...prefix.matchAll(/[.!?]\s+/g)];
+  let cut=ends.length?ends[ends.length-1].index+ends[ends.length-1][0].length:prefix.lastIndexOf(' ')+1;
+  if(cut<limit/3)cut=limit;
+  chunks.push(rest.slice(0,cut));rest=rest.slice(cut);
+ }
+ return chunks;
+}
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
  let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null;
@@ -10,18 +23,26 @@ export function createVoiceConversation({send}){
  async function encode(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let value='';for(let i=0;i<bytes.length;i+=8192)value+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(value)}
  async function speak(text,token){
   status('thinking','Готовлю голосовой ответ…');
-  // Remove display markup, but do not silently truncate the spoken answer.
-  const clean=text.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*#_`]/g,'');
-  const chunks=clean.match(/[\s\S]{1,3000}(?:[.!?]\s|$)|[\s\S]{1,3000}/g)||[];
-  for(const chunk of chunks){
+  const chunks=speechChunks(text);
+  const requestAudio=async chunk=>{
+   try{
+    if(!active||token!==generation)return {};
+    const r=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:$('voice-choice').value}),signal:controller.signal});
+    if(!r.ok){const d=await r.json();throw Error(d.error||'Голос недоступен. Ответ сохранён текстом.')}
+    return {buffer:await context.decodeAudioData(await r.arrayBuffer())};
+   }catch(error){return {error}}
+  };
+  let pending=chunks.length?requestAudio(chunks[0]):null;
+  for(let i=0;i<chunks.length;i++){
+   const result=await pending;
    if(!active||token!==generation)return;
-   const r=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:$('voice-choice').value}),signal:controller.signal});
-   if(!r.ok){const d=await r.json();throw Error(d.error||'Голос недоступен. Ответ сохранён текстом.')}
-   const buffer=await context.decodeAudioData(await r.arrayBuffer());
-   if(!active||token!==generation)return;
+   if(result.error)throw result.error;
+   // Prepare one next segment while the current segment is audible.
+   pending=i+1<chunks.length?requestAudio(chunks[i+1]):null;
    status('speaking','Отвечаю… Нажми «Остановить», чтобы прервать.');
    await context.resume();
-   await new Promise(resolve=>{finishPlayback=resolve;source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);source.onended=()=>{source=null;finishPlayback=null;resolve()};source.start()});
+   if(!active||token!==generation)return;
+   await new Promise(resolve=>{finishPlayback=resolve;source=context.createBufferSource();source.buffer=result.buffer;source.connect(context.destination);source.onended=()=>{source=null;finishPlayback=null;resolve()};source.start()});
   }
  }
  async function read(text){

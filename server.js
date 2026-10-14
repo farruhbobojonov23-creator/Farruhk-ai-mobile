@@ -900,7 +900,9 @@ app.post('/api/chat',async(req,res)=>{
     const terms=message.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(x=>x.length>2);
     clientContext.documents=docs.filter(d=>selected.includes(d.id)).map(d=>{const parts=d.text.split(/\n\s*\n/).map((text,i)=>({text,index:i+1,score:terms.reduce((n,t)=>n+(text.toLowerCase().includes(t)?1:0),0)}));return {id:d.id,name:d.name,excerpts:parts.sort((a,b)=>b.score-a.score).slice(0,8).map(p=>({paragraph:p.index,text:p.text.slice(0,3000)}))}});
   }
-  const context={...clientContext,voiceConversation:req.body?.voice===true,frontpad:clientContext.frontpad||(await browserFrontpadSnapshot())||analyticsSnapshot()};
+  const needsFrontpad=/frontpad|фронтпад|выручк|продаж/i.test(message);
+  const context={...clientContext,voiceConversation:req.body?.voice===true};
+  if(needsFrontpad&&!context.frontpad)context.frontpad=(await browserFrontpadSnapshot())||analyticsSnapshot();
   if(!message)return res.status(400).json({error:'Пустая команда'});
 
   if(!hasKey)return res.json({reply:localReply(message,context),mode:'local'});
