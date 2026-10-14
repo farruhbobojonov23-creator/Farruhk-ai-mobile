@@ -29,3 +29,28 @@ test('One whole roll never says cut into one equal part; all quantities are reta
 test('Storage templates do not invent a universal shelf life or cold regime for hot dishes',()=>{
  for(const category of recipeCategories)assert.doesNotMatch(templateFor(category).storage,/12 часов|\+2/);
 });
+test('Wok quality and preparation describe noodles instead of rice or filling',()=>{
+ const t=templateFor('Воки');
+ for(const key of ['preparation','forming','appearance','taste','safety']){
+  assert.match(t[key],/лапш/i,key);
+  assert.doesNotMatch(t[key],/рис|начинк|ролл|нори/i,key);
+ }
+ assert.match(t.taste,/без посторонних оттенков/);
+ assert.match(t.taste,/не разваренная и не слипшаяся/);
+});
+test('Existing wok cards migrate both original roll defaults and previous category text',()=>{
+ const original=resolveCategoryFields({...legacyTemplateFor('Воки'),category:'Воки'});
+ assert.equal(original.taste,templateFor('Воки').taste);
+ const previous=resolveCategoryFields({category:'Воки',taste:'Вкус и аромат гарнира, овощей, основного компонента и соуса соответствуют рецептуре. Гарнир не переварен; текстура овощей и начинки соответствует предусмотренной степени готовности.',safety:'Показатели безопасности соответствуют применимым требованиям ТР ТС 021/2011 и профильных регламентов. Контроль — по программе производственного контроля и процедурам ХАССП. Срок годности и режимы технологии требуют обоснования и утверждения предприятием. Контролируют подготовку компонентов и операции, указанные в технологическом процессе категории «Воки».'});
+ assert.equal(previous.taste,templateFor('Воки').taste);
+ assert.equal(previous.safety,templateFor('Воки').safety);
+ assert.deepEqual(resolveCategoryFields(previous),previous);
+ const custom='Лапша удон с креветкой, соус сливочный.';
+ assert.equal(resolveCategoryFields({category:'Воки',taste:custom}).taste,custom);
+});
+test('Changing category replaces known category defaults while keeping authored text',()=>{
+ for(const from of recipeCategories)for(const to of recipeCategories){
+  const updated=resolveCategoryFields({...templateFor(from),category:to});
+  for(const key of categoryTextFields)assert.equal(updated[key],templateFor(to)[key],from+' -> '+to+' '+key);
+ }
+});

@@ -1,4 +1,4 @@
-import {regulatoryBasis,scopeForName} from './recipe-math.js?v=ttk-4';
+import {regulatoryBasis,scopeForName} from './recipe-math.js?v=ttk-5';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
