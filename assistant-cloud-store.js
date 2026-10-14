@@ -40,11 +40,17 @@ export class YandexAssistantStore extends AssistantStore{
   }
   async folder(name){try{await this.api('/resources?path='+encodeURIComponent(name),{method:'PUT'})}catch(e){if(e.status!==409)throw e}}
   async read(name,fallback){
+    let downloadError;
     for(let attempt=0;attempt<2;attempt++){
       let link;try{link=await this.api('/resources/download?path='+encodeURIComponent(this.base+name))}catch(e){if(e.status===404)return structuredClone(fallback);throw e}
       try{const r=await this.download(link.href,{signal:AbortSignal.timeout(30000)});if(!r.ok){console.error('[cloud-download] status='+r.status);throw httpError(502,'Не удалось прочитать облачные данные')}return await r.json()}
-      catch(e){if(e instanceof SyntaxError||attempt===1)throw e}
+      catch(e){if(e instanceof SyntaxError)throw e;downloadError=e}
     }
+    // Read the same existing file through Yandex's alternative file protocol.
+    // Failure here must never mean that the confirmed file is absent.
+    const path=(this.base+name).split('/').map(encodeURIComponent).join('/');
+    const r=await this.fetchCloud('https://webdav.yandex.ru'+path,{redirect:'error',headers:{Authorization:'OAuth '+this.token}});
+    if(!r.ok){console.error('[cloud-webdav] status='+r.status);throw downloadError}return r.json();
   }
   async write(name,data){
     await this.folder('/FARRUKH_AI_STORAGE/');await this.folder(this.base);

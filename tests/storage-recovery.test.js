@@ -19,3 +19,13 @@ test('A failed download gets a fresh signed link before retrying',async()=>{
  });
  assert.equal((await store.state()).revision,25);assert.deepEqual(downloads,['https://storage.test/1','https://storage.test/2']);
 });
+test('WebDAV fallback reads the same file and never resets it on a missing response',async()=>{
+ for(const status of [200,404]){
+  const store=new YandexAssistantStore('token',async(url,options)=>{
+   if(url.startsWith('https://cloud-api'))return {ok:true,status:200,json:async()=>({href:'https://storage.test/file'})};
+   if(url.startsWith('https://webdav.yandex.ru/')){assert.equal(url,'https://webdav.yandex.ru/FARRUKH_AI_STORAGE/FARRUKH_AI_V2/state.json');assert.equal(options.headers.Authorization,'OAuth token');assert.equal(options.redirect,'error');return {ok:status===200,status,json:async()=>({revision:30,recipes:[{name:'Карта'}]})}}
+   return {ok:false,status:500};
+  });
+  if(status===200)assert.equal((await store.state()).revision,30);else await assert.rejects(()=>store.state(),e=>e.status===502);
+ }
+});
