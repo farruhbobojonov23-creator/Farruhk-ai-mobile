@@ -1,3 +1,4 @@
+import {calculateNutrition} from './public/recipe-math.js';
 import PDFDocument from 'pdfkit';
 const font=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',import.meta.url);
 const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',import.meta.url);
@@ -40,7 +41,7 @@ export function recipePdf(recipe){
  section('4. Требования к оформлению, подаче и хранению');cells([value(recipe.storage)],[W]);
  section('5. Органолептические показатели');cells(['Показатель','Характеристика'],[123,W-123],{fill:PALE});cells(['Внешний вид',value(recipe.appearance)],[123,W-123]);cells(['Вкус и текстура',value(recipe.taste)],[123,W-123]);
  section('6. Пищевая ценность (на 100 г / на порцию)');
- const n=recipe.nutrition||{},keys=['protein','fat','carbs','kcal'];
+ const n=(recipe.nutritionMode==='ingredients'?calculateNutrition(recipe.ingredients||[],recipe.netYieldGrams):recipe.nutrition)||{},keys=['protein','fat','carbs','kcal'];
  cells(['Показатель','Белки, г','Жиры, г','Углеводы, г','Калорийность, ккал'],[123,78,78,96,116],{fill:PALE,aligns:['center','center','center','center','center']});
  cells(['На 100 г',...keys.map(k=>fmt(n[k]))],[123,78,78,96,116],{aligns:['center','center','center','center','center']});
  cells(['На порцию'+(recipe.netYieldGrams?' '+recipe.netYieldGrams+' г':''),...keys.map(k=>n[k]!==null&&n[k]!==undefined&&recipe.netYieldGrams?fmt(Number(n[k])*recipe.netYieldGrams/100):'-')],[123,78,78,96,116],{aligns:['center','center','center','center','center']});
