@@ -3,3 +3,5 @@
 .ingredient{grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #7775;border-radius:12px;padding:12px}.ingredient label{margin:0;font-size:12px}.ingredient label:first-child{grid-column:1/-1}.ingredient button{justify-self:end}input[readonly]{opacity:.7}@media(max-width:700px){.ingredient{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .recipe-delete{color:#f1a6ac;border:1px solid #9a555b;background:#69303633}.recipe-delete[hidden]{display:none}
+
+.recipe-categories{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}.recipe-categories .active{background:#7f6cbc;color:white}.nutrition-ingredient{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:15px 0}.nutrition-ingredient strong{grid-column:1/-1}.nutrition-ingredient label{margin:0;font-size:12px}@media(max-width:700px){.nutrition-ingredient{grid-template-columns:1fr 1fr}}

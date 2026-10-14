@@ -21,3 +21,20 @@ export function calculateNutrition(ingredients,yieldGrams){
  }
  return Object.fromEntries(nutritionKeys.map(k=>[k,total[k]/Number(yieldGrams)*100]));
 }
+export const recipeCategories=['Холодные роллы','Запечённые роллы','Темпурные роллы','Маки-роллы','Гунканы','Воки','Суши','Беридоги'];
+export function lossFromWeights(gross,net){if(!number(gross)||!number(net)||Number(gross)<=0||Number(net)<0||Number(net)>Number(gross))return null;return Math.round((1-Number(net)/Number(gross))*1000000)/10000}
+export function netYield(ingredients){if(!ingredients.length||ingredients.some(i=>!number(i.grams)||Number(i.grams)<=0))return null;return Math.round(ingredients.reduce((sum,i)=>sum+Number(i.grams),0)*10000)/10000}
+export function templateFor(category,pieces=8){
+ const t={...rollTemplate,serving:rollTemplate.serving.replace('8 равных',pieces+' равных')};
+ if(category==='Запечённые роллы')t.forming+=' Ролл нарезается, покрывается шапочкой согласно рецептуре и запекается по утверждённой технологии.';
+ if(category==='Темпурные роллы')t.forming+=' Ролл покрывается темпурным кляром и панировкой, обжаривается по утверждённой технологии.';
+ if(category==='Маки-роллы')t.forming='На лист нори выкладывается рис, в центр — начинка согласно рецептуре. Ролл сворачивается нори наружу.';
+ if(['Гунканы','Суши','Воки','Беридоги'].includes(category)){
+  t.preparation='Ингредиенты подготавливаются согласно рецептуре и санитарным нормам.';
+  t.forming=({Гунканы:'Формируется рисовая основа, оборачивается нори, сверху выкладывается начинка согласно рецептуре.',Суши:'Формируется рисовая основа. Сверху выкладывается подготовленный ингредиент согласно рецептуре.',Воки:'Подготовленные ингредиенты обжариваются в воке в последовательности, указанной в рецептуре; добавляются соус и гарнир.',Беридоги:'Основа и начинка собираются согласно рецептуре, добавляются соусы и топпинги.'})[category];
+  t.serving='Блюдо порционируется согласно выходу и выкладывается на брендированную упаковку.';
+  t.appearance='Форма и выкладка аккуратные, компоненты соответствуют рецептуре.';t.taste='Вкус и текстура свойственные используемым ингредиентам.';
+  t.storage='Блюдо оформляется аккуратно, поверхность чистая, без заветриваний. Температура, срок хранения и условия реализации — согласно утверждённой технологии данного блюда.';
+ }
+ return t;
+}
