@@ -8,6 +8,7 @@ import ExcelJS from 'exceljs';
 import { installRecipePdfApi } from './recipe-pdf.js';
 import { installVoiceApi } from './voice-api.js';
 import { installAssistantApi } from './assistant-api.js';
+import { cloudDownload } from './assistant-cloud-store.js';
 
 const app = express();
 app.set('trust proxy',1);
@@ -58,7 +59,7 @@ function requireSameOrigin(req,res,next){
 
 const assistant=installAssistantApi(app,{multer,ExcelJS,migrateState:async()=>{
   if(!yandexToken())return null;
-  try{const meta=await yandexRequest('/resources/download?path='+encodeURIComponent('/FARRUKH_AI_STORAGE/FARRUKH_AI/state.json'),{method:'GET'});const r=await fetch(meta.href,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('Cloud migration failed');return await r.json()}catch(e){if(e.status===404)return null;throw e}
+  try{const meta=await yandexRequest('/resources/download?path='+encodeURIComponent('/FARRUKH_AI_STORAGE/FARRUKH_AI/state.json'),{method:'GET'});const r=await cloudDownload(meta.href,{signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('Cloud migration failed');return await r.json()}catch(e){if(e.status===404)return null;throw e}
 }});
 
 installRecipePdfApi(app,{store:assistant.store});

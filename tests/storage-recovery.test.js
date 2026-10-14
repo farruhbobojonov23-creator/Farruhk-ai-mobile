@@ -11,3 +11,11 @@ test('Cloud connection failures do not become an empty recipe list',async()=>{
 test('Invalid JSON remains an error and cannot initialize replacement state',async()=>{
  const store=new YandexAssistantStore('token',async url=>url.startsWith('https://cloud-api')?{ok:true,status:200,json:async()=>({href:'https://storage.test/state'})}:{ok:true,json:async()=>{throw new SyntaxError('invalid JSON')}});await assert.rejects(()=>store.state(),SyntaxError);
 });
+test('A failed download gets a fresh signed link before retrying',async()=>{
+ let links=0;const downloads=[];
+ const store=new YandexAssistantStore('token',async url=>{
+  if(url.startsWith('https://cloud-api'))return {ok:true,status:200,json:async()=>({href:'https://storage.test/'+(++links)})};
+  downloads.push(url);return links===1?{ok:false,status:503}:{ok:true,json:async()=>({revision:25,recipes:[{name:'Сохранённая карта'}]})};
+ });
+ assert.equal((await store.state()).revision,25);assert.deepEqual(downloads,['https://storage.test/1','https://storage.test/2']);
+});
