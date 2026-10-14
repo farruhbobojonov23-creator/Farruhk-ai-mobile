@@ -6,6 +6,7 @@ import { Readable } from 'node:stream';
 import multer from 'multer';
 import ExcelJS from 'exceljs';
 import { installRecipePdfApi } from './recipe-pdf.js';
+import { installTemperatureJournalPdfApi } from './haccp-temperature-pdf.js';
 import { installVoiceApi } from './voice-api.js';
 import { installAssistantApi } from './assistant-api.js';
 import { cloudDownload } from './assistant-cloud-store.js';
@@ -68,6 +69,7 @@ const assistant=installAssistantApi(app,{multer,ExcelJS,migrateState:async()=>{
 }});
 
 installRecipePdfApi(app,{store:assistant.store});
+installTemperatureJournalPdfApi(app,{requireSameOrigin});
 
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
