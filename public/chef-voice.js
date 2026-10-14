@@ -13,24 +13,46 @@ export function speechChunks(text){
 }
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
- let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null;
+ let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false;
  function status(next,text){phase=next;panel.dataset.phase=next;$('voice-status').textContent=text;$('voice-start').hidden=active;$('voice-stop').hidden=!active;$('voice-send').hidden=next!=='listening'}
  function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);const tick=()=>{analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)));playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
  function resetLevel(){cancelAnimationFrame(playFrame);playFrame=null;panel.style?.setProperty('--voice-level','0')}
  function releaseMic(){clearTimeout(timer);cancelAnimationFrame(frame);timer=null;frame=null;if(input){input.disconnect();input=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
- function stop(text='Разговор остановлен.'){active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();resetLevel();if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
+ function stop(text='Разговор остановлен.'){active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();resetLevel();if(deviceSpeaking){window.speechSynthesis?.cancel();deviceSpeaking=false}if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
  function fail(error,token){if(token!==generation)return;stop();status('error',error.name==='NotAllowedError'?'Разреши микрофон для этого сайта в настройках браузера.':error.message||'Не удалось начать разговор.');if(lastReply){$('voice-start').textContent='Начать разговор'}}
  async function unlock(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('В браузере недоступно воспроизведение голоса.');context=context||new Audio();await context.resume()}
  async function json(url,body,signal){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const data=await r.json();if(!r.ok)throw Error(data.error||'Ошибка голосового сервиса.');return data}
  async function encode(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let value='';for(let i=0;i<bytes.length;i+=8192)value+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(value)}
+ async function speakDevice(text,token){
+  const synth=window.speechSynthesis,Utterance=window.SpeechSynthesisUtterance;
+  if(!synth||!Utterance)throw Error('Встроенный голос недоступен в этом браузере. Ответ сохранён текстом.');
+  if(!active||token!==generation)return;
+  status('speaking','Отвечаю голосом устройства…');
+  for(const chunk of speechChunks(text)){
+   if(!active||token!==generation)return;
+   await new Promise((resolve,reject)=>{
+    const utterance=new Utterance(chunk);utterance.lang='ru-RU';
+    const russian=synth.getVoices().filter(v=>/^ru(?:-|_)/i.test(v.lang));
+    utterance.voice=russian.find(v=>v.localService)||russian[0]||null;
+    let settled=false;
+    const finish=error=>{if(settled)return;settled=true;deviceSpeaking=false;finishPlayback=null;resetLevel();if(error)reject(error);else resolve()};
+    finishPlayback=()=>finish();deviceSpeaking=true;
+    utterance.onend=()=>finish();
+    utterance.onerror=event=>finish(Error('Не удалось включить голос устройства: '+event.error));
+    utterance.onboundary=()=>panel.style?.setProperty('--voice-level','.35');
+    try{synth.speak(utterance)}catch(error){finish(error)}
+   });
+  }
+ }
  async function speak(text,token){
+  if(Date.now()<deviceVoiceUntil)return speakDevice(text,token);
   status('thinking','Готовлю голосовой ответ…');
   const chunks=speechChunks(text);
   const requestAudio=async chunk=>{
    try{
     if(!active||token!==generation)return {};
     const r=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:$('voice-choice').value}),signal:controller.signal});
-    if(!r.ok){const d=await r.json();throw Error(d.error||'Голос недоступен. Ответ сохранён текстом.')}
+    if(!r.ok){const d=await r.json();const error=Error(d.error||'Голос недоступен. Ответ сохранён текстом.');error.status=r.status;throw error}
     return {buffer:await context.decodeAudioData(await r.arrayBuffer())};
    }catch(error){return {error}}
   };
@@ -38,7 +60,15 @@ export function createVoiceConversation({send}){
   for(let i=0;i<chunks.length;i++){
    const result=await pending;
    if(!active||token!==generation)return;
-   if(result.error)throw result.error;
+   if(result.error){
+    if(result.error.name==='AbortError')throw result.error;
+    if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
+     // Avoid repeated quota requests; retry neural speech after a short cooldown.
+     if(result.error.status===429)deviceVoiceUntil=Date.now()+300000;
+     return speakDevice(chunks.slice(i).join(''),token);
+    }
+    throw result.error;
+   }
    // Prepare one next segment while the current segment is audible.
    pending=i+1<chunks.length?requestAudio(chunks[i+1]):null;
    status('speaking','Отвечаю… Нажми «Остановить», чтобы прервать.');
