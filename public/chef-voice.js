@@ -5,6 +5,7 @@ export function createVoiceConversation({send}){
  function releaseMic(){clearTimeout(timer);cancelAnimationFrame(frame);timer=null;frame=null;if(input){input.disconnect();input=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
  function stop(text='Разговор остановлен.'){active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
  function fail(error,token){if(token!==generation)return;stop();status('error',error.name==='NotAllowedError'?'Разреши микрофон для этого сайта в настройках браузера.':error.message||'Не удалось начать разговор.');if(lastReply){$('voice-start').textContent='Начать разговор'}}
+ async function unlock(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('В браузере недоступно воспроизведение голоса.');context=context||new Audio();await context.resume()}
  async function json(url,body,signal){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const data=await r.json();if(!r.ok)throw Error(data.error||'Ошибка голосового сервиса.');return data}
  async function encode(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let value='';for(let i=0;i<bytes.length;i+=8192)value+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(value)}
  async function speak(text,token){
@@ -23,6 +24,28 @@ export function createVoiceConversation({send}){
    await new Promise(resolve=>{finishPlayback=resolve;source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);source.onended=()=>{source=null;finishPlayback=null;resolve()};source.start()});
   }
  }
+ async function read(text){
+  stop();const token=generation;active=true;lastReply=text;
+  try{await unlock();if(!active||token!==generation)return;controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);await speak(text,token);if(token===generation)stop('Ответ озвучен.')}catch(e){fail(e,token)}
+ }
+ async function sendText(text){
+  stop();
+  if(!$('voice-enabled').checked)return send(text);
+  const token=generation;active=true;lastReply='';
+  // Unlock audio while the Send click/submit still has user activation.
+  // No microphone permission is requested for text replies.
+  let audioError=null;const ready=unlock().catch(e=>{audioError=e});
+  controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);
+  status('thinking','Ассистент думает…');
+  try{
+   lastReply=await send(text,{signal:controller.signal});
+   await ready;
+   if(!active||token!==generation)return;
+   if(audioError)throw audioError;
+   if($('voice-enabled').checked)await speak(lastReply,token);
+   if(token===generation)stop('Ответ получен. Нажми «Прослушать», чтобы повторить.');
+  }catch(e){fail(e,token)}
+ }
  async function processRecording(blob,token){
   try{
    if(!active||token!==generation)return;
@@ -35,7 +58,7 @@ export function createVoiceConversation({send}){
    $('voice-transcript').textContent='Ты: '+text;status('thinking','Ассистент думает…');
    lastReply=await send(text,{signal:controller.signal,voice:true});
    if(!active||token!==generation)return;
-   await speak(lastReply,token);clearTimeout(timer);timer=null;
+   if($('voice-enabled').checked)await speak(lastReply,token);clearTimeout(timer);timer=null;
    if(!active||token!==generation)return;
    if($('voice-auto').checked)await listen(token);else stop('Ответ завершён. Можно начать новый разговор.');
   }catch(e){fail(e,token)}
@@ -69,8 +92,7 @@ export function createVoiceConversation({send}){
   stop();const token=generation;active=true;lastReply='';
   try{
    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)throw Error('Этот браузер не поддерживает запись голоса. Открой сайт в Chrome или Safari.');
-   const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('В браузере недоступно воспроизведение голоса.');
-   context=context||new Audio();await context.resume();status('connecting','Проверяю голосовой сервис…');
+   await unlock();status('connecting','Проверяю голосовой сервис…');
    controller=new AbortController();timer=setTimeout(()=>controller?.abort(),20000);
    const r=await fetch('/api/voice/config',{signal:controller.signal});const config=await r.json();clearTimeout(timer);timer=null;
    if(!r.ok)throw Error(config.error||'Сервер недоступен.');if(!config.configured)throw Error('На сервере не подключён голос Gemini.');
@@ -80,5 +102,5 @@ export function createVoiceConversation({send}){
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
  window.addEventListener('pagehide',()=>stop());window.addEventListener('hashchange',()=>{if(location.hash!=='#chat'&&active)stop()});
- return {start,stop};
+ return {start,stop,read,sendText};
 }
