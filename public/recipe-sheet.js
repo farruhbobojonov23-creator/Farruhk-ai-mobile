@@ -1,4 +1,4 @@
-import {regulatoryBasis} from './recipe-math.js?v=blue-2';
+import {regulatoryBasis,scopeForName} from './recipe-math.js?v=ttk-3';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
@@ -7,7 +7,7 @@ export function mountRecipeSheet(editor){
  const toolbar=el('div','ttk-toolbar');toolbar.append(get('edit-title'));
  const oldSave=editor.querySelector('button[type="submit"],button.primary');oldSave.textContent='Сохранить';toolbar.append(oldSave);
  const download=el('button');download.id='sheet-download';download.type='button';download.textContent='Сохранить и скачать PDF';toolbar.append(download,get('delete-recipe'),get('closeeditor'));
- const guidance=el('p','ttk-guidance');guidance.textContent='Редактируй прямо в ячейках. Нетто и отходы вводятся вручную, брутто и выход рассчитываются. На телефоне лист можно прокручивать вбок.';
+ const guidance=el('p','ttk-guidance');guidance.textContent='Редактируй прямо в ячейках. Нетто и отходы вводятся вручную, брутто и выход рассчитываются. PDF сохраняется на одном листе А4; при большом объёме текста шрифт уменьшается. На телефоне лист можно прокручивать вбок.';
  const viewport=el('div','ttk-viewport');viewport.tabIndex=0;viewport.setAttribute('aria-label','Редактируемая техкарта');
  const paper=el('div','ttk-paper');viewport.append(paper);
  const title=el('div','ttk-document-title');title.textContent='ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)';paper.append(title);
@@ -37,7 +37,7 @@ export function mountRecipeSheet(editor){
  const signatures=table(),signatureRow=el('tr');pair(signatureRow,'Разработал (Шеф):','card-chef');pair(signatureRow,'Утверждаю (Руководитель):','card-approver');signatures.append(signatureRow);signatures.parentNode.classList.add('ttk-signatures');
  const basis=el('p','ttk-regulatory');basis.textContent=regulatoryBasis;paper.append(basis);const tools=el('div','ttk-template-tools');tools.append(get('apply-roll-template'));const note=el('p');note.textContent='Стандартные тексты доступны для правки. Проверь применимость к блюду перед утверждением.';tools.append(note);
  editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
- function refresh(){if(editor.hidden)return;const scope=$('card-scope');const text=scope.value;const automatic=text.startsWith('Настоящая ТТК распространяется на блюдо «')&&text.endsWith('включая отпуск на вынос и доставку.');if(automatic)scope.value=text.replace(/«[^»]*»/, '«'+($('recipe-name').value||'{name}')+'»');for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const yieldGrams=Number($('card-yield').value);for(const key of ['protein','fat','carbs','kcal']){const raw=$('card-'+key).value;$('sheet-portion-'+key).textContent=raw!==''&&yieldGrams>0?(Number(raw)*yieldGrams/100).toLocaleString('ru-RU',{maximumFractionDigits:2}):'-'}}
+ function refresh(){if(editor.hidden)return;const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const yieldGrams=Number($('card-yield').value);for(const key of ['protein','fat','carbs','kcal']){const raw=$('card-'+key).value;$('sheet-portion-'+key).textContent=raw!==''&&yieldGrams>0?(Number(raw)*yieldGrams/100).toLocaleString('ru-RU',{maximumFractionDigits:2}):'-'}}
  editor.addEventListener('input',()=>queueMicrotask(refresh));editor.addEventListener('change',()=>queueMicrotask(refresh));
  return {refresh,downloadButton:download};
 }

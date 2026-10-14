@@ -1,4 +1,15 @@
-export const regulatoryBasis='Нормативная основа: СанПиН 2.3/2.4.3590-20, ТР ТС 021/2011; структура ТТК — ГОСТ 31987-2012. Применяются действующие редакции.';
+export const sanpinNumber='2.3/2.4.4282-26';
+export const regulatoryBasis='Нормативная основа: СанПиН '+sanpinNumber+', ТР ТС 021/2011; структура ТТК — ГОСТ 31987-2012. Применяются действующие редакции.';
+export function scopeForName(text,name){
+ const label=String(name||'').trim()||'Название блюда';
+ const source=String(text||rollTemplate.scope);
+ if(source.startsWith('Настоящая ТТК распространяется на блюдо «'))return source.replace(/«[^»]*»/,()=> '«'+label+'»');
+ return source.replace(/\{name\}/g,()=>label);
+}
+export function storageWithSanpin(text){
+ const source=String(text||'').replace(/2\.3\/2\.4\.3590-20/g,sanpinNumber).trim();
+ return source.includes(sanpinNumber)?source:source+(source?'\n':'')+'Оформление, подача, реализация и хранение - в соответствии с СанПиН '+sanpinNumber+'.';
+}
 export const rollTemplate={
  scope:'Настоящая ТТК распространяется на блюдо «{name}», изготавливаемое и реализуемое предприятием «Суши Бери», включая отпуск на вынос и доставку.',
  rawRequirements:'Сырьё соответствует применимым техническим регламентам ЕАЭС. При приёмке проверяют маркировку, целостность упаковки, срок годности, условия перевозки и сопроводительные документы; ветеринарные документы — для подконтрольной продукции. Не допускается сырьё с признаками порчи или истёкшим сроком годности.',
@@ -30,8 +41,8 @@ export const recipeCategories=['Холодные роллы','Запечённы
 export function lossFromWeights(gross,net){if(!number(gross)||!number(net)||Number(gross)<=0||Number(net)<0||Number(net)>Number(gross))return null;return Math.round((1-Number(net)/Number(gross))*1000000)/10000}
 export function netYield(ingredients){if(!ingredients.length||ingredients.some(i=>!number(i.grams)||Number(i.grams)<=0))return null;return Math.round(ingredients.reduce((sum,i)=>sum+Number(i.grams),0)*10000)/10000}
 export function templateFor(category,pieces=8){
- const count=[4,8,16].includes(Number(pieces))?Number(pieces):8;
- const t={...rollTemplate,serving:rollTemplate.serving.replace('8 равных',count+' равных')};
+ const count=[1,4,6,8,16].includes(Number(pieces))?Number(pieces):8;
+ const t={...rollTemplate,storage:storageWithSanpin(rollTemplate.storage),serving:count===1?rollTemplate.serving.replace('Ролл нарезают на 8 равных частей, сохраняя форму.','Ролл отпускают целиком (1 шт.), сохраняя форму.'):rollTemplate.serving.replace('8 равных',count+' равных')};
  const cooling=' При холодильном хранении охлаждают по утверждённой инструкции с контролем времени и температуры. Охлаждение входит в 12 часов срока годности; повторный нагрев срок не продлевает.';
  if(category==='Запечённые роллы'){
   t.forming+=' Нарезают, наносят шапочку по рецептуре, запекают по утверждённой инструкции с контролем времени, температуры и готовности.';
