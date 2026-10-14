@@ -1,9 +1,10 @@
-import {calculateNutrition,regulatoryBasis,scopeForName,storageWithSanpin} from './public/recipe-math.js';
+import {calculateNutrition,regulatoryBasis,scopeForName,storageWithSanpin,resolveCategoryFields} from './public/recipe-math.js';
 import PDFDocument from 'pdfkit';
 import {cleanState} from './assistant-store.js';
 const font=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',import.meta.url);
 const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',import.meta.url);
 export function recipePdf(recipe){
+ recipe=resolveCategoryFields(recipe);
  const doc=new PDFDocument({size:'A4',margin:0,bufferPages:true,info:{Title:'ТТК - '+recipe.name,Author:'Суши Бери'}});
  doc.registerFont('regular',font.pathname);doc.registerFont('bold',bold.pathname);
  const L=36,W=523,BOTTOM=788,GOLD='#194F82',PALE='#E3EEF7',INK='#17334D';
@@ -25,7 +26,7 @@ export function recipePdf(recipe){
  cells(['МАССА ЗАКЛАДКИ ИНГРЕДИЕНТОВ:',allGross?kg(recipe.ingredients.reduce((n,i)=>n+Number(i.grossGrams),0)):'-',allNet?kg(recipe.ingredients.reduce((n,i)=>n+Number(i.grams||0),0)):'-'],[246,122.5,122.5],{strong:true,aligns:['left','center','center']});
  cells(['ВЫХОД ГОТОВОГО БЛЮДА'+(recipe.pieces?' ('+recipe.pieces+' шт.)':'')+':',kg(recipe.netYieldGrams)],[368.5,122.5],{strong:true,aligns:['left','center']});
  section('4. Технологический процесс');cells(['Этап','Описание действий'],[123,W-123],{fill:PALE});
- cells(['Подготовка',value(recipe.preparation)],[123,W-123]);cells(['Формовка',value(recipe.forming||recipe.technology)],[123,W-123]);cells(['Нарезка / подача',value(recipe.serving)],[123,W-123]);
+ cells(['Подготовка',value(recipe.preparation)],[123,W-123]);cells(['Приготовление',value(recipe.forming||recipe.technology)],[123,W-123]);cells(['Нарезка / подача',value(recipe.serving)],[123,W-123]);
  section('5. Оформление, подача, реализация и хранение');cells([storageWithSanpin(recipe.storage)],[W]);
  section('6. Показатели качества и безопасности');cells(['Показатель','Характеристика'],[123,W-123],{fill:PALE});cells(['Внешний вид',value(recipe.appearance)],[123,W-123]);cells(['Вкус и текстура',value(recipe.taste)],[123,W-123]);cells([value(recipe.safety)],[W]);
  section('7. Пищевая ценность (на 100 г / на порцию)');
@@ -52,7 +53,7 @@ export function recipePdf(recipe){
    const total=block.widths.reduce((a,b)=>a+b,0),widths=block.widths.map(w=>w*W/total);
    const lines=block.values.map((v,i)=>wrap(v,widths[i]-8,7*scale,strong));
    const height=Math.max(14*scale,Math.max(...lines.map(x=>x.length))*8.6*scale+5*scale);let x=L;
-   if(draw)for(let i=0;i<widths.length;i++){if(fills[i]||fill)doc.rect(x,y,widths[i],height).fill(fills[i]||fill);doc.rect(x,y,widths[i],height).lineWidth(.55).strokeColor(GOLD).stroke();doc.font(strong?'bold':'regular').fontSize(7*scale).fillColor(INK).text(lines[i].join('\n'),x+4,y+2.5*scale,{width:widths[i]-8,height:height-4*scale,align:aligns[i]||'left',lineGap:0});x+=widths[i]}
+   if(draw)for(let i=0;i<widths.length;i++){if(fills[i]||fill)doc.rect(x,y,widths[i],height).fill(fills[i]||fill);doc.rect(x,y,widths[i],height).lineWidth(.55).strokeColor(GOLD).stroke();doc.font(strong?'bold':'regular').fontSize(7*scale).fillColor(INK);for(let j=0;j<lines[i].length;j++)doc.text(lines[i][j],x+4,y+(2.5+j*8.6)*scale,{width:widths[i]-8,align:aligns[i]||'left',lineBreak:false});x+=widths[i]}
    y+=height;
   }return y;
  }
@@ -71,3 +72,4 @@ export function installRecipePdfApi(app,{store}){
   try{const state=await store.state(),recipe=(state.recipes||[]).find(r=>r.id===req.params.id);if(!recipe)return res.status(404).json({error:'Техкарта не найдена.'});const doc=recipePdf(recipe);res.setHeader('Content-Type','application/pdf');res.setHeader('Content-Disposition',"attachment; filename=recipe.pdf; filename*=UTF-8''"+encodeURIComponent('ТТК_'+recipe.name+'.pdf'));doc.on('error',()=>{if(!res.headersSent)res.status(500).json({error:'Не удалось подготовить PDF.'});else res.destroy()});doc.pipe(res);doc.end()}catch(e){res.status(500).json({error:'Не удалось подготовить PDF.'})}
  });
 }
+

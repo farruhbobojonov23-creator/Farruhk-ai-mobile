@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import parsePdf from 'pdf-parse';
+import parsePdf from 'pdf-parse/lib/pdf-parse.js';
 import {cleanState} from '../assistant-store.js';
 import {templateFor,cardDateNow,nextCardNumber} from '../public/recipe-math.js';
 import {recipePdf,installRecipePdfApi} from '../recipe-pdf.js';
@@ -24,7 +24,8 @@ test('Blue category templates fit one A4 page and preserve storage, scope and sa
   const template=templateFor(category,8);
   const r={...template,name:'Филадельфия',category,scope:template.scope.replace('{name}','Филадельфия'),status:'draft',cardNumber:'001',cardDate:'2026-10-14',netYieldGrams:250,pieces:8,nutrition:{protein:7,fat:10,carbs:20,kcal:198},ingredients:[{name:'Рис готовый',grams:130,grossGrams:130},{name:'Лосось',grams:60,grossGrams:70},{name:'Сыр сливочный',grams:40,grossGrams:40},{name:'Огурец',grams:18,grossGrams:20},{name:'Нори',grams:2,grossGrams:2}]};
   const saved=cleanState({recipes:[r]}).recipes[0];assert.equal(saved.scope,r.scope);assert.equal(saved.safety,r.safety);
-  const pdf=await parsePdf(await bytes(saved));assert.equal(pdf.numpages,1,category);assert.match(pdf.text,/Область применения/);assert.match(pdf.text,/12 часов/);assert.match(pdf.text,/4282-26/);
+  const pdf=await parsePdf(await bytes(saved));assert.equal(pdf.numpages,1,category);assert.match(pdf.text,/Область применения/);assert.match(pdf.text,/утверждённым данным предприятия/);assert.match(pdf.text,/4282-26/);
  }
 });
 test('Automatic card metadata uses Moscow date and skips existing numbers',()=>{assert.equal(cardDateNow(new Date('2026-10-14T22:30:00Z')),'2026-10-15');assert.equal(nextCardNumber([{cardNumber:'001'},{cardNumber:'003'}]),'002')});
+
