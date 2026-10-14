@@ -13,10 +13,12 @@ export function speechChunks(text){
 }
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
- let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null;
+ let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null;
  function status(next,text){phase=next;panel.dataset.phase=next;$('voice-status').textContent=text;$('voice-start').hidden=active;$('voice-stop').hidden=!active;$('voice-send').hidden=next!=='listening'}
+ function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);const tick=()=>{analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)));playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
+ function resetLevel(){cancelAnimationFrame(playFrame);playFrame=null;panel.style?.setProperty('--voice-level','0')}
  function releaseMic(){clearTimeout(timer);cancelAnimationFrame(frame);timer=null;frame=null;if(input){input.disconnect();input=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
- function stop(text='Разговор остановлен.'){active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
+ function stop(text='Разговор остановлен.'){active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();resetLevel();if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
  function fail(error,token){if(token!==generation)return;stop();status('error',error.name==='NotAllowedError'?'Разреши микрофон для этого сайта в настройках браузера.':error.message||'Не удалось начать разговор.');if(lastReply){$('voice-start').textContent='Начать разговор'}}
  async function unlock(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('В браузере недоступно воспроизведение голоса.');context=context||new Audio();await context.resume()}
  async function json(url,body,signal){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const data=await r.json();if(!r.ok)throw Error(data.error||'Ошибка голосового сервиса.');return data}
@@ -42,7 +44,7 @@ export function createVoiceConversation({send}){
    status('speaking','Отвечаю… Нажми «Остановить», чтобы прервать.');
    await context.resume();
    if(!active||token!==generation)return;
-   await new Promise(resolve=>{finishPlayback=resolve;source=context.createBufferSource();source.buffer=result.buffer;source.connect(context.destination);source.onended=()=>{source=null;finishPlayback=null;resolve()};source.start()});
+   await new Promise(resolve=>{finishPlayback=resolve;source=context.createBufferSource();source.buffer=result.buffer;const meter=context.createAnalyser();meter.fftSize=1024;source.connect(meter);meter.connect(context.destination);animateLevel(meter);source.onended=()=>{resetLevel();meter.disconnect();source=null;finishPlayback=null;resolve()};source.start()});
   }
  }
  async function read(text){
@@ -100,7 +102,7 @@ export function createVoiceConversation({send}){
    const tick=()=>{
     if(!active||token!==generation||r.state!=='recording')return;
     analyser.getFloatTimeDomainData(samples);let energy=0;for(const v of samples)energy+=v*v;
-    const now=performance.now();if(Math.sqrt(energy/samples.length)>.025){spoken=true;lastSound=now}
+    panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(energy/samples.length)*8)));const now=performance.now();if(Math.sqrt(energy/samples.length)>.025){spoken=true;lastSound=now}
     if(spoken&&now-lastSound>1600){r.stop();return}
     if(!spoken&&now-started>12000){stop('Речь не услышана. Нажми «Начать разговор» и говори.');return}
     frame=requestAnimationFrame(tick);
@@ -122,6 +124,6 @@ export function createVoiceConversation({send}){
  }
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
- window.addEventListener('pagehide',()=>stop());window.addEventListener('hashchange',()=>{if(location.hash!=='#chat'&&active)stop()});
+ window.addEventListener('pagehide',()=>stop());window.addEventListener('hashchange',()=>{if(!['#chat','#home',''].includes(location.hash)&&active)stop()});
  return {start,stop,read,sendText};
 }
