@@ -10,7 +10,7 @@ export class YandexAssistantStore extends AssistantStore{
         const r=await this.request(url,{...options,signal:AbortSignal.timeout(10000)});
         if([429,500,502,503,504].includes(r.status)&&attempt===0){await r.body?.cancel();continue}
         return r;
-      }catch(e){last=e;if(!['TimeoutError','AbortError','TypeError'].includes(e.name)||attempt===1)throw e}
+      }catch(e){last=e;if(attempt===1)console.error('[cloud-read] host='+(String(url).startsWith('https://cloud-api.yandex.net/')?'api':'download')+' name='+e.name+' cause='+(e.cause?.code||e.code||'unknown'));if(!['TimeoutError','AbortError','TypeError'].includes(e.name)||attempt===1)throw e}
     }
     throw last;
   }
