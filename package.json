@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test tests/*.test.js",
-    "prestart": "npm test"
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "dejavu-fonts-ttf": "^2.37.3",

@@ -10,6 +10,8 @@ import {parseTaskCommand,zonedDate,zonedToUtc} from '../public/task-commands.js'
 import {parseLiveReports} from '../public/analytics-values.js';
 
 const now=new Date('2026-10-07T18:00:00Z');
+// Wall-clock fixtures must not depend on the machine running the tests.
+process.env.TZ='UTC';
 test('Russian relative days, priorities and weekday use the configured time zone',()=>{
   assert.equal(parseTaskCommand('Напомни завтра проверить рис',now).due,'2026-10-08T06:00:00.000Z');
   const tomorrow=parseTaskCommand('Напомни завтра в 10:00 проверить рис',now);

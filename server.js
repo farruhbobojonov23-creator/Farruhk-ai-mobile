@@ -12,6 +12,11 @@ import { cloudDownload } from './assistant-cloud-store.js';
 
 const app = express();
 app.set('trust proxy',1);
+// Hosting health must not depend on cloud storage or other external APIs.
+app.get('/healthz', (req,res)=>{
+  res.setHeader('Cache-Control','no-store');
+  res.json({ok:true});
+});
 const shef51Upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1}});
 const frontpadUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:15*1024*1024,files:1}});
 app.use(express.json({limit:'20mb'}));
@@ -2429,8 +2434,8 @@ app.post('/api/procurement/finalize',procurementIdentity,procurementAdmin,async(
 });
 
 const port=Number(process.env.PORT||3000);
-app.listen(port,()=>{
-  console.log(`FARRUKH AI Mobile V3.7: http://localhost:${port}`);
+const server=app.listen(port,'0.0.0.0',()=>{
+  console.log(`FARRUKH AI Mobile V3.7: host=0.0.0.0 port=${server.address().port}`);
   setTimeout(async()=>{
     try{
       const current=await procurementRead();
@@ -2453,4 +2458,11 @@ app.listen(port,()=>{
       console.log('[telegram-check] botConnected=false error='+(err?.message||'unknown'));
     }
   },1500);
+});
+// Keep the upstream connection alive longer than the proxy's idle window.
+server.keepAliveTimeout=65000;
+server.headersTimeout=66000;
+server.on('error',err=>{
+  console.error('[server-start] code='+(err.code||'unknown'));
+  process.exitCode=1;
 });
