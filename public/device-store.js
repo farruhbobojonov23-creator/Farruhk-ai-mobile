@@ -1,11 +1,12 @@
-const blank=()=>({tasks:[],memory:[],chat:[],recipes:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
+import {emptyHaccp,validateHaccp,mergeHaccp} from './haccp-model.js';
+const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
 export function validateDeviceState(value){
  const state=value?.state??value;
  if(!state||typeof state!=='object'||Array.isArray(state))throw Error('Неверный формат резервной копии.');
  for(const key of ['tasks','memory','chat','recipes','inspections'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
  if(!['tasks','recipes','chat','inspections','memory'].some(k=>Array.isArray(state[k])))throw Error('В файле нет данных ассистента.');
  for(const recipe of state.recipes||[])if(typeof recipe.name!=='string'||!recipe.name.trim()||typeof recipe.id!=='string'||!Array.isArray(recipe.ingredients)||recipe.ingredients.some(i=>!i||typeof i.name!=='string'||!Number.isFinite(Number(i.grams))||Number(i.grams)<0))throw Error('Повреждена техкарта в резервной копии.');
- return {...blank(),...structuredClone(state),storage:'device'};
+ return {...blank(),...structuredClone(state),haccp:validateHaccp(state.haccp),storage:'device'};
 }
 export function mergeDeviceState(current,incoming){
  const next=validateDeviceState(current),source=validateDeviceState(incoming);
@@ -15,6 +16,7 @@ export function mergeDeviceState(current,incoming){
  }
  const turns=new Set(next.chat.map(x=>JSON.stringify([x.role,x.text])));
  for(const item of source.chat){const key=JSON.stringify([item.role,item.text]);if(!turns.has(key)){next.chat.push(item);turns.add(key)}}
+ next.haccp=mergeHaccp(next.haccp,source.haccp);
  return next;
 }
 export class DeviceStore{
