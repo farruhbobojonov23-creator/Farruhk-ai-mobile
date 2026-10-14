@@ -3,7 +3,6 @@ import {calculateNutrition,regulatoryBasis,scopeForName,storageWithSanpin,resolv
 const regular=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSerif.ttf',import.meta.url).pathname;
 const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSerif-Bold.ttf',import.meta.url).pathname;
 const art=new URL('./public/assets/ttk-blue-premium.png',import.meta.url).pathname;
-const headerArt=new URL('./public/assets/ttk-sapphire-header.png',import.meta.url).pathname;
 export function premiumRecipePdf(input){
  const r=resolveCategoryFields(input),doc=new PDFDocument({size:'A4',margin:0,bufferPages:true,info:{Title:'ТТК - '+r.name,Author:'Суши Бери'}});
  doc.registerFont('regular',regular);doc.registerFont('bold',bold);
@@ -21,9 +20,10 @@ export function premiumRecipePdf(input){
  function row(values,widths,x,y,scale,draw,{fill=null,strong=false}={}){const size=8*scale,lines=values.map((v,i)=>wrap(v,widths[i]-12*scale,size,strong)),height=Math.max(18*scale,Math.max(...lines.map(a=>a.length))*size*1.3+7*scale);if(draw){let xx=x;for(let i=0;i<values.length;i++){doc.rect(xx,y,widths[i],height).fillAndStroke(fill||'#F8FBFE',LINE);textLines(lines[i],xx+6*scale,y+3.5*scale,widths[i]-12*scale,size,strong,INK,i===1?'left':'center');xx+=widths[i]}}return height}
  function layout(scale,draw=false){
   let y=16,headerH=111*scale;
-  if(draw){
-   // Decorative background only: preserve the original header height and all body coordinates.
-   doc.image(headerArt,X,y,{width:W,height:headerH});
+  if(draw){const g=doc.linearGradient(X,y,X+W,y);g.stop(0,DEEP).stop(1,'#07548C');doc.rect(X,y,W,headerH).fill(g);
+   // Reuse the original fish and wave artwork through PDF clipping. Text stays native and editable.
+   const k=W/1055;doc.save().rect(X+W-113*scale,y,113*scale,headerH).clip();doc.image(art,X+W-1044*k*scale,y-32*k*scale,{width:W*scale});doc.restore();waves(X,y+headerH-22*scale,W,22*scale);
+   textLines(['ЯПОНСКАЯ','КУХНЯ','В СОВРЕМЕННОЙ','ПОДАЧЕ'],X+13*scale,y+32*scale,105*scale,6.8*scale,false,'#FFFFFF');
    const hx=X+99*scale,hw=W-205*scale;textLines(['ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],hx,y+10*scale,hw,9*scale,false,'#FFFFFF','center');doc.moveTo(hx+12*scale,y+24*scale).lineTo(hx+hw-12*scale,y+24*scale).strokeColor('#B8DBF2').lineWidth(.5).stroke();
    let nameSize=34*scale;while(doc.font('bold').fontSize(nameSize).widthOfString(val(r.name))>hw&&nameSize>7*scale)nameSize*=.94;const names=wrap(r.name,hw,nameSize,true);textLines(names,hx,y+30*scale,hw,nameSize,true,'#FFFFFF','center');
    const meta='ТТК № '+val(r.cardNumber)+'  •  '+date+'  •  '+val(r.category);let ms=8.1*scale;while(doc.font('bold').fontSize(ms).widthOfString(meta)>hw)ms*=.95;textLines([meta],hx,y+73*scale,hw,ms,true,'#FFFFFF','center');
