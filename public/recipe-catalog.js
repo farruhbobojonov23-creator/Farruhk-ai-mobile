@@ -8,7 +8,7 @@ export const categoryPhotos={
  'Суши':'/assets/categories/sushi.png',
  'Беридоги':'/assets/categories/beridog.png',
  'Закуски':'/assets/categories/snacks.png',
- 'Полуфабрикаты':'/assets/categories/preparations.svg',
+ 'Полуфабрикаты':'/assets/categories/preparations.png',
  'Онигири':'/assets/categories/onigiri.png'
 };
 export function filterCatalog(recipes,category='Все',query=''){

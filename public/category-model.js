@@ -3,7 +3,7 @@ import {categoryPhotos} from './recipe-catalog.js';
 export const categoryColors=['#eef2e9','#faeee2','#f6e7e1','#e8eef5','#eee9f6'];
 export function categoriesFor(state={}){
  const source=Array.isArray(state.categories)?state.categories:recipeCategories.map((name,i)=>({id:'default-'+i,name,image:categoryPhotos[name]||'',color:categoryColors[i%5],visible:true}));
- const categories=source.map(c=>({...c}));
+ const categories=source.map(c=>({...c,image:c.image==='/assets/categories/preparations.svg'?'/assets/categories/preparations.png':c.image}));
  for(const r of state.recipes||[])if(r.category&&!categories.some(c=>c.name===r.category))categories.push({id:'legacy-'+r.category,name:r.category,image:'',color:categoryColors[0],visible:true});
  return categories;
 }
