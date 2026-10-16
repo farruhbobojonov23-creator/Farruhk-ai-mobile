@@ -23,7 +23,6 @@ function formatBody(body, packet) {
   body.clear().setMarginTop(30).setMarginBottom(30).setMarginLeft(36).setMarginRight(36);
   body.setAttributes({[DocumentApp.Attribute.FONT_FAMILY]:'Arial',[DocumentApp.Attribute.FONT_SIZE]:10,[DocumentApp.Attribute.FOREGROUND_COLOR]:'#000000'});
   const title=body.appendParagraph('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА').setHeading(DocumentApp.ParagraphHeading.HEADING1).setAlignment(DocumentApp.HorizontalAlignment.CENTER);title.editAsText().setFontSize(13).setForegroundColor('#000000');
-  const name=body.appendParagraph(String(r.name)).setAlignment(DocumentApp.HorizontalAlignment.CENTER);name.editAsText().setBold(true).setFontSize(15);
   addTable(body,[['Блюдо',String(r.name),'Дата',String(r.cardDate||'—')],['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')]],false);
   packet.sections.forEach(section=>{
     const heading=body.appendParagraph(section[0]).setHeading(DocumentApp.ParagraphHeading.HEADING2).setSpacingBefore(9).setSpacingAfter(5);heading.editAsText().setFontSize(11).setForegroundColor('#000000').setBackgroundColor('#FFF3C4');
@@ -31,6 +30,7 @@ function formatBody(body, packet) {
   });
   body.appendParagraph('');
   addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false);
+  compactCardBody(body);
 }
 function addTable(body, rows, header) {
   const table=body.appendTable(rows.map(row=>row.map(cell=>String(cell))));
@@ -76,4 +76,89 @@ function doPost(event) {
     return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,tabId,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit?tab='+tabId});
   } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
+}
+
+/** Compact A4 layout shared by new cards and already saved cards. */
+function layoutColumnShares(columns) {
+  return ({1:[1],2:[.25,.75],3:[.60,.20,.20],4:[.15,.45,.15,.25],5:[.28,.18,.18,.18,.18]})[columns] || Array(columns).fill(1/columns);
+}
+function estimateCardHeight(body, fontSize) {
+  const width=532.88;
+  let height=12;
+  for(let i=0;i<body.getNumChildren();i++){
+    const child=body.getChild(i);
+    if(child.getType()===DocumentApp.ElementType.PARAGRAPH){
+      const text=child.asParagraph().getText().trim();
+      if(!text){height+=1.3;continue}
+      const heading=/^\d+\./.test(text);
+      height+=Math.max(1,Math.ceil(text.length/(width/(fontSize*.52))))*fontSize*1.18+(heading?7:4);
+    }else if(child.getType()===DocumentApp.ElementType.TABLE){
+      const table=child.asTable(),shares=layoutColumnShares(table.getRow(0).getNumCells());
+      for(let row=0;row<table.getNumRows();row++){
+        let lines=1;
+        for(let col=0;col<table.getRow(row).getNumCells();col++){
+          const text=table.getCell(row,col).getText();
+          const capacity=Math.max(6,Math.floor((width*shares[col]-8)/(fontSize*.55)));
+          const count=text.split('\n').reduce((sum,line)=>sum+Math.max(1,Math.ceil(line.length/capacity)),0);
+          lines=Math.max(lines,count);
+        }
+        height+=lines*fontSize*1.22+4.5;
+      }
+    }
+  }
+  return height;
+}
+function compactCardBody(body) {
+  body.setPageWidth(595.28).setPageHeight(841.89).setMarginTop(28.35).setMarginBottom(28.35).setMarginLeft(31.2).setMarginRight(31.2);
+  let font=9;
+  for(const candidate of [9,8.5,8,7.5,7]){
+    font=candidate;if(estimateCardHeight(body,candidate)<=745)break;
+  }
+  const gold='#A28D46', pale='#F4E5AB', white='#FFFFFF';
+  for(let i=0;i<body.getNumChildren();i++){
+    const child=body.getChild(i);
+    if(child.getType()===DocumentApp.ElementType.PARAGRAPH){
+      const p=child.asParagraph(),text=p.getText().trim();
+      p.setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(1);
+      if(!text){p.editAsText().setFontSize(1);continue}
+      p.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(null);
+      if(text.indexOf('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА')===0){
+        p.setText('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)').setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(5);
+        p.editAsText().setFontFamily('Arial').setFontSize(font+1).setBold(true).setForegroundColor('#65552D');
+      }else if(/^\d+\./.test(text)){
+        p.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingBefore(5).setSpacingAfter(3);
+        p.editAsText().setBold(true).setForegroundColor(white).setBackgroundColor(gold);
+      }else{
+        p.setSpacingAfter(3);
+      }
+    }else if(child.getType()===DocumentApp.ElementType.TABLE){
+      const table=child.asTable(),columns=table.getRow(0).getNumCells(),shares=layoutColumnShares(columns);
+      table.setBorderColor(gold).setBorderWidth(.5);
+      shares.forEach((share,col)=>table.setColumnWidth(col,532.88*share));
+      for(let row=0;row<table.getNumRows();row++)for(let col=0;col<table.getRow(row).getNumCells();col++){
+        const cell=table.getCell(row,col);
+        const text=cell.getText(),first=table.getCell(0,0).getText();
+        const header=row===0&&columns>1&&!/^(Блюдо|Разработал)/.test(first);
+        const label=/^(Блюдо|Разработал)/.test(first)&&col%2===0;
+        cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(4).setPaddingRight(4).setBackgroundColor(header||label?pale:white);
+        cell.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(null).setBold(header||/^ВЫХОД|^Выход/.test(text));
+        for(let n=0;n<cell.getNumChildren();n++){
+          const e=cell.getChild(n);if(e.getType()!==DocumentApp.ElementType.PARAGRAPH)continue;
+          const p=e.asParagraph();p.setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(1);
+          p.setAlignment(columns>=3||header?DocumentApp.HorizontalAlignment.CENTER:DocumentApp.HorizontalAlignment.LEFT);
+        }
+      }
+    }
+  }
+  return font;
+}
+function reformatExistingTtk() {
+  const document=DocumentApp.openById(WORKING_DOCUMENT_ID);
+  const tabs=flattenTabs(docsApi('?includeTabsContent=true').tabs);
+  let count=0;
+  tabs.filter(tab=>tab.tabProperties.parentTabId).forEach(tab=>{
+    compactCardBody(document.getTab(tab.tabProperties.tabId).asDocumentTab().getBody());count++;
+  });
+  document.saveAndClose();
+  console.log('Обновлено ТТК: '+count);
 }
