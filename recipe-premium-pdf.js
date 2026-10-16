@@ -6,6 +6,7 @@ const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',imp
 const valueForYield=v=>v==null?'—':String(v);
 export function premiumRecipePdf(input){
  const {recipe:r,sections,nutrition}=recipeSections(input);
+ const safetyRows=sections[5][1].filter(row=>row[0]==='Безопасность');sections[5][1]=sections[5][1].filter(row=>row[0]!=='Безопасность');sections[5][0]='6. Показатели качества';sections.push(['Безопасность',[[safetyRows.map(row=>row[1]).join('\n')||'—']]]);
  const fmt=v=>v==null?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1});
  sections[6][1][1]=['На 100 г',...['protein','fat','carbs','kcal'].map(k=>fmt(nutrition[k]))];
  sections[6][1][2]=['На порцию '+valueForYield(r.netYieldGrams)+' г',...['protein','fat','carbs','kcal'].map(k=>nutrition[k]!=null&&r.netYieldGrams?fmt(Number(nutrition[k])*r.netYieldGrams/100):'—')];
@@ -23,6 +24,7 @@ export function premiumRecipePdf(input){
   y+=section(3,X,y,W,s,draw)+8*s;
   const lower=Math.max(section(4,X,y,half,s,false),section(5,X+half+G,y,half,s,false));
   if(draw){section(4,X,y,half,s,true,lower);section(5,X+half+G,y,half,s,true,lower)}y+=lower+8*s;
+  y+=section(7,X,y,W,s,draw)+8*s;
   y+=section(6,X,y,W,s,draw)+8*s;
   const signature=wrap('Разработал (Шеф): '+value(r.chef)+'     Утверждаю (Руководитель): '+value(r.approver),W,7*s,true);if(draw)text(signature,X,y,W,7*s,true);y+=signature.length*8.75*s+6*s;
   const basis=wrap(regulatoryBasis,W,5.7*s);if(draw)text(basis,X,y,W,5.7*s,false,'#765647');y+=basis.length*7.125*s;

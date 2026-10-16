@@ -18,7 +18,7 @@ function addTab(title, parentTabId) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]});
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
-const TTK_LAYOUT_VERSION = 'burgundy-2';
+const TTK_LAYOUT_VERSION = 'burgundy-3';
 function formatBody(body, packet) {
  const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
@@ -33,7 +33,9 @@ function formatBody(body, packet) {
  body.appendParagraph('');addSection(body,sections[2],545);
  addSection(body,sections[3],545);
  const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(.4);lower.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
- addSection(lower.getCell(0,0),sections[4],265);addSection(lower.getCell(0,1),sections[5],265);
+ addSection(lower.getCell(0,0),sections[4],265);addSection(lower.getCell(0,1),['6. Показатели качества',sections[5][1].filter(row=>row[0]!=='Безопасность')],265);
+ const safetyRows=sections[5][1].filter(row=>row[0]==='Безопасность');
+ body.appendParagraph('');addSection(body,['Безопасность',[[safetyRows.map(row=>row[1]).join('\n')||'—']]],545);
  body.appendParagraph('');addSection(body,sections[6],545);
  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
  compactCardBody(body);

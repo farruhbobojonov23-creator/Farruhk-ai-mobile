@@ -27,8 +27,8 @@ export function mountRecipeSheet(editor){
  const process=table(),head=el('tr');for(const text of ['Этап','Описание действий']){const th=el('th');th.textContent=text;head.append(th)}process.append(head);
  for(const [caption,id] of [['Подготовка','card-prep'],['Формовка / приготовление','technology'],['Нарезка / подача','card-serving']]){const row=el('tr');pair(row,caption,id);process.append(row)}
  section('5. Оформление, подача, реализация и хранение');full('card-storage','Оформление, подача и хранение');
- section('6. Показатели качества и безопасности');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус, запах и консистенция','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
- full('card-safety','Показатели безопасности');section('7. Пищевая ценность (на 100 г / на порцию)');
+ section('6. Показатели качества');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус, запах и консистенция','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
+ full('card-safety','Показатели безопасности');const safety=el('section','ttk-block ttk-safety-block'),safetyTitle=el('h3','ttk-section-title'),safetySpan=el('span');safetySpan.textContent='Безопасность';safetyTitle.append(safetySpan);safety.append(safetyTitle,get('card-safety').closest('table'));section('7. Пищевая ценность (на 100 г / на порцию)');
  const mode=el('label','ttk-nutrition-mode');mode.append(get('nutrition-auto'),document.createTextNode(' Автоматический расчёт по данным ингредиентов'));paper.append(mode);
  const nutrition=table(),nHead=el('tr');for(const caption of ['Показатель','Белки, г','Жиры, г','Углеводы, г','Ккал']){const th=el('th');th.textContent=caption;nHead.append(th)}nutrition.append(nHead);
  const per100=el('tr'),label=el('td');label.textContent='На 100 г';per100.append(label);for(const key of ['protein','fat','carbs','kcal']){const td=el('td'),input=get('card-'+key);td.append(input);per100.append(td)}nutrition.append(per100);
@@ -44,7 +44,7 @@ export function mountRecipeSheet(editor){
  }
  const top=el('div','ttk-top-pair');top.append(blocks[0],blocks[1]);
  const lower=el('div','ttk-lower-grid');lower.append(blocks[4],blocks[5]);
- paper.append(top,blocks[2],blocks[3],lower,blocks[6]);
+ paper.append(top,blocks[2],blocks[3],lower,safety,blocks[6]);
  editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
  function fitPaper(){
   const available=viewport.clientWidth-4;
