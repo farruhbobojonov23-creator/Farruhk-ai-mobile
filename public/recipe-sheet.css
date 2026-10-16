@@ -6,3 +6,20 @@
 .ttk-viewport{min-width:0;max-width:100%}
 @media(max-width:700px){.ttk-paper input,.ttk-paper textarea,.ttk-paper select{font-size:12px!important;min-height:32px}.ttk-paper .ingredient input{font-size:12px!important}.ttk-paper input[type=date]{font-size:11px!important}.ttk-paper .ingredient input{min-height:36px}}
 @media print{.ttk-paper{zoom:1!important}}
+
+/* Burgundy and cream TTK; scoped to the card, never the surrounding application. */
+.ttk-paper{background:#fff1e5;color:#4a1723;border-top:0;border-radius:12px;padding:28px 30px;--ttk-line:#d9b7a3;--ttk-fill:#f5dcc9;font-family:Arial,sans-serif}
+.ttk-document-title{background:transparent;color:#651d2c;text-align:left;font-size:14px;padding:4px 0 14px;border-bottom:1px solid #d9b7a3;margin-bottom:12px}
+.ttk-top-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.ttk-lower-grid{display:grid;grid-template-columns:40% minmax(0,1fr);gap:12px}
+.ttk-block{min-width:0;margin-bottom:12px}.ttk-right-stack{min-width:0}
+.ttk-paper .ttk-section-title{margin:0!important;line-height:1.35;font-size:12px!important}
+.ttk-section-title span{background:#651d2c;color:#fff5e9;padding:8px 10px;border-radius:9px 9px 0 0}
+.ttk-table{color:#4a1723}.ttk-paper .ttk-table td,.ttk-paper .ttk-table th{font-size:11px}
+.ttk-paper input,.ttk-paper select,.ttk-paper textarea{background:#fff8f1!important;color:#4a1723!important}
+.ttk-paper input:focus,.ttk-paper textarea:focus,.ttk-paper select:focus{outline-color:#8a3546;background:#fff!important}
+.ttk-paper input[type=checkbox]{accent-color:#651d2c}
+.ttk-paper .ttk-add{background:#f5dcc9;color:#651d2c;border-color:#d9b7a3}
+.ttk-paper .ingredient button{background:#f5dcc9;color:#651d2c}
+.ttk-regulatory{color:#765647;font-size:9px}.ttk-nutrition-mode{color:#651d2c}
+.ttk-paper #nutrition-products{border-color:#d9b7a3;background:#fff8f1}

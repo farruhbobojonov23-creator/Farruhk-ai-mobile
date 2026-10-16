@@ -27,7 +27,7 @@ export function mountRecipeSheet(editor){
  const process=table(),head=el('tr');for(const text of ['Этап','Описание действий']){const th=el('th');th.textContent=text;head.append(th)}process.append(head);
  for(const [caption,id] of [['Подготовка','card-prep'],['Формовка / приготовление','technology'],['Нарезка / подача','card-serving']]){const row=el('tr');pair(row,caption,id);process.append(row)}
  section('5. Оформление, подача, реализация и хранение');full('card-storage','Оформление, подача и хранение');
- section('6. Показатели качества и безопасности');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус и текстура','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
+ section('6. Показатели качества и безопасности');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус, запах и консистенция','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
  full('card-safety','Показатели безопасности');section('7. Пищевая ценность (на 100 г / на порцию)');
  const mode=el('label','ttk-nutrition-mode');mode.append(get('nutrition-auto'),document.createTextNode(' Автоматический расчёт по данным ингредиентов'));paper.append(mode);
  const nutrition=table(),nHead=el('tr');for(const caption of ['Показатель','Белки, г','Жиры, г','Углеводы, г','Ккал']){const th=el('th');th.textContent=caption;nHead.append(th)}nutrition.append(nHead);
@@ -36,6 +36,15 @@ export function mountRecipeSheet(editor){
  paper.append(get('nutrition-products'));
  const signatures=table(),signatureRow=el('tr');pair(signatureRow,'Разработал (Шеф):','card-chef');pair(signatureRow,'Утверждаю (Руководитель):','card-approver');signatures.append(signatureRow);signatures.parentNode.classList.add('ttk-signatures');
  const basis=el('p','ttk-regulatory');basis.textContent=regulatoryBasis;paper.append(basis);const tools=el('div','ttk-template-tools');tools.append(get('apply-roll-template'));const note=el('p');note.textContent='Стандартные тексты доступны для правки. Проверь применимость к блюду перед утверждением.';tools.append(note);
+ // Move the existing controls, preserving every listener and input identity.
+ const blocks=[];let block;
+ for(const node of [...paper.children]){
+  if(node.matches('.ttk-section-title')){block=el('section','ttk-block');block.dataset.section=String(blocks.length+1);blocks.push(block)}
+  if(block)block.append(node);
+ }
+ const top=el('div','ttk-top-pair');top.append(blocks[0],blocks[1]);
+ const lower=el('div','ttk-lower-grid'),right=el('div','ttk-right-stack');right.append(blocks[4],blocks[5]);lower.append(blocks[3],right);
+ paper.append(top,blocks[2],lower,blocks[6]);
  editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
  function fitPaper(){
   const available=viewport.clientWidth-4;

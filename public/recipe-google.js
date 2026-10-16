@@ -15,8 +15,8 @@ export function mountGoogleSync({getState,store,onState,notify}){
   const config=getState()?.googleSync;if(running||!config?.enabled||!navigator.onLine)return;running=true;render();
   try{for(const recipe of readyArchive(getState())){
    if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint)break;
-   const digest=await recipeDigest(recipe);if(getState().googleDelivery?.[recipe.id]?.digest===digest)continue;
-   try{const response=await post({...config,action:'sync',recipe,digest});await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={digest,url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()}})}catch(e){await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],error:e.message}});break}
+   const digest=await recipeDigest(recipe);if(getState().googleDelivery?.[recipe.id]?.digest===digest&&getState().googleDelivery?.[recipe.id]?.layoutVersion==='burgundy-1')continue;
+   try{const response=await post({...config,action:'sync',recipe,digest});await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()}})}catch(e){await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],error:e.message}});break}
   }}finally{running=false;render()}
  }
  function schedule(){clearTimeout(timer);timer=setTimeout(()=>flush().catch(e=>notify(e.message,true)),600);render()}

@@ -18,30 +18,35 @@ function addTab(title, parentTabId) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]});
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
+const TTK_LAYOUT_VERSION = 'burgundy-1';
 function formatBody(body, packet) {
-  const r = packet.recipe;
-  body.clear().setMarginTop(30).setMarginBottom(30).setMarginLeft(36).setMarginRight(36);
-  body.setAttributes({[DocumentApp.Attribute.FONT_FAMILY]:'Arial',[DocumentApp.Attribute.FONT_SIZE]:10,[DocumentApp.Attribute.FOREGROUND_COLOR]:'#000000'});
-  const title=body.appendParagraph('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА').setHeading(DocumentApp.ParagraphHeading.HEADING1).setAlignment(DocumentApp.HorizontalAlignment.CENTER);title.editAsText().setFontSize(13).setForegroundColor('#000000');
-  addTable(body,[['Блюдо',String(r.name),'Дата',String(r.cardDate||'—')],['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')]],false);
-  packet.sections.forEach(section=>{
-    const heading=body.appendParagraph(section[0]).setHeading(DocumentApp.ParagraphHeading.HEADING2).setSpacingBefore(9).setSpacingAfter(5);heading.editAsText().setFontSize(11).setForegroundColor('#000000').setBackgroundColor('#FFF3C4');
-    addTable(body,section[1],section[1][0].length>1);
-  });
-  body.appendParagraph('');
-  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false);
-  compactCardBody(body);
+ const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
+ if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
+ sections.forEach((s,i)=>s[0]=s[0].replace(/^\d+\./,String(i+1)+'.'));
+ body.clear().setPageWidth(595.28).setPageHeight(841.89).setMarginTop(22).setMarginBottom(22).setMarginLeft(25).setMarginRight(25);
+ const title=body.appendParagraph('СУШИ БЕРИ • ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА');title.editAsText().setFontFamily('Arial').setFontSize(10).setBold(true).setForegroundColor('#651D2C');
+ const name=body.appendParagraph(String(r.name));name.editAsText().setFontFamily('Arial').setFontSize(17).setBold(true).setForegroundColor('#651D2C');
+ addTable(body,[['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')],['Дата',String(r.cardDate||'—'),'Выход',String(r.netYieldGrams||'—')+' г']],false,545);
+ const top=body.appendTable([['','']]);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
+ addSection(top.getCell(0,0),sections[0],265);addSection(top.getCell(0,1),sections[1],265);
+ body.appendParagraph('');addSection(body,sections[2],545);
+ const lower=body.appendTable([['','']]);lower.setColumnWidth(0,218).setColumnWidth(1,327);
+ addSection(lower.getCell(0,0),sections[3],210);addSection(lower.getCell(0,1),sections[4],319);addSection(lower.getCell(0,1),sections[5],319);
+ body.appendParagraph('');addSection(body,sections[6],545);
+ addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
+ compactCardBody(body);
 }
-function addTable(body, rows, header) {
-  const table=body.appendTable(rows.map(row=>row.map(cell=>String(cell))));
-  table.setBorderColor('#D9D9D9').setBorderWidth(.5);
-  const widths={1:[100],2:[24,76],3:[60,20,20],4:[15,45,15,25],5:[28,18,18,18,18]}[rows[0].length];if(widths)widths.forEach((width,column)=>table.setColumnWidth(column,width*5.23));
-  for(let i=0;i<table.getNumRows();i++)for(let j=0;j<table.getRow(i).getNumCells();j++){
-    const cell=table.getCell(i,j);cell.setPaddingTop(4).setPaddingBottom(4).setPaddingLeft(6).setPaddingRight(6);
-    cell.editAsText().setFontFamily('Arial').setFontSize(10).setForegroundColor('#000000');
-    if(header&&i===0){cell.setBackgroundColor('#FFF3C4');cell.editAsText().setBold(true)}
-  }
-  body.appendParagraph('').setSpacingAfter(3);
+function addSection(parent,section,width){
+ const band=parent.appendTable([[String(section[0])]]);band.setColumnWidth(0,width);band.setBorderWidth(0);band.getCell(0,0).setBackgroundColor('#651D2C');band.getCell(0,0).editAsText().setForegroundColor('#FFF8F1').setBold(true);
+ addTable(parent,section[1],section[1][0].length>1,width);parent.appendParagraph('');
+}
+function addTable(parent,rows,header,width){
+ const table=parent.appendTable(rows.map(row=>row.map(String)));table.setBorderColor('#D9B7A3').setBorderWidth(.4);
+ const shares=layoutColumnShares(rows[0].length);shares.forEach((share,col)=>table.setColumnWidth(col,(width||545)*share));
+ for(let i=0;i<table.getNumRows();i++)for(let j=0;j<table.getRow(i).getNumCells();j++){
+  const cell=table.getCell(i,j);cell.setBackgroundColor(header&&i===0?'#F5DCC9':'#FFF1E5');cell.editAsText().setBold(header&&i===0).setForegroundColor('#4A1723');
+ }
+ return table;
 }
 function doPost(event) {
   let lock;
@@ -67,120 +72,49 @@ function doPost(event) {
       tabId=interrupted?interrupted.tabProperties.tabId:addTab(marker,parentId);
       properties.setProperty(recordKey,JSON.stringify({tabId}));
     }
-    if(previous.digest!==packet.digest){
+    if(previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION){
       const document=DocumentApp.openById(WORKING_DOCUMENT_ID),body=document.getTab(tabId).asDocumentTab().getBody();
       formatBody(body,packet);document.saveAndClose();
       docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]});
       normalizeCardTextHighlights(tabId);
-      properties.setProperty(recordKey,JSON.stringify({tabId,digest:packet.digest}));
+      properties.setProperty(recordKey,JSON.stringify({tabId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION}));
     }
     return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,tabId,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit?tab='+tabId});
   } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
 
-/** Compact A4 layout shared by new cards and already saved cards. */
-function layoutColumnShares(columns) {
-  return ({1:[1],2:[.25,.75],3:[.60,.20,.20],4:[.15,.45,.15,.25],5:[.28,.18,.18,.18,.18]})[columns] || Array(columns).fill(1/columns);
+/** Shared formatting for new and existing cards; identifiers and recipe content survive. */
+function layoutColumnShares(columns){return ({1:[1],2:[.28,.72],3:[.60,.20,.20],4:[.15,.40,.15,.30],5:[.30,.175,.175,.175,.175]})[columns]||Array(columns).fill(1/columns)}
+function compactCardBody(body){
+ function style(parent){for(let i=0;i<parent.getNumChildren();i++){
+  const e=parent.getChild(i);
+  if(e.getType()===DocumentApp.ElementType.PARAGRAPH){const p=e.asParagraph(),t=p.getText();p.setSpacingBefore(0).setSpacingAfter(t?3:0).setLineSpacing(1);p.editAsText().setFontFamily('Arial');if(!t)p.editAsText().setFontSize(1);else if(!/^СУШИ БЕРИ/.test(t)&&t!==body.getChild(1).asParagraph().getText())p.editAsText().setFontSize(8)}
+  else if(e.getType()===DocumentApp.ElementType.TABLE){const table=e.asTable();for(let r=0;r<table.getNumRows();r++)for(let c=0;c<table.getRow(r).getNumCells();c++){const cell=table.getCell(r,c);cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(3).setPaddingRight(3);style(cell)}}
+ }}style(body);return 8;
 }
-function estimateCardHeight(body, fontSize) {
-  const width=532.88;
-  let height=12;
+function reformatExistingTtk(){
+ const document=DocumentApp.openById(WORKING_DOCUMENT_ID),tabs=flattenTabs(docsApi('?includeTabsContent=true').tabs);let count=0;
+ tabs.filter(t=>t.tabProperties.parentTabId).forEach(tab=>{
+  const body=document.getTab(tab.tabProperties.tabId).asDocumentTab().getBody(),sections=[];let current;
+  const r={name:tab.tabProperties.title,category:'',cardNumber:'',cardDate:'',chef:'',approver:''};
   for(let i=0;i<body.getNumChildren();i++){
-    const child=body.getChild(i);
-    if(child.getType()===DocumentApp.ElementType.PARAGRAPH){
-      const text=child.asParagraph().getText().trim();
-      if(!text){height+=1.3;continue}
-      const heading=/^\d+\./.test(text);
-      height+=Math.max(1,Math.ceil(text.length/(width/(fontSize*.52))))*fontSize*1.18+(heading?7:4);
-    }else if(child.getType()===DocumentApp.ElementType.TABLE){
-      const table=child.asTable(),shares=layoutColumnShares(table.getRow(0).getNumCells());
-      for(let row=0;row<table.getNumRows();row++){
-        let lines=1;
-        for(let col=0;col<table.getRow(row).getNumCells();col++){
-          const text=table.getCell(row,col).getText();
-          const capacity=Math.max(6,Math.floor((width*shares[col]-8)/(fontSize*.55)));
-          const count=text.split('\n').reduce((sum,line)=>sum+Math.max(1,Math.ceil(line.length/capacity)),0);
-          lines=Math.max(lines,count);
-        }
-        height+=lines*fontSize*1.22+4.5;
-      }
-    }
+   const e=body.getChild(i);
+   if(e.getType()===DocumentApp.ElementType.PARAGRAPH){const text=e.asParagraph().getText();if(/^\d+\./.test(text)){current=[text,[]];sections.push(current)}}
+   else if(e.getType()===DocumentApp.ElementType.TABLE){const table=e.asTable(),rows=[];for(let n=0;n<table.getNumRows();n++){const row=[];for(let c=0;c<table.getRow(n).getNumCells();c++)row.push(table.getCell(n,c).getText());rows.push(row)}
+    if(rows[0][0]==='Блюдо'){r.name=rows[0][1];r.cardDate=rows[0][3];r.category=rows[1][1];r.cardNumber=rows[1][3]}
+    else if(/^Разработал/.test(rows[0][0])){r.chef=rows[0][1];r.approver=rows[0][3]}
+    else if(current)current[1]=rows;
+   }
   }
-  return height;
+  // Only migrate the legacy flat layout. Already redesigned cards are left intact.
+  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.name)+'. Предприятия изготовления и реализации: [уточнить].']]]);
+  if(sections.length!==7||sections.some(s=>!s[1].length))return;
+  sections.forEach((s,i)=>s[0]=s[0].replace(/^\d+\./,String(i+1)+'.'));
+  sections[5][0]='6. Показатели качества и безопасности';
+  formatBody(body,{recipe:r,sections});count++;
+ });document.saveAndClose();console.log('Обновлено ТТК: '+count);
 }
-function compactCardBody(body) {
-  body.setPageWidth(595.28).setPageHeight(841.89).setMarginTop(28.35).setMarginBottom(28.35).setMarginLeft(31.2).setMarginRight(31.2);
-  for(let i=1;i<body.getNumChildren()-1;i++){
-    const p=body.getChild(i),next=body.getChild(i+1);
-    if(p.getType()===DocumentApp.ElementType.PARAGRAPH&&next.getType()===DocumentApp.ElementType.TABLE){
-      const table=next.asTable();
-      if(table.getRow(0).getNumCells()===4&&table.getCell(0,0).getText()==='Блюдо'&&p.asParagraph().getText().trim()===table.getCell(0,1).getText().trim()){p.removeFromParent();break}
-    }
-  }
-  let font=9;
-  for(const candidate of [9,8.5,8,7.5,7]){
-    font=candidate;if(estimateCardHeight(body,candidate)<=745)break;
-  }
-  const gold='#A28D46', pale='#F4E5AB', white='#FFFFFF';
-  for(let i=0;i<body.getNumChildren();i++){
-    const child=body.getChild(i);
-    if(child.getType()===DocumentApp.ElementType.PARAGRAPH){
-      const p=child.asParagraph(),text=p.getText().trim();
-      p.setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(1);
-      if(!text){p.editAsText().setFontSize(1);continue}
-      p.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(null);
-      if(text.indexOf('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА')===0){
-        p.setText('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)');
-        p.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(5);
-        p.editAsText().setFontFamily('Arial').setFontSize(font+1).setBold(true).setForegroundColor('#65552D');
-      }else if(/^\d+\./.test(text)){
-        p.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingBefore(5).setSpacingAfter(3);
-        p.editAsText().setBold(true).setForegroundColor(white).setBackgroundColor(gold);
-      }else{
-        p.setSpacingAfter(3);
-      }
-    }else if(child.getType()===DocumentApp.ElementType.TABLE){
-      const table=child.asTable(),columns=table.getRow(0).getNumCells(),shares=layoutColumnShares(columns);
-      table.setBorderColor(gold).setBorderWidth(.5);
-      shares.forEach((share,col)=>table.setColumnWidth(col,532.88*share));
-      for(let row=0;row<table.getNumRows();row++)for(let col=0;col<table.getRow(row).getNumCells();col++){
-        const cell=table.getCell(row,col);
-        const text=cell.getText(),first=table.getCell(0,0).getText();
-        const header=row===0&&columns>1&&!/^(Блюдо|Разработал)/.test(first);
-        const label=/^(Блюдо|Разработал)/.test(first)&&col%2===0;
-        cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(4).setPaddingRight(4).setBackgroundColor(header||label?pale:white);
-        cell.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(header||label?pale:white).setBold(header||/^ВЫХОД|^Выход/.test(text));
-        for(let n=0;n<cell.getNumChildren();n++){
-          const e=cell.getChild(n);if(e.getType()!==DocumentApp.ElementType.PARAGRAPH)continue;
-          const p=e.asParagraph();p.setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(1);
-          p.setAlignment(columns>=3||header?DocumentApp.HorizontalAlignment.CENTER:DocumentApp.HorizontalAlignment.LEFT);
-        }
-      }
-    }
-  }
-  return font;
-}
-function reformatExistingTtk() {
-  const document=DocumentApp.openById(WORKING_DOCUMENT_ID);
-  const tabs=flattenTabs(docsApi('?includeTabsContent=true').tabs);
-  let count=0;
-  tabs.filter(tab=>tab.tabProperties.parentTabId).forEach(tab=>{
-    compactCardBody(document.getTab(tab.tabProperties.tabId).asDocumentTab().getBody());count++;
-  });
-  document.saveAndClose();
-  tabs.filter(tab=>tab.tabProperties.parentTabId).forEach(tab=>normalizeCardTextHighlights(tab.tabProperties.tabId));
-  console.log('Обновлено ТТК: '+count);
-}
-
 function normalizeCardTextHighlights(tabId) {
-  const tab=flattenTabs(docsApi('?includeTabsContent=true').tabs).find(t=>t.tabProperties.tabId===tabId);
-  if(!tab||!tab.documentTab||!tab.documentTab.body)return;
-  const content=tab.documentTab.body.content,end=content[content.length-1].endIndex-1;
-  const requests=[{updateTextStyle:{range:{tabId,startIndex:1,endIndex:end},textStyle:{},fields:'backgroundColor'}}];
-  content.forEach(element=>{
-    const text=element.paragraph&&(element.paragraph.elements||[]).map(e=>e.textRun?e.textRun.content:'').join('');
-    if(text&&/^\d+\./.test(text))requests.push({updateTextStyle:{range:{tabId,startIndex:element.startIndex,endIndex:element.endIndex-1},textStyle:{backgroundColor:{color:{rgbColor:{red:162/255,green:141/255,blue:70/255}}},foregroundColor:{color:{rgbColor:{red:1,green:1,blue:1}}}},fields:'backgroundColor,foregroundColor'}});
-  });
-  docsApi(':batchUpdate',{requests});
+ // Colors are applied at the cell and paragraph level by formatBody.
 }

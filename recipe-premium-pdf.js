@@ -1,55 +1,34 @@
 import PDFDocument from 'pdfkit';
-import {calculateNutrition,regulatoryBasis,scopeForName,storageWithSanpin,resolveCategoryFields,lossFromWeights} from './public/recipe-math.js';
-const regular=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSerif.ttf',import.meta.url).pathname;
-const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSerif-Bold.ttf',import.meta.url).pathname;
-const art=new URL('./public/assets/ttk-blue-premium.png',import.meta.url).pathname;
+import {recipeSections} from './recipe-word.js';
+import {regulatoryBasis} from './public/recipe-math.js';
+const regular=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',import.meta.url).pathname;
+const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',import.meta.url).pathname;
+const valueForYield=v=>v==null?'—':String(v);
 export function premiumRecipePdf(input){
- const r=resolveCategoryFields(input),doc=new PDFDocument({size:'A4',margin:0,bufferPages:true,info:{Title:'ТТК - '+r.name,Author:'Суши Бери'}});
+ const {recipe:r,sections,nutrition}=recipeSections(input);
+ const fmt=v=>v==null?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1});
+ sections[6][1][1]=['На 100 г',...['protein','fat','carbs','kcal'].map(k=>fmt(nutrition[k]))];
+ sections[6][1][2]=['На порцию '+valueForYield(r.netYieldGrams)+' г',...['protein','fat','carbs','kcal'].map(k=>nutrition[k]!=null&&r.netYieldGrams?fmt(Number(nutrition[k])*r.netYieldGrams/100):'—')];
+ const doc=new PDFDocument({size:'A4',margin:0,bufferPages:true,info:{Title:'ТТК — '+r.name,Author:'Суши Бери'}});
  doc.registerFont('regular',regular);doc.registerFont('bold',bold);
- const X=16,W=563,GAP=7,HALF=(W-GAP)/2,BLUE='#064578',DEEP='#032F59',LINE='#B7D7F1',PALE='#EAF4FD',INK='#101D32';
- const val=x=>x===null||x===undefined||x===''?'-':String(x);
- const fmt=(x,digits=3)=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x))?Number(x).toLocaleString('ru-RU',{maximumFractionDigits:digits}):'-';
- const date=r.cardDate&&/^\d{4}-\d{2}-\d{2}$/.test(r.cardDate)?r.cardDate.split('-').reverse().join('.'):val(r.cardDate);
- const n=(r.nutritionMode==='ingredients'?calculateNutrition(r.ingredients||[],r.netYieldGrams):r.nutrition)||{};
- function wrap(text,width,size,strong=false){doc.font(strong?'bold':'regular').fontSize(size);const out=[];for(const paragraph of val(text).split('\n')){let line='';for(const word of paragraph.split(/\s+/)){if(!word)continue;if(doc.widthOfString(line?(line+' '+word):word)<=width){line=line?line+' '+word:word;continue}if(line){out.push(line);line=''}for(const letter of word){if(line&&doc.widthOfString(line+letter)>width){out.push(line);line=''}line+=letter}}out.push(line||' ')}return out}
- function textLines(lines,x,y,width,size,strong=false,color=INK,align='left'){doc.font(strong?'bold':'regular').fontSize(size).fillColor(color);for(let i=0;i<lines.length;i++)doc.text(lines[i],x,y+i*size*1.3,{width,align,lineBreak:false})}
- function waves(x,y,w,h){const k=Math.max(w/1033,h/32);doc.save().rect(x,y,w,h).clip();doc.image(art,x-11*k,y-1445*k,{width:1055*k});doc.restore()}
- function band(number,title,x,y,w,scale,draw){const h=23*scale;if(draw){const g=doc.linearGradient(x,y,x+w,y);g.stop(0,DEEP).stop(1,'#12629D');doc.roundedRect(x,y,w,h,4*scale).fill(g);waves(x+w-92,y,92,h);doc.circle(x+14*scale,y+h/2,9.2*scale).fill('#F3F7FA');textLines([number],x+6*scale,y+3.1*scale,16*scale,12*scale,true,DEEP,'center');let size=12*scale;while(doc.font('bold').fontSize(size).widthOfString(title)>w-36*scale)size*=.95;textLines([title],x+34*scale,y+4*scale,w-38*scale,size,true,'#FFFFFF') }return h}
- function icon(kind,x,y,scale){const z=scale;doc.save().translate(x,y).scale(z);doc.circle(20,20,20).fill('#D6EAFB');doc.strokeColor('#064578').lineWidth(1.7);if(kind==='chef'){doc.roundedRect(9,17,22,15,2).stroke();doc.circle(11,14,6).fillAndStroke('#FFFFFF','#064578');doc.circle(20,10,7).fillAndStroke('#FFFFFF','#064578');doc.circle(29,14,6).fillAndStroke('#FFFFFF','#064578');doc.moveTo(9,26).lineTo(31,26).stroke()}else if(kind==='leaf'){doc.moveTo(11,29).bezierCurveTo(30,30,32,5,32,5).bezierCurveTo(13,8,9,15,16,23).stroke();doc.moveTo(12,32).lineTo(25,14).stroke()}else if(kind==='shield'){doc.moveTo(20,6).lineTo(32,11).lineTo(31,25).lineTo(20,34).lineTo(9,25).lineTo(8,11).closePath().stroke();doc.moveTo(14,19).lineTo(19,24).lineTo(27,15).stroke()}else if(kind==='dish'){doc.moveTo(6,29).lineTo(34,29).lineTo(34,33).lineTo(6,33).closePath().stroke();doc.moveTo(9,26).bezierCurveTo(9,7,31,7,31,26).stroke();doc.circle(20,9,2).stroke()}else{doc.circle(20,20,12).stroke();doc.circle(20,20,5).stroke();for(let i=0;i<8;i++){const a=i*Math.PI/4;doc.moveTo(20+12*Math.cos(a),20+12*Math.sin(a)).lineTo(20+17*Math.cos(a),20+17*Math.sin(a)).stroke()}}doc.restore()}
- function pairContent(title,number,body,kind,x,y,w,scale,draw,minimum=0){const bh=band(number,title,x,y,w,scale,draw),size=8.2*scale,pad=7*scale,iconW=46*scale,tw=w-iconW-pad*3,lines=wrap(body,tw,size),height=Math.max(49*scale,lines.length*size*1.3+pad*2,minimum-bh-2*scale);if(draw){doc.roundedRect(x,y+bh+2*scale,w,height,4*scale).fillAndStroke('#F8FBFE',LINE);icon(kind,x+pad,y+bh+10*scale,.93*scale);textLines(lines,x+iconW+pad*2,y+bh+pad+2*scale,tw,size)}return bh+height+2*scale}
- function row(values,widths,x,y,scale,draw,{fill=null,strong=false}={}){const size=8*scale,lines=values.map((v,i)=>wrap(v,widths[i]-12*scale,size,strong)),height=Math.max(18*scale,Math.max(...lines.map(a=>a.length))*size*1.3+7*scale);if(draw){let xx=x;for(let i=0;i<values.length;i++){doc.rect(xx,y,widths[i],height).fillAndStroke(fill||'#F8FBFE',LINE);textLines(lines[i],xx+6*scale,y+3.5*scale,widths[i]-12*scale,size,strong,INK,i===1?'left':'center');xx+=widths[i]}}return height}
- function layout(scale,draw=false){
-  let y=16,headerH=111*scale;
-  if(draw){const g=doc.linearGradient(X,y,X+W,y);g.stop(0,DEEP).stop(1,'#07548C');doc.rect(X,y,W,headerH).fill(g);
-   // Reuse the original fish and wave artwork through PDF clipping. Text stays native and editable.
-   const k=W/1055;doc.save().rect(X+W-113*scale,y,113*scale,headerH).clip();doc.image(art,X+W-1044*k*scale,y-32*k*scale,{width:W*scale});doc.restore();waves(X,y+headerH-22*scale,W,22*scale);
-   textLines(['ЯПОНСКАЯ','КУХНЯ','В СОВРЕМЕННОЙ','ПОДАЧЕ'],X+13*scale,y+32*scale,105*scale,6.8*scale,false,'#FFFFFF');
-   const hx=X+99*scale,hw=W-205*scale;textLines(['ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],hx,y+10*scale,hw,9*scale,false,'#FFFFFF','center');doc.moveTo(hx+12*scale,y+24*scale).lineTo(hx+hw-12*scale,y+24*scale).strokeColor('#B8DBF2').lineWidth(.5).stroke();
-   let nameSize=34*scale;while(doc.font('bold').fontSize(nameSize).widthOfString(val(r.name))>hw&&nameSize>7*scale)nameSize*=.94;const names=wrap(r.name,hw,nameSize,true);textLines(names,hx,y+30*scale,hw,nameSize,true,'#FFFFFF','center');
-   const meta='ТТК № '+val(r.cardNumber)+'  •  '+date+'  •  '+val(r.category);let ms=8.1*scale;while(doc.font('bold').fontSize(ms).widthOfString(meta)>hw)ms*=.95;textLines([meta],hx,y+73*scale,hw,ms,true,'#FFFFFF','center');
-   const badge='Выход: '+fmt(r.netYieldGrams)+' г'+(r.pieces?'  •  '+r.pieces+' шт.':'');doc.roundedRect(hx+hw*.15,y+87*scale,hw*.7,18*scale,9*scale).fill('#EDF3F6');textLines([badge],hx+hw*.15,y+90*scale,hw*.7,10*scale,true,DEEP,'center');
-  }y+=headerH+6*scale;
-  const a=pairContent('Область применения','1',scopeForName(r.scope,r.name),'chef',X,y,HALF,scale,false),b=pairContent('Требования к сырью','2',r.rawRequirements,'leaf',X+HALF+GAP,y,HALF,scale,false);if(draw){pairContent('Область применения','1',scopeForName(r.scope,r.name),'chef',X,y,HALF,scale,true,Math.max(a,b));pairContent('Требования к сырью','2',r.rawRequirements,'leaf',X+HALF+GAP,y,HALF,scale,true,Math.max(a,b))}y+=Math.max(a,b)+6*scale;
-  y+=band('3','Рецептура',X,y,W,scale,draw)+5*scale;
-  const widths=[W*.065,W*.385,W*.18,W*.18,W*.19];y+=row(['№','Ингредиент','Брутто, г','Нетто, г','Отходы, %'],widths,X,y,scale,draw,{fill:'#CFE5F8',strong:true});
-  const ingredients=r.ingredients?.length?r.ingredients:[{}];for(let i=0;i<ingredients.length;i++){const item=ingredients[i];const loss=item.lossPercent??lossFromWeights(item.grossGrams,item.grams);y+=row([i+1,val(item.name),fmt(item.grossGrams),fmt(item.grams),fmt(loss)],widths,X,y,scale,draw,{fill:i%2?PALE:'#FFFFFF'})}
-  y+=row(['Выход готового блюда'+(r.pieces?' ('+r.pieces+' шт.)':'')+':',fmt(r.netYieldGrams)+' г'],[W*.8,W*.2],X,y,scale,draw,{fill:'#DDEDFC',strong:true});y+=6*scale;
-  y+=band('4','Технологический процесс',X,y,W,scale,draw)+5*scale;
-  const processTop=y,bodyX=X+79*scale,bodyW=W-235*scale;
-  if(draw)icon('gear',X+11*scale,y+12*scale,1.05*scale);
-  for(const [i,label,body] of [[1,'Подготовка',r.preparation],[2,'Приготовление',r.forming||r.technology],[3,'Нарезка / подача',r.serving]]){const size=8.2*scale,lines=wrap(label+'. '+val(body),bodyW,size);if(draw){doc.circle(bodyX-13*scale,y+7*scale,7*scale).fill(BLUE);textLines([String(i)],bodyX-19*scale,y+1*scale,12*scale,8*scale,true,'#FFFFFF','center');textLines(lines,bodyX,y,bodyW,size)}y+=Math.max(20*scale,lines.length*size*1.3+6*scale)}
-  const sideX=X+W-139*scale,sideW=139*scale,sideText='Категория: '+val(r.category)+'\nКоличество: '+val(r.pieces)+' шт.\nВыход: '+fmt(r.netYieldGrams)+' г\nТТК № '+val(r.cardNumber),sideLines=wrap(sideText,sideW-16*scale,8*scale);const sideH=sideLines.length*10.4*scale+30*scale;if(draw){doc.roundedRect(sideX,processTop,sideW,sideH,5*scale).fill('#DCEEFD');textLines(['Ключевые данные'],sideX+8*scale,processTop+7*scale,sideW-16*scale,9*scale,true,DEEP);textLines(sideLines,sideX+8*scale,processTop+25*scale,sideW-16*scale,8*scale)}y=Math.max(y,processTop+sideH)+6*scale;
-  const quality='Внешний вид: '+val(r.appearance)+'\nВкус и текстура: '+val(r.taste)+'\nБезопасность: '+val(r.safety);
-  const c=pairContent('Оформление, подача и хранение','5',storageWithSanpin(r.storage),'dish',X,y,HALF,scale,false),d=pairContent('Показатели качества и безопасности','6',quality,'shield',X+HALF+GAP,y,HALF,scale,false);if(draw){pairContent('Оформление, подача и хранение','5',storageWithSanpin(r.storage),'dish',X,y,HALF,scale,true,Math.max(c,d));pairContent('Показатели качества и безопасности','6',quality,'shield',X+HALF+GAP,y,HALF,scale,true,Math.max(c,d))}y+=Math.max(c,d)+6*scale;
-  y+=band('7','Пищевая ценность',X,y,W,scale,draw)+5*scale;
-  const nw=[W*.46,W*.27,W*.27];y+=row(['Наименование показателя','На 100 г','На порцию '+fmt(r.netYieldGrams)+' г'],nw,X,y,scale,draw,{fill:'#CFE5F8',strong:true});
-  for(const [key,label] of [['protein','Белки, г'],['fat','Жиры, г'],['carbs','Углеводы, г'],['kcal','Энергетическая ценность, ккал']])y+=row([label,fmt(n[key],1),n[key]!==null&&n[key]!==undefined&&r.netYieldGrams?fmt(Number(n[key])*r.netYieldGrams/100,1):'-'],nw,X,y,scale,draw,{fill:PALE});
-  y+=8*scale;const signatures=wrap('Разработал (Шеф): '+val(r.chef)+'    Утверждаю (Руководитель): '+val(r.approver),W,8*scale);if(draw)textLines(signatures,X,y,W,8*scale,true);y+=signatures.length*10.4*scale+5*scale;
-  const basis=wrap(regulatoryBasis,W,5.5*scale);if(draw)textLines(basis,X,y,W,5.5*scale,false,'#49687F');y+=basis.length*7.15*scale;
+ const C={ink:'#4A1723',band:'#651D2C',line:'#D9B7A3',paper:'#FFF1E5',cell:'#FFF8F1',head:'#F5DCC9'},X=20,W=555,G=9;
+ const value=v=>v==null||v===''?'—':String(v);
+ function wrap(v,w,size,strong=false){doc.font(strong?'bold':'regular').fontSize(size);const lines=[];for(const p of value(v).split('\n')){let line='';for(const word of p.split(/\s+/)){if(!word)continue;if(doc.widthOfString(line?line+' '+word:word)<=w){line=line?line+' '+word:word;continue}if(line){lines.push(line);line=''}for(const c of word){if(line&&doc.widthOfString(line+c)>w){lines.push(line);line=''}line+=c}}lines.push(line||' ')}return lines}
+ function text(lines,x,y,w,size,strong=false,color=C.ink){doc.font(strong?'bold':'regular').fontSize(size).fillColor(color);lines.forEach((s,i)=>doc.text(s,x,y+i*size*1.25,{width:w,lineBreak:false}));}
+ function table(rows,x,y,w,s,draw,header=true){const cols=rows[0].length,ratios=cols===3?[.60,.20,.20]:cols===5?[.30,.175,.175,.175,.175]:cols===2?[.28,.72]:[1];let yy=y;rows.forEach((row,i)=>{const fs=7.6*s,pad=4*s,lines=row.map((v,j)=>wrap(v,w*ratios[j]-pad*2,fs,header&&i===0)),h=Math.max(15*s,Math.max(...lines.map(a=>a.length))*fs*1.25+pad*2);if(draw){let xx=x;row.forEach((v,j)=>{doc.rect(xx,yy,w*ratios[j],h).lineWidth(.4).fillAndStroke(header&&i===0?C.head:C.cell,C.line);text(lines[j],xx+pad,yy+pad,w*ratios[j]-pad*2,fs,header&&i===0);xx+=w*ratios[j]})}yy+=h});return yy-y;}
+ function section(index,x,y,w,s,draw,min=0){const [title,rows]=sections[index],size=8.4*s,pad=6*s,lines=wrap(title,w-pad*2,size,true),bh=lines.length*size*1.25+pad*2;const th=table(rows,x,y+bh,w,s,false,rows[0].length>1),h=Math.max(min,bh+th);if(draw){doc.roundedRect(x,y,w,h,5*s).fill(C.cell);doc.rect(x,y,w,bh).fill(C.band);text(lines,x+pad,y+pad,w-pad*2,size,true,'#FFF8F1');table(rows,x,y+bh,w,s,true,rows[0].length>1)}return h;}
+ function layout(s,draw=false){let y=20;const headerH=57*s;if(draw){doc.rect(0,0,595.28,841.89).fill(C.paper);text(['СУШИ БЕРИ  /  ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],X,y,W,8*s,true);const name=wrap(r.name,W*.67,19*s,true);text(name,X,y+14*s,W*.67,19*s,true);text(['ТТК № '+value(r.cardNumber),'Дата: '+value(r.cardDate),'Категория: '+value(r.category)],X+W*.69,y+13*s,W*.31,7.5*s);doc.moveTo(X,y+headerH).lineTo(X+W,y+headerH).lineWidth(.6).strokeColor(C.line).stroke()}y+=headerH+8*s;
+  const half=(W-G)/2,top=Math.max(section(0,X,y,half,s,false),section(1,X+half+G,y,half,s,false));if(draw){section(0,X,y,half,s,true,top);section(1,X+half+G,y,half,s,true,top)}y+=top+8*s;
+  y+=section(2,X,y,W,s,draw)+8*s;
+  const left=W*.40,right=W-left-G,ry=y,h4=section(3,X,y,left,s,false),h5=section(4,X+left+G,y,right,s,false),h6=section(5,X+left+G,y+h5+7*s,right,s,false),lower=Math.max(h4,h5+7*s+h6);
+  if(draw){section(3,X,y,left,s,true,lower);section(4,X+left+G,y,right,s,true);section(5,X+left+G,y+h5+7*s,right,s,true)}y=ry+lower+8*s;
+  y+=section(6,X,y,W,s,draw)+8*s;
+  const signature=wrap('Разработал (Шеф): '+value(r.chef)+'     Утверждаю (Руководитель): '+value(r.approver),W,7*s,true);if(draw)text(signature,X,y,W,7*s,true);y+=signature.length*8.75*s+6*s;
+  const basis=wrap(regulatoryBasis,W,5.7*s);if(draw)text(basis,X,y,W,5.7*s,false,'#765647');y+=basis.length*7.125*s;
   return y;
  }
- let scale=1;if(layout(1)>797){let lo=.001,hi=1;for(let i=0;i<18;i++){const mid=(lo+hi)/2;if(layout(mid)<=797)lo=mid;else hi=mid}scale=lo}layout(scale,true);
- const missing=['scope','safety','chef','approver','cardNumber','cardDate','rawRequirements','preparation','forming','serving','storage','appearance','taste','netYieldGrams'].some(k=>!r[k])||['protein','fat','carbs','kcal'].some(k=>n[k]===null||n[k]===undefined);
- if(r.status!=='ready'||missing)textLines(['ПРОЕКТ ТТК - незаполненные данные требуют проверки.'],X,803,W,5.5,false,'#49687F');
- doc.rect(X,816,W,17).fill(DEEP);waves(X,816,W,17);return doc;
+ let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}layout(s,true);
+ const missing=['scope','safety','chef','approver','cardNumber','cardDate','rawRequirements','preparation','forming','serving','storage','appearance','taste','netYieldGrams'].some(k=>!r[k])||['protein','fat','carbs','kcal'].some(k=>nutrition[k]==null);
+ if(r.status!=='ready'||missing)text(['ПРОЕКТ ТТК — незаполненные данные требуют проверки.'],X,807,W,6,false,'#765647');
+ doc.moveTo(X,827).lineTo(X+W,827).lineWidth(1).strokeColor(C.band).stroke();return doc;
 }
