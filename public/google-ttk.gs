@@ -110,6 +110,13 @@ function estimateCardHeight(body, fontSize) {
 }
 function compactCardBody(body) {
   body.setPageWidth(595.28).setPageHeight(841.89).setMarginTop(28.35).setMarginBottom(28.35).setMarginLeft(31.2).setMarginRight(31.2);
+  for(let i=1;i<body.getNumChildren()-1;i++){
+    const p=body.getChild(i),next=body.getChild(i+1);
+    if(p.getType()===DocumentApp.ElementType.PARAGRAPH&&next.getType()===DocumentApp.ElementType.TABLE){
+      const table=next.asTable();
+      if(table.getRow(0).getNumCells()===4&&table.getCell(0,0).getText()==='Блюдо'&&p.asParagraph().getText().trim()===table.getCell(0,1).getText().trim()){p.removeFromParent();break}
+    }
+  }
   let font=9;
   for(const candidate of [9,8.5,8,7.5,7]){
     font=candidate;if(estimateCardHeight(body,candidate)<=745)break;
@@ -142,7 +149,7 @@ function compactCardBody(body) {
         const header=row===0&&columns>1&&!/^(Блюдо|Разработал)/.test(first);
         const label=/^(Блюдо|Разработал)/.test(first)&&col%2===0;
         cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(4).setPaddingRight(4).setBackgroundColor(header||label?pale:white);
-        cell.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(null).setBold(header||/^ВЫХОД|^Выход/.test(text));
+        cell.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(header||label?pale:white).setBold(header||/^ВЫХОД|^Выход/.test(text));
         for(let n=0;n<cell.getNumChildren();n++){
           const e=cell.getChild(n);if(e.getType()!==DocumentApp.ElementType.PARAGRAPH)continue;
           const p=e.asParagraph();p.setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(1);
