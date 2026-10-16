@@ -26,7 +26,4 @@
 
 /* Full-width technology; serving and safety share the row below. */
 .ttk-lower-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-.ttk-top-pair>.ttk-block{display:flex;flex-direction:column}
-.ttk-top-pair>.ttk-block>.ttk-table{flex:1}
-.ttk-top-pair>.ttk-block>.ttk-table textarea{height:100%!important}
-.ttk-block[data-section="4"]>.ttk-table th[scope="row"]{width:22%}
+.ttk-block[data-section="4"]>.ttk-table th[scope="row"],.ttk-block[data-section="4"]>.ttk-table tr:first-child th:first-child{width:22%}
