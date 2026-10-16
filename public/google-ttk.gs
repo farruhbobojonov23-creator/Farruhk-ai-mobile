@@ -123,7 +123,8 @@ function compactCardBody(body) {
       if(!text){p.editAsText().setFontSize(1);continue}
       p.editAsText().setFontFamily('Arial').setFontSize(font).setForegroundColor('#111111').setBackgroundColor(null);
       if(text.indexOf('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА')===0){
-        p.setText('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)').setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(5);
+        p.setText('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)');
+        p.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(5);
         p.editAsText().setFontFamily('Arial').setFontSize(font+1).setBold(true).setForegroundColor('#65552D');
       }else if(/^\d+\./.test(text)){
         p.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingBefore(5).setSpacingAfter(3);
