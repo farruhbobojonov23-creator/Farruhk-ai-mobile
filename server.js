@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import {installPhotoResources} from './photo-resources.js';
 import {installWeatherApi} from './weather-api.js';
 import express from 'express';
 import fs from 'node:fs/promises';
@@ -13,6 +14,7 @@ import { installAssistantApi } from './assistant-api.js';
 import { cloudDownload } from './assistant-cloud-store.js';
 
 const app = express();
+installPhotoResources(app);
 app.set('trust proxy',1);
 // Hosting health must not depend on cloud storage or other external APIs.
 app.get('/healthz', (req,res)=>{

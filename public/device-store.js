@@ -1,3 +1,4 @@
+import {validateCategories} from './category-validation.js';
 import {emptyHaccp,validateHaccp,mergeHaccp} from './haccp-model.js';
 const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
 export function validateDeviceState(value){
@@ -6,6 +7,7 @@ export function validateDeviceState(value){
  for(const key of ['tasks','memory','chat','recipes','inspections'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
  if(!['tasks','recipes','chat','inspections','memory'].some(k=>Array.isArray(state[k])))throw Error('В файле нет данных ассистента.');
  for(const recipe of state.recipes||[])if(typeof recipe.name!=='string'||!recipe.name.trim()||typeof recipe.id!=='string'||!Array.isArray(recipe.ingredients)||recipe.ingredients.some(i=>!i||typeof i.name!=='string'||!Number.isFinite(Number(i.grams))||Number(i.grams)<0))throw Error('Повреждена техкарта в резервной копии.');
+ if(state.categories!==undefined)validateCategories(state.categories);
  return {...blank(),...structuredClone(state),haccp:validateHaccp(state.haccp),storage:'device'};
 }
 export function mergeDeviceState(current,incoming){
@@ -16,6 +18,7 @@ export function mergeDeviceState(current,incoming){
  }
  const turns=new Set(next.chat.map(x=>JSON.stringify([x.role,x.text])));
  for(const item of source.chat){const key=JSON.stringify([item.role,item.text]);if(!turns.has(key)){next.chat.push(item);turns.add(key)}}
+ if(source.categories){const categories=next.categories||[];for(const category of source.categories)if(!categories.some(c=>c.id===category.id||c.name.toLocaleLowerCase('ru')===category.name.toLocaleLowerCase('ru')))categories.push(category);next.categories=categories}
  next.haccp=mergeHaccp(next.haccp,source.haccp);
  return next;
 }

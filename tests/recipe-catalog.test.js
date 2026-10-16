@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {filterCatalog,categoryPhotos} from '../public/recipe-catalog.js';
 import {recipeCategories,templateFor} from '../public/recipe-math.js';
 import {existsSync} from 'node:fs';
-test('All ten categories have supplied original photos and distinct new templates',()=>{
- assert.equal(recipeCategories.length,10);
+test('All eleven categories have supplied original photos and distinct new templates',()=>{
+ assert.equal(recipeCategories.length,11);
  for(const category of recipeCategories)assert.ok(existsSync('public'+categoryPhotos[category]),category);
  assert.match(templateFor('Онигири').forming,/онигири/);
  assert.match(templateFor('Закуски').forming,/Закуску/);

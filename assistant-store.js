@@ -1,3 +1,4 @@
+import {validateCategories} from './public/category-validation.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -9,6 +10,7 @@ export function cleanState(input={}){
   const optional=v=>v===null||v===undefined||v===''?null:positive(v);
   const positive=v=>Number.isFinite(Number(v))?Math.min(10000000,Math.max(0,Number(v))):0;
   return {
+    ...(input.categories!==undefined?{categories:validateCategories(input.categories)}:{}),
     tasks:list(input.tasks).slice(-300).map(t=>({id:text(t.id||crypto.randomUUID(),80),text:text(t.text,500),done:!!t.done,priority:t.priority==='high'?'high':'normal',due:t.due&&Number.isFinite(Date.parse(t.due))?new Date(t.due).toISOString():null,createdAt:text(t.createdAt,64)||new Date().toISOString(),notifiedAt:t.notifiedAt?text(t.notifiedAt,64):null})).filter(t=>t.text),
     memory:list(input.memory).slice(-200).map(m=>({id:text(m.id||crypto.randomUUID(),80),text:text(m.text,1000),createdAt:text(m.createdAt,64)})).filter(m=>m.text),
     chat:list(input.chat).slice(-80).map(m=>({role:m.role==='user'?'user':'ai',text:text(m.text,6000)})).filter(m=>m.text),
@@ -34,7 +36,7 @@ export class AssistantStore{
   save(input){return this.transaction(async()=>{
     const current=await this.state();
     if(input.revision!==current.revision)throw Object.assign(httpError(409,'Данные изменились на другом устройстве. Сверьте версии перед сохранением.'),{state:current});
-    const next={...cleanState({...input,recipes:input.recipes??current.recipes,inspections:input.inspections??current.inspections}),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
+    const next={...cleanState({...input,categories:input.categories??current.categories,recipes:input.recipes??current.recipes,inspections:input.inspections??current.inspections}),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
     await this.write('state.json',next);return next;
   })}
   mutate(fn){return this.transaction(async()=>{const current=await this.state();await fn(current);const next={...current,revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};await this.write('state.json',next);return next})}
