@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {recipeCategories,templateFor,legacyTemplateFor,resolveCategoryFields,categoryTextFields} from '../public/recipe-math.js';
 test('Each category has its own preparation, cooking, service and quality descriptions',()=>{
- for(const key of categoryTextFields)assert.equal(new Set(recipeCategories.map(c=>templateFor(c)[key])).size,8,key);
+ for(const key of categoryTextFields)assert.equal(new Set(recipeCategories.map(c=>templateFor(c)[key])).size,recipeCategories.length,key);
  assert.match(templateFor('Темпурные роллы').forming,/Обжаривают/);
  assert.match(templateFor('Запечённые роллы').forming,/Запекают/);
  assert.match(templateFor('Воки').forming,/воке/);
