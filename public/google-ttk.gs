@@ -71,6 +71,7 @@ function doPost(event) {
       const document=DocumentApp.openById(WORKING_DOCUMENT_ID),body=document.getTab(tabId).asDocumentTab().getBody();
       formatBody(body,packet);document.saveAndClose();
       docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]});
+      normalizeCardTextHighlights(tabId);
       properties.setProperty(recordKey,JSON.stringify({tabId,digest:packet.digest}));
     }
     return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,tabId,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit?tab='+tabId});
@@ -168,5 +169,18 @@ function reformatExistingTtk() {
     compactCardBody(document.getTab(tab.tabProperties.tabId).asDocumentTab().getBody());count++;
   });
   document.saveAndClose();
+  tabs.filter(tab=>tab.tabProperties.parentTabId).forEach(tab=>normalizeCardTextHighlights(tab.tabProperties.tabId));
   console.log('Обновлено ТТК: '+count);
+}
+
+function normalizeCardTextHighlights(tabId) {
+  const tab=flattenTabs(docsApi('?includeTabsContent=true').tabs).find(t=>t.tabProperties.tabId===tabId);
+  if(!tab||!tab.documentTab||!tab.documentTab.body)return;
+  const content=tab.documentTab.body.content,end=content[content.length-1].endIndex-1;
+  const requests=[{updateTextStyle:{range:{tabId,startIndex:1,endIndex:end},textStyle:{},fields:'backgroundColor'}}];
+  content.forEach(element=>{
+    const text=element.paragraph&&(element.paragraph.elements||[]).map(e=>e.textRun?e.textRun.content:'').join('');
+    if(text&&/^\d+\./.test(text))requests.push({updateTextStyle:{range:{tabId,startIndex:element.startIndex,endIndex:element.endIndex-1},textStyle:{backgroundColor:{color:{rgbColor:{red:162/255,green:141/255,blue:70/255}}},foregroundColor:{color:{rgbColor:{red:1,green:1,blue:1}}}},fields:'backgroundColor,foregroundColor'}});
+  });
+  docsApi(':batchUpdate',{requests});
 }
