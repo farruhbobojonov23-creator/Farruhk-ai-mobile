@@ -25,12 +25,13 @@ function formatBody(body, packet) {
  sections.forEach((s,i)=>s[0]=s[0].replace(/^\d+\./,String(i+1)+'.'));
  body.clear().setPageWidth(595.28).setPageHeight(841.89).setMarginTop(22).setMarginBottom(22).setMarginLeft(25).setMarginRight(25);
  const title=body.appendParagraph('СУШИ БЕРИ • ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА');title.editAsText().setFontFamily('Arial').setFontSize(10).setBold(true).setForegroundColor('#651D2C');
+ if(body.getChild(0).getType()===DocumentApp.ElementType.PARAGRAPH&&!body.getChild(0).asParagraph().getText())body.getChild(0).removeFromParent();
  const name=body.appendParagraph(String(r.name));name.editAsText().setFontFamily('Arial').setFontSize(17).setBold(true).setForegroundColor('#651D2C');
  addTable(body,[['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')],['Дата',String(r.cardDate||'—'),'Выход',String(r.netYieldGrams||'—')+' г']],false,545);
- const top=body.appendTable([['','']]);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
+ const top=body.appendTable([['','']]);top.setBorderColor('#D9B7A3').setBorderWidth(.4);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(top.getCell(0,0),sections[0],265);addSection(top.getCell(0,1),sections[1],265);
  body.appendParagraph('');addSection(body,sections[2],545);
- const lower=body.appendTable([['','']]);lower.setColumnWidth(0,218).setColumnWidth(1,327);
+ const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(.4);lower.setColumnWidth(0,218).setColumnWidth(1,327);
  addSection(lower.getCell(0,0),sections[3],210);addSection(lower.getCell(0,1),sections[4],319);addSection(lower.getCell(0,1),sections[5],319);
  body.appendParagraph('');addSection(body,sections[6],545);
  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
@@ -87,11 +88,9 @@ function doPost(event) {
 /** Shared formatting for new and existing cards; identifiers and recipe content survive. */
 function layoutColumnShares(columns){return ({1:[1],2:[.28,.72],3:[.60,.20,.20],4:[.15,.40,.15,.30],5:[.30,.175,.175,.175,.175]})[columns]||Array(columns).fill(1/columns)}
 function compactCardBody(body){
- function style(parent){for(let i=0;i<parent.getNumChildren();i++){
-  const e=parent.getChild(i);
-  if(e.getType()===DocumentApp.ElementType.PARAGRAPH){const p=e.asParagraph(),t=p.getText();p.setSpacingBefore(0).setSpacingAfter(t?3:0).setLineSpacing(1);p.editAsText().setFontFamily('Arial');if(!t)p.editAsText().setFontSize(1);else if(!/^СУШИ БЕРИ/.test(t)&&t!==body.getChild(1).asParagraph().getText())p.editAsText().setFontSize(8)}
-  else if(e.getType()===DocumentApp.ElementType.TABLE){const table=e.asTable();for(let r=0;r<table.getNumRows();r++)for(let c=0;c<table.getRow(r).getNumCells();c++){const cell=table.getCell(r,c);cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(3).setPaddingRight(3);style(cell)}}
- }}style(body);return 8;
+ const name=body.getChild(1).asParagraph().getText();
+ function style(parent,bg){for(let i=0;i<parent.getNumChildren();i++){const e=parent.getChild(i);if(e.getType()===DocumentApp.ElementType.PARAGRAPH){const p=e.asParagraph(),t=p.getText();p.setHeading(DocumentApp.ParagraphHeading.NORMAL).setSpacingBefore(0).setSpacingAfter(t?2:0).setLineSpacing(1);p.editAsText().setFontFamily('Arial').setBackgroundColor(bg||'#FFF1E5');if(!t)p.editAsText().setFontSize(1);else p.editAsText().setFontSize(t===name?17:t.indexOf('СУШИ БЕРИ')===0?10:8);}else if(e.getType()===DocumentApp.ElementType.TABLE){const table=e.asTable();for(let r=0;r<table.getNumRows();r++)for(let c=0;c<table.getRow(r).getNumCells();c++){const cell=table.getCell(r,c);cell.setPaddingTop(2).setPaddingBottom(2).setPaddingLeft(3).setPaddingRight(3);style(cell,cell.getBackgroundColor()||bg||'#FFF1E5');}}}}
+ style(body,'#FFF1E5');return 8;
 }
 function reformatExistingTtk(){
  const document=DocumentApp.openById(WORKING_DOCUMENT_ID),tabs=flattenTabs(docsApi('?includeTabsContent=true').tabs);let count=0;
