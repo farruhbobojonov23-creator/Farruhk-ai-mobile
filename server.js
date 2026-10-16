@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import {installWeatherApi} from './weather-api.js';
 import express from 'express';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
@@ -81,6 +82,7 @@ app.get(['/', '/index.html'], async (req,res,next)=>{
   }catch(err){next(err);}
 });
 
+installWeatherApi(app);
 app.use(express.static('public'));
 
 const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
