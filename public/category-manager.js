@@ -4,7 +4,7 @@ export function mountCategoryManager({getState,save,notify,onChange}){
  const button=document.createElement('button');button.id='manage-categories';button.type='button';button.textContent='Управлять категориями';document.querySelector('.catalog-heading').append(button);
  const dialog=document.createElement('dialog');dialog.className='category-dialog';dialog.setAttribute('aria-label','Управление категориями');document.body.append(dialog);
  const el=(tag,text)=>{const node=document.createElement(tag);if(text)node.textContent=text;return node};
- const action=(text,fn)=>{const b=el('button',text);b.type='button';b.onclick=async()=>{try{await fn()}catch(e){notify(e.message,true)}};return b};
+ const action=(text,fn)=>{const b=el('button',text);b.type='button';b.onclick=async()=>{try{await fn()}catch(e){notify(e.message,true);let error=dialog.querySelector('.category-error');if(!error){error=el('p');error.className='category-error';error.setAttribute('role','alert');dialog.prepend(error)}error.textContent=e.message;error.scrollIntoView({block:'nearest'})}};return b};
  const commit=async fn=>{await save(fn);onChange();list()};
  function header(title){dialog.replaceChildren();const row=el('div');row.className='bar';row.append(el('h2',title),action('✕',()=>dialog.close()));dialog.append(row)}
  function list(){header('Управление категориями');dialog.append(el('p','Добавляй категории, меняй фото и цвет, порядок и видимость. Техкарты сохраняются при переименовании и переносе.'));

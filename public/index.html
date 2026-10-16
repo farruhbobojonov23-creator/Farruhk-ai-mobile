@@ -49,7 +49,7 @@ function renderCategories(){
   const b=document.createElement('button');b.type='button';b.className='category-card';
   b.style.setProperty('--category-color',item.color||'#eef2e9');
   const photo=item.image;
-  if(photo){const img=document.createElement('img');showProductPhoto(img,photo);img.style.transform='scale('+(item.scale||1)+')';img.alt='';img.loading='lazy';img.decoding='async';b.append(img)}
+  if(photo){const img=document.createElement('img');showProductPhoto(img,photo);img.style.transform='scale('+(item.scale||1)+')';img.alt='';img.loading='lazy';img.decoding='async';const frame=document.createElement('div');frame.className='category-photo-frame';frame.append(img);b.append(frame)}
   else {const icon=document.createElement('span');icon.className='category-placeholder';icon.textContent='▤';b.append(icon)}
   const label=document.createElement('span');label.className='category-caption';const title=document.createElement('strong');title.textContent=category;
   const count=document.createElement('small');count.textContent=(state?.recipes||[]).filter(r=>r.category===category).length+' техкарт';label.append(title,count);b.append(label);
