@@ -20,7 +20,10 @@ export function mountLunarWeather(root){
  function unavailable(){document.body.dataset.weather='unknown';card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
  async function refresh(){
   if(loading)return;loading=true;
-  try{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('weather');const d=await r.json();if(!d.ok||!Number.isFinite(d.temperature)||!Number.isInteger(d.code)||!Number.isFinite(Date.parse(d.observedAt))||Date.now()-Date.parse(d.observedAt)>90*60*1000)throw Error('weather');
+  try{let d;
+   try{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('weather');d=await r.json()}
+   catch{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=68.9707&longitude=33.0749&current=temperature_2m,weather_code,is_day&timezone=Europe%2FMoscow',{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('weather');const raw=await r.json(),c=raw.current;if(!c)throw Error('weather');d={ok:true,temperature:c.temperature_2m,code:c.weather_code,isDay:c.is_day===1,observedAt:c.time+'+03:00'}}
+   if(!d.ok||!Number.isFinite(d.temperature)||!Number.isInteger(d.code)||!Number.isFinite(Date.parse(d.observedAt))||Date.now()-Date.parse(d.observedAt)>90*60*1000)throw Error('weather');
    const w=weatherAppearance(d.code,d.isDay);lastSuccess=Date.now();document.body.dataset.weather=w.kind;
    card.querySelector('[data-weather-temp]').textContent=(Math.round(d.temperature)>0?'+':'')+Math.round(d.temperature)+'°';card.querySelector('[data-weather-label]').textContent=w.label;card.querySelector('[data-weather-icon]').textContent=w.icon;
    card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(d.observedAt));

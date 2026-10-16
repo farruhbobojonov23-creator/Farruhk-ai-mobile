@@ -1,5 +1,16 @@
+import https from 'node:https';
+// Use IPv4 explicitly: some hosting networks cannot reach the provider over IPv6.
+function requestWeather(url,{signal}={}){
+ return new Promise((resolve,reject)=>{
+  const req=https.get(url,{family:4,signal,timeout:12000,headers:{Accept:'application/json'}},res=>{
+   const chunks=[];let size=0;
+   res.on('data',chunk=>{size+=chunk.length;if(size>1000000){res.destroy(Error('Weather response too large'));return}chunks.push(chunk)});
+   res.on('error',reject);res.on('end',()=>resolve({ok:res.statusCode===200,json:async()=>JSON.parse(Buffer.concat(chunks).toString('utf8'))}));
+  });req.on('error',reject);req.on('timeout',()=>req.destroy(Error('Weather timeout')));
+ });
+}
 const URL = 'https://api.open-meteo.com/v1/forecast?latitude=68.9707&longitude=33.0749&current=temperature_2m,weather_code,is_day&timezone=Europe%2FMoscow';
-export function installWeatherApi(app,{request=fetch,now=Date.now}={}){
+export function installWeatherApi(app,{request=requestWeather,now=Date.now}={}){
  let cached=null,pending=null;
  async function load(){
   const r=await request(URL,{signal:AbortSignal.timeout(12000)});
