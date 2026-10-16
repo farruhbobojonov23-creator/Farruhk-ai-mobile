@@ -29,3 +29,13 @@ test('Blue category templates fit one A4 page and preserve storage, scope and sa
 });
 test('Automatic card metadata uses Moscow date and skips existing numbers',()=>{assert.equal(cardDateNow(new Date('2026-10-14T22:30:00Z')),'2026-10-15');assert.equal(nextCardNumber([{cardNumber:'001'},{cardNumber:'003'}]),'002')});
 
+
+test('A4 layout keeps additional ingredient rows and final sections on one page',async()=>{
+ for(const count of [1,10,15,20,30]){
+  const r={...templateFor('Холодные роллы',8),name:'Проверка полноты карты',category:'Холодные роллы',netYieldGrams:count*10,ingredients:Array.from({length:count},(_,i)=>({name:'Компонент-'+(i+1)+'-конец',grams:10,grossGrams:12}))};
+  const pdf=await parsePdf(await bytes(r));
+  assert.equal(pdf.numpages,1,'Ingredient count '+count);
+  assert.ok(pdf.text.includes('Компонент-'+count+'-конец'),'Last ingredient retained');
+  assert.match(pdf.text,/7\. Пищевая ценность/);assert.match(pdf.text,/Утверждаю/);
+ }
+});

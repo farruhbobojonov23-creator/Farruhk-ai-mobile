@@ -23,3 +23,10 @@
 .ttk-paper .ingredient button{background:#f5dcc9;color:#651d2c}
 .ttk-regulatory{color:#765647;font-size:9px}.ttk-nutrition-mode{color:#651d2c}
 .ttk-paper #nutrition-products{border-color:#d9b7a3;background:#fff8f1}
+
+/* Full-width technology; serving and safety share the row below. */
+.ttk-lower-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.ttk-top-pair>.ttk-block{display:flex;flex-direction:column}
+.ttk-top-pair>.ttk-block>.ttk-table{flex:1}
+.ttk-top-pair>.ttk-block>.ttk-table textarea{height:100%!important}
+.ttk-block[data-section="4"]>.ttk-table th[scope="row"]{width:22%}

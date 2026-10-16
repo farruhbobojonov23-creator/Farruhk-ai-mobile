@@ -18,7 +18,7 @@ function addTab(title, parentTabId) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]});
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
-const TTK_LAYOUT_VERSION = 'burgundy-1';
+const TTK_LAYOUT_VERSION = 'burgundy-2';
 function formatBody(body, packet) {
  const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
@@ -31,8 +31,9 @@ function formatBody(body, packet) {
  const top=body.appendTable([['','']]);top.setBorderColor('#D9B7A3').setBorderWidth(.4);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(top.getCell(0,0),sections[0],265);addSection(top.getCell(0,1),sections[1],265);
  body.appendParagraph('');addSection(body,sections[2],545);
- const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(.4);lower.setColumnWidth(0,218).setColumnWidth(1,327);
- addSection(lower.getCell(0,0),sections[3],210);addSection(lower.getCell(0,1),sections[4],319);addSection(lower.getCell(0,1),sections[5],319);
+ addSection(body,sections[3],545);
+ const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(.4);lower.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
+ addSection(lower.getCell(0,0),sections[4],265);addSection(lower.getCell(0,1),sections[5],265);
  body.appendParagraph('');addSection(body,sections[6],545);
  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
  compactCardBody(body);

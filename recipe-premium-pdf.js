@@ -20,8 +20,9 @@ export function premiumRecipePdf(input){
  function layout(s,draw=false){let y=20;const headerH=57*s;if(draw){doc.rect(0,0,595.28,841.89).fill(C.paper);text(['СУШИ БЕРИ  /  ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],X,y,W,8*s,true);const name=wrap(r.name,W*.67,19*s,true);text(name,X,y+14*s,W*.67,19*s,true);text(['ТТК № '+value(r.cardNumber),'Дата: '+value(r.cardDate),'Категория: '+value(r.category)],X+W*.69,y+13*s,W*.31,7.5*s);doc.moveTo(X,y+headerH).lineTo(X+W,y+headerH).lineWidth(.6).strokeColor(C.line).stroke()}y+=headerH+8*s;
   const half=(W-G)/2,top=Math.max(section(0,X,y,half,s,false),section(1,X+half+G,y,half,s,false));if(draw){section(0,X,y,half,s,true,top);section(1,X+half+G,y,half,s,true,top)}y+=top+8*s;
   y+=section(2,X,y,W,s,draw)+8*s;
-  const left=W*.40,right=W-left-G,ry=y,h4=section(3,X,y,left,s,false),h5=section(4,X+left+G,y,right,s,false),h6=section(5,X+left+G,y+h5+7*s,right,s,false),lower=Math.max(h4,h5+7*s+h6);
-  if(draw){section(3,X,y,left,s,true,lower);section(4,X+left+G,y,right,s,true);section(5,X+left+G,y+h5+7*s,right,s,true)}y=ry+lower+8*s;
+  y+=section(3,X,y,W,s,draw)+8*s;
+  const lower=Math.max(section(4,X,y,half,s,false),section(5,X+half+G,y,half,s,false));
+  if(draw){section(4,X,y,half,s,true,lower);section(5,X+half+G,y,half,s,true,lower)}y+=lower+8*s;
   y+=section(6,X,y,W,s,draw)+8*s;
   const signature=wrap('Разработал (Шеф): '+value(r.chef)+'     Утверждаю (Руководитель): '+value(r.approver),W,7*s,true);if(draw)text(signature,X,y,W,7*s,true);y+=signature.length*8.75*s+6*s;
   const basis=wrap(regulatoryBasis,W,5.7*s);if(draw)text(basis,X,y,W,5.7*s,false,'#765647');y+=basis.length*7.125*s;

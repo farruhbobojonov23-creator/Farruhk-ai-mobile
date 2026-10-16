@@ -43,8 +43,8 @@ export function mountRecipeSheet(editor){
   if(block)block.append(node);
  }
  const top=el('div','ttk-top-pair');top.append(blocks[0],blocks[1]);
- const lower=el('div','ttk-lower-grid'),right=el('div','ttk-right-stack');right.append(blocks[4],blocks[5]);lower.append(blocks[3],right);
- paper.append(top,blocks[2],lower,blocks[6]);
+ const lower=el('div','ttk-lower-grid');lower.append(blocks[4],blocks[5]);
+ paper.append(top,blocks[2],blocks[3],lower,blocks[6]);
  editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
  function fitPaper(){
   const available=viewport.clientWidth-4;
