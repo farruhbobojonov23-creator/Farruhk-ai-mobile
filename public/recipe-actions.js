@@ -1,3 +1,4 @@
+import {rememberReadyRecipe} from './recipe-release.js';
 export function deleteRecipe(state,id){
  const index=(state.recipes||[]).findIndex(r=>r.id===id);
  if(index<0)throw Error('Техкарта уже удалена. Обнови список.');
@@ -8,5 +9,7 @@ export function upsertRecipe(state,recipe,{editing=false}={}){
  state.recipes=state.recipes||[];
  const index=state.recipes.findIndex(r=>r.id===recipe.id);
  if(index<0&&editing)throw Error('Техкарта уже удалена. Изменения не сохранены.');
+ if(index>=0)rememberReadyRecipe(state,state.recipes[index]);
  if(index<0)state.recipes.push(recipe);else state.recipes[index]=recipe;
+ rememberReadyRecipe(state,recipe);
 }

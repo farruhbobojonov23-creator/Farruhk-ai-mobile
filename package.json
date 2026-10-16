@@ -10,6 +10,7 @@
   "dependencies": {
     "@imgly/background-removal": "1.7.0",
     "dejavu-fonts-ttf": "^2.37.3",
+    "docx": "9.11.0",
     "dotenv": "^16.4.7",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",

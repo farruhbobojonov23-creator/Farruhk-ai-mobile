@@ -4,16 +4,16 @@ const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],inspe
 export function validateDeviceState(value){
  const state=value?.state??value;
  if(!state||typeof state!=='object'||Array.isArray(state))throw Error('Неверный формат резервной копии.');
- for(const key of ['tasks','memory','chat','recipes','inspections'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
+ for(const key of ['tasks','memory','chat','recipes','inspections','releasedRecipes'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
  if(!['tasks','recipes','chat','inspections','memory'].some(k=>Array.isArray(state[k])))throw Error('В файле нет данных ассистента.');
- for(const recipe of state.recipes||[])if(typeof recipe.name!=='string'||!recipe.name.trim()||typeof recipe.id!=='string'||!Array.isArray(recipe.ingredients)||recipe.ingredients.some(i=>!i||typeof i.name!=='string'||!Number.isFinite(Number(i.grams))||Number(i.grams)<0))throw Error('Повреждена техкарта в резервной копии.');
+ for(const recipe of [...(state.recipes||[]),...(state.releasedRecipes||[])])if(typeof recipe.name!=='string'||!recipe.name.trim()||typeof recipe.id!=='string'||!Array.isArray(recipe.ingredients)||recipe.ingredients.some(i=>!i||typeof i.name!=='string'||!Number.isFinite(Number(i.grams))||Number(i.grams)<0))throw Error('Повреждена техкарта в резервной копии.');
  if(state.categories!==undefined)validateCategories(state.categories);
  return {...blank(),...structuredClone(state),haccp:validateHaccp(state.haccp),storage:'device'};
 }
 export function mergeDeviceState(current,incoming){
  const next=validateDeviceState(current),source=validateDeviceState(incoming);
- for(const key of ['tasks','memory','recipes','inspections']){
-  const ids=new Set(next[key].map(x=>x.id));
+ for(const key of ['tasks','memory','recipes','inspections','releasedRecipes']){
+  next[key]??=[];source[key]??=[];const ids=new Set(next[key].map(x=>x.id));
   for(const item of source[key])if(!item.id||!ids.has(item.id)){next[key].push(item);ids.add(item.id)}
  }
  const turns=new Set(next.chat.map(x=>JSON.stringify([x.role,x.text])));
