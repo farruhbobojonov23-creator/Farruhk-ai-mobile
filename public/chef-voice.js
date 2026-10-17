@@ -145,6 +145,6 @@ export function createVoiceConversation({send}){
  }
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
- window.addEventListener('pagehide',()=>stop());window.addEventListener('hashchange',()=>{if(!['#chat','#home',''].includes(location.hash)&&active)stop()});
+ window.addEventListener('pagehide',()=>stop());
  return {start,stop,read,sendText,testDevice};
 }
