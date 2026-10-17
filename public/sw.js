@@ -1,4 +1,4 @@
-const CACHE='farrukh-chef-v44-continuous-aurora';
+const CACHE='farrukh-chef-v45-celestial-light';
 const SHELL=['/','/index.html','/north.css?v=23.0','/north.js?v=26.1','/compact.css?v=1','/aurora.css?v=2','/assets/aurora-assistant.webp','/analytics-values.js','/task-commands.js','/task-calendar.js','/chat-format.js','/owner-login.js','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(x=>c.add(x)))).finally(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))])));

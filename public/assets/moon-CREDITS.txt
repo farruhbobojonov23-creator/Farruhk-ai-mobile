@@ -1,0 +1,4 @@
+Moon surface map: NASA's Scientific Visualization Studio, CGI Moon Kit (SVS 4720), Ernie Wright / NASA LRO LROC / ASU.
+Source: https://svs.gsfc.nasa.gov/4720/
+Image: https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg
+Resized to 512 x 256 WebP for the atmospheric homepage renderer.

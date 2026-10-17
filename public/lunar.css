@@ -24,3 +24,5 @@ body[data-view=home][data-sky=night] .lunar-orb{filter:drop-shadow(0 0 32px #a5b
 body[data-view=home][data-sky=twilight] .aurora-intro h1,body[data-view=home][data-sky=twilight] .lunar-clock{color:#fff;text-shadow:0 2px 16px #25395a55}
 body[data-view=home][data-sky=twilight] .aurora-intro p,body[data-view=home][data-sky=twilight] .aurora-intro .tag,body[data-view=home][data-sky=twilight] .lunar-clock>span,body[data-view=home][data-sky=twilight] .voice-copy p{color:#e9edf7}
 @media print{.live-weather-scene{display:none!important}}
+
+.sky-preview-badge{position:fixed;z-index:40;top:12px;left:50%;transform:translateX(-50%);padding:8px 14px;border:1px solid #fff9;border-radius:18px;background:#f4f5fff0;color:#30374d;font-size:11px;box-shadow:0 2px 16px #14244322;text-decoration:none;white-space:nowrap}@media(max-width:700px){.sky-preview-badge{top:65px;font-size:10px;padding:5px 10px}}

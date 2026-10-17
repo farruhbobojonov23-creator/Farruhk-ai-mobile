@@ -1,4 +1,4 @@
-import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js?v=soft-ribbons-2';
+import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js?v=celestial-2';
 export function weatherAppearance(code,isDay=true){
  if([71,73,75,77,85,86].includes(code))return {kind:'snow',icon:'❄',label:'Снег'};
  if([56,57,66,67].includes(code))return {kind:'rain',icon:'☂',label:'Ледяной дождь'};
@@ -14,8 +14,10 @@ export function mountLunarWeather(root){
  const time=root.querySelector('[data-clock]'),date=root.querySelector('[data-date]'),card=root.querySelector('[data-weather]');
  const clockFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'});
  const dateFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'});
- const scene=mountWeatherScene();let weather=null,lastSuccess=0,loading=false,lastMinute=-1;
- function updateScene(){const s=sceneState(weather);scene.update(s);if(weather&&s.fresh){const label=s.kind==='sleet'?'Мокрый снег':weatherAppearance(weather.code,s.period==='day').label;card.querySelector('[data-weather-label]').textContent=label+(s.aurora?' · возможно сияние':'');card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(weather.observedAt))+' · обновление каждые 5 минут'+(s.aurora?' · NOAA: вероятность сияния, видимость не подтверждена':'');}else if(weather){unavailable()}}
+ const scene=mountWeatherScene(),preview=new URL(location.href).searchParams.get('previewSky');
+ if(['sun','moon'].includes(preview)){const badge=document.createElement('a');badge.className='sky-preview-badge';badge.textContent='Предпросмотр: '+(preview==='sun'?'солнце':'луна')+' · Вернуться к погоде';const url=new URL(location.href);url.searchParams.delete('previewSky');badge.href=url.href;document.body.append(badge)}
+ let weather=null,lastSuccess=0,loading=false,lastMinute=-1;
+ function updateScene(){const s=sceneState(weather);if(preview==='sun'){Object.assign(s,{period:'day',kind:'sun',fresh:true,cloud:.22,sunVisible:true,moonVisible:false,aurora:false,altitude:28,sun:{altitude:.49,azimuth:.6}})}else if(preview==='moon'){Object.assign(s,{period:'night',kind:'night',fresh:true,cloud:.18,sunVisible:false,moonVisible:true,aurora:false,moon:{altitude:.62,azimuth:.6,parallacticAngle:0}})}scene.update(s);if(weather&&s.fresh){const label=s.kind==='sleet'?'Мокрый снег':weatherAppearance(weather.code,s.period==='day').label;card.querySelector('[data-weather-label]').textContent=label+(s.aurora?' · возможно сияние':'');card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(weather.observedAt))+' · обновление каждые 5 минут'+(s.aurora?' · NOAA: вероятность сияния, видимость не подтверждена':'');}else if(weather){unavailable()}}
  function tick(){const now=new Date();time.textContent=clockFormat.format(now);time.dateTime=now.toISOString();date.textContent=dateFormat.format(now);const minute=Math.floor(+now/60000);if(minute!==lastMinute){lastMinute=minute;updateScene()}}tick();
  function unavailable(){weather=null;scene.update(sceneState(null));card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
  async function refresh(){if(loading)return;loading=true;
