@@ -26,7 +26,7 @@ export function celestialLight(){
  function wisps(ctx,cloud,x,y,r,cover,time){if(cover<.08)return;ctx.save();ctx.globalAlpha=Math.min(.68,cover*.75);const shift=Math.sin(time*.018)*r*2;ctx.drawImage(cloud,x-r*5+shift,y-r*1.3,r*10,r*2.3);ctx.restore()}
  return {
   sun(ctx,s,w,h,time,cloud){
-   const x=w*(.67+Math.sin(s.sun.azimuth)*.17),y=h*Math.max(.12,.62-s.altitude/100),r=w<700?13:17,clear=1-s.cloud*.6;
+   const x=w*(w<700?.78+Math.sin(s.sun.azimuth)*.06:.52+Math.sin(s.sun.azimuth)*.08),y=h*(w<700?Math.max(.34,.44-s.altitude/180):Math.max(.12,.62-s.altitude/100)),r=w<700?13:17,clear=1-s.cloud*.6;
    ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=clear;
    glow(ctx,x,y,Math.min(w*.33,300),'rgba(255,213,145,.28)');glow(ctx,x,y,r*4,'rgba(255,223,160,.35)');
    // Broad blurred shafts taper gently downward, rather than hard star-shaped spikes.
@@ -37,7 +37,7 @@ export function celestialLight(){
    wisps(ctx,cloud,x,y,r,s.cloud,time);reflection(ctx,x,w,h,'#ffdfa2',clear*.16,time);
   },
   moon(ctx,s,w,h,time,cloud){
-   const r=w<700?20:27,x=w*(.65+Math.sin(s.moon.azimuth)*.16),y=h*Math.max(.12,.58-s.moon.altitude*.5),angle=s.phase.angle-s.moon.parallacticAngle,stamp=[s.phase.fraction.toFixed(4),angle.toFixed(3),version,r].join(':');
+   const r=w<700?20:27,x=w*(w<700?.78+Math.sin(s.moon.azimuth)*.06:.52+Math.sin(s.moon.azimuth)*.08),y=h*(w<700?Math.max(.33,.43-s.moon.altitude*.16):Math.max(.12,.58-s.moon.altitude*.5)),angle=s.phase.angle-s.moon.parallacticAngle,stamp=[s.phase.fraction.toFixed(4),angle.toFixed(3),version,r].join(':');
    if(key!==stamp){const size=160;moonCanvas.width=size;moonCanvas.height=size;const pixels=mc.createImageData(size,size);pixels.data.set(moonPixels(size,s.phase.fraction,angle,texture));mc.putImageData(pixels,0,0);key=stamp}
    ctx.save();glow(ctx,x,y,r*4,'rgba(189,211,242,.075)');glow(ctx,x,y,r*1.7,'rgba(212,228,248,.12)');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(moonCanvas,x-r,y-r,r*2,r*2);ctx.restore();
    wisps(ctx,cloud,x,y,r,s.cloud,time);reflection(ctx,x,w,h,'#d6e3f6',s.phase.fraction*.11,time);

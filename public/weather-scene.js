@@ -1,4 +1,4 @@
-import {celestialLight} from './celestial-light.js?v=2';
+import {celestialLight} from './celestial-light.js?v=3';
 import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';
 export const LOCATION={lat:68.9707,lon:33.0749};
