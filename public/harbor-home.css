@@ -49,3 +49,64 @@ body[data-view=home] .lunar-shortcuts>.neural-launch{position:absolute;inset:50%
 @media(max-width:700px){body[data-view=home] .aurora-top{padding:12px 18px;height:66px}body[data-view=home] .app{padding:0 16px 100px;min-height:calc(100dvh - 66px)}body[data-view=home] .aurora-home:not([hidden]){min-height:calc(100svh - 176px);gap:14px;grid-template-rows:auto minmax(170px,1fr) auto auto}body[data-view=home] .lunar-clock time{font-size:29px}body[data-view=home] .lunar-clock>span{max-width:140px}body[data-view=home] .lunar-hero{padding:12px 0 40px}.harbor-workspace{padding:18px 14px 22px;border-radius:26px}.harbor-workspace h2{margin-bottom:18px;font-size:25px}body[data-view=home] .lunar-shortcuts{gap:28px 20px}body[data-view=home] .lunar-shortcuts>button:not(.neural-launch){padding:14px 12px;gap:9px;min-height:83px}body[data-view=home] .lunar-shortcuts>button:nth-child(odd){padding-right:24px}body[data-view=home] .lunar-shortcuts>button:nth-child(even){padding-left:24px}body[data-view=home] .lunar-shortcuts strong{font:500 14px system-ui,sans-serif}body[data-view=home] .lunar-shortcuts small{font-size:9px;line-height:1.3}body[data-view=home] .lunar-shortcuts svg{width:22px;height:22px}body[data-view=home] .lunar-shortcuts b{display:none}.neural-launch,body[data-view=home] .lunar-shortcuts>.neural-launch{width:54px;height:54px}#global-voice{right:16px;bottom:88px}}
 @media(prefers-reduced-motion:reduce){.neural-ribbons{animation:none!important}}
 @media print{.neural-launch,#global-voice{display:none!important}}
+
+/* Floating home navigation: landscape fills the viewport, controls stay within safe areas. */
+body[data-view=home]{height:100dvh;min-height:100dvh;overflow:hidden;background-position:center center}
+body[data-view=home]:before{background:linear-gradient(180deg,#07192b80 0%,transparent 35%,transparent 68%,#07192b66 100%)}
+body[data-view=home] .aurora-top{height:70px;padding:12px 28px;max-width:1440px}
+body[data-view=home] .app{height:calc(100dvh - 70px);min-height:0;padding:0 28px;max-width:1440px}
+body[data-view=home] main,body[data-view=home] main>.glass{height:100%;min-height:0}
+body[data-view=home] .aurora-home:not([hidden]){height:100%;min-height:0;max-width:none;grid-template-rows:auto 1fr;gap:12px}
+body[data-view=home] .lunar-meta{padding:6px 0 0;align-items:start}
+body[data-view=home] .lunar-weather{background:#10273b3d;border-color:#ffffff38;backdrop-filter:blur(12px);box-shadow:0 4px 20px #07192b12}
+body[data-view=home] .lunar-clock{text-shadow:0 2px 12px #07192b88}
+body[data-view=home] .lunar-hero{align-self:start;padding:14px 0 0;pointer-events:none}
+body[data-view=home] .aurora-intro{text-align:left;max-width:440px}
+body[data-view=home] .aurora-intro h1{font-size:clamp(26px,3.3vw,46px);margin:9px 0;line-height:1.14}
+body[data-view=home] .aurora-intro .tag{font-size:8px;letter-spacing:.2em}
+body[data-view=home] #home-composer,body[data-view=home] .mobile-tools{display:none}
+body[data-view=home] .harbor-workspace{position:fixed;z-index:25;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(820px,calc(100vw - 48px));padding:0;background:none;border:0;border-radius:0;box-shadow:none;color:#fff}
+body[data-view=home] .harbor-workspace h2{display:none}
+body[data-view=home] .lunar-shortcuts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 82px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:14px}
+body[data-view=home] .lunar-shortcuts>button:not(.neural-launch){grid-row:1;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;min-height:88px;padding:13px 6px;gap:9px;border-radius:23px;background:linear-gradient(145deg,#173546bf,#0d2536bf);border:1px solid #ffffff66;box-shadow:inset 0 1px 0 #ffffff26,0 8px 28px #07162933;color:#fff;backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);transition:background .2s,translate .2s}
+body[data-view=home] .lunar-shortcuts>button:nth-child(1){grid-column:1}
+body[data-view=home] .lunar-shortcuts>button:nth-child(4){grid-column:2}
+body[data-view=home] .lunar-shortcuts>button:nth-child(3){grid-column:4}
+body[data-view=home] .lunar-shortcuts>button:nth-child(2){grid-column:5}
+body[data-view=home] .lunar-shortcuts strong{display:block;font:500 13px/1.2 system-ui,sans-serif;white-space:nowrap;text-shadow:0 1px 5px #07192b66}
+body[data-view=home] .lunar-shortcuts small,body[data-view=home] .lunar-shortcuts b{display:none}
+body[data-view=home] .lunar-shortcuts svg{width:25px;height:25px;color:#f0d3a6;flex:none}
+body[data-view=home] .lunar-shortcuts>.neural-launch{position:relative;inset:auto;transform:none;grid-column:3;grid-row:1;justify-self:center;align-self:center;width:72px;height:72px;padding:0;box-shadow:inset 0 1px 8px #ffffff30,0 0 24px #c4e9ff26,0 8px 28px #07162955;border-color:#e1cca5}
+body[data-view=home] .lunar-shortcuts>.neural-launch:after{content:'Ассистент';position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font:500 10px/1.2 system-ui,sans-serif;color:#fff;text-shadow:0 1px 6px #07192b;white-space:nowrap;pointer-events:none}
+body[data-view=home] .lunar-shortcuts>button:focus-visible{outline:3px solid #f5d6a1;outline-offset:4px}
+body[data-view=home] #notice.error{bottom:140px}
+body[data-view=home] #global-voice{bottom:145px;right:max(16px,calc((100vw - 820px)/2));max-height:calc(100dvh - 225px)}
+@media(hover:hover){body[data-view=home] .lunar-shortcuts>button:not(.neural-launch):hover{background:#23495ee8;translate:0 -3px}}
+@media(max-width:700px){
+ body[data-view=home] .aurora-top{height:62px;padding:10px 16px}
+ body[data-view=home] .app{height:calc(100dvh - 62px);min-height:0;padding:0 16px}
+ body[data-view=home] .lunar-meta{gap:10px;padding-top:3px}
+ body[data-view=home] .lunar-clock time{font-size:29px}
+ body[data-view=home] .lunar-clock>span{font-size:9px;max-width:150px}
+ body[data-view=home] .lunar-weather{min-width:0;padding:7px 10px;gap:7px;border-radius:15px}
+ body[data-view=home] .lunar-weather strong{font-size:22px}
+ body[data-view=home] .lunar-weather small{font-size:9px}
+ body[data-view=home] .lunar-hero{padding-top:10px}
+ body[data-view=home] .aurora-intro h1{font-size:27px;margin:7px 0}
+ body[data-view=home] .aurora-intro .tag{display:none}
+ body[data-view=home] .harbor-workspace{width:calc(100vw - 24px);bottom:max(28px,calc(env(safe-area-inset-bottom) + 16px))}
+ body[data-view=home] .lunar-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr)) 62px repeat(2,minmax(0,1fr));gap:7px}
+ body[data-view=home] .lunar-shortcuts>button:not(.neural-launch){min-height:72px;border-radius:19px;padding:10px 2px;gap:8px}
+ body[data-view=home] .lunar-shortcuts strong{font-size:10px;letter-spacing:-.02em}
+ body[data-view=home] .lunar-shortcuts svg{width:22px;height:22px}
+ body[data-view=home] .lunar-shortcuts>.neural-launch{width:58px;height:58px}
+ body[data-view=home] .lunar-shortcuts>.neural-launch:after{font-size:9px;top:calc(100% + 9px)}
+ body[data-view=home] #global-voice{right:12px;bottom:130px;width:calc(100vw - 24px);max-height:calc(100dvh - 205px)}
+}
+@media(max-height:500px){
+ body[data-view=home] .aurora-intro{display:none}
+ body[data-view=home] .harbor-workspace{bottom:max(22px,env(safe-area-inset-bottom))}
+ body[data-view=home] .lunar-shortcuts>button:not(.neural-launch){min-height:62px}
+ body[data-view=home] #global-voice{bottom:110px;max-height:calc(100dvh - 135px)}
+}
+@media(prefers-reduced-motion:reduce){body[data-view=home] .lunar-shortcuts>button{transition:none}}
