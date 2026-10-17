@@ -34,7 +34,7 @@ export function mountWeatherScene(){
   ac.clearRect(0,0,aw,ah);
   const t=elapsed*.055;
   ac.globalCompositeOperation='screen';
-  ac.filter='blur(2.6px)';
+  ac.filter='blur(3.2px)';
   // The curtain's lower edge meanders; its upper edge dissolves into darkness.
   for(let band=0;band<2;band++){
    const points=[];
@@ -49,7 +49,7 @@ export function mountWeatherScene(){
    for(let strip=0;strip<28;strip++){
     const v=strip/28,v2=Math.min(1,(strip+1.7)/28);
     // A restrained green lower rim with a very faint violet upper fringe.
-    const alpha=Math.pow(Math.sin(Math.PI*v),1.5)*(.038+(band===0?.025:0));
+    const alpha=Math.pow(Math.sin(Math.PI*v),1.5)*(.15+(band===0?.08:0));
     ac.fillStyle=v<.27?`rgba(151,115,209,${alpha*.6})`:`rgba(102,214,161,${alpha})`;
     ac.beginPath();
     points.forEach((p,i)=>{const x=p.x+p.lean*(1-v),y=p.y-p.height*(1-v);if(i===0)ac.moveTo(x,y);else ac.lineTo(x,y)});
@@ -58,7 +58,7 @@ export function mountWeatherScene(){
    }
    // A soft irregular luminous hem ties the translucent curtain together.
    ac.beginPath();points.forEach((p,i)=>{if(i===0)ac.moveTo(p.x,p.y);else ac.lineTo(p.x,p.y)});
-   ac.lineWidth=ah*.006;ac.strokeStyle='rgba(133,236,175,.13)';ac.stroke();
+   ac.lineWidth=ah*.009;ac.strokeStyle='rgba(133,236,175,.1)';ac.stroke();
   }
   ac.filter='none';
   // Fade the whole sheet at the lateral boundaries, avoiding hard screen edges.
