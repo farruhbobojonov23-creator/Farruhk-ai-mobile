@@ -28,11 +28,11 @@ export function celestialLight(){
   sun(ctx,s,w,h,time,cloud){
    const x=w*(w<700?.78+Math.sin(s.sun.azimuth)*.06:.52+Math.sin(s.sun.azimuth)*.08),y=h*(w<700?Math.max(.34,.44-s.altitude/180):Math.max(.12,.62-s.altitude/100)),r=w<700?13:17,clear=1-s.cloud*.6;
    ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=clear;
-   glow(ctx,x,y,Math.min(w*.33,300),'rgba(255,213,145,.28)');glow(ctx,x,y,r*4,'rgba(255,223,160,.35)');
+   glow(ctx,x,y,Math.min(w*.33,300),'rgba(255,213,145,.34)');glow(ctx,x,y,r*4,'rgba(255,223,160,.35)');
    // Broad blurred shafts taper gently downward, rather than hard star-shaped spikes.
    ctx.save();ctx.filter='blur(5px)';
    for(let i=0;i<9;i++){const angle=.4+i*.31+Math.sin(time*.025+i)*.015,len=Math.min(h*.35,230)*(i%2?.8:1),spread=.012+(i%3)*.006;
-    const g=ctx.createLinearGradient(x,y,x+Math.cos(angle)*len,y+Math.sin(angle)*len);g.addColorStop(0,'rgba(255,240,199,.075)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(angle-spread)*len,y+Math.sin(angle-spread)*len);ctx.lineTo(x+Math.cos(angle+spread)*len,y+Math.sin(angle+spread)*len);ctx.closePath();ctx.fill()}
+    const g=ctx.createLinearGradient(x,y,x+Math.cos(angle)*len,y+Math.sin(angle)*len);g.addColorStop(0,'rgba(255,240,199,.12)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(angle-spread)*len,y+Math.sin(angle-spread)*len);ctx.lineTo(x+Math.cos(angle+spread)*len,y+Math.sin(angle+spread)*len);ctx.closePath();ctx.fill()}
    ctx.restore();const disk=ctx.createRadialGradient(x,y,0,x,y,r);disk.addColorStop(0,'#fffef1');disk.addColorStop(.8,'#fff9dd');disk.addColorStop(1,'#ffdf9b');ctx.fillStyle=disk;ctx.shadowColor='#fff0bd';ctx.shadowBlur=r*.65;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.restore();
    wisps(ctx,cloud,x,y,r,s.cloud,time);reflection(ctx,x,w,h,'#ffdfa2',clear*.16,time);
   },

@@ -1,3 +1,4 @@
+import {weatherClouds} from './weather-clouds.js?v=1';
 import {celestialLight} from './celestial-light.js?v=3';
 import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';
@@ -19,7 +20,7 @@ export function sceneState(weather,now=new Date()){
 export function mountWeatherScene(){
  const layer=document.createElement('div');layer.className='live-weather-scene';layer.ariaHidden='true';
  const canvas=document.createElement('canvas');layer.append(canvas);document.body.prepend(layer);
- const ctx=canvas.getContext('2d'),motion=matchMedia('(prefers-reduced-motion: reduce)'),light=celestialLight();
+ const ctx=canvas.getContext('2d'),motion=matchMedia('(prefers-reduced-motion: reduce)'),light=celestialLight(),clouds=weatherClouds(()=>resume());
  let state=sceneState(null),w=0,h=0,frame=0,last=0,elapsed=0,disposed=false;
  const stars=Array.from({length:100},()=>({x:Math.random(),y:Math.random()*.64,r:.35+Math.random(),a:.2+Math.random()*.6}));
  const particles=Array.from({length:110},()=>({x:Math.random(),y:Math.random(),z:.3+Math.random()*.7}));
@@ -47,17 +48,25 @@ export function mountWeatherScene(){
  function draw(dt){
   ctx.clearRect(0,0,w,h);const s=state,night=s.period==='night';
   // Tint the original photo without losing the mountain and water details.
-  const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,night?'rgba(3,10,40,.91)':s.period==='twilight'?'rgba(40,50,100,.62)':s.cloud>.75?'rgba(55,73,110,.36)':'rgba(255,235,192,.04)');g.addColorStop(.75,night?'rgba(9,21,53,.68)':s.period==='twilight'?'rgba(167,106,119,.25)':'rgba(65,80,108,.04)');g.addColorStop(1,night?'rgba(6,17,44,.72)':'rgba(57,75,102,.08)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  const g=ctx.createLinearGradient(0,0,0,h);
+  if(s.period==='day'){
+   g.addColorStop(0,s.cloud>.8?'rgba(57,98,145,.76)':'rgba(40,112,188,.84)');
+   g.addColorStop(.42,s.cloud>.8?'rgba(117,147,177,.60)':'rgba(85,150,211,.65)');
+   g.addColorStop(.72,'rgba(196,200,207,.08)');g.addColorStop(.84,'rgba(255,231,190,.06)');g.addColorStop(1,'rgba(57,99,150,.08)');
+  }else{g.addColorStop(0,night?'rgba(3,10,40,.91)':'rgba(40,50,100,.62)');g.addColorStop(.75,night?'rgba(9,21,53,.68)':'rgba(167,106,119,.25)');g.addColorStop(1,night?'rgba(6,17,44,.72)':'rgba(57,75,102,.08)')}
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+
   if(night&&s.fresh&&s.cloud<.8){for(const star of stars){ctx.globalAlpha=star.a*(1-s.cloud);ctx.fillStyle='#e8eeff';ctx.beginPath();ctx.arc(star.x*w,star.y*h,star.r,0,7);ctx.fill()}ctx.globalAlpha=1}
   if(s.aurora) drawSoftAurora();
+  clouds.draw(ctx,s,w,h,elapsed,'far');
   if(s.sunVisible)light.sun(ctx,s,w,h,elapsed,cloudCanvas);
   if(s.moonVisible)light.moon(ctx,s,w,h,elapsed,cloudCanvas);
-  if(s.cloud>.03&&s.fresh){ctx.save();ctx.globalAlpha=Math.min(.92,s.cloud);ctx.globalCompositeOperation=night?'source-over':'multiply';for(let i=0;i<3;i++){const cw=Math.max(w,650),x=((elapsed*(3+s.wind*.2)+i*cw*.7)%(cw*2))-cw;ctx.drawImage(cloudCanvas,x,h*(.03+i*.12),cw,h*.36);ctx.drawImage(cloudCanvas,x+cw,h*(.03+i*.12),cw,h*.36)}ctx.restore()}
+  clouds.draw(ctx,s,w,h,elapsed,'near');
   if(s.kind==='fog'){ctx.save();ctx.globalAlpha=.7;ctx.drawImage(cloudCanvas,-w*.1+Math.sin(elapsed*.03)*w*.1,h*.25,w*1.4,h*.8);ctx.drawImage(cloudCanvas,-w*.2,h*.45,w*1.6,h*.6);ctx.restore()}
   if(['snow','rain','sleet'].includes(s.kind)){const count=Math.round((w<700?55:100)*(.45+s.intensity*.55)),wind=Math.sin(s.windDirection*Math.PI/180)*s.wind;for(let i=0;i<count;i++){const p=particles[i],rain=s.kind==='rain'||(s.kind==='sleet'&&i%2===0);if(!motion.matches){p.y+=dt*(rain?.75:.035)*p.z;p.x+=dt*wind*.0007*p.z;if(p.y>1.05)p.y=-.05;p.x=(p.x+1)%1}ctx.globalAlpha=.25+p.z*.55;ctx.strokeStyle=night?'#b9cce6':'#849ab4';ctx.fillStyle='#fff';ctx.lineWidth=.5+p.z*.6;const x=p.x*w,y=p.y*h;if(rain){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+wind*.3,y+12+p.z*15);ctx.stroke()}else{ctx.shadowColor='#e4edff';ctx.shadowBlur=p.z>.8?4:0;ctx.beginPath();ctx.arc(x,y,.7+p.z*2,0,7);ctx.fill()}}ctx.globalAlpha=1;ctx.shadowBlur=0}
  }
  function animate(t){frame=0;if(disposed)return;if(!document.hidden&&document.body.dataset.view==='home'){if(t-last>40){const dt=Math.min((t-last)/1000,.1);last=t;elapsed+=dt;draw(dt)}}if(!motion.matches&&!document.hidden)frame=requestAnimationFrame(animate)}
  function resume(){if(disposed)return;if(!frame&&!motion.matches&&!document.hidden)frame=requestAnimationFrame(animate);draw(0)}
  resize();resume();addEventListener('resize',resize);document.addEventListener('visibilitychange',resume);motion.addEventListener('change',resume);
- return {update(next){state=next;document.body.dataset.sky=next.period;document.body.dataset.weather=next.kind;document.body.dataset.aurora=String(!!next.aurora);draw(0);resume()},dispose(){disposed=true;light.dispose();cancelAnimationFrame(frame);removeEventListener('resize',resize);document.removeEventListener('visibilitychange',resume);motion.removeEventListener('change',resume);layer.remove()}};
+ return {update(next){state=next;document.body.dataset.sky=next.period;document.body.dataset.weather=next.kind;document.body.dataset.aurora=String(!!next.aurora);draw(0);resume()},dispose(){disposed=true;light.dispose();clouds.dispose();cancelAnimationFrame(frame);removeEventListener('resize',resize);document.removeEventListener('visibilitychange',resume);motion.removeEventListener('change',resume);layer.remove()}};
 }
