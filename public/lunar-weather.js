@@ -10,16 +10,28 @@ export function weatherAppearance(code,isDay=true){
  if(code===3)return {kind:'cloud',icon:'☁',label:'Облачно'};
  return {kind:'cloud',icon:'☁',label:'Без осадков'};
 }
+export const SKY_PREVIEWS={
+ sun:{label:'Солнце',icon:'☀',scene:{period:'day',kind:'sun',cloud:.38,sunVisible:true,moonVisible:false,altitude:28,sun:{altitude:.49,azimuth:.6}}},
+ moon:{label:'Луна',icon:'☾',scene:{period:'night',kind:'night',cloud:.38,sunVisible:false,moonVisible:true,moon:{altitude:.62,azimuth:.6,parallacticAngle:0}}},
+ snow:{label:'Снег',icon:'❄',scene:{period:'day',kind:'snow',cloud:.9,sunVisible:false,moonVisible:false,intensity:.85,wind:18,windDirection:250}},
+ rain:{label:'Дождь',icon:'☂',scene:{period:'day',kind:'rain',cloud:.95,sunVisible:false,moonVisible:false,intensity:.85,wind:22,windDirection:250}},
+ fog:{label:'Туман',icon:'≋',scene:{period:'day',kind:'fog',cloud:.98,sunVisible:false,moonVisible:false,intensity:0,wind:2,windDirection:250}}
+};
 export function mountLunarWeather(root){
  const time=root.querySelector('[data-clock]'),date=root.querySelector('[data-date]'),card=root.querySelector('[data-weather]');
  const clockFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'});
  const dateFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'});
- const scene=mountWeatherScene(),preview=new URL(location.href).searchParams.get('previewSky');
- if(['sun','moon'].includes(preview)){const badge=document.createElement('a');badge.className='sky-preview-badge';badge.textContent='Предпросмотр: '+(preview==='sun'?'солнце':'луна')+' · Вернуться к погоде';const url=new URL(location.href);url.searchParams.delete('previewSky');badge.href=url.href;document.body.append(badge)}
+ const scene=mountWeatherScene(),preview=new URL(location.href).searchParams.get('previewSky'),preset=Object.hasOwn(SKY_PREVIEWS,preview)?SKY_PREVIEWS[preview]:null;
+ if(preset){const badge=document.createElement('a');badge.className='sky-preview-badge';badge.textContent='Предпросмотр: '+preset.label.toLowerCase()+' · Вернуться к погоде';const url=new URL(location.href);url.searchParams.delete('previewSky');badge.href=url.href;document.body.append(badge)}
  let weather=null,lastSuccess=0,loading=false,lastMinute=-1;
- function updateScene(){const s=sceneState(weather);if(preview==='sun'){Object.assign(s,{period:'day',kind:'sun',fresh:true,cloud:.38,sunVisible:true,moonVisible:false,aurora:false,altitude:28,sun:{altitude:.49,azimuth:.6}})}else if(preview==='moon'){Object.assign(s,{period:'night',kind:'night',fresh:true,cloud:.38,sunVisible:false,moonVisible:true,aurora:false,moon:{altitude:.62,azimuth:.6,parallacticAngle:0}})}scene.update(s);if(preview==='sun')card.querySelector('[data-weather-icon]').textContent='☀';else if(preview==='moon')card.querySelector('[data-weather-icon]').textContent='☾';if(weather&&s.fresh){const label=s.kind==='sleet'?'Мокрый снег':weatherAppearance(weather.code,s.period==='day').label;card.querySelector('[data-weather-label]').textContent=label+(s.aurora?' · возможно сияние':'');card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(weather.observedAt))+' · обновление каждые 5 минут'+(s.aurora?' · NOAA: вероятность сияния, видимость не подтверждена':'');}else if(weather){unavailable()}}
+ function updateScene(){
+  const s=sceneState(weather);if(preset)Object.assign(s,preset.scene,{fresh:true,aurora:false});scene.update(s);
+  if(preset){card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-icon]').textContent=preset.icon;card.querySelector('[data-weather-label]').textContent=preset.label+' · предпросмотр';card.title='Предпросмотр эффекта. Не текущая погода Мурманска.';return}
+  if(weather&&s.fresh){const label=s.kind==='sleet'?'Мокрый снег':weatherAppearance(weather.code,s.period==='day').label;card.querySelector('[data-weather-label]').textContent=label+(s.aurora?' · возможно сияние':'');card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(weather.observedAt))+' · обновление каждые 5 минут'+(s.aurora?' · NOAA: вероятность сияния, видимость не подтверждена':'');}else if(weather){unavailable()}
+ }
+
  function tick(){const now=new Date();time.textContent=clockFormat.format(now);time.dateTime=now.toISOString();date.textContent=dateFormat.format(now);const minute=Math.floor(+now/60000);if(minute!==lastMinute){lastMinute=minute;updateScene()}}tick();
- function unavailable(){weather=null;scene.update(sceneState(null));card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
+ function unavailable(){weather=null;if(preset){updateScene();return}scene.update(sceneState(null));card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
  async function refresh(){if(loading)return;loading=true;
   try{let d;
    try{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('weather');d=await r.json()}
