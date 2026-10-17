@@ -1,3 +1,4 @@
+import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';
 export const LOCATION={lat:68.9707,lon:33.0749};
 export const WEATHER_URL='https://api.open-meteo.com/v1/forecast?latitude=68.9707&longitude=33.0749&current=temperature_2m,weather_code,is_day,cloud_cover,precipitation,rain,showers,snowfall,wind_speed_10m,wind_direction_10m&timezone=Europe%2FMoscow';
@@ -25,51 +26,18 @@ export function mountWeatherScene(){
  const cc=cloudCanvas.getContext('2d');for(let i=0;i<65;i++){const x=Math.random()*900,y=100+Math.random()*160,r=35+Math.random()*85,g=cc.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(220,227,241,.12)');g.addColorStop(1,'rgba(220,227,241,0)');cc.fillStyle=g;cc.fillRect(x-r,y-r,r*2,r*2)}
  function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);draw(0)}
  function glow(x,y,r,color){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r)}
- // Continuous curved sheets, rendered at bounded resolution and softly blended.
- // No tiled columns: the old per-column rectangles produced the visible grid.
+ // Render a continuous translucent field, rather than overlapping horizontal strips.
  const auroraCanvas=document.createElement('canvas'),ac=auroraCanvas.getContext('2d');
+ let auroraPaintedAt=-Infinity;
  function drawSoftAurora(){
-  const aw=Math.min(900,Math.round(w)),ah=Math.max(1,Math.round(aw*h/w));
-  if(auroraCanvas.width!==aw||auroraCanvas.height!==ah){auroraCanvas.width=aw;auroraCanvas.height=ah}
-  ac.clearRect(0,0,aw,ah);
-  const t=elapsed*.055;
-  ac.globalCompositeOperation='screen';
-  ac.filter='blur(3.2px)';
-  // The curtain's lower edge meanders; its upper edge dissolves into darkness.
-  for(let band=0;band<2;band++){
-   const points=[];
-   for(let i=0;i<=180;i++){
-    const u=i/180,angle=u*5.4+t+band*2.3;
-    const fold=Math.sin(u*12.5-t*.7+band)*.025+Math.sin(u*23+t*.4)*.006;
-    const y=ah*(.27+band*.105+Math.sin(angle)*.085+fold);
-    const height=ah*(.14+.065*(1+Math.sin(u*7.1+t*.6+band)));
-    const x=u*aw+Math.sin(angle*1.6)*aw*.025;
-    points.push({x,y,height,lean:aw*(.035*Math.sin(angle)+.018)});
-   }
-   for(let strip=0;strip<28;strip++){
-    const v=strip/28,v2=Math.min(1,(strip+1.7)/28);
-    // A restrained green lower rim with a very faint violet upper fringe.
-    const alpha=Math.pow(Math.sin(Math.PI*v),1.5)*(.15+(band===0?.08:0));
-    ac.fillStyle=v<.27?`rgba(151,115,209,${alpha*.6})`:`rgba(102,214,161,${alpha})`;
-    ac.beginPath();
-    points.forEach((p,i)=>{const x=p.x+p.lean*(1-v),y=p.y-p.height*(1-v);if(i===0)ac.moveTo(x,y);else ac.lineTo(x,y)});
-    for(let i=points.length-1;i>=0;i--){const p=points[i];ac.lineTo(p.x+p.lean*(1-v2),p.y-p.height*(1-v2))}
-    ac.closePath();ac.fill();
-   }
-   // A soft irregular luminous hem ties the translucent curtain together.
-   ac.beginPath();points.forEach((p,i)=>{if(i===0)ac.moveTo(p.x,p.y);else ac.lineTo(p.x,p.y)});
-   ac.lineWidth=ah*.009;ac.strokeStyle='rgba(133,236,175,.1)';ac.stroke();
+  const scale=Math.min(1,560/w,640/h),aw=Math.max(2,Math.round(w*scale)),ah=Math.max(2,Math.round(h*scale));
+  if(auroraCanvas.width!==aw||auroraCanvas.height!==ah){auroraCanvas.width=aw;auroraCanvas.height=ah;auroraPaintedAt=-Infinity}
+  if(elapsed-auroraPaintedAt>=.09||auroraPaintedAt===-Infinity){
+   const image=ac.createImageData(aw,ah);image.data.set(auroraFrame(aw,ah,elapsed));ac.putImageData(image,0,0);auroraPaintedAt=elapsed;
   }
-  ac.filter='none';
-  // Fade the whole sheet at the lateral boundaries, avoiding hard screen edges.
-  ac.globalCompositeOperation='destination-in';
-  const edge=ac.createLinearGradient(0,0,aw,0);
-  edge.addColorStop(0,'transparent');edge.addColorStop(.1,'white');edge.addColorStop(.88,'white');edge.addColorStop(1,'transparent');
-  ac.fillStyle=edge;ac.fillRect(0,0,aw,ah);
-  ctx.save();ctx.globalCompositeOperation='screen';ctx.drawImage(auroraCanvas,0,0,w,h);ctx.restore();
-  // Quiet reflected colour stays below the mountain horizon.
+  ctx.save();ctx.globalCompositeOperation='screen';ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.filter='blur(.7px)';ctx.drawImage(auroraCanvas,0,0,w,h);ctx.restore();
   ctx.save();ctx.beginPath();ctx.rect(0,h*.84,w,h*.16);ctx.clip();
-  glow(w*.53,h*.97,w*.25,'rgba(86,190,153,.055)');ctx.restore();
+  glow(w*.53,h*.97,w*.25,'rgba(86,190,153,.045)');ctx.restore();
  }
  function draw(dt){
   ctx.clearRect(0,0,w,h);const s=state,night=s.period==='night';

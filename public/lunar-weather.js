@@ -1,4 +1,4 @@
-import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js';
+import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js?v=soft-ribbons-2';
 export function weatherAppearance(code,isDay=true){
  if([71,73,75,77,85,86].includes(code))return {kind:'snow',icon:'❄',label:'Снег'};
  if([56,57,66,67].includes(code))return {kind:'rain',icon:'☂',label:'Ледяной дождь'};
