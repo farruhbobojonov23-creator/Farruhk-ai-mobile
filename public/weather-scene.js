@@ -25,6 +25,10 @@ export function mountWeatherScene(){
  const particles=Array.from({length:110},()=>({x:Math.random(),y:Math.random(),z:.3+Math.random()*.7}));
  const cloudCanvas=document.createElement('canvas');cloudCanvas.width=900;cloudCanvas.height=350;
  const cc=cloudCanvas.getContext('2d');for(let i=0;i<65;i++){const x=Math.random()*900,y=100+Math.random()*160,r=35+Math.random()*85,g=cc.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(220,227,241,.12)');g.addColorStop(1,'rgba(220,227,241,0)');cc.fillStyle=g;cc.fillRect(x-r,y-r,r*2,r*2)}
+ // Feather every edge before drifting the cloud texture across the sky.
+ cc.globalCompositeOperation='destination-in';
+ for(const vertical of [false,true]){const edge=cc.createLinearGradient(0,0,vertical?0:900,vertical?350:0);edge.addColorStop(0,'transparent');edge.addColorStop(.14,'white');edge.addColorStop(.86,'white');edge.addColorStop(1,'transparent');cc.fillStyle=edge;cc.fillRect(0,0,900,350)}
+ cc.globalCompositeOperation='source-over';
  function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);draw(0)}
  function glow(x,y,r,color){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r)}
  // Render a continuous translucent field, rather than overlapping horizontal strips.

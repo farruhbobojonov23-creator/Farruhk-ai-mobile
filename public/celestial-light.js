@@ -9,7 +9,7 @@ export function moonPixels(size,fraction,angle,texture){
   let albedo=[180,181,182];
   if(texture){const tx=Math.min(texture.width-1,Math.max(0,Math.floor((.5+Math.atan2(nx,nz)/(2*Math.PI))*texture.width))),ty=Math.min(texture.height-1,Math.max(0,Math.floor((.5+Math.asin(ny)/Math.PI)*texture.height))),j=(ty*texture.width+tx)*4;albedo=[texture.data[j],texture.data[j+1],texture.data[j+2]]}
   const i=(y*size+x)*4;
-  for(let k=0;k<3;k++)data[i+k]=Math.min(255,[13,22,42][k]*(1-shade)+albedo[k]*shade*1.23);
+  for(let k=0;k<3;k++)data[i+k]=Math.min(255,[32,42,66][k]*(1-shade)+albedo[k]*shade*1.23);
   data[i+3]=Math.round(255*Math.min(1,(1-Math.sqrt(d))*r));
  }
  return data;
