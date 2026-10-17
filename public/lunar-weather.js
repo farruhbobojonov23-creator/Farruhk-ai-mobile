@@ -1,3 +1,4 @@
+import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js';
 export function weatherAppearance(code,isDay=true){
  if([71,73,75,77,85,86].includes(code))return {kind:'snow',icon:'❄',label:'Снег'};
  if([56,57,66,67].includes(code))return {kind:'rain',icon:'☂',label:'Ледяной дождь'};
@@ -13,23 +14,21 @@ export function mountLunarWeather(root){
  const time=root.querySelector('[data-clock]'),date=root.querySelector('[data-date]'),card=root.querySelector('[data-weather]');
  const clockFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'});
  const dateFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'});
- function tick(){const now=new Date();time.textContent=clockFormat.format(now);time.dateTime=now.toISOString();date.textContent=dateFormat.format(now)}tick();
- const clock=setInterval(tick,1000);let lastSuccess=0,loading=false;
- const effects=document.createElement('div');effects.className='lunar-weather-effects';effects.ariaHidden='true';document.body.prepend(effects);
- for(let i=0;i<36;i++){const flake=document.createElement('i');flake.style.setProperty('--x',String(i%2?82+Math.random()*18:Math.random()*18));flake.style.setProperty('--delay',String(-Math.random()*20)+'s');flake.style.setProperty('--duration',String(8+Math.random()*9)+'s');flake.style.setProperty('--size',String(2+Math.random()*4)+'px');effects.append(flake)}
- function unavailable(){document.body.dataset.weather='unknown';card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
- async function refresh(){
-  if(loading)return;loading=true;
+ const scene=mountWeatherScene();let weather=null,lastSuccess=0,loading=false,lastMinute=-1;
+ function updateScene(){const s=sceneState(weather);scene.update(s);if(weather&&s.fresh){const label=s.kind==='sleet'?'Мокрый снег':weatherAppearance(weather.code,s.period==='day').label;card.querySelector('[data-weather-label]').textContent=label+(s.aurora?' · возможно сияние':'');card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(weather.observedAt))+' · обновление каждые 5 минут'+(s.aurora?' · NOAA: вероятность сияния, видимость не подтверждена':'');}else if(weather){unavailable()}}
+ function tick(){const now=new Date();time.textContent=clockFormat.format(now);time.dateTime=now.toISOString();date.textContent=dateFormat.format(now);const minute=Math.floor(+now/60000);if(minute!==lastMinute){lastMinute=minute;updateScene()}}tick();
+ function unavailable(){weather=null;scene.update(sceneState(null));card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
+ async function refresh(){if(loading)return;loading=true;
   try{let d;
    try{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('weather');d=await r.json()}
-   catch{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=68.9707&longitude=33.0749&current=temperature_2m,weather_code,is_day&timezone=Europe%2FMoscow',{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('weather');const raw=await r.json(),c=raw.current;if(!c)throw Error('weather');d={ok:true,temperature:c.temperature_2m,code:c.weather_code,isDay:c.is_day===1,observedAt:c.time+'+03:00'}}
-   if(!d.ok||!Number.isFinite(d.temperature)||!Number.isInteger(d.code)||!Number.isFinite(Date.parse(d.observedAt))||Date.now()-Date.parse(d.observedAt)>90*60*1000)throw Error('weather');
-   const w=weatherAppearance(d.code,d.isDay);lastSuccess=Date.now();document.body.dataset.weather=w.kind;
-   card.querySelector('[data-weather-temp]').textContent=(Math.round(d.temperature)>0?'+':'')+Math.round(d.temperature)+'°';card.querySelector('[data-weather-label]').textContent=w.label;card.querySelector('[data-weather-icon]').textContent=w.icon;
-   card.title='Мурманск · Open-Meteo · данные на '+clockFormat.format(new Date(d.observedAt));
+   catch{const r=await fetch(WEATHER_URL,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('weather');const raw=await r.json(),c=raw.current;if(!c)throw Error('weather');d={ok:true,temperature:c.temperature_2m,code:c.weather_code,isDay:c.is_day===1,observedAt:c.time+'+03:00',cloudCover:c.cloud_cover,precipitation:c.precipitation,rain:c.rain,snowfall:c.snowfall,windSpeed:c.wind_speed_10m,windDirection:c.wind_direction_10m}}
+   if(!d.ok||!Number.isFinite(d.temperature)||!Number.isInteger(d.code)||![true,false].includes(d.isDay)||!Number.isFinite(Date.parse(d.observedAt))||Math.abs(Date.now()-Date.parse(d.observedAt))>90*60000)throw Error('weather');
+   weather=d;lastSuccess=Date.now();const w=weatherAppearance(d.code,d.isDay);card.querySelector('[data-weather-temp]').textContent=(Math.round(d.temperature)>0?'+':'')+Math.round(d.temperature)+'°';card.querySelector('[data-weather-icon]').textContent=w.icon;updateScene();
   }catch{unavailable()}finally{loading=false}
  }
- refresh();const poll=setInterval(()=>{if(!document.hidden)refresh()},10*60*1000);
- const visibility=()=>{if(!document.hidden){tick();if(Date.now()-lastSuccess>10*60*1000)refresh()}};document.addEventListener('visibilitychange',visibility);
- window.addEventListener('pagehide',()=>{clearInterval(clock);clearInterval(poll);document.removeEventListener('visibilitychange',visibility)},{once:true});
+ refresh();const clock=setInterval(tick,1000),poll=setInterval(()=>{if(!document.hidden)refresh()},5*60000);
+ const visibility=()=>{if(!document.hidden){tick();if(Date.now()-lastSuccess>5*60000)refresh()}};document.addEventListener('visibilitychange',visibility);
+ // pagehide can enter the back/forward cache; restart on return rather than losing timers.
+ const show=e=>{if(e.persisted){tick();refresh()}};window.addEventListener('pageshow',show);
+ return ()=>{clearInterval(clock);clearInterval(poll);scene.dispose();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',show)};
 }

@@ -9,3 +9,18 @@
 
 /* Native portrait artwork avoids magnifying and cropping the desktop landscape. */
 @media(max-width:700px) and (orientation:portrait){body{background-image:url("/assets/lunar-portrait-hq.webp");background-position:center bottom}}
+
+/* Live weather only affects the home backdrop, never recipe or HACCP views. */
+.live-weather-scene{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+body[data-view=home] .live-weather-scene{display:block}
+.live-weather-scene canvas{display:block;width:100%;height:100%}
+body[data-view=home][data-weather=sun]:after{display:none}
+body[data-view=home][data-sky=night]{--ink:#f1f4ff;color:#f1f4ff}
+body[data-view=home][data-sky=night] .aurora-brand,body[data-view=home][data-sky=night] .aurora-brand span,body[data-view=home][data-sky=night] .aurora-brand small,body[data-view=home][data-sky=night] .aurora-intro p,body[data-view=home][data-sky=night] .aurora-intro .tag,body[data-view=home][data-sky=night] .lunar-clock>span,body[data-view=home][data-sky=night] .voice-copy p,body[data-view=home][data-sky=night] .lunar-voice-settings{color:#d4deef}
+body[data-view=home][data-sky=night] .aurora-intro h1{text-shadow:0 2px 18px #09142b55}
+body[data-view=home][data-sky=night] .lunar-weather{background:#172b4c96;border-color:#c9d9ff66;color:#f1f4ff}
+body[data-view=home][data-sky=night] .lunar-weather small{color:#d4deef}
+body[data-view=home][data-sky=night] .lunar-orb{filter:drop-shadow(0 0 32px #a5bdec55) brightness(.84)}
+body[data-view=home][data-sky=twilight] .aurora-intro h1,body[data-view=home][data-sky=twilight] .lunar-clock{color:#fff;text-shadow:0 2px 16px #25395a55}
+body[data-view=home][data-sky=twilight] .aurora-intro p,body[data-view=home][data-sky=twilight] .aurora-intro .tag,body[data-view=home][data-sky=twilight] .lunar-clock>span,body[data-view=home][data-sky=twilight] .voice-copy p{color:#e9edf7}
+@media print{.live-weather-scene{display:none!important}}
