@@ -89,7 +89,8 @@ app.get(['/', '/index.html'], async (req,res,next)=>{
 installWeatherApi(app);
 app.use(express.static('public'));
 
-const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
+// Cloud AI disabled for this free-only release, including retained host credentials.
+const geminiKey = '';
 const hasKey = Boolean(geminiKey);
 installVoiceApi(app,{key:geminiKey});
 const geminiModel = String(process.env.GEMINI_MODEL||'gemini-3.8-flash').trim();
