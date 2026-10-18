@@ -8,7 +8,7 @@ export function speechNumber(value) {
  for(const token of tokens){if(token==='тысяча'||token==='тысячи'||token==='тысяч'){result+=(current||1)*1000;current=0}else if(Object.hasOwn(numberWords,token))current+=numberWords[token];else return null}
  return tokens.length&&text?result+current:null;
 }
-const sections={главную:'home',главная:'home',задачи:'tasks',техкарты:'recipes',ттк:'recipes',хассп:'lab',хасп:'lab',калькулятор:'calc',проверки:'checks',ассистент:'chat'};
+const sections={главную:'home',главная:'home',задачи:'tasks',техкарты:'recipes',ттк:'recipes',хассп:'lab',хасп:'lab',калькулятор:'calc',заготовки:'preparations',проверки:'checks',ассистент:'chat'};
 export function parseWorkbenchCommand(raw){
  const text=cleanSpeech(raw), lower=text.toLowerCase();let m;
  if((m=lower.match(/^(?:открой|открыть|перейди в|перейди на|покажи)\s+(?:раздел\s+)?(.+)$/u))&&sections[m[1]])return {type:'navigate',view:sections[m[1]]};
@@ -52,10 +52,11 @@ export function normalizeFieldValue(field,value){
 export function mountWorkbenchVoice({getView,show,openEditor,addIngredient,refreshRecipe,saveRecipe,voice,notify,afterCommand=()=>{}}){
  let selected=null;
  const editable=f=>f?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file]),textarea,select')&&!f.readOnly&&!f.disabled&&!f.closest('[hidden]');
- const visible=()=>[...document.querySelectorAll('input,textarea,select')].filter(f=>editable(f)&&f.getClientRects().length&&!f.closest('dialog,#chat-form'));
- document.addEventListener('focusin',e=>{if(editable(e.target)&&!e.target.closest('dialog,#chat-form'))selected=e.target});
+ const visible=()=>[...document.querySelectorAll('input,textarea,select')].filter(f=>editable(f)&&!f.closest('.view[hidden],#editor[hidden]')&&(f.getClientRects().length||f.closest('details'))&&!f.closest('#chat-form')&&(!f.closest('dialog')||f.closest('dialog.chef-dialog[open]')));
+ document.addEventListener('focusin',e=>{if(editable(e.target)&&!e.target.closest('#chat-form')&&(!e.target.closest('dialog')||e.target.closest('dialog.chef-dialog[open]')))selected=e.target});
  const help='Скажи: «Открой задачи», «Добавь задачу проверить рис завтра в 10:00», «Создай ТТК Филадельфия», «Добавь ингредиент рис нетто 80 граммов отходы 0 процентов», «Заполни технология: свернуть ролл». Или выбери поле и скажи «Впиши…». Для записи техкарты скажи «Сохрани ТТК».';
  function write(field,value,append=false){
+  if(field?.isConnected&&!field.closest('.view[hidden],#editor[hidden]')){for(let parent=field.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true}
   if(!editable(field)||!field.isConnected||field.getClientRects().length===0)throw Error('Сначала выбери доступное поле в открытой форме.');
   const next=normalizeFieldValue(field,value);field.value=append&&field.value&&field.tagName==='TEXTAREA'?field.value+'\n'+next:next;
   field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));

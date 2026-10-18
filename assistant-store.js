@@ -1,3 +1,6 @@
+import {validateHaccp} from './public/haccp-model.js';
+import {validateBatches} from './public/chef-workspace-model.js';
+import {sameValue,workspaceSnapshot,validatePriceBook} from './public/workspace-sync-model.js';
 import {validateCategories} from './public/category-validation.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -11,11 +14,15 @@ export function cleanState(input={}){
   const positive=v=>Number.isFinite(Number(v))?Math.min(10000000,Math.max(0,Number(v))):0;
   return {
     ...(input.categories!==undefined?{categories:validateCategories(input.categories)}:{}),
-    tasks:list(input.tasks).slice(-300).map(t=>({id:text(t.id||crypto.randomUUID(),80),text:text(t.text,500),done:!!t.done,priority:t.priority==='high'?'high':'normal',due:t.due&&Number.isFinite(Date.parse(t.due))?new Date(t.due).toISOString():null,createdAt:text(t.createdAt,64)||new Date().toISOString(),notifiedAt:t.notifiedAt?text(t.notifiedAt,64):null})).filter(t=>t.text),
-    memory:list(input.memory).slice(-200).map(m=>({id:text(m.id||crypto.randomUUID(),80),text:text(m.text,1000),createdAt:text(m.createdAt,64)})).filter(m=>m.text),
+    tasks:list(input.tasks).map(t=>({id:text(t.id||crypto.randomUUID(),80),text:text(t.text,500),done:!!t.done,priority:t.priority==='high'?'high':'normal',status:t.done?'done':t.status==='active'?'active':'new',point:text(t.point,120),owner:text(t.owner,120),due:t.due&&Number.isFinite(Date.parse(t.due))?new Date(t.due).toISOString():null,createdAt:text(t.createdAt,64)||new Date().toISOString(),notifiedAt:t.notifiedAt?text(t.notifiedAt,64):null})).filter(t=>t.text),
+    memory:list(input.memory).map(m=>({id:text(m.id||crypto.randomUUID(),80),text:text(m.text,1000),createdAt:text(m.createdAt,64)})).filter(m=>m.text),
     chat:list(input.chat).slice(-80).map(m=>({role:m.role==='user'?'user':'ai',text:text(m.text,6000)})).filter(m=>m.text),
-    recipes:list(input.recipes).slice(-300).map(r=>({id:text(r.id||crypto.randomUUID(),80),name:text(r.name,200),category:text(r.category,100),status:['draft','ready'].includes(r.status)?r.status:'draft',technology:text(r.technology,10000),cardNumber:text(r.cardNumber,50),cardDate:text(r.cardDate,30),pieces:optional(r.pieces),netYieldGrams:optional(r.netYieldGrams),scope:text(r.scope,2000),safety:text(r.safety,4000),rawRequirements:text(r.rawRequirements,4000),preparation:text(r.preparation,4000),forming:text(r.forming,10000),serving:text(r.serving,4000),storage:text(r.storage,4000),appearance:text(r.appearance,2000),taste:text(r.taste,2000),chef:text(r.chef,120),approver:text(r.approver,120),nutritionMode:r.nutritionMode==='ingredients'?'ingredients':'manual',nutrition:Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,optional(r.nutrition?.[k])])),ingredients:list(r.ingredients).map(i=>({name:text(i.name,200),grams:positive(i.grams),grossGrams:optional(i.grossGrams),lossPercent:optional(i.lossPercent),nutrition:Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,optional(i.nutrition?.[k])])),price:positive(i.price)}))})).filter(r=>r.name),
-    inspections:list(input.inspections).slice(-300).map(i=>({id:text(i.id||crypto.randomUUID(),80),point:text(i.point,120),text:text(i.text,1000),owner:text(i.owner,120),due:text(i.due,30),done:!!i.done})).filter(i=>i.text),
+    recipes:list(input.recipes).map(r=>({id:text(r.id||crypto.randomUUID(),80),name:text(r.name,200),createdAt:text(r.createdAt,64),updatedAt:text(r.updatedAt,64),category:text(r.category,100),status:['draft','ready'].includes(r.status)?r.status:'draft',technology:text(r.technology,10000),cardNumber:text(r.cardNumber,50),cardDate:text(r.cardDate,30),pieces:optional(r.pieces),netYieldGrams:optional(r.netYieldGrams),scope:text(r.scope,2000),safety:text(r.safety,4000),rawRequirements:text(r.rawRequirements,4000),preparation:text(r.preparation,4000),forming:text(r.forming,10000),serving:text(r.serving,4000),storage:text(r.storage,4000),appearance:text(r.appearance,2000),taste:text(r.taste,2000),chef:text(r.chef,120),approver:text(r.approver,120),nutritionMode:r.nutritionMode==='ingredients'?'ingredients':'manual',nutrition:Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,optional(r.nutrition?.[k])])),ingredients:list(r.ingredients).map(i=>({name:text(i.name,200),grams:positive(i.grams),grossGrams:optional(i.grossGrams),lossPercent:optional(i.lossPercent),nutrition:Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,optional(i.nutrition?.[k])])),price:positive(i.price),priceId:text(i.priceId,100)}))})).filter(r=>r.name),
+    inspections:list(input.inspections).map(i=>({id:text(i.id||crypto.randomUUID(),80),point:text(i.point,120),text:text(i.text,1000),owner:text(i.owner,120),due:text(i.due,30),done:!!i.done})).filter(i=>i.text),
+    haccp:validateHaccp(input.haccp),
+    preparationBatches:validateBatches(input.preparationBatches),
+    priceBook:validatePriceBook(input.priceBook),
+    releasedRecipes:list(input.releasedRecipes).map(r=>{const copy=cleanState({recipes:[r]}).recipes[0];return copy?{...copy,releasedAt:text(r.releasedAt,64)}:null}).filter(Boolean),
     tts:input.tts!==false,
     timeZone:validTimeZone(input.timeZone)?input.timeZone:'Europe/Moscow'
   };
@@ -36,7 +43,8 @@ export class AssistantStore{
   save(input){return this.transaction(async()=>{
     const current=await this.state();
     if(input.revision!==current.revision)throw Object.assign(httpError(409,'Данные изменились на другом устройстве. Сверьте версии перед сохранением.'),{state:current});
-    const next={...cleanState({...input,categories:input.categories??current.categories,recipes:input.recipes??current.recipes,inspections:input.inspections??current.inspections}),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
+    const next={...cleanState({...current,...input,categories:input.categories??current.categories,recipes:input.recipes??current.recipes,inspections:input.inspections??current.inspections}),revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};
+    next.haccp.revision=(current.haccp?.revision||0)+(!sameValue(workspaceSnapshot(current).haccp,workspaceSnapshot(next).haccp)?1:0);
     await this.write('state.json',next);return next;
   })}
   mutate(fn){return this.transaction(async()=>{const current=await this.state();await fn(current);const next={...current,revision:current.revision+1,updatedAt:new Date().toISOString(),storage:this.storage};await this.write('state.json',next);return next})}

@@ -42,6 +42,11 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);
     next();
   });
+  // Shared kitchen records always require an owner session, even for a passwordless demo.
+  const workspaceOwner=(req,res,next)=>{if(!auth.enabled||!auth.verify(cookie(req)))return res.status(401).json({ok:false,error:'Для общей базы войдите как владелец.'});if(!['GET','HEAD'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);next()};
+  app.get('/api/workspace/status',(req,res)=>{res.setHeader('Cache-Control','no-store');res.json({ok:true,configured:auth.enabled,authenticated:auth.enabled&&auth.verify(cookie(req)),durable:store.storage==='yandex'||process.env.ASSISTANT_PERSISTENT_STORAGE==='true',storage:store.storage})});
+  app.get('/api/workspace',workspaceOwner,wrap(async(req,res)=>{await initialize();res.setHeader('Cache-Control','no-store');res.json({ok:true,state:await store.state()})}));
+  app.put('/api/workspace',workspaceOwner,wrap(async(req,res)=>{await initialize();initialRead=null;res.json({ok:true,state:await store.save(req.body||{})})}));
   app.get('/api/state',wrap(async(req,res)=>{await initialize();const snapshot=initialRead;initialRead=null;res.json({ok:true,state:snapshot&&Date.now()-snapshot.at<1000?snapshot.state:await store.state()})}));
   app.put('/api/state',wrap(async(req,res)=>{await initialize();initialRead=null;res.json({ok:true,state:await store.save(req.body||{})})}));
   app.get('/api/backups',wrap(async(req,res)=>res.json({ok:true,storage:store.storage,backups:await store.backups()})));
