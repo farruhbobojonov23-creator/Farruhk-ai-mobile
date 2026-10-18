@@ -40,10 +40,30 @@ export function mountHaccp(root,{getState,save,notify}){
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
  function sheet(form){
-  form.classList.add('haccp-sheet');const title=form.querySelector('h2');title.textContent='ЖУРНАЛ · '+journalTypes[tab];
-  const grid=form.querySelector('.fields');if(grid){const meta=el('fieldset',undefined,'haccp-sheet-group'),legend=el('legend','1. Сведения о записи');meta.append(legend);for(const label of [...grid.children].slice(0,4))meta.append(label);grid.before(meta);if(grid.children.length){const group=el('fieldset',undefined,'haccp-sheet-group');group.append(el('legend','2. Показатели контроля'));grid.before(group);group.append(grid)}}
-  const extra=el('fieldset',undefined,'haccp-sheet-group');extra.append(el('legend','3. Проверка и примечания'));for(const child of [...form.children])if(child.tagName==='LABEL')extra.append(child);form.insertBefore(extra,form.querySelector('button[type=submit]'));
-  const toolbar=el('div',undefined,'haccp-sheet-toolbar');toolbar.append(button('Сохранить запись',()=>form.requestSubmit(),'primary'),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));form.prepend(toolbar);
+  form.classList.add('haccp-sheet','haccp-a4-editor');
+  form.querySelector('h2').textContent='ЖУРНАЛ · '+journalTypes[tab];
+  const labels=[...form.querySelectorAll('label')].filter(l=>l.querySelector('input,select,textarea'));
+  const wrapper=el('div',undefined,'haccp-a4-scroll');
+  const paper=el('div',undefined,'haccp-a4-paper');
+  const table=el('table',undefined,'haccp-a4-table');
+  const head=el('thead'),headRow=el('tr'),row=el('tr');
+  for(const label of labels){
+   const control=label.querySelector('input,select,textarea');
+   const caption=label.childNodes[0]?.textContent?.trim()||control.name;
+   const th=el('th',caption),td=el('td');
+   control.setAttribute('aria-label',caption);
+   if(control.type==='file'){td.append(control)}else{td.append(control)}
+   headRow.append(th);row.append(td);label.remove();
+  }
+  head.append(headRow);table.append(head,el('tbody'));table.tBodies[0].append(row);
+  paper.append(el('div','ФОРМА УЧЁТА · '+journalTypes[tab],'haccp-a4-caption'),table);
+  wrapper.append(paper);
+  const firstGrid=form.querySelector('.fields');
+  if(firstGrid)firstGrid.before(wrapper);else form.querySelector('h2').after(wrapper);
+  for(const empty of [...form.querySelectorAll('.fields')])if(!empty.children.length)empty.remove();
+  const toolbar=el('div',undefined,'haccp-sheet-toolbar');
+  toolbar.append(button('Сохранить запись',()=>form.requestSubmit(),'primary'),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
+  form.prepend(toolbar);
  }
  function h(){return getState()?.haccp||emptyHaccp()}
  function say(text,error=false){message.textContent=text;message.classList.toggle('error',error);if(error)notify(text,true)}
