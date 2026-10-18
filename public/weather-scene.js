@@ -1,5 +1,5 @@
-import {harborLandscape} from './harbor-landscape.js?v=1';
-import {celestialLight} from './celestial-light.js?v=harbor-4';
+import {harborLandscape} from './harbor-landscape.js?v=hq-2';
+import {celestialLight} from './celestial-light.js?v=harbor-hq-5';
 import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';
 export const LOCATION={lat:68.9707,lon:33.0749};
@@ -14,7 +14,7 @@ export function sceneState(weather,now=new Date()){
  const snow=[71,73,75,77,85,86].includes(c),rain=[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c);
  const wetSnow=fresh&&((snow&&weather.temperature>0)||(snow&&weather.rain>0)||(rain&&weather.snowfall>0));
  const aurora=fresh&&period==='night'&&cloud<.5&&weather.aurora?.probability>=15&&Math.abs(+now-Date.parse(weather.aurora.forecastAt))<60*60000;
- return {period,altitude,sun,moon,phase,cloud:Math.max(0,Math.min(1,cloud)),fresh,kind:!fresh?'unknown':wetSnow?'sleet':snow?'snow':rain?'rain':[45,48].includes(c)?'fog':c===3?'cloud':period==='day'?'sun':'night',sunVisible:fresh&&altitude>0&&cloud<.8,moonVisible:fresh&&period!=='day'&&moon.altitude>0&&cloud<.8&&phase.fraction>.015,aurora,thunder:[95,96,99].includes(c),wind:fresh?Math.min(70,weather.windSpeed||0):0,windDirection:weather?.windDirection||0,intensity:fresh?Math.min(1,Math.max(.2,(weather.precipitation||0)/3)):0};
+ return {period,altitude,sun,moon,phase,cloud:Math.max(0,Math.min(1,cloud)),fresh,kind:!fresh?'unknown':wetSnow?'sleet':snow?'snow':rain?'rain':[45,48].includes(c)?'fog':c===3?'cloud':period==='day'?'sun':'night',sunVisible:fresh&&altitude>0&&cloud<.65&&!snow&&!rain&&![3,45,48].includes(c),moonVisible:fresh&&period!=='day'&&moon.altitude>0&&cloud<.8&&phase.fraction>.015,aurora,thunder:[95,96,99].includes(c),wind:fresh?Math.min(70,weather.windSpeed||0):0,windDirection:weather?.windDirection||0,intensity:fresh?Math.min(1,Math.max(.2,(weather.precipitation||0)/3)):0};
 }
 // Full-viewport atmosphere stays behind the controls; all coordinates are decorative.
 export function mountWeatherScene(){
@@ -30,7 +30,7 @@ export function mountWeatherScene(){
  cc.globalCompositeOperation='destination-in';
  for(const vertical of [false,true]){const edge=cc.createLinearGradient(0,0,vertical?0:900,vertical?350:0);edge.addColorStop(0,'transparent');edge.addColorStop(.14,'white');edge.addColorStop(.86,'white');edge.addColorStop(1,'transparent');cc.fillStyle=edge;cc.fillRect(0,0,900,350)}
  cc.globalCompositeOperation='source-over';
- function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);draw(0)}
+ function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,3,Math.sqrt(12000000/(w*h)));canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);draw(0)}
  function glow(x,y,r,color){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r)}
  // Render a continuous translucent field, rather than overlapping horizontal strips.
  const auroraCanvas=document.createElement('canvas'),ac=auroraCanvas.getContext('2d');
@@ -50,8 +50,8 @@ export function mountWeatherScene(){
   const photoReady=landscape.draw(ctx,w,h,s,elapsed,motion.matches);
   if(photoReady)document.body.dataset.harborPhoto='ready';
 
-  if(night&&s.fresh&&s.cloud<.8){for(const star of stars){ctx.globalAlpha=star.a*(1-s.cloud);ctx.fillStyle='#e8eeff';ctx.beginPath();ctx.arc(star.x*w,star.y*h,star.r,0,7);ctx.fill()}ctx.globalAlpha=1}
-  if(s.aurora) drawSoftAurora();
+  if(night&&s.fresh&&s.cloud<.8){ctx.save();ctx.beginPath();ctx.rect(0,0,w,landscape.skyEnd);ctx.clip();for(const star of stars){ctx.globalAlpha=star.a*(1-s.cloud);ctx.fillStyle='#e8eeff';ctx.beginPath();ctx.arc(star.x*w,star.y*h,star.r,0,7);ctx.fill()}ctx.globalAlpha=1;ctx.restore()}
+  if(s.aurora){ctx.save();ctx.beginPath();ctx.rect(0,0,w,landscape.skyEnd);ctx.clip();drawSoftAurora();ctx.restore()}
   if(s.sunVisible)light.sun(ctx,{...s,skyBand:landscape.skyEnd},w,h,elapsed,cloudCanvas);
   if(s.moonVisible)light.moon(ctx,{...s,skyBand:landscape.skyEnd},w,h,elapsed,cloudCanvas);
   if(s.kind==='fog'){ctx.save();ctx.globalAlpha=.7;ctx.drawImage(cloudCanvas,-w*.1+Math.sin(elapsed*.03)*w*.1,h*.25,w*1.4,h*.8);ctx.drawImage(cloudCanvas,-w*.2,h*.45,w*1.6,h*.6);ctx.restore()}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {landscapeState,photoCrop,cloudOffset,harborLandscape} from '../public/harbor-landscape.js';
+import {landscapeState,photoCrop,cloudOffset,harborLandscape,skyEndForCrop} from '../public/harbor-landscape.js';
 test('Photographic scenes cover day, cloud, precipitation, twilight and dark cloudy skies',()=>{
  const day={period:'day',kind:'sun',cloud:.1};assert.equal(landscapeState(day).base,'sun');
  for(const kind of ['rain','fog','cloud'])assert.equal(landscapeState({...day,kind}).base,'overcast');
@@ -16,4 +16,11 @@ test('Photo sampling has overscan on portrait and wide screens; sky movement sto
 test('A loaded scene stays visible while the next photo downloads; reduced motion and disposal remain stable',()=>{
  const original=globalThis.Image,images=[];globalThis.Image=class{constructor(){this.naturalWidth=3840;this.naturalHeight=2160;images.push(this)}};
  try{let calls=0;const ctx={save(){},restore(){},drawImage(){calls++},fillRect(){}};const p=harborLandscape(),s={period:'day',kind:'sun',cloud:0,wind:12};assert.equal(p.draw(ctx,390,844,s,0,false),false);images[0].onload();assert.equal(p.draw(ctx,390,844,s,0,false),true);assert.ok(calls>1);const before=calls;assert.equal(p.draw(ctx,390,844,{...s,kind:'snow'},1,false),true);assert.ok(calls>before);images[1].onload();assert.equal(p.draw(ctx,390,844,{...s,kind:'snow'},2,true),true);assert.ok(p.skyEnd>0);p.dispose();assert.ok(images.every(i=>i.onload===null));}finally{globalThis.Image=original}
+});
+
+test('High quality scene sky stays above the mountain ridge in portrait, wide and ultrawide crops',()=>{
+ for(const [w,h] of [[390,844],[1920,1080],[3440,1440]]){
+  const crop=photoCrop(1672,941,w,h),end=skyEndForCrop(1672,941,w,h),ridge=(941*.42-crop.y)*crop.scale;
+  assert.ok(end>0&&end<ridge);assert.ok(end<h);
+ }
 });

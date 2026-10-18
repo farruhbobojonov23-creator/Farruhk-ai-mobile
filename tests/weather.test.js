@@ -49,3 +49,8 @@ test('Aurora feed uses the Murmansk grid point and cannot break ordinary weather
   const result=await invoke();assert.equal(result.status,200);assert.equal(result.body.cloudCover,12);assert.equal(result.body.windSpeed,17);assert.equal(result.body.aurora?.probability,forecast?.['Forecast Time']===stamp?42:undefined);
  }
 });
+
+test('Overcast, precipitation and fog hide the sun even with an inconsistent low cloud percentage',()=>{
+ const stamp='2026-10-17T09:00:00Z';
+ for(const code of [3,45,48,61,71,95])assert.equal(sceneState(sample(stamp,{code,cloudCover:10}),new Date(stamp)).sunVisible,false);
+});
