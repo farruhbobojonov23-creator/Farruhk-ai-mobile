@@ -1,6 +1,6 @@
 /* Pearl and emerald workspace. Last stylesheet; existing forms and data contracts retained. */
 :root{color-scheme:light;--ink:#17392f;--muted:#53675f;--line:#dce7df;--accent:#096446;--paper:#fff;--bg:#f4f7f2}
-html{background:var(--bg)}body,body[data-view]{background:radial-gradient(ellipse at 90% 0,#e4eee3,transparent 45%),#f5f7f3!important;color:#17392f!important;height:auto!important;min-height:100dvh!important;overflow:auto!important;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.55}
+html{background:var(--bg)}body,body[data-view]{--ink:#17392f!important;--muted:#53675f!important;background:radial-gradient(ellipse at 90% 0,#e4eee3,transparent 45%),#f5f7f3!important;color:#17392f!important;height:auto!important;min-height:100dvh!important;overflow:auto!important;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.55}
 body:before,.aurora-sky,.live-weather-scene{display:none!important}body .aurora-top{max-width:1440px!important;height:84px!important;padding:18px 32px!important;background:transparent!important;border-bottom:1px solid var(--line)}
 body .aurora-brand,body .aurora-brand span{color:#135840!important}body .aurora-brand small{color:#617569!important}body .aurora-top button{color:#184c39!important;background:white!important;border:1px solid var(--line)!important;border-radius:14px!important;min-height:44px;min-width:44px}
 body .app{max-width:1440px!important;margin:auto!important;padding:28px 32px 110px!important;height:auto!important;min-height:calc(100dvh - 84px)!important;display:block!important}body main,body main>.glass{height:auto!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}body .right{display:none!important}body .sidebar{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:0 18px 60px #16352516!important}body .sidebar button{color:var(--ink)!important}body main>.bar{color:var(--muted);margin-bottom:20px}body[data-view=home] main>.bar{display:none!important}
@@ -13,4 +13,31 @@ body input,body textarea,body select{font-size:16px!important;background:#fff!im
 @keyframes orb-breathe{50%{box-shadow:0 0 0 11px #d9f1e3,0 0 38px #43ba7d55;transform:scale(1.025)}}@keyframes premium-reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}body .lunar-shortcuts>button{animation:premium-reveal .55s both}body .lunar-shortcuts>button:nth-child(2){animation-delay:.1s}body .lunar-shortcuts>button:nth-child(3){animation-delay:.2s}
 @media(max-width:760px){body .aurora-top{padding:14px 18px!important;height:72px!important}body .app{padding:20px 16px 110px!important}body .lunar-hero{padding:26px 22px!important;min-height:0!important;border-radius:22px}body .lunar-shortcuts{grid-template-columns:1fr!important;gap:12px!important}body .lunar-shortcuts>button:not(.neural-launch){min-height:132px!important;padding:20px!important}body .lunar-shortcuts svg{margin-bottom:8px!important;width:23px!important;height:23px!important}body .lunar-shortcuts small{max-width:210px}body .lunar-shortcuts>button:after{width:135px;height:120px}body .aurora-home:not([hidden]){gap:20px!important}.premium-assistant{padding:22px;gap:18px;flex-wrap:wrap}.premium-assistant h2{font-size:22px}.premium-assistant>div:nth-child(2){flex:1;min-width:170px}.premium-assistant .premium-badge{margin-left:0}.premium-orb{flex-basis:46px;height:46px}body .haccp-controls{display:grid!important;grid-template-columns:1fr!important}body .haccp-tabs button{flex:1 1 140px}body table{font-size:13px!important}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
-@media print{body,body[data-view]{background:white!important;color:#111!important}.aurora-top,.mobile-tools,.premium-assistant,.sidebar{display:none!important}body .app{padding:0!important}body input,body textarea{border:0!important}@page{size:A4;margin:12mm}}
+@media print{body,body[data-view]{--ink:#17392f!important;--muted:#53675f!important;background:white!important;color:#111!important}.aurora-top,.mobile-tools,.premium-assistant,.sidebar{display:none!important}body .app{padding:0!important}body input,body textarea{border:0!important}@page{size:A4;margin:12mm}}
+
+/* Keep the light workspace legible when weather sets night-mode variables. */
+body[data-view] #home,body[data-view] #chef-menu{--ink:#17392f!important;--muted:#53675f!important;color:#17392f!important;text-shadow:none!important}
+body[data-view] #home h1,body[data-view] #home h2,body[data-view] #home strong,body[data-view] #harbor-greeting,body[data-view] #home em,body[data-view] #chef-menu button{color:#17392f!important;text-shadow:none!important;-webkit-text-fill-color:#17392f}
+body[data-view] #home .tag,body[data-view] #home .lunar-clock span,body[data-view] #home .lunar-weather small{color:#53675f!important;text-shadow:none!important}
+body[data-view] #home .lunar-clock time,body[data-view] #home .lunar-weather strong,body[data-view] #home [data-weather-icon]{color:#135840!important;text-shadow:none!important}
+body[data-view] #home .lunar-hero{display:block!important;width:100%!important}
+body[data-view] #home .aurora-intro h1{opacity:1!important;visibility:visible!important;min-height:2.3em}
+body[data-view] #chef-menu[hidden]{display:none!important}
+body[data-view] #chef-menu{z-index:80!important;position:fixed!important;top:88px!important;bottom:100px;left:24px!important;width:min(310px,calc(100vw - 48px))!important;overflow:auto!important;max-height:none!important;padding:24px!important}
+body[data-view] #chef-menu .nav{display:grid!important;gap:6px!important}
+body[data-view] #chef-menu .nav button{min-height:46px;text-align:left;background:transparent!important;font-size:16px!important}
+body[data-view] #chef-menu .nav button.active{background:#e1efe5!important}
+body[data-view] #home .lunar-shortcuts strong{white-space:normal!important}
+body[data-view] #home .lunar-shortcuts>button:after{display:none!important}
+body[data-view] #home .lunar-shortcuts>button{min-height:150px!important}
+body[data-view] .mobile-tools{z-index:85!important}
+@media(max-width:760px){body[data-view] #chef-menu{top:80px!important;left:16px!important;width:calc(100vw - 32px)!important}body[data-view] #home .lunar-shortcuts>button{min-height:116px!important}body[data-view] #home .aurora-intro h1{font-size:34px!important}body[data-view] .lunar-local{display:none!important}}
+
+body[data-view] #home .premium-dish{position:absolute;right:12px;bottom:12px;width:125px;height:125px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 8px 10px #17392f15)}
+body[data-view] #home .lunar-shortcuts [data-view=recipes]{padding-right:150px!important}
+@media(max-width:760px){body[data-view] #home .premium-dish{width:100px;height:100px;right:12px;bottom:8px}body[data-view] #home .lunar-shortcuts [data-view=recipes]{padding-right:122px!important}}
+body[data-view] #home .aurora-intro{display:block!important;position:static!important;opacity:1!important;visibility:visible!important}
+body[data-view] .aurora-top #lunar-settings{display:block!important;margin-left:auto}
+body[data-view] #home .aurora-intro .tag{display:block!important}
+body[data-view] .aurora-top{position:relative!important;z-index:81!important}
+body[data-view] .sidebar[hidden]{display:none!important}
