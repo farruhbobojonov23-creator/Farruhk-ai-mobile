@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {homeAgenda,recentRecipe} from '../public/pearl-home.js';
+test('home is empty without real tasks; future and completed tasks do not become current work',()=>{const now=new Date('2026-10-19T08:00Z');assert.deepEqual(homeAgenda({},now),[]);assert.deepEqual(homeAgenda({tasks:[{id:'future',text:'Завтра',due:'2026-10-20T08:00Z'},{id:'done',text:'Готово',done:true}]},now),[])});
+test('home includes real unresolved HACCP actions and pending tasks',()=>{const s={tasks:[{id:'t',text:'Проверить рис',due:'2026-10-19T07:00Z',done:false}],haccp:{actions:[{status:'closed',text:'Закрыто'},{status:'open',text:'Проверить холодильник'}]}};const rows=homeAgenda(s,new Date('2026-10-19T08:00Z'));assert.equal(rows.length,2);assert.match(rows[0].detail,/Срок истёк/);assert.equal(rows[1].view,'lab');assert.equal(rows[1].title,'Проверить холодильник')});
+test('continue work resolves stored identity and never substitutes or restores a deleted recipe',()=>{const state={recipes:[{id:'a',name:'Ролл'}]};assert.equal(recentRecipe(state,'a').name,'Ролл');assert.equal(recentRecipe(state,'deleted'),null);assert.equal(recentRecipe(state,undefined),null)});
