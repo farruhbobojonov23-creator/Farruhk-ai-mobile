@@ -4,7 +4,7 @@ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefine
 const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b};
 function field(parent,label,type,value){const l=el('label',label),i=el('input');i.type=type;i.value=value||'';l.append(i);parent.append(l);return i}
 function download(bytes,name){const url=URL.createObjectURL(bytes),a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
-export function mountTemperatureGrid(root,{getHaccp,pointId,selection,commit,onSettings,notify}){
+export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthChange,commit,onSettings,notify}){
  const box=el('section',undefined,'haccp-monthly');root.append(box);
  box.append(el('h2','Журнал температур холодильного и морозильного оборудования'));
  const bar=el('div',undefined,'haccp-month-controls');box.append(bar);
@@ -23,7 +23,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,commit,onS
  let grid,inputs=[],saving=false;
  function error(e){hint.textContent=e.message||'Не удалось выполнить действие.';notify(hint.textContent,true)}
  function draw(){
-  selection.month=month.value;selection.period=period.value;
+  selection.month=month.value;selection.period=period.value;entry.hidden=month.value!==measurementDate().slice(0,7);
   try{grid=temperatureGrid(getHaccp(),{month:month.value,period:period.value,pointId});}catch(e){pdf.disabled=true;error(e);return}
   pdf.disabled=false;detail.hidden=true;viewport.replaceChildren();equipmentInputs.replaceChildren();inputs=[];
   const done=new Set(grid.readings.map(r=>r.details.equipmentId+'|'+measurementDate(r.at))),deviations=grid.readings.filter(r=>r.status==='deviation').length;
@@ -50,10 +50,10 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,commit,onS
   download(await response.blob(),'Журнал_температур_'+month.value+'_'+period.value+'.pdf');hint.textContent='PDF подготовлен для скачивания.';
  }catch(e){error(e)}finally{pdf.disabled=false}}
  entry.onsubmit=async e=>{e.preventDefault();if(saving||!entry.reportValidity())return;saving=true;submit.disabled=true;try{
-  const payload={date:date.value,time:time.value,owner:owner.value,entries:inputs.map(i=>({equipmentId:i.equipmentId,measured:i.measured.value,notes:i.notes.value}))};selection.owner=owner.value;
+  if(date.value.slice(0,7)!==month.value||month.value!==measurementDate().slice(0,7))throw Error('Вноси замеры текущего месяца. Архив доступен для просмотра.');const payload={date:date.value,time:time.value,owner:owner.value,entries:inputs.map(i=>({equipmentId:i.equipmentId,measured:i.measured.value,notes:i.notes.value}))};selection.owner=owner.value;
   // Validate and save the complete batch in one device transaction.
   await commit(state=>saveDailyTemperatures(state,payload));
  }catch(e){error(e)}finally{saving=false;submit.disabled=!inputs.length}};
- month.onchange=()=>{try{monthDays(month.value);const current=date.value;date.value=current.startsWith(month.value)?current:month.value+'-01';draw()}catch(e){error(e)}};period.onchange=draw;
+ month.onchange=()=>{try{monthDays(month.value);const current=date.value;date.value=current.startsWith(month.value)?current:month.value+'-01';if(onMonthChange)onMonthChange(month.value);else draw()}catch(e){error(e)}};period.onchange=draw;
  draw();
 }

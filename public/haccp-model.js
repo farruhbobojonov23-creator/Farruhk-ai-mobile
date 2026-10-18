@@ -1,4 +1,5 @@
-export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек'};
+import {extraJournals,extraDetails} from './haccp-extra.js';
+export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[]});
 const text=(v,n=2000)=>String(v??'').trim().slice(0,n);
@@ -47,6 +48,8 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   const expiry=input.expiry?date(input.expiry,'годен до'):null;record.details={supplier:required(input.supplier,'поставщик',200),product:required(input.product,'продукт / партия',300),quantity:required(input.quantity,'количество с единицей',100),measured:number(input.measured,'температура при приёмке',true),expiry,checks:required(input.checks,'результат проверки маркировки, упаковки и документов',1000),decision:input.decision};if(!['accepted','rejected'].includes(input.decision))throw Error('Выбери решение по приёмке.');if(expiry&&Date.parse(expiry)<=Date.parse(at)&&input.decision==='accepted')throw Error('Указанный срок истёк на момент приёмки. Исправь дату или выбери отказ.');record.status=input.decision==='rejected'?'deviation':'ok';
  }else if(kind==='storage'){
   const start=date(input.startedAt,'дата приготовления / вскрытия'),end=date(input.useBy,'использовать до');if(Date.parse(end)<=Date.parse(start))throw Error('Окончание срока должно быть позже приготовления / вскрытия.');record.details={product:required(input.product,'продукт / полуфабрикат',300),batch:text(input.batch,100),startedAt:start,useBy:end,conditions:required(input.conditions,'утверждённые условия хранения',500)};record.status=Date.parse(end)<=Date.parse(at)?'deviation':'ok';
+ }else if(extraJournals[kind]){
+  record.details=extraDetails(kind,input);record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
  }else{
   const checks=auditItems.map((label,i)=>({label,result:input['check'+i]}));if(checks.some(x=>!['yes','no','na'].includes(x.result)))throw Error('Ответь на все пункты проверки.');record.details={checks};record.status=checks.some(x=>x.result==='no')?'deviation':checks.every(x=>x.result==='na')?'unconfigured':'ok';
  }
