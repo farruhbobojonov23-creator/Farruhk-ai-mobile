@@ -13,5 +13,5 @@ export const categoryPhotos={
 };
 export function filterCatalog(recipes,category='Все',query=''){
  const needle=query.trim().toLocaleLowerCase('ru-RU');
- return recipes.filter(r=>(category==='Все'||r.category===category)&&(!needle||(r.name||'').toLocaleLowerCase('ru-RU').includes(needle)||(r.category||'').toLocaleLowerCase('ru-RU').includes(needle)));
+ return recipes.filter(r=>(category==='Все'||r.category===category)&&(!needle||(r.name||'').toLocaleLowerCase('ru-RU').includes(needle)||(r.category||'').toLocaleLowerCase('ru-RU').includes(needle)||(r.ingredients||[]).some(i=>(i.name||'').toLocaleLowerCase('ru-RU').includes(needle))));
 }

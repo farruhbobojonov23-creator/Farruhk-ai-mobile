@@ -1,19 +1,20 @@
+import {validatePriceBook} from './workspace-sync-model.js';
 import {validateBatches} from './chef-workspace-model.js';
 import {validateCategories} from './category-validation.js';
 import {emptyHaccp,validateHaccp,mergeHaccp} from './haccp-model.js';
-const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],preparationBatches:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
+const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],priceBook:[],preparationBatches:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
 export function validateDeviceState(value){
  const state=value?.state??value;
  if(!state||typeof state!=='object'||Array.isArray(state))throw Error('Неверный формат резервной копии.');
- for(const key of ['tasks','memory','chat','recipes','inspections','releasedRecipes','preparationBatches'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
+ for(const key of ['tasks','memory','chat','recipes','inspections','releasedRecipes','preparationBatches','priceBook'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
  if(!['tasks','recipes','chat','inspections','memory'].some(k=>Array.isArray(state[k])))throw Error('В файле нет данных ассистента.');
  for(const recipe of [...(state.recipes||[]),...(state.releasedRecipes||[])])if(typeof recipe.name!=='string'||!recipe.name.trim()||typeof recipe.id!=='string'||!Array.isArray(recipe.ingredients)||recipe.ingredients.some(i=>!i||typeof i.name!=='string'||!Number.isFinite(Number(i.grams))||Number(i.grams)<0))throw Error('Повреждена техкарта в резервной копии.');
  if(state.categories!==undefined)validateCategories(state.categories);
- return {...blank(),...structuredClone(state),preparationBatches:validateBatches(state.preparationBatches),haccp:validateHaccp(state.haccp),storage:'device'};
+ return {...blank(),...structuredClone(state),priceBook:validatePriceBook(state.priceBook),preparationBatches:validateBatches(state.preparationBatches),haccp:validateHaccp(state.haccp),storage:'device'};
 }
 export function mergeDeviceState(current,incoming){
  const next=validateDeviceState(current),source=validateDeviceState(incoming);
- for(const key of ['tasks','memory','recipes','inspections','releasedRecipes','preparationBatches']){
+ for(const key of ['tasks','memory','recipes','inspections','releasedRecipes','preparationBatches','priceBook']){
   next[key]??=[];source[key]??=[];const ids=new Set(next[key].map(x=>x.id));
   for(const item of source[key])if(!item.id||!ids.has(item.id)){next[key].push(item);ids.add(item.id)}
  }
@@ -35,6 +36,7 @@ export class DeviceStore{
    request.onsuccess=()=>{const db=request.result;db.onversionchange=()=>{db.close();this.connection=null};resolve(db)};
   });return this.connection;
  }
+ async meta(key,value){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('records',value===undefined?'readonly':'readwrite'),store=tx.objectStore('records');let result;const request=value===undefined?store.get('meta:'+key):store.put(value,'meta:'+key);request.onsuccess=()=>result=request.result;tx.oncomplete=()=>resolve(value===undefined?result:value);tx.onerror=tx.onabort=()=>reject(Error('Не удалось сохранить служебные данные.'))})}
  async load(){
   const db=await this.open();return new Promise((resolve,reject)=>{
    const tx=db.transaction('records','readonly'),request=tx.objectStore('records').get('state');let result;

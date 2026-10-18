@@ -1,0 +1,20 @@
+import {categoriesFor} from './category-model.js';
+import {emptyHaccp} from './haccp-model.js';
+// Three-way, record-level merging: a conflicting edit or deletion is never overwritten silently.
+export const sharedLists=['tasks','memory','recipes','releasedRecipes','inspections','preparationBatches','priceBook','categories'];
+const clone=v=>v===undefined?undefined:structuredClone(v);
+function ordered(value){if(Array.isArray(value))return value.map(ordered);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,ordered(value[k])]));return value}
+export const sameValue=(a,b)=>JSON.stringify(ordered(a))===JSON.stringify(ordered(b));
+export function workspaceSnapshot(state={}){const out={};for(const key of sharedLists)out[key]=clone(key==='categories'?categoriesFor(state):state[key]||[]);out.haccp=clone(state.haccp||emptyHaccp());delete out.haccp.revision;delete out.haccp.updatedAt;out.chat=clone(state.chat||[]);return out}
+export function mergeWorkspace(base,local,remote,resolutions={}){
+ const first=!base,initial=base||{},result={},conflicts=[];
+ function item(path,b,l,r){if(sameValue(l,r))return clone(l);if(!first&&sameValue(l,b))return clone(r);if(!first&&sameValue(r,b))return clone(l);if(first&&l===undefined)return clone(r);if(first&&r===undefined)return clone(l);const choice=resolutions[path];if(choice==='local')return clone(l);if(choice==='remote')return clone(r);conflicts.push({path,base:clone(b),local:clone(l),remote:clone(r)});return clone(l)}
+ function list(path,b=[],l=[],r=[]){const bm=new Map(b.map(x=>[x.id,x])),lm=new Map(l.map(x=>[x.id,x])),rm=new Map(r.map(x=>[x.id,x]));const ids=new Set([...rm.keys(),...lm.keys(),...bm.keys()]);const out=[];for(const id of ids){const merged=item(path+'/'+id,bm.get(id),lm.get(id),rm.get(id));if(merged!==undefined)out.push(merged)}return out}
+ for(const key of sharedLists)result[key]=list(key,initial[key],local[key],remote[key]);
+ const b=initial.haccp||{},l=local.haccp||{},r=remote.haccp||{};result.haccp={version:1,revision:Math.max(l.revision||0,r.revision||0)+1};for(const key of ['points','equipment','records','actions','documents'])result.haccp[key]=list('haccp/'+key,b[key],l[key],r[key]);
+ // Conversation messages are append-only; retain ordering and avoid multiplying shared history.
+ const turns=[],seen=new Set();for(const turn of [...(remote.chat||[]),...(local.chat||[])]){const key=JSON.stringify([turn.role,turn.text]);if(!seen.has(key)){seen.add(key);turns.push(clone(turn))}}result.chat=turns.slice(-80);
+ return {state:result,conflicts};
+}
+export function validatePriceBook(value=[]){if(!Array.isArray(value)||value.length>2000)throw Error('Справочник цен повреждён.');const ids=new Set();return value.map(p=>{if(!p||typeof p.id!=='string'||!p.id||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>200||!Number.isFinite(p.price)||p.price<0||!Number.isFinite(p.packGrams)||p.packGrams<=0||!/^\d{4}-\d{2}-\d{2}$/.test(p.date||''))throw Error('Проверь название, цену, массу упаковки и дату.');ids.add(p.id);return {id:p.id,name:p.name.trim(),price:p.price,packGrams:p.packGrams,date:p.date,supplier:String(p.supplier||'').slice(0,200)}})}
+export function costFor(recipe,prices=[],portions=1,extras={}){if(!Number.isInteger(portions)||portions<1)throw Error('Укажи целое количество порций.');let raw=0;const missing=[],rows=[];for(const i of recipe.ingredients||[]){const entry=prices.find(p=>p.id===i.priceId)||prices.find(p=>p.name.toLocaleLowerCase('ru')===i.name.toLocaleLowerCase('ru'));const grams=i.grossGrams??i.grams;if(!entry&&Number(i.price)>0){const cost=grams*portions*Number(i.price)/1000;raw+=cost;rows.push({name:i.name,grams:grams*portions,cost,date:'цена из ТТК'});continue}if(!entry){missing.push(i.name);rows.push({name:i.name,grams:grams*portions,cost:null});continue}const cost=grams*portions*entry.price/entry.packGrams;raw+=cost;rows.push({name:i.name,grams:grams*portions,cost,date:entry.date})}const extra=Object.values(extras).reduce((sum,n)=>sum+(Number(n)||0),0)*portions;return {rows,missing,raw:missing.length?null:raw,extra,total:missing.length?null:raw+extra}}

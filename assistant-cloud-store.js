@@ -2,14 +2,15 @@ import {AssistantStore,httpError} from './assistant-store.js';
 import https from 'node:https';
 
 // Download hosts can time out over IPv6 from the hosting network.
-// Keep TLS verification and follow only HTTPS redirects, without OAuth headers.
-export function cloudDownload(url,{signal}={},redirects=0){
+// Send OAuth only to Yandex download hosts, retaining TLS checks on redirects.
+export function cloudDownloadHeaders(value,token){const u=new URL(value);return token&&u.protocol==='https:'&&['yandex.ru','yandex.net','yandex.com'].some(h=>u.hostname===h||u.hostname.endsWith('.'+h))?{Authorization:'OAuth '+token}:{}}
+export function cloudDownload(url,{signal,token}={},redirects=0){
   return new Promise((resolve,reject)=>{
     const target=new URL(url);if(target.protocol!=='https:')return reject(httpError(502,'Небезопасная ссылка облака'));
-    const req=https.get(target,{family:4,signal,timeout:30000},res=>{
+    const req=https.get(target,{family:4,signal,timeout:30000,headers:cloudDownloadHeaders(target,token)},res=>{
       if([301,302,303,307,308].includes(res.statusCode)&&res.headers.location){
         res.resume();if(redirects>=5)return reject(httpError(502,'Слишком много перенаправлений облака'));
-        resolve(cloudDownload(new URL(res.headers.location,target).href,{signal},redirects+1));return;
+        resolve(cloudDownload(new URL(res.headers.location,target).href,{signal,token},redirects+1));return;
       }
       const chunks=[];let size=0;
       res.on('data',chunk=>{size+=chunk.length;if(size>20*1024*1024){res.destroy(httpError(502,'Файл облака слишком большой'));return}chunks.push(chunk)});
@@ -43,7 +44,7 @@ export class YandexAssistantStore extends AssistantStore{
     let downloadError;
     for(let attempt=0;attempt<2;attempt++){
       let link;try{link=await this.api('/resources/download?path='+encodeURIComponent(this.base+name))}catch(e){if(e.status===404)return structuredClone(fallback);throw e}
-      try{const r=await this.download(link.href,{signal:AbortSignal.timeout(30000)});if(!r.ok){console.error('[cloud-download] status='+r.status);throw httpError(502,'Не удалось прочитать облачные данные')}return await r.json()}
+      try{const r=await this.download(link.href,{signal:AbortSignal.timeout(30000),token:this.token});if(!r.ok){console.error('[cloud-download] status='+r.status);throw httpError(502,'Не удалось прочитать облачные данные')}return await r.json()}
       catch(e){if(e instanceof SyntaxError)throw e;downloadError=e}
     }
     // Read the same existing file through Yandex's alternative file protocol.
