@@ -48,3 +48,24 @@ body[data-view=home] #notice:not(.error){display:none!important}body[data-view=h
 body .mobile-tools button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
 body[data-view=home] .aurora-top .aurora-brand span{font:inherit!important;letter-spacing:inherit!important}body[data-view=home] #home .lunar-clock>span{text-transform:none!important}body[data-view=home] #home .lunar-clock>span::first-letter{text-transform:uppercase}
 body[data-view=home] #home .lunar-clock{justify-self:start!important;text-align:left!important;align-items:flex-start!important}#pearl-art img{mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+
+/* A single viewport home; section pages retain their own scrolling. */
+html:has(body[data-view=home]){height:100%;overflow:hidden}
+body[data-view=home]{height:100dvh;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+body[data-view=home] .aurora-top{flex:0 0 66px!important;height:66px!important;width:100%;margin:0 auto!important}
+body[data-view=home] .app{flex:1!important;min-height:0!important;height:0!important;width:100%;padding:14px 20px max(16px,env(safe-area-inset-bottom))!important;display:flex!important}
+body[data-view=home] .app>main,body[data-view=home] .app>main>.glass{height:100%!important;min-height:0!important;width:100%!important;display:flex!important;flex-direction:column!important;padding:0!important;margin:0!important}
+body[data-view=home] .app>main>header{display:none!important}
+body[data-view=home] #home:not([hidden]){height:100%!important;min-height:0!important;width:100%!important;flex:1!important}
+body[data-view=home] .mobile-tools,body[data-view=home] .pearl-quick,body[data-view=home] .pearl-control,body[data-view=home] #pearl-resume{display:none!important}
+body[data-view=home] #home .lunar-meta{flex:none;min-height:62px}
+body[data-view=home] .pearl-hero{display:flex!important;flex-direction:column!important;flex:1!important;min-height:0!important;margin-top:clamp(8px,2dvh,22px)!important}
+body[data-view=home] #home .aurora-intro h1{font-size:clamp(26px,5.7dvh,44px)!important;min-height:0!important}
+body[data-view=home] #pearl-orb-button{flex:1!important;min-height:0!important;width:calc(100% + 40px)!important;max-width:none!important;margin:0 -20px!important;display:flex;align-items:center;justify-content:center}
+body[data-view=home] #pearl-art{height:100%!important;width:100%!important;aspect-ratio:auto!important;max-width:600px}
+body[data-view=home] #pearl-art img{width:100%!important;height:140%!important;object-fit:contain!important;top:-20%!important;left:0!important}
+body[data-view=home] #home .pearl-caption{flex:none;padding-bottom:14px!important}
+body[data-view=home] #home-composer{flex:none!important}
+body[data-view=home] #chef-menu{max-height:calc(100dvh - 86px)!important;overflow-y:auto!important;overscroll-behavior:contain}
+@media(max-height:600px){body[data-view=home] .aurora-top{height:54px!important;flex-basis:54px!important}body[data-view=home] .app{padding-top:8px!important;padding-bottom:8px!important}body[data-view=home] #home .lunar-clock time{font-size:36px!important}body[data-view=home] #home .lunar-meta{min-height:48px}body[data-view=home] #home .pearl-caption{padding-bottom:8px!important}body[data-view=home] #home .pearl-caption h2{font-size:20px!important}body[data-view=home] #home-composer #chat-form{min-height:48px!important}body[data-view=home] .pearl-hero{margin-top:5px!important}}
+body[data-view=home]{height:100dvh!important}

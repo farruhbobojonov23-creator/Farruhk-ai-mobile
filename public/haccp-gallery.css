@@ -1,0 +1,38 @@
+/* Photo catalog and individual, responsive paper journals. */
+#lab [hidden]{display:none!important}
+#lab.haccp-workspace{max-width:1100px;margin:auto}
+#lab .haccp-back{font-size:14px!important;min-height:44px;background:#eef3ec!important;color:#244c3d!important;border:1px solid #d9e2d8!important}
+#lab>.bar{align-items:center;gap:16px;flex-wrap:wrap}
+#lab>.bar h1{font-size:clamp(23px,4vw,34px)!important;margin:0!important;flex:1}
+#lab .haccp-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0 24px}
+#lab .haccp-journal-card{display:flex!important;flex-direction:column;align-items:stretch;text-align:left;padding:0!important;border:1px solid #e0e4db!important;border-radius:24px!important;overflow:hidden;background:#f1f3ec!important;color:#293d33!important;box-shadow:0 5px 18px #24392d08!important;white-space:normal;min-width:0;transition:transform .18s,box-shadow .18s}
+#lab .haccp-journal-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px #24392d14!important}
+#lab .haccp-journal-card:focus-visible{outline:3px solid #937638;outline-offset:3px}
+#lab .haccp-journal-photo{display:block;width:100%;aspect-ratio:1;background-image:url('/assets/haccp-journals.webp');background-size:400% 300%;background-repeat:no-repeat}
+#lab .haccp-journal-copy{display:grid;gap:8px;padding:14px 14px 18px;min-height:93px;background:#ffffff70}
+#lab .haccp-journal-copy strong{font-size:16px!important;line-height:1.3!important;font-weight:600;color:#293d33!important}
+#lab .haccp-journal-copy small{font-size:12px;color:#737e74}
+#lab .haccp-utilities{display:flex;flex-wrap:wrap;gap:10px;border-top:1px solid #e0e4db;padding:20px 0}
+#lab[data-haccp-view=journal]>.small{display:none}
+#lab .haccp-sheet,#lab .haccp-daily-form{background:#fff4e6!important;color:#573d32!important;border:1px solid #e4cbb8!important;border-radius:4px!important;padding:18px!important;box-shadow:0 8px 28px #59422b0b}
+#lab .haccp-sheet>h2,#lab .haccp-daily-form>h2{color:#672033!important;font-size:17px!important;letter-spacing:.025em;border-bottom:1px solid #d7b9a5;padding-bottom:16px;line-height:1.5}
+#lab .haccp-sheet-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:-18px -18px 22px;padding:14px;background:#fffdf9;border-bottom:1px solid #e4cbb8}
+#lab .haccp-sheet-group{min-width:0;padding:0;border:1px solid #e2c6b2;border-radius:5px;margin:20px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;background:#fff8ee}
+#lab .haccp-sheet-group>legend{float:left;width:100%;grid-column:1/-1;background:#682034;color:#fff;padding:9px 12px;font-size:13px;border-radius:4px 4px 0 0;margin:0;box-sizing:border-box}
+#lab .haccp-sheet-group>.fields{display:contents!important}
+#lab .haccp-sheet label,#lab .haccp-daily-form label{display:flex;flex-direction:column;gap:8px;margin:0!important;padding:12px!important;background:#f7e3d2;color:#624b3e!important;border-right:1px solid #e4cbb8;border-bottom:1px solid #e4cbb8;font-size:13px!important;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+#lab .haccp-sheet input,#lab .haccp-sheet select,#lab .haccp-sheet textarea,#lab .haccp-daily-form input{background:#fffaf3!important;color:#433b34!important;border:1px solid #dfc6b3!important;border-radius:4px!important;box-shadow:none!important;color-scheme:light;min-height:44px;width:100%;min-width:0;font-size:16px!important;padding:9px!important;box-sizing:border-box}
+#lab .haccp-sheet textarea{min-height:86px;resize:vertical}
+#lab .haccp-sheet input:focus,#lab .haccp-sheet select:focus,#lab .haccp-sheet textarea:focus{outline:2px solid #b29355;outline-offset:1px}
+#lab .haccp-sheet button.primary,#lab .haccp-daily-form button.primary{background:#682034!important;color:white!important;border:1px solid #682034!important}
+#lab .haccp-history{margin-top:30px;padding-top:18px;border-top:1px solid #decfba}
+#lab .haccp-month-table caption,#lab .haccp-month-table thead th{background:#682034!important;color:#fff!important}
+#lab .haccp-month-table tr>:first-child{background:#f5e0cf!important;color:#513c31!important}
+#lab .haccp-month-table th,#lab .haccp-month-table td{border-color:#dfc5b1!important}
+#lab .haccp-monthly{background:#fff4e6;border:1px solid #e4cbb8;padding:16px;border-radius:5px}
+#lab .haccp-monthly h2{color:#682034!important;font-size:20px!important}
+@media(min-width:900px){#lab .haccp-catalog{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}}
+@media(max-width:500px){#lab .haccp-journal-card{border-radius:18px!important}#lab .haccp-journal-copy{padding:12px 10px;min-height:102px}#lab .haccp-journal-copy strong{font-size:14px!important}#lab .haccp-journal-copy small{font-size:11px}#lab .haccp-catalog{gap:10px}#lab .haccp-sheet-group{grid-template-columns:1fr}#lab .haccp-sheet{padding:12px!important}#lab .haccp-sheet-toolbar{margin:-12px -12px 16px;padding:12px}#lab .haccp-sheet-group>legend{font-size:12px}#lab .haccp-sheet-toolbar button{flex:1;font-size:13px!important}#lab .haccp-monthly{padding:10px}}
+
+#lab .haccp-period-panel{margin:18px 0;border:1px solid #dddccf;border-radius:12px;background:#fafbf6;padding:0 14px}
+#lab .haccp-period-panel>summary{cursor:pointer;padding:14px 0;color:#355647;font-size:14px}
