@@ -110,3 +110,11 @@ body[data-view=home] #global-voice{bottom:145px;right:max(16px,calc((100vw - 820
  body[data-view=home] #global-voice{bottom:110px;max-height:calc(100dvh - 135px)}
 }
 @media(prefers-reduced-motion:reduce){body[data-view=home] .lunar-shortcuts>button{transition:none}}
+
+/* Full photographic weather frames replace the old decorative cloud layer. */
+body[data-view=home] .live-weather-scene{z-index:0}
+body[data-view=home]:before{z-index:1}
+body[data-view=home] .aurora-top,body[data-view=home] .app{position:relative;z-index:2}
+body[data-view=home] .lunar-clock,body[data-view=home] .lunar-clock time{color:#fff;text-shadow:0 2px 12px #102436aa}
+body[data-view=home] .lunar-clock>span{color:#f8fafc;text-shadow:0 1px 8px #102436}
+@media(prefers-reduced-motion:reduce){body[data-view=home] .live-weather-scene{animation:none}}
