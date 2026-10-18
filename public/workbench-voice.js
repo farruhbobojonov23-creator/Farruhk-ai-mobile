@@ -61,11 +61,11 @@ export function mountWorkbenchVoice({getView,show,openEditor,addIngredient,refre
   field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));
   return 'Заполнено поле «'+fieldLabel(field)+'». Изменения пока в форме.';
  }
- const dock=document.createElement('button');dock.type='button';dock.className='neural-launch';dock.id='neural-launch';dock.setAttribute('aria-label','Голосовой помощник: начать разговор');dock.innerHTML='<span class="neural-ribbons" aria-hidden="true"><i></i><i></i><i></i></span>';
+ const dock=document.createElement('button');dock.type='button';dock.className='neural-launch';dock.id='neural-launch';dock.setAttribute('aria-label','ИИ-помощник: начать разговор');dock.innerHTML='<span class="ai-orb" aria-hidden="true"><span class="ai-orb-halo"></span><span class="ai-orb-shell"><span class="ai-orb-rings"><i></i><i></i><i></i></span><span class="ai-orb-label">AI</span><span class="ai-orb-gloss"></span></span></span>';
  document.body.append(dock);dock.onclick=()=>voice.start();
  const update=()=>{dock.classList.toggle('in-home',getView()==='home');if(getView()==='home')document.querySelector('.lunar-shortcuts')?.append(dock);else document.body.append(dock)};
  window.addEventListener('hashchange',update);update();
- const observer=new MutationObserver(()=>{const phase=document.getElementById('voice-panel').dataset.phase||'idle';dock.dataset.phase=phase;dock.setAttribute('aria-label',phase==='listening'?'Слушаю: нажать для завершения фразы':phase==='thinking'||phase==='speaking'?'Остановить помощника':'Голосовой помощник: начать разговор');dock.onclick=()=>phase==='listening'?document.getElementById('voice-send').click():['thinking','speaking','connecting'].includes(phase)?voice.stop():voice.start()});
+ const observer=new MutationObserver(()=>{const phase=document.getElementById('voice-panel').dataset.phase||'idle';dock.dataset.phase=phase;dock.setAttribute('aria-label',phase==='listening'?'Слушаю: нажать для завершения фразы':phase==='thinking'||phase==='speaking'?'Остановить помощника':'ИИ-помощник: начать разговор');dock.onclick=()=>phase==='listening'?document.getElementById('voice-send').click():['thinking','speaking','connecting'].includes(phase)?voice.stop():voice.start()});
  observer.observe(document.getElementById('voice-panel'),{attributes:true,attributeFilter:['data-phase']});
  return {help,async run(text){
   const c=parseWorkbenchCommand(text);if(!c)return null;

@@ -118,3 +118,31 @@ body[data-view=home] .aurora-top,body[data-view=home] .app{position:relative;z-i
 body[data-view=home] .lunar-clock,body[data-view=home] .lunar-clock time{color:#fff;text-shadow:0 2px 12px #102436aa}
 body[data-view=home] .lunar-clock>span{color:#f8fafc;text-shadow:0 1px 8px #102436}
 @media(prefers-reduced-motion:reduce){body[data-view=home] .live-weather-scene{animation:none}}
+
+/* Approved immersive bay: all working sections live in the existing hamburger menu. */
+body[data-view=home]{background-image:url('/assets/weather/4k/bay-day.png')}
+body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k/bay-night.png')}
+body[data-view=home]:before{background:linear-gradient(180deg,#07192b30,transparent 24%,transparent 85%,#07192b22)}
+body[data-view=home] .aurora-intro,body[data-view=home] .aurora-brand small,body[data-view=home] .lunar-local,body[data-view=home] #lunar-settings{display:none}
+body[data-view=home] .aurora-brand,body[data-view=home] .aurora-brand span{color:#fff;font-size:14px;font-weight:400}
+body[data-view=home] .lunar-shortcuts>button:not(.neural-launch){display:none}
+body[data-view=home] .lunar-shortcuts{display:flex;justify-content:center}
+body[data-view=home] .harbor-workspace{width:auto;bottom:max(28px,calc(env(safe-area-inset-bottom) + 18px))}
+body[data-view=home] .lunar-shortcuts>.neural-launch{width:54px;height:54px;background:#16394c40;border:1px solid #ffffffaa;box-shadow:0 4px 18px #06172720;backdrop-filter:blur(12px);color:white}
+body[data-view=home] .lunar-shortcuts>.neural-launch:after{display:none}
+.bay-microphone{display:none}
+body[data-view=home] .neural-launch .bay-microphone{display:block;width:24px;height:24px;margin:auto}
+body[data-view=home] .neural-launch .neural-ribbons{display:none}
+body[data-view=home] .neural-launch[data-phase=listening]{background:#276a75b0;box-shadow:0 0 0 6px #ffffff25}
+body[data-view=home] .neural-launch[data-phase=thinking],body[data-view=home] .neural-launch[data-phase=speaking]{background:#305a7ab0}
+body[data-view=home] #global-voice{bottom:96px;right:16px;max-height:calc(100dvh - 180px)}
+body[data-view=home] .lunar-clock time{font-size:34px;font-weight:350;letter-spacing:-.04em}
+body[data-view=home] .lunar-weather{background:#16394c26;backdrop-filter:blur(10px)}
+body[data-view=home] .aurora-top{padding-top:max(12px,env(safe-area-inset-top))}
+@media(max-width:700px){body[data-view=home] .lunar-clock time{font-size:28px}body[data-view=home] .aurora-brand{font-size:12px}}
+
+/* Dedicated portrait artwork avoids magnifying a narrow strip of the desktop photo. */
+@media(max-aspect-ratio: 85/100){
+ body[data-view=home]{background-image:url('/assets/weather/4k/bay-day-mobile.png')}
+ body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k/bay-night-mobile.png')}
+}

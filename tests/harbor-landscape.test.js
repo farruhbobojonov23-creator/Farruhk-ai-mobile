@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {landscapeState,photoCrop,cloudOffset,harborLandscape,skyEndForCrop} from '../public/harbor-landscape.js';
+import {landscapeState,photoCrop,cloudOffset,harborLandscape,skyEndForCrop,assetsForViewport,HARBOR_ASSETS,MOBILE_ASSETS} from '../public/harbor-landscape.js';
 test('Photographic scenes cover day, cloud, precipitation, twilight and dark cloudy skies',()=>{
  const day={period:'day',kind:'sun',cloud:.1};assert.equal(landscapeState(day).base,'sun');
  for(const kind of ['rain','fog','cloud'])assert.equal(landscapeState({...day,kind}).base,'overcast');
@@ -9,8 +9,8 @@ test('Photographic scenes cover day, cloud, precipitation, twilight and dark clo
  const night=landscapeState({...day,period:'night',kind:'snow'});assert.equal(night.base,'night');assert.equal(night.sky,'overcast');assert.equal(night.darkSky,true);
  assert.equal(landscapeState({...day,period:'twilight'}).twilight,true);
 });
-test('Photo sampling has overscan on portrait and wide screens; sky movement stops before the ridge',()=>{
- for(const [w,h] of [[390,844],[1920,1080],[3440,1440]]){const c=photoCrop(3840,2160,w,h);assert.ok(c.x>0&&c.y>0);assert.ok(c.x+c.width<3840);assert.ok(c.y+c.height<2160)}
+test('Photo sampling preserves the full frame on portrait and wide screens; sky movement stops before the ridge',()=>{
+ for(const [w,h] of [[390,844],[1920,1080],[3440,1440]]){const c=photoCrop(3840,2160,w,h);assert.ok(c.x>=0&&c.y>=0);assert.ok(c.x+c.width<=3840);assert.ok(c.y+c.height<=2160);assert.ok(c.x===0||c.y===0)}
  assert.equal(cloudOffset(280,280,20,40),0);assert.equal(cloudOffset(600,280,20,40),0);assert.notEqual(cloudOffset(20,280,0),cloudOffset(20,280,30));assert.ok(Math.abs(cloudOffset(279.99,280,30))<.00001);
 });
 test('A loaded scene stays visible while the next photo downloads; reduced motion and disposal remain stable',()=>{
@@ -20,7 +20,11 @@ test('A loaded scene stays visible while the next photo downloads; reduced motio
 
 test('High quality scene sky stays above the mountain ridge in portrait, wide and ultrawide crops',()=>{
  for(const [w,h] of [[390,844],[1920,1080],[3440,1440]]){
-  const crop=photoCrop(1672,941,w,h),end=skyEndForCrop(1672,941,w,h),ridge=(941*.42-crop.y)*crop.scale;
+  const iw=w/h<.85?2160:3840,ih=w/h<.85?3840:2160;const crop=photoCrop(iw,ih,w,h),end=skyEndForCrop(iw,ih,w,h),ridge=(ih*(iw/ih<.85?.535:.575)-crop.y)*crop.scale;
   assert.ok(end>0&&end<ridge);assert.ok(end<h);
  }
+});
+
+test('Phone and desktop choose matching 4K assets without changing the weather kind',()=>{
+ assert.equal(assetsForViewport(390,844),MOBILE_ASSETS);assert.equal(assetsForViewport(1920,1080),HARBOR_ASSETS);assert.equal(assetsForViewport(844,390),HARBOR_ASSETS);
 });

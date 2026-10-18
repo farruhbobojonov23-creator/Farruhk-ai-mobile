@@ -1,4 +1,4 @@
-import {harborLandscape} from './harbor-landscape.js?v=hq-2';
+import {harborLandscape} from './harbor-landscape.js?v=approved-ai-4k-8';
 import {celestialLight} from './celestial-light.js?v=harbor-hq-5';
 import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';
@@ -52,8 +52,10 @@ export function mountWeatherScene(){
 
   if(night&&s.fresh&&s.cloud<.8){ctx.save();ctx.beginPath();ctx.rect(0,0,w,landscape.skyEnd);ctx.clip();for(const star of stars){ctx.globalAlpha=star.a*(1-s.cloud);ctx.fillStyle='#e8eeff';ctx.beginPath();ctx.arc(star.x*w,star.y*h,star.r,0,7);ctx.fill()}ctx.globalAlpha=1;ctx.restore()}
   if(s.aurora){ctx.save();ctx.beginPath();ctx.rect(0,0,w,landscape.skyEnd);ctx.clip();drawSoftAurora();ctx.restore()}
+  ctx.save();ctx.beginPath();ctx.rect(0,0,w,landscape.skyEnd);ctx.clip();
   if(s.sunVisible)light.sun(ctx,{...s,skyBand:landscape.skyEnd},w,h,elapsed,cloudCanvas);
   if(s.moonVisible)light.moon(ctx,{...s,skyBand:landscape.skyEnd},w,h,elapsed,cloudCanvas);
+  ctx.restore();
   if(s.kind==='fog'){ctx.save();ctx.globalAlpha=.7;ctx.drawImage(cloudCanvas,-w*.1+Math.sin(elapsed*.03)*w*.1,h*.25,w*1.4,h*.8);ctx.drawImage(cloudCanvas,-w*.2,h*.45,w*1.6,h*.6);ctx.restore()}
   if(['snow','rain','sleet'].includes(s.kind)){const count=Math.round((w<700?55:100)*(.45+s.intensity*.55)),wind=Math.sin(s.windDirection*Math.PI/180)*s.wind;for(let i=0;i<count;i++){const p=particles[i],rain=s.kind==='rain'||(s.kind==='sleet'&&i%2===0);if(!motion.matches){p.y+=dt*(rain?.75:.035)*p.z;p.x+=dt*wind*.0007*p.z;if(p.y>1.05)p.y=-.05;p.x=(p.x+1)%1}ctx.globalAlpha=.25+p.z*.55;ctx.strokeStyle=night?'#b9cce6':'#849ab4';ctx.fillStyle='#fff';ctx.lineWidth=.5+p.z*.6;const x=p.x*w,y=p.y*h;if(rain){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+wind*.3,y+12+p.z*15);ctx.stroke()}else{ctx.shadowColor='#e4edff';ctx.shadowBlur=p.z>.8?4:0;ctx.beginPath();ctx.arc(x,y,.7+p.z*2,0,7);ctx.fill()}}ctx.globalAlpha=1;ctx.shadowBlur=0}
  }
