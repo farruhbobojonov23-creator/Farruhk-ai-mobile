@@ -1,4 +1,5 @@
-import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js?v=approved-ai-4k-8';
+import {publicWeatherClient,firstLiveWeather} from './browser-weather.js?v=1';
+import {mountWeatherScene,sceneState,WEATHER_URL} from './weather-scene.js?v=mobile-repair-9';
 export function weatherAppearance(code,isDay=true){
  if([71,73,75,77,85,86].includes(code))return {kind:'snow',icon:'❄',label:'Снег'};
  if([56,57,66,67].includes(code))return {kind:'rain',icon:'☂',label:'Ледяной дождь'};
@@ -23,6 +24,7 @@ export function mountLunarWeather(root){
  const dateFormat=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'});
  const scene=mountWeatherScene(),preview=new URL(location.href).searchParams.get('previewSky'),preset=Object.hasOwn(SKY_PREVIEWS,preview)?SKY_PREVIEWS[preview]:null;
  if(preset){const badge=document.createElement('a');badge.className='sky-preview-badge';badge.textContent='Предпросмотр: '+preset.label.toLowerCase()+' · Вернуться к погоде';const url=new URL(location.href);url.searchParams.delete('previewSky');badge.href=url.href;document.body.append(badge)}
+ const loadPublicWeather=publicWeatherClient();
  let weather=null,lastSuccess=0,loading=false,lastMinute=-1;
  function updateScene(){
   const s=sceneState(weather);if(preset)Object.assign(s,preset.scene,{fresh:true,aurora:false});scene.update(s);
@@ -33,10 +35,7 @@ export function mountLunarWeather(root){
  function tick(){const now=new Date();time.textContent=clockFormat.format(now);time.dateTime=now.toISOString();date.textContent=dateFormat.format(now);const minute=Math.floor(+now/60000);if(minute!==lastMinute){lastMinute=minute;updateScene()}}tick();
  function unavailable(){weather=null;if(preset){updateScene();return}scene.update(sceneState(null));card.querySelector('[data-weather-temp]').textContent='—';card.querySelector('[data-weather-label]').textContent='Нет свежих данных';card.querySelector('[data-weather-icon]').textContent='↻';card.title='Погода временно недоступна. Следующая проверка автоматически.';}
  async function refresh(){if(loading)return;loading=true;
-  try{let d;
-   try{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('weather');d=await r.json()}
-   catch{const r=await fetch(WEATHER_URL,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('weather');const raw=await r.json(),c=raw.current;if(!c)throw Error('weather');d={ok:true,temperature:c.temperature_2m,code:c.weather_code,isDay:c.is_day===1,observedAt:c.time+'+03:00',cloudCover:c.cloud_cover,precipitation:c.precipitation,rain:c.rain,snowfall:c.snowfall,windSpeed:c.wind_speed_10m,windDirection:c.wind_direction_10m}}
-   if(!d.ok||!Number.isFinite(d.temperature)||!Number.isInteger(d.code)||![true,false].includes(d.isDay)||!Number.isFinite(Date.parse(d.observedAt))||Math.abs(Date.now()-Date.parse(d.observedAt))>90*60000)throw Error('weather');
+  try{const d=await firstLiveWeather(async()=>{const r=await fetch('/api/weather',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('weather');return r.json()},()=>loadPublicWeather(WEATHER_URL));
    weather=d;lastSuccess=Date.now();const w=weatherAppearance(d.code,d.isDay);card.querySelector('[data-weather-temp]').textContent=(Math.round(d.temperature)>0?'+':'')+Math.round(d.temperature)+'°';card.querySelector('[data-weather-icon]').textContent=w.icon;updateScene();
   }catch{unavailable()}finally{loading=false}
  }

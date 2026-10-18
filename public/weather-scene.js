@@ -1,4 +1,4 @@
-import {harborLandscape} from './harbor-landscape.js?v=approved-ai-4k-8';
+import {harborLandscape} from './harbor-landscape.js?v=mobile-repair-9';
 import {celestialLight} from './celestial-light.js?v=harbor-hq-5';
 import {auroraFrame} from './aurora-ribbons.js?v=2';
 import SunCalc from './sky-astronomy.js';

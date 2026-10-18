@@ -1,7 +1,7 @@
 // The photograph is the weather scene. Only pixels above the ridge drift;
 // buildings, mountains and water remain anchored to the same camera.
-export const HARBOR_ASSETS=Object.freeze({sun:'/assets/weather/4k/bay-day.png',overcast:'/assets/weather/4k/bay-overcast.png',snow:'/assets/weather/4k/bay-overcast.png',night:'/assets/weather/4k/bay-night.png'});
-export const MOBILE_ASSETS=Object.freeze({sun:'/assets/weather/4k/bay-day-mobile.png',overcast:'/assets/weather/4k/bay-overcast-mobile.png',snow:'/assets/weather/4k/bay-overcast-mobile.png',night:'/assets/weather/4k/bay-night-mobile.png'});
+export const HARBOR_ASSETS=Object.freeze({sun:'/assets/weather/4k-web/bay-day.webp',overcast:'/assets/weather/4k-web/bay-overcast.webp',snow:'/assets/weather/4k-web/bay-overcast.webp',night:'/assets/weather/4k-web/bay-night.webp'});
+export const MOBILE_ASSETS=Object.freeze({sun:'/assets/weather/4k-web/bay-day-mobile.webp',overcast:'/assets/weather/4k-web/bay-overcast-mobile.webp',snow:'/assets/weather/4k-web/bay-overcast-mobile.webp',night:'/assets/weather/4k-web/bay-night-mobile.webp'});
 export function assetsForViewport(w,h){return w/h<.85?MOBILE_ASSETS:HARBOR_ASSETS}
 // A conservative clear-sky boundary above the highest ridge of the approved bay.
 export const SKY_FRACTION=.55;

@@ -120,8 +120,8 @@ body[data-view=home] .lunar-clock>span{color:#f8fafc;text-shadow:0 1px 8px #1024
 @media(prefers-reduced-motion:reduce){body[data-view=home] .live-weather-scene{animation:none}}
 
 /* Approved immersive bay: all working sections live in the existing hamburger menu. */
-body[data-view=home]{background-image:url('/assets/weather/4k/bay-day.png')}
-body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k/bay-night.png')}
+body[data-view=home]{background-image:url('/assets/weather/4k-web/bay-day.webp')}
+body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k-web/bay-night.webp')}
 body[data-view=home]:before{background:linear-gradient(180deg,#07192b30,transparent 24%,transparent 85%,#07192b22)}
 body[data-view=home] .aurora-intro,body[data-view=home] .aurora-brand small,body[data-view=home] .lunar-local,body[data-view=home] #lunar-settings{display:none}
 body[data-view=home] .aurora-brand,body[data-view=home] .aurora-brand span{color:#fff;font-size:14px;font-weight:400}
@@ -143,6 +143,6 @@ body[data-view=home] .aurora-top{padding-top:max(12px,env(safe-area-inset-top))}
 
 /* Dedicated portrait artwork avoids magnifying a narrow strip of the desktop photo. */
 @media(max-aspect-ratio: 85/100){
- body[data-view=home]{background-image:url('/assets/weather/4k/bay-day-mobile.png')}
- body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k/bay-night-mobile.png')}
+ body[data-view=home]{background-image:url('/assets/weather/4k-web/bay-day-mobile.webp')}
+ body[data-view=home][data-sky=night]{background-image:url('/assets/weather/4k-web/bay-night-mobile.webp')}
 }
