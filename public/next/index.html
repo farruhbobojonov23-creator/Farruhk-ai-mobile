@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#18352c">
+  <title>FARUKH AI — Рабочее пространство шефа</title>
+  <link rel="stylesheet" href="/next/workspace.css">
+  <link rel="stylesheet" href="/haccp.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-symbol">F.</span><span><strong>FARUKH AI</strong><small>CHEF WORKSPACE</small></span></div>
+      <p class="nav-label">РАБОЧЕЕ ПРОСТРАНСТВО</p>
+      <nav aria-label="Основные разделы">
+        <button data-to="home" class="nav-link active"><span aria-hidden="true">⌂</span> Главная</button>
+        <button data-to="recipes" class="nav-link"><span aria-hidden="true">▤</span> ТТК</button>
+        <button data-to="lab" class="nav-link"><span aria-hidden="true">◈</span> ХАССП</button>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span><span id="storage-side">Проверяем хранилище</span><small>Данные не сбрасываются при переходе на новую версию</small></div>
+    </aside>
+    <div class="work-area">
+      <header class="topbar">
+        <div class="top-caption"><strong id="page-name">Главная</strong><span class="top-divider">/</span><span>Рабочее пространство шефа</span></div>
+        <div class="top-actions"><span class="date-now" id="current-date"></span><button type="button" class="round-action" id="backup-btn" title="Скачать резервную копию">↓</button><label class="round-action file-action" title="Добавить данные из резервной копии">↑ <input id="import-file" type="file" accept="application/json,.json"></label><span class="avatar" aria-label="Профиль">FA</span></div>
+      </header>
+      <main class="content">
+        <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+        <section class="screen" id="home">
+          <div class="intro"><span class="eyebrow">FARUKH AI · CHEF OPERATIONS</span><h1>Всё важное для кухни.<br><span>Ничего лишнего.</span></h1><p>Техкарты, производственный контроль и ежедневная работа — в одном месте.</p><div class="intro-actions"><button type="button" class="primary-btn" id="home-new">+ Создать ТТК</button><button type="button" class="secondary-btn" data-to="lab">Открыть ХАССП ↗</button></div><span class="intro-mark" aria-hidden="true">F</span></div>
+          <div class="section-title"><h2>Кухня сегодня</h2><span id="today-label"></span></div>
+          <div class="metrics">
+            <button class="metric" data-to="recipes"><span>Всего ТТК</span><b id="metric-total">—</b><small>Технологические карты</small></button>
+            <button class="metric" data-to="recipes"><span>Готовые ТТК</span><b id="metric-ready">—</b><small>Подготовлены к использованию</small></button>
+            <button class="metric" data-to="lab"><span>Журналы сегодня</span><b id="metric-today">—</b><small>Фактически внесённые записи</small></button>
+            <button class="metric" data-to="lab"><span>Замечания</span><b id="metric-actions">—</b><small>Незакрытые корректирующие действия</small></button>
+          </div>
+          <div class="section-title"><h2>Рабочие инструменты</h2><span>Только основные разделы</span></div>
+          <div class="quick-grid">
+            <button class="quick-card" data-to="recipes"><span class="quick-icon">▤</span><strong>Технико-технологические карты</strong><p>Создание, редактирование, калькуляция, экспорт PDF и Word.</p><span class="quick-arrow">Открыть →</span></button>
+            <button class="quick-card" data-to="lab"><span class="quick-icon amber">◈</span><strong>ХАССП и журналы кухни</strong><p>Замеры, проверки, журнал A4, история и контроль отклонений.</p><span class="quick-arrow">Открыть →</span></button>
+          </div>
+          <div class="context-tip"><strong>Ежедневный контроль без фиктивных записей</strong><span>Система может подготовить форму автоматически. Фактические показания, проверка и подтверждение остаются за ответственным сотрудником.</span></div>
+        </section>
+
+        <section class="screen" id="recipes" hidden>
+          <div class="page-header"><div><span class="eyebrow">РЕЦЕПТУРЫ И ТЕХНОЛОГИИ</span><h1>Техкарты</h1><p class="section-subtitle">Существующие данные и структура ТТК сохранены. Работайте с ними в новом интерфейсе.</p></div><button type="button" id="new-recipe" class="primary-btn">+ Создать ТТК</button></div>
+          <div class="filter-panel">
+            <label class="search-field"><span aria-hidden="true">⌕</span><input id="recipe-search" type="search" placeholder="Поиск по названию и категории" autocomplete="off"></label>
+            <div class="tabs" role="group" aria-label="Фильтр техкарт"><button data-filter="all" class="active">Все</button><button data-filter="ready">Готовые</button><button data-filter="draft">В разработке</button></div>
+          </div>
+          <div class="recipe-table"><div class="table-head"><span>Название</span><span>Категория</span><span>Выход</span><span>Статус</span><span>Действия</span></div><div id="recipe-rows"></div></div>
+        </section>
+
+        <section class="screen" id="lab" hidden>
+          <div class="page-header"><div><span class="eyebrow">ПРОИЗВОДСТВЕННЫЙ КОНТРОЛЬ</span><h1>ХАССП</h1><p>Журналы и документы. Данные остаются в прежнем хранилище.</p></div></div>
+          <div id="haccp-root"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Мобильная навигация"><button data-to="home" class="active">⌂<small>Главная</small></button><button data-to="recipes">▤<small>ТТК</small></button><button data-to="lab">◈<small>ХАССП</small></button></nav>
+
+  <dialog id="recipe-dialog" class="recipe-dialog">
+    <div class="modal-heading"><div><small class="eyebrow">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</small><h2 id="editor-title">Новая ТТК</h2></div><button type="button" class="icon-close" id="close-recipe" aria-label="Закрыть">×</button></div>
+    <form id="recipe-form">
+      <div class="form-grid">
+        <label class="wide">Название блюда *<input name="name" required maxlength="200" placeholder="Например, Филадельфия"></label>
+        <label>Категория<select name="category" id="recipe-category"></select></label>
+        <label>Статус<select name="status"><option value="draft">В разработке</option><option value="ready">Готовая ТТК</option></select></label>
+        <label>Номер ТТК<input name="cardNumber" maxlength="50"></label>
+        <label>Дата<input name="cardDate" type="date"></label>
+        <label>Количество изделий<select name="pieces"><option value="1">1 шт.</option><option value="4">4 шт.</option><option value="6">6 шт.</option><option value="8">8 шт.</option><option value="16">16 шт.</option></select></label>
+        <label>Выход готового блюда, г<input name="netYieldGrams" readonly></label>
+      </div>
+      <h3>Рецептура на одну порцию</h3>
+      <p class="form-help">Брутто рассчитывается из нетто и процента потерь. Цены используются для ориентировочной себестоимости.</p>
+      <div class="ingredient-heading"><span>Ингредиент</span><span>Нетто, г</span><span>Отходы, %</span><span>Цена, ₽/кг</span><span></span></div>
+      <div id="ingredients"></div>
+      <button type="button" class="subtle-btn" id="add-ingredient">+ Добавить ингредиент</button>
+      <div class="calc-preview"><span>Выход: <strong id="preview-yield">0 г</strong></span><span>Себестоимость: <strong id="preview-cost">0 ₽</strong></span></div>
+      <h3>Технология и требования</h3>
+      <div class="form-grid">
+        <label class="wide">Область применения<textarea name="scope" rows="2"></textarea></label>
+        <label class="wide">Требования к сырью<textarea name="rawRequirements" rows="2"></textarea></label>
+        <label class="wide">Подготовка<textarea name="preparation" rows="2"></textarea></label>
+        <label class="wide">Технологический процесс<textarea name="forming" rows="3"></textarea></label>
+        <label class="wide">Нарезка и подача<textarea name="serving" rows="2"></textarea></label>
+        <label class="wide">Хранение и реализация<textarea name="storage" rows="2"></textarea></label>
+        <label class="wide">Внешний вид<textarea name="appearance" rows="2"></textarea></label>
+        <label class="wide">Вкус и консистенция<textarea name="taste" rows="2"></textarea></label>
+        <label class="wide">Показатели безопасности<textarea name="safety" rows="2"></textarea></label>
+        <label>Разработал (шеф)<input name="chef" maxlength="120"></label>
+        <label>Утверждаю (руководитель)<input name="approver" maxlength="120"></label>
+      </div>
+      <div class="modal-footer"><button type="button" id="delete-recipe" class="danger-btn">Удалить</button><span class="foot-spacer"></span><button type="button" id="download-pdf" class="secondary-btn">PDF</button><button type="button" id="download-word" class="secondary-btn">Word</button><button type="submit" class="primary-btn">Сохранить ТТК</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/next/workspace.js"></script>
+</body>
+</html>
