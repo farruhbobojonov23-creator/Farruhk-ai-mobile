@@ -1,0 +1,30 @@
+name: FARUKH AI — Stark V4 QA
+on:
+  push:
+    branches:
+      - redesign/premium-stark-v4
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact project dependencies
+        run: npm ci --ignore-scripts
+      - name: JavaScript syntax
+        run: |
+          node --check public/stark-showroom.js
+          node --check public/recipe-google.js
+          node --check public/recipe-actions.js
+          node --check public/haccp-ui.js
+      - name: Run project regression suite
+        run: npm test
