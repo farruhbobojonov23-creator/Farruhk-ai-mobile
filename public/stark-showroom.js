@@ -37,6 +37,42 @@ function categorize(name){
  if(/салат|поке/.test(t))return 'salads';
  return 'rolls';
 }
+
+const SAMPLE_PHOTOS={
+ rolls:['cold.png','maki.png','sushi.png'],
+ baked:['baked.png','gunkan.png'],
+ sets:['cold.png','maki.png','sushi.png'],
+ snacks:['snacks.png','tempura.png','beridog.png'],
+ onigiri:['onigiri.png'],
+ semi:[],
+ soups:[],
+ salads:[]
+};
+// Product photographs were already bundled with FARUKH AI. They are display-only
+// samples, never written into a real recipe. Matte removal runs once per asset, offscreen.
+const cutoutCache=new Map();
+function sampleCutout(src){
+ if(cutoutCache.has(src))return cutoutCache.get(src);
+ const promise=(async()=>{
+  const image=new Image();image.src=src;await image.decode();
+  const canvas=document.createElement('canvas');canvas.width=280;canvas.height=280;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  if(!ctx)throw new Error('Canvas 2D unavailable');
+  ctx.drawImage(image,0,0,280,280);
+  const pixels=ctx.getImageData(0,0,280,280);
+  for(let i=0;i<pixels.data.length;i+=4){
+   const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
+   const strength=Math.max(r,g,b);
+   // Only remove near-black studio backdrops; preserve food, rice and seaweed.
+   const opacity=Math.max(0,Math.min(1,(strength-9)/33));
+   pixels.data[i+3]=Math.round(pixels.data[i+3]*opacity);
+  }
+  ctx.putImageData(pixels,0,0);
+  return canvas.toDataURL('image/webp',.88);
+ })().catch(()=>src);
+ cutoutCache.set(src,promise);
+ return promise;
+}
 function photoUrl(recipe){
  const p=recipe?.photoUrl||recipe?.photo?.url||recipe?.photo?.dataUrl||recipe?.imageUrl||recipe?.image||recipe?.photo;
  if(typeof p!=='string')return '';
@@ -90,7 +126,9 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  function getProducts(i){
   const category=CATEGORIES[i];const matched=landProducts.filter(p=>categorize(p.category||p.name||'')===category.id);
   if(matched.length)return matched.slice(0,5).map((p,n)=>({label:String(p.name||'Товар '+(n+1)),image:photoUrl(p),kind:category.kind}));
-  return category.samples.map(s=>({label:s,kind:category.kind,image:''}));
+  const photoNames=SAMPLE_PHOTOS[category.id]||[];
+  if(photoNames.length)return photoNames.map((filename,j)=>({label:category.name+' · образец '+(j+1),kind:category.kind,image:'/assets/categories/'+filename,demo:true}));
+  return [{label:'Фото товара появится здесь',kind:category.kind,image:'',demo:true}];
  }
  function select(i){
   selected=i;chosenItem=-1;title.textContent=CATEGORIES[i].name;
@@ -100,11 +138,11 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   getProducts(i).forEach((p,j)=>{
     const item=document.createElement('button');item.type='button';item.className='ss-item';item.setAttribute('aria-pressed','false');
     item.setAttribute('aria-label',p.label);
-    if(p.image){const img=document.createElement('img');img.src=p.image;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();const placeholder=document.createElement('div');placeholder.className='ss-food ss-food-'+p.kind;item.prepend(placeholder)};item.append(img)}
+    if(p.image){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';if(p.demo){img.style.opacity='0';sampleCutout(p.image).then(result=>{if(img.isConnected){img.src=result;img.style.opacity='1'}})}else img.src=p.image;img.onerror=()=>{img.remove();const placeholder=document.createElement('div');placeholder.className='ss-food ss-food-'+p.kind;item.prepend(placeholder)};item.append(img)}
     else{const food=document.createElement('div');food.className='ss-food ss-food-'+p.kind;food.setAttribute('aria-hidden','true');item.append(food)}
     const text=document.createElement('span');text.textContent=p.label;item.append(text);
     item.addEventListener('mouseenter',()=>hoveredTable++);item.addEventListener('mouseleave',()=>hoveredTable=Math.max(0,hoveredTable-1));
-    item.addEventListener('click',()=>{if(performance.now()<deckDraggedUntil)return;chosenItem=j;items.querySelectorAll('button').forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));caption.textContent=p.label+(p.image?' · Фотография товара':' · Фото заменим на ваше, когда пришлёте')});
+    item.addEventListener('click',()=>{if(performance.now()<deckDraggedUntil)return;chosenItem=j;items.querySelectorAll('button').forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));caption.textContent=p.label+(p.demo?' · Демонстрационное фото — заменим на ваше':p.image?' · Фотография товара':' · Фото добавим позже')});
     items.append(item);
   });
   positionTable();
@@ -129,7 +167,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   const w=deckW,h=deckH,rx=Math.min(w*.34,250),ry=Math.min(h*.20,58);
   list.forEach((el,i)=>{
    const a=i*2*Math.PI/n+tableOrbit,depth=Math.sin(a);
-   const x=Math.cos(a)*rx,y=Math.sin(a)*ry;
+   const x=n===1?0:Math.cos(a)*rx,y=n===1?0:Math.sin(a)*ry;
    el.style.transform='translate3d('+(w/2+x)+'px,'+(h*.48+y)+'px,0) translate(-50%,-50%) scale('+(0.82+(depth+1)*.12)+')';
    el.style.zIndex=String(30+Math.round(depth*10));
   });
