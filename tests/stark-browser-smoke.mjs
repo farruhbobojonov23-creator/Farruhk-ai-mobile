@@ -34,15 +34,21 @@ async function verify(viewport,isMobile=false){
  const page=await context.newPage();
  const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE:',m.text().slice(0,450))});page.on('response',r=>{if(r.status()>=400)console.log('BROWSER HTTP',r.status(),r.url().slice(0,140))});
  try{
-  await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});console.log('SMOKE: navigated');
-  await page.waitForFunction(()=>document.body.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
+  await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});await page.locator('body').waitFor({state:'attached',timeout:12000});console.log('SMOKE: navigated');
+  await page.waitForFunction(()=>document.body?.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
   assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');console.log('SMOKE: category count OK');
   assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');console.log('SMOKE: sample count OK');
   const snapshot=await page.evaluate(()=>({showcase:document.querySelector('.ss-showcase')?.outerHTML.slice(0,700),headings:[...document.querySelectorAll('h2')].map(e=>e.className+' '+e.textContent.slice(0,50)).slice(0,15),ready:document.body.className,marked:document.querySelector('.ss-markers')?.children.length}));console.log('SMOKE: DOM',JSON.stringify(snapshot));
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Холодные роллы');
-  await page.getByRole('button',{name:'Онигири',exact:true}).click({timeout:6500});console.log('SMOKE: selected onigiri');
+  const categoryBox=await page.getByRole('button',{name:'Онигири',exact:true}).boundingBox();assert.ok(categoryBox,'Onigiri visible');
+  const catX=categoryBox.x+categoryBox.width/2,catY=categoryBox.y+categoryBox.height/2;
+  if(isMobile)await page.touchscreen.tap(catX,catY);else await page.mouse.click(catX,catY);
+  console.log('SMOKE: tapped onigiri');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
-  await page.locator('.ss-item').first().click({timeout:6500});console.log('SMOKE: item selected');
+  const sampleBox=await page.locator('.ss-item').first().boundingBox();assert.ok(sampleBox,'Sample visible');
+  const sampleX=sampleBox.x+sampleBox.width/2,sampleY=sampleBox.y+sampleBox.height/2;
+  if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
+  console.log('SMOKE: tapped item');
   assert.match(await page.locator('.ss-selected-caption').textContent(),/Онигири 01/,'click selects product');
   await page.locator('.ss-pause').click();console.log('SMOKE: paused orbit');
   const before=await page.locator('.ss-portal canvas').evaluate(el=>el.toDataURL());
