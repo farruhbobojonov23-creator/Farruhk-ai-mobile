@@ -45,7 +45,8 @@ async function verify(viewport,isMobile=false){
   if(isMobile)await page.touchscreen.tap(catX,catY);else await page.mouse.click(catX,catY);
   console.log('SMOKE: tapped onigiri');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
-  const sampleBox=await page.locator('.ss-item').first().boundingBox();assert.ok(sampleBox,'Sample visible');
+  const afterTap=await page.evaluate(()=>({title:document.querySelector('.ss-category-name')?.textContent,items:document.querySelectorAll('.ss-item').length,activeView:document.body?.dataset?.view}));console.log('SMOKE: postcategory',JSON.stringify(afterTap));
+  const sampleBox=await page.evaluate(()=>{const b=document.querySelector('.ss-item')?.getBoundingClientRect();return b?{x:b.x,y:b.y,width:b.width,height:b.height}:null});assert.ok(sampleBox,'Sample visible after category tap');
   const sampleX=sampleBox.x+sampleBox.width/2,sampleY=sampleBox.y+sampleBox.height/2;
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
   console.log('SMOKE: tapped item');
