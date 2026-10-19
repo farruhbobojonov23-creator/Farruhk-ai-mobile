@@ -1,24 +1,24 @@
 
 /* Premium Stark V4: isolated home-only product scene. Existing work areas remain unchanged. */
-body[data-view="home"]{background:#f8f3f1!important;color:#241d21}
-body[data-view="home"] .aurora-sky{display:none!important}
-body[data-view="home"] .aurora-top{background:#fffaf6ed!important;border-bottom:1px solid #e5d7d4!important;box-shadow:0 5px 30px #8e263010!important}
-body[data-view="home"] .aurora-brand{color:#231f25!important}
-body[data-view="home"] .aurora-brand span{color:#b72137!important}
-body[data-view="home"] .app{display:block!important;max-width:1560px!important;padding:0 18px 36px!important;min-height:auto!important}
-body[data-view="home"] .app > main{width:100%!important;max-width:none!important;padding:0!important;margin:0!important}
-body[data-view="home"] .app > main > .bar,
-body[data-view="home"] .app > .right,
-body[data-view="home"] #notice,
-body[data-view="home"] #retry-data-load,
-body[data-view="home"] .mobile-tools{display:none!important}
-body[data-view="home"] .app > main > .glass{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;padding:0!important;margin:0!important;max-width:none!important}
-body[data-view="home"] #home{display:block!important;padding:0!important;max-width:none!important;min-height:0!important}
-body[data-view="home"] #home > :not(.stark-showroom){display:none!important}
-body[data-view="home"] #chef-menu:not([hidden]){display:block!important;position:fixed!important;z-index:95!important;top:72px!important;left:12px!important;max-height:calc(100dvh - 86px)!important;overflow:auto!important;width:min(325px,calc(100vw - 24px))!important;box-shadow:0 28px 80px #26151d36!important;background:#fffdfa!important;color:#211d1f!important}
-body[data-view="home"] #chef-menu .nav{display:grid!important}
-body[data-view="home"] #chef-menu .nav button{color:#423a40!important;text-align:left!important}
-body[data-view="home"] #chef-menu .nav button:hover{color:#a91e35!important}
+body[data-view="home"].stark-ready{background:#f8f3f1!important;color:#241d21}
+body[data-view="home"].stark-ready .aurora-sky{display:none!important}
+body[data-view="home"].stark-ready .aurora-top{background:#fffaf6ed!important;border-bottom:1px solid #e5d7d4!important;box-shadow:0 5px 30px #8e263010!important}
+body[data-view="home"].stark-ready .aurora-brand{color:#231f25!important}
+body[data-view="home"].stark-ready .aurora-brand span{color:#b72137!important}
+body[data-view="home"].stark-ready .app{display:block!important;max-width:1560px!important;padding:0 18px 36px!important;min-height:auto!important}
+body[data-view="home"].stark-ready .app > main{width:100%!important;max-width:none!important;padding:0!important;margin:0!important}
+body[data-view="home"].stark-ready .app > main > .bar,
+body[data-view="home"].stark-ready .app > .right,
+body[data-view="home"].stark-ready #notice,
+body[data-view="home"].stark-ready #retry-data-load,
+body[data-view="home"].stark-ready .mobile-tools{display:none!important}
+body[data-view="home"].stark-ready .app > main > .glass{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;padding:0!important;margin:0!important;max-width:none!important}
+body[data-view="home"].stark-ready #home{display:block!important;padding:0!important;max-width:none!important;min-height:0!important}
+body[data-view="home"].stark-ready #home > :not(.stark-showroom){display:none!important}
+body[data-view="home"].stark-ready #chef-menu:not([hidden]){display:block!important;position:fixed!important;z-index:95!important;top:72px!important;left:12px!important;max-height:calc(100dvh - 86px)!important;overflow:auto!important;width:min(325px,calc(100vw - 24px))!important;box-shadow:0 28px 80px #26151d36!important;background:#fffdfa!important;color:#211d1f!important}
+body[data-view="home"].stark-ready #chef-menu .nav{display:grid!important}
+body[data-view="home"].stark-ready #chef-menu .nav button{color:#423a40!important;text-align:left!important}
+body[data-view="home"].stark-ready #chef-menu .nav button:hover{color:#a91e35!important}
 .stark-showroom{--ss-red:#b32139;--ss-ink:#211b21;--ss-sub:#79686e;--ss-shadow:#831e321c;position:relative;isolation:isolate;color:var(--ss-ink);padding:clamp(12px,2.5vw,34px) 0 60px;max-width:1450px;margin:auto;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
 .stark-showroom button{font:inherit;cursor:pointer}
 .stark-showroom button:focus-visible,.stark-showroom [tabindex]:focus-visible{outline:3px solid #df344b;outline-offset:4px}
@@ -65,7 +65,7 @@ body[data-view="home"] #chef-menu .nav button:hover{color:#a91e35!important}
 .stark-showroom .ss-ttk{background:#b8233d!important;color:white!important;padding:13px 21px!important;border-radius:999px!important;box-shadow:0 10px 20px #a82a4240;letter-spacing:.025em;font-weight:700!important}
 .ss-footnote{margin-top:15px;color:#978389;font-size:11px}
 @media(max-width:750px){
-  body[data-view="home"] .app{padding:0 6px 36px!important}
+  body[data-view="home"].stark-ready .app{padding:0 6px 36px!important}
   .stark-showroom{padding:10px 2px 40px}
   .ss-head{padding:0 9px}
   .ss-head h1{font-size:clamp(25px,7vw,34px)!important}
@@ -82,3 +82,10 @@ body[data-view="home"] #chef-menu .nav button:hover{color:#a91e35!important}
   .ss-showcase h2{margin-bottom:0!important}
 }
 @media(prefers-reduced-motion:reduce){.stark-showroom *, .stark-showroom *::before,.stark-showroom *::after{transition-duration:0s!important;animation-duration:0.01ms!important}}
+
+/* Graceful boot: conceal the previous home until V4 is mounted; show fallback after timeout. */
+body[data-view="home"].stark-booting #home > :not(.stark-showroom){visibility:hidden!important}
+body[data-view="home"].stark-booting #home{min-height:66vh!important}
+body[data-view="home"].stark-booting #home:before{content:"FARUKH AI  •  ЗАГРУЗКА ВИТРИНЫ";display:block;text-align:center;padding:23vh 16px;color:#ba3048;font-size:13px;letter-spacing:.18em;font-weight:750}
+body[data-view="home"].stark-booting .app > main > .bar,
+body[data-view="home"].stark-booting #notice{visibility:hidden!important}
