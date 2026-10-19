@@ -203,8 +203,8 @@ new MutationObserver(()=>{if(document.body.dataset.view!=='home'&&!['idle','erro
 const harborHour=Number(new Intl.DateTimeFormat('en-GB',{hour:'numeric',hourCycle:'h23',timeZone:'Europe/Moscow'}).format(new Date()));
 const greeting=harborHour<6?'Доброй ночи,':harborHour<12?'Доброе утро,':harborHour<18?'Добрый день,':'Добрый вечер,';
 const greetingNode=$('harbor-greeting');
-if(matchMedia('(prefers-reduced-motion: reduce)').matches)greetingNode.textContent=greeting;
-else {greetingNode.setAttribute('aria-label',greeting);greetingNode.textContent='';let i=0;const timer=setInterval(()=>{greetingNode.textContent=greeting.slice(0,++i);if(i>=greeting.length)clearInterval(timer)},55)}
+if(greetingNode){if(matchMedia('(prefers-reduced-motion: reduce)').matches)greetingNode.textContent=greeting;
+else {greetingNode.setAttribute('aria-label',greeting);greetingNode.textContent='';let i=0;const timer=setInterval(()=>{greetingNode.textContent=greeting.slice(0,++i);if(i>=greeting.length)clearInterval(timer)},55)}}
 
 const stopReply=document.createElement('button');stopReply.type='button';stopReply.textContent='Остановить голос';stopReply.onclick=()=>voice.stop();messagesDialog.querySelector('.bar').append(stopReply);
 $('device-test').onclick=()=>voice.testDevice();
