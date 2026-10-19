@@ -105,95 +105,46 @@ export function mountHaccp(root,{getState,save,notify}){
   panel.append(table,el('p','Дата и перечень контрольных точек формируются автоматически. Замеры, уборка и осмотры не отмечаются выполненными без подтверждения.','small'));
   return panel;
  }
- function cleaningSchedule(){
-  const paper=el('section',undefined,'haccp-cleaning-paper');
-  paper.append(el('h2','ИП Мамедова Э. Б.　·　СИСТЕМА ХАССП　·　ЖУРНАЛ УБОРКИ'));
-  const caption=el('p','План на '+monthLabel(monthFilter.value)+' · Генеральная уборка 1 и 15 числа; остальные дни — текущая.','small');
-  paper.append(caption);
-  const scroll=el('div',undefined,'haccp-cleaning-scroll'),table=el('table',undefined,'haccp-cleaning-table');
-  const head=el('tr');
-  for(const text of ['Наименование помещения','Моющие и дезинфицирующие средства'])head.append(el('th',text));
-  const [y,m]=monthFilter.value.split('-').map(Number),days=new Date(y,m,0).getDate();
-  for(let d=1;d<=days;d++)head.append(el('th',String(d)));
-  table.append(head);
-  const sites=[['Плазма','point-1'],['Баумана 18','point-2'],['П/З','point-3'],['Г/С 33а','point-4']];
-  const actual=h().points;
-  for(let i=0;i<sites.length;i++){
-   const [name,id]=sites[i],point=actual[i],row=el('tr');
-   row.append(el('th',point?.name?.startsWith('Точка ')?name:point?.name||name),el('td','Ника 2 Deso c9'));
-   for(let d=1;d<=days;d++){
-    const date=monthFilter.value+'-'+String(d).padStart(2,'0');
-    const saved=h().records.filter(r=>r.kind==='cleaning'&&r.pointId===(point?.id||id)&&measurementDate(r.at).slice(0,10)===date);
-    const confirmed=saved.find(r=>r.result==='done');
-    const notDone=saved.some(r=>r.result==='problem');
-    const mark=confirmed?(d===1||d===15?'Г':'Т'):notDone?'/-/':'·';
-    const td=el('td',mark);
-    td.title=confirmed?'Подтверждённая запись уборки':notDone?'Есть замечание: уборка не подтверждена':'План: '+(d===1||d===15?'генеральная':'текущая')+'; выполнение не подтверждено';
-    td.className=confirmed?'haccp-cleaning-done':'haccp-cleaning-planned';
-    td.onclick=()=>{if(!saved.length){const form=body.querySelector('form.haccp-sheet');const btn=form?.querySelector('.haccp-sheet-toolbar button');btn?.click();const at=form?.querySelector('[name=at]');if(at)at.value=date+'T11:00';const select=form?.querySelector('[name=pointId]');if(select&&point)select.value=point.id;const method=form?.querySelector('[name=method]');if(method)method.value=d===1||d===15?'Генеральная уборка по утверждённому графику':'Текущая уборка по утверждённому графику';const agent=form?.querySelector('[name=agent]');if(agent)agent.value='Ника 2 Deso c9';const zone=form?.querySelector('[name=zone]');if(zone)zone.value=point?.name||name}};
-    row.append(td);
-   }
-   table.append(row);
-  }
-  for(const [label,person] of [['Ответственный за уборку','С1 — Буцаева Земфира'],['Ответственный за контроль','С1 — Бободжонов Фаррухджон']]){
-   const row=el('tr');row.append(el('th',label),el('td',person));
-   for(let d=1;d<=days;d++)row.append(el('td','·'));
-   table.append(row);
-  }
-  scroll.append(table);paper.append(scroll);
-  paper.append(el('p','Обозначения: Г — генеральная; Т — текущая; · — запланировано, но не подтверждено; /-/ — уборка не проводилась.','small'));
-  paper.append(el('p','Текущая: производственные столы, холодильное и морозильное оборудование, инвентарь, пол, моечные ванны, полки. Генеральная: дополнительно стены и вентиляционные зонты (при наличии).','small'));
-  return paper;
- }
  function sheet(form){
   form.classList.add('haccp-sheet','haccp-a4-editor');
   form.querySelector('h2').textContent='ЖУРНАЛ · '+journalTypes[tab];
-  const fields=[...form.querySelectorAll('label')].filter(l=>l.querySelector('input,select,textarea'));
-  const modal=el('dialog',undefined,'haccp-entry-dialog');
-  const modalTitle=el('h2','Заполнение · '+journalTypes[tab]);
-  const close=button('✕ Закрыть',()=>modal.close());
-  const formFields=el('div',undefined,'haccp-entry-fields');
-  for(const label of fields){formFields.append(label)}
-  modal.append(close,modalTitle,formFields,button('Сохранить проверку',()=>form.requestSubmit(),'primary'));
-  modal.addEventListener('click',e=>{if(e.target===modal)modal.close()});
-  document.body.append(modal);
-  const openEntry=(date,pointId)=>{
-   if(date){const at=form.querySelector('[name=at]');if(at)at.value=date+'T11:00'}
-   if(pointId){const select=form.querySelector('[name=pointId]');if(select){select.value=pointId;select.dispatchEvent(new Event('change'))}}
-   if(!modal.open)modal.showModal();
-  };
-  form.addEventListener('submit',()=>{if(form.checkValidity())modal.close()});
-  const toolbar=el('div',undefined,'haccp-sheet-toolbar');
-  toolbar.append(button('＋ Заполнить запись',()=>openEntry(null,null),'primary'),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
-  form.prepend(toolbar);
-  const sheet=el('div',undefined,'haccp-full-sheet');
-  sheet.append(el('h3',journalTypes[tab]+' · '+monthLabel(monthFilter.value)));
-  const table=el('table',undefined,'haccp-month-table');
-  const head=el('tr');
-  for(const name of ['Дата','Точка','Ответственный','Данные контроля','Состояние'])head.append(el('th',name));
-  table.append(head);
-  const points=pointFilter.value?h().points.filter(p=>p.id===pointFilter.value):h().points;
-  const [year,month]=monthFilter.value.split('-').map(Number),days=new Date(year,month,0).getDate();
-  const nowParts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
-  const today=nowParts.year+'-'+nowParts.month+'-'+nowParts.day;
-  for(let day=1;day<=days;day++){
-   const date=monthFilter.value+'-'+String(day).padStart(2,'0');
-   if(date>today||(date===today&&Number(nowParts.hour)<11))continue;
-   for(const point of points){
-    const records=h().records.filter(r=>r.kind===tab&&r.pointId===point.id&&measurementDate(r.at).slice(0,10)===date);
-    const items=records.length?records:[null];
-    for(const record of items){
-     const row=el('tr');
-     row.className=record?(record.status==='deviation'?'haccp-deviation':'haccp-verified'):'haccp-pending';
-     for(const value of [date,point.name,record?.owner||'—',record?detailsText(record):'Нажмите для заполнения',record?(statuses[record.status]||'Сохранено'):'Ожидает проверки'])row.append(el('td',value));
-     if(!record&&monthFilter.value===currentMonth){row.tabIndex=0;row.setAttribute('role','button');row.onclick=()=>openEntry(date,point.id);row.onkeydown=e=>{if(e.key==='Enter')openEntry(date,point.id)}}
-     table.append(row);
-    }
-   }
+  const labels=[...form.querySelectorAll('label')].filter(l=>l.querySelector('input,select,textarea'));
+  const wrapper=el('div',undefined,'haccp-a4-scroll');
+  const paper=el('div',undefined,'haccp-a4-paper');
+  const table=el('table',undefined,'haccp-a4-table');
+  const head=el('thead'),headRow=el('tr'),row=el('tr');
+  const columnNames=[];
+  for(const label of labels){
+   const control=label.querySelector('input,select,textarea');
+   const caption=label.childNodes[0]?.textContent?.trim()||control.name;
+   columnNames.push(caption);
+   const th=el('th',caption),td=el('td');
+   control.setAttribute('aria-label',caption);
+   td.append(control);headRow.append(th);row.append(td);label.remove();
   }
-  sheet.append(table);
-  if(tab==='cleaning'){sheet.replaceChildren(cleaningSchedule())}
-  form.append(sheet);
+  head.append(headRow);table.append(head,el('tbody'));table.tBodies[0].append(row);
+  paper.append(el('div','ФОРМА УЧЁТА · '+journalTypes[tab],'haccp-a4-caption'),table);
+  wrapper.append(paper);
+  const firstGrid=form.querySelector('.fields');
+  if(firstGrid)firstGrid.before(wrapper);else form.querySelector('h2').after(wrapper);
+  for(const empty of [...form.querySelectorAll('.fields')])if(!empty.children.length)empty.remove();
+  const toolbar=el('div',undefined,'haccp-sheet-toolbar');
+  const edit=button('Заполнить строку',()=>{form.classList.add('haccp-editing');wrapper.scrollIntoView({block:'nearest',behavior:'smooth'});const first=form.querySelector('.haccp-a4-table input:not([type=hidden]),.haccp-a4-table select');first?.focus()},'primary');
+  toolbar.append(edit,button('Сохранить запись',()=>form.requestSubmit()),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
+  form.prepend(toolbar);
+  const fit=()=>{
+   if(form.classList.contains('haccp-editing'))return;
+   const available=wrapper.clientWidth-2;
+   const width=Math.max(950,Math.min(1500,columnNames.length*125));
+   paper.style.width=width+'px';
+   const scale=Math.min(1,available/width);
+   paper.style.transform='scale('+scale+')';
+   paper.style.transformOrigin='top left';
+   wrapper.style.height=Math.ceil(paper.scrollHeight*scale+8)+'px';
+  };
+  if(window.ResizeObserver){const observer=new ResizeObserver(fit);observer.observe(wrapper);form.addEventListener('submit',()=>observer.disconnect(),{once:true})}
+  requestAnimationFrame(fit);
+  edit.onclick=()=>{form.classList.add('haccp-editing');paper.style.transform='none';paper.style.width='max-content';wrapper.style.height='auto';wrapper.style.overflowX='auto';form.querySelector('.haccp-a4-table select,.haccp-a4-table input')?.focus()};
  }
  function h(){return getState()?.haccp||emptyHaccp()}
  function say(text,error=false){message.textContent=text;message.classList.toggle('error',error);if(error)notify(text,true)}
@@ -231,11 +182,9 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  function drawHistory(){history.replaceChildren();if(journalTypes[tab])journalHistory()}
  function build(){
- // Dialogs live outside the journal body; remove obsolete ones on every rebuild.
- document.querySelectorAll('dialog.haccp-entry-dialog').forEach(dialog=>dialog.remove());
  const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=isCatalog||!isJournal;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
  for(const node of [controls,monthBar,periodHint])node.hidden=isCatalog||!isJournal;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
- const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+ const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.prepend(dailyDrafts());journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
