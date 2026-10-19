@@ -36,7 +36,8 @@ async function verify(viewport,isMobile=false){
  try{
   await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});await page.locator('body').waitFor({state:'attached',timeout:12000});console.log('SMOKE: navigated');
   await page.waitForFunction(()=>document.body?.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
-  assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');console.log('SMOKE: category count OK');
+  assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');
+  assert.equal(await page.locator('.ss-shortcut').count(),8,'8 working dashboard shortcuts');console.log('SMOKE: category count OK');
   assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');console.log('SMOKE: sample count OK');
   const snapshot=await page.evaluate(()=>({showcase:document.querySelector('.ss-showcase')?.outerHTML.slice(0,700),headings:[...document.querySelectorAll('h2')].map(e=>e.className+' '+e.textContent.slice(0,50)).slice(0,15),ready:document.body.className,marked:document.querySelector('.ss-markers')?.children.length}));console.log('SMOKE: DOM',JSON.stringify(snapshot));
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Холодные роллы');
@@ -47,6 +48,8 @@ async function verify(viewport,isMobile=false){
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
   const afterTap=await page.evaluate(()=>({title:document.querySelector('.ss-category-name')?.textContent,items:document.querySelectorAll('.ss-item').length,activeView:document.body?.dataset?.view}));console.log('SMOKE: postcategory',JSON.stringify(afterTap));
   assert.equal(await page.evaluate(()=>document.querySelectorAll('.ss-item').length),1,'Onigiri has one real demo photo rather than three fake triangles');
+  // The premium dashboard has a longer scrollable home: scroll the sample into view before a real pointer tap.
+  await page.locator('.ss-item').first().scrollIntoViewIfNeeded();
   const sampleBox=await page.evaluate(()=>{const b=document.querySelector('.ss-item')?.getBoundingClientRect();return b?{x:b.x,y:b.y,width:b.width,height:b.height}:null});assert.ok(sampleBox,'Sample visible after category tap');
   const sampleX=sampleBox.x+sampleBox.width/2,sampleY=sampleBox.y+sampleBox.height/2;
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
@@ -56,6 +59,7 @@ async function verify(viewport,isMobile=false){
   console.log('SMOKE: local product photo decoded with one-time background removal');
   assert.equal(await page.evaluate(()=>document.querySelector('.ss-pause')?.getAttribute('aria-pressed')),'true','respect reduced-motion preference');console.log('SMOKE: motion reduced');
   const before=await page.evaluate(()=>document.querySelector('.ss-marker')?.style.transform);
+  await page.locator('.ss-portal').scrollIntoViewIfNeeded();
   const box=await page.evaluate(()=>{const r=document.querySelector('.ss-portal').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}});
   await page.mouse.move(box.x+box.width*.5,box.y+box.height*.42);
   await page.mouse.down();
