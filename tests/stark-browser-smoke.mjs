@@ -67,7 +67,8 @@ async function verify(viewport,isMobile=false){
   assert.equal(await page.locator('#recipes').isVisible(),true,'TTK section still works');
   const sync=page.getByRole('button',{name:'Google Документы'});
   assert.equal(await sync.count(),1,'Google integration still mounted');
-  await page.locator('#menu-toggle').evaluate(el=>el.click());
+  await page.waitForTimeout(250);
+  await page.locator('#menu-toggle').click({timeout:7000});
   const menuSnapshot=await page.evaluate(()=>{const el=document.querySelector('#chef-menu'),computed=getComputedStyle(el);return {hidden:el.hidden,display:computed.display,visibility:computed.visibility,rect:el.getBoundingClientRect().toJSON(),body:document.body.dataset.view,toggle:document.querySelector('#menu-toggle')?.getAttribute('aria-expanded')}});console.log('SMOKE: menu diagnostics',JSON.stringify(menuSnapshot));
   assert.equal(await page.locator('#chef-menu').isVisible(),true,'menu opens');
   await page.locator('#chef-menu button[data-view="home"]').evaluate(el=>el.click());
