@@ -96,3 +96,19 @@ body[data-view="home"].stark-booting #notice{visibility:hidden!important}
 .ss-item .ss-food,.ss-item img{filter:drop-shadow(0 14px 10px #3f1d2b5c);transition:transform .22s ease;max-width:100%}
 .ss-item:hover .ss-food,.ss-item:hover img{transform:rotate(-6deg) scale(1.08)}
 .ss-item span{background:#fff9f5e0;border-radius:999px;border:1px solid #eddddd;padding:5px 9px;max-width:145px}
+
+/* Refined single-tone ivory + red/black Stark V4 composition, above the fold. */
+body[data-view="home"].stark-ready #home .ss-head h1{color:#21171f!important;font-size:clamp(25px,2.75vw,38px)!important;letter-spacing:-.045em!important;margin:10px 0 7px!important}
+body[data-view="home"].stark-ready #home .ss-head h1 span{color:#ad2039!important}
+.stark-showroom .ss-portal{height:clamp(350px,34vw,480px)}
+.stark-showroom .ss-deck{height:clamp(215px,21vw,270px)}
+.stark-showroom .ss-head{margin-bottom:0}
+.ss-sideinfo,.ss-side-ai{position:absolute;z-index:4;top:26%;display:flex;flex-direction:column;align-items:flex-start;gap:7px;width:148px;min-height:115px;padding:18px 14px;border:1px solid #eadbd8;background:linear-gradient(140deg,#ffffffee,#fff9f5de);box-shadow:0 12px 33px #88283c1e;border-radius:18px;color:#2b1e27}
+.ss-sideinfo{left:-159px}.ss-side-ai{right:-159px;align-items:center;text-align:center}
+.ss-sideinfo small,.ss-side-ai small{font-size:10px;color:#765d67;letter-spacing:.055em}
+.ss-sideinfo strong{font-size:27px;letter-spacing:-.065em;font-weight:760;color:#af273e}
+.ss-side-ai strong{font-size:13px;letter-spacing:.08em}
+.ss-ai-icon{width:39px;height:39px;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 28% 24%,#fb7889,#b51837,#1e1019);border-radius:50%;box-shadow:0 4px 16px #a8253e70;font-size:23px}
+.stark-showroom .ss-chat{margin-top:4px;background:#b7243f!important;border:1px solid #b7243f!important;color:#fff!important;padding:9px 10px!important;border-radius:10px!important;font-size:10px!important}
+@media(max-width:1390px){.stark-showroom .ss-sideinfo,.stark-showroom .ss-side-ai{display:none}}
+@media(max-width:750px){.stark-showroom .ss-portal{height:clamp(380px,108vw,470px)}.stark-showroom .ss-deck{height:240px}.stark-showroom .ss-head p{font-size:11px!important}}
