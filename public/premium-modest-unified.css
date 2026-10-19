@@ -295,6 +295,13 @@ body[data-view]:not([data-view="home"]) #lab .haccp-back{
 body[data-view]:not([data-view="home"]) .haccp-tabs button[aria-pressed="true"]{
   background:#e5cfb8!important;border-color:#bb9875!important;
 }
+/* A4 HACCP journal editing retains its compact grid fields. */
+body[data-view="lab"] .haccp-a4-table input,
+body[data-view="lab"] .haccp-a4-table textarea,
+body[data-view="lab"] .haccp-a4-table select{
+  border-radius:2px!important;border:1px solid #d4ddd7!important;
+  background:#fff!important;color:#172d22!important;
+}
 body[data-view] .mobile-tools{
   background:#fffaf5f5!important;border-color:var(--pm-line)!important;
   box-shadow:0 -9px 25px #67462b0d!important;
