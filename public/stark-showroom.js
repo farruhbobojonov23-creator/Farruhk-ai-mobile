@@ -144,10 +144,10 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   ctx.globalAlpha=1;
  }
  function placeMarkers(){
-  const w=portal.clientWidth,h=portal.clientHeight,rx=Math.min(w*.39,385),ry=h*.375;
+  const w=portal.clientWidth,h=portal.clientHeight,rx=Math.min(w*(w<750?.34:.39),385),ry=h*.375;
   buttons.forEach((b,i)=>{
    const a=i*2*Math.PI/buttons.length+orbit;
-   const depth=Math.cos(a), x=w*.5+Math.sin(a)*rx, y=h*.44+Math.cos(a)*ry*.48+Math.sin(a)*ry*.54*Math.sin(pitch*.5+.3);
+   const depth=Math.cos(a), x=w*.5+Math.sin(a)*rx, y=h*.44+Math.cos(a)*ry*.74+Math.sin(a)*ry*.23*Math.sin(pitch*.5+.3);
    b.style.left=x+'px';b.style.top=y+'px';b.style.zIndex=String(20+Math.round(12*depth));b.style.opacity=String(.65+.35*(depth+1)/2);
    b.style.scale=String(.82+.17*(depth+1)/2);
   });
