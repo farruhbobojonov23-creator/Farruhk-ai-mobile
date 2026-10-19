@@ -48,3 +48,12 @@
 .haccp-a4-table textarea{min-height:65px;resize:vertical}
 .haccp-a4-table input:focus,.haccp-a4-table select:focus,.haccp-a4-table textarea:focus{outline:2px solid #39836a;outline-offset:0}
 @media print{.haccp-a4-scroll{overflow:visible}.haccp-a4-paper{box-shadow:none;border:0;min-width:0;min-height:0;padding:0}@page{size:A4 landscape;margin:10mm}}
+
+#lab .haccp-daily-overview{background:#fff;border:1px solid #dce7dc;border-radius:18px;padding:18px;margin:18px 0;box-shadow:0 4px 18px #18382b0d}
+#lab .haccp-daily-overview h2{font-size:20px;color:#214734;margin:0 0 8px}
+#lab .haccp-status-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+#lab .haccp-status-table th,#lab .haccp-status-table td{padding:10px 8px;border-bottom:1px solid #e3ebe5;text-align:left}
+#lab .haccp-status-table th{background:#edf5ee;color:#2a523d}
+#lab .haccp-status-table tr:not(:first-child){cursor:pointer}
+#lab .haccp-a4-paper{width:1122px;max-width:none}
+#lab .haccp-a4-scroll{max-width:100%;overflow:auto}
