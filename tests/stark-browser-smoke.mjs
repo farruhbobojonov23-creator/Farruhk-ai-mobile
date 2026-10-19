@@ -37,10 +37,12 @@ async function verify(viewport,isMobile=false){
   await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});await page.locator('body').waitFor({state:'attached',timeout:12000});console.log('SMOKE: navigated');
   await page.waitForFunction(()=>document.body?.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
   assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');
-  assert.equal(await page.locator('.ss-shortcut').count(),8,'8 working dashboard shortcuts');console.log('SMOKE: category count OK');
+  assert.equal(await page.locator('.ss-shortcut').count(),8,'8 working dashboard shortcuts');
+  assert.equal(await page.locator('.stark-showroom').evaluate(el=>getComputedStyle(el).display),'grid','premium home uses new two-column dashboard layout');console.log('SMOKE: category count OK');
   assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');console.log('SMOKE: sample count OK');
   const snapshot=await page.evaluate(()=>({showcase:document.querySelector('.ss-showcase')?.outerHTML.slice(0,700),headings:[...document.querySelectorAll('h2')].map(e=>e.className+' '+e.textContent.slice(0,50)).slice(0,15),ready:document.body.className,marked:document.querySelector('.ss-markers')?.children.length}));console.log('SMOKE: DOM',JSON.stringify(snapshot));
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Холодные роллы');
+  await page.locator('.ss-portal').scrollIntoViewIfNeeded();
   const categoryBox=await page.getByRole('button',{name:'Онигири',exact:true}).boundingBox();assert.ok(categoryBox,'Onigiri visible');
   const catX=categoryBox.x+categoryBox.width/2,catY=categoryBox.y+categoryBox.height/2;
   if(isMobile)await page.touchscreen.tap(catX,catY);else await page.mouse.click(catX,catY);
