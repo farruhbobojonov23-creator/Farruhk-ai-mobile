@@ -30,7 +30,7 @@ await fs.mkdir('artifacts',{recursive:true});
 let failures=[];
 async function verify(viewport,isMobile=false){
  console.log('SMOKE: opening',isMobile?'mobile':'desktop');
- const context=await browser.newContext({viewport,deviceScaleFactor:1,hasTouch:isMobile,isMobile});
+ const context=await browser.newContext({viewport,deviceScaleFactor:1,hasTouch:isMobile,isMobile,reducedMotion:'reduce'});
  const page=await context.newPage();
  const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE:',m.text().slice(0,450))});page.on('response',r=>{if(r.status()>=400)console.log('BROWSER HTTP',r.status(),r.url().slice(0,140))});
  try{
@@ -50,16 +50,16 @@ async function verify(viewport,isMobile=false){
   const sampleX=sampleBox.x+sampleBox.width/2,sampleY=sampleBox.y+sampleBox.height/2;
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
   console.log('SMOKE: tapped item');
-  assert.match(await page.locator('.ss-selected-caption').textContent(),/Онигири 01/,'click selects product');
+  assert.match(await page.evaluate(()=>document.querySelector('.ss-selected-caption')?.textContent),/Онигири 01/,'click selects product');
   const pausePos=await page.evaluate(()=>{const el=document.querySelector('.ss-pause'),r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return{x:r.x+r.width/2,y:r.y+r.height/2,hit:hit?.className||hit?.tagName}});console.log('SMOKE: pause hit target',JSON.stringify(pausePos));
   if(isMobile)await page.touchscreen.tap(pausePos.x,pausePos.y);else await page.mouse.click(pausePos.x,pausePos.y);console.log('SMOKE: paused orbit');
-  const before=await page.locator('.ss-marker').first().evaluate(el=>el.style.transform);
-  const box=await page.locator('.ss-portal').boundingBox();
+  const before=await page.evaluate(()=>document.querySelector('.ss-marker')?.style.transform);
+  const box=await page.evaluate(()=>{const r=document.querySelector('.ss-portal').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}});
   await page.mouse.move(box.x+box.width*.5,box.y+box.height*.42);
   await page.mouse.down();
   await page.mouse.move(box.x+box.width*.5+65,box.y+box.height*.42+28,{steps:9});
   await page.mouse.up();
-  const after=await page.locator('.ss-marker').first().evaluate(el=>el.style.transform);
+  const after=await page.evaluate(()=>document.querySelector('.ss-marker')?.style.transform);
   assert.notEqual(before,after,'drag rotates the product orbit around the 3D globe');
   await page.screenshot({path:'artifacts/stark-v4-'+(isMobile?'mobile':'desktop')+'.png',fullPage:true,timeout:8000}).catch(error=>console.log('SMOKE: screenshot skipped:',error.message.slice(0,160)));console.log('SMOKE: screenshot stage passed');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
