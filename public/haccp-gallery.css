@@ -65,3 +65,20 @@
 #lab .haccp-a4-editor .haccp-a4-table td{padding:5px 3px!important}
 #lab .haccp-a4-editor.haccp-editing .haccp-a4-scroll{overflow-x:auto!important;overflow-y:visible!important;height:auto!important}
 #lab .haccp-a4-editor .haccp-sheet-toolbar{position:relative;z-index:1}
+
+#lab .haccp-full-sheet{background:white;border:1px solid #d5ded8;padding:12px;margin:12px 0;overflow-x:auto;color:#25392e}
+#lab .haccp-full-sheet h3{text-align:center;font-size:15px;margin:6px 0 14px}
+#lab .haccp-month-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
+#lab .haccp-month-table th,#lab .haccp-month-table td{border:1px solid #b6c6ba;padding:7px;white-space:pre-wrap;overflow-wrap:anywhere}
+#lab .haccp-month-table th{background:#e9f0e9;color:#214333}
+#lab .haccp-month-table .haccp-pending{background:#fff9e9;cursor:pointer}
+#lab .haccp-month-table .haccp-verified{background:#eef8f0}
+#lab .haccp-month-table .haccp-deviation{background:#ffeded}
+.haccp-entry-dialog{border:0;border-radius:22px;padding:22px;width:min(94vw,620px);max-height:88dvh;overflow:auto;box-shadow:0 20px 80px #112e2966;color:#233c2c;background:#fff}
+.haccp-entry-dialog::backdrop{background:#102c2580}
+.haccp-entry-dialog h2{font-size:21px;margin:16px 0}
+.haccp-entry-dialog label{display:block;margin:12px 0;color:#254638;font-size:14px}
+.haccp-entry-dialog input,.haccp-entry-dialog select,.haccp-entry-dialog textarea{display:block;width:100%;min-height:46px;margin-top:6px;padding:12px;border:1px solid #cad9cd;border-radius:10px;font-size:16px;background:#fff;color:#193b29}
+.haccp-entry-dialog button{min-height:46px}
+@media(max-width:600px){#lab .haccp-month-table{font-size:10px}#lab .haccp-month-table th,#lab .haccp-month-table td{padding:4px}#lab .haccp-full-sheet{padding:5px}}
+@media print{@page{size:A4 landscape;margin:9mm}.haccp-entry-dialog{display:none!important}}
