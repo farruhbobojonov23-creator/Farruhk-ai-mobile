@@ -346,3 +346,140 @@ dialog.category-dialog::backdrop,dialog.lunar-dialog::backdrop{
  }
  body[data-view] .mobile-tools,.ss-ask,.ss-quick-grid{display:none!important}
 }
+
+/* V2: a genuinely redesigned dashboard, not a recolored copy of the previous Stark layout. */
+body[data-view="home"].stark-ready .stark-showroom {
+  display:grid!important;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;
+  grid-template-areas:"heading heading" "shortcuts globe" "products products";
+  align-items:start;
+  column-gap:clamp(16px,3vw,44px);
+  row-gap:clamp(14px,1.5vw,22px);
+  max-width:1280px!important;
+  padding:30px clamp(8px,2vw,25px) 56px!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-head {
+  grid-area:heading; margin:0!important;max-width:100%;text-align:left!important;
+}
+body[data-view="home"].stark-ready #home .ss-head h1 {
+  font-size:clamp(30px,3.6vw,48px)!important;
+  font-weight:650!important;
+  line-height:1.1!important;margin:10px 0 9px!important;
+}
+body[data-view="home"].stark-ready #home .ss-head h1 span,
+body[data-view="home"].stark-ready #home .stark-showroom h1 span {
+  color:#846043!important;-webkit-text-fill-color:#846043!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-head p {
+  font-size:14px!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-home-tools{
+  grid-area:shortcuts;align-self:center;width:100%;max-width:none!important;
+  margin:0!important;padding:25px!important;border-radius:26px;
+  border:1px solid #e4d3c1!important;background:rgba(255,251,245,.75)!important;
+  box-shadow:0 15px 48px rgba(96,65,38,.075)!important;
+}
+body[data-view="home"].stark-ready .ss-home-tools .ss-ask{
+  margin:0 0 17px!important;width:100%!important;
+  box-shadow:0 5px 22px #69452a15!important;background:#fffefb!important;
+}
+body[data-view="home"].stark-ready .ss-home-tools .ss-quick-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;margin:0!important;padding:0!important;width:100%!important;
+}
+body[data-view="home"].stark-ready .ss-home-tools .ss-shortcut{
+  flex-direction:row!important;justify-content:flex-start!important;
+  min-height:71px!important;padding:13px 12px!important;
+  border-radius:16px!important;gap:11px!important;text-align:left!important;
+  background:#fcf7f0!important;
+}
+body[data-view="home"].stark-ready .ss-home-tools .ss-shortcut svg{
+  flex:0 0 26px!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-portal{
+  grid-area:globe;align-self:center;
+  width:100%!important;max-width:none!important;margin:0!important;
+  height:clamp(400px,39vw,540px)!important;
+  min-height:0!important;max-height:none!important;
+}
+body[data-view="home"].stark-ready .ss-portal .ss-marker,
+body[data-view="home"].stark-ready .ss-portal .ss-marker[aria-pressed="true"],
+body[data-view="home"].stark-ready .ss-portal .ss-marker:focus-visible{
+  color:#39291e!important;-webkit-text-fill-color:#39291e!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-marker[aria-pressed="true"]:after{
+  background:#a37d53!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-showcase{
+  grid-area:products;max-width:none!important;width:100%!important;
+  margin:8px auto 0!important;padding:28px clamp(16px,3vw,40px) 30px!important;
+  background:rgba(255,251,246,.72)!important;
+  border:1px solid #e1d1c0!important;
+  border-radius:28px!important;
+  box-shadow:0 14px 46px #64432910!important;
+}
+body[data-view="home"].stark-ready #home .ss-showcase h2{
+  color:#302218!important;-webkit-text-fill-color:#302218!important;
+}
+body[data-view="home"].stark-ready .ss-head .ss-eyebrow{
+  color:#76513b!important;-webkit-text-fill-color:#76513b!important;
+}
+body[data-view="home"].stark-ready #home .stark-showroom .ss-item span,
+body[data-view="home"].stark-ready .stark-showroom .ss-item span{
+  color:#39291e!important;-webkit-text-fill-color:#39291e!important;
+  border-color:#e0d0bb!important;background:#fffaf4eF!important;
+}
+body[data-view="home"].stark-ready .stark-showroom .ss-showcase-title{
+  color:#8a6544!important;-webkit-text-fill-color:#8a6544!important;
+}
+body[data-view="home"].stark-ready .ss-portal .ss-hud{
+  letter-spacing:.04em!important;
+}
+@media(max-width:880px){
+ body[data-view="home"].stark-ready .stark-showroom {
+   display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+   grid-template-areas:"heading" "shortcuts" "globe" "products"!important;
+   gap:10px!important;
+   padding:18px 8px 32px!important;
+ }
+ body[data-view="home"].stark-ready .stark-showroom .ss-head{
+   text-align:center!important;margin:0 5px!important;
+ }
+ body[data-view="home"].stark-ready #home .ss-head h1{
+   font-size:clamp(25px,5vw,34px)!important;margin:8px 0!important;
+ }
+ body[data-view="home"].stark-ready .stark-showroom .ss-home-tools{
+   width:100%!important;margin:7px auto 0!important;
+   padding:12px!important;border-radius:21px!important;
+ }
+ body[data-view="home"].stark-ready .ss-home-tools .ss-ask{
+   min-height:45px!important;margin-bottom:11px!important;font-size:12px!important;
+ }
+ body[data-view="home"].stark-ready .ss-home-tools .ss-quick-grid{
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;
+ }
+ body[data-view="home"].stark-ready .ss-home-tools .ss-shortcut{
+   flex-direction:column!important;justify-content:center!important;
+   min-height:78px!important;padding:7px 3px!important;
+   border-radius:14px!important;gap:4px!important;
+ }
+ body[data-view="home"].stark-ready .ss-home-tools .ss-shortcut svg{
+   width:23px!important;height:23px!important;flex:none!important;
+ }
+ body[data-view="home"].stark-ready .ss-home-tools .ss-shortcut span{
+   font-size:10px!important;line-height:1.15!important;text-align:center!important;
+ }
+ body[data-view="home"].stark-ready .stark-showroom .ss-portal{
+   width:100%!important;height:390px!important;min-height:390px!important;
+   max-height:390px!important;margin:0 auto!important;
+ }
+ body[data-view="home"].stark-ready .stark-showroom .ss-showcase{
+   margin:0!important;padding:16px 4px 24px!important;
+   border-radius:20px!important;
+ }
+}
+@media(max-width:355px){
+ body[data-view="home"].stark-ready .ss-home-tools .ss-quick-grid{
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
