@@ -5,6 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
 
+const timeout=setTimeout(()=>{console.error('BROWSER QA TIMEOUT: process exceeded 95 seconds');process.exit(1)},95000);timeout.unref();
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../public');
 const media={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.wasm':'application/wasm'};
 const server=http.createServer(async(req,res)=>{
@@ -28,20 +29,21 @@ const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usag
 await fs.mkdir('artifacts',{recursive:true});
 let failures=[];
 async function verify(viewport,isMobile=false){
+ console.log('SMOKE: opening',isMobile?'mobile':'desktop');
  const context=await browser.newContext({viewport,deviceScaleFactor:1,hasTouch:isMobile,isMobile});
  const page=await context.newPage();
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  try{
-  await page.goto(origin+'/',{waitUntil:'domcontentloaded',timeout:20000});
-  await page.waitForFunction(()=>document.body.classList.contains('stark-ready'),{timeout:20000});
-  assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');
+  await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});console.log('SMOKE: navigated');
+  await page.waitForFunction(()=>document.body.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
+  assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');console.log('SMOKE: category count OK');
   assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Холодные роллы');
-  await page.getByRole('button',{name:'Онигири',exact:true}).click({timeout:8000});
+  await page.getByRole('button',{name:'Онигири',exact:true}).click({timeout:6500});console.log('SMOKE: selected onigiri');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
-  await page.locator('.ss-item').first().click({timeout:8000});
+  await page.locator('.ss-item').first().click({timeout:6500});console.log('SMOKE: item selected');
   assert.match(await page.locator('.ss-selected-caption').textContent(),/Онигири 01/,'click selects product');
-  await page.locator('.ss-pause').click();
+  await page.locator('.ss-pause').click();console.log('SMOKE: paused orbit');
   const before=await page.locator('.ss-portal canvas').evaluate(el=>el.toDataURL());
   const box=await page.locator('.ss-portal').boundingBox();
   await page.mouse.move(box.x+box.width*.5,box.y+box.height*.42);
@@ -50,10 +52,10 @@ async function verify(viewport,isMobile=false){
   await page.mouse.up();
   const after=await page.locator('.ss-portal canvas').evaluate(el=>el.toDataURL());
   assert.notEqual(before,after,'drag rotates the 3D globe');
-  await page.screenshot({path:'artifacts/stark-v4-'+(isMobile?'mobile':'desktop')+'.png',fullPage:true});
+  await page.screenshot({path:'artifacts/stark-v4-'+(isMobile?'mobile':'desktop')+'.png',fullPage:true,timeout:12000});console.log('SMOKE: screenshot');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
   assert.ok(overflow<10,'horizontal overflow '+overflow+'px');
-  await page.getByRole('button',{name:/Открыть товары и техкарты/}).click({timeout:8000});
+  await page.getByRole('button',{name:/Открыть товары и техкарты/}).click({timeout:6500});console.log('SMOKE: navigated to TTK');
   assert.equal(await page.locator('#recipes').isVisible(),true,'TTK section still works');
   const sync=page.getByRole('button',{name:'Google Документы'});
   assert.equal(await sync.count(),1,'Google integration still mounted');
