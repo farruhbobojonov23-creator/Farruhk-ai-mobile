@@ -82,10 +82,10 @@ function photoUrl(recipe){
 function addButton(parent,cls,label,onClick){
  const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=label;b.addEventListener('click',onClick);parent.append(b);return b;
 }
-export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},onOpenChat=()=>{}}={}){
+export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},onOpenChat=()=>{},onNavigate=()=>{}}={}){
  if(!host)throw new Error('Missing home element for Stark showroom');
  const root=document.createElement('div');root.className='stark-showroom';root.innerHTML=
-  '<header class="ss-head"><div class="ss-eyebrow">FARUKH AI · PREMIUM STARK V4</div><h1>Товары <span>в новом измерении</span></h1><p>Вращайте планету пальцем. Коснитесь категории, чтобы увидеть товары.</p></header>'+
+  '<header class="ss-head"><div class="ss-eyebrow">FARRUKH AI · PREMIUM EDITION</div><h1>Ваша кухня <span>под контролем</span></h1><p>Выберите раздел или вращайте глобус — все категории и товары у вас под рукой.</p></header>'+
   '<section class="ss-portal" tabindex="0" aria-label="Поверните планету стрелками клавиатуры или проведите пальцем. Категории товаров — отдельные кнопки.">'+
   '<div class="ss-world" aria-hidden="true"><span class="ss-world-shine"></span></div><div class="ss-ring" aria-hidden="true"></div><div class="ss-ring second" aria-hidden="true"></div>'+
   '<div class="ss-markers" aria-label="Категории товаров"></div>'+ 
@@ -101,6 +101,38 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   '<button type="button" class="ss-ttk">Открыть товары и техкарты ↗</button>'+
   '<p class="ss-footnote">Пока стоят демонстрационные образцы — ваши фотографии добавим позже.</p></section>';
  host.prepend(root);
+ // Real navigation shortcuts in the approved premium mockup: each goes to a working module.
+ // No invented orders, finance or warehouse screens.
+ const shortcuts=[
+  ['Техкарты','recipes','<path d="M5 17h14M6 17V8a6 6 0 0 1 12 0v9M9 8V5m6 3V5M4 20h16"/>'],
+  ['ХАССП','lab','<path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/>'],
+  ['Заготовки','preparations','<path d="m3 7 9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/>'],
+  ['Калькулятор','calc','<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h2m4 0h2M8 15h2m4 0h2M8 19h2m4 0h2"/>'],
+  ['Контроль','checks','<path d="M8 4h12v18H4V4h4m0-2h8v4H8zM8 11l2 2 4-4M8 18h8"/>'],
+  ['Задачи','tasks','<rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 6-7"/>'],
+  ['Ассистент','chat','<path d="M4 5h16v13H9l-5 4V5zM8 10h8M8 14h5"/>'],
+  ['Настройки','settings','<circle cx="12" cy="12" r="3"/><path d="M10 2h4l1 3 2 1 3-1 2 4-2 2v2l2 2-2 4-3-1-2 1-1 3h-4l-1-3-2-1-3 1-2-4 2-2v-2L2 9l2-4 3 1 2-1z"/>']
+ ];
+ const actions=document.createElement('section');
+ actions.className='ss-home-tools';
+ actions.setAttribute('aria-label','Быстрый доступ к разделам');
+ const ask=document.createElement('button');
+ ask.type='button';ask.className='ss-ask';
+ ask.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 6 6"/></svg><span>Спросите помощника о работе кухни…</span><span class="ss-ask-end" aria-hidden="true">↗</span>';
+ ask.addEventListener('click',onOpenChat);
+ const grid=document.createElement('nav');grid.className='ss-quick-grid';grid.setAttribute('aria-label','Рабочие разделы');
+ for(const [label,destination,icon] of shortcuts){
+  const b=document.createElement('button');b.type='button';b.className='ss-shortcut';
+  b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+icon+'</svg><span>'+label+'</span>';
+  b.addEventListener('click',()=>{
+   if(destination==='preparations')document.getElementById('menu-preparations')?.click();
+   else if(destination==='settings')document.getElementById('lunar-settings')?.click();
+   else onNavigate(destination);
+  });
+  grid.append(b);
+ }
+ actions.append(ask,grid);
+ root.querySelector('.ss-showcase').before(actions);
  const portal=root.querySelector('.ss-portal'),world=root.querySelector('.ss-world');
  const markers=root.querySelector('.ss-markers'),deck=root.querySelector('.ss-deck'),items=root.querySelector('.ss-items');
  let portalW=portal.clientWidth,portalH=portal.clientHeight,deckW=deck.clientWidth,deckH=deck.clientHeight;
