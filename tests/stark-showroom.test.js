@@ -14,7 +14,9 @@ test('Premium Stark V4 module parses and is mounted on the real public home',asy
  assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=1';/);
  assert.match(html,/starkShowroom=mountStarkShowroom\(\{host:\$\('home'\)/);
  assert.match(html,/starkShowroom\?\.updateRecipes\(state\?\.recipes\|\|\[\]\)/);
- assert.match(css,/body\[data-view="home"\] #home > :not\(\.stark-showroom\)/);
+ assert.match(css,/body\[data-view="home"\]\.stark-ready #home > :not\(\.stark-showroom\)/);
+ assert.match(css,/stark-booting #home > :not\(\.stark-showroom\)/);
+ assert.match(js,/classList\.add\('stark-ready'\)/);
 });
 
 test('Existing Google synchronization, TTK and HACCP code paths remain linked',async()=>{
