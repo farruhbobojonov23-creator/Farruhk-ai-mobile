@@ -82,3 +82,14 @@
 .haccp-entry-dialog button{min-height:46px}
 @media(max-width:600px){#lab .haccp-month-table{font-size:10px}#lab .haccp-month-table th,#lab .haccp-month-table td{padding:4px}#lab .haccp-full-sheet{padding:5px}}
 @media print{@page{size:A4 landscape;margin:9mm}.haccp-entry-dialog{display:none!important}}
+
+#lab .haccp-cleaning-paper{background:#fff;color:#252525;padding:14px;max-width:100%}
+#lab .haccp-cleaning-paper h2{text-align:center;font-size:16px;margin:6px 0 12px}
+#lab .haccp-cleaning-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#lab .haccp-cleaning-table{border-collapse:collapse;table-layout:fixed;width:max-content;min-width:100%;font-size:11px}
+#lab .haccp-cleaning-table th,#lab .haccp-cleaning-table td{border:1px solid #666;padding:7px 4px;text-align:center;min-width:27px}
+#lab .haccp-cleaning-table th:first-child{min-width:148px}
+#lab .haccp-cleaning-table th:nth-child(2),#lab .haccp-cleaning-table td:nth-child(2){min-width:160px}
+#lab .haccp-cleaning-planned{background:#fff9ed;cursor:pointer}
+#lab .haccp-cleaning-done{background:#e9f5e9}
+@media print{#lab .haccp-cleaning-paper{padding:0}#lab .haccp-cleaning-table{font-size:8px;width:100%}#lab .haccp-cleaning-table th,#lab .haccp-cleaning-table td{min-width:0;padding:3px 1px}}
