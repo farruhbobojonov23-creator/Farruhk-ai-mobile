@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - redesign/premium-stark-v4
+      - fix/stark-v4-mobile-performance
   pull_request:
     branches:
       - main

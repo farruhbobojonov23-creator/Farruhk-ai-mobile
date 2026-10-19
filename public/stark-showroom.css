@@ -173,3 +173,122 @@ body[data-view="home"].stark-ready #chef-menu:not([hidden]){
  .stark-showroom .ss-marker .ss-mark{font-size:18px!important;width:22px;height:22px}
  .stark-showroom .ss-showcase{padding:0 5px 15px}
 }
+
+/* V4 MOBILE HOTFIX: bright one-tone showroom with a textured, compositor-only globe. */
+body[data-view="home"].stark-ready,
+html:has(body[data-view="home"].stark-ready){background-color:#f8f2ee!important}
+body[data-view="home"].stark-ready .stark-showroom .ss-portal,
+body[data-view="home"].stark-ready .stark-showroom .ss-showcase{
+  background:transparent!important;background-color:transparent!important;
+  background-image:none!important;box-shadow:none!important;
+}
+.stark-showroom .ss-portal{
+  border:0!important;isolation:isolate;overflow:visible;
+}
+.stark-showroom .ss-world{
+  --ss-longitude:65%;--ss-tilt:0deg;
+  position:absolute;left:50%;top:44%;z-index:1;
+  width:min(45.6%,390px);aspect-ratio:1;
+  transform:translate3d(-50%,-50%,0) rotate(var(--ss-tilt));
+  border-radius:50%;
+  background-color:#215f80;
+  background-image:url("/assets/earth-day-2048.jpg");
+  background-repeat:repeat-x;background-size:200% 100%;
+  background-position:var(--ss-longitude) 50%;
+  box-shadow:inset -24px -12px 37px #0a172b99,inset 13px 7px 23px #d6f9ff50,
+  0 0 0 1px #d24b6370,0 0 30px #f44e6d66,0 25px 45px #a7436240;
+  will-change:background-position;
+  pointer-events:none;
+}
+.stark-showroom .ss-world:before{
+  content:"";inset:0;position:absolute;border-radius:inherit;
+  background:radial-gradient(circle at 29% 24%,#ffffff61,transparent 41%),
+    radial-gradient(circle at 83% 85%,#0a0f2699,transparent 63%);
+  mix-blend-mode:screen;pointer-events:none;
+}
+.stark-showroom .ss-world-shine{position:absolute;inset:-4%;border-radius:50%;border:1px solid #f36d8280;box-shadow:0 0 0 5px #f06b860f,0 0 25px #f05c7447;pointer-events:none}
+.stark-showroom .ss-ring,.stark-showroom .ss-ring.second{z-index:0}
+.stark-showroom .ss-markers{position:relative;z-index:2}
+.stark-showroom .ss-marker{
+  background:#fffaf8e8!important;backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  border:1px solid #e8c5c8!important;
+  box-shadow:0 6px 16px #a9445b24!important;
+  color:#3a232b!important;-webkit-text-fill-color:#3a232b!important;
+  font-weight:700!important;
+}
+.stark-showroom .ss-marker[aria-pressed="true"],.stark-showroom .ss-marker:focus-visible{
+  border:1.5px solid #cc3048!important;background:#fff!important;
+  box-shadow:0 0 0 2px #f8bac3,0 9px 20px #ad325235!important
+}
+.stark-showroom .ss-hud,.stark-showroom .ss-controls{z-index:5}
+.stark-showroom .ss-showcase .ss-disc{
+  box-shadow:0 10px 3px -4px #bc627377,0 15px 22px #8a294225,inset 0 0 24px #fff8!important;
+  background:radial-gradient(ellipse at 50% 28%,#fff,#f9edeb 58%,#edc4cb 83%,#a82c45 100%)!important;
+}
+.stark-showroom .ss-item .ss-food{
+  box-shadow:0 3px 12px #a52c483b;filter:none!important;transform:rotate(-9deg);
+}
+.stark-showroom .ss-item span{
+  -webkit-text-fill-color:#452b33!important;color:#452b33!important;
+  background:#fff9f5f0!important;border-color:#e4c5c8!important;font-size:clamp(10px,1.2vw,12px)!important
+}
+.stark-showroom .ss-selected-caption{color:#735e66!important;-webkit-text-fill-color:#735e66!important}
+.stark-showroom .ss-ttk{background:#be2541!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+body[data-view="home"].stark-ready .stark-showroom .ss-portal{touch-action:none!important}
+.stark-showroom .ss-food-roll:before,.stark-showroom .ss-food-roll:after{
+  content:"";position:absolute;width:47%;height:47%;border-radius:50%;
+  border:6px solid #f7eee3;background:radial-gradient(circle,#fb8950 0 35%,#ede8dc 38% 55%,#222e2c 58% 66%,#f5ede2 69% 100%);
+  box-shadow:0 3px 0 #363132,0 5px 8px #4d232e4a;
+}
+.stark-showroom .ss-food-roll:before{transform:translate(-23px,17px) scale(.64)}
+.stark-showroom .ss-food-roll:after{transform:translate(23px,-19px) scale(.64)}
+@media(max-width:750px){
+ body[data-view="home"].stark-ready .stark-showroom{padding-top:12px!important}
+ body[data-view="home"].stark-ready .stark-showroom .ss-portal{
+   height:420px!important;min-height:420px!important;max-height:420px!important;
+   margin:0 auto!important
+ }
+ .stark-showroom .ss-world{width:46%;min-width:150px;box-shadow:inset -16px -12px 32px #15243d80,0 0 0 1px #dc7890,0 0 19px #d23a554c,0 14px 30px #a9335140}
+ .stark-showroom .ss-marker{
+   min-height:52px!important;width:84px!important;
+   padding:4px 6px!important;border-radius:13px!important;
+   font-size:10px!important;line-height:1.2!important
+ }
+ .stark-showroom .ss-marker .ss-mark{font-size:19px!important}
+ .stark-showroom .ss-item span{font-size:10px!important}
+ .stark-showroom .ss-hud{left:8px!important;bottom:9px!important}
+ .stark-showroom .ss-controls{right:8px!important;bottom:9px!important}
+}
+@media(prefers-reduced-motion:reduce){.stark-showroom .ss-world{will-change:auto}}
+
+/* Real display-only sushi photo samples replace the earlier geometric targets. */
+.stark-showroom .ss-item img{
+ width:118px!important;height:118px!important;
+ object-fit:contain!important;
+ filter:drop-shadow(0 14px 12px #50233343)!important;
+ transition:opacity .2s ease!important;
+ max-width:none!important;image-rendering:auto;
+}
+.stark-showroom .ss-item{
+ width:clamp(112px,14vw,158px)!important;
+ height:clamp(132px,15vw,175px)!important;
+ overflow:visible!important;
+}
+.stark-showroom .ss-items[data-count="1"] .ss-item{
+ width:190px!important;height:210px!important;
+}
+.stark-showroom .ss-items[data-count="1"] .ss-item img{
+ width:176px!important;height:176px!important;
+}
+.stark-showroom .ss-item span{
+ display:block!important;max-width:152px!important;
+ text-align:center!important;white-space:normal!important;line-height:1.2!important;
+ font-weight:700!important;letter-spacing:0!important
+}
+@media(max-width:750px){
+ .stark-showroom .ss-item{width:110px!important;height:142px!important}
+ .stark-showroom .ss-item img{width:106px!important;height:106px!important}
+ .stark-showroom .ss-items[data-count="1"] .ss-item{width:172px!important;height:192px!important}
+ .stark-showroom .ss-items[data-count="1"] .ss-item img{width:150px!important;height:150px!important}
+}

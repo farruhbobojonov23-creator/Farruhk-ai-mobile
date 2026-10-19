@@ -11,10 +11,12 @@ async function sources(){return Promise.all([readFile(pageUrl,'utf8'),readFile(s
 test('Premium Stark V4 module parses and is mounted on the real public home',async()=>{
  const [html,js,css]=await sources();
  assert.doesNotThrow(()=>new Function(js.replace('export function mountStarkShowroom','function mountStarkShowroom')));
- assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=1';/);
+ assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=3';/);
  assert.match(html,/starkShowroom=mountStarkShowroom\(\{host:\$\('home'\)/);
  assert.match(html,/starkShowroom\?\.updateRecipes\(state\?\.recipes\|\|\[\]\)/);
  assert.match(css,/body\[data-view="home"\]\.stark-ready #home > :not\(\.stark-showroom\)/);
+ assert.match(css,/\/assets\/earth-day-2048\.jpg/);
+ assert.ok(!js.includes("<canvas"),'No black canvas on Android');
  assert.match(css,/stark-booting #home > :not\(\.stark-showroom\)/);
  assert.match(js,/classList\.add\('stark-ready'\)/);
 });
@@ -31,7 +33,7 @@ test('Existing Google synchronization, TTK and HACCP code paths remain linked',a
 test('Scene supports touch, keyboard, accessible category activation and stop',async()=>{
  const [,js]=await sources();
  for(const expected of ['pointerdown','pointermove','pointercancel','keydown','aria-pressed',
-                          'prefers-reduced-motion','requestAnimationFrame','photoUrl',
+                          'prefers-reduced-motion','drawGlobe','photoUrl',
                           'pause.addEventListener','onOpenRecipes'])assert.ok(js.includes(expected),expected);
  for(const id of ['rolls','baked','sets','snacks','onigiri','soups','salads','semi'])
   assert.ok(js.includes("id:'"+id+"'"),id);
