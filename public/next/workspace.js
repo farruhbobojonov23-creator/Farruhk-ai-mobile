@@ -5,9 +5,24 @@ import {upsertRecipe,deleteRecipe} from '/recipe-actions.js';
 import {mountHaccp} from '/haccp-ui.js';
 import {mountGoogleSync} from '/recipe-google.js';
 import {requireOwner} from '/owner-login.js';
+import {emptyHaccp} from '/haccp-model.js';
 
 const $=id=>document.getElementById(id);
-const store=new DeviceStore();
+// Preview is deliberately isolated from owner data. It never calls protected APIs.
+const demoMode=new URLSearchParams(location.search).get('preview')==='1';
+const demoKey='farukh-ai-next-isolated-preview-v1';
+const freshDemoState=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
+class PreviewStore {
+ async load(){try{const raw=localStorage.getItem(demoKey);return raw?validateDeviceState(JSON.parse(raw)):freshDemoState()}catch{return freshDemoState()}}
+ async mutate(fn){
+  const current=await this.load(),next=structuredClone(current);
+  fn(next);next.revision=current.revision+1;next.updatedAt=new Date().toISOString();
+  const valid=validateDeviceState(next);
+  localStorage.setItem(demoKey,JSON.stringify(valid));
+  return valid;
+ }
+}
+const store=demoMode?new PreviewStore():new DeviceStore();
 const today=()=>cardDateNow();
 let state=null,filter='all',editing=null,googleSync=null,busy=false,haccpUI=null;
 const keyFields=['name','category','status','cardNumber','cardDate','pieces','scope','rawRequirements','preparation','forming','serving','storage','appearance','taste','safety','chef','approver'];
@@ -185,6 +200,7 @@ async function downloadFile(blob,filename){
  setTimeout(()=>URL.revokeObjectURL(u),60000);
 }
 async function exportRecipe(recipe,type){
+ if(demoMode)throw Error('В безопасном предпросмотре PDF/Word недоступны без авторизации. Можно создавать и редактировать ТТК локально.');
  const endpoint=type==='word'?'/api/recipes/word':'/api/recipes/pdf';
  const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe}),signal:AbortSignal.timeout(35000)});
  if(!r.ok)throw Error('Сервер не смог подготовить '+type.toUpperCase()+'.');
@@ -218,11 +234,19 @@ $('current-date').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeri
 $('today-label').textContent='На '+new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',timeZone:'Europe/Moscow'});
 async function start(){
  try{
-   await requireOwner();
+   if(!demoMode)await requireOwner();
    state=await store.load();
-   $('storage-side').textContent='Хранилище устройства готово';
+   $('storage-side').textContent=demoMode?'Отдельные демоданные в браузере':'Хранилище устройства готово';
+   if(demoMode){
+     const banner=document.createElement('div');
+     banner.setAttribute('role','status');
+     banner.style.cssText='position:sticky;top:0;z-index:55;background:#ffedc3;color:#69470c;padding:11px 20px;text-align:center;font-size:12px;font-weight:700;border-bottom:1px solid #e4c777';
+     banner.textContent='ТЕСТОВЫЙ ПРОСМОТР · без входа · данные сохраняются только в этом браузере · PDF/Word и Google недоступны';
+     document.querySelector('.work-area').prepend(banner);
+     document.querySelectorAll('.sidebar-bottom small').forEach(el=>el.textContent='Изолированные тестовые записи, не реальные ТТК.');
+   }
    haccpUI=mountHaccp($('haccp-root'),{getState:()=>state,save,notify:flash});
-   googleSync=mountGoogleSync({getState:()=>state,store,onState:newState=>{state=newState;refresh()},notify:flash});
+   if(!demoMode)googleSync=mountGoogleSync({getState:()=>state,store,onState:newState=>{state=newState;refresh()},notify:flash});
    refresh();
    navigate(['home','recipes','lab'].includes(location.hash.slice(1))?location.hash.slice(1):'home');
  }catch(e){
