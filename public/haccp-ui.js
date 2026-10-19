@@ -36,8 +36,27 @@ export function mountHaccp(root,{getState,save,notify}){
   const copy=el('span',undefined,'haccp-journal-copy');copy.append(el('strong',title),el('small',h().records.filter(r=>r.kind===kind).length+' записей · Открыть журнал'));
   card.append(photo,copy);grid.append(card);index++;
  }
- body.append(el('h2','Журналы кухни'),grid);
+ body.append(dailyOverview(),el('h2','Журналы кухни'),grid);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
+ }
+ function dailyOverview(){
+  const panel=el('section',undefined,'haccp-daily-overview');
+  const title=el('h2','Ежедневный контроль · 11:00');
+  const today=measurementDate().slice(0,10);
+  const todayRecords=h().records.filter(r=>measurementDate(r.at).slice(0,10)===today);
+  const completed=new Set(todayRecords.map(r=>r.kind+'|'+r.pointId));
+  const total=Object.keys(journalTypes).length*h().points.length;
+  panel.append(title,el('p','Сегодня подтверждено '+completed.size+' из '+total+' журналов по точкам. Остальные ожидают фактической проверки.','small'));
+  const table=el('table',undefined,'haccp-status-table'),head=el('tr');
+  for(const label of ['Журнал','Подтверждено','Ожидает'])head.append(el('th',label));
+  table.append(head);
+  for(const [kind,name] of Object.entries(journalTypes)){
+    const count=h().points.filter(p=>completed.has(kind+'|'+p.id)).length;
+    const row=el('tr');row.append(el('td',name),el('td',String(count)),el('td',String(h().points.length-count)));
+    row.onclick=()=>{tab=kind;build()};row.tabIndex=0;row.onkeydown=e=>{if(e.key==='Enter')row.click()};table.append(row);
+  }
+  panel.append(table,el('p','Дата и перечень контрольных точек формируются автоматически. Замеры, уборка и осмотры не отмечаются выполненными без подтверждения.','small'));
+  return panel;
  }
  function sheet(form){
   form.classList.add('haccp-sheet','haccp-a4-editor');
