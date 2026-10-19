@@ -51,7 +51,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  const root=document.createElement('div');root.className='stark-showroom';root.innerHTML=
   '<header class="ss-head"><div class="ss-eyebrow">FARUKH AI · PREMIUM STARK V4</div><h1>Товары <span>в новом измерении</span></h1><p>Вращайте планету пальцем. Коснитесь категории, чтобы увидеть товары.</p></header>'+
   '<section class="ss-portal" tabindex="0" aria-label="Поверните планету стрелками клавиатуры или проведите пальцем. Категории товаров — отдельные кнопки.">'+
-  '<canvas aria-hidden="true"></canvas><div class="ss-ring" aria-hidden="true"></div><div class="ss-ring second" aria-hidden="true"></div>'+
+  '<div class="ss-world" aria-hidden="true"><span class="ss-world-shine"></span></div><div class="ss-ring" aria-hidden="true"></div><div class="ss-ring second" aria-hidden="true"></div>'+
   '<div class="ss-markers" aria-label="Категории товаров"></div>'+ 
   '<aside class="ss-sideinfo" aria-label="Время и погода"><small>ВРЕМЯ ШЕФА</small><strong class="ss-clock">--:--</strong><small class="ss-weather">Погода: —</small></aside>'+ 
   '<aside class="ss-side-ai" aria-label="Помощник"><span class="ss-ai-icon">✦</span><strong>FARUKH AI</strong><small>Ваш помощник</small><button class="ss-chat" type="button">Открыть ассистента ↗</button></aside>'+ 
@@ -65,7 +65,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   '<button type="button" class="ss-ttk">Открыть товары и техкарты ↗</button>'+
   '<p class="ss-footnote">Пока стоят демонстрационные образцы — ваши фотографии добавим позже.</p></section>';
  host.prepend(root);
- const portal=root.querySelector('.ss-portal'),canvas=root.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:true,desynchronized:true});
+ const portal=root.querySelector('.ss-portal'),world=root.querySelector('.ss-world');
  const markers=root.querySelector('.ss-markers'),deck=root.querySelector('.ss-deck'),items=root.querySelector('.ss-items');
  let portalW=portal.clientWidth,portalH=portal.clientHeight,deckW=deck.clientWidth,deckH=deck.clientHeight;
  const title=root.querySelector('.ss-category-name'),caption=root.querySelector('.ss-selected-caption');
@@ -73,12 +73,13 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  root.querySelector('.ss-ttk').addEventListener('click',onOpenRecipes);
  root.querySelector('.ss-chat').addEventListener('click',onOpenChat);
  const clock=root.querySelector('.ss-clock'),weather=root.querySelector('.ss-weather');
- const refreshMeta=()=>{clock.textContent=new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date());const t=document.querySelector('[data-weather-temp]')?.textContent?.trim();weather.textContent=t&&t!=='—'?'Погода: '+t:'Погода: —'};
+ const refreshMeta=()=>{clock.textContent=new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit'}).format(new Date());const t=document.querySelector('[data-weather-temp]')?.textContent?.trim();weather.textContent=t&&t!=='—'?'Погода: '+t:'Погода: —'};
  refreshMeta();setInterval(refreshMeta,60000);
  let yaw=0.31,pitch=0.06,orbit=0,tableOrbit=0,velocityX=0,velocityY=0,paused=false;
- let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,lastTick=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
+ let selected=0,chosenItem=-1,drag=null,deckDrag=null,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
- if(reduceMotion.matches){paused=true;pause.textContent='▶ Вращать';pause.setAttribute('aria-pressed','true')}
+ const mobile=matchMedia('(hover: none), (max-width: 750px)');
+ if(reduceMotion.matches||mobile.matches){paused=true;pause.textContent='▶ Вращать';pause.setAttribute('aria-pressed','true')}
  const buttons=CATEGORIES.map((c,i)=>{
   const b=document.createElement('button');b.type='button';b.className='ss-marker';
   b.setAttribute('aria-pressed',i===selected?'true':'false');
@@ -108,48 +109,12 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   });
   positionTable();
  }
- function project(lon,lat,r,cx,cy){
-  const a=lon*RAD+yaw, b=lat*RAD;
-  const x=Math.cos(b)*Math.sin(a), y=Math.sin(b), z=Math.cos(b)*Math.cos(a);
-  const yr=y*Math.cos(pitch)-z*Math.sin(pitch), zr=y*Math.sin(pitch)+z*Math.cos(pitch);
-  return {x:cx+r*x,y:cy-r*yr,z:zr};
- }
- function drawGlobe(w,h,t){
-  if(!ctx||w<12||h<12)return;
-  ctx.clearRect(0,0,w,h);
-  const cx=w*.5,cy=h*.44,r=Math.min(w*.228,h*.31,225);
-  const aura=ctx.createRadialGradient(cx,cy,r*.65,cx,cy,r*1.68);
-  aura.addColorStop(0,'#e62c481f');aura.addColorStop(.68,'#c7282a10');aura.addColorStop(1,'#ae263200');
-  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(cx,cy,r*1.68,0,Math.PI*2);ctx.fill();
-  const ocean=ctx.createRadialGradient(cx-r*.31,cy-r*.38,r*.07,cx+r*.2,cy+r*.1,r*1.25);
-  ocean.addColorStop(0,'#a9384d');ocean.addColorStop(.25,'#451e32');ocean.addColorStop(.7,'#17111f');ocean.addColorStop(1,'#080a12');
-  ctx.fillStyle=ocean;ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(cx,cy,r-.4,0,Math.PI*2);ctx.clip();
-  function polyLine(coords,stroke,width=1){
-   ctx.beginPath();let open=false;
-   for(const [lon,lat] of coords){const p=project(lon,lat,r,cx,cy);if(p.z>=0){if(!open){ctx.moveTo(p.x,p.y);open=true}else ctx.lineTo(p.x,p.y)}else open=false}
-   ctx.lineWidth=width;ctx.strokeStyle=stroke;ctx.stroke();
-  }
-  for(let lat=-75;lat<=75;lat+=25){const a=[];for(let lon=-180;lon<=180;lon+=5)a.push([lon,lat]);polyLine(a,'#ff637422',.7)}
-  for(let lon=-180;lon<180;lon+=30){const a=[];for(let lat=-89;lat<=89;lat+=5)a.push([lon,lat]);polyLine(a,'#ff698026',.7)}
-  for(const land of LANDS){
-   // Subdivide edges for a smoother projection while retaining the light-weight low-poly look.
-   const outline=[];for(let i=0;i<land.length-1;i++){const a=land[i],b=land[i+1];for(let k=0;k<3;k++){const u=k/3;outline.push([a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u])}}outline.push(land[land.length-1]);
-   const forward=outline.map(p=>project(p[0],p[1],r,cx,cy)).filter(p=>p.z>.01);
-   if(forward.length>2){
-    ctx.beginPath();ctx.moveTo(forward[0].x,forward[0].y);for(const p of forward.slice(1))ctx.lineTo(p.x,p.y);ctx.closePath();
-    ctx.fillStyle='#b32b42b0';ctx.fill();ctx.strokeStyle='#ff718bba';ctx.lineWidth=1.1;ctx.stroke();
-   }
-  }
-  const sheen=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
-  sheen.addColorStop(0,'#ffb3ba55');sheen.addColorStop(.47,'#ffb3ba00');sheen.addColorStop(1,'#060711aa');
-  ctx.fillStyle=sheen;ctx.fillRect(cx-r,cy-r,2*r,2*r);ctx.restore();
-  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.lineWidth=2;ctx.strokeStyle='#e95164ce';ctx.shadowColor='#e2224c';ctx.shadowBlur=0;ctx.stroke();
-  const ring=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
-  ring.addColorStop(0,'#ca253d28');ring.addColorStop(.5,'#ff849760');ring.addColorStop(1,'#ca253d28');
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(-.18);ctx.scale(1,.29);ctx.beginPath();ctx.arc(0,0,r*1.35,0,2*Math.PI);ctx.strokeStyle=ring;ctx.lineWidth=3;ctx.stroke();ctx.restore();
-  for(let k=0;k<18;k++){const a=k*2.399+t*.0001,rr=r*(1.15+.42*(k%3)/3);const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr*.75;ctx.globalAlpha=.16+.12*(Math.sin(t/900+k)+1);ctx.fillStyle='#f6455f';ctx.fillRect(x,y,1.3,1.3)}
-  ctx.globalAlpha=1;
+
+ // Lightweight CSS globe: the curved image is composited by the browser GPU, not repainted in JavaScript.
+ function drawGlobe(){
+  const longitude=yaw/(2*Math.PI)*100;
+  world.style.setProperty('--ss-longitude',(((65-longitude)%100+100)%100).toFixed(2)+'%');
+  world.style.setProperty('--ss-tilt',(pitch*18).toFixed(2)+'deg');
  }
  function placeMarkers(){
   const w=portalW,h=portalH,rx=Math.min(w*(w<750?.34:.39),385),ry=h*.375;
@@ -169,27 +134,27 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
    el.style.zIndex=String(30+Math.round(depth*10));
   });
  }
- function frame(ts){
-  // GPU-friendly transforms at ~6 fps for subtle ambient drift; gesture updates remain immediate.
-  if(ts-lastTick<170){requestAnimationFrame(frame);return}lastTick=ts;
-  const dt=Math.min(205,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
-  if(!document.hidden&&document.body.dataset.view==='home'&&root.isConnected){
-   if(!paused){
-    yaw+=dt*.00015;if(!hoveredOrbit&&!drag)orbit+=dt*.000065;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.000065;
-    yaw+=velocityX*dt;pitch=clamp(pitch+velocityY*dt,-.82,.82);
-    velocityX*=Math.pow(.92,dt/16);velocityY*=Math.pow(.92,dt/16);
-   }
-   placeMarkers();positionTable();
-   if(!paused&&ts-lastDraw>175){drawGlobe(portalW,portalH,ts);lastDraw=ts}
-  }
-  requestAnimationFrame(frame);
+
+ // On mobile there are no persistent render loops. Desktop drifts only 5-6 times per second.
+ let frameTimer=null;
+ function frame(){
+  if(paused||document.hidden||document.body.dataset.view!=='home'||!root.isConnected){frameTimer=null;return}
+  const dt=180;
+  yaw+=dt*.00007;
+  if(!hoveredOrbit&&!drag)orbit+=dt*.000055;
+  if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.000055;
+  yaw+=velocityX*dt;pitch=clamp(pitch+velocityY*dt,-.82,.82);
+  velocityX*=.5;velocityY*=.5;
+  drawGlobe();placeMarkers();positionTable();
+  frameTimer=setTimeout(frame,180);
  }
- let dpr=1;
+ function startFrame(){if(!paused&&!frameTimer)frameTimer=setTimeout(frame,180)}
+ function stopFrame(){if(frameTimer){clearTimeout(frameTimer);frameTimer=null}}
  function resize(){
-  const w=Math.max(1,Math.round(portal.clientWidth)),h=Math.max(1,Math.round(portal.clientHeight));portalW=w;portalH=h;deckW=deck.clientWidth;deckH=deck.clientHeight;
-  dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
-  ctx?.setTransform(dpr,0,0,dpr,0,0);
-  placeMarkers();positionTable();drawGlobe(w,h,performance.now());
+  const w=Math.max(1,Math.round(portal.clientWidth)),h=Math.max(1,Math.round(portal.clientHeight));
+  if(w<12||h<12)return;
+  portalW=w;portalH=h;deckW=deck.clientWidth;deckH=deck.clientHeight;
+  drawGlobe();placeMarkers();positionTable();
  }
  portal.addEventListener('pointerdown',e=>{
   if(e.target.closest('.ss-controls'))return;
@@ -202,18 +167,18 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;
   yaw+=dx*.006;orbit+=dx*.006;pitch=clamp(pitch+dy*.004,-.82,.82);
   velocityX=clamp(dx*.006/dt,-.015,.015);velocityY=clamp(dy*.004/dt,-.009,.009);
-  drag.x=e.clientX;drag.y=e.clientY;drag.t=performance.now();placeMarkers();drawGlobe(canvas.clientWidth,canvas.clientHeight,performance.now());
+  drag.x=e.clientX;drag.y=e.clientY;drag.t=performance.now();placeMarkers();drawGlobe();
  });
  for(const evt of ['pointerup','pointercancel','lostpointercapture'])portal.addEventListener(evt,()=>{if(drag?.moved)draggedUntil=performance.now()+230;drag=null});
  portal.addEventListener('keydown',e=>{
   const actions={ArrowLeft:[-.19,0],ArrowRight:[.19,0],ArrowUp:[0,-.15],ArrowDown:[0,.15]};
   if(!actions[e.key])return;e.preventDefault();
   yaw+=actions[e.key][0];orbit+=actions[e.key][0];pitch=clamp(pitch+actions[e.key][1],-.82,.82);
-  placeMarkers();drawGlobe(canvas.clientWidth,canvas.clientHeight,performance.now());
+  placeMarkers();drawGlobe();
  });
  const reset=root.querySelector('.ss-reset');
  reset.addEventListener('click',()=>{yaw=.31;pitch=.06;orbit=0;tableOrbit=0;velocityX=0;velocityY=0;placeMarkers();positionTable()});
- pause.addEventListener('click',()=>{paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'▶ Вращать':'Ⅱ Пауза';if(paused)drawGlobe(canvas.clientWidth,canvas.clientHeight,performance.now())});
+ pause.addEventListener('click',()=>{paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'▶ Вращать':'Ⅱ Пауза';if(paused){stopFrame();drawGlobe()}else startFrame()});
  deck.addEventListener('pointerdown',e=>{deckDrag={x:e.clientX,moved:false};(e.target.closest('.ss-item')||deck).setPointerCapture(e.pointerId)});
  deck.addEventListener('pointermove',e=>{if(!deckDrag)return;const dx=e.clientX-deckDrag.x;if(Math.abs(dx)>3)deckDrag.moved=true;tableOrbit+=dx*.008;deckDrag.x=e.clientX;positionTable()});
  for(const evt of ['pointerup','pointercancel','lostpointercapture'])deck.addEventListener(evt,()=>{if(deckDrag?.moved)deckDraggedUntil=performance.now()+230;deckDrag=null});
@@ -222,7 +187,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  select(0);
  if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(portal);
  else window.addEventListener('resize',resize);
- resize();requestAnimationFrame(frame);
+ resize();startFrame();
  document.body.classList.add('stark-ready');document.body.classList.remove('stark-booting');
  return {updateRecipes,selectCategory:id=>{const i=CATEGORIES.findIndex(c=>c.id===id);if(i>=0)select(i)}};
 }
