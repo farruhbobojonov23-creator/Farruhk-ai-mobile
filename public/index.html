@@ -50,7 +50,7 @@ $('recipe-search').oninput=()=>{catalogOpen=Boolean($('recipe-search').value.tri
 $('catalog-back').onclick=()=>{catalogOpen=false;recipeFilter='Все';$('recipe-search').value='';render()};
 $('catalog-all').onclick=()=>{catalogOpen=true;recipeFilter='Все';render()};
 $('menu-preparations').onclick=$('home-preparations').onclick=()=>{recipeFilter='Полуфабрикаты';catalogOpen=true;$('recipe-search').value='';show('recipes');render()};
-$('mobile-more').onclick=()=>setMenu($('chef-menu').hidden);
+$('mobile-more').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)};
 document.addEventListener('click',e=>{if(!$('chef-menu').hidden&&!e.target.closest('#chef-menu,#menu-toggle,#mobile-more'))setMenu(false)});
 function renderCategories(){
  const box=$('recipe-categories');box.replaceChildren();
@@ -94,7 +94,7 @@ $('chat-form').querySelector('label').firstChild.textContent='';
 $('chat-form').querySelector('button').textContent='↑';
 $('chat-form').querySelector('button').setAttribute('aria-label','Отправить сообщение');
 $('message').setAttribute('aria-label','Сообщение ассистенту');
-$('menu-toggle').onclick=()=>setMenu($('chef-menu').hidden);
+$('menu-toggle').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
 
 function notice(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error)}
