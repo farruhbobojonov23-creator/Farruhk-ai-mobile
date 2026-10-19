@@ -117,3 +117,59 @@ body[data-view="home"].stark-ready #home .ss-head h1 span{color:#ad2039!importan
 .stark-showroom .ss-marker{left:0!important;top:0!important;will-change:transform;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .stark-showroom .ss-item{left:0!important;top:0!important;will-change:transform}
 .stark-showroom .ss-portal canvas{filter:none!important}
+
+/* Restore complete, scrollable Stark home; old Pearl Home pinned its viewport and clipped the product table. */
+html:has(body[data-view="home"].stark-ready){height:auto!important;overflow-x:hidden!important;overflow-y:auto!important}
+body[data-view="home"].stark-ready{
+  height:auto!important;min-height:100dvh!important;overflow-x:hidden!important;overflow-y:auto!important;
+  display:block!important;background:#f8f3f1!important;background-image:none!important;color:#261c22!important;
+}
+body[data-view="home"].stark-ready .aurora-top{
+  display:grid!important;visibility:visible!important;position:relative!important;
+  height:66px!important;min-height:66px!important;z-index:81!important;
+  margin:0 auto!important;width:100%!important;max-width:1560px!important;
+  background:#fffaf8!important;
+}
+body[data-view="home"].stark-ready .aurora-top .aurora-brand{
+  display:block!important;color:#261d22!important;-webkit-text-fill-color:#261d22!important;
+  font-family:Inter,system-ui,Arial,sans-serif!important;font-size:clamp(19px,3.6vw,28px)!important;font-weight:780!important
+}
+body[data-view="home"].stark-ready .aurora-top .aurora-brand span{color:#b32139!important;-webkit-text-fill-color:#b32139!important}
+body[data-view="home"].stark-ready .app{
+  display:block!important;flex:none!important;height:auto!important;min-height:0!important;
+  max-width:1600px!important;padding:0 18px 40px!important;
+}
+body[data-view="home"].stark-ready .app>main,
+body[data-view="home"].stark-ready .app>main>.glass{
+  height:auto!important;min-height:0!important;overflow:visible!important;flex:none!important;
+  display:block!important;max-width:none!important
+}
+body[data-view="home"].stark-ready #home:not([hidden]){
+  display:block!important;width:100%!important;height:auto!important;min-height:0!important;
+  flex:none!important;max-width:none!important;overflow:visible!important
+}
+body[data-view="home"].stark-ready #home .stark-showroom h1,
+body[data-view="home"].stark-ready #home .stark-showroom h2{
+  color:#21191f!important;-webkit-text-fill-color:#21191f!important
+}
+body[data-view="home"].stark-ready #home .stark-showroom h1 span{
+  color:#b32139!important;-webkit-text-fill-color:#b32139!important
+}
+body[data-view="home"].stark-ready .ss-portal .ss-marker{
+  -webkit-text-fill-color:initial!important
+}
+body[data-view="home"].stark-ready #home .ss-showcase h2{
+  font-size:clamp(22px,2.7vw,34px)!important;font-weight:800!important
+}
+body[data-view="home"].stark-ready #chef-menu:not([hidden]){
+  display:block!important;position:fixed!important;z-index:110!important;visibility:visible!important;
+  top:72px!important;left:12px!important;bottom:auto!important;overflow-y:auto!important
+}
+@media(max-width:750px){
+ body[data-view="home"].stark-ready .app{padding:0 4px 30px!important}
+ body[data-view="home"].stark-ready .aurora-top{padding:8px 12px!important}
+ .stark-showroom .ss-portal{height:430px}
+ .stark-showroom .ss-marker{width:84px!important;min-height:54px!important;font-size:9px!important;padding:5px!important;line-height:1.2}
+ .stark-showroom .ss-marker .ss-mark{font-size:18px!important;width:22px;height:22px}
+ .stark-showroom .ss-showcase{padding:0 5px 15px}
+}
