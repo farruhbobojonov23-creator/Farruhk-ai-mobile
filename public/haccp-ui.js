@@ -105,6 +105,43 @@ export function mountHaccp(root,{getState,save,notify}){
   panel.append(table,el('p','Дата и перечень контрольных точек формируются автоматически. Замеры, уборка и осмотры не отмечаются выполненными без подтверждения.','small'));
   return panel;
  }
+ function cleaningSchedule(){
+  const paper=el('section',undefined,'haccp-cleaning-paper');
+  paper.append(el('h2','ИП Мамедова Э. Б.　·　СИСТЕМА ХАССП　·　ЖУРНАЛ УБОРКИ'));
+  const caption=el('p','План на '+monthLabel(monthFilter.value)+' · Генеральная уборка 1 и 15 числа; остальные дни — текущая.','small');
+  paper.append(caption);
+  const scroll=el('div',undefined,'haccp-cleaning-scroll'),table=el('table',undefined,'haccp-cleaning-table');
+  const head=el('tr');
+  for(const text of ['Наименование помещения','Моющие и дезинфицирующие средства'])head.append(el('th',text));
+  const [y,m]=monthFilter.value.split('-').map(Number),days=new Date(y,m,0).getDate();
+  for(let d=1;d<=days;d++)head.append(el('th',String(d)));
+  table.append(head);
+  const sites=[['Плазма','point-1'],['Баумана 18','point-2'],['П/З','point-3'],['Г/С 33а','point-4']];
+  const actual=h().points;
+  for(let i=0;i<sites.length;i++){
+   const [name,id]=sites[i],point=actual[i],row=el('tr');
+   row.append(el('th',point?.name?.startsWith('Точка ')?name:point?.name||name),el('td','Ника 2 Deso c9'));
+   for(let d=1;d<=days;d++){
+    const date=monthFilter.value+'-'+String(d).padStart(2,'0');
+    const saved=h().records.filter(r=>r.kind==='cleaning'&&r.pointId===(point?.id||id)&&measurementDate(r.at).slice(0,10)===date);
+    const td=el('td',saved.length?(d===1||d===15?'Г':'Т'):'·');
+    td.title=saved.length?'Сохранена запись уборки':'План: '+(d===1||d===15?'генеральная':'текущая')+'; выполнение не подтверждено';
+    td.className=saved.length?'haccp-cleaning-done':'haccp-cleaning-planned';
+    td.onclick=()=>{if(!saved.length){const form=body.querySelector('form.haccp-sheet');const btn=form?.querySelector('.haccp-sheet-toolbar button');btn?.click();const at=form?.querySelector('[name=at]');if(at)at.value=date+'T11:00';const select=form?.querySelector('[name=pointId]');if(select&&point)select.value=point.id;const method=form?.querySelector('[name=method]');if(method)method.value=d===1||d===15?'Генеральная уборка по утверждённому графику':'Текущая уборка по утверждённому графику';const agent=form?.querySelector('[name=agent]');if(agent)agent.value='Ника 2 Deso c9';const zone=form?.querySelector('[name=zone]');if(zone)zone.value=point?.name||name}};
+    row.append(td);
+   }
+   table.append(row);
+  }
+  for(const [label,person] of [['Ответственный за уборку','С1 — Буцаева Земфира'],['Ответственный за контроль','С1 — Бободжонов Фаррухджон']]){
+   const row=el('tr');row.append(el('th',label),el('td',person));
+   for(let d=1;d<=days;d++)row.append(el('td','·'));
+   table.append(row);
+  }
+  scroll.append(table);paper.append(scroll);
+  paper.append(el('p','Обозначения: Г — генеральная; Т — текущая; · — запланировано, но не подтверждено; /-/ — уборка не проводилась.','small'));
+  paper.append(el('p','Текущая: производственные столы, холодильное и морозильное оборудование, инвентарь, пол, моечные ванны, полки. Генеральная: дополнительно стены и вентиляционные зонты (при наличии).','small'));
+  return paper;
+ }
  function sheet(form){
   form.classList.add('haccp-sheet','haccp-a4-editor');
   form.querySelector('h2').textContent='ЖУРНАЛ · '+journalTypes[tab];
@@ -152,6 +189,7 @@ export function mountHaccp(root,{getState,save,notify}){
    }
   }
   sheet.append(table);
+  if(tab==='cleaning'){sheet.replaceChildren(cleaningSchedule())}
   form.append(sheet);
  }
  function h(){return getState()?.haccp||emptyHaccp()}
