@@ -75,7 +75,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  const refreshMeta=()=>{clock.textContent=new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date());const t=document.querySelector('[data-weather-temp]')?.textContent?.trim();weather.textContent=t&&t!=='—'?'Погода: '+t:'Погода: —'};
  refreshMeta();setInterval(refreshMeta,60000);
  let yaw=0.31,pitch=0.06,orbit=0,tableOrbit=0,velocityX=0,velocityY=0,paused=false;
- let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
+ let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,lastTick=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
  if(reduceMotion.matches){paused=true;pause.textContent='▶ Вращать';pause.setAttribute('aria-pressed','true')}
  const buttons=CATEGORIES.map((c,i)=>{
@@ -171,7 +171,9 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   });
  }
  function frame(ts){
-  const dt=Math.min(55,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
+  // Throttle the globe and DOM updates to ~15fps: premium motion without burning battery or blocking touch.
+  if(ts-lastTick<66){requestAnimationFrame(frame);return}lastTick=ts;
+  const dt=Math.min(95,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
   if(!document.hidden&&document.body.dataset.view==='home'&&root.isConnected){
    if(!paused){
     yaw+=dt*.00015;if(!hoveredOrbit&&!drag)orbit+=dt*.000065;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.000065;
@@ -179,7 +181,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
     velocityX*=Math.pow(.92,dt/16);velocityY*=Math.pow(.92,dt/16);
    }
    placeMarkers();positionTable();
-   if(ts-lastDraw>33){drawGlobe(canvas.clientWidth,canvas.clientHeight,ts);lastDraw=ts}
+   if(!paused&&ts-lastDraw>70){drawGlobe(canvas.clientWidth,canvas.clientHeight,ts);lastDraw=ts}
   }
   requestAnimationFrame(frame);
  }
@@ -212,7 +214,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
  });
  const reset=root.querySelector('.ss-reset');
  reset.addEventListener('click',()=>{yaw=.31;pitch=.06;orbit=0;tableOrbit=0;velocityX=0;velocityY=0;placeMarkers();positionTable()});
- pause.addEventListener('click',()=>{paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'▶ Вращать':'Ⅱ Пауза'});
+ pause.addEventListener('click',()=>{paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'▶ Вращать':'Ⅱ Пауза';if(paused)drawGlobe(canvas.clientWidth,canvas.clientHeight,performance.now())});
  deck.addEventListener('pointerdown',e=>{deckDrag={x:e.clientX,moved:false};(e.target.closest('.ss-item')||deck).setPointerCapture(e.pointerId)});
  deck.addEventListener('pointermove',e=>{if(!deckDrag)return;const dx=e.clientX-deckDrag.x;if(Math.abs(dx)>3)deckDrag.moved=true;tableOrbit+=dx*.008;deckDrag.x=e.clientX;positionTable()});
  for(const evt of ['pointerup','pointercancel','lostpointercapture'])deck.addEventListener(evt,()=>{if(deckDrag?.moved)deckDraggedUntil=performance.now()+230;deckDrag=null});
