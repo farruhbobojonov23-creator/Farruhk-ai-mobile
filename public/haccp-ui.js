@@ -66,13 +66,14 @@ export function mountHaccp(root,{getState,save,notify}){
   const paper=el('div',undefined,'haccp-a4-paper');
   const table=el('table',undefined,'haccp-a4-table');
   const head=el('thead'),headRow=el('tr'),row=el('tr');
+  const columnNames=[];
   for(const label of labels){
    const control=label.querySelector('input,select,textarea');
    const caption=label.childNodes[0]?.textContent?.trim()||control.name;
+   columnNames.push(caption);
    const th=el('th',caption),td=el('td');
    control.setAttribute('aria-label',caption);
-   if(control.type==='file'){td.append(control)}else{td.append(control)}
-   headRow.append(th);row.append(td);label.remove();
+   td.append(control);headRow.append(th);row.append(td);label.remove();
   }
   head.append(headRow);table.append(head,el('tbody'));table.tBodies[0].append(row);
   paper.append(el('div','ФОРМА УЧЁТА · '+journalTypes[tab],'haccp-a4-caption'),table);
@@ -81,8 +82,22 @@ export function mountHaccp(root,{getState,save,notify}){
   if(firstGrid)firstGrid.before(wrapper);else form.querySelector('h2').after(wrapper);
   for(const empty of [...form.querySelectorAll('.fields')])if(!empty.children.length)empty.remove();
   const toolbar=el('div',undefined,'haccp-sheet-toolbar');
-  toolbar.append(button('Сохранить запись',()=>form.requestSubmit(),'primary'),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
+  const edit=button('Заполнить строку',()=>{form.classList.add('haccp-editing');wrapper.scrollIntoView({block:'nearest',behavior:'smooth'});const first=form.querySelector('.haccp-a4-table input:not([type=hidden]),.haccp-a4-table select');first?.focus()},'primary');
+  toolbar.append(edit,button('Сохранить запись',()=>form.requestSubmit()),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
   form.prepend(toolbar);
+  const fit=()=>{
+   if(form.classList.contains('haccp-editing'))return;
+   const available=wrapper.clientWidth-2;
+   const width=Math.max(950,Math.min(1500,columnNames.length*125));
+   paper.style.width=width+'px';
+   const scale=Math.min(1,available/width);
+   paper.style.transform='scale('+scale+')';
+   paper.style.transformOrigin='top left';
+   wrapper.style.height=Math.ceil(paper.scrollHeight*scale+8)+'px';
+  };
+  if(window.ResizeObserver){const observer=new ResizeObserver(fit);observer.observe(wrapper);form.addEventListener('submit',()=>observer.disconnect(),{once:true})}
+  requestAnimationFrame(fit);
+  edit.onclick=()=>{form.classList.add('haccp-editing');paper.style.transform='none';paper.style.width='max-content';wrapper.style.height='auto';wrapper.style.overflowX='auto';form.querySelector('.haccp-a4-table select,.haccp-a4-table input')?.focus()};
  }
  function h(){return getState()?.haccp||emptyHaccp()}
  function say(text,error=false){message.textContent=text;message.classList.toggle('error',error);if(error)notify(text,true)}
