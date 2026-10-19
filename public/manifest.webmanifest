@@ -3,8 +3,8 @@
   "short_name": "FARRUKH AI",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#06090b",
-  "theme_color": "#07100b",
+  "background_color": "#f4f7f2",
+  "theme_color": "#f4f7f2",
   "orientation": "portrait",
   "description": "Персональный AI-командный центр бренд-шефа",
   "icons": [
