@@ -215,5 +215,6 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
  if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(portal);
  else window.addEventListener('resize',resize);
  resize();requestAnimationFrame(frame);
+ document.body.classList.add('stark-ready');document.body.classList.remove('stark-booting');
  return {updateRecipes,selectCategory:id=>{const i=CATEGORIES.findIndex(c=>c.id===id);if(i>=0)select(i)}};
 }
