@@ -261,3 +261,34 @@ body[data-view="home"].stark-ready .stark-showroom .ss-portal{touch-action:none!
  .stark-showroom .ss-controls{right:8px!important;bottom:9px!important}
 }
 @media(prefers-reduced-motion:reduce){.stark-showroom .ss-world{will-change:auto}}
+
+/* Real display-only sushi photo samples replace the earlier geometric targets. */
+.stark-showroom .ss-item img{
+ width:118px!important;height:118px!important;
+ object-fit:contain!important;
+ filter:drop-shadow(0 14px 12px #50233343)!important;
+ transition:opacity .2s ease!important;
+ max-width:none!important;image-rendering:auto;
+}
+.stark-showroom .ss-item{
+ width:clamp(112px,14vw,158px)!important;
+ height:clamp(132px,15vw,175px)!important;
+ overflow:visible!important;
+}
+.stark-showroom .ss-items[data-count="1"] .ss-item{
+ width:190px!important;height:210px!important;
+}
+.stark-showroom .ss-items[data-count="1"] .ss-item img{
+ width:176px!important;height:176px!important;
+}
+.stark-showroom .ss-item span{
+ display:block!important;max-width:152px!important;
+ text-align:center!important;white-space:normal!important;line-height:1.2!important;
+ font-weight:700!important;letter-spacing:0!important
+}
+@media(max-width:750px){
+ .stark-showroom .ss-item{width:110px!important;height:142px!important}
+ .stark-showroom .ss-item img{width:106px!important;height:106px!important}
+ .stark-showroom .ss-items[data-count="1"] .ss-item{width:172px!important;height:192px!important}
+ .stark-showroom .ss-items[data-count="1"] .ss-item img{width:150px!important;height:150px!important}
+}
