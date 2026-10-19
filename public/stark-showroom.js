@@ -46,13 +46,15 @@ function photoUrl(recipe){
 function addButton(parent,cls,label,onClick){
  const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=label;b.addEventListener('click',onClick);parent.append(b);return b;
 }
-export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}={}){
+export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},onOpenChat=()=>{}}={}){
  if(!host)throw new Error('Missing home element for Stark showroom');
  const root=document.createElement('div');root.className='stark-showroom';root.innerHTML=
   '<header class="ss-head"><div class="ss-eyebrow">FARUKH AI · PREMIUM STARK V4</div><h1>Товары <span>в новом измерении</span></h1><p>Вращайте планету пальцем. Коснитесь категории, чтобы увидеть товары.</p></header>'+
   '<section class="ss-portal" tabindex="0" aria-label="Поверните планету стрелками клавиатуры или проведите пальцем. Категории товаров — отдельные кнопки.">'+
   '<canvas aria-hidden="true"></canvas><div class="ss-ring" aria-hidden="true"></div><div class="ss-ring second" aria-hidden="true"></div>'+
-  '<div class="ss-markers" aria-label="Категории товаров"></div>'+
+  '<div class="ss-markers" aria-label="Категории товаров"></div>'+ 
+  '<aside class="ss-sideinfo" aria-label="Время и погода"><small>ВРЕМЯ ШЕФА</small><strong class="ss-clock">--:--</strong><small class="ss-weather">Погода: —</small></aside>'+ 
+  '<aside class="ss-side-ai" aria-label="Помощник"><span class="ss-ai-icon">✦</span><strong>FARUKH AI</strong><small>Ваш помощник</small><button class="ss-chat" type="button">Открыть ассистента ↗</button></aside>'+ 
   '<div class="ss-hud"><span class="ss-hud-dot"></span>ГОЛОГРАФИЧЕСКАЯ ВИТРИНА</div>'+
   '<div class="ss-controls"><button type="button" class="ss-small-btn ss-reset" aria-label="Вернуть исходное положение">⟲ Сброс</button><button type="button" class="ss-small-btn ss-pause" aria-label="Остановить автоматическое вращение" aria-pressed="false">Ⅱ Пауза</button></div></section>'+
   '<section class="ss-showcase" aria-label="Виртуальный стол с товарами">'+
@@ -68,6 +70,10 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
  const title=root.querySelector('.ss-category-name'),caption=root.querySelector('.ss-selected-caption');
  const pause=root.querySelector('.ss-pause');
  root.querySelector('.ss-ttk').addEventListener('click',onOpenRecipes);
+ root.querySelector('.ss-chat').addEventListener('click',onOpenChat);
+ const clock=root.querySelector('.ss-clock'),weather=root.querySelector('.ss-weather');
+ const refreshMeta=()=>{clock.textContent=new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date());const t=document.querySelector('[data-weather-temp]')?.textContent?.trim();weather.textContent=t&&t!=='—'?'Погода: '+t:'Погода: —'};
+ refreshMeta();setInterval(refreshMeta,60000);
  let yaw=0.31,pitch=0.06,orbit=0,tableOrbit=0,velocityX=0,velocityY=0,paused=false;
  let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
@@ -168,7 +174,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   const dt=Math.min(55,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
   if(!document.hidden&&document.body.dataset.view==='home'&&root.isConnected){
    if(!paused){
-    yaw+=dt*.00018;if(!hoveredOrbit&&!drag)orbit+=dt*.00022;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.00024;
+    yaw+=dt*.00015;if(!hoveredOrbit&&!drag)orbit+=dt*.000065;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.000065;
     yaw+=velocityX*dt;pitch=clamp(pitch+velocityY*dt,-.82,.82);
     velocityX*=Math.pow(.92,dt/16);velocityY*=Math.pow(.92,dt/16);
    }
