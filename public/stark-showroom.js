@@ -163,7 +163,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   });
  }
  function positionTable(){
-  const list=items.querySelectorAll('.ss-item'),n=list.length;if(!n)return;
+  const list=items.querySelectorAll('.ss-item'),n=list.length;items.dataset.count=String(n);if(!n)return;
   const w=deckW,h=deckH,rx=Math.min(w*.34,250),ry=Math.min(h*.20,58);
   list.forEach((el,i)=>{
    const a=i*2*Math.PI/n+tableOrbit,depth=Math.sin(a);
