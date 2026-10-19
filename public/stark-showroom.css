@@ -192,7 +192,7 @@ body[data-view="home"].stark-ready .stark-showroom .ss-showcase{
   transform:translate3d(-50%,-50%,0) rotate(var(--ss-tilt));
   border-radius:50%;
   background-color:#215f80;
-  background-image:url("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+  background-image:url("/assets/earth-day-2048.jpg");
   background-repeat:repeat-x;background-size:200% 100%;
   background-position:var(--ss-longitude) 50%;
   box-shadow:inset -24px -12px 37px #0a172b99,inset 13px 7px 23px #d6f9ff50,
