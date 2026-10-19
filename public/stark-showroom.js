@@ -69,7 +69,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
  const pause=root.querySelector('.ss-pause');
  root.querySelector('.ss-ttk').addEventListener('click',onOpenRecipes);
  let yaw=0.31,pitch=0.06,orbit=0,tableOrbit=0,velocityX=0,velocityY=0,paused=false;
- let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0;
+ let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0,hoveredOrbit=0,hoveredTable=0;
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
  if(reduceMotion.matches){paused=true;pause.textContent='▶ Вращать';pause.setAttribute('aria-pressed','true')}
  const buttons=CATEGORIES.map((c,i)=>{
@@ -77,7 +77,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   b.setAttribute('aria-pressed',i===selected?'true':'false');
   const ico=document.createElement('span');ico.className='ss-mark';ico.textContent=c.icon;ico.setAttribute('aria-hidden','true');
   const label=document.createElement('span');label.textContent=c.name;b.append(ico,label);
-  b.addEventListener('click',()=>{if(performance.now()>=draggedUntil)select(i)});markers.append(b);return b;
+  b.addEventListener('click',()=>{if(performance.now()>=draggedUntil)select(i)});b.addEventListener('mouseenter',()=>hoveredOrbit++);b.addEventListener('mouseleave',()=>hoveredOrbit=Math.max(0,hoveredOrbit-1));markers.append(b);return b;
  });
  function getProducts(i){
   const category=CATEGORIES[i];const matched=landProducts.filter(p=>categorize(p.category||p.name||'')===category.id);
@@ -95,6 +95,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
     if(p.image){const img=document.createElement('img');img.src=p.image;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();const placeholder=document.createElement('div');placeholder.className='ss-food ss-food-'+p.kind;item.prepend(placeholder)};item.append(img)}
     else{const food=document.createElement('div');food.className='ss-food ss-food-'+p.kind;food.setAttribute('aria-hidden','true');item.append(food)}
     const text=document.createElement('span');text.textContent=p.label;item.append(text);
+    item.addEventListener('mouseenter',()=>hoveredTable++);item.addEventListener('mouseleave',()=>hoveredTable=Math.max(0,hoveredTable-1));
     item.addEventListener('click',()=>{if(performance.now()<deckDraggedUntil)return;chosenItem=j;items.querySelectorAll('button').forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));caption.textContent=p.label+(p.image?' · Фотография товара':' · Фото заменим на ваше, когда пришлёте')});
     items.append(item);
   });
@@ -167,7 +168,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   const dt=Math.min(55,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
   if(!document.hidden&&document.body.dataset.view==='home'&&root.isConnected){
    if(!paused){
-    yaw+=dt*.00018;orbit+=dt*.00022;tableOrbit+=dt*.00024;
+    yaw+=dt*.00018;if(!hoveredOrbit&&!drag)orbit+=dt*.00022;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.00024;
     yaw+=velocityX*dt;pitch=clamp(pitch+velocityY*dt,-.82,.82);
     velocityX*=Math.pow(.92,dt/16);velocityY*=Math.pow(.92,dt/16);
    }
