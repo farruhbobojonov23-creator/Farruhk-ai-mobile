@@ -32,12 +32,13 @@ async function verify(viewport,isMobile=false){
  console.log('SMOKE: opening',isMobile?'mobile':'desktop');
  const context=await browser.newContext({viewport,deviceScaleFactor:1,hasTouch:isMobile,isMobile});
  const page=await context.newPage();
- const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE:',m.text().slice(0,450))});page.on('response',r=>{if(r.status()>=400)console.log('BROWSER HTTP',r.status(),r.url().slice(0,140))});
  try{
   await page.goto(origin+'/',{waitUntil:'commit',timeout:12000});console.log('SMOKE: navigated');
   await page.waitForFunction(()=>document.body.classList.contains('stark-ready'),null,{timeout:18000});console.log('SMOKE: stark-ready');
   assert.equal(await page.locator('.ss-marker').count(),8,'8 product categories');console.log('SMOKE: category count OK');
-  assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');
+  assert.equal(await page.locator('.ss-item').count(),3,'3 initial samples');console.log('SMOKE: sample count OK');
+  const snapshot=await page.evaluate(()=>({showcase:document.querySelector('.ss-showcase')?.outerHTML.slice(0,700),headings:[...document.querySelectorAll('h2')].map(e=>e.className+' '+e.textContent.slice(0,50)).slice(0,15),ready:document.body.className,marked:document.querySelector('.ss-markers')?.children.length}));console.log('SMOKE: DOM',JSON.stringify(snapshot));
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Холодные роллы');
   await page.getByRole('button',{name:'Онигири',exact:true}).click({timeout:6500});console.log('SMOKE: selected onigiri');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
@@ -66,7 +67,8 @@ async function verify(viewport,isMobile=false){
   if(errors.length)throw Error('uncaught page error(s): '+errors.join('; '));
   process.stdout.write((isMobile?'MOBILE':'DESKTOP')+' PASS: 8 categories, sample selection, globe drag, TTK, Google, menu, navigation, overflow='+overflow+'px\n');
  }catch(error){
-  await page.screenshot({path:'artifacts/stark-v4-FAILED-'+(isMobile?'mobile':'desktop')+'.png',fullPage:true}).catch(()=>{});
+  console.error('SMOKE: FAIL',error.stack);console.log('SMOKE: captured errors',errors.join(' | '));
+  await page.screenshot({path:'artifacts/stark-v4-FAILED-'+(isMobile?'mobile':'desktop')+'.png',fullPage:false,timeout:3500}).catch(()=>{});
   failures.push((isMobile?'Mobile':'Desktop')+': '+error.stack+' / errors '+errors.join(' | '));
  }finally{await context.close()}
 }
