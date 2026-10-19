@@ -115,7 +115,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   return {x:cx+r*x,y:cy-r*yr,z:zr};
  }
  function drawGlobe(w,h,t){
-  if(!ctx)return;
+  if(!ctx||w<12||h<12)return;
   ctx.clearRect(0,0,w,h);
   const cx=w*.5,cy=h*.44,r=Math.min(w*.228,h*.31,225);
   const aura=ctx.createRadialGradient(cx,cy,r*.65,cx,cy,r*1.68);
