@@ -57,3 +57,11 @@
 #lab .haccp-status-table tr:not(:first-child){cursor:pointer}
 #lab .haccp-a4-paper{width:1122px;max-width:none}
 #lab .haccp-a4-scroll{max-width:100%;overflow:auto}
+
+#lab .haccp-a4-editor .haccp-a4-scroll{overflow:hidden!important;max-width:100%;padding:0!important;position:relative}
+#lab .haccp-a4-editor .haccp-a4-paper{min-width:0!important;min-height:0!important;max-width:none!important;box-sizing:border-box;padding:14px!important;box-shadow:0 3px 12px #00000012}
+#lab .haccp-a4-editor .haccp-a4-table{table-layout:fixed!important}
+#lab .haccp-a4-editor .haccp-a4-table th{height:auto!important;padding:6px 3px!important;font-size:12px!important}
+#lab .haccp-a4-editor .haccp-a4-table td{padding:5px 3px!important}
+#lab .haccp-a4-editor.haccp-editing .haccp-a4-scroll{overflow-x:auto!important;overflow-y:visible!important;height:auto!important}
+#lab .haccp-a4-editor .haccp-sheet-toolbar{position:relative;z-index:1}
