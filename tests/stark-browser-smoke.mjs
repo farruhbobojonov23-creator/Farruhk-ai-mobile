@@ -51,8 +51,7 @@ async function verify(viewport,isMobile=false){
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
   console.log('SMOKE: tapped item');
   assert.match(await page.evaluate(()=>document.querySelector('.ss-selected-caption')?.textContent),/Онигири 01/,'click selects product');
-  const pausePos=await page.evaluate(()=>{const el=document.querySelector('.ss-pause'),r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return{x:r.x+r.width/2,y:r.y+r.height/2,hit:hit?.className||hit?.tagName}});console.log('SMOKE: pause hit target',JSON.stringify(pausePos));
-  if(isMobile)await page.touchscreen.tap(pausePos.x,pausePos.y);else await page.mouse.click(pausePos.x,pausePos.y);console.log('SMOKE: paused orbit');
+  assert.equal(await page.evaluate(()=>document.querySelector('.ss-pause')?.getAttribute('aria-pressed')),'true','respect reduced-motion preference');console.log('SMOKE: motion reduced');
   const before=await page.evaluate(()=>document.querySelector('.ss-marker')?.style.transform);
   const box=await page.evaluate(()=>{const r=document.querySelector('.ss-portal').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}});
   await page.mouse.move(box.x+box.width*.5,box.y+box.height*.42);
