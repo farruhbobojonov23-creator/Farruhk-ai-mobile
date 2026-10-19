@@ -40,24 +40,50 @@ export function mountHaccp(root,{getState,save,notify}){
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
  function dailyDrafts(){
-  const zone='Europe/Moscow';
-  const now=new Date();
-  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
-  const today=parts.year+'-'+parts.month+'-'+parts.day;
-  const active=Number(parts.hour)>=11;
+  const zone='Europe/Moscow',now=new Date();
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  const today=parts.year+'-'+parts.month+'-'+parts.day,active=Number(parts.hour)>=11;
   const panel=el('section',undefined,'haccp-daily-overview');
-  panel.append(el('h2','Шаблон ежедневного журнала · Мурманск, 11:00'));
-  panel.append(el('p',active?'Строки на сегодня подготовлены по шаблону.':'Следующие строки станут доступны сегодня в 11:00 МСК.','small'));
-  const point=pointFilter.value||h().points[0]?.id||'';
-  const already=h().records.some(r=>r.kind===tab&&r.pointId===point&&measurementDate(r.at).slice(0,10)===today);
-  const table=el('table',undefined,'haccp-status-table');
-  const headers=el('tr');for(const name of ['Дата','Точка','Журнал','Результат','Действие'])headers.append(el('th',name));table.append(headers);
-  const row=el('tr');
-  for(const val of [today,pointName(point),journalTypes[tab],already?'Есть запись':'Ожидает проверки'])row.append(el('td',val));
-  const cell=el('td'),btn=button('Заполнить',()=>{const form=body.querySelector('form.haccp-sheet');if(!form)return;const at=form.querySelector('[name=at]');if(at)at.value=today+'T11:00';const pointSelect=form.querySelector('[name=pointId]');if(pointSelect&&point)pointSelect.value=point;form.querySelector('.haccp-sheet-toolbar button')?.click()});
-  btn.disabled=!active||already||monthFilter.value!==today.slice(0,7);
-  cell.append(btn);row.append(cell);table.append(row);panel.append(table);
-  panel.append(el('p','Шаблон не подтверждает измерения или санитарные мероприятия. После проверки заполните показатели и сохраните запись.','small'));
+  panel.append(el('h2','Ежедневный шаблон · 11:00, Мурманск'));
+  const configKey='farruh-haccp-template-v1-'+tab;
+  const defaultTemplate=tab==='cleaning'?'Зона: рабочая поверхность; обработка: согласно утверждённому графику и инструкции':tab==='temperature'?'Измерить фактическую температуру каждого холодильника и морозильника':tab==='receiving'?'Проверить фактически поступившие партии, сроки, упаковку и документы':tab==='storage'?'Проверить маркировку и сроки фактических партий':'Выполнить контроль по утверждённой процедуре и записать фактический результат';
+  let template=defaultTemplate;
+  try{template=localStorage.getItem(configKey)||defaultTemplate}catch{}
+  const details=el('details',undefined,'haccp-template-settings'),summary=el('summary','Настроить образец заполнения');
+  const editor=el('textarea');editor.value=template;editor.maxLength=1200;editor.setAttribute('aria-label','Образец для журнала');
+  const saveTemplate=button('Сохранить образец',()=>{try{localStorage.setItem(configKey,editor.value.trim()||defaultTemplate);template=editor.value.trim()||defaultTemplate;say('Образец сохранён на этом устройстве.')}catch{say('Не удалось сохранить образец.',true)}});
+  details.append(summary,el('p','Образец задаёт план проверки, но не подтверждает её выполнение.','small'),editor,saveTemplate);
+  panel.append(details);
+  const table=el('table',undefined,'haccp-status-table'),head=el('tr');
+  for(const name of ['Дата','Точка','Состояние','Действие'])head.append(el('th',name));table.append(head);
+  const [year,month]=monthFilter.value.split('-').map(Number);
+  const days=new Date(year,month,0).getDate();
+  const points=pointFilter.value?h().points.filter(p=>p.id===pointFilter.value):h().points;
+  let pending=0;
+  for(let day=1;day<=days;day++){
+   const date=monthFilter.value+'-'+String(day).padStart(2,'0');
+   if(date>today||(date===today&&!active))continue;
+   for(const point of points){
+    const done=h().records.some(r=>r.kind===tab&&r.pointId===point.id&&measurementDate(r.at).slice(0,10)===date);
+    if(!done)pending++;
+    const row=el('tr');
+    for(const value of [date,point.name,done?'Запись сохранена':'Ожидает фактической проверки'])row.append(el('td',value));
+    const cell=el('td');
+    if(!done){
+     const btn=button('Заполнить',()=>{
+      const form=body.querySelector('form.haccp-sheet');
+      if(!form){say('Для архивного месяца запись можно просмотреть, но не добавить.',true);return}
+      const at=form.querySelector('[name=at]');if(at)at.value=date+'T11:00';
+      const pointSelect=form.querySelector('[name=pointId]');if(pointSelect){pointSelect.value=point.id;pointSelect.dispatchEvent(new Event('change'))}
+      form.querySelector('.haccp-sheet-toolbar button')?.click();
+      form.scrollIntoView({block:'start',behavior:'smooth'});
+     });btn.disabled=monthFilter.value!==currentMonth;cell.append(btn);
+    }
+    row.append(cell);table.append(row);
+   }
+  }
+  panel.insertBefore(el('p','Ожидают проверки: '+pending+'. План: '+template,'small'),details);
+  panel.append(table,el('p','Строки рассчитываются автоматически для каждого дня после 11:00 МСК, включая дни, когда приложение было закрыто. Они не считаются сохранёнными результатами до подтверждения.','small'));
   return panel;
  }
  function dailyOverview(){
