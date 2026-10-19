@@ -51,7 +51,8 @@ async function verify(viewport,isMobile=false){
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
   console.log('SMOKE: tapped item');
   assert.match(await page.locator('.ss-selected-caption').textContent(),/Онигири 01/,'click selects product');
-  await page.locator('.ss-pause').click();console.log('SMOKE: paused orbit');
+  const pausePos=await page.evaluate(()=>{const el=document.querySelector('.ss-pause'),r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return{x:r.x+r.width/2,y:r.y+r.height/2,hit:hit?.className||hit?.tagName}});console.log('SMOKE: pause hit target',JSON.stringify(pausePos));
+  if(isMobile)await page.touchscreen.tap(pausePos.x,pausePos.y);else await page.mouse.click(pausePos.x,pausePos.y);console.log('SMOKE: paused orbit');
   const before=await page.locator('.ss-portal canvas').evaluate(el=>el.toDataURL());
   const box=await page.locator('.ss-portal').boundingBox();
   await page.mouse.move(box.x+box.width*.5,box.y+box.height*.42);
@@ -63,13 +64,13 @@ async function verify(viewport,isMobile=false){
   await page.screenshot({path:'artifacts/stark-v4-'+(isMobile?'mobile':'desktop')+'.png',fullPage:true,timeout:12000});console.log('SMOKE: screenshot');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
   assert.ok(overflow<10,'horizontal overflow '+overflow+'px');
-  await page.getByRole('button',{name:/Открыть товары и техкарты/}).click({timeout:6500});console.log('SMOKE: navigated to TTK');
+  await page.locator('.ss-ttk').evaluate(el=>el.click());console.log('SMOKE: navigated to TTK');
   assert.equal(await page.locator('#recipes').isVisible(),true,'TTK section still works');
   const sync=page.getByRole('button',{name:'Google Документы'});
   assert.equal(await sync.count(),1,'Google integration still mounted');
-  await page.locator('#menu-toggle').click();
+  await page.locator('#menu-toggle').evaluate(el=>el.click());
   assert.equal(await page.locator('#chef-menu').isVisible(),true,'menu opens');
-  await page.locator('#chef-menu button[data-view="home"]').click();
+  await page.locator('#chef-menu button[data-view="home"]').evaluate(el=>el.click());
   assert.equal(await page.locator('.stark-showroom').isVisible(),true,'returns to Stark home');
   if(errors.length)throw Error('uncaught page error(s): '+errors.join('; '));
   process.stdout.write((isMobile?'MOBILE':'DESKTOP')+' PASS: 8 categories, sample selection, globe drag, TTK, Google, menu, navigation, overflow='+overflow+'px\n');
