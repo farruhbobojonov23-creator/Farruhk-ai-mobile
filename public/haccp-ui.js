@@ -39,6 +39,27 @@ export function mountHaccp(root,{getState,save,notify}){
  body.append(dailyOverview(),el('h2','Журналы кухни'),grid);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
+ function dailyDrafts(){
+  const zone='Europe/Moscow';
+  const now=new Date();
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  const today=parts.year+'-'+parts.month+'-'+parts.day;
+  const active=Number(parts.hour)>=11;
+  const panel=el('section',undefined,'haccp-daily-overview');
+  panel.append(el('h2','Шаблон ежедневного журнала · Мурманск, 11:00'));
+  panel.append(el('p',active?'Строки на сегодня подготовлены по шаблону.':'Следующие строки станут доступны сегодня в 11:00 МСК.','small'));
+  const point=pointFilter.value||h().points[0]?.id||'';
+  const already=h().records.some(r=>r.kind===tab&&r.pointId===point&&measurementDate(r.at).slice(0,10)===today);
+  const table=el('table',undefined,'haccp-status-table');
+  const headers=el('tr');for(const name of ['Дата','Точка','Журнал','Результат','Действие'])headers.append(el('th',name));table.append(headers);
+  const row=el('tr');
+  for(const val of [today,pointName(point),journalTypes[tab],already?'Есть запись':'Ожидает проверки'])row.append(el('td',val));
+  const cell=el('td'),btn=button('Заполнить',()=>{const form=body.querySelector('form.haccp-sheet');if(!form)return;const at=form.querySelector('[name=at]');if(at)at.value=today+'T11:00';const pointSelect=form.querySelector('[name=pointId]');if(pointSelect&&point)pointSelect.value=point;form.querySelector('.haccp-sheet-toolbar button')?.click()});
+  btn.disabled=!active||already||monthFilter.value!==today.slice(0,7);
+  cell.append(btn);row.append(cell);table.append(row);panel.append(table);
+  panel.append(el('p','Шаблон не подтверждает измерения или санитарные мероприятия. После проверки заполните показатели и сохраните запись.','small'));
+  return panel;
+ }
  function dailyOverview(){
   const panel=el('section',undefined,'haccp-daily-overview');
   const title=el('h2','Ежедневный контроль · 11:00');
@@ -137,7 +158,7 @@ export function mountHaccp(root,{getState,save,notify}){
  function build(){
  const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=isCatalog||!isJournal;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
  for(const node of [controls,monthBar,periodHint])node.hidden=isCatalog||!isJournal;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
- const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+ const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.prepend(dailyDrafts());journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
