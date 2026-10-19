@@ -1,5 +1,5 @@
 
-/* Product-only, canvas-rendered 3D globe. No changes to Google sync or recipe storage. */
+/* Product-only interactive 3D textured Earth. No changes to Google sync or recipe storage. */
 const CATEGORIES=[
   {id:'rolls',name:'Холодные роллы',icon:'🍣',kind:'roll',samples:['Образец ролла 01','Образец ролла 02','Образец ролла 03']},
   {id:'baked',name:'Запечённые',icon:'🍱',kind:'roll',samples:['Запечённый ролл 01','Запечённый ролл 02','Запечённый ролл 03']},
