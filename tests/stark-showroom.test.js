@@ -11,7 +11,7 @@ async function sources(){return Promise.all([readFile(pageUrl,'utf8'),readFile(s
 test('Premium Stark V4 module parses and is mounted on the real public home',async()=>{
  const [html,js,css]=await sources();
  assert.doesNotThrow(()=>new Function(js.replace('export function mountStarkShowroom','function mountStarkShowroom')));
- assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=1';/);
+ assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=3';/);
  assert.match(html,/starkShowroom=mountStarkShowroom\(\{host:\$\('home'\)/);
  assert.match(html,/starkShowroom\?\.updateRecipes\(state\?\.recipes\|\|\[\]\)/);
  assert.match(css,/body\[data-view="home"\]\.stark-ready #home > :not\(\.stark-showroom\)/);
