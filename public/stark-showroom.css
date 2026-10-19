@@ -89,3 +89,10 @@ body[data-view="home"].stark-booting #home{min-height:66vh!important}
 body[data-view="home"].stark-booting #home:before{content:"FARUKH AI  •  ЗАГРУЗКА ВИТРИНЫ";display:block;text-align:center;padding:23vh 16px;color:#ba3048;font-size:13px;letter-spacing:.18em;font-weight:750}
 body[data-view="home"].stark-booting .app > main > .bar,
 body[data-view="home"].stark-booting #notice{visibility:hidden!important}
+
+/* Only the dishes float over the showcase; no rectangular product cards. */
+.stark-showroom .ss-item{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:4px!important}
+.stark-showroom .ss-item:hover,.stark-showroom .ss-item[aria-pressed="true"]{background:transparent!important;box-shadow:none!important;border:0!important;filter:drop-shadow(0 8px 14px #b7224449)}
+.ss-item .ss-food,.ss-item img{filter:drop-shadow(0 14px 10px #3f1d2b5c);transition:transform .22s ease;max-width:100%}
+.ss-item:hover .ss-food,.ss-item:hover img{transform:rotate(-6deg) scale(1.08)}
+.ss-item span{background:#fff9f5e0;border-radius:999px;border:1px solid #eddddd;padding:5px 9px;max-width:145px}
