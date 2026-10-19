@@ -69,7 +69,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
  const pause=root.querySelector('.ss-pause');
  root.querySelector('.ss-ttk').addEventListener('click',onOpenRecipes);
  let yaw=0.31,pitch=0.06,orbit=0,tableOrbit=0,velocityX=0,velocityY=0,paused=false;
- let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[];
+ let selected=0,chosenItem=-1,drag=null,deckDrag=null,lastTime=0,lastDraw=0,landProducts=[],draggedUntil=0,deckDraggedUntil=0;
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
  if(reduceMotion.matches){paused=true;pause.textContent='▶ Вращать';pause.setAttribute('aria-pressed','true')}
  const buttons=CATEGORIES.map((c,i)=>{
@@ -77,7 +77,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   b.setAttribute('aria-pressed',i===selected?'true':'false');
   const ico=document.createElement('span');ico.className='ss-mark';ico.textContent=c.icon;ico.setAttribute('aria-hidden','true');
   const label=document.createElement('span');label.textContent=c.name;b.append(ico,label);
-  b.addEventListener('click',()=>select(i));markers.append(b);return b;
+  b.addEventListener('click',()=>{if(performance.now()>=draggedUntil)select(i)});markers.append(b);return b;
  });
  function getProducts(i){
   const category=CATEGORIES[i];const matched=landProducts.filter(p=>categorize(p.category||p.name||'')===category.id);
@@ -95,7 +95,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
     if(p.image){const img=document.createElement('img');img.src=p.image;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();const placeholder=document.createElement('div');placeholder.className='ss-food ss-food-'+p.kind;item.prepend(placeholder)};item.append(img)}
     else{const food=document.createElement('div');food.className='ss-food ss-food-'+p.kind;food.setAttribute('aria-hidden','true');item.append(food)}
     const text=document.createElement('span');text.textContent=p.label;item.append(text);
-    item.addEventListener('click',()=>{chosenItem=j;items.querySelectorAll('button').forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));caption.textContent=p.label+(p.image?' · Фотография товара':' · Фото заменим на ваше, когда пришлёте')});
+    item.addEventListener('click',()=>{if(performance.now()<deckDraggedUntil)return;chosenItem=j;items.querySelectorAll('button').forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));caption.textContent=p.label+(p.image?' · Фотография товара':' · Фото заменим на ваше, когда пришлёте')});
     items.append(item);
   });
   positionTable();
@@ -184,8 +184,9 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   placeMarkers();positionTable();drawGlobe(w,h,performance.now());
  }
  portal.addEventListener('pointerdown',e=>{
-  if(e.target.closest('button'))return;
-  drag={x:e.clientX,y:e.clientY,t:performance.now(),moved:false};velocityX=0;velocityY=0;portal.setPointerCapture(e.pointerId);
+  if(e.target.closest('.ss-controls'))return;
+  drag={x:e.clientX,y:e.clientY,t:performance.now(),moved:false};velocityX=0;velocityY=0;
+  const target=e.target.closest('.ss-marker')||portal;target.setPointerCapture(e.pointerId);
  });
  portal.addEventListener('pointermove',e=>{
   if(!drag)return;
@@ -195,7 +196,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
   velocityX=clamp(dx*.006/dt,-.015,.015);velocityY=clamp(dy*.004/dt,-.009,.009);
   drag.x=e.clientX;drag.y=e.clientY;drag.t=performance.now();placeMarkers();drawGlobe(canvas.clientWidth,canvas.clientHeight,performance.now());
  });
- for(const evt of ['pointerup','pointercancel','lostpointercapture'])portal.addEventListener(evt,()=>{drag=null});
+ for(const evt of ['pointerup','pointercancel','lostpointercapture'])portal.addEventListener(evt,()=>{if(drag?.moved)draggedUntil=performance.now()+230;drag=null});
  portal.addEventListener('keydown',e=>{
   const actions={ArrowLeft:[-.19,0],ArrowRight:[.19,0],ArrowUp:[0,-.15],ArrowDown:[0,.15]};
   if(!actions[e.key])return;e.preventDefault();
@@ -205,9 +206,9 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{}}
  const reset=root.querySelector('.ss-reset');
  reset.addEventListener('click',()=>{yaw=.31;pitch=.06;orbit=0;tableOrbit=0;velocityX=0;velocityY=0;placeMarkers();positionTable()});
  pause.addEventListener('click',()=>{paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'▶ Вращать':'Ⅱ Пауза'});
- deck.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;deckDrag={x:e.clientX};deck.setPointerCapture(e.pointerId)});
- deck.addEventListener('pointermove',e=>{if(!deckDrag)return;tableOrbit+=(e.clientX-deckDrag.x)*.008;deckDrag.x=e.clientX;positionTable()});
- for(const evt of ['pointerup','pointercancel','lostpointercapture'])deck.addEventListener(evt,()=>{deckDrag=null});
+ deck.addEventListener('pointerdown',e=>{deckDrag={x:e.clientX,moved:false};(e.target.closest('.ss-item')||deck).setPointerCapture(e.pointerId)});
+ deck.addEventListener('pointermove',e=>{if(!deckDrag)return;const dx=e.clientX-deckDrag.x;if(Math.abs(dx)>3)deckDrag.moved=true;tableOrbit+=dx*.008;deckDrag.x=e.clientX;positionTable()});
+ for(const evt of ['pointerup','pointercancel','lostpointercapture'])deck.addEventListener(evt,()=>{if(deckDrag?.moved)deckDraggedUntil=performance.now()+230;deckDrag=null});
  function updateRecipes(recipes){landProducts=Array.isArray(recipes)?recipes.filter(p=>p&&p.name):[];select(selected)}
  try{landProducts=getRecipes()||[]}catch{}
  select(0);
