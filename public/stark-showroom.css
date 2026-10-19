@@ -112,3 +112,8 @@ body[data-view="home"].stark-ready #home .ss-head h1 span{color:#ad2039!importan
 .stark-showroom .ss-chat{margin-top:4px;background:#b7243f!important;border:1px solid #b7243f!important;color:#fff!important;padding:9px 10px!important;border-radius:10px!important;font-size:10px!important}
 @media(max-width:1390px){.stark-showroom .ss-sideinfo,.stark-showroom .ss-side-ai{display:none}}
 @media(max-width:750px){.stark-showroom .ss-portal{height:clamp(380px,108vw,470px)}.stark-showroom .ss-deck{height:240px}.stark-showroom .ss-head p{font-size:11px!important}}
+
+/* Compositor-only orbital transforms: no layout recalculation during animation. */
+.stark-showroom .ss-marker{left:0!important;top:0!important;will-change:transform;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.stark-showroom .ss-item{left:0!important;top:0!important;will-change:transform}
+.stark-showroom .ss-portal canvas{filter:none!important}
