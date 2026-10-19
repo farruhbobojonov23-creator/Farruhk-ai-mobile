@@ -65,8 +65,9 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   '<button type="button" class="ss-ttk">Открыть товары и техкарты ↗</button>'+
   '<p class="ss-footnote">Пока стоят демонстрационные образцы — ваши фотографии добавим позже.</p></section>';
  host.prepend(root);
- const portal=root.querySelector('.ss-portal'),canvas=root.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:true});
+ const portal=root.querySelector('.ss-portal'),canvas=root.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:true,desynchronized:true});
  const markers=root.querySelector('.ss-markers'),deck=root.querySelector('.ss-deck'),items=root.querySelector('.ss-items');
+ let portalW=portal.clientWidth,portalH=portal.clientHeight,deckW=deck.clientWidth,deckH=deck.clientHeight;
  const title=root.querySelector('.ss-category-name'),caption=root.querySelector('.ss-selected-caption');
  const pause=root.querySelector('.ss-pause');
  root.querySelector('.ss-ttk').addEventListener('click',onOpenRecipes);
@@ -129,11 +130,11 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
    for(const [lon,lat] of coords){const p=project(lon,lat,r,cx,cy);if(p.z>=0){if(!open){ctx.moveTo(p.x,p.y);open=true}else ctx.lineTo(p.x,p.y)}else open=false}
    ctx.lineWidth=width;ctx.strokeStyle=stroke;ctx.stroke();
   }
-  for(let lat=-75;lat<=75;lat+=15){const a=[];for(let lon=-180;lon<=180;lon+=3)a.push([lon,lat]);polyLine(a,'#ff637422',.7)}
-  for(let lon=-180;lon<180;lon+=20){const a=[];for(let lat=-89;lat<=89;lat+=2)a.push([lon,lat]);polyLine(a,'#ff698026',.7)}
+  for(let lat=-75;lat<=75;lat+=25){const a=[];for(let lon=-180;lon<=180;lon+=5)a.push([lon,lat]);polyLine(a,'#ff637422',.7)}
+  for(let lon=-180;lon<180;lon+=30){const a=[];for(let lat=-89;lat<=89;lat+=5)a.push([lon,lat]);polyLine(a,'#ff698026',.7)}
   for(const land of LANDS){
    // Subdivide edges for a smoother projection while retaining the light-weight low-poly look.
-   const outline=[];for(let i=0;i<land.length-1;i++){const a=land[i],b=land[i+1];for(let k=0;k<6;k++){const u=k/6;outline.push([a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u])}}outline.push(land[land.length-1]);
+   const outline=[];for(let i=0;i<land.length-1;i++){const a=land[i],b=land[i+1];for(let k=0;k<3;k++){const u=k/3;outline.push([a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u])}}outline.push(land[land.length-1]);
    const forward=outline.map(p=>project(p[0],p[1],r,cx,cy)).filter(p=>p.z>.01);
    if(forward.length>2){
     ctx.beginPath();ctx.moveTo(forward[0].x,forward[0].y);for(const p of forward.slice(1))ctx.lineTo(p.x,p.y);ctx.closePath();
@@ -143,7 +144,7 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   const sheen=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
   sheen.addColorStop(0,'#ffb3ba55');sheen.addColorStop(.47,'#ffb3ba00');sheen.addColorStop(1,'#060711aa');
   ctx.fillStyle=sheen;ctx.fillRect(cx-r,cy-r,2*r,2*r);ctx.restore();
-  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.lineWidth=2;ctx.strokeStyle='#e95164ce';ctx.shadowColor='#e2224c';ctx.shadowBlur=26;ctx.stroke();ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.lineWidth=2;ctx.strokeStyle='#e95164ce';ctx.shadowColor='#e2224c';ctx.shadowBlur=0;ctx.stroke();
   const ring=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
   ring.addColorStop(0,'#ca253d28');ring.addColorStop(.5,'#ff849760');ring.addColorStop(1,'#ca253d28');
   ctx.save();ctx.translate(cx,cy);ctx.rotate(-.18);ctx.scale(1,.29);ctx.beginPath();ctx.arc(0,0,r*1.35,0,2*Math.PI);ctx.strokeStyle=ring;ctx.lineWidth=3;ctx.stroke();ctx.restore();
@@ -151,29 +152,27 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
   ctx.globalAlpha=1;
  }
  function placeMarkers(){
-  const w=portal.clientWidth,h=portal.clientHeight,rx=Math.min(w*(w<750?.34:.39),385),ry=h*.375;
+  const w=portalW,h=portalH,rx=Math.min(w*(w<750?.34:.39),385),ry=h*.375;
   buttons.forEach((b,i)=>{
    const a=i*2*Math.PI/buttons.length+orbit;
    const depth=Math.cos(a), x=w*.5+Math.sin(a)*rx, y=h*.44+Math.cos(a)*ry*.74+Math.sin(a)*ry*.23*Math.sin(pitch*.5+.3);
-   b.style.left=x+'px';b.style.top=y+'px';b.style.zIndex=String(20+Math.round(12*depth));b.style.opacity=String(.65+.35*(depth+1)/2);
-   b.style.scale=String(.82+.17*(depth+1)/2);
+   b.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) scale('+(.82+.17*(depth+1)/2)+')';b.style.zIndex=String(20+Math.round(12*depth));b.style.opacity=String(.65+.35*(depth+1)/2);
   });
  }
  function positionTable(){
   const list=items.querySelectorAll('.ss-item'),n=list.length;if(!n)return;
-  const w=deck.clientWidth,h=deck.clientHeight,rx=Math.min(w*.34,250),ry=Math.min(h*.20,58);
+  const w=deckW,h=deckH,rx=Math.min(w*.34,250),ry=Math.min(h*.20,58);
   list.forEach((el,i)=>{
    const a=i*2*Math.PI/n+tableOrbit,depth=Math.sin(a);
    const x=Math.cos(a)*rx,y=Math.sin(a)*ry;
-   el.style.left=(w/2+x)+'px';el.style.top=(h*.48+y)+'px';
-   el.style.transform='translate(-50%,-50%) scale('+(0.82+(depth+1)*.12)+')';
+   el.style.transform='translate3d('+(w/2+x)+'px,'+(h*.48+y)+'px,0) translate(-50%,-50%) scale('+(0.82+(depth+1)*.12)+')';
    el.style.zIndex=String(30+Math.round(depth*10));
   });
  }
  function frame(ts){
-  // Throttle the globe and DOM updates to ~15fps: premium motion without burning battery or blocking touch.
-  if(ts-lastTick<66){requestAnimationFrame(frame);return}lastTick=ts;
-  const dt=Math.min(95,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
+  // GPU-friendly transforms at ~6 fps for subtle ambient drift; gesture updates remain immediate.
+  if(ts-lastTick<170){requestAnimationFrame(frame);return}lastTick=ts;
+  const dt=Math.min(205,Math.max(0,ts-(lastTime||ts)));lastTime=ts;
   if(!document.hidden&&document.body.dataset.view==='home'&&root.isConnected){
    if(!paused){
     yaw+=dt*.00015;if(!hoveredOrbit&&!drag)orbit+=dt*.000065;if(!hoveredTable&&!deckDrag)tableOrbit+=dt*.000065;
@@ -181,13 +180,13 @@ export function mountStarkShowroom({host,getRecipes=()=>[],onOpenRecipes=()=>{},
     velocityX*=Math.pow(.92,dt/16);velocityY*=Math.pow(.92,dt/16);
    }
    placeMarkers();positionTable();
-   if(!paused&&ts-lastDraw>70){drawGlobe(canvas.clientWidth,canvas.clientHeight,ts);lastDraw=ts}
+   if(!paused&&ts-lastDraw>175){drawGlobe(portalW,portalH,ts);lastDraw=ts}
   }
   requestAnimationFrame(frame);
  }
  let dpr=1;
  function resize(){
-  const w=Math.max(1,Math.round(portal.clientWidth)),h=Math.max(1,Math.round(portal.clientHeight));
+  const w=Math.max(1,Math.round(portal.clientWidth)),h=Math.max(1,Math.round(portal.clientHeight));portalW=w;portalH=h;deckW=deck.clientWidth;deckH=deck.clientHeight;
   dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
   ctx?.setTransform(dpr,0,0,dpr,0,0);
   placeMarkers();positionTable();drawGlobe(w,h,performance.now());
