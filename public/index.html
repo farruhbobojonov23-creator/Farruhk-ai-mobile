@@ -170,7 +170,7 @@ async function sendChat(message,{signal,voice=false}={}){
 }
 const voice=createVoiceConversation({send:sendChat});
 const pearlHome=mountPearlHome({getState:()=>state,show,openEditor,notify:notice});
-starkShowroom=mountStarkShowroom({host:$('home'),getRecipes:()=>state?.recipes||[],onOpenRecipes:()=>show('recipes')});
+starkShowroom=mountStarkShowroom({host:$('home'),getRecipes:()=>state?.recipes||[],onOpenRecipes:()=>show('recipes'),onOpenChat:()=>show('chat')});
 const voiceDock=document.createElement('aside');voiceDock.id='global-voice';voiceDock.hidden=true;voiceDock.setAttribute('aria-label','Голосовой помощник');
 const dockClose=document.createElement('button');dockClose.type='button';dockClose.className='voice-dock-close';dockClose.textContent='Свернуть';dockClose.onclick=()=>{voiceDock.hidden=true};
 voiceDock.append(dockClose,panel);document.body.append(voiceDock);$('voice-transcript').hidden=false;
