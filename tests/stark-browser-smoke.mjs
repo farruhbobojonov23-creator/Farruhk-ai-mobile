@@ -46,11 +46,14 @@ async function verify(viewport,isMobile=false){
   console.log('SMOKE: tapped onigiri');
   assert.equal(await page.locator('.ss-showcase h2').textContent(),'Онигири','category click updates table');
   const afterTap=await page.evaluate(()=>({title:document.querySelector('.ss-category-name')?.textContent,items:document.querySelectorAll('.ss-item').length,activeView:document.body?.dataset?.view}));console.log('SMOKE: postcategory',JSON.stringify(afterTap));
+  assert.equal(await page.evaluate(()=>document.querySelectorAll('.ss-item').length),1,'Onigiri has one real demo photo rather than three fake triangles');
   const sampleBox=await page.evaluate(()=>{const b=document.querySelector('.ss-item')?.getBoundingClientRect();return b?{x:b.x,y:b.y,width:b.width,height:b.height}:null});assert.ok(sampleBox,'Sample visible after category tap');
   const sampleX=sampleBox.x+sampleBox.width/2,sampleY=sampleBox.y+sampleBox.height/2;
   if(isMobile)await page.touchscreen.tap(sampleX,sampleY);else await page.mouse.click(sampleX,sampleY);
   console.log('SMOKE: tapped item');
-  assert.match(await page.evaluate(()=>document.querySelector('.ss-selected-caption')?.textContent),/Онигири 01/,'click selects product');
+  assert.match(await page.evaluate(()=>document.querySelector('.ss-selected-caption')?.textContent),/Онигири.*образец/i,'click selects product');
+  await page.waitForFunction(()=>{const image=document.querySelector('.ss-item img');return image&&image.complete&&image.naturalWidth>0&&Number(image.style.opacity)===1},null,{timeout:17000});
+  console.log('SMOKE: local product photo decoded with one-time background removal');
   assert.equal(await page.evaluate(()=>document.querySelector('.ss-pause')?.getAttribute('aria-pressed')),'true','respect reduced-motion preference');console.log('SMOKE: motion reduced');
   const before=await page.evaluate(()=>document.querySelector('.ss-marker')?.style.transform);
   const box=await page.evaluate(()=>{const r=document.querySelector('.ss-portal').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}});
