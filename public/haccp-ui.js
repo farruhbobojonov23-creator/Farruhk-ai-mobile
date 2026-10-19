@@ -124,9 +124,12 @@ export function mountHaccp(root,{getState,save,notify}){
    for(let d=1;d<=days;d++){
     const date=monthFilter.value+'-'+String(d).padStart(2,'0');
     const saved=h().records.filter(r=>r.kind==='cleaning'&&r.pointId===(point?.id||id)&&measurementDate(r.at).slice(0,10)===date);
-    const td=el('td',saved.length?(d===1||d===15?'Г':'Т'):'·');
-    td.title=saved.length?'Сохранена запись уборки':'План: '+(d===1||d===15?'генеральная':'текущая')+'; выполнение не подтверждено';
-    td.className=saved.length?'haccp-cleaning-done':'haccp-cleaning-planned';
+    const confirmed=saved.find(r=>r.result==='done');
+    const notDone=saved.some(r=>r.result==='problem');
+    const mark=confirmed?(d===1||d===15?'Г':'Т'):notDone?'/-/':'·';
+    const td=el('td',mark);
+    td.title=confirmed?'Подтверждённая запись уборки':notDone?'Есть замечание: уборка не подтверждена':'План: '+(d===1||d===15?'генеральная':'текущая')+'; выполнение не подтверждено';
+    td.className=confirmed?'haccp-cleaning-done':'haccp-cleaning-planned';
     td.onclick=()=>{if(!saved.length){const form=body.querySelector('form.haccp-sheet');const btn=form?.querySelector('.haccp-sheet-toolbar button');btn?.click();const at=form?.querySelector('[name=at]');if(at)at.value=date+'T11:00';const select=form?.querySelector('[name=pointId]');if(select&&point)select.value=point.id;const method=form?.querySelector('[name=method]');if(method)method.value=d===1||d===15?'Генеральная уборка по утверждённому графику':'Текущая уборка по утверждённому графику';const agent=form?.querySelector('[name=agent]');if(agent)agent.value='Ника 2 Deso c9';const zone=form?.querySelector('[name=zone]');if(zone)zone.value=point?.name||name}};
     row.append(td);
    }
@@ -228,6 +231,8 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  function drawHistory(){history.replaceChildren();if(journalTypes[tab])journalHistory()}
  function build(){
+ // Dialogs live outside the journal body; remove obsolete ones on every rebuild.
+ document.querySelectorAll('dialog.haccp-entry-dialog').forEach(dialog=>dialog.remove());
  const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=isCatalog||!isJournal;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
  for(const node of [controls,monthBar,periodHint])node.hidden=isCatalog||!isJournal;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
  const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
