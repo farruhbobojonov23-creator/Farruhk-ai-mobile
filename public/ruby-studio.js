@@ -1,5 +1,7 @@
 export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog,getState}){
  const $=id=>document.getElementById(id);
+ const pauseEffects=()=>document.body.classList.toggle('fx-paused',document.hidden);
+ document.addEventListener('visibilitychange',pauseEffects);pauseEffects();
  const talk=$('ruby-talk'),label=$('ruby-talk-label'),status=$('ruby-status');
  function openChat(){messagesDialog.append($('chat-form'));if(!messagesDialog.open)messagesDialog.showModal();$('message').focus()}
  $('ruby-menu').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)};

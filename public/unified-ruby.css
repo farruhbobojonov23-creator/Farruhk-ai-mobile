@@ -92,3 +92,26 @@ body[data-view=home] .ruby-mic{color:#b9e7ff;border-color:#79c9f366;background:#
 body[data-view=home] .ruby-home #ruby-status:before{background:#73d1ff}
 body[data-view=home] .ruby-home[data-phase=listening] .tesseract-glow,body[data-view=home] .ruby-home[data-phase=speaking] .tesseract-glow{background:radial-gradient(ellipse,#279fe96b,transparent 70%)}
 @media(min-width:1000px){body[data-view=home] .ruby-scene.tesseract-scene{inset:5% 0 125px 29%}}
+
+/* Lightweight energy effects: transform/opacity only; original cube is preserved. */
+.tesseract-art{animation:tesseract-float 14s ease-in-out infinite;transform-origin:50% 55%}
+.tesseract-glow{animation:tesseract-ground 7s ease-in-out infinite}
+.tesseract-rays{position:absolute;inset:3%;z-index:0;opacity:.36;animation:tesseract-aura 7s ease-in-out infinite;transition:opacity .8s}
+.tesseract-rays i{position:absolute;left:50%;top:50%;height:2px;width:56%;transform-origin:left center;background:linear-gradient(90deg,#94e4ff70,#219ad32e 45%,transparent);box-shadow:0 0 14px #4dcaff25;transform:rotate(-35deg)}
+.tesseract-rays i:nth-child(2){transform:rotate(35deg)}.tesseract-rays i:nth-child(3){transform:rotate(145deg)}.tesseract-rays i:nth-child(4){transform:rotate(215deg)}
+.tesseract-particles{position:absolute;inset:5%;z-index:2;pointer-events:none}
+.tesseract-particles i{position:absolute;width:3px;height:3px;border-radius:50%;background:#b0ebff;box-shadow:0 0 7px #4ac7ff;left:15%;top:72%;opacity:0;animation:tesseract-spark 9s ease-in-out infinite}
+.tesseract-particles i:nth-child(2){left:82%;top:62%;animation-delay:-2s}.tesseract-particles i:nth-child(3){left:70%;top:22%;animation-delay:-4s;width:2px;height:2px}.tesseract-particles i:nth-child(4){left:26%;top:26%;animation-delay:-6s}.tesseract-particles i:nth-child(5){left:90%;top:42%;animation-delay:-7s;width:2px;height:2px}.tesseract-particles i:nth-child(6){left:38%;top:85%;animation-delay:-3s;width:2px;height:2px}
+#home[data-phase=listening] .tesseract-rays,#home[data-phase=speaking] .tesseract-rays{opacity:.85;animation-duration:3s}
+#home[data-phase=thinking] .tesseract-rays{opacity:.65;animation-duration:4s}
+body:not([data-view=home]) .tesseract-scene *,body.fx-paused .tesseract-scene *{animation-play-state:paused!important}
+@keyframes tesseract-float{0%,100%{transform:translateY(3px) rotate(-1.5deg) scale(.97)}50%{transform:translateY(-7px) rotate(1.5deg) scale(.985)}}
+@keyframes tesseract-ground{0%,100%{transform:scaleX(.9);opacity:.45}50%{transform:scaleX(1.08);opacity:.8}}
+@keyframes tesseract-aura{0%,100%{transform:scale(.94)}50%{transform:scale(1.06)}}
+@keyframes tesseract-spark{0%,100%{transform:translateY(12px);opacity:0}30%{opacity:.5}65%{opacity:.2}85%{transform:translateY(-24px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.tesseract-scene *{animation:none!important}.tesseract-particles{display:none}.tesseract-art{transform:none}}
+.tesseract-scene::after{content:'';position:absolute;left:39%;top:42%;width:22%;height:22%;z-index:2;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#d9f7ff45, #3ab8ff15 38%,transparent 70%);animation:tesseract-heart 6s ease-in-out infinite}
+@keyframes tesseract-heart{0%,100%{opacity:.15;transform:scale(.85)}50%{opacity:.75;transform:scale(1.1)}}
+#home[data-phase=listening] .tesseract-scene::after,#home[data-phase=speaking] .tesseract-scene::after{animation-duration:2.5s}
+body:not([data-view=home]) .tesseract-scene::after,body.fx-paused .tesseract-scene::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.tesseract-scene::after{animation:none!important;opacity:.2}}
