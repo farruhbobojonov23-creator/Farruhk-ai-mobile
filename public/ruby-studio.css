@@ -17,7 +17,7 @@ body[data-view="home"] #home::before,body[data-view="home"] #home::after{content
 #home.ruby-home .ruby-rail-button.active:before{content:"";position:absolute;left:-1px;top:10%;height:80%;width:4px;background:#ff6675;box-shadow:0 0 12px #ff4e59;border-radius:2px}
 #home.ruby-home svg{display:block;width:28px!important;height:28px!important;max-width:none!important;max-height:none!important;fill:none!important;stroke:currentColor!important;flex-shrink:0}
 #home.ruby-home .ruby-greeting{position:absolute;top:37.7%;left:15.1%;max-width:31%;text-align:left}
-body[data-view="home"] #home .ruby-greeting h1{font-size:clamp(28px,3.55vw,60px)!important;font-weight:300!important;line-height:1.2!important;letter-spacing:.005em!important;color:#fff!important;text-shadow:none!important;margin:0 0 9px!important;text-align:left!important}
+body[data-view="home"] #home .ruby-greeting h1{font-size:clamp(28px,3.55vw,60px)!important;font-weight:300!important;line-height:1.2!important;letter-spacing:.005em!important;color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:none!important;margin:0 0 9px!important;text-align:left!important}
 body[data-view="home"] #home .ruby-greeting p{font-size:clamp(16px,1.8vw,29px)!important;line-height:1.4!important;color:#e2b7ba!important;margin:0!important;text-align:left!important;letter-spacing:0!important;font-weight:300!important}
 #home.ruby-home .ruby-controls{position:absolute;left:41.1%;bottom:7.0%;display:flex;gap:20px;align-items:center}
 #home.ruby-home .ruby-talk,#home.ruby-home .ruby-keyboard{display:flex;align-items:center;justify-content:center;height:clamp(58px,9.4vh,94px);border:1px solid #ffd9d984!important;background:linear-gradient(130deg,#ffffff14,#6b0a102b 45%,#ffffff0a)!important;box-shadow:inset 2px 2px 4px #ffd5d547,inset -2px -2px 4px #fff0f02d,0 7px 18px #25000033!important;backdrop-filter:blur(10px);color:white!important;border-radius:70px!important;font-size:clamp(14px,1.25vw,20px)!important;font-weight:400!important;line-height:1.2;padding:8px!important;transition:background .18s,box-shadow .18s}
@@ -46,15 +46,15 @@ body[data-view="home"] dialog button{background:#6f2535!important;color:white!im
 body[data-view="home"] dialog #chat-form{display:flex!important;gap:12px;align-items:end}
 body[data-view="home"] dialog #chat-form label{flex:1}
 @media(max-width:700px) and (orientation:portrait){
- #home.ruby-home .ruby-scene{background-size:auto 76%;background-position:67% 39%;background-color:#350306}
+ #home.ruby-home .ruby-scene{background-image:url('/assets/ruby-studio-mobile.webp');background-size:100% 100%;background-position:center;background-color:#350306}
  #home.ruby-home .ruby-brand{left:22%;top:5%;font-size:17px;letter-spacing:.13em}
  #home.ruby-home .ruby-clock{right:5%;top:5.2%;font-size:15px}
  #home.ruby-home .ruby-rail{left:4%;top:4%;width:48px;min-width:48px;height:43%;min-height:235px;padding:26px 0 12px;border-radius:28px}
  #home.ruby-home .ruby-rail-button svg{width:23px!important;height:23px!important}
- #home.ruby-home .ruby-greeting{left:23%;top:16%;max-width:73%}
+ #home.ruby-home .ruby-greeting{left:23%;top:16%;max-width:72%}
  body[data-view="home"] #home .ruby-greeting h1{font-size:30px!important}
  body[data-view="home"] #home .ruby-greeting p{font-size:17px!important}
- #home.ruby-home .ruby-controls{left:22%;right:5%;bottom:10%;gap:10px}
+ #home.ruby-home .ruby-controls{left:22%;right:5%;bottom:max(7%,env(safe-area-inset-bottom));gap:10px}
  #home.ruby-home .ruby-talk{min-width:0;flex:1;gap:10px;padding-right:14px!important;font-size:13px!important;height:60px}
  #home.ruby-home .ruby-mic{width:42px;height:42px;flex:none}
  #home.ruby-home .ruby-keyboard{width:52px;height:60px}
