@@ -15,6 +15,6 @@ export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog
  function sync(){const phase=panel.dataset.phase||'idle';$('home').dataset.phase=phase;const active=!['idle','error'].includes(phase);talk.setAttribute('aria-pressed',String(active));label.textContent=active?'Остановить':'Начать разговор';status.textContent=phase==='error'?$('voice-status').textContent:(phaseNames[phase]||'Я на связи');}
  new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['data-phase']});sync();
  function render(){const state=getState?.();if(!state)return;const item=nearestReminder(state.tasks);const box=$('home-today');box.hidden=!item;box.replaceChildren();if(!item)return;const title=document.createElement('strong');title.textContent=item.task.text;const when=document.createElement('span');when.textContent=(item.overdue?'Просрочено · ':'Ближайшее · ')+new Date(item.task.due).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});box.append(when,title);box.setAttribute('aria-label',when.textContent+'. '+item.task.text+'. Открыть задачи');}
- setInterval(render,60000);
+ render();setInterval(render,60000);
  return {render,remember(recipe){if(recipe?.id)try{localStorage.setItem('farrukh-last-open-recipe',recipe.id)}catch{}}};
 }
