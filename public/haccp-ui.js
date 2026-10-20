@@ -29,8 +29,8 @@ export function mountHaccp(root,{getState,save,notify}){
  const filters=el('details',undefined,'haccp-period-panel');filters.append(el('summary','Точка, месяц и архив'),controls,monthBar,periodHint);root.insertBefore(filters,body);
  const allTabs={...journalTypes,actions:'Корректирующие действия',documents:'Документы',settings:'Точки и оборудование'};
  function catalog(){
- const grid=el('div',undefined,'haccp-catalog');let index=0;const groupNames={temperature:'Оборудование',cleaning:'Чистота и порядок',receiving:'Продукты и хранение',audit:'Контроль кухни',humidity:'Условия и процессы',hygiene:'Персонал и санитария'};
- for(const [kind,title] of Object.entries(journalTypes)){
+ const grid=el('div',undefined,'haccp-catalog');let index=0;const groupNames={temperature:'Оборудование и условия',receiving:'Продукты и процессы',cleaning:'Чистота, персонал и контроль'};
+ for(const kind of ['temperature','humidity','frying','receiving','storage','cooking','defrosting','quality','cleaning','hygiene','pests','audit']){const title=journalTypes[kind];index=Object.keys(journalTypes).indexOf(kind);
   if(groupNames[kind])grid.append(el('h3',groupNames[kind],'haccp-group-label'));const card=button('',()=>{tab=kind;build();root.scrollIntoView({block:'start'})},'haccp-journal-card');card.dataset.journal=kind;
   const photo=el('span',undefined,'haccp-journal-photo');photo.setAttribute('aria-hidden','true');photo.style.backgroundPosition=`${(index%4)*100/3}% ${Math.floor(index/4)*50}%`;
   const copy=el('span',undefined,'haccp-journal-copy');copy.append(el('strong',title),el('small',h().records.filter(r=>r.kind===kind).length+' записей · Открыть журнал'));
