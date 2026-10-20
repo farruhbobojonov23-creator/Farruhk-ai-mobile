@@ -70,3 +70,14 @@ body[data-view=home] .home-today{bottom:115px;max-width:65%}
 /* Grounded chrome sphere: keep the contact shadow and reflection visible. */
 body[data-view=home] .ruby-core-art{animation:none;transform:none}
 @media(max-width:999px){body[data-view=home] .ruby-scene{mask-image:linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent)}body[data-view=home] .ruby-core-art{filter:brightness(1)}}
+
+/* Native transparent WebGL scene. No photographic background remains. */
+body[data-view=home] .ruby-scene{z-index:1;mask-image:none!important;-webkit-mask-image:none!important;overflow:visible;isolation:isolate}
+body[data-view=home] .ruby-core-art{background:none!important;inset:16%;border-radius:50%;background-image:none!important;box-shadow:inset -14px -18px 28px #0008,inset 9px 7px 24px #ff809c24;opacity:.3}
+body[data-view=home] .ruby-scene[data-renderer=webgl] .ruby-core-art{display:none}
+body[data-view=home] .ruby-core-halo{inset:auto 18% 0;width:64%;height:9%;aspect-ratio:auto;border-radius:50%;background:radial-gradient(ellipse,#f12b4b55,transparent 70%);box-shadow:0 0 20px #f12b4b15;filter:blur(8px);pointer-events:none}
+.ruby-sphere-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab;outline:none}
+.ruby-sphere-canvas:active{cursor:grabbing}.ruby-sphere-canvas:focus-visible{outline:1px solid #d1758c;outline-offset:3px;border-radius:24px}
+body[data-view=home] .ruby-scene[data-renderer=fallback] canvas{display:none}
+body[data-view=home] .ruby-scene[data-renderer=fallback] .ruby-core-art{opacity:1;background:radial-gradient(circle at 32% 25%,#fee3e9 0,#9e5266 8%,#3b1423 27%,#120a13 55%,#a82242 72%,#170c16 79%)!important;border:1px solid #e888a477}
+@media(min-width:1000px){body[data-view=home] .ruby-scene{inset:7% 0 120px 29%}}

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/*.test.js",
-    "build:photo": "node scripts/build-photo.js"
+    "build:photo": "node scripts/build-photo.js",
+    "build:sphere": "esbuild scripts/ruby-sphere-source.js --bundle --minify --format=esm --outfile=public/ruby-sphere-3d.js --legal-comments=linked"
   },
   "dependencies": {
     "@imgly/background-removal": "1.7.0",
@@ -21,6 +22,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "three": "0.180.0"
   }
 }
