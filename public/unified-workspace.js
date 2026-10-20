@@ -1,0 +1,12 @@
+const paths={home:'m3 11 9-8 9 8M5 9v12h5v-7h4v7h5V9',recipes:'M5 3h14v18H5zM8 8h8M8 12h8M8 16h5',lab:'m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6',tasks:'M4 3h16v18H4zM8 12l3 3 6-7',calc:'M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2',checks:'M5 21V3h14v18M9 7h6M9 11h6M9 15h6',chat:'M21 11a9 9 0 0 1-12 8.5L3 21l1.5-6A9 9 0 1 1 21 11z',settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2',prep:'m3 7 9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10',menu:'M4 6h16M4 12h16M4 18h16'};
+function icon(key){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(s.namespaceURI,'path');p.setAttribute('d',paths[key]||paths.settings);s.append(p);return s}
+export function mountUnifiedWorkspace(){
+ for(const b of document.querySelectorAll('#chef-menu .nav button'))b.prepend(icon(b.dataset.view||(b.id==='menu-preparations'?'prep':'settings')));
+ for(const [id,key] of [['menu-toggle','menu'],['lunar-settings','settings']])document.getElementById(id).replaceChildren(icon(key));
+ const name=document.querySelector('.ruby-greeting h1');const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',hour:'numeric',hourCycle:'h23'}).format(new Date()));name.replaceChildren(document.createTextNode(hour<6?'Доброй ночи,':hour<12?'Доброе утро,':hour<18?'Добрый день,':'Добрый вечер,'),document.createElement('br'),document.createTextNode('Фаррух'));
+ const hint=document.querySelector('#chat > p.small');if(hint)hint.textContent='Рецептуры, рабочие вопросы и поручения. Напиши сообщение или начни разговор.';
+ const voiceButton=document.createElement('button');voiceButton.type='button';voiceButton.textContent='Начать голосовой разговор';voiceButton.onclick=()=>document.getElementById('ruby-talk').click();hint?.after(voiceButton);
+ const checkIntro=document.createElement('p');checkIntro.className='section-subtitle';checkIntro.textContent='Замечания, ответственные и сроки по каждой точке.';document.querySelector('#checks h1').after(checkIntro);
+ const taskIntro=document.createElement('p');taskIntro.className='section-subtitle';taskIntro.textContent='Держи важное под контролем. Новые поручения можно добавлять голосом.';document.querySelector('#tasks h1').after(taskIntro);
+ const msg=document.getElementById('message');msg.placeholder='Спроси или дай поручение…';
+}

@@ -55,5 +55,8 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
   await commit(state=>saveDailyTemperatures(state,payload));
  }catch(e){error(e)}finally{saving=false;submit.disabled=!inputs.length}};
  month.onchange=()=>{try{monthDays(month.value);const current=date.value;date.value=current.startsWith(month.value)?current:month.value+'-01';if(onMonthChange)onMonthChange(month.value);else draw()}catch(e){error(e)}};period.onchange=draw;
- draw();
+ const modes=el('nav',undefined,'journal-modes');modes.setAttribute('aria-label','Вид журнала температур');const daily=button('Замеры за сегодня',()=>setMode('day')),monthly=button('Таблица за месяц',()=>setMode('month'));modes.append(daily,monthly);root.prepend(modes);
+ function setMode(mode){selection.mode=mode;const current=month.value===measurementDate().slice(0,7);daily.disabled=!current;box.hidden=mode==='day'&&current;entry.hidden=mode!=='day'||!current;daily.setAttribute('aria-pressed',String(mode==='day'&&current));monthly.setAttribute('aria-pressed',String(mode==='month'||!current));}
+ draw();setMode(selection.mode||(month.value===measurementDate().slice(0,7)?'day':'month'));
+ if(!inputs.length){const setup=button('Добавить оборудование',onSettings);entry.insertBefore(el('p','Добавьте холодильники и морозильники, чтобы внести первые замеры.','small'),submit);entry.insertBefore(setup,submit)}
 }

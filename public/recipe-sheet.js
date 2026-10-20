@@ -7,7 +7,7 @@ export function mountRecipeSheet(editor){
  const toolbar=el('div','ttk-toolbar');toolbar.append(get('edit-title'));
  const oldSave=editor.querySelector('button[type="submit"],button.primary');oldSave.textContent='Сохранить';toolbar.append(oldSave);
  const download=el('button');download.id='sheet-download';download.type='button';download.textContent='Сохранить и скачать PDF';toolbar.append(download,get('delete-recipe'),get('closeeditor'));
- const guidance=el('p','ttk-guidance');guidance.textContent='Редактируй прямо в ячейках. Нетто и отходы вводятся вручную, брутто и выход рассчитываются. PDF сохраняется на одном листе А4; при большом объёме текста шрифт уменьшается. На телефоне лист целиком помещается по ширине экрана; для мелкого текста увеличь страницу двумя пальцами.';
+ const guidance=el('p','ttk-guidance');guidance.textContent='Заполняй удобные поля или переключись на лист А4. Брутто и выход рассчитываются автоматически. Перед скачиванием PDF изменения сохраняются.';
  const viewport=el('div','ttk-viewport');viewport.tabIndex=0;viewport.setAttribute('aria-label','Редактируемая техкарта');
  const paper=el('div','ttk-paper');viewport.append(paper);
  const title=el('div','ttk-document-title');title.textContent='ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)';paper.append(title);
@@ -45,9 +45,14 @@ export function mountRecipeSheet(editor){
  const top=el('div','ttk-top-pair');top.append(blocks[0],blocks[1]);
  const lower=el('div','ttk-lower-grid');lower.append(blocks[4],blocks[5]);
  paper.append(top,blocks[2],blocks[3],lower,safety,blocks[6]);
- editor.replaceChildren(toolbar,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
+ const modes=el('nav','editor-modes');modes.setAttribute('aria-label','Режим техкарты');
+ const formMode=el('button'),paperMode=el('button');formMode.type=paperMode.type='button';formMode.textContent='Заполнение';paperMode.textContent='Лист А4';
+ function setEditorMode(value){editor.dataset.mode=value;formMode.setAttribute('aria-pressed',String(value==='form'));paperMode.setAttribute('aria-pressed',String(value==='paper'));refresh()}
+ formMode.onclick=()=>setEditorMode('form');paperMode.onclick=()=>setEditorMode('paper');modes.append(formMode,paperMode);
+ editor.dataset.mode='form';formMode.setAttribute('aria-pressed','true');paperMode.setAttribute('aria-pressed','false');
+ editor.replaceChildren(toolbar,modes,guidance,viewport,tools);editor.classList.add('ttk-sheet-editor');
  function fitPaper(){
-  const available=viewport.clientWidth-4;
+  if(editor.dataset.mode==='form'){paper.style.zoom='1';return}const available=viewport.clientWidth-4;
   if(available>0)paper.style.zoom=String(Math.min(1,available/794));
  }
  // Observe the available column, including opening the editor and rotating a phone.
