@@ -1,5 +1,5 @@
-const CACHE='farrukh-unified-ruby-v67';
-const SHELL=['/preparation-board.js?v=67','/device-store.js?v=67','/','/index.html','/unified-ruby.css?v=67','/unified-workspace.js?v=67','/ruby-studio.js?v=65','/recipe-sheet.js?v=65','/haccp-ui.js?v=66','/temperature-grid-ui.js?v=65','/assets/ruby-studio-scene.webp','/assets/ruby-studio-mobile.webp','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
+const CACHE='farrukh-unified-ruby-v68';
+const SHELL=['/preparation-board.js?v=67','/device-store.js?v=67','/','/index.html','/unified-ruby.css?v=68','/unified-workspace.js?v=67','/ruby-studio.js?v=68','/recipe-sheet.js?v=65','/haccp-ui.js?v=66','/temperature-grid-ui.js?v=65','/assets/ruby-studio-scene.webp','/assets/ruby-studio-mobile.webp','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(x=>c.add(x)))).finally(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))])));
 self.addEventListener('fetch',e=>{

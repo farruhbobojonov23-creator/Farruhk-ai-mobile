@@ -27,3 +27,39 @@ body.editing-recipe #recipes{display:none!important}#editor{margin:0;border:0;pa
 .category-photo-frame{position:relative;display:block}.category-photo-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scale(.9)!important;padding:12px}
 #neural-launch{position:fixed;right:22px;bottom:22px;z-index:45;border-radius:50%;width:52px;height:52px;padding:0;display:grid;place-items:center;background:linear-gradient(135deg,#9d294a,#382131);border:1px solid #dc82985a;box-shadow:0 6px 28px #0006;color:#ffe0e9;font-size:13px;letter-spacing:.05em}body[data-view=home] #neural-launch{display:none}#neural-launch .ai-orb-halo,#neural-launch .ai-orb-rings,#neural-launch .ai-orb-gloss{display:none}@media(max-width:999px){#neural-launch{bottom:100px;right:17px;width:46px;height:46px}}
 .preparation-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.preparation-card,.point-card{padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);margin:12px 0}.preparation-card .bar{align-items:start}.preparation-card h2{font-size:18px}.preparation-card.expired{border-color:#b94b6466}.preparation-card>button{display:block;margin-top:18px;font-size:12px}.preparation-quantity{font-size:19px;color:#ebadc0;white-space:nowrap}.point-card .row{background:none!important;border:0!important;border-top:1px solid var(--line)!important;padding:16px 0!important;margin:0!important;border-radius:0!important}.calc-controls{max-width:600px}@media(max-width:600px){.preparation-list{grid-template-columns:1fr}.preparation-card,.point-card{padding:17px}.preparation-card .bar{gap:8px}#preparations>.bar button{font-size:11px}}
+/* Home refinement: voice first, one continuous background, centred mobile core. */
+body[data-view=home]{background:radial-gradient(ellipse at 60% 42%,#42122455,transparent 62%),#111014}
+body[data-view=home] .home-shortcuts{display:none}
+body[data-view=home] .ruby-greeting .eyebrow{display:none}
+body[data-view=home] .home-today{color:#b9a4b0}
+body[data-view=home] .ruby-talk{min-height:58px;border-color:#dc8a9e6b;background:linear-gradient(125deg,#a92c4c99,#48203299);box-shadow:inset 0 1px #ffffff16,0 10px 36px #6d19342b}
+body[data-view=home] .ruby-mic{width:40px;height:40px;background:#b83b5424}
+body[data-view=home] .ruby-greeting h1{font-size:clamp(32px,3.3vw,48px)}
+body[data-view=home] .ruby-home #home-composer{bottom:44px;right:240px}
+body[data-view=home] .ruby-controls{bottom:44px}
+body[data-view=home] .home-today{bottom:115px;max-width:65%}
+@media(max-width:999px){
+ body[data-view=home] .app{padding:86px 20px 100px;min-height:0;height:100dvh}
+ body[data-view=home] .ruby-home{height:calc(100dvh - 186px);min-height:0}
+ body[data-view=home] .ruby-clock{top:0;right:1px;font-size:12px;color:#a48e9d}
+ body[data-view=home] .ruby-greeting{top:28px;left:0;right:0;text-align:center;pointer-events:none}
+ body[data-view=home] .ruby-greeting h1{font-size:28px;line-height:1.2;letter-spacing:-.7px;margin:0 0 12px}
+ body[data-view=home] .ruby-greeting h1 br{display:none}
+ body[data-view=home] .ruby-greeting h1 br:after{content:' '}
+ body[data-view=home] .ruby-greeting p{font-size:13px;margin:0}
+ body[data-view=home] .ruby-scene{inset:auto;top:48%;left:50%;width:min(88vw,40dvh,390px);height:min(88vw,40dvh,390px);transform:translate(-50%,-50%);overflow:visible;mask-image:radial-gradient(ellipse closest-side,#000 68%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse closest-side,#000 68%,transparent 100%)}
+ body[data-view=home] .ruby-core-art{inset:0;background-image:url('/assets/ruby-studio-mobile.webp');background-size:140% auto;background-position:90% 44%;filter:brightness(.95);animation:core-breathe 9s ease-in-out infinite}
+ body[data-view=home] .ruby-core-halo{inset:22%;width:auto;aspect-ratio:1;box-shadow:0 0 65px #f0395c38}
+ body[data-view=home] .ruby-controls{left:0;right:0;bottom:78px;justify-content:center}
+ body[data-view=home] .ruby-talk{width:min(310px,100%);justify-content:center;gap:14px;padding:9px 20px;font-size:14px;border-radius:20px;min-height:60px}
+ body[data-view=home] .ruby-mic svg{width:22px;height:22px}
+ body[data-view=home] .ruby-home #home-composer{left:0;right:0;bottom:9px}
+ body[data-view=home] .ruby-home #chat-form{border-radius:16px;background:#ffffff04;border-color:#ffffff13}
+ body[data-view=home] .ruby-home #message{height:50px;min-height:50px;font-size:13px;border-radius:16px;background:transparent}
+ body[data-view=home] .ruby-home #chat-form button{background:#ffffff0a;border-color:#ffffff10;color:#c9a7b6}
+ body[data-view=home] .home-today{left:0;right:0;bottom:151px;max-width:none;text-align:center;font-size:11px}
+ body[data-view=home] .home-today br,body[data-view=home] .home-today br+*{display:none}
+}
+@media(max-width:600px){body[data-view=home] .ruby-greeting h1{font-size:25px}body[data-view=home] .ruby-greeting h1 br{display:block}body[data-view=home] .ruby-greeting{top:26px}body[data-view=home] .ruby-scene{top:49%}}
+@media(max-height:650px) and (max-width:999px){body[data-view=home] .ruby-greeting{top:8px}body[data-view=home] .ruby-greeting h1{font-size:21px;margin-bottom:7px}body[data-view=home] .ruby-scene{width:29dvh;height:29dvh;top:46%}body[data-view=home] .ruby-controls{bottom:66px}body[data-view=home] .ruby-talk{min-height:50px;height:50px}body[data-view=home] .home-today{display:none}}
+@media(prefers-reduced-motion:reduce){body[data-view=home] .ruby-core-art{animation:none}}
