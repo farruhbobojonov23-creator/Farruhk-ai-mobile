@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-const code=(await fs.readFile(new URL('../public/chef-voice.js',import.meta.url),'utf8')).replaceAll('export function','function').replace(/^import .*;\n/,'');
+const code=(await fs.readFile(new URL('../public/chef-voice.js',import.meta.url),'utf8')).replaceAll('export function','function').replace(/^import .*;\n/gm,'');
 function setup({enabled=true,request,send,autoEnd=true,device=false}={}){
  const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{dataset:{},checked:true,value:'Sulafat'});return nodes.get(id)};node('voice-enabled').checked=enabled;
  const events=[],timers=new Set();let playback;

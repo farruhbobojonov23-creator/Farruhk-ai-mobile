@@ -190,5 +190,5 @@ export function mountHaccp(root,{getState,save,notify}){
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
  function render(state){if(!state)return;const data=validateHaccp(state.haccp);if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  setInterval(()=>{const next=measurementDate().slice(0,7);if(next!==currentMonth){if(monthFilter.value===currentMonth)monthFilter.value=next;currentMonth=next;lastRevision=null;render(getState())}},60000);
- build();return {render};
+ build();return {render,open(kind){if(!journalTypes[kind])return false;tab=kind;build();return true}};
 }

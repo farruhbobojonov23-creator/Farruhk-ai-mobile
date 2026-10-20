@@ -1,7 +1,10 @@
+import {nearestReminder,mountHomeWeather} from '/home-context.js?v=76';
 export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog,getState}){
  const $=id=>document.getElementById(id);
  const pauseEffects=()=>document.body.classList.toggle('fx-paused',document.hidden);
  document.addEventListener('visibilitychange',pauseEffects);pauseEffects();
+ mountHomeWeather($('home'));
+ const reminder=$('home-today');reminder.setAttribute('role','button');reminder.tabIndex=0;reminder.onclick=()=>{location.hash='tasks'};reminder.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();location.hash='tasks'}};
  const talk=$('ruby-talk'),label=$('ruby-talk-label'),status=$('ruby-status');
  function openChat(){messagesDialog.append($('chat-form'));if(!messagesDialog.open)messagesDialog.showModal();$('message').focus()}
  $('ruby-menu').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)};
@@ -11,5 +14,7 @@ export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog
  const phaseNames={connecting:'Подключаюсь…',listening:'Слушаю вас',thinking:'Думаю над ответом…',speaking:'Отвечаю вам'};
  function sync(){const phase=panel.dataset.phase||'idle';$('home').dataset.phase=phase;const active=!['idle','error'].includes(phase);talk.setAttribute('aria-pressed',String(active));label.textContent=active?'Остановить':'Начать разговор';status.textContent=phase==='error'?$('voice-status').textContent:(phaseNames[phase]||'Я на связи');}
  new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['data-phase']});sync();
- return {render(){const state=getState?.();if(!state)return;const active=(state.tasks||[]).filter(t=>!t.done);const late=active.filter(t=>t.due&&Date.parse(t.due)<Date.now());const box=$('home-today');box.hidden=!active.length;box.replaceChildren();const title=document.createElement('strong');title.textContent=active.length?'На контроле: '+active.length+' задач':'Все задачи выполнены';box.append(title);if(late.length)box.append(document.createElement('br'),document.createTextNode('Просрочено: '+late.length));},remember(recipe){if(recipe?.id)try{localStorage.setItem('farrukh-last-open-recipe',recipe.id)}catch{}}};
+ function render(){const state=getState?.();if(!state)return;const item=nearestReminder(state.tasks);const box=$('home-today');box.hidden=!item;box.replaceChildren();if(!item)return;const title=document.createElement('strong');title.textContent=item.task.text;const when=document.createElement('span');when.textContent=(item.overdue?'Просрочено · ':'Ближайшее · ')+new Date(item.task.due).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});box.append(when,title);box.setAttribute('aria-label',when.textContent+'. '+item.task.text+'. Открыть задачи');}
+ setInterval(render,60000);
+ return {render,remember(recipe){if(recipe?.id)try{localStorage.setItem('farrukh-last-open-recipe',recipe.id)}catch{}}};
 }

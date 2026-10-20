@@ -8,9 +8,11 @@ export function speechNumber(value) {
  for(const token of tokens){if(token==='тысяча'||token==='тысячи'||token==='тысяч'){result+=(current||1)*1000;current=0}else if(Object.hasOwn(numberWords,token))current+=numberWords[token];else return null}
  return tokens.length&&text?result+current:null;
 }
-const sections={главную:'home',главная:'home',задачи:'tasks',техкарты:'recipes',ттк:'recipes',хассп:'lab',хасп:'lab',калькулятор:'calc',проверки:'checks',ассистент:'chat'};
+const sections={главную:'home',главная:'home',задачи:'tasks',техкарты:'recipes',ттк:'recipes',хассп:'lab',хасп:'lab',калькулятор:'calc',проверки:'checks',ассистент:'chat',заготовки:'preparations','контроль точек':'checks'};
 export function parseWorkbenchCommand(raw){
  const text=cleanSpeech(raw), lower=text.toLowerCase();let m;
+ const journals={'уборки':'cleaning','уборок':'cleaning','температур':'temperature','температуры':'temperature','температуры холодильников':'temperature','влажности':'humidity','приемки':'receiving','приемки продуктов':'receiving','хранения':'storage','приготовления':'cooking','размораживания':'defrosting','качества':'quality','гигиены':'hygiene','персонала':'hygiene','вредителей':'pests','фритюра':'frying','аудита':'audit'};
+ if((m=lower.match(/^(?:открой|открыть|покажи)\s+журнал\s+(.+)$/u))&&journals[m[1]])return {type:'journal',kind:journals[m[1]]};
  if((m=lower.match(/^(?:открой|открыть|перейди в|перейди на|покажи)\s+(?:раздел\s+)?(.+)$/u))&&sections[m[1]])return {type:'navigate',view:sections[m[1]]};
  if((m=text.match(/^(?:создай|создать|новая|открой новую)\s+(?:ттк|техкарту|рецептуру)(?:\s+(.+))?$/iu)))return {type:'new-recipe',name:(m[1]||'').replace(/^(?:с названием|название)\s+/iu,'')};
  if(/^(?:сохрани|сохранить)\s+(?:ттк|техкарту|рецептуру)$/iu.test(text))return {type:'save-recipe'};
@@ -49,12 +51,12 @@ export function normalizeFieldValue(field,value){
  if(field.maxLength>0&&value.length>field.maxLength)throw Error('Текст превышает длину поля. Продиктуй короче.');
  return value;
 }
-export function mountWorkbenchVoice({getView,show,openEditor,addIngredient,refreshRecipe,saveRecipe,voice,notify,afterCommand=()=>{}}){
+export function mountWorkbenchVoice({getView,show,openEditor,addIngredient,refreshRecipe,saveRecipe,voice,notify,openJournal,afterCommand=()=>{}}){
  let selected=null;
  const editable=f=>f?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file]),textarea,select')&&!f.readOnly&&!f.disabled&&!f.closest('[hidden]');
  const visible=()=>[...document.querySelectorAll('input,textarea,select')].filter(f=>editable(f)&&f.getClientRects().length&&!f.closest('dialog,#chat-form'));
  document.addEventListener('focusin',e=>{if(editable(e.target)&&!e.target.closest('dialog,#chat-form'))selected=e.target});
- const help='Скажи: «Открой задачи», «Добавь задачу проверить рис завтра в 10:00», «Создай ТТК Филадельфия», «Добавь ингредиент рис нетто 80 граммов отходы 0 процентов», «Заполни технология: свернуть ролл». Или выбери поле и скажи «Впиши…». Для записи техкарты скажи «Сохрани ТТК».';
+ const help='Скажи: «Открой задачи», «Открой журнал уборки», «Открой заготовки», «Добавь задачу проверить рис завтра в 10:00», «Создай ТТК Филадельфия», «Добавь ингредиент рис нетто 80 граммов отходы 0 процентов», «Заполни технология: свернуть ролл». Или выбери поле и скажи «Впиши…». Для записи техкарты скажи «Сохрани ТТК».';
  function write(field,value,append=false){
   if(!editable(field)||!field.isConnected||field.getClientRects().length===0)throw Error('Сначала выбери доступное поле в открытой форме.');
   const next=normalizeFieldValue(field,value);field.value=append&&field.value&&field.tagName==='TEXTAREA'?field.value+'\n'+next:next;
@@ -71,10 +73,11 @@ export function mountWorkbenchVoice({getView,show,openEditor,addIngredient,refre
   const c=parseWorkbenchCommand(text);if(!c)return null;
   let result;
   if(c.type==='error')return c.message;
-  if(c.type==='navigate'){show(c.view);selected=null;result='Открыт раздел. '+(c.view==='recipes'?'Для новой техкарты скажи «Создай ТТК»':'Можно выбрать поле и продиктовать текст.')}
+  if(c.type==='navigate'){show(c.view);if(getView()!==c.view)return 'Переход отменён. Несохранённая техкарта остаётся открытой.';selected=null;result='Открыт раздел. '+(c.view==='recipes'?'Для новой техкарты скажи «Создай ТТК»':'Можно выбрать поле и продиктовать текст.')}
+  if(c.type==='journal'){show('lab');if(getView()!=='lab')return 'Переход отменён. Техкарта остаётся открытой.';if(!openJournal?.(c.kind))return 'Журнал пока недоступен.';result='Журнал открыт. Заполни фактические данные проверки.'}
   if(c.type==='new-recipe'){
    const editor=document.getElementById('editor');if(!editor.hidden)return 'Сначала сохрани или закрой открытую техкарту, чтобы не потерять изменения.';
-   show('recipes');openEditor();selected=null;if(c.name)write(document.getElementById('recipe-name'),c.name);result='Открыт черновик техкарты'+(c.name?' «'+c.name+'»':'')+'. Диктуй ингредиенты, нетто и отходы. Сохраню по твоей команде.';
+   show('recipes');if(getView()!=='recipes')return 'Переход отменён.';openEditor();selected=null;if(c.name)write(document.getElementById('recipe-name'),c.name);result='Открыт черновик техкарты'+(c.name?' «'+c.name+'»':'')+'. Диктуй ингредиенты, нетто и отходы. Сохраню по твоей команде.';
   }
   if(c.type==='save-recipe'){
    const editor=document.getElementById('editor');if(editor.hidden)return 'Сначала открой техкарту.';
