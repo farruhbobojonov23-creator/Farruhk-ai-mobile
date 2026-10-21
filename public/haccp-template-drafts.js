@@ -30,6 +30,13 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  const fields=sanitize(form);
  // A sample may specify approved limits but must never become an invented measured temperature.
  if(kind==='temperature')delete fields.measured;
+ if(kind==='quality'){
+  if(fields.qualityType!=='daily')throw Error('Для бракеража доступны только ежедневные черновики. Новые партии проверяются по факту.');
+  // Never copy a previous inspection, prepared batch or approval into tomorrow's draft.
+  for(const key of ['product','quantity','batch','startedAt','checks','appearance','color','smell',
+   'texture','taste','decision','decisionText','reviewer','owner','measured','result','recipeId','category'])
+   delete fields[key];
+ }
  if(kind==='cleaning'){
   // Templates have assigned roles but never reuse someone's previous approval,
   // actual agent, completed checklist or recorded outcome.
@@ -44,7 +51,7 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  if(!Object.keys(fields).length)throw Error('Заполни хотя бы одно поле образца.');
  const day=moscowCheckpoint(now).day;
  const type=fields.cleaningType==='general'?'general':'daily';
- const candidate=kind+'|'+pointId+(kind==='temperature'?'|'+(fields.equipmentId||''):kind==='cleaning'?'|'+type:'');
+ const candidate=kind+'|'+pointId+(kind==='temperature'?'|'+(fields.equipmentId||''):kind==='cleaning'?'|'+type:kind==='quality'?'|daily':'');
  // Reuse any older cleaning template for this branch to avoid duplicate daily rows.
  const existing=h.autoTemplates.find(t=>t.id===candidate)||
   (kind==='cleaning'&&type==='daily'?h.autoTemplates.find(t=>t.id==='cleaning|'+pointId):null);
@@ -59,7 +66,8 @@ export function dueAutoDrafts(raw,now=new Date()){
  const h=validateHaccp(raw),clock=moscowCheckpoint(now);
  if(!clock.due)return [];
  const drafts=[],known=new Set(h.autoDrafts.map(d=>d.id));
- for(const template of h.autoTemplates.filter(t=>t.enabled!==false&&!['receiving','defrosting'].includes(t.kind))){
+ for(const template of h.autoTemplates.filter(t=>t.enabled!==false&&!['receiving','defrosting'].includes(t.kind)&&
+  (t.kind!=='quality'||t.form?.qualityType==='daily'))){
   if(!validDate(template.startDay))continue;
   const first=dateParts(template.startDay),last=dateParts(clock.day);
   const maxDay=Math.max(first.getTime(),last.getTime()-89*86400000);
@@ -74,7 +82,8 @@ export function dueAutoDrafts(raw,now=new Date()){
    const already=h.records.some(r=>r.kind===template.kind&&r.pointId===template.pointId&&
     measurementDate(r.at)===day&&
     (template.kind!=='temperature'||r.details.equipmentId===template.form.equipmentId)&&
-    (template.kind!=='cleaning'||(r.details.cleaningType||'daily')===cleaningType));
+    (template.kind!=='cleaning'||(r.details.cleaningType||'daily')===cleaningType)&&
+    (template.kind!=='quality'||r.details.qualityType==='daily'));
    if(already)continue;
    const offset=Math.round((time-first.getTime())/86400000),form={...template.form};
    form.at=day+'T11:00';
