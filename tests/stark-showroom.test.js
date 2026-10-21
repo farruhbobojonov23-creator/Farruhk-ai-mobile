@@ -8,18 +8,25 @@ const sceneUrl=new URL('../public/stark-showroom.js',import.meta.url);
 const cssUrl=new URL('../public/stark-showroom.css',import.meta.url);
 async function sources(){return Promise.all([readFile(pageUrl,'utf8'),readFile(sceneUrl,'utf8'),readFile(cssUrl,'utf8')])}
 
-test('Premium Stark V4 module parses and is mounted on the real public home',async()=>{
- const [html,js,css]=await sources();
- assert.doesNotThrow(()=>new Function(js.replace('export function mountStarkShowroom','function mountStarkShowroom')));
- assert.match(html,/import \{mountStarkShowroom\} from '\/stark-showroom\.js\?v=3';/);
- assert.match(html,/starkShowroom=mountStarkShowroom\(\{host:\$\('home'\)/);
- assert.match(html,/starkShowroom\?\.updateRecipes\(state\?\.recipes\|\|\[\]\)/);
- assert.match(css,/body\[data-view="home"\]\.stark-ready #home > :not\(\.stark-showroom\)/);
- assert.match(css,/\/assets\/earth-day-2048\.jpg/);
- assert.ok(!js.includes("<canvas"),'No black canvas on Android');
- assert.match(css,/stark-booting #home > :not\(\.stark-showroom\)/);
- assert.match(js,/classList\.add\('stark-ready'\)/);
+test('Arctic Sapphire is mounted on live homepage; old Stark files remain available but inactive',async()=>{
+ const [html,legacyJs]=await sources();
+ const [svg,arcticCss]=await Promise.all([
+   readFile(new URL('../public/arctic-glass-orb.svg',import.meta.url),'utf8'),
+   readFile(new URL('../public/arctic-approved-orb.css',import.meta.url),'utf8')
+ ]);
+ assert.doesNotThrow(()=>new Function(legacyJs.replace('export function mountStarkShowroom','function mountStarkShowroom')));
+ assert.match(html,/class="view ruby-home arctic-home"/);
+ assert.match(html,/src="\/arctic-glass-orb\.svg"/);
+ assert.match(html,/arctic-approved-orb\.css\?v=/);
+ assert.match(html,/import \{mountRubyHome\} from '\/ruby-studio\.js\?v=/);
+ assert.doesNotMatch(html,/mountStarkShowroom\(/,'Old showroom must not replace the current home');
+ assert.match(svg,/<svg [^>]*viewBox="0 0 900 850"/);
+ assert.match(svg,/id="sphereMotion"/);
+ assert.match(arcticCss,/\.arctic-reference-orb/);
+ assert.match(html,/<h1>Будущее\.<br><em>В ваших руках\.<\/em><\/h1>/);
+ assert.match(html,/id="taskpriority"/,'Task form must contain its priority control');
 });
+
 
 test('Existing Google synchronization, TTK and HACCP code paths remain linked',async()=>{
  const [html]=await sources();
