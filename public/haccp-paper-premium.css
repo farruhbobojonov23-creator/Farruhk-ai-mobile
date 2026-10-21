@@ -1,5 +1,5 @@
 /* Premium Arctic Sapphire · HACCP individual A4 sheets and accessible Android editor.
-   App records remain append-only; the last row is visibly UNSAVED. */
+   Paper tables contain saved facts and clean empty rows only; editing stays separate. */
 #lab .haccp-sheet.haccp-paper-premium{
  background:linear-gradient(145deg,#f9fdff,#e7f4ff)!important;
  color:#1d486c!important;border:1px solid #c2dff0!important;
@@ -115,13 +115,6 @@
  font-size:11px!important;font-weight:750!important;
 }
 #lab .haccp-paper-premium .haccp-a4-table tbody tr:nth-child(2n){background:#f4f9fd!important}
-#lab .haccp-paper-premium .haccp-a4-table .haccp-draft-row{
- background:#e7f5fe!important;color:#265f86!important;
- border-left:3px solid #4398c6!important;
-}
-#lab .haccp-paper-premium .haccp-a4-table .haccp-draft-row td{
- color:#306688!important;font-style:italic!important;
-}
 #lab .haccp-paper-premium .haccp-a4-table .haccp-blank-row{height:36px!important}
 #lab .haccp-paper-premium .haccp-a4-signature{
  border-top:1px solid #c2d3dd!important;padding-top:15px!important;
