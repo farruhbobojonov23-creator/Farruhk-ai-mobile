@@ -35,6 +35,12 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
   // actual agent, completed checklist or recorded outcome.
   delete fields.result;delete fields.checker;delete fields.owner;delete fields.agent;
  }
+ if(kind==='storage'){
+  // Labels and shelf-life dates are factual for each batch. A recurring
+  // daily checklist can carry product/zone hints, never prior expiry or outcomes.
+  for(const key of ['startedAt','useBy','batch','labelCheck','conditionsCheck','owner'])
+   delete fields[key];
+ }
  if(!Object.keys(fields).length)throw Error('Заполни хотя бы одно поле образца.');
  const day=moscowCheckpoint(now).day;
  const type=fields.cleaningType==='general'?'general':'daily';
