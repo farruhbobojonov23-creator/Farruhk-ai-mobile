@@ -41,10 +41,14 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
  }
  if(kind==='cleaning'&&h.generalCleaningTarget>0){
   for(const point of current){
-   const dates=new Set(actual.filter(r=>r.pointId===point.id&&r.status==='ok'
-     &&r.details.cleaningType==='general').map(r=>measurementDate(r.at)));
-   for(let i=dates.size;i<h.generalCleaningTarget;i++){
-    result.push({type:'planned-general',kind,pointId:point.id,day:null,due:false,
+   const scheduled=(h.cleaningPlans?.[point.id]?.generalDays||[1,15]).slice(0,h.generalCleaningTarget);
+   const dates=new Set(actual.filter(r=>r.pointId===point.id&&
+    r.details.cleaningType==='general').map(r=>measurementDate(r.at)));
+   for(const number of scheduled){
+    if(!Number.isInteger(number)||number<1||number>days)continue;
+    const day=formatDay(month,number);
+    if(dates.has(day)||pending.some(d=>d.pointId===point.id&&d.day===day&&d.form.cleaningType==='general'))continue;
+    result.push({type:'planned-general',kind,pointId:point.id,day,due:due(day),
      cleaningType:'general',equipment:null});
    }
   }
