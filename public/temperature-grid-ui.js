@@ -1,5 +1,6 @@
 import {measurementDate,measurementTime,monthLabel,monthDays,temperatureGrid,temperatureLimits,saveDailyTemperatures} from './temperature-journal.js?v=1';
-import {saveAutoTemplate} from './haccp-template-drafts.js?v=1';
+import {saveAutoTemplate} from './haccp-template-drafts.js?v=2';
+import {updateEquipment} from './haccp-model.js';
 
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
 const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b};
@@ -19,13 +20,14 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  // Keep sample controls here where the user can actually see and use them.
  const samplePanel=el('section',undefined,'haccp-temperature-sample');
  samplePanel.append(el('h3','МОЙ ОБРАЗЕЦ · ТЕМПЕРАТУРЫ'));
- const sampleInfo=el('p','Первый раз заполни ответственного и температуры всех нужных холодильников ниже. Нажми «Сохранить образец». Затем ежедневно в 11:00 появятся редактируемые черновики по этому примеру.','small');
+ const sampleInfo=el('p','Настрой допустимый диапазон °C отдельно для каждого холодильника и морозильника. Укажи ответственного ниже и сохрани образец. В 11:00 ежедневно подготовятся строки с нормами, но без выдуманных температур: фактический замер ты внесёшь при проверке.','small');
+ const sampleRanges=el('div',undefined,'haccp-temperature-range-grid');
  const sampleStatus=el('p','','haccp-temperature-sample-status');
  const sampleActions=el('div',undefined,'haccp-temperature-sample-actions');
  const sampleSave=button('💾 Сохранить образец',()=>{void storeTemplate()},'primary');
  const sampleLoad=button('↻ Загрузить образец',()=>loadTemplate());
  sampleActions.append(sampleSave,sampleLoad);
- samplePanel.append(sampleInfo,sampleActions,sampleStatus);
+ samplePanel.append(sampleInfo,sampleRanges,sampleActions,sampleStatus);
  entry.append(samplePanel);
 
  const fields=el('div',undefined,'fields');entry.append(fields);
@@ -34,7 +36,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  const submit=el('button','Сохранить замеры за день','primary');submit.type='submit';entry.append(submit);
  const hint=el('p',undefined,'haccp-message');hint.setAttribute('role','status');entry.append(hint);
  const detail=el('section',undefined,'haccp-cell-detail');detail.hidden=true;box.append(detail);
- let grid,inputs=[],saving=false;
+ let grid,inputs=[],ranges=[],saving=false;
  const draftPanel=el('section',undefined,'haccp-temperature-drafts');
  const draftTitle=el('h3','Ежедневные черновики');
  const draftItems=el('div',undefined,'haccp-temperature-draft-items');
@@ -50,24 +52,31 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  }
  async function storeTemplate(){
   if(saving)return;
-  const h=getHaccp();
-  const filled=inputs.filter(i=>String(i.measured.value).trim()!=='');
-  if(!owner.value.trim()){hint.textContent='Сначала укажи ответственного.';owner.focus();return}
-  if(!filled.length){hint.textContent='Впиши температуры в поля ниже, затем сохрани образец.';return}
+  if(!owner.value.trim()){hint.textContent='Сначала укажи ответственного ниже.';owner.focus();return}
+  if(!ranges.length){hint.textContent='Добавь холодильники в «Точки и оборудование», чтобы настроить образец.';return}
+  const values=[];
+  for(const row of ranges){
+   const min=row.min.value.trim().replace(',','.'),max=row.max.value.trim().replace(',','.');
+   if(min&&!Number.isFinite(Number(min))||max&&!Number.isFinite(Number(max)))return error(Error('Проверь диапазон «'+row.name+'»: нужны числа.'));
+   if(min&&max&&Number(min)>Number(max))return error(Error('У «'+row.name+'» минимум больше максимума.'));
+   values.push({id:row.equipmentId,min,max});
+  }
   saving=true;sampleSave.disabled=true;
   try{
    const today=measurementDate();
    await commit(state=>{
-    for(const row of filled){
-     const equip=state.haccp.equipment.find(e=>e.id===row.equipmentId);
+    for(const row of values){
+     const equip=state.haccp.equipment.find(e=>e.id===row.id);
      if(!equip)throw Error('Оборудование удалено.');
-     saveAutoTemplate(state,{kind:'temperature',pointId:equip.pointId,form:{
-      pointId:equip.pointId,at:today+'T11:00',owner:owner.value.trim(),
-      equipmentId:equip.id,measured:row.measured.value,notes:row.notes.value
+     updateEquipment(state,equip.id,{name:equip.name,min:row.min,max:row.max});
+     const current=state.haccp.equipment.find(e=>e.id===row.id);
+     saveAutoTemplate(state,{kind:'temperature',pointId:current.pointId,form:{
+      pointId:current.pointId,at:today+'T11:00',owner:owner.value.trim(),
+      equipmentId:current.id,min:row.min,max:row.max
      }});
     }
    });
-   hint.textContent='Образец сохранён для '+filled.length+' единиц оборудования. Ежедневные значения появятся в черновиках.';
+   hint.textContent='Образцы и допустимые диапазоны сохранены. Каждый день появятся строки для фактических замеров, а не одинаковые цифры.';
    updateTemplateStatus();
   }catch(e){error(e)}finally{saving=false;sampleSave.disabled=false}
  }
@@ -77,10 +86,10 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
   if(!available.length){hint.textContent='Сначала сохрани образец.';return}
   if(available[0].template.form.owner)owner.value=available[0].template.form.owner;
   for(const {input,template} of available){
-   input.measured.value=template.form.measured||'';
-   input.notes.value=template.form.notes||'';
+   const row=ranges.find(r=>r.equipmentId===input.equipmentId);
+   if(row){row.min.value=template.form.min??row.min.value;row.max.value=template.form.max??row.max.value}
   }
-  hint.textContent='Образец загружен в форму. Можно изменить значения и сохранить новый образец.';
+  hint.textContent='Диапазоны из образцов загружены. При необходимости исправь границы и сохрани образец заново. Замеры остаются пустыми.';
   entry.scrollIntoView({block:'start',behavior:'smooth'});
  }
  function refreshDrafts(){
@@ -98,11 +107,11 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
     owner.value=group[0].form.owner||'';
     for(const input of inputs){
      const saved=group.find(d=>d.form.equipmentId===input.equipmentId);
-     input.measured.value=saved?.form.measured||'';
+     input.measured.value=''; // Never copy legacy sample measurements into a new factual reading.
      input.notes.value=saved?.form.notes||'';
     }
     setMode('day');
-    hint.textContent='Черновик за '+day+' загружен. Сверь значения с измерениями, исправь и нажми «Сохранить замеры за день».';
+    hint.textContent='Черновик за '+day+' открыт. Измерь температуру каждого холодильника, введи реальные цифры и нажми «Сохранить замеры за день».';
     entry.scrollIntoView({block:'start',behavior:'smooth'});
    }));
    draftItems.append(row);
@@ -114,7 +123,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  function draw(){
   selection.month=month.value;selection.period=period.value;entry.hidden=month.value!==measurementDate().slice(0,7);
   try{grid=temperatureGrid(getHaccp(),{month:month.value,period:period.value,pointId});}catch(e){pdf.disabled=true;error(e);return}
-  pdf.disabled=false;detail.hidden=true;viewport.replaceChildren();equipmentInputs.replaceChildren();inputs=[];
+  pdf.disabled=false;detail.hidden=true;viewport.replaceChildren();equipmentInputs.replaceChildren();sampleRanges.replaceChildren();inputs=[];ranges=[];
   const done=new Set(grid.readings.map(r=>r.details.equipmentId+'|'+measurementDate(r.at))),deviations=grid.readings.filter(r=>r.status==='deviation').length;
   summary.textContent=monthLabel(grid.month)+' · '+grid.rows.length+' единиц оборудования · '+done.size+' заполненных дней оборудования'+(deviations?' · Отклонений: '+deviations:'')+'. Нажми заполненную ячейку, чтобы увидеть время и ответственного.';
   const table=el('table',undefined,'haccp-month-table');table.style.setProperty('--haccp-columns',grid.days.length);const caption=el('caption','Температура, °C · '+monthLabel(grid.month));table.append(caption);
@@ -125,6 +134,14 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
    for(const cell of row.cells){const td=el('td');if(cell.records.length){const deviation=cell.records.some(r=>r.status==='deviation'),value=cell.records.map(r=>String(r.details.measured)).join(' / '),b=button(value,()=>showCell(row,cell));b.className=deviation?'temperature-deviation':'temperature-measured';b.setAttribute('aria-label',row.name+', '+cell.day+' число: '+value+' °C'+(deviation?', отклонение':''));b.title=cell.records.map(r=>measurementTime(r.at)+' · '+r.details.measured+' °C · '+r.owner).join('\n');td.append(b)}else{td.textContent='—';td.className='temperature-empty'}tr.append(td)}tbody.append(tr);
    // Entry forms always show the selected point's equipment, including blank measurements.
    if(getHaccp().equipment.some(e=>e.id===row.id)){
+    const range=el('div',undefined,'haccp-temperature-range');
+    range.append(el('strong',row.name),el('small',row.point+' · утверждённые пределы °C'));
+    const rangeFields=el('div',undefined,'haccp-temperature-range-fields');
+    const min=field(rangeFields,'Минимум, °C','number',row.min==null?'':String(row.min));
+    const max=field(rangeFields,'Максимум, °C','number',row.max==null?'':String(row.max));
+    min.step=max.step='any';min.inputMode=max.inputMode='decimal';
+    range.append(rangeFields);sampleRanges.append(range);
+    ranges.push({equipmentId:row.id,name:row.name,min,max});
     const wrap=el('div',undefined,'haccp-daily-row'),label=el('label'),nameText=el('strong',row.name);label.append(nameText,el('small',row.point+' · '+temperatureLimits(row)));const measured=el('input');measured.type='number';measured.step='any';measured.inputMode='decimal';measured.placeholder='°C';measured.setAttribute('aria-label','Температура: '+row.name+' · '+row.point);label.append(measured);const notes=el('input');notes.type='text';notes.maxLength=2000;notes.placeholder='Комментарий (если нужен)';notes.setAttribute('aria-label','Комментарий: '+row.name);wrap.append(label,notes);equipmentInputs.append(wrap);inputs.push({equipmentId:row.id,measured,notes});
    }
   }table.append(tbody);viewport.append(table);
