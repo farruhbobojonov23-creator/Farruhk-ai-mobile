@@ -3,6 +3,7 @@ import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
 import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=1';
+import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=1';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=65';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
@@ -41,7 +42,7 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  const autoPanel=el('section',undefined,'haccp-autofill-panel');
  autoPanel.append(el('h2','Автозаполнение · 12 журналов А4'),
-  el('p','FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. Невыполненные измерения, уборки и осмотры строго отмечены «НЕ ПРОВЕРЕНО» — никаких выдуманных результатов.','small'));
+  el('p','FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. По сохранённым образцам создаются черновики, которые ты можешь проверить и поправить перед подтверждением.','small'));
  const autoForm=el('div',undefined,'haccp-auto-controls');
  const autoMonth=inputField(autoForm,'Месяц для печати','autoMonth',{type:'month',value:currentMonth});
  const autoPoint=selectField(autoForm,'Точка для печати','autoPoint',[['','Все точки'],...pointOptions()],{required:false,blank:false});
@@ -87,7 +88,7 @@ export function mountHaccp(root,{getState,save,notify}){
   const defaultTemplate=tab==='cleaning'?'Зона: рабочая поверхность; обработка: согласно утверждённому графику и инструкции':tab==='temperature'?'Измерить фактическую температуру каждого холодильника и морозильника':tab==='receiving'?'Проверить фактически поступившие партии, сроки, упаковку и документы':tab==='storage'?'Проверить маркировку и сроки фактических партий':'Выполнить контроль по утверждённой процедуре и записать фактический результат';
   let template=defaultTemplate;
   try{template=localStorage.getItem(configKey)||defaultTemplate}catch{}
-  const details=el('details',undefined,'haccp-template-settings'),summary=el('summary','Настроить образец заполнения');
+  const details=el('details',undefined,'haccp-template-settings'),summary=el('summary','Настроить текст плана проверки');
   const editor=el('textarea');editor.value=template;editor.maxLength=1200;editor.setAttribute('aria-label','Образец для журнала');
   const saveTemplate=button('Сохранить образец',()=>{try{localStorage.setItem(configKey,editor.value.trim()||defaultTemplate);template=editor.value.trim()||defaultTemplate;say('Образец сохранён на этом устройстве.')}catch{say('Не удалось сохранить образец.',true)}});
   details.append(summary,el('p','Образец задаёт план проверки, но не подтверждает её выполнение.','small'),editor,saveTemplate);
@@ -159,7 +160,20 @@ export function mountHaccp(root,{getState,save,notify}){
   const edit=button('✎ Заполнить строку',()=>{setMode('form');form.querySelector('[name=pointId]')?.focus()},'primary');
   const save=button('✓ Сохранить запись',()=>{setMode('form');form.requestSubmit()});
   const pdf=button('↓ Скачать А4 PDF',safe(()=>exportJournalPdf(currentRecords())));
-  toolbar.append(edit,save,pdf);
+  const sample=button('💾 Сохранить образец',safe(async()=>{
+   const pointId=form.querySelector('[name=pointId]')?.value;
+   await commit(state=>saveAutoTemplate(state,{kind,pointId,
+    form:Object.fromEntries(new FormData(form))}));
+   say('Образец сохранён для '+journalTypes[kind]+'. С 11:00 по Москве по нему будут создаваться черновики.');
+  }));
+  const loadSample=button('↻ Загрузить образец',safe(()=>{
+   const pointId=form.querySelector('[name=pointId]')?.value;
+   const template=h().autoTemplates.find(t=>t.kind===kind&&t.pointId===pointId);
+   if(!template)throw Error('Сначала сохрани образец для выбранной точки.');
+   fillFormFromTemplate(form,template.form);
+   say('Образец загружен. Можно отредактировать и сохранить заново.');
+  }));
+  toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
   modes.append(paperView,fill);
@@ -236,6 +250,47 @@ export function mountHaccp(root,{getState,save,notify}){
   form.addEventListener('change',()=>{if(form.dataset.mode==='paper')refreshPaper()});
   setMode('paper');
  }
+ function fillFormFromTemplate(form,data){
+  const fields={...data};
+  const point=form.querySelector('[name=pointId]');
+  if(point&&fields.pointId){point.value=fields.pointId;point.dispatchEvent(new Event('change',{bubbles:true}))}
+  for(const [name,value] of Object.entries(fields)){
+   if(name==='pointId'||name==='photo')continue;
+   const field=Array.from(form.elements).find(x=>x.name===name);
+   if(!field)continue;
+   if(field.type==='file'||field.type==='submit')continue;
+   if(field.type==='checkbox')field.checked=value==='true';else field.value=value;
+   field.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+ }
+ function journalAutoDrafts(){
+  const drafts=(h().autoDrafts||[]).filter(d=>d.kind===tab&&
+   d.day.slice(0,7)===monthFilter.value&&(!pointFilter.value||d.pointId===pointFilter.value))
+   .sort((a,b)=>b.day.localeCompare(a.day));
+  const card=el('section',undefined,'haccp-drafts-panel');
+  card.append(el('h2','Автозаполненные черновики: '+drafts.length),
+   el('p','Каждый образец повторяется в 11:00 по московскому времени. Проверь реальные показатели, при необходимости исправь и нажми «Сохранить запись». До этого черновик не считается выполненной проверкой.','small'));
+  if(!drafts.length){card.append(el('p','Черновиков пока нет. Заполни поля выше и нажми «Сохранить образец».','small'));body.append(card);return}
+  for(const draft of drafts.slice(0,90)){
+   const line=el('div',undefined,'haccp-draft-line');
+   line.append(el('span',draft.day+' · '+pointName(draft.pointId)+' · Черновик'));
+   const open=button('Проверить / изменить',()=>{
+    const form=body.querySelector('form.haccp-sheet');
+    if(!form){say('Открой текущий месяц для работы с черновиком.',true);return}
+    fillFormFromTemplate(form,draft.form);
+    form.dataset.autoDraftId=draft.id;
+    const holder=form.closest('details');if(holder)holder.open=true;
+    form.querySelector('.journal-modes button:nth-child(2)')?.click();
+    const banner=el('p','Редактируешь черновик за '+draft.day+'. Сохранение подтвердит фактическую проверку.','haccp-draft-banner');
+    form.querySelector('.haccp-draft-banner')?.remove();
+    form.querySelector('.journal-modes')?.after(banner);
+    form.scrollIntoView({block:'start',behavior:'smooth'});
+   });
+   line.append(open);card.append(line);
+  }
+  if(drafts.length>90)card.append(el('p','Показаны 90 последних черновиков. Предыдущие находятся в архиве по месяцам.','small'));
+  body.append(card);
+ }
  function h(){return getState()?.haccp||emptyHaccp()}
  function say(text,error=false){message.textContent=text;message.classList.toggle('error',error);if(error)notify(text,true)}
  async function commit(change){if(!getState())throw Error('Данные устройства ещё не загрузились.');await save(state=>{change(state);state.haccp.revision=(Number(state.haccp.revision)||0)+1;state.haccp.updatedAt=new Date().toISOString()});say('Сохранено на устройстве.')}
@@ -256,7 +311,9 @@ export function mountHaccp(root,{getState,save,notify}){
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
-  const kind=tab;submitForm(form,async raw=>{if(measurementDate(raw.at).slice(0,7)!==monthFilter.value)throw Error('Дата записи должна быть в выбранном месяце.');const data={...raw,kind,photo:await fileData(photo.files[0],2*1024*1024,true)};await commit(state=>addJournalRecord(state,data))});sheet(form);
+  const kind=tab;submitForm(form,async raw=>{if(measurementDate(raw.at).slice(0,7)!==monthFilter.value)throw Error('Дата записи должна быть в выбранном месяце.');const data={...raw,kind,photo:await fileData(photo.files[0],2*1024*1024,true)};
+    const draftId=form.dataset.autoDraftId;
+    await commit(state=>draftId?confirmAutoDraft(state,draftId,data):addJournalRecord(state,data))});sheet(form);
  }
  function journalHistory(){const records=currentRecords(),bar=el('div',undefined,'bar');bar.append(el('h2','Записи: '+records.length));const csv=button('Скачать CSV',()=>download(new Blob([journalCsv(records,h().points)],{type:'text/csv;charset=utf-8'}),'ХАССП_'+tab+'_'+new Date().toISOString().slice(0,10)+'.csv'));bar.append(csv,button('Скачать PDF',safe(()=>exportJournalPdf(records))),button('Печатать журнал',()=>printJournal(records)));history.append(bar);if(!records.length){history.append(el('p','В выбранном журнале пока нет записей.','empty'));return}if(records.length>100)history.append(el('p','На экране — последние 100 записей. CSV и печать включают весь выбранный период.','small'));
   for(const record of records.slice(0,100)){const box=el('article',undefined,'haccp-record '+record.status),top=el('div',undefined,'bar');top.append(el('strong',displayDate(record.at)+' · '+pointName(record.pointId)),el('span',statuses[record.status]));box.append(top,el('p','Ответственный: '+record.owner),el('pre',detailsText(record)));if(record.notes)box.append(el('p',record.notes));if(record.photo)box.append(attachmentLink(record.photo,'ХАССП_фото_'+record.id+'.jpg','Скачать фото'));history.append(box)}
@@ -316,18 +373,31 @@ export function mountHaccp(root,{getState,save,notify}){
  function build(){
  const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=!isCatalog&&!isJournal;filters.open=isCatalog;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
  controls.hidden=!isCatalog&&!isJournal;monthBar.hidden=periodHint.hidden=isCatalog||!isJournal;fromDate.parentElement.hidden=toDate.parentElement.hidden=isCatalog;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
- const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+ const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalAutoDrafts();journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
- function render(state){if(!state)return;const data=validateHaccp(state.haccp);if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
+ let autoSyncRunning=false;
+ async function syncAutoDrafts(){
+  if(!getState()||autoSyncRunning)return;
+  let pending;
+  try{pending=dueAutoDrafts(h())}catch(error){console.warn('ХАССП автозаполнение:',error);return}
+  if(!pending.length)return;
+  autoSyncRunning=true;
+  try{await save(state=>{const created=generateAutoDrafts(state);
+   if(created){state.haccp.revision=(Number(state.haccp.revision)||0)+1;state.haccp.updatedAt=new Date().toISOString()}
+  })}catch(error){console.warn('Автосоздание черновиков будет повторено:',error.message)}
+  finally{autoSyncRunning=false}
+ }
+ function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void syncAutoDrafts()});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
  setInterval(()=>{
   const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
   const changedDay=next.day!==lastClockStage.day,changedStage=next.due!==lastClockStage.due;
   lastClockStage=next;
   if(changedMonth){if(monthFilter.value===currentMonth)monthFilter.value=next.month;currentMonth=next.month;lastRevision=null;render(getState());return}
-  if((changedDay||changedStage)&&loaded&&root.isConnected&&root.closest('[hidden]')===null)build();
+  if(changedDay||changedStage){void syncAutoDrafts();if(loaded&&root.isConnected&&root.closest('[hidden]')===null)build()}
+  else if(next.due&&loaded)void syncAutoDrafts();
  },60000);
  build();return {render,open(kind){if(!journalTypes[kind])return false;tab=kind;build();return true}};
 }
