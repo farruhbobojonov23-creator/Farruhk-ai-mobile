@@ -46,8 +46,28 @@ export class YandexAssistantStore extends AssistantStore{
       try{const r=await this.download(link.href,{signal:AbortSignal.timeout(30000)});if(!r.ok){console.error('[cloud-download] status='+r.status);throw httpError(502,'Не удалось прочитать облачные данные')}return await r.json()}
       catch(e){if(e instanceof SyntaxError)throw e;downloadError=e}
     }
-    // Read the same existing file through Yandex's alternative file protocol.
-    // Failure here must never mean that the confirmed file is absent.
+    // Yandex can return HTTP 500 from the temporary downloader even when
+    // the file itself is intact. Its resource metadata can expose a separate
+    // direct `file` URL. Read-only fallback: NEVER interpret an unavailable
+    // download as a missing or empty document.
+    try {
+      const metadata=await this.api('/resources?path='+encodeURIComponent(this.base+name)+'&fields='+encodeURIComponent('type,size,file,modified'));
+      const alternate=metadata?.type==='file'&&typeof metadata.file==='string'&&metadata.file.startsWith('https://')?metadata.file:null;
+      console.info('[cloud-metadata] type='+(metadata?.type==='file'?'file':'other')+' alternate='+Boolean(alternate));
+      if(alternate){
+        const r=await this.download(alternate,{signal:AbortSignal.timeout(30000)});
+        if(r.ok){const json=await r.json();console.info('[cloud-recovery] alternate download succeeded');return json}
+        console.error('[cloud-meta-download] status='+r.status);
+      }
+    }catch(e){
+      // Metadata is an optional recovery path, not evidence the main file
+      // disappeared. Never log signed URLs, OAuth credentials or file body.
+      console.error('[cloud-metadata] unavailable status='+(e?.status||0)+' type='+(e instanceof SyntaxError?'invalid-json':'read-failed'));
+      if(e instanceof SyntaxError)throw e;
+    }
+    // WebDAV may reject OAuth depending on plan and authorization method.
+    // It remains an extra read-only attempt for compatible installations.
+    // Failure must preserve the original signed-download error.
     const path=(this.base+name).split('/').map(encodeURIComponent).join('/');
     const r=await this.fetchCloud('https://webdav.yandex.ru'+path,{redirect:'error',headers:{Authorization:'OAuth '+this.token}});
     if(!r.ok){console.error('[cloud-webdav] status='+r.status);throw downloadError}return r.json();
