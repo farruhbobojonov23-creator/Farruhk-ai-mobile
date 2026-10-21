@@ -351,15 +351,55 @@ export function mountHaccp(root,{getState,save,notify}){
  function formShell(title){const f=el('form',undefined,'haccp-form panel');f.append(el('h2',title));body.append(f);return f}
  function submitForm(form,fn,label='Сохранить запись'){const b=el('button',label,'primary');b.type='submit';form.append(b);let submitting=false;form.onsubmit=safe(async()=>{if(submitting)return;if(!form.reportValidity())return;submitting=true;b.disabled=true;try{await fn(Object.fromEntries(new FormData(form)),form);build();say('Сохранено на устройстве.')}finally{submitting=false;b.disabled=false}})}
  function common(form){const grid=el('div',undefined,'fields');form.append(grid);const point=selectField(grid,'Точка','pointId',pointOptions());if(pointFilter.value)point.value=pointFilter.value;inputField(grid,'Дата и время записи','at',{type:'datetime-local',required:true,value:localDate()});inputField(grid,'Ответственный','owner',{required:true,maxLength:120});inputField(grid,'Срок устранения, если будет отклонение','due',{type:'datetime-local'});return {grid,point}}
- function journalForm(){const form=formShell('Новая запись: '+journalTypes[tab]),{grid,point}=common(form);let equipment;
+ function journalForm(){const form=formShell('Новая запись: '+journalTypes[tab]),{grid,point}=common(form);let equipment,cleaningChecks;
   if(tab==='temperature'){equipment=selectField(grid,'Оборудование','equipmentId',[],{});const measured=inputField(grid,'Измеренная температура, °C','measured',{type:'number',required:true});const hint=el('p','Сначала добавь оборудование и его утверждённые границы в настройках.','small');form.append(hint);const sync=()=>{options(equipment,h().equipment.filter(e=>e.pointId===point.value).map(e=>[e.id,e.name]),true);updateHint()};const updateHint=()=>{const item=h().equipment.find(e=>e.id===equipment.value);hint.textContent=!item?'Выбери оборудование этой точки.':item.min===null&&item.max===null?'Границы не заданы. Измерение сохранится без оценки соответствия.':'Заданные границы: '+(item.min??'без минимума')+' … '+(item.max??'без максимума')+' °C. Границы попадут в запись.'};point.onchange=sync;equipment.onchange=updateHint;sync();measured.inputMode='decimal'}
-  if(tab==='cleaning'){selectField(grid,'Тип уборки','cleaningType',[['daily','Ежедневная / текущая'],['general','Генеральная (2 раза в месяц по графику)']],{blank:false});inputField(grid,'Зона / инвентарь','zone',{required:true,maxLength:200});inputField(grid,'Что обработали и каким способом','method',{required:true,maxLength:500});inputField(grid,'Средство или способ обработки','agent',{required:true,maxLength:200});inputField(grid,'Концентрация по инструкции, если применимо','concentration',{maxLength:100});inputField(grid,'Время выдержки по инструкции','exposure',{maxLength:100});selectField(grid,'Результат','result',[['done','Выполнено'],['problem','Есть замечание']])}
+  if(tab==='cleaning'){
+   const type=selectField(grid,'Тип уборки','cleaningType',[['daily','Ежедневная / текущая'],['general','Генеральная (по графику)']],{blank:false});
+   const zone=inputField(grid,'Зона / инвентарь','zone',{required:true,maxLength:200});
+   inputField(grid,'Что обработали и каким способом','method',{required:true,maxLength:500,
+    value:'Мойка и дезинфекция согласно утверждённой инструкции для каждой зоны'});
+   const agent=selectField(grid,'Фактически применённое средство','agent',[],{blank:true});
+   inputField(grid,'Концентрация по инструкции, если применимо','concentration',{maxLength:100});
+   inputField(grid,'Время выдержки по инструкции','exposure',{maxLength:100});
+   inputField(grid,'ФИО проверяющего (старший смены)','checker',{required:true,maxLength:120});
+   selectField(grid,'Фактический результат','result',[['done','Выполнено и проверено'],['problem','Есть замечание / не завершено']]);
+   cleaningChecks=el('section',undefined,'haccp-cleaning-checklist panel');
+   cleaningChecks.append(el('h3','Чек-лист зон · отметь только действительно обработанные'));
+   const checkRows=el('div',undefined,'haccp-plan-list');cleaningChecks.append(checkRows);
+   const reminder=el('p','','small');cleaningChecks.append(reminder);
+   const updateChecklist=()=>{
+    const plan=cleaningPlan(h(),point.value),zones=type.value==='general'?plan.generalZones:plan.dailyZones;
+    zone.value=type.value==='general'?'Производственные зоны · генеральная уборка':'Производственные зоны · ежедневная уборка';
+    checkRows.replaceChildren();
+    for(const label of zones){
+     const wrapper=el('label',undefined,'haccp-plan-check'),box=el('input');
+     box.type='checkbox';box.dataset.zone=label;wrapper.append(box,el('span',label));checkRows.append(wrapper);
+    }
+    options(agent,plan.agents.map(name=>[name,name]),true);
+    agent.value='';
+    reminder.textContent='Исполнитель: '+(type.value==='general'?plan.generalExecutor:plan.dailyExecutor)+
+     '. Проверяет: '+plan.reviewer+'. Укажи фактически использованное средство и ФИО. Все пункты обязательны для отметки «Выполнено».';
+   };
+   point.addEventListener('change',updateChecklist);type.addEventListener('change',updateChecklist);
+   updateChecklist();form.append(cleaningChecks);
+  }
   if(tab==='receiving'){for(const [label,name] of [['Поставщик','supplier'],['Продукт / партия','product'],['Количество и единица (например, 5 кг)','quantity']])inputField(grid,label,name,{required:true,maxLength:300});inputField(grid,'Температура при приёмке, °C (если измеряли)','measured',{type:'number'});inputField(grid,'Годен до (по маркировке)','expiry',{type:'datetime-local'});inputField(form,'Проверка маркировки, упаковки, сроков и сопроводительных документов','checks',{type:'textarea',required:true,maxLength:1000});selectField(grid,'Решение','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']])}
   if(tab==='storage'){inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});inputField(grid,'Приготовлено / вскрыто','startedAt',{type:'datetime-local',required:true});inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});inputField(form,'Утверждённые условия хранения','conditions',{type:'textarea',required:true,maxLength:500});form.append(el('p','Срок не назначается автоматически: укажи дату и условия из утверждённой инструкции на этот продукт.','small'))}
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
-  const kind=tab;submitForm(form,async raw=>{if(measurementDate(raw.at).slice(0,7)!==monthFilter.value)throw Error('Дата записи должна быть в выбранном месяце.');const data={...raw,kind,photo:await fileData(photo.files[0],2*1024*1024,true)};
+  const kind=tab;submitForm(form,async raw=>{
+   if(measurementDate(raw.at).slice(0,7)!==monthFilter.value)throw Error('Дата записи должна быть в выбранном месяце.');
+   if(kind==='cleaning'){
+    const checks=[...cleaningChecks.querySelectorAll('input[type=checkbox]')];
+    const done=checks.filter(x=>x.checked).map(x=>x.dataset.zone),missed=checks.filter(x=>!x.checked).map(x=>x.dataset.zone);
+    if(raw.result==='done'&&missed.length)throw Error('Чтобы подтвердить уборку, отметь все зоны. Если что-то не выполнено — выбери «Есть замечание».');
+    if(!String(raw.checker||'').trim())throw Error('Введи ФИО проверяющего.');
+    raw.notes=[String(raw.notes||'').trim(),'Проверил: '+raw.checker,
+     'Обработанные зоны: '+(done.join('; ')||'не отмечены'),
+     missed.length?'Не выполнено: '+missed.join('; '):''].filter(Boolean).join(' | ');
+   }
+   const data={...raw,kind,photo:await fileData(photo.files[0],2*1024*1024,true)};
     const draftId=form.dataset.autoDraftId;
     await commit(state=>draftId?confirmAutoDraft(state,draftId,data):addJournalRecord(state,data))});sheet(form);
  }
