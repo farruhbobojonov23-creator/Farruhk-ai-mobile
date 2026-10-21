@@ -1,0 +1,247 @@
+/* Arctic Sapphire — accessibility and consistency hotfix v6.
+   Fixes black text fields in recipe Form mode and dark HACCP overview.
+   A4 sheet preview/printing and journal data are deliberately unchanged. */
+
+/* 1. Recipe editing: the old high-specificity dark-mode rule overrides
+   normal sapphire input styling. Scope all corrective rules to Form mode. */
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper {
+  color:#173c5e!important;
+  background:transparent!important;
+  color-scheme:light!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-block {
+  background:linear-gradient(145deg,#ffffffee,#eaf6ffdc)!important;
+  border:1px solid #cbe4f6!important;
+  border-radius:18px!important;
+  box-shadow:0 7px 20px #5c90bb19,inset 0 1px #fff!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-table,
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-table td {
+  color:#1b405e!important;
+  background:transparent!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-table th {
+  color:#4b6c89!important;
+  background:transparent!important;
+  font-weight:500!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper input:not([type="checkbox"]),
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper textarea,
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper select {
+  background:#fcfeff!important;
+  color:#173a5b!important;
+  border:1px solid #bad8ee!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 1px 3px #86afd711,0 1px 0 #fff!important;
+  -webkit-text-fill-color:#173a5b!important;
+  opacity:1!important;
+  color-scheme:light!important;
+  caret-color:#245b92!important;
+  outline-offset:2px;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper input::placeholder,
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper textarea::placeholder {
+  color:#7a98af!important;
+  -webkit-text-fill-color:#7a98af!important;
+  opacity:1!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper :is(input,textarea,select):focus-visible {
+  outline:2px solid #54a4de!important;
+  border-color:#54a4de!important;
+  background:#fff!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper :is(input,textarea,select):disabled {
+  background:#e7f0f8!important;
+  color:#57728a!important;
+  -webkit-text-fill-color:#57728a!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper input[readonly] {
+  background:#e8f2fa!important;
+  color:#355c7b!important;
+  -webkit-text-fill-color:#355c7b!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper input[type="checkbox"]{
+  accent-color:#2a8bc4!important;
+  color-scheme:light!important;
+  background:#ffffff!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper label,
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper .ttk-nutrition-mode,
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper .ttk-regulatory{
+  color:#486a85!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper .ttk-section-title span{
+  color:#1d4a73!important;
+  font-weight:650!important;
+  background:none!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] #nutrition-products{
+  background:#f4faff!important;
+  border:1px solid #c8e1f3!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] #nutrition-products :is(summary,label,p,strong) {
+  color:#416586!important;
+}
+body:not([data-view="home"]) #editor[data-mode="form"] :is(.ttk-add,.ingredient button){
+  background:linear-gradient(125deg,#eaf7ff,#cfeafa)!important;
+  border:1px solid #b5dbee!important;
+  color:#215b86!important;
+}
+
+/* 2. Editor toolbar: fix black strip below the pale application header. */
+body:not([data-view="home"]) #editor .ttk-toolbar{
+  background:linear-gradient(105deg,#f7fcfff8,#dfeffcf2)!important;
+  border:1px solid #ffffffde!important;
+  border-radius:16px!important;
+  padding:12px 14px!important;
+  box-shadow:0 9px 24px #6596bc21!important;
+  top:74px!important;
+  z-index:22!important;
+  backdrop-filter:blur(16px)!important;
+}
+body:not([data-view="home"]) #editor .ttk-toolbar h2{
+  color:#173b5c!important;
+  font-weight:650!important;
+}
+body:not([data-view="home"]) #editor .ttk-guidance{color:#577a98!important;}
+body:not([data-view="home"]) #editor .editor-modes button[aria-pressed="true"]{
+  color:#174d74!important;
+  background:#bfdef5!important;
+  border-color:#a4d1ed!important;
+}
+body:not([data-view="home"]) #editor .ttk-toolbar button{
+  background:linear-gradient(130deg,#ffffff,#d7ecfa)!important;
+  border:1px solid #c3e0f1!important;color:#275479!important;
+}
+body:not([data-view="home"]) #editor .ttk-toolbar button.primary,
+body:not([data-view="home"]) #editor .ttk-toolbar button[type="submit"]{
+  background:linear-gradient(120deg,#54b2e6,#247eBA)!important;
+  color:white!important;border-color:#75bce8!important;
+}
+body:not([data-view="home"]) #editor .ttk-toolbar #delete-recipe{
+  color:#ac3158!important;background:#fff0f3!important;border-color:#eec6d4!important;
+}
+
+/* 3. HACCP daily box — preserve factual confirmation workflow, fix contrast. */
+body:not([data-view="home"]) #lab .haccp-daily-overview{
+  background:linear-gradient(145deg,#ffffffee,#e2f2ffef)!important;
+  border:1px solid #bad8f0!important;
+  border-radius:22px!important;
+  box-shadow:0 10px 32px #5289bb23,inset 0 1px #fff!important;
+  color:#234c70!important;
+}
+body:not([data-view="home"]) #lab .haccp-daily-overview h2{
+  color:#194569!important;
+  font-weight:680!important;
+}
+body:not([data-view="home"]) #lab .haccp-daily-overview p,
+body:not([data-view="home"]) #lab .haccp-daily-overview .small{
+  color:#496c8a!important;
+  opacity:1!important;
+}
+body:not([data-view="home"]) #lab .haccp-daily-overview details{
+  background:#ffffffb6!important;
+  border:1px solid #c2ddf0!important;
+  color:#214d70!important;
+  box-shadow:inset 0 1px white!important;
+}
+body:not([data-view="home"]) #lab .haccp-daily-overview summary{
+  color:#265679!important;
+}
+body:not([data-view="home"]) #lab .haccp-status-table{
+  background:transparent!important;
+  color:#234e71!important;
+}
+body:not([data-view="home"]) #lab .haccp-status-table th{
+  color:#456d8b!important;
+  background:#e9f5fd!important;
+}
+body:not([data-view="home"]) #lab .haccp-status-table td{
+  color:#234d70!important;
+  border-bottom-color:#c7e0f0!important;
+}
+body:not([data-view="home"]) #lab .haccp-status-table tr[tabindex]:hover{
+  background:#d9f0ff!important;
+}
+body:not([data-view="home"]) #lab .haccp-daily-overview input,
+body:not([data-view="home"]) #lab .haccp-daily-overview textarea{
+  color:#1b446b!important;
+  background:white!important;
+  border:1px solid #c1def0!important;
+}
+
+/* 4. Journals: show the product photos without legacy 28% dimming. */
+body:not([data-view="home"]) #lab .haccp-journal-photo {
+  filter:brightness(1.02) saturate(1.10) contrast(1.02)!important;
+}
+body:not([data-view="home"]) #lab .haccp-journal-card{
+  border:1px solid #c3ddf1!important;
+  background:linear-gradient(160deg,#ffffff,#e5f3ff)!important;
+  box-shadow:0 7px 22px #5794bd1f!important;
+}
+body:not([data-view="home"]) #lab .haccp-journal-copy{
+  color:#204c70!important;
+}
+body:not([data-view="home"]) #lab .haccp-journal-copy strong{
+  color:#183d60!important;
+  font-weight:610!important;
+}
+body:not([data-view="home"]) #lab .haccp-journal-copy small{
+  color:#547993!important;
+}
+
+/* Paper A4 is purposely excluded: CSS is for screen controls only. */
+@media(max-width:700px){
+  body:not([data-view="home"]) #editor .ttk-toolbar{
+    top:64px!important;
+    padding:10px 12px!important;
+    gap:8px!important;
+    border-radius:14px!important;
+  }
+  body:not([data-view="home"]) #editor .ttk-toolbar h2 {
+    flex:1 1 100%!important;
+    width:100%!important;
+    font-size:19px!important;
+    margin:0!important;
+  }
+  body:not([data-view="home"]) #editor .ttk-toolbar button{
+    font-size:12px!important;
+    padding:10px 12px!important;
+    min-height:44px!important;
+  }
+  body:not([data-view="home"]) #editor[data-mode="form"] .ttk-block{
+    padding:12px!important;
+    margin:12px 0!important;
+  }
+  body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper>.ttk-table tr{
+    grid-template-columns:minmax(88px,23%) minmax(0,1fr)!important;
+  }
+  body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper>.ttk-table th{
+    padding:9px 6px!important;
+    overflow-wrap:anywhere!important;
+  }
+  body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper>.ttk-table td{
+    padding:6px!important;min-width:0!important;
+  }
+  body:not([data-view="home"]) #editor[data-mode="form"] .ttk-paper :is(input,select,textarea){
+    font-size:16px!important;
+    min-width:0!important;
+  }
+  body:not([data-view="home"]) #lab .haccp-daily-overview{
+    padding:16px!important;
+  }
+}
+
+/* Printing should retain the original monochrome A4 template. */
+@media print{
+  body #editor .ttk-toolbar{display:none!important}
+  body #editor .ttk-paper{background:white!important;color:#17334d!important}
+  body #editor[data-mode="form"] .ttk-paper input,
+  body #editor[data-mode="form"] .ttk-paper textarea,
+  body #editor[data-mode="form"] .ttk-paper select{
+    background:#fff!important;color:#17334d!important;
+    -webkit-text-fill-color:#17334d!important;
+    box-shadow:none!important;
+    border:0!important;border-radius:0!important;
+  }
+}
