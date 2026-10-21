@@ -162,7 +162,7 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
   labelText('FARRUH AI  /  ХАССП  /  '+String(section).padStart(2,'0')+' / 12',X+13,17,W-20,9,true,'#3e88b7');
   labelText(journalTypes[kind],X+13,34,W-23,14,true,'#194e73');
   labelText(label+'   ·   '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+13,65,W-23,9,false);
-  labelText('Автоподготовка, НЕ акт проверки. «НЕ ПРОВЕРЕНО» означает отсутствие фактического подтверждения. Время: Москва.',X,85,W,7.4,false,'#607e96');
+  labelText('Автоматические ЧЕРНОВИКИ по образцу, не подтверждённые результаты контроля. Подпись ставится после проверки. Время: МСК.',X,85,W,7.4,false,'#607e96');
   const first=103,headerHeight=38;let x=X;
   for(let i=0;i<cols.length;i++){
    cellBox(x,first,widths[i],headerHeight,'#deeffb');
@@ -202,7 +202,7 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
   for(const row of group.rows){
    const values=cols.map(c=>row.type==='confirmed'?
     paperCell(row.record,c.key,h.points):plannedCell(row,c.key,h.points));
-   draw(values,row.type!=='confirmed'?
+   draw(values,row.type==='draft'?'#e9f5ff':row.type!=='confirmed'?
     (row.due?'#fff5ed':'#f0f7fd'):row.record.status==='deviation'?'#ffecea':'#ffffff');
    if(row.type==='confirmed'&&row.record.notes&&!cols.some(c=>c.key==='notes')){
     // The fixed-width A4 layout has no remarks column for some journal kinds.
