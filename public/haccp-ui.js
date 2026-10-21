@@ -382,7 +382,7 @@ export function mountHaccp(root,{getState,save,notify}){
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
   modes.append(paperView,fill);
-  const paperHint=el('p','Это предварительный вид журнала. Только сохранённые записи подтверждают выполненные проверки. Для ввода нажми «Заполнение».','haccp-paper-hint');
+  const paperHint=el('p','Лист А4: отображаются заполненные и сохранённые записи. Для новой записи нажми «Заполнение».','haccp-paper-hint');
   const wrapper=el('div',undefined,'haccp-a4-scroll');
   wrapper.setAttribute('role','region');wrapper.setAttribute('aria-label','Лист А4: '+journalTypes[kind]);
   wrapper.tabIndex=0;
@@ -403,42 +403,28 @@ export function mountHaccp(root,{getState,save,notify}){
   paper.append(kicker,title,meta,table,note);wrapper.append(paper);
   const indicator=el('p','Лист А4 расположен горизонтально. Сдвигай таблицу пальцем вправо или влево.','haccp-a4-swipe');
   form.prepend(toolbar,modes,paperHint,wrapper,indicator);
-  const draftValue=()=>{
-   const raw=Object.fromEntries(new FormData(form));
-   const details={...raw};
-   for(const key of ['at','startedAt','finishedAt','useBy','expiry']){
-    if(details[key]&&/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(details[key]))
-     details[key]=details[key]+':00+03:00';
-   }
-   if(kind==='temperature'){
-    const equipment=h().equipment.find(item=>item.id===raw.equipmentId);
-    if(equipment)Object.assign(details,{equipment:equipment.name,min:equipment.min,max:equipment.max});
-   }
-   if(kind==='audit'){
-    details.checks=auditItems.map((label,i)=>({label,result:raw['check'+i]||'na'}));
-   }
-   return {pointId:raw.pointId,at:details.at,owner:raw.owner,notes:raw.notes,details,
-    status:'unconfigured'};
-  };
   const refreshPaper=()=>{
    if(!form.isConnected)return;
    const selectedPoint=form.querySelector('[name=pointId]')?.value;
    const actual=currentRecords().filter(r=>!selectedPoint||r.pointId===selectedPoint);
    const saved=actual.slice(0,14).reverse();
-   meta.textContent=monthLabel(monthFilter.value)+'   ·   '+(selectedPoint?pointName(selectedPoint):'Все точки')+
-     '   ·   Сохранено записей: '+actual.length+(actual.length>14?' (показаны последние 14)':'');
+   meta.textContent=monthLabel(monthFilter.value)+'   ·   '+
+    (selectedPoint?pointName(selectedPoint):'Все точки');
    tbody.replaceChildren();
-   const rows=[...saved.map(r=>({record:r,draft:false})),{record:draftValue(),draft:true}];
-   for(const {record,draft} of rows){
-    const tr=el('tr');if(draft)tr.className='haccp-draft-row';
+   // Official A4 form: only real, saved records appear in the document.
+   // The edit form is kept separate; no unsaved inspection or artificial
+   // timestamps, verdicts, signoffs or operational labels enter a paper row.
+   for(const record of saved){
+    const tr=el('tr');
     for(const col of columns){
-     const cell=el('td',paperCell(record,col.key,h().points,{draft}));
+     const cell=el('td',paperCell(record,col.key,h().points));
      cell.dataset.column=col.key;tr.append(cell);
     }
     tbody.append(tr);
    }
-   // Unsaved blank slots are strictly empty and never marked as inspected.
-   for(let i=rows.length;i<8;i++){
+   // Clean blank lines for handwritten additions, without 'draft',
+   // 'not confirmed' or invented positive/negative observations.
+   for(let i=saved.length;i<10;i++){
     const tr=el('tr',undefined,'haccp-blank-row');
     for(const col of columns)tr.append(el('td',''));
     tbody.append(tr);
