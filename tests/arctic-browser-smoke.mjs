@@ -215,11 +215,13 @@ async function verify(mode,width,height){
    'added freezer appears in the sample range list without navigating to settings');
   const addedRange=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA 2'});
   assert.deepEqual(await addedRange.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-20','-12'],'new freezer limits retained');
-  const editableName=addedRange.locator('.haccp-temperature-equipment-name');
+  const editId=await addedRange.getAttribute('data-equipment-id');
+  const editRow=page.locator('#lab .haccp-temperature-range[data-equipment-id="'+editId+'"]');
+  const editableName=editRow.locator('.haccp-temperature-equipment-name');
   await editableName.fill('Морозильник QA · после переименования');
-  await addedRange.locator('input[type=number]').nth(0).fill('-25');
-  await addedRange.locator('input[type=number]').nth(1).fill('-18');
-  await addedRange.locator('.haccp-temperature-equipment-save').click();
+  await editRow.locator('input[type=number]').nth(0).fill('-25');
+  await editRow.locator('input[type=number]').nth(1).fill('-18');
+  await editRow.locator('.haccp-temperature-equipment-save').click();
   await page.waitForFunction(()=>[...document.querySelectorAll('#lab .haccp-temperature-range strong')].some(x=>x.textContent==='Морозильник QA · после переименования'),null,{timeout:12000});
   const renamed=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA · после переименования'});
   assert.deepEqual(await renamed.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-25','-18'],'edited limits persist');
