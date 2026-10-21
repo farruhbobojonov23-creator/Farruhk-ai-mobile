@@ -104,7 +104,7 @@ test('Connection diagnostics distinguish Drive folders, wrong key, non-public sc
  const invalidKey=await invoke(route(async()=>({ok:true,json:async()=>({ok:false,error:'Неверный ключ подключения Google.'})})),{endpoint,key,action:'check'});
  assert.equal(invalidKey.statusCode,502);
  assert.equal(invalidKey.payload.reason,'google-key');
- assert.match(invalidKey.payload.error,/Свойствах скрипта/);
+ assert.match(invalidKey.payload.error,/Свойства скрипта/);
  assert.doesNotMatch(JSON.stringify(invalidKey.payload),new RegExp(key));
 
  const html=await invoke(route(async()=>({ok:true,headers:{get:()=> 'text/html; charset=utf-8'}})),{endpoint,key,action:'check'});
