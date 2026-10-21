@@ -1,7 +1,8 @@
 import {extraJournals,extraDetails} from './haccp-extra.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
-export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[]});
+export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
+export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[],dailyControls:[...defaultDailyControls],generalCleaningTarget:2});
 const text=(v,n=2000)=>String(v??'').trim().slice(0,n);
 const required=(v,label,n)=>{const s=text(v,n);if(!s)throw Error('Укажи: '+label);return s};
 function number(v,label,optional=false){if(v===null||v===undefined||String(v).trim()===''){if(optional)return null;throw Error('Укажи: '+label)}const n=Number(v);if(!Number.isFinite(n))throw Error('Неверное число: '+label);return n}
@@ -10,6 +11,8 @@ export function temperatureStatus(value,min,max){if(min===null&&max===null)retur
 export function validateHaccp(value){
  if(value===undefined)return emptyHaccp();if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Повреждён раздел ХАССП.');
  const result={...emptyHaccp(),...structuredClone(value)};
+ if(!Array.isArray(result.dailyControls)||new Set(result.dailyControls).size!==result.dailyControls.length||result.dailyControls.some(kind=>typeof kind!=='string'||!journalTypes[kind]))throw Error('Неверный план ежедневных журналов ХАССП.');
+ if(!Number.isInteger(result.generalCleaningTarget)||result.generalCleaningTarget<0||result.generalCleaningTarget>10)throw Error('Неверная периодичность генеральной уборки.');
  for(const k of ['points','equipment','records','actions','documents'])if(!Array.isArray(result[k])||result[k].some(x=>!x||typeof x!=='object'||Array.isArray(x)||typeof x.id!=='string'||!x.id))throw Error('Повреждён журнал ХАССП: '+k);
  for(const k of ['points','equipment','records','actions','documents'])if(new Set(result[k].map(x=>x.id)).size!==result[k].length)throw Error('Повторяющиеся записи ХАССП: '+k);
  if(!result.points.length||result.points.some(p=>typeof p.name!=='string'||!p.name.trim()))throw Error('Укажи названия точек.');
@@ -19,6 +22,7 @@ export function validateHaccp(value){
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
   if(collection!=='documents'&&!points.has(item.pointId))throw Error('Не найдена точка записи ХАССП.');
   if(collection==='records'&&(!item.details||typeof item.details!=='object'||Array.isArray(item.details)||!['ok','deviation','unconfigured'].includes(item.status)||!journalTypes[item.kind]||!Number.isFinite(Date.parse(item.at))||typeof item.owner!=='string'||!item.owner.trim()))throw Error('Повреждена запись журнала ХАССП.');
+  if(collection==='records'&&item.kind==='cleaning'&&item.details.cleaningType!==undefined&&!['daily','general'].includes(item.details.cleaningType))throw Error('Неверный тип уборки в журнале.');
   if(collection==='actions'&&(!['open','closed'].includes(item.status)||typeof item.sourceId!=='string'||typeof item.owner!=='string'||!item.owner.trim()||typeof item.text!=='string'||!Number.isFinite(Date.parse(item.createdAt))))throw Error('Повреждено корректирующее действие.');
   if(collection==='actions'&&item.status==='closed'&&(!item.action||!item.reviewer||!Number.isFinite(Date.parse(item.closedAt))))throw Error('Не заполнена проверка корректирующего действия.');
   if(collection==='records')for(const detail of Object.values(item.details)){if(Array.isArray(detail)){if(detail.some(x=>!x||typeof x.label!=='string'||!['yes','no','na'].includes(x.result)))throw Error('Повреждены пункты проверки.')}else if(detail!==null&&!['string','number','boolean'].includes(typeof detail))throw Error('Повреждены подробности записи.');}
@@ -43,7 +47,8 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
  if(kind==='temperature'){
   const e=h.equipment.find(e=>e.id===input.equipmentId&&e.pointId===record.pointId);if(!e)throw Error('Добавь и выбери оборудование этой точки.');const measured=number(input.measured,'измеренная температура');record.details={equipmentId:e.id,equipment:e.name,measured,min:e.min,max:e.max};record.status=temperatureStatus(measured,e.min,e.max);
  }else if(kind==='cleaning'){
-  record.details={zone:required(input.zone,'зона или инвентарь',200),method:required(input.method,'выполненная обработка',500),agent:required(input.agent,'средство или способ',200),concentration:text(input.concentration,100),exposure:text(input.exposure,100),result:input.result};if(!['done','problem'].includes(input.result))throw Error('Выбери результат уборки.');record.status=input.result==='problem'?'deviation':'ok';
+  if(input.cleaningType&&!['daily','general'].includes(input.cleaningType))throw Error('Неверный тип уборки.');
+  record.details={cleaningType:input.cleaningType||'daily',zone:required(input.zone,'зона или инвентарь',200),method:required(input.method,'выполненная обработка',500),agent:required(input.agent,'средство или способ',200),concentration:text(input.concentration,100),exposure:text(input.exposure,100),result:input.result};if(!['done','problem'].includes(input.result))throw Error('Выбери результат уборки.');record.status=input.result==='problem'?'deviation':'ok';
  }else if(kind==='receiving'){
   const expiry=input.expiry?date(input.expiry,'годен до'):null;record.details={supplier:required(input.supplier,'поставщик',200),product:required(input.product,'продукт / партия',300),quantity:required(input.quantity,'количество с единицей',100),measured:number(input.measured,'температура при приёмке',true),expiry,checks:required(input.checks,'результат проверки маркировки, упаковки и документов',1000),decision:input.decision};if(!['accepted','rejected'].includes(input.decision))throw Error('Выбери решение по приёмке.');if(expiry&&Date.parse(expiry)<=Date.parse(at)&&input.decision==='accepted')throw Error('Указанный срок истёк на момент приёмки. Исправь дату или выбери отказ.');record.status=input.decision==='rejected'?'deviation':'ok';
  }else if(kind==='storage'){
