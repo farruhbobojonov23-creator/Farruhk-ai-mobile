@@ -5,7 +5,7 @@ import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=2';
 import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=2';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
-import {mountTemperatureGrid} from './temperature-grid-ui.js?v=70';
+import {mountTemperatureGrid} from './temperature-grid-ui.js?v=71';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
