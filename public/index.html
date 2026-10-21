@@ -220,6 +220,10 @@ function updateNutrition(){
     (missing.length>6?' Ещё незаполненных пунктов: '+(missing.length-6)+'.':'')+
     ' Введи значения на 100 г с этикеток один раз — система сможет подставлять их для совпадающих ингредиентов из сохранённых техкарт.';
    status.dataset.ready='false';
+   const details=$('nutrition-products');
+   if(details&&!details.dataset.autoOpened&&ingredients.some(i=>String(i.name||'').trim())){
+    details.open=true;details.dataset.autoOpened='true';
+   }
   }else{
    const valid=nutritionKeys.every(k=>$('card-'+k).value!==''&&Number.isFinite(Number($('card-'+k).value)));
    status.textContent=valid?'Ручное КБЖУ на 100 г указано. Значения на порцию пересчитываются автоматически.':
@@ -278,8 +282,12 @@ let editorDirty=false;const recipeSheet=mountRecipeSheet($('editor'));
 const knownIngredientNames=document.createElement('datalist');knownIngredientNames.id='ttk-known-ingredients';
 $('ingredients').before(knownIngredientNames);
 function refreshKnownIngredientNames(){
+ const reference=nutritionReference(state?.recipes||[]);
  const names=new Map();
- for(const [name] of nutritionReference(state?.recipes||[]).entries())names.set(name,name);
+ for(const recipe of state?.recipes||[])for(const item of recipe.ingredients||[]){
+  const key=String(item.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
+  if(reference.has(key)&&!names.has(key))names.set(key,String(item.name||'').trim());
+ }
  knownIngredientNames.replaceChildren(...[...names.values()].map(name=>{
   const option=document.createElement('option');option.value=name;return option;
  }));
