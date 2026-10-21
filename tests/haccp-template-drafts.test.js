@@ -93,3 +93,34 @@ test('Backups merge templates and unfinished draft queue without deleting local 
  assert.equal(again.autoDrafts.length,1);
  assert.equal(again.autoTemplates.length,1);
 });
+
+test('Temperature example saves approved limits, never a made-up reading; each refrigerator can differ',()=>{
+ const s=state();
+ addEquipment(s,{pointId:'point-1',name:'Холодильник (+2 … +6)',min:2,max:6},'fridge1');
+ addEquipment(s,{pointId:'point-1',name:'Морозильник (-20 … -12)',min:-20,max:-12},'freezer2');
+ const a=saveAutoTemplate(s,{kind:'temperature',pointId:'point-1',form:{
+  equipmentId:'fridge1',min:'2',max:'6',owner:'Повар',measured:'3'
+ },now:new Date(after)});
+ const b=saveAutoTemplate(s,{kind:'temperature',pointId:'point-1',form:{
+  equipmentId:'freezer2',min:'-20',max:'-12',owner:'Повар',measured:'-17'
+ },now:new Date(after)});
+ assert.equal(a.form.measured,undefined,'sample must not store a reading');
+ assert.equal(b.form.measured,undefined);
+ assert.equal(s.haccp.records.length,0);
+ const drafts=dueAutoDrafts(s.haccp,new Date(after));
+ assert.equal(drafts.length,2);
+ assert.ok(drafts.every(d=>d.form.measured===undefined),'daily drafts start without an invented number');
+ assert.deepEqual(drafts.map(d=>d.form.equipmentId),['fridge1','freezer2']);
+ const saved=generateAutoDrafts(s,new Date(after));
+ assert.equal(saved,2);
+ assert.equal(s.haccp.records.length,0);
+ assert.ok(s.haccp.autoDrafts.every(d=>!('measured' in d.form)));
+});
+test('Older temperature templates with a copied reading are sanitized when generating a new day',()=>{
+ const s=state();
+ addEquipment(s,{pointId:'point-1',name:'Холодильник',min:2,max:6},'f1');
+ saveAutoTemplate(s,{kind:'temperature',pointId:'point-1',form:{equipmentId:'f1',owner:'Повар'},now:new Date(after)});
+ s.haccp.autoTemplates[0].form.measured='5'; // Legacy data before the fix
+ const pending=dueAutoDrafts(s.haccp,new Date(after));
+ assert.equal(pending[0].form.measured,undefined);
+});
