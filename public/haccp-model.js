@@ -70,7 +70,7 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   if(!['accepted','rejected'].includes(decision))throw Error('Выбери решение по приёмке.');
   // Date-only expiry is valid through the printed date (Moscow kitchen clock);
   // older full timestamps retain the time entered by the operator.
-  const expiry=input.expiry?date(/^20\\d{2}-\\d{2}-\\d{2}$/.test(input.expiry)?
+  const expiry=input.expiry?date(/^20\d{2}-\d{2}-\d{2}$/.test(input.expiry)?
    input.expiry+'T23:59:59+03:00':input.expiry,'годен до'):null;
   const measured=number(input.measured,'температура при приёмке',true);
   const category=text(input.category,40);
