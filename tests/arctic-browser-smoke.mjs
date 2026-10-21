@@ -174,6 +174,7 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
+  await page.locator('#lab .haccp-sheet [name=pointId]').evaluate(el=>{el.value='point-1';el.dispatchEvent(new Event('change',{bubbles:true}))});
   const sampleButton=page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'});
   assert.equal(await sampleButton.count(),1,'hygiene example can be saved for daily auto-fill');
   await sampleButton.click();
