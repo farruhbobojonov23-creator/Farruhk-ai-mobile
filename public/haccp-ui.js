@@ -5,7 +5,8 @@ import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=2';
 import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=2';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
-import {mountTemperatureGrid} from './temperature-grid-ui.js?v=69';
+import {mountTemperatureGrid} from './temperature-grid-ui.js?v=70';
+import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -21,7 +22,7 @@ function download(blob,name){const u=URL.createObjectURL(blob),a=el('a');a.href=
 async function fileData(file,max,photo=false){if(!file)return null;if(!file.size)throw Error('Выбран пустой файл.');if(file.size>max)throw Error(photo?'Фото должно быть не больше 2 МБ.':'Документ должен быть не больше 5 МБ.');if(photo&&!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Для фото подходят JPEG, PNG и WebP.');const type=/^(image\/(png|jpeg|webp)|application\/(pdf|octet-stream|vnd\.[\w.+-]+|msword)|text\/plain)$/.test(file.type)?file.type:'application/octet-stream';return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).replace(/^data:[^;]*;/,'data:'+type+';'));reader.onerror=()=>reject(Error('Файл не удалось прочитать.'));reader.readAsDataURL(file)})}
 function attachmentLink(data,name,label){const a=el('a',label);a.href='#';a.onclick=e=>{e.preventDefault();const [header,body]=data.split(','),bytes=Uint8Array.from(atob(body),c=>c.charCodeAt(0));download(new Blob([bytes],{type:header.slice(5).split(';')[0]}),name)};return a}
 export function mountHaccp(root,{getState,save,notify}){
- let tab=null,lastRevision=null,loaded=false;const temperatureSelection={};let currentMonth=measurementDate().slice(0,7);
+ let tab=null,lastRevision=null,loaded=false,temperaturePointInitialized=false;const temperatureSelection={};let currentMonth=measurementDate().slice(0,7);
  root.replaceChildren();root.classList.add('haccp-workspace');const heading=el('div',undefined,'bar');heading.append(el('h1','ХАССП'));root.append(heading,el('p','Журналы кухни по точкам. Границы температур, способы обработки и сроки задаются по вашим утверждённым процедурам.','small'));
  const banner=el('p','Записи хранятся на этом устройстве. Скачивай резервную копию в «Данных устройства».','haccp-banner');root.append(banner);const guidance=el('details'),guidanceTitle=el('summary','Формы журналов и применимость');guidance.append(guidanceTitle,el('p','Это рабочие формы учёта. Состав журналов, критерии контроля и порядок подписания утвердите для своей кухни. Дополнительные журналы используются при наличии соответствующих процессов. Имя ответственного в записи не заменяет требуемую подпись.','small'));const source=el('a','СанПиН 2.3/2.4.4282-26 — текст и рекомендуемые образцы');source.href='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';source.target='_blank';source.rel='noopener';guidance.append(source);root.append(guidance);
  const metrics=el('div',undefined,'haccp-metrics');root.append(metrics);
@@ -373,10 +374,31 @@ export function mountHaccp(root,{getState,save,notify}){
  function build(){
  const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=!isCatalog&&!isJournal;filters.open=isCatalog;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
  controls.hidden=!isCatalog&&!isJournal;monthBar.hidden=periodHint.hidden=isCatalog||!isJournal;fromDate.parentElement.hidden=toDate.parentElement.hidden=isCatalog;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
- const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+ const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){
+   // Open at a single branch, rather than accidentally mixing settings from four.
+   if(!temperaturePointInitialized){
+    temperaturePointInitialized=true;
+    if(!pointFilter.value)pointFilter.value=(h().points.find(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')||h().points[0])?.id||'';
+   }
+   mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
+ let plasmaPresetRunning=false;
+ async function ensurePlasmaPreset(){
+  if(!getState()||plasmaPresetRunning||!plasmaPresetNeeded(h()))return;
+  plasmaPresetRunning=true;
+  try{
+   await save(state=>{
+    if(!plasmaPresetNeeded(state.haccp))return;
+    if(seedPlasmaTemperatures(state)){
+     state.haccp.revision=(Number(state.haccp.revision)||0)+1;
+     state.haccp.updatedAt=new Date().toISOString();
+    }
+   });
+  }catch(error){console.warn('Не удалось настроить оборудование Плазмы:',error)}
+  finally{plasmaPresetRunning=false}
+ }
  let autoSyncRunning=false;
  async function syncAutoDrafts(){
   if(!getState()||autoSyncRunning)return;
@@ -389,7 +411,7 @@ export function mountHaccp(root,{getState,save,notify}){
   })}catch(error){console.warn('Автосоздание черновиков будет повторено:',error.message)}
   finally{autoSyncRunning=false}
  }
- function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void syncAutoDrafts()});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
+ function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
  setInterval(()=>{
   const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
