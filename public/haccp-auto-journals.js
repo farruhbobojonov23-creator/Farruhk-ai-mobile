@@ -60,6 +60,7 @@ export function plannedCell(row,key,points=[]){
  const point=points.find(p=>p.id===row.pointId)?.name||'Точка не задана';
  if(row.type==='draft'){
   const draft=row.form,details={...draft};
+  if(row.kind==='temperature')delete details.measured; // Legacy examples are never actual readings.
   if(draft.equipmentId){
    const equipped=row.equipment;
    if(equipped)Object.assign(details,{equipment:equipped.name,min:equipped.min,max:equipped.max});
