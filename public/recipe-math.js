@@ -37,6 +37,42 @@ export function calculateNutrition(ingredients,yieldGrams){
  }
  return Object.fromEntries(nutritionKeys.map(k=>[k,total[k]/Number(yieldGrams)*100]));
 }
+// Reuse only nutrient values that the owner actually entered in saved TTKs.
+// Unknown foods and conflicting entries are never guessed from their names.
+export function nutritionReference(recipes=[]){
+ const byName=new Map(),ambiguous=new Set();
+ for(const recipe of recipes||[])for(const ingredient of recipe.ingredients||[]){
+  const key=String(ingredient.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+  if(!key||ambiguous.has(key)||nutritionKeys.some(k=>!number(ingredient.nutrition?.[k])||Number(ingredient.nutrition[k])<0))continue;
+  const value=Object.fromEntries(nutritionKeys.map(k=>[k,Number(ingredient.nutrition[k])]));
+  const prior=byName.get(key);
+  if(prior&&nutritionKeys.some(k=>Math.abs(prior[k]-value[k])>1e-6)){byName.delete(key);ambiguous.add(key)}
+  else byName.set(key,value);
+ }
+ return byName;
+}
+export function nutritionMissing(ingredients=[],yieldGrams){
+ const problems=[];
+ if(!number(yieldGrams)||Number(yieldGrams)<=0)problems.push('Не указан выход готового блюда.');
+ if(!ingredients.length)problems.push('Добавь ингредиенты.');
+ for(const [index,i] of ingredients.entries()){
+  const name=String(i.name||'').trim()||'Ингредиент №'+(index+1);
+  if(!number(i.grams)||Number(i.grams)<=0||!number(i.grossGrams)||Number(i.grossGrams)<Number(i.grams))
+   problems.push(name+': проверь нетто и брутто.');
+  const missing=nutritionKeys.filter(k=>!number(i.nutrition?.[k])||Number(i.nutrition[k])<0);
+  if(missing.length)problems.push(name+': нет '+missing.map(k=>({protein:'белков',fat:'жиров',carbs:'углеводов',kcal:'ккал'})[k]).join(', ')+' на 100 г.');
+ }
+ return problems;
+}
+export function nutritionOnPortion(per100,yieldGrams){
+ if(!per100||!number(yieldGrams)||Number(yieldGrams)<=0||nutritionKeys.some(k=>!number(per100[k])||Number(per100[k])<0))return null;
+ return Object.fromEntries(nutritionKeys.map(k=>[k,Number(per100[k])*Number(yieldGrams)/100]));
+}
+export function calculateNutritionBoth(ingredients,yieldGrams){
+ const per100=calculateNutrition(ingredients,yieldGrams);
+ const perPortion=nutritionOnPortion(per100,yieldGrams);
+ return per100&&perPortion?{per100,perPortion,weightGrams:Number(yieldGrams)}:null;
+}
 export const recipeCategories=['Холодные роллы','Запечённые роллы','Темпурные роллы','Маки-роллы','Гунканы','Воки','Суши','Беридоги','Закуски','Онигири','Полуфабрикаты'];
 export function lossFromWeights(gross,net){if(!number(gross)||!number(net)||Number(gross)<=0||Number(net)<0||Number(net)>Number(gross))return null;return Math.round((1-Number(net)/Number(gross))*1000000)/10000}
 export function netYield(ingredients){if(!ingredients.length||ingredients.some(i=>!number(i.grams)||Number(i.grams)<=0))return null;return Math.round(ingredients.reduce((sum,i)=>sum+Number(i.grams),0)*10000)/10000}
