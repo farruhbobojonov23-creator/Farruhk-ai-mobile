@@ -25,7 +25,7 @@ const items=[
   fdcId:'171705',description:'Avocados, raw (100 г)'}
 ];
 export const genericNutritionCatalog=Object.freeze(items.map(item=>Object.freeze({...item,names:Object.freeze([...item.names])})));
-export const normalizeNutritionName=value=>String(value||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+export const normalizeNutritionName=value=>String(value||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
 // Exact normalized aliases only; never guess nutritional values for similar
 // but different products (seasoned rice, smoked salmon, light cream cheese).
 const byName=new Map(genericNutritionCatalog.flatMap(item=>
