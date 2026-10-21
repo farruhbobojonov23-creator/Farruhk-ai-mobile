@@ -12,7 +12,7 @@ import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettin
 import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
-import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings} from './hygiene-config.js?v=1';
+import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings,preparedHygieneRows} from './hygiene-config.js?v=2';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -104,6 +104,11 @@ export function mountHaccp(root,{getState,save,notify}){
   const roles=inputField(form,'Должности','roles',{
    type:'textarea',value:config.roles.join('\n'),maxLength:8000,required:true});
   roles.rows=5;
+  form.append(el('p','Для автоматической подготовки строк укажи график: ФИО | должность | HH:MM | название смены. Например: Иванов Иван | Сушист | 10:00 | Дневная. Время указывается московское. Каждая строка относится к одной смене конкретного сотрудника.','small'));
+  const roster=inputField(form,'График сотрудников (каждая смена отдельной строкой)','roster',{
+   type:'textarea',value:config.roster.map(x=>[x.name,x.role,x.startTime,x.shift].join(' | ')).join('\n'),
+   maxLength:16000});
+  roster.rows=7;
   inputField(form,'Проводит осмотр (должность)','reviewer',{required:true,value:config.reviewer,maxLength:120});
   const submit=el('button','Сохранить список сотрудников','primary');submit.type='submit';form.append(submit);
   form.onsubmit=safe(async event=>{
@@ -114,7 +119,7 @@ export function mountHaccp(root,{getState,save,notify}){
    try{
     await commit(state=>{
      updateHygieneSettings(state,pointId,{
-      employees:parse(data.employees),roles:parse(data.roles),reviewer:data.reviewer
+      employees:parse(data.employees),roles:parse(data.roles),reviewer:data.reviewer,roster:data.roster
      });
      state.haccp=validateHaccp(state.haccp);
     });build();
@@ -122,6 +127,67 @@ export function mountHaccp(root,{getState,save,notify}){
   });
   details.append(form);box.append(details);
   return box;
+ }
+ function hygienePreparedPanel(){
+  const pointId=pointFilter.value||h().points[0]?.id;
+  if(!pointId)return el('p','Сначала настрой точку.');
+  const day=moscowCheckpoint().day;
+  const place=h().points.find(p=>p.id===pointId);
+  const settings=hygieneSettings(h(),pointId);
+  const rows=preparedHygieneRows(h(),pointId,day);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-hygiene-prepared');
+  panel.append(el('h2','К осмотру перед сменой · '+place.name),
+   el('p','Дата: '+day.slice(8)+'.'+day.slice(5,7)+'.'+day.slice(0,4)+
+    '. Эти строки подготавливаются из графика автоматически при открытии приложения. Они не являются записями осмотра и не попадают в PDF до проверки.','small'));
+  if(!rows.length){
+   panel.append(el('p',settings.employees.length?
+    'Сотрудники есть в справочнике, но не назначены должности и часы смен. Добавь строки в «График сотрудников», чтобы включить автоматическое заполнение.':
+    'Список сотрудников пока пуст. Добавь ФИО, должности и время начала смены в настройках выше.','small'));
+   return panel;
+  }
+  const total=rows.filter(r=>!r.complete).length;
+  panel.append(el('p','В графике '+rows.length+' смен; требуют фактического осмотра: '+total+'.','small'));
+  const list=el('div',undefined,'haccp-hygiene-prepared-list');
+  for(const item of rows){
+   const row=el('div',undefined,'haccp-record haccp-prepared-person');
+   row.append(el('strong',item.name+' · '+item.role),
+    el('p',(item.shift||'Смена')+' · начало '+item.startTime+
+     (item.complete?' · '+item.recordedDecision:' · Осмотр не записан'),'small'));
+   if(!item.complete){
+    const choose=button('✎ Открыть осмотр',()=>{
+     const form=body.querySelector('.haccp-sheet');
+     if(!form){say('Открой текущий месяц для заполнения осмотра.',true);return}
+     const chooseField=(name,value)=>{
+      const input=form.querySelector('[name="'+name+'"]');
+      if(!input)return;
+      input.value=value;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+     };
+     chooseField('pointId',item.pointId);
+     chooseField('employee',item.name);
+     chooseField('role',item.role);
+     chooseField('shift',item.shift);
+     chooseField('shiftStart',item.day+'T'+item.startTime);
+     // Never prefill the inspector's identity, inspection observations or admission decision.
+     for(const name of ['owner','reviewer','hygieneDecision',...HYGIENE_CHECKS.map(([key])=>key)]){
+      const f=form.querySelector('[name="'+name+'"]');
+      if(f)f.value='';
+     }
+     const notes=form.querySelector('[name=notes]');
+     if(notes)notes.value='';
+     form.querySelector('.journal-modes button:nth-child(2)')?.click();
+     form.scrollIntoView({behavior:'smooth',block:'start'});
+    },'primary');
+    row.append(choose);
+   }
+   list.append(row);
+  }
+  panel.append(list);
+  const unassigned=settings.employees.filter(name=>
+   !settings.roster.some(staff=>staff.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU')));
+  if(unassigned.length)panel.append(el('p','Без графика: '+unassigned.join(', ')+
+   '. Их смены не подготавливаются автоматически.','small'));
+  return panel;
  }
  function qualitySettingsPanel(){
   const pointId=pointFilter.value||h().points[0]?.id;
@@ -885,7 +951,10 @@ export function mountHaccp(root,{getState,save,notify}){
    if(tab==='storage')body.append(storageSettingsPanel());
    if(tab==='defrosting')body.append(defrostSettingsPanel());
    if(tab==='quality')body.append(qualitySettingsPanel());
-   if(tab==='hygiene')body.append(hygieneSettingsPanel());
+   if(tab==='hygiene'){
+    body.append(hygieneSettingsPanel());
+    if(monthFilter.value===currentMonth)body.append(hygienePreparedPanel());
+   }
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
    if(!['receiving','defrosting','hygiene'].includes(tab))journalAutoDrafts();
