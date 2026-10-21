@@ -26,7 +26,7 @@ export function installGoogleBackupApi(app,{request=fetch}={}){
     throw failure('invalid-key-format',ERROR_HINTS['invalid-key-format'],400);
    if(!actions.has(action))
     throw failure('invalid-action','Неизвестная операция резервного копирования.',400);
-   if(action==='fetch'&&(typeof backupId!=='string'||! /^[\\w-]{15,130}$/.test(backupId)))
+   if(action==='fetch'&&(typeof backupId!=='string'||! /^[\w-]{15,130}$/.test(backupId)))
     throw failure('invalid-backup','Некорректный идентификатор резервной копии.',400);
    if(action==='backup'){
     const data=snapshot?.state;
