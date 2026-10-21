@@ -26,7 +26,7 @@ const sanitize=(data)=>{
 export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  const h=validateHaccp(state.haccp);
  if(!journalTypes[kind]||!h.points.some(p=>p.id===pointId))throw Error('Выбери журнал и точку.');
- if(kind==='receiving')throw Error('Журнал приёмки ведётся только по факту поставки. Для подсказок используй справочник товаров и поставщиков.');
+ if(['receiving','defrosting'].includes(kind))throw Error('Этот журнал заполняется только по факту реального события: без автоматических записей о выполнении.');
  const fields=sanitize(form);
  // A sample may specify approved limits but must never become an invented measured temperature.
  if(kind==='temperature')delete fields.measured;
@@ -59,7 +59,7 @@ export function dueAutoDrafts(raw,now=new Date()){
  const h=validateHaccp(raw),clock=moscowCheckpoint(now);
  if(!clock.due)return [];
  const drafts=[],known=new Set(h.autoDrafts.map(d=>d.id));
- for(const template of h.autoTemplates.filter(t=>t.enabled!==false&&t.kind!=='receiving')){
+ for(const template of h.autoTemplates.filter(t=>t.enabled!==false&&!['receiving','defrosting'].includes(t.kind))){
   if(!validDate(template.startDay))continue;
   const first=dateParts(template.startDay),last=dateParts(clock.day);
   const maxDay=Math.max(first.getTime(),last.getTime()-89*86400000);
