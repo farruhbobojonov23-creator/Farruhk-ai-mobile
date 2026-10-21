@@ -1,0 +1,44 @@
+/* HACCP v2: a consistent airy Arctic Sapphire inspection plan on Android & desktop. */
+#lab .haccp-plan-settings{
+ color-scheme:light!important;
+ background:linear-gradient(145deg,#f8fdff,#e1f2ff)!important;
+ color:#224a6b!important;
+ border:1px solid #c6dff3!important;
+ border-radius:20px!important;
+ padding:clamp(15px,3vw,25px)!important;
+ box-shadow:0 10px 28px #5490b11c!important;
+}
+#lab .haccp-plan-settings h2{color:#204f78!important;line-height:1.28}
+#lab .haccp-plan-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;
+ margin:12px 0 20px;
+}
+#lab .haccp-plan-check{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ gap:12px!important;background:linear-gradient(120deg,#ffffff,#eff8ff)!important;
+ border:1px solid #cee6f4!important;padding:11px 12px!important;
+ border-radius:13px!important;color:#285675!important;
+ font-size:14px!important;min-height:50px!important;margin:0!important;
+ cursor:pointer;box-shadow:inset 0 1px #fff!important;
+}
+#lab .haccp-plan-check span{flex:1;line-height:1.35}
+#lab .haccp-plan-check input[type="checkbox"]{
+ flex:0 0 20px!important;min-width:20px!important;width:20px!important;
+ height:20px!important;min-height:20px!important;margin:0!important;
+ accent-color:#348eca!important;box-shadow:none!important;
+}
+#lab .haccp-plan-settings label:not(.haccp-plan-check){color:#275578!important}
+#lab .haccp-plan-settings input[type="number"]{
+ color:#204968!important;background:#fff!important;border-color:#b6d9ed!important;
+ max-width:150px;
+}
+#lab .haccp-plan-settings button.primary{
+ background:linear-gradient(110deg,#5db2e7,#317fb9)!important;
+ color:#fff!important;border:1px solid #5caddc!important;
+ border-radius:12px!important;min-height:45px!important;
+ box-shadow:0 6px 19px #4d8ecb25!important;
+}
+@media(max-width:670px){
+ #lab .haccp-plan-list{grid-template-columns:minmax(0,1fr)!important}
+ #lab .haccp-plan-check{font-size:14px!important}
+}
