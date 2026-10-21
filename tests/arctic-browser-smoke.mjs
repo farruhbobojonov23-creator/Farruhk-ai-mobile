@@ -141,8 +141,33 @@ async function verify(mode,width,height){
   await page.screenshot({path:'artifacts/arctic-haccp-plan-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=cleaning]').click();
-  assert.equal(await visible(page,'#lab select[name=cleaningType]'),true,'cleaning form has daily/general selection');
-  assert.equal(await page.locator('#lab select[name=cleaningType] option').count(),2,'cleaning modes limited to actual daily and general cleaning');
+  assert.equal(await page.locator('#lab .haccp-paper-premium').getAttribute('data-mode'),'paper','professional A4 page is default');
+  const headTexts=await page.locator('#lab .haccp-paper-premium .haccp-a4-table th').allInnerTexts();
+  assert.ok(headTexts.includes('Вид уборки')&&headTexts.includes('Участок / инвентарь'),'cleaning A4 table has process-specific columns');
+  const paperColors=await page.locator('#lab .haccp-a4-paper').evaluate(el=>({bg:getComputedStyle(el).backgroundColor,w:el.getBoundingClientRect().width,overflow:getComputedStyle(el.parentElement).overflowX}));
+  assert.match(paperColors.bg,/rgb\\(255, 255, 255\\)/,'A4 page is white, not legacy dark');
+  assert.ok(paperColors.w>=1000&&paperColors.overflow==='auto','A4 journal is legible and horizontally scrollable on phones: '+JSON.stringify(paperColors));
+  await page.screenshot({path:'artifacts/arctic-haccp-cleaning-a4-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  assert.equal(await visible(page,'#lab select[name=cleaningType]'),true,'cleaning type is accessible after entering edit mode');
+  assert.equal(await page.locator('#lab select[name=cleaningType] option').count(),2,'cleaning mode options');
+  await page.locator('#lab select[name=cleaningType]').selectOption('general');
+  await page.locator('#lab input[name=zone]').fill('Витрина');
+  await page.locator('#lab .journal-modes button').first().click();
+  const draftText=await page.locator('#lab .haccp-draft-row').innerText();
+  assert.match(draftText,/Генеральная/,'A4 preview reflects selected cleaning kind');
+  assert.match(draftText,/Витрина/,'A4 preview reflects entered zone');
+  assert.match(draftText,/Черновик/,'unsaved preview cannot be mistaken for confirmed inspection');
+  assert.ok(await page.locator('#lab .haccp-blank-row').count()>=1,'empty A4 journal has unconfirmed blank slots');
+  await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=receiving]').click();
+  const receivingHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
+  assert.ok(receivingHeads.includes('Поставщик')&&receivingHeads.includes('Маркировка / упаковка'),'receiving has own A4 table');
+  assert.ok(!receivingHeads.includes('Вид уборки'),'journals do not reuse cleaning columns');
+  await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=hygiene]').click();
+  const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
+  assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
 
 
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
