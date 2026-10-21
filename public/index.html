@@ -96,7 +96,7 @@ import {mountWorkbenchVoice} from '/workbench-voice.js?v=76';
 import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=67';
 import {mountRubyHome} from '/ruby-studio.js?v=78';
 import {mountTaskBoard} from '/task-board.js?v=1';
-import {mountHaccp} from '/haccp-ui.js?v=79';
+// HACCP is loaded independently to keep navigation responsive if its module fails.
 import {filterCatalog} from '/recipe-catalog.js?v=2';
 import {categoriesFor} from '/category-model.js';
 import {showProductPhoto} from '/product-photo.js';
@@ -145,7 +145,21 @@ function renderCategories(){
 const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const preparationBoard=mountPreparationBoard($('preparations'),{getState:()=>state,save,notify:notice,openRecipes:()=>{favoritesOnly=false;recipeFilter='Полуфабрикаты';catalogOpen=true;$('recipe-search').value='';show('recipes');render()}});
 const taskBoard=mountTaskBoard($('tasklist'),{getState:()=>state,save,notify:notice});for(const [id,title] of [['taskform','＋ Новая задача'],['checkform','＋ Новое замечание']]){const f=$(id),d=document.createElement('details'),t=document.createElement('summary');d.className='create-panel';t.textContent=title;f.before(d);d.append(t,f)}
-const haccpUi=mountHaccp($('lab'),{getState:()=>state,save,notify:notice});
+// Isolate the HACCP add-on: a broken journal must never disable the main application.
+let haccpUi={render(){},open(){return false}};
+import('/haccp-ui.js?v=80').then(({mountHaccp})=>{
+ haccpUi=mountHaccp($('lab'),{getState:()=>state,save,notify:notice});
+ if(state)haccpUi.render(state);
+}).catch(error=>{
+ console.error('HACCP module unavailable:',error);
+ const panel=$('lab');
+ if(panel){
+  panel.replaceChildren();
+  const heading=document.createElement('h2');heading.textContent='ХАССП временно недоступен';
+  const info=document.createElement('p');info.textContent='Ошибка загрузки журналов. Остальные разделы работают. Обновите страницу позже.';
+  panel.append(heading,info);
+ }
+});
 const stage=$('conversation-stage');
 stage.append($('voice-panel'));
 $('voice-transcript').hidden=true;
