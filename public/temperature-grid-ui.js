@@ -1,6 +1,7 @@
 import {measurementDate,measurementTime,monthLabel,monthDays,temperatureGrid,temperatureLimits,saveDailyTemperatures} from './temperature-journal.js?v=1';
 import {saveAutoTemplate} from './haccp-template-drafts.js?v=2';
-import {addEquipment,updateEquipment} from './haccp-model.js';
+import {addEquipment,updateEquipment,validateHaccp} from './haccp-model.js';
+import {seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
 const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b};
@@ -22,7 +23,27 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
  pointSummary.textContent=selectedPoint
   ?selectedPoint.name+' · '+assigned.length+' единиц оборудования. Параметры этой точки сохраняются отдельно от остальных.'
   :'Все точки: только общий просмотр. Выбери филиал для сохранения его образца.';
- pointBar.append(locationLabel,pointSummary);root.append(pointBar);
+ pointBar.append(locationLabel,pointSummary);
+ // If the device still has generic point names, the owner chooses which point is Plasma.
+ if(selectedPoint&&/^Точка\\s+\\d+$/iu.test(selectedPoint.name.trim())&&
+    !getHaccp().points.some(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')){
+  const setupPlasma=button('Назвать эту точку «Плазма» и добавить 4 холодильника + 2 морозильника',async()=>{
+   setupPlasma.disabled=true;
+   try{
+    await commit(state=>{
+     const h=validateHaccp(state.haccp),p=h.points.find(p=>p.id===pointId);
+     if(!p||!/^Точка\\s+\\d+$/iu.test(p.name.trim()))throw Error('Точка уже настроена: выбери её в списке.');
+     if(h.points.some(row=>row.name.trim().toLocaleLowerCase('ru-RU')==='плазма'))throw Error('Точка «Плазма» уже существует.');
+     if(h.equipment.some(e=>e.pointId===p.id))throw Error('На этой точке уже есть оборудование: сначала проверь его в настройках.');
+     p.name='Плазма';state.haccp=validateHaccp(h);
+     seedPlasmaTemperatures(state);
+    });
+   }catch(e){notify(e.message||'Не удалось настроить «Плазму».',true)}
+   finally{setupPlasma.disabled=false}
+  },'primary');
+  pointBar.append(setupPlasma);
+ }
+ root.append(pointBar);
  const box=el('section',undefined,'haccp-monthly');root.append(box);
  box.append(el('h2','Журнал температур холодильного и морозильного оборудования'));
  const bar=el('div',undefined,'haccp-month-controls');box.append(bar);
