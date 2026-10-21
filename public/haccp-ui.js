@@ -1,12 +1,13 @@
 import {extraJournals,extraFieldNames} from './haccp-extra.js';
 import {measurementDate,monthLabel} from './temperature-journal.js';
+import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=65';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
-const fieldNames={...extraFieldNames,equipment:'Оборудование',measured:'Измерено, °C',min:'Заданный минимум, °C',max:'Заданный максимум, °C',zone:'Зона / инвентарь',method:'Обработка',agent:'Средство / способ',concentration:'Концентрация',exposure:'Время выдержки',result:'Результат',supplier:'Поставщик',product:'Продукт / партия',quantity:'Количество',expiry:'Годен до',checks:'Проверка',decision:'Решение',batch:'Партия',startedAt:'Приготовлено / вскрыто',useBy:'Использовать до',conditions:'Условия хранения'};
-const values={done:'Выполнено',problem:'Есть замечание',accepted:'Принято',rejected:'Отказ в приёмке',yes:'Да',no:'Нет',na:'Не применимо'};
+const fieldNames={cleaningType:'Тип уборки',...extraFieldNames,equipment:'Оборудование',measured:'Измерено, °C',min:'Заданный минимум, °C',max:'Заданный максимум, °C',zone:'Зона / инвентарь',method:'Обработка',agent:'Средство / способ',concentration:'Концентрация',exposure:'Время выдержки',result:'Результат',supplier:'Поставщик',product:'Продукт / партия',quantity:'Количество',expiry:'Годен до',checks:'Проверка',decision:'Решение',batch:'Партия',startedAt:'Приготовлено / вскрыто',useBy:'Использовать до',conditions:'Условия хранения'};
+const values={daily:'Ежедневная',general:'Генеральная',done:'Выполнено',problem:'Есть замечание',accepted:'Принято',rejected:'Отказ в приёмке',yes:'Да',no:'Нет',na:'Не применимо'};
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n}
 function button(text,fn,cls){const b=el('button',text,cls);b.type='button';b.onclick=fn;return b}
 function options(select,items,blank=false){const current=select.value;select.replaceChildren();if(blank)select.append(new Option('Выбери…',''));for(const [id,name] of items)select.append(new Option(name,id));if([...select.options].some(o=>o.value===current))select.value=current}
@@ -40,9 +41,7 @@ export function mountHaccp(root,{getState,save,notify}){
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
  function dailyDrafts(){
-  const zone='Europe/Moscow',now=new Date();
-  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
-  const today=parts.year+'-'+parts.month+'-'+parts.day,active=Number(parts.hour)>=11;
+  const {day:today,due:active}=moscowCheckpoint();
   const panel=el('section',undefined,'haccp-daily-overview');
   panel.append(el('h2','Ежедневный шаблон · 11:00, Мурманск'));
   const configKey='farruh-haccp-template-v1-'+tab;
@@ -54,6 +53,12 @@ export function mountHaccp(root,{getState,save,notify}){
   const saveTemplate=button('Сохранить образец',()=>{try{localStorage.setItem(configKey,editor.value.trim()||defaultTemplate);template=editor.value.trim()||defaultTemplate;say('Образец сохранён на этом устройстве.')}catch{say('Не удалось сохранить образец.',true)}});
   details.append(summary,el('p','Образец задаёт план проверки, но не подтверждает её выполнение.','small'),editor,saveTemplate);
   panel.append(details);
+  const scheduled=h().dailyControls.includes(tab);
+  if(!scheduled){panel.insertBefore(el('p','Этот журнал ведётся по событию или утверждённому графику. Ежедневные пропуски не начисляются. Для включения в ежедневный план открой «Настройки ХАССП».','small'),details);return panel}
+  if(tab==='cleaning'){
+   const prog=deepCleaningProgress(h(),{month:monthFilter.value,pointId:pointFilter.value});
+   panel.append(el('p','Генеральная уборка: '+prog.done+' из '+prog.target+' подтверждённых выполнений в месяц по выбранным точкам. Даты выбираются по вашему графику.','small'));
+  }
   const table=el('table',undefined,'haccp-status-table'),head=el('tr');
   for(const name of ['Дата','Точка','Состояние','Действие'])head.append(el('th',name));table.append(head);
   const [year,month]=monthFilter.value.split('-').map(Number);
@@ -64,7 +69,7 @@ export function mountHaccp(root,{getState,save,notify}){
    const date=monthFilter.value+'-'+String(day).padStart(2,'0');
    if(date>today||(date===today&&!active))continue;
    for(const point of points){
-    const done=h().records.some(r=>r.kind===tab&&r.pointId===point.id&&measurementDate(r.at).slice(0,10)===date);
+    const done=h().records.some(r=>r.kind===tab&&r.pointId===point.id&&measurementDate(r.at).slice(0,10)===date&&(tab!=='cleaning'||r.details.cleaningType!=='general'));
     if(!done)pending++;
     const row=el('tr');
     for(const value of [date,point.name,done?'Запись сохранена':'Ожидает фактической проверки'])row.append(el('td',value));
@@ -89,17 +94,19 @@ export function mountHaccp(root,{getState,save,notify}){
  function dailyOverview(){
   const panel=el('section',undefined,'haccp-daily-overview');
   const title=el('h2','Ежедневный контроль · 11:00');
-  const today=measurementDate().slice(0,10);
-  const points=pointFilter.value?h().points.filter(p=>p.id===pointFilter.value):h().points;const todayRecords=h().records.filter(r=>measurementDate(r.at).slice(0,10)===today&&(!pointFilter.value||r.pointId===pointFilter.value));
-  const completed=new Set(todayRecords.map(r=>r.kind+'|'+r.pointId));
-  const total=Object.keys(journalTypes).length*points.length;
-  panel.append(title,el('p','Сегодня подтверждено '+completed.size+' из '+total+' журналов по точкам. Остальные ожидают фактической проверки.','small'));
+  const today=moscowCheckpoint();
+  const points=pointFilter.value?h().points.filter(p=>p.id===pointFilter.value):h().points;
+  const plan=dueRecords(h(),{day:today.day,pointId:pointFilter.value});
+  panel.append(title,el('p',today.due?'После 11:00 (Москва): подтверждено '+plan.confirmed+' из '+plan.total+' запланированных проверок. Ожидают фактического контроля: '+plan.waiting+'.':'До 11:00 (Москва): план на сегодня — '+plan.total+' проверок. Уже записано: '+plan.confirmed+'. Результаты необходимо подтвердить фактически.','small'));
+  const general=deepCleaningProgress(h(),{month:today.month,pointId:pointFilter.value});
+  panel.append(el('p','Генеральная уборка: '+general.done+' / '+general.target+' в этом месяце (по утверждённому графику; подтверждены только сохранённые записи).','small'));
   const table=el('table',undefined,'haccp-status-table'),head=el('tr');
   for(const label of ['Журнал','Подтверждено','Ожидает'])head.append(el('th',label));
   table.append(head);
   for(const [kind,name] of Object.entries(journalTypes)){
-    const count=points.filter(p=>completed.has(kind+'|'+p.id)).length;
-    const row=el('tr');row.append(el('td',name),el('td',String(count)),el('td',String(points.length-count)));
+    const scheduled=h().dailyControls.includes(kind);
+    const confirmed=dueRecords(h(),{day:today.day,pointId:pointFilter.value,kinds:[kind]}).confirmed;
+    const row=el('tr');row.append(el('td',name),el('td',scheduled?String(confirmed):'По событию'),el('td',scheduled?(today.due?String(points.length-confirmed):'После 11:00'):'—'));
     row.onclick=()=>{tab=kind;build()};row.tabIndex=0;row.onkeydown=e=>{if(e.key==='Enter')row.click()};table.append(row);
   }
   const disclosure=el('details');disclosure.append(el('summary','Подробная сводка по журналам'),table);panel.append(disclosure,el('p','Дата и перечень контрольных точек формируются автоматически. Замеры, уборка и осмотры не отмечаются выполненными без подтверждения.','small'));
@@ -160,7 +167,7 @@ export function mountHaccp(root,{getState,save,notify}){
  function common(form){const grid=el('div',undefined,'fields');form.append(grid);const point=selectField(grid,'Точка','pointId',pointOptions());if(pointFilter.value)point.value=pointFilter.value;inputField(grid,'Дата и время записи','at',{type:'datetime-local',required:true,value:localDate()});inputField(grid,'Ответственный','owner',{required:true,maxLength:120});inputField(grid,'Срок устранения, если будет отклонение','due',{type:'datetime-local'});return {grid,point}}
  function journalForm(){const form=formShell('Новая запись: '+journalTypes[tab]),{grid,point}=common(form);let equipment;
   if(tab==='temperature'){equipment=selectField(grid,'Оборудование','equipmentId',[],{});const measured=inputField(grid,'Измеренная температура, °C','measured',{type:'number',required:true});const hint=el('p','Сначала добавь оборудование и его утверждённые границы в настройках.','small');form.append(hint);const sync=()=>{options(equipment,h().equipment.filter(e=>e.pointId===point.value).map(e=>[e.id,e.name]),true);updateHint()};const updateHint=()=>{const item=h().equipment.find(e=>e.id===equipment.value);hint.textContent=!item?'Выбери оборудование этой точки.':item.min===null&&item.max===null?'Границы не заданы. Измерение сохранится без оценки соответствия.':'Заданные границы: '+(item.min??'без минимума')+' … '+(item.max??'без максимума')+' °C. Границы попадут в запись.'};point.onchange=sync;equipment.onchange=updateHint;sync();measured.inputMode='decimal'}
-  if(tab==='cleaning'){inputField(grid,'Зона / инвентарь','zone',{required:true,maxLength:200});inputField(grid,'Что обработали и каким способом','method',{required:true,maxLength:500});inputField(grid,'Средство или способ обработки','agent',{required:true,maxLength:200});inputField(grid,'Концентрация по инструкции, если применимо','concentration',{maxLength:100});inputField(grid,'Время выдержки по инструкции','exposure',{maxLength:100});selectField(grid,'Результат','result',[['done','Выполнено'],['problem','Есть замечание']])}
+  if(tab==='cleaning'){selectField(grid,'Тип уборки','cleaningType',[['daily','Ежедневная / текущая'],['general','Генеральная (2 раза в месяц по графику)']],{blank:false});inputField(grid,'Зона / инвентарь','zone',{required:true,maxLength:200});inputField(grid,'Что обработали и каким способом','method',{required:true,maxLength:500});inputField(grid,'Средство или способ обработки','agent',{required:true,maxLength:200});inputField(grid,'Концентрация по инструкции, если применимо','concentration',{maxLength:100});inputField(grid,'Время выдержки по инструкции','exposure',{maxLength:100});selectField(grid,'Результат','result',[['done','Выполнено'],['problem','Есть замечание']])}
   if(tab==='receiving'){for(const [label,name] of [['Поставщик','supplier'],['Продукт / партия','product'],['Количество и единица (например, 5 кг)','quantity']])inputField(grid,label,name,{required:true,maxLength:300});inputField(grid,'Температура при приёмке, °C (если измеряли)','measured',{type:'number'});inputField(grid,'Годен до (по маркировке)','expiry',{type:'datetime-local'});inputField(form,'Проверка маркировки, упаковки, сроков и сопроводительных документов','checks',{type:'textarea',required:true,maxLength:1000});selectField(grid,'Решение','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']])}
   if(tab==='storage'){inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});inputField(grid,'Приготовлено / вскрыто','startedAt',{type:'datetime-local',required:true});inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});inputField(form,'Утверждённые условия хранения','conditions',{type:'textarea',required:true,maxLength:500});form.append(el('p','Срок не назначается автоматически: укажи дату и условия из утверждённой инструкции на этот продукт.','small'))}
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
