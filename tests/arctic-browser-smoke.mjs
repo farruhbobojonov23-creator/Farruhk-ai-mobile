@@ -258,6 +258,25 @@ async function verify(mode,width,height){
   const hygienePaper=await page.locator('#lab .haccp-a4-paper').innerText();
   assert.ok(!/Черновик|Не подтверждено|Не оценено/i.test(hygienePaper),
    'official hygienic inspection A4 contains no process-stage text');
+  await page.locator('#lab .haccp-hygiene-settings summary').click();
+  await page.locator('#lab .haccp-hygiene-settings textarea[name=employees]').fill('Сушист Иванов');
+  await page.locator('#lab .haccp-hygiene-settings textarea[name=roster]').fill('Сушист Иванов | Сушист | 11:00 | Дневная');
+  await page.locator('#lab .haccp-hygiene-settings form button.primary').click();
+  await page.waitForFunction(()=>document.querySelectorAll('#lab .haccp-prepared-person').length===1,
+   null,{timeout:12000});
+  assert.equal(await page.locator('#lab .haccp-prepared-person').count(),1,
+   'one staff member appears in the daily prepared queue');
+  await page.locator('#lab .haccp-prepared-person button').first().click();
+  assert.equal(await page.locator('#lab input[name=employee]').inputValue(),'Сушист Иванов');
+  assert.equal(await page.locator('#lab select[name=role]').inputValue(),'Сушист');
+  assert.match(await page.locator('#lab input[name=shiftStart]').inputValue(),/T11:00$/);
+  assert.equal(await page.locator('#lab select[name=hygieneDecision]').inputValue(),'',
+   'scheduled roster must never pre-approve work');
+  assert.equal(await page.locator('#lab select[name=hands]').inputValue(),'',
+   'scheduled roster must not fabricate hand hygiene check');
+  await page.locator('#lab .journal-modes button').first().click();
+  assert.ok(!/Сушист Иванов/.test(await page.locator('#lab .haccp-a4-paper').innerText()),
+   'prepared but uninspected staff must not enter the formal A4 record');
 
 
 
