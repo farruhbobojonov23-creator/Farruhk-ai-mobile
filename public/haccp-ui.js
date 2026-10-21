@@ -2,6 +2,7 @@ import {extraJournals,extraFieldNames} from './haccp-extra.js';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
 import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
+import {automaticJournalSummary} from './haccp-auto-journals.js?v=1';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=65';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
@@ -38,7 +39,44 @@ export function mountHaccp(root,{getState,save,notify}){
   const copy=el('span',undefined,'haccp-journal-copy');copy.append(el('strong',title),el('small',h().records.filter(r=>r.kind===kind).length+' записей · Открыть журнал'));
   card.append(photo,copy);grid.append(card);index++;
  }
- body.append(dailyOverview(),el('h2','Журналы кухни'),grid);root.append(banner,guidance);
+ const autoPanel=el('section',undefined,'haccp-autofill-panel');
+ autoPanel.append(el('h2','Автозаполнение · 12 журналов А4'),
+  el('p','FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. Невыполненные измерения, уборки и осмотры строго отмечены «НЕ ПРОВЕРЕНО» — никаких выдуманных результатов.','small'));
+ const autoForm=el('div',undefined,'haccp-auto-controls');
+ const autoMonth=inputField(autoForm,'Месяц для печати','autoMonth',{type:'month',value:currentMonth});
+ const autoPoint=selectField(autoForm,'Точка для печати','autoPoint',[['','Все точки'],...pointOptions()],{required:false,blank:false});
+ if(pointFilter.value)autoPoint.value=pointFilter.value;
+ const autoStats=el('p','','haccp-auto-stats');
+ const updateAutoStats=()=>{
+  try{
+   const sum=automaticJournalSummary(h(),{month:autoMonth.value,pointId:autoPoint.value});
+   autoStats.textContent='Готово к печати: '+sum.kinds+' журналов · '+sum.confirmed+
+    ' фактических записей · '+sum.planned+' строк по графику без подтверждения.';
+  }catch(error){autoStats.textContent=error.message}
+ };
+ autoMonth.onchange=autoPoint.onchange=updateAutoStats;
+ const exportAll=button('↓ Скачать все 12 автозаполненных журналов (PDF А4)',
+  safe(async()=>{
+   exportAll.disabled=true;
+   try{
+    const compact={...h(),records:h().records.map(({photo,...r})=>({...r,photo:null})),actions:[],documents:[]};
+    const response=await fetch('/api/haccp/auto-pack/pdf',{
+     method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({haccp:compact,month:autoMonth.value,pointId:autoPoint.value}),
+     signal:AbortSignal.timeout(85000)
+    });
+    if(!response.ok){
+     const data=await response.json().catch(()=>({}));
+     throw Error(data.error||'Не удалось подготовить сборник журналов.');
+    }
+    download(await response.blob(),'ХАССП_все_12_журналов_'+autoMonth.value+'.pdf');
+    say('Все 12 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
+   }finally{exportAll.disabled=false}
+  }),'primary'));
+ autoPanel.append(autoForm,autoStats,exportAll,
+  el('p','План обновляется по московскому времени с 11:00, а при закрытом приложении — при следующем открытии. В PDF внесены только реальные записи и неподтверждённые строки по графику. Распечатка не заменяет фактический контроль.','small'));
+ updateAutoStats();
+ body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
  function dailyDrafts(){
