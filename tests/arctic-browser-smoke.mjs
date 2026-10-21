@@ -190,6 +190,20 @@ async function verify(mode,width,height){
   const saveTempSample=page.locator('#lab .haccp-temperature-sample-actions button').filter({hasText:'Сохранить образец'});
   assert.equal(await saveTempSample.isVisible(),true,'save sample button visible directly in temperature journal');
   assert.equal(await visible(page,'#lab .haccp-temperature-drafts'),true,'reviewable temperature drafts list visible');
+  const addEquipmentButton=page.locator('#lab .haccp-temperature-add>button');
+  assert.equal(await addEquipmentButton.isVisible(),true,'user can add another refrigerator in the temperature journal');
+  await addEquipmentButton.click();
+  assert.equal(await visible(page,'#lab .haccp-temperature-add-editor'),true,'inline add equipment form opens');
+  await page.locator('#lab .haccp-temperature-add-fields input[type=text]').fill('Морозильник QA 2');
+  const tempLimits=page.locator('#lab .haccp-temperature-add-fields input[type=number]');
+  await tempLimits.nth(0).fill('-20');
+  await tempLimits.nth(1).fill('-12');
+  await page.locator('#lab .haccp-temperature-add-editor button.primary').click();
+  await page.waitForFunction(()=>[...document.querySelectorAll('#lab .haccp-temperature-range strong')].some(x=>x.textContent==='Морозильник QA 2'),null,{timeout:12000});
+  assert.ok((await page.locator('#lab .haccp-temperature-range strong').allInnerTexts()).includes('Морозильник QA 2'),
+   'added freezer appears in the sample range list without navigating to settings');
+  const addedRange=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA 2'});
+  assert.deepEqual(await addedRange.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-20','-12'],'new freezer limits retained');
   await page.screenshot({path:'artifacts/arctic-haccp-temperature-sample-'+mode+'.png',fullPage:false,timeout:12000});
 
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
