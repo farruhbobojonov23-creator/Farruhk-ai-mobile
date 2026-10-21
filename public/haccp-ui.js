@@ -12,7 +12,7 @@ import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettin
 import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
-import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings,preparedHygieneRows} from './hygiene-config.js?v=2';
+import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings,preparedHygieneRows} from './hygiene-config.js?v=3';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
