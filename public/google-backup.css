@@ -1,0 +1,37 @@
+/* Google Drive backups — consistent bright Arctic Sapphire settings. */
+.google-backup-open{display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid #aed9f3!important;border-radius:12px!important;
+  padding:11px 15px!important;min-height:44px!important;margin:9px 4px!important;
+  color:#1e5780!important;background:linear-gradient(135deg,#f5fcff,#d3ebff)!important;
+  box-shadow:0 5px 16px #67a5cc20!important;font-weight:600!important}
+.google-backup-dialog{color-scheme:light!important;
+  background:linear-gradient(150deg,#fbfeff,#e8f5ff)!important;
+  color:#234c70!important;border:1px solid white!important;
+  box-shadow:0 24px 65px #316c9c3f!important;border-radius:25px!important;
+  max-width:min(92vw,680px)!important;max-height:85dvh!important;overflow:auto!important}
+.google-backup-dialog::backdrop{background:#20436766;backdrop-filter:blur(7px)}
+.google-backup-dialog h2{color:#204567!important}
+.google-backup-dialog .small,.google-backup-dialog p{color:#527894!important}
+.google-backup-dialog input[type=url],.google-backup-dialog input[type=password]{
+  background:#ffffff!important;border:1px solid #b7dbef!important;color:#214b6d!important;
+  border-radius:12px!important;width:100%!important;min-height:45px!important;
+  padding:11px!important;box-sizing:border-box!important;font-size:15px!important}
+.google-backup-dialog label{color:#305f80!important;display:block!important;margin:11px 0!important}
+.google-backup-dialog label:has(input[type=checkbox]){display:flex!important;align-items:flex-start!important;gap:12px!important}
+.google-backup-dialog input[type=checkbox]{flex:0 0 auto!important;margin-top:6px!important;accent-color:#2a91ce}
+.google-backup-dialog .bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.google-backup-dialog button{min-height:44px!important;border-radius:12px!important;color:#265479!important;
+  background:linear-gradient(130deg,#fff,#d9eeff)!important;border:1px solid #c6e0f5!important;cursor:pointer}
+.google-backup-dialog button.primary{background:linear-gradient(110deg,#5db1e4,#287cbe)!important;
+  border-color:#64ade0!important;color:#fff!important}
+.google-backup-dialog button[disabled]{opacity:.55!important;cursor:not-allowed!important}
+.google-backup-dialog [data-files]{padding:8px 0;border:0;background:transparent!important}
+.google-backup-dialog [data-files] .row{display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+  padding:10px 6px;border-bottom:1px solid #d6e8f6!important}
+.google-backup-dialog [data-files] .row span{flex:1 1 180px;overflow-wrap:anywhere;color:#355c7b}
+.google-backup-dialog [data-status]{font-weight:500;color:#2a648e!important}
+.google-backup-dialog [data-status][data-error="true"]{color:#a53758!important}
+@media(max-width:600px){.google-backup-dialog{padding:17px!important;max-width:96vw!important;
+  margin:auto!important;max-height:86dvh!important}
+ .google-backup-dialog .bar>button{font-size:13px!important;padding:10px!important}
+}
