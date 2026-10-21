@@ -29,6 +29,11 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  const fields=sanitize(form);
  // A sample may specify approved limits but must never become an invented measured temperature.
  if(kind==='temperature')delete fields.measured;
+ if(kind==='cleaning'){
+  // Templates have assigned roles but never reuse someone's previous approval,
+  // actual agent, completed checklist or recorded outcome.
+  delete fields.result;delete fields.checker;delete fields.owner;delete fields.agent;
+ }
  if(!Object.keys(fields).length)throw Error('Заполни хотя бы одно поле образца.');
  const day=moscowCheckpoint(now).day;
  const type=fields.cleaningType==='general'?'general':'daily';
