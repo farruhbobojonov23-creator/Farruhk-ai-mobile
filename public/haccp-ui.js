@@ -10,6 +10,7 @@ import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-con
 import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
 import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettings,updateReceivingSettings} from './receiving-config.js?v=1';
 import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
+import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -83,6 +84,39 @@ export function mountHaccp(root,{getState,save,notify}){
  updateAutoStats();
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
+ }
+ function defrostSettingsPanel(){
+  const pointId=pointFilter.value||h().points[0]?.id;
+  if(!pointId)return el('p','Добавь точку в настройках.');
+  const point=h().points.find(p=>p.id===pointId),config=thawConfig(h(),pointId);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-defrost-settings');
+  panel.append(el('h2','Размораживание · '+point.name),
+   el('p','Метод по вашему стандарту: в холодильнике +2…+6 °C (при соблюдении указаний производителя). Исполнитель: '+config.executor+'. Проверяет: '+config.reviewer+'.','small'),
+   el('p','СанПиН 2.3/2.4.4282-26 не задаёт единого количества часов размораживания для всех продуктов. Время определяется технологической инструкцией конкретного сырья; система измеряет фактическую длительность.','small'));
+  const details=el('details');
+  details.append(el('summary','⚙ Редактировать продукты, способы и ответственных'));
+  const form=el('form',undefined,'haccp-form');
+  const products=inputField(form,'Продукты (каждый с новой строки)','products',{type:'textarea',value:config.products.join('\n'),maxLength:8000});
+  products.rows=7;
+  const methods=inputField(form,'Способы размораживания по утверждённой инструкции','methods',{type:'textarea',value:config.methods.join('\n'),required:true,maxLength:8000});
+  methods.rows=4;
+  inputField(form,'Исполнитель','executor',{value:config.executor,required:true,maxLength:120});
+  inputField(form,'Проверяющий','reviewer',{value:config.reviewer,required:true,maxLength:120});
+  const buttonSave=el('button','Сохранить настройки размораживания','primary');buttonSave.type='submit';form.append(buttonSave);
+  form.onsubmit=safe(async e=>{
+   e.preventDefault();if(!form.reportValidity())return;
+   const raw=Object.fromEntries(new FormData(form));
+   const lines=value=>String(value||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+   buttonSave.disabled=true;
+   try{
+    await commit(state=>{
+     updateThawConfig(state,pointId,{products:lines(raw.products),methods:lines(raw.methods),executor:raw.executor,reviewer:raw.reviewer});
+     state.haccp=validateHaccp(state.haccp);
+    });build();
+   }finally{buttonSave.disabled=false}
+  });
+  details.append(form);panel.append(details);
+  return panel;
  }
  function storageSettingsPanel(){
   const selectedId=pointFilter.value||h().points[0]?.id;
@@ -214,10 +248,10 @@ export function mountHaccp(root,{getState,save,notify}){
   return panel;
  }
  function dailyDrafts(){
-  if(tab==='receiving'){
+  if(['receiving','defrosting'].includes(tab)){
    const box=el('section',undefined,'haccp-daily-overview');
-   box.append(el('h2','Приёмка по факту поставки'),
-    el('p','Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
+   box.append(el('h2',tab==='defrosting'?'Размораживание по факту начала процесса':'Приёмка по факту поставки'),
+    el('p',tab==='defrosting'?'Запиши фактическое начало, затем окончание, замеры и проверку старшего смены. Без фактического процесса завершённая запись не создаётся.':'Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
    return box;
   }
   const {day:today,due:active}=moscowCheckpoint();
@@ -313,7 +347,7 @@ export function mountHaccp(root,{getState,save,notify}){
    say('Образец загружен. Можно отредактировать и сохранить заново.');
   }));
   // A delivery is an event, never an automatic daily check or pre-approved receipt.
-  if(kind==='receiving')toolbar.append(edit,save,pdf);
+  if(['receiving','defrosting'].includes(kind))toolbar.append(edit,save,pdf);
   else toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
@@ -559,7 +593,48 @@ export function mountHaccp(root,{getState,save,notify}){
    });
    form.append(dueHint);
   }
-  if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
+  if(tab==='defrosting'){
+   const config=thawConfig(h(),point.value);
+   const product=inputField(grid,'Продукт / партия','product',{required:true,maxLength:300});
+   const products=el('datalist');products.id='haccp-thaw-products';product.setAttribute('list',products.id);form.append(products);
+   inputField(grid,'Маркировка / номер партии','batch',{maxLength:120});
+   inputField(grid,'Масса (например 5 кг)','quantity',{required:true,maxLength:100});
+   const method=selectField(grid,'Фактический способ размораживания','method',[],{required:true,blank:true});
+   const refreshThaw=()=>{
+    const local=thawConfig(h(),point.value);
+    options(method,local.methods.map(v=>[v,v]),true);
+    products.replaceChildren(...local.products.map(v=>{const o=el('option');o.value=v;return o}));
+   };
+   point.addEventListener('change',refreshThaw);refreshThaw();
+   const start=inputField(grid,'Дата и время начала','startedAt',{type:'datetime-local',required:true});
+   const finish=inputField(grid,'Дата и время окончания (когда завершено)','finishedAt',{type:'datetime-local'});
+   const measured=inputField(grid,'Фактическая температура продукта, °C (по измерению)','measured',{type:'number'});
+   const chamber=inputField(grid,'Фактическая температура холодильника, °C','chamberTemperature',{type:'number'});
+   inputField(grid,'Утверждённая длительность, часов (если указана в ТТК / инструкции)','approvedHours',{type:'number'});
+   inputField(grid,'Источник срока: этикетка, ТТК или утверждённая инструкция','approvedSource',{maxLength:300});
+   const reviewer=inputField(grid,'Проверил (ФИО старшего смены)','reviewer',{maxLength:120});
+   const status=selectField(grid,'Результат процесса','result',[
+    ['na','В процессе — ещё не завершено'],
+    ['done','Завершено — фактические показатели проверены'],
+    ['problem','Нарушение — требуется действие']
+   ],{blank:false});
+   status.value='na';
+   form.append(el('p','Рабочий диапазон холодильника по вашим настройкам: +2…+6 °C. Сверь его с маркировкой продукта. В поле часов нельзя указывать произвольный «норматив СанПиН».','small'));
+   const elapsedText=el('p','Продолжительность появится после фактического окончания.','small');
+   form.append(elapsedText);
+   const sync=()=>{
+    const elapsed=thawElapsed(start.value,finish.value);
+    elapsedText.textContent=elapsed===null?'Продолжительность появится после фактического окончания.':
+     'Фактическая длительность: '+elapsed.toLocaleString('ru-RU')+' ч.';
+    const done=status.value==='done';
+    finish.required=done;measured.required=done;chamber.required=done;reviewer.required=done;
+    const local=thawConfig(h(),point.value);
+    reviewer.placeholder=local.reviewer+': имя и фамилия';
+   };
+   start.addEventListener('input',sync);finish.addEventListener('input',sync);
+   status.addEventListener('change',sync);point.addEventListener('change',sync);sync();
+  }
+  if(extraJournals[tab]&&tab!=='defrosting'){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
   const kind=tab;submitForm(form,async raw=>{
@@ -645,9 +720,10 @@ export function mountHaccp(root,{getState,save,notify}){
    if(tab==='cleaning')body.append(cleaningSettingsPanel());
    if(tab==='receiving')body.append(receivingSettingsPanel());
    if(tab==='storage')body.append(storageSettingsPanel());
+   if(tab==='defrosting')body.append(defrostSettingsPanel());
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
-   if(tab!=='receiving')journalAutoDrafts();
+   if(!['receiving','defrosting'].includes(tab))journalAutoDrafts();
    journalHistory();
   }else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
