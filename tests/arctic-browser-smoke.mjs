@@ -186,6 +186,20 @@ async function verify(mode,width,height){
    'damaged deliveries can be rejected even if a thermometer was not used');
   await page.screenshot({path:'artifacts/arctic-haccp-receiving-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=storage]').click();
+  assert.match(await page.locator('#lab .haccp-storage-settings').innerText(),/Маркировка и хранение/,'storage settings are editable separately per point');
+  const storageHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
+  assert.ok(storageHeads.includes('Продукт / категория / партия')&&
+   storageHeads.includes('Использовать до')&&storageHeads.includes('Условия / проверки'),
+   'storage A4 includes batch, approved expiry and factual checks');
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  assert.equal(await page.locator('#lab select[name=storageZone]').count(),1,'storage zone selector present');
+  assert.equal(await page.locator('#lab select[name=labelCheck]').count(),1,'actual label verification required');
+  assert.equal(await page.locator('#lab select[name=conditionsCheck]').count(),1,'actual storage conditions verification required');
+  assert.equal(await page.locator('#lab input[name=startedAt]').inputValue(),'','product opening date cannot be invented');
+  assert.equal(await page.locator('#lab input[name=useBy]').inputValue(),'','approved shelf life cannot be invented');
+  await page.screenshot({path:'artifacts/arctic-haccp-storage-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
