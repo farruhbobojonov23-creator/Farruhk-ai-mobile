@@ -58,7 +58,8 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
  const samplePanel=el('section',undefined,'haccp-temperature-sample');
  samplePanel.append(el('h3','МОЙ ОБРАЗЕЦ · ТЕМПЕРАТУРЫ'));
  const sampleInfo=el('p','Настрой допустимый диапазон °C отдельно для каждого холодильника и морозильника на выбранной точке. Укажи ответственного ниже и сохрани образец. Ежедневно с 11:00 подготовятся черновики без выдуманных температур: фактический замер ты внесёшь при проверке.','small');
- const sampleOwner=field(samplePanel,'Ответственный для образца','text',selection.owner||'');sampleOwner.maxLength=120;
+ const initialPointOwner=(getHaccp().autoTemplates||[]).find(t=>t.kind==='temperature'&&t.pointId===pointId)?.form?.owner||'';
+ const sampleOwner=field(samplePanel,'Ответственный для образца','text',initialPointOwner);sampleOwner.maxLength=120;
  const sampleRanges=el('div',undefined,'haccp-temperature-range-grid');
  const sampleStatus=el('p','','haccp-temperature-sample-status');
  const sampleActions=el('div',undefined,'haccp-temperature-sample-actions');
@@ -109,7 +110,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
  entry.append(samplePanel);
 
  const fields=el('div',undefined,'fields');entry.append(fields);
- const today=measurementDate(),date=field(fields,'Дата замеров','date',selection.month&&selection.month!==today.slice(0,7)?selection.month+'-01':today),time=field(fields,'Время замеров (Мурманск / Москва)','time',measurementTime()),owner=field(fields,'Ответственный','text',selection.owner||'');date.required=time.required=owner.required=true;owner.maxLength=120;
+ const today=measurementDate(),date=field(fields,'Дата замеров','date',selection.month&&selection.month!==today.slice(0,7)?selection.month+'-01':today),time=field(fields,'Время замеров (Мурманск / Москва)','time',measurementTime()),owner=field(fields,'Ответственный','text',initialPointOwner);date.required=time.required=owner.required=true;owner.maxLength=120;
  const equipmentInputs=el('div',undefined,'haccp-daily-equipment');entry.append(equipmentInputs);
  const submit=el('button','Сохранить замеры за день','primary');submit.type='submit';entry.append(submit);
  const hint=el('p',undefined,'haccp-message');hint.setAttribute('role','status');entry.append(hint);
