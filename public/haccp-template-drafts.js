@@ -26,7 +26,8 @@ const sanitize=(data)=>{
 export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  const h=validateHaccp(state.haccp);
  if(!journalTypes[kind]||!h.points.some(p=>p.id===pointId))throw Error('Выбери журнал и точку.');
- if(['receiving','defrosting'].includes(kind))throw Error('Этот журнал заполняется только по факту реального события: без автоматических записей о выполнении.');
+ if(kind==='receiving')throw Error('Журнал приёмки ведётся только по факту поставки. Для подсказок используй справочник товаров и поставщиков.');
+ if(kind==='defrosting')throw Error('Журнал размораживания ведётся только по факту процесса: без вымышленных завершений.');
  const fields=sanitize(form);
  // A sample may specify approved limits but must never become an invented measured temperature.
  if(kind==='temperature')delete fields.measured;
