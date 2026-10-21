@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {installGoogleBackupApi} from '../google-backup-api.js';
-import {makeGoogleBackupSnapshot} from '../public/google-backup.js';
+import {makeGoogleBackupSnapshot,explainBackupEndpoint} from '../public/google-backup.js';
 
 const endpoint='https://script.google.com/macros/s/AKfycbwABCDef12345678901234567890/exec';
 const key='this-is-a-long-private-key-example';
@@ -109,4 +109,10 @@ test('In-app backup remains opt-in with a documented one-time Google account aut
  assert.match(html,/initializeBackup/);
  assert.match(page,/mountGoogleDriveBackup/);
  assert.match(server,/installGoogleBackupApi\(app\)/);
+});
+
+test('Backup connection rejects Drive folder URLs with actionable guidance and accepts /exec web app',()=>{
+ assert.match(explainBackupEndpoint('https://drive.google.com/drive/folders/1HghTLNfb-Om-nCVCAbjjWoOfBisKyYwn'),/папку Google Диска/);
+ assert.match(explainBackupEndpoint('https://script.google.com/home/projects/hello'),/URL веб-приложения/);
+ assert.equal(explainBackupEndpoint('https://script.google.com/macros/s/AKfycbwABCDef12345678901234567890/exec'),'');
 });
