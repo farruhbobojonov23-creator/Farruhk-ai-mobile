@@ -1,0 +1,170 @@
+/* Premium Arctic Sapphire · HACCP individual A4 sheets and accessible Android editor.
+   App records remain append-only; the last row is visibly UNSAVED. */
+#lab .haccp-sheet.haccp-paper-premium{
+ background:linear-gradient(145deg,#f9fdff,#e7f4ff)!important;
+ color:#1d486c!important;border:1px solid #c2dff0!important;
+ border-radius:22px!important;padding:16px!important;
+ box-shadow:0 12px 28px #5b9bbb1b!important;max-width:100%;
+}
+#lab .haccp-paper-premium>h2{
+ background:transparent!important;color:#1a5279!important;
+ border-bottom:1px solid #cce6f5!important;font-size:clamp(17px,2vw,22px)!important;
+ line-height:1.5!important;padding:8px 2px 16px!important;
+ letter-spacing:0!important;
+}
+#lab .haccp-paper-premium .haccp-sheet-toolbar{
+ display:flex!important;align-items:stretch!important;flex-wrap:wrap!important;
+ gap:9px!important;margin:-16px -16px 15px!important;padding:14px!important;
+ background:linear-gradient(125deg,#ffffff,#eaf6ff)!important;
+ border-bottom:1px solid #c5e3f4!important;
+ border-radius:22px 22px 0 0!important;
+ box-shadow:none!important;
+}
+#lab .haccp-paper-premium .haccp-sheet-toolbar button{
+ border-radius:12px!important;min-height:44px!important;
+ font-size:13px!important;padding:10px 13px!important;flex:1;
+ min-width:min(100%,175px);max-width:100%;white-space:normal!important;
+ background:linear-gradient(130deg,#f9fcff,#d9eefc)!important;
+ color:#27658c!important;border:1px solid #a9d2e9!important;
+ box-shadow:0 2px 8px #84b9d61c!important;
+}
+#lab .haccp-paper-premium .haccp-sheet-toolbar button.primary{
+ background:linear-gradient(125deg,#54b1e5,#2b84be)!important;
+ color:white!important;border-color:#439ace!important;font-weight:680!important;
+}
+#lab .haccp-paper-premium .journal-modes{
+ display:flex!important;gap:8px!important;margin:0 0 14px!important;
+ background:#e1f0fb!important;padding:5px!important;border-radius:13px!important;
+}
+#lab .haccp-paper-premium .journal-modes button{
+ flex:1;background:transparent!important;border:0!important;
+ color:#376486!important;border-radius:10px!important;padding:11px 8px!important;
+ min-height:43px;font-weight:650!important;font-size:13px!important;
+}
+#lab .haccp-paper-premium .journal-modes button[aria-pressed=true]{
+ background:white!important;color:#23628a!important;
+ box-shadow:0 2px 10px #4685ac25!important;
+}
+#lab .haccp-paper-premium .haccp-paper-hint,#lab .haccp-paper-premium .haccp-a4-swipe{
+ color:#557a98!important;font-size:12px!important;line-height:1.55!important;
+ margin:9px 0!important;
+}
+#lab .haccp-paper-premium[data-mode=form] .haccp-a4-scroll,
+#lab .haccp-paper-premium[data-mode=form] .haccp-paper-hint,
+#lab .haccp-paper-premium[data-mode=form] .haccp-a4-swipe{
+ display:none!important;
+}
+#lab .haccp-paper-premium[data-mode=paper] .fields,
+#lab .haccp-paper-premium[data-mode=paper]>label,
+#lab .haccp-paper-premium[data-mode=paper]>p:not(.haccp-paper-hint):not(.haccp-a4-swipe),
+#lab .haccp-paper-premium[data-mode=paper]>button[type=submit]{
+ display:none!important;
+}
+#lab .haccp-paper-premium .haccp-a4-scroll{
+ display:block!important;position:relative!important;min-width:0!important;
+ width:100%!important;height:auto!important;max-width:100%!important;
+ overflow-x:auto!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain;
+ touch-action:pan-x pan-y;
+ border:1px solid #c0dced!important;background:#ddecf7!important;
+ border-radius:15px!important;padding:10px!important;box-sizing:border-box!important;
+}
+#lab .haccp-paper-premium .haccp-a4-scroll:focus-visible{
+ outline:2px solid #448cc2!important;outline-offset:2px!important;
+}
+#lab .haccp-paper-premium .haccp-a4-paper{
+ box-sizing:border-box!important;transform:none!important;
+ width:1040px!important;max-width:none!important;min-width:1040px!important;
+ min-height:620px!important;height:auto!important;
+ padding:30px 34px!important;margin:0 auto!important;
+ background:white!important;color:#1b3c52!important;
+ border:1px solid #bed2e1!important;border-radius:2px!important;
+ box-shadow:0 5px 20px #456e8830!important;
+ font-family:Arial,'DejaVu Sans',sans-serif!important;
+}
+#lab .haccp-paper-premium .haccp-a4-kicker{
+ color:#377fa8!important;font-weight:750!important;
+ font-size:12px!important;letter-spacing:.16em!important;margin-bottom:8px!important;
+}
+#lab .haccp-paper-premium .haccp-a4-caption{
+ color:#1f5278!important;text-align:left!important;
+ border-left:4px solid #3d9fcd!important;margin:0 0 12px!important;
+ padding:0 0 0 12px!important;font-size:23px!important;line-height:1.4!important;
+ letter-spacing:0!important;
+}
+#lab .haccp-paper-premium .haccp-a4-meta{
+ color:#537188!important;margin:0 0 16px!important;
+ padding:0 0 12px!important;border-bottom:1px solid #c7d9e6!important;
+ font-size:12px!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table{
+ width:100%!important;border-collapse:collapse!important;
+ table-layout:fixed!important;border:1px solid #97b2c4!important;
+ color:#26445a!important;font:11px/1.45 Arial,sans-serif!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table th,
+#lab .haccp-paper-premium .haccp-a4-table td{
+ border:1px solid #b2c7d6!important;text-align:left!important;
+ padding:10px 8px!important;height:auto!important;
+ font-size:11px!important;line-height:1.45!important;
+ white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+ vertical-align:top!important;color:#23435b!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table th{
+ background:#dfedf7!important;color:#204e71!important;
+ font-size:11px!important;font-weight:750!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table tbody tr:nth-child(2n){background:#f4f9fd!important}
+#lab .haccp-paper-premium .haccp-a4-table .haccp-draft-row{
+ background:#e7f5fe!important;color:#265f86!important;
+ border-left:3px solid #4398c6!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table .haccp-draft-row td{
+ color:#306688!important;font-style:italic!important;
+}
+#lab .haccp-paper-premium .haccp-a4-table .haccp-blank-row{height:36px!important}
+#lab .haccp-paper-premium .haccp-a4-signature{
+ border-top:1px solid #c2d3dd!important;padding-top:15px!important;
+ margin-top:34px!important;color:#436179!important;
+ font-size:11px!important;letter-spacing:.025em!important;
+}
+#lab .haccp-paper-premium[data-mode=form]>.fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px!important;min-width:0;
+}
+#lab .haccp-paper-premium[data-mode=form]>.fields label,
+#lab .haccp-paper-premium[data-mode=form]>label{
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+ margin:0!important;padding:13px!important;min-width:0!important;
+ background:linear-gradient(145deg,#fff,#f0f8ff)!important;
+ color:#2a5370!important;border:1px solid #c7e0ef!important;
+ border-radius:12px!important;font-size:13px!important;line-height:1.45!important;
+}
+#lab .haccp-paper-premium[data-mode=form]>label{margin-top:10px!important}
+#lab .haccp-paper-premium[data-mode=form] input,
+#lab .haccp-paper-premium[data-mode=form] select,
+#lab .haccp-paper-premium[data-mode=form] textarea{
+ display:block!important;background:#fff!important;color:#234966!important;
+ border:1px solid #b6d6e9!important;border-radius:9px!important;
+ min-height:44px!important;font-size:16px!important;
+ padding:10px!important;box-shadow:none!important;color-scheme:light!important;
+}
+#lab .haccp-paper-premium[data-mode=form] textarea{min-height:78px!important}
+#lab .haccp-paper-premium[data-mode=form]>button[type=submit]{
+ background:linear-gradient(125deg,#5baddf,#2883c0)!important;
+ border-radius:12px!important;color:#fff!important;font-weight:750!important;
+ padding:12px 24px!important;min-height:47px!important;
+}
+@media(max-width:650px){
+ #lab .haccp-sheet.haccp-paper-premium{padding:12px!important;border-radius:17px!important}
+ #lab .haccp-paper-premium .haccp-sheet-toolbar{margin:-12px -12px 13px!important;border-radius:17px 17px 0 0!important;padding:10px!important}
+ #lab .haccp-paper-premium .haccp-sheet-toolbar button{flex:1 1 100%!important;min-width:0!important}
+ #lab .haccp-paper-premium[data-mode=form]>.fields{grid-template-columns:minmax(0,1fr)!important}
+ #lab .haccp-paper-premium .haccp-a4-scroll{padding:6px!important}
+ #lab .haccp-paper-premium .haccp-a4-paper{margin-left:0!important;margin-right:0!important}
+}
+@media print{
+ #lab .haccp-paper-premium .haccp-a4-scroll{overflow:visible!important;border:none!important;padding:0!important}
+ #lab .haccp-paper-premium .haccp-a4-paper{width:100%!important;max-width:100%!important;min-width:0!important;box-shadow:none!important;border:none!important;padding:0!important;min-height:0!important}
+ #lab .haccp-paper-premium .haccp-a4-table tr{break-inside:avoid!important}
+}
