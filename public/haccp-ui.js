@@ -93,39 +93,116 @@ export function mountHaccp(root,{getState,save,notify}){
   const point=h().points.find(p=>p.id===pointId),config=hygieneSettings(h(),pointId);
   const box=el('section',undefined,'haccp-daily-overview haccp-hygiene-settings');
   box.append(el('h2','Гигиенический осмотр · '+point.name),
-   el('p','Проверка по каждому сотруднику перед каждой сменой. Ответственный по умолчанию: '+config.reviewer+'. Можно изменить.','small'),
-   el('p','В справочнике '+config.employees.length+' сотрудников. В журнале указываются только служебные сведения, без диагнозов и медицинских подробностей.','small'));
-  const details=el('details',undefined,'haccp-template-settings');
-  details.append(el('summary','⚙ Настроить сотрудников, должности и проверяющего'));
-  const form=el('form',undefined,'haccp-form');
-  const employees=inputField(form,'Сотрудники (каждый с новой строки)','employees',{
-   type:'textarea',value:config.employees.join('\n'),maxLength:12000});
-  employees.rows=7;
-  const roles=inputField(form,'Должности','roles',{
-   type:'textarea',value:config.roles.join('\n'),maxLength:8000,required:true});
-  roles.rows=5;
-  form.append(el('p','Для автоматической подготовки строк укажи график: ФИО | должность | HH:MM | название смены. Например: Иванов Иван | Сушист | 10:00 | Дневная. Время указывается московское. Каждая строка относится к одной смене конкретного сотрудника.','small'));
-  const roster=inputField(form,'График сотрудников (каждая смена отдельной строкой)','roster',{
-   type:'textarea',value:config.roster.map(x=>[x.name,x.role,x.startTime,x.shift].join(' | ')).join('\n'),
-   maxLength:16000});
-  roster.rows=7;
-  inputField(form,'Проводит осмотр (должность)','reviewer',{required:true,value:config.reviewer,maxLength:120});
-  const submit=el('button','Сохранить список сотрудников','primary');submit.type='submit';form.append(submit);
-  form.onsubmit=safe(async event=>{
-   event.preventDefault();if(!form.reportValidity())return;
-   const data=Object.fromEntries(new FormData(form));
-   const parse=value=>String(value||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
-   submit.disabled=true;
+   el('p','Сотрудники: '+config.employees.length+' · назначенных смен: '+config.roster.length+'. Проверку проводит '+config.reviewer+'.','small'),
+   el('p','Добавь сотрудника через карточку. ФИО, должность и время смены заполняются отдельно — никаких строк с символами «|».','small'));
+  const details=el('details',undefined,'haccp-template-settings haccp-hygiene-card-settings');
+  details.append(el('summary','⚙ Сотрудники и график смен'));
+  const form=el('form',undefined,'haccp-form haccp-hygiene-card-form');
+  form.append(el('h3','Карточка сотрудника'));
+  const grid=el('div',undefined,'haccp-hygiene-card-fields');
+  const name=inputField(grid,'ФИО сотрудника','name',{required:true,maxLength:120});
+  name.placeholder='Например: Иванов Иван Иванович';
+  name.setAttribute('list','haccp-hygiene-card-known-names');
+  const knownNames=el('datalist');knownNames.id='haccp-hygiene-card-known-names';
+  knownNames.append(...config.employees.map(value=>{const o=el('option');o.value=value;return o}));
+  grid.append(knownNames);
+  const role=inputField(grid,'Должность','role',{required:true,maxLength:120});
+  role.placeholder='Например: Шеф-повар';
+  role.setAttribute('list','haccp-hygiene-card-known-roles');
+  const knownRoles=el('datalist');knownRoles.id='haccp-hygiene-card-known-roles';
+  knownRoles.append(...config.roles.map(value=>{const o=el('option');o.value=value;return o}));
+  grid.append(knownRoles);
+  const startTime=inputField(grid,'Начало смены','startTime',{type:'time',required:true});
+  const shift=inputField(grid,'Название смены','shift',{maxLength:120});
+  shift.placeholder='Например: Дневная';
+  form.append(grid);
+  form.append(el('p','Дата подставится автоматически. Время начала смены указывай по Москве. Проверки и решение о допуске остаются пустыми.','small'));
+  const reviewer=inputField(form,'Проводит осмотр (должность)','reviewer',{
+   required:true,value:config.reviewer,maxLength:120
+  });
+  const actions=el('div',undefined,'haccp-hygiene-card-actions');
+  const saveButton=el('button','＋ Добавить сотрудника','primary');
+  saveButton.type='submit';
+  const cancelEdit=button('Отменить изменение',()=>{
+   editing=-1;form.reset();reviewer.value=config.reviewer;
+   saveButton.textContent='＋ Добавить сотрудника';cancelEdit.hidden=true;
+  });
+  cancelEdit.hidden=true;
+  const saveReviewer=button('Сохранить проверяющего',safe(async()=>{
+   await persist(currentRoster);
+  }));
+  actions.append(saveButton,cancelEdit,saveReviewer);form.append(actions);
+  details.append(form);
+  const rosterBox=el('section',undefined,'haccp-hygiene-roster-section');
+  rosterBox.append(el('h3','Назначенные смены'));
+  const list=el('div',undefined,'haccp-hygiene-roster-list');
+  rosterBox.append(list);details.append(rosterBox);
+  box.append(details);
+
+  let currentRoster=config.roster.map(item=>({...item}));
+  let editing=-1,busy=false;
+  const same=(a,b)=>String(a||'').trim().toLocaleLowerCase('ru-RU')===String(b||'').trim().toLocaleLowerCase('ru-RU');
+  const unique=values=>values.filter((item,index,array)=>
+   item&&array.findIndex(other=>same(item,other))===index);
+  async function persist(updated){
+   if(busy)return;
+   if(!reviewer.value.trim())throw Error('Укажи должность проверяющего.');
+   busy=true;saveButton.disabled=true;saveReviewer.disabled=true;
    try{
     await commit(state=>{
+     const stored=hygieneSettings(state.haccp,pointId);
+     const notScheduled=stored.employees.filter(employee=>
+      !stored.roster.some(staff=>same(staff.name,employee)));
      updateHygieneSettings(state,pointId,{
-      employees:parse(data.employees),roles:parse(data.roles),reviewer:data.reviewer,roster:data.roster
+      employees:unique([...notScheduled,...updated.map(item=>item.name)]),
+      roles:unique([...stored.roles,...updated.map(item=>item.role)]),
+      roster:updated,reviewer:reviewer.value.trim()
      });
      state.haccp=validateHaccp(state.haccp);
-    });build();
-   }finally{submit.disabled=false}
+    });
+    build();
+    body.querySelector('.haccp-hygiene-card-settings')?.setAttribute('open','');
+   }finally{busy=false;saveButton.disabled=false;saveReviewer.disabled=false}
+  }
+  function refreshList(){
+   list.replaceChildren();
+   if(!currentRoster.length)list.append(el('p','График ещё пуст. Заполни карточку выше и нажми «Добавить сотрудника».','small'));
+   for(const [index,staff] of currentRoster.entries()){
+    const card=el('article',undefined,'haccp-hygiene-staff-card');
+    card.append(el('strong',staff.name),
+     el('p',staff.role+' · '+staff.startTime+(staff.shift?' · '+staff.shift:''),'small'));
+    const toolbar=el('div',undefined,'haccp-hygiene-staff-buttons');
+    toolbar.append(button('✎ Изменить',()=>{
+     editing=index;
+     name.value=staff.name;role.value=staff.role;
+     startTime.value=staff.startTime;shift.value=staff.shift;
+     saveButton.textContent='✓ Сохранить изменения';
+     cancelEdit.hidden=false;name.focus();form.scrollIntoView({behavior:'smooth',block:'start'});
+    }),button('Удалить',safe(async()=>{
+     if(!window.confirm('Убрать смену сотрудника «'+staff.name+'» из графика?'))return;
+     await persist(currentRoster.filter((_,i)=>i!==index));
+    })));
+    card.append(toolbar);list.append(card);
+   }
+   const unscheduled=config.employees.filter(employee=>
+    !currentRoster.some(staff=>same(staff.name,employee)));
+   if(unscheduled.length)rosterBox.append(el('p',
+    'Из старого справочника без времени смены: '+unscheduled.join(', ')+
+    '. Выбери ФИО в карточке и укажи время.','small'));
+  }
+  form.onsubmit=safe(async event=>{
+   event.preventDefault();
+   if(busy||!form.reportValidity())return;
+   const updated={
+    name:name.value.trim(),role:role.value.trim(),
+    startTime:startTime.value,shift:shift.value.trim()
+   };
+   // Editing an existing row should not preserve its old value as an extra shift.
+   const next=currentRoster.filter((_,index)=>index!==editing);
+   next.push(updated);
+   await persist(next);
   });
-  details.append(form);box.append(details);
+  refreshList();
   return box;
  }
  function hygienePreparedPanel(){
