@@ -1,6 +1,7 @@
 import {installJournalPdfApi} from './haccp-journal-pdf.js';
 import 'dotenv/config';
 import {installRecipeExportApi} from './recipe-export-api.js';
+import {installGoogleBackupApi} from './google-backup-api.js';
 import {installPhotoResources} from './photo-resources.js';
 import {installWeatherApi} from './weather-api.js';
 import express from 'express';
@@ -75,6 +76,7 @@ const assistant=installAssistantApi(app,{multer,ExcelJS,migrateState:async()=>{
 
 installRecipePdfApi(app,{store:assistant.store});
 installRecipeExportApi(app);
+installGoogleBackupApi(app);
 installTemperatureJournalPdfApi(app,{requireSameOrigin});
 installJournalPdfApi(app,{requireSameOrigin});
 
