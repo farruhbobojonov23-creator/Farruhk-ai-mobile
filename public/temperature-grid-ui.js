@@ -276,7 +276,14 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
      }
      itemSave.disabled=true;
      try{
-      await commit(state=>updateEquipment(state,row.id,{name,min:lower,max:upper}));
+      await commit(state=>{
+       updateEquipment(state,row.id,{name,min:lower,max:upper});
+       const matching=(state.haccp.autoTemplates||[]).filter(t=>t.kind==='temperature'&&t.form.equipmentId===row.id);
+       for(const template of matching){
+        template.form.min=lower;template.form.max=upper;
+        template.updatedAt=new Date().toISOString();
+       }
+      });
      }catch(error){errorMessage(error)}finally{itemSave.disabled=false}
     },'haccp-temperature-equipment-save');
     range.append(itemSave);sampleRanges.append(range);
