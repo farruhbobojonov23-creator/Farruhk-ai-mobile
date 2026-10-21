@@ -86,10 +86,23 @@ async function verify(mode,width,height){
   });
   assert.ok(settingsContrast.headerBackground.includes('gradient')&&!settingsContrast.headerBackground.includes('rgb(30, 36, 40)'),'Settings header remains dark: '+JSON.stringify(settingsContrast));
   assert.ok(settingsContrast.summaryRgb.length===3&&settingsContrast.summaryRgb[0]<120&&settingsContrast.summaryRgb[2]<190,'Settings summary is too pale: '+JSON.stringify(settingsContrast));
+  const deviceBar=await page.locator('#device-export').evaluate(el=>{
+    const bar=el.closest('.bar'),style=getComputedStyle(bar);
+    return {background:style.backgroundImage,position:style.position,backgroundColor:style.backgroundColor};
+  });
+  assert.ok(deviceBar.background.includes('rgb(248, 252, 255)')&&deviceBar.position!=='sticky',
+    'Device backup buttons have inherited legacy black bar: '+JSON.stringify(deviceBar));
   await page.screenshot({path:'artifacts/arctic-settings-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#device-export').evaluate(el=>el.closest('details').open=true);
   await page.locator('.google-backup-open').click();
   assert.equal(await visible(page,'.google-backup-dialog'),true,'Google backup dialog opens');
+  const backupFormBar=await page.locator('.google-backup-dialog form .bar').evaluate(el=>{
+    const s=getComputedStyle(el);
+    return {background:s.backgroundImage,position:s.position,columns:s.gridTemplateColumns};
+  });
+  assert.ok(backupFormBar.background.includes('rgb(247, 252, 255)')&&backupFormBar.position!=='sticky',
+    'Google connect buttons have inherited black action bar: '+JSON.stringify(backupFormBar));
+
   assert.equal(await page.locator('.google-backup-dialog [data-save]').isDisabled(),true,'No upload before Google is connected');
   assert.equal(await page.locator('.google-backup-dialog [data-list]').isDisabled(),true,'No cloud operations before connection');
   await page.screenshot({path:'artifacts/arctic-google-backup-'+mode+'.png',fullPage:false,timeout:12000});
