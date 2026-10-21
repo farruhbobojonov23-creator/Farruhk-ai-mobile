@@ -11,6 +11,7 @@ import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} 
 import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettings,updateReceivingSettings} from './receiving-config.js?v=1';
 import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
+import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -84,6 +85,35 @@ export function mountHaccp(root,{getState,save,notify}){
  updateAutoStats();
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
+ }
+ function qualitySettingsPanel(){
+  const pointId=pointFilter.value||h().points[0]?.id;
+  if(!pointId)return el('p','Добавь торговую точку.');
+  const point=h().points.find(p=>p.id===pointId),plan=qualityPlan(h(),pointId);
+  const recipes=(getState()?.recipes||[]).filter(r=>r.name?.trim());
+  const categories=[...new Set(recipes.map(r=>r.category||'Без категории'))];
+  const panel=el('section',undefined,'haccp-daily-overview haccp-quality-settings');
+  panel.append(el('h2','Бракераж готовых блюд · '+point.name),
+   el('p','Режим В: контроль перед началом реализации каждый день и дополнительно каждой новой партии. Сушист готовит, старший смены проверяет и принимает решение.','small'),
+   el('p','ТТК доступны из общего каталога: '+recipes.length+' блюд в '+categories.length+' категориях. Можно выбрать блюдо или указать фактически приготовленное вручную.','small'),
+   el('p','Ежедневный черновик подготавливается после 11:00 МСК при работающем приложении или при следующем открытии. Он не означает, что блюдо уже проверено, и не разрешает продажу.','small'));
+  const details=el('details');details.append(el('summary','⚙ Настроить ответственных этой точки'));
+  const form=el('form',undefined,'haccp-form');
+  inputField(form,'Готовит и вносит запись','executor',{required:true,value:plan.executor,maxLength:120});
+  inputField(form,'Проверяет и разрешает реализацию','reviewer',{required:true,value:plan.reviewer,maxLength:120});
+  const submit=el('button','Сохранить ответственных','primary');submit.type='submit';form.append(submit);
+  form.onsubmit=safe(async e=>{
+   e.preventDefault();if(!form.reportValidity())return;
+   submit.disabled=true;
+   try{const raw=Object.fromEntries(new FormData(form));
+    await commit(state=>{
+     updateQualityPlan(state,pointId,{executor:raw.executor,reviewer:raw.reviewer});
+     state.haccp=validateHaccp(state.haccp);
+    });build();
+   }finally{submit.disabled=false}
+  });
+  details.append(form);panel.append(details);
+  return panel;
  }
  function defrostSettingsPanel(){
   const pointId=pointFilter.value||h().points[0]?.id;
@@ -347,7 +377,7 @@ export function mountHaccp(root,{getState,save,notify}){
    say('Образец загружен. Можно отредактировать и сохранить заново.');
   }));
   // A delivery is an event, never an automatic daily check or pre-approved receipt.
-  if(['receiving','defrosting'].includes(kind))toolbar.append(edit,save,pdf);
+  if(['receiving','defrosting','quality'].includes(kind))toolbar.append(edit,save,pdf);
   else toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
@@ -593,6 +623,61 @@ export function mountHaccp(root,{getState,save,notify}){
    });
    form.append(dueHint);
   }
+  if(tab==='quality'){
+   const own=grid.querySelector('[name=owner]');
+   if(own)own.placeholder='ФИО сушиста, который готовил и записывал проверку';
+   const recordAt=grid.querySelector('[name=at]');
+   if(recordAt)recordAt.value=new Date(Date.now()+3*3600000).toISOString().slice(0,16);
+   const kind=selectField(grid,'Периодичность / тип контроля','qualityType',[
+    ['batch','Каждая новая партия готового блюда'],
+    ['daily','Ежедневная проверка перед реализацией']
+   ],{blank:false});
+   const product=inputField(grid,'Фактически приготовленное блюдо из ТТК','product',{required:true,maxLength:300});
+   const datalist=el('datalist');datalist.id='haccp-quality-ttk-products';
+   product.setAttribute('list',datalist.id);form.append(datalist);
+   const reference=el('input');reference.type='hidden';reference.name='recipeId';form.append(reference);
+   const category=el('input');category.type='hidden';category.name='category';form.append(category);
+   const ttkInfo=el('p','Начни вводить название блюда: появятся все позиции из сохранённых ТТК.','small');
+   form.append(ttkInfo);
+   const updateRecipes=()=>{
+    const recipes=(getState()?.recipes||[]).filter(r=>r.name?.trim());
+    datalist.replaceChildren(...recipes.map(r=>{
+     const opt=el('option');opt.value=r.name;opt.label=(r.category||'Без категории')+(r.status==='ready'?' · готово':' · проект ТТК');return opt;
+    }));
+   };
+   updateRecipes();
+   product.addEventListener('input',()=>{
+    const match=(getState()?.recipes||[]).find(r=>r.name.trim().toLocaleLowerCase('ru-RU')===product.value.trim().toLocaleLowerCase('ru-RU'));
+    reference.value=match?.id||'';category.value=match?.category||'';
+    ttkInfo.textContent=match?
+     'ТТК: '+(match.category||'Без категории')+' · '+(match.status==='ready'?'готово':'проект, требует проверки')+
+      ' · выход '+(match.netYieldGrams??'не указан')+' г. Это не фактический вес партии и не автоматическое разрешение на продажу.':
+     'Новая позиция: проверь название и фактическую рецептуру. Выбор из ТТК не обязателен.';
+   });
+   const batch=inputField(grid,'Номер фактической партии','batch',{maxLength:120,required:true});
+   inputField(grid,'Количество готовой продукции (например, 12 шт.)','quantity',{required:true,maxLength:100});
+   inputField(grid,'Время фактического приготовления','startedAt',{type:'datetime-local',required:true});
+   const measured=inputField(grid,'Фактическая температура, °C (если требуется по ТТК)','measured',{type:'number'});
+   measured.inputMode='decimal';
+   const reviewer=inputField(grid,'ФИО проверяющего старшего смены','reviewer',{required:true,maxLength:120});
+   const checks=el('section',undefined,'haccp-quality-checklist panel');
+   checks.append(el('h3','Фактическая органолептическая оценка'));
+   const fields=el('div',undefined,'fields');
+   for(const [key,label] of QUALITY_CRITERIA){
+    selectField(fields,label,key,[['ok',QUALITY_RESULTS.ok],['problem',QUALITY_RESULTS.problem],['na',QUALITY_RESULTS.na]]);
+   }
+   checks.append(fields,el('p','Не отмечай «соответствует» без проверки. Вкус оценивают только когда проба безопасна и предусмотрена процедурой. При любом нарушении нельзя допустить партию к реализации.','small'));
+   form.append(checks);
+   selectField(grid,'Решение старшего смены','decision',[
+    ['accepted','Допущено к реализации'],
+    ['rejected','Не допущено к реализации — требуется действие']
+   ]);
+   const refresh=()=>{
+    batch.required=kind.value==='batch';
+    reviewer.placeholder=qualityPlan(h(),point.value).reviewer+' · ФИО';
+   };
+   kind.addEventListener('change',refresh);point.addEventListener('change',refresh);refresh();
+  }
   if(tab==='defrosting'){
    const config=thawConfig(h(),point.value);
    const ownerInput=grid.querySelector('[name=owner]');
@@ -732,6 +817,7 @@ export function mountHaccp(root,{getState,save,notify}){
    if(tab==='receiving')body.append(receivingSettingsPanel());
    if(tab==='storage')body.append(storageSettingsPanel());
    if(tab==='defrosting')body.append(defrostSettingsPanel());
+   if(tab==='quality')body.append(qualitySettingsPanel());
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
    if(!['receiving','defrosting'].includes(tab))journalAutoDrafts();
