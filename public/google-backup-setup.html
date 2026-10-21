@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e6f3ff"><title>Google Диск · резервные копии FARRUH AI</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;min-height:100dvh;padding:18px;background:radial-gradient(ellipse at 50% 30%,#c7e8ff,#eaf7ff 70%);color:#194267;font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+main{margin:30px auto;max-width:760px;background:#fffffff0;border:1px solid #fff;box-shadow:0 15px 50px #5f9ec531;border-radius:26px;padding:clamp(20px,5vw,42px)}
+h1{font-size:clamp(27px,6vw,38px);line-height:1.16;margin:0 0 18px}h2{font-size:19px;margin-top:28px}p{margin:0 0 15px;color:#486f90}li{margin:15px 0;padding-left:4px}a{color:#136ca9}button,.button{display:inline-block;border:1px solid #8dbfe1;border-radius:14px;background:linear-gradient(130deg,#71bce9,#267fb8);color:#fff;padding:12px 18px;cursor:pointer;text-decoration:none;font:600 15px/1.4 inherit}button:hover,.button:hover{filter:brightness(1.06)}button:focus-visible,a:focus-visible{outline:3px solid #2b94d6;outline-offset:3px}
+code{background:#e6f3fc;padding:2px 5px;border-radius:5px}pre{overflow:auto;max-height:250px;font-size:12px;padding:16px;border-radius:15px;background:#eff7ff;border:1px solid #d6eafa;white-space:pre-wrap}
+.small{font-size:13px;color:#587e9c}.hint{padding:13px 16px;border-radius:14px;background:#eaf6ff;border:1px solid #c8e6fa}#copy-result{min-height:1.5em}
+</style></head><body><main>
+<h1>💎 Google Диск · резервные копии</h1>
+<p>Подключение на бесплатном Google Диске. Данные ТТК, ХАССП, задач и истории будут сохраняться в отдельную папку <strong>FARRUH AI — резервные копии</strong>. Старые файлы на Яндекс Диске не изменятся.</p>
+<p class="hint"><strong>Важно:</strong> приложение не может получить доступ к вашему Google Диску без вашего разрешения. Этот шаг выполняется один раз в своём Google-аккаунте. Пароли и ключи не отправляйте в чат.</p>
+<h2>Как подключить</h2><ol>
+<li>Откройте <a href="https://script.google.com/home/start" target="_blank" rel="noopener">Google Apps Script</a> в Google-аккаунте, где нужен архив. Нажмите «Новый проект» и назовите его <strong>FARRUH AI · копии</strong>.</li>
+<li>В редакторе <strong>Code.gs</strong> замените текст кодом, который можно скопировать или скачать ниже, затем нажмите «Сохранить».</li>
+<li>В верхнем списке функций выберите <code>initializeBackup</code> и нажмите «Выполнить». Разрешите скрипту доступ к своему Google Диску. В журнале выполнения будет <strong>ключ подключения</strong> и ссылка на созданную папку.</li>
+<li>Нажмите <strong>Развернуть → Новое развёртывание → Веб-приложение</strong>. В поле «Выполнять от имени» выберите <strong>Меня</strong>; в поле доступа — <strong>Все</strong>. Адрес скрипта заканчивается на <code>/exec</code>. Скопируйте его.</li>
+<li>Вернитесь в FARRUH AI: <strong>Настройки → Данные устройства → Google Диск · резервные копии</strong>. Вставьте адрес и ключ. Нажмите <strong>Проверить и подключить</strong>, затем <strong>Создать копию сейчас</strong>. Дождитесь подтверждения от Google.</li>
+</ol>
+<div class="hint">Скрипт принимает операции только с правильным ключом. Никому не передавайте ключ, не публикуйте его. После первой настройки приложение может создавать копии примерно раз в сутки, пока сайт открыт и есть интернет. Созданные файлы не удаляются автоматически.</div>
+<h2>Код подключения</h2>
+<p><button id="copy" type="button">Скопировать код</button> <a class="button" href="/google-backup.gs" download="Code.gs">Скачать Code.gs</a></p>
+<p id="copy-result" role="status"></p>
+<details><summary>Показать код Apps Script</summary><pre id="script-source">Загружаю…</pre></details>
+<p style="margin-top:30px"><a href="/#home">← Вернуться в FARRUH AI</a></p>
+<p class="small">Если вы уже подключали Google Документы для ТТК, это отдельное подключение для резервных копий. Существующая синхронизация техкарт остаётся неизменной.</p>
+</main><script>
+const message=document.getElementById('copy-result');
+fetch('/google-backup.gs',{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Не удалось загрузить код');return response.text()}).then(source=>{
+ document.getElementById('script-source').textContent=source;
+ document.getElementById('copy').onclick=async()=>{
+  try{await navigator.clipboard.writeText(source);message.textContent='Код скопирован. Вставьте его в Code.gs.'}
+  catch{message.textContent='Не получилось скопировать автоматически. Используйте кнопку «Скачать Code.gs».'}
+ };
+}).catch(e=>{message.textContent=e.message});
+</script></body></html>
