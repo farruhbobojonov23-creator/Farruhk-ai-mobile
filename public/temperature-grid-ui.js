@@ -25,14 +25,14 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   :'Все точки: только общий просмотр. Выбери филиал для сохранения его образца.';
  pointBar.append(locationLabel,pointSummary);
  // If the device still has generic point names, the owner chooses which point is Plasma.
- if(selectedPoint&&/^Точка\\s+\\d+$/iu.test(selectedPoint.name.trim())&&
+ if(selectedPoint&&/^Точка\s+\d+$/iu.test(selectedPoint.name.trim())&&
     !getHaccp().points.some(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')){
   const setupPlasma=button('Назвать эту точку «Плазма» и добавить 4 холодильника + 2 морозильника',async()=>{
    setupPlasma.disabled=true;
    try{
     await commit(state=>{
      const h=validateHaccp(state.haccp),p=h.points.find(p=>p.id===pointId);
-     if(!p||!/^Точка\\s+\\d+$/iu.test(p.name.trim()))throw Error('Точка уже настроена: выбери её в списке.');
+     if(!p||!/^Точка\s+\d+$/iu.test(p.name.trim()))throw Error('Точка уже настроена: выбери её в списке.');
      if(h.points.some(row=>row.name.trim().toLocaleLowerCase('ru-RU')==='плазма'))throw Error('Точка «Плазма» уже существует.');
      if(h.equipment.some(e=>e.pointId===p.id))throw Error('На этой точке уже есть оборудование: сначала проверь его в настройках.');
      p.name='Плазма';state.haccp=validateHaccp(h);
