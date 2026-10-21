@@ -29,10 +29,12 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
     for(const item of subjects){
      const exists=actual.some(r=>r.pointId===point.id&&measurementDate(r.at)===day
       &&(kind!=='temperature'||r.details.equipmentId===item?.id)
-      &&(kind!=='cleaning'||r.details.cleaningType!=='general'));
+      &&(kind!=='cleaning'||r.details.cleaningType!=='general')
+      &&(kind!=='quality'||r.details.qualityType==='daily'));
      if(exists||pending.some(d=>d.pointId===point.id&&d.day===day&&
       (kind!=='temperature'||d.form.equipmentId===item?.id)&&
-      (kind!=='cleaning'||d.form.cleaningType!=='general')))continue;
+      (kind!=='cleaning'||d.form.cleaningType!=='general')&&
+      (kind!=='quality'||d.form.qualityType==='daily')))continue;
      result.push({type:'planned',kind,pointId:point.id,day,
       due:due(day),equipment:item,cleaningType:kind==='cleaning'?'daily':undefined});
     }
@@ -86,6 +88,7 @@ export function plannedCell(row,key,points=[]){
    e.min==null?'до '+e.max:e.max==null?'от '+e.min:e.min+' … '+e.max;
  }
  if(key==='cleaningType')return row.type==='planned-general'?'Генеральная':'Текущая';
+ if(key==='qualityType')return row.kind==='quality'?'Ежедневная':'—';
  if(['status','result','checks','decision','decisionText'].includes(key))return text;
  if(key==='notes')return row.type==='planned-general'?'2 раза в месяц по утверждённому графику':
   row.due?'Подтверждения нет':'Проверка ещё не наступила';
