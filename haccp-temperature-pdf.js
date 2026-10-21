@@ -19,7 +19,7 @@ export function temperatureJournalPdf({haccp,month,period='all',pointId=''}){
   text('холодильного и морозильного оборудования',X,46,W,12,{strong:true});
   const point=pointId?grid.points.find(p=>p.id===pointId)?.name:'Все точки';
   text(monthLabel(month)+'  |  '+days[0]+'-'+days.at(-1)+' число  |  '+point,X,68,W,9);
-  text('Температура, °C. Пустая ячейка - замер не внесён. Время: Москва / Мурманск. [№] - сотрудник, ! - отклонение.',X,84,W,8);
+  text('Температура, °C. Пустая ячейка = нет подтверждённого замера. Время: Москва / Мурманск. [№] - сотрудник, ! - отклонение.',X,84,W,8);
   const cw=(W-LABEL)/days.length;cell('Оборудование / точка\nЗаданные границы',X,105,LABEL,32,{strong:true,fill:'#e6eef5',align:'left'});
   for(let i=0;i<days.length;i++)cell(days[i],X+LABEL+i*cw,105,cw,32,{strong:true,fill:'#e6eef5',size:9});
   y=137;return cw;
@@ -43,7 +43,7 @@ export function temperatureJournalPdf({haccp,month,period='all',pointId=''}){
     const height=Math.max(48,titleH,...values.map(v=>doc.heightOfString(v||'-',{width:cw-8,lineGap:1})+10));
     if(y+height>BOTTOM){footer();cw=nextPage(days)}
     cell(rowTitle,X,y,LABEL,height,{size:7,align:'left',fill:'#f3f6f9'});
-    for(let i=0;i<days.length;i++){const deviation=cells[i].slice(start,start+perRow).some(r=>r.status==='deviation');cell(values[i]||'-',X+LABEL+i*cw,y,cw,height,{size:7,color:deviation?'#9b2626':ink,fill:deviation?'#fff0ec':'#ffffff'})}
+    for(let i=0;i<days.length;i++){const deviation=cells[i].slice(start,start+perRow).some(r=>r.status==='deviation');cell(values[i]||'',X+LABEL+i*cw,y,cw,height,{size:7,color:deviation?'#9b2626':ink,fill:deviation?'#fff0ec':'#ffffff'})}
     y+=height;
    }
   }footer();
