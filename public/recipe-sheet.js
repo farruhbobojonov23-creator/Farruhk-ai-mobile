@@ -1,4 +1,4 @@
-import {regulatoryBasis,scopeForName} from './recipe-math.js?v=ttk-5';
+import {regulatoryBasis,scopeForName,nutritionOnPortion} from './recipe-math.js?v=ttk-6';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
@@ -29,7 +29,8 @@ export function mountRecipeSheet(editor){
  section('5. Оформление, подача, реализация и хранение');full('card-storage','Оформление, подача и хранение');
  section('6. Показатели качества');const organoleptic=table();for(const [caption,id] of [['Внешний вид','card-appearance'],['Вкус, запах и консистенция','card-taste']]){const row=el('tr');pair(row,caption,id);organoleptic.append(row)}
  full('card-safety','Показатели безопасности');const safety=el('section','ttk-block ttk-safety-block'),safetyTitle=el('h3','ttk-section-title'),safetySpan=el('span');safetySpan.textContent='Безопасность';safetyTitle.append(safetySpan);safety.append(safetyTitle,get('card-safety').closest('table'));section('7. Пищевая ценность (на 100 г / на порцию)');
- const mode=el('label','ttk-nutrition-mode');mode.append(get('nutrition-auto'),document.createTextNode(' Автоматический расчёт по данным ингредиентов'));paper.append(mode);
+ const mode=el('label','ttk-nutrition-mode');mode.append(get('nutrition-auto'),document.createTextNode(' Автоматический расчёт КБЖУ'));paper.append(mode);
+ const nutritionStatus=el('p','ttk-nutrition-status small');nutritionStatus.id='nutrition-status';nutritionStatus.setAttribute('role','status');nutritionStatus.textContent='Для расчёта укажи КБЖУ ингредиентов на 100 г.';paper.append(nutritionStatus);
  const nutrition=table(),nHead=el('tr');for(const caption of ['Показатель','Белки, г','Жиры, г','Углеводы, г','Ккал']){const th=el('th');th.textContent=caption;nHead.append(th)}nutrition.append(nHead);
  const per100=el('tr'),label=el('td');label.textContent='На 100 г';per100.append(label);for(const key of ['protein','fat','carbs','kcal']){const td=el('td'),input=get('card-'+key);td.append(input);per100.append(td)}nutrition.append(per100);
  const portion=el('tr'),portionLabel=el('td');portionLabel.textContent='На порцию';portion.append(portionLabel);for(const key of ['protein','fat','carbs','kcal']){const td=el('td'),out=el('output');out.id='sheet-portion-'+key;out.textContent='-';td.append(out);portion.append(td)}nutrition.append(portion);
@@ -58,7 +59,14 @@ export function mountRecipeSheet(editor){
  // Observe the available column, including opening the editor and rotating a phone.
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitPaper).observe(viewport);
  else window.addEventListener('resize',fitPaper);
- function refresh(){if(editor.hidden)return;fitPaper();const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const topHeight=Math.max($('card-scope').scrollHeight,$('card-raw').scrollHeight)+2;$('card-scope').style.height=topHeight+'px';$('card-raw').style.height=topHeight+'px';const yieldGrams=Number($('card-yield').value);for(const key of ['protein','fat','carbs','kcal']){const raw=$('card-'+key).value;$('sheet-portion-'+key).textContent=raw!==''&&yieldGrams>0?(Number(raw)*yieldGrams/100).toLocaleString('ru-RU',{maximumFractionDigits:2}):'-'}}
+ function refresh(){if(editor.hidden)return;fitPaper();const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const topHeight=Math.max($('card-scope').scrollHeight,$('card-raw').scrollHeight)+2;$('card-scope').style.height=topHeight+'px';$('card-raw').style.height=topHeight+'px';const yieldGrams=$('card-yield').value;
+ const nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(key=>[key,$('card-'+key).value===''?null:Number($('card-'+key).value)]));
+ const portionValues=nutritionOnPortion(nutrition,yieldGrams);
+ portionLabel.textContent=Number(yieldGrams)>0?'На порцию ('+Number(yieldGrams).toLocaleString('ru-RU',{maximumFractionDigits:2})+' г)':'На порцию';
+ for(const key of ['protein','fat','carbs','kcal'])
+  $('sheet-portion-'+key).textContent=portionValues?
+   portionValues[key].toLocaleString('ru-RU',{maximumFractionDigits:2,minimumFractionDigits:0}):'—';
+ }
  editor.addEventListener('input',()=>queueMicrotask(refresh));editor.addEventListener('change',()=>queueMicrotask(refresh));
  return {refresh,downloadButton:download};
 }
