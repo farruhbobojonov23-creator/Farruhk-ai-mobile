@@ -31,8 +31,12 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  if(kind==='temperature')delete fields.measured;
  if(!Object.keys(fields).length)throw Error('Заполни хотя бы одно поле образца.');
  const day=moscowCheckpoint(now).day;
- const id=kind+'|'+pointId+(kind==='temperature'?'|'+(fields.equipmentId||''):'');
- const existing=h.autoTemplates.find(t=>t.id===id);
+ const type=fields.cleaningType==='general'?'general':'daily';
+ const candidate=kind+'|'+pointId+(kind==='temperature'?'|'+(fields.equipmentId||''):kind==='cleaning'?'|'+type:'');
+ // Reuse any older cleaning template for this branch to avoid duplicate daily rows.
+ const existing=h.autoTemplates.find(t=>t.id===candidate)||
+  (kind==='cleaning'&&type==='daily'?h.autoTemplates.find(t=>t.id==='cleaning|'+pointId):null);
+ const id=existing?.id||candidate;
  const template={id,kind,pointId,form:fields,startDay:existing?.startDay||day,
   updatedAt:now.toISOString(),enabled:true};
  if(existing)Object.assign(existing,template);else h.autoTemplates.push(template);
@@ -50,10 +54,15 @@ export function dueAutoDrafts(raw,now=new Date()){
   for(let time=maxDay;time<=last.getTime();time+=86400000){
    const day=isoDay(new Date(time)),id='auto|'+template.id+'|'+day;
    if(known.has(id))continue;
+   const cleaningType=template.form.cleaningType==='general'?'general':'daily';
+   if(template.kind==='cleaning'&&cleaningType==='general'){
+    const scheduled=h.cleaningPlans?.[template.pointId]?.generalDays||[1,15];
+    if(!scheduled.includes(Number(day.slice(8,10))))continue;
+   }
    const already=h.records.some(r=>r.kind===template.kind&&r.pointId===template.pointId&&
     measurementDate(r.at)===day&&
     (template.kind!=='temperature'||r.details.equipmentId===template.form.equipmentId)&&
-    (template.kind!=='cleaning'||r.details.cleaningType!=='general'));
+    (template.kind!=='cleaning'||(r.details.cleaningType||'daily')===cleaningType));
    if(already)continue;
    const offset=Math.round((time-first.getTime())/86400000),form={...template.form};
    form.at=day+'T11:00';
