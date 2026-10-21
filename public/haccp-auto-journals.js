@@ -1,6 +1,7 @@
 import {validateHaccp,journalTypes} from './haccp-model.js';
 import {monthDays,measurementDate} from './temperature-journal.js';
 import {moscowCheckpoint} from './haccp-schedule.js';
+import {paperCell} from './haccp-paper-layout.js';
 
 // Generated rows are a printable PLAN, never a saved record or evidence of work.
 // Existing confirmed observations are always drawn from device state as-is.
@@ -15,6 +16,8 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
  const actual=h.records.filter(r=>r.kind===kind&&(!pointId||r.pointId===pointId)
   &&measurementDate(r.at).slice(0,7)===month).sort((a,b)=>a.at.localeCompare(b.at));
  const result=actual.map(record=>({type:'confirmed',record,kind,pointId:record.pointId}));
+ const pending=h.autoDrafts.filter(d=>d.kind===kind&&(!pointId||d.pointId===pointId)&&d.day.slice(0,7)===month);
+ for(const draft of pending)result.push({type:'draft',kind,pointId:draft.pointId,day:draft.day,record:draft,form:draft.form});
  const due=(day)=>day<clock.day||(day===clock.day&&clock.due);
  // No synthetic delivery, inspection, defrosting, or hygiene outcomes.
  if(h.dailyControls.includes(kind)){
@@ -27,7 +30,9 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
      const exists=actual.some(r=>r.pointId===point.id&&measurementDate(r.at)===day
       &&(kind!=='temperature'||r.details.equipmentId===item?.id)
       &&(kind!=='cleaning'||r.details.cleaningType!=='general'));
-     if(exists)continue;
+     if(exists||pending.some(d=>d.pointId===point.id&&d.day===day&&
+      (kind!=='temperature'||d.form.equipmentId===item?.id)&&
+      (kind!=='cleaning'||d.form.cleaningType!=='general')))continue;
      result.push({type:'planned',kind,pointId:point.id,day,
       due:due(day),equipment:item,cleaningType:kind==='cleaning'?'daily':undefined});
     }
@@ -53,7 +58,20 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
 export function plannedCell(row,key,points=[]){
  if(row.type==='confirmed')throw Error('Use factual record cells for confirmed rows.');
  const point=points.find(p=>p.id===row.pointId)?.name||'Точка не задана';
- const text=row.type==='planned-general'?'ПО ГРАФИКУ':row.due?'НЕ ПРОВЕРЕНО':'ЗАПЛАНИРОВАНО';
+ if(row.type==='draft'){
+  const draft=row.form,details={...draft};
+  if(draft.equipmentId){
+   const equipped=row.equipment;
+   if(equipped)Object.assign(details,{equipment:equipped.name,min:equipped.min,max:equipped.max});
+  }
+  const record={pointId:row.pointId,at:draft.at+':00+03:00',owner:draft.owner,
+   notes:draft.notes,details,status:'unconfigured'};
+  const rendered=paperCell(record,key,points,{draft:true});
+  if(['checks','decision','decisionText','result','status'].includes(key))
+   return 'ЧЕРНОВИК'+(key==='checks'&&rendered!=='—'?' · образец: '+rendered:'');
+  return rendered==='—'?'':rendered;
+ }
+ const text=row.type==='planned-general'?'ПО ГРАФИКУ':row.due?'ЧЕРНОВИК':'ЗАПЛАНИРОВАНО';
  if(key==='at')return row.day?row.day+' · 11:00 МСК':'Дата по графику';
  if(key==='point')return point;
  if(key==='equipment')return row.equipment?.name||'—';
