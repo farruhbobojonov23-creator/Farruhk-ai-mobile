@@ -14,12 +14,12 @@ export function validateHaccp(value){
  if(!Array.isArray(result.dailyControls)||new Set(result.dailyControls).size!==result.dailyControls.length||result.dailyControls.some(kind=>typeof kind!=='string'||!journalTypes[kind]))throw Error('Неверный план ежедневных журналов ХАССП.');
  if(!Number.isInteger(result.generalCleaningTarget)||result.generalCleaningTarget<0||result.generalCleaningTarget>10)throw Error('Неверная периодичность генеральной уборки.');
  if(!Array.isArray(result.autoTemplates)||result.autoTemplates.length>200||result.autoTemplates.some(t=>
-  !t||typeof t.id!=='string'||!journalTypes[t.kind]||typeof t.pointId!=='string'||typeof t.startDay!=='string'||!/^20\\d{2}-\\d{2}-\\d{2}$/.test(t.startDay)||
+  !t||typeof t.id!=='string'||!journalTypes[t.kind]||typeof t.pointId!=='string'||typeof t.startDay!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(t.startDay)||
   !t.form||typeof t.form!=='object'||Array.isArray(t.form)||Object.keys(t.form).length>60||
   Object.values(t.form).some(v=>typeof v!=='string'||v.length>1200)))
   throw Error('Повреждены образцы журналов ХАССП.');
  if(!Array.isArray(result.autoDrafts)||result.autoDrafts.length>6000||result.autoDrafts.some(d=>
-  !d||typeof d.id!=='string'||!journalTypes[d.kind]||typeof d.pointId!=='string'||typeof d.day!=='string'||!/^20\\d{2}-\\d{2}-\\d{2}$/.test(d.day)||
+  !d||typeof d.id!=='string'||!journalTypes[d.kind]||typeof d.pointId!=='string'||typeof d.day!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(d.day)||
   !d.form||typeof d.form!=='object'||Array.isArray(d.form)||Object.keys(d.form).length>60||
   Object.values(d.form).some(v=>typeof v!=='string'||v.length>1200)))
   throw Error('Повреждены черновики журналов ХАССП.');
