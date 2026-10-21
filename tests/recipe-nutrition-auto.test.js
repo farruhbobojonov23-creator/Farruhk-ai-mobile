@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateNutrition,calculateNutritionBoth,nutritionOnPortion,nutritionMissing,nutritionReference}
  from '../public/recipe-math.js';
+import {recipeSections} from '../recipe-word.js';
 
 const rice={name:'Рис готовый',grossGrams:150,grams:150,
  nutrition:{protein:3,fat:1,carbs:30,kcal:140}};
@@ -37,4 +38,16 @@ test('Existing saved TTK ingredients reuse complete nutrient references conserva
  const conflicting={...fish,nutrition:{...fish.nutrition,kcal:171}};
  assert.equal(nutritionReference([{ingredients:[fish,conflicting]}]).has('лосось'),false);
  assert.equal(nutritionReference([{ingredients:[{name:'Нори',nutrition:{protein:40}}]}]).has('нори'),false);
+});
+
+test('Saved TTK Word/PDF nutrition section receives both auto-calculated rows',()=>{
+ const recipe={
+  name:'Тестовый ролл',category:'Холодные роллы',pieces:8,
+  nutritionMode:'ingredients',ingredients:[rice,fish],netYieldGrams:200
+ };
+ const {sections}=recipeSections(recipe);
+ const nutrition=sections.find(([heading])=>heading==='7. Пищевая ценность')?.[1];
+ assert.ok(nutrition);
+ assert.deepEqual(nutrition[1],['На 100 г','7,25','3,25','22,5','147,5']);
+ assert.deepEqual(nutrition[2],['На порцию 200 г','14,5','6,5','45','295']);
 });
