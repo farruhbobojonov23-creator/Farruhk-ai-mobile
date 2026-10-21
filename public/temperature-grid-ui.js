@@ -256,7 +256,9 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
    if(getHaccp().equipment.some(e=>e.id===row.id)){
     const range=el('div',undefined,'haccp-temperature-range');
     range.dataset.equipmentId=row.id;
+    const currentTitle=el('strong',row.name);range.append(currentTitle);
     const nameField=field(range,'Название оборудования','text',row.name);
+    nameField.addEventListener('input',()=>{currentTitle.textContent=nameField.value.trim()||row.name});
     nameField.classList.add('haccp-temperature-equipment-name');
     nameField.maxLength=120;nameField.required=true;
     range.append(el('small',row.point+' · температура по утверждённым требованиям'));
