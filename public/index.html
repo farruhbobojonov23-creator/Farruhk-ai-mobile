@@ -88,8 +88,8 @@
 </div></main><aside class="right"><div class="glass"><h2>Быстрые действия</h2><button id="quickrecipe">＋ Создать техкарту</button><button data-view="calc">Пересчитать рецепт</button><button data-view="lab">Открыть ХАССП</button><button data-view="tasks">Поставить задачу</button><p class="small">Твои рецептуры, решения и стандарты — в одном месте.</p></div></aside></div>
 <nav class="mobile-tools" aria-label="Основные разделы"><button data-view="home"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 9v12h5v-7h4v7h5V9"/></svg>Главная</button><button data-view="recipes"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Техкарты</button><button data-view="lab"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/></svg>ХАССП</button><button data-view="tasks"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 6-7"/></svg>Задачи</button><button id="mobile-more"><span aria-hidden="true">•••</span>Ещё</button></nav><script type="module">
 import {deleteRecipe,upsertRecipe} from '/recipe-actions.js?v=2';
-import {rollTemplate,grossFromNet,calculateNutrition,nutritionKeys,recipeCategories,lossFromWeights,netYield,templateFor,nextCardNumber,cardDateNow,storageWithSanpin,resolveCategoryFields} from '/recipe-math.js?v=categories-11';
-import {mountRecipeSheet} from '/recipe-sheet.js?v=65';
+import {rollTemplate,grossFromNet,calculateNutritionBoth,nutritionMissing,nutritionReference,nutritionKeys,recipeCategories,lossFromWeights,netYield,templateFor,nextCardNumber,cardDateNow,storageWithSanpin,resolveCategoryFields} from '/recipe-math.js?v=categories-12';
+import {mountRecipeSheet} from '/recipe-sheet.js?v=66';
 import {requireOwner} from '/owner-login.js';
 import {createVoiceConversation} from '/chef-voice.js?v=77';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=76';
@@ -200,24 +200,96 @@ function empty(box,text){const p=document.createElement('p');p.className='empty'
 function row(box,text,button,action){const r=document.createElement('div');r.className='row';const s=document.createElement('span');s.textContent=text;r.append(s);if(button){const b=document.createElement('button');b.textContent=button;b.onclick=guard(action);r.append(b)}box.append(r)}
 function render(){pearlHome.render();preparationBoard.render();googleSync?.render();haccpUi.render(state);renderCategories();const recipes=state.recipes||[];for(const id of ['recipelist']){$(id).replaceChildren();const visible=filterCatalog(recipes,recipeFilter,$('recipe-search').value).filter(r=>!favoritesOnly||favorites.has(r.id));if(!visible.length)empty($(id),'В этой категории пока нет техкарт.');visible.forEach(r=>{row($(id),r.name,'Редактировать',()=>openEditor(r));const recipeRow=$(id).lastChild;recipeRow.classList.add('recipe-list-row');const favorite=document.createElement('button');favorite.type='button';favorite.textContent=favorites.has(r.id)?'★ В избранном':'☆ В избранное';favorite.setAttribute('aria-pressed',String(favorites.has(r.id)));favorite.onclick=()=>{if(favorites.has(r.id))favorites.delete(r.id);else favorites.add(r.id);try{localStorage.setItem(favoriteKey,JSON.stringify([...favorites]))}catch{notice('Не удалось сохранить избранное.',true)}render()};recipeRow.append(favorite);const yieldInfo=document.createElement('small');yieldInfo.className='small';yieldInfo.textContent=r.netYieldGrams?'Выход: '+fmt(r.netYieldGrams)+' г':'';recipeRow.append(yieldInfo);const statusBadge=document.createElement('span');statusBadge.className='recipe-status '+(r.status==='ready'?'ready':'draft');statusBadge.textContent=r.status==='ready'?'Готова':'В разработке';recipeRow.insertBefore(statusBadge,recipeRow.querySelector('button'));const word=document.createElement('a');word.href='#';word.textContent='Скачать Word';word.className='recipe-download';word.onclick=guard(()=>downloadWord(r.id));recipeRow.append(word);const download=document.createElement('a');download.href='#';download.onclick=guard(()=>downloadRecipe(r.id));download.textContent='Скачать PDF';download.className='recipe-download';download.setAttribute('download','');$(id).lastChild.append(download);const remove=document.createElement('button');remove.type='button';remove.textContent='Удалить';remove.className='recipe-delete';remove.setAttribute('aria-label','Удалить техкарту '+r.name);remove.onclick=guard(()=>removeRecipe(r.id));$(id).lastChild.append(remove)})}taskBoard.render();$('focus').replaceChildren();const active=state.tasks.filter(t=>!t.done);if(!active.length)empty($('focus'),'Нет активных задач. Можно заняться новой проработкой.');active.slice(0,4).forEach(t=>row($('focus'),t.text,'Открыть',()=>show('tasks')));$('checklist').replaceChildren();const checks=state.inspections||[];const points=[...new Set([...(state.haccp?.points||[]).map(p=>p.name),...checks.map(i=>i.point)])];for(const point of points){const list=checks.filter(i=>i.point===point),card=document.createElement('section');card.className='point-card';const title=document.createElement('h2');title.textContent=point;const status=document.createElement('p');status.className='small';const open=list.filter(i=>!i.done);status.textContent=open.length?'Открытых замечаний: '+open.length:'Открытых замечаний нет';card.append(title,status);for(const i of list)row(card,(i.done?'✓ ':'○ ')+i.text+(i.owner?' · '+i.owner:'')+(i.due?' · '+i.due:''),i.done?'Вернуть':'Закрыть',()=>save(s=>{const x=s.inspections.find(x=>x.id===i.id);if(x)x.done=!x.done}));$('checklist').append(card)}if(!points.length)empty($('checklist'),'Добавь первое замечание, указав название точки.');const selected=$('calc-recipe').value;$('calc-recipe').replaceChildren();recipes.forEach(r=>{const o=new Option(r.name,r.id);$('calc-recipe').add(o)});if(recipes.some(r=>r.id===selected))$('calc-recipe').value=selected;calculate()}
 function readIngredients(){return [...$('ingredients').children].map(r=>{const i=Object.fromEntries([...r.querySelectorAll('input')].map(x=>[x.dataset.key,x.dataset.key==='name'?x.value.trim():x.value===''?null:Number(x.value)]));i.price=r.recipePrice??0;const n=document.getElementById(r.dataset.nutritionId);i.nutrition=Object.fromEntries(nutritionKeys.map(k=>{const x=n?.querySelector('[data-key="'+k+'"]');return [k,!x||x.value===''?null:Number(x.value)]}));return i})}
-function updateNutrition(){const ingredients=readIngredients();$('card-yield').value=netYield(ingredients)??'';const auto=$('nutrition-auto').checked,n=auto?calculateNutrition(ingredients,$('card-yield').value):null;for(const k of nutritionKeys){$('card-'+k).readOnly=auto;if(auto)$('card-'+k).value=n?Math.round(n[k]*1000)/1000:''}}
+function updateNutrition(){
+ const ingredients=readIngredients(),yieldGrams=netYield(ingredients);
+ $('card-yield').value=yieldGrams??'';
+ const auto=$('nutrition-auto').checked;
+ const result=auto?calculateNutritionBoth(ingredients,yieldGrams):null;
+ for(const key of nutritionKeys){
+  $('card-'+key).readOnly=auto;
+  if(auto)$('card-'+key).value=result?Math.round(result.per100[key]*1000)/1000:'';
+ }
+ const status=$('nutrition-status');
+ if(status){
+  if(auto&&result){
+   status.textContent='✓ КБЖУ рассчитаны автоматически на 100 г и на порцию '+result.weightGrams.toLocaleString('ru-RU')+' г. Источник — значения ингредиентов на 100 г.';
+   status.dataset.ready='true';
+  }else if(auto){
+   const missing=nutritionMissing(ingredients,yieldGrams);
+   status.textContent='Для расчёта КБЖУ заполни исходные данные: '+missing.slice(0,6).join(' ') +
+    (missing.length>6?' Ещё незаполненных пунктов: '+(missing.length-6)+'.':'')+
+    ' Введи значения на 100 г с этикеток один раз — система сможет подставлять их для совпадающих ингредиентов из сохранённых техкарт.';
+   status.dataset.ready='false';
+  }else{
+   const valid=nutritionKeys.every(k=>$('card-'+k).value!==''&&Number.isFinite(Number($('card-'+k).value)));
+   status.textContent=valid?'Ручное КБЖУ на 100 г указано. Значения на порцию пересчитываются автоматически.':
+    'Ручной режим: внеси четыре показателя КБЖУ на 100 г, чтобы получить расчёт на порцию.';
+   status.dataset.ready=String(valid);
+  }
+ }
+ if(typeof recipeSheet!=='undefined')recipeSheet.refresh();
+}
 function ingredient(i={}){
  const r=document.createElement('div');r.className='ingredient';r.recipePrice=i.price;r.dataset.nutritionId='nutrition-'+crypto.randomUUID();
- for(const [key,label] of [['name','Ингредиент'],['grossGrams','Брутто, г'],['grams','Нетто, г'],['lossPercent','Отходы, %']]){const labelEl=document.createElement('label');labelEl.textContent=label;const x=document.createElement('input');x.dataset.key=key;x.setAttribute('aria-label',label);x.value=i[key]??(key==='lossPercent'?(lossFromWeights(i.grossGrams,i.grams)??0):'');x.required=true;if(key==='grossGrams'){x.readOnly=true;x.title='Рассчитывается по нетто и проценту отходов'}if(key!=='name'){x.type='number';x.min=key==='grams'?'0.01':'0';x.max=key==='lossPercent'?'99.99':'10000000';x.step='any'}labelEl.append(x);r.append(labelEl)}
- const n=document.createElement('div');n.id=r.dataset.nutritionId;n.className='nutrition-ingredient';const title=document.createElement('strong');title.textContent=i.name||'Новый ингредиент';n.append(title);for(const [key,label] of [['protein','Белки, г'],['fat','Жиры, г'],['carbs','Углеводы, г'],['kcal','Ккал']]){const l=document.createElement('label');l.textContent=label;const x=document.createElement('input');x.type='number';x.min='0';x.step='any';x.dataset.key=key;x.value=i.nutrition?.[key]??'';l.append(x);n.append(l)}n.addEventListener('input',updateNutrition);$('ingredient-nutrition').append(n);
+ for(const [key,label] of [['name','Ингредиент'],['grossGrams','Брутто, г'],['grams','Нетто, г'],['lossPercent','Отходы, %']]){const labelEl=document.createElement('label');labelEl.textContent=label;const x=document.createElement('input');x.dataset.key=key;x.setAttribute('aria-label',label);if(key==='name')x.setAttribute('list','ttk-known-ingredients');x.value=i[key]??(key==='lossPercent'?(lossFromWeights(i.grossGrams,i.grams)??0):'');x.required=true;if(key==='grossGrams'){x.readOnly=true;x.title='Рассчитывается по нетто и проценту отходов'}if(key!=='name'){x.type='number';x.min=key==='grams'?'0.01':'0';x.max=key==='lossPercent'?'99.99':'10000000';x.step='any'}labelEl.append(x);r.append(labelEl)}
+ const n=document.createElement('div');n.id=r.dataset.nutritionId;n.className='nutrition-ingredient';const title=document.createElement('strong');title.textContent=i.name||'Новый ингредиент';n.append(title);
+ const source=document.createElement('small');source.className='ttk-nutrition-source';source.textContent='КБЖУ на 100 г продукта (по этикетке)';n.append(source);
+ for(const [key,label] of [['protein','Белки, г'],['fat','Жиры, г'],['carbs','Углеводы, г'],['kcal','Ккал']]){
+  const l=document.createElement('label');l.textContent=label;const x=document.createElement('input');
+  x.type='number';x.min='0';x.step='any';x.dataset.key=key;x.value=i.nutrition?.[key]??'';
+  l.append(x);n.append(l);
+ }
+ const normalizeName=name=>String(name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
+ function reuseKnownNutrition(){
+  const name=r.querySelector('[data-key="name"]')?.value||'';
+  const fields=nutritionKeys.map(k=>n.querySelector('[data-key="'+k+'"]'));
+  const normalized=normalizeName(name);
+  if(n.dataset.autofilled==='true'&&n.dataset.autofilledName!==normalized){
+   for(const x of fields)x.value='';
+   n.dataset.autofilled='false';
+   source.textContent='КБЖУ на 100 г продукта (по этикетке)';
+  }
+  if(!normalized||fields.some(x=>x.value!==''))return;
+  const found=nutritionReference(state?.recipes||[]).get(normalized);
+  if(!found)return;
+  for(const key of nutritionKeys)n.querySelector('[data-key="'+key+'"]').value=found[key];
+  n.dataset.autofilled='true';n.dataset.autofilledName=normalized;
+  source.textContent='✓ Подставлено из сохранённых техкарт. Проверь производителя и этикетку.';
+ }
+ n.addEventListener('input',()=>{
+  n.dataset.autofilled='false';
+  source.textContent='КБЖУ на 100 г продукта (по этикетке)';
+  updateNutrition();
+ });
+ $('ingredient-nutrition').append(n);
+ reuseKnownNutrition();
  const gross=r.querySelector('[data-key="grossGrams"]'),net=r.querySelector('[data-key="grams"]'),loss=r.querySelector('[data-key="lossPercent"]');
  function recalcGross(){gross.value=grossFromNet(net.value,loss.value)??'';gross.setCustomValidity('')}
  recalcGross();
- r.addEventListener('input',e=>{const key=e.target.dataset.key;if(key==='name')title.textContent=e.target.value||'Новый ингредиент';if(['lossPercent','grams'].includes(key))recalcGross();updateNutrition()});const b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Убрать ингредиент');b.onclick=()=>{r.remove();n.remove();updateNutrition()};r.append(b);$('ingredients').append(r);updateNutrition();
+ r.addEventListener('input',e=>{
+  const key=e.target.dataset.key;
+  if(key==='name'){title.textContent=e.target.value||'Новый ингредиент';reuseKnownNutrition()}
+  if(['lossPercent','grams'].includes(key))recalcGross();
+  updateNutrition();
+ });const b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Убрать ингредиент');b.onclick=()=>{r.remove();n.remove();updateNutrition()};r.append(b);$('ingredients').append(r);updateNutrition();
 }
 $('nutrition-auto').onchange=updateNutrition;
-let editorDirty=false;const recipeSheet=mountRecipeSheet($('editor'));$('editor').addEventListener('input',()=>{editorDirty=true});window.addEventListener('beforeunload',e=>{if(editorDirty&&!$('editor').hidden){e.preventDefault();e.returnValue=''}});
+let editorDirty=false;const recipeSheet=mountRecipeSheet($('editor'));
+const knownIngredientNames=document.createElement('datalist');knownIngredientNames.id='ttk-known-ingredients';
+$('ingredients').before(knownIngredientNames);
+function refreshKnownIngredientNames(){
+ const names=new Map();
+ for(const [name] of nutritionReference(state?.recipes||[]).entries())names.set(name,name);
+ knownIngredientNames.replaceChildren(...[...names.values()].map(name=>{
+  const option=document.createElement('option');option.value=name;return option;
+ }));
+}$('editor').addEventListener('input',()=>{editorDirty=true});window.addEventListener('beforeunload',e=>{if(editorDirty&&!$('editor').hidden){e.preventDefault();e.returnValue=''}});
 let currentTemplate=templateFor('Холодные роллы',8);
 function applyTemplate(onlyEmpty=false){const next=templateFor($('recipe-category').value,Number($('card-pieces').value)||8);for(const [key,id] of [...Object.entries(cardFields),['forming','technology']]){if(next[key]&&(!$(id).value.trim()||(!onlyEmpty&&$(id).value===currentTemplate[key])))$(id).value=next[key]}currentTemplate=next;recipeSheet.refresh()}
 $('recipe-category').onchange=()=>applyTemplate();$('card-pieces').onchange=()=>applyTemplate();$('apply-roll-template').onclick=()=>applyTemplate(true);
 async function removeRecipe(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');if(!window.confirm('Удалить техкарту «'+recipe.name+'»? Она исчезнет из техкарт и калькулятора. Ранее скачанный PDF останется на устройстве.'))return;await save(s=>deleteRecipe(s,id));if(editId===id){$('editor').hidden=true;document.body.classList.remove('editing-recipe');editorDirty=false;editId=null}notice('Техкарта «'+recipe.name+'» удалена.');}
 $('delete-recipe').onclick=guard(()=>removeRecipe(editId));
-function openEditor(r=null){if(r)pearlHome.remember(r);if(r)r=resolveCategoryFields(r);if(r?.pieces&&![...$('card-pieces').options].some(o=>o.value===String(r.pieces)))$('card-pieces').add(new Option(r.pieces+' шт.',String(r.pieces)));if(!state){notice('Данные ещё загружаются.',true);return}if(view!=='recipes')show('recipes');editId=r?.id||null;$('delete-recipe').hidden=!editId;$('editor').hidden=false;document.body.classList.add('editing-recipe');$('edit-title').textContent=r?'Редактирование техкарты':'Новая техкарта';$('recipe-name').value=r?.name||'';const category=r?.category||(recipeFilter!=='Все'?recipeFilter:'Холодные роллы');if(![...$('recipe-category').options].some(o=>o.value===category))$('recipe-category').add(new Option(category,category));$('recipe-category').value=category;currentTemplate=templateFor(category,r?.pieces||8);$('recipe-status').value=r?.status||'draft';$('technology').value=r?.forming||r?.technology||currentTemplate.forming;$('nutrition-auto').checked=r?r.nutritionMode==='ingredients':true;for(const [key,id] of Object.entries(cardFields))$(id).value=r?.[key]||currentTemplate[key]|| (key==='pieces'?8:key==='cardNumber'?nextCardNumber(state.recipes):key==='cardDate'?cardDateNow():'');for(const key of ['protein','fat','carbs','kcal'])$('card-'+key).value=r?.nutrition?.[key]??'';$('ingredients').replaceChildren();$('ingredient-nutrition').replaceChildren();(r?.ingredients?.length?r.ingredients:[{}]).forEach(ingredient);applyTemplate(true);$('card-storage').value=storageWithSanpin($('card-storage').value);updateNutrition();recipeSheet.refresh();editorDirty=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
+function openEditor(r=null){refreshKnownIngredientNames();if(r)pearlHome.remember(r);if(r)r=resolveCategoryFields(r);if(r?.pieces&&![...$('card-pieces').options].some(o=>o.value===String(r.pieces)))$('card-pieces').add(new Option(r.pieces+' шт.',String(r.pieces)));if(!state){notice('Данные ещё загружаются.',true);return}if(view!=='recipes')show('recipes');editId=r?.id||null;$('delete-recipe').hidden=!editId;$('editor').hidden=false;document.body.classList.add('editing-recipe');$('edit-title').textContent=r?'Редактирование техкарты':'Новая техкарта';$('recipe-name').value=r?.name||'';const category=r?.category||(recipeFilter!=='Все'?recipeFilter:'Холодные роллы');if(![...$('recipe-category').options].some(o=>o.value===category))$('recipe-category').add(new Option(category,category));$('recipe-category').value=category;currentTemplate=templateFor(category,r?.pieces||8);$('recipe-status').value=r?.status||'draft';$('technology').value=r?.forming||r?.technology||currentTemplate.forming;$('nutrition-auto').checked=r?r.nutritionMode==='ingredients':true;for(const [key,id] of Object.entries(cardFields))$(id).value=r?.[key]||currentTemplate[key]|| (key==='pieces'?8:key==='cardNumber'?nextCardNumber(state.recipes):key==='cardDate'?cardDateNow():'');for(const key of ['protein','fat','carbs','kcal'])$('card-'+key).value=r?.nutrition?.[key]??'';$('ingredients').replaceChildren();$('ingredient-nutrition').replaceChildren();(r?.ingredients?.length?r.ingredients:[{}]).forEach(ingredient);applyTemplate(true);$('card-storage').value=storageWithSanpin($('card-storage').value);updateNutrition();recipeSheet.refresh();editorDirty=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
 $('newrecipe').onclick=$('home-new-recipe').onclick=()=>openEditor();$('quickrecipe').onclick=()=>{show('recipes');openEditor()};$('addingredient').onclick=()=>ingredient();$('closeeditor').onclick=()=>{if(editorDirty&&!confirm('В техкарте есть несохранённые изменения. Закрыть без сохранения?'))return;$('editor').hidden=true;document.body.classList.remove('editing-recipe');editorDirty=false};
 async function saveRecipeEditor({close=true,download=false}={}){recipeSheet.refresh();updateNutrition();const ingredients=readIngredients();if(ingredients.some(i=>i.grossGrams==null||i.grossGrams<i.grams))throw Error('Проверь брутто и нетто ингредиентов.');if(!ingredients.length)throw Error('Добавь хотя бы один ингредиент.');const recipe={id:editId||crypto.randomUUID(),name:$('recipe-name').value.trim(),category:$('recipe-category').value.trim(),status:$('recipe-status').value,technology:$('technology').value.trim(),ingredients};for(const [key,id] of Object.entries(cardFields)){const v=$(id).value.trim();recipe[key]=['netYieldGrams','pieces'].includes(key)?(v===''?null:Number(v)):v}recipe.storage=storageWithSanpin(recipe.storage);recipe.forming=recipe.technology;recipe.nutritionMode=$('nutrition-auto').checked?'ingredients':'manual';recipe.nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,$('card-'+k).value===''?null:Number($('card-'+k).value)]));if(!recipe.name)throw Error('Укажи название.');await save(s=>upsertRecipe(s,recipe,{editing:!!editId}));editId=recipe.id;pearlHome.remember(recipe);$('delete-recipe').hidden=false;$('editor').hidden=close;editorDirty=false;if(close)document.body.classList.remove('editing-recipe');if(download)await downloadRecipe(recipe.id)}
 $('editor').onsubmit=guard(()=>saveRecipeEditor());
