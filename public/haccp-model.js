@@ -1,4 +1,5 @@
 import {extraJournals,extraDetails} from './haccp-extra.js';
+import {RECEIVING_GROUPS,receivingInspection,validateReceivingSettings} from './receiving-config.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
@@ -31,6 +32,7 @@ export function validateHaccp(value){
  for(const k of ['points','equipment','records','actions','documents'])if(new Set(result[k].map(x=>x.id)).size!==result[k].length)throw Error('Повторяющиеся записи ХАССП: '+k);
  if(!result.points.length||result.points.some(p=>typeof p.name!=='string'||!p.name.trim()))throw Error('Укажи названия точек.');
  const points=new Set(result.points.map(p=>p.id));
+ validateReceivingSettings(result.receivingSettings,[...points]);
  for(const item of result.equipment){if(!points.has(item.pointId)||typeof item.name!=='string'||!item.name.trim())throw Error('Неверное оборудование ХАССП.');for(const key of ['min','max'])if(item[key]!==null&&!Number.isFinite(item[key]))throw Error('Неверные границы температуры.');if(item.min!==null&&item.max!==null&&item.min>item.max)throw Error('Минимум температуры больше максимума.')}
  let attachments=0;
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
@@ -64,7 +66,40 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   if(input.cleaningType&&!['daily','general'].includes(input.cleaningType))throw Error('Неверный тип уборки.');
   record.details={cleaningType:input.cleaningType||'daily',zone:required(input.zone,'зона или инвентарь',200),method:required(input.method,'выполненная обработка',500),agent:required(input.agent,'средство или способ',200),concentration:text(input.concentration,100),exposure:text(input.exposure,100),result:input.result};if(!['done','problem'].includes(input.result))throw Error('Выбери результат уборки.');record.status=input.result==='problem'?'deviation':'ok';
  }else if(kind==='receiving'){
-  const expiry=input.expiry?date(input.expiry,'годен до'):null;record.details={supplier:required(input.supplier,'поставщик',200),product:required(input.product,'продукт / партия',300),quantity:required(input.quantity,'количество с единицей',100),measured:number(input.measured,'температура при приёмке',true),expiry,checks:required(input.checks,'результат проверки маркировки, упаковки и документов',1000),decision:input.decision};if(!['accepted','rejected'].includes(input.decision))throw Error('Выбери решение по приёмке.');if(expiry&&Date.parse(expiry)<=Date.parse(at)&&input.decision==='accepted')throw Error('Указанный срок истёк на момент приёмки. Исправь дату или выбери отказ.');record.status=input.decision==='rejected'?'deviation':'ok';
+  const decision=input.decision;
+  if(!['accepted','rejected'].includes(decision))throw Error('Выбери решение по приёмке.');
+  // Date-only expiry is valid through the printed date (Moscow kitchen clock);
+  // older full timestamps retain the time entered by the operator.
+  const expiry=input.expiry?date(/^20\\d{2}-\\d{2}-\\d{2}$/.test(input.expiry)?
+   input.expiry+'T23:59:59+03:00':input.expiry,'годен до'):null;
+  const measured=number(input.measured,'температура при приёмке',true);
+  const category=text(input.category,40);
+  if(category&&!RECEIVING_GROUPS.some(([key])=>key===category))throw Error('Выбери категорию сырья.');
+  const structured=receivingInspection(input);
+  const checks=structured?.text||required(input.checks,'проверка маркировки, упаковки и документов',1000);
+  if(structured?.failed.length&&decision==='accepted')
+   throw Error('Есть нарушения при приёмке. Укажи отказ либо исправь результаты проверки.');
+  if(category==='chilled'||category==='frozen'){
+   if(measured===null&&decision==='accepted')throw Error('Укажи фактическую температуру охлаждённого или замороженного продукта.');
+  }
+  const min=number(input.min,'утверждённый минимум',true);
+  const max=number(input.max,'утверждённый максимум',true);
+  if(min!==null&&max!==null&&min>max)throw Error('Неверные границы температуры при приёмке.');
+  const outside=measured!==null&&((min!==null&&measured<min)||(max!==null&&measured>max));
+  if(outside&&decision==='accepted')throw Error('Температура за утверждёнными границами. Оформи отказ и замечание.');
+  if(expiry&&Date.parse(expiry)<=Date.parse(at)&&decision==='accepted')
+   throw Error('Срок продукта истёк на момент приёмки. Исправь маркировку или оформи отказ.');
+  if(category&&decision==='rejected'&&!text(input.notes))
+   throw Error('Укажи причину отказа в комментарии.');
+  record.details={
+   supplier:required(input.supplier,'поставщик',200),
+   product:required(input.product,'продукт / партия',300),
+   quantity:required(input.quantity,'количество с единицей',100),
+   batch:text(input.batch,100),invoice:text(input.invoice,120),category,
+   measured,min,max,expiry,checks,decision
+  };
+  record.status=decision==='rejected'?'deviation':
+   ((category==='chilled'||category==='frozen')&&min===null&&max===null?'unconfigured':'ok');
  }else if(kind==='storage'){
   const start=date(input.startedAt,'дата приготовления / вскрытия'),end=date(input.useBy,'использовать до');if(Date.parse(end)<=Date.parse(start))throw Error('Окончание срока должно быть позже приготовления / вскрытия.');record.details={product:required(input.product,'продукт / полуфабрикат',300),batch:text(input.batch,100),startedAt:start,useBy:end,conditions:required(input.conditions,'утверждённые условия хранения',500)};record.status=Date.parse(end)<=Date.parse(at)?'deviation':'ok';
  }else if(extraJournals[kind]){
