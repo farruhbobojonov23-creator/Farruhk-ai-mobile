@@ -1,6 +1,7 @@
 import {extraJournals,extraDetails} from './haccp-extra.js';
 import {RECEIVING_GROUPS,receivingInspection,validateReceivingSettings} from './receiving-config.js';
 import {STORAGE_GROUPS,storageRecordState,validateStorageSettings} from './storage-config.js';
+import {validateThawConfigs} from './thaw-config.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
@@ -35,6 +36,7 @@ export function validateHaccp(value){
  const points=new Set(result.points.map(p=>p.id));
  validateReceivingSettings(result.receivingSettings,[...points]);
  validateStorageSettings(result.storageSettings,[...points]);
+ validateThawConfigs(result.thawConfigs,[...points]);
  for(const item of result.equipment){if(!points.has(item.pointId)||typeof item.name!=='string'||!item.name.trim())throw Error('Неверное оборудование ХАССП.');for(const key of ['min','max'])if(item[key]!==null&&!Number.isFinite(item[key]))throw Error('Неверные границы температуры.');if(item.min!==null&&item.max!==null&&item.min>item.max)throw Error('Минимум температуры больше максимума.')}
  let attachments=0;
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
@@ -128,7 +130,9 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   };
   record.status=expired||checks==='deviation'?'deviation':'ok';
  }else if(extraJournals[kind]){
-  record.details=extraDetails(kind,input);record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
+  record.details=extraDetails(kind,input);
+  record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
+  if(kind==='defrosting'&&input.result==='done'&&record.details.approvedHours===null)record.status='unconfigured';
  }else{
   const checks=auditItems.map((label,i)=>({label,result:input['check'+i]}));if(checks.some(x=>!['yes','no','na'].includes(x.result)))throw Error('Ответь на все пункты проверки.');record.details={checks};record.status=checks.some(x=>x.result==='no')?'deviation':checks.every(x=>x.result==='na')?'unconfigured':'ok';
  }
