@@ -490,7 +490,7 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  else if(key==='productBatch')value=[
   details.product,details.batch&&'Партия: '+details.batch,
   details.invoice&&'Док.: '+details.invoice
- ].filter(Boolean).join('\\n');
+ ].filter(Boolean).join('\n');
  else if(key==='expiryDay'){
   const expiry=details.expiry;
   if(!expiry)return '—';
