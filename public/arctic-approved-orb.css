@@ -1,0 +1,100 @@
+/* Arctic Sapphire 5 — user-approved glass globe.
+   External vector artwork scales perfectly without blurring on high-density screens. */
+body[data-view="home"] #home.arctic-home{
+ background:
+  radial-gradient(ellipse 62% 38% at 48% 61%,#9ec9f6 0%,#bfe3ff75 48%,transparent 100%),
+  radial-gradient(ellipse 75% 58% at 0% 20%,#ffffffce 0%,#dcefff3b 67%,transparent 100%),
+  radial-gradient(ellipse 60% 60% at 100% 87%,#7cb7efa8 0%,transparent 75%),
+  linear-gradient(155deg,#edfaff 0%,#d8ecff 47%,#b6daf8 100%)!important;
+}
+#home.arctic-home .arctic-art-area::before{
+ content:"";position:absolute;inset:-14% -16%;
+ background:
+  radial-gradient(ellipse 59% 44% at 53% 47%,#ffffff9c,#7fd0ff2e 45%,transparent 84%),
+  linear-gradient(144deg,transparent 23%,#f4ffff47 40%,transparent 53%);
+ filter:blur(9px);pointer-events:none;z-index:0;
+}
+body[data-view="home"] #home.arctic-home .arctic-art-area{
+ overflow:visible!important;
+}
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready{
+ overflow:visible!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-reference-orb{
+ position:absolute!important;
+ display:block!important;
+ z-index:9!important;
+ width:133%!important;
+ height:auto!important;
+ max-width:none!important;
+ max-height:none!important;
+ top:-9%!important;
+ left:-16.5%!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ pointer-events:none!important;
+ object-fit:contain!important;
+ filter:drop-shadow(0 18px 21px #4595c522);
+ opacity:0;
+ transition:opacity .8s cubic-bezier(.22,.61,.36,1);
+}
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready .arctic-reference-orb{
+ opacity:1!important;
+}
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready .arctic-orb,
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready .arctic-ring,
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready .arctic-spark,
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready .arctic-pedestal{
+ visibility:hidden!important;
+ animation:none!important;
+}
+body[data-view="home"] #home.arctic-home .ruby-scene.art-ready:before{
+ opacity:.54!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-status{
+ z-index:13!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-status-pill{
+ background:linear-gradient(115deg,#ffffffed,#eef9ffd9)!important;
+ box-shadow:inset 0 1px white,0 5px 20px #6aa9d12b!important;
+ border:1px solid #fff!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-query{
+ background:linear-gradient(120deg,#ffffffd9,#e7f5ffce)!important;
+ box-shadow:inset 0 2px white,0 11px 35px #62a7d344!important;
+}
+body[data-view="home"] #home.arctic-home .home-shortcuts button{
+ background:linear-gradient(148deg,#ffffffdd,#dbefffc9)!important;
+ box-shadow:0 8px 22px #66a2cd2e,inset 0 1px #fff!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting h1{
+ font-weight:710!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting h1 em{
+ font-weight:315!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting p{
+ color:#527899!important;
+}
+@media(max-width:560px){
+ body[data-view="home"] #home.arctic-home .arctic-reference-orb{
+  width:138%!important;left:-19%!important;top:-11%!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-shell{
+  grid-template-rows:46px 61px auto minmax(0,1fr) 35px 59px 81px!important;
+  gap:clamp(3px,.75dvh,9px)!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-greeting h1{
+  font-size:clamp(31px,8vw,38px)!important;
+ }
+}
+@media(max-height:700px) and (orientation:portrait){
+ body[data-view="home"] #home.arctic-home .ruby-scene{height:min(100%,35dvh,70vw)!important}
+ body[data-view="home"] #home.arctic-home .arctic-reference-orb{
+  width:124%!important;left:-12%!important;top:-10%!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-view="home"] #home.arctic-home .arctic-reference-orb{transition:none!important}
+}
