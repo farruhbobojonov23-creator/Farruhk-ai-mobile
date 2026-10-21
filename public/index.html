@@ -152,6 +152,7 @@ const panel=$('voice-panel');
 panel.querySelector('.voice-copy strong').textContent='Голосовой ассистент';
 const settings=document.createElement('details');settings.className='voice-settings';
 const summary=document.createElement('summary');summary.textContent='Настройки голоса';settings.append(summary);
+const geminiStatus=document.createElement('p');geminiStatus.className='small';geminiStatus.setAttribute('role','status');geminiStatus.textContent='Статус Gemini проверяется…';settings.append(geminiStatus);
 for(const label of [...panel.querySelectorAll('label')])settings.append(label);
 const privacy=panel.querySelector('p.small');if(privacy)settings.append(privacy);
 const testDeviceButton=document.createElement('button');testDeviceButton.type='button';testDeviceButton.id='device-test';testDeviceButton.textContent='Проверить голос устройства';settings.append(testDeviceButton);
@@ -285,6 +286,8 @@ async function loadAssistantState(){
 }
 retryLoad.onclick=loadAssistantState;
 mountUnifiedWorkspace();
-try{await requireOwner();await loadAssistantState()}catch(e){notice(e.message,true)}
+try{await requireOwner();await loadAssistantState();
+ fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
+}catch(e){notice(e.message,true)}
 </script></body></html>
 
