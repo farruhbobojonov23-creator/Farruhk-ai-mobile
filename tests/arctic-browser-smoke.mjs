@@ -130,6 +130,12 @@ async function verify(mode,width,height){
   }));
   assert.ok(!overview.background.includes('32, 36, 39'),'HACCP daily card must not have legacy dark background: '+overview.background);
   assert.ok(overview.journalCards>=5,'HACCP cards mounted: '+overview.journalCards);
+  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available on HACCP dashboard');
+  const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
+  assert.match(packStatus,/12 журналов/,'all 12 journals prepared automatically');
+  assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
+  assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/НЕ ПРОВЕРЕНО/,'auto-filled reports explicitly protect factual inspection data');
+
   await page.screenshot({path:'artifacts/arctic-haccp-'+mode+'.png',fullPage:false,timeout:12000});
   const dailyOverview=await page.locator('#lab .haccp-daily-overview').first().innerText();
   assert.match(dailyOverview,/запланированных проверок|план на сегодня/i,'daily checks use approved schedule, not all event-based journals');
