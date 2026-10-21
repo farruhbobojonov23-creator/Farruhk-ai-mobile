@@ -35,14 +35,14 @@ export function calculateNutrition(ingredients,yieldGrams){
   const edibleFraction=Number(i.grams)/Number(i.grossGrams);
   for(const k of nutritionKeys)total[k]+=Number(i.nutrition[k])*Number(i.grossGrams)*edibleFraction/100;
  }
- return Object.fromEntries(nutritionKeys.map(k=>[k,total[k]/Number(yieldGrams)*100]));
+ return Object.fromEntries(nutritionKeys.map(k=>[k,Math.round(total[k]/Number(yieldGrams)*100*1e6)/1e6]));
 }
 // Reuse only nutrient values that the owner actually entered in saved TTKs.
 // Unknown foods and conflicting entries are never guessed from their names.
 export function nutritionReference(recipes=[]){
  const byName=new Map(),ambiguous=new Set();
  for(const recipe of recipes||[])for(const ingredient of recipe.ingredients||[]){
-  const key=String(ingredient.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+  const key=String(ingredient.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
   if(!key||ambiguous.has(key)||nutritionKeys.some(k=>!number(ingredient.nutrition?.[k])||Number(ingredient.nutrition[k])<0))continue;
   const value=Object.fromEntries(nutritionKeys.map(k=>[k,Number(ingredient.nutrition[k])]));
   const prior=byName.get(key);
@@ -66,7 +66,7 @@ export function nutritionMissing(ingredients=[],yieldGrams){
 }
 export function nutritionOnPortion(per100,yieldGrams){
  if(!per100||!number(yieldGrams)||Number(yieldGrams)<=0||nutritionKeys.some(k=>!number(per100[k])||Number(per100[k])<0))return null;
- return Object.fromEntries(nutritionKeys.map(k=>[k,Number(per100[k])*Number(yieldGrams)/100]));
+ return Object.fromEntries(nutritionKeys.map(k=>[k,Math.round(Number(per100[k])*Number(yieldGrams)/100*1e6)/1e6]));
 }
 export function calculateNutritionBoth(ingredients,yieldGrams){
  const per100=calculateNutrition(ingredients,yieldGrams);
