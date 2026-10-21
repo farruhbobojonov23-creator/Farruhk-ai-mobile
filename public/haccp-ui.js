@@ -8,6 +8,7 @@ import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEqui
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
+import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettings,updateReceivingSettings} from './receiving-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -82,6 +83,40 @@ export function mountHaccp(root,{getState,save,notify}){
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
+ function receivingSettingsPanel(){
+  const selectedId=pointFilter.value||h().points[0]?.id;
+  if(!selectedId)return el('p','Сначала добавь точку в настройках.');
+  const point=h().points.find(p=>p.id===selectedId);
+  const settings=receivingSettings(h(),selectedId);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-receiving-settings');
+  panel.append(el('h2','Приёмка сырья · '+point.name),
+   el('p','Учет ведётся по факту поступления. Без поставки строка не создаётся и не отмечается выполненной.','small'),
+   el('p','Поставщиков сохранено: '+settings.suppliers.length+' · товаров в подсказках: '+settings.products.length+'. Другого поставщика и продукт можно указать вручную.','small'));
+  if(!pointFilter.value)panel.append(el('p','Сейчас показаны настройки первой точки. Выбери другую точку в фильтре, чтобы настроить её отдельно.','small'));
+  const details=el('details',undefined,'haccp-template-settings');
+  details.append(el('summary','⚙ Изменить список поставщиков и товаров'));
+  const form=el('form',undefined,'haccp-form');
+  const vendors=inputField(form,'Поставщики (по одному на строке)','suppliers',{
+   type:'textarea',value:settings.suppliers.join('\n'),maxLength:8000});
+  vendors.rows=5;
+  const products=inputField(form,'Товары для подсказок (по одному на строке)','products',{
+   type:'textarea',value:settings.products.join('\n'),maxLength:8000});
+  products.rows=9;
+  form.append(el('p','Это только подсказки ввода. Они не создают поставку и не подставляют результаты проверки.','small'));
+  const action=el('button','Сохранить справочник точки','primary');action.type='submit';form.append(action);
+  form.onsubmit=safe(async e=>{
+   e.preventDefault();if(!form.reportValidity())return;
+   const list=value=>String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+   const values=Object.fromEntries(new FormData(form));
+   action.disabled=true;
+   try{await commit(state=>{
+    updateReceivingSettings(state,selectedId,{suppliers:list(values.suppliers),products:list(values.products)});
+    state.haccp=validateHaccp(state.haccp);
+   });build()}finally{action.disabled=false}
+  });
+  details.append(form);panel.append(details);
+  return panel;
+ }
  function cleaningSettingsPanel(){
   const selectedId=pointFilter.value||h().points[0]?.id;
   if(!selectedId)return el('p','Сначала добавь точку в настройках.');
@@ -129,6 +164,12 @@ export function mountHaccp(root,{getState,save,notify}){
   return panel;
  }
  function dailyDrafts(){
+  if(tab==='receiving'){
+   const box=el('section',undefined,'haccp-daily-overview');
+   box.append(el('h2','Приёмка по факту поставки'),
+    el('p','Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
+   return box;
+  }
   const {day:today,due:active}=moscowCheckpoint();
   const panel=el('section',undefined,'haccp-daily-overview');
   panel.append(el('h2','Ежедневный шаблон · 11:00, Мурманск'));
@@ -221,7 +262,9 @@ export function mountHaccp(root,{getState,save,notify}){
    fillFormFromTemplate(form,template.form);
    say('Образец загружен. Можно отредактировать и сохранить заново.');
   }));
-  toolbar.append(edit,save,sample,loadSample,pdf);
+  // A delivery is an event, never an automatic daily check or pre-approved receipt.
+  if(kind==='receiving')toolbar.append(edit,save,pdf);
+  else toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
   modes.append(paperView,fill);
@@ -383,7 +426,51 @@ export function mountHaccp(root,{getState,save,notify}){
    point.addEventListener('change',updateChecklist);type.addEventListener('change',updateChecklist);
    updateChecklist();form.append(cleaningChecks);
   }
-  if(tab==='receiving'){for(const [label,name] of [['Поставщик','supplier'],['Продукт / партия','product'],['Количество и единица (например, 5 кг)','quantity']])inputField(grid,label,name,{required:true,maxLength:300});inputField(grid,'Температура при приёмке, °C (если измеряли)','measured',{type:'number'});inputField(grid,'Годен до (по маркировке)','expiry',{type:'datetime-local'});inputField(form,'Проверка маркировки, упаковки, сроков и сопроводительных документов','checks',{type:'textarea',required:true,maxLength:1000});selectField(grid,'Решение','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']])}
+  if(tab==='receiving'){
+   const supplier=inputField(grid,'Поставщик (фактический)','supplier',{required:true,maxLength:200});
+   const product=inputField(grid,'Продукт / сырьё','product',{required:true,maxLength:300});
+   const vendors=el('datalist');vendors.id='haccp-receiving-suppliers';
+   const products=el('datalist');products.id='haccp-receiving-products';
+   supplier.setAttribute('list',vendors.id);product.setAttribute('list',products.id);
+   form.append(vendors,products);
+   const syncReceivingLists=()=>{
+    const list=receivingSettings(h(),point.value);
+    vendors.replaceChildren(...list.suppliers.map(v=>{const n=el('option');n.value=v;return n}));
+    products.replaceChildren(...list.products.map(v=>{const n=el('option');n.value=v;return n}));
+   };
+   point.addEventListener('change',syncReceivingLists);syncReceivingLists();
+   inputField(grid,'Количество с единицей (например, 5 кг)','quantity',{required:true,maxLength:100});
+   inputField(grid,'Номер партии / серия (по этикетке)','batch',{maxLength:100});
+   inputField(grid,'Накладная / номер документа (если есть)','invoice',{maxLength:120});
+   const category=selectField(grid,'Режим хранения сырья','category',RECEIVING_GROUPS,{blank:true});
+   const measured=inputField(grid,'Фактическая температура продукта при приёмке, °C','measured',{type:'number'});
+   measured.inputMode='decimal';
+   const min=inputField(grid,'Утверждённый минимум, °C (если задан)','min',{type:'number'});
+   const max=inputField(grid,'Утверждённый максимум, °C (если задан)','max',{type:'number'});
+   const temperatureHelp=el('p','Для охлаждённого и замороженного сырья записывай фактическую температуру. Допустимые границы бери из вашей утверждённой документации и маркировки; универсальные цифры не подставляются.','small');
+   form.append(temperatureHelp);
+   category.onchange=()=>{
+    measured.required=['chilled','frozen'].includes(category.value);
+    const cold=measured.required;
+    temperatureHelp.textContent=cold?
+     'Укажи фактическую температуру. Без утверждённых границ система сохраняет приёмку без автоматической оценки температуры.':
+     'Для других товаров укажи температуру, только когда она действительно измерялась.';
+   };
+   category.onchange();
+   inputField(grid,'Годен до (как на этикетке)','expiry',{type:'date'});
+   const review=el('section',undefined,'haccp-receiving-checklist panel');
+   review.append(el('h3','Проверка поступившей партии'));
+   const fields=el('div',undefined,'fields');
+   for(const [key,label] of RECEIVING_CHECKS){
+    selectField(fields,label,key,[
+     ['ok',RECEIVING_CHECK_VALUES.ok],['problem',RECEIVING_CHECK_VALUES.problem],
+     ['na',RECEIVING_CHECK_VALUES.na]
+    ]);
+   }
+   review.append(fields,el('p','Отметь результат каждого пункта. При нарушении нельзя выбрать «Принято». Для отказа укажи причину в комментарии.','small'));
+   form.append(review);
+   selectField(grid,'Решение по факту проверки','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']]);
+  }
   if(tab==='storage'){inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});inputField(grid,'Приготовлено / вскрыто','startedAt',{type:'datetime-local',required:true});inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});inputField(form,'Утверждённые условия хранения','conditions',{type:'textarea',required:true,maxLength:500});form.append(el('p','Срок не назначается автоматически: укажи дату и условия из утверждённой инструкции на этот продукт.','small'))}
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
@@ -467,7 +554,14 @@ export function mountHaccp(root,{getState,save,notify}){
     temperaturePointInitialized=true;
     if(!pointFilter.value)pointFilter.value=(h().points.find(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')||h().points[0])?.id||'';
    }
-   mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(tab==='cleaning')body.append(cleaningSettingsPanel());if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+   mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){
+   if(tab==='cleaning')body.append(cleaningSettingsPanel());
+   if(tab==='receiving')body.append(receivingSettingsPanel());
+   if(monthFilter.value===currentMonth)journalForm();
+   body.append(dailyDrafts());
+   if(tab!=='receiving')journalAutoDrafts();
+   journalHistory();
+  }else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
