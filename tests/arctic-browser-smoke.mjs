@@ -189,6 +189,22 @@ async function verify(mode,width,height){
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
   assert.match(await page.locator('#tasklist').innerText(),new RegExp(unique),'Tasks persist after reload');
   assert.deepEqual(errors,[],'uncaught client JS errors');
+  // Simulate a syntactically broken optional HACCP module: the rest of the app must remain responsive.
+  const isolated=await context.newPage();
+  await isolated.route('**/haccp-ui.js*',route=>route.fulfill({
+   status:200,contentType:'text/javascript; charset=utf-8',
+   body:'export function mountHaccp(){})'
+  }));
+  await isolated.goto(base+'/',{waitUntil:'domcontentloaded',timeout:20000});
+  await isolated.waitForFunction(()=>document.querySelector('#connection')?.textContent==='Хранение на устройстве',null,{timeout:20000});
+  await isolated.waitForFunction(()=>document.querySelector('#lab')?.textContent?.includes('ХАССП временно недоступен'),null,{timeout:10000});
+  await isolated.locator('#ruby-menu').click();
+  assert.equal(await visible(isolated,'#chef-menu'),true,'menu still opens with a broken HACCP module');
+  await isolated.locator('#ruby-menu').click();
+  await isolated.locator('#home-new-recipe').click();
+  assert.equal(await isolated.locator('body').getAttribute('data-view'),'recipes','TTK still opens with a broken HACCP module');
+  await isolated.close();
+
   console.log(mode.toUpperCase()+' PASSED: home, 3D art, menus, responsive layout, TTK editor, HACCP, tasks persistence');
  }catch(err){
   console.error('FAIL '+mode+':',err.stack);
