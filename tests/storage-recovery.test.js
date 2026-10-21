@@ -29,3 +29,28 @@ test('WebDAV fallback reads the same file and never resets it on a missing respo
   if(status===200)assert.equal((await store.state()).revision,30);else await assert.rejects(()=>store.state(),e=>e.status===502);
  }
 });
+
+test('Provider HTTP 500 on download retries metadata file link without overwriting state',async()=>{
+ const seen=[];const store=new YandexAssistantStore('token',async(url)=>{
+   seen.push(url);
+   if(url.startsWith('https://cloud-api')&&url.includes('/resources/download?'))return {ok:true,status:200,json:async()=>({href:'https://storage.test/failing'})};
+   if(url.startsWith('https://cloud-api')&&url.includes('/resources?'))return {ok:true,status:200,json:async()=>({type:'file',size:4200,file:'https://storage.test/alternate'})};
+   if(url==='https://storage.test/alternate')return {ok:true,status:200,json:async()=>({revision:42,recipes:[{name:'Существующая карта'}]})};
+   if(url==='https://storage.test/failing')return {ok:false,status:500};
+   throw Error('Unexpected URL');
+ });
+ const state=await store.state();
+ assert.equal(state.revision,42);
+ assert.equal(state.recipes[0].name,'Существующая карта');
+ assert.equal(seen.filter(url=>url==='https://storage.test/failing').length,2);
+ assert.ok(seen.includes('https://storage.test/alternate'));
+});
+test('Missing metadata fallback never treats failed previously confirmed download as empty state',async()=>{
+ const store=new YandexAssistantStore('token',async(url)=>{
+   if(url.startsWith('https://cloud-api')&&url.includes('/resources/download?'))return {ok:true,status:200,json:async()=>({href:'https://storage.test/broken'})};
+   if(url.startsWith('https://cloud-api')&&url.includes('/resources?'))return {ok:false,status:404,json:async()=>({message:'absent'})};
+   if(url.startsWith('https://webdav.yandex.ru'))return {ok:false,status:401};
+   return {ok:false,status:500};
+ });
+ await assert.rejects(()=>store.state(),error=>error.status===502);
+});
