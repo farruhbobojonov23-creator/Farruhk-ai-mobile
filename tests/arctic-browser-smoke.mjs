@@ -145,7 +145,7 @@ async function verify(mode,width,height){
   const headTexts=await page.locator('#lab .haccp-paper-premium .haccp-a4-table th').allInnerTexts();
   assert.ok(headTexts.includes('Вид уборки')&&headTexts.includes('Участок / инвентарь'),'cleaning A4 table has process-specific columns');
   const paperColors=await page.locator('#lab .haccp-a4-paper').evaluate(el=>({bg:getComputedStyle(el).backgroundColor,w:el.getBoundingClientRect().width,overflow:getComputedStyle(el.parentElement).overflowX}));
-  assert.match(paperColors.bg,/rgb\\(255, 255, 255\\)/,'A4 page is white, not legacy dark');
+  assert.match(paperColors.bg,/rgb\(255, 255, 255\)/,'A4 page is white, not legacy dark');
   assert.ok(paperColors.w>=1000&&paperColors.overflow==='auto','A4 journal is legible and horizontally scrollable on phones: '+JSON.stringify(paperColors));
   await page.screenshot({path:'artifacts/arctic-haccp-cleaning-a4-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-sheet-toolbar button').first().click();
