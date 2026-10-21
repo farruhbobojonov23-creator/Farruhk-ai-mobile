@@ -640,6 +640,15 @@ export function mountHaccp(root,{getState,save,notify}){
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
   const kind=tab;submitForm(form,async raw=>{
+   if(kind==='defrosting'){
+    // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
+    // HTML datetime-local contains no timezone. Attach the intended offset
+    // before the backend parses/stores UTC timestamps.
+    for(const key of ['at','startedAt','finishedAt']){
+     if(/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(String(raw[key]||'')))
+      raw[key]+=':00+03:00';
+    }
+   }
    if(measurementDate(raw.at).slice(0,7)!==monthFilter.value)throw Error('Дата записи должна быть в выбранном месяце.');
    if(kind==='cleaning'){
     const checks=[...cleaningChecks.querySelectorAll('input[type=checkbox]')];
