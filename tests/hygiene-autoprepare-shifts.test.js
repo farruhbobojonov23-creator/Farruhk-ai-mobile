@@ -74,3 +74,46 @@ test('Legacy employee lists remain intact; editable branch rosters stay independ
  assert.equal(hygieneSettings(validated,'point-1').roster.length,0);
  assert.deepEqual(hygieneSettings(validated,'point-1').employees,['Старый сотрудник']);
 });
+
+test('Card edits replace a shift without duplicating it and preserve old unassigned employee names',()=>{
+ const state=fresh();
+ updateHygieneSettings(state,'point-1',{
+  employees:['Сотрудник из прежнего списка'],roles:['Шеф-повар'],reviewer:'Старший смены'
+ });
+ const card={name:'Бободжонов Фаррухджон Илхомович',role:'Шеф-повар',startTime:'10:00',shift:'Дневная'};
+ const old=hygieneSettings(state.haccp,'point-1');
+ updateHygieneSettings(state,'point-1',{
+  employees:[...old.employees,card.name],roles:old.roles,reviewer:old.reviewer,
+  roster:[card]
+ });
+ let saved=hygieneSettings(state.haccp,'point-1');
+ assert.deepEqual(saved.roster,[card]);
+ assert.equal(saved.employees.length,2);
+ const changed={...card,startTime:'11:30'};
+ const notAssigned=saved.employees.filter(name=>!saved.roster.some(item=>item.name===name));
+ updateHygieneSettings(state,'point-1',{
+  employees:[...notAssigned,changed.name],roles:saved.roles,reviewer:saved.reviewer,
+  roster:[changed]
+ });
+ saved=hygieneSettings(state.haccp,'point-1');
+ assert.equal(saved.roster.length,1);
+ assert.equal(saved.roster[0].startTime,'11:30');
+ assert.equal(preparedHygieneRows(state.haccp,'point-1','2026-10-22')[0].startTime,'11:30');
+ assert.deepEqual(saved.employees,['Сотрудник из прежнего списка',card.name]);
+ updateHygieneSettings(state,'point-1',{
+  employees:notAssigned,roles:saved.roles,reviewer:saved.reviewer,roster:[]
+ });
+ saved=hygieneSettings(state.haccp,'point-1');
+ assert.deepEqual(saved.roster,[]);
+ assert.deepEqual(saved.employees,['Сотрудник из прежнего списка']);
+});
+test('Card can add a custom chef role absent from old role presets',()=>{
+ const state=fresh();
+ updateHygieneSettings(state,'point-1',{
+  employees:['Шеф кухни'],roles:['Сушист'],reviewer:'Старший смены',
+  roster:[{name:'Шеф кухни',role:'Шеф-повар',startTime:'10:00',shift:'Дневная'}]
+ });
+ const saved=hygieneSettings(validateHaccp(state.haccp),'point-1');
+ assert.ok(saved.roles.includes('Шеф-повар'));
+ assert.equal(preparedHygieneRows(state.haccp,'point-1','2026-10-22').length,1);
+});
