@@ -65,5 +65,10 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
 export function closeCorrectiveAction(state,id,{action,reviewer},now=new Date()){
  const h=validateHaccp(state.haccp),item=h.actions.find(a=>a.id===id);if(!item)throw Error('Действие не найдено.');if(item.status==='closed')throw Error('Действие уже закрыто.');item.action=required(action,'что сделано',2000);item.reviewer=required(reviewer,'кто проверил',120);item.closedAt=now.toISOString();item.status='closed';state.haccp=validateHaccp(h);
 }
-export function mergeHaccp(current,incoming){const a=validateHaccp(current),b=validateHaccp(incoming);for(const key of ['points','equipment','records','actions','documents']){const ids=new Set(a[key].map(x=>x.id));for(const item of b[key])if(!ids.has(item.id)){a[key].push(item);ids.add(item.id)}}a.revision=Math.max(Number(a.revision)||0,Number(b.revision)||0)+1;return validateHaccp(a)}
+export function mergeHaccp(current,incoming){const a=validateHaccp(current),b=validateHaccp(incoming);
+ // A newly installed device should recover the owner's inspection plan from a backup.
+ // If it already has HACCP activity or its own custom plan, preserve local settings.
+ const untouched=!a.records.length&&!a.actions.length&&!a.equipment.length&&!a.documents.length&&a.dailyControls.join('|')===defaultDailyControls.join('|')&&a.generalCleaningTarget===2;
+ if(untouched){a.dailyControls=[...b.dailyControls];a.generalCleaningTarget=b.generalCleaningTarget}
+ for(const key of ['points','equipment','records','actions','documents']){const ids=new Set(a[key].map(x=>x.id));for(const item of b[key])if(!ids.has(item.id)){a[key].push(item);ids.add(item.id)}}a.revision=Math.max(Number(a.revision)||0,Number(b.revision)||0)+1;return validateHaccp(a)}
 export function journalCsv(records,points){const safe=v=>'"'+String(v??'').replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')+'"';return '\uFEFF'+[['Дата и время','Журнал','Точка','Ответственный','Результат','Подробности','Комментарий'],...records.map(r=>[r.at,journalTypes[r.kind],points.find(p=>p.id===r.pointId)?.name||r.pointId,r.owner,r.status,JSON.stringify(r.details),r.notes])].map(row=>row.map(safe).join(';')).join('\r\n')}
