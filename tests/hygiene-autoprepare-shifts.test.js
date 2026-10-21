@@ -80,7 +80,7 @@ test('Card edits replace a shift without duplicating it and preserve old unassig
  updateHygieneSettings(state,'point-1',{
   employees:['Сотрудник из прежнего списка'],roles:['Шеф-повар'],reviewer:'Старший смены'
  });
- const card={name:'Бободжонов Фаррухджон Илхомович',role:'Шеф-повар',startTime:'10:00',shift:'Дневная'};
+ const card={name:'Тестов Иван Иванович',role:'Шеф-повар',startTime:'10:00',shift:'Дневная'};
  const old=hygieneSettings(state.haccp,'point-1');
  updateHygieneSettings(state,'point-1',{
   employees:[...old.employees,card.name],roles:old.roles,reviewer:old.reviewer,
