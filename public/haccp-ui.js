@@ -742,7 +742,7 @@ export function mountHaccp(root,{getState,save,notify}){
   if(!popup){say('Разреши открытие окна печати для этого сайта.',true);return}
   const d=popup.document;d.open();d.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>ХАССП · Журнал</title><style>@page{size:A4 landscape;margin:11mm}body{font:11px/1.45 Arial,sans-serif;color:#24445e;margin:0;padding:15px;background:white}h1{color:#1a4e74;font-size:21px;margin:12px 0}small{color:#50738c}table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;margin:18px 0}td,th{border:1px solid #afc3d2;padding:7px 5px;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere}thead th{background:#e2f2ff;color:#214d6e}tr:nth-child(even){background:#f4faff}tbody tr{break-inside:avoid}footer{border-top:1px solid #aac2d3;margin-top:20px;padding-top:12px}button{padding:10px 20px;background:#307eae;color:#fff;border:0;border-radius:9px}@media print{button{display:none}}</style></head><body></body></html>');d.close();
   const heading=d.createElement('h1');heading.textContent=journalTypes[tab];d.body.append(heading);
-  const sub=d.createElement('small');sub.textContent=monthLabel(monthFilter.value)+' · '+(pointFilter.value?pointName(pointFilter.value):'Все точки')+' · Фактические записи с устройства. Пустые строки не подтверждают контроль.';d.body.append(sub);
+  const sub=d.createElement('small');sub.textContent=monthLabel(monthFilter.value)+' · '+(pointFilter.value?pointName(pointFilter.value):'Все точки')+' · МСК';d.body.append(sub);
   const table=d.createElement('table'),head=d.createElement('thead'),tr=d.createElement('tr'),tbody=d.createElement('tbody');
   const cols=paperColumns(tab),sum=cols.reduce((n,c)=>n+c.weight,0);
   for(const col of cols){const th=d.createElement('th');th.textContent=col.label;th.style.width=(col.weight/sum*100).toFixed(2)+'%';tr.append(th)}
@@ -754,8 +754,11 @@ export function mountHaccp(root,{getState,save,notify}){
    }
   }
   if(!records.length){
-   const info=d.createElement('p');info.textContent='Подтверждённых записей нет. Бланк для ручного заполнения.';d.body.append(info);
-   for(let i=0;i<10;i++){const row=d.createElement('tr');for(const col of cols)row.append(d.createElement('td'));tbody.append(row)}
+   for(let i=0;i<10;i++){
+    const row=d.createElement('tr');
+    for(const col of cols)row.append(d.createElement('td'));
+    tbody.append(row);
+   }
   }
   table.append(tbody);d.body.append(table);
   const footer=d.createElement('footer');footer.textContent='Проверил: _____________________     Подпись: _____________________     Дата: ____________';d.body.append(footer);
