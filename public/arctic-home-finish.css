@@ -1,0 +1,267 @@
+/* Arctic Sapphire • final home composition v3
+   Isolated to #home; workspaces, paper templates, data and handlers remain unchanged. */
+body[data-view="home"] #home.arctic-home{
+  background:
+    radial-gradient(ellipse 58% 37% at 51% 54%,#9ed2f8 0%,#c7eaff 53%,transparent 100%),
+    radial-gradient(ellipse 48% 30% at 1% 25%,#ffffffda,transparent 85%),
+    radial-gradient(ellipse 45% 31% at 100% 84%,#9bccf5ac,transparent 100%),
+    linear-gradient(148deg,#f0faff 0%,#ddf0ff 43%,#bfddf8 100%)!important;
+  overflow:hidden!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-shell{
+  width:100%!important;
+  max-width:820px!important;
+  height:100%!important;
+  max-height:100%!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows: 55px 69px auto minmax(0,1fr) auto 63px 91px!important;
+  gap:clamp(4px,0.8dvh,12px)!important;
+  padding:max(16px,env(safe-area-inset-top)) clamp(17px,4.7vw,39px) max(15px,env(safe-area-inset-bottom))!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-topline{
+  height:55px!important;min-height:0!important;align-self:start;align-items:center;z-index:6;
+}
+body[data-view="home"] #home.arctic-home .arctic-title strong{
+  font-size:clamp(20px,5.4vw,30px)!important;
+  font-weight:680!important;letter-spacing:.14em!important;
+  color:#0f2a50!important;text-shadow:0 1px #ffffffa8;
+}
+body[data-view="home"] #home.arctic-home .arctic-title strong span{color:#3f8ac5!important}
+body[data-view="home"] #home.arctic-home .arctic-title small{
+  letter-spacing:.25em!important;color:#527da3!important;font-size:clamp(7px,1.8vw,10px)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-top-actions button{
+  box-shadow:inset 0 1px white,0 8px 30px #4d94c028!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-conditions{
+  grid-row:2!important;min-height:0!important;height:100%!important;
+  justify-content:flex-end!important;z-index:4;
+}
+body[data-view="home"] #home.arctic-home .home-weather{
+  position:absolute!important;z-index:4!important;
+  top:calc(max(16px,env(safe-area-inset-top)) + 60px)!important;
+  left:max(17px,calc((100vw - 820px) / 2 + 39px))!important;
+  max-width:min(54vw,270px)!important;
+  height:46px!important;min-height:46px!important;
+  border-radius:36px!important;background:linear-gradient(155deg,#ffffffd7,#f3fbff99)!important;
+  border:1px solid #fff!important;color:#234d75!important;
+  font-size:clamp(10px,2.7vw,13px)!important;font-weight:500!important;
+  box-shadow:0 5px 20px #6aa5d12d,inset 0 1px white!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-date{
+  min-width:110px!important;border-left:1px solid #75a6c995!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-date b{
+  color:#143a64!important;font-size:clamp(11px,3.4vw,15px)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-date small{
+  color:#6283a1!important;font-size:clamp(10px,2.8vw,13px)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting{
+  grid-row:3!important;position:relative!important;inset:auto!important;left:auto!important;top:auto!important;
+  margin:0!important;align-self:start!important;max-width:none!important;z-index:4!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting h1{
+  font-size:clamp(31px,8vw,52px)!important;line-height:1.06!important;
+  color:#12355e!important;-webkit-text-fill-color:#12355e!important;
+  letter-spacing:-.04em!important;font-weight:730!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting h1 em{
+  color:#285c8b!important;-webkit-text-fill-color:#285c8b!important;font-weight:320!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting p{
+  font-size:clamp(12px,3vw,17px)!important;color:#6484a5!important;
+  margin-top:8px!important;letter-spacing:0!important;line-height:1.35!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-art-area{
+  grid-row:4!important;position:relative!important;inset:auto!important;
+  min-height:0!important;height:100%!important;max-height:100%!important;overflow:visible!important;
+  display:grid!important;place-items:center!important;
+  margin:0!important;padding:0!important;z-index:1!important;
+}
+body[data-view="home"] #home.arctic-home .ruby-scene{
+  position:relative!important;
+  inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+  translate:none!important;transform:none!important;
+  height:min(100%,78vw,39dvh,370px)!important;
+  width:auto!important;min-width:0!important;min-height:0!important;
+  aspect-ratio:1/1!important;max-height:100%!important;max-width:96%!important;
+  margin:0 auto!important;mask-image:none!important;-webkit-mask-image:none!important;
+  overflow:visible!important;z-index:2!important;
+}
+body[data-view="home"] #home.arctic-home .ruby-scene:before{
+  inset:7%!important;filter:blur(19px)!important;
+  background:radial-gradient(circle,#ffffffed 0%,#beebff97 35%,#6ab1ed39 65%,transparent 83%)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb{
+  position:relative!important;
+  width:78%!important;aspect-ratio:1/1!important;
+  border-radius:50%!important;
+  overflow:hidden!important;z-index:3!important;
+  border:1px solid #ffffffd9!important;
+  background:
+    radial-gradient(ellipse at 30% 17%,#ffffffdf 0%,transparent 28%),
+    radial-gradient(ellipse at 71% 81%,#48a0d132 0%,transparent 57%),
+    radial-gradient(circle at 34% 28%,#f6ffff 0%,#d4f2ff 14%,#a7daf9 31%,#70b4e2 52%,#4389c2 71%,#1b578f 100%)!important;
+  box-shadow:
+    inset 10px 14px 22px #ffffffb9,
+    inset -17px -25px 33px #0e467b69,
+    inset 0 0 4px 2px #ffffffa9,
+    0 0 0 1px #ecfaff,
+    0 0 22px #ffffffda,
+    0 0 52px #76c8f67f,
+    0 17px 35px #3d85c44d!important;
+  animation:arctic-float 8s ease-in-out infinite!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb:before{
+  inset:3%!important;position:absolute!important;content:""!important;
+  z-index:4!important;border:1px solid #ffffff9b!important;border-radius:50%!important;
+  transform:none!important;box-shadow:inset 0 11px 25px #fff9,inset 0 -8px 22px #b2e6ff45!important;
+  background:radial-gradient(ellipse at 22% 21%,#ffffff85 0,transparent 42%),linear-gradient(137deg,#ffffff38,transparent 50%,#e4faff16)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb:after{
+  position:absolute!important;inset:0!important;z-index:7!important;
+  content:"AI"!important;display:grid!important;place-items:center!important;
+  color:#285f94!important;font-size:clamp(26px,7.7vw,41px)!important;
+  font-weight:310!important;text-shadow:0 2px 16px #f5ffffe6!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb-detail{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  display:block!important;overflow:hidden!important;
+  border-radius:50%!important;z-index:3!important;pointer-events:none!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb-filaments{
+  transform-origin:200px 200px;
+  animation:arctic-filaments 55s linear infinite;
+  will-change:transform;
+}
+body[data-view="home"] #home.arctic-home .arctic-inner-shimmer{
+  display:block;position:absolute;inset:0;pointer-events:none;z-index:5;border-radius:50%;
+  background:
+    radial-gradient(ellipse 31% 10% at 30% 22%,#ffffff95 0%,transparent 94%),
+    linear-gradient(118deg,#ffffff81 0%,transparent 16%,#d5f8ff13 53%,#ffffff55 85%,transparent 100%);
+  mix-blend-mode:screen;opacity:.67;
+}
+body[data-view="home"] #home.arctic-home .arctic-ring{
+  z-index:4!important;border-width:1.5px!important;
+  border-color:#faffff!important;box-shadow:0 0 7px #fffffffa,0 0 14px #65c8fc79!important;
+  backface-visibility:hidden;will-change:transform;
+}
+body[data-view="home"] #home.arctic-home .arctic-ring.ring-2{
+  border-color:#a6eaffdf!important;box-shadow:0 0 10px #c5f8ffee!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-ring.ring-3{
+  border-color:#e1f7ffe0!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-pedestal{
+  z-index:1!important;bottom:0!important;left:6%!important;width:88%!important;
+  border:1.5px solid #faffffee!important;box-shadow:0 0 27px #ffffff,0 0 45px #78c5f685!important;
+  background:radial-gradient(ellipse,#7fc9fe6b 0%,#fff9 27%,transparent 76%)!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-spark{z-index:6!important}
+body[data-view="home"] #home.arctic-home .arctic-status{
+  grid-row:5!important;align-self:center!important;
+  margin:0 auto!important;z-index:6!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-status-pill{
+  background:#ffffff9d!important;border:1px solid #fffffffa!important;
+  padding:7px 17px!important;
+  color:#22486c!important;
+  box-shadow:inset 0 1px white,0 5px 25px #65a9db27!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-query{
+  grid-row:6!important;width:100%!important;height:63px!important;
+  display:flex!important;align-self:center!important;margin:0!important;
+  padding:5px 7px 5px 15px!important;
+  background:linear-gradient(115deg,#ffffffd1,#e4f5ffd5)!important;
+  border:1px solid #ffffff!important;border-radius:100px!important;
+  box-shadow:0 8px 26px #6ca7cc37,inset 0 2px white!important;
+  z-index:7!important;
+}
+body[data-view="home"] #home.arctic-home #chat-form{height:51px!important}
+body[data-view="home"] #home.arctic-home .home-shortcuts{
+  grid-row:7!important;align-self:stretch!important;position:static!important;
+  margin:0!important;width:100%!important;gap:clamp(6px,2vw,15px)!important;z-index:7!important;
+}
+body[data-view="home"] #home.arctic-home .home-shortcuts button{
+  min-height:0!important;height:100%!important;
+  border-radius:22px!important;
+  background:linear-gradient(160deg,#ffffffb8,#d5ebfcaf)!important;
+  border:1px solid #fff!important;
+  box-shadow:inset 0 1px white,0 7px 20px #518ab928!important;
+  color:#15395e!important;
+  font-size:clamp(10px,2.7vw,13px)!important;font-weight:620!important;
+}
+body[data-view="home"] #home.arctic-home .home-shortcuts button span{
+  background:linear-gradient(140deg,#fafeff,#e5f6ffb8)!important;
+  border:1px solid #ffffffed!important;
+  box-shadow:0 2px 10px #539bcb21,inset 0 1px #fff!important;
+}
+body[data-view="home"] #home.arctic-home .home-today:not([hidden]){
+  z-index:9!important;
+}
+@keyframes arctic-filaments{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:600px){
+ body[data-view="home"] #home.arctic-home .arctic-shell{
+  grid-template-rows:46px 61px auto minmax(0,1fr) 35px 59px 81px!important;
+  gap:clamp(3px,.7dvh,7px)!important;
+  padding: max(15px,env(safe-area-inset-top)) 18px max(12px,env(safe-area-inset-bottom))!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-topline{height:46px!important;align-items:center!important}
+ body[data-view="home"] #home.arctic-home .arctic-title strong{font-size:22px!important}
+ body[data-view="home"] #home.arctic-home .arctic-top-actions button{width:40px!important;height:40px!important}
+ body[data-view="home"] #home.arctic-home .arctic-date{min-width:104px!important}
+ body[data-view="home"] #home.arctic-home .home-weather{
+  top:calc(max(15px,env(safe-area-inset-top)) + 51px)!important;left:18px!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-greeting h1{font-size:clamp(30px,8.1vw,38px)!important}
+ body[data-view="home"] #home.arctic-home .arctic-greeting p{font-size:clamp(11px,3vw,13px)!important}
+ body[data-view="home"] #home.arctic-home .ruby-scene{height:min(100%,79vw,37dvh,325px)!important}
+ body[data-view="home"] #home.arctic-home .arctic-query{height:59px!important}
+ body[data-view="home"] #home.arctic-home .ruby-talk{height:47px!important;width:47px!important;min-height:47px!important}
+ body[data-view="home"] #home.arctic-home #chat-form{height:47px!important}
+ body[data-view="home"] #home.arctic-home #message{height:46px!important;min-height:46px!important;max-height:46px!important;padding:14px 7px!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button{border-radius:19px!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button span{width:35px!important;height:35px!important}
+}
+@media(max-height:680px) and (orientation:portrait){
+ body[data-view="home"] #home.arctic-home .arctic-shell{
+  grid-template-rows:42px 52px auto minmax(0,1fr) 29px 52px 67px!important;
+  gap:3px!important;padding-top:10px!important;padding-bottom:9px!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-greeting h1{font-size:clamp(25px,7.4vw,32px)!important}
+ body[data-view="home"] #home.arctic-home .arctic-greeting p{font-size:11px!important;margin-top:4px!important}
+ body[data-view="home"] #home.arctic-home .ruby-scene{height:min(100%,34dvh,64vw)!important}
+ body[data-view="home"] #home.arctic-home .arctic-status-pill{padding:3px 11px!important;font-size:11px!important}
+ body[data-view="home"] #home.arctic-home .arctic-query{height:52px!important}
+ body[data-view="home"] #home.arctic-home .ruby-talk{height:42px!important;width:42px!important;min-height:42px!important}
+ body[data-view="home"] #home.arctic-home #chat-form{height:42px!important}
+ body[data-view="home"] #home.arctic-home #message{height:40px!important;min-height:40px!important;max-height:40px!important;padding:10px 7px!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button span{height:27px!important;width:27px!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button svg{width:18px!important;height:18px!important}
+ body[data-view="home"] #home.arctic-home .home-weather{
+  top:calc(max(10px,env(safe-area-inset-top)) + 45px)!important;height:39px!important;min-height:39px!important;
+ }
+}
+@media(max-height:450px) and (orientation:landscape){
+ body[data-view="home"] #home.arctic-home .arctic-shell{
+  display:grid!important;grid-template-columns:1fr 1fr!important;
+  grid-template-rows:42px 45px minmax(0,1fr) 55px!important;gap:4px 14px!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-topline{grid-column:1/3!important;grid-row:1!important}
+ body[data-view="home"] #home.arctic-home .arctic-conditions{grid-column:1!important;grid-row:2!important}
+ body[data-view="home"] #home.arctic-home .arctic-greeting{grid-column:1!important;grid-row:3!important}
+ body[data-view="home"] #home.arctic-home .arctic-art-area{grid-column:2!important;grid-row:2/4!important}
+ body[data-view="home"] #home.arctic-home .arctic-status{display:none!important}
+ body[data-view="home"] #home.arctic-home .arctic-query{grid-column:1!important;grid-row:4!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts{grid-column:2!important;grid-row:4!important}
+ body[data-view="home"] #home.arctic-home .ruby-scene{height:min(100%,56dvh,35vw)!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button{gap:2px!important;font-size:9px!important}
+ body[data-view="home"] #home.arctic-home .home-shortcuts button span{width:23px!important;height:23px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-view="home"] #home.arctic-home .arctic-orb,
+ body[data-view="home"] #home.arctic-home .arctic-orb-filaments{animation:none!important}
+}
