@@ -166,9 +166,10 @@ export function mountHaccp(root,{getState,save,notify}){
   const refreshPaper=()=>{
    if(!form.isConnected)return;
    const selectedPoint=form.querySelector('[name=pointId]')?.value;
-   const saved=currentRecords().filter(r=>!selectedPoint||r.pointId===selectedPoint).slice(-14);
+   const actual=currentRecords().filter(r=>!selectedPoint||r.pointId===selectedPoint);
+   const saved=actual.slice(0,14).reverse();
    meta.textContent=monthLabel(monthFilter.value)+'   ·   '+(selectedPoint?pointName(selectedPoint):'Все точки')+
-     '   ·   Сохранено записей: '+saved.length;
+     '   ·   Сохранено записей: '+actual.length+(actual.length>14?' (показаны последние 14)':'');
    tbody.replaceChildren();
    const rows=[...saved.map(r=>({record:r,draft:false})),{record:draftValue(),draft:true}];
    for(const {record,draft} of rows){
