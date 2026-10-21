@@ -224,46 +224,17 @@ export const journalPaperColumns=Object.freeze({
   ]
  ],
  "defrosting": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.8
-  ],
-  [
-   "product",
-   "Продукт / партия",
-   1.4
-  ],
-  [
-   "method",
-   "Способ",
-   1.3
-  ],
-  [
-   "startedAt",
-   "Начало",
-   1.3
-  ],
-  [
-   "finishedAt",
-   "Окончание",
-   1.3
-  ],
-  [
-   "measured",
-   "Факт, °C",
-   0.9
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.25
-  ]
+ ["at","Дата записи",0.9],
+ ["point","Точка",0.7],
+ ["thawProductBatch","Сырьё / партия / масса",1.35],
+ ["method","Способ размораживания",1.35],
+ ["startedAt","Начало",1.0],
+ ["finishedAt","Окончание",1.0],
+ ["thawDuration","Факт / допуск, ч",1.0],
+ ["thawTemperatures","Холодильник / продукт, °C",1.2],
+ ["thawReview","Проверил / результат",1.2],
+ ["status","Статус",0.7],
+ ["owner","Сушист",0.8]
  ],
  "frying": [
   [
@@ -459,6 +430,21 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  else if(key==='productBatch')value=[
   details.product,details.batch&&'Партия: '+details.batch,
   details.invoice&&'Док.: '+details.invoice
+ ].filter(Boolean).join('\n');
+ else if(key==='thawProductBatch')value=[
+  details.product,
+  details.batch&&'Партия: '+details.batch,
+  details.quantity
+ ].filter(Boolean).join('\n');
+ else if(key==='thawDuration')value=details.elapsedHours===null||details.elapsedHours===undefined?
+  'В процессе':'Факт: '+details.elapsedHours+' ч / допуск: '+(details.approvedHours??'не установлен');
+ else if(key==='thawTemperatures')value=[
+  'Холодильник: '+(details.chamberTemperature??'не измерена'),
+  'Продукт: '+(details.measured??'не измерена')
+ ].join('\n');
+ else if(key==='thawReview')value=[
+  details.reviewer&&'Проверил: '+details.reviewer,
+  details.result==='done'?'Завершено':details.result==='problem'?'Замечание':'В процессе'
  ].filter(Boolean).join('\n');
  else if(key==='expiryDay'){
   const expiry=details.expiry;
