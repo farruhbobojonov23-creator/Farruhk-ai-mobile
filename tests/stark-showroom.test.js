@@ -32,7 +32,8 @@ test('Existing Google synchronization, TTK and HACCP code paths remain linked',a
  const [html]=await sources();
  assert.match(html,/import \{mountGoogleSync\} from '\/recipe-google\.js'/);
  assert.match(html,/import \{deleteRecipe,upsertRecipe\} from '\/recipe-actions\.js/);
- assert.match(html,/import \{mountHaccp\} from '\/haccp-ui\.js/);
+ assert.match(html,/import\('\/haccp-ui\.js\?v=/,'HACCP is loaded independently to protect the main navigation');
+ assert.match(html,/HACCP module unavailable/);
  assert.match(html,/id="recipes"/);
  assert.match(html,/id="chef-menu"/);
 });
