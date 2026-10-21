@@ -518,8 +518,8 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  else if(key==='owner')value=record.owner;
  else if(key==='notes')value=record.notes;
  else if(key==='temperatureLimits')value=
-  details.min===null&&details.max===null?'Не заданы':
-  (details.min===null?'до '+details.max:details.max===null?'от '+details.min:details.min+' … '+details.max);
+  details.min==null&&details.max==null?'Не заданы':
+  (details.min==null?'до '+details.max:details.max==null?'от '+details.min:details.min+' … '+details.max);
  else if(key==='cleaningMethod')value=[details.method,details.agent,details.concentration&&'Конц.: '+details.concentration,details.exposure&&'Выдержка: '+details.exposure].filter(Boolean).join(' / ');
  else value=details[key]??record?.[key];
  if(key==='result'&&draft)return 'Черновик';
