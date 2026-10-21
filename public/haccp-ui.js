@@ -1,6 +1,7 @@
 import {extraJournals,extraFieldNames} from './haccp-extra.js';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
+import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=65';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
@@ -113,45 +114,88 @@ export function mountHaccp(root,{getState,save,notify}){
   return panel;
  }
  function sheet(form){
-  form.classList.add('haccp-sheet','haccp-a4-editor');
-  form.querySelector('h2').textContent='ЖУРНАЛ · '+journalTypes[tab];
-  const labels=[...form.querySelectorAll('label')].filter(l=>l.querySelector('input,select,textarea'));
-  const wrapper=el('div',undefined,'haccp-a4-scroll');
-  const paper=el('div',undefined,'haccp-a4-paper');
-  const table=el('table',undefined,'haccp-a4-table');
-  const head=el('thead'),headRow=el('tr'),row=el('tr');
-  const columnNames=[];
-  for(const label of labels){
-   const control=label.querySelector('input,select,textarea');
-   const caption=label.childNodes[0]?.textContent?.trim()||control.name;
-   columnNames.push(caption);
-   const th=el('th',caption),td=el('td');
-   control.setAttribute('aria-label',caption);
-   td.dataset.label=caption;td.append(control);headRow.append(th);row.append(td);label.remove();
-  }
-  head.append(headRow);table.append(head,el('tbody'));table.tBodies[0].append(row);
-  paper.append(el('div','ФОРМА УЧЁТА · '+journalTypes[tab],'haccp-a4-caption'),table);
-  wrapper.append(paper);
-  const firstGrid=form.querySelector('.fields');
-  if(firstGrid)firstGrid.before(wrapper);else form.querySelector('h2').after(wrapper);
-  for(const empty of [...form.querySelectorAll('.fields')])if(!empty.children.length)empty.remove();
+  const kind=tab,columns=paperColumns(kind);
+  form.classList.add('haccp-sheet','haccp-a4-editor','haccp-paper-premium');
+  form.querySelector('h2').textContent='ЖУРНАЛ · '+journalTypes[kind];
   const toolbar=el('div',undefined,'haccp-sheet-toolbar');
-  const edit=button('Заполнить строку',()=>{form.classList.add('haccp-editing');wrapper.scrollIntoView({block:'nearest',behavior:'smooth'});const first=form.querySelector('.haccp-a4-table input:not([type=hidden]),.haccp-a4-table select');first?.focus()},'primary');
-  toolbar.append(edit,button('Сохранить запись',()=>form.requestSubmit()),button('Скачать PDF',safe(()=>exportJournalPdf(currentRecords()))));
-  const modes=el('nav',undefined,'journal-modes');const fill=button('Заполнение',()=>setMode('form')),paperView=button('Лист А4',()=>setMode('paper'));function setMode(mode){form.dataset.mode=mode;fill.setAttribute('aria-pressed',String(mode==='form'));paperView.setAttribute('aria-pressed',String(mode==='paper'))}modes.append(fill,paperView);setMode('form');form.prepend(toolbar,modes);
-  const fit=()=>{
-   if(form.classList.contains('haccp-editing'))return;
-   const available=wrapper.clientWidth-2;
-   const width=Math.max(950,Math.min(1500,columnNames.length*125));
-   paper.style.width=width+'px';
-   const scale=Math.min(1,available/width);
-   paper.style.transform='scale('+scale+')';
-   paper.style.transformOrigin='top left';
-   wrapper.style.height=Math.ceil(paper.scrollHeight*scale+8)+'px';
+  const edit=button('✎ Заполнить строку',()=>{setMode('form');form.querySelector('[name=pointId]')?.focus()},'primary');
+  const save=button('✓ Сохранить запись',()=>{setMode('form');form.requestSubmit()});
+  const pdf=button('↓ Скачать А4 PDF',safe(()=>exportJournalPdf(currentRecords())));
+  toolbar.append(edit,save,pdf);
+  const modes=el('nav',undefined,'journal-modes');
+  const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
+  modes.append(paperView,fill);
+  const paperHint=el('p','Это предварительный вид журнала. Только сохранённые записи подтверждают выполненные проверки. Для ввода нажми «Заполнение».','haccp-paper-hint');
+  const wrapper=el('div',undefined,'haccp-a4-scroll');
+  wrapper.setAttribute('role','region');wrapper.setAttribute('aria-label','Лист А4: '+journalTypes[kind]);
+  wrapper.tabIndex=0;
+  const paper=el('section',undefined,'haccp-a4-paper');
+  paper.setAttribute('aria-label','Предпросмотр журнала А4');
+  const kicker=el('div','ХАССП · ЖУРНАЛ КОНТРОЛЯ','haccp-a4-kicker');
+  const title=el('h3',journalTypes[kind],'haccp-a4-caption');
+  const meta=el('div',undefined,'haccp-a4-meta');
+  const table=el('table',undefined,'haccp-a4-table');
+  const head=el('thead'),headRow=el('tr'),tbody=el('tbody');
+  for(const col of columns){
+   const th=el('th',col.label);th.scope='col';
+   th.style.width=(col.weight/columns.reduce((n,c)=>n+c.weight,0)*100).toFixed(2)+'%';
+   headRow.append(th);
+  }
+  head.append(headRow);table.append(head,tbody);
+  const note=el('p','Проверил: ____________________    Подпись: ____________________    Дата: _______________','haccp-a4-signature');
+  paper.append(kicker,title,meta,table,note);wrapper.append(paper);
+  const indicator=el('p','Лист А4 расположен горизонтально. Сдвигай таблицу пальцем вправо или влево.','haccp-a4-swipe');
+  form.prepend(toolbar,modes,paperHint,wrapper,indicator);
+  const draftValue=()=>{
+   const raw=Object.fromEntries(new FormData(form));
+   const details={...raw};
+   for(const key of ['at','startedAt','finishedAt','useBy','expiry']){
+    if(details[key]&&/^20\\d{2}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/.test(details[key]))
+     details[key]=details[key]+':00+03:00';
+   }
+   if(kind==='temperature'){
+    const equipment=h().equipment.find(item=>item.id===raw.equipmentId);
+    if(equipment)Object.assign(details,{equipment:equipment.name,min:equipment.min,max:equipment.max});
+   }
+   if(kind==='audit'){
+    details.checks=auditItems.map((label,i)=>({label,result:raw['check'+i]||'na'}));
+   }
+   return {pointId:raw.pointId,at:details.at,owner:raw.owner,notes:raw.notes,details,
+    status:'unconfigured'};
   };
-  if(window.ResizeObserver){const observer=new ResizeObserver(fit);observer.observe(wrapper);form.addEventListener('submit',()=>observer.disconnect(),{once:true})}
-  requestAnimationFrame(fit);
-  edit.onclick=()=>{form.classList.add('haccp-editing');paper.style.transform='none';paper.style.width='max-content';wrapper.style.height='auto';wrapper.style.overflowX='auto';form.querySelector('.haccp-a4-table select,.haccp-a4-table input')?.focus()};
+  const refreshPaper=()=>{
+   if(!form.isConnected)return;
+   const selectedPoint=form.querySelector('[name=pointId]')?.value;
+   const saved=currentRecords().filter(r=>!selectedPoint||r.pointId===selectedPoint).slice(-14);
+   meta.textContent=monthLabel(monthFilter.value)+'   ·   '+(selectedPoint?pointName(selectedPoint):'Все точки')+
+     '   ·   Сохранено записей: '+saved.length;
+   tbody.replaceChildren();
+   const rows=[...saved.map(r=>({record:r,draft:false})),{record:draftValue(),draft:true}];
+   for(const {record,draft} of rows){
+    const tr=el('tr');if(draft)tr.className='haccp-draft-row';
+    for(const col of columns){
+     const cell=el('td',paperCell(record,col.key,h().points,{draft}));
+     cell.dataset.column=col.key;tr.append(cell);
+    }
+    tbody.append(tr);
+   }
+   // Unsaved blank slots are strictly empty and never marked as inspected.
+   for(let i=rows.length;i<8;i++){
+    const tr=el('tr',undefined,'haccp-blank-row');
+    for(const col of columns)tr.append(el('td',''));
+    tbody.append(tr);
+   }
+  };
+  function setMode(value){
+   form.dataset.mode=value;
+   const showPaper=value==='paper';
+   fill.setAttribute('aria-pressed',String(!showPaper));
+   paperView.setAttribute('aria-pressed',String(showPaper));
+   if(showPaper)refreshPaper();
+  }
+  form.addEventListener('input',()=>{if(form.dataset.mode==='paper')refreshPaper()});
+  form.addEventListener('change',()=>{if(form.dataset.mode==='paper')refreshPaper()});
+  setMode('paper');
  }
  function h(){return getState()?.haccp||emptyHaccp()}
  function say(text,error=false){message.textContent=text;message.classList.toggle('error',error);if(error)notify(text,true)}
