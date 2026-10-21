@@ -91,11 +91,13 @@ app.get(['/', '/index.html'], async (req,res,next)=>{
 installWeatherApi(app);
 app.use(express.static('public'));
 
-// Cloud AI disabled for this free-only release, including retained host credentials.
-const geminiKey = '';
+// Gemini is enabled only when a server-side API key exists. Never expose keys to the browser.
+const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
 const hasKey = Boolean(geminiKey);
-installVoiceApi(app,{key:geminiKey});
 const geminiModel = String(process.env.GEMINI_MODEL||'gemini-3.8-flash').trim();
+installVoiceApi(app,{key:geminiKey});
+app.get('/api/ai/status',(req,res)=>res.json({provider:'gemini',configured:hasKey,model:hasKey?geminiModel:null,voiceConfigured:hasKey}));
+console.info('[gemini] configured='+hasKey+' model='+geminiModel);
 
 const frontpadConfigured=()=>Boolean(String(process.env.FRONTPAD_LOGIN||'').trim()&&String(process.env.FRONTPAD_PASSWORD||'').trim());
 
@@ -902,8 +904,8 @@ app.post('/api/transcribe',async(req,res)=>{
       ]}],
       generationConfig:{temperature:0}
     };
-    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent?key='+encodeURIComponent(geminiKey);
-    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(30000)});
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(geminiModel)+':generateContent';
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},body:JSON.stringify(body),signal:AbortSignal.timeout(30000)});
     const result=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(result?.error?.message||('Gemini HTTP '+r.status));
     const text=(result?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||'').join('').trim().replace(/^["«]|["»]$/g,'').trim();
@@ -946,13 +948,13 @@ app.post('/api/chat',async(req,res)=>{
       contents:[...history,{role:'user',parts:[{text:message}]}],
       generationConfig:{temperature:0.5}
     };
-    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(geminiKey);
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent';
     let last=null;
     for(let attempt=1;attempt<=1;attempt++){
       try{
         const r=await fetch(url,{
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},
           body:JSON.stringify(body),
           signal:AbortSignal.timeout(30000)
         });
