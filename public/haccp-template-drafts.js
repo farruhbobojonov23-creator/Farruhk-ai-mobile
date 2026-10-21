@@ -27,6 +27,8 @@ export function saveAutoTemplate(state,{kind,pointId,form,now=new Date()}){
  const h=validateHaccp(state.haccp);
  if(!journalTypes[kind]||!h.points.some(p=>p.id===pointId))throw Error('Выбери журнал и точку.');
  const fields=sanitize(form);
+ // A sample may specify approved limits but must never become an invented measured temperature.
+ if(kind==='temperature')delete fields.measured;
  if(!Object.keys(fields).length)throw Error('Заполни хотя бы одно поле образца.');
  const day=moscowCheckpoint(now).day;
  const id=kind+'|'+pointId+(kind==='temperature'?'|'+(fields.equipmentId||''):'');
@@ -56,6 +58,7 @@ export function dueAutoDrafts(raw,now=new Date()){
    const offset=Math.round((time-first.getTime())/86400000),form={...template.form};
    form.at=day+'T11:00';
    form.pointId=template.pointId;
+   if(template.kind==='temperature')delete form.measured;
    for(const key of ['startedAt','finishedAt','useBy']){
     if(form[key])form[key]=shiftDay(form[key],offset);
    }
