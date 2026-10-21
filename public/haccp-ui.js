@@ -12,6 +12,7 @@ import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettin
 import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
+import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings} from './hygiene-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -85,6 +86,42 @@ export function mountHaccp(root,{getState,save,notify}){
  updateAutoStats();
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
+ }
+ function hygieneSettingsPanel(){
+  const pointId=pointFilter.value||h().points[0]?.id;
+  if(!pointId)return el('p','Сначала добавь точку в настройках.');
+  const point=h().points.find(p=>p.id===pointId),config=hygieneSettings(h(),pointId);
+  const box=el('section',undefined,'haccp-daily-overview haccp-hygiene-settings');
+  box.append(el('h2','Гигиенический осмотр · '+point.name),
+   el('p','Проверка по каждому сотруднику перед каждой сменой. Ответственный по умолчанию: '+config.reviewer+'. Можно изменить.','small'),
+   el('p','В справочнике '+config.employees.length+' сотрудников. В журнале указываются только служебные сведения, без диагнозов и медицинских подробностей.','small'));
+  const details=el('details',undefined,'haccp-template-settings');
+  details.append(el('summary','⚙ Настроить сотрудников, должности и проверяющего'));
+  const form=el('form',undefined,'haccp-form');
+  const employees=inputField(form,'Сотрудники (каждый с новой строки)','employees',{
+   type:'textarea',value:config.employees.join('\n'),maxLength:12000});
+  employees.rows=7;
+  const roles=inputField(form,'Должности','roles',{
+   type:'textarea',value:config.roles.join('\n'),maxLength:8000,required:true});
+  roles.rows=5;
+  inputField(form,'Проводит осмотр (должность)','reviewer',{required:true,value:config.reviewer,maxLength:120});
+  const submit=el('button','Сохранить список сотрудников','primary');submit.type='submit';form.append(submit);
+  form.onsubmit=safe(async event=>{
+   event.preventDefault();if(!form.reportValidity())return;
+   const data=Object.fromEntries(new FormData(form));
+   const parse=value=>String(value||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+   submit.disabled=true;
+   try{
+    await commit(state=>{
+     updateHygieneSettings(state,pointId,{
+      employees:parse(data.employees),roles:parse(data.roles),reviewer:data.reviewer
+     });
+     state.haccp=validateHaccp(state.haccp);
+    });build();
+   }finally{submit.disabled=false}
+  });
+  details.append(form);box.append(details);
+  return box;
  }
  function qualitySettingsPanel(){
   const pointId=pointFilter.value||h().points[0]?.id;
@@ -278,10 +315,10 @@ export function mountHaccp(root,{getState,save,notify}){
   return panel;
  }
  function dailyDrafts(){
-  if(['receiving','defrosting'].includes(tab)){
+  if(['receiving','defrosting','hygiene'].includes(tab)){
    const box=el('section',undefined,'haccp-daily-overview');
-   box.append(el('h2',tab==='defrosting'?'Размораживание по факту начала процесса':'Приёмка по факту поставки'),
-    el('p',tab==='defrosting'?'Запиши фактическое начало, затем окончание, замеры и проверку старшего смены. Без фактического процесса завершённая запись не создаётся.':'Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
+   box.append(el('h2',tab==='hygiene'?'Осмотр перед каждой сменой':tab==='defrosting'?'Размораживание по факту начала процесса':'Приёмка по факту поставки'),
+    el('p',tab==='hygiene'?'Создавай запись для каждого фактически осмотренного сотрудника перед началом его смены. Записи без осмотра и решения не создаются.':tab==='defrosting'?'Запиши фактическое начало, затем окончание, замеры и проверку старшего смены. Без фактического процесса завершённая запись не создаётся.':'Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
    return box;
   }
   const {day:today,due:active}=moscowCheckpoint();
@@ -377,7 +414,7 @@ export function mountHaccp(root,{getState,save,notify}){
    say('Образец загружен. Можно отредактировать и сохранить заново.');
   }));
   // A delivery is an event, never an automatic daily check or pre-approved receipt.
-  if(['receiving','defrosting','quality'].includes(kind))toolbar.append(edit,save,pdf);
+  if(['receiving','defrosting','quality','hygiene'].includes(kind))toolbar.append(edit,save,pdf);
   else toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
@@ -609,6 +646,46 @@ export function mountHaccp(root,{getState,save,notify}){
    });
    form.append(dueHint);
   }
+  if(tab==='hygiene'){
+   const owner=grid.querySelector('[name=owner]'),time=grid.querySelector('[name=at]');
+   if(owner)owner.placeholder='ФИО старшего смены, который проводил осмотр';
+   if(time)time.value=new Date(Date.now()+3*3600000).toISOString().slice(0,16);
+   const employee=inputField(grid,'ФИО сотрудника','employee',{required:true,maxLength:120});
+   const known=el('datalist');known.id='haccp-hygiene-employees';employee.setAttribute('list',known.id);
+   form.append(known);
+   const role=selectField(grid,'Должность','role',[],{required:true,blank:true});
+   const shift=inputField(grid,'Наименование смены (если нужно)','shift',{maxLength:60});
+   shift.placeholder='Например: утренняя';
+   const start=inputField(grid,'Начало смены','shiftStart',{type:'datetime-local',required:true});
+   start.value='';
+   const reviewer=inputField(grid,'ФИО проверяющего (старший смены)','reviewer',{required:true,maxLength:120});
+   const refresh=()=>{
+    const list=hygieneSettings(h(),point.value);
+    const chosen=role.value;
+    options(role,list.roles.map(x=>[x,x]),true);
+    if(list.roles.includes(chosen))role.value=chosen;
+    known.replaceChildren(...list.employees.map(name=>{const o=el('option');o.value=name;return o}));
+    reviewer.placeholder=list.reviewer+' · фактическое ФИО';
+   };
+   point.addEventListener('change',refresh);refresh();
+   const checks=el('section',undefined,'haccp-hygiene-checklist panel');
+   checks.append(el('h3','Осмотр сотрудника перед началом смены'));
+   const group=el('div',undefined,'fields');
+   for(const [key,label] of HYGIENE_CHECKS){
+    selectField(group,label,key,[
+     ['ok',HYGIENE_OUTCOMES.ok],
+     ['problem',HYGIENE_OUTCOMES.problem],
+     ['na',HYGIENE_OUTCOMES.na]
+    ]);
+   }
+   checks.append(group,el('p','Заполняй только фактически проверенные пункты. Не вноси сведения о диагнозах, симптомах и причинах заболеваний.','small'));
+   form.append(checks);
+   selectField(grid,'Решение о допуске к смене','hygieneDecision',[
+    ['admit','Допущен к работе'],
+    ['deny','Не допущен к работе']
+   ],{blank:true});
+   form.append(el('p','Для недопуска запиши только служебное действие, например «Отстранён от работы, направлен к ответственному».','small'));
+  }
   if(tab==='quality'){
    const own=grid.querySelector('[name=owner]');
    if(own)own.placeholder='ФИО сушиста, который готовил и записывал проверку';
@@ -707,11 +784,12 @@ export function mountHaccp(root,{getState,save,notify}){
    start.addEventListener('input',sync);finish.addEventListener('input',sync);
    status.addEventListener('change',sync);point.addEventListener('change',sync);sync();
   }
-  if(extraJournals[tab]&&tab!=='defrosting'){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
+  if(extraJournals[tab]&&!['defrosting','quality','hygiene'].includes(tab)){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
+  if(tab==='hygiene')photo.closest('label').hidden=true;
   const kind=tab;submitForm(form,async raw=>{
-   if(kind==='defrosting'||kind==='quality'){
+   if(['defrosting','quality','hygiene'].includes(kind)){
     // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
     // HTML datetime-local contains no timezone. Attach the intended offset
     // before the backend parses/stores UTC timestamps.
@@ -807,9 +885,10 @@ export function mountHaccp(root,{getState,save,notify}){
    if(tab==='storage')body.append(storageSettingsPanel());
    if(tab==='defrosting')body.append(defrostSettingsPanel());
    if(tab==='quality')body.append(qualitySettingsPanel());
+   if(tab==='hygiene')body.append(hygieneSettingsPanel());
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
-   if(!['receiving','defrosting'].includes(tab))journalAutoDrafts();
+   if(!['receiving','defrosting','hygiene'].includes(tab))journalAutoDrafts();
    journalHistory();
   }else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
