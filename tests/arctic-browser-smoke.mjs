@@ -131,6 +131,19 @@ async function verify(mode,width,height){
   assert.ok(!overview.background.includes('32, 36, 39'),'HACCP daily card must not have legacy dark background: '+overview.background);
   assert.ok(overview.journalCards>=5,'HACCP cards mounted: '+overview.journalCards);
   await page.screenshot({path:'artifacts/arctic-haccp-'+mode+'.png',fullPage:false,timeout:12000});
+  const dailyOverview=await page.locator('#lab .haccp-daily-overview').first().innerText();
+  assert.match(dailyOverview,/запланированных проверок|план на сегодня/i,'daily checks use approved schedule, not all event-based journals');
+  assert.match(dailyOverview,/Генеральная уборка:/,'monthly deep-clean progress is visible');
+  await page.locator('#lab .haccp-utilities button').last().click();
+  assert.equal(await visible(page,'#lab .haccp-plan-settings'),true,'HACCP daily schedule settings open');
+  assert.equal(await page.locator('#lab .haccp-plan-check input:checked').count(),4,'four routine journals enabled initially');
+  assert.equal(await page.locator('#lab .haccp-plan-settings input[name=generalCleaningTarget]').inputValue(),'2','deep-clean goal defaults to twice per month');
+  await page.screenshot({path:'artifacts/arctic-haccp-plan-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=cleaning]').click();
+  assert.equal(await visible(page,'#lab select[name=cleaningType]'),true,'cleaning form has daily/general selection');
+  assert.equal(await page.locator('#lab select[name=cleaningType] option').count(),2,'cleaning modes limited to actual daily and general cleaning');
+
 
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
   assert.equal(await page.locator('body').getAttribute('data-view'),'tasks','Tasks navigation');
