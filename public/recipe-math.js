@@ -42,6 +42,8 @@ export function calculateNutrition(ingredients,yieldGrams){
 export function nutritionReference(recipes=[]){
  const byName=new Map(),ambiguous=new Set();
  for(const recipe of recipes||[])for(const ingredient of recipe.ingredients||[]){
+  // A generic value reused from USDA is still an estimate, not confirmed label data.
+  if(ingredient.nutritionOrigin==='reference')continue;
   const key=String(ingredient.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
   if(!key||ambiguous.has(key)||nutritionKeys.some(k=>!number(ingredient.nutrition?.[k])||Number(ingredient.nutrition[k])<0))continue;
   const value=Object.fromEntries(nutritionKeys.map(k=>[k,Number(ingredient.nutrition[k])]));
