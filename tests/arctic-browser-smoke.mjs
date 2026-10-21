@@ -185,6 +185,17 @@ async function verify(mode,width,height){
 
   await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=temperature]').click();
+  const branchSelector='#lab .haccp-temperature-point-selector select';
+  await page.locator(branchSelector).selectOption('point-1');
+  const branchSettings=page.locator('#lab .haccp-temperature-point-settings');
+  assert.equal(await branchSettings.count(),1,'selected location exposes rename control in temperature journal');
+  await branchSettings.locator('summary').click();
+  const branchName='QA филиал '+mode;
+  await branchSettings.locator('input[type=text]').fill(branchName);
+  await branchSettings.locator('button').click();
+  await page.waitForFunction(name=>document.querySelector('#lab .haccp-temperature-point-selector select')?.selectedOptions?.[0]?.text===name,branchName,{timeout:12000});
+  const branch2=await page.locator(branchSelector).locator('option[value="point-2"]').innerText();
+  assert.equal(branch2,'Точка 2','renaming first point never changes other location');
   assert.equal(await visible(page,'#lab .haccp-temperature-sample'),true,'temperature sample form visible without opening the hidden single-reading panel');
   assert.match(await page.locator('#lab .haccp-temperature-sample h3').innerText(),/МОЙ ОБРАЗЕЦ/,'sample has an obvious headline');
   const saveTempSample=page.locator('#lab .haccp-temperature-sample-actions button').filter({hasText:'Сохранить образец'});
@@ -204,6 +215,18 @@ async function verify(mode,width,height){
    'added freezer appears in the sample range list without navigating to settings');
   const addedRange=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA 2'});
   assert.deepEqual(await addedRange.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-20','-12'],'new freezer limits retained');
+  const editableName=addedRange.locator('.haccp-temperature-equipment-name');
+  await editableName.fill('Морозильник QA · после переименования');
+  await addedRange.locator('input[type=number]').nth(0).fill('-25');
+  await addedRange.locator('input[type=number]').nth(1).fill('-18');
+  await addedRange.locator('.haccp-temperature-equipment-save').click();
+  await page.waitForFunction(()=>[...document.querySelectorAll('#lab .haccp-temperature-range strong')].some(x=>x.textContent==='Морозильник QA · после переименования'),null,{timeout:12000});
+  const renamed=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA · после переименования'});
+  assert.deepEqual(await renamed.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-25','-18'],'edited limits persist');
+  await page.locator(branchSelector).selectOption('point-2');
+  assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),0,'other point is separate');
+  await page.locator(branchSelector).selectOption('point-1');
+  assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),1,'equipment name persists after changing point');
   await page.screenshot({path:'artifacts/arctic-haccp-temperature-sample-'+mode+'.png',fullPage:false,timeout:12000});
 
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
