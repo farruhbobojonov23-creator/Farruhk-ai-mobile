@@ -73,7 +73,7 @@ test('Full print pack contains 12 journals and marks missing checks clearly, wit
  assert.match(out.text,/Уборка и дезинфекция/);
  assert.match(out.text,/Приёмка продуктов/);
  assert.match(out.text,/Гигиенический осмотр/);
- assert.match(out.text,/автоподготовка/i);
+ assert.match(out.text,/Автоматические ЧЕРНОВИКИ/);
  assert.doesNotMatch(out.text,/Фиктивная/);
 });
 test('Monthly HACCP pack endpoint returns PDF; invalid month rejected',async()=>{
