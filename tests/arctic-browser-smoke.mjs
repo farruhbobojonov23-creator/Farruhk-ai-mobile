@@ -160,11 +160,13 @@ async function verify(mode,width,height){
   await page.locator('#lab select[name=cleaningType]').selectOption('general');
   await page.locator('#lab input[name=zone]').fill('Витрина');
   await page.locator('#lab .journal-modes button').first().click();
-  const draftText=await page.locator('#lab .haccp-draft-row').innerText();
-  assert.match(draftText,/Генеральная/,'A4 preview reflects selected cleaning kind');
-  assert.match(draftText,/Витрина/,'A4 preview reflects entered zone');
-  assert.match(draftText,/Черновик/,'unsaved preview cannot be mistaken for confirmed inspection');
-  assert.ok(await page.locator('#lab .haccp-blank-row').count()>=1,'empty A4 journal has unconfirmed blank slots');
+  const documentText=await page.locator('#lab .haccp-a4-paper').innerText();
+  assert.equal(await page.locator('#lab .haccp-draft-row').count(),0,
+   'official A4 never prints an unsaved editing row');
+  assert.ok(!/Черновик|Не подтверждено|Запланировано|Витрина/i.test(documentText),
+   'official A4 stays blank until an actual inspection is saved');
+  assert.ok(await page.locator('#lab .haccp-blank-row').count()>=8,
+   'official A4 has clean ruled lines for paper entry');
   await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=receiving]').click();
   const receivingHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
@@ -206,6 +208,11 @@ async function verify(mode,width,height){
   assert.ok(qualityHeads.includes('Контроль')&&qualityHeads.includes('Блюдо / партия')&&
    qualityHeads.includes('Органолептика')&&qualityHeads.includes('Решение / проверяющий'),
    'quality HACCP A4 shows batch, sensory review and senior signoff');
+  const blankQuality=await page.locator('#lab .haccp-a4-paper').innerText();
+  assert.ok(!/Черновик|Не подтверждено|Не оценено|Запланировано|оценка не проводилась/i.test(blankQuality),
+   'quality A4 displays only formal column titles and no operational draft warnings');
+  assert.ok(await page.locator('#lab .haccp-blank-row').count()>=8,
+   'quality A4 uses clean empty cells rather than unsaved positive decisions');
   assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
    'quality sample button never reuses prior sensory approval');
   await page.locator('#lab .haccp-sheet-toolbar button').first().click();
