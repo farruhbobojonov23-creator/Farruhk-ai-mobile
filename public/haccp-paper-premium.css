@@ -251,3 +251,66 @@
  border-left:3px solid #388ebf!important;font-size:13px!important;
 }
 #lab .haccp-paper-premium .haccp-sheet-toolbar button{flex:1 1 165px}
+
+
+/* Obvious one-time sample setup, inside the main temperature journal (not hidden). */
+#lab .haccp-temperature-sample{
+ margin:14px 0 18px!important;
+ padding:16px!important;
+ border-radius:17px!important;
+ border:1px solid #9dcbe7!important;
+ background:linear-gradient(128deg,#ffffff,#e1f3ff)!important;
+ color:#245b80!important;
+ box-shadow:0 8px 23px #4d9ad322!important;
+}
+#lab .haccp-temperature-sample h3{
+ color:#1a5a85!important;
+ font-size:clamp(17px,2.6vw,21px)!important;
+ line-height:1.4!important;
+ margin:0 0 8px!important;
+}
+#lab .haccp-temperature-sample .small{
+ color:#476d8c!important;
+ font-size:13px!important;
+ line-height:1.6!important;
+}
+#lab .haccp-temperature-sample-actions{
+ display:flex!important;gap:9px!important;flex-wrap:wrap!important;margin:14px 0!important;
+}
+#lab .haccp-temperature-sample-actions button{
+ flex:1 1 170px!important;min-height:48px!important;
+ padding:11px 12px!important;border-radius:12px!important;
+ color:#1d6089!important;background:linear-gradient(135deg,#fff,#dfedfa)!important;
+ border:1px solid #9ecae6!important;font-size:14px!important;font-weight:730!important;
+}
+#lab .haccp-temperature-sample-actions button.primary{
+ color:white!important;background:linear-gradient(125deg,#56ace1,#2f84c3)!important;
+ border:1px solid #4698c9!important;
+}
+#lab .haccp-temperature-sample-status{
+ padding:8px 10px!important;border-radius:10px!important;
+ background:#f5fbff!important;
+ border:1px solid #d1e8f7!important;
+ color:#3d6684!important;font-size:13px!important;
+}
+#lab .haccp-temperature-drafts{
+ margin:14px 0 18px!important;padding:13px!important;
+ background:linear-gradient(150deg,#f8fcff,#eaf7ff)!important;
+ border:1px solid #c4deef!important;border-radius:15px!important;color:#225a7b!important;
+}
+#lab .haccp-temperature-drafts h3{margin:0 0 9px!important;color:#245879!important}
+#lab .haccp-temperature-draft-line{
+ display:flex!important;justify-content:space-between!important;align-items:center!important;
+ flex-wrap:wrap!important;gap:8px!important;margin:8px 0!important;
+ border:1px solid #cfe5f4!important;border-radius:10px!important;
+ background:#fff!important;padding:10px!important;font-size:13px!important;color:#295879!important;
+}
+#lab .haccp-temperature-draft-line button{
+ min-height:42px!important;background:#e7f5ff!important;color:#28658c!important;
+ border:1px solid #bddbed!important;border-radius:10px!important;
+ padding:9px!important;font-size:13px!important;
+}
+@media(max-width:650px){
+ #lab .haccp-temperature-sample-actions{flex-direction:column!important}
+ #lab .haccp-temperature-sample-actions button{flex:initial!important;width:100%!important}
+}
