@@ -82,7 +82,7 @@ export function updateHygieneSettings(state,pointId,{employees,roles,reviewer,ro
  const value={
   employees:cleanNames([...new Set([...names,...rosterItems.map(x=>x.name)])],'сотрудники'),
   roster:rosterItems,
-  roles:cleanNames(roles,'должности'),
+  roles:cleanNames([...new Set([...cleanNames(roles,'должности'),...rosterItems.map(x=>x.role)])],'должности'),
   reviewer:String(reviewer??'').trim().slice(0,120),
   schedule:'before-shift'
  };
