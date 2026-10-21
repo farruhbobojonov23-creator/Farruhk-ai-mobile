@@ -11,6 +11,13 @@ export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog
      heading.replaceChildren(document.createTextNode('Будущее.'),document.createElement('br'),em);
    }
  }
+ const glassArtwork=$('home')?.querySelector('.arctic-reference-orb');
+ if(glassArtwork){
+   const reveal=()=>{if(glassArtwork.naturalWidth>0)glassArtwork.parentElement.classList.add('art-ready')};
+   glassArtwork.addEventListener('load',reveal,{once:true});
+   glassArtwork.addEventListener('error',()=>glassArtwork.parentElement.classList.remove('art-ready'),{once:true});
+   if(glassArtwork.complete)reveal();
+ }
  const pauseEffects=()=>document.body.classList.toggle('fx-paused',document.hidden);
  document.addEventListener('visibilitychange',pauseEffects);pauseEffects();
  mountHomeWeather($('home'));
