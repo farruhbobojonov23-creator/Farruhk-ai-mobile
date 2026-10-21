@@ -121,8 +121,7 @@ body:not([data-view="home"]) details:not(.ttk-paper details){
  border:1px solid #ffffffec!important;
  box-shadow:0 7px 24px #5b95ba20,inset 0 1px #fff!important;
 }
-body:not([data-view="home"]) button:not(.mobile-tools button):not(.haccp-month-table button),
-body:not([data-view="home"]) .view button{
+body:not([data-view="home"]) button:not(.mobile-tools button):not(.haccp-month-table button){
  border-color:#b4d5ef!important;
  color:#255477;
  background:linear-gradient(145deg,#f9fdffeb,#e3f3ffdc);
@@ -224,3 +223,16 @@ body:not([data-view="home"]) .ttk-paper select{
  body:not([data-view="home"]) .mobile-tools{bottom:8px!important;left:12px!important;right:12px!important}
  body:not([data-view="home"]) #recipes .bar{flex-wrap:wrap!important}
 }
+
+/* Consistent sapphire overlays and assistant panels. */
+body:not([data-view="home"]) dialog,
+body:not([data-view="home"]) .login-card{
+ background:linear-gradient(150deg,#ffffff,#e1f1fd)!important;color:#174267!important;
+ border:1px solid #ffffff!important;box-shadow:0 26px 80px #3873a74a!important;
+}
+body:not([data-view="home"]) dialog .bar{background:#f5fbff!important}
+body:not([data-view="home"]) .login-overlay{background:#daefffec!important}
+body:not([data-view="home"]) .bubble.ai{background:#e5f4ff!important;color:#204969!important}
+body:not([data-view="home"]) .bubble.user{background:#b8def9!important;color:#173b60!important}
+body:not([data-view="home"]) #global-voice{border-color:#c4e2f6!important;background:#f1f9ff!important;color:#25597c!important}
+@media(max-width:600px){body:not([data-view="home"]) #notice{background:#e7f6ff!important;color:#255b7f!important;border-color:#fff!important}}
