@@ -221,3 +221,33 @@
  #lab .haccp-autofill-panel{padding:15px!important;margin:15px 0 24px!important}
  #lab .haccp-autofill-panel button.primary{font-size:14px!important}
 }
+
+
+/* Owner-defined reusable HACCP templates and unconfirmed daily drafts */
+#lab .haccp-drafts-panel{
+ margin:18px 0 25px!important;
+ padding:clamp(15px,3vw,22px)!important;
+ border-radius:19px!important;border:1px solid #bedfed!important;
+ background:linear-gradient(135deg,#fff,#f0faff)!important;color:#234e70!important;
+ box-shadow:0 8px 22px #4b91b518!important;
+}
+#lab .haccp-drafts-panel h2{font-size:18px!important;margin:0 0 9px!important;color:#1d527b!important}
+#lab .haccp-drafts-panel p{font-size:13px!important;line-height:1.6!important;color:#4a708e!important}
+#lab .haccp-draft-line{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex-wrap:wrap!important;gap:10px!important;border:1px solid #d0e5f5!important;
+ border-radius:12px!important;padding:11px 13px!important;
+ margin-top:9px!important;background:#fff!important;color:#325e7a!important;
+ font-size:13px!important;
+}
+#lab .haccp-draft-line button{
+ min-height:42px!important;border-radius:11px!important;
+ border:1px solid #aad1e7!important;background:linear-gradient(115deg,#eaf8ff,#d5edfb)!important;
+ color:#1c5c85!important;font-size:13px!important;padding:9px 14px!important;font-weight:720!important;
+}
+#lab .haccp-draft-banner{
+ padding:12px 14px!important;margin:8px 0!important;color:#1c5a80!important;
+ background:#e3f5ff!important;border-radius:11px!important;
+ border-left:3px solid #388ebf!important;font-size:13px!important;
+}
+#lab .haccp-paper-premium .haccp-sheet-toolbar button{flex:1 1 165px}
