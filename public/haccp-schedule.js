@@ -16,7 +16,7 @@ export function dueRecords(raw,{day,pointId='',kinds}={}){
  if(!Array.isArray(active)||active.some(k=>!journalTypes[k]))throw Error('Неверный план ХАССП.');
  const checks=h.points.filter(p=>!pointId||p.id===pointId)
   .flatMap(point=>active.map(kind=>{
-   const records=h.records.filter(r=>r.pointId===point.id&&r.kind===kind&&measurementDate(r.at).slice(0,10)===day);
+   const records=h.records.filter(r=>r.pointId===point.id&&r.kind===kind&&measurementDate(r.at).slice(0,10)===day&&!(kind==='cleaning'&&r.details.cleaningType==='general'));
    return {pointId:point.id,point:point.name,kind,name:journalTypes[kind],records:records.length,
     deviations:records.filter(r=>r.status==='deviation').length,
     complete:records.length>0};
