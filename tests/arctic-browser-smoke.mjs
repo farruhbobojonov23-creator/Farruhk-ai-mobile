@@ -66,6 +66,19 @@ async function verify(mode,width,height){
   await page.locator('#ruby-menu').click();
   assert.equal(await visible(page,'#chef-menu'),false,'menu closes on second tap');
 
+  // The new free Google Drive backup controls must appear under Device Data.
+  const backupLocated=await page.evaluate(()=>document.getElementById('device-export')?.parentElement?.contains(document.querySelector('.google-backup-open')));
+  assert.equal(backupLocated,true,'Google backup is alongside local backup controls');
+  const settingsDialog=page.locator('.lunar-dialog[aria-label="Настройки и данные"]');
+  await settingsDialog.evaluate(el=>el.showModal());
+  await page.locator('#device-export').evaluate(el=>el.closest('details').open=true);
+  await page.locator('.google-backup-open').click();
+  assert.equal(await visible(page,'.google-backup-dialog'),true,'Google backup dialog opens');
+  assert.equal(await page.locator('.google-backup-dialog [data-save]').isDisabled(),true,'No upload before Google is connected');
+  assert.equal(await page.locator('.google-backup-dialog [data-list]').isDisabled(),true,'No cloud operations before connection');
+  await page.screenshot({path:'artifacts/arctic-google-backup-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('.google-backup-dialog [data-close]').click();
+
   await page.locator('#home-new-recipe').click();
   assert.equal(await page.locator('body').getAttribute('data-view'),'recipes','create TTK navigates to recipes');
   assert.equal(await visible(page,'#editor'),true,'TTK editor opens');
