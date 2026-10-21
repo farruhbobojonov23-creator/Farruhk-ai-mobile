@@ -21,6 +21,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  const samplePanel=el('section',undefined,'haccp-temperature-sample');
  samplePanel.append(el('h3','МОЙ ОБРАЗЕЦ · ТЕМПЕРАТУРЫ'));
  const sampleInfo=el('p','Настрой допустимый диапазон °C отдельно для каждого холодильника и морозильника. Укажи ответственного ниже и сохрани образец. В 11:00 ежедневно подготовятся строки с нормами, но без выдуманных температур: фактический замер ты внесёшь при проверке.','small');
+ const sampleOwner=field(samplePanel,'Ответственный для образца','text',selection.owner||'');sampleOwner.maxLength=120;
  const sampleRanges=el('div',undefined,'haccp-temperature-range-grid');
  const sampleStatus=el('p','','haccp-temperature-sample-status');
  const sampleActions=el('div',undefined,'haccp-temperature-sample-actions');
@@ -52,7 +53,9 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  }
  async function storeTemplate(){
   if(saving)return;
-  if(!owner.value.trim()){hint.textContent='Сначала укажи ответственного ниже.';owner.focus();return}
+  const responsible=(sampleOwner.value||owner.value).trim();
+  if(!responsible){hint.textContent='Укажи ответственного в блоке «Мой образец».';sampleOwner.focus();return}
+  owner.value=responsible;selection.owner=responsible;
   if(!ranges.length){hint.textContent='Добавь холодильники в «Точки и оборудование», чтобы настроить образец.';return}
   const values=[];
   for(const row of ranges){
@@ -71,7 +74,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
      updateEquipment(state,equip.id,{name:equip.name,min:row.min,max:row.max});
      const current=state.haccp.equipment.find(e=>e.id===row.id);
      saveAutoTemplate(state,{kind:'temperature',pointId:current.pointId,form:{
-      pointId:current.pointId,at:today+'T11:00',owner:owner.value.trim(),
+      pointId:current.pointId,at:today+'T11:00',owner:responsible,
       equipmentId:current.id,min:row.min,max:row.max
      }});
     }
@@ -84,7 +87,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
   const templates=getHaccp().autoTemplates||[];
   const available=inputs.map(i=>({input:i,template:templates.find(t=>t.kind==='temperature'&&t.form?.equipmentId===i.equipmentId)})).filter(x=>x.template);
   if(!available.length){hint.textContent='Сначала сохрани образец.';return}
-  if(available[0].template.form.owner)owner.value=available[0].template.form.owner;
+  if(available[0].template.form.owner){owner.value=available[0].template.form.owner;sampleOwner.value=owner.value}
   for(const {input,template} of available){
    const row=ranges.find(r=>r.equipmentId===input.equipmentId);
    if(row){row.min.value=template.form.min??row.min.value;row.max.value=template.form.max??row.max.value}
@@ -105,6 +108,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
     const draftTime=group[0].form.at?.slice(11,16);
     date.value=day;time.value=draftTime||'11:00';
     owner.value=group[0].form.owner||'';
+    sampleOwner.value=owner.value;
     for(const input of inputs){
      const saved=group.find(d=>d.form.equipmentId===input.equipmentId);
      input.measured.value=''; // Never copy legacy sample measurements into a new factual reading.
