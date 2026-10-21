@@ -11,7 +11,7 @@ const pdfBytes=doc=>new Promise((resolve,reject)=>{const chunks=[];doc.on('data'
 test('Daily autoblanks appear at 11:00 Moscow without generating imaginary outcomes',()=>{
  const h=emptyHaccp();
  const rows=automaticJournalRows(h,{month:'2026-10',kind:'cleaning',pointId:'point-1',now:when});
- assert.equal(rows.length,31);
+ assert.equal(rows.length,33); // 31 daily checks + 2 distinct general-clean schedule slots
  assert.equal(rows.filter(x=>x.type==='confirmed').length,0);
  assert.equal(rows[19].day,'2026-10-20');
  assert.equal(rows[19].due,true);
