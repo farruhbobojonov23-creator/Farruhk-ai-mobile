@@ -24,6 +24,35 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   ?selectedPoint.name+' · '+assigned.length+' единиц оборудования. Параметры этой точки сохраняются отдельно от остальных.'
   :'Все точки: только общий просмотр. Выбери филиал для сохранения его образца.';
  pointBar.append(locationLabel,pointSummary);
+ if(selectedPoint){
+  const nameSettings=el('details',undefined,'haccp-temperature-point-settings');
+  nameSettings.append(el('summary','⚙ Изменить название точки'));
+  const editor=el('div',undefined,'haccp-temperature-point-editor');
+  const pointName=field(editor,'Название точки / филиала','text',selectedPoint.name);
+  pointName.maxLength=120;pointName.required=true;
+  const pointFeedback=el('p','','haccp-temperature-settings-feedback');
+  pointFeedback.setAttribute('role','status');
+  const rename=button('✓ Сохранить название точки',async()=>{
+   const name=pointName.value.trim();
+   if(!name){pointFeedback.textContent='Введи название точки.';pointName.focus();return}
+   rename.disabled=true;
+   try{
+    await commit(state=>{
+     const next=validateHaccp(state.haccp);
+     const item=next.points.find(p=>p.id===pointId);
+     if(!item)throw Error('Точка не найдена.');
+     if(next.points.some(p=>p.id!==pointId&&p.name.trim().toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU')))
+      throw Error('Точка с таким названием уже существует.');
+     item.name=name;
+     state.haccp=validateHaccp(next);
+    });
+   }catch(error){
+    pointFeedback.textContent=error.message||'Не удалось переименовать точку.';
+    notify(pointFeedback.textContent,true);
+   }finally{rename.disabled=false}
+  },'primary');
+  editor.append(rename,pointFeedback);nameSettings.append(editor);pointBar.append(nameSettings);
+ }
  // If the device still has generic point names, the owner chooses which point is Plasma.
  if(selectedPoint&&/^Точка\s+\d+$/iu.test(selectedPoint.name.trim())&&
     !getHaccp().points.some(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')){
@@ -143,10 +172,12 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   if(!ranges.length){hint.textContent='Добавь холодильники в «Точки и оборудование», чтобы настроить образец.';return}
   const values=[];
   for(const row of ranges){
+   const name=row.name.value.trim();
    const min=row.min.value.trim().replace(',','.'),max=row.max.value.trim().replace(',','.');
+   if(!name){hint.textContent='Укажи название каждого оборудования.';row.name.focus();return}
    if(min&&!Number.isFinite(Number(min))||max&&!Number.isFinite(Number(max)))return error(Error('Проверь диапазон «'+row.name+'»: нужны числа.'));
    if(min&&max&&Number(min)>Number(max))return error(Error('У «'+row.name+'» минимум больше максимума.'));
-   values.push({id:row.equipmentId,min,max});
+   values.push({id:row.equipmentId,name,min,max});
   }
   saving=true;sampleSave.disabled=true;
   try{
@@ -155,7 +186,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
     for(const row of values){
      const equip=state.haccp.equipment.find(e=>e.id===row.id);
      if(!equip)throw Error('Оборудование удалено.');
-     updateEquipment(state,equip.id,{name:equip.name,min:row.min,max:row.max});
+     updateEquipment(state,equip.id,{name:row.name,min:row.min,max:row.max});
      const current=state.haccp.equipment.find(e=>e.id===row.id);
      saveAutoTemplate(state,{kind:'temperature',pointId:current.pointId,form:{
       pointId:current.pointId,at:today+'T11:00',owner:responsible,
@@ -207,6 +238,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   if(!dates.length)draftItems.append(el('p','После сохранения образца система будет готовить черновики к 11:00 по московскому времени.','small'));
  }
 
+ function errorMessage(e){hint.textContent=e.message||'Не удалось выполнить действие.';notify(hint.textContent,true)}
  function error(e){hint.textContent=e.message||'Не удалось выполнить действие.';notify(hint.textContent,true)}
  function draw(){
   selection.month=month.value;selection.period=period.value;entry.hidden=month.value!==measurementDate().slice(0,7);
@@ -223,13 +255,30 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
    // Entry forms always show the selected point's equipment, including blank measurements.
    if(getHaccp().equipment.some(e=>e.id===row.id)){
     const range=el('div',undefined,'haccp-temperature-range');
-    range.append(el('strong',row.name),el('small',row.point+' · утверждённые пределы °C'));
+    range.dataset.equipmentId=row.id;
+    const nameField=field(range,'Название оборудования','text',row.name);
+    nameField.classList.add('haccp-temperature-equipment-name');
+    nameField.maxLength=120;nameField.required=true;
+    range.append(el('small',row.point+' · температура по утверждённым требованиям'));
     const rangeFields=el('div',undefined,'haccp-temperature-range-fields');
     const min=field(rangeFields,'Минимум, °C','number',row.min==null?'':String(row.min));
     const max=field(rangeFields,'Максимум, °C','number',row.max==null?'':String(row.max));
     min.step=max.step='any';min.inputMode=max.inputMode='decimal';
-    range.append(rangeFields);sampleRanges.append(range);
-    ranges.push({equipmentId:row.id,name:row.name,min,max});
+    range.append(rangeFields);
+    const itemSave=button('✓ Сохранить название и диапазон',async()=>{
+     const name=nameField.value.trim(),lower=min.value.trim().replace(',','.'),upper=max.value.trim().replace(',','.');
+     if(!name){hint.textContent='Введи название оборудования.';nameField.focus();return}
+     if(lower&&!Number.isFinite(Number(lower))||upper&&!Number.isFinite(Number(upper))||
+      lower&&upper&&Number(lower)>Number(upper)){
+       hint.textContent='Проверь границы: минимум не должен превышать максимум.';return;
+     }
+     itemSave.disabled=true;
+     try{
+      await commit(state=>updateEquipment(state,row.id,{name,min:lower,max:upper}));
+     }catch(error){errorMessage(error)}finally{itemSave.disabled=false}
+    },'haccp-temperature-equipment-save');
+    range.append(itemSave);sampleRanges.append(range);
+    ranges.push({equipmentId:row.id,name:nameField,min,max});
     const wrap=el('div',undefined,'haccp-daily-row'),label=el('label'),nameText=el('strong',row.name);label.append(nameText,el('small',row.point+' · '+temperatureLimits(row)));const measured=el('input');measured.type='number';measured.step='any';measured.inputMode='decimal';measured.placeholder='°C';measured.setAttribute('aria-label','Температура: '+row.name+' · '+row.point);label.append(measured);const notes=el('input');notes.type='text';notes.maxLength=2000;notes.placeholder='Комментарий (если нужен)';notes.setAttribute('aria-label','Комментарий: '+row.name);wrap.append(label,notes);equipmentInputs.append(wrap);inputs.push({equipmentId:row.id,measured,notes});
    }
   }table.append(tbody);viewport.append(table);
