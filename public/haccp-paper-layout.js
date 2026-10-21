@@ -500,8 +500,10 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  }
  else if(key==='receivedTemperature'){
   if(details.measured===null||details.measured===undefined||details.measured==='')return 'Не измерена';
-  const range=details.min==null&&details.max==null?'границы не заданы':
-   details.min==null?'до '+details.max:details.max==null?'от '+details.min:details.min+' … '+details.max;
+  const hasMin=details.min!==null&&details.min!==undefined&&String(details.min).trim()!=='';
+  const hasMax=details.max!==null&&details.max!==undefined&&String(details.max).trim()!=='';
+  const range=!hasMin&&!hasMax?'границы не заданы':
+   !hasMin?'до '+details.max:!hasMax?'от '+details.min:details.min+' … '+details.max;
   return String(details.measured)+' °C; '+range;
  }
  else if(key==='temperatureLimits')value=
@@ -509,7 +511,7 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   (details.min==null?'до '+details.max:details.max==null?'от '+details.min:details.min+' … '+details.max);
  else if(key==='cleaningMethod')value=[details.method,details.agent,details.concentration&&'Конц.: '+details.concentration,details.exposure&&'Выдержка: '+details.exposure].filter(Boolean).join(' / ');
  else value=details[key]??record?.[key];
- if(key==='result'&&draft)return 'Черновик';
+ if((key==='result'||key==='decision')&&draft)return 'Черновик';
  if(Array.isArray(value))value=value.map(item=>
   item&&typeof item==='object'?(item.label||'Пункт')+': '+(values[item.result]||item.result||'—'):String(item)
  ).join('; ');
