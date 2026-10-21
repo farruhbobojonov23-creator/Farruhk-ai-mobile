@@ -9,6 +9,7 @@ import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
 import {RECEIVING_GROUPS,RECEIVING_CHECKS,RECEIVING_CHECK_VALUES,receivingSettings,updateReceivingSettings} from './receiving-config.js?v=1';
+import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStorageSettings} from './storage-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -82,6 +83,55 @@ export function mountHaccp(root,{getState,save,notify}){
  updateAutoStats();
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
+ }
+ function storageSettingsPanel(){
+  const selectedId=pointFilter.value||h().points[0]?.id;
+  if(!selectedId)return el('p','Сначала добавь точку в настройках.');
+  const point=h().points.find(p=>p.id===selectedId);
+  const config=storageSettings(h(),selectedId);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-storage-settings');
+  panel.append(el('h2','Маркировка и хранение · '+point.name),
+   el('p','Продукты и зоны — справочные подсказки. Срок годности и условия для каждой партии вводятся вручную по этикетке, ТТК или утверждённой инструкции.','small'),
+   el('p','Продуктов в справочнике: '+config.products.length+
+    ' · зон хранения: '+config.zones.length+'.','small'));
+  if(!pointFilter.value)panel.append(el('p','Показана первая точка. Выбери другой филиал в фильтре, чтобы редактировать его настройки отдельно.','small'));
+  const details=el('details',undefined,'haccp-template-settings');
+  details.append(el('summary','⚙ Изменить продукты и зоны хранения'));
+  const form=el('form',undefined,'haccp-form');
+  const products=inputField(form,'Продукты (по одному на строке)','products',{
+   type:'textarea',value:config.products.join('\n'),maxLength:8000});
+  products.rows=8;
+  const zones=inputField(form,'Зоны хранения (по одной на строке)','zones',{
+   type:'textarea',required:true,value:config.zones.join('\n'),maxLength:6000});
+  zones.rows=5;
+  form.append(el('p','Не вводи сюда универсальные сроки хранения — они зависят от конкретного продукта и его утверждённой технологии.','small'));
+  const saveButton=el('button','Сохранить справочник хранения','primary');saveButton.type='submit';form.append(saveButton);
+  form.onsubmit=safe(async e=>{
+   e.preventDefault();if(!form.reportValidity())return;
+   const raw=Object.fromEntries(new FormData(form));
+   const list=value=>String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+   saveButton.disabled=true;
+   try{
+    await commit(state=>{
+     updateStorageSettings(state,selectedId,{products:list(raw.products),zones:list(raw.zones)});
+     state.haccp=validateHaccp(state.haccp);
+    });
+    build();
+   }finally{saveButton.disabled=false}
+  });
+  details.append(form);panel.append(details);
+  const past=h().records.filter(r=>r.kind==='storage'&&r.pointId===selectedId)
+   .sort((a,b)=>b.at.localeCompare(a.at)).slice(0,4);
+  if(past.length){
+   const historyNote=el('details');
+   historyNote.append(el('summary','Последние записи маркировки · '+past.length),
+    el('p','Это исторические проверки, не подтверждение наличия товара на складе сейчас.','small'));
+   for(const r of past)historyNote.append(el('p',
+    (r.details?.product||'Продукт')+' · '+displayDate(r.at)+' · срок до '+displayDate(r.details?.useBy)+
+    ' · '+(r.status==='deviation'?'Было замечание':'Запись сохранена'),'small'));
+   panel.append(historyNote);
+  }
+  return panel;
  }
  function receivingSettingsPanel(){
   const selectedId=pointFilter.value||h().points[0]?.id;
@@ -471,7 +521,44 @@ export function mountHaccp(root,{getState,save,notify}){
    review.append(fields,el('p','Отметь результат каждого пункта. При нарушении нельзя выбрать «Принято». Для отказа укажи причину в комментарии.','small'));
    form.append(review);
   }
-  if(tab==='storage'){inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});inputField(grid,'Приготовлено / вскрыто','startedAt',{type:'datetime-local',required:true});inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});inputField(form,'Утверждённые условия хранения','conditions',{type:'textarea',required:true,maxLength:500});form.append(el('p','Срок не назначается автоматически: укажи дату и условия из утверждённой инструкции на этот продукт.','small'))}
+  if(tab==='storage'){
+   const product=inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});
+   const suggestions=el('datalist');suggestions.id='haccp-storage-products';product.setAttribute('list',suggestions.id);
+   form.append(suggestions);
+   const category=selectField(grid,'Тип продукта','storageType',STORAGE_GROUPS,{blank:true});
+   const zone=selectField(grid,'Фактическая зона хранения','storageZone',[],{blank:true});
+   const refreshStorage=()=>{
+    const config=storageSettings(h(),point.value);
+    const chosen=zone.value;
+    options(zone,config.zones.map(z=>[z,z]),true);
+    if(config.zones.includes(chosen))zone.value=chosen;
+    suggestions.replaceChildren(...config.products.map(name=>{const o=el('option');o.value=name;return o}));
+   };
+   point.addEventListener('change',refreshStorage);
+   refreshStorage();
+   inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});
+   inputField(grid,'Фактическая дата приготовления / вскрытия','startedAt',{type:'datetime-local',required:true});
+   const expiry=inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});
+   inputField(form,'Утверждённые условия хранения (из ТТК / маркировки)','conditions',{type:'textarea',required:true,maxLength:500});
+   const checks=el('section',undefined,'haccp-storage-checklist panel');
+   checks.append(el('h3','Фактическая проверка маркировки и хранения'));
+   const fields=el('div',undefined,'fields');
+   for(const [key,label] of STORAGE_CHECKS){
+    selectField(fields,label,key,[
+     ['ok',STORAGE_RESULTS.ok],['problem',STORAGE_RESULTS.problem]
+    ]);
+   }
+   checks.append(fields,el('p','При замечании укажи причину и принятое действие в комментарии. Положительные результаты не заполняются автоматически.','small'));
+   form.append(checks);
+   const dueHint=el('p','Укажи настоящий срок партии: система не назначает даты и не подтверждает соблюдение условий без проверки.','small');
+   expiry.addEventListener('change',()=>{
+    const at=form.querySelector('[name=at]')?.value;
+    dueHint.textContent=expiry.value&&at&&Date.parse(expiry.value)<=Date.parse(at)?
+     '⚠ На дату проверки указанный срок истёк. Запись будет с замечанием; укажи действие с продуктом.':
+     'Срок должен подтверждаться вашей ТТК, маркировкой или инструкцией. Автоматического продления срока нет.';
+   });
+   form.append(dueHint);
+  }
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
@@ -557,6 +644,7 @@ export function mountHaccp(root,{getState,save,notify}){
    mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){
    if(tab==='cleaning')body.append(cleaningSettingsPanel());
    if(tab==='receiving')body.append(receivingSettingsPanel());
+   if(tab==='storage')body.append(storageSettingsPanel());
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
    if(tab!=='receiving')journalAutoDrafts();
