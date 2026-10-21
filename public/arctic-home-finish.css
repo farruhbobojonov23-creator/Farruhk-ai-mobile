@@ -265,3 +265,39 @@ body[data-view="home"] #home.arctic-home .home-today:not([hidden]){
  body[data-view="home"] #home.arctic-home .arctic-orb,
  body[data-view="home"] #home.arctic-home .arctic-orb-filaments{animation:none!important}
 }
+
+
+/* v4 visual QA: never inherit a dark SVG stroke on glass highlights.
+   The global svg selector defines stroke:currentColor; translucent highlight
+   paths lacked stroke=none, producing the dark angular artifact in the orb. */
+body[data-view="home"] #home.arctic-home .arctic-orb-detail>path,
+body[data-view="home"] #home.arctic-home .arctic-orb-detail>ellipse{
+ stroke:none!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb-detail .arctic-orb-filaments{
+ opacity:.73;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb-detail .arctic-orb-filaments path,
+body[data-view="home"] #home.arctic-home .arctic-orb-detail .arctic-orb-filaments ellipse{
+ fill:none!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-ring.ring-1{opacity:.83}
+body[data-view="home"] #home.arctic-home .arctic-ring.ring-2{opacity:.58}
+body[data-view="home"] #home.arctic-home .arctic-ring.ring-3{opacity:.66}
+body[data-view="home"] #home.arctic-home .arctic-orb{
+ background:
+   radial-gradient(ellipse 27% 18% at 32% 20%,#ffffffec 0%,#e9faff7a 70%,transparent 100%),
+   radial-gradient(ellipse at 77% 75%,#2a6baf66 0%,transparent 55%),
+   radial-gradient(circle at 34% 23%,#f8ffff 0%,#c6eefe 19%,#94c9f1 37%,#62a5da 58%,#367ab8 78%,#1b518c 100%)!important;
+ box-shadow:
+   inset 13px 17px 28px #ffffffca,
+   inset -23px -29px 43px #124e898c,
+   inset 0 0 5px #fff,
+   0 0 0 1px #f6ffff,
+   0 0 19px #ffffffef,
+   0 0 56px #82caff8a,
+   0 20px 42px #3d88c253!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb:after{
+ color:#205888!important;text-shadow:0 1px 15px #efffffff!important;
+}
