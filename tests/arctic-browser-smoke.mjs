@@ -168,8 +168,23 @@ async function verify(mode,width,height){
   await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=receiving]').click();
   const receivingHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
-  assert.ok(receivingHeads.includes('Поставщик')&&receivingHeads.includes('Маркировка / упаковка'),'receiving has own A4 table');
+  assert.ok(receivingHeads.includes('Поставщик')&&receivingHeads.includes('Факт / границы, °C')&&
+   receivingHeads.includes('Годен до'),'receiving A4 captures suppliers, actual temperatures and product expiry');
   assert.ok(!receivingHeads.includes('Вид уборки'),'journals do not reuse cleaning columns');
+  assert.match(await page.locator('#lab .haccp-receiving-settings').innerText(),/Приёмка сырья/,'branch-specific receiving catalog visible');
+  assert.match(await page.locator('#lab .haccp-daily-overview').last().innerText(),/по факту поставки/i,'delivery is event-based, not fabricated daily');
+  assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
+   'receiving has no daily auto-approval template');
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  assert.equal(await page.locator('#lab select[name^=inspect]').count(),6,'all six actual receiving checks are present');
+  await page.locator('#lab select[name=category]').selectOption('chilled');
+  await page.locator('#lab select[name=decision]').selectOption('accepted');
+  assert.equal(await page.locator('#lab input[name=measured]').evaluate(el=>el.required),true,
+   'cold deliveries cannot be accepted without actual measured temperature');
+  await page.locator('#lab select[name=decision]').selectOption('rejected');
+  assert.equal(await page.locator('#lab input[name=measured]').evaluate(el=>el.required),false,
+   'damaged deliveries can be rejected even if a thermometer was not used');
+  await page.screenshot({path:'artifacts/arctic-haccp-receiving-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
