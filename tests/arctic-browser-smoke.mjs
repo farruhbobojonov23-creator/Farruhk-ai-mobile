@@ -187,6 +187,13 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=temperature]').click();
   const branchSelector='#lab .haccp-temperature-point-selector select';
   await page.locator(branchSelector).selectOption('point-1');
+  const branchTheme=await page.locator('#lab .haccp-temperature-point-selector').evaluate(el=>{
+   const surface=getComputedStyle(el),hint=getComputedStyle(el.querySelector('p'));
+   return {background:surface.backgroundImage,foreground:surface.color,detail:hint.color};
+  });
+  assert.match(branchTheme.background,/linear-gradient/i,'branch selector has a light Arctic Sapphire background, not the obsolete dark translucent slab');
+  assert.ok(!branchTheme.background.includes('13, 48, 65'),'no legacy dark slate background in branch selector: '+JSON.stringify(branchTheme));
+  await page.screenshot({path:'artifacts/arctic-haccp-point-theme-'+mode+'.png',fullPage:false,timeout:12000});
   const branchSettings=page.locator('#lab .haccp-temperature-point-settings');
   assert.equal(await branchSettings.count(),1,'selected location exposes rename control in temperature journal');
   await branchSettings.locator('summary').click();
