@@ -54,3 +54,26 @@ test('Missing metadata fallback never treats failed previously confirmed downloa
  });
  await assert.rejects(()=>store.state(),error=>error.status===502);
 });
+
+test('Optional Yandex 360 WebDAV credentials are used only for read-only recovery',async()=>{
+ const oldLogin=process.env.YANDEX_WEBDAV_LOGIN,oldPassword=process.env.YANDEX_WEBDAV_APP_PASSWORD;
+ process.env.YANDEX_WEBDAV_LOGIN='owner-login';
+ process.env.YANDEX_WEBDAV_APP_PASSWORD='private-app-password';
+ try {
+  const store=new YandexAssistantStore('legacy-oauth-token',async(url,options={})=>{
+   if(url.startsWith('https://cloud-api.yandex.net')&&url.includes('/resources/download?'))return {ok:true,status:200,json:async()=>({href:'https://storage.test/broken'})};
+   if(url.startsWith('https://cloud-api.yandex.net'))return {ok:true,status:200,json:async()=>({type:'file',size:200})};
+   if(url.startsWith('https://webdav.yandex.ru')){
+    assert.equal(options.headers.Authorization,'Basic '+Buffer.from('owner-login:private-app-password').toString('base64'));
+    assert.equal(options.redirect,'error');
+    assert.equal(options.method,undefined);
+    return {ok:true,status:200,json:async()=>({revision:73,recipes:[{name:'Рецепт из защищённой копии'}]})};
+   }
+   return {ok:false,status:500};
+  });
+  assert.equal((await store.state()).revision,73);
+ }finally{
+  if(oldLogin===undefined)delete process.env.YANDEX_WEBDAV_LOGIN;else process.env.YANDEX_WEBDAV_LOGIN=oldLogin;
+  if(oldPassword===undefined)delete process.env.YANDEX_WEBDAV_APP_PASSWORD;else process.env.YANDEX_WEBDAV_APP_PASSWORD=oldPassword;
+ }
+});
