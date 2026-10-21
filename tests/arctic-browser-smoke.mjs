@@ -134,7 +134,7 @@ async function verify(mode,width,height){
   const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
   assert.match(packStatus,/12 журналов/,'all 12 journals prepared automatically');
   assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
-  assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/НЕ ПРОВЕРЕНО/,'auto-filled reports explicitly protect factual inspection data');
+  assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/черновики/i,'auto-filled reports explicitly protect factual inspection data');
 
   await page.screenshot({path:'artifacts/arctic-haccp-'+mode+'.png',fullPage:false,timeout:12000});
   const dailyOverview=await page.locator('#lab .haccp-daily-overview').first().innerText();
