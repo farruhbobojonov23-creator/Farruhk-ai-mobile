@@ -85,6 +85,8 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   const min=number(input.min,'утверждённый минимум',true);
   const max=number(input.max,'утверждённый максимум',true);
   if(min!==null&&max!==null&&min>max)throw Error('Неверные границы температуры при приёмке.');
+  if(decision==='accepted'&&measured===null&&(min!==null||max!==null))
+   throw Error('Для оценки заданных температурных границ требуется фактический замер.');
   const outside=measured!==null&&((min!==null&&measured<min)||(max!==null&&measured>max));
   if(outside&&decision==='accepted')throw Error('Температура за утверждёнными границами. Оформи отказ и замечание.');
   if(expiry&&Date.parse(expiry)<=Date.parse(at)&&decision==='accepted')
