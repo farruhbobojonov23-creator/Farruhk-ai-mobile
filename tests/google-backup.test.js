@@ -68,7 +68,7 @@ test('Google backup app bridge confirms file ID and accepts only read-only fetch
   [{endpoint,key,action:'backup',snapshot},x=>assert.equal(x.payload.id,'google_file_id_1234567890')],
   [{endpoint,key,action:'list'},x=>assert.equal(x.payload.items.length,1)],
   [{endpoint,key,action:'fetch',backupId:'google_file_id_1234567890'},x=>assert.equal(x.payload.snapshot.version,1)]
- ]){const result=await invoke(handler,body);assert.equal(result.statusCode,200);check(result)}
+ ]){const result=await invoke(handler,body);assert.equal(result.statusCode,200,'backup action: '+body.action+' reason: '+result.payload?.reason);check(result)}
  assert.deepEqual(calls.map(x=>x.action),['check','backup','list','fetch']);
  assert.equal(calls[1].snapshot.state.revision,8);
 });
