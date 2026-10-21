@@ -34,7 +34,7 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
  const status=dialog.querySelector('[data-status]'),files=dialog.querySelector('[data-files]');
  const buttonOpen=document.createElement('button');
  buttonOpen.type='button';buttonOpen.textContent='Google Диск · резервные копии';buttonOpen.className='google-backup-open';
- const toolsArea=settingsDialog.querySelector('details')||settingsDialog;
+ const toolsArea=document.getElementById('device-export')?.parentElement||settingsDialog;
  toolsArea.append(buttonOpen);
  const config=()=>getState()?.googleBackup;
  let running=false,timer=null;
