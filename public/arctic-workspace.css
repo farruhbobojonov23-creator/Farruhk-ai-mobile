@@ -1,0 +1,226 @@
+/* Arctic Sapphire v2: one light premium design language across the app.
+   The printable A4 TTK and HACCP paper documents keep their own untouched paper styling. */
+:root{
+ color-scheme:light;
+ --bg:#e5f3ff;--surface:#f5fbff;--raised:#e2f2ff;
+ --line:#b1d2eb99;--muted:#6885a2;--text:#153457;
+ --ruby:#287db5;--bright:#3c94cc;--radius:20px;
+}
+html,body{background:#e6f3ff!important;color:#173856!important}
+body{
+ background:radial-gradient(ellipse 70% 36% at 84% 4%,#f9fdff 0%,transparent 100%),
+             radial-gradient(ellipse 88% 47% at 10% 62%,#c4e4fd 0%,transparent 90%),
+             linear-gradient(155deg,#eaf7ff,#d5eafe 72%,#cde5fa)!important;
+ background-attachment:fixed!important;
+}
+body:not([data-view="home"]){min-height:100dvh!important;overflow-x:hidden}
+body:not([data-view="home"]) .app{background:none!important}
+body:not([data-view="home"]) main>.glass{background:none!important}
+body:not([data-view="home"]) .view:not([hidden]){
+ background:linear-gradient(155deg,#fbfeffec 0%,#eaf6ffd9 100%)!important;
+ border:1px solid #ffffffed!important;border-radius:26px!important;
+ color:#153658!important;
+ padding:clamp(14px,3.1vw,30px)!important;
+ box-shadow:0 14px 56px #4d8bb518,inset 0 1px #fff!important;
+}
+body:not([data-view="home"]) .view h1,
+body:not([data-view="home"]) .view h2,
+body:not([data-view="home"]) .view h3{color:#15385d}
+body:not([data-view="home"]) .view p,
+body:not([data-view="home"]) .view .small,
+body:not([data-view="home"]) .view .section-subtitle{color:#6684a0}
+body:not([data-view="home"]) .view strong{color:#173956}
+body:not([data-view="home"]) main>.bar{color:#244b70}
+.aurora-top{
+ background:linear-gradient(112deg,#f5fbffef,#deeffceb)!important;
+ border-bottom:1px solid #ffffffd8!important;
+ backdrop-filter:blur(24px);box-shadow:0 6px 25px #3b79a515!important;
+}
+.aurora-top .aurora-brand{color:#183a5d!important;font-weight:600}
+.aurora-top .aurora-brand span{color:#397eaf!important}
+.aurora-top .aurora-brand small{color:#6185a3!important}
+.aurora-top>button{color:#255d87!important}
+.aurora-top .lunar-local{color:#67829b!important}
+#chef-menu:not([hidden]){
+ background:linear-gradient(150deg,#f5fbfffc,#daecfbee)!important;
+ border:1px solid #ffffffd9!important;color:#234a6d!important;
+ box-shadow:0 20px 58px #3b77a42b!important;backdrop-filter:blur(18px);
+}
+#chef-menu .brand{color:#225c87!important}
+#chef-menu .small{color:#62829e!important}
+#chef-menu .nav button{color:#28516f!important;border-radius:12px!important}
+#chef-menu .nav button.active,#chef-menu .nav button:hover{color:#174b75!important;border-color:#b1d8f5!important;background:#c8e6fb!important}
+.mobile-tools{
+ border:1px solid #ffffffed!important;
+ background:linear-gradient(125deg,#f8fcfff5,#d3eaffec)!important;
+ box-shadow:0 9px 30px #487caf33,inset 0 1px #ffffffed!important;
+ backdrop-filter:blur(24px)!important;
+}
+.mobile-tools button{color:#537997!important}
+.mobile-tools button.active{background:linear-gradient(155deg,#c5e6fb,#b1dbfa)!important;color:#1a567f!important;box-shadow:inset 0 1px #fff9}
+.mobile-tools svg{stroke:currentColor}
+body[data-view="home"]>.aurora-top,body[data-view="home"] .mobile-tools{
+ display:none!important;
+}
+body[data-view="home"] .app{
+ position:static!important;margin:0!important;padding:0!important;
+ width:100%!important;max-width:none!important;height:100dvh!important;min-height:0!important;
+}
+body[data-view="home"] main,body[data-view="home"] main>.glass{
+ position:static!important;padding:0!important;margin:0!important;
+ width:100%!important;max-width:none!important;border:0!important;
+ box-shadow:none!important;background:none!important;
+}
+body[data-view="home"] #home.arctic-home{z-index:10!important}
+body[data-view="home"] #home.arctic-home .ruby-scene{
+ inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+ transform:none!important;translate:none!important;
+ height:auto!important;width:min(87vw,38dvh,360px)!important;
+ mask-image:none!important;-webkit-mask-image:none!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-ring{
+ translate:none!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-greeting{right:auto!important}
+body[data-view="home"] #home.arctic-home .home-shortcuts{display:grid!important}
+body[data-view="home"] #home.arctic-home .home-shortcuts svg{stroke:currentColor!important}
+body[data-view="home"] #home.arctic-home .arctic-shell{max-width:930px!important}
+body[data-view="home"] #home.arctic-home .home-weather{
+ background:#ffffffa6!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-query{
+ border:1px solid #fff!important;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb{
+ background:radial-gradient(ellipse 30% 23% at 30% 22%,#fff 0,#e8faffd9 60%,transparent 100%),
+ radial-gradient(circle at 33% 25%,#dff9ff 0%,#a8d8fd 22%,#75b5e4 39%,#3f80b9 65%,#225482 83%,#183e70 100%);
+ box-shadow:inset 15px 17px 25px #ffffffab,inset -18px -26px 34px #14457481,
+ 0 0 0 1px #ffffffd9,0 0 22px #ffffffef,0 0 65px #8bc8f6aa,0 20px 44px #377fbd56;
+}
+body[data-view="home"] #home.arctic-home .arctic-orb:before{
+ background:linear-gradient(148deg,#ffffffa1,transparent 28%,#e4f8ff18 75%,#a9dfff4a);
+}
+body[data-view="home"] #home.arctic-home .arctic-spark{box-shadow:0 0 12px 3px #f6ffff}
+#neural-launch{
+ background:linear-gradient(135deg,#e5f5ff,#8fc9f0)!important;
+ color:#164a74!important;border:1px solid #ffffffef!important;
+ box-shadow:0 8px 30px #4d8db02f!important;
+}
+/* Universal glass cards. Original functional layouts, hooks and event handlers are retained. */
+body:not([data-view="home"]) .panel,
+body:not([data-view="home"]) .tile,
+body:not([data-view="home"]) .task-card,
+body:not([data-view="home"]) .haccp-record,
+body:not([data-view="home"]) .preparation-card,
+body:not([data-view="home"]) .point-card,
+body:not([data-view="home"]) .recipe-list-row,
+body:not([data-view="home"]) .category-card,
+body:not([data-view="home"]) details:not(.ttk-paper details){
+ background:linear-gradient(150deg,#ffffffed,#eaf5ffda)!important;
+ color:#204361!important;
+ border:1px solid #ffffffec!important;
+ box-shadow:0 7px 24px #5b95ba20,inset 0 1px #fff!important;
+}
+body:not([data-view="home"]) button:not(.mobile-tools button):not(.haccp-month-table button),
+body:not([data-view="home"]) .view button{
+ border-color:#b4d5ef!important;
+ color:#255477;
+ background:linear-gradient(145deg,#f9fdffeb,#e3f3ffdc);
+ box-shadow:inset 0 1px #ffffffc8,0 3px 9px #5c90b51d;
+}
+body:not([data-view="home"]) button.primary,
+body:not([data-view="home"]) #newrecipe,
+body:not([data-view="home"]) #recipes #newrecipe,
+body:not([data-view="home"]) .view button.primary{
+ background:linear-gradient(130deg,#55afe0,#2379b3)!important;
+ border:1px solid #80c9ec!important;
+ color:#fff!important;box-shadow:0 9px 22px #347dae34!important;
+}
+body:not([data-view="home"]) button:hover{filter:brightness(1.04)}
+body:not([data-view="home"]) a{color:#2673ac}
+body:not([data-view="home"]) input:not([type="checkbox"]):not([type="color"]),
+body:not([data-view="home"]) select,
+body:not([data-view="home"]) textarea{
+ background:#fafdff!important;color:#173f65!important;
+ border:1px solid #c4dff3!important;color-scheme:light!important;
+}
+body:not([data-view="home"]) input::placeholder,
+body:not([data-view="home"]) textarea::placeholder{color:#7b9ab6!important}
+body:not([data-view="home"]) label,body:not([data-view="home"]) summary{color:#386080!important}
+body:not([data-view="home"]) .catalog-search{
+ background:#f4fbff!important;border:1px solid #c1dff4!important;
+ box-shadow:inset 0 2px 8px #7db4d110!important;
+}
+body:not([data-view="home"]) #recipe-categories .category-card,
+body:not([data-view="home"]) #recipe-categories .category-card:nth-child(n){
+ background:linear-gradient(160deg,#f8fdff,#e1f1ff)!important;
+ color:#1e476c!important;border:1px solid #d0e7f8!important;
+ box-shadow:0 8px 26px #5f9bc12a!important;
+}
+body:not([data-view="home"]) #recipe-categories .category-photo-frame{
+ background:radial-gradient(ellipse at center,#f6fcff,#dbecfa)!important;
+}
+body:not([data-view="home"]) #recipe-categories .category-caption{
+ background:#eaf5ff7c!important;border-color:#d8eaf8!important;
+}
+body:not([data-view="home"]) #recipe-categories .category-caption small{color:#7192af!important}
+body:not([data-view="home"]) #recipe-categories .category-card img{background:transparent!important}
+body:not([data-view="home"]) #catalog-all{background:#e2f2ff!important;color:#2b628c!important;border-color:#c7e3f7!important}
+body:not([data-view="home"]) #recipe-categories .category-placeholder{color:#418ab9!important}
+body:not([data-view="home"]) #lab .haccp-tabs button,
+body:not([data-view="home"]) #lab .haccp-controls button{
+ background:#f4fbff!important;color:#225985!important;border-color:#c5e4f5!important;
+}
+body:not([data-view="home"]) #lab .haccp-tabs button[aria-pressed=true]{
+ background:#a5d9f8!important;color:#174d78!important;border-color:#80bfeb!important;
+}
+body:not([data-view="home"]) #lab .haccp-banner,
+body:not([data-view="home"]) #lab .haccp-form,
+body:not([data-view="home"]) #lab .haccp-cell-detail{
+ background:#e8f5ff!important;color:#2b6087!important;border-color:#bfe1f6!important;
+}
+body:not([data-view="home"]) #lab .haccp-record h3,
+body:not([data-view="home"]) #lab .haccp-monthly h2,
+body:not([data-view="home"]) #lab .haccp-metric strong{color:#215b87!important}
+body:not([data-view="home"]) #lab .haccp-record p,
+body:not([data-view="home"]) #lab .haccp-record pre,
+body:not([data-view="home"]) #lab .haccp-record a,
+body:not([data-view="home"]) #lab .haccp-metric span{color:#436d8b!important}
+body:not([data-view="home"]) #lab .haccp-metric{background:#f8fcff!important;border:1px solid #cde4f4!important}
+body:not([data-view="home"]) #lab .haccp-form label,
+body:not([data-view="home"]) #lab .haccp-month-controls label,
+body:not([data-view="home"]) #lab .haccp-action-form label{color:#335d7d!important}
+body:not([data-view="home"]) #lab .haccp-form input,
+body:not([data-view="home"]) #lab .haccp-form select,
+body:not([data-view="home"]) #lab .haccp-form textarea,
+body:not([data-view="home"]) #lab .haccp-month-controls input,
+body:not([data-view="home"]) #lab .haccp-month-controls select{
+ background:#faffff!important;color:#17476d!important;border:1px solid #bbdbf2!important;color-scheme:light!important;
+}
+body:not([data-view="home"]) .ttk-paper,
+body:not([data-view="home"]) .haccp-a4,
+body:not([data-view="home"]) .haccp-sheet .haccp-a4-paper{
+ background:#fff!important;color:#183147!important;
+}
+body:not([data-view="home"]) .ttk-paper input,
+body:not([data-view="home"]) .ttk-paper textarea,
+body:not([data-view="home"]) .ttk-paper select{
+ color:#17334d!important;background:#f5f9fd!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;
+}
+/* Avoid covering the entire mobile viewport with bottom navigation. On home the
+   dedicated four glass shortcuts are navigation, everywhere else show same bright dock. */
+@media(max-width:999px){
+ body:not([data-view="home"]) .mobile-tools{display:grid!important}
+ body[data-view="home"] .mobile-tools{display:none!important}
+ body:not([data-view="home"]) .app{padding-bottom:112px!important}
+ body:not([data-view="home"]) main>.glass{padding:0!important}
+ body:not([data-view="home"]) #chef-menu:not([hidden]){top:75px!important;bottom:88px!important}
+}
+@media(max-width:600px){
+ body:not([data-view="home"]) .app{padding:82px 12px 112px!important}
+ body:not([data-view="home"]) .view:not([hidden]){padding:18px 13px!important}
+ body:not([data-view="home"]) #recipe-categories{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body:not([data-view="home"]) .mobile-tools{bottom:8px!important;left:12px!important;right:12px!important}
+ body:not([data-view="home"]) #recipes .bar{flex-wrap:wrap!important}
+}
