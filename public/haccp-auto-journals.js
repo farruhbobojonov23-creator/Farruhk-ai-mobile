@@ -1,7 +1,6 @@
 import {validateHaccp,journalTypes} from './haccp-model.js';
 import {monthDays,measurementDate} from './temperature-journal.js';
 import {moscowCheckpoint} from './haccp-schedule.js';
-import {paperCell} from './haccp-paper-layout.js';
 
 // Generated rows are a printable PLAN, never a saved record or evidence of work.
 // Existing confirmed observations are always drawn from device state as-is.
@@ -61,38 +60,23 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
   return x.localeCompare(y)||a.pointId.localeCompare(b.pointId);
  });
 }
+// A planned/auto-generated row is only a PRINTABLE BLANK for a scheduled
+// inspection. All actual measurements, reviews and outcomes stay off the
+// official document until a real saved record exists.
 export function plannedCell(row,key,points=[]){
- if(row.type==='confirmed')throw Error('Use factual record cells for confirmed rows.');
- const point=points.find(p=>p.id===row.pointId)?.name||'Точка не задана';
- if(row.type==='draft'){
-  const draft=row.form,details={...draft};
-  if(row.kind==='temperature')delete details.measured; // Legacy examples are never actual readings.
-  if(draft.equipmentId){
-   const equipped=row.equipment;
-   if(equipped)Object.assign(details,{equipment:equipped.name,min:equipped.min,max:equipped.max});
-  }
-  const record={pointId:row.pointId,at:draft.at+':00+03:00',owner:draft.owner,
-   notes:draft.notes,details,status:'unconfigured'};
-  const rendered=paperCell(record,key,points,{draft:true});
-  if(['checks','decision','decisionText','result','status'].includes(key))
-   return 'ЧЕРНОВИК'+(key==='checks'&&rendered!=='—'?' · образец: '+rendered:'');
-  return rendered==='—'?'':rendered;
- }
- const text=row.type==='planned-general'?'ПО ГРАФИКУ':row.due?'ЧЕРНОВИК':'ЗАПЛАНИРОВАНО';
- if(key==='at')return row.day?row.day+' · 11:00 МСК':'Дата по графику';
- if(key==='point')return point;
- if(key==='equipment')return row.equipment?.name||'—';
+ if(row.type==='confirmed')throw Error('Use factual record cells for saved rows.');
+ if(key==='at')return row.day?row.day.slice(8,10)+'.'+row.day.slice(5,7)+'.'+row.day.slice(0,4):'';
+ if(key==='point')return points.find(p=>p.id===row.pointId)?.name||'';
+ if(key==='equipment')return row.equipment?.name||'';
  if(key==='temperatureLimits'){
   const e=row.equipment;
-  return !e||e.min==null&&e.max==null?'Не заданы':
-   e.min==null?'до '+e.max:e.max==null?'от '+e.min:e.min+' … '+e.max;
+  if(!e||e.min==null&&e.max==null)return '';
+  return e.min==null?'до '+e.max:e.max==null?'от '+e.min:e.min+' … '+e.max;
  }
  if(key==='cleaningType')return row.type==='planned-general'?'Генеральная':'Текущая';
- if(key==='qualityType')return row.kind==='quality'?'Ежедневная':'—';
- if(['status','result','checks','decision','decisionText'].includes(key))return text;
- if(key==='notes')return row.type==='planned-general'?'2 раза в месяц по утверждённому графику':
-  row.due?'Подтверждения нет':'Проверка ещё не наступила';
- // Blank actual readings, decisions and people: never guess them.
+ if(key==='qualityType')return row.kind==='quality'?'Ежедневная':'';
+ // No printed technical labels such as 'черновик', 'не подтверждено',
+ // 'запланировано', and no auto-filled factual outcomes or signatures.
  return '';
 }
 export function automaticJournalSummary(haccp,{month,pointId='',now=new Date()}={}){
