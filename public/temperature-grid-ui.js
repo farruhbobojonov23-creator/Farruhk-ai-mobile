@@ -1,6 +1,6 @@
 import {measurementDate,measurementTime,monthLabel,monthDays,temperatureGrid,temperatureLimits,saveDailyTemperatures} from './temperature-journal.js?v=1';
 import {saveAutoTemplate} from './haccp-template-drafts.js?v=2';
-import {updateEquipment} from './haccp-model.js';
+import {addEquipment,updateEquipment} from './haccp-model.js';
 
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
 const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b};
@@ -28,7 +28,47 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  const sampleSave=button('💾 Сохранить образец',()=>{void storeTemplate()},'primary');
  const sampleLoad=button('↻ Загрузить образец',()=>loadTemplate());
  sampleActions.append(sampleSave,sampleLoad);
- samplePanel.append(sampleInfo,sampleRanges,sampleActions,sampleStatus);
+ // Add any number of refrigerators/freezers without leaving the journal.
+ const equipmentAdd=el('div',undefined,'haccp-temperature-add');
+ const toggleEquipment=button('➕ Добавить холодильник / морозильник',()=>{
+  equipmentEditor.hidden=!equipmentEditor.hidden;
+  toggleEquipment.setAttribute('aria-expanded',String(!equipmentEditor.hidden));
+  if(!equipmentEditor.hidden)equipmentName.focus();
+ });
+ toggleEquipment.setAttribute('aria-expanded','false');
+ const equipmentEditor=el('div',undefined,'haccp-temperature-add-editor');equipmentEditor.hidden=true;
+ const equipmentTitle=el('h4','Новое оборудование · температурный контроль');
+ const equipmentFields=el('div',undefined,'haccp-temperature-range-fields haccp-temperature-add-fields');
+ const pointLabel=el('label','Точка'),equipmentPoint=el('select');
+ equipmentPoint.setAttribute('aria-label','Точка нового оборудования');
+ for(const point of getHaccp().points)equipmentPoint.append(new Option(point.name,point.id));
+ if(pointId&&getHaccp().points.some(p=>p.id===pointId))equipmentPoint.value=pointId;
+ pointLabel.append(equipmentPoint);
+ const equipmentName=field(equipmentFields,'Название холодильника / морозильника','text','');
+ equipmentName.maxLength=120;
+ const equipmentMin=field(equipmentFields,'Минимум, °C','number','');
+ const equipmentMax=field(equipmentFields,'Максимум, °C','number','');
+ equipmentMin.step=equipmentMax.step='any';
+ equipmentFields.prepend(pointLabel);
+ const equipmentFeedback=el('p','','haccp-temperature-add-feedback');
+ equipmentFeedback.setAttribute('role','status');
+ const equipmentSave=button('✓ Добавить оборудование',async()=>{
+  if(!equipmentName.value.trim()){equipmentFeedback.textContent='Введи название оборудования.';equipmentName.focus();return}
+  const min=equipmentMin.value.trim(),max=equipmentMax.value.trim();
+  if(min&&max&&Number(min)>Number(max)){equipmentFeedback.textContent='Минимум температуры должен быть не выше максимума.';return}
+  equipmentSave.disabled=true;
+  try{
+   await commit(state=>addEquipment(state,{
+    pointId:equipmentPoint.value,name:equipmentName.value.trim(),min,max
+   }));
+   // Parent remounts the temperature screen after saving; new equipment then
+   // appears in the sample limit cards and in the daily readings list.
+  }catch(err){equipmentFeedback.textContent=err.message||'Не удалось добавить оборудование.';notify(equipmentFeedback.textContent,true)}
+  finally{equipmentSave.disabled=false}
+ },'primary');
+ equipmentEditor.append(equipmentTitle,equipmentFields,equipmentFeedback,equipmentSave);
+ equipmentAdd.append(toggleEquipment,equipmentEditor);
+ samplePanel.append(sampleInfo,equipmentAdd,sampleRanges,sampleActions,sampleStatus);
  entry.append(samplePanel);
 
  const fields=el('div',undefined,'fields');entry.append(fields);
