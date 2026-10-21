@@ -7,6 +7,7 @@ import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
+import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -81,6 +82,52 @@ export function mountHaccp(root,{getState,save,notify}){
  body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
+ function cleaningSettingsPanel(){
+  const selectedId=pointFilter.value||h().points[0]?.id;
+  if(!selectedId)return el('p','Сначала добавь точку в настройках.');
+  const point=h().points.find(p=>p.id===selectedId),plan=cleaningPlan(h(),selectedId);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-cleaning-settings');
+  panel.append(el('h2','План уборки · '+point.name),
+   el('p','Ежедневно: '+plan.dailyExecutor+' · проверка: '+plan.reviewer+'. Генеральная: '+plan.generalExecutor+' — '+plan.generalDays.join(' и ')+' числа каждого месяца.','small'),
+   el('p','Зоны ежедневной уборки: '+plan.dailyZones.join('; ')+'.','small'),
+   el('p','Генеральная уборка: '+plan.generalZones.join('; ')+'.','small'),
+   el('p','Доступные средства: '+plan.agents.join(', ')+'. Концентрацию, выдержку, совместимость с поверхностями и необходимость смывания проверяйте по инструкции конкретного средства. Не смешивайте составы.','small'));
+  if(!pointFilter.value)panel.append(el('p','Сейчас отображён план первой точки. Чтобы редактировать другой филиал, выбери его в фильтре «Точка, месяц и архив».','small'));
+  const details=el('details');details.append(el('summary','⚙ Изменить зоны, средства, персонал и график'));
+  const form=el('form',undefined,'haccp-form');
+  const daily=inputField(form,'Зоны ежедневной уборки (по одной в строке)','dailyZones',{type:'textarea',required:true,value:plan.dailyZones.join('\n'),maxLength:2500});
+  daily.rows=8;
+  const general=inputField(form,'Зоны генеральной уборки (по одной в строке)','generalZones',{type:'textarea',required:true,value:plan.generalZones.join('\n'),maxLength:2500});
+  general.rows=8;
+  const agents=inputField(form,'Моющие и дезинфицирующие средства (по одному в строке)','agents',{type:'textarea',required:true,value:plan.agents.join('\n'),maxLength:500});
+  agents.rows=3;
+  inputField(form,'Ежедневная уборка — исполнитель','dailyExecutor',{required:true,value:plan.dailyExecutor,maxLength:120});
+  inputField(form,'Кто проверяет','reviewer',{required:true,value:plan.reviewer,maxLength:120});
+  inputField(form,'Генеральная уборка — исполнитель','generalExecutor',{required:true,value:plan.generalExecutor,maxLength:120});
+  const dates=el('div',undefined,'fields');
+  const first=inputField(dates,'Первое число генеральной уборки','firstDay',{type:'number',required:true,value:String(plan.generalDays[0])});
+  const second=inputField(dates,'Второе число генеральной уборки','secondDay',{type:'number',required:true,value:String(plan.generalDays[1])});
+  for(const input of [first,second]){input.min='1';input.max='28';input.step='1'}
+  form.append(dates,el('p','Черновики готовятся с 11:00 МСК. Выполненные уборки не отмечаются автоматически. Изменения графика применяются к новым черновикам.','small'));
+  const saveBtn=el('button','Сохранить план уборки','primary');saveBtn.type='submit';form.append(saveBtn);
+  form.onsubmit=safe(async e=>{
+   e.preventDefault();
+   if(!form.reportValidity())return;
+   const raw=Object.fromEntries(new FormData(form));
+   const list=value=>String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+   saveBtn.disabled=true;
+   try{
+    await commit(state=>updateCleaningPlan(state,selectedId,{
+     dailyZones:list(raw.dailyZones),generalZones:list(raw.generalZones),agents:list(raw.agents),
+     dailyExecutor:raw.dailyExecutor,reviewer:raw.reviewer,generalExecutor:raw.generalExecutor,
+     generalDays:[Number(raw.firstDay),Number(raw.secondDay)]
+    }));
+    build();
+   }finally{saveBtn.disabled=false}
+  });
+  details.append(form);panel.append(details);
+  return panel;
+ }
  function dailyDrafts(){
   const {day:today,due:active}=moscowCheckpoint();
   const panel=el('section',undefined,'haccp-daily-overview');
@@ -98,7 +145,7 @@ export function mountHaccp(root,{getState,save,notify}){
   if(!scheduled){panel.insertBefore(el('p','Этот журнал ведётся по событию или утверждённому графику. Ежедневные пропуски не начисляются. Для включения в ежедневный план открой «Настройки ХАССП».','small'),details);return panel}
   if(tab==='cleaning'){
    const prog=deepCleaningProgress(h(),{month:monthFilter.value,pointId:pointFilter.value});
-   panel.append(el('p','Генеральная уборка: '+prog.done+' из '+prog.target+' подтверждённых выполнений в месяц по выбранным точкам. Даты выбираются по вашему графику.','small'));
+   panel.append(el('p','Генеральная уборка: '+prog.done+' из '+prog.target+' подтверждённых выполнений за месяц. Плановые даты — 1-е и 15-е число (или изменённый график выбранной точки).','small'));
   }
   const table=el('table',undefined,'haccp-status-table'),head=el('tr');
   for(const name of ['Дата','Точка','Состояние','Действие'])head.append(el('th',name));table.append(head);
@@ -380,7 +427,7 @@ export function mountHaccp(root,{getState,save,notify}){
     temperaturePointInitialized=true;
     if(!pointFilter.value)pointFilter.value=(h().points.find(p=>p.name.trim().toLocaleLowerCase('ru-RU')==='плазма')||h().points[0])?.id||'';
    }
-   mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
+   mountTemperatureGrid(body,{getHaccp:h,pointId:pointFilter.value,selection:temperatureSelection,onPointChange:id=>{pointFilter.value=id;metricsRender();build()},onMonthChange:value=>{monthFilter.value=value;build()},commit,onSettings:()=>{tab='settings';build()},notify});const single=el('details',undefined,'haccp-single-record');single.append(el('summary','Отдельный замер с фотографией'));if(monthFilter.value===currentMonth)journalForm();else body.append(el('p','В архиве новые замеры не добавляются.','small'));single.append(body.lastElementChild);body.append(single);journalHistory()}else if(journalTypes[tab]){if(tab==='cleaning')body.append(cleaningSettingsPanel());if(monthFilter.value===currentMonth)journalForm();body.append(dailyDrafts());journalAutoDrafts();journalHistory()}else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
@@ -399,6 +446,20 @@ export function mountHaccp(root,{getState,save,notify}){
   }catch(error){console.warn('Не удалось настроить оборудование Плазмы:',error)}
   finally{plasmaPresetRunning=false}
  }
+ let cleaningPresetRunning=false;
+ async function ensureCleaningPreset(){
+  if(!getState()||cleaningPresetRunning||!cleaningPlanNeedsSeed(h()))return;
+  cleaningPresetRunning=true;
+  try{
+   await save(state=>{
+    if(seedCleaningPlan(state)){
+     state.haccp.revision=(Number(state.haccp.revision)||0)+1;
+     state.haccp.updatedAt=new Date().toISOString();
+    }
+   });
+  }catch(error){console.warn('Не удалось добавить план уборки:',error)}
+  finally{cleaningPresetRunning=false}
+ }
  let autoSyncRunning=false;
  async function syncAutoDrafts(){
   if(!getState()||autoSyncRunning)return;
@@ -411,7 +472,7 @@ export function mountHaccp(root,{getState,save,notify}){
   })}catch(error){console.warn('Автосоздание черновиков будет повторено:',error.message)}
   finally{autoSyncRunning=false}
  }
- function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
+ function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>ensureCleaningPreset()).then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
  setInterval(()=>{
   const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
