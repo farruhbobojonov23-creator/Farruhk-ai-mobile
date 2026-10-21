@@ -793,7 +793,7 @@ export function mountHaccp(root,{getState,save,notify}){
     // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
     // HTML datetime-local contains no timezone. Attach the intended offset
     // before the backend parses/stores UTC timestamps.
-    for(const key of ['at','startedAt','finishedAt']){
+    for(const key of ['at','startedAt','finishedAt','shiftStart']){
      if(/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(String(raw[key]||'')))
       raw[key]+=':00+03:00';
     }
