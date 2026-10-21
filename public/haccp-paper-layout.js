@@ -127,46 +127,16 @@ export const journalPaperColumns=Object.freeze({
   ]
  ],
  "receiving": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.8
-  ],
-  [
-   "supplier",
-   "Поставщик",
-   1.3
-  ],
-  [
-   "product",
-   "Продукт / партия",
-   1.5
-  ],
-  [
-   "quantity",
-   "Количество",
-   0.85
-  ],
-  [
-   "checks",
-   "Маркировка / упаковка",
-   1.8
-  ],
-  [
-   "decision",
-   "Решение",
-   1
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.2
-  ]
+  ["at","Дата и время",1.05],
+  ["point","Точка",0.72],
+  ["supplier","Поставщик",1.05],
+  ["productBatch","Товар / партия / накладная",1.75],
+  ["quantity","Кол-во",0.8],
+  ["receivedTemperature","Факт / границы, °C",1.0],
+  ["expiryDay","Годен до",0.9],
+  ["checks","Упаковка / маркировка / документы / качество",2.3],
+  ["decision","Решение",0.75],
+  ["owner","Принял",1.0]
  ],
  "storage": [
   [
@@ -517,6 +487,23 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  else if(key==='status')value=draft?'Черновик':status[record.status]||'Не оценено';
  else if(key==='owner')value=record.owner;
  else if(key==='notes')value=record.notes;
+ else if(key==='productBatch')value=[
+  details.product,details.batch&&'Партия: '+details.batch,
+  details.invoice&&'Док.: '+details.invoice
+ ].filter(Boolean).join('\\n');
+ else if(key==='expiryDay'){
+  const expiry=details.expiry;
+  if(!expiry)return '—';
+  const date=new Date(expiry);
+  return Number.isFinite(date.getTime())?
+   date.toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}):'—';
+ }
+ else if(key==='receivedTemperature'){
+  if(details.measured===null||details.measured===undefined||details.measured==='')return 'Не измерена';
+  const range=details.min==null&&details.max==null?'границы не заданы':
+   details.min==null?'до '+details.max:details.max==null?'от '+details.min:details.min+' … '+details.max;
+  return String(details.measured)+' °C; '+range;
+ }
  else if(key==='temperatureLimits')value=
   details.min==null&&details.max==null?'Не заданы':
   (details.min==null?'до '+details.max:details.max==null?'от '+details.min:details.min+' … '+details.max);
