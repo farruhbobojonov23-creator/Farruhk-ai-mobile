@@ -51,7 +51,7 @@ export function journalPdf({haccp,kind,month,pointId=''}){
   text('ХАССП / ЖУРНАЛ КОНТРОЛЯ',X+12,18,W-20,{bold:true,size:9,color:'#387ba8'});
   doc.font('bold').fontSize(14).fillColor('#19476c').text(journalTypes[kind],X+12,35,{width:W-22});
   text(period+'  ·  '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+12,63,W-24,{size:9});
-  text('Фактические записи. Пустая строка не означает выполненную проверку. Время: МСК.',X,86,W,{size:8,color:'#57758c'});
+  text('Дата и время: МСК',X,86,W,{size:8,color:'#57758c'});
   let x=X;const headerTop=102,headerHeight=38;
   for(let i=0;i<columns.length;i++){
    const col=columns[i];rect(x,headerTop,widths[i],headerHeight,head);
@@ -90,10 +90,8 @@ export function journalPdf({haccp,kind,month,pointId=''}){
  }
  createPage();
  if(!records.length){
-  doc.font('regular').fontSize(8).fillColor('#466c89')
-   .text('Подтверждённых записей пока нет. Ниже — чистый бланк для заполнения; строки не означают выполнение проверок.',
-    X,y+6,{width:W});
-  y+=34;
+  // An official empty form contains only ruled spaces, never system notes
+  // about whether a check has been performed or a record is confirmed.
   for(let n=0;n<10;n++){
    if(BOTTOM-y<32)createPage();
    let x=X;
@@ -162,7 +160,7 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
   labelText('FARRUH AI  /  ХАССП  /  '+String(section).padStart(2,'0')+' / 12',X+13,17,W-20,9,true,'#3e88b7');
   labelText(journalTypes[kind],X+13,34,W-23,14,true,'#194e73');
   labelText(label+'   ·   '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+13,65,W-23,9,false);
-  labelText('Автоматические ЧЕРНОВИКИ по образцу, не подтверждённые результаты контроля. Подпись ставится после проверки. Время: МСК.',X,85,W,7.4,false,'#607e96');
+  labelText('Дата и время: МСК',X,85,W,7.4,false,'#607e96');
   const first=103,headerHeight=38;let x=X;
   for(let i=0;i<cols.length;i++){
    cellBox(x,first,widths[i],headerHeight,'#deeffb');
@@ -195,15 +193,15 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
   widths=cols.map(c=>W*c.weight/total);
   page();
   if(!group.rows.length){
-   labelText('Журнал по событию. Подтверждённых записей нет; это не подтверждает отсутствия событий.',X+7,y+8,W-15,8,false,'#5b7890');
-   y+=34;
-   for(let n=0;n<6;n++)draw(cols.map(() => ''),n%2?'#f5faff':'#ffffff');
+   for(let n=0;n<10;n++)draw(cols.map(() => ''),n%2?'#f5faff':'#ffffff');
   }
   for(const row of group.rows){
    const values=cols.map(c=>row.type==='confirmed'?
     paperCell(row.record,c.key,h.points):plannedCell(row,c.key,h.points));
-   draw(values,row.type==='draft'?'#e9f5ff':row.type!=='confirmed'?
-    (row.due?'#fff5ed':'#f0f7fd'):row.record.status==='deviation'?'#ffecea':'#ffffff');
+   // Pending checks are blank document rows; never use warning fills
+   // that could be mistaken for an actual inspection result.
+   draw(values,row.type==='confirmed'&&row.record.status==='deviation'?
+    '#ffecea':'#ffffff');
    if(row.type==='confirmed'&&row.record.notes&&!cols.some(c=>c.key==='notes')){
     // The fixed-width A4 layout has no remarks column for some journal kinds.
     const note=wrap('Примечание: '+row.record.notes,W-14);
