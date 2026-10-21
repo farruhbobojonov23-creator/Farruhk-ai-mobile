@@ -3,6 +3,7 @@ import {RECEIVING_GROUPS,receivingInspection,validateReceivingSettings} from './
 import {STORAGE_GROUPS,storageRecordState,validateStorageSettings} from './storage-config.js';
 import {validateThawConfigs} from './thaw-config.js';
 import {qualityRecord,validateQualityPlans} from './quality-control.js';
+import {hygieneObservation,validateHygieneSettings} from './hygiene-config.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
@@ -39,6 +40,7 @@ export function validateHaccp(value){
  validateStorageSettings(result.storageSettings,[...points]);
  validateThawConfigs(result.thawConfigs,[...points]);
  validateQualityPlans(result.qualityPlans,[...points]);
+ validateHygieneSettings(result.hygieneSettings,[...points]);
  for(const item of result.equipment){if(!points.has(item.pointId)||typeof item.name!=='string'||!item.name.trim())throw Error('Неверное оборудование ХАССП.');for(const key of ['min','max'])if(item[key]!==null&&!Number.isFinite(item[key]))throw Error('Неверные границы температуры.');if(item.min!==null&&item.max!==null&&item.min>item.max)throw Error('Минимум температуры больше максимума.')}
  let attachments=0;
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
@@ -134,6 +136,9 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
  }else if(kind==='quality'&&input.qualityType){
   record.details=qualityRecord(input,at);
   record.status=record.details.decision==='rejected'?'deviation':'ok';
+ }else if(kind==='hygiene'&&input.hygieneDecision){
+  record.details=hygieneObservation(input,at);
+  record.status=record.details.hygieneDecision==='deny'?'deviation':'ok';
  }else if(extraJournals[kind]){
   record.details=extraDetails(kind,input);
   record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
