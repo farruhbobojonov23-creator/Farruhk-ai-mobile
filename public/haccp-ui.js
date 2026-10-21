@@ -1,9 +1,9 @@
 import {extraJournals,extraFieldNames} from './haccp-extra.js';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
-import {paperColumns,paperCell} from './haccp-paper-layout.js?v=1';
+import {paperColumns,paperCell} from './haccp-paper-layout.js?v=2';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=3';
-import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=3';
+import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=4';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
@@ -443,20 +443,21 @@ export function mountHaccp(root,{getState,save,notify}){
    inputField(grid,'Номер партии / серия (по этикетке)','batch',{maxLength:100});
    inputField(grid,'Накладная / номер документа (если есть)','invoice',{maxLength:120});
    const category=selectField(grid,'Режим хранения сырья','category',RECEIVING_GROUPS,{blank:true});
+   const decision=selectField(grid,'Решение по факту проверки','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']]);
    const measured=inputField(grid,'Фактическая температура продукта при приёмке, °C','measured',{type:'number'});
    measured.inputMode='decimal';
    const min=inputField(grid,'Утверждённый минимум, °C (если задан)','min',{type:'number'});
    const max=inputField(grid,'Утверждённый максимум, °C (если задан)','max',{type:'number'});
    const temperatureHelp=el('p','Для охлаждённого и замороженного сырья записывай фактическую температуру. Допустимые границы бери из вашей утверждённой документации и маркировки; универсальные цифры не подставляются.','small');
    form.append(temperatureHelp);
-   category.onchange=()=>{
-    measured.required=['chilled','frozen'].includes(category.value);
-    const cold=measured.required;
+   const updateRequired=()=>{
+    const cold=['chilled','frozen'].includes(category.value);
+    measured.required=cold&&decision.value==='accepted';
     temperatureHelp.textContent=cold?
-     'Укажи фактическую температуру. Без утверждённых границ система сохраняет приёмку без автоматической оценки температуры.':
-     'Для других товаров укажи температуру, только когда она действительно измерялась.';
+     'При приёмке охлаждённых и замороженных товаров укажи фактическую температуру. При отказе замер может отсутствовать. Без утверждённых границ автоматическая оценка температуры невозможна.':
+     'Для прочих товаров укажи температуру, только если она фактически измерена.';
    };
-   category.onchange();
+   category.onchange=updateRequired;decision.onchange=updateRequired;updateRequired();
    inputField(grid,'Годен до (как на этикетке)','expiry',{type:'date'});
    const review=el('section',undefined,'haccp-receiving-checklist panel');
    review.append(el('h3','Проверка поступившей партии'));
@@ -469,7 +470,6 @@ export function mountHaccp(root,{getState,save,notify}){
    }
    review.append(fields,el('p','Отметь результат каждого пункта. При нарушении нельзя выбрать «Принято». Для отказа укажи причину в комментарии.','small'));
    form.append(review);
-   selectField(grid,'Решение по факту проверки','decision',[['accepted','Принято'],['rejected','Отказ в приёмке']]);
   }
   if(tab==='storage'){inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});inputField(grid,'Номер партии / маркировки','batch',{maxLength:100});inputField(grid,'Приготовлено / вскрыто','startedAt',{type:'datetime-local',required:true});inputField(grid,'Использовать до (по утверждённому сроку)','useBy',{type:'datetime-local',required:true});inputField(form,'Утверждённые условия хранения','conditions',{type:'textarea',required:true,maxLength:500});form.append(el('p','Срок не назначается автоматически: укажи дату и условия из утверждённой инструкции на этот продукт.','small'))}
   if(extraJournals[tab]){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
