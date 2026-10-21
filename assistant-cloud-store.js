@@ -58,6 +58,20 @@ export class YandexAssistantStore extends AssistantStore{
         const r=await this.download(alternate,{signal:AbortSignal.timeout(30000)});
         if(r.ok){const json=await r.json();console.info('[cloud-recovery] alternate download succeeded');return json}
         console.error('[cloud-meta-download] status='+r.status);
+        // Direct TLS and the built-in fetch transport use different client
+        // stacks. Yandex's download gateway can reject one transport while
+        // accepting the other. This is still strictly GET/read-only.
+        // The signed href is sensitive and must never appear in logs.
+        if(this.download===cloudDownload){
+          try{
+            const viaFetch=await this.fetchCloud(alternate,{headers:{Accept:'application/json'},redirect:'follow'});
+            if(viaFetch.ok){const json=await viaFetch.json();console.info('[cloud-recovery] fetch transport succeeded');return json}
+            console.error('[cloud-fetch-download] status='+viaFetch.status);
+          }catch(e){
+            if(e instanceof SyntaxError)throw e;
+            console.error('[cloud-fetch-download] transport-unavailable');
+          }
+        }
       }
     }catch(e){
       // Metadata is an optional recovery path, not evidence the main file
