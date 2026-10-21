@@ -71,6 +71,22 @@ async function verify(mode,width,height){
   assert.equal(backupLocated,true,'Google backup is alongside local backup controls');
   const settingsDialog=page.locator('.lunar-dialog[aria-label="Настройки и данные"]');
   await settingsDialog.evaluate(el=>el.showModal());
+  const settingsContrast=await settingsDialog.evaluate(el=>{
+   const header=el.querySelector(':scope > .bar');
+   const section=el.querySelector('.voice-settings > summary');
+   const title=header.querySelector('h2');
+   const color=getComputedStyle(section).color;
+   const match=color.match(/[0-9.]+/g)?.map(Number)||[];
+   return {
+     headerBackground:getComputedStyle(header).backgroundImage,
+     titleColor:getComputedStyle(title).color,
+     summaryColor:color,
+     summaryRgb:match.slice(0,3)
+   };
+  });
+  assert.ok(settingsContrast.headerBackground.includes('gradient')&&!settingsContrast.headerBackground.includes('rgb(30, 36, 40)'),'Settings header remains dark: '+JSON.stringify(settingsContrast));
+  assert.ok(settingsContrast.summaryRgb.length===3&&settingsContrast.summaryRgb[0]<120&&settingsContrast.summaryRgb[2]<190,'Settings summary is too pale: '+JSON.stringify(settingsContrast));
+  await page.screenshot({path:'artifacts/arctic-settings-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#device-export').evaluate(el=>el.closest('details').open=true);
   await page.locator('.google-backup-open').click();
   assert.equal(await visible(page,'.google-backup-dialog'),true,'Google backup dialog opens');
