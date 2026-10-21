@@ -1,10 +1,10 @@
-import {extraJournals,extraFieldNames} from './haccp-extra.js';
+import {extraJournals,extraFieldNames} from './haccp-extra.js?v=2';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
-import {paperColumns,paperCell} from './haccp-paper-layout.js?v=4';
-import {automaticJournalSummary} from './haccp-auto-journals.js?v=4';
-import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=5';
-import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js';
+import {paperColumns,paperCell} from './haccp-paper-layout.js?v=5';
+import {automaticJournalSummary} from './haccp-auto-journals.js?v=5';
+import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=6';
+import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js?v=2';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
@@ -595,6 +595,8 @@ export function mountHaccp(root,{getState,save,notify}){
   }
   if(tab==='defrosting'){
    const config=thawConfig(h(),point.value);
+   const ownerInput=grid.querySelector('[name=owner]');
+   if(ownerInput)ownerInput.placeholder=config.executor+' — фактическое ФИО';
    const product=inputField(grid,'Продукт / партия','product',{required:true,maxLength:300});
    const products=el('datalist');products.id='haccp-thaw-products';product.setAttribute('list',products.id);form.append(products);
    inputField(grid,'Маркировка / номер партии','batch',{maxLength:120});
