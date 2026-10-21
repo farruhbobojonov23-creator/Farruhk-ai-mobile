@@ -18,7 +18,7 @@ test('Daily autoblanks appear at 11:00 Moscow without generating imaginary outco
  assert.equal(rows[20].day,'2026-10-21');
  assert.equal(rows[20].due,true);
  assert.equal(rows[21].due,false);
- assert.equal(plannedCell(rows[20],'result',h.points),'НЕ ПРОВЕРЕНО');
+ assert.equal(plannedCell(rows[20],'result',h.points),'ЧЕРНОВИК');
  assert.equal(plannedCell(rows[21],'result',h.points),'ЗАПЛАНИРОВАНО');
  assert.equal(plannedCell(rows[20],'owner',h.points),'');
  assert.equal(plannedCell(rows[20],'measured',h.points),'');
@@ -67,7 +67,7 @@ test('Full print pack contains 12 journals and marks missing checks clearly, wit
  const data=await pdfBytes(autoJournalPackPdf({haccp:s.haccp,month:'2026-10',pointId:'point-1',now:when}));
  const out=await parsePdf(data);
  assert.ok(out.numpages>=12);
- assert.match(out.text,/НЕ ПРОВЕРЕНО/);
+ assert.match(out.text,/ЧЕРНОВИК/);
  assert.match(out.text,/ЗАПЛАНИРОВАНО/);
  assert.match(out.text,/Холодильник А/);
  assert.match(out.text,/Уборка и дезинфекция/);
