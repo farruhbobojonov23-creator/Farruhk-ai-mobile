@@ -1,5 +1,6 @@
 import {extraJournals,extraDetails} from './haccp-extra.js';
 import {RECEIVING_GROUPS,receivingInspection,validateReceivingSettings} from './receiving-config.js';
+import {STORAGE_GROUPS,storageRecordState,validateStorageSettings} from './storage-config.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
@@ -33,6 +34,7 @@ export function validateHaccp(value){
  if(!result.points.length||result.points.some(p=>typeof p.name!=='string'||!p.name.trim()))throw Error('Укажи названия точек.');
  const points=new Set(result.points.map(p=>p.id));
  validateReceivingSettings(result.receivingSettings,[...points]);
+ validateStorageSettings(result.storageSettings,[...points]);
  for(const item of result.equipment){if(!points.has(item.pointId)||typeof item.name!=='string'||!item.name.trim())throw Error('Неверное оборудование ХАССП.');for(const key of ['min','max'])if(item[key]!==null&&!Number.isFinite(item[key]))throw Error('Неверные границы температуры.');if(item.min!==null&&item.max!==null&&item.min>item.max)throw Error('Минимум температуры больше максимума.')}
  let attachments=0;
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
@@ -103,7 +105,28 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
   record.status=decision==='rejected'?'deviation':
    ((category==='chilled'||category==='frozen')&&min===null&&max===null?'unconfigured':'ok');
  }else if(kind==='storage'){
-  const start=date(input.startedAt,'дата приготовления / вскрытия'),end=date(input.useBy,'использовать до');if(Date.parse(end)<=Date.parse(start))throw Error('Окончание срока должно быть позже приготовления / вскрытия.');record.details={product:required(input.product,'продукт / полуфабрикат',300),batch:text(input.batch,100),startedAt:start,useBy:end,conditions:required(input.conditions,'утверждённые условия хранения',500)};record.status=Date.parse(end)<=Date.parse(at)?'deviation':'ok';
+  const start=date(input.startedAt,'дата приготовления / вскрытия');
+  const end=date(input.useBy,'использовать до');
+  if(Date.parse(end)<=Date.parse(start))throw Error('Срок окончания должен быть позже приготовления / вскрытия.');
+  if(Date.parse(start)>Date.parse(at))throw Error('Дата приготовления / вскрытия не может быть позже даты проверки.');
+  const storageType=text(input.storageType,30);
+  if(storageType&&!STORAGE_GROUPS.some(([key])=>key===storageType))
+   throw Error('Выбери вид продукции.');
+  const checks=storageRecordState(input);
+  const expired=Date.parse(end)<=Date.parse(at);
+  const storageZone=text(input.storageZone,120);
+  const batch=text(input.batch,100);
+  if(checks&&!storageZone)throw Error('Укажи фактическую зону хранения.');
+  if(checks&&(checks==='deviation'||expired)&&!text(input.notes))
+   throw Error('При нарушении или просрочке укажи причину и действие в комментарии.');
+  record.details={
+   product:required(input.product,'продукт / полуфабрикат',300),
+   batch,startedAt:start,useBy:end,
+   conditions:required(input.conditions,'утверждённые условия хранения',500),
+   storageZone,storageType,
+   ...(checks?{labelCheck:input.labelCheck,conditionsCheck:input.conditionsCheck}:{})
+  };
+  record.status=expired||checks==='deviation'?'deviation':'ok';
  }else if(extraJournals[kind]){
   record.details=extraDetails(kind,input);record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
  }else{
