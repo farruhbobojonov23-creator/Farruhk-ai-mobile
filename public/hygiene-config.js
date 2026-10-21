@@ -23,21 +23,69 @@ const cleanNames=(list,label)=>{
   throw Error('Проверь названия в списке: '+label);
  return values;
 };
+
+// Each line assigns a real person to a role and shift starting time.
+// A prepared row is strictly an editor shortcut, NEVER a recorded inspection.
+export function parseHygieneRoster(source){
+ const lines=Array.isArray(source)?source:String(source||'').split(/\r?\n/);
+ if(lines.length>100)throw Error('Слишком много строк в графике.');
+ const roster=[],keys=new Set();
+ for(const item of lines){
+  const parts=typeof item==='string'?item.split('|'):null;
+  const raw=parts?{
+   name:parts[0],role:parts[1],startTime:parts[2],shift:parts[3]
+  }:item;
+  const name=String(raw?.name||'').trim();
+  const role=String(raw?.role||'').trim();
+  const startTime=String(raw?.startTime||'').trim();
+  const shift=String(raw?.shift||'').trim();
+  if(!name&&!role&&!startTime&&!shift)continue;
+  if(!name||!role||!/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime))
+   throw Error('Для каждого сотрудника укажи ФИО | должность | время HH:MM | смену.');
+  if([name,role,shift].some(x=>x.length>120))throw Error('Слишком длинная строка графика.');
+  const key=name.toLocaleLowerCase('ru-RU')+'|'+startTime;
+  if(keys.has(key))throw Error('Сотрудник с таким временем начала смены повторяется.');
+  keys.add(key);roster.push({name,role,startTime,shift});
+ }
+ return roster;
+}
+export function preparedHygieneRows(haccp,pointId,day){
+ if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||Number.isNaN(Date.parse(day+'T12:00:00Z')))
+  throw Error('Некорректный день осмотра.');
+ const config=hygieneSettings(haccp,pointId);
+ return config.roster.map(staff=>{
+  const shiftStart=day+'T'+staff.startTime+':00+03:00';
+  const shiftUtc=new Date(shiftStart).toISOString();
+  const previous=(haccp?.records||[]).find(r=>
+   r.kind==='hygiene'&&r.pointId===pointId&&
+   String(r.details?.employee||'').toLocaleLowerCase('ru-RU')===staff.name.toLocaleLowerCase('ru-RU')&&
+   r.details?.shiftStart===shiftUtc);
+  return {...staff,pointId,day,shiftStart,complete:!!previous,
+   recordedDecision:previous?.details?.decisionText||''};
+ });
+}
 export function hygieneSettings(haccp,pointId){
  const saved=haccp?.hygieneSettings?.[pointId];
  return {
   employees:Array.isArray(saved?.employees)?[...saved.employees]:[],
+  roster:Array.isArray(saved?.roster)?parseHygieneRoster(saved.roster):[],
   roles:Array.isArray(saved?.roles)?[...saved.roles]:[...HYGIENE_DEFAULT.roles],
   reviewer:typeof saved?.reviewer==='string'?saved.reviewer:HYGIENE_DEFAULT.reviewer,
   schedule:'before-shift'
  };
 }
-export function updateHygieneSettings(state,pointId,{employees,roles,reviewer}){
+export function updateHygieneSettings(state,pointId,{employees,roles,reviewer,roster}){
  if(!state?.haccp?.points?.some(p=>p.id===pointId))throw Error('Выбери точку.');
- const value={employees:cleanNames(employees,'сотрудники'),
+ const saved=hygieneSettings(state.haccp,pointId);
+ const rosterItems=roster===undefined?saved.roster:parseHygieneRoster(roster);
+ const names=cleanNames(employees,'сотрудники');
+ const value={
+  employees:cleanNames([...new Set([...names,...rosterItems.map(x=>x.name)])],'сотрудники'),
+  roster:rosterItems,
   roles:cleanNames(roles,'должности'),
   reviewer:String(reviewer??'').trim().slice(0,120),
-  schedule:'before-shift'};
+  schedule:'before-shift'
+ };
  if(!value.roles.length||!value.reviewer)throw Error('Укажи должности и ответственного за осмотр.');
  state.haccp.hygieneSettings={...(state.haccp.hygieneSettings||{}),[pointId]:value};
  return value;
@@ -50,6 +98,7 @@ export function validateHygieneSettings(raw,pointIds){
   if(!pointIds.includes(id)||!item||typeof item!=='object'||Array.isArray(item))
    throw Error('Неизвестная точка в справочнике осмотров.');
   cleanNames(item.employees,'сотрудники');
+  if(item.roster!==undefined)parseHygieneRoster(item.roster);
   if(!cleanNames(item.roles,'должности').length||
    !String(item.reviewer??'').trim()||item.schedule!=='before-shift')
    throw Error('Проверь настройки гигиенического осмотра.');
