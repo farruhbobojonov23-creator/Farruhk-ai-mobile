@@ -2,7 +2,7 @@ import {extraJournals,extraDetails} from './haccp-extra.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
-export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[],dailyControls:[...defaultDailyControls],generalCleaningTarget:2});
+export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[],autoTemplates:[],autoDrafts:[],dailyControls:[...defaultDailyControls],generalCleaningTarget:2});
 const text=(v,n=2000)=>String(v??'').trim().slice(0,n);
 const required=(v,label,n)=>{const s=text(v,n);if(!s)throw Error('Укажи: '+label);return s};
 function number(v,label,optional=false){if(v===null||v===undefined||String(v).trim()===''){if(optional)return null;throw Error('Укажи: '+label)}const n=Number(v);if(!Number.isFinite(n))throw Error('Неверное число: '+label);return n}
@@ -13,6 +13,20 @@ export function validateHaccp(value){
  const result={...emptyHaccp(),...structuredClone(value)};
  if(!Array.isArray(result.dailyControls)||new Set(result.dailyControls).size!==result.dailyControls.length||result.dailyControls.some(kind=>typeof kind!=='string'||!journalTypes[kind]))throw Error('Неверный план ежедневных журналов ХАССП.');
  if(!Number.isInteger(result.generalCleaningTarget)||result.generalCleaningTarget<0||result.generalCleaningTarget>10)throw Error('Неверная периодичность генеральной уборки.');
+ if(!Array.isArray(result.autoTemplates)||result.autoTemplates.length>200||result.autoTemplates.some(t=>
+  !t||typeof t.id!=='string'||!journalTypes[t.kind]||typeof t.pointId!=='string'||typeof t.startDay!=='string'||!/^20\\d{2}-\\d{2}-\\d{2}$/.test(t.startDay)||
+  !t.form||typeof t.form!=='object'||Array.isArray(t.form)||Object.keys(t.form).length>60||
+  Object.values(t.form).some(v=>typeof v!=='string'||v.length>1200)))
+  throw Error('Повреждены образцы журналов ХАССП.');
+ if(!Array.isArray(result.autoDrafts)||result.autoDrafts.length>6000||result.autoDrafts.some(d=>
+  !d||typeof d.id!=='string'||!journalTypes[d.kind]||typeof d.pointId!=='string'||typeof d.day!=='string'||!/^20\\d{2}-\\d{2}-\\d{2}$/.test(d.day)||
+  !d.form||typeof d.form!=='object'||Array.isArray(d.form)||Object.keys(d.form).length>60||
+  Object.values(d.form).some(v=>typeof v!=='string'||v.length>1200)))
+  throw Error('Повреждены черновики журналов ХАССП.');
+ if(new Set(result.autoTemplates.map(t=>t.id)).size!==result.autoTemplates.length||
+    new Set(result.autoDrafts.map(d=>d.id)).size!==result.autoDrafts.length)throw Error('Повтор черновиков ХАССП.');
+ for(const row of [...result.autoTemplates,...result.autoDrafts])
+  if(!result.points.some(p=>p.id===row.pointId))throw Error('У образца журнала нет указанной точки.');
  for(const k of ['points','equipment','records','actions','documents'])if(!Array.isArray(result[k])||result[k].some(x=>!x||typeof x!=='object'||Array.isArray(x)||typeof x.id!=='string'||!x.id))throw Error('Повреждён журнал ХАССП: '+k);
  for(const k of ['points','equipment','records','actions','documents'])if(new Set(result[k].map(x=>x.id)).size!==result[k].length)throw Error('Повторяющиеся записи ХАССП: '+k);
  if(!result.points.length||result.points.some(p=>typeof p.name!=='string'||!p.name.trim()))throw Error('Укажи названия точек.');
@@ -70,5 +84,15 @@ export function mergeHaccp(current,incoming){const a=validateHaccp(current),b=va
  // If it already has HACCP activity or its own custom plan, preserve local settings.
  const untouched=!a.records.length&&!a.actions.length&&!a.equipment.length&&!a.documents.length&&a.dailyControls.join('|')===defaultDailyControls.join('|')&&a.generalCleaningTarget===2;
  if(untouched){a.dailyControls=[...b.dailyControls];a.generalCleaningTarget=b.generalCleaningTarget}
+ if(untouched){
+  // A clean device can restore owner-authored templates and pending drafts.
+  a.autoTemplates=structuredClone(b.autoTemplates);
+  a.autoDrafts=structuredClone(b.autoDrafts);
+ }else{
+  const templates=new Set(a.autoTemplates.map(t=>t.id));
+  for(const template of b.autoTemplates)if(!templates.has(template.id)){a.autoTemplates.push(template);templates.add(template.id)}
+  const drafts=new Set(a.autoDrafts.map(d=>d.id));
+  for(const draft of b.autoDrafts)if(!drafts.has(draft.id)){a.autoDrafts.push(draft);drafts.add(draft.id)}
+ }
  for(const key of ['points','equipment','records','actions','documents']){const ids=new Set(a[key].map(x=>x.id));for(const item of b[key])if(!ids.has(item.id)){a[key].push(item);ids.add(item.id)}}a.revision=Math.max(Number(a.revision)||0,Number(b.revision)||0)+1;return validateHaccp(a)}
 export function journalCsv(records,points){const safe=v=>'"'+String(v??'').replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')+'"';return '\uFEFF'+[['Дата и время','Журнал','Точка','Ответственный','Результат','Подробности','Комментарий'],...records.map(r=>[r.at,journalTypes[r.kind],points.find(p=>p.id===r.pointId)?.name||r.pointId,r.owner,r.status,JSON.stringify(r.details),r.notes])].map(row=>row.map(safe).join(';')).join('\r\n')}
