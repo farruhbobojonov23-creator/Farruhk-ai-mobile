@@ -88,7 +88,38 @@ test('Google errors do not report saved backups or wipe records',async()=>{
  const snapshot=makeGoogleBackupSnapshot({tasks:[{text:'Кухня'}]});
  const res=await invoke(handler,{endpoint,key,action:'backup',snapshot});
  assert.equal(res.statusCode,502);
- assert.match(res.payload.error,/Локальные данные не изменены/);
+ assert.equal(res.payload.reason,'google-network');
+ assert.match(res.payload.error,/Google/);
+});
+
+
+test('Connection diagnostics distinguish Drive folders, wrong key, non-public scripts and Google HTML login',async()=>{
+ const folder='https://drive.google.com/drive/folders/1HghTLNfb-Om-nCVCAbjjWoOfBisKyYwn';
+ const valid=route(async()=>({ok:true,json:async()=>({ok:true,folderName:'FARRUH AI — резервные копии'})}));
+ const badFolder=await invoke(valid,{endpoint:folder,key,action:'check'});
+ assert.equal(badFolder.statusCode,400);
+ assert.equal(badFolder.payload.reason,'invalid-endpoint');
+ assert.match(badFolder.payload.error,/Ссылка на папку Google Диска не подходит/);
+
+ const invalidKey=await invoke(route(async()=>({ok:true,json:async()=>({ok:false,error:'Неверный ключ подключения Google.'})})),{endpoint,key,action:'check'});
+ assert.equal(invalidKey.statusCode,502);
+ assert.equal(invalidKey.payload.reason,'google-key');
+ assert.match(invalidKey.payload.error,/Свойствах скрипта/);
+ assert.doesNotMatch(JSON.stringify(invalidKey.payload),new RegExp(key));
+
+ const html=await invoke(route(async()=>({ok:true,headers:{get:()=> 'text/html; charset=utf-8'}})),{endpoint,key,action:'check'});
+ assert.equal(html.statusCode,502);
+ assert.equal(html.payload.reason,'google-html');
+ assert.match(html.payload.error,/Веб-приложение/);
+
+ const forbidden=await invoke(route(async()=>({ok:false,status:403})),{endpoint,key,action:'check'});
+ assert.equal(forbidden.payload.reason,'google-access');
+ const missing=await invoke(route(async()=>({ok:false,status:404})),{endpoint,key,action:'check'});
+ assert.equal(missing.payload.reason,'google-not-found');
+ const timeout=await invoke(route(async()=>{throw new Error('Sensitive '+key+' '+endpoint)}),{endpoint,key,action:'check'});
+ assert.equal(timeout.payload.reason,'google-network');
+ assert.doesNotMatch(JSON.stringify(timeout.payload),new RegExp(key));
+ assert.doesNotMatch(JSON.stringify(timeout.payload),/AKfycbwABCDef/);
 });
 
 test('In-app backup remains opt-in with a documented one-time Google account authorization',async()=>{
