@@ -83,7 +83,14 @@ export class YandexAssistantStore extends AssistantStore{
     // It remains an extra read-only attempt for compatible installations.
     // Failure must preserve the original signed-download error.
     const path=(this.base+name).split('/').map(encodeURIComponent).join('/');
-    const r=await this.fetchCloud('https://webdav.yandex.ru'+path,{redirect:'error',headers:{Authorization:'OAuth '+this.token}});
+    const webdavLogin=String(process.env.YANDEX_WEBDAV_LOGIN||'').trim();
+    const webdavAppPassword=String(process.env.YANDEX_WEBDAV_APP_PASSWORD||'').trim();
+    // Recent Yandex 360 WebDAV access requires an app-specific password.
+    // OAuth remains a legacy fallback; a 401 must never reset saved files.
+    const auth=webdavLogin&&webdavAppPassword
+      ?'Basic '+Buffer.from(webdavLogin+':'+webdavAppPassword,'utf8').toString('base64')
+      :'OAuth '+this.token;
+    const r=await this.fetchCloud('https://webdav.yandex.ru'+path,{redirect:'error',headers:{Authorization:auth}});
     if(!r.ok){console.error('[cloud-webdav] status='+r.status);throw downloadError}return r.json();
   }
   async write(name,data){
