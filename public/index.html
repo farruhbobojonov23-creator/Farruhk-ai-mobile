@@ -90,6 +90,7 @@
 import {deleteRecipe,upsertRecipe} from '/recipe-actions.js?v=2';
 import {rollTemplate,grossFromNet,calculateNutritionBoth,nutritionMissing,nutritionReference,nutritionKeys,recipeCategories,lossFromWeights,netYield,templateFor,nextCardNumber,cardDateNow,storageWithSanpin,resolveCategoryFields} from '/recipe-math.js?v=categories-12';
 import {mountRecipeSheet} from '/recipe-sheet.js?v=66';
+import {lookupGenericNutrition,genericNutritionCatalog} from '/nutrition-catalog.js?v=1';
 import {requireOwner} from '/owner-login.js';
 import {createVoiceConversation} from '/chef-voice.js?v=77';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=76';
@@ -199,7 +200,7 @@ function guard(fn){return async e=>{e?.preventDefault();try{await fn(e)}catch(er
 function empty(box,text){const p=document.createElement('p');p.className='empty';p.textContent=text;box.append(p)}
 function row(box,text,button,action){const r=document.createElement('div');r.className='row';const s=document.createElement('span');s.textContent=text;r.append(s);if(button){const b=document.createElement('button');b.textContent=button;b.onclick=guard(action);r.append(b)}box.append(r)}
 function render(){pearlHome.render();preparationBoard.render();googleSync?.render();haccpUi.render(state);renderCategories();const recipes=state.recipes||[];for(const id of ['recipelist']){$(id).replaceChildren();const visible=filterCatalog(recipes,recipeFilter,$('recipe-search').value).filter(r=>!favoritesOnly||favorites.has(r.id));if(!visible.length)empty($(id),'В этой категории пока нет техкарт.');visible.forEach(r=>{row($(id),r.name,'Редактировать',()=>openEditor(r));const recipeRow=$(id).lastChild;recipeRow.classList.add('recipe-list-row');const favorite=document.createElement('button');favorite.type='button';favorite.textContent=favorites.has(r.id)?'★ В избранном':'☆ В избранное';favorite.setAttribute('aria-pressed',String(favorites.has(r.id)));favorite.onclick=()=>{if(favorites.has(r.id))favorites.delete(r.id);else favorites.add(r.id);try{localStorage.setItem(favoriteKey,JSON.stringify([...favorites]))}catch{notice('Не удалось сохранить избранное.',true)}render()};recipeRow.append(favorite);const yieldInfo=document.createElement('small');yieldInfo.className='small';yieldInfo.textContent=r.netYieldGrams?'Выход: '+fmt(r.netYieldGrams)+' г':'';recipeRow.append(yieldInfo);const statusBadge=document.createElement('span');statusBadge.className='recipe-status '+(r.status==='ready'?'ready':'draft');statusBadge.textContent=r.status==='ready'?'Готова':'В разработке';recipeRow.insertBefore(statusBadge,recipeRow.querySelector('button'));const word=document.createElement('a');word.href='#';word.textContent='Скачать Word';word.className='recipe-download';word.onclick=guard(()=>downloadWord(r.id));recipeRow.append(word);const download=document.createElement('a');download.href='#';download.onclick=guard(()=>downloadRecipe(r.id));download.textContent='Скачать PDF';download.className='recipe-download';download.setAttribute('download','');$(id).lastChild.append(download);const remove=document.createElement('button');remove.type='button';remove.textContent='Удалить';remove.className='recipe-delete';remove.setAttribute('aria-label','Удалить техкарту '+r.name);remove.onclick=guard(()=>removeRecipe(r.id));$(id).lastChild.append(remove)})}taskBoard.render();$('focus').replaceChildren();const active=state.tasks.filter(t=>!t.done);if(!active.length)empty($('focus'),'Нет активных задач. Можно заняться новой проработкой.');active.slice(0,4).forEach(t=>row($('focus'),t.text,'Открыть',()=>show('tasks')));$('checklist').replaceChildren();const checks=state.inspections||[];const points=[...new Set([...(state.haccp?.points||[]).map(p=>p.name),...checks.map(i=>i.point)])];for(const point of points){const list=checks.filter(i=>i.point===point),card=document.createElement('section');card.className='point-card';const title=document.createElement('h2');title.textContent=point;const status=document.createElement('p');status.className='small';const open=list.filter(i=>!i.done);status.textContent=open.length?'Открытых замечаний: '+open.length:'Открытых замечаний нет';card.append(title,status);for(const i of list)row(card,(i.done?'✓ ':'○ ')+i.text+(i.owner?' · '+i.owner:'')+(i.due?' · '+i.due:''),i.done?'Вернуть':'Закрыть',()=>save(s=>{const x=s.inspections.find(x=>x.id===i.id);if(x)x.done=!x.done}));$('checklist').append(card)}if(!points.length)empty($('checklist'),'Добавь первое замечание, указав название точки.');const selected=$('calc-recipe').value;$('calc-recipe').replaceChildren();recipes.forEach(r=>{const o=new Option(r.name,r.id);$('calc-recipe').add(o)});if(recipes.some(r=>r.id===selected))$('calc-recipe').value=selected;calculate()}
-function readIngredients(){return [...$('ingredients').children].map(r=>{const i=Object.fromEntries([...r.querySelectorAll('input')].map(x=>[x.dataset.key,x.dataset.key==='name'?x.value.trim():x.value===''?null:Number(x.value)]));i.price=r.recipePrice??0;const n=document.getElementById(r.dataset.nutritionId);i.nutrition=Object.fromEntries(nutritionKeys.map(k=>{const x=n?.querySelector('[data-key="'+k+'"]');return [k,!x||x.value===''?null:Number(x.value)]}));return i})}
+function readIngredients(){return [...$('ingredients').children].map(r=>{const i=Object.fromEntries([...r.querySelectorAll('input')].map(x=>[x.dataset.key,x.dataset.key==='name'?x.value.trim():x.value===''?null:Number(x.value)]));i.price=r.recipePrice??0;const n=document.getElementById(r.dataset.nutritionId);i.nutrition=Object.fromEntries(nutritionKeys.map(k=>{const x=n?.querySelector('[data-key="'+k+'"]');return [k,!x||x.value===''?null:Number(x.value)]}));i.nutritionOrigin=n?.dataset.nutritionOrigin||'manual';return i})}
 function updateNutrition(){
  const ingredients=readIngredients(),yieldGrams=netYield(ingredients);
  $('card-yield').value=yieldGrams??'';
@@ -212,13 +213,16 @@ function updateNutrition(){
  const status=$('nutrition-status');
  if(status){
   if(auto&&result){
-   status.textContent='✓ КБЖУ рассчитаны автоматически на 100 г и на порцию '+result.weightGrams.toLocaleString('ru-RU')+' г. Источник — значения ингредиентов на 100 г.';
-   status.dataset.ready='true';
+   const estimated=ingredients.filter(i=>i.nutritionOrigin==='reference');
+   status.textContent=estimated.length?
+    '≈ КБЖУ автоматически рассчитаны на 100 г и на порцию '+result.weightGrams.toLocaleString('ru-RU')+' г. Для '+estimated.map(i=>i.name).join(', ')+' применены СПРАВОЧНЫЕ значения USDA. Сверь данные с этикетками ваших поставщиков перед утверждением ТТК.':
+    '✓ КБЖУ автоматически рассчитаны на 100 г и на порцию '+result.weightGrams.toLocaleString('ru-RU')+' г. Источник — данные ингредиентов на 100 г.';
+   status.dataset.ready=estimated.length?'reference':'true';
   }else if(auto){
    const missing=nutritionMissing(ingredients,yieldGrams);
-   status.textContent='Для расчёта КБЖУ заполни исходные данные: '+missing.slice(0,6).join(' ') +
-    (missing.length>6?' Ещё незаполненных пунктов: '+(missing.length-6)+'.':'')+
-    ' Введи значения на 100 г с этикеток один раз — система сможет подставлять их для совпадающих ингредиентов из сохранённых техкарт.';
+   status.textContent='Для расчёта КБЖУ не хватает исходных данных: '+missing.slice(0,6).join(' ') +
+    (missing.length>6?' Ещё пунктов: '+(missing.length-6)+'.':'')+
+    ' Для продуктов из справочника используем ориентировочные показатели; неизвестные продукты требуют КБЖУ с этикетки.';
    status.dataset.ready='false';
    const details=$('nutrition-products');
    if(details&&!details.dataset.autoOpened&&ingredients.some(i=>String(i.name||'').trim())){
@@ -237,7 +241,11 @@ function ingredient(i={}){
  const r=document.createElement('div');r.className='ingredient';r.recipePrice=i.price;r.dataset.nutritionId='nutrition-'+crypto.randomUUID();
  for(const [key,label] of [['name','Ингредиент'],['grossGrams','Брутто, г'],['grams','Нетто, г'],['lossPercent','Отходы, %']]){const labelEl=document.createElement('label');labelEl.textContent=label;const x=document.createElement('input');x.dataset.key=key;x.setAttribute('aria-label',label);if(key==='name')x.setAttribute('list','ttk-known-ingredients');x.value=i[key]??(key==='lossPercent'?(lossFromWeights(i.grossGrams,i.grams)??0):'');x.required=true;if(key==='grossGrams'){x.readOnly=true;x.title='Рассчитывается по нетто и проценту отходов'}if(key!=='name'){x.type='number';x.min=key==='grams'?'0.01':'0';x.max=key==='lossPercent'?'99.99':'10000000';x.step='any'}labelEl.append(x);r.append(labelEl)}
  const n=document.createElement('div');n.id=r.dataset.nutritionId;n.className='nutrition-ingredient';const title=document.createElement('strong');title.textContent=i.name||'Новый ингредиент';n.append(title);
- const source=document.createElement('small');source.className='ttk-nutrition-source';source.textContent='КБЖУ на 100 г продукта (по этикетке)';n.append(source);
+ const source=document.createElement('small');source.className='ttk-nutrition-source';
+ n.dataset.nutritionOrigin=i.nutritionOrigin||'manual';
+ source.textContent=n.dataset.nutritionOrigin==='reference'?'≈ Справочные данные USDA. Уточни КБЖУ по упаковке поставщика.':
+  'КБЖУ на 100 г продукта (по этикетке)';
+ n.append(source);
  for(const [key,label] of [['protein','Белки, г'],['fat','Жиры, г'],['carbs','Углеводы, г'],['kcal','Ккал']]){
   const l=document.createElement('label');l.textContent=label;const x=document.createElement('input');
   x.type='number';x.min='0';x.step='any';x.dataset.key=key;x.value=i.nutrition?.[key]??'';
@@ -251,14 +259,20 @@ function ingredient(i={}){
   if(n.dataset.autofilled==='true'&&n.dataset.autofilledName!==normalized){
    for(const x of fields)x.value='';
    n.dataset.autofilled='false';
+   n.dataset.nutritionOrigin='manual';
    source.textContent='КБЖУ на 100 г продукта (по этикетке)';
   }
   if(!normalized||fields.some(x=>x.value!==''))return;
   const found=nutritionReference(state?.recipes||[]).get(normalized);
-  if(!found)return;
-  for(const key of nutritionKeys)n.querySelector('[data-key="'+key+'"]').value=found[key];
+  const generic=found?null:lookupGenericNutrition(normalized);
+  const nutrients=found||generic?.nutrition;
+  if(!nutrients)return;
+  for(const key of nutritionKeys)n.querySelector('[data-key="'+key+'"]').value=nutrients[key];
   n.dataset.autofilled='true';n.dataset.autofilledName=normalized;
-  source.textContent='✓ Подставлено из сохранённых техкарт. Проверь производителя и этикетку.';
+  n.dataset.nutritionOrigin=generic?'reference':'saved';
+  source.textContent=generic?
+   '≈ '+generic.title+' · '+generic.source+'. ОРИЕНТИРОВОЧНО: проверь этикетку конкретного производителя.':
+   '✓ Подставлено из сохранённых ТТК. Проверь данные конкретного производителя.';
  }
  n.addEventListener('input',()=>{
   n.dataset.autofilled='false';
@@ -287,6 +301,10 @@ function refreshKnownIngredientNames(){
  for(const recipe of state?.recipes||[])for(const item of recipe.ingredients||[]){
   const key=String(item.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
   if(reference.has(key)&&!names.has(key))names.set(key,String(item.name||'').trim());
+ }
+ for(const item of genericNutritionCatalog)for(const name of item.names){
+  const key=String(name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
+  if(!names.has(key))names.set(key,name);
  }
  knownIngredientNames.replaceChildren(...[...names.values()].map(name=>{
   const option=document.createElement('option');option.value=name;return option;
