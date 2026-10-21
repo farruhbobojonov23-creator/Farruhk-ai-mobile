@@ -72,7 +72,7 @@ export function mountHaccp(root,{getState,save,notify}){
     download(await response.blob(),'ХАССП_все_12_журналов_'+autoMonth.value+'.pdf');
     say('Все 12 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
    }finally{exportAll.disabled=false}
-  }),'primary'));
+  }),'primary');
  autoPanel.append(autoForm,autoStats,exportAll,
   el('p','План обновляется по московскому времени с 11:00, а при закрытом приложении — при следующем открытии. В PDF внесены только реальные записи и неподтверждённые строки по графику. Распечатка не заменяет фактический контроль.','small'));
  updateAutoStats();
