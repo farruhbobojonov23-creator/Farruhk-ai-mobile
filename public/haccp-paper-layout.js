@@ -279,46 +279,15 @@ export const journalPaperColumns=Object.freeze({
   ]
  ],
  "quality": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.8
-  ],
-  [
-   "product",
-   "Блюдо / партия",
-   1.5
-  ],
-  [
-   "quantity",
-   "Количество",
-   0.85
-  ],
-  [
-   "checks",
-   "Органолептическая оценка",
-   2.3
-  ],
-  [
-   "decisionText",
-   "Решение",
-   1.5
-  ],
-  [
-   "result",
-   "Результат",
-   1
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.2
-  ]
+  ["at","Дата и время",1.05],
+  ["point","Точка",0.72],
+  ["qualityType","Контроль",0.82],
+  ["qualityProduct","Блюдо / партия",1.5],
+  ["quantity","Количество",0.9],
+  ["startedAt","Приготовлено",1.05],
+  ["qualitySensory","Органолептика",2.45],
+  ["qualityReview","Решение / проверяющий",1.7],
+  ["owner","Сушист",0.85]
  ],
  "hygiene": [
   [
@@ -431,6 +400,21 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   details.product,details.batch&&'Партия: '+details.batch,
   details.invoice&&'Док.: '+details.invoice
  ].filter(Boolean).join('\n');
+ else if(key==='qualityType')value=details.qualityType==='daily'?'Перед реализацией':details.qualityType==='batch'?'Новая партия':(details.qualityType||'—');
+ else if(key==='qualityProduct')value=[
+  details.product,details.category&&'Категория: '+details.category,
+  details.batch&&'Партия: '+details.batch
+ ].filter(Boolean).join('\n');
+ else if(key==='qualitySensory'){
+  if(draft)return 'Черновик: оценка не проводилась';
+  value=details.checks||'Нет детализации (старая запись)';
+ }
+ else if(key==='qualityReview'){
+  if(draft)return 'Не подтверждено';
+  value=[details.decisionText||'Решение не указано',
+   details.reviewer&&'Проверил: '+details.reviewer
+  ].filter(Boolean).join('\n');
+ }
  else if(key==='thawProductBatch')value=[
   details.product,
   details.batch&&'Партия: '+details.batch,
