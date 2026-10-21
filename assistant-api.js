@@ -35,7 +35,7 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   }));
   app.post('/api/auth/logout',(req,res)=>{if(!trustedOrigin(req))return res.sendStatus(403);res.setHeader('Set-Cookie','fai_owner=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');res.json({ok:true})});
   app.use((req,res,next)=>{
-    const personal=/^\/api\/(?:state|backups|yandex|frontpad|analytics|chat|transcribe|voice|recipes|status|documents|push)(?:\/|$)/.test(req.path);
+    const personal=/^\/api\/(?:state|backups|yandex|frontpad|analytics|chat|transcribe|voice|ai|recipes|status|documents|push)(?:\/|$)/.test(req.path);
     if(!personal)return next();
     if(!passwordless&&!auth.enabled)return res.status(503).json({error:'Вход владельца не настроен.'});
     if(!passwordless&&!auth.verify(cookie(req)))return res.status(401).json({error:'Войдите в личный ассистент.'});
