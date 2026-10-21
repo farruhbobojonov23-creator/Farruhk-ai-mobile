@@ -1,0 +1,47 @@
+name: FARRUH AI — Arctic Production QA
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: arctic-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts
+      - name: Validate client and server syntax
+        run: |
+          node --check server.js
+          node --check public/unified-workspace.js
+          node --check public/ruby-studio.js
+          node --check public/haccp-ui.js
+          node --check public/recipe-sheet.js
+          node --check public/chef-voice.js
+          node --check tests/arctic-browser-smoke.mjs
+      - name: Run functional regression tests
+        run: npm test
+      - name: Install Chromium test environment
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test user flows in mobile and desktop browsers
+        run: node tests/arctic-browser-smoke.mjs
+      - name: Upload browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arctic-production-smoke-screenshots
+          path: artifacts/arctic-*.png
+          if-no-files-found: ignore
