@@ -82,7 +82,7 @@ export function closeCorrectiveAction(state,id,{action,reviewer},now=new Date())
 export function mergeHaccp(current,incoming){const a=validateHaccp(current),b=validateHaccp(incoming);
  // A newly installed device should recover the owner's inspection plan from a backup.
  // If it already has HACCP activity or its own custom plan, preserve local settings.
- const untouched=!a.records.length&&!a.actions.length&&!a.equipment.length&&!a.documents.length&&a.dailyControls.join('|')===defaultDailyControls.join('|')&&a.generalCleaningTarget===2;
+ const untouched=!a.records.length&&!a.actions.length&&!a.equipment.length&&!a.documents.length&&!a.autoTemplates.length&&!a.autoDrafts.length&&a.dailyControls.join('|')===defaultDailyControls.join('|')&&a.generalCleaningTarget===2;
  if(untouched){a.dailyControls=[...b.dailyControls];a.generalCleaningTarget=b.generalCleaningTarget}
  if(untouched){
   // A clean device can restore owner-authored templates and pending drafts.
