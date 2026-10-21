@@ -185,6 +185,25 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  function documentsView(){const f=formShell('Добавить документ');inputField(f,'Название документа','title',{required:true,maxLength:200});selectField(f,'Раздел','category',[['plan','План ХАССП'],['instruction','Инструкция'],['journal','Форма журнала'],['other','Другое']]);inputField(f,'Ответственный за документ','owner',{required:true,maxLength:120});inputField(f,'Дата / версия','version',{maxLength:100});const file=fileField(f,'Файл до 5 МБ','.pdf,.docx,.xlsx,.txt,.png,.jpg,.jpeg,.webp');file.required=true;submitForm(f,async raw=>{const chosen=file.files[0];const data=await fileData(chosen,5*1024*1024);await commit(state=>{const next=validateHaccp(state.haccp);next.documents.push({id:crypto.randomUUID(),title:raw.title.trim(),category:raw.category,owner:raw.owner.trim(),version:raw.version.trim(),fileName:chosen.name,size:chosen.size,data,createdAt:new Date().toISOString()});state.haccp=validateHaccp(next)})},'Сохранить документ');history.append(el('h2','Документы на устройстве'));if(!h().documents.length)history.append(el('p','Загрузи утверждённый план, инструкции или формы журналов вашей кухни.','empty'));for(const doc of h().documents){const box=el('article',undefined,'haccp-record');box.append(el('h3',doc.title),el('p',doc.owner+' · '+(doc.version||'версия не указана')+' · '+displayDate(doc.createdAt)),attachmentLink(doc.data,doc.fileName,'Скачать '+doc.fileName));history.append(box)}}
  function settingsView(){const f=formShell('Названия точек');for(const point of h().points)inputField(f,'Название '+point.name,point.id,{required:true,value:point.name,maxLength:120});submitForm(f,async raw=>commit(state=>{const next=validateHaccp(state.haccp);for(const point of next.points)point.name=String(raw[point.id]).trim();if(new Set(next.points.map(p=>p.name)).size!==next.points.length)throw Error('Названия точек должны различаться.');state.haccp=validateHaccp(next)}),'Сохранить названия');
+  const planForm=formShell('План ежедневного контроля · 11:00 МСК');
+  planForm.classList.add('haccp-plan-settings');
+  planForm.append(el('p','Выбери журналы, которые действительно проверяются ежедневно по вашей программе производственного контроля. Остальные журналы остаются доступными по событию и не создают ложных «пропусков». В 11:00 формируется список ожидаемых проверок — фактические результаты записывает ответственный.','small'));
+  const checklist=el('div',undefined,'haccp-plan-list');
+  for(const [kind,title] of Object.entries(journalTypes)){
+   const label=el('label',undefined,'haccp-plan-check');
+   const box=el('input');box.type='checkbox';box.name='plan_'+kind;box.value=kind;
+   box.checked=h().dailyControls.includes(kind);
+   label.append(box,el('span',title));checklist.append(label);
+  }
+  planForm.append(checklist);
+  const goal=inputField(planForm,'Генеральные уборки на каждой точке за месяц (по утверждённому графику)','generalCleaningTarget',{type:'number',required:true,value:h().generalCleaningTarget});
+  goal.min='0';goal.max='10';goal.step='1';
+  submitForm(planForm,async(raw)=>{
+   const selected=Object.keys(journalTypes).filter(kind=>raw['plan_'+kind]===kind);
+   const target=Number(raw.generalCleaningTarget);
+   if(!Number.isInteger(target)||target<0||target>10)throw Error('Укажи от 0 до 10 генеральных уборок за месяц.');
+   await commit(state=>{const next=validateHaccp(state.haccp);next.dailyControls=selected;next.generalCleaningTarget=target;state.haccp=validateHaccp(next)});
+  },'Сохранить план контроля');
   const e=formShell('Добавить оборудование');selectField(e,'Точка','pointId',pointOptions());inputField(e,'Название оборудования','name',{required:true,maxLength:120});inputField(e,'Утверждённый минимум, °C (необязательно)','min',{type:'number'});inputField(e,'Утверждённый максимум, °C (необязательно)','max',{type:'number'});e.append(el('p','Вводи границы из утверждённых процедур. Без границ измерения сохраняются без оценки. В старых записях остаются границы, действовавшие при замере.','small'));submitForm(e,async raw=>commit(state=>addEquipment(state,raw)),'Добавить оборудование');history.append(el('h2','Оборудование'));for(const item of h().equipment){const f=el('form',undefined,'haccp-record');f.append(el('h3',pointName(item.pointId)+' · '+item.name));inputField(f,'Название','name',{required:true,value:item.name,maxLength:120});inputField(f,'Минимум, °C','min',{type:'number',value:item.min??''});inputField(f,'Максимум, °C','max',{type:'number',value:item.max??''});submitForm(f,async raw=>commit(state=>updateEquipment(state,item.id,raw)),'Сохранить оборудование');history.append(f)}
  }
  function drawHistory(){history.replaceChildren();if(journalTypes[tab])journalHistory()}
@@ -196,6 +215,13 @@ export function mountHaccp(root,{getState,save,notify}){
  function selectMonth(){if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(monthFilter.value)){say('Выбери корректный месяц.',true);return}fromDate.value=toDate.value='';build()}monthFilter.onchange=selectMonth;archive.onchange=()=>{monthFilter.value=archive.value;selectMonth()};
  pointFilter.onchange=()=>{metricsRender();build()};fromDate.onchange=toDate.onchange=()=>{if(fromDate.value&&toDate.value&&fromDate.value>toDate.value){say('Начало периода позже окончания.',true);return}if(journalTypes[tab])drawHistory()};
  function render(state){if(!state)return;const data=validateHaccp(state.haccp);if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
- setInterval(()=>{const next=measurementDate().slice(0,7);if(next!==currentMonth){if(monthFilter.value===currentMonth)monthFilter.value=next;currentMonth=next;lastRevision=null;render(getState())}},60000);
+ let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
+ setInterval(()=>{
+  const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
+  const changedDay=next.day!==lastClockStage.day,changedStage=next.due!==lastClockStage.due;
+  lastClockStage=next;
+  if(changedMonth){if(monthFilter.value===currentMonth)monthFilter.value=next.month;currentMonth=next.month;lastRevision=null;render(getState());return}
+  if((changedDay||changedStage)&&loaded&&root.isConnected&&root.closest('[hidden]')===null)build();
+ },60000);
  build();return {render,open(kind){if(!journalTypes[kind])return false;tab=kind;build();return true}};
 }
