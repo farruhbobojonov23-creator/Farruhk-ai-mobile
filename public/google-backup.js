@@ -11,6 +11,19 @@ export function makeGoogleBackupSnapshot(state){
  delete clean.googleDelivery;
  return {version:1,createdAt:new Date().toISOString(),state:clean};
 }
+export function explainBackupEndpoint(value){
+ const text=String(value||'').trim();
+ if(!text)return 'Нужен URL опубликованного веб-приложения Google Apps Script.';
+ let url;
+ try{url=new URL(text)}catch{return 'Некорректная ссылка. Нужен URL вида https://script.google.com/macros/s/…/exec.'}
+ if(url.hostname==='drive.google.com')
+  return 'Это ссылка на папку Google Диска, а не адрес подключения. Открой Google Apps Script → Развертывание → Управление развертываниями → Веб-приложение → скопируй URL, который заканчивается на /exec.';
+ if(url.protocol!=='https:'||url.hostname!=='script.google.com'||
+    url.username||url.password||url.port||url.search||url.hash||
+    !/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(url.pathname))
+  return 'Здесь нужен URL веб-приложения Google Apps Script вида https://script.google.com/macros/s/…/exec. Ссылка на проект или папку не подходит.';
+ return '';
+}
 export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDialog,importData,downloadFile}){
  const dialog=document.createElement('dialog');
  dialog.className='category-dialog google-backup-dialog';
@@ -19,7 +32,8 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
  <p class="small">Бесплатный Google Диск. Копируются техкарты, ХАССП, задачи и история — без удаления или замены записей. Старые файлы Яндекс Диска не затрагиваются.</p>
  <p class="small"><a href="/google-backup-setup.html" target="_blank" rel="noopener">Как один раз подключить свой Google Диск ↗</a></p>
  <form data-connect>
-  <label>Адрес Google Apps Script<input name="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="url" required></label>
+  <label>Адрес опубликованного веб-приложения (оканчивается на /exec)<input name="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="url" required></label>
+  <p class="small google-backup-hint">Ссылка <strong>drive.google.com/drive/folders/…</strong> не подходит. Нужен адрес из <a href="https://script.google.com/home/start" target="_blank" rel="noopener">Google Apps Script → Развертывание → Управление развертываниями ↗</a>.</p>
   <label>Личный ключ подключения<input name="key" type="password" minlength="24" maxlength="200" autocomplete="off" required></label>
   <label class="voice-check"><input name="enabled" type="checkbox" checked style="width:auto"> Создавать резервную копию примерно раз в сутки, пока приложение открыто и есть интернет</label>
   <div class="bar"><button type="submit" class="primary">Проверить и подключить</button><button type="button" data-disable>Отключить автокопии</button></div>
@@ -66,6 +80,8 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
   try{
    respond('Проверяю связь с Google Диском…');
    const next={endpoint:form.elements.endpoint.value.trim(),key:form.elements.key.value.trim(),enabled:form.elements.enabled.checked};
+   const endpointError=explainBackupEndpoint(next.endpoint);
+   if(endpointError)throw Error(endpointError);
    const check=await request('check',next);
    await persist(state=>{
     const old=state.googleBackup;
