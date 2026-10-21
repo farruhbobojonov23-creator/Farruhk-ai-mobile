@@ -237,12 +237,27 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
-  await page.locator('#lab .haccp-sheet [name=pointId]').evaluate(el=>{el.value='point-1';el.dispatchEvent(new Event('change',{bubbles:true}))});
-  const sampleButton=page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'});
-  assert.equal(await sampleButton.count(),1,'hygiene example can be saved for daily auto-fill');
-  await sampleButton.click();
-  await page.waitForFunction(()=>document.querySelector('#lab .haccp-message')?.textContent?.includes('Образец сохранён'),null,{timeout:12000});
-  await page.waitForFunction(()=>document.querySelector('#lab .haccp-drafts-panel h2')?.textContent?.includes('черновики'),null,{timeout:12000});
+  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/перед каждой сменой/i,
+   'per-person pre-shift inspection, not an invented daily admission');
+  assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
+   'prior hygiene admission cannot become an auto-accepted template');
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  assert.equal(await page.locator('#lab input[name=employee]').count(),1,'employee selector exists');
+  assert.equal(await page.locator('#lab input[name=shiftStart]').count(),1,'shift start is required');
+  assert.equal(await page.locator('#lab select[name=hygieneDecision]').inputValue(),'',
+   'admission is never preselected');
+  for(const name of ['uniform','hands','headwear','personalItems','workplaceRules']){
+   assert.equal(await page.locator('#lab select[name='+name+']').count(),1,
+    'required inspection dimension: '+name);
+   assert.equal(await page.locator('#lab select[name='+name+']').inputValue(),'',
+    'inspection outcome never guessed: '+name);
+  }
+  assert.equal(await page.locator('#lab input[name=attachment]').isVisible(),false,
+   'no staff medical imagery upload in hygienic inspection');
+  await page.locator('#lab .journal-modes button').first().click();
+  const hygienePaper=await page.locator('#lab .haccp-a4-paper').innerText();
+  assert.ok(!/Черновик|Не подтверждено|Не оценено/i.test(hygienePaper),
+   'official hygienic inspection A4 contains no process-stage text');
 
 
 
