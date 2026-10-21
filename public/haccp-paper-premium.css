@@ -351,3 +351,60 @@
 @media(max-width:670px){
  #lab .haccp-temperature-range-grid{grid-template-columns:minmax(0,1fr)!important}
 }
+
+
+/* Add unlimited refrigeration equipment directly from My Sample. */
+#lab .haccp-temperature-add{
+ margin:12px 0 17px!important;
+ padding:12px!important;
+ background:linear-gradient(135deg,#f4fbff,#e6f5ff)!important;
+ border:1px solid #b7d9ee!important;
+ border-radius:14px!important;
+}
+#lab .haccp-temperature-add >button{
+ display:block!important;width:100%!important;
+ min-height:47px!important;
+ border-radius:12px!important;
+ font-weight:750!important;
+ background:linear-gradient(130deg,#398bc4,#62b3e3)!important;
+ color:#fff!important;border:1px solid #509ccd!important;
+ text-align:center!important;padding:11px 15px!important;
+}
+#lab .haccp-temperature-add-editor[hidden]{display:none!important}
+#lab .haccp-temperature-add-editor{
+ display:grid!important;gap:12px!important;
+ margin-top:13px!important;
+ padding:15px!important;border:1px solid #c1e0f2!important;
+ border-radius:13px!important;background:#fff!important;
+}
+#lab .haccp-temperature-add-editor h4{
+ font-size:16px!important;color:#295a7e!important;margin:0!important;
+}
+#lab .haccp-temperature-add-fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:11px!important;
+}
+#lab .haccp-temperature-add-fields label{
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+ min-width:0!important;color:#355e7e!important;font-size:13px!important;
+}
+#lab .haccp-temperature-add-fields input,
+#lab .haccp-temperature-add-fields select{
+ display:block!important;box-sizing:border-box!important;
+ width:100%!important;min-width:0!important;
+ min-height:46px!important;padding:10px!important;
+ border-radius:10px!important;background:#fff!important;
+ border:1px solid #b5d6ea!important;color:#1f4d70!important;
+ font-size:16px!important;color-scheme:light!important;
+}
+#lab .haccp-temperature-add-editor button.primary{
+ min-height:45px!important;color:white!important;
+ background:linear-gradient(110deg,#348cc5,#4facdd)!important;
+ border:0!important;border-radius:10px!important;
+}
+#lab .haccp-temperature-add-feedback{
+ font-size:13px!important;color:#a0483f!important;margin:0!important;
+}
+@media(max-width:600px){
+ #lab .haccp-temperature-add-fields{grid-template-columns:minmax(0,1fr)!important}
+}
