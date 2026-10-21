@@ -183,6 +183,15 @@ async function verify(mode,width,height){
 
 
 
+  await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=temperature]').click();
+  assert.equal(await visible(page,'#lab .haccp-temperature-sample'),true,'temperature sample form visible without opening the hidden single-reading panel');
+  assert.match(await page.locator('#lab .haccp-temperature-sample h3').innerText(),/МОЙ ОБРАЗЕЦ/,'sample has an obvious headline');
+  const saveTempSample=page.locator('#lab .haccp-temperature-sample-actions button').filter({hasText:'Сохранить образец'});
+  assert.equal(await saveTempSample.isVisible(),true,'save sample button visible directly in temperature journal');
+  assert.equal(await visible(page,'#lab .haccp-temperature-drafts'),true,'reviewable temperature drafts list visible');
+  await page.screenshot({path:'artifacts/arctic-haccp-temperature-sample-'+mode+'.png',fullPage:false,timeout:12000});
+
   await page.locator('button[data-view="tasks"]').first().evaluate(el=>el.click());
   assert.equal(await page.locator('body').getAttribute('data-view'),'tasks','Tasks navigation');
   const details=page.locator('details.create-panel').filter({has:page.locator('#taskform')});
