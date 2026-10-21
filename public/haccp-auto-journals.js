@@ -20,7 +20,7 @@ export function automaticJournalRows(raw,{month,kind,pointId='',now=new Date()}=
  for(const draft of pending)result.push({type:'draft',kind,pointId:draft.pointId,day:draft.day,record:draft,form:draft.form});
  const due=(day)=>day<clock.day||(day===clock.day&&clock.due);
  // No synthetic delivery, inspection, defrosting, or hygiene outcomes.
- if(kind!=='receiving'&&h.dailyControls.includes(kind)){
+ if(!['receiving','defrosting'].includes(kind)&&h.dailyControls.includes(kind)){
   for(const point of current){
    const equipment=(kind==='temperature'?h.equipment.filter(e=>e.pointId===point.id):[null]);
    const subjects=equipment.length?equipment:[null];
