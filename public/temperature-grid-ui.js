@@ -6,7 +6,23 @@ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefine
 const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b};
 function field(parent,label,type,value){const l=el('label',label),i=el('input');i.type=type;i.value=value||'';l.append(i);parent.append(l);return i}
 function download(bytes,name){const url=URL.createObjectURL(bytes),a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
-export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthChange,commit,onSettings,notify}){
+export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointChange,onMonthChange,commit,onSettings,notify}){
+ // Selecting a location must never display the other locations' equipment.
+ const pointBar=el('div',undefined,'haccp-temperature-point-selector');
+ const locationLabel=el('label','Точка / филиал'),locationSelect=el('select');
+ locationSelect.setAttribute('aria-label','Выбери точку для температурного журнала');
+ locationSelect.append(new Option('Все точки (просмотр)',''));
+ for(const p of getHaccp().points)locationSelect.append(new Option(p.name,p.id));
+ locationSelect.value=pointId||'';
+ locationSelect.onchange=()=>onPointChange?.(locationSelect.value);
+ locationLabel.append(locationSelect);
+ const pointSummary=el('p','','small');
+ const selectedPoint=getHaccp().points.find(p=>p.id===pointId);
+ const assigned=getHaccp().equipment.filter(e=>e.pointId===pointId);
+ pointSummary.textContent=selectedPoint
+  ?selectedPoint.name+' · '+assigned.length+' единиц оборудования. Параметры этой точки сохраняются отдельно от остальных.'
+  :'Все точки: только общий просмотр. Выбери филиал для сохранения его образца.';
+ pointBar.append(locationLabel,pointSummary);root.append(pointBar);
  const box=el('section',undefined,'haccp-monthly');root.append(box);
  box.append(el('h2','Журнал температур холодильного и морозильного оборудования'));
  const bar=el('div',undefined,'haccp-month-controls');box.append(bar);
@@ -20,7 +36,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  // Keep sample controls here where the user can actually see and use them.
  const samplePanel=el('section',undefined,'haccp-temperature-sample');
  samplePanel.append(el('h3','МОЙ ОБРАЗЕЦ · ТЕМПЕРАТУРЫ'));
- const sampleInfo=el('p','Настрой допустимый диапазон °C отдельно для каждого холодильника и морозильника. Укажи ответственного ниже и сохрани образец. В 11:00 ежедневно подготовятся строки с нормами, но без выдуманных температур: фактический замер ты внесёшь при проверке.','small');
+ const sampleInfo=el('p','Настрой допустимый диапазон °C отдельно для каждого холодильника и морозильника на выбранной точке. Укажи ответственного ниже и сохрани образец. Ежедневно с 11:00 подготовятся черновики без выдуманных температур: фактический замер ты внесёшь при проверке.','small');
  const sampleOwner=field(samplePanel,'Ответственный для образца','text',selection.owner||'');sampleOwner.maxLength=120;
  const sampleRanges=el('div',undefined,'haccp-temperature-range-grid');
  const sampleStatus=el('p','','haccp-temperature-sample-status');
@@ -42,7 +58,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
  const pointLabel=el('label','Точка'),equipmentPoint=el('select');
  equipmentPoint.setAttribute('aria-label','Точка нового оборудования');
  for(const point of getHaccp().points)equipmentPoint.append(new Option(point.name,point.id));
- if(pointId&&getHaccp().points.some(p=>p.id===pointId))equipmentPoint.value=pointId;
+ if(pointId&&getHaccp().points.some(p=>p.id===pointId)){equipmentPoint.value=pointId;equipmentPoint.disabled=true}
  pointLabel.append(equipmentPoint);
  const equipmentName=field(equipmentFields,'Название холодильника / морозильника','text','');
  equipmentName.maxLength=120;
@@ -88,10 +104,16 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onMonthCha
   const templates=h.autoTemplates||[];
   const total=inputs.length,saved=inputs.filter(input=>
    templates.some(t=>t.kind==='temperature'&&t.pointId===h.equipment.find(e=>e.id===input.equipmentId)?.pointId&&t.form?.equipmentId===input.equipmentId)).length;
-  sampleStatus.textContent='Образцов сохранено: '+saved+' из '+total+' единиц оборудования. Каждый холодильник получит собственную строку.';
+  if(!pointId){
+   sampleStatus.textContent='Выбери одну точку выше, чтобы сохранить её собственный образец.';
+   sampleSave.disabled=true;sampleLoad.disabled=true;return;
+  }
+  sampleStatus.textContent='На точке «'+(h.points.find(p=>p.id===pointId)?.name||'')+'» образцов сохранено: '+saved+' из '+total+' единиц оборудования.';
+  sampleSave.disabled=saving;
   sampleLoad.disabled=!saved;
  }
  async function storeTemplate(){
+  if(!pointId){hint.textContent='Сначала выбери конкретную точку.';return}
   if(saving)return;
   const responsible=(sampleOwner.value||owner.value).trim();
   if(!responsible){hint.textContent='Укажи ответственного в блоке «Мой образец».';sampleOwner.focus();return}
