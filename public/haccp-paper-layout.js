@@ -290,46 +290,14 @@ export const journalPaperColumns=Object.freeze({
   ["owner","Сушист",0.85]
  ],
  "hygiene": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.8
-  ],
-  [
-   "employee",
-   "Сотрудник",
-   1.4
-  ],
-  [
-   "role",
-   "Смена / должность",
-   1.3
-  ],
-  [
-   "checks",
-   "Осмотр (без диагноза)",
-   2
-  ],
-  [
-   "decisionText",
-   "Допуск к работе",
-   1.6
-  ],
-  [
-   "result",
-   "Оценка",
-   1
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.3
-  ]
+  ["at","Осмотрен",1.03],
+  ["point","Точка",0.73],
+  ["employee","Сотрудник",1.35],
+  ["role","Должность",1.05],
+  ["shiftStart","Начало смены",1.05],
+  ["checks","Контроль личной гигиены",2.75],
+  ["decisionText","Допуск к работе",1.43],
+  ["reviewer","Проверяющий",1.32]
  ],
  "pests": [
   [
@@ -376,7 +344,7 @@ export const journalPaperColumns=Object.freeze({
 });
 const status={ok:'Без замечаний',deviation:'Отклонение',unconfigured:'Не оценено'};
 const values={done:'Выполнено',problem:'Замечание',accepted:'Принято',rejected:'Отказ',daily:'Текущая',general:'Генеральная',yes:'Да',no:'Нет',na:'Не применимо'};
-const dateFields=new Set(['at','startedAt','finishedAt','expiry','useBy']);
+const dateFields=new Set(['at','startedAt','finishedAt','expiry','useBy','shiftStart']);
 const formattedTime=value=>{
  if(value===null||value===undefined||value==='')return '—';
  const date=new Date(value);
