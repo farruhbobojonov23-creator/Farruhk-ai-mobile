@@ -53,3 +53,12 @@ test('Changing the daily plan is validated, preserved and never alters actual re
  assert.throws(()=>validateHaccp({...restored,generalCleaningTarget:12}),/генеральной/);
  assert.throws(()=>addJournalRecord(state(),input('2026-10-21T11:00:00+03:00','false'),'bad'),/тип уборки/);
 });
+
+test('Backup restoration copies HACCP plan to a clean device, but does not overwrite established plan',()=>{
+ const source=state();source.haccp.dailyControls=['pests'];source.haccp.generalCleaningTarget=3;
+ const blank=emptyHaccp(),merged=mergeHaccp(blank,source.haccp);
+ assert.deepEqual(merged.dailyControls,['pests']);assert.equal(merged.generalCleaningTarget,3);
+ const ongoing=state();ongoing.haccp.dailyControls=['cleaning'];ongoing.haccp.generalCleaningTarget=1;
+ const preserved=mergeHaccp(ongoing.haccp,source.haccp);
+ assert.deepEqual(preserved.dailyControls,['cleaning']);assert.equal(preserved.generalCleaningTarget,1);
+});
