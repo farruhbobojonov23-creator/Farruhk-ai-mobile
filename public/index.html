@@ -148,7 +148,7 @@ const preparationBoard=mountPreparationBoard($('preparations'),{getState:()=>sta
 const taskBoard=mountTaskBoard($('tasklist'),{getState:()=>state,save,notify:notice});for(const [id,title] of [['taskform','＋ Новая задача'],['checkform','＋ Новое замечание']]){const f=$(id),d=document.createElement('details'),t=document.createElement('summary');d.className='create-panel';t.textContent=title;f.before(d);d.append(t,f)}
 // Isolate the HACCP add-on: a broken journal must never disable the main application.
 let haccpUi={render(){},open(){return false}};
-import('/haccp-ui.js?v=94').then(({mountHaccp})=>{
+import('/haccp-ui.js?v=95').then(({mountHaccp})=>{
  haccpUi=mountHaccp($('lab'),{getState:()=>state,save,notify:notice});
  if(state)haccpUi.render(state);
 }).catch(error=>{
