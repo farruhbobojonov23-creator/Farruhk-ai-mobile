@@ -1,17 +1,60 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARRUH AI · Кабинет шефа</title><meta name="theme-color" content="#111014"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/recipe-sheet.css?v=burgundy-3"><link rel="stylesheet" href="/haccp.css?v=temperature-grid-1"><link rel="stylesheet" href="/unified-ruby.css?v=76"></head><body data-view="home"><header class="aurora-top"><button id="menu-toggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="chef-menu">☰</button><a href="#home" class="aurora-brand">FARRUH <span>AI</span><small>КАБИНЕТ ШЕФА</small></a><button id="lunar-settings" aria-label="Настройки и данные" title="Настройки и данные">⚙</button><span class="lunar-local"><i></i>На устройстве</span></header><div class="app"><aside class="sidebar glass" id="chef-menu" hidden><div class="brand">✧ FARRUH AI</div><nav class="nav"><button data-view="home">Кабинет шефа</button><button data-view="lab">ХАССП</button><button data-view="recipes">Техкарты</button><button id="menu-preparations" data-view="preparations">Заготовки</button><button data-view="calc">Калькулятор</button><button data-view="checks">Контроль точек</button><button data-view="tasks">Задачи</button><button data-view="chat">Ассистент</button><button id="menu-settings">Настройки и данные</button></nav><p class="small" style="margin-top:28px">Фаррух Ака<br>Бренд-шеф · Японская кухня</p></aside><main><header class="bar"><span id="viewtitle">Кабинет шефа</span><span class="small" id="connection">Загрузка данных…</span></header><div class="glass"><div id="notice" class="notice" role="status"></div>
-<section class="view ruby-home" id="home" aria-label="FARRUH AI — главный экран">
-<div class="ruby-scene tesseract-scene"><div class="tesseract-rays" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="tesseract-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><img class="tesseract-art" src="/assets/tesseract-sapphire.webp" width="1254" height="1254" alt="Тессеракт — сапфировый куб с голубой энергией" fetchpriority="high" decoding="async"><div class="tesseract-glow" aria-hidden="true"></div></div>
-<nav class="ruby-rail" aria-label="Основная навигация">
-<button type="button" class="ruby-rail-button active" data-view="home" aria-label="Главная" title="Главная"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H15v-7H9v7H3z"/></svg></button>
-<button type="button" class="ruby-rail-button" id="ruby-menu" aria-label="Рабочие разделы" title="Рабочие разделы" aria-expanded="false" aria-controls="chef-menu"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
-<button type="button" class="ruby-rail-button" id="ruby-chat" aria-label="Разговор с ассистентом" title="Чат"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11a9 9 0 0 1-12 8.5L3 21l1.5-6A9 9 0 1 1 21 11z"/></svg></button>
-<button type="button" class="ruby-rail-button" id="ruby-settings" aria-label="Настройки" title="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 1-2h4l1 2 3 2 3 1v4l-2 2 1 3-2 3-3-1-3 2-2 2-3-2v-3l-2-3-2-1V8l3-1z" transform="translate(2 2) scale(.85)"/><circle cx="12" cy="12" r="3"/></svg></button>
-</nav>
-<div class="ruby-brand">FARRUH AI</div><time class="ruby-clock" data-clock></time>
-<div class="ruby-greeting"><span class="eyebrow">ВАШ ЛИЧНЫЙ АССИСТЕНТ</span><h1>Добрый день,<br>Фаррух</h1><p id="ruby-status" role="status">Я на связи</p></div>
-<div id="home-composer"></div><div class="ruby-controls"><button type="button" id="ruby-talk" class="ruby-talk" aria-pressed="false"><span class="ruby-mic"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></span><span id="ruby-talk-label">Начать разговор</span></button><button type="button" id="ruby-keyboard" class="ruby-keyboard" aria-label="Написать сообщение" title="Написать сообщение"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/></svg></button></div>
-<div class="home-shortcuts"><button id="home-new-recipe" type="button"><span>＋</span>Создать техкарту</button><button data-view="tasks"><span>✓</span>Задачи на сегодня</button><button data-view="lab"><span>◇</span>Журналы ХАССП</button></div><div class="home-today" id="home-today" aria-live="polite"></div><div hidden><div id="conversation-stage"></div><button id="home-preparations" type="button">Заготовки</button><div id="focus"></div></div>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARRUH AI · Кабинет шефа</title><meta name="theme-color" content="#111014"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/recipe-sheet.css?v=burgundy-3"><link rel="stylesheet" href="/haccp.css?v=temperature-grid-1"><link rel="stylesheet" href="/unified-ruby.css?v=76"><link rel="stylesheet" href="/arctic-sapphire.css?v=1"></head><body data-view="home"><header class="aurora-top"><button id="menu-toggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="chef-menu">☰</button><a href="#home" class="aurora-brand">FARRUH <span>AI</span><small>КАБИНЕТ ШЕФА</small></a><button id="lunar-settings" aria-label="Настройки и данные" title="Настройки и данные">⚙</button><span class="lunar-local"><i></i>На устройстве</span></header><div class="app"><aside class="sidebar glass" id="chef-menu" hidden><div class="brand">✧ FARRUH AI</div><nav class="nav"><button data-view="home">Кабинет шефа</button><button data-view="lab">ХАССП</button><button data-view="recipes">Техкарты</button><button id="menu-preparations" data-view="preparations">Заготовки</button><button data-view="calc">Калькулятор</button><button data-view="checks">Контроль точек</button><button data-view="tasks">Задачи</button><button data-view="chat">Ассистент</button><button id="menu-settings">Настройки и данные</button></nav><p class="small" style="margin-top:28px">Фаррух Ака<br>Бренд-шеф · Японская кухня</p></aside><main><header class="bar"><span id="viewtitle">Кабинет шефа</span><span class="small" id="connection">Загрузка данных…</span></header><div class="glass"><div id="notice" class="notice" role="status"></div>
+<section class="view ruby-home arctic-home" id="home" aria-label="FARRUH AI — Arctic Sapphire">
+  <div class="arctic-shell">
+    <header class="arctic-topline">
+      <div class="arctic-title"><strong>FARRUH <span>AI</span></strong><small>PRIVATE INTELLIGENCE</small></div>
+      <div class="arctic-top-actions">
+        <button type="button" id="ruby-chat" aria-label="Открыть чат" title="Открыть чат"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 1-11 7.4L4 20l1.6-5A8 8 0 1 1 20 11z"/></svg></button>
+        <button type="button" id="ruby-settings" aria-label="Настройки" title="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3h4l.7 2.2 2.1.9 2.1-1.1 2.6 3-1.2 2 .3 2.4 1.8 1.4-1.9 3.4-2.3-.6-1.8 1.4-.1 2.4h-4l-.7-2.1-2.1-.9-2.1 1-2.6-3 1.2-2-.3-2.3L3 10l1.9-3.4 2.3.6L9 5.8z"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+      </div>
+    </header>
+    <div class="arctic-conditions" aria-label="Погода и дата">
+      <div class="arctic-date"><b id="arctic-calendar-day">Сегодня</b><small id="arctic-calendar-weekday"></small></div>
+    </div>
+    <div class="ruby-greeting arctic-greeting">
+      <span class="eyebrow">FARRUH AI</span>
+      <h1>Будущее.<br><em>В ваших руках.</em></h1>
+      <p>Интеллект, который работает для вас.</p>
+    </div>
+    <div class="arctic-art-area">
+      <div class="ruby-scene arctic-orb-stage" aria-hidden="true">
+        <div class="arctic-orb"></div>
+        <div class="arctic-ring ring-1"></div><div class="arctic-ring ring-2"></div><div class="arctic-ring ring-3"></div>
+        <i class="arctic-spark s1"></i><i class="arctic-spark s2"></i><i class="arctic-spark s3"></i><i class="arctic-spark s4"></i>
+        <div class="arctic-pedestal"></div>
+      </div>
+    </div>
+    <div class="arctic-status"><div class="arctic-status-pill"><i class="arctic-led"></i><span id="ruby-status" role="status">Я на связи</span></div></div>
+    <div class="arctic-query">
+      <div id="home-composer"></div>
+      <div class="ruby-controls">
+        <button type="button" id="ruby-talk" class="ruby-talk" aria-label="Начать или остановить голосовой разговор" aria-pressed="false"><span class="ruby-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></span><span id="ruby-talk-label" class="arctic-sr">Начать разговор</span></button>
+      </div>
+    </div>
+    <nav class="home-shortcuts" aria-label="Рабочие разделы">
+      <button id="home-new-recipe" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h7l5 5v15H7zM14 2v6h5M10 12h6M10 16h6"/></svg></span>ТТК</button>
+      <button type="button" data-view="lab"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 6v6c0 5.5 3.5 8.6 8 10 4.5-1.4 8-4.5 8-10V6zM8.5 12l2.3 2.5 4.8-5"/></svg></span>ХАССП</button>
+      <button type="button" data-view="tasks"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="18" rx="2"/><path d="M8 2v4M16 2v4M4 9h16M8 15l2 2 4-4"/></svg></span>Задачи</button>
+      <button type="button" id="ruby-menu" aria-label="Открыть все разделы" aria-controls="chef-menu" aria-expanded="false"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Меню</button>
+    </nav>
+    <time class="ruby-clock arctic-clock" data-clock aria-hidden="true"></time>
+    <div class="home-today" id="home-today" aria-live="polite"></div>
+    <div class="arctic-hidden"><button type="button" id="ruby-keyboard" aria-label="Открыть окно ввода сообщения">Сообщение</button></div>
+    <div hidden><div id="conversation-stage"></div><button id="home-preparations" type="button">Заготовки</button><div id="focus"></div></div>
+  </div>
 </section>
+<script>
+(function(){
+  const update=()=>{
+    const now=new Date();
+    const opts={timeZone:'Europe/Moscow'};
+    const day=document.getElementById('arctic-calendar-day');
+    const weekday=document.getElementById('arctic-calendar-weekday');
+    if(day)day.textContent=new Intl.DateTimeFormat('ru-RU',{...opts,day:'numeric',month:'long'}).format(now);
+    if(weekday){const v=new Intl.DateTimeFormat('ru-RU',{...opts,weekday:'long'}).format(now);weekday.textContent=v.charAt(0).toUpperCase()+v.slice(1);}
+  };update();setInterval(update,60000);
+})();
+</script>
 <dialog id="pearl-help" class="category-dialog"><div class="bar"><h2>Как работать с FARRUH AI</h2><button id="pearl-help-close" type="button" aria-label="Закрыть">✕</button></div><p>Техкарты, журналы ХАССП и задачи доступны через рабочие разделы.</p><p>Текстовые команды: «Добавь задачу проверить рис», «Покажи задачи», «Создай техкарту». Разговорный ИИ пока не подключён.</p></dialog>
 <section class="view" id="recipes" hidden><div class="bar"><h1>Техкарты</h1><button class="primary" id="newrecipe">＋ Создать техкарту</button></div><p class="section-subtitle">Рецептуры, составы и стандарты кухни</p><label class="catalog-search"><span aria-hidden="true">⌕</span><input id="recipe-search" type="search" placeholder="Найти техкарту" aria-label="Поиск техкарт"></label><div class="catalog-heading"><h2 id="catalog-title">Категории</h2><button id="catalog-back" type="button" hidden>← Все категории</button></div><nav id="recipe-categories" class="recipe-categories" aria-label="Категории техкарт"></nav><button id="catalog-all" type="button">Все техкарты <span aria-hidden="true">→</span></button><div id="catalog-results" hidden><div class="recipe-list-head" aria-hidden="true"><span>Название</span><span>Статус</span><span>Действия</span></div><div id="recipelist"></div></div></section>
 <section class="view" id="lab" hidden><div class="tag">Безопасность кухни</div><div class="bar"><h1>ХАССП</h1></div><p class="small">Проверки точек, замечания и задачи по их устранению.</p><div class="grid"><button class="tile" data-view="checks"><strong>Проверки точек</strong><span>Зафиксировать замечание, ответственного и срок устранения</span></button><button class="tile" data-view="tasks"><strong>Корректирующие действия</strong><span>Поставить задачу и проверить её выполнение</span></button><button class="tile" data-view="recipes"><strong>Техкарты и процессы</strong><span>Открыть рецептуры и описания приготовления</span></button></div></section>
@@ -44,7 +87,7 @@ import {mountUnifiedWorkspace} from '/unified-workspace.js?v=67';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
 const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
 const desktopMenu=matchMedia('(min-width:1000px)');
-function setMenu(open){$('chef-menu').hidden=desktopMenu.matches?false:!open;$('menu-toggle').setAttribute('aria-expanded',String(open));$('ruby-menu')?.setAttribute('aria-expanded',String(open));document.body.classList.toggle('section-menu-open',open&&desktopMenu.matches&&document.body.dataset.view!=='home')}
+function setMenu(open){$('chef-menu').hidden=document.body.dataset.view==='home'?!open:(desktopMenu.matches?false:!open);$('menu-toggle').setAttribute('aria-expanded',String(open));$('ruby-menu')?.setAttribute('aria-expanded',String(open));document.body.classList.toggle('section-menu-open',open&&desktopMenu.matches&&document.body.dataset.view!=='home')}
 desktopMenu.addEventListener('change',()=>setMenu(false));
 const titles={home:'Кабинет шефа',lab:'ХАССП',recipes:'Техкарты',calc:'Калькулятор',tasks:'Задачи',checks:'Контроль точек',preparations:'Заготовки',chat:'Ассистент'};
 const cardFields={scope:'card-scope',safety:'card-safety',cardNumber:'card-number',cardDate:'card-date',netYieldGrams:'card-yield',pieces:'card-pieces',rawRequirements:'card-raw',preparation:'card-prep',serving:'card-serving',storage:'card-storage',appearance:'card-appearance',taste:'card-taste',chef:'card-chef',approver:'card-approver'};
