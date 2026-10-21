@@ -139,46 +139,15 @@ export const journalPaperColumns=Object.freeze({
   ["owner","Принял",1.0]
  ],
  "storage": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.85
-  ],
-  [
-   "product",
-   "Продукт / партия",
-   1.5
-  ],
-  [
-   "startedAt",
-   "Начало хранения",
-   1.2
-  ],
-  [
-   "useBy",
-   "Годен до",
-   1.2
-  ],
-  [
-   "conditions",
-   "Условия хранения",
-   1.7
-  ],
-  [
-   "status",
-   "Оценка",
-   0.95
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.2
-  ]
+  ["at","Дата и время",1.05],
+  ["point","Точка",0.70],
+  ["storageProductBatch","Продукт / категория / партия",1.75],
+  ["storageZone","Зона хранения",1.0],
+  ["startedAt","Приготовлено / вскрыто",1.2],
+  ["useBy","Использовать до",1.15],
+  ["storageReview","Условия / проверки",2.15],
+  ["status","Результат",0.85],
+  ["owner","Ответственный",1.0]
  ],
  "audit": [
   [
@@ -497,6 +466,19 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   const date=new Date(expiry);
   return Number.isFinite(date.getTime())?
    date.toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}):'—';
+ }
+ else if(key==='storageProductBatch'){
+  const groups={raw:'Сырьё',semifinished:'Полуфабрикат',prepared:'Готовая продукция',opened:'Вскрытое',other:'Прочее'};
+  value=[details.product,groups[details.storageType],
+   details.batch&&'Партия: '+details.batch].filter(Boolean).join('\n');
+ }
+ else if(key==='storageReview'){
+  if(draft)return 'Черновик — требуется проверка фактических условий';
+  const checks={ok:'Да',problem:'Нарушение'};
+  value=[details.conditions,
+   details.labelCheck&&'Маркировка: '+(checks[details.labelCheck]||details.labelCheck),
+   details.conditionsCheck&&'Условия: '+(checks[details.conditionsCheck]||details.conditionsCheck)]
+   .filter(Boolean).join('\n');
  }
  else if(key==='receivedTemperature'){
   if(details.measured===null||details.measured===undefined||details.measured==='')return 'Не измерена';
