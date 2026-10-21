@@ -1,6 +1,16 @@
 import {nearestReminder,mountHomeWeather} from '/home-context.js?v=76';
 export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog,getState}){
  const $=id=>document.getElementById(id);
+ // Enforce the approved Arctic Sapphire heading even when an older cached page
+ // contains the previous personalised greeting.
+ const arcticHome=$('home');
+ if(arcticHome?.classList.contains('arctic-home')){
+   const heading=arcticHome.querySelector('.arctic-greeting h1');
+   if(heading && !heading.textContent.includes('Будущее')){
+     const em=document.createElement('em');em.textContent='В ваших руках.';
+     heading.replaceChildren(document.createTextNode('Будущее.'),document.createElement('br'),em);
+   }
+ }
  const pauseEffects=()=>document.body.classList.toggle('fx-paused',document.hidden);
  document.addEventListener('visibilitychange',pauseEffects);pauseEffects();
  mountHomeWeather($('home'));
