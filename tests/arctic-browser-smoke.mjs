@@ -200,6 +200,33 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('#lab input[name=useBy]').inputValue(),'','approved shelf life cannot be invented');
   await page.screenshot({path:'artifacts/arctic-haccp-storage-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=quality]').click();
+  assert.match(await page.locator('#lab .haccp-quality-settings').innerText(),/Режим В/,'daily and each batch quality plan visible');
+  const qualityHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
+  assert.ok(qualityHeads.includes('Контроль')&&qualityHeads.includes('Блюдо / партия')&&
+   qualityHeads.includes('Органолептика')&&qualityHeads.includes('Решение / проверяющий'),
+   'quality HACCP A4 shows batch, sensory review and senior signoff');
+  assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
+   'quality sample button never reuses prior sensory approval');
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  assert.equal(await page.locator('#lab select[name=qualityType]').count(),1,'inspection type selector present');
+  assert.equal(await page.locator('#lab input[name=product][list=haccp-quality-ttk-products]').count(),1,
+   'TTK product reference is available to inspector');
+  for(const name of ['appearance','color','smell','texture','taste']){
+   assert.equal(await page.locator('#lab select[name='+name+']').count(),1,name+' sensory check must be present');
+   assert.equal(await page.locator('#lab select[name='+name+']').inputValue(),'',
+    name+' cannot default to a successful result');
+  }
+  assert.equal(await page.locator('#lab select[name=decision]').inputValue(),'',
+   'shift supervisor release must be a factual choice');
+  await page.locator('#lab select[name=qualityType]').selectOption('daily');
+  assert.equal(await page.locator('#lab input[name=batch]').evaluate(el=>el.required),false,
+   'daily check does not fabricate a batch');
+  await page.locator('#lab select[name=qualityType]').selectOption('batch');
+  assert.equal(await page.locator('#lab input[name=batch]').evaluate(el=>el.required),true,
+   'actual new batch requires its batch number');
+  await page.screenshot({path:'artifacts/arctic-haccp-quality-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
