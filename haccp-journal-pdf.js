@@ -2,6 +2,7 @@ import PDFDocument from 'pdfkit';
 import {validateHaccp,journalTypes} from './public/haccp-model.js';
 import {measurementDate,monthLabel} from './public/temperature-journal.js';
 import {paperColumns,paperCell} from './public/haccp-paper-layout.js';
+import {automaticJournalSummary,plannedCell} from './public/haccp-auto-journals.js';
 
 const REGULAR=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',import.meta.url).pathname;
 const BOLD=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',import.meta.url).pathname;
@@ -114,7 +115,127 @@ export function journalPdf({haccp,kind,month,pointId=''}){
  }
  return doc;
 }
+// Read-only monthly print pack: all 12 journals, prefilled dates/points/equipment,
+// verbatim saved measurements, and unmistakably UNVERIFIED missing checks.
+export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
+ const h=validateHaccp(haccp);
+ if(pointId&&!h.points.some(p=>p.id===pointId))throw Error('Точка не найдена.');
+ const label=monthLabel(month);
+ const pack=automaticJournalSummary(h,{month,pointId,now});
+ if(pack.confirmed+pack.planned>2400)
+  throw Error('Слишком много строк. Выбери одну точку для автосборки журналов.');
+ const doc=new PDFDocument({autoFirstPage:false,bufferPages:true,
+  info:{Title:'ХАССП — 12 журналов · '+label,Author:'FARRUH AI'}});
+ doc.registerFont('regular',REGULAR).registerFont('bold',BOLD);
+ const edge='#adc5d8',textInk='#22445e',heading='#1e5d86';
+ let y=0,cols=[],widths=[],kind='',section=0;
+ function labelText(str,x,top,w,size=7,bold=false,color=textInk){
+  doc.font(bold?'bold':'regular').fontSize(size).fillColor(color)
+   .text(String(str||''),x,top,{width:w,lineBreak:false,height:size*1.6});
+ }
+ function cellBox(x,top,w,h,fill){
+  doc.rect(x,top,w,h).fillAndStroke(fill,edge);
+ }
+ function wrap(value,w){
+  doc.font('regular').fontSize(7);
+  const text=String(value??'');
+  const lines=[];
+  for(const paragraph of text.replace(/\r/g,'').split('\n')){
+   let current='';
+   for(const word of paragraph.split(/\s+/)){
+    const candidate=current?current+' '+word:word;
+    if(doc.widthOfString(candidate)<=w){current=candidate;continue}
+    if(current)lines.push(current);
+    current='';
+    for(const character of word){
+     if(doc.widthOfString(current+character)>w&&current){lines.push(current);current=''}
+     current+=character;
+    }
+   }
+   lines.push(current);
+  }
+  return lines.length?lines:[''];
+ }
+ function page(){
+  doc.addPage({size:'A4',layout:'landscape',margin:0});
+  doc.rect(X,16,4,49).fill('#2e94c7');
+  labelText('FARRUH AI  /  ХАССП  /  '+String(section).padStart(2,'0')+' / 12',X+13,17,W-20,9,true,'#3e88b7');
+  labelText(journalTypes[kind],X+13,34,W-23,14,true,'#194e73');
+  labelText(label+'   ·   '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+13,65,W-23,9,false);
+  labelText('Автоподготовка, НЕ акт проверки. «НЕ ПРОВЕРЕНО» означает отсутствие фактического подтверждения. Время: Москва.',X,85,W,7.4,false,'#607e96');
+  const first=103,headerHeight=38;let x=X;
+  for(let i=0;i<cols.length;i++){
+   cellBox(x,first,widths[i],headerHeight,'#deeffb');
+   wrap(cols[i].label,widths[i]-8).slice(0,3).forEach((part,k)=>
+    labelText(part,x+4,first+6+k*10,widths[i]-8,6.7,true,'#245477'));
+   x+=widths[i];
+  }
+  y=first+headerHeight;
+ }
+ function draw(values,fill){
+  const lines=values.map((v,i)=>wrap(v,widths[i]-8));
+  const total=Math.max(1,...lines.map(item=>item.length));
+  let start=0;
+  while(start<total){
+   if(y>530-20)page();
+   const rows=Math.min(total-start,Math.max(1,Math.floor((530-y-9)/10)));
+   const height=rows*10+9;let x=X;
+   for(let i=0;i<cols.length;i++){
+    cellBox(x,y,widths[i],height,fill);
+    for(let k=0;k<rows;k++)labelText(lines[i][start+k]||'',x+4,y+4+k*10,widths[i]-8,7);
+    x+=widths[i];
+   }
+   y+=height;start+=rows;
+  }
+ }
+ for(const group of pack.sections){
+  kind=group.kind;section++;
+  cols=paperColumns(kind);
+  const total=cols.reduce((a,c)=>a+c.weight,0);
+  widths=cols.map(c=>W*c.weight/total);
+  page();
+  if(!group.rows.length){
+   labelText('Журнал по событию. Подтверждённых записей нет; это не подтверждает отсутствия событий.',X+7,y+8,W-15,8,false,'#5b7890');
+   y+=34;
+   for(let n=0;n<6;n++)draw(cols.map(() => ''),n%2?'#f5faff':'#ffffff');
+  }
+  for(const row of group.rows){
+   const values=cols.map(c=>row.type==='confirmed'?
+    paperCell(row.record,c.key,h.points):plannedCell(row,c.key,h.points));
+   draw(values,row.type!=='confirmed'?
+    (row.due?'#fff5ed':'#f0f7fd'):row.record.status==='deviation'?'#ffecea':'#ffffff');
+   if(row.type==='confirmed'&&row.record.notes&&!cols.some(c=>c.key==='notes')){
+    // The fixed-width A4 layout has no remarks column for some journal kinds.
+    const note=wrap('Примечание: '+row.record.notes,W-14);
+    for(const paragraph of note){
+     if(y+18>530)page();
+     cellBox(X,y,W,18,'#eaf4fb');
+     labelText(paragraph,X+5,y+4,W-10,7);
+     y+=18;
+    }
+   }
+  }
+ }
+ const pages=doc.bufferedPageRange();
+ for(let i=0;i<pages.count;i++){
+  doc.switchToPage(i);
+  doc.moveTo(X,546).lineTo(X+W,546).lineWidth(.5).stroke('#aec5d7');
+  labelText('Проверил: ________________________   Подпись: ________________________   Дата: ____________',X,552,W-65,7.3);
+  labelText((i+1)+' / '+pages.count,X+W-60,552,60,7.3,false,'#527b9a');
+ }
+ return doc;
+}
+
 export function installJournalPdfApi(app,{requireSameOrigin=(req,res,next)=>next()}={}){
+ app.post('/api/haccp/auto-pack/pdf',requireSameOrigin,(req,res)=>{
+  let doc;
+  try{doc=autoJournalPackPdf(req.body||{})}
+  catch(error){return res.status(400).json({error:error.message||'Не удалось подготовить автоматические журналы.'})}
+  res.type('pdf');
+  res.setHeader('Content-Disposition',"attachment; filename=haccp-auto-pack.pdf; filename*=UTF-8''"+
+   encodeURIComponent('ХАССП_автобланки_12_журналов_'+req.body.month+'.pdf'));
+  doc.on('error',()=>res.destroy());doc.pipe(res);doc.end();
+ });
  app.post('/api/haccp/journal/pdf',requireSameOrigin,(req,res)=>{
   let doc;
   try{doc=journalPdf(req.body||{})}catch(error){return res.status(400).json({error:error.message})}
