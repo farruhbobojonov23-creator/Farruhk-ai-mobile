@@ -725,7 +725,7 @@ export function mountHaccp(root,{getState,save,notify}){
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
   const kind=tab;submitForm(form,async raw=>{
-   if(kind==='defrosting'){
+   if(kind==='defrosting'||kind==='quality'){
     // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
     // HTML datetime-local contains no timezone. Attach the intended offset
     // before the backend parses/stores UTC timestamps.
@@ -855,6 +855,20 @@ export function mountHaccp(root,{getState,save,notify}){
   }catch(error){console.warn('Не удалось добавить план уборки:',error)}
   finally{cleaningPresetRunning=false}
  }
+ let qualityPresetRunning=false;
+ async function ensureQualityPreset(){
+  if(!getState()||qualityPresetRunning||!qualityPlanNeedsSeed(h()))return;
+  qualityPresetRunning=true;
+  try{
+   await save(state=>{
+    if(seedQualityDailyPlan(state)){
+     state.haccp.revision=(Number(state.haccp.revision)||0)+1;
+     state.haccp.updatedAt=new Date().toISOString();
+    }
+   });
+  }catch(error){console.warn('Не удалось включить ежедневный бракераж:',error)}
+  finally{qualityPresetRunning=false}
+ }
  let autoSyncRunning=false;
  async function syncAutoDrafts(){
   if(!getState()||autoSyncRunning)return;
@@ -867,7 +881,7 @@ export function mountHaccp(root,{getState,save,notify}){
   })}catch(error){console.warn('Автосоздание черновиков будет повторено:',error.message)}
   finally{autoSyncRunning=false}
  }
- function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>ensureCleaningPreset()).then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
+ function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>ensureCleaningPreset()).then(()=>ensureQualityPreset()).then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
  setInterval(()=>{
   const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
