@@ -150,7 +150,7 @@ export function mountHaccp(root,{getState,save,notify}){
    const raw=Object.fromEntries(new FormData(form));
    const details={...raw};
    for(const key of ['at','startedAt','finishedAt','useBy','expiry']){
-    if(details[key]&&/^20\\d{2}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/.test(details[key]))
+    if(details[key]&&/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(details[key]))
      details[key]=details[key]+':00+03:00';
    }
    if(kind==='temperature'){
