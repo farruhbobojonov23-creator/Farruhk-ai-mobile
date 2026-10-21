@@ -32,6 +32,8 @@ export function premiumRecipePdf(input){
  }
  let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}layout(s,true);
  const missing=['scope','safety','chef','approver','cardNumber','cardDate','rawRequirements','preparation','forming','serving','storage','appearance','taste','netYieldGrams'].some(k=>!r[k])||['protein','fat','carbs','kcal'].some(k=>nutrition[k]==null);
- if(r.status!=='ready'||missing)text(['ПРОЕКТ ТТК — незаполненные данные требуют проверки.'],X,807,W,6,false,'#765647');
+ const estimated=(r.ingredients||[]).some(i=>i.nutritionOrigin==='reference');
+ if(estimated)text(['ПРОЕКТ ТТК — КБЖУ справочные (USDA), необходимо сверить с этикетками сырья.'],X,807,W,6,false,'#765647');
+ else if(r.status!=='ready'||missing)text(['ПРОЕКТ ТТК — незаполненные данные требуют проверки.'],X,807,W,6,false,'#765647');
  doc.moveTo(X,827).lineTo(X+W,827).lineWidth(1).strokeColor(C.band).stroke();return doc;
 }
