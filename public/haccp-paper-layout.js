@@ -389,6 +389,9 @@ export function paperColumns(kind){
  return definition.map(([key,label,weight])=>({key,label,weight}));
 }
 export function paperCell(record,key,points=[],{draft=false}={}){
+ // A4 is a factual document, not the editing UI. Never print unsaved
+ // inspections or verdict placeholders, regardless of the journal kind.
+ if(draft)return '';
  const details=record?.details||{};
  const point=points.find(p=>p.id===record.pointId)?.name||record.pointId||'—';
  let value;
@@ -406,11 +409,11 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   details.batch&&'Партия: '+details.batch
  ].filter(Boolean).join('\n');
  else if(key==='qualitySensory'){
-  if(draft)return 'Черновик: оценка не проводилась';
+  
   value=details.checks||'Нет детализации (старая запись)';
  }
  else if(key==='qualityReview'){
-  if(draft)return 'Не подтверждено';
+  
   value=[details.decisionText||'Решение не указано',
    details.reviewer&&'Проверил: '+details.reviewer
   ].filter(Boolean).join('\n');
@@ -443,7 +446,7 @@ export function paperCell(record,key,points=[],{draft=false}={}){
    details.batch&&'Партия: '+details.batch].filter(Boolean).join('\n');
  }
  else if(key==='storageReview'){
-  if(draft)return 'Черновик — требуется проверка фактических условий';
+  
   const checks={ok:'Да',problem:'Нарушение'};
   value=[details.conditions,
    details.labelCheck&&'Маркировка: '+(checks[details.labelCheck]||details.labelCheck),
