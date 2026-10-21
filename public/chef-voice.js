@@ -101,7 +101,17 @@ export function createVoiceConversation({send}){
    if(!active||token!==generation)return;
    if(!text?.trim())throw Error('Не удалось разобрать фразу. Попробуй ещё раз.');
    await processText(text,token);
-  }catch(e){fail(e,token)}
+  }catch(e){
+   if(active&&token===generation&&(window.SpeechRecognition||window.webkitSpeechRecognition)&&e.name!=='AbortError'){
+    // The Gemini transcriber may be unavailable due to quota or connectivity.
+    // The already-recorded audio cannot be replayed through browser SpeechRecognition:
+    // request a fresh utterance explicitly, never pretend the first one succeeded.
+    browserMode=true;clearTimeout(timer);timer=null;
+    status('connecting','Gemini не распознал запись. Переключаю на распознавание браузера — повторите команду.');
+    await listenBrowser(token);return;
+   }
+   fail(e,token);
+  }
  }
  async function processText(text,token){
   if(!active||token!==generation)return;
