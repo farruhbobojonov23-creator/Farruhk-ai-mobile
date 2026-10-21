@@ -27,3 +27,14 @@
 /* Full-width technology; serving and safety share the row below. */
 .ttk-lower-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .ttk-block[data-section="4"]>.ttk-table th[scope="row"],.ttk-block[data-section="4"]>.ttk-table tr:first-child th:first-child{width:22%}
+
+/* TTK nutrition: visible feedback rather than silent blank calculations. */
+.ttk-paper .ttk-nutrition-status{display:block;margin:9px 0 12px;padding:10px 12px;background:#fff4e4;color:#75440b;border:1px solid #edcd94;border-radius:7px;font-size:11px;line-height:1.55}
+.ttk-paper .ttk-nutrition-status[data-ready="true"]{background:#eef8f1;color:#166246;border-color:#a8d7bb}
+.ttk-paper #nutrition-products{margin-top:12px;border:1px solid #b4cbdc;border-radius:7px;padding:10px 12px;background:#f8fbfe}
+.ttk-paper #nutrition-products summary{cursor:pointer;font-weight:700;color:#1b4e79;padding:5px}
+.ttk-paper .nutrition-ingredient{padding:10px 0;border-top:1px solid #d5e1e9}
+.ttk-paper .nutrition-ingredient strong{display:block;margin-bottom:5px}
+.ttk-paper .nutrition-ingredient .ttk-nutrition-source{display:block;margin:0 0 7px;color:#45637a;font-size:10px}
+.ttk-paper .nutrition-ingredient label{display:inline-block;box-sizing:border-box;width:24%;vertical-align:top;padding:4px;font-size:10px}
+.ttk-paper .nutrition-ingredient input{width:100%;min-width:0;min-height:34px}
