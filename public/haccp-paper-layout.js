@@ -237,46 +237,16 @@ export const journalPaperColumns=Object.freeze({
  ["owner","Сушист",0.8]
  ],
  "frying": [
-  [
-   "at",
-   "Дата и время",
-   1.2
-  ],
-  [
-   "point",
-   "Точка",
-   0.8
-  ],
-  [
-   "equipment",
-   "Фритюрница",
-   1.3
-  ],
-  [
-   "product",
-   "Масло / партия",
-   1.5
-  ],
-  [
-   "checks",
-   "Контроль качества",
-   1.8
-  ],
-  [
-   "decisionText",
-   "Решение",
-   1.7
-  ],
-  [
-   "result",
-   "Оценка",
-   1
-  ],
-  [
-   "owner",
-   "Ответственный",
-   1.3
-  ]
+  ["at","Дата контроля",1.0],
+  ["point","Точка",0.72],
+  ["equipment","Фритюрница",1.04],
+  ["product","Масло / партия",1.16],
+  ["startedAt","Заливка масла",1.05],
+  ["oilAge","Сутки / график",0.90],
+  ["oilChecks","Качество и измерения",2.15],
+  ["oilDecision","Решение / замена",1.55],
+  ["reviewer","Проверил",1.0],
+  ["owner","Сушист",0.85]
  ],
  "quality": [
   ["at","Дата и время",1.05],
@@ -370,6 +340,18 @@ export function paperCell(record,key,points=[],{draft=false}={}){
  else if(key==='productBatch')value=[
   details.product,details.batch&&'Партия: '+details.batch,
   details.invoice&&'Док.: '+details.invoice
+ ].filter(Boolean).join('\n');
+ else if(key==='oilAge')value=details.ageHours===undefined||details.ageHours===null?'—':
+  (Math.round(details.ageHours/24*100)/100)+' дн. / '+(details.intervalDays||3)+' дн.';
+ else if(key==='oilChecks')value=[
+  details.checks,
+  details.measured!==null&&details.measured!==undefined?'Темп.: '+details.measured+' °C':'',
+  details.tpm!==null&&details.tpm!==undefined?
+   'TPM: '+details.tpm+' %'+(details.approvedTpm===null||details.approvedTpm===undefined?'':' / допуск '+details.approvedTpm+' %'):''
+ ].filter(Boolean).join('\n');
+ else if(key==='oilDecision')value=[
+  details.decisionText||'—',
+  details.changedAt&&'Полная замена: '+formattedTime(details.changedAt)
  ].filter(Boolean).join('\n');
  else if(key==='qualityType')value=details.qualityType==='daily'?'Перед реализацией':details.qualityType==='batch'?'Новая партия':(details.qualityType||'—');
  else if(key==='qualityProduct')value=[
