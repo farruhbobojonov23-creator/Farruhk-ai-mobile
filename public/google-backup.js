@@ -165,9 +165,24 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
   }catch(e){respond('Не удалось получить список: '+e.message,true)}
   finally{buttonList.disabled=!config()?.endpoint}
  };
+ // Backups are daily safety copies, not an activity that should compete
+ // with every tap, animation, or voice reply on a low-memory Android phone.
+ // Manual backups still run immediately from the button above.
+ let automaticRetryAfter=0;
  function schedule(){
   clearTimeout(timer);
-  timer=setTimeout(()=>backup().catch(e=>respond(e.message,true)),5000);
+  const cfg=config();
+  if(!cfg?.endpoint||cfg.enabled===false||!navigator.onLine)return;
+  const last=Date.parse(cfg.lastBackupAt||'');
+  if(Number.isFinite(last)&&Date.now()-last<24*3600*1000)return;
+  if(Date.now()<automaticRetryAfter)return;
+  timer=setTimeout(()=>{
+   if(document.hidden)return;
+   automaticRetryAfter=Date.now()+10*60*1000;
+   const run=()=>backup().catch(e=>respond(e.message,true));
+   if(typeof requestIdleCallback==='function')requestIdleCallback(run,{timeout:12000});
+   else setTimeout(run,250);
+  },90000);
  }
  window.addEventListener('online',schedule);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
