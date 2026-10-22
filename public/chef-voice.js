@@ -13,9 +13,13 @@ export function speechChunks(text){
  }
  return chunks;
 }
+export function selectVoiceInputMode({geminiConfigured=false,mediaSupported=false,recorderSupported=false,browserSupported=false}={}){
+ if(geminiConfigured&&mediaSupported&&recorderSupported)return 'gemini';
+ return browserSupported?'browser':'unsupported';
+}
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
- let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false,browserMode=false,browserSession=null;
+ let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false,browserMode=false,browserSession=null,neuralVoiceAvailable=false;
  function status(next,text){phase=next;panel.dataset.phase=next;$('voice-status').textContent=text;$('voice-start').hidden=active;$('voice-stop').hidden=!active;$('voice-send').hidden=next!=='listening'}
  function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);const tick=()=>{analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)));playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
  function resetLevel(){cancelAnimationFrame(playFrame);playFrame=null;panel.style?.setProperty('--voice-level','0')}
@@ -37,7 +41,7 @@ export function createVoiceConversation({send}){
   try{await unlock();if(!active||token!==generation)return;controller=new AbortController();status('connecting','Проверяю голос устройства…');await speakDevice('Фаррух Ака, голос устройства работает. Я на связи.',token);if(token===generation)stop('Проверка завершена. Если слышишь голос, можно начать разговор.')}catch(e){fail(e,token)}
  }
  async function speak(text,token){
-  if(browserMode||Date.now()<deviceVoiceUntil)return speakDevice(text,token);
+  if(!neuralVoiceAvailable||Date.now()<deviceVoiceUntil)return speakDevice(text,token);
   status('thinking','Готовлю голосовой ответ…');
   const chunks=speechChunks(text);
   const requestAudio=async chunk=>{
@@ -56,7 +60,7 @@ export function createVoiceConversation({send}){
     if(result.error.name==='AbortError')throw result.error;
     if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
      // Avoid repeated quota requests; retry neural speech after a short cooldown.
-     if(result.error.status===429||result.error.status===503)deviceVoiceUntil=Date.now()+300000;
+     if([429,502,503].includes(result.error.status))deviceVoiceUntil=Date.now()+300000;
      return speakDevice(chunks.slice(i).join(''),token);
     }
     throw result.error;
@@ -163,12 +167,16 @@ export function createVoiceConversation({send}){
    await unlock();status('connecting','Проверяю голосовой сервис…');
    controller=new AbortController();timer=setTimeout(()=>controller?.abort(),20000);
    const r=await fetch('/api/voice/config',{signal:controller.signal});const config=await r.json();clearTimeout(timer);timer=null;
-   if(!r.ok)throw Error(config.error||'Сервер недоступен.');browserMode=!config.configured;
-   if(browserMode&&!(window.SpeechRecognition||window.webkitSpeechRecognition))throw Error('Голосовые команды недоступны в этом браузере. Используй Chrome на Android или введи команду текстом.');
-   if(!browserMode&&(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder))throw Error('Браузер не поддерживает запись голоса.');
+   if(!r.ok)throw Error(config.error||'Сервер недоступен.');
+   neuralVoiceAvailable=Boolean(config.configured);
+   const mode=selectVoiceInputMode({geminiConfigured:config.configured,mediaSupported:Boolean(navigator.mediaDevices?.getUserMedia),recorderSupported:Boolean(window.MediaRecorder),browserSupported:Boolean(window.SpeechRecognition||window.webkitSpeechRecognition)});
+   browserMode=mode==='browser';
+   if(mode==='unsupported')throw Error('Микрофон в этом браузере недоступен. Попробуй Chrome на Android или текстовый ввод.');
    if(active&&token===generation)await listen(token);
   }catch(e){fail(e,token)}
  }
+ // Preload the server voice state for typed chats, without exposing API credentials.
+ fetch('/api/voice/config',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(c=>{if(c)neuralVoiceAvailable=Boolean(c.configured)}).catch(()=>{});
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(browserSession)browserSession.stop();else if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
  window.addEventListener('pagehide',()=>stop());
