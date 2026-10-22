@@ -255,8 +255,7 @@ export const journalPaperColumns=Object.freeze({
   ["packagingItem","Материал / заказ / партия",1.75],
   ["checks","Целостность / чистота / комплектность",1.8],
   ["labeling","Маркировка / срок",1.35],
-  ["decisionText","Решение / действия",1.55],
-  ["reviewer","Проверил",1.05],
+  ["packagingReview","Решение / проверил / замечания",2.05],
   ["owner","Ответственный",1.0]
  ],
  "quality": [
@@ -353,6 +352,7 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   details.invoice&&'Док.: '+details.invoice
  ].filter(Boolean).join('\n');
  else if(key==='packagingItem')value=[details.product,details.packagingType&&'Упаковка: '+details.packagingType,details.batch&&'№ '+details.batch].filter(Boolean).join('\n');
+ else if(key==='packagingReview')value=[details.decisionText,details.reviewer&&'Проверил: '+details.reviewer,record.notes&&'Замечание: '+record.notes].filter(Boolean).join('\n');
  else if(key==='oilProductBatch')value=[details.product,details.oilBatch&&'Партия: '+details.oilBatch].filter(Boolean).join('\n');
  else if(key==='oilAge')value=details.ageHours===undefined||details.ageHours===null?'—':
   (Math.round(details.ageHours/24*100)/100)+' дн. / '+(details.intervalDays||3)+' дн.';
