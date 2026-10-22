@@ -1,4 +1,5 @@
 import {recognizePhrase} from '/browser-recognition.js?v=76';
+import {selectVoiceInputMode} from '/voice-mode.js?v=1';
 import {speakDeviceText} from '/device-speech.js?v=1';
 export function speechChunks(text){
  const clean=text.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*#_`]/g,'');
@@ -12,10 +13,6 @@ export function speechChunks(text){
   chunks.push(rest.slice(0,cut));rest=rest.slice(cut);
  }
  return chunks;
-}
-export function selectVoiceInputMode({geminiConfigured=false,mediaSupported=false,recorderSupported=false,browserSupported=false}={}){
- if(geminiConfigured&&mediaSupported&&recorderSupported)return 'gemini';
- return browserSupported?'browser':'unsupported';
 }
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
