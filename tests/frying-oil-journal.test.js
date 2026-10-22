@@ -43,10 +43,11 @@ test('Daily oil inspection records real evidence, 72-hour deadline and formal A4
  assert.equal(oilCycleState(s.haccp,'point-1','Фритюрница').isDue,false);
  assert.equal(oilCycleState(s.haccp,'point-1','Фритюрница',new Date('2026-10-23T12:01:00+03:00')).isDue,true);
  const cols=paperColumns('frying').map(x=>x.key);
- for(const key of ['equipment','startedAt','oilAge','oilChecks','oilDecision','reviewer'])
+ for(const key of ['equipment','oilProductBatch','startedAt','oilAge','oilChecks','oilDecision','reviewer'])
   assert.ok(cols.includes(key),key);
  assert.match(paperCell(r,'oilAge',s.haccp.points),/2 дн/);
  assert.match(paperCell(r,'oilChecks',s.haccp.points),/Темп.: 169/);
+ assert.match(paperCell(r,'oilProductBatch',s.haccp.points),/Печагин/);
  assert.match(paperCell(r,'oilDecision',s.haccp.points),/Разрешено продолжить/);
 });
 test('A 3-day oil change is required even with normal visual checks, but can occur earlier',()=>{
