@@ -92,7 +92,7 @@ import {rollTemplate,grossFromNet,calculateNutritionBoth,nutritionMissing,nutrit
 import {mountRecipeSheet} from '/recipe-sheet.js?v=66';
 import {lookupGenericNutrition,genericNutritionCatalog} from '/nutrition-catalog.js?v=1';
 import {requireOwner} from '/owner-login.js';
-import {createVoiceConversation} from '/chef-voice.js?v=79';
+import {createVoiceConversation} from '/chef-voice.js?v=80';
 import {mountVoiceDiagnostics} from '/voice-diagnostics.js?v=1';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=77';
 import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=68';
@@ -400,7 +400,7 @@ async function sendChat(message,{signal,voice=false}={}){
   }else{
   const commandReply=typeof voiceCommands!=='undefined'?await voiceCommands.run(message):null;
   if(commandReply!==null){d={mode:'online',reply:commandReply}}else{
-  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:signal||AbortSignal.timeout(60000),body:JSON.stringify({message,voice,history:state.chat.slice(voice?-6:-10).map(m=>({role:m.role==='user'?'user':'assistant',content:String(m.text||'').slice(0,1600)})),context:{tasks:state.tasks.filter(t=>!t.done).slice(0,30).map(t=>({text:t.text,due:t.due,priority:t.priority})),taskCount:state.tasks.length}})});
+  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:signal||AbortSignal.timeout(voice?22000:32000),body:JSON.stringify({message,voice,history:state.chat.slice(voice?-6:-10).map(m=>({role:m.role==='user'?'user':'assistant',content:String(m.text||'').slice(0,1600)})),context:{tasks:state.tasks.filter(t=>!t.done).slice(0,30).map(t=>({text:t.text,due:t.due,priority:t.priority})),taskCount:state.tasks.length}})});
   d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось получить ответ.');
   }
   }
