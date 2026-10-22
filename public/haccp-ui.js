@@ -4,7 +4,7 @@ import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule
 import {paperColumns,paperCell} from './haccp-paper-layout.js?v=9';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=9';
 import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=9';
-import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js?v=5';
+import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js?v=6';
 import {mountTemperatureGrid} from './temperature-grid-ui.js?v=72';
 import {plasmaPresetNeeded,seedPlasmaTemperatures} from './temperature-point-config.js?v=1';
 import {cleaningPlan,cleaningPlanNeedsSeed,seedCleaningPlan,updateCleaningPlan} from './cleaning-plan.js?v=1';
