@@ -506,10 +506,10 @@ export function mountHaccp(root,{getState,save,notify}){
   return panel;
  }
  function dailyDrafts(){
-  if(['receiving','defrosting','hygiene'].includes(tab)){
+  if(['receiving','defrosting','hygiene','frying'].includes(tab)){
    const box=el('section',undefined,'haccp-daily-overview');
-   box.append(el('h2',tab==='hygiene'?'Осмотр перед каждой сменой':tab==='defrosting'?'Размораживание по факту начала процесса':'Приёмка по факту поставки'),
-    el('p',tab==='hygiene'?'Создавай запись для каждого фактически осмотренного сотрудника перед началом его смены. Записи без осмотра и решения не создаются.':tab==='defrosting'?'Запиши фактическое начало, затем окончание, замеры и проверку старшего смены. Без фактического процесса завершённая запись не создаётся.':'Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
+   box.append(el('h2',tab==='frying'?'Фактический контроль фритюрного масла':tab==='hygiene'?'Осмотр перед каждой сменой':tab==='defrosting'?'Размораживание по факту начала процесса':'Приёмка по факту поставки'),
+    el('p',tab==='frying'?'Плановая замена через каждые три суток после фактической заливки. Контроль и замену записывают только после выполнения.':tab==='hygiene'?'Создавай запись для каждого фактически осмотренного сотрудника перед началом его смены. Записи без осмотра и решения не создаются.':tab==='defrosting'?'Запиши фактическое начало, затем окончание, замеры и проверку старшего смены. Без фактического процесса завершённая запись не создаётся.':'Журнал заполняется только при реальной доставке. Ежедневные черновики и фиктивные поступления не создаются. Для новой партии открой «Заполнение».','small'));
    return box;
   }
   const {day:today,due:active}=moscowCheckpoint();
@@ -1150,7 +1150,7 @@ export function mountHaccp(root,{getState,save,notify}){
    }
    if(monthFilter.value===currentMonth)journalForm();
    body.append(dailyDrafts());
-   if(!['receiving','defrosting','hygiene'].includes(tab))journalAutoDrafts();
+   if(!['receiving','defrosting','hygiene','frying'].includes(tab))journalAutoDrafts();
    journalHistory();
   }else if(tab==='actions')actionsView();else if(tab==='documents')documentsView();else settingsView()}
  for(const [key,label] of Object.entries(allTabs)){const b=button(label,()=>{tab=key;build()});b.dataset.tab=key;nav.append(b)}
