@@ -172,6 +172,12 @@ const summary=document.createElement('summary');summary.textContent='Настр�
 const geminiStatus=document.createElement('p');geminiStatus.className='small';geminiStatus.setAttribute('role','status');geminiStatus.textContent='Статус Gemini проверяется…';settings.append(geminiStatus);
 mountVoiceDiagnostics(settings);
 for(const label of [...panel.querySelectorAll('label')])settings.append(label);
+const fastVoiceLabel=document.createElement('label');fastVoiceLabel.className='voice-check';
+const fastVoiceCheckbox=document.createElement('input');fastVoiceCheckbox.type='checkbox';fastVoiceCheckbox.id='voice-fast-mode';
+try{fastVoiceCheckbox.checked=localStorage.getItem('farruh-ai-voice-fast')!=='off'}catch{fastVoiceCheckbox.checked=true}
+fastVoiceCheckbox.onchange=()=>{try{localStorage.setItem('farruh-ai-voice-fast',fastVoiceCheckbox.checked?'on':'off')}catch{}};
+fastVoiceLabel.append(fastVoiceCheckbox,document.createTextNode(' Быстрый голос телефона (рекомендуется). Выключи для нейросетевого голоса Gemini — он может отвечать дольше.'));
+settings.append(fastVoiceLabel);
 const privacy=panel.querySelector('p.small');if(privacy)settings.append(privacy);
 const testDeviceButton=document.createElement('button');testDeviceButton.type='button';testDeviceButton.id='device-test';testDeviceButton.textContent='Проверить голос устройства';settings.append(testDeviceButton);
 panel.append(settings);
