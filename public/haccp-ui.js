@@ -605,7 +605,7 @@ export function mountHaccp(root,{getState,save,notify}){
    say('Образец загружен. Можно отредактировать и сохранить заново.');
   }));
   // A delivery is an event, never an automatic daily check or pre-approved receipt.
-  if(['receiving','defrosting','quality','hygiene'].includes(kind))toolbar.append(edit,save,pdf);
+  if(['receiving','defrosting','quality','hygiene','frying'].includes(kind))toolbar.append(edit,save,pdf);
   else toolbar.append(edit,save,sample,loadSample,pdf);
   const modes=el('nav',undefined,'journal-modes');
   const fill=button('✎ Заполнение',()=>setMode('form')),paperView=button('▦ Лист А4',()=>setMode('paper'));
@@ -799,6 +799,73 @@ export function mountHaccp(root,{getState,save,notify}){
    review.append(fields,el('p','Отметь результат каждого пункта. При нарушении нельзя выбрать «Принято». Для отказа укажи причину в комментарии.','small'));
    form.append(review);
   }
+  if(tab==='frying'){
+   const owner=grid.querySelector('[name=owner]'),at=grid.querySelector('[name=at]');
+   if(owner)owner.placeholder='ФИО сушиста, проводившего контроль';
+   if(at)at.value=new Date(Date.now()+3*3600000).toISOString().slice(0,16);
+   const fryer=selectField(grid,'Фактическая фритюрница','equipment',[],{blank:true});
+   const oil=inputField(grid,'Марка масла','product',{required:true,maxLength:160});
+   inputField(grid,'Партия масла (если известна)','oilBatch',{maxLength:120});
+   const filled=inputField(grid,'Фактическая дата заливки масла','startedAt',{
+    type:'datetime-local',required:true
+   });
+   const last=el('p','Укажи фактическую дату заливки, если записей ещё нет.','small');
+   form.append(last);
+   const checks=el('section',undefined,'haccp-frying-checklist panel');
+   checks.append(el('h3','Осмотр качества масла'));
+   const results=el('div',undefined,'fields');
+   for(const [key,label] of OIL_CHECKS){
+    selectField(results,label,key,[
+     ['ok',OIL_CHECK_RESULTS.ok],
+     ['problem',OIL_CHECK_RESULTS.problem],
+     ['na',OIL_CHECK_RESULTS.na]
+    ]);
+   }
+   checks.append(results,el('p','Оцени фактическое состояние. При изменении запаха, цвета, сильном вспенивании или дымлении прекрати использование или замени масло раньше трёх суток.','small'));
+   form.append(checks);
+   inputField(grid,'Температура масла, °C (если измерялась)','measured',{type:'number'});
+   inputField(grid,'TPM, % (если измерялось)','tpm',{type:'number'});
+   inputField(grid,'Предельный TPM, % по вашей утверждённой инструкции','approvedTpm',{type:'number'});
+   const decision=selectField(grid,'Решение старшего смены','oilDecision',[
+    ['continue','Продолжить использование'],
+    ['replace','Масло полностью заменено'],
+    ['stop','Прекратить использование']
+   ]);
+   const changed=inputField(grid,'Фактические дата и время полной замены','changedAt',{type:'datetime-local'});
+   const reviewer=inputField(grid,'ФИО проверившего старшего смены','reviewer',{required:true,maxLength:120});
+   form.append(el('p','График полной замены — 3 дня по вашему стандарту. Положительные результаты и замена не подставляются автоматически.','small'));
+   function syncDecision(){
+    changed.required=decision.value==='replace';
+    changed.closest('label').hidden=decision.value!=='replace';
+    if(decision.value!=='replace')changed.value='';
+   }
+   function updateCycle(){
+    const cfg=oilSettings(h(),point.value);
+    const cycle=fryer.value?oilCycleState(h(),point.value,fryer.value):null;
+    if(cycle?.filledAt){
+     filled.value=new Date(new Date(cycle.filledAt).getTime()+3*3600000).toISOString().slice(0,16);
+     last.textContent='По последней записи масло залито '+displayDate(cycle.filledAt)+
+      '; замена по графику до '+displayDate(cycle.dueAt)+
+      (cycle.isDue?' · Три дня прошли, проверь необходимость замены.':'');
+    }else{
+     filled.value='';
+     last.textContent='Дата заливки неизвестна. Укажи фактическое время, чтобы система рассчитала срок замены.';
+    }
+   }
+   function refresh(){
+    const cfg=oilSettings(h(),point.value),selected=fryer.value;
+    options(fryer,cfg.fryerNames.map(v=>[v,v]),true);
+    if(cfg.fryerNames.includes(selected))fryer.value=selected;
+    oil.value=cfg.oil;
+    reviewer.placeholder=cfg.reviewer+' · фактическое ФИО';
+    if(owner)owner.placeholder=cfg.executor+' · фактическое ФИО';
+    updateCycle();
+   }
+   fryer.addEventListener('change',updateCycle);
+   point.addEventListener('change',refresh);
+   decision.addEventListener('change',syncDecision);
+   refresh();syncDecision();
+  }
   if(tab==='storage'){
    const product=inputField(grid,'Продукт / полуфабрикат','product',{required:true,maxLength:300});
    const suggestions=el('datalist');suggestions.id='haccp-storage-products';product.setAttribute('list',suggestions.id);
@@ -975,12 +1042,12 @@ export function mountHaccp(root,{getState,save,notify}){
    start.addEventListener('input',sync);finish.addEventListener('input',sync);
    status.addEventListener('change',sync);point.addEventListener('change',sync);sync();
   }
-  if(extraJournals[tab]&&!['defrosting','quality','hygiene'].includes(tab)){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
+  if(extraJournals[tab]&&!['defrosting','quality','hygiene','frying'].includes(tab)){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
   inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
   if(tab==='hygiene')photo.closest('label').hidden=true;
   const kind=tab;submitForm(form,async raw=>{
-   if(['defrosting','quality','hygiene'].includes(kind)){
+   if(['defrosting','quality','hygiene','frying'].includes(kind)){
     // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
     // HTML datetime-local contains no timezone. Attach the intended offset
     // before the backend parses/stores UTC timestamps.
