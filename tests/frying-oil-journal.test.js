@@ -55,7 +55,7 @@ test('A 3-day oil change is required even with normal visual checks, but can occ
  const replaced=save(s,{oilDecision:'replace',changedAt:'2026-10-22T12:00:00+03:00'});
  assert.equal(replaced.status,'ok');
  assert.match(paperCell(replaced,'oilDecision',s.haccp.points),/Полная замена/);
- const next=oilCycleState(s.haccp,'point-1','Фритюрница');
+ const next=oilCycleState(s.haccp,'point-1','Фритюрница',new Date('2026-10-22T13:00:00+03:00'));
  assert.equal(next.filledAt,'2026-10-22T09:00:00.000Z');
  assert.throws(()=>save(s,{startedAt:'2026-10-23T11:00:00+03:00',at:'2026-10-23T12:00:00+03:00'}),/Дата заливки позже/);
 });
