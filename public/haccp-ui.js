@@ -13,6 +13,7 @@ import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStor
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
 import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings,preparedHygieneRows} from './hygiene-config.js?v=3';
+import {OIL_CHECKS,OIL_CHECK_RESULTS,oilSettings,updateOilSettings,oilCycleState} from './frying-oil-config.js?v=1';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -375,6 +376,53 @@ export function mountHaccp(root,{getState,save,notify}){
     ' · '+(r.status==='deviation'?'Было замечание':'Запись сохранена'),'small'));
    panel.append(historyNote);
   }
+  return panel;
+ }
+ function fryingOilSettingsPanel(){
+  const pointId=pointFilter.value||h().points[0]?.id;
+  if(!pointId)return el('p','Сначала добавь точку.');
+  const cfg=oilSettings(h(),pointId);
+  const point=h().points.find(p=>p.id===pointId);
+  const panel=el('section',undefined,'haccp-daily-overview haccp-frying-settings');
+  panel.append(el('h2','Фритюрное масло · '+point.name),
+   el('p','Масло: '+cfg.oil+'. Внутренний график: полная замена через '+cfg.intervalDays+' суток ('+(cfg.intervalDays*24)+' часов). При ухудшении качества менять раньше.','small'),
+   el('p','Указанные три дня — ваш производственный график, а не универсальная норма безопасности.','small'));
+  for(const name of cfg.fryerNames){
+   const cycle=oilCycleState(h(),pointId,name),card=el('article',undefined,'haccp-fryer-status');
+   card.append(el('strong',name),el('p',cycle.filledAt?
+    'Последняя сохранённая заливка: '+displayDate(cycle.filledAt)+' · замена по графику: '+displayDate(cycle.dueAt)+
+    (cycle.isDue?' · Срок замены наступил':''):
+    'Последняя заливка пока неизвестна. Укажи её фактическое время при первой проверке.','small'));
+   panel.append(card);
+  }
+  const details=el('details',undefined,'haccp-template-settings');
+  details.append(el('summary','⚙ Масло, количество фритюрниц и график'));
+  const form=el('form',undefined,'haccp-form haccp-frying-settings-form');
+  inputField(form,'Название фритюрного масла','oil',{required:true,value:cfg.oil,maxLength:160});
+  const names=inputField(form,'Фритюрницы (каждая с новой строки)','fryerNames',{
+   type:'textarea',value:cfg.fryerNames.join('\n'),required:true,maxLength:4500});
+  names.rows=5;
+  inputField(form,'Полная замена каждые N дней','intervalDays',{
+   type:'number',required:true,value:String(cfg.intervalDays)});
+  inputField(form,'Ведёт журнал','executor',{required:true,value:cfg.executor,maxLength:120});
+  inputField(form,'Проверяет','reviewer',{required:true,value:cfg.reviewer,maxLength:120});
+  form.append(el('p','Укажи фактическое количество фритюрниц на этой точке. У каждой точки отдельный список оборудования.','small'));
+  const saveButton=el('button','Сохранить настройки фритюра','primary');
+  saveButton.type='submit';form.append(saveButton);
+  form.onsubmit=safe(async event=>{
+   event.preventDefault();if(!form.reportValidity())return;
+   const raw=Object.fromEntries(new FormData(form));
+   saveButton.disabled=true;
+   try{
+    await commit(state=>{
+     updateOilSettings(state,pointId,{
+      ...raw,fryerNames:String(raw.fryerNames||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)
+     });
+     state.haccp=validateHaccp(state.haccp);
+    });build();
+   }finally{saveButton.disabled=false}
+  });
+  details.append(form);panel.append(details);
   return panel;
  }
  function receivingSettingsPanel(){
@@ -1028,6 +1076,7 @@ export function mountHaccp(root,{getState,save,notify}){
    if(tab==='storage')body.append(storageSettingsPanel());
    if(tab==='defrosting')body.append(defrostSettingsPanel());
    if(tab==='quality')body.append(qualitySettingsPanel());
+   if(tab==='frying')body.append(fryingOilSettingsPanel());
    if(tab==='hygiene'){
     body.append(hygieneSettingsPanel());
     if(monthFilter.value===currentMonth)body.append(hygienePreparedPanel());
