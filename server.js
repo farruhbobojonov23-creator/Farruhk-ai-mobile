@@ -97,6 +97,9 @@ app.use(express.static('public'));
 const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
 const hasKey = Boolean(geminiKey);
 const geminiModel = String(process.env.GEMINI_MODEL||'gemini-3.8-flash').trim();
+const geminiFastModel = String(process.env.GEMINI_FAST_MODEL||'gemini-2.5-flash-lite').trim();
+// Cool down Gemini models reporting high demand, instead of blocking every subsequent reply.
+const overloadedAiModels = new Map();
 installVoiceApi(app,{key:geminiKey});
 app.get('/api/ai/status',(req,res)=>res.json({provider:'gemini',configured:hasKey,model:hasKey?geminiModel:null,voiceConfigured:hasKey}));
 console.info('[gemini] configured='+hasKey+' model='+geminiModel);
@@ -941,7 +944,7 @@ app.post('/api/chat',async(req,res)=>{
 
   // Web search is intentionally disabled: FARRUKH AI works as a focused conversational assistant.
   const requestedWeb=false;
-  const models=[geminiModel]
+  const models=(context.voiceConversation?[geminiFastModel,geminiModel]:[geminiModel,geminiFastModel])
     .filter((x,i,a)=>x&&a.indexOf(x)===i);
 
   async function callModel(model,useWeb){
@@ -958,7 +961,7 @@ app.post('/api/chat',async(req,res)=>{
           method:'POST',
           headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},
           body:JSON.stringify(body),
-          signal:AbortSignal.timeout(30000)
+          signal:AbortSignal.timeout(context.voiceConversation?9000:14000)
         });
         const data=await r.json().catch(()=>({}));
         if(!r.ok){
@@ -981,14 +984,16 @@ app.post('/api/chat',async(req,res)=>{
   let lastErr=null;
   for(let i=0;i<models.length;i++){
     const model=models[i];
+    if((overloadedAiModels.get(model)||0)>Date.now())continue;
     try{
       const out=await callModel(model,false);
       return res.json(out);
     }catch(err){
       lastErr=err;
       const msg=String(err?.message||'');
-      console.error('[ai-chat]',model,msg);
-      const retryable=err?.status===429||/quota|rate limit|resource_exhausted|not available|unsupported|tool/i.test(msg);
+      console.error('[ai-chat]',model,msg.slice(0,240));
+      const retryable=err?.status===429||err?.status===503||err?.name==='TimeoutError'||/quota|rate limit|resource_exhausted|high demand|unavailable|overloaded|not available|timeout|fetch failed/i.test(msg);
+      if(retryable)overloadedAiModels.set(model,Date.now()+90000);
       if(!retryable)break;
     }
   }
