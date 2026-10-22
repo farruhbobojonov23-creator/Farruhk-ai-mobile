@@ -58,6 +58,27 @@ export function updateOilSettings(state,pointId,{oil,fryerNames,intervalDays,exe
  state.haccp.oilSettings={...(state.haccp.oilSettings||{}),[pointId]:value};
  return value;
 }
+// Persist the confirmed single-fryer layout for every branch on first launch.
+// Existing branch overrides (including recorded equipment) are preserved.
+export function oilPointsMissingSetup(haccp){
+ const points=Array.isArray(haccp?.points)?haccp.points:[];
+ const stored=haccp?.oilSettings||{};
+ return points.filter(p=>!Object.prototype.hasOwnProperty.call(stored,p.id)).map(p=>p.id);
+}
+export function seedOilPointSettings(state){
+ if(!state?.haccp||!Array.isArray(state.haccp.points))throw Error('Сначала настрой торговые точки.');
+ const missing=oilPointsMissingSetup(state.haccp);
+ for(const id of missing){
+  updateOilSettings(state,id,{
+   oil:OIL_DEFAULTS.oil,
+   fryerNames:[...OIL_DEFAULTS.fryerNames],
+   intervalDays:OIL_DEFAULTS.intervalDays,
+   executor:OIL_DEFAULTS.executor,
+   reviewer:OIL_DEFAULTS.reviewer
+  });
+ }
+ return missing.length;
+}
 export function validateOilSettings(raw,points){
  if(raw===undefined)return;
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).length>points.length)
