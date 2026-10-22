@@ -529,3 +529,43 @@
  #lab .haccp-hygiene-card-actions{display:grid!important;grid-template-columns:1fr!important}
  #lab .haccp-hygiene-card-actions button{width:100%!important}
 }
+
+/* Fryer-oil controls: branch card, readable change reminders on Android. */
+#lab .haccp-frying-settings{
+ background:linear-gradient(145deg,#f6fbff,#e8f5ff)!important;
+ border:1px solid #c2dbea!important;border-radius:17px!important;
+}
+#lab .haccp-frying-settings h2{
+ color:#1a5075!important;font-size:19px!important;line-height:1.4!important;
+}
+#lab .haccp-frying-settings .haccp-fryer-status{
+ border:1px solid #c6dfe9!important;background:#fff!important;
+ padding:12px 15px!important;border-radius:12px!important;margin:11px 0!important;
+ box-shadow:0 4px 14px rgba(24,98,139,.05)!important;
+}
+#lab .haccp-frying-settings .haccp-fryer-status strong{
+ color:#174e77!important;font-size:15px!important;display:block!important;
+}
+#lab .haccp-frying-settings details{
+ padding:12px!important;border-radius:12px!important;background:#f5fbff!important;
+ border:1px solid #c6dfed!important;margin-top:14px!important;
+}
+#lab .haccp-frying-settings summary{
+ cursor:pointer!important;color:#276387!important;font-size:15px!important;
+ font-weight:750!important;
+}
+#lab .haccp-frying-settings textarea{
+ min-height:130px!important;border-radius:10px!important;
+ background:#fff!important;color:#123950!important;
+}
+#lab .haccp-frying-checklist{
+ padding:14px!important;margin-top:15px!important;
+ border-radius:12px!important;background:#f5fbff!important;
+ border:1px solid #bcd5e7!important;
+}
+#lab .haccp-frying-checklist h3{color:#255979!important;font-size:16px!important}
+@media(max-width:600px){
+ #lab .haccp-frying-settings{padding:14px!important}
+ #lab .haccp-frying-settings .haccp-fryer-status{padding:12px!important}
+ #lab .haccp-frying-checklist .fields{grid-template-columns:minmax(0,1fr)!important}
+}
