@@ -11,7 +11,7 @@ self.addEventListener('activate',event=>event.waitUntil(Promise.all([
  self.clients.claim(),
  caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))
 ])));
-const fallback=async request=>(await caches.match(request))||(await caches.match('/index.html'))||
+const fallback=async request=>(await caches.match(request))||(request.mode==='navigate'?await caches.match('/index.html'):null)||
  new Response('Нет подключения. Откройте приложение при доступном интернете.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
