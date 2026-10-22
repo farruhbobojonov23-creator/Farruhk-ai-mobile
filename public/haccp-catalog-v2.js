@@ -1,18 +1,18 @@
 // Visual catalogue metadata only. These names never modify saved HACCP journal data.
 export const journalCards=Object.freeze({
- temperature:{description:'Контроль холодильников и морозильников',icon:'thermometer',tone:'blue'},
- humidity:{description:'Температура и влажность склада',icon:'droplet',tone:'blue'},
- frying:{description:'Качество и замена масла',icon:'droplet',tone:'amber'},
- receiving:{description:'Проверка поступающих продуктов',icon:'box',tone:'green'},
- storage:{description:'Маркировка и сроки хранения',icon:'layers',tone:'blue'},
- packaging:{description:'Контроль упаковки и маркировки',icon:'box',tone:'purple'},
- cooking:{description:'Контроль тепловой обработки',icon:'heat',tone:'amber'},
- defrosting:{description:'Контроль размораживания сырья',icon:'snowflake',tone:'blue'},
- quality:{description:'Проверка готовой продукции',icon:'check',tone:'green'},
- cleaning:{description:'Текущая и генеральная уборка',icon:'sparkle',tone:'blue'},
- hygiene:{description:'Осмотр сотрудников перед сменой',icon:'user',tone:'purple'},
- pests:{description:'Проверка помещений и зон',icon:'shield',tone:'green'},
- audit:{description:'Проверки и замечания по точкам',icon:'clipboard',tone:'blue'}
+ temperature:{description:'Холодильники и морозилки',icon:'thermometer',tone:'blue'},
+ humidity:{description:'Условия хранения',icon:'droplet',tone:'blue'},
+ frying:{description:'Проверка и замена масла',icon:'droplet',tone:'amber'},
+ receiving:{description:'Входной контроль',icon:'box',tone:'green'},
+ storage:{description:'Сроки и маркировка',icon:'layers',tone:'blue'},
+ packaging:{description:'Упаковка и этикетки',icon:'box',tone:'purple'},
+ cooking:{description:'Температура приготовления',icon:'heat',tone:'amber'},
+ defrosting:{description:'Разморозка сырья',icon:'snowflake',tone:'blue'},
+ quality:{description:'Качество блюд',icon:'check',tone:'green'},
+ cleaning:{description:'Уборка и обработка',icon:'sparkle',tone:'blue'},
+ hygiene:{description:'Осмотр перед сменой',icon:'user',tone:'purple'},
+ pests:{description:'Контроль вредителей',icon:'shield',tone:'green'},
+ audit:{description:'Проверки точек',icon:'clipboard',tone:'blue'}
 });
 export const journalGroups=Object.freeze([
  {name:'Оборудование и условия',kinds:['temperature','humidity','frying']},
