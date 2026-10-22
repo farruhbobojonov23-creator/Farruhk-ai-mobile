@@ -154,6 +154,19 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
    (Date.parse(at)-Date.parse(previousCycle.filledAt))/3600000:record.details.ageHours;
   if(record.details.oilDecision==='continue'&&ageing>=settings.intervalDays*24)
    throw Error('По сохранённой истории срок вашей трёхдневной замены уже наступил. Замени масло или прекрати использование.');
+  // A stop/failed inspection is not cleared by another visually "normal"
+  // entry. Full replacement must be recorded before use resumes.
+  if(record.details.oilDecision==='continue'){
+   const events=h.records.filter(r=>r.kind==='frying'&&r.pointId===record.pointId&&
+    r.details?.equipment===record.details.equipment&&r.at<=at&&r.details?.oilDecision)
+    .sort((a,b)=>a.at.localeCompare(b.at));
+   let suspended=false;
+   for(const event of events){
+    if(event.details.oilDecision==='replace'&&event.details.changedAt)suspended=false;
+    else if(event.details.oilDecision==='stop'||event.details.abnormal)suspended=true;
+   }
+   if(suspended)throw Error('Последняя проверка запретила использование масла. Для возобновления зафиксируй фактическую полную замену.');
+  }
   record.status=record.details.oilDecision==='stop'||record.details.abnormal?'deviation':'ok';
  }else if(extraJournals[kind]){
   record.details=extraDetails(kind,input);
