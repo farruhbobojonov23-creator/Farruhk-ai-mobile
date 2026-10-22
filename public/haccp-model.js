@@ -141,7 +141,7 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
  }else if(kind==='hygiene'&&input.hygieneDecision){
   record.details=hygieneObservation(input,at);
   record.status=record.details.hygieneDecision==='deny'?'deviation':'ok';
- }else if(kind==='frying'&&input.oilDecision){
+ }else if(kind==='frying'){
   const settings=oilSettings(h,record.pointId);
   const previousCycle=oilCycleState(h,record.pointId,String(input.equipment||''),new Date(at));
   record.details=oilInspection(input,at,settings);
