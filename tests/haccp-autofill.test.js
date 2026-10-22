@@ -55,7 +55,7 @@ test('Event journals remain event-driven and monthly general-clean targets never
   assert.equal(plannedCell(row,'at',s.haccp.points),'Дата по графику');
  }
 });
-test('Full print pack contains 12 journals and marks missing checks clearly, with no fake numeric results',async()=>{
+test('Full print pack contains 13 journals and marks missing checks clearly, with no fake numeric results',async()=>{
  const s={haccp:emptyHaccp()};
  addEquipment(s,{pointId:'point-1',name:'Холодильник А',min:0,max:4},'f1');
  addJournalRecord(s,{kind:'temperature',pointId:'point-1',at:'2026-10-21T11:30:00+03:00',
