@@ -14,6 +14,7 @@ test('Recipes create a form, save only by an explicit command, and ordinary conv
  assert.equal(parseWorkbenchCommand('Сохрани ТТК').type,'save-recipe');
  assert.equal(parseWorkbenchCommand('Как лучше приготовить рис?'),null);
  assert.deepEqual(parseWorkbenchCommand('Открой ХАССП'),{type:'navigate',view:'lab'});
+ assert.deepEqual(parseWorkbenchCommand('Открой журнал упаковки'),{type:'journal',kind:'packaging'});
  assert.deepEqual(parseWorkbenchCommand('Технология свернуть ролл'),{type:'field',label:'Технология',value:'свернуть ролл'});
 });
 test('Fields match unique labels; repeated ingredient controls require an explicit target',()=>{
