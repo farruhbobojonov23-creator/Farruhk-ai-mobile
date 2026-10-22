@@ -90,3 +90,16 @@ test('Real oil replacement resets date and only confirmed records go into monthl
  assert.equal(pack[0].type,'confirmed');
  assert.equal(pack[0].record.id,r.id);
 });
+
+test('Stopped or failed oil must not be used again until actual full replacement is recorded',()=>{
+ const s=fresh();
+ const stopped=save(s,{at:'2026-10-22T10:00:00+03:00',oilDecision:'stop',notes:'Запах масла изменился'});
+ assert.equal(stopped.status,'deviation');
+ assert.throws(()=>save(s,{at:'2026-10-22T12:00:00+03:00'}),/Для возобновления/);
+ const changed=save(s,{at:'2026-10-22T13:00:00+03:00',oilDecision:'replace',
+  changedAt:'2026-10-22T13:00:00+03:00'});
+ assert.equal(changed.details.oilDecision,'replace');
+ const usable=save(s,{at:'2026-10-22T14:00:00+03:00',
+  startedAt:'2026-10-22T13:00:00+03:00'});
+ assert.equal(usable.status,'ok');
+});
