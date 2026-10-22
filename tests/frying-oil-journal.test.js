@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyHaccp,addJournalRecord,validateHaccp} from '../public/haccp-model.js';
-import {OIL_CHECKS,oilSettings,updateOilSettings,oilCycleState} from '../public/frying-oil-config.js';
+import {OIL_CHECKS,oilSettings,updateOilSettings,oilCycleState,oilPointsMissingSetup,seedOilPointSettings} from '../public/frying-oil-config.js';
 import {automaticJournalRows} from '../public/haccp-auto-journals.js';
 import {saveAutoTemplate,dueAutoDrafts} from '../public/haccp-template-drafts.js';
 import {paperColumns,paperCell} from '../public/haccp-paper-layout.js';
@@ -103,4 +103,30 @@ test('Stopped or failed oil must not be used again until actual full replacement
  const usable=save(s,{at:'2026-10-22T14:00:00+03:00',
   startedAt:'2026-10-22T13:00:00+03:00'});
  assert.equal(usable.status,'ok');
+});
+
+test('Confirmed one fryer per each of four points is persisted once; later custom edits remain intact',()=>{
+ const state=fresh();
+ assert.equal(oilPointsMissingSetup(state.haccp).length,4);
+ assert.equal(seedOilPointSettings(state),4);
+ assert.equal(seedOilPointSettings(state),0);
+ assert.equal(Object.keys(state.haccp.oilSettings).length,4);
+ for(const point of state.haccp.points){
+  const config=oilSettings(state.haccp,point.id);
+  assert.deepEqual(config.fryerNames,['Фритюрница']);
+  assert.equal(config.oil,'Масло для фритюра Печагин');
+  assert.equal(config.intervalDays,3);
+ }
+ updateOilSettings(state,'point-1',{
+  oil:'Масло для фритюра Печагин',
+  fryerNames:['Фритюрница особая'],intervalDays:3,
+  executor:'Сушист',reviewer:'Старший смены'
+ });
+ assert.equal(seedOilPointSettings(state),0);
+ assert.deepEqual(oilSettings(validateHaccp(state.haccp),'point-1').fryerNames,['Фритюрница особая']);
+ assert.deepEqual(oilSettings(state.haccp,'point-2').fryerNames,['Фритюрница']);
+ const record=save({...fresh(),haccp:state.haccp},{
+  pointId:'point-2',equipment:'Фритюрница'
+ });
+ assert.equal(record.details.equipment,'Фритюрница');
 });
