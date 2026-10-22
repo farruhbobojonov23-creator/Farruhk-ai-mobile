@@ -295,6 +295,28 @@ async function verify(mode,width,height){
 
 
   await page.locator('#lab .haccp-back').click();
+  await page.locator('#lab [data-journal=frying]').click();
+  assert.match(await page.locator('#lab .haccp-frying-settings').innerText(),/Печагин/,'default oil brand');
+  assert.match(await page.locator('#lab .haccp-frying-settings').innerText(),/через 3 суток/,'user oil-replacement schedule');
+  const oilColumns=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
+  assert.ok(oilColumns.includes('Заливка масла')&&oilColumns.includes('Сутки / график')&&
+   oilColumns.includes('Качество и измерения'),'formal A4 has real fryer data');
+  assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
+   'oil checks never auto-approve a previous factual inspection');
+  await page.locator('#lab .haccp-sheet-toolbar button').first().click();
+  for(const name of ['color','odor','foam','smoke','oilDecision'])
+   assert.equal(await page.locator('#lab select[name='+name+']').inputValue(),'','oil observations must not be guessed');
+  assert.equal(await page.locator('#lab input[name=startedAt]').inputValue(),'',
+   'unknown initial fill date must not be fabricated');
+  await page.locator('#lab select[name=oilDecision]').selectOption('replace');
+  assert.equal(await page.locator('#lab input[name=changedAt]').evaluate(el=>el.required),true,
+   'replacing oil requires actually performed replacement time');
+  await page.locator('#lab .journal-modes button').first().click();
+  assert.ok(!/Черновик|Не подтверждено|запланировано/i.test(
+   await page.locator('#lab .haccp-a4-paper').innerText()),
+   'official fryer-oil A4 remains a clean document');
+  await page.screenshot({path:'artifacts/arctic-haccp-fryer-oil-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('#lab .haccp-back').click();
   await page.locator('#lab [data-journal=temperature]').click();
   const branchSelector='#lab .haccp-temperature-point-selector select';
   await page.locator(branchSelector).selectOption('point-1');
