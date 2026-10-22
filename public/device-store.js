@@ -45,7 +45,11 @@ export class DeviceStore{
  async mutate(change){
   const db=await this.open();return new Promise((resolve,reject)=>{
    const tx=db.transaction('records','readwrite'),records=tx.objectStore('records'),request=records.get('state');let next,failure;
-   request.onsuccess=()=>{try{const current=request.result===undefined?blank():validateDeviceState(request.result);next=structuredClone(current);change(next);next=validateDeviceState(next);next.revision=(Number(current.revision)||0)+1;next.updatedAt=new Date().toISOString();records.put(next,'state')}catch(e){failure=e;tx.abort()}};
+   request.onsuccess=()=>{try{// IndexedDB already returned a separate JS object. Avoid cloning the entire local database
+   // an extra time before every edit (especially costly with photos and HACCP history).
+   const current=request.result===undefined?blank():validateDeviceState(request.result);
+   const previousRevision=Number(current.revision)||0;
+   next=current;change(next);next=validateDeviceState(next);next.revision=previousRevision+1;next.updatedAt=new Date().toISOString();records.put(next,'state')}catch(e){failure=e;tx.abort()}};
    tx.oncomplete=()=>resolve(next);tx.onerror=tx.onabort=()=>reject(failure||Error('Не удалось сохранить на устройстве. Проверь свободное место и разрешения браузера.'));
   });
  }
