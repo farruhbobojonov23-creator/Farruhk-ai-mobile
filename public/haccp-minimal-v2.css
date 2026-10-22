@@ -1,0 +1,265 @@
+/* FARRUH AI · HACCP catalogue option 2 (minimal, lightweight Android-first).
+   Scoped to the catalogue only: journal editors, A4 sheets and stored data are untouched. */
+body[data-view="lab"] #lab[data-haccp-view="catalog"]{
+ --h2-ink:#193754;
+ --h2-muted:#6c859e;
+ --h2-line:#e5edf5;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"]>.bar{
+ margin:0 0 3px;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"]>.bar h1{
+ font-size:clamp(25px,5.7vw,35px);
+ letter-spacing:-.04em;
+ font-weight:740;
+ color:#152e4f!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"]>.small{
+ margin:0 0 12px;
+ font-size:13px;
+ line-height:1.5;
+ color:var(--h2-muted)!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-metrics{
+ display:none!important;
+}
+/* Keep the outlet chooser, but folded rather than pushing journal cards below the screen. */
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-period-panel{
+ margin:8px 0 12px!important;
+ border:1px solid #dceaf6!important;
+ background:#f6fbff!important;
+ border-radius:13px;
+ box-shadow:none!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-period-panel>summary{
+ color:#426680!important;
+ font-size:12px;
+ font-weight:620;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:12px!important;
+ margin:8px 0 24px!important;
+ padding:0;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-group-label{
+ grid-column:1/-1;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ min-width:0;
+ gap:10px;
+ margin:19px 0 2px!important;
+ padding:0 1px!important;
+ color:#456582!important;
+ font-size:clamp(13px,3.7vw,16px)!important;
+ font-weight:690!important;
+ letter-spacing:0!important;
+ line-height:1.35;
+ text-transform:none;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-group-label:first-child{
+ margin-top:4px!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-group-count{
+ white-space:nowrap;
+ flex-shrink:0;
+ font-size:10px;
+ font-weight:620;
+ color:#6992b5;
+ background:#e8f4ff;
+ border:1px solid #e0eefb;
+ padding:6px 10px;
+ border-radius:999px;
+ letter-spacing:0;
+}
+/* Each journal is a flat, balanced card, not a tall dimmed photo tile. */
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card{
+ display:flex!important;
+ flex-direction:column!important;
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ min-width:0;
+ min-height:184px;
+ width:100%;
+ height:auto;
+ padding:13px 12px 12px!important;
+ gap:8px;
+ align-items:flex-start;
+ justify-content:flex-start;
+ text-align:left;
+ border:1px solid var(--h2-line)!important;
+ border-radius:18px!important;
+ background:#fff!important;
+ box-shadow:0 5px 18px #34678c10!important;
+ color:var(--h2-ink)!important;
+ transform:none!important;
+ transition:border-color .16s ease,background-color .16s ease!important;
+ -webkit-tap-highlight-color:transparent;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card:hover{
+ border-color:#a8d6f6!important;
+ background:#fafdff!important;
+ box-shadow:0 5px 18px #34678c10!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card:focus-visible{
+ outline:3px solid #399ce2!important;
+ outline-offset:3px;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-icon{
+ position:relative;
+ z-index:2;
+ flex:0 0 auto;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ width:34px;
+ height:34px;
+ border-radius:11px;
+ color:#326b9f;
+ background:#eaf5ff;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-icon svg{
+ display:block;
+ width:21px;
+ height:21px;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card[data-tone="green"] .haccp-journal-icon{
+ background:#e6f7ee;color:#25865e;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card[data-tone="amber"] .haccp-journal-icon{
+ background:#fff3dc;color:#b8822b;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card[data-tone="purple"] .haccp-journal-icon{
+ background:#f0edff;color:#786ab2;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy{
+ display:flex!important;
+ position:relative;
+ z-index:2;
+ width:72%;
+ max-width:72%;
+ flex:1 1 auto;
+ flex-direction:column;
+ align-items:flex-start;
+ gap:5px!important;
+ min-width:0;
+ margin:0!important;
+ padding:0!important;
+ color:#1c3b5b!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy strong{
+ font-size:clamp(11.3px,3.15vw,14px)!important;
+ line-height:1.25!important;
+ font-weight:720!important;
+ letter-spacing:-.014em;
+ overflow-wrap:anywhere;
+ color:#172e4f!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-description{
+ display:block;
+ max-width:100%;
+ font-size:clamp(9.5px,2.5vw,11px);
+ line-height:1.4;
+ color:#6e849b;
+ overflow-wrap:anywhere;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy small.haccp-journal-count{
+ display:inline-flex;
+ flex:0 0 auto;
+ align-items:center;
+ margin-top:auto;
+ padding:6px 9px;
+ max-width:100%;
+ min-height:26px;
+ border-radius:999px;
+ background:#eaf5ff;
+ font-size:10px!important;
+ line-height:1.1;
+ font-weight:610;
+ white-space:nowrap;
+ color:#456d96!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-visual{
+ display:flex;
+ position:absolute;
+ z-index:1;
+ right:4px;
+ bottom:16px;
+ width:47%;
+ height:68%;
+ justify-content:center;
+ align-items:center;
+ border-radius:50%;
+ background:radial-gradient(ellipse at center,#eaf5fd 0%,#f5faff 67%,transparent 69%);
+ pointer-events:none;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-photo{
+ display:block!important;
+ position:relative;
+ width:95%;
+ height:92%;
+ aspect-ratio:auto!important;
+ border-radius:45%;
+ background-color:transparent;
+ background-size:400% 300%;
+ background-repeat:no-repeat;
+ filter:contrast(1.04) saturate(1.12)!important;
+ transform:none!important;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-arrow{
+ position:absolute;
+ z-index:3;
+ right:11px;
+ top:13px;
+ font-size:19px;
+ line-height:1;
+ color:#6292bd;
+ font-weight:400;
+ pointer-events:none;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog-more{
+ background:#f6fbff;
+ border:1px solid #dbeaf6;
+ border-radius:16px;
+ margin:20px 0;
+ padding:6px 13px;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog-more>summary{
+ cursor:pointer;
+ padding:10px 5px;
+ font-size:13px;
+ font-weight:650;
+ color:#285b83;
+}
+body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog-more .haccp-daily-overview{
+ margin:12px 0;
+}
+@media(min-width:800px){
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:16px!important;
+ }
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card{
+  min-height:207px;
+  padding:18px!important;
+ }
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy strong{font-size:16px!important}
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-description{font-size:12px}
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-icon{width:40px;height:40px}
+}
+@media(max-width:380px){
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-catalog{gap:9px!important}
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card{
+  min-height:185px;
+  padding:11px 10px!important;
+ }
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy{width:74%;max-width:74%}
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-visual{width:44%;right:0}
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy strong{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card{transition:none!important}
+}
