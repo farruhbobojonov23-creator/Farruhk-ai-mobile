@@ -352,7 +352,37 @@ function calculate(){const box=$('calc-result');box.replaceChildren();const r=(s
 $('calc-mode').onchange=()=>{const byYield=$('calc-mode').value==='yield';$('calc-quantity-label').textContent=byYield?'Нужный выход, г':'Количество порций';$('portions').max=byYield?'10000000':'10000';$('portions').value=byYield?'1000':'1';calculate()};$('portions').oninput=calculate;$('calc-recipe').onchange=calculate;
 $('taskform').onsubmit=guard(async()=>{const text=$('tasktext').value.trim();if(!text)throw Error('Напиши задачу.');const due=$('taskdue').value?new Date($('taskdue').value).toISOString():null;await save(s=>s.tasks.push({id:crypto.randomUUID(),text,priority:$('taskpriority').value,done:false,due,createdAt:new Date().toISOString()}));$('taskform').reset();$('taskpriority').value='normal'});
 $('checkform').onsubmit=guard(async()=>{const item={id:crypto.randomUUID(),point:$('point').value.trim(),owner:$('owner').value.trim(),text:$('checktext').value.trim(),due:$('checkdue').value,done:false};if(!item.point||!item.text)throw Error('Укажи точку и замечание.');await save(s=>{s.inspections=s.inspections||[];s.inspections.push(item)});$('checkform').reset()});
-function bubble(role,text,reveal=true){const b=document.createElement('div');b.className='bubble '+role;const label=document.createElement('small');label.textContent=role==='user'?'Ты':'FARRUH AI';b.append(label,document.createTextNode(text));if(role!=='user'){const play=document.createElement('button');play.type='button';play.textContent='▶ Прослушать';play.className='reply-play';play.onclick=()=>voice.read(text);b.append(play)}$('messages').append(b);$('messages').scrollTop=$('messages').scrollHeight;if(reveal&&document.body.dataset.view==='home'&&!messagesDialog.open){messagesDialog.append($('chat-form'));messagesDialog.showModal()}}
+function messageBubble(role,text){
+ const node=document.createElement('div');node.className='bubble '+role;
+ const label=document.createElement('small');label.textContent=role==='user'?'Ты':'FARRUH AI';
+ node.append(label,document.createTextNode(text));
+ if(role!=='user'){const play=document.createElement('button');play.type='button';play.textContent='▶ Прослушать';play.className='reply-play';play.onclick=()=>voice.read(text);node.append(play)}
+ return node;
+}
+function bubble(role,text,reveal=true){
+ const list=$('messages');list.append(messageBubble(role,text));list.scrollTop=list.scrollHeight;
+ if(reveal&&document.body.dataset.view==='home'&&!messagesDialog.open){messagesDialog.append($('chat-form'));messagesDialog.showModal()}
+}
+// Do not build the entire conversation DOM on Android startup. Every saved
+// turn stays in IndexedDB; old messages remain accessible in 60-turn pages.
+function showSavedChatHistory(turns){
+ const container=$('messages'),step=60;let first=Math.max(0,turns.length-step);
+ const fragment=document.createDocumentFragment();
+ for(const m of turns.slice(first))fragment.append(messageBubble(m.role,m.text));
+ container.replaceChildren(fragment);
+ if(first>0){
+  const older=document.createElement('button');older.type='button';older.className='chat-load-older';
+  const label=()=>older.textContent='↑ Показать предыдущие сообщения ('+first+')';
+  label();container.prepend(older);
+  older.onclick=()=>{
+   const start=Math.max(0,first-step),block=document.createDocumentFragment();
+   for(let i=start;i<first;i++)block.append(messageBubble(turns[i].role,turns[i].text));
+   container.insertBefore(block,older.nextSibling);first=start;
+   if(first===0)older.remove();else label();
+  };
+ }
+ container.scrollTop=container.scrollHeight;
+}
 let chatBusy=false,chatSaveTail=Promise.resolve();
 async function sendChat(message,{signal,voice=false}={}){
  if(!state)throw Error('Данные ещё не загрузились.');
@@ -412,7 +442,7 @@ const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:n
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog,importData:importDeviceData,downloadFile});
 const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();document.querySelector('.ttk-sync-summary button:last-of-type')?.click()};settingsDialog.append(connectionSettings);
 $('device-export').onclick=guard(async()=>{const saved=await deviceStore.load();downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:saved},null,2)],{type:'application/json'}),'FARRUH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json');notice('Резервная копия подготовлена для скачивания.')});
-async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));$('messages').replaceChildren();state.chat.forEach(m=>bubble(m.role,m.text,false));notice('Данные импортированы на устройство. Существующие записи сохранены.')}
+async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));showSavedChatHistory(state.chat||[]);notice('Данные импортированы на устройство. Существующие записи сохранены.')}
 $('device-import').onclick=()=>{$('device-import-file').value='';$('device-import-file').click()};
 $('device-import-file').onchange=guard(async()=>{const file=$('device-import-file').files[0];if(!file)return;if(file.size>80*1024*1024)throw Error('Файл слишком большой. Максимум 80 МБ.');await importDeviceData(JSON.parse(await file.text()))});
 $('cloud-import').onclick=guard(async()=>{const button=$('cloud-import');button.disabled=true;notice('Пробую прочитать старые данные из облака…');try{await importDeviceData((await api('/api/state')).state)}catch(e){throw Error('Облако пока не отдало данные. Локальная база не изменена. '+e.message)}finally{button.disabled=false}});
@@ -421,7 +451,7 @@ const retryLoad=document.createElement('button');retryLoad.type='button';retryLo
 let loadingState=false;
 async function loadAssistantState(){
  if(loadingState)return;loadingState=true;retryLoad.hidden=true;
- try{notice('Загружаю сохранённые данные…');state=await deviceStore.load();render();googleSync.schedule();googleDriveBackup.render();googleDriveBackup.schedule();$('messages').replaceChildren();state.chat.forEach(m=>bubble(m.role,m.text,false));$('connection').textContent='Хранение на устройстве';notice('');navigator.storage?.persist?.().catch(()=>{})}
+ try{notice('Загружаю сохранённые данные…');state=await deviceStore.load();render();googleSync.schedule();googleDriveBackup.render();googleDriveBackup.schedule();showSavedChatHistory(state.chat||[]);$('connection').textContent='Хранение на устройстве';notice('');navigator.storage?.persist?.().catch(()=>{})}
  catch(e){$('connection').textContent='Не удалось открыть данные устройства';notice(e.message,true);retryLoad.hidden=false}
  finally{loadingState=false}
 }
