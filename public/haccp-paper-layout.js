@@ -240,7 +240,7 @@ export const journalPaperColumns=Object.freeze({
   ["at","Дата контроля",1.0],
   ["point","Точка",0.72],
   ["equipment","Фритюрница",1.04],
-  ["product","Масло / партия",1.16],
+  ["oilProductBatch","Масло / партия",1.16],
   ["startedAt","Заливка масла",1.05],
   ["oilAge","Сутки / график",0.90],
   ["oilChecks","Качество и измерения",2.15],
@@ -341,6 +341,7 @@ export function paperCell(record,key,points=[],{draft=false}={}){
   details.product,details.batch&&'Партия: '+details.batch,
   details.invoice&&'Док.: '+details.invoice
  ].filter(Boolean).join('\n');
+ else if(key==='oilProductBatch')value=[details.product,details.oilBatch&&'Партия: '+details.oilBatch].filter(Boolean).join('\n');
  else if(key==='oilAge')value=details.ageHours===undefined||details.ageHours===null?'—':
   (Math.round(details.ageHours/24*100)/100)+' дн. / '+(details.intervalDays||3)+' дн.';
  else if(key==='oilChecks')value=[
