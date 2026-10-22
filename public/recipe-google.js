@@ -20,7 +20,16 @@ export function mountGoogleSync({getState,store,onState,notify}){
    try{const response=await post({...config,action:'sync',recipe,digest});await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()}})}catch(e){await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],error:e.message}});break}
   }}finally{running=false;render()}
  }
- function schedule(){clearTimeout(timer);timer=setTimeout(()=>flush().catch(e=>notify(e.message,true)),600);render()}
- window.addEventListener('online',schedule);setInterval(()=>flush().catch(()=>{}),45000);
+ function schedule(){
+  const cfg=getState()?.googleSync;
+  if(!cfg?.enabled||!cfg.endpoint)return; // No configured Google account: no background work.
+  clearTimeout(timer);
+  // Debounce rapid changes; do not re-hash every TTK on each ordinary task/chat save.
+  timer=setTimeout(()=>flush().catch(e=>notify(e.message,true)),1500);
+  if(settingsOpen)render();
+ }
+ window.addEventListener('online',schedule);
+ // Immediate save after a change is still scheduled; periodic retry is deliberately sparse.
+ setInterval(()=>{if(!document.hidden)flush().catch(()=>{})},5*60*1000);
  return {schedule,render};
 }
