@@ -80,8 +80,10 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
     await store.transaction(async()=>{const items=await store.read('subscriptions.json',[]);await store.write('subscriptions.json',[...items.filter(x=>x.endpoint!==s.endpoint),{endpoint:s.endpoint,keys:s.keys}].slice(-10))});res.json({ok:true});
   }));
   let running=false;
+  // Cloud outages must not trigger an expensive multi-endpoint fetch every 30 seconds.
+  let cloudRetryAfter=0;
   async function reminders(){
-    if(running||!webpush)return;running=true;
+    if(running||!webpush||Date.now()<cloudRetryAfter)return;running=true;
     try{
       await initialize();const state=await store.state(),subscriptions=await store.read('subscriptions.json',[]);
       for(const task of state.tasks.filter(t=>!t.done&&t.due&&!t.notifiedAt&&Date.parse(t.due)<=Date.now())){
@@ -89,10 +91,10 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
         for(const s of subscriptions){try{await webpush.sendNotification(s,JSON.stringify({title:'FARRUKH AI · задача',body:task.text,tag:'task-'+task.id,url:'/?open=tasks'}),{TTL:86400,timeout:10000});delivered=true}catch(e){if([404,410].includes(e.statusCode))await store.transaction(async()=>await store.write('subscriptions.json',(await store.read('subscriptions.json',[])).filter(x=>x.endpoint!==s.endpoint)));else console.error('[reminder]',e.statusCode||e.message)}}
         if(delivered)await store.mutate(current=>{const latest=current.tasks.find(t=>t.id===task.id);if(latest&&!latest.done&&latest.due===task.due)latest.notifiedAt=new Date().toISOString()});
       }
-    }catch(e){console.error('[reminders]',e.message)}finally{running=false}
+    }catch(e){cloudRetryAfter=Date.now()+5*60000;console.error('[reminders]',e.message)}finally{running=false}
   }
   const timer=setInterval(reminders,30000);timer.unref();
   let lastBackup=0;
-  const backupTimer=setInterval(async()=>{try{if(Date.now()-lastBackup<6*3600000)return;await initialize();await store.backup('auto');lastBackup=Date.now()}catch(e){console.error('[backup]',e.message)}},60000);backupTimer.unref();
+  const backupTimer=setInterval(async()=>{try{if(Date.now()<cloudRetryAfter||Date.now()-lastBackup<6*3600000)return;await initialize();await store.backup('auto');lastBackup=Date.now()}catch(e){cloudRetryAfter=Date.now()+5*60000;console.error('[backup]',e.message)}},60000);backupTimer.unref();
   return {store,auth};
 }
