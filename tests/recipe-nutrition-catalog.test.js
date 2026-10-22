@@ -33,3 +33,26 @@ test('Generic aliases are whitespace/case normalized; smoked fish and seasoned r
  assert.equal(lookupGenericNutrition('рис заправленный для суши'),null);
  assert.equal(lookupGenericNutrition('сыр творожный марки XYZ'),null);
 });
+
+test('Sushi staples resolve aliases and produce a complete roll calculation',()=>{
+ for(const name of ['Нори','ТОБИККО','икра масаго','угорь','Унаги','соус-терияки','Панко','Креветки варёные','кунжут']){
+  const result=lookupGenericNutrition(name);
+  assert.ok(result,name);
+  assert.equal(result.origin,'reference');
+  assert.ok(result.sourceUrl.startsWith('https://'));
+  assert.ok(Object.values(result.nutrition).every(n=>Number.isFinite(n)&&n>=0));
+ }
+ const ingredients=[['рис готовый',150],['нори',3],['угорь',40],['соус унаги',10]].map(([name,grams])=>({name,grams,grossGrams:grams,nutrition:lookupGenericNutrition(name).nutrition}));
+ const result=calculateNutritionBoth(ingredients,203);
+ assert.ok(Math.abs(result.perPortion.kcal-351.14)<0.00001);
+ assert.ok(Math.abs(result.per100.kcal-351.14/203*100)<0.000001);
+ ingredients.push({name:'Неизвестный соус',grams:10,grossGrams:10});
+ assert.equal(calculateNutritionBoth(ingredients,213),null);
+});
+
+test('Preparation, brands and unknown foods are not silently substituted',()=>{
+ for(const name of ['креветки сырые','угорь сырой','соус спайси домашний','рис сухой','рис заправленный для суши','нори марки XYZ'])assert.equal(lookupGenericNutrition(name),null,name);
+ assert.equal(lookupGenericNutrition('соус унаги').id,lookupGenericNutrition('унаги').id);
+ assert.notEqual(lookupGenericNutrition('угорь').id,lookupGenericNutrition('унаги').id);
+ assert.notEqual(lookupGenericNutrition('кунжут').id,lookupGenericNutrition('кунжут жареный').id);
+});
