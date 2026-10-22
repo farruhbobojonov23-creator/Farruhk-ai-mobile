@@ -1,0 +1,37 @@
+/* Mobile performance pass. Keep the approved Sapphire orb artwork, remove expensive GPU blurs. */
+@media (max-width:999px){
+ body[data-view="home"] #home.arctic-home .ruby-scene:before,
+ body[data-view="home"] #home.arctic-home .arctic-art-area::before{
+  filter:none!important;
+  -webkit-filter:none!important;
+  animation:none!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-reference-orb{
+  filter:none!important;
+  -webkit-filter:none!important;
+  backface-visibility:hidden;
+  animation:ai-light-float 16s ease-in-out infinite!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-status-pill,
+ body[data-view="home"] #home.arctic-home .arctic-query,
+ body[data-view="home"] #home.arctic-home .arctic-topline,
+ body[data-view="home"] #home.arctic-home .home-shortcuts button,
+ body[data-view="home"] .aurora-top,
+ body:not([data-view="home"]) .aurora-top,
+ .mobile-tools, .home-weather{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+ }
+ body[data-view="home"] #home.arctic-home .arctic-inner-shimmer,
+ body[data-view="home"] #home.arctic-home .arctic-orb-filaments,
+ body[data-view="home"] #home.arctic-home .arctic-ring,
+ body[data-view="home"] #home.arctic-home .arctic-spark{
+  animation:none!important;
+ }
+}
+@keyframes ai-light-float{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}
+body.fx-paused #home.arctic-home .arctic-reference-orb,
+body:not([data-view="home"]) #home.arctic-home .arctic-reference-orb{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){
+ body #home.arctic-home .arctic-reference-orb{animation:none!important;transform:none!important}
+}
