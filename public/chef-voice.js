@@ -18,7 +18,7 @@ export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
  let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false,browserMode=false,browserSession=null,neuralVoiceAvailable=false;
  function status(next,text){phase=next;panel.dataset.phase=next;$('voice-status').textContent=text;$('voice-start').hidden=active;$('voice-stop').hidden=!active;$('voice-send').hidden=next!=='listening'}
- function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);const tick=()=>{analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)));playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
+ function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);let last=0;const tick=stamp=>{if(!active||document.hidden){playFrame=null;return}if(stamp-last>=100){last=stamp;analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)))}playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
  function resetLevel(){cancelAnimationFrame(playFrame);playFrame=null;panel.style?.setProperty('--voice-level','0')}
  function releaseMic(){clearTimeout(timer);cancelAnimationFrame(frame);timer=null;frame=null;if(input){input.disconnect();input=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
  function stop(text='Разговор остановлен.'){browserSession?.cancel();browserSession=null;active=false;generation++;controller?.abort();controller=null;if(recorder){recorder.onstop=null;recorder.ondataavailable=null;if(recorder.state!=='inactive')recorder.stop();recorder=null}releaseMic();resetLevel();if(deviceSpeaking){window.speechSynthesis?.cancel();deviceSpeaking=false}if(source){source.onended=null;try{source.stop()}catch{}source=null}finishPlayback?.();finishPlayback=null;status('idle',text)}
@@ -74,7 +74,7 @@ export function createVoiceConversation({send}){
  }
  async function read(text){
   stop();const token=generation;active=true;lastReply=text;
-  try{await unlock();if(!active||token!==generation)return;controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);await speak(text,token);if(token===generation)stop('Ответ озвучен.')}catch(e){fail(e,token)}
+  try{await unlock();if(!active||token!==generation)return;controller=new AbortController();timer=setTimeout(()=>controller?.abort(),28000);await speak(text,token);if(token===generation)stop('Ответ озвучен.')}catch(e){fail(e,token)}
  }
  async function sendText(text){
   stop();
@@ -83,7 +83,7 @@ export function createVoiceConversation({send}){
   // Unlock audio while the Send click/submit still has user activation.
   // No microphone permission is requested for text replies.
   let audioError=null;const ready=unlock().catch(e=>{audioError=e});
-  controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);
+  controller=new AbortController();timer=setTimeout(()=>controller?.abort(),28000);
   status('thinking','Ассистент думает…');
   try{
    lastReply=await send(text,{signal:controller.signal});
@@ -99,7 +99,7 @@ export function createVoiceConversation({send}){
    if(!active||token!==generation)return;
    if(blob.size<500)throw Error('Запись слишком короткая. Попробуй ещё раз.');
    status('thinking','Распознаю твою речь…');
-   controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);
+   controller=new AbortController();timer=setTimeout(()=>controller?.abort(),28000);
    const {text}=await json('/api/transcribe',{data:await encode(blob),mimeType:blob.type.split(';')[0]},controller.signal);
    if(!active||token!==generation)return;
    if(!text?.trim())throw Error('Не удалось разобрать фразу. Попробуй ещё раз.');
@@ -118,7 +118,7 @@ export function createVoiceConversation({send}){
  }
  async function processText(text,token){
   if(!active||token!==generation)return;
-  clearTimeout(timer);controller=new AbortController();timer=setTimeout(()=>controller?.abort(),150000);
+  clearTimeout(timer);controller=new AbortController();timer=setTimeout(()=>controller?.abort(),28000);
   try{
    $('voice-transcript').textContent='Ты: '+text;status('thinking','Выполняю запрос…');
    lastReply=await send(text,{signal:controller.signal,voice:true});
