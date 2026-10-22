@@ -22,7 +22,7 @@ test('Packaging is available at each point and only saved observations enter A4'
   const record=addJournalRecord(s,input,'pack-1');
   assert.equal(record.status,'ok');
   const cols=paperColumns('packaging').map(x=>x.key);
-  for(const key of ['at','point','stage','packagingItem','checks','labeling','decisionText','reviewer','owner'])
+  for(const key of ['at','point','stage','packagingItem','checks','labeling','packagingReview','owner'])
     assert.ok(cols.includes(key),key);
   assert.match(paperCell(record,'packagingItem',s.haccp.points),/Филадельфия/);
   assert.match(paperCell(record,'packagingItem',s.haccp.points),/Контейнер пищевой/);
@@ -37,7 +37,7 @@ test('Packaging deviations require corrective comments and create actions',()=>{
   const record=addJournalRecord(s,{...input,checks:'Повреждена крышка',result:'problem',decisionText:'Изолировать и переупаковать',notes:'Повреждённый контейнер утилизирован'},'pack-bad');
   assert.equal(record.status,'deviation');
   assert.equal(s.haccp.actions.length,1);
-  assert.match(paperCell(record,'decisionText',s.haccp.points),/переупаковать/);
+  assert.match(paperCell(record,'packagingReview',s.haccp.points),/переупаковать/);
 });
 test('Packaging records reject fabricated empty check fields',()=>{
   const s=state();
