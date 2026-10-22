@@ -1,7 +1,7 @@
-import {extraJournals,extraFieldNames} from './haccp-extra.js?v=2';
+import {extraJournals,extraFieldNames} from './haccp-extra.js?v=3';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
-import {paperColumns,paperCell} from './haccp-paper-layout.js?v=10';
+import {paperColumns,paperCell} from './haccp-paper-layout.js?v=11';
 import {automaticJournalSummary} from './haccp-auto-journals.js?v=9';
 import {saveAutoTemplate,dueAutoDrafts,generateAutoDrafts,confirmAutoDraft} from './haccp-template-drafts.js?v=9';
 import {journalTypes,auditItems,emptyHaccp,validateHaccp,addEquipment,updateEquipment,addJournalRecord,closeCorrectiveAction,journalCsv} from './haccp-model.js?v=7';
@@ -42,14 +42,14 @@ export function mountHaccp(root,{getState,save,notify}){
  const allTabs={...journalTypes,actions:'Корректирующие действия',documents:'Документы',settings:'Точки и оборудование'};
  function catalog(){
  const grid=el('div',undefined,'haccp-catalog');let index=0;const groupNames={temperature:'Оборудование и условия',receiving:'Продукты и процессы',cleaning:'Чистота, персонал и контроль'};
- for(const kind of ['temperature','humidity','frying','receiving','storage','cooking','defrosting','quality','cleaning','hygiene','pests','audit']){const title=journalTypes[kind];index=Object.keys(journalTypes).indexOf(kind);
+ for(const kind of ['temperature','humidity','frying','receiving','storage','packaging','cooking','defrosting','quality','cleaning','hygiene','pests','audit']){const title=journalTypes[kind];index=Object.keys(journalTypes).indexOf(kind);
   if(groupNames[kind])grid.append(el('h3',groupNames[kind],'haccp-group-label'));const card=button('',()=>{tab=kind;build();root.scrollIntoView({block:'start'})},'haccp-journal-card');card.dataset.journal=kind;
   const photo=el('span',undefined,'haccp-journal-photo');photo.setAttribute('aria-hidden','true');photo.style.backgroundPosition=`${(index%4)*100/3}% ${Math.floor(index/4)*50}%`;
   const copy=el('span',undefined,'haccp-journal-copy');copy.append(el('strong',title),el('small',h().records.filter(r=>r.kind===kind).length+' записей · Открыть журнал'));
   card.append(photo,copy);grid.append(card);index++;
  }
  const autoPanel=el('section',undefined,'haccp-autofill-panel');
- autoPanel.append(el('h2','Автозаполнение · 12 журналов А4'),
+ autoPanel.append(el('h2','Автозаполнение · 13 журналов А4'),
   el('p','FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. По сохранённым образцам создаются черновики, которые ты можешь проверить и поправить перед подтверждением.','small'));
  const autoForm=el('div',undefined,'haccp-auto-controls');
  const autoMonth=inputField(autoForm,'Месяц для печати','autoMonth',{type:'month',value:currentMonth});
