@@ -38,13 +38,15 @@ export function createVoiceConversation({send}){
   try{await unlock();if(!active||token!==generation)return;controller=new AbortController();status('connecting','Проверяю голос устройства…');await speakDevice('Фаррух Ака, голос устройства работает. Я на связи.',token);if(token===generation)stop('Проверка завершена. Если слышишь голос, можно начать разговор.')}catch(e){fail(e,token)}
  }
  async function speak(text,token){
-  if(!neuralVoiceAvailable||Date.now()<deviceVoiceUntil)return speakDevice(text,token);
+  // The quick phone voice speaks immediately; neural WAV remains opt-in in settings.
+  if(($('voice-fast-mode')?.checked!==false)||!neuralVoiceAvailable||Date.now()<deviceVoiceUntil)return speakDevice(text,token);
   status('thinking','Готовлю голосовой ответ…');
   const chunks=speechChunks(text);
   const requestAudio=async chunk=>{
    try{
     if(!active||token!==generation)return {};
-    const r=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:$('voice-choice').value}),signal:controller.signal});
+    const deadline=AbortSignal.timeout(12500);
+    const r=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:$('voice-choice').value}),signal:AbortSignal.any([controller.signal,deadline])});
     if(!r.ok){const d=await r.json();const error=Error(d.error||'Голос недоступен. Ответ сохранён текстом.');error.status=r.status;throw error}
     return {buffer:await context.decodeAudioData(await r.arrayBuffer())};
    }catch(error){return {error}}
