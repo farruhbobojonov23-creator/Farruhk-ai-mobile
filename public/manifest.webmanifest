@@ -62,9 +62,9 @@
       ]
     },
     {
-      "name": "Аналитика",
-      "short_name": "Аналитика",
-      "url": "/?open=analytics",
+      "name": "Техкарты",
+      "short_name": "ТТК",
+      "url": "/?open=recipes",
       "icons": [
         {
           "src": "icon-192.svg",
