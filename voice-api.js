@@ -1,7 +1,11 @@
-// Neural TTS uses the existing server-side Gemini key; no keys reach the browser.
+// Neural TTS is server-side only: the browser never receives the Gemini API key.
+// Gemini 3.8 TTS uses the Interactions endpoint, NOT generateContent.
 export function installVoiceApi(app,{key,model=process.env.GEMINI_TTS_MODEL||'gemini-3.8-flash-tts',request=fetch}){
   const voices=['Kore','Aoede','Sulafat'];
-  app.get('/api/voice/config',(req,res)=>res.json({configured:Boolean(key),model,voices}));
+  app.get('/api/voice/config',(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    res.json({configured:Boolean(key),model:key?model:null,voices});
+  });
   app.post('/api/voice/speak',async(req,res)=>{
     if(!key)return res.status(503).json({error:'Голос Gemini не настроен на сервере.'});
     const text=typeof req.body?.text==='string'?req.body.text.trim():'';
@@ -12,15 +16,33 @@ export function installVoiceApi(app,{key,model=process.env.GEMINI_TTS_MODEL||'ge
     const disconnect=()=>{if(!res.writableEnded)controller.abort()};
     res.on('close',disconnect);
     try{
-      const body={contents:[{role:'user',parts:[{text,speech_metadata:{style:'Speak Russian naturally, warmly and calmly, like a helpful female colleague. Use expressive but subtle intonation, conversational pacing and natural pauses. Do not sound like an announcer.'}}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{voice}}}};
-      const response=await request('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body),signal:controller.signal});
-      const data=await response.json();
+      const body={
+        model,
+        input:[{type:'user_input',content:[{
+          type:'text',
+          text,
+          annotations:[{type:'speech_metadata',style:'Speak in Russian naturally, warmly and calmly, like a helpful female colleague. Conversational pacing, clear diction and gentle intonation.'}]
+        }]}],
+        response_format:{type:'audio'},
+        generation_config:{speech_config:[{voice}]}
+      };
+      const response=await request('https://generativelanguage.googleapis.com/v1beta/interactions',{
+        method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
+        body:JSON.stringify(body),signal:controller.signal
+      });
+      const data=await response.json().catch(()=>({}));
       if(!response.ok){const err=new Error('provider');err.status=response.status;throw err}
-      const audio=data?.candidates?.[0]?.content?.parts?.find(p=>p.inlineData?.data)?.inlineData;
-      if(!audio?.data)throw Error('empty audio');
+      // In raw Interactions REST JSON, audio is in steps[].content[].data.
+      const audio=(data?.steps||[])
+        .filter(step=>step?.type==='model_output')
+        .flatMap(step=>Array.isArray(step.content)?step.content:[])
+        .filter(part=>part?.type==='audio'&&typeof part.data==='string')
+        .at(-1);
+      if(!audio)throw Error('empty audio');
       const bytes=Buffer.from(audio.data,'base64');
       if(bytes.length<44||bytes.subarray(0,4).toString()!=='RIFF'||bytes.subarray(8,12).toString()!=='WAVE')throw Error('invalid WAV');
-      res.setHeader('Cache-Control','no-store');res.type('audio/wav').send(bytes);
+      res.setHeader('Cache-Control','no-store');
+      res.type('audio/wav').send(bytes);
     }catch(error){
       if(res.destroyed)return;
       const quota=error.status===429;
