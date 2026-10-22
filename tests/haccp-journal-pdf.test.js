@@ -27,7 +27,7 @@ test('Saved deep clean PDF retains kind and real responsible without creating em
  assert.doesNotMatch(result.text,/Подтверждённых записей пока нет/);
 });
 
-test('All 12 HACCP journal templates have distinct actionable headers in A4 PDF',async()=>{
+test('All 13 HACCP journal templates have distinct actionable headers in A4 PDF',async()=>{
  const schemas=new Map();
  for(const kind of Object.keys(journalTypes)){
   const columns=paperColumns(kind);
