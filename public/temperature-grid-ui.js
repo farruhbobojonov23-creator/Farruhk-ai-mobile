@@ -1,3 +1,4 @@
+import {mountTemperatureGenerator} from './temperature-generator.js?v=1';
 import {measurementDate,measurementTime,monthLabel,monthDays,temperatureGrid,temperatureLimits,saveDailyTemperatures} from './temperature-journal.js?v=1';
 import {saveAutoTemplate} from './haccp-template-drafts.js?v=2';
 import {addEquipment,updateEquipment,validateHaccp} from './haccp-model.js';
@@ -73,6 +74,7 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   pointBar.append(setupPlasma);
  }
  root.append(pointBar);
+ mountTemperatureGenerator(root,{getHaccp,pointId,commit,notify,month:selection.month||measurementDate().slice(0,7)});
  const box=el('section',undefined,'haccp-monthly');root.append(box);
  box.append(el('h2','Журнал температур холодильного и морозильного оборудования'));
  const bar=el('div',undefined,'haccp-month-controls');box.append(bar);
@@ -246,12 +248,13 @@ export function mountTemperatureGrid(root,{getHaccp,pointId,selection,onPointCha
   pdf.disabled=false;detail.hidden=true;viewport.replaceChildren();equipmentInputs.replaceChildren();sampleRanges.replaceChildren();inputs=[];ranges=[];
   const done=new Set(grid.readings.map(r=>r.details.equipmentId+'|'+measurementDate(r.at))),deviations=grid.readings.filter(r=>r.status==='deviation').length;
   summary.textContent=monthLabel(grid.month)+' · '+grid.rows.length+' единиц оборудования · '+done.size+' заполненных дней оборудования'+(deviations?' · Отклонений: '+deviations:'')+'. Нажми заполненную ячейку, чтобы увидеть время и ответственного.';
+  if((getHaccp().personalTemperatureSamples||[]).some(s=>s.day.startsWith(grid.month)&&(!pointId||s.pointId===pointId)))summary.textContent+=' ≈ — личные значения по образцу, не замеры; в PDF фактических замеров не включаются.';
   const table=el('table',undefined,'haccp-month-table');table.style.setProperty('--haccp-columns',grid.days.length);const caption=el('caption','Температура, °C · '+monthLabel(grid.month));table.append(caption);
   const head=el('thead'),tr=el('tr');const equipmentHead=el('th','Оборудование / точка');equipmentHead.scope='col';tr.append(equipmentHead);
   for(const day of grid.days){const th=el('th',String(day));th.scope='col';if(grid.month+'-'+String(day).padStart(2,'0')===today)th.className='is-today';tr.append(th)}head.append(tr);table.append(head);
   const tbody=el('tbody');for(const row of grid.rows){
    const tr=el('tr'),name=el('th');name.scope='row';name.append(el('strong',row.name),el('small',row.point),el('small',temperatureLimits(row)));tr.append(name);
-   for(const cell of row.cells){const td=el('td');if(cell.records.length){const deviation=cell.records.some(r=>r.status==='deviation'),value=cell.records.map(r=>String(r.details.measured)).join(' / '),b=button(value,()=>showCell(row,cell));b.className=deviation?'temperature-deviation':'temperature-measured';b.setAttribute('aria-label',row.name+', '+cell.day+' число: '+value+' °C'+(deviation?', отклонение':''));b.title=cell.records.map(r=>measurementTime(r.at)+' · '+r.details.measured+' °C · '+r.owner).join('\n');td.append(b)}else{td.textContent='—';td.className='temperature-empty'}tr.append(td)}tbody.append(tr);
+   for(const cell of row.cells){const td=el('td');if(cell.records.length){const deviation=cell.records.some(r=>r.status==='deviation'),value=cell.records.map(r=>String(r.details.measured)).join(' / '),b=button(value,()=>showCell(row,cell));b.className=deviation?'temperature-deviation':'temperature-measured';b.setAttribute('aria-label',row.name+', '+cell.day+' число: '+value+' °C'+(deviation?', отклонение':''));b.title=cell.records.map(r=>measurementTime(r.at)+' · '+r.details.measured+' °C · '+r.owner).join('\n');td.append(b)}else{const sample=(getHaccp().personalTemperatureSamples||[]).find(s=>s.equipmentId===row.id&&s.day===grid.month+'-'+String(cell.day).padStart(2,'0'));if(sample){const b=button('≈ '+sample.value,()=>{detail.hidden=false;detail.replaceChildren(el('h3',row.name+' · '+sample.day),el('p','Личный журнал · значение по образцу, не фактический замер.'));const input=field(detail,'Температура по образцу, °C','number',String(sample.value));input.step='0.1';detail.append(button('Сохранить исправление',async()=>{if(input.value===''||!Number.isFinite(Number(input.value)))return notify('Укажи температуру числом.',true);try{await commit(state=>{const item=state.haccp.personalTemperatureSamples.find(s=>s.id===sample.id);if(!item)throw Error('Запись не найдена.');item.value=Number(input.value);item.edited=true;item.source='sample'})}catch(e){error(e)}}));detail.scrollIntoView({block:'nearest'})});b.title='Личный журнал · по образцу';td.append(b)}else{td.textContent='—';td.className='temperature-empty'}}tr.append(td)}tbody.append(tr);
    // Entry forms always show the selected point's equipment, including blank measurements.
    if(getHaccp().equipment.some(e=>e.id===row.id)){
     const range=el('div',undefined,'haccp-temperature-range');

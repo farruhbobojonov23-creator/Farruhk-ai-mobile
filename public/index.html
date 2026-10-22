@@ -152,7 +152,7 @@ let haccpUi={render(){},open(){return false}};
 let haccpLoad=null;
 function ensureHaccp(){
  if(haccpLoad)return haccpLoad;
- haccpLoad=import('/haccp-ui.js?v=107').then(({mountHaccp})=>{
+ haccpLoad=import('/haccp-ui.js?v=108').then(({mountHaccp})=>{
   haccpUi=mountHaccp($('lab'),{getState:()=>state,save,notify:notice});
   if(state)haccpUi.render(state);
   return haccpUi;

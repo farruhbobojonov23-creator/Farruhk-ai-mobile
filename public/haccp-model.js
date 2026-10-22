@@ -8,7 +8,7 @@ import {oilInspection,oilSettings,oilCycleState,validateOilSettings} from './fry
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
-export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[],autoTemplates:[],autoDrafts:[],dailyControls:[...defaultDailyControls],generalCleaningTarget:2});
+export const emptyHaccp=()=>({version:1,revision:0,points:Array.from({length:4},(_,i)=>({id:'point-'+(i+1),name:'Точка '+(i+1)})),equipment:[],records:[],actions:[],documents:[],personalTemperatureSamples:[],autoTemplates:[],autoDrafts:[],dailyControls:[...defaultDailyControls],generalCleaningTarget:2});
 const text=(v,n=2000)=>String(v??'').trim().slice(0,n);
 const required=(v,label,n)=>{const s=text(v,n);if(!s)throw Error('Укажи: '+label);return s};
 function number(v,label,optional=false){if(v===null||v===undefined||String(v).trim()===''){if(optional)return null;throw Error('Укажи: '+label)}const n=Number(v);if(!Number.isFinite(n))throw Error('Неверное число: '+label);return n}
@@ -17,6 +17,7 @@ export function temperatureStatus(value,min,max){if(min===null&&max===null)retur
 export function validateHaccp(value){
  if(value===undefined)return emptyHaccp();if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Повреждён раздел ХАССП.');
  const result={...emptyHaccp(),...structuredClone(value)};
+ if(!Array.isArray(result.personalTemperatureSamples)||result.personalTemperatureSamples.some(s=>!s||typeof s.id!=='string'||typeof s.pointId!=='string'||typeof s.equipmentId!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(s.day)||!Number.isFinite(s.value)||s.source!=='sample')||new Set(result.personalTemperatureSamples.map(s=>s.id)).size!==result.personalTemperatureSamples.length)throw Error('Повреждён личный журнал температур.');
  if(!Array.isArray(result.dailyControls)||new Set(result.dailyControls).size!==result.dailyControls.length||result.dailyControls.some(kind=>typeof kind!=='string'||!journalTypes[kind]))throw Error('Неверный план ежедневных журналов ХАССП.');
  if(!Number.isInteger(result.generalCleaningTarget)||result.generalCleaningTarget<0||result.generalCleaningTarget>10)throw Error('Неверная периодичность генеральной уборки.');
  if(!Array.isArray(result.autoTemplates)||result.autoTemplates.length>200||result.autoTemplates.some(t=>
@@ -33,8 +34,8 @@ export function validateHaccp(value){
     new Set(result.autoDrafts.map(d=>d.id)).size!==result.autoDrafts.length)throw Error('Повтор черновиков ХАССП.');
  for(const row of [...result.autoTemplates,...result.autoDrafts])
   if(!result.points.some(p=>p.id===row.pointId))throw Error('У образца журнала нет указанной точки.');
- for(const k of ['points','equipment','records','actions','documents'])if(!Array.isArray(result[k])||result[k].some(x=>!x||typeof x!=='object'||Array.isArray(x)||typeof x.id!=='string'||!x.id))throw Error('Повреждён журнал ХАССП: '+k);
- for(const k of ['points','equipment','records','actions','documents'])if(new Set(result[k].map(x=>x.id)).size!==result[k].length)throw Error('Повторяющиеся записи ХАССП: '+k);
+ for(const k of ['points','equipment','records','actions','documents','personalTemperatureSamples'])if(!Array.isArray(result[k])||result[k].some(x=>!x||typeof x!=='object'||Array.isArray(x)||typeof x.id!=='string'||!x.id))throw Error('Повреждён журнал ХАССП: '+k);
+ for(const k of ['points','equipment','records','actions','documents','personalTemperatureSamples'])if(new Set(result[k].map(x=>x.id)).size!==result[k].length)throw Error('Повторяющиеся записи ХАССП: '+k);
  if(!result.points.length||result.points.some(p=>typeof p.name!=='string'||!p.name.trim()))throw Error('Укажи названия точек.');
  const points=new Set(result.points.map(p=>p.id));
  validateReceivingSettings(result.receivingSettings,[...points]);
@@ -197,5 +198,5 @@ export function mergeHaccp(current,incoming){const a=validateHaccp(current),b=va
   const drafts=new Set(a.autoDrafts.map(d=>d.id));
   for(const draft of b.autoDrafts)if(!drafts.has(draft.id)){a.autoDrafts.push(draft);drafts.add(draft.id)}
  }
- for(const key of ['points','equipment','records','actions','documents']){const ids=new Set(a[key].map(x=>x.id));for(const item of b[key])if(!ids.has(item.id)){a[key].push(item);ids.add(item.id)}}a.revision=Math.max(Number(a.revision)||0,Number(b.revision)||0)+1;return validateHaccp(a)}
+ for(const key of ['points','equipment','records','actions','documents','personalTemperatureSamples']){const ids=new Set(a[key].map(x=>x.id));for(const item of b[key])if(!ids.has(item.id)){a[key].push(item);ids.add(item.id)}}a.revision=Math.max(Number(a.revision)||0,Number(b.revision)||0)+1;return validateHaccp(a)}
 export function journalCsv(records,points){const safe=v=>'"'+String(v??'').replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')+'"';return '\uFEFF'+[['Дата и время','Журнал','Точка','Ответственный','Результат','Подробности','Комментарий'],...records.map(r=>[r.at,journalTypes[r.kind],points.find(p=>p.id===r.pointId)?.name||r.pointId,r.owner,r.status,JSON.stringify(r.details),r.notes])].map(row=>row.map(safe).join(';')).join('\r\n')}
