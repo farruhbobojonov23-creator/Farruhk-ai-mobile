@@ -1,11 +1,33 @@
-const CACHE='farrukh-arctic-sapphire-v51';
-const SHELL=['/home-context.js?v=76','/browser-recognition.js?v=77','/voice-mode.js?v=2','/voice-diagnostics.js?v=1','/device-speech.js?v=1','/chef-voice.js?v=79','/workbench-voice.js?v=77','/preparation-board.js?v=67','/device-store.js?v=67','/','/index.html','/unified-ruby.css?v=76','/arctic-sapphire.css?v=2','/arctic-workspace.css?v=2','/arctic-home-finish.css?v=2','/arctic-approved-orb.css?v=1','/arctic-contrast-fix.css?v=1','/arctic-performance.css?v=1','/google-backup.js?v=3','/google-backup.css?v=1','/arctic-dialogs.css?v=2','/google-backup-setup.html','/google-backup.gs','/arctic-glass-orb.svg','/unified-workspace.js?v=68','/ruby-studio.js?v=78','/recipe-sheet.js?v=66','/recipe-math.js?v=categories-13','/recipe-math.js?v=ttk-6','/nutrition-catalog.js?v=1','/recipe-sheet.css?v=burgundy-4','/haccp-ui.js?v=107','/haccp-catalog-v2.js?v=2','/haccp-minimal-v2.css?v=3','/temperature-grid-ui.js?v=72','/temperature-point-config.js?v=1','/haccp-template-drafts.js?v=9','/haccp-auto-journals.js?v=9','/haccp-paper-layout.js?v=11','/haccp-paper-premium.css?v=11','/cleaning-plan.js?v=1','/receiving-config.js?v=1','/storage-config.js?v=1','/frying-oil-config.js?v=2','/hygiene-config.js?v=3','/quality-control.js?v=1','/thaw-config.js?v=1','/haccp-extra.js?v=3','/haccp-model.js?v=7','/haccp-schedule.js?v=1','/haccp-plan.css?v=1','/haccp.css?v=temperature-grid-2','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(x=>c.add(x)))).finally(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))])));
-self.addEventListener('fetch',e=>{
-  const u=new URL(e.request.url);
-  if(e.request.method!=='GET'||u.origin!==self.location.origin||u.pathname.startsWith('/api/'))return;
-  e.respondWith(fetch(e.request).then(r=>{if(r.ok)e.waitUntil(caches.open(CACHE).then(c=>c.put(e.request,r.clone())));return r}).catch(async()=>await caches.match(e.request)||await caches.match(u.pathname)||new Response('Нет подключения. Откройте приложение при доступном интернете.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));
+// Fast, conservative PWA cache. A full download of 50+ assets during every
+// release used to compete with Android WebView for network and CPU.
+const CACHE='farrukh-arctic-sapphire-v52';
+const CORE=['/','/index.html','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
+self.addEventListener('install',event=>{
+ event.waitUntil(caches.open(CACHE)
+  .then(async cache=>{for(const url of CORE){try{await cache.add(url)}catch{/* offline upgrade: keep existing content */}}})
+  .finally(()=>self.skipWaiting()));
+});
+self.addEventListener('activate',event=>event.waitUntil(Promise.all([
+ self.clients.claim(),
+ caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('farrukh-')&&k!==CACHE).map(k=>caches.delete(k))))
+])));
+const fallback=async request=>(await caches.match(request))||(await caches.match('/index.html'))||
+ new Response('Нет подключения. Откройте приложение при доступном интернете.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
+self.addEventListener('fetch',event=>{
+ const request=event.request,url=new URL(request.url);
+ if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;
+ const versioned=url.searchParams.has('v')&&/\.(?:js|css|svg|webp|png|jpg|jpeg)$/i.test(url.pathname);
+ const save=async response=>{
+  if(response.ok)event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,response.clone())).catch(()=>{}));
+  return response;
+ };
+ if(versioned){
+  // Asset URLs change with release numbers, so cached versions are safe.
+  event.respondWith(caches.match(request).then(found=>found||fetch(request).then(save).catch(()=>fallback(request))));
+ }else{
+  // HTML and unversioned files must remain network-first to avoid stale code.
+  event.respondWith(fetch(request).then(save).catch(()=>fallback(request)));
+ }
 });
 self.addEventListener('push',e=>{let d={};try{d=e.data.json()}catch{}e.waitUntil(self.registration.showNotification(d.title||'FARRUKH AI',{body:d.body||'Напоминание',tag:d.tag||'reminder',data:{url:'/?open=tasks'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{for(const c of list){if('focus'in c){c.navigate('/?open=tasks');return c.focus()}}if(clients.openWindow)return clients.openWindow('/?open=tasks')}))});
