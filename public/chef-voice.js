@@ -1,5 +1,5 @@
-import {recognizePhrase} from '/browser-recognition.js?v=76';
-import {selectVoiceInputMode} from '/voice-mode.js?v=1';
+import {recognizePhrase} from '/browser-recognition.js?v=77';
+import {selectVoiceInputMode} from '/voice-mode.js?v=2';
 import {speakDeviceText} from '/device-speech.js?v=1';
 export function speechChunks(text){
  const clean=text.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*#_`]/g,'');
