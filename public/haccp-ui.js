@@ -1,4 +1,5 @@
 import {extraJournals,extraFieldNames} from './haccp-extra.js?v=3';
+import {journalCards,journalGroups,russianRecordCount,russianJournalCount,journalIcon} from './haccp-catalog-v2.js?v=1';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
 import {paperColumns,paperCell} from './haccp-paper-layout.js?v=11';
@@ -30,7 +31,7 @@ async function fileData(file,max,photo=false){if(!file)return null;if(!file.size
 function attachmentLink(data,name,label){const a=el('a',label);a.href='#';a.onclick=e=>{e.preventDefault();const [header,body]=data.split(','),bytes=Uint8Array.from(atob(body),c=>c.charCodeAt(0));download(new Blob([bytes],{type:header.slice(5).split(';')[0]}),name)};return a}
 export function mountHaccp(root,{getState,save,notify}){
  let tab=null,lastRevision=null,loaded=false,temperaturePointInitialized=false;const temperatureSelection={};let currentMonth=measurementDate().slice(0,7);
- root.replaceChildren();root.classList.add('haccp-workspace');const heading=el('div',undefined,'bar');heading.append(el('h1','ХАССП'));root.append(heading,el('p','Журналы кухни по точкам. Границы температур, способы обработки и сроки задаются по вашим утверждённым процедурам.','small'));
+ root.replaceChildren();root.classList.add('haccp-workspace');const heading=el('div',undefined,'bar');heading.append(el('h1','ХАССП'));root.append(heading,el('p','Выбери журнал для учёта и контроля. Данные хранятся отдельно по каждой точке.','small'));
  const banner=el('p','Записи хранятся на этом устройстве. Скачивай резервную копию в «Данных устройства».','haccp-banner');root.append(banner);const guidance=el('details'),guidanceTitle=el('summary','Формы журналов и применимость');guidance.append(guidanceTitle,el('p','Это рабочие формы учёта. Состав журналов, критерии контроля и порядок подписания утвердите для своей кухни. Дополнительные журналы используются при наличии соответствующих процессов. Имя ответственного в записи не заменяет требуемую подпись.','small'));const source=el('a','СанПиН 2.3/2.4.4282-26 — текст и рекомендуемые образцы');source.href='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';source.target='_blank';source.rel='noopener';guidance.append(source);root.append(guidance);
  const metrics=el('div',undefined,'haccp-metrics');root.append(metrics);
  const controls=el('div',undefined,'haccp-controls fields'),pointFilter=selectField(controls,'Точка','pointFilter',[['','Все точки']],{required:false,blank:false}),fromDate=inputField(controls,'С даты','fromDate',{type:'date'}),toDate=inputField(controls,'По дату','toDate',{type:'date'});root.append(controls);
@@ -41,12 +42,34 @@ export function mountHaccp(root,{getState,save,notify}){
  const filters=el('details',undefined,'haccp-period-panel');filters.append(el('summary','Точка, месяц и архив'),controls,monthBar,periodHint);root.insertBefore(filters,body);
  const allTabs={...journalTypes,actions:'Корректирующие действия',documents:'Документы',settings:'Точки и оборудование'};
  function catalog(){
- const grid=el('div',undefined,'haccp-catalog');let index=0;const groupNames={temperature:'Оборудование и условия',receiving:'Продукты и процессы',cleaning:'Чистота, персонал и контроль'};
- for(const kind of ['temperature','humidity','frying','receiving','storage','packaging','cooking','defrosting','quality','cleaning','hygiene','pests','audit']){const title=journalTypes[kind];index=Object.keys(journalTypes).indexOf(kind);
-  if(groupNames[kind])grid.append(el('h3',groupNames[kind],'haccp-group-label'));const card=button('',()=>{tab=kind;build();root.scrollIntoView({block:'start'})},'haccp-journal-card');card.dataset.journal=kind;
-  const photo=el('span',undefined,'haccp-journal-photo');photo.setAttribute('aria-hidden','true');photo.style.backgroundPosition=`${(index%4)*100/3}% ${Math.floor(index/4)*50}%`;
-  const copy=el('span',undefined,'haccp-journal-copy');copy.append(el('strong',title),el('small',h().records.filter(r=>r.kind===kind).length+' записей · Открыть журнал'));
-  card.append(photo,copy);grid.append(card);index++;
+ // Grouped minimal cards: clicking still opens the original working journal.
+ const grid=el('div',undefined,'haccp-catalog');
+ const counts=new Map();
+ for(const row of h().records)counts.set(row.kind,(counts.get(row.kind)||0)+1);
+ for(const group of journalGroups){
+  const header=el('h3',undefined,'haccp-group-label');
+  header.append(el('span',group.name),el('span',russianJournalCount(group.kinds.length),'haccp-group-count'));
+  grid.append(header);
+  for(const kind of group.kinds){
+   const title=journalTypes[kind],visual=journalCards[kind];
+   const card=button('',()=>{tab=kind;build();root.scrollIntoView({block:'start'})},'haccp-journal-card');
+   card.dataset.journal=kind;
+   card.dataset.tone=visual.tone;
+   card.setAttribute('aria-label',title+'. '+russianRecordCount(counts.get(kind)||0)+'. Открыть журнал');
+   const badge=el('span',undefined,'haccp-journal-icon');badge.innerHTML=journalIcon(visual.icon);badge.setAttribute('aria-hidden','true');
+   const imageBox=el('span',undefined,'haccp-journal-visual'),photo=el('span',undefined,'haccp-journal-photo');
+   imageBox.setAttribute('aria-hidden','true');
+   const imageIndex=Object.keys(journalTypes).indexOf(kind);
+   if(imageIndex>=0&&imageIndex<12)photo.style.backgroundPosition=`${(imageIndex%4)*100/3}% ${Math.floor(imageIndex/4)*50}%`;
+   else photo.style.backgroundImage='none';
+   imageBox.append(photo);
+   const copy=el('span',undefined,'haccp-journal-copy');
+   copy.append(el('strong',title),el('span',visual.description,'haccp-journal-description'),
+    el('small',russianRecordCount(counts.get(kind)||0),'haccp-journal-count'));
+   const arrow=el('span','›','haccp-journal-arrow');arrow.setAttribute('aria-hidden','true');
+   card.append(badge,imageBox,copy,arrow);
+   grid.append(card);
+  }
  }
  const autoPanel=el('section',undefined,'haccp-autofill-panel');
  autoPanel.append(el('h2','Автозаполнение · 13 журналов А4'),
@@ -85,7 +108,8 @@ export function mountHaccp(root,{getState,save,notify}){
  autoPanel.append(autoForm,autoStats,exportAll,
   el('p','План обновляется по московскому времени с 11:00, а при закрытом приложении — при следующем открытии. В PDF внесены только реальные записи и неподтверждённые строки по графику. Распечатка не заменяет фактический контроль.','small'));
  updateAutoStats();
- body.append(dailyOverview(),autoPanel,el('h2','Журналы кухни'),grid);root.append(banner,guidance);
+ const extras=el('details',undefined,'haccp-catalog-more');extras.append(el('summary','План контроля, автозаполнение и печать'),dailyOverview(),autoPanel);
+ body.append(grid,extras);root.append(banner,guidance);
  const utilities=el('div',undefined,'haccp-utilities');for(const key of ['actions','documents','settings'])utilities.append(button(allTabs[key],()=>{tab=key;build();root.scrollIntoView({block:'start'})}));body.append(utilities);
  }
  function hygieneSettingsPanel(){
@@ -1129,7 +1153,7 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  function drawHistory(){history.replaceChildren();if(journalTypes[tab])journalHistory()}
  function build(){
- const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=!isCatalog&&!isJournal;filters.open=isCatalog;pageTitle.textContent=isCatalog?'ХАССП':allTabs[tab];
+ const isCatalog=tab===null,isJournal=!!journalTypes[tab];root.dataset.haccpView=isCatalog?'catalog':isJournal?'journal':'utility';back.hidden=isCatalog;filters.hidden=!isCatalog&&!isJournal;filters.open=false;pageTitle.textContent=isCatalog?'Журналы кухни':allTabs[tab];
  controls.hidden=!isCatalog&&!isJournal;monthBar.hidden=periodHint.hidden=isCatalog||!isJournal;fromDate.parentElement.hidden=toDate.parentElement.hidden=isCatalog;metrics.hidden=!isCatalog;banner.hidden=!isCatalog;guidance.hidden=!isCatalog;nav.hidden=true;
  const past=monthFilter.value<currentMonth;temperatureSelection.month=monthFilter.value;periodHint.textContent=past?'Архив: '+monthLabel(monthFilter.value)+'. Записи доступны для просмотра, печати и скачивания.':monthFilter.value===currentMonth?'Текущий месяц. При смене месяца записи остаются в архиве.':'Будущий месяц: доступна пустая форма для печати.';body.replaceChildren();history.replaceChildren();message.textContent='';for(const b of nav.children)b.setAttribute('aria-pressed',String(b.dataset.tab===tab));if(!loaded){body.append(el('p','Загружаю данные устройства…'));return}if(tab===null){catalog();return}if(tab==='temperature'){
    // Open at a single branch, rather than accidentally mixing settings from four.
