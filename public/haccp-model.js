@@ -4,6 +4,7 @@ import {STORAGE_GROUPS,storageRecordState,validateStorageSettings} from './stora
 import {validateThawConfigs} from './thaw-config.js';
 import {qualityRecord,validateQualityPlans} from './quality-control.js';
 import {hygieneObservation,validateHygieneSettings} from './hygiene-config.js';
+import {oilInspection,oilSettings,oilCycleState,validateOilSettings} from './frying-oil-config.js';
 export const journalTypes={temperature:'Температуры',cleaning:'Уборка и дезинфекция',receiving:'Приёмка продуктов',storage:'Маркировка и хранение',audit:'Проверки точек',...Object.fromEntries(Object.entries(extraJournals).map(([k,v])=>[k,v.title]))};
 export const auditItems=['Чистота рабочих зон и инвентаря','Маркировка и сроки продуктов','Разделение сырья и готовой продукции','Состояние холодильного оборудования','Личная гигиена и рабочая одежда'];
 export const defaultDailyControls=Object.freeze(['temperature','cleaning','storage','hygiene']);
@@ -41,6 +42,7 @@ export function validateHaccp(value){
  validateThawConfigs(result.thawConfigs,[...points]);
  validateQualityPlans(result.qualityPlans,[...points]);
  validateHygieneSettings(result.hygieneSettings,[...points]);
+ validateOilSettings(result.oilSettings,[...points]);
  for(const item of result.equipment){if(!points.has(item.pointId)||typeof item.name!=='string'||!item.name.trim())throw Error('Неверное оборудование ХАССП.');for(const key of ['min','max'])if(item[key]!==null&&!Number.isFinite(item[key]))throw Error('Неверные границы температуры.');if(item.min!==null&&item.max!==null&&item.min>item.max)throw Error('Минимум температуры больше максимума.')}
  let attachments=0;
  for(const collection of ['records','actions','documents'])for(const item of result[collection]){
@@ -139,6 +141,20 @@ export function addJournalRecord(state,input,id=crypto.randomUUID(),now=new Date
  }else if(kind==='hygiene'&&input.hygieneDecision){
   record.details=hygieneObservation(input,at);
   record.status=record.details.hygieneDecision==='deny'?'deviation':'ok';
+ }else if(kind==='frying'&&input.oilDecision){
+  const settings=oilSettings(h,record.pointId);
+  const previousCycle=oilCycleState(h,record.pointId,String(input.equipment||''),new Date(at));
+  record.details=oilInspection(input,at,settings);
+  // A later inspection cannot silently reset the fill date to evade the
+  // configured replacement schedule. Only an actual replacement may do that.
+  if(previousCycle.filledAt&&Date.parse(record.details.startedAt)>Date.parse(previousCycle.filledAt)&&
+   record.details.oilDecision!=='replace')
+   throw Error('Дата заливки позже последнего подтверждённого цикла. Если масло заменили, оформи фактическую полную замену.');
+  const ageing=previousCycle.filledAt&&Date.parse(record.details.startedAt)<Date.parse(previousCycle.filledAt)?
+   (Date.parse(at)-Date.parse(previousCycle.filledAt))/3600000:record.details.ageHours;
+  if(record.details.oilDecision==='continue'&&ageing>=settings.intervalDays*24)
+   throw Error('По сохранённой истории срок вашей трёхдневной замены уже наступил. Замени масло или прекрати использование.');
+  record.status=record.details.oilDecision==='stop'||record.details.abnormal?'deviation':'ok';
  }else if(extraJournals[kind]){
   record.details=extraDetails(kind,input);
   record.status=input.result==='problem'?'deviation':input.result==='na'?'unconfigured':'ok';
