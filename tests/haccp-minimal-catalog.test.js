@@ -29,7 +29,7 @@ test('Minimal design is isolated from A4 journal forms and downloaded data',()=>
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.doesNotMatch(css,/\.haccp-sheet\b|\.haccp-a4-table\b|\.haccp-record\b/);
  const js=readFileSync(new URL('../public/haccp-ui.js',import.meta.url),'utf8');
- assert.match(js,/journalGroups\)/);
+ assert.match(js,/for\(const group of journalGroups\)/);
  assert.match(js,/card\.dataset\.journal=kind/);
  assert.match(js,/tab=kind;build\(\)/);
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
