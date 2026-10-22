@@ -1,5 +1,5 @@
 import {extraJournals,extraFieldNames} from './haccp-extra.js?v=3';
-import {journalCards,journalGroups,russianRecordCount,russianJournalCount,journalIcon} from './haccp-catalog-v2.js?v=1';
+import {journalCards,journalGroups,russianRecordCount,russianJournalCount,journalIcon} from './haccp-catalog-v2.js?v=2';
 import {measurementDate,monthLabel} from './temperature-journal.js';
 import {moscowCheckpoint,dueRecords,deepCleaningProgress} from './haccp-schedule.js?v=1';
 import {paperColumns,paperCell} from './haccp-paper-layout.js?v=11';
