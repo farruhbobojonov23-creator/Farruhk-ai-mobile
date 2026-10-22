@@ -13,7 +13,7 @@ import {STORAGE_GROUPS,STORAGE_CHECKS,STORAGE_RESULTS,storageSettings,updateStor
 import {thawProducts,thawMethod,thawElapsed,thawConfig,updateThawConfig} from './thaw-config.js?v=1';
 import {QUALITY_CRITERIA,QUALITY_RESULTS,qualityPlan,qualityPlanNeedsSeed,seedQualityDailyPlan,updateQualityPlan} from './quality-control.js?v=1';
 import {HYGIENE_CHECKS,HYGIENE_OUTCOMES,hygieneSettings,updateHygieneSettings,preparedHygieneRows} from './hygiene-config.js?v=3';
-import {OIL_CHECKS,OIL_CHECK_RESULTS,oilSettings,updateOilSettings,oilCycleState} from './frying-oil-config.js?v=1';
+import {OIL_CHECKS,OIL_CHECK_RESULTS,oilSettings,updateOilSettings,oilCycleState,oilPointsMissingSetup,seedOilPointSettings} from './frying-oil-config.js?v=2';
 const statuses={ok:'Без замечаний по записи',deviation:'Отклонение',unconfigured:'Не оценено: нет заданных границ / применимых пунктов',open:'Открыто',closed:'Проверено и закрыто'};
 const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const displayDate=v=>v?new Date(v).toLocaleString('ru-RU'):'—';
@@ -1199,6 +1199,20 @@ export function mountHaccp(root,{getState,save,notify}){
   }catch(error){console.warn('Не удалось включить ежедневный бракераж:',error)}
   finally{qualityPresetRunning=false}
  }
+ let oilPresetRunning=false;
+ async function ensureOilPointPreset(){
+  if(!getState()||oilPresetRunning||!oilPointsMissingSetup(h()).length)return;
+  oilPresetRunning=true;
+  try{
+   await save(state=>{
+    if(seedOilPointSettings(state)){
+     state.haccp.revision=(Number(state.haccp.revision)||0)+1;
+     state.haccp.updatedAt=new Date().toISOString();
+    }
+   });
+  }catch(error){console.warn('Не удалось сохранить по одной фритюрнице на каждую точку:',error)}
+  finally{oilPresetRunning=false}
+ }
  let autoSyncRunning=false;
  async function syncAutoDrafts(){
   if(!getState()||autoSyncRunning)return;
@@ -1211,7 +1225,7 @@ export function mountHaccp(root,{getState,save,notify}){
   })}catch(error){console.warn('Автосоздание черновиков будет повторено:',error.message)}
   finally{autoSyncRunning=false}
  }
- function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>ensureCleaningPreset()).then(()=>ensureQualityPreset()).then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
+ function render(state){if(!state)return;const data=validateHaccp(state.haccp);queueMicrotask(()=>{void ensurePlasmaPreset().then(()=>ensureCleaningPreset()).then(()=>ensureQualityPreset()).then(()=>ensureOilPointPreset()).then(()=>syncAutoDrafts())});if(loaded&&lastRevision===(data.revision||0))return;loaded=true;lastRevision=data.revision||0;const months=[...new Set([currentMonth,...data.records.map(r=>measurementDate(r.at).slice(0,7))])].sort().reverse();options(archive,months.map(m=>[m,m===currentMonth?'Текущий месяц':monthLabel(m)]));options(pointFilter,[['','Все точки'],...data.points.map(p=>[p.id,p.name])],false);metricsRender();build()}
  let lastClockStage=moscowCheckpoint(),lastSeenRevision=null;
  setInterval(()=>{
   const next=moscowCheckpoint(),changedMonth=next.month!==currentMonth;
