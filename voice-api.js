@@ -12,7 +12,7 @@ export function installVoiceApi(app,{key,model=process.env.GEMINI_TTS_MODEL||'ge
     if(!text||text.length>3500)return res.status(400).json({error:'Для озвучивания нужен текст до 3500 символов.'});
     const voice=voices.includes(req.body?.voice)?req.body.voice:'Sulafat';
     const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),45000);
+    const timer=setTimeout(()=>controller.abort(),12000);
     const disconnect=()=>{if(!res.writableEnded)controller.abort()};
     res.on('close',disconnect);
     try{
