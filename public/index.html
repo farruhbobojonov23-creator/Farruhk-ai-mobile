@@ -92,7 +92,8 @@ import {rollTemplate,grossFromNet,calculateNutritionBoth,nutritionMissing,nutrit
 import {mountRecipeSheet} from '/recipe-sheet.js?v=66';
 import {lookupGenericNutrition,genericNutritionCatalog} from '/nutrition-catalog.js?v=1';
 import {requireOwner} from '/owner-login.js';
-import {createVoiceConversation} from '/chef-voice.js?v=77';
+import {createVoiceConversation} from '/chef-voice.js?v=78';
+import {mountVoiceDiagnostics} from '/voice-diagnostics.js?v=1';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=76';
 import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=67';
 import {mountRubyHome} from '/ruby-studio.js?v=78';
@@ -169,6 +170,7 @@ panel.querySelector('.voice-copy strong').textContent='Голосовой асс
 const settings=document.createElement('details');settings.className='voice-settings';
 const summary=document.createElement('summary');summary.textContent='Настройки голоса';settings.append(summary);
 const geminiStatus=document.createElement('p');geminiStatus.className='small';geminiStatus.setAttribute('role','status');geminiStatus.textContent='Статус Gemini проверяется…';settings.append(geminiStatus);
+mountVoiceDiagnostics(settings);
 for(const label of [...panel.querySelectorAll('label')])settings.append(label);
 const privacy=panel.querySelector('p.small');if(privacy)settings.append(privacy);
 const testDeviceButton=document.createElement('button');testDeviceButton.type='button';testDeviceButton.id='device-test';testDeviceButton.textContent='Проверить голос устройства';settings.append(testDeviceButton);
