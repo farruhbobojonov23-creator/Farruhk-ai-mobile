@@ -580,6 +580,7 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
+ importReadyCatalog();
  load();renderHome();$('printed-at').value=nowLocal();
  renderWorker();
  window.addEventListener('farukh-print-staff-changed',e=>updateWorkerSession(e.detail?.staff||null));
@@ -650,6 +651,21 @@ function boot(){
   if(!$('catalog').hidden)renderCatalog();
   if(!$('manage').hidden)renderManage();
  });
+}
+function importReadyCatalog(){
+// One-time additive import for standalone devices. Managed devices receive the
+// same import through their authenticated cloud catalog, never a local override.
+import('./ready-catalog.js?v=1').then(catalog=>{
+ const marker='farukh-print:import:'+catalog.version;
+ if(isManaged()||cloudPaired||localStorage.getItem(marker))return;
+ const previous=products;
+ products=catalog.merge(products);
+ if(!save()){products=previous;return}
+ localStorage.setItem(marker,'1');
+ renderHome();
+ if(!$('catalog').hidden)renderCatalog();
+ if(!$('manage').hidden)renderManage();
+}).catch(e=>status('Не удалось загрузить роллы: '+e.message,true));
 }
 boot();
 })();

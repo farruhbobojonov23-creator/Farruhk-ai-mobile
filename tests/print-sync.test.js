@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installPrintSyncApi} from '../print-sync-api.js';
 
-function makeApi(){
+function makeApi(readyCatalogImport){
  const routes=new Map(),cloud=new Map();
  const app={};
  for(const method of ['get','post','put','patch','delete'])app[method]=(path,...handlers)=>routes.set(method+' '+path,handlers);
@@ -12,7 +12,7 @@ function makeApi(){
   transaction:async(fn)=>fn()
  };
  const auth={enabled:true,verify:value=>value==='ok'};
- installPrintSyncApi(app,{store,auth});
+ installPrintSyncApi(app,{store,auth,readyCatalogImport});
  async function req(method,path,{body={},token='',cookie='',params={}}={}){
   const route=routes.get(method+' '+path);
   assert.ok(route,'route '+method+' '+path);
@@ -101,4 +101,40 @@ test('FARUKH PRINT variant 3 is three-column and supports owner-managed photo pi
  assert.match(html,/id="edit-photo-file"/);
  assert.match(owner,/Фотография|Фото для каталога|Фото/);
  assert.match(js,/function drawPrep\(/);
+});
+
+
+test('ready TTK import preserves existing labels, bumps revision once and respects later deletions',async()=>{
+ const catalog=await import('../public/farukh-print/ready-catalog.js');
+ assert.equal(catalog.products.length,47);
+ const {req,cloud}=makeApi(catalog);
+ const custom={...catalog.products[0],weight:999,photo:'data:image/jpeg;base64,AAAA'};
+ cloud.set('farukh-print-catalog.json',{revision:7,products:[custom]});
+ const owner={cookie:'fai_owner=ok'};
+ const first=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(first.code,200);assert.equal(first.payload.revision,8);
+ assert.equal(first.payload.products.length,47);
+ assert.equal(first.payload.products[0].weight,999);
+ assert.equal(first.payload.products[0].photo,custom.photo);
+ const next=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:8,products:[]}});
+ assert.equal(next.code,200);
+ assert.deepEqual(next.payload.appliedImports,[catalog.version]);
+ const reread=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.deepEqual(reread.payload.products,[]);
+ assert.equal(reread.payload.revision,9);
+});
+
+test('ready TTK import is additive, idempotent and excludes disputed cards',async()=>{
+ const {products,merge}=await import('../public/farukh-print/ready-catalog.js');
+ const prep={id:'my-prep',kind:'prep',name:'Капуста',hours:12};
+ const edited={...products[0],id:'owner-id',name:products[0].name.toUpperCase(),weight:321};
+ const list=merge([prep,edited]);
+ assert.equal(list.length,48);assert.deepEqual(list.slice(0,2),[prep,edited]);
+ assert.deepEqual(merge(list),list);
+ for(const p of products){
+  assert.equal(p.kind,'ready');assert.ok(p.composition);assert.ok(p.weight>0);
+  for(const key of ['p','f','c','kcal'])assert.ok(Number.isFinite(p[key]));
+  assert.equal(p.hours,12);assert.equal(p.storage,'+2…+6 °C');
+  assert.ok(!/^Запеченный краб Том Ям$/.test(p.name));
+ }
 });

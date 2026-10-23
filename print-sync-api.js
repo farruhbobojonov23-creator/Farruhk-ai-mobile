@@ -55,7 +55,7 @@ function validateCatalog(data){
 }
 const safeDevice=d=>({id:d.id,name:d.name,createdAt:d.createdAt,lastSeenAt:d.lastSeenAt||null,revoked:!!d.revoked});
 const digits=(len)=>Array.from(crypto.randomBytes(len),b=>printableChars[b%printableChars.length]).join('');
-export function installPrintSyncApi(app,{store,auth}){
+export function installPrintSyncApi(app,{store,auth,readyCatalogImport}){
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
@@ -63,6 +63,18 @@ export function installPrintSyncApi(app,{store,auth}){
     const data=await store.read(FILE_CATALOG,{revision:0,products:[],updatedAt:null});
     if(!data||!Number.isSafeInteger(data.revision)||data.revision<0||!Array.isArray(data.products))throw error(503,'База FARUKH PRINT повреждена: изменения запрещены.');
     return data;
+  };
+  let importPromise;
+  const ensureReadyCatalog=async()=>{
+    if(!enabled||!readyCatalogImport)return;
+    if(!importPromise)importPromise=store.transaction(async()=>{
+      const current=await readCatalog();
+      if(current.appliedImports?.includes(readyCatalogImport.version))return;
+      const products=validateCatalog(readyCatalogImport.merge(current.products));
+      await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,
+        appliedImports:[...(current.appliedImports||[]),readyCatalogImport.version],updatedAt:new Date().toISOString()});
+    }).catch(e=>{importPromise=null;throw e});
+    await importPromise;
   };
   const readDevices=async()=>{
     const data=await store.read(FILE_DEVICES,[]);
@@ -83,10 +95,11 @@ export function installPrintSyncApi(app,{store,auth}){
       const devices=await readDevices(),entry=devices.find(d=>d.hash===sha(token)&&!d.revoked);
       if(!entry)return res.status(403).json({ok:false,error:'Доступ устройства отключён владельцем.'});
       req.farukhPrintDevice=entry;
+      await ensureReadyCatalog();
       next();
     }catch(e){res.status(e.status||503).json({ok:false,error:'Не удалось подтвердить устройство.'})}
   };
-  const wrap=fn=>async(req,res)=>{try{await fn(req,res)}catch(e){console.error('[farukh-print-sync]',e.status||503,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Хранилище временно недоступно. Изменения не опубликованы.'})}};
+  const wrap=fn=>async(req,res)=>{try{await ensureReadyCatalog();await fn(req,res)}catch(e){console.error('[farukh-print-sync]',e.status||503,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Хранилище временно недоступно. Изменения не опубликованы.'})}};
   app.get('/api/farukh-print/sync/status',(req,res)=>res.json({ok:true,enabled,permanent:!!persistent,ownerConfigured:!!auth?.enabled}));
   app.get('/api/farukh-print/admin/catalog',protectOwner,wrap(async(req,res)=>{
     const catalog=await readCatalog();res.set('Cache-Control','no-store');res.json({ok:true,...catalog});
@@ -99,7 +112,7 @@ export function installPrintSyncApi(app,{store,auth}){
     const next=await store.transaction(async()=>{
       const current=await readCatalog();
       if(current.revision!==revision)throw error(409,'Каталог изменён в другом окне. Обнови данные перед публикацией.');
-      const newState={revision:revision+1,products:incoming,updatedAt:new Date().toISOString()};
+      const newState={...current,revision:revision+1,products:incoming,updatedAt:new Date().toISOString()};
       await store.write(FILE_CATALOG,newState);return newState;
     });
     res.json({ok:true,...next});
