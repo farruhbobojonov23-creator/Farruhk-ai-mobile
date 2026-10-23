@@ -1,6 +1,6 @@
 // Fast, conservative PWA cache. A full download of 50+ assets during every
 // release used to compete with Android WebView for network and CPU.
-const CACHE='farrukh-arctic-sapphire-v60';
+const CACHE='farrukh-arctic-sapphire-v61';
 const CORE=['/','/index.html','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE)

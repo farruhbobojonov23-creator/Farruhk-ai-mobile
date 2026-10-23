@@ -1,24 +1,28 @@
+import {beginCategoryEdit,applyCategoryEdit} from './category-edit-session.js?v=1';
 import {categoriesFor,updateCategory,deleteCategory,categoryColors} from './category-model.js';
 import {preparePhoto,showProductPhoto} from './product-photo.js';
 export function mountCategoryManager({getState,save,notify,onChange}){
  const button=document.createElement('button');button.id='manage-categories';button.type='button';button.textContent='Настроить';document.querySelector('.catalog-heading').append(button);
- const dialog=document.createElement('dialog');dialog.className='category-dialog';dialog.setAttribute('aria-label','Управление категориями');document.body.append(dialog);
+ const dialog=document.createElement('section');dialog.className='category-dialog owner-inline';dialog.hidden=true;dialog.setAttribute('aria-label','Настройка категорий на экране');document.getElementById('recipe-categories').before(dialog);
+ const style=document.createElement('style');style.textContent='.owner-inline{width:100%;max-width:none;box-sizing:border-box}.owner-inline[hidden]{display:none!important}.owner-inline .category-manage-row{border:1px solid #cbdce8;border-radius:18px;padding:16px;margin:12px 0;background:#f4f9ff}.owner-inline .category-manage-row img{width:100px;height:100px;object-fit:contain}.owner-inline .owner-savebar{position:sticky;bottom:8px;z-index:20;display:flex;flex-wrap:wrap;gap:10px;padding:12px;background:#e5f1fc;border:1px solid #bdcede;border-radius:16px}.owner-inline button{min-height:44px}body.owner-categories-editing #recipe-categories,body.owner-categories-editing #catalog-results,body.owner-categories-editing #catalog-all,body.owner-categories-editing #catalog-back,body.owner-categories-editing .catalog-filters{display:none!important}@media(max-width:600px){.owner-inline .category-manage-row{display:flex;flex-wrap:wrap}.owner-inline .category-row-actions{width:100%;display:flex;flex-wrap:wrap;gap:8px}}';document.head.append(style);
  const el=(tag,text)=>{const node=document.createElement(tag);if(text)node.textContent=text;return node};
  const action=(text,fn)=>{const b=el('button',text);b.type='button';b.onclick=async()=>{try{await fn()}catch(e){notify(e.message,true);let error=dialog.querySelector('.category-error');if(!error){error=el('p');error.className='category-error';error.setAttribute('role','alert');dialog.prepend(error)}error.textContent=e.message;error.scrollIntoView({block:'nearest'})}};return b};
- let undo=null;
- const commit=async fn=>{const before=getState();const snapshot={categories:structuredClone(categoriesFor(before)),names:new Map((before.recipes||[]).map(r=>[r.id,r.category]))};await save(fn);undo=snapshot;onChange();list()};
- function header(title){dialog.replaceChildren();const row=el('div');row.className='bar';row.append(el('h2',title),action('Готово',()=>dialog.close()));dialog.append(row)}
+ let undo=null,session=null,saving=false;
+ const close=()=>{if(saving)return;session=null;undo=null;dialog.hidden=true;document.body.classList.remove('owner-categories-editing');button.disabled=false;onChange()};
+ const commit=async fn=>{const snapshot=structuredClone(session.working);try{fn(session.working)}catch(e){session.working=snapshot;throw e}undo=snapshot;list()};
+ function header(title){dialog.replaceChildren();const row=el('div');row.className='bar';row.append(el('h2',title));dialog.append(row)}
+ function footer(){const bar=el('div');bar.className='owner-savebar';const done=action('Готово — сохранить',async()=>{if(saving)return;saving=true;done.disabled=true;try{await save(state=>applyCategoryEdit(state,session));saving=false;close()}finally{saving=false;done.disabled=false}});bar.append(done,action('Отменить все правки',close));dialog.append(bar)}
  function list(){header('Управление категориями');dialog.append(el('p','Добавляй категории, меняй фото и цвет, порядок и видимость. Техкарты сохраняются при переименовании и переносе.'));
- dialog.append(action('＋ Добавить категорию',()=>edit()));
- if(undo)dialog.append(action('Отменить последнее изменение',async()=>{const previous=undo;await save(s=>{s.categories=previous.categories;for(const r of s.recipes||[])if(previous.names.has(r.id))r.category=previous.names.get(r.id)});undo=null;onChange();list()}));
- const entries=categoriesFor(getState());
- entries.forEach((c,index)=>{const row=el('div');row.className='category-manage-row';const img=el('img');if(c.image)showProductPhoto(img,c.image);img.alt='';img.style.background=c.color;const info=el('div');info.append(el('strong',c.name),el('small',(getState().recipes||[]).filter(r=>r.category===c.name).length+' техкарт'+(c.visible===false?' · скрыта':'')));const buttons=el('div');buttons.className='category-row-actions';
+ dialog.append(el('p','Правки пока не сохранены. Закончи настройку кнопкой «Готово — сохранить» или отмени все изменения.'),action('＋ Добавить категорию',()=>edit()));
+ if(undo)dialog.append(action('Отменить последнее изменение',()=>{session.working=undo;undo=null;list()}));
+ const categoryList=categoriesFor(session.working);
+ categoryList.forEach((c,index)=>{const row=el('div');row.className='category-manage-row';const img=el('img');if(c.image)showProductPhoto(img,c.image);img.alt='';img.style.background=c.color;const info=el('div');info.append(el('strong',c.name),el('small',(getState().recipes||[]).filter(r=>session.working.recipes.some(link=>link.originalCategory===r.category&&link.category===c.name)).length+' техкарт'+(c.visible===false?' · скрыта':'')));const buttons=el('div');buttons.className='category-row-actions';
  const move=async delta=>commit(s=>{const cats=categoriesFor(s);[cats[index],cats[index+delta]]=[cats[index+delta],cats[index]];s.categories=cats});
  const up=action('↑',()=>move(-1));up.disabled=index===0;up.setAttribute('aria-label','Поднять '+c.name);
- const down=action('↓',()=>move(1));down.disabled=index===entries.length-1;down.setAttribute('aria-label','Опустить '+c.name);
- buttons.append(up,down,action('Изменить',()=>edit(c)),action(c.visible===false?'Показать':'Скрыть',()=>commit(s=>{s.categories=categoriesFor(s).map(x=>x.id===c.id?{...x,visible:x.visible===false}:x)})),action('Удалить',()=>remove(c)));row.append(img,info,buttons);dialog.append(row)})
+ const down=action('↓',()=>move(1));down.disabled=index===categoryList.length-1;down.setAttribute('aria-label','Опустить '+c.name);
+ buttons.append(up,down,action('Изменить',()=>edit(c)),action(c.visible===false?'Показать':'Скрыть',()=>commit(s=>{s.categories=categoriesFor(s).map(x=>x.id===c.id?{...x,visible:x.visible===false}:x)})),action('Удалить',()=>remove(c)));row.append(img,info,buttons);dialog.append(row)});footer()
  }
- function remove(c){header('Удалить «'+c.name+'»?');const count=(getState().recipes||[]).filter(r=>r.category===c.name).length;dialog.append(el('p',count?'В категории '+count+' техкарт. Выбери, куда их перенести.':'Категория будет удалена. Техкарты не затрагиваются.'));const select=el('select');select.setAttribute('aria-label','Перенести техкарты в');select.append(new Option('Выбери категорию',''));for(const x of categoriesFor(getState()).filter(x=>x.id!==c.id))select.add(new Option(x.name,x.name));if(count)dialog.append(select);dialog.append(action('Подтвердить удаление',()=>commit(s=>deleteCategory(s,c.id,select.value))),action('Отмена',list))}
+ function remove(c){header('Удалить «'+c.name+'»?');const count=(getState().recipes||[]).filter(r=>session.working.recipes.some(link=>link.originalCategory===r.category&&link.category===c.name)).length;dialog.append(el('p',count?'В категории '+count+' техкарт. Выбери, куда их перенести.':'Категория будет удалена. Техкарты не затрагиваются.'));const select=el('select');select.setAttribute('aria-label','Перенести техкарты в');select.append(new Option('Выбери категорию',''));for(const x of categoriesFor(session.working).filter(x=>x.id!==c.id))select.add(new Option(x.name,x.name));if(count)dialog.append(select);dialog.append(action('Подтвердить удаление',()=>commit(s=>{if(!count)s.recipes=s.recipes.filter(r=>r.category!==c.name);deleteCategory(s,c.id,select.value)})),action('Отмена',list))}
  function edit(existing){
  const c=existing?{...existing}:{id:crypto.randomUUID(),name:'',image:'',color:categoryColors[0],visible:true,scale:1};let photoSource=null,photoBusy=false,photoFailed=false,job=0;
  header(existing?'Изменить категорию':'Новая категория');
@@ -37,5 +41,5 @@ export function mountCategoryManager({getState,save,notify,onChange}){
  const visible=el('input');visible.type='checkbox';visible.checked=c.visible!==false;label('Показывать в каталоге',visible);
  const saveButton=action('Сохранить категорию',async()=>{if(photoBusy||photoFailed)throw Error('Дождись успешной обработки фото.');await commit(s=>updateCategory(s,{...c,name:name.value,color:color.value,visible:visible.checked,scale:Number(scale.value)}))});saveButton.className='primary';dialog.append(saveButton,action('Отмена',()=>{job++;list()}));
  }
- button.onclick=()=>{if(!getState())return;list();dialog.showModal()};
+ button.onclick=()=>{if(!getState())return;session=beginCategoryEdit(getState());undo=null;button.disabled=true;document.body.classList.add('owner-categories-editing');dialog.hidden=false;list();dialog.scrollIntoView({block:'start',behavior:'smooth'})};
 }
