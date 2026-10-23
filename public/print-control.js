@@ -1,3 +1,4 @@
+import './farukh-print/categories.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
 // Одна локальная база для страниц одного браузера/домена.
 // Android APK используют отдельные WebView-хранилища: перенос JSON вручную.
@@ -136,6 +137,8 @@ export function mountPrintControl({root}){
  formHeading.append(formTitle,btn('✕','pc-close',()=>dialog.close()));
  content.append(formHeading,field('name','Название','text',{maxlength:90}),photoPanel);
  const readyFields=el('div','pc-ready-fields');
+ readyFields.append(field('category','Категория','text',{maxlength:60,placeholder:'Выберите или введите свою'}));
+ const categoryOptions=el('datalist');categoryOptions.id='pc-category-options';fields.category.setAttribute('list',categoryOptions.id);readyFields.append(categoryOptions);
  readyFields.append(field('composition','Состав','textarea',{maxlength:600}));
  const nutr=el('div','pc-form-four');
  for(const [key,label] of [['p','Белки /100 г'],['f','Жиры /100 г'],['c','Углеводы /100 г'],['kcal','Ккал /100 г']])nutr.append(field(key,label,'number',{min:0,step:'.01'}));
@@ -227,7 +230,8 @@ export function mountPrintControl({root}){
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';
   chosenPhoto=window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo||'':'';
   showPhoto();
-  const values={...empty,...v};
+  categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
+  const values={...empty,...v,category:window.FarukhPrintCategories.category(v)};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
   verify.checked=product?product.needsReview!==true:false;
   formError.hidden=true;
@@ -240,6 +244,7 @@ export function mountPrintControl({root}){
   const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked,photo:chosenPhoto};
   if(kind==='prep')p.point=text(fields.point.value);
   else{
+   p.category=text(fields.category.value).slice(0,60);
    p.composition=text(fields.composition.value);
    for(const key of ['p','f','c','kcal','weight','tolerance']){
     const x=text(fields[key].value);p[key]=x?Number(x):null;

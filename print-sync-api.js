@@ -42,6 +42,10 @@ function validateCatalog(data){
     }
     if(typeof p.recipeMemo==='string')clean.recipeMemo=p.recipeMemo.slice(0,1000);
     if(kind==='ready'){
+      if(p.category!==undefined){
+        if(typeof p.category!=='string'||p.category.trim().length>60)throw error(400,'Название категории должно быть до 60 символов.');
+        clean.category=p.category.trim();
+      }
       clean.composition=String(p.composition||'').slice(0,600);
       for(const field of ['p','f','c','kcal','weight','tolerance']){
         const val=p[field];

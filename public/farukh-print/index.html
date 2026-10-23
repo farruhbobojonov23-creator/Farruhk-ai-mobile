@@ -7,7 +7,7 @@
 <meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 30×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=11">
+<link rel="stylesheet" href="./print.css?v=12">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -40,6 +40,7 @@
   </section>
   <div class="sub-head"><button class="back" id="catalog-back" type="button">← Назад</button><div><div class="eyebrow" id="catalog-kicker">ГОТОВАЯ ПРОДУКЦИЯ</div><h2 id="catalog-title">Этикетки 58 × 40</h2></div></div>
   <label class="search-wrap"><span>⌕</span><input id="catalog-search" type="search" placeholder="Найти товар..." autocomplete="off"></label>
+  <nav id="catalog-categories" class="catalog-categories" aria-label="Категории готовой продукции" hidden></nav>
   <div class="worker-shortcuts" id="worker-shortcuts" hidden>
     <button id="worker-fav-filter" type="button" aria-pressed="false">☆ Избранные</button>
     <button id="worker-repeat" type="button" disabled>↻ Повторить последнюю отправку</button>
@@ -84,6 +85,7 @@
     <button type="button" id="edit-photo-clear" class="button button-ghost" disabled>Убрать фото</button>
   </div></section>
   <div id="ready-fields">
+    <label class="field">Категория<input id="edit-category" list="ready-category-options" maxlength="60" placeholder="Выберите или введите свою"><datalist id="ready-category-options"></datalist></label>
     <label class="field">Состав <textarea name="composition" id="edit-composition" maxlength="600" rows="3" placeholder="Рис, нори, сыр, лосось..." required></textarea></label>
     <div class="edit-grid four"><label class="field">Белки /100 г<input id="edit-p" type="number" min="0" max="100" step=".01" required></label><label class="field">Жиры /100 г<input id="edit-f" type="number" min="0" max="100" step=".01" required></label><label class="field">Углеводы /100 г<input id="edit-c" type="number" min="0" max="100" step=".01" required></label><label class="field">Ккал /100 г<input id="edit-kcal" type="number" min="0" max="900" step=".01" required></label></div>
     <div class="edit-grid"><label class="field">Вес нетто, г<input id="edit-weight" type="number" min="1" max="10000" step="1" required></label><label class="field">Допуск ±, г<input id="edit-tolerance" type="number" min="0" max="1000" step="1" value="10" required></label></div>
@@ -96,6 +98,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=17" defer></script><script src="./print-sync.js?v=3" defer></script><script src="./print-staff.js?v=4" defer></script>
+<script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=18" defer></script><script src="./print-sync.js?v=3" defer></script><script src="./print-staff.js?v=4" defer></script>
 </body>
 </html>

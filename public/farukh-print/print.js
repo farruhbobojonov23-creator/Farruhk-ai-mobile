@@ -38,6 +38,7 @@ const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрик
 // 203 dpi printer: 30 mm × 20 mm = 240 × 160 dots; ready product remains 58 × 40 mm.
 const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
+let activeCategory='';
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
@@ -116,6 +117,7 @@ async function repeatLast(){
  const old=lastSent(),p=old&&products.find(x=>x.id===old.id&&x.kind===old.kind);
  if(!p||p.needsReview||!p.hours||!p.storage){status('Последнюю этикетку нельзя повторить — проверь товар.',true);return}
  if(kind!==p.kind)openCatalog(p.kind);
+ activeCategory='';
  selected=p.id;$('printed-at').value=nowLocal();$('copies').value=String(Math.min(20,Math.max(1,Number(old.copies)||1)));
  if(p.kind==='prep')$('point-name').value=workerLoggedIn.point;
  favoritesOnly=false;renderCatalog();openWorkerPreview();await doPrint(false);
@@ -170,7 +172,7 @@ function renderHome(){
 }
 function openCatalog(type){
  closeWorkerPreview();
- kind=type;selected=null;$('catalog-search').value='';
+ kind=type;selected=null;activeCategory='';$('catalog-search').value='';
  $('catalog-title').textContent=type==='ready'?'Готовая продукция · 58 × 40':'Полуфабрикаты · 30 × 20';
  $('catalog-kicker').textContent=type==='ready'?'ГОТОВАЯ ПРОДУКЦИЯ':'ПОЛУФАБРИКАТЫ';
  $('print-size-badge').textContent=type==='ready'?'58 × 40 мм':'30 × 20 мм';
@@ -178,14 +180,32 @@ function openCatalog(type){
  $('printed-at').value=nowLocal();$('copies').value='1';
  show('catalog');renderWorker();renderCatalog();
 }
+function renderCategories(){
+ const bar=$('catalog-categories');
+ bar.hidden=kind!=='ready';
+ if(bar.hidden)return;
+ const api=window.FarukhPrintCategories;
+ const names=api.list(products);
+ if(activeCategory&&!names.includes(activeCategory))activeCategory='';
+ bar.replaceChildren();
+ for(const name of ['',...names]){
+  const count=products.filter(p=>p.kind==='ready'&&(!name||api.category(p)===name)).length;
+  const button=node('button','category-chip'+(name===activeCategory?' selected':''));button.type='button';
+  button.setAttribute('aria-pressed',String(name===activeCategory));
+  button.append(node('span','',name||'Все'),node('small','',String(count)));
+  button.onclick=()=>{activeCategory=name;selected=null;closeWorkerPreview();renderCatalog()};
+  bar.append(button);
+ }
+}
 function renderCatalog(){
+ renderCategories();
  const list=$('product-list');list.replaceChildren();
  const q=str($('catalog-search').value).toLocaleLowerCase('ru'),favorite=new Set(favs()),worker=isManaged()&&!!workerLoggedIn;
- const items=products.filter(p=>p.kind===kind&&p.name.toLocaleLowerCase('ru').includes(q)&&(!worker||!favoritesOnly||favorite.has(p.id)))
+ const items=products.filter(p=>p.kind===kind&&(kind!=='ready'||!activeCategory||window.FarukhPrintCategories.category(p)===activeCategory)&&p.name.toLocaleLowerCase('ru').includes(q)&&(!worker||!favoritesOnly||favorite.has(p.id)))
   .sort((a,b)=>worker?Number(favorite.has(b.id))-Number(favorite.has(a.id))||a.name.localeCompare(b.name,'ru'):a.name.localeCompare(b.name,'ru'));
  if(selected&&!products.some(p=>p.id===selected&&p.kind===kind))selected=null;
  $('catalog-empty').hidden=items.length!==0;
- $('catalog-empty').textContent=worker&&favoritesOnly?'Избранных пока нет. Нажми ☆ на карточке товара.':'В этой категории нет товаров.';
+ $('catalog-empty').textContent=q?'По этому запросу ничего не найдено.':worker&&favoritesOnly?'Избранных пока нет. Нажми ☆ на карточке товара.':activeCategory==='ХАССП'?'Категория ХАССП пока пуста.':activeCategory?'В категории «'+activeCategory+'» пока нет товаров.':'В этой категории нет товаров.';
  for(const p of items){
   const item=node('div','product-item product-tile'+(p.id===selected?' selected':'')),select=node('button','product-select');select.type='button';
   select.setAttribute('aria-label','Открыть этикетку: '+p.name);
@@ -248,6 +268,8 @@ function openEditor(p){
  renderEditorPhoto();
  const type=p?.kind||manageKind;
  setFormKind(type);
+ $('ready-category-options').replaceChildren(...window.FarukhPrintCategories.list(products).map(name=>{const option=node('option');option.value=name;return option}));
+ $('edit-category').value=p?window.FarukhPrintCategories.category(p):'';
  $('editor-title').textContent=p?'Изменить этикетку':'Новый товар';
  const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??10,point:p?.point||'',storage:p?.storage??(type==='ready'?'+2…+6 °C':''),hours:p?.hours??(type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
@@ -271,6 +293,7 @@ function saveEditor(ev){
   alert('Подтверди условия хранения и срок годности.');return;
  }
  if(type==='ready'){
+  fields.category=str($('edit-category').value).slice(0,60);
   fields.composition=str($('edit-composition').value);
   for(const x of ['p','f','c','kcal','weight','tolerance'])fields[x]=Number($('edit-'+x).value);
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){

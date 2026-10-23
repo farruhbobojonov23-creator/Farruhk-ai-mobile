@@ -184,3 +184,19 @@ test('website photos cover all 48 labels, preserve owner photos and deleted labe
  const second=await req('get','/api/farukh-print/admin/catalog',{cookie:'fai_owner=ok'});
  assert.equal(second.payload.revision,10);
 });
+
+test('ready categories classify 48 rolls and preserve custom assignments through cloud sync',async()=>{
+ await import('../public/farukh-print/categories.js');
+ const api=globalThis.FarukhPrintCategories;
+ const {products}=await import('../public/farukh-print/ready-catalog.js');
+ const counts=products.reduce((out,p)=>{const name=api.category(p);out[name]=(out[name]||0)+1;return out},{});
+ assert.deepEqual(counts,{'Запечённые роллы':17,'Холодные роллы':23,'Темпура':4,'Маки':4});
+ assert.equal(api.list(products).length,10);
+ assert.equal(api.category({...products[0],category:'Новинки'}),'Новинки');
+ const {req}=makeApi();
+ const owner={cookie:'fai_owner=ok'};
+ const result=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[{...products[0],category:'Новинки'}]}});
+ assert.equal(result.code,200);assert.equal(result.payload.products[0].category,'Новинки');
+ const bad=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...products[0],category:'x'.repeat(61)}]}});
+ assert.equal(bad.code,400);
+});
