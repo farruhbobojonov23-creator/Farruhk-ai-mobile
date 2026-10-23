@@ -22,7 +22,7 @@ controls.append(update,forget);
 const message=document.createElement('p');message.className='print-sync-message';message.setAttribute('role','status');
 box.append(top,hint,form,controls,message);
 const homeFoot=root.querySelector('.app-foot');if(homeFoot)homeFoot.before(box);else root.append(box);
-let stored=null,connected=false,cloudRev=-1,busy=false,poll=null;
+let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred=false;
 try{const raw=localStorage.getItem(TOKEN_KEY);if(raw)stored=JSON.parse(raw)}catch{}
 function note(str,error=false){message.textContent=str;message.dataset.error=error?'yes':'no'}
 function paint(){
@@ -41,19 +41,22 @@ async function call(path,opts={}){
  return data;
 }
 async function sync(first=false){
- if(!stored?.token||busy)return;
+ if(!stored?.token||busy||(consentDeferred&&!first))return;
  busy=true;paint();
  try{
    const state=await call('/device/catalog');
    const current=window.FARUKH_PRINT_SYNC_API.get();
-   if(first&&current.length){
+   const requiresConsent=!Number.isInteger(stored.syncedRevision);
+   if((first||requiresConsent)&&current.length&&requiresConsent){
      const should=confirm('Подключиться к облачной базе из '+state.products.length+' товаров? Это заменит локальные '+current.length+' позиций на устройстве. Перед подключением рекомендуем сохранить локальную JSON-копию в «Управлении этикетками».');
-     if(!should){connected=true;note('Код принят, но загрузка ещё не подтверждена. Сохрани JSON-копию через «Управление этикетками», затем нажми «Обновить базу».',true);return}
+     if(!should){connected=true;consentDeferred=true;note('Код принят, но загрузка ещё не подтверждена. Сохрани JSON-копию через «Управление этикетками», затем нажми «Обновить базу».',true);return}
    }
    if(first||state.revision!==cloudRev){
      window.FARUKH_PRINT_SYNC_API.replace(state.products);
      cloudRev=state.revision;
    }
+   consentDeferred=false;
+   stored.syncedRevision=state.revision;localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
    connected=true;
    note('База синхронизирована: '+state.products.length+' этикеток · версия '+state.revision+'. Обновления поступают автоматически.');
  }catch(e){
@@ -94,7 +97,7 @@ void (async()=>{
    }
    connected=!!stored?.token;
    paint();
-   if(connected)await sync(true);
+   if(connected)await sync(!Number.isInteger(stored.syncedRevision));
    if(stored?.token)poll=setInterval(()=>{if(document.visibilityState!=='hidden')void sync()},60_000);
  }catch(e){note('Проверка облака недоступна. Локальная печать продолжает работать.',true)}
 })();
