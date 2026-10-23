@@ -273,8 +273,8 @@ function drawPrep(p,epoch,point){
 }
 function makePreview(){
  const p=current();if(!p){previewError='';return null}
- if(kind==='prep'&&(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0)){
-   throw Error('Этот продукт пока не готов к печати. Нажми «Заполнить срок и условия хранения» ниже, укажи данные по ТТК или маркировке изготовителя и подтверди их.');
+ if(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0){
+   throw Error('Этот продукт пока не готов к печати. Укажи срок и условия хранения по ТТК или маркировке изготовителя и подтверди их.');
  }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
@@ -283,7 +283,7 @@ function makePreview(){
 function updatePreview(){
  const p=current();$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
  $('print-now').disabled=!p;
- $('fix-label').hidden=!p||kind!=='prep'||!p.needsReview;
+ $('fix-label').hidden=!p||!p.needsReview;
  if(!p){status('Выбери товар из списка.');return}
  try{
   const canvas=makePreview();const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
@@ -398,8 +398,8 @@ function boot(){
  $('close-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('editor').addEventListener('cancel',()=>{editFromCatalog=null});
  $('fix-label').onclick=()=>{
-   const p=current();if(!p||p.kind!=='prep')return;
-   editFromCatalog=p.id;manageKind='prep';openEditor(p);
+   const p=current();if(!p)return;
+   editFromCatalog=p.id;manageKind=p.kind;openEditor(p);
  };
  $('print-now').onclick=()=>doPrint(false);$('print-system').onclick=()=>doPrint(true);
  $('select-printer').onclick=choosePrinter;
@@ -408,6 +408,19 @@ function boot(){
  window.addEventListener('afterprint',()=>$('print-paper').replaceChildren());
  $('preview-canvas').hidden=true;$('no-preview').hidden=false;$('print-now').disabled=true;
  if(!native){$('select-printer').textContent='Android Bluetooth';}
+ const requested=new URLSearchParams(location.search).get('manage');
+ if(['ready','prep'].includes(requested))openManage(requested);
+ window.addEventListener('storage',ev=>{
+  if(ev.key!==KEY)return;
+  // Same-origin FARUKH AI center may have changed this database in another tab.
+  const focused=document.activeElement?.closest?.('#editor');
+  if(focused||$('editor').open)return;
+  const saved=localStorage.getItem(KEY);
+  try{const newList=JSON.parse(saved||'[]');if(Array.isArray(newList))products=newList.filter(x=>x&&['ready','prep'].includes(x.kind)&&typeof x.name==='string').slice(0,1000)}catch{return}
+  renderHome();
+  if(!$('catalog').hidden)renderCatalog();
+  if(!$('manage').hidden)renderManage();
+ });
 }
 boot();
 })();
