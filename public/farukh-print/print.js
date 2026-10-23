@@ -20,7 +20,26 @@ const formatted=epoch=>new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-d
 const nv=n=>String(n).replace('.',',');
 const str=s=>String(s??'').trim();
 const makeId=()=>globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString(36).slice(2);
-function draftFor(name){return {id:makeId(),kind:'prep',name,storage:'',hours:null,point:'',needsReview:true}}
+// Pechagin Professional 67%, dry spices, cold-mixed, as supplied by the
+// owner. 48 h is an OWNER-PROPOSED interval, NOT a shelf life verified by
+// SanPiN or the manufacturer; printing stays disabled until separate approval.
+const SPICY_PROPOSAL={storage:'+2…+6 °C',hours:48,recipeMemo:'Майонез «Печагин» 67%, сухие специи; смешивание без нагрева.',needsReview:true};
+function isSpicy(p){return p.kind==='prep'&&str(p.name).toLocaleLowerCase('ru')==='соус спайси'}
+function draftFor(name){const row={id:makeId(),kind:'prep',name,storage:'',hours:null,point:'',needsReview:true};return isSpicy(row)?{...row,...SPICY_PROPOSAL}:row}
+function fillSpicyProposal(){
+ let changed=false;
+ for(const row of products){
+  if(!isSpicy(row)||row.needsReview!==true)continue;
+  // Only fill *empty* owner-unreviewed drafts. Never overwrite a chosen
+  // storage temperature, a shelf life, or a confirmed recipe.
+  const fillHours=row.hours===null||row.hours===undefined||row.hours==='';
+  const fillStorage=!str(row.storage);
+  if(fillHours){row.hours=SPICY_PROPOSAL.hours;changed=true}
+  if(fillStorage){row.storage=SPICY_PROPOSAL.storage;changed=true}
+  if(!row.recipeMemo){row.recipeMemo=SPICY_PROPOSAL.recipeMemo;changed=true}
+ }
+ return changed;
+}
 function mergeStarterPrep(){
  const existing=new Set(products.filter(p=>p.kind==='prep').map(p=>str(p.name).toLocaleLowerCase('ru')));
  const additions=STARTER_PREP_NAMES.filter(name=>!existing.has(name.toLocaleLowerCase('ru')));
@@ -33,6 +52,7 @@ function load(){
  // Only fresh installations are seeded automatically. Existing user data is
  // never overwritten and can be supplemented with the explicit import button.
  if(saved===null){mergeStarterPrep();save()}
+ else if(fillSpicyProposal())save()
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(products));return true}catch(e){alert('Не удалось сохранить базу на этом устройстве: '+e.message);return false}}
 function node(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}
@@ -64,7 +84,7 @@ function renderCatalog(){
  $('catalog-empty').hidden=items.length!==0;
  for(const p of items){
   const item=node('button','product-item'+(p.id===selected?' selected':''));item.type='button';
-  const left=node('span');left.append(node('strong','',p.name),node('small','',p.needsReview?'Требуется проверка срока и условий хранения':kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
+  const left=node('span');left.append(node('strong','',p.name),node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено: 48 ч · +2…+6 °C · требуется подтверждение':'Требуется проверка срока и условий хранения'):kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
   item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=p.point||'';renderCatalog()});list.append(item);
  }
  updatePreview();
@@ -79,7 +99,7 @@ function renderManage(){
  $('manage-empty').hidden=items.length>0;
  for(const p of items){
   const row=node('div','manage-item'), info=node('div');
-  info.append(node('strong','',p.name),node('small','',p.needsReview?'Требуется подтверждение данных · печать заблокирована':manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
+  info.append(node('strong','',p.name),node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
   edit.type='button';del.type='button';edit.onclick=()=>openEditor(p);
   del.onclick=()=>{if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
