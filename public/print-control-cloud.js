@@ -17,6 +17,16 @@ export function mountPrintCloudControl({root,renderLocal}){
  const title=el('h2','','Облачное управление FARUKH PRINT');
  const explanation=el('p','','Здесь публикуется единая база для подключённых телефонов и планшетов. Без специального кода и разрешения владельца устройства не подключатся.');
  const status=el('p','pcloud-status','Проверяю доступность…');
+ // The rest of FARUKH AI may be in passwordless mode. Device management must
+ // still require a verified owner session: never weaken the server guard.
+ const loginForm=el('form','pcloud-owner-login');
+ loginForm.hidden=true;loginForm.autocomplete='on';
+ const loginText=el('p','','Для облачного управления этикетками подтвердите вход владельца.');
+ const loginLabel=el('label','pcloud-owner-label','Пароль владельца FARUKH AI');
+ const password=el('input','pcloud-owner-password');
+ password.type='password';password.name='password';password.autocomplete='current-password';password.required=true;password.maxLength=150;
+ const loginButton=el('button','pcloud-btn pcloud-login-button','Войти как владелец');
+ loginButton.type='submit';loginLabel.append(password);loginForm.append(loginText,loginLabel,loginButton);
  const actions=el('div','pcloud-actions');
  const syncUp=btn('↑ Опубликовать локальную базу',publish);
  const syncDown=btn('↓ Загрузить базу из облака',download);
@@ -30,16 +40,21 @@ export function mountPrintCloudControl({root,renderLocal}){
  const devicesTitle=el('h3','','Разрешённые устройства');
  const devices=el('div','pcloud-devices');
  const hint=el('p','pcloud-foot','Первую загрузку делай осознанно: она заменяет локальную базу приложения. До переноса рекомендуется сохранить JSON-копию. Устройства автоматически получают обновления при соединении с интернетом.');
- box.append(title,explanation,status,actions,codeBox,devicesTitle,devices,hint);
+ box.append(title,explanation,status,loginForm,actions,codeBox,devicesTitle,devices,hint);
  root.insertBefore(box,root.children[3]||null); // cloud controls after catalog counters, before editor
- let enabled=false,rev=null,remoteProducts=[],auto=false,busy=false,queue=Promise.resolve(),fetched=false;
+ let enabled=false,rev=null,remoteProducts=[],auto=false,busy=false,queue=Promise.resolve(),fetched=false,loginRequired=false;
  const tell=(message,err=false)=>{status.textContent=message;status.dataset.error=err?'yes':'no'};
  const lock=on=>{busy=on;for(const item of actions.querySelectorAll('button'))item.disabled=on};
+ const askForLogin=()=>{
+   loginRequired=true;fetched=false;auto=false;loginForm.hidden=false;codeBox.hidden=true;
+   tell('Требуется вход владельца для выдачи кодов и управления базой. FARUKH AI может открываться без пароля, но здесь нужна отдельная авторизация.',true);
+   updateState();
+ };
  const time=s=>{const d=new Date(s);return Number.isFinite(d.valueOf())?new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(d):'—'};
  function updateState(){
-   const can=enabled&&fetched&&!busy;
+   const can=enabled&&fetched&&!busy&&!loginRequired;
    syncUp.disabled=!can;syncDown.disabled=!can||!rev;
-   pairing.disabled=!enabled||busy;refresh.disabled=!enabled||busy;
+   pairing.disabled=!can;refresh.disabled=!enabled||busy||loginRequired;
  }
  async function start(){
   try{
@@ -57,12 +72,12 @@ export function mountPrintCloudControl({root,renderLocal}){
   lock(true);
   try{
     const data=await api('/admin/catalog');
-    fetched=true;rev=data.revision;remoteProducts=data.products;
+    fetched=true;rev=data.revision;remoteProducts=data.products;loginRequired=false;loginForm.hidden=true;
     const local=read();
     auto=JSON.stringify(local)===JSON.stringify(remoteProducts)&&local.length===remoteProducts.length;
     tell('Облако: '+remoteProducts.length+' позиций · версия '+rev+'. Локально: '+local.length+'. '+(auto?'Каталоги совпадают, последующие изменения будут публиковаться автоматически.':'Каталоги отличаются. Выбери «Опубликовать» или «Загрузить».'),false);
     await loadDevices();
-  }catch(e){fetched=false;auto=false;tell('Облачный каталог не загружен: '+e.message,true)}
+  }catch(e){fetched=false;auto=false;if(e.status===401)askForLogin();else tell('Облачный каталог не загружен: '+e.message,true)}
   finally{lock(false);updateState()}
  }
  async function publish(autoMode=false){
@@ -77,7 +92,7 @@ export function mountPrintCloudControl({root,renderLocal}){
     rev=out.revision;remoteProducts=out.products;auto=true;
     tell('Опубликована версия '+rev+' · '+out.products.length+' этикеток. Телефоны и планшеты получат обновление.');
   }catch(e){
-    auto=false;tell('База не опубликована: '+e.message+(e.status===409?' Нельзя перезаписывать изменения с другого устройства.':'') ,true);
+    auto=false;if(e.status===401)askForLogin();else tell('База не опубликована: '+e.message+(e.status===409?' Нельзя перезаписывать изменения с другого устройства.':'') ,true);
   }finally{lock(false);updateState()}
  }
  async function download(){
@@ -92,7 +107,11 @@ export function mountPrintCloudControl({root,renderLocal}){
   updateState();
  }
  async function pair(){
-  if(!enabled)return;
+  if(!enabled||loginRequired||!fetched)return;
+  if(!remoteProducts.length&&read().length){
+    tell('Сначала нажми «Опубликовать локальную базу», чтобы на устройства отправились твои '+read().length+' этикеток, а не пустой каталог.',true);
+    return;
+  }
   lock(true);
   try{
     const data=await api('/admin/pair',{method:'POST',body:'{}'});
@@ -100,7 +119,7 @@ export function mountPrintCloudControl({root,renderLocal}){
     codeUntil.textContent='Действует до '+time(data.expiresAt)+' (по Москве).';
     codeBox.hidden=false;
     tell('Открой FARUKH PRINT на планшете или телефоне → «Подключить к центру» и введи этот код.');
-  }catch(e){tell('Не получилось создать код: '+e.message,true)}
+  }catch(e){if(e.status===401)askForLogin();else tell('Не получилось создать код: '+e.message,true)}
   finally{lock(false);updateState()}
  }
  async function loadDevices(){
@@ -113,11 +132,29 @@ export function mountPrintCloudControl({root,renderLocal}){
     const revoke=btn('Отключить',async()=>{
       if(!confirm('Отключить синхронизацию для «'+d.name+'»? Уже сохранённые на устройстве этикетки не удалятся.'))return;
       try{await api('/admin/devices/'+encodeURIComponent(d.id),{method:'DELETE',body:'{}'});await loadDevices();tell('Доступ к облачной синхронизации отключён: '+d.name)}
-      catch(e){tell('Не удалось отключить устройство: '+e.message,true)}
+      catch(e){if(e.status===401)askForLogin();else tell('Не удалось отключить устройство: '+e.message,true)}
     },'pcloud-revoke');
     row.append(info,revoke);devices.append(row);
   }
  }
+ loginForm.addEventListener('submit',async event=>{
+   event.preventDefault();
+   if(busy)return;
+   const entered=password.value;
+   if(!entered){tell('Введи пароль владельца FARUKH AI.',true);return}
+   loginButton.disabled=true;
+   try{
+     const response=await fetch('/api/auth/login',{
+       method:'POST',credentials:'same-origin',cache:'no-store',
+       headers:{'Content-Type':'application/json'},body:JSON.stringify({password:entered})
+     });
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok)throw Error(result.error||'Не удалось войти как владелец.');
+     password.value='';loginRequired=false;loginForm.hidden=true;
+     await refreshRemote();
+   }catch(e){tell('Вход не выполнен: '+e.message,true);loginRequired=true;loginForm.hidden=false;password.value='';updateState()}
+   finally{loginButton.disabled=false}
+ });
  window.addEventListener('farukh-print-catalog-local-updated',()=>{
    if(!enabled||!auto)return;
    // Queue uses latest local state, ensures revision ordering.
