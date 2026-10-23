@@ -1,7 +1,7 @@
 // FARUKH PRINT — paired Android / browser clients.
 // Read-only cloud catalog: only FARUKH AI owner's panel can publish updates.
 (()=>{'use strict';
-const BASE='/api/farukh-print', TOKEN_KEY='farukh-print:device:v1';
+const BASE='/api/farukh-print', TOKEN_KEY='farukh-print:device:v1', STAFF_MANAGED='farukh-print:staff-managed:v1';
 const root=document.getElementById('home');
 if(!root||!window.FARUKH_PRINT_SYNC_API)return;
 const box=document.createElement('section');box.className='print-sync';
@@ -26,11 +26,13 @@ let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred
 try{const raw=localStorage.getItem(TOKEN_KEY);if(raw)stored=JSON.parse(raw)}catch{}
 function note(str,error=false){message.textContent=str;message.dataset.error=error?'yes':'no'}
 function paint(){
- controls.hidden=!connected;form.hidden=connected;
+ controls.hidden=!connected;form.hidden=connected; // re-pairing does not unlock employee print gate
  link.disabled=busy;update.disabled=busy;
- badge.textContent=connected?'● Подключено':'○ Не подключено';
+ badge.textContent=connected?'● Подключено':localStorage.getItem(STAFF_MANAGED)==='1'?'● Нужна повторная привязка':'○ Не подключено';
  badge.dataset.connected=connected?'yes':'no';
- window.FARUKH_PRINT_SYNC_API.setPaired(connected);
+ const protectedDevice=connected||localStorage.getItem(STAFF_MANAGED)==='1';
+ window.FARUKH_PRINT_SYNC_API.setPaired(protectedDevice);
+ window.FARUKH_PRINT_STAFF_API?.setPaired(protectedDevice);
 }
 async function call(path,opts={}){
  const headers={'Content-Type':'application/json',...opts.headers};
@@ -60,7 +62,11 @@ async function sync(first=false){
    connected=true;
    note('База синхронизирована: '+state.products.length+' этикеток · версия '+state.revision+'. Обновления поступают автоматически.');
  }catch(e){
-   if(e.status===401||e.status===403){connected=false;clearInterval(poll);poll=null;stored=null;localStorage.removeItem(TOKEN_KEY);note('Доступ к облаку отозван владельцем или срок подключения истёк. Локальные копии остаются на устройстве.',true)}
+   if(e.status===401||e.status===403){
+     connected=false;clearInterval(poll);poll=null;stored=null;localStorage.removeItem(TOKEN_KEY);
+     note('Владелец отключил доступ устройства. Локальные этикетки сохранены, но печать сотрудникам заблокирована.',true);
+     window.FARUKH_PRINT_STAFF_API?.setPaired(true);
+   }
    else note('Нет соединения: '+e.message+'. Сохранённые этикетки доступны без интернета.',true);
  }finally{busy=false;paint()}
 }
@@ -72,7 +78,10 @@ async function connect(event){
  busy=true;paint();
  try{
    const data=await call('/device/pair',{method:'POST',body:JSON.stringify({code:key,name:name.value.trim()})});
-   stored={token:data.token,name:data.device.name};localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
+   stored={token:data.token,name:data.device.name};
+   localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
+   localStorage.setItem(STAFF_MANAGED,'1'); // paired kitchen is always staff-protected
+   window.FARUKH_PRINT_STAFF_API?.setPaired(true);
    code.value='';connected=true;note('Устройство подключено. Загружаю каталог…');
  }catch(e){note('Подключение не выполнено: '+e.message,true);busy=false;paint();return}
  busy=false;await sync(true);if(stored?.token&&!poll)poll=setInterval(()=>{if(document.visibilityState!=='hidden')void sync()},60_000);
@@ -80,8 +89,11 @@ async function connect(event){
 function disconnect(){
  if(!confirm('Отключить синхронизацию на этом устройстве? Сохранённые здесь этикетки останутся.'))return;
  stored=null;cloudRev=-1;connected=false;localStorage.removeItem(TOKEN_KEY);
+ // Never unlock a centrally-managed kitchen device by clicking Disconnect.
+ // Re-enrollment or owner-controlled data reset is needed to change roles.
+ window.FARUKH_PRINT_STAFF_API?.setPaired(true);
  if(poll){clearInterval(poll);poll=null}
- note('Устройство отключено локально. Для полного отзыва доступа удали устройство в управляющем центре FARUKH AI.');
+ note('Синхронизация отключена. Режим сотрудников и ограничение печати остаются включены; для работы обратись к владельцу FARUKH AI.');
  paint();
 }
 form.addEventListener('submit',connect);
@@ -96,6 +108,7 @@ void (async()=>{
      return;
    }
    connected=!!stored?.token;
+   if(connected)localStorage.setItem(STAFF_MANAGED,'1');
    paint();
    if(connected)await sync(!Number.isInteger(stored.syncedRevision));
    if(stored?.token)poll=setInterval(()=>{if(document.visibilityState!=='hidden')void sync()},60_000);

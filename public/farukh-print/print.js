@@ -117,7 +117,7 @@ function renderCatalog(){
   const left=node('span');left.append(node('strong','',p.name));
   const guide=guideFor(p);if(guide)left.append(node('small','',guide[0]));
   left.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено: 48 ч · +2…+6 °C · требуется подтверждение':'Срок и хранение — только после подтверждения'):kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
-  item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=p.point||'';renderCatalog()});list.append(item);
+  item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog()});list.append(item);
  }
  updatePreview();
 }
@@ -361,16 +361,37 @@ function browserPrint({canvas,copies}){
  for(let i=0;i<copies;i++){const img=node('img');img.src=url;img.alt='Этикетка';paper.append(img)}
  window.print();
 }
-function doPrint(forceSystem=false){
+async function doPrint(forceSystem=false){
  if(busy)return;
- let value;try{value=job()}catch(e){status(e.message,true);return}
- if(!native||forceSystem){browserPrint(value);return}
+ let value;try{
+  if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
+   const point=window.FARUKH_PRINT_STAFF_API?.point();
+   if(!point)throw Error('Сначала войди под своим логином в разделе «Доступ сотрудников».');
+   $('point-name').value=point;
+  }
+  value=job();
+ }catch(e){status(e.message,true);return}
  busy=true;$('print-now').disabled=true;
- const legacy=legacyNative30Transport&&value.canvas.width===240;
- pendingNativePrint={...value,legacy};
- status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
- try{sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))})}
- catch(e){busy=false;pendingNativePrint=null;$('print-now').disabled=false;status('Ошибка Bluetooth: '+e.message,true)}
+ try{
+  if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
+   const api=window.FARUKH_PRINT_STAFF_API;
+   if(!api)throw Error('Проверка сотрудников ещё не загрузилась. Закрой и открой приложение.');
+   status('Проверяю права сотрудника и утверждённую этикетку…');
+   await api.authorize({...value,product:current(),dateValue:$('printed-at').value});
+  }
+  if(!native||forceSystem){
+   browserPrint(value);busy=false;$('print-now').disabled=false;
+   status('Открыт системный диалог печати. Физическая печать не подтверждена.');
+   return;
+  }
+  const legacy=legacyNative30Transport&&value.canvas.width===240;
+  pendingNativePrint={...value,legacy};
+  status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
+  sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))});
+ }catch(e){
+  busy=false;pendingNativePrint=null;$('print-now').disabled=false;
+  status('Печать не выполнена: '+e.message,true);
+ }
 }
 function choosePrinter(){
  if(!native){status('Прямое подключение доступно в Android-приложении FARUKH PRINT. В браузере используй системную печать.');return}

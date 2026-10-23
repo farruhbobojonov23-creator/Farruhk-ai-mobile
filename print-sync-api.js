@@ -4,6 +4,7 @@
 // A Render free ephemeral disk is NOT a safe database: fail closed without
 // Yandex cloud or an explicitly configured persistent installation.
 import crypto from 'node:crypto';
+import {installPrintStaffApi} from './print-staff-api.js';
 
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
@@ -152,4 +153,5 @@ export function installPrintSyncApi(app,{store,auth}){
       }).catch(e=>console.warn('[farukh-print-last-seen]',e.status||'unavailable'));
     }
   }));
+  installPrintStaffApi(app,{store,auth,enabled,protectDevice,readCatalog});
 }

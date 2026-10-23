@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
 const src=await fs.readFile(new URL('../public/farukh-print/print.js',import.meta.url),'utf8');
-function makeHarness(){
+function makeHarness({managed=false,staffApi=null}={}){
  const sent=[];
  class Canvas{
   constructor(){this.width=0;this.height=0;this.ctx={
@@ -19,11 +19,11 @@ function makeHarness(){
   createElement(tag){assert.equal(tag,'canvas');return new Canvas()},
   getElementById(id){return elems[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-23T20:00':'',dataset:{},disabled:false,hidden:false,textContent:''}}
  };
- const win={FarukhPrinter:{postMessage(data){sent.push(JSON.parse(data))}}};
+ const win={FarukhPrinter:{postMessage(data){sent.push(JSON.parse(data))}},FARUKH_PRINT_STAFF_API:staffApi};
  const hook=src.replace('boot();\n})();',
  "window.__unit={tspl,doPrint,legacy:()=>legacyNative30Transport,pending:()=>pendingNativePrint,setSelected(p){products=[p];kind='prep';selected=p.id}};\n})();");
  assert.notEqual(hook,src);
- new Function('window','document',hook)(win,doc);
+ new Function('window','document','localStorage',hook)(win,doc,{getItem:key=>key==='farukh-print:staff-managed:v1'&&managed?'1':null});
  const item={kind:'prep',name:'Бульон Том Ям',id:'broth',storage:'+2…+6 °C',hours:48,needsReview:false,point:''};
  win.__unit.setSelected(item);
  return {win,doc,sent,api:win.__unit,elems};
@@ -70,4 +70,28 @@ test('modern Android bridge receives exact 30mm TSPL and does not retry',()=>{
  win.FarukhPrinter.onmessage({data:JSON.stringify({ok:true,message:'Напечатано.'})});
  assert.equal(sent.length,1);
  assert.equal(api.legacy(),false);
+});
+
+test('paired staff-managed FARUKH PRINT cannot print before employee sign-in',async()=>{
+ const {api,sent,elems}=makeHarness({managed:true});
+ await api.doPrint();
+ assert.equal(sent.length,0);
+ assert.match(elems['print-message'].textContent,/Войди|войти/i);
+});
+test('paired staff-managed FARUKH PRINT requires successful server permission before Bluetooth output',async()=>{
+ const requests=[];
+ const staffApi={point:()=> 'Плазма',async authorize(j){requests.push(j);return {ok:true}}};
+ const {api,sent,elems}=makeHarness({managed:true,staffApi});
+ await api.doPrint();
+ assert.equal(requests.length,1);
+ assert.equal(requests[0].product.name,'Бульон Том Ям');
+ assert.equal(elems['point-name'].value,'Плазма');
+ assert.equal(sent.length,1);
+});
+test('server rejection or offline state blocks staff-managed Bluetooth output',async()=>{
+ const staffApi={point:()=> 'Плазма',async authorize(){throw Error('Нет подключения к серверу.')}};
+ const {api,sent,elems}=makeHarness({managed:true,staffApi});
+ await api.doPrint();
+ assert.equal(sent.length,0);
+ assert.match(elems['print-message'].textContent,/не выполнена/i);
 });
