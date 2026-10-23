@@ -41,3 +41,22 @@
 .preview-wrap{background:#f7f8f9;border:1px solid #e2e4e8;padding:24px 18px;min-height:220px}
 #preview-canvas{flex:0 1 auto;object-fit:contain}
 @media(max-width:440px){.preview-wrap{padding:13px 10px;min-height:188px}}
+
+
+/* Managed kitchen worker access, applied only after explicit pairing to owner. */
+.staff-login{display:block;margin:16px auto 24px;max-width:100%;padding:18px 20px;border:1px solid #bfdad9;border-radius:17px;background:linear-gradient(135deg,#f5fdfb,#fff)}
+.staff-login[hidden]{display:none!important}
+.staff-login-top{display:flex;gap:15px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.staff-login-top strong{font-size:16px;color:#34474b;letter-spacing:-.4px}
+.staff-badge{padding:8px 11px;border:1px solid #e3cdc8;border-radius:50px;color:#ad5664;font-size:11px;font-weight:800}
+.staff-badge[data-active=yes]{color:#27856a;border-color:#bbe6d5;background:#e8f8f1}
+.staff-login p{font-size:12px;line-height:1.65;color:#7b8a91;margin:11px 0}
+.staff-login-form{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.staff-login-form input{flex:1 1 160px;min-width:0;border:1px solid #d5e4e6;border-radius:11px;background:white;color:#293d41;font-size:14px;padding:12px}
+.staff-login-form button,.staff-logout{background:#af314d;color:#fff;border:0;border-radius:11px;font-size:12px;font-weight:800;padding:12px 19px}
+.staff-logout{background:#fff0f2;color:#aa3b51;border:1px solid #e7cbd0;margin-top:7px}
+.staff-session-info{font-weight:800;color:#277965!important}
+.staff-notice{background:#f0f8f5;border-radius:9px;padding:9px 12px;color:#426b60!important}
+.staff-notice[data-error=yes]{background:#fff0f1;color:#a83e50!important}
+.staff-login-form[hidden],.staff-logout[hidden],.staff-session-info[hidden]{display:none!important}
+@media(max-width:550px){.staff-login{padding:15px}.staff-login-form{flex-direction:column;align-items:stretch}.staff-login-form input,.staff-login-form button{width:100%;flex:0 0 auto}}
