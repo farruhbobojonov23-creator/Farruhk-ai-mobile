@@ -98,15 +98,17 @@ const API={
   const product=job.product;
   if(!product?.id)throw Error('Выбери товар для печати.');
   try{
+   const revision=window.FARUKH_PRINT_DEVICE_SYNC?.state().revision;
+   if(!Number.isSafeInteger(revision)||revision<0)throw Error('Каталог ещё не загружен из FARUKH AI. Нажми «Обновить товары» и повтори.');
    const result=await call('/authorize-print',{
     method:'POST',body:JSON.stringify({
      productId:product.id,copies:job.copies,point:staff.point,
-     printedAt:new Date(job.dateValue).toISOString()
+     printedAt:new Date(job.dateValue).toISOString(),catalogRevision:revision
     })
    });
    return result;
   }catch(e){
-   if(e.status===401||e.status===403){
+   if(e.status===401||(e.status===403&&/Доступ устройства отключён|Устройство не подключено/.test(e.message))){
     staff=null;session='';try{sessionStorage.removeItem(SESSION)}catch{}
     tell('Доступ к печати закрыт: '+e.message,true);paint();
    }
