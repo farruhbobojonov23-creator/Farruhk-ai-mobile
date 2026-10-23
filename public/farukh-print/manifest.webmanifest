@@ -1,0 +1,18 @@
+{
+  "name": "FARUKH PRINT — Этикетки",
+  "short_name": "FARUKH PRINT",
+  "description": "Готовая продукция 58×40 и полуфабрикаты 31×20",
+  "start_url": "/farukh-print/",
+  "scope": "/farukh-print/",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#f6f7f9",
+  "icons": [
+    {
+      "src": "/farukh-print/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
