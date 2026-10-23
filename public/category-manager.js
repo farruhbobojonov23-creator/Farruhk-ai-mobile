@@ -1,14 +1,16 @@
 import {categoriesFor,updateCategory,deleteCategory,categoryColors} from './category-model.js';
 import {preparePhoto,showProductPhoto} from './product-photo.js';
 export function mountCategoryManager({getState,save,notify,onChange}){
- const button=document.createElement('button');button.id='manage-categories';button.type='button';button.textContent='Управлять категориями';document.querySelector('.catalog-heading').append(button);
+ const button=document.createElement('button');button.id='manage-categories';button.type='button';button.textContent='Настроить';document.querySelector('.catalog-heading').append(button);
  const dialog=document.createElement('dialog');dialog.className='category-dialog';dialog.setAttribute('aria-label','Управление категориями');document.body.append(dialog);
  const el=(tag,text)=>{const node=document.createElement(tag);if(text)node.textContent=text;return node};
  const action=(text,fn)=>{const b=el('button',text);b.type='button';b.onclick=async()=>{try{await fn()}catch(e){notify(e.message,true);let error=dialog.querySelector('.category-error');if(!error){error=el('p');error.className='category-error';error.setAttribute('role','alert');dialog.prepend(error)}error.textContent=e.message;error.scrollIntoView({block:'nearest'})}};return b};
- const commit=async fn=>{await save(fn);onChange();list()};
- function header(title){dialog.replaceChildren();const row=el('div');row.className='bar';row.append(el('h2',title),action('✕',()=>dialog.close()));dialog.append(row)}
+ let undo=null;
+ const commit=async fn=>{const before=getState();const snapshot={categories:structuredClone(categoriesFor(before)),names:new Map((before.recipes||[]).map(r=>[r.id,r.category]))};await save(fn);undo=snapshot;onChange();list()};
+ function header(title){dialog.replaceChildren();const row=el('div');row.className='bar';row.append(el('h2',title),action('Готово',()=>dialog.close()));dialog.append(row)}
  function list(){header('Управление категориями');dialog.append(el('p','Добавляй категории, меняй фото и цвет, порядок и видимость. Техкарты сохраняются при переименовании и переносе.'));
  dialog.append(action('＋ Добавить категорию',()=>edit()));
+ if(undo)dialog.append(action('Отменить последнее изменение',async()=>{const previous=undo;await save(s=>{s.categories=previous.categories;for(const r of s.recipes||[])if(previous.names.has(r.id))r.category=previous.names.get(r.id)});undo=null;onChange();list()}));
  const list=categoriesFor(getState());
  list.forEach((c,index)=>{const row=el('div');row.className='category-manage-row';const img=el('img');if(c.image)showProductPhoto(img,c.image);img.alt='';img.style.background=c.color;const info=el('div');info.append(el('strong',c.name),el('small',(getState().recipes||[]).filter(r=>r.category===c.name).length+' техкарт'+(c.visible===false?' · скрыта':'')));const buttons=el('div');buttons.className='category-row-actions';
  const move=async delta=>commit(s=>{const cats=categoriesFor(s);[cats[index],cats[index+delta]]=[cats[index+delta],cats[index]];s.categories=cats});

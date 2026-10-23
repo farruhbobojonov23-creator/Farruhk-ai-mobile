@@ -6,7 +6,7 @@ export function settingsState(raw={}){
  for(const [id,name] of BASE)if(!sections.some(s=>s.id===id))sections.push({id,name});
  for(const s of sections)if(typeof s.home!=='boolean')s.home=['recipes','lab','tasks'].includes(s.id);
  const home=sections.find(s=>s.id==='home');home.hidden=false;home.deleted=false;
- return {sections,brand:String(raw.brand||'FARRUH AI').slice(0,40),subtitle:String(raw.subtitle||'Интеллект, который работает для вас.').slice(0,180),motion:raw.motion!==false,scale:[1,1.1,1.2].includes(raw.scale)?raw.scale:1};
+ return {sections,brand:String(raw.brand||'FARRUH AI').slice(0,40),headline:String(raw.headline||'Будущее. В ваших руках.').slice(0,120),homeImage:typeof raw.homeImage==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(raw.homeImage)?raw.homeImage:'',subtitle:String(raw.subtitle||'Интеллект, который работает для вас.').slice(0,180),motion:raw.motion!==false,scale:[1,1.1,1.2].includes(raw.scale)?raw.scale:1};
 }
 export function mountSiteSettings({getState,save,show,titles,settingsDialog,notify}){
  const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n};
@@ -17,12 +17,15 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
  const homeButton=button('Настройки',()=>show('site-settings'));homeButton.prepend(el('span','⚙'));homeButton.dataset.view='site-settings';document.querySelector('.home-shortcuts').insertBefore(homeButton,document.getElementById('ruby-menu'));
  const menuSettings=document.getElementById('menu-settings');menuSettings.textContent='Настройки';menuSettings.onclick=()=>show('site-settings');
  document.getElementById('ruby-settings').onclick=()=>show('site-settings');document.getElementById('lunar-settings').onclick=()=>show('site-settings');
+ mountHomeEditor();
  const originals=new Map();let lastConfig='',lastView='',draft=null;
  const config=()=>settingsState(getState()?.siteSettings);
  const persist=async next=>{await save(s=>{s.siteSettings=next});draft=null;render(true)};
  function apply(c){
   document.body.classList.toggle('config-still',!c.motion);document.documentElement.style.fontSize=16*c.scale+'px';
-  document.querySelectorAll('.aurora-brand,.sidebar .brand').forEach(n=>n.textContent=c.brand);
+  document.querySelectorAll('.aurora-brand,.sidebar .brand,.arctic-title strong,.arctic-greeting .eyebrow').forEach(n=>n.textContent=c.brand);
+  document.querySelector('.arctic-greeting h1').textContent=c.headline;document.querySelector('.arctic-greeting p').textContent=c.subtitle;
+  const scene=document.querySelector('.arctic-art-area');let custom=scene.querySelector('.owner-home-image');if(c.homeImage){if(!custom){custom=el('img');custom.className='owner-home-image';custom.alt='Изображение главного экрана';custom.style.cssText='width:100%;height:100%;object-fit:contain;position:absolute;inset:0';scene.append(custom)}custom.src=c.homeImage}if(custom)custom.hidden=!c.homeImage;scene.querySelector('.ruby-scene').style.visibility=c.homeImage?'hidden':'';
   const nav=document.querySelector('#chef-menu .nav');nav.querySelectorAll('[data-custom-nav]').forEach(n=>n.remove());
   document.querySelectorAll('[data-custom-page],[data-custom-shortcut]').forEach(n=>n.remove());
   for(const s of c.sections){
@@ -43,6 +46,30 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
   }
   homeButton.style.order='98';document.getElementById('ruby-menu').style.order='99';
   document.getElementById('viewtitle').textContent=titles[document.body.dataset.view]||'';
+ }
+ function mountHomeEditor(){
+  const panel=el('dialog');panel.setAttribute('aria-label','Настроить главный экран');panel.style.cssText='width:min(620px,92vw);max-height:85dvh;overflow:auto;border:1px solid #c7d8e8;border-radius:22px;padding:20px;background:#f3f8ff;color:#17324d';document.body.append(panel);
+  const entry=button('Настроить',open);entry.id='configure-home';entry.style.cssText='min-height:44px;padding:8px 14px;font-size:14px';document.querySelector('.arctic-top-actions').append(entry);
+  let working=null,saving=false;
+  const cancel=()=>{if(saving)return;apply(config());panel.close();working=null};
+  panel.addEventListener('cancel',e=>{e.preventDefault();cancel()});
+  function open(){if(!getState())return;working=structuredClone(config());draw();panel.showModal()}
+  function preview(){apply(working)}
+  function draw(){panel.replaceChildren(el('h2','Настроить главный экран'));panel.append(el('p','Изменяй и смотри результат. «Готово» сохранит, «Отмена» вернёт прежний вид.'));
+   for(const [key,label] of [['brand','Название сайта'],['headline','Заголовок'],['subtitle','Подпись']]){const field=input(panel,label,working[key]);field.maxLength=key==='brand'?40:key==='headline'?120:180;field.oninput=()=>{working[key]=field.value;preview()}}
+   const upload=input(panel,'Изображение главного экрана','','file');upload.accept='image/png,image/jpeg,image/webp';upload.onchange=async()=>{try{const file=upload.files[0];if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>10*1024*1024)throw Error('Выбери JPG, PNG или WEBP до 10 МБ.');const target=working;const bitmap=await createImageBitmap(file);const canvas=document.createElement('canvas'),ratio=Math.min(1,1200/Math.max(bitmap.width,bitmap.height));canvas.width=Math.round(bitmap.width*ratio);canvas.height=Math.round(bitmap.height*ratio);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();if(target!==working)return;working.homeImage=canvas.toDataURL('image/webp',.85);preview()}catch(e){notify(e.message,true)}};
+   button('Вернуть стандартное изображение',()=>{working.homeImage='';preview()},panel);
+   panel.append(el('h3','Разделы на главной'));
+   for(const section of working.sections.filter(x=>x.id!=='home'&&!x.deleted)){const row=el('div');row.style.cssText='border-top:1px solid #c7d8e8;padding:12px 0';const name=input(row,'Название',section.name);name.maxLength=60;name.oninput=()=>{section.name=name.value;preview()};const actions=el('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap';row.append(actions);
+    button(section.home&&!section.hidden?'Скрыть с главной':'Показать на главной',()=>{section.home=!(section.home&&!section.hidden);section.hidden=false;preview();draw()},actions);
+    for(const [label,delta] of [['← Раньше',-1],['Позже →',1]])button(label,()=>{const i=working.sections.indexOf(section),j=i+delta;if(j>=0&&j<working.sections.length){[working.sections[i],working.sections[j]]=[working.sections[j],working.sections[i]];preview();draw()}},actions);
+    button('В корзину',()=>{section.deleted=true;preview();draw()},actions);panel.append(row)
+   }
+   button('Добавить раздел',()=>{working.sections.push({id:'custom-'+crypto.randomUUID(),name:'Новый раздел',content:'',home:true});preview();draw()},panel);
+   for(const section of working.sections.filter(x=>x.deleted))button('Восстановить «'+section.name+'»',()=>{section.deleted=false;section.hidden=false;preview();draw()},panel);
+   const footer=el('div');footer.style.cssText='position:sticky;bottom:0;background:#f3f8ff;padding:14px 0;display:flex;gap:12px';panel.append(footer);
+   const done=button('Готово',async()=>{if(saving)return;if(working.sections.some(x=>!x.name.trim()))throw Error('Укажи названия разделов.');saving=true;done.disabled=true;try{await persist(settingsState(working));panel.close();working=null}finally{saving=false;done.disabled=false}},footer);button('Отмена',cancel,footer)
+  }
  }
  function input(parent,label,value,type='text'){const l=el('label',label),i=el(type==='textarea'?'textarea':'input');if(type!=='textarea')i.type=type;i.value=value;l.append(i);parent.append(l);return i}
  function render(force=false){if(!getState())return;const c=config(),serial=JSON.stringify(c),view=document.body.dataset.view;if(serial!==lastConfig){apply(c);lastConfig=serial}if(view!=='site-settings'){lastView=view;return}if(!force&&lastView===view&&draft)return;lastView=view;draft=structuredClone(c);root.replaceChildren(el('h1','Настройки'),el('p','Управляй разделами, главной страницей и данными. Изменения сохраняются на этом устройстве.'));
