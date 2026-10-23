@@ -156,3 +156,19 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
  body.worker-managed.worker-logged-in .worker-close-preview{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){body.worker-managed .printing-panel{animation:none!important}}
+
+
+/* Fast kitchen printing: favorites, worker-owned shortcuts, accessible nested buttons. */
+.worker-shortcuts{display:flex;align-items:center;gap:9px;margin:-8px 0 18px;flex-wrap:wrap}
+.worker-shortcuts button{border:1px solid #e0e7ed;border-radius:10px;background:white;color:#62737e;padding:12px 14px;font-size:12px;min-height:43px;font-weight:820}
+.worker-shortcuts button.selected{background:#ae2b49;color:white;border-color:#ae2b49}
+.worker-shortcuts button:disabled{opacity:.5}
+.worker-shortcuts #worker-repeat{border-color:#cde0db;background:#edf8f4;color:#2c7c64}
+.worker-shortcuts #worker-repeat:disabled{opacity:.55}
+.worker-shortcuts small{width:100%;font-size:10px;color:#8d9aa4}
+.product-list .product-tile{position:relative;display:flex;flex-direction:column;align-items:stretch!important;padding:5px!important}
+.product-tile .product-select{display:flex;flex:1;flex-direction:column;align-items:stretch;gap:8px;color:inherit;background:none;border:0;width:100%;min-width:0;padding:0;text-align:left;border-radius:12px}
+.product-tile .product-select .product-tile-info{padding:0 5px 7px}
+.product-tile .product-favorite{position:absolute;right:11px;top:11px;display:grid;place-items:center;width:32px;height:32px;border:1px solid #e4e8ea;border-radius:10px;background:#ffffffeb;color:#b5bec5;font-size:22px;line-height:1;z-index:2;box-shadow:0 1px 4px #20242a12;padding:0}
+.product-tile .product-favorite.is-favorite{color:#b92f49;background:#fff0f3;border-color:#e8bac5}
+@media(max-width:430px){.worker-shortcuts{gap:7px}.worker-shortcuts button{padding:10px;font-size:11px;min-height:40px}.product-tile .product-favorite{width:28px;height:28px;right:8px;top:8px;font-size:20px}.product-tile .product-select .product-tile-info{padding:0 2px 5px}}
