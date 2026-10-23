@@ -193,15 +193,23 @@ function openEditor(p){
 function saveEditor(ev){
  ev.preventDefault();
  if(cloudPaired)return;
- const type=manageKind, fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:Number($('edit-hours').value),photo:editorPhoto};
- if(!fields.name||!fields.storage||!Number.isSafeInteger(fields.hours)||fields.hours<=0||fields.hours>8760){alert('Заполни название, хранение и срок годности.');return}
+ const type=manageKind;
+ const hoursText=str($('edit-hours').value);
+ const needsReview=type==='prep'&&!$('edit-approval').checked;
+ const fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:hoursText?Number(hoursText):null,photo:editorPhoto};
+ if(!fields.name||fields.name.length>90||hoursText&&(!Number.isSafeInteger(fields.hours)||fields.hours<1||fields.hours>8760)){
+  alert('Укажи название и корректный срок годности, если он известен.');return;
+ }
+ if(!needsReview&&(!fields.storage||!Number.isSafeInteger(fields.hours)||fields.hours<1)){
+  alert('Подтверди условия хранения и срок годности.');return;
+ }
  if(type==='ready'){
   fields.composition=str($('edit-composition').value);
   for(const x of ['p','f','c','kcal','weight','tolerance'])fields[x]=Number($('edit-'+x).value);
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){
    alert('Заполни состав, вес и все значения КБЖУ. Неизвестные цифры нельзя заменять нулями.');return;
   }
- }else{fields.point=str($('edit-point').value);fields.needsReview=!$('edit-approval').checked}
+ }else{fields.point=str($('edit-point').value);fields.needsReview=needsReview}
  if(!editing&&products.some(p=>p.kind===type&&p.name.toLocaleLowerCase('ru')===fields.name.toLocaleLowerCase('ru'))){
   alert('Этикетка с таким названием уже есть в выбранной категории.');return;
  }
