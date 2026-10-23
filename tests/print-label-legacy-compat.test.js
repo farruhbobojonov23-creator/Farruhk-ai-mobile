@@ -23,7 +23,7 @@ function makeHarness(){
  const hook=src.replace('boot();\n})();',
  "window.__unit={tspl,doPrint,legacy:()=>legacyNative30Transport,pending:()=>pendingNativePrint,setSelected(p){products=[p];kind='prep';selected=p.id}};\n})();");
  assert.notEqual(hook,src);
- new Function('window','document',hook)(win,doc);
+ new Function('window','document','localStorage',hook)(win,doc,{getItem:()=>null});
  const item={kind:'prep',name:'Бульон Том Ям',id:'broth',storage:'+2…+6 °C',hours:48,needsReview:false,point:''};
  win.__unit.setSelected(item);
  return {win,doc,sent,api:win.__unit,elems};
