@@ -102,7 +102,7 @@ import {mountTaskBoard} from '/task-board.js?v=1';
 import {filterCatalog} from '/recipe-catalog.js?v=2';
 import {categoriesFor} from '/category-model.js';
 import {showProductPhoto} from '/product-photo.js';
-import {mountCategoryManager} from '/category-manager.js?v=owner-1';
+import {mountCategoryManager} from '/category-manager.js?v=owner-2';
 import {mountGoogleSync} from '/recipe-google.js?v=2';
 import {mountGoogleDriveBackup} from '/google-backup.js?v=4';
 import {parseTaskCommand} from '/task-commands.js';
@@ -467,3 +467,4 @@ try{await requireOwner();await loadAssistantState();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}
 </script></body></html>
+

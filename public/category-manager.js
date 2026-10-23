@@ -11,11 +11,11 @@ export function mountCategoryManager({getState,save,notify,onChange}){
  function list(){header('Управление категориями');dialog.append(el('p','Добавляй категории, меняй фото и цвет, порядок и видимость. Техкарты сохраняются при переименовании и переносе.'));
  dialog.append(action('＋ Добавить категорию',()=>edit()));
  if(undo)dialog.append(action('Отменить последнее изменение',async()=>{const previous=undo;await save(s=>{s.categories=previous.categories;for(const r of s.recipes||[])if(previous.names.has(r.id))r.category=previous.names.get(r.id)});undo=null;onChange();list()}));
- const list=categoriesFor(getState());
- list.forEach((c,index)=>{const row=el('div');row.className='category-manage-row';const img=el('img');if(c.image)showProductPhoto(img,c.image);img.alt='';img.style.background=c.color;const info=el('div');info.append(el('strong',c.name),el('small',(getState().recipes||[]).filter(r=>r.category===c.name).length+' техкарт'+(c.visible===false?' · скрыта':'')));const buttons=el('div');buttons.className='category-row-actions';
+ const entries=categoriesFor(getState());
+ entries.forEach((c,index)=>{const row=el('div');row.className='category-manage-row';const img=el('img');if(c.image)showProductPhoto(img,c.image);img.alt='';img.style.background=c.color;const info=el('div');info.append(el('strong',c.name),el('small',(getState().recipes||[]).filter(r=>r.category===c.name).length+' техкарт'+(c.visible===false?' · скрыта':'')));const buttons=el('div');buttons.className='category-row-actions';
  const move=async delta=>commit(s=>{const cats=categoriesFor(s);[cats[index],cats[index+delta]]=[cats[index+delta],cats[index]];s.categories=cats});
  const up=action('↑',()=>move(-1));up.disabled=index===0;up.setAttribute('aria-label','Поднять '+c.name);
- const down=action('↓',()=>move(1));down.disabled=index===list.length-1;down.setAttribute('aria-label','Опустить '+c.name);
+ const down=action('↓',()=>move(1));down.disabled=index===entries.length-1;down.setAttribute('aria-label','Опустить '+c.name);
  buttons.append(up,down,action('Изменить',()=>edit(c)),action(c.visible===false?'Показать':'Скрыть',()=>commit(s=>{s.categories=categoriesFor(s).map(x=>x.id===c.id?{...x,visible:x.visible===false}:x)})),action('Удалить',()=>remove(c)));row.append(img,info,buttons);dialog.append(row)})
  }
  function remove(c){header('Удалить «'+c.name+'»?');const count=(getState().recipes||[]).filter(r=>r.category===c.name).length;dialog.append(el('p',count?'В категории '+count+' техкарт. Выбери, куда их перенести.':'Категория будет удалена. Техкарты не затрагиваются.'));const select=el('select');select.setAttribute('aria-label','Перенести техкарты в');select.append(new Option('Выбери категорию',''));for(const x of categoriesFor(getState()).filter(x=>x.id!==c.id))select.add(new Option(x.name,x.name));if(count)dialog.append(select);dialog.append(action('Подтвердить удаление',()=>commit(s=>deleteCategory(s,c.id,select.value))),action('Отмена',list))}
