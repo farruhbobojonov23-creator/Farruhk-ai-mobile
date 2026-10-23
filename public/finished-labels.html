@@ -23,8 +23,8 @@ h1{font-size:clamp(30px,4vw,45px);letter-spacing:-.055em;line-height:1.08;margin
 .item .icon{display:grid;place-items:center;background:#fff0f3;border-radius:12px;height:39px;width:39px;color:#b32d43;font-size:22px}
 .item b{display:block;font-size:14px}.item small{display:block;margin-top:5px;font-size:11px;color:#7c828a}.item strong{margin-left:auto;color:#b32d43}
 .tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.size{font-weight:760;color:#a33146;background:#fcf1f2;border-radius:9px;padding:7px 9px;font-size:11px}
-.stage{display:grid;place-items:center;min-height:405px;border-radius:15px;background:linear-gradient(135deg,#f7f8fa,#ebeef1);border:1px dashed #d6dae1;overflow:hidden;margin-bottom:18px}
-.preview-scale .label{transform:scale(1.68)}.preview-scale{width:116mm;height:80mm;display:grid;place-items:center;transform-origin:center;transform:scale(.95);box-shadow:0 14px 35px #17202c24;background:white}
+.stage{display:grid;place-items:center;min-height:375px;border-radius:15px;background:linear-gradient(135deg,#f7f8fa,#ebeef1);border:1px dashed #d6dae1;overflow:hidden;margin-bottom:18px}
+.preview-scale{width:58mm;height:40mm;display:grid;place-items:center;transform-origin:center;transform:scale(1.85);box-shadow:0 14px 35px #17202c24;background:white}.preview-scale .label{transform:none}
 .caption{font-size:11px;color:#737985;line-height:1.5}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
 .field-label{font-size:11px;font-weight:750;color:#68707b;display:block}
@@ -43,38 +43,38 @@ dialog::backdrop{background:#202530a3}.dialog-top{display:flex;justify-content:s
 .danger{color:#b22d44;border:0;background:none;font-weight:750}.dialog-actions{display:flex;justify-content:space-between;margin-top:16px}
 footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 .label{background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;width:58mm;height:40mm;padding:1.15mm 1.25mm;overflow:hidden;display:flex;flex-direction:column}
-.label-inner{height:100%;border:.36mm solid #000;outline:.18mm solid #000;outline-offset:.45mm;padding:.7mm .9mm;display:grid;grid-template-rows:4.1mm 6mm 9.3mm minmax(5.2mm,1fr) 9.5mm;gap:.35mm}
+.label-inner{height:100%;border:.36mm solid #000;outline:.18mm solid #000;outline-offset:.45mm;padding:.7mm .9mm;display:grid;grid-template-rows:3.9mm 5.9mm 8.2mm minmax(6.2mm,1fr) 9.5mm;gap:.3mm}
 .lb-top{display:flex;align-items:center;justify-content:space-between;gap:2mm;border-bottom:.25mm solid #000;min-height:0}
 .lb-top b{font-size:10pt;font-weight:900;letter-spacing:-.05em;white-space:nowrap}
 .lb-top span{font-size:5.8pt;white-space:nowrap}
 .lb-title{font-size:11pt;font-weight:900;letter-spacing:-.045em;line-height:1.02;text-align:center;display:flex;align-items:center;justify-content:center;border-bottom:.25mm solid #000;overflow:hidden;word-break:break-word}
 .lb-title.small{font-size:8pt}
-.lb-nutri{border:.23mm solid #000;display:grid;grid-template-rows:3mm 1fr}
-.lb-nutri-head{font-weight:850;font-size:6.4pt;text-align:center;border-bottom:.2mm solid #000;padding:.22mm}
+.lb-nutri{border:.23mm solid #000;display:grid;grid-template-rows:2.6mm 1fr}
+.lb-nutri-head{font-weight:850;font-size:6.2pt;text-align:center;border-bottom:.2mm solid #000;padding:.1mm}
 .lb-nutri-values{display:grid;grid-template-columns:repeat(4,1fr)}
 .lb-nutri-values>div{display:grid;grid-template-rows:1fr 1fr;text-align:center;align-items:center;min-width:0;border-right:.2mm solid #000;line-height:1}
 .lb-nutri-values>div:last-child{border:0}
 .lb-nutri-values b{font-size:6.9pt;font-weight:900}
 .lb-nutri-values span{font-size:6.5pt;font-weight:700}
-.lb-ingredients{border:.23mm solid #000;padding:.65mm .8mm;font-size:6.25pt;line-height:1.13;overflow:hidden;word-break:break-word}
+.lb-ingredients{border:.23mm solid #000;padding:.45mm .7mm;font-size:5.9pt;line-height:1.13;overflow:hidden;word-break:break-word}
 .lb-ingredients b{font-weight:900}
-.lb-bottom{display:grid;grid-template-columns:34% 40% 26%;border:.23mm solid #000;overflow:hidden}
+.lb-bottom{display:grid;grid-template-columns:38% 37% 25%;border:.23mm solid #000;overflow:hidden}
 .lb-bottom>div{border-right:.2mm solid #000;min-width:0}
 .lb-bottom>div:last-child{border-right:0}
 .lb-weight{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 .8mm}
-.lb-weight small{font-size:6pt;font-weight:800;white-space:nowrap}
-.lb-weight strong{font-size:9.1pt;font-weight:900;letter-spacing:-.04em;white-space:nowrap}.lb-weight em{font-style:normal;font-size:6pt;font-weight:850;white-space:nowrap}
+.lb-weight small{font-size:5.7pt;font-weight:800;white-space:nowrap}
+.lb-weight strong{font-size:7.3pt;font-weight:900;letter-spacing:-.05em;white-space:nowrap}
 .lb-dates{display:flex;flex-direction:column;justify-content:center;gap:.2mm;padding:0 .55mm;font-size:5.8pt}
 .lb-dates div{display:flex;flex-direction:column;align-items:start;gap:0;white-space:nowrap}
 .lb-dates b{font-weight:850;font-size:4.6pt;white-space:nowrap}
-.lb-dates span{font-weight:750;white-space:nowrap;font-size:5pt}
+.lb-dates span{font-weight:750;white-space:nowrap;font-size:5.3pt}
 .lb-storage{display:grid;grid-template-rows:1fr 1fr;text-align:center;font-size:5.6pt}
 .lb-storage div{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:0 .3mm}
 .lb-storage div:first-child{border-bottom:.2mm solid #000}
-.lb-storage b{font-size:6.2pt;font-weight:900;white-space:nowrap}
-.lb-storage span{font-size:4.6pt;white-space:nowrap}
-@media(max-width:1020px){.grid{grid-template-columns:1fr}.stage{min-height:350px}.preview-scale{transform:scale(.98)}}@media(max-width:620px){.shell{padding:14px 12px 36px}.box{padding:17px}.stage{min-height:260px}.preview-scale{transform:scale(.69)}.fields{grid-template-columns:1fr}.title{padding:25px 0 20px}.brand{font-size:18px}.link{font-size:11px;padding:10px}}
-@media(max-width:410px){.preview-scale{transform:scale(.55)}.stage{min-height:230px}}
+.lb-storage b{font-size:5.9pt;font-weight:900;white-space:nowrap}
+.lb-storage span{font-size:4.5pt;white-space:nowrap}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}.stage{min-height:350px}.preview-scale{transform:scale(1.85)}}@media(max-width:620px){.shell{padding:14px 12px 36px}.box{padding:17px}.stage{min-height:260px}.preview-scale{transform:scale(1.36)}.fields{grid-template-columns:1fr}.title{padding:25px 0 20px}.brand{font-size:18px}.link{font-size:11px;padding:10px}}
+@media(max-width:410px){.preview-scale{transform:scale(1.22)}.stage{min-height:230px}}
 @page{size:58mm 40mm;margin:0}
 @media print{html,body{padding:0!important;margin:0!important;width:58mm!important;background:white!important}.shell,dialog{display:none!important}.printsheet{display:block!important}
  .label{break-after:page;page-break-after:always;break-inside:avoid;width:58mm;height:40mm}
@@ -139,7 +139,7 @@ function makeLabel(p,epoch){
  nutri.append(nh,nv);inner.append(nutri);
  const ingredients=text('div',undefined,'lb-ingredients');ingredients.append(text('b','Состав: '),document.createTextNode(p.composition));inner.append(ingredients);
  const b=text('div',undefined,'lb-bottom'),weight=text('div',undefined,'lb-weight');
- weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г'),text('em','(±'+p.tolerance+' г)'));
+ weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г (±'+p.tolerance+' г)'));
  const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изгот.:',fmt(epoch)],['Годен:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
  const storage=text('div',undefined,'lb-storage');const s1=text('div');s1.append(text('span','Хранить при:'),text('b',p.storage));const s2=text('div');s2.append(text('span','Срок годности:'),text('b',p.hours+' ч'));storage.append(s1,s2);
  b.append(weight,dates,storage);inner.append(b);root.append(inner);return root;
