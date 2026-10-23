@@ -559,6 +559,10 @@ function boot(){
  $('worker-refresh').onclick=()=>{
   const api=window.FARUKH_PRINT_DEVICE_SYNC;
   if(!api){$('worker-sync-status').textContent='Обновление недоступно: проверь подключение устройства';return}
+  if(!api.state().connected){
+   $('worker-sync-status').textContent='Нет подключения к управляющему центру. Попроси владельца привязать устройство.';
+   return;
+  }
   $('worker-sync-status').textContent='Загружаю товары из FARUKH AI…';
   void api.refresh();
  };
