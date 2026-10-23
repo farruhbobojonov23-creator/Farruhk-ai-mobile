@@ -219,7 +219,12 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const productId=trim(req.body?.productId,150),copies=Number(req.body?.copies),point=trim(req.body?.point,60);
   const printedAt=String(req.body?.printedAt||'');
   if(!Number.isSafeInteger(copies)||copies<1||copies>20||point!==req.farukhStaff.point||!Number.isFinite(Date.parse(printedAt)))throw bad(403,'Нельзя печатать на другой точке или с неверными данными.');
-  const list=await readCatalog(),product=list.products.find(x=>x.id===productId);
+  const list=await readCatalog();
+  // A worker must not print dates/temperatures from an out-of-date local
+  // catalog after the owner has changed a TTK or expiry in FARUKH AI.
+  if(!Number.isSafeInteger(req.body?.catalogRevision)||req.body.catalogRevision!==list.revision)
+    throw bad(409,'Каталог обновлён владельцем. Нажми «Обновить товары» и выбери этикетку заново.');
+  const product=list.products.find(x=>x.id===productId);
   if(!product||product.needsReview===true||!product.storage||!Number.isInteger(product.hours)||product.hours<=0)throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
   const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',staff:req.farukhStaff.name,
     login:req.farukhStaff.login,point:req.farukhStaff.point,product:product.name,copies,device:req.farukhPrintDevice.name};

@@ -192,3 +192,12 @@
 #print-control .pc-photo-controls button:disabled{opacity:.43;cursor:default}
 #print-control .pc-photo-btn{background:#fff2f4;color:#9d2c48;border:1px solid #f0dae0}
 @media(max-width:480px){#print-control .pc-photo-field{gap:10px}#print-control .pc-photo-preview,#print-control .pc-photo-empty{width:98px;height:98px;flex-basis:98px}}
+
+
+/* Owner publishing status: distinguish device connection from unpublished changes. */
+#print-control .pcloud-connection-summary{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 5px}
+#print-control .pcloud-state,#print-control .pcloud-devices-count{padding:8px 12px;background:#e8f6ed;color:#36735f;border:1px solid #cce5d8;border-radius:40px;font-size:11px;font-weight:850}
+#print-control .pcloud-state[data-pending=yes]{background:#fff4eb;color:#a16643;border-color:#f2dbc5}
+#print-control .pcloud-devices-count{background:#eff7fc;color:#547b8e;border-color:#d8e7f0}
+#print-control .pcloud .pcloud-foot{line-height:1.65}
+@media(max-width:540px){#print-control .pcloud-connection-summary{gap:6px}}

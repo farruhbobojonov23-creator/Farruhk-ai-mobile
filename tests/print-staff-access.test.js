@@ -58,20 +58,32 @@ test('Owner creates employee, credentials are one-time, only authorized kitchen 
  const login=await call('post','/api/farukh-print/device/staff/login',{device,body:{login:'gulya01',password:create.data.password}});
  assert.equal(login.code,200);
  const staff=login.data.session;assert.equal(staff.length,43);
- const noStaff=await call('post','/api/farukh-print/device/staff/authorize-print',{device,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString()}});
+ const noStaff=await call('post','/api/farukh-print/device/staff/authorize-print',{device,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(noStaff.code,401);
- const wrongPoint=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Центр',copies:1,printedAt:new Date().toISOString()}});
+ const wrongPoint=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Центр',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(wrongPoint.code,403);
- const wrongProduct=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p1',point:'Плазма',copies:1,printedAt:new Date().toISOString()}});
+ const wrongProduct=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p1',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(wrongProduct.code,403);
- const approvedRequest=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Плазма',copies:2,printedAt:new Date().toISOString()}});
+ const approvedRequest=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Плазма',copies:2,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(approvedRequest.code,200);
  const log=(await call('get','/api/farukh-print/admin/staff/activity',own)).data.events;
  assert.equal(log.length,1);assert.equal(log[0].copies,2);
  assert.match(log[0].status,/не подтверждение физической печати/);
+ const changed=await call('put','/api/farukh-print/admin/catalog',{
+  ...own,body:{revision:1,products:[draft,{...approved,hours:12}]}
+ });
+ assert.equal(changed.code,200);
+ const stale=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}
+ });
+ assert.equal(stale.code,409);
+ const current=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:2}
+ });
+ assert.equal(current.code,200);
  const disabled=await call('post','/api/farukh-print/admin/staff/:id/status',{...own,params:{id:account.id},body:{active:false}});
  assert.equal(disabled.code,200);
- const denied=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString()}});
+ const denied=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(denied.code,401);
  const noNewLogin=await call('post','/api/farukh-print/device/staff/login',{device,body:{login:'gulya01',password:create.data.password}});
  assert.equal(noNewLogin.code,401);
@@ -128,7 +140,7 @@ test('Owner sees honest counts of print REQUESTS by each point and period',async
  const invite=(await call('post','/api/farukh-print/admin/pair',own)).data.code;
  const paired=(await call('post','/api/farukh-print/device/pair',{body:{code:invite}})).data.token;
  const staff=(await call('post','/api/farukh-print/device/staff/login',{device:paired,body:{login:first.staff.login,password:first.password}})).data.session;
- const sent=await call('post','/api/farukh-print/device/staff/authorize-print',{device:paired,staff,body:{productId:'roll-1',point:'Плазма',copies:3,printedAt:new Date().toISOString()}});
+ const sent=await call('post','/api/farukh-print/device/staff/authorize-print',{device:paired,staff,body:{productId:'roll-1',point:'Плазма',copies:3,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(sent.code,200);
  const report=(await call('get','/api/farukh-print/admin/staff/report',{...own,query:{days:'30'}})).data;
  assert.equal(report.summary.points,2);assert.equal(report.summary.staff,2);

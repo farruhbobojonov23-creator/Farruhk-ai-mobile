@@ -9,7 +9,7 @@ const top=document.createElement('div');top.className='print-sync-head';
 const headline=document.createElement('strong');headline.textContent='Связь с управляющим центром';
 const badge=document.createElement('span');badge.className='print-sync-badge';badge.textContent='Проверка…';
 top.append(headline,badge);
-const hint=document.createElement('p');hint.textContent='Получай каталог из основного FARUKH AI через интернет. Bluetooth-печать продолжит работать локально.';
+const hint=document.createElement('p');hint.textContent='Товары и фотографии обновляются из FARUKH AI. Подключённые сотрудники печатают только после онлайн-проверки прав и актуальности каталога.';
 const form=document.createElement('form');form.className='print-sync-form';
 const code=document.createElement('input');code.type='text';code.autocomplete='one-time-code';code.placeholder='12-значный код из FARUKH AI';code.maxLength=16;code.setAttribute('aria-label','Код подключения устройства');
 const name=document.createElement('input');name.type='text';name.placeholder='Название устройства (например, Планшет Плазма)';name.maxLength=60;name.value='FARUKH PRINT · '+(navigator.userAgent.includes('Android')?'Android':'Браузер');name.setAttribute('aria-label','Название устройства');
@@ -24,7 +24,13 @@ box.append(top,hint,form,controls,message);
 const homeFoot=root.querySelector('.app-foot');if(homeFoot)homeFoot.before(box);else root.append(box);
 let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred=false;
 try{const raw=localStorage.getItem(TOKEN_KEY);if(raw)stored=JSON.parse(raw)}catch{}
-function note(str,error=false){message.textContent=str;message.dataset.error=error?'yes':'no'}
+function note(str,error=false){
+ message.textContent=str;message.dataset.error=error?'yes':'no';
+ window.dispatchEvent(new CustomEvent('farukh-print-sync-status',{detail:{
+  state:error?'error':'ready',message:str,revision:cloudRev,connected,
+  count:window.FARUKH_PRINT_SYNC_API.get().length
+ }}));
+}
 function paint(){
  controls.hidden=!connected;form.hidden=connected; // re-pairing does not unlock employee print gate
  link.disabled=busy;update.disabled=busy;
@@ -67,7 +73,7 @@ async function sync(first=false){
      note('Владелец отключил доступ устройства. Локальные этикетки сохранены, но печать сотрудникам заблокирована.',true);
      window.FARUKH_PRINT_STAFF_API?.setPaired(true);
    }
-   else note('Нет соединения: '+e.message+'. Сохранённые этикетки доступны без интернета.',true);
+   else note('Нет соединения: '+e.message+'. Каталог доступен для просмотра, но печать сотрудников требует связи.',true);
  }finally{busy=false;paint()}
 }
 async function connect(event){
@@ -96,6 +102,10 @@ function disconnect(){
  note('Синхронизация отключена. Режим сотрудников и ограничение печати остаются включены; для работы обратись к владельцу FARUKH AI.');
  paint();
 }
+window.FARUKH_PRINT_DEVICE_SYNC={
+ refresh:()=>sync(cloudRev<0),
+ state:()=>({connected,revision:cloudRev,managed:localStorage.getItem(STAFF_MANAGED)==='1'})
+};
 form.addEventListener('submit',connect);
 update.onclick=()=>sync(cloudRev<0);
 forget.onclick=disconnect;
@@ -112,7 +122,7 @@ void (async()=>{
    paint();
    if(connected)await sync(!Number.isInteger(stored.syncedRevision));
    if(stored?.token)poll=setInterval(()=>{if(document.visibilityState!=='hidden')void sync()},60_000);
- }catch(e){note('Проверка облака недоступна. Локальная печать продолжает работать.',true)}
+ }catch(e){note('Проверка облака недоступна. Для печати сотрудника необходимо подключение.',true)}
 })();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&stored?.token)void sync()});
 })();
