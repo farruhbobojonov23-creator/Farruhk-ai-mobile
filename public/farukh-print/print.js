@@ -38,6 +38,10 @@ const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрик
 // 203 dpi printer: 30 mm × 20 mm = 240 × 160 dots; ready product remains 58 × 40 mm.
 const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
+// Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
+// Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
+// solely when the old native validator explicitly rejects 30×20.
+let legacyNative30Transport=false,pendingNativePrint=null;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -319,17 +323,19 @@ function updatePreview(){
   status('Проверь данные: '+e.message,true);$('print-now').disabled=true
  }
 }
-function tspl(canvas,copies){
+function tspl(canvas,copies,{legacy30=false}={}){
  const w=canvas.width,h=canvas.height;
  if(!((w===464&&h===320)||(w===240&&h===160)))throw Error('Неподдерживаемый формат этикетки.');
  const info=canvas.getContext('2d').getImageData(0,0,w,h).data;
- const bitmap=new Uint8Array((w/8)*h);bitmap.fill(255);
+ if(legacy30&&!(w===240&&h===160))throw Error('Совместимость допустима только для этикетки 30 × 20 мм.');
+ const rowBytes=legacy30?31:w/8;
+ const bitmap=new Uint8Array(rowBytes*h);bitmap.fill(255);
  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const i=(y*w+x)*4;
-  if((info[i]*299+info[i+1]*587+info[i+2]*114)/1000<164&&info[i+3]>80)bitmap[y*w/8+(x>>3)]&=~(128>>(x&7));
+  if((info[i]*299+info[i+1]*587+info[i+2]*114)/1000<164&&info[i+3]>80)bitmap[y*rowBytes+(x>>3)]&=~(128>>(x&7));
  }
- const mm=w===464?'58 mm,40 mm':'30 mm,20 mm';
- const prefix=new TextEncoder().encode('\r\nSIZE '+mm+'\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,'+(w/8)+','+h+',0,');
+ const mm=w===464?'58 mm,40 mm':(legacy30?'31 mm,20 mm':'30 mm,20 mm');
+ const prefix=new TextEncoder().encode('\r\nSIZE '+mm+'\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,'+rowBytes+','+h+',0,');
  const suffix=new TextEncoder().encode('\r\nPRINT 1,'+copies+'\r\n');
  const result=new Uint8Array(prefix.length+bitmap.length+suffix.length);
  result.set(prefix);result.set(bitmap,prefix.length);result.set(suffix,prefix.length+bitmap.length);return result;
@@ -359,20 +365,41 @@ function doPrint(forceSystem=false){
  if(busy)return;
  let value;try{value=job()}catch(e){status(e.message,true);return}
  if(!native||forceSystem){browserPrint(value);return}
- busy=true;$('print-now').disabled=true;status('Передаю этикетку на Bluetooth-принтер V3 BT…');
- try{sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies))})}
- catch(e){busy=false;$('print-now').disabled=false;status('Ошибка Bluetooth: '+e.message,true)}
+ busy=true;$('print-now').disabled=true;
+ const legacy=legacyNative30Transport&&value.canvas.width===240;
+ pendingNativePrint={...value,legacy};
+ status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
+ try{sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))})}
+ catch(e){busy=false;pendingNativePrint=null;$('print-now').disabled=false;status('Ошибка Bluetooth: '+e.message,true)}
 }
 function choosePrinter(){
  if(!native){status('Прямое подключение доступно в Android-приложении FARUKH PRINT. В браузере используй системную печать.');return}
- if(busy)return;busy=true;status('Выбери Printer001 в списке Bluetooth-устройств…');
+ if(busy)return;busy=true;pendingNativePrint=null;status('Выбери Printer001 в списке Bluetooth-устройств…');
  try{sendNative({type:'select'})}catch(e){busy=false;status('Ошибка: '+e.message,true)}
 }
 if(native){
  window.FarukhPrinter.onmessage=event=>{
-  busy=false;let answer;
+  let answer;
   try{answer=JSON.parse(event.data)}catch{answer={ok:false,message:'Не удалось прочитать ответ Android.'}}
-  status(answer.message,answer.ok===false);
+  // Retry ONLY after native rejected the TSPL header, before any Bluetooth
+  // transmission took place. Never retry failures that may have printed.
+  const oldValidator=answer.ok===false&&/размер должен быть\s*58\s*[×x]\s*40\s*или\s*31\s*[×x]\s*20/i.test(String(answer.message||''));
+  if(oldValidator&&pendingNativePrint?.canvas.width===240&&!pendingNativePrint.legacy){
+   const job=pendingNativePrint;
+   try{
+    const bytes=tspl(job.canvas,job.copies,{legacy30:true});
+    legacyNative30Transport=true;
+    pendingNativePrint={...job,legacy:true};
+    status('Обнаружена старая версия FARUKH PRINT. Повторяю через совместимый протокол 31 мм; изображение остаётся шириной 30 мм. Проверь первую наклейку.');
+    sendNative({type:'print',tspl:toBase64(bytes)});
+    return;
+   }catch(e){answer={ok:false,message:'Ошибка режима совместимости: '+e.message}}
+  }
+  busy=false;
+  if(answer.ok&&pendingNativePrint?.legacy){
+   status(String(answer.message||'Этикетка отправлена.')+' Режим совместимости со старым APK: макет 30 мм в транспортном поле 31 мм. Проверь выравнивание первой наклейки.');
+  }else status(answer.message,answer.ok===false);
+  pendingNativePrint=null;
   $('print-now').disabled=!current()||!!previewError;
  };
 }
