@@ -29,7 +29,7 @@ test('Paired employees cannot modify catalog, default point is read-only and pri
  assert.match(worker,/function openManage\(type=manageKind\)\{\s*if\(isManaged\(\)\)return;/);
  assert.match(worker,/if\(localStorage\.getItem\('farukh-print:staff-managed:v1'\)==='1'\)/);
  assert.match(worker,/await api\.authorize\(/);
- assert.match(css,/body\.worker-managed\s+#manage\{display:none!important\}/);
+ assert.match(css,/body\.worker-managed #manage,body\.worker-managed \.manage-link\{display:none!important\}/);
  assert.match(staff,/point\.readOnly=true/);
  assert.match(staff,/catalogRevision:revision/);
  assert.match(sync,/FARUKH_PRINT_DEVICE_SYNC/);
