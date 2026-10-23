@@ -48,7 +48,7 @@ async function sync(first=false){
    const current=window.FARUKH_PRINT_SYNC_API.get();
    if(first&&current.length){
      const should=confirm('Подключиться к облачной базе из '+state.products.length+' товаров? Это заменит локальные '+current.length+' позиций на устройстве. Перед подключением рекомендуем сохранить локальную JSON-копию в «Управлении этикетками».');
-     if(!should){note('Код принят, но загрузка ещё не подтверждена. Нажми «Обновить базу», чтобы продолжить.',true);return}
+     if(!should){connected=true;note('Код принят, но загрузка ещё не подтверждена. Сохрани JSON-копию через «Управление этикетками», затем нажми «Обновить базу».',true);return}
    }
    if(first||state.revision!==cloudRev){
      window.FARUKH_PRINT_SYNC_API.replace(state.products);
@@ -70,9 +70,9 @@ async function connect(event){
  try{
    const data=await call('/device/pair',{method:'POST',body:JSON.stringify({code:key,name:name.value.trim()})});
    stored={token:data.token,name:data.device.name};localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
-   code.value='';note('Устройство подключено. Загружаю каталог…');
+   code.value='';connected=true;note('Устройство подключено. Загружаю каталог…');
  }catch(e){note('Подключение не выполнено: '+e.message,true);busy=false;paint();return}
- busy=false;await sync(true);
+ busy=false;await sync(true);if(stored?.token&&!poll)poll=setInterval(()=>{if(document.visibilityState!=='hidden')void sync()},60_000);
 }
 function disconnect(){
  if(!confirm('Отключить синхронизацию на этом устройстве? Сохранённые здесь этикетки останутся.'))return;
