@@ -49,13 +49,13 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 .lb-top span{font-size:5.8pt;white-space:nowrap}
 .lb-title{font-size:11pt;font-weight:900;letter-spacing:-.045em;line-height:1.02;text-align:center;display:flex;align-items:center;justify-content:center;border-bottom:.25mm solid #000;overflow:hidden;word-break:break-word}
 .lb-title.small{font-size:8pt}
-.lb-nutri{border:.23mm solid #000;display:grid;grid-template-rows:2.6mm 1fr}
-.lb-nutri-head{font-weight:850;font-size:6.2pt;text-align:center;border-bottom:.2mm solid #000;padding:.1mm}
-.lb-nutri-values{display:grid;grid-template-columns:repeat(4,1fr)}
-.lb-nutri-values>div{display:grid;grid-template-rows:1fr 1fr;text-align:center;align-items:center;min-width:0;border-right:.2mm solid #000;line-height:1}
+.lb-nutri{border:.23mm solid #000;display:grid;grid-template-rows:3.15mm minmax(0,1fr);min-height:0;overflow:hidden}
+.lb-nutri-head{display:flex;align-items:center;justify-content:center;font-weight:850;font-size:5.5pt;line-height:1;text-align:center;border-bottom:.2mm solid #000;padding:0;white-space:nowrap;min-height:0}
+.lb-nutri-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));min-height:0;overflow:hidden}
+.lb-nutri-values>div{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));text-align:center;min-height:0;min-width:0;border-right:.2mm solid #000;line-height:1}
 .lb-nutri-values>div:last-child{border:0}
-.lb-nutri-values b{font-size:6.9pt;font-weight:900}
-.lb-nutri-values span{font-size:6.5pt;font-weight:700}
+.lb-nutri-values b,.lb-nutri-values span{display:flex;align-items:center;justify-content:center;white-space:nowrap;line-height:1;min-height:0}.lb-nutri-values b{font-size:5.4pt;font-weight:800}
+.lb-nutri-values span{font-size:5.3pt;font-weight:750}
 .lb-ingredients{border:.23mm solid #000;padding:.45mm .7mm;font-size:5.9pt;line-height:1.13;overflow:hidden;word-break:break-word}
 .lb-ingredients b{font-weight:900}
 .lb-bottom{display:grid;grid-template-columns:38% 37% 25%;border:.23mm solid #000;overflow:hidden}
