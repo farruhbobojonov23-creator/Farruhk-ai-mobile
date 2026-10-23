@@ -36,7 +36,7 @@ const PREP_GUIDANCE={
 };
 const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрикат','Состав, технологию, температуру и срок подтвердить по ТТК/производителю.']:null;
 const WIDTH={ready:464,prep:248},HEIGHT={ready:320,prep:160};
-let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='';
+let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -171,7 +171,13 @@ function saveEditor(ev){
  }
  if(editing){const at=products.findIndex(p=>p.id===editing);if(at>=0)products[at]={...products[at],...fields}}
  else products.push({id:makeId(),...fields});
- if(save()){$('editor').close();renderManage()}
+ if(save()){
+  $('editor').close();
+  if(editFromCatalog){
+    selected=editFromCatalog;editFromCatalog=null;
+    show('catalog');renderCatalog();
+  }else renderManage();
+}
 }
 const rect=(g,x,y,w,h,line=2)=>{g.lineWidth=line;g.strokeRect(x+.5,y+.5,w-1,h-1)};
 const hLine=(g,y,x1,x2)=>{g.beginPath();g.moveTo(x1,y+.5);g.lineTo(x2,y+.5);g.stroke()};
@@ -268,7 +274,7 @@ function drawPrep(p,epoch,point){
 function makePreview(){
  const p=current();if(!p){previewError='';return null}
  if(kind==='prep'&&(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0)){
-   throw Error('Сначала подтверди срок годности и условия хранения для этого полуфабриката в «Управлении этикетками».');
+   throw Error('Этот продукт пока не готов к печати. Нажми «Заполнить срок и условия хранения» ниже, укажи данные по ТТК или маркировке изготовителя и подтверди их.');
  }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
@@ -277,6 +283,7 @@ function makePreview(){
 function updatePreview(){
  const p=current();$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
  $('print-now').disabled=!p;
+ $('fix-label').hidden=!p||kind!=='prep'||!p.needsReview;
  if(!p){status('Выбери товар из списка.');return}
  try{
   const canvas=makePreview();const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
@@ -387,7 +394,13 @@ function boot(){
  };
  $('add-item').onclick=()=>openEditor(null);
  $('editor-form').addEventListener('submit',saveEditor);
- $('cancel-editor').onclick=()=>$('editor').close();$('close-editor').onclick=()=>$('editor').close();
+ $('cancel-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
+ $('close-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
+ $('editor').addEventListener('cancel',()=>{editFromCatalog=null});
+ $('fix-label').onclick=()=>{
+   const p=current();if(!p||p.kind!=='prep')return;
+   editFromCatalog=p.id;manageKind='prep';openEditor(p);
+ };
  $('print-now').onclick=()=>doPrint(false);$('print-system').onclick=()=>doPrint(true);
  $('select-printer').onclick=choosePrinter;
  $('export-db').onclick=exportDB;$('import-db').onclick=()=>$('import-file').click();
