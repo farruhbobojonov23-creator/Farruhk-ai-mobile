@@ -7,7 +7,7 @@
 <meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 31×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=3">
+<link rel="stylesheet" href="./print.css?v=4">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -33,6 +33,7 @@
   <div class="printing-panel">
     <div class="panel-heading"><strong>Просмотр этикетки</strong><span id="print-size-badge" class="badge">58 × 40 мм</span></div>
     <div class="preview-wrap"><canvas id="preview-canvas" role="img" aria-label="Предпросмотр этикетки"></canvas><div id="no-preview" class="preview-hint">Выбери товар для просмотра</div></div>
+    <button class="button button-ghost fix-unconfirmed" id="fix-label" type="button" hidden>⚙ Заполнить срок и условия хранения →</button>
     <label class="field">Дата и время изготовления<input id="printed-at" type="datetime-local"></label>
     <label class="field" id="point-field" hidden>Название точки<input id="point-name" type="text" maxlength="40" placeholder="Например, Плазма"></label>
     <div class="print-row"><label class="field">Количество этикеток<input id="copies" type="number" min="1" max="20" value="1"></label><button class="button button-ghost" id="select-printer" type="button">⌁ Принтер V3 BT</button></div>
@@ -70,6 +71,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./print.js?v=4" defer></script>
+<script src="./print.js?v=5" defer></script>
 </body>
 </html>
