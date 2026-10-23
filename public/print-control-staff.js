@@ -73,7 +73,24 @@ export function mountPrintStaffControl({root}){
  const pointLabel=el('label','pstaff-field');pointLabel.append(el('span','','Назначить точку'));
  const staffPoint=el('select','pstaff-select');staffPoint.required=true;staffPoint.setAttribute('aria-label','Точка нового сотрудника');pointLabel.append(staffPoint);
  const addStaff=el('button','pstaff-create','＋ Создать доступ');addStaff.type='submit';
- createForm.append(name.wrap,login.wrap,pointLabel,addStaff);
+ const createPassword=el('input','pstaff-password-input');
+ createPassword.type='password';createPassword.autocomplete='new-password';
+ createPassword.placeholder='Придумай пароль (от 8 символов)';
+ createPassword.minLength=8;createPassword.maxLength=128;
+ const createConfirm=el('input','pstaff-password-input');
+ createConfirm.type='password';createConfirm.autocomplete='new-password';
+ createConfirm.placeholder='Повтори пароль';
+ createConfirm.maxLength=128;
+ const passwordGroup=el('div','pstaff-password-group');
+ const pwField=el('label','pstaff-field');pwField.append(el('span','','Пароль сотрудника'),createPassword);
+ const confirmField=el('label','pstaff-field');confirmField.append(el('span','','Подтверждение пароля'),createConfirm);
+ const pwHint=el('p','pstaff-password-hint','Придумай пароль самостоятельно — от 8 символов. Если оба поля пустые, пароль будет создан автоматически.');
+ const viewPw=button('Показать пароль',()=>{
+  const show=createPassword.type==='password';createPassword.type=show?'text':'password';createConfirm.type=show?'text':'password';
+  viewPw.textContent=show?'Скрыть пароль':'Показать пароль'
+ },'pstaff-password-toggle');
+ passwordGroup.append(pwField,confirmField,viewPw,pwHint);
+ createForm.append(name.wrap,login.wrap,pointLabel,passwordGroup,addStaff);
  const secret=el('div','pstaff-new-key');secret.hidden=true;
  secret.append(el('strong','','Пароль показан только один раз — сохрани и передай сотруднику лично.'));
  const creds=el('div','pstaff-secret');secret.append(creds,button('Пароль сохранён · закрыть',()=>{secret.hidden=true;creds.replaceChildren()}));
@@ -91,11 +108,20 @@ export function mountPrintStaffControl({root}){
  const notify=(message,error=false)=>{notification.textContent=message;notification.dataset.error=error?'yes':'no'};
  const disabled=on=>{busy=on;addPoint.disabled=on;addStaff.disabled=on;reload.disabled=on};
  const selection=()=>pointFilter.value;
+ function customPasswordValid(pass,confirmPassword){
+  if(!pass&&!confirmPassword)return true;
+  if(pass.length<8||pass.length>128){notify('Пароль должен содержать от 8 до 128 символов.',true);return false}
+  if(pass!==confirmPassword){notify('Пароли не совпадают. Повтори ввод.',true);return false}
+  return true;
+ }
  function secretShow(data){
   creds.replaceChildren();
   const named=el('div');named.append(el('small','','Логин'),el('strong','',data.staff.login));
-  const pass=el('div');pass.append(el('small','','Пароль — показать один раз'),el('strong','',data.password));
-  creds.append(named,pass);secret.hidden=false;
+  creds.append(named);
+  if(typeof data.password==='string'){
+   const pass=el('div');pass.append(el('small','','Пароль — показать один раз'),el('strong','',data.password));creds.append(pass);
+  }
+  secret.hidden=false;
  }
  function renderPointRows(){
   pointRows.replaceChildren();
@@ -148,18 +174,46 @@ export function mountPrintStaffControl({root}){
     await mutate('/'+encodeURIComponent(user.id),'PATCH',{name:editName.value.trim(),login:editLogin.value.trim().toLowerCase(),point:editPoint.value});
    });
    const editBtn=button('Изменить',()=>{editBox.hidden=!editBox.hidden;});
-   const reset=button('Новый пароль',async()=>{
-    if(!confirm('Сбросить пароль «'+user.name+'»? Старый пароль перестанет работать, текущий сеанс завершится.'))return;
+   const resetBox=el('form','pstaff-reset-box');resetBox.hidden=true;
+   const resetLabel=el('strong','','Установить пароль для «'+user.name+'»');
+   const resetPw=el('input','pstaff-password-input');resetPw.type='password';resetPw.autocomplete='new-password';
+   resetPw.placeholder='Новый пароль · от 8 символов';resetPw.maxLength=128;resetPw.minLength=8;
+   const resetConfirm=el('input','pstaff-password-input');resetConfirm.type='password';resetConfirm.autocomplete='new-password';
+   resetConfirm.placeholder='Повтори новый пароль';resetConfirm.maxLength=128;
+   const resetButtons=el('div','pstaff-reset-actions');
+   const resetSave=el('button','pstaff-create','Установить мой пароль');resetSave.type='submit';
+   const resetAuto=button('Сгенерировать автоматически',async()=>{
+    if(!confirm('Создать новый случайный пароль для «'+user.name+'»? Старый пароль перестанет работать.'))return;
     disabled(true);
-    try{const data=await send('/'+encodeURIComponent(user.id)+'/reset','POST');secretShow(data);await reloadAll();notify('Новый пароль создан. Сохрани его сейчас.')}
-    catch(e){notify(e.message,true)}finally{disabled(false)}
+    try{
+     const data=await send('/'+encodeURIComponent(user.id)+'/reset','POST');
+     resetBox.hidden=true;secretShow(data);await reloadAll();notify('Случайный пароль создан. Сохрани его сейчас.');
+    }catch(e){notify(e.message,true)}finally{disabled(false)}
    });
+   const resetCancel=button('Отмена',()=>{resetBox.hidden=true;resetPw.value='';resetConfirm.value=''});
+   resetButtons.append(resetSave,resetAuto,resetCancel);
+   resetBox.append(resetLabel,resetPw,resetConfirm,resetButtons);
+   resetBox.addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!customPasswordValid(resetPw.value,resetConfirm.value)||!resetPw.value){
+     if(!resetPw.value)notify('Введите свой пароль или нажми «Сгенерировать автоматически».',true);
+     return;
+    }
+    if(!confirm('Заменить пароль «'+user.name+'»? Его текущие сеансы завершатся.'))return;
+    disabled(true);
+    try{
+     await send('/'+encodeURIComponent(user.id)+'/reset','POST',{password:resetPw.value});
+     resetPw.value='';resetConfirm.value='';resetBox.hidden=true;secret.hidden=true;
+     await reloadAll();notify('Твой новый пароль установлен для «'+user.name+'».');
+    }catch(e){notify(e.message,true)}finally{disabled(false)}
+   });
+   const reset=button('Пароль',()=>{resetBox.hidden=!resetBox.hidden});
    const toggle=button(user.active?'Отключить':'Включить',async()=>{
     if(!confirm((user.active?'Отключить':'Включить')+' доступ «'+user.name+'»?'))return;
     await mutate('/'+encodeURIComponent(user.id)+'/status','POST',{active:!user.active});
    });
    controls.append(editBtn,reset,toggle);
-   card.append(identity,controls,editBox);staffList.append(card);
+   card.append(identity,controls,editBox,resetBox);staffList.append(card);
   }
  }
  function renderReport(){
@@ -230,11 +284,20 @@ export function mountPrintStaffControl({root}){
   await mutate('/points','POST',{name:value},()=>{newPoint.value='';pointFilter.dataset.nextValue=value});
  });
  createForm.addEventListener('submit',async e=>{
-  e.preventDefault();if(busy)return;disabled(true);
+  e.preventDefault();
+  if(busy||!customPasswordValid(createPassword.value,createConfirm.value))return;
+  disabled(true);
   try{
-   const result=await send('','POST',{name:name.input.value.trim(),login:login.input.value.trim().toLowerCase(),point:staffPoint.value});
-   secretShow(result);name.input.value='';login.input.value='';
-   disabled(false);await reloadAll();notify('Доступ для «'+result.staff.name+'» создан. Сохрани пароль.');
+   const custom=!!createPassword.value;
+   const result=await send('','POST',{
+    name:name.input.value.trim(),login:login.input.value.trim().toLowerCase(),point:staffPoint.value,
+    ...(custom?{password:createPassword.value}:{})
+   });
+   name.input.value='';login.input.value='';createPassword.value='';createConfirm.value='';
+   if(custom){secret.hidden=true;creds.replaceChildren()}
+   else secretShow(result);
+   disabled(false);await reloadAll();
+   notify(custom?'Доступ создан. Сотрудник может войти с придуманным тобой паролем.':'Доступ создан. Сохрани автоматически созданный пароль.');
   }catch(e){notify(e.message,true)}finally{disabled(false)}
  });
  pointFilter.addEventListener('change',()=>{renderStaff();void reportLoad().catch(e=>notify(e.message,true))});
