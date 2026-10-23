@@ -180,7 +180,8 @@ export function mountPrintStaffControl({root}){
    card.append(counters,el('small','','Последний запрос: '+smallTime(row.lastRequestAt)));reportGrid.append(card);
   }
   activity.replaceChildren();
-  const matches=events.filter(ev=>!chosen||pointEqual(ev.point,chosen));
+  const after=period.value==='all'?-Infinity:Date.now()-Number(period.value)*86400000;
+  const matches=events.filter(ev=>(!chosen||pointEqual(ev.point,chosen))&&Number.isFinite(Date.parse(ev.at))&&Date.parse(ev.at)>=after);
   if(!matches.length)activity.append(el('p','pstaff-empty','Запросов печати пока нет.'));
   for(const event of matches.slice(0,20)){
    const item=el('div','pstaff-event');
