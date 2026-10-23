@@ -7,3 +7,10 @@
 .approval-area{display:flex;align-items:flex-start;gap:12px;padding:14px;background:#f7f8fa;border:1px solid #e4e5e7;border-radius:11px;margin-bottom:16px;font-size:12px;color:#5f6570;line-height:1.6}
 .approval-area input{width:19px;height:19px;flex:0 0 auto;accent-color:#bd3048;margin-top:2px}
 .approval-area[hidden]{display:none!important}
+
+/* Individual safety provenance for the fresh / ready products catalog. */
+.manage-item small.prep-kind{color:#425d6b;font-weight:750;margin-top:7px}
+.manage-item small.prep-guide{color:#80848d;font-weight:450;line-height:1.5;max-width:690px}
+.item-guidance{font-size:12px;line-height:1.6;color:#655a42;background:#fff8e9;border:1px solid #e8d8b7;border-radius:11px;padding:12px 14px;margin:4px 0 14px}
+.item-guidance[hidden]{display:none!important}
+.sanpin-info a{color:#955b39;text-decoration:underline}
