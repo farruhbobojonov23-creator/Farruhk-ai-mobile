@@ -235,3 +235,22 @@
 #print-control .pstaff-report-values{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media(max-width:790px){#print-control .pstaff-history-filters{grid-template-columns:repeat(2,minmax(0,1fr))}#print-control .pstaff-report-values{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:570px){#print-control .pstaff-worker-report,#print-control .pstaff-alerts{grid-template-columns:1fr}#print-control .pstaff-history-filters{grid-template-columns:1fr 1fr}#print-control .pstaff-report-values{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* FARUKH PRINT owner: history filters, staff performance and alerts */
+#print-control .pstaff-worker-report{display:grid;gap:8px}
+#print-control .pstaff-worker-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid #e1e9ed;padding:12px 14px;background:#fff;border-radius:11px}
+#print-control .pstaff-worker-row strong{display:block;font-size:12px;color:#31454f}
+#print-control .pstaff-worker-row small{display:block;color:#8d989f;font-size:11px;margin-top:4px}
+#print-control .pstaff-worker-row>span{color:#627985;font-size:11px;line-height:1.5}
+#print-control .pstaff-alert-count{display:inline-block;font-size:12px;padding:9px 12px;border-radius:10px;color:#447a67;background:#ecf9f2;font-weight:780}
+#print-control .pstaff-alert-count[data-active=yes]{background:#fff3ef;color:#ac604b}
+#print-control .pstaff-alerts{display:grid;gap:8px;margin-top:10px}
+#print-control .pstaff-alert-item{display:grid;gap:5px;padding:12px 14px;background:#fff9f7;border:1px solid #f2d9ce;border-radius:11px}
+#print-control .pstaff-alert-item strong{font-size:12px;color:#a75346}
+#print-control .pstaff-alert-item small{font-size:10px;color:#9b9898}
+#print-control .pstaff-alert-item span{font-size:12px;color:#5c656d;line-height:1.5;overflow-wrap:anywhere}
+#print-control .pstaff-history-filters{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;align-items:center;margin:12px 0}
+#print-control .pstaff-history-filters input,#print-control .pstaff-history-filters select{height:41px;min-width:0;width:100%;padding:8px 10px;background:#fff;border:1px solid #d7e5eb;border-radius:10px;color:#355063;box-sizing:border-box;font:inherit;font-size:11px}
+@media(max-width:790px){#print-control .pstaff-history-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){#print-control .pstaff-history-filters{grid-template-columns:1fr}#print-control .pstaff-worker-row{align-items:flex-start;flex-direction:column;gap:7px}}
