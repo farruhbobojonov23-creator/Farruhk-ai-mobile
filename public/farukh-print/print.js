@@ -1,6 +1,15 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const KEY='farukh-print:catalog:v1';
+// Названия получены от владельца. СанПиН 2.3/2.4.4282-26 (с 01.09.2026)
+// не задаёт единого срока годности для каждой из этих заготовок.
+// Черновики НЕ пригодны для печати до подтверждения технологической документации.
+const STARTER_PREP_NAMES=[
+ 'Соус спайси','Соус сырный','Фирменный соус','Огурцы','Капуста',
+ 'Такуан','Форель','Угорь','Креветка','Курица готовая','Снежный краб',
+ 'Сливочный соус','Перец','Омлет','Морковь','Бульон Том Ям',
+ 'Унаги соус','Терияки соус','Сладкий чили'
+];
 const WIDTH={ready:464,prep:248},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='';
 const native=typeof window.FarukhPrinter?.postMessage==='function';
@@ -11,7 +20,20 @@ const formatted=epoch=>new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-d
 const nv=n=>String(n).replace('.',',');
 const str=s=>String(s??'').trim();
 const makeId=()=>globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString(36).slice(2);
-function load(){try{const old=JSON.parse(localStorage.getItem(KEY)||'[]');products=Array.isArray(old)?old.filter(x=>x&&['ready','prep'].includes(x.kind)&&typeof x.name==='string').slice(0,1000):[]}catch{products=[]}}
+function draftFor(name){return {id:makeId(),kind:'prep',name,storage:'',hours:null,point:'',needsReview:true}}
+function mergeStarterPrep(){
+ const existing=new Set(products.filter(p=>p.kind==='prep').map(p=>str(p.name).toLocaleLowerCase('ru')));
+ const additions=STARTER_PREP_NAMES.filter(name=>!existing.has(name.toLocaleLowerCase('ru')));
+ if(additions.length)products.push(...additions.map(draftFor));
+ return additions.length;
+}
+function load(){
+ let saved=null;
+ try{saved=localStorage.getItem(KEY);const old=JSON.parse(saved||'[]');products=Array.isArray(old)?old.filter(x=>x&&['ready','prep'].includes(x.kind)&&typeof x.name==='string').slice(0,1000):[]}catch{products=[]}
+ // Only fresh installations are seeded automatically. Existing user data is
+ // never overwritten and can be supplemented with the explicit import button.
+ if(saved===null){mergeStarterPrep();save()}
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(products));return true}catch(e){alert('Не удалось сохранить базу на этом устройстве: '+e.message);return false}}
 function node(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}
 function current(){return products.find(p=>p.id===selected&&p.kind===kind)||null}
@@ -42,7 +64,7 @@ function renderCatalog(){
  $('catalog-empty').hidden=items.length!==0;
  for(const p of items){
   const item=node('button','product-item'+(p.id===selected?' selected':''));item.type='button';
-  const left=node('span');left.append(node('strong','',p.name),node('small','',kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
+  const left=node('span');left.append(node('strong','',p.name),node('small','',p.needsReview?'Требуется проверка срока и условий хранения':kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
   item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=p.point||'';renderCatalog()});list.append(item);
  }
  updatePreview();
@@ -57,7 +79,7 @@ function renderManage(){
  $('manage-empty').hidden=items.length>0;
  for(const p of items){
   const row=node('div','manage-item'), info=node('div');
-  info.append(node('strong','',p.name),node('small','',manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
+  info.append(node('strong','',p.name),node('small','',p.needsReview?'Требуется подтверждение данных · печать заблокирована':manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
   edit.type='button';del.type='button';edit.onclick=()=>openEditor(p);
   del.onclick=()=>{if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
@@ -68,14 +90,16 @@ function setFormKind(type){
  $('ready-fields').hidden=type!=='ready';$('prep-fields').hidden=type!=='prep';
  $('ready-fields').querySelectorAll('input,textarea').forEach(el=>el.disabled=type!=='ready');
  $('prep-fields').querySelectorAll('input').forEach(el=>el.disabled=type!=='prep');
+ $('approval-area').hidden=type!=='prep';
 }
 function openEditor(p){
  editing=p?.id||null;
  const type=p?.kind||manageKind;
  setFormKind(type);
  $('editor-title').textContent=p?'Изменить этикетку':'Новый товар';
- const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??10,point:p?.point||'',storage:p?.storage||(type==='ready'?'+2…+6 °C':'+2…+6 °C'),hours:p?.hours??(type==='ready'?12:24)};
+ const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??10,point:p?.point||'',storage:p?.storage??(type==='ready'?'+2…+6 °C':''),hours:p?.hours??(type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
+ $('edit-approval').checked=!!p&&!p.needsReview;
  $('editor').showModal();setTimeout(()=>$('edit-name').focus(),30);
 }
 function saveEditor(ev){
@@ -88,7 +112,7 @@ function saveEditor(ev){
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){
    alert('Заполни состав, вес и все значения КБЖУ. Неизвестные цифры нельзя заменять нулями.');return;
   }
- }else fields.point=str($('edit-point').value);
+ }else{fields.point=str($('edit-point').value);fields.needsReview=!$('edit-approval').checked}
  if(!editing&&products.some(p=>p.kind===type&&p.name.toLocaleLowerCase('ru')===fields.name.toLocaleLowerCase('ru'))){
   alert('Этикетка с таким названием уже есть в выбранной категории.');return;
  }
@@ -190,6 +214,9 @@ function drawPrep(p,epoch,point){
 }
 function makePreview(){
  const p=current();if(!p){previewError='';return null}
+ if(kind==='prep'&&(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0)){
+   throw Error('Сначала подтверди срок годности и условия хранения для этого полуфабриката в «Управлении этикетками».');
+ }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
  return kind==='ready'?drawReady(p,when):drawPrep(p,when,str($('point-name').value)||p.point);
@@ -201,8 +228,13 @@ function updatePreview(){
  try{
   const canvas=makePreview();const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
   prev.getContext('2d').drawImage(canvas,0,0);
-  previewError='';status(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.');
- }catch(e){previewError=e.message;status('Проверь данные: '+e.message,true);$('print-now').disabled=true}
+  previewError='';$('no-preview').textContent='Выбери товар для просмотра';
+  status(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.');
+ }catch(e){
+  previewError=e.message;$('preview-canvas').hidden=true;$('no-preview').hidden=false;
+  $('no-preview').textContent='Срок и условия хранения не подтверждены';
+  status('Проверь данные: '+e.message,true);$('print-now').disabled=true
+ }
 }
 function tspl(canvas,copies){
  const w=canvas.width,h=canvas.height;
@@ -273,7 +305,8 @@ async function importDB(ev){
   if(payload.format!=='farukh-print-catalog-v1'||!Array.isArray(payload.products)||payload.products.length>1000)throw Error('Неверный формат базы FARUKH PRINT.');
   const items=[];const used=new Set();
   for(const p of payload.products){
-   if(!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||!str(p.name)||!str(p.storage)||!Number.isSafeInteger(p.hours)||p.hours<1||p.hours>8760)throw Error('Не все товары имеют обязательные поля.');
+   if(!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||!str(p.name))throw Error('Не все товары имеют названия.');
+   if(!p.needsReview&&(!str(p.storage)||!Number.isSafeInteger(p.hours)||p.hours<1||p.hours>8760))throw Error('Не все действующие этикетки имеют подтверждённый срок и хранение.');
    if(p.kind==='ready'&&(!str(p.composition)||!['p','f','c','kcal','weight','tolerance'].every(k=>typeof p[k]==='number'&&Number.isFinite(p[k]))))throw Error('Ошибка состава, веса или КБЖУ.');
    const key=p.kind+'|'+p.name.toLocaleLowerCase('ru');if(used.has(key))throw Error('В резервной копии есть дублирующиеся товары.');used.add(key);
    items.push({...p,id:makeId(),name:p.name.slice(0,90),storage:p.storage.slice(0,60),composition:str(p.composition).slice(0,600),point:str(p.point).slice(0,40)});
@@ -293,6 +326,12 @@ function boot(){
  $('printed-at').addEventListener('input',updatePreview);
  $('point-name').addEventListener('input',updatePreview);
  $('manage-ready').onclick=()=>openManage('ready');$('manage-prep').onclick=()=>openManage('prep');
+ $('load-starter-prep').onclick=()=>{
+  const count=STARTER_PREP_NAMES.filter(n=>!products.some(p=>p.kind==='prep'&&p.name.toLocaleLowerCase('ru')===n.toLocaleLowerCase('ru'))).length;
+  if(!count){alert('Все 19 названий уже есть в базе.');return}
+  if(!confirm('Добавить '+count+' полуфабрикатов из согласованного списка? Сроки хранения останутся незаполненными, до проверки печать недоступна.'))return;
+  const old=[...products];mergeStarterPrep();if(save()){openManage('prep');alert('Добавлено '+count+' названий. Уточним сроки и затем разрешим печать.')}else products=old;
+ };
  $('add-item').onclick=()=>openEditor(null);
  $('editor-form').addEventListener('submit',saveEditor);
  $('cancel-editor').onclick=()=>$('editor').close();$('close-editor').onclick=()=>$('editor').close();
