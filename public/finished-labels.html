@@ -63,16 +63,16 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 .lb-bottom>div:last-child{border-right:0}
 .lb-weight{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 .8mm}
 .lb-weight small{font-size:6pt;font-weight:800;white-space:nowrap}
-.lb-weight strong{font-size:9.1pt;font-weight:900;letter-spacing:-.04em;white-space:nowrap}
-.lb-dates{display:flex;flex-direction:column;justify-content:center;gap:.7mm;padding:0 .55mm;font-size:5.8pt}
-.lb-dates div{display:flex;flex-wrap:nowrap;gap:.5mm;align-items:baseline;justify-content:space-between}
-.lb-dates b{font-weight:850;font-size:5.6pt;white-space:nowrap}
-.lb-dates span{font-weight:750;white-space:nowrap;font-size:5.6pt}
+.lb-weight strong{font-size:9.1pt;font-weight:900;letter-spacing:-.04em;white-space:nowrap}.lb-weight em{font-style:normal;font-size:6pt;font-weight:850;white-space:nowrap}
+.lb-dates{display:flex;flex-direction:column;justify-content:center;gap:.2mm;padding:0 .55mm;font-size:5.8pt}
+.lb-dates div{display:flex;flex-direction:column;align-items:start;gap:0;white-space:nowrap}
+.lb-dates b{font-weight:850;font-size:4.6pt;white-space:nowrap}
+.lb-dates span{font-weight:750;white-space:nowrap;font-size:5pt}
 .lb-storage{display:grid;grid-template-rows:1fr 1fr;text-align:center;font-size:5.6pt}
 .lb-storage div{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:0 .3mm}
 .lb-storage div:first-child{border-bottom:.2mm solid #000}
-.lb-storage b{font-size:7.2pt;font-weight:900;white-space:nowrap}
-.lb-storage span{font-size:5.5pt;white-space:nowrap}
+.lb-storage b{font-size:6.2pt;font-weight:900;white-space:nowrap}
+.lb-storage span{font-size:4.6pt;white-space:nowrap}
 @media(max-width:1020px){.grid{grid-template-columns:1fr}.stage{min-height:350px}.preview-scale{transform:scale(.98)}}@media(max-width:620px){.shell{padding:14px 12px 36px}.box{padding:17px}.stage{min-height:260px}.preview-scale{transform:scale(.69)}.fields{grid-template-columns:1fr}.title{padding:25px 0 20px}.brand{font-size:18px}.link{font-size:11px;padding:10px}}
 @media(max-width:410px){.preview-scale{transform:scale(.55)}.stage{min-height:230px}}
 @page{size:58mm 40mm;margin:0}
@@ -139,7 +139,7 @@ function makeLabel(p,epoch){
  nutri.append(nh,nv);inner.append(nutri);
  const ingredients=text('div',undefined,'lb-ingredients');ingredients.append(text('b','Состав: '),document.createTextNode(p.composition));inner.append(ingredients);
  const b=text('div',undefined,'lb-bottom'),weight=text('div',undefined,'lb-weight');
- weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г (±'+p.tolerance+' г)'));
+ weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г'),text('em','(±'+p.tolerance+' г)'));
  const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изгот.:',fmt(epoch)],['Годен:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
  const storage=text('div',undefined,'lb-storage');const s1=text('div');s1.append(text('span','Хранить при:'),text('b',p.storage));const s2=text('div');s2.append(text('span','Срок годности:'),text('b',p.hours+' ч'));storage.append(s1,s2);
  b.append(weight,dates,storage);inner.append(b);root.append(inner);return root;
