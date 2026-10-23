@@ -1,4 +1,4 @@
-import {validateMyTemplates} from './my-recipe-templates.js?v=1';
+import {validateMyTemplates} from './my-recipe-templates.js?v=2';
 import {validateCategories} from './category-validation.js';
 import {emptyHaccp,validateHaccp,mergeHaccp} from './haccp-model.js';
 const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],preparations:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
