@@ -10,7 +10,11 @@ const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className
 const root=document.querySelector('.app'),head=root?.querySelector('.header');
 if(!root||!head)return;
 let paired=localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='';
-try{session=sessionStorage.getItem(SESSION)||''}catch{}
+try{
+ session=localStorage.getItem(SESSION)||sessionStorage.getItem(SESSION)||'';
+ if(session)localStorage.setItem(SESSION,session);
+ sessionStorage.removeItem(SESSION);
+}catch{}
 const panel=el('section','staff-login');panel.hidden=!paired;
 const top=el('div','staff-login-top');const heading=el('strong','','Доступ сотрудников');const badge=el('span','staff-badge','Вход не выполнен');top.append(heading,badge);
 const info=el('p','','На подключённых устройствах доступна только печать. Войди под личным логином и паролем, полученным у управляющего.');
@@ -58,9 +62,9 @@ async function recheck(){
  if(!paired||!session)return;
  try{
   const result=await call('/session');
-  staff=result.staff;tell('Можно печатать утверждённые этикетки для точки «'+staff.point+'».');
+  staff=result.staff;tell('Можно печатать утверждённые этикетки для точки «'+staff.point+'».');void flushResults();
  }catch(e){
-  staff=null;session='';try{sessionStorage.removeItem(SESSION)}catch{}
+  staff=null;session='';try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
   tell('Требуется вход сотрудника: '+e.message,true);
  }
  paint();
@@ -71,18 +75,32 @@ async function signin(e){
  try{
   const name=login.value.trim().toLowerCase();
   const data=await call('/login',{method:'POST',body:JSON.stringify({login:name,password:password.value})});
-  session=data.session;try{sessionStorage.setItem(SESSION,session)}catch{}
+  session=data.session;try{localStorage.setItem(SESSION,session);sessionStorage.removeItem(SESSION)}catch{}
   staff=data.staff;login.value='';password.value='';
-  tell('Вход выполнен. Печать доступна только на точке «'+staff.point+'».');
+  tell('Вход сохранён до нажатия «Выйти» или отключения доступа владельцем.');void flushResults();
  }catch(e){password.value='';tell(e.message,true)}
  finally{busy=false;paint()}
 }
 async function signout(){
  try{if(session&&deviceToken())await call('/logout',{method:'POST',body:'{}'})}catch{}
- session='';staff=null;try{sessionStorage.removeItem(SESSION)}catch{}
+ session='';staff=null;try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
  tell('Выход выполнен. Для печати войди под своим логином.');paint();
 }
 form.addEventListener('submit',signin);logout.onclick=signout;
+const RESULT_QUEUE='farukh-print:result-queue:v1';
+const pendingResults=()=>{
+ try{const list=JSON.parse(localStorage.getItem(RESULT_QUEUE)||'[]');return Array.isArray(list)?list.slice(-40):[]}
+ catch{return []}
+};
+async function flushResults(){
+ if(!staff||!session)return;
+ const list=pendingResults(),rest=[];
+ for(const entry of list){
+  try{await call('/print-result',{method:'POST',body:JSON.stringify(entry)})}
+  catch(e){if(![400,403,404].includes(e.status))rest.push(entry)}
+ }
+ try{localStorage.setItem(RESULT_QUEUE,JSON.stringify(rest))}catch{}
+}
 const API={
  setPaired(value){
   if(value)localStorage.setItem(MANAGED,'1');
@@ -91,7 +109,19 @@ const API={
   if(paired&&!prior)void recheck();
  },
  loggedIn:()=>!!staff,
+ login:()=>staff?.login||'',
  point:()=>staff?.point||'',
+ async reportPrint(eventId,result,details=''){
+  if(!eventId||!['sent','failed','system'].includes(result))return;
+  const entry={eventId,result,details:String(details).slice(0,160)};
+  try{await call('/print-result',{method:'POST',body:JSON.stringify(entry)});}
+  catch(e){
+   if(![400,403,404].includes(e.status)){
+    const records=pendingResults();records.push(entry);
+    try{localStorage.setItem(RESULT_QUEUE,JSON.stringify(records.slice(-40)))}catch{}
+   }
+  }
+ },
  async authorize(job){
   if(localStorage.getItem(MANAGED)!=='1')return {ok:true,unmanaged:true};
   if(!staff||!session)throw Error('Сначала войди как сотрудник на панели «Доступ сотрудников» вверху страницы.');
@@ -109,7 +139,7 @@ const API={
    return result;
   }catch(e){
    if(e.status===401||(e.status===403&&/Доступ устройства отключён|Устройство не подключено/.test(e.message))){
-    staff=null;session='';try{sessionStorage.removeItem(SESSION)}catch{}
+    staff=null;session='';try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
     tell('Доступ к печати закрыт: '+e.message,true);paint();
    }
    throw e;
@@ -117,5 +147,5 @@ const API={
  }
 };
 window.FARUKH_PRINT_STAFF_API=API;
-paint();if(paired)void recheck();
+paint();if(paired)void recheck();setInterval(()=>{if(document.visibilityState!=='hidden')void flushResults()},60_000);
 })();
