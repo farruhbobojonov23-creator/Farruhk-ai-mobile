@@ -3,6 +3,8 @@
 // Android APK используют отдельные WebView-хранилища: перенос JSON вручную.
 const DB_KEY='farukh-print:catalog:v1',LOG_KEY='farukh-print:control-log:v1';
 const MAX=1000;
+const BASIC_PREP=['Соус спайси','Соус сырный','Фирменный соус','Огурцы','Капуста','Такуан','Форель','Угорь','Креветка','Курица готовая','Снежный краб','Сливочный соус','Перец','Омлет','Морковь','Бульон Том Ям','Унаги соус','Терияки соус','Сладкий чили'];
+
 const uid=()=>crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2);
 const text=v=>String(v??'').trim();
 const date=v=>new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(v));
@@ -69,8 +71,9 @@ export function mountPrintControl({root}){
  left.append(readyTab,prepTab);
  const right=el('div','pc-toolbar-actions');
  const add=btn('＋ Добавить этикетку','pc-primary',()=>edit(null));
+ const seed=btn('＋ База 19 полуфабрикатов','pc-secondary',importStarter);
  const open=el('a','pc-secondary','Открыть FARUKH PRINT ↗');open.href='/farukh-print/';open.target='_blank';open.rel='noopener noreferrer';
- right.append(add,open);toolbar.append(left,right);
+ right.append(add,seed,open);toolbar.append(left,right);
  const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();renderRows()});
  const table=el('div','pc-list');
  const sub=el('div','pc-transfer');
@@ -175,6 +178,20 @@ export function mountPrintControl({root}){
   if(readDatabase().broken)throw Error('Текущая база повреждена. Сначала восстанови резервную копию.');
   localStorage.setItem(DB_KEY,JSON.stringify(next));
   pushLog(action,name);lastAction=action+' · '+name;render();message('Сохранено на этом устройстве: '+lastAction+'. Для другого Android-приложения скачай копию JSON.');
+ }
+ function importStarter(){
+  try{
+   const exists=new Set(records.filter(r=>r.kind==='prep').map(r=>r.name.toLocaleLowerCase('ru')));
+   const missing=BASIC_PREP.filter(name=>!exists.has(name.toLocaleLowerCase('ru')));
+   if(!missing.length){message('Все 19 базовых полуфабрикатов уже есть в каталоге.');return}
+   if(!confirm('Добавить '+missing.length+' полуфабрикатов в локальную базу центра? Непроверенные сроки останутся заблокированы для печати.'))return;
+   const added=missing.map(name=>({
+     id:uid(),kind:'prep',name,storage:name==='Соус спайси'?'+2…+6 °C':'',
+     hours:name==='Соус спайси'?48:null,point:'',needsReview:true,
+     ...(name==='Соус спайси'?{recipeMemo:'Майонез «Печагин» 67%, сухие специи, без нагрева. 48 ч предложено владельцем, не подтверждено нормативом.'}:{})
+   }));
+   commit([...records,...added],'Добавлена стартовая база',missing.length+' позиций');
+  }catch(e){message(e.message,true)}
  }
  function edit(product){
   currentEdit=product?.id||null;const v=product||{...empty,kind:group};
