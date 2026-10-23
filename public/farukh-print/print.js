@@ -87,6 +87,44 @@ function load(){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(products));return true}catch(e){alert('Не удалось сохранить базу на этом устройстве: '+e.message);return false}}
 function node(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}
 function current(){return products.find(p=>p.id===selected&&p.kind===kind)||null}
+const isManaged=()=>localStorage.getItem('farukh-print:staff-managed:v1')==='1';
+let workerLoggedIn=null;
+function closeWorkerPreview(){
+ document.body.classList.remove('worker-preview-open');
+ $('worker-preview-backdrop').hidden=true;
+ $('worker-close-preview').hidden=true;
+}
+function openWorkerPreview(){
+ if(!isManaged()||!workerLoggedIn)return;
+ document.body.classList.add('worker-preview-open');
+ $('worker-preview-backdrop').hidden=false;
+ $('worker-close-preview').hidden=false;
+ if(window.innerWidth>770)$('printing-panel').scrollIntoView?.({behavior:'smooth',block:'nearest'});
+}
+function renderWorker(){
+ const managed=isManaged(),showWorker=managed&&!!workerLoggedIn;
+ document.body.classList.toggle('worker-managed',managed);
+ document.body.classList.toggle('worker-logged-in',showWorker);
+ $('worker-dashboard').hidden=!showWorker;
+ $('worker-staff-info').textContent=showWorker?'Повар: '+workerLoggedIn.name:'Войди под личным логином.';
+ $('worker-point').textContent=showWorker?'Точка · '+workerLoggedIn.point:'Точка не выбрана';
+ $('worker-ready-tab').classList.toggle('selected',kind==='ready');
+ $('worker-prep-tab').classList.toggle('selected',kind==='prep');
+ $('open-settings').hidden=managed;
+ $('manage-from-home').hidden=managed;
+ if(managed)$('point-field').hidden=true;
+ if(!showWorker)closeWorkerPreview();
+}
+function updateWorkerSession(staff){
+ const wasLoggedIn=!!workerLoggedIn;
+ workerLoggedIn=staff||null;
+ renderWorker();
+ if(isManaged()&&workerLoggedIn&&!wasLoggedIn){
+   openCatalog('prep');
+ }else if(isManaged()&&!workerLoggedIn){
+   selected=null;closeWorkerPreview();show('home');
+ }
+}
 function show(section){
  for(const id of ['home','catalog','manage'])$(id).hidden=id!==section;
  window.scrollTo?.({top:0,behavior:'instant'});
@@ -98,13 +136,14 @@ function renderHome(){
  $('manage-count-prep').textContent=products.filter(x=>x.kind==='prep').length;
 }
 function openCatalog(type){
+ closeWorkerPreview();
  kind=type;selected=null;$('catalog-search').value='';
  $('catalog-title').textContent=type==='ready'?'Готовая продукция · 58 × 40':'Полуфабрикаты · 30 × 20';
  $('catalog-kicker').textContent=type==='ready'?'ГОТОВАЯ ПРОДУКЦИЯ':'ПОЛУФАБРИКАТЫ';
  $('print-size-badge').textContent=type==='ready'?'58 × 40 мм':'30 × 20 мм';
- $('point-field').hidden=type==='ready';
+ $('point-field').hidden=type==='ready'||isManaged();
  $('printed-at').value=nowLocal();$('copies').value='1';
- show('catalog');renderCatalog();
+ show('catalog');renderWorker();renderCatalog();
 }
 function renderCatalog(){
  const list=$('product-list');list.replaceChildren();
@@ -128,13 +167,14 @@ function renderCatalog(){
   item.addEventListener('click',()=>{
    selected=p.id;
    if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
-   renderCatalog()
+   renderCatalog();openWorkerPreview();
   });
   list.append(item);
  }
  updatePreview();
 }
 function openManage(type=manageKind){
+ if(isManaged())return;
  manageKind=type;show('manage');renderManage();
 }
 function renderManage(){
@@ -345,7 +385,7 @@ function makePreview(scale=1){
 function updatePreview(){
  const p=current();$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
  $('print-now').disabled=!p;
- $('fix-label').hidden=!p||!p.needsReview;
+ $('fix-label').hidden=!p||!p.needsReview||isManaged();
  if(!p){status('Выбери товар из списка.');return}
  try{
   const renderScale=3; // 720 px wide 30×20 preview; no CSS upscaling of 240-dot printer bitmap
@@ -508,6 +548,22 @@ window.FARUKH_PRINT_SYNC_API={
 };
 function boot(){
  load();renderHome();$('printed-at').value=nowLocal();
+ renderWorker();
+ window.addEventListener('farukh-print-staff-changed',e=>updateWorkerSession(e.detail?.staff||null));
+ window.addEventListener('farukh-print-sync-status',e=>{
+   const data=e.detail||{};
+   $('worker-sync-status').textContent=data.message||'Каталог: ожидание связи';
+ });
+ $('worker-ready-tab').onclick=()=>openCatalog('ready');
+ $('worker-prep-tab').onclick=()=>openCatalog('prep');
+ $('worker-refresh').onclick=()=>{
+  const api=window.FARUKH_PRINT_DEVICE_SYNC;
+  if(!api){$('worker-sync-status').textContent='Обновление недоступно: проверь подключение устройства';return}
+  $('worker-sync-status').textContent='Загружаю товары из FARUKH AI…';
+  void api.refresh();
+ };
+ $('worker-close-preview').onclick=closeWorkerPreview;
+ $('worker-preview-backdrop').onclick=closeWorkerPreview;
  $('choose-ready').onclick=()=>openCatalog('ready');$('choose-prep').onclick=()=>openCatalog('prep');
  $('manage-from-home').onclick=()=>openManage('ready');$('open-settings').onclick=()=>openManage('ready');
  $('go-home').onclick=()=>{show('home');renderHome()};
