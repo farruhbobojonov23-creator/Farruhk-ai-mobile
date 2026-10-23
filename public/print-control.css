@@ -82,3 +82,13 @@
 #print-control .pcloud-empty{font-size:12px;color:#89999a}
 #print-control .pcloud-foot{font-size:11px!important;color:#97a2a6!important;line-height:1.6}
 @media(max-width:640px){#print-control .pcloud{padding:17px}#print-control .pcloud-actions button{flex:1 1 100%}#print-control .pcloud-device{align-items:flex-start;flex-direction:column}}
+
+
+/* Explicit owner sign-in for Cloud Print when FARUKH AI itself is passwordless. */
+#print-control .pcloud-owner-login{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;background:#f4f9fb;border:1px solid #d6e5e9;border-radius:13px;padding:17px;margin:15px 0}
+#print-control .pcloud-owner-login[hidden]{display:none!important}
+#print-control .pcloud-owner-login p{grid-column:1/-1;margin:0;color:#465b64;font-size:12px;line-height:1.6}
+#print-control .pcloud-owner-label{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:750;color:#58717b}
+#print-control .pcloud-owner-password{height:40px;min-width:0;width:100%;padding:9px 11px;border:1px solid #cbdadd;border-radius:10px;font-size:15px;color:#24323c;background:#fff;box-sizing:border-box}
+#print-control .pcloud-login-button{height:40px;background:#ad2e47;color:#fff;border-color:#ad2e47;white-space:nowrap;padding:9px 19px}
+@media(max-width:600px){#print-control .pcloud-owner-login{grid-template-columns:1fr}#print-control .pcloud-login-button{width:100%}}
