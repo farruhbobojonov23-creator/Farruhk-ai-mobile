@@ -31,7 +31,7 @@ export function mountPrintCloudControl({root,renderLocal}){
  const devices=el('div','pcloud-devices');
  const hint=el('p','pcloud-foot','Первую загрузку делай осознанно: она заменяет локальную базу приложения. До переноса рекомендуется сохранить JSON-копию. Устройства автоматически получают обновления при соединении с интернетом.');
  box.append(title,explanation,status,actions,codeBox,devicesTitle,devices,hint);
- root.append(box);
+ root.insertBefore(box,root.children[3]||null); // cloud controls after catalog counters, before editor
  let enabled=false,rev=null,remoteProducts=[],auto=false,busy=false,queue=Promise.resolve(),fetched=false;
  const tell=(message,err=false)=>{status.textContent=message;status.dataset.error=err?'yes':'no'};
  const lock=on=>{busy=on;for(const item of actions.querySelectorAll('button'))item.disabled=on};
@@ -125,6 +125,10 @@ export function mountPrintCloudControl({root,renderLocal}){
  });
  // Re-fetch devices when the owner returns to the center.
  window.addEventListener('focus',()=>{if(enabled&&fetched&&!busy)void loadDevices().catch(()=>{})});
- void start();
+ let started=false;
+ const begin=()=>{if(started)return;if(document.body.dataset.view!=='print-control')return;started=true;void start()};
+ // Loading large FARUKH AI data and voice assistant must not wait for cloud.
+ begin();
+ window.addEventListener('hashchange',begin);
  return {refresh:refreshRemote};
 }
