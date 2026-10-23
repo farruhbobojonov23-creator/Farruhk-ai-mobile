@@ -52,6 +52,14 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    req.farukhStaff=user;req.farukhSession=id;next();
   }catch(e){return res.status(e.status||503).json({ok:false,error:'Не удалось проверить права сотрудника.'})}
  };
+ const passwordFromOwner=body=>{
+  if(body?.password===undefined||body?.password===null||body?.password==='')return {password:token().slice(0,16),custom:false};
+  if(typeof body.password!=='string'||body.password.length<8||body.password.length>128
+    ||body.password!==body.password.trim()||Array.from(body.password).some(ch=>ch.charCodeAt(0)<32||ch.charCodeAt(0)===127)
+    ||['password','12345678','87654321','qwerty123','11111111','00000000'].includes(body.password.toLowerCase()))
+    throw bad(400,'Пароль должен быть от 8 до 128 символов, без пробелов по краям, управляющих символов и простых комбинаций.');
+  return {password:body.password,custom:true};
+ };
  const staffRate=(req,res,next)=>{
   const key=trim(req.ip||'unknown',100)+':'+trim(req.body?.login,32).toLowerCase();
   const now=Date.now();let row=limits.get(key);
@@ -155,17 +163,21 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!name||name.length<2||!point||point.length<2||!/^[a-z][a-z0-9_-]{2,31}$/.test(login))throw bad(400,'Нужны имя, точка и логин латиницей (3–32 символа).');
   const configured=await readPoints(),actual=configured.find(p=>samePoint(p,point));
   if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
-  const password=token().slice(0,16);const salt=crypto.randomBytes(16).toString('hex');
+  const {password,custom}=passwordFromOwner(req.body);
+  const salt=crypto.randomBytes(16).toString('hex');
   const user={id:crypto.randomUUID(),name,login,point:actual,passhash:hash(password,salt),salt,active:true,createdAt:new Date().toISOString()};
   await store.transaction(async()=>{
    const all=await readUsers();if(all.length>=MAX_STAFF)throw bad(409,'Достигнут лимит сотрудников.');
    if(all.some(x=>x.login===login))throw bad(409,'Этот логин уже занят.');
    all.push(user);await store.write(USERS,all);
   });
-  res.set('Cache-Control','no-store');res.status(201).json({ok:true,staff:userSafe(user),password,warning:'Пароль показывается только сейчас. Сохрани его и передай сотруднику лично.'});
+  res.set('Cache-Control','no-store');
+  res.status(201).json({ok:true,staff:userSafe(user),...(!custom?{password}:{}),
+    warning:custom?'Сотрудник создан с заданным владельцем паролем. Он хранится только в виде защищённого хеша.':'Сохрани сгенерированный пароль сейчас: повторно посмотреть его нельзя.'});
  }));
  app.post('/api/farukh-print/admin/staff/:id/reset',owner,safe(async(req,res)=>{
-  const password=token().slice(0,16),salt=crypto.randomBytes(16).toString('hex');
+  const {password,custom}=passwordFromOwner(req.body);
+  const salt=crypto.randomBytes(16).toString('hex');
   let target;
   await store.transaction(async()=>{
    const all=await readUsers();target=all.find(x=>x.id===req.params.id);
@@ -174,7 +186,9 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    await store.write(USERS,all);
   });
   for(const [key,session] of sessions)if(session.userId===target.id)sessions.delete(key);
-  res.set('Cache-Control','no-store');res.json({ok:true,staff:userSafe(target),password});
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,staff:userSafe(target),...(!custom?{password}:{}),
+    warning:custom?'Пароль сотрудника обновлён владельцем.':'Новый пароль показан только сейчас.'});
  }));
  app.post('/api/farukh-print/admin/staff/:id/status',owner,safe(async(req,res)=>{
   if(typeof req.body?.active!=='boolean')throw bad(400,'Не указан статус сотрудника.');

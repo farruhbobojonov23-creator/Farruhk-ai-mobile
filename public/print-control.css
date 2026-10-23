@@ -201,3 +201,17 @@
 #print-control .pcloud-devices-count{background:#eff7fc;color:#547b8e;border-color:#d8e7f0}
 #print-control .pcloud .pcloud-foot{line-height:1.65}
 @media(max-width:540px){#print-control .pcloud-connection-summary{gap:6px}}
+
+
+/* Owner-defined employee passwords — tidy forms on desktop and phones. */
+#print-control .pstaff-password-group{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end;margin:0}
+#print-control .pstaff-password-hint{grid-column:1/-1;margin:1px 0 0;font-size:11px;line-height:1.55;color:#84939c}
+#print-control .pstaff-password-toggle{height:43px;background:#fff;border:1px solid #d9e4e9;border-radius:10px;padding:8px 12px;font-size:11px;color:#526e78;font-weight:750;white-space:nowrap}
+#print-control .pstaff-reset-box{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:14px;background:#f9fbfc;border:1px solid #e1e8eb;border-radius:12px}
+#print-control .pstaff-reset-box[hidden]{display:none!important}
+#print-control .pstaff-reset-box>strong{grid-column:1/-1;font-size:12px;color:#394c55}
+#print-control .pstaff-password-input{height:43px;min-width:0;width:100%;border:1px solid #d6e3e9;border-radius:10px;background:#fff;color:#283c45;padding:10px 13px;font-size:13px;box-sizing:border-box}
+#print-control .pstaff-reset-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+#print-control .pstaff-reset-actions button{font-size:11px;margin:0;min-height:41px}
+@media(max-width:720px){#print-control .pstaff-password-group{grid-template-columns:1fr 1fr}#print-control .pstaff-password-toggle{grid-column:1/-1}}
+@media(max-width:540px){#print-control .pstaff-password-group{grid-template-columns:1fr}#print-control .pstaff-reset-box{grid-template-columns:1fr}}
