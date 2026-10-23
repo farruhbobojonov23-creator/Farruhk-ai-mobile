@@ -5,7 +5,7 @@ import {installPrintSyncApi} from '../print-sync-api.js';
 function makeApi(){
  const routes=new Map(),cloud=new Map();
  const app={};
- for(const method of ['get','post','put','delete'])app[method]=(path,...handlers)=>routes.set(method+' '+path,handlers);
+ for(const method of ['get','post','put','patch','delete'])app[method]=(path,...handlers)=>routes.set(method+' '+path,handlers);
  const store={storage:'yandex',
   read:async(name,fallback)=>cloud.has(name)?structuredClone(cloud.get(name)):structuredClone(fallback),
   write:async(name,value)=>cloud.set(name,structuredClone(value)),
@@ -68,7 +68,7 @@ test('FARUKH PRINT cloud sync: owner auth, atomic revisions, device pairing and 
 
 test('FARUKH PRINT cloud disabled without durable storage or owner auth',async()=>{
  const routes=new Map();
- const app={get:(name,...handlers)=>routes.set(name,handlers),post(){},put(){},delete(){}};
+ const app={get:(name,...handlers)=>routes.set(name,handlers),post(){},put(){},patch(){},delete(){}};
  installPrintSyncApi(app,{store:{storage:'disk'},auth:{enabled:false}});
  const res={payload:null,json(o){this.payload=o;return this}};
  routes.get('/api/farukh-print/sync/status')[0]({},res);
