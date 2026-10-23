@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f6f7f9"><title>Этикетки готовой продукции · Суши Бери</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#202530;background:#f5f6f8}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #bd3047;outline-offset:2px}
+a{color:inherit;text-decoration:none}.shell{max-width:1270px;padding:25px 24px 65px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e1e3e7;padding:0 0 23px;gap:12px}
+.brand{font-size:23px;font-weight:850;letter-spacing:-.04em}.brand em{font-style:normal;color:#b32b43}
+.crumb{font-size:10px;letter-spacing:.2em;color:#9298a0;font-weight:760;margin-top:5px}
+.link{font-size:13px;font-weight:730;border:1px solid #e1e2e6;background:#fff;border-radius:11px;padding:12px 16px;display:inline-block}
+.title{padding:32px 0 23px}.eyebrow{font-size:11px;color:#b72e45;letter-spacing:.17em;font-weight:800;text-transform:uppercase}
+h1{font-size:clamp(30px,4vw,45px);letter-spacing:-.055em;line-height:1.08;margin:9px 0 8px}.desc{font-size:13px;color:#7b808c;line-height:1.5;margin:0}
+.grid{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(420px,1.15fr);gap:20px}
+.box{min-width:0;border:1px solid #e5e7eb;background:white;border-radius:20px;box-shadow:0 11px 38px #1c263209;padding:23px}
+.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.heading h2{font-size:18px;letter-spacing:-.04em;margin:0}
+.soft{border:1px solid #e4e5e9;border-radius:11px;background:#fff;padding:10px 13px;font-size:12px;font-weight:760;min-height:40px}
+.soft:hover{border-color:#b83c50}.primary{border:0;background:#af2940;color:white;font-size:14px;font-weight:770;border-radius:12px;padding:13px 18px;min-height:46px}
+.primary:hover{background:#92243a}.primary:disabled{opacity:.42;cursor:not-allowed}
+.search{width:100%;background:#f9fafb;border:1px solid #e2e5e9;border-radius:11px;padding:13px 14px;font-size:13px;margin-bottom:12px}
+.list{display:grid;gap:10px}.item{display:flex;align-items:center;width:100%;text-align:left;gap:12px;border:1px solid #e5e7eb;border-radius:13px;background:#fff;padding:15px;min-height:72px}
+.item.selected{border-color:#b5354b;background:#fff8f9;box-shadow:0 0 0 1px #b5354b inset}
+.item .icon{display:grid;place-items:center;background:#fff0f3;border-radius:12px;height:39px;width:39px;color:#b32d43;font-size:22px}
+.item b{display:block;font-size:14px}.item small{display:block;margin-top:5px;font-size:11px;color:#7c828a}.item strong{margin-left:auto;color:#b32d43}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.size{font-weight:760;color:#a33146;background:#fcf1f2;border-radius:9px;padding:7px 9px;font-size:11px}
+.stage{display:grid;place-items:center;min-height:405px;border-radius:15px;background:linear-gradient(135deg,#f7f8fa,#ebeef1);border:1px dashed #d6dae1;overflow:hidden;margin-bottom:18px}
+.preview-scale .label{transform:scale(1.68)}.preview-scale{width:116mm;height:80mm;display:grid;place-items:center;transform-origin:center;transform:scale(.95);box-shadow:0 14px 35px #17202c24;background:white}
+.caption{font-size:11px;color:#737985;line-height:1.5}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
+.field-label{font-size:11px;font-weight:750;color:#68707b;display:block}
+.field-label input,.field-label select,.field-label textarea{width:100%;min-height:43px;margin-top:7px;border:1px solid #e1e3e7;padding:10px 12px;border-radius:10px;background:#fff;color:#202530;font-size:13px}
+.field-label textarea{min-height:75px;resize:vertical}
+.actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap}
+.note{font-size:11.5px;line-height:1.55;color:#7f6551;border-radius:11px;padding:11px 13px;background:#fff9f2;border:1px solid #f0e4d2;margin:14px 0}
+.status{font-size:12px;color:#a62b41;line-height:1.4;min-height:18px;margin:10px 0}
+.printsheet{display:none}
+dialog{width:min(520px,calc(100vw - 24px));border:1px solid #e4e6eb;border-radius:17px;padding:24px;color:#202530;box-shadow:0 30px 90px #151d2e45;max-height:90vh;overflow:auto}
+dialog::backdrop{background:#202530a3}.dialog-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:15px}
+.dialog-top h2{font-size:20px;margin:0}.dialog-fields{display:grid;gap:11px}.dialog-fields label{font-size:12px;font-weight:690;color:#59616d}
+.dialog-fields input,.dialog-fields textarea{display:block;width:100%;margin-top:5px;padding:10px 12px;border:1px solid #dfe2e7;border-radius:9px}
+.dialog-fields textarea{resize:vertical;min-height:75px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.danger{color:#b22d44;border:0;background:none;font-weight:750}.dialog-actions{display:flex;justify-content:space-between;margin-top:16px}
+footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
+.label{background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;width:58mm;height:40mm;padding:1.15mm 1.25mm;overflow:hidden;display:flex;flex-direction:column}
+.label-inner{height:100%;border:.36mm solid #000;outline:.18mm solid #000;outline-offset:.45mm;padding:.7mm .9mm;display:grid;grid-template-rows:4.1mm 6mm 9.3mm minmax(5.2mm,1fr) 9.5mm;gap:.35mm}
+.lb-top{display:flex;align-items:center;justify-content:space-between;gap:2mm;border-bottom:.25mm solid #000;min-height:0}
+.lb-top b{font-size:10pt;font-weight:900;letter-spacing:-.05em;white-space:nowrap}
+.lb-top span{font-size:5.8pt;white-space:nowrap}
+.lb-title{font-size:11pt;font-weight:900;letter-spacing:-.045em;line-height:1.02;text-align:center;display:flex;align-items:center;justify-content:center;border-bottom:.25mm solid #000;overflow:hidden;word-break:break-word}
+.lb-title.small{font-size:8pt}
+.lb-nutri{border:.23mm solid #000;display:grid;grid-template-rows:3mm 1fr}
+.lb-nutri-head{font-weight:850;font-size:6.4pt;text-align:center;border-bottom:.2mm solid #000;padding:.22mm}
+.lb-nutri-values{display:grid;grid-template-columns:repeat(4,1fr)}
+.lb-nutri-values>div{display:grid;grid-template-rows:1fr 1fr;text-align:center;align-items:center;min-width:0;border-right:.2mm solid #000;line-height:1}
+.lb-nutri-values>div:last-child{border:0}
+.lb-nutri-values b{font-size:6.9pt;font-weight:900}
+.lb-nutri-values span{font-size:6.5pt;font-weight:700}
+.lb-ingredients{border:.23mm solid #000;padding:.65mm .8mm;font-size:6.25pt;line-height:1.13;overflow:hidden;word-break:break-word}
+.lb-ingredients b{font-weight:900}
+.lb-bottom{display:grid;grid-template-columns:34% 40% 26%;border:.23mm solid #000;overflow:hidden}
+.lb-bottom>div{border-right:.2mm solid #000;min-width:0}
+.lb-bottom>div:last-child{border-right:0}
+.lb-weight{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 .8mm}
+.lb-weight small{font-size:6pt;font-weight:800;white-space:nowrap}
+.lb-weight strong{font-size:9.1pt;font-weight:900;letter-spacing:-.04em;white-space:nowrap}.lb-weight em{font-style:normal;font-size:6pt;font-weight:850;white-space:nowrap}
+.lb-dates{display:flex;flex-direction:column;justify-content:center;gap:.2mm;padding:0 .55mm;font-size:5.8pt}
+.lb-dates div{display:flex;flex-direction:column;align-items:start;gap:0;white-space:nowrap}
+.lb-dates b{font-weight:850;font-size:4.6pt;white-space:nowrap}
+.lb-dates span{font-weight:750;white-space:nowrap;font-size:5pt}
+.lb-storage{display:grid;grid-template-rows:1fr 1fr;text-align:center;font-size:5.6pt}
+.lb-storage div{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:0 .3mm}
+.lb-storage div:first-child{border-bottom:.2mm solid #000}
+.lb-storage b{font-size:6.2pt;font-weight:900;white-space:nowrap}
+.lb-storage span{font-size:4.6pt;white-space:nowrap}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}.stage{min-height:350px}.preview-scale{transform:scale(.98)}}@media(max-width:620px){.shell{padding:14px 12px 36px}.box{padding:17px}.stage{min-height:260px}.preview-scale{transform:scale(.69)}.fields{grid-template-columns:1fr}.title{padding:25px 0 20px}.brand{font-size:18px}.link{font-size:11px;padding:10px}}
+@media(max-width:410px){.preview-scale{transform:scale(.55)}.stage{min-height:230px}}
+@page{size:58mm 40mm;margin:0}
+@media print{html,body{padding:0!important;margin:0!important;width:58mm!important;background:white!important}.shell,dialog{display:none!important}.printsheet{display:block!important}
+ .label{break-after:page;page-break-after:always;break-inside:avoid;width:58mm;height:40mm}
+ .label:last-child{break-after:auto;page-break-after:auto}
+}
+</style></head>
+<body>
+<div class="shell">
+<header><div><div class="brand">СУШИ <em>БЕРИ</em></div><div class="crumb">МАРКИРОВКА · FARRUH AI</div></div><div class="tools"><a class="link" href="/marking.html">31 × 20 · Полуфабрикаты</a><a class="link" href="/">← Главная</a></div></header>
+<div class="title"><span class="eyebrow">Готовая продукция</span><h1>Этикетки 58 × 40 мм</h1><p class="desc">Чёрно-белый шаблон №1: строгие рамки, таблица пищевой ценности, состав и автоматические даты.</p></div>
+<div class="grid">
+<section class="box"><div class="heading"><h2>Товары</h2><button id="add" class="soft">＋ Добавить товар</button></div>
+<input id="query" class="search" placeholder="Поиск по названию" aria-label="Поиск товара" type="search">
+<div id="products" class="list"></div>
+<p class="note">Первый товар заполнен <b>примерными данными с выбранного макета</b>. Состав, массу и КБЖУ обязательно сверь с фактической ТТК до печати на продажу.</p>
+</section>
+<section class="box">
+<div class="heading"><h2>Предпросмотр этикетки</h2><div class="tools"><span class="size">58 × 40 мм</span><button class="soft" id="edit">✎ Редактировать</button></div></div>
+<div class="stage"><div class="preview-scale" id="preview"></div></div>
+<div class="fields"><label class="field-label">Дата и время изготовления<input id="made" type="datetime-local"></label><label class="field-label">Количество этикеток<select id="copies"><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option><option>20</option></select></label></div>
+<div class="actions"><button class="soft" id="reset-time">↻ Сейчас</button><button class="primary" id="print">▣ Печатать этикетку</button></div>
+<div class="status" id="status" role="status"></div>
+<p class="caption">Установи в принтере размер 58 × 40 мм, масштаб 100%, без полей и колонтитулов. Браузер откроет системный диалог печати; для печати без него нужен отдельный драйвер/агент.</p>
+<p class="note"><b>Маркировка для продажи:</b> этот шаблон намеренно не содержит изготовителя, адреса и отдельного блока аллергенов по твоему запросу. Для упакованной пищевой продукции обязательные сведения определяются ТР ТС 022/2011. Перед реальным использованием проверь полноту маркировки.</p>
+</section></div><footer>СУШИ БЕРИ · Этикетки сохраняются в браузере этого устройства; с Frontpad автоматически не синхронизируются.</footer>
+</div>
+<div id="printsheet" class="printsheet"></div>
+<dialog id="editor"><form id="form">
+<div class="dialog-top"><h2 id="editor-heading">Товар</h2><button id="close" class="soft" type="button">✕</button></div>
+<div class="dialog-fields">
+<label>Название<input id="f-name" required maxlength="70"></label>
+<label>Состав<textarea id="f-composition" required maxlength="280"></textarea></label>
+<div class="two"><label>Белки, г на 100 г<input id="f-p" type="number" step=".1" min="0" max="100" required></label><label>Жиры, г на 100 г<input id="f-f" type="number" step=".1" min="0" max="100" required></label></div>
+<div class="two"><label>Углеводы, г на 100 г<input id="f-c" type="number" step=".1" min="0" max="100" required></label><label>Энергетическая ценность, ккал<input id="f-kcal" type="number" step="1" min="0" max="1000" required></label></div>
+<div class="two"><label>Вес нетто, г<input id="f-weight" type="number" min="1" step="1" required></label><label>Допуск ±, г<input id="f-tolerance" type="number" min="0" step="1" required></label></div>
+<div class="two"><label>Срок годности, ч<input id="f-hours" type="number" min=".5" max="720" step=".5" required></label><label>Условия хранения<input id="f-storage" maxlength="24" required placeholder="+2…+6 °C"></label></div>
+</div>
+<div class="dialog-actions"><button type="button" id="delete" class="danger">Удалить товар</button><button type="submit" class="primary">Сохранить</button></div>
+</form></dialog>
+<script>
+(()=>{
+'use strict';
+const KEY='farruh:ready-labels:v1',TZ='Europe/Moscow';
+const seed=()=>({version:1,products:[{id:'philadelphia',name:'Ролл Филадельфия',composition:'рис, нори, сыр творожный, огурец, форель',p:7,f:10.2,c:15.5,kcal:183,weight:275,tolerance:10,hours:12,storage:'+2…+6 °C'}]});
+let state=seed(),current='philadelphia',editing=null;
+const $=id=>document.getElementById(id);
+const text=(tag,content,cls)=>{const n=document.createElement(tag);if(content!==undefined)n.textContent=String(content);if(cls)n.className=cls;return n};
+function safeLoad(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x?.version===1&&Array.isArray(x.products))state=x}catch{}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{return false}}
+const product=()=>state.products.find(p=>p.id===current)||null;
+function nowLocal(){const x=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());let t=Object.fromEntries(x.filter(z=>z.type!=='literal').map(z=>[z.type,z.value]));return t.year+'-'+t.month+'-'+t.day+'T'+t.hour+':'+t.minute}
+function toEpoch(value){if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))return NaN;let ms=Date.parse(value+':00+03:00');return Number.isFinite(ms)?ms:NaN}
+function fmt(ms){return new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','')}
+const num=v=>Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1,minimumFractionDigits:1});
+function makeLabel(p,epoch){
+ const exp=epoch+Number(p.hours)*3600000;
+ const root=text('div',undefined,'label'),inner=text('div',undefined,'label-inner');
+ const h=text('div',undefined,'lb-top');h.append(text('b','СУШИ БЕРИ'),text('span','Готовая продукция'));inner.append(h);
+ const title=text('div',p.name.toUpperCase(),'lb-title'+(p.name.length>24?' small':''));inner.append(title);
+ const nutri=text('div',undefined,'lb-nutri'),nh=text('div','Пищевая ценность на 100 г','lb-nutri-head'),nv=text('div',undefined,'lb-nutri-values');
+ for(const [k,v] of [['Б (г)',num(p.p)],['Ж (г)',num(p.f)],['У (г)',num(p.c)],['Ккал',String(p.kcal)]]){let cell=text('div');cell.append(text('b',k),text('span',v));nv.append(cell)}
+ nutri.append(nh,nv);inner.append(nutri);
+ const ingredients=text('div',undefined,'lb-ingredients');ingredients.append(text('b','Состав: '),document.createTextNode(p.composition));inner.append(ingredients);
+ const b=text('div',undefined,'lb-bottom'),weight=text('div',undefined,'lb-weight');
+ weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г'),text('em','(±'+p.tolerance+' г)'));
+ const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изгот.:',fmt(epoch)],['Годен:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
+ const storage=text('div',undefined,'lb-storage');const s1=text('div');s1.append(text('span','Хранить при:'),text('b',p.storage));const s2=text('div');s2.append(text('span','Срок годности:'),text('b',p.hours+' ч'));storage.append(s1,s2);
+ b.append(weight,dates,storage);inner.append(b);root.append(inner);return root;
+}
+function valid(p){return !!p&&p.name?.trim()&&p.composition?.trim()&&p.storage?.trim()&&[p.p,p.f,p.c,p.kcal,p.weight,p.tolerance,p.hours].every(x=>Number.isFinite(Number(x)))&&Number(p.weight)>0&&Number(p.hours)>.01}
+function preview(){const p=product(),epoch=toEpoch($('made').value),box=$('preview');box.replaceChildren();
+ if(valid(p)&&Number.isFinite(epoch))box.append(makeLabel(p,epoch));
+ const msg=!p?'Добавь товар.':!valid(p)?'Заполни все сведения о товаре.':!Number.isFinite(epoch)?'Укажи дату и время изготовления.':'';
+ $('status').textContent=msg;$('print').disabled=!!msg;$('edit').disabled=!p;
+}
+function render(){const box=$('products'),q=$('query').value.trim().toLowerCase();box.replaceChildren();
+ const items=state.products.filter(p=>p.name.toLowerCase().includes(q));
+ if(!items.length)box.append(text('p','Ничего не найдено.','caption'));
+ for(const p of items){const b=text('button',undefined,'item'+(p.id===current?' selected':''));b.type='button';
+ const icon=text('span','🍣','icon'),txt=text('span');txt.append(text('b',p.name),text('small',p.weight+' г · '+p.hours+' ч'));
+ b.append(icon,txt,text('strong','→'));b.onclick=()=>{current=p.id;$('made').value=nowLocal();render();preview()};box.append(b)}
+ preview();
+}
+function openEditor(p){editing=p?.id||null;$('editor-heading').textContent=p?'Редактировать товар':'Добавить товар';
+ const fields={name:'name',composition:'composition',p:'p',f:'f',c:'c',kcal:'kcal',weight:'weight',tolerance:'tolerance',hours:'hours',storage:'storage'};
+ for(const [field,key] of Object.entries(fields))$('f-'+field).value=p?.[key]??'';
+ $('delete').hidden=!p;$('editor').showModal();
+}
+function submit(e){e.preventDefault();
+ const name=$('f-name').value.trim(),composition=$('f-composition').value.trim(),storage=$('f-storage').value.trim();
+ const p={id:editing||('product-'+Date.now().toString(36)),name,composition,storage};
+ for(const key of ['p','f','c','kcal','weight','tolerance','hours'])p[key]=Number($('f-'+key).value);
+ if(!valid(p)||p.name.length>70||p.composition.length>280||p.weight>50000||p.tolerance>p.weight||p.hours>720){$('status').textContent='Проверь введённые поля.';return}
+ if(state.products.some(x=>x.id!==editing&&x.name.toLowerCase()===name.toLowerCase())){alert('Такой товар уже есть.');return}
+ let i=state.products.findIndex(x=>x.id===editing);if(i<0)state.products.push(p);else state.products[i]=p;
+ current=p.id;persist();$('editor').close();render();
+}
+function print(){const p=product(),epoch=toEpoch($('made').value),copies=Number($('copies').value);
+ if(!valid(p)||!Number.isFinite(epoch)||!Number.isInteger(copies)||copies<1||copies>20)return;
+ const box=$('printsheet');box.replaceChildren();for(let i=0;i<copies;i++)box.append(makeLabel(p,epoch));
+ window.print();
+}
+safeLoad();current=state.products[0]?.id||null;$('made').value=nowLocal();
+$('query').addEventListener('input',render);$('made').addEventListener('input',preview);
+$('reset-time').onclick=()=>{$('made').value=nowLocal();preview()};
+$('add').onclick=()=>openEditor(null);$('edit').onclick=()=>openEditor(product());
+$('close').onclick=()=>$('editor').close();$('form').addEventListener('submit',submit);
+$('delete').onclick=()=>{const p=product();if(!p||!confirm('Удалить товар «'+p.name+'»?'))return;state.products=state.products.filter(x=>x.id!==p.id);current=state.products[0]?.id||null;persist();$('editor').close();render()};
+$('print').onclick=print;window.addEventListener('afterprint',()=>$('printsheet').replaceChildren());render();
+})();
+</script>
+</body></html>
