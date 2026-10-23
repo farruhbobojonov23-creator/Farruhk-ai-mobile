@@ -109,11 +109,14 @@ import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
+import {mountSiteSettings} from '/site-settings.js?v=1';
+let siteSettings;
 const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
 const desktopMenu=matchMedia('(min-width:1000px)');
 function setMenu(open){$('chef-menu').hidden=document.body.dataset.view==='home'?!open:(desktopMenu.matches?false:!open);$('menu-toggle').setAttribute('aria-expanded',String(open));$('ruby-menu')?.setAttribute('aria-expanded',String(open));document.body.classList.toggle('section-menu-open',open&&desktopMenu.matches&&document.body.dataset.view!=='home')}
 desktopMenu.addEventListener('change',()=>setMenu(false));
-const titles={home:'Кабинет шефа',lab:'ХАССП',recipes:'Техкарты',calc:'Калькулятор',tasks:'Задачи',checks:'Контроль точек',preparations:'Заготовки',chat:'Ассистент'};
+const titles={'site-settings':'Настройки',home:'Кабинет шефа',lab:'ХАССП',recipes:'Техкарты',calc:'Калькулятор',tasks:'Задачи',checks:'Контроль точек',preparations:'Заготовки',chat:'Ассистент'};
+if(/^#custom-[a-z0-9-]+$/.test(location.hash))titles[location.hash.slice(1)]='Моя страница';
 const cardFields={scope:'card-scope',safety:'card-safety',cardNumber:'card-number',cardDate:'card-date',netYieldGrams:'card-yield',pieces:'card-pieces',rawRequirements:'card-raw',preparation:'card-prep',serving:'card-serving',storage:'card-storage',appearance:'card-appearance',taste:'card-taste',chef:'card-chef',approver:'card-approver'};
 let recipeFilter='Все';for(const category of recipeCategories)$('recipe-category').add(new Option(category,category));
 let catalogOpen=false,favoritesOnly=false;const favoriteKey='farruh-favorite-recipes';let favorites=new Set();try{favorites=new Set(JSON.parse(localStorage.getItem(favoriteKey)||'[]'))}catch{}
@@ -152,7 +155,7 @@ let haccpUi={render(){},open(){return false}};
 let haccpLoad=null;
 function ensureHaccp(){
  if(haccpLoad)return haccpLoad;
- haccpLoad=import('/haccp-ui.js?v=108').then(({mountHaccp})=>{
+ haccpLoad=import('/haccp-ui.js?v=109').then(({mountHaccp})=>{
   haccpUi=mountHaccp($('lab'),{getState:()=>state,save,notify:notice});
   if(state)haccpUi.render(state);
   return haccpUi;
@@ -216,6 +219,8 @@ function guard(fn){return async e=>{e?.preventDefault();try{await fn(e)}catch(er
 function empty(box,text){const p=document.createElement('p');p.className='empty';p.textContent=text;box.append(p)}
 function row(box,text,button,action){const r=document.createElement('div');r.className='row';const s=document.createElement('span');s.textContent=text;r.append(s);if(button){const b=document.createElement('button');b.textContent=button;b.onclick=guard(action);r.append(b)}box.append(r)}
 function render(){
+ siteSettings?.render();
+ if(view==='site-settings'||view.startsWith('custom-'))return;
  // Heavy journals, recipes, tasks and checklists are NOT rebuilt when the user is
  // speaking on Home or sending a chat message. Render only the active workspace.
  pearlHome.render();
@@ -457,6 +462,7 @@ async function loadAssistantState(){
 }
 retryLoad.onclick=loadAssistantState;
 mountUnifiedWorkspace();
+siteSettings=mountSiteSettings({getState:()=>state,save,show,titles,settingsDialog,notify:notice});
 try{await requireOwner();await loadAssistantState();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}

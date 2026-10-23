@@ -20,6 +20,7 @@ export function mergeDeviceState(current,incoming){
  const turns=new Set(next.chat.map(x=>JSON.stringify([x.role,x.text])));
  for(const item of source.chat){const key=JSON.stringify([item.role,item.text]);if(!turns.has(key)){next.chat.push(item);turns.add(key)}}
  if(source.categories){const categories=next.categories||[];for(const category of source.categories)if(!categories.some(c=>c.id===category.id||c.name.toLocaleLowerCase('ru')===category.name.toLocaleLowerCase('ru')))categories.push(category);next.categories=categories}
+ if(!next.siteSettings&&source.siteSettings)next.siteSettings=structuredClone(source.siteSettings);
  next.haccp=mergeHaccp(next.haccp,source.haccp);
  return next;
 }
