@@ -39,6 +39,11 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   for(const [k,label] of Object.entries(fields))input(k,label,['shelfLife','temperature'].includes(k)?'input':'textarea');
   form.append(el('p','Срок и температуру укажи по подтверждённым условиям конкретного изделия. Они не назначаются автоматически.'));
   if(!existing)fill();
+  category.oninput=null;
+  category.onchange=()=>{
+   if(dirty&&!confirm('Сменить категорию и подставить её описание? Тексты этого шаблона будут заменены.')){category.value=draft.category;return;}
+   draft.category=category.value;fill();dirty=true;
+  };
   const submit=el('button','Сохранить шаблон');submit.type='submit';form.append(submit,button('Отмена',()=>{if(dirty&&!confirm('Отменить изменения шаблона?'))return;render();}));
   form.onsubmit=async e=>{e.preventDefault();submit.disabled=true;try{draft.name=draft.name.trim();validateMyTemplates([draft]);const item=structuredClone(draft);await save(s=>{s.myRecipeTemplates??=[];const i=s.myRecipeTemplates.findIndex(x=>x.id===item.id);if(i<0)s.myRecipeTemplates.push(item);else s.myRecipeTemplates[i]=item;});render();}catch(err){notify(err.message,true);}finally{submit.disabled=false;}};
  }
