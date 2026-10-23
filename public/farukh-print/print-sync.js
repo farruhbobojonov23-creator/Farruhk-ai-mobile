@@ -26,7 +26,7 @@ let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred
 try{const raw=localStorage.getItem(TOKEN_KEY);if(raw)stored=JSON.parse(raw)}catch{}
 function note(str,error=false){message.textContent=str;message.dataset.error=error?'yes':'no'}
 function paint(){
- controls.hidden=!connected;form.hidden=connected||localStorage.getItem(STAFF_MANAGED)==='1';
+ controls.hidden=!connected;form.hidden=connected; // re-pairing does not unlock employee print gate
  link.disabled=busy;update.disabled=busy;
  badge.textContent=connected?'● Подключено':localStorage.getItem(STAFF_MANAGED)==='1'?'● Нужна повторная привязка':'○ Не подключено';
  badge.dataset.connected=connected?'yes':'no';
