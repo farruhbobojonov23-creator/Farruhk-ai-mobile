@@ -30,7 +30,7 @@ h1{font-size:clamp(30px,4vw,45px);letter-spacing:-.055em;line-height:1.08;margin
 .field-label{font-size:11px;font-weight:750;color:#68707b;display:block}
 .field-label input,.field-label select,.field-label textarea{width:100%;min-height:43px;margin-top:7px;border:1px solid #e1e3e7;padding:10px 12px;border-radius:10px;background:#fff;color:#202530;font-size:13px}
 .field-label textarea{min-height:75px;resize:vertical}
-.actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap}
+.actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap}.bt-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0}.bt-state{font-size:12px;line-height:1.5;color:#296a58;margin:7px 0 14px;min-height:18px}.bt-state[data-error='yes']{color:#a22c3c}.bt-tools .soft{background:#f7fcfa;border-color:#b5d7c9}.actions #direct-print{background:#13765a}.actions #direct-print:hover{background:#095b43}.actions #direct-print:disabled{opacity:.45;cursor:not-allowed}
 .note{font-size:11.5px;line-height:1.55;color:#7f6551;border-radius:11px;padding:11px 13px;background:#fff9f2;border:1px solid #f0e4d2;margin:14px 0}
 .status{font-size:12px;color:#a62b41;line-height:1.4;min-height:18px;margin:10px 0}
 .printsheet{display:none}
@@ -96,9 +96,10 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 <div class="heading"><h2>Предпросмотр этикетки</h2><div class="tools"><span class="size">58 × 40 мм</span><button class="soft" id="edit">✎ Редактировать</button></div></div>
 <div class="stage"><div class="preview-scale" id="preview"></div></div>
 <div class="fields"><label class="field-label">Дата и время изготовления<input id="made" type="datetime-local"></label><label class="field-label">Количество этикеток<select id="copies"><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option><option>20</option></select></label></div>
-<div class="actions"><button class="soft" id="reset-time">↻ Сейчас</button><button class="primary" id="print">▣ Печатать этикетку</button></div>
+<div class="bt-tools"><button class="soft" id="bt-connect" type="button">⌁ Подключить V3 BT</button><span class="caption">Прямая печать Bluetooth · Google Chrome</span></div><p class="bt-state" id="bluetooth-status" role="status" aria-live="polite">Проверяю поддержку Bluetooth-принтера…</p>
+<div class="actions"><button class="soft" id="reset-time">↻ Сейчас</button><button class="soft" id="print" type="button">Системная печать</button><button class="primary" id="direct-print" type="button">⚡ Печатать на V3</button></div>
 <div class="status" id="status" role="status"></div>
-<p class="caption">Установи в принтере размер 58 × 40 мм, масштаб 100%, без полей и колонтитулов. Браузер откроет системный диалог печати; для печати без него нужен отдельный драйвер/агент.</p>
+<p class="caption">Прямая печать: один раз соедини V3 BT с Android и нажми «Подключить V3 BT» в Chrome. После подключения кнопка «Печатать на V3» отправляет этикетку 58 × 40 мм напрямую без системного выбора принтера. Если прямое соединение недоступно, воспользуйся «Системная печать». Скорость и фактическую распечатку необходимо проверить на твоём принтере.</p>
 <p class="note"><b>Маркировка для продажи:</b> этот шаблон намеренно не содержит изготовителя, адреса и отдельного блока аллергенов по твоему запросу. Для упакованной пищевой продукции обязательные сведения определяются ТР ТС 022/2011. Перед реальным использованием проверь полноту маркировки.</p>
 </section></div><footer>СУШИ БЕРИ · Этикетки сохраняются в браузере этого устройства; с Frontpad автоматически не синхронизируются.</footer>
 </div>
@@ -186,8 +187,8 @@ $('reset-time').onclick=()=>{$('made').value=nowLocal();preview()};
 $('add').onclick=()=>openEditor(null);$('edit').onclick=()=>openEditor(product());
 $('close').onclick=()=>$('editor').close();$('form').addEventListener('submit',submit);
 $('delete').onclick=()=>{const p=product();if(!p||!confirm('Удалить товар «'+p.name+'»?'))return;state.products=state.products.filter(x=>x.id!==p.id);current=state.products[0]?.id||null;persist();$('editor').close();render()};
-window.FARUKH_LABELS={getProducts:()=>state.products,applyProducts:products=>{const prev=state.products;state.products=products;if(!persist()){state.products=prev;throw Error('Не удалось сохранить этикетки на устройстве')}render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';if(product()?.ttkId===imported.ttkId)pendingTtkSignature=imported.ttkSignature;}};
+window.FARUKH_LABELS={getPrintJob:()=>{const p=product(),epoch=toEpoch($('made').value),copies=Number($('copies').value);if(!valid(p)||p.needsReview||p.sourceChanged||!Number.isFinite(epoch)||!Number.isInteger(copies)||copies<1||copies>20)return null;return {product:structuredClone(p),epoch,copies}},getProducts:()=>state.products,applyProducts:products=>{const prev=state.products;state.products=products;if(!persist()){state.products=prev;throw Error('Не удалось сохранить этикетки на устройстве')}render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';if(product()?.ttkId===imported.ttkId)pendingTtkSignature=imported.ttkSignature;}};
 $('print').onclick=print;window.addEventListener('afterprint',()=>$('printsheet').replaceChildren());render();
 })();
-</script><script type="module" src="/label-auto-ui.js?v=1"></script>
+</script><script type="module" src="/label-auto-ui.js?v=1"></script><script type="module" src="/label-bluetooth-direct.js?v=1"></script>
 </body></html>
