@@ -17,6 +17,11 @@ export function mountPrintCloudControl({root,renderLocal}){
  const title=el('h2','','Облачное управление FARUKH PRINT');
  const explanation=el('p','','Здесь публикуется единая база для подключённых телефонов и планшетов. Без специального кода и разрешения владельца устройства не подключатся.');
  const status=el('p','pcloud-status','Проверяю доступность…');
+ const publishBadge=el('div','pcloud-connection-summary');
+ const publishState=el('span','pcloud-state','Облако: проверка');
+ const deviceState=el('span','pcloud-devices-count','Устройства: —');
+ const transferHelp=el('p','pcloud-foot','1. Добавь товары или собственные фото выше. 2. Опубликуй локальную базу один раз. 3. После согласования базы новые изменения будут отправляться автоматически. Подключённые планшеты проверяют изменения примерно раз в минуту.');
+ publishBadge.append(publishState,deviceState);
  // The rest of FARUKH AI may be in passwordless mode. Device management must
  // still require a verified owner session: never weaken the server guard.
  const loginForm=el('form','pcloud-owner-login');
@@ -40,10 +45,14 @@ export function mountPrintCloudControl({root,renderLocal}){
  const devicesTitle=el('h3','','Разрешённые устройства');
  const devices=el('div','pcloud-devices');
  const hint=el('p','pcloud-foot','Первую загрузку делай осознанно: она заменяет локальную базу приложения. До переноса рекомендуется сохранить JSON-копию. Устройства автоматически получают обновления при соединении с интернетом.');
- box.append(title,explanation,status,loginForm,actions,codeBox,devicesTitle,devices,hint);
+ box.append(title,explanation,status,publishBadge,transferHelp,loginForm,actions,codeBox,devicesTitle,devices,hint);
  root.insertBefore(box,root.children[3]||null); // cloud controls after catalog counters, before editor
  let enabled=false,rev=null,remoteProducts=[],auto=false,busy=false,queue=Promise.resolve(),fetched=false,loginRequired=false;
  const tell=(message,err=false)=>{status.textContent=message;status.dataset.error=err?'yes':'no'};
+ const mark=(label,pending=false)=>{
+  publishState.textContent=label;
+  publishState.dataset.pending=pending?'yes':'no';
+ };
  const lock=on=>{busy=on;for(const item of actions.querySelectorAll('button'))item.disabled=on};
  const askForLogin=()=>{
    loginRequired=true;fetched=false;auto=false;loginForm.hidden=false;codeBox.hidden=true;
@@ -69,16 +78,17 @@ export function mountPrintCloudControl({root,renderLocal}){
  }
  async function refreshRemote(){
   if(!enabled)return;
-  lock(true);
+  lock(true);mark('Облако: проверяю…');
   try{
     const data=await api('/admin/catalog');
     fetched=true;rev=data.revision;remoteProducts=data.products;loginRequired=false;loginForm.hidden=true;
     const local=read();
     auto=JSON.stringify(local)===JSON.stringify(remoteProducts)&&local.length===remoteProducts.length;
+    mark(auto?'Каталог синхронизирован · версия '+rev:'Есть неопубликованные отличия · версия '+rev,!auto);
     tell('Облако: '+remoteProducts.length+' позиций · версия '+rev+'. Локально: '+local.length+'. '+(auto?'Каталоги совпадают, последующие изменения будут публиковаться автоматически.':'Каталоги отличаются. Выбери «Опубликовать» или «Загрузить».'),false);
     await loadDevices();
     if(typeof window.dispatchEvent==='function')window.dispatchEvent(new Event('farukh-print-owner-authenticated'));
-  }catch(e){fetched=false;auto=false;if(e.status===401)askForLogin();else tell('Облачный каталог не загружен: '+e.message,true)}
+  }catch(e){fetched=false;auto=false;mark('Облако: недоступно',true);if(e.status===401)askForLogin();else tell('Облачный каталог не загружен: '+e.message,true)}
   finally{lock(false);updateState()}
  }
  async function publish(autoMode=false){
@@ -87,13 +97,14 @@ export function mountPrintCloudControl({root,renderLocal}){
   // happens after the owner has linked identical or explicitly chosen data.
   if(!autoMode&&!confirm('Опубликовать текущую локальную базу на все подключённые устройства? Перед публикацией проверь сроки хранения.'))return;
   const local=read(),originalRev=rev;
-  lock(true);
+  lock(true);mark('Публикую изменения…',true);
   try{
     const out=await api('/admin/catalog',{method:'PUT',body:JSON.stringify({revision:originalRev,products:local})});
     rev=out.revision;remoteProducts=out.products;auto=true;
+    mark('Опубликовано · версия '+rev);
     tell('Опубликована версия '+rev+' · '+out.products.length+' этикеток. Телефоны и планшеты получат обновление.');
   }catch(e){
-    auto=false;if(e.status===401)askForLogin();else tell('База не опубликована: '+e.message+(e.status===409?' Нельзя перезаписывать изменения с другого устройства.':'') ,true);
+    auto=false;mark('Изменения не опубликованы',true);if(e.status===401)askForLogin();else tell('База не опубликована: '+e.message+(e.status===409?' Нельзя перезаписывать изменения с другого устройства.':'') ,true);
   }finally{lock(false);updateState()}
  }
  async function download(){
@@ -103,7 +114,7 @@ export function mountPrintCloudControl({root,renderLocal}){
     localStorage.setItem(KEY,JSON.stringify(remoteProducts));
     window.dispatchEvent(new StorageEvent('storage',{key:KEY,newValue:JSON.stringify(remoteProducts)}));
     renderLocal?.();
-    auto=true;tell('База загружена из облака. Теперь изменения через управляющий центр будут публиковаться автоматически.');
+    auto=true;mark('Каталог синхронизирован · версия '+rev);tell('База загружена из облака. Теперь изменения через управляющий центр будут публиковаться автоматически.');
   }catch(e){tell('Ошибка записи локальной базы: '+e.message,true)}
   updateState();
  }
@@ -126,6 +137,7 @@ export function mountPrintCloudControl({root,renderLocal}){
  async function loadDevices(){
   const result=await api('/admin/devices');devices.replaceChildren();
   const active=result.devices.filter(x=>!x.revoked);
+  deviceState.textContent='Устройства: '+active.length+' подключено';
   if(!active.length){devices.append(el('p','pcloud-empty','Пока нет подключённых устройств. Создай код подключения.'));return}
   for(const d of active){
     const row=el('div','pcloud-device');const info=el('div');
@@ -157,7 +169,15 @@ export function mountPrintCloudControl({root,renderLocal}){
    finally{loginButton.disabled=false}
  });
  window.addEventListener('farukh-print-catalog-local-updated',()=>{
-   if(!enabled||!auto)return;
+   if(!enabled||!fetched){
+     mark('Локальные изменения ожидают подключения',true);
+     return;
+   }
+   mark('Не опубликованы последние изменения',true);
+   if(!auto){
+     tell('Товары сохранены локально. Нажми «Опубликовать локальную базу», чтобы передать фото и товары подключённым точкам.');
+     return;
+   }
    // Queue uses latest local state, ensures revision ordering.
    queue=queue.then(()=>publish(true)).catch(e=>tell(e.message,true));
  });
