@@ -1,0 +1,59 @@
+name: Android FARUKH AI APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-apk.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-apk.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Ensure Android SDK 35 is installed
+        shell: bash
+        run: |
+          set -e
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1)"
+          if [ -z "$SDKMANAGER" ]; then
+            curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
+            mkdir -p /tmp/androidcmd
+            unzip -q /tmp/android-tools.zip -d /tmp/androidcmd
+            mkdir -p "$SDK_ROOT/cmdline-tools/latest"
+            cp -R /tmp/androidcmd/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          yes | sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+          sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Prepare writable Android user and debug keystore dirs
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.config/.android" || true
+          mkdir -p "$RUNNER_TEMP/android-user-home"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/android-user-home" >> "$GITHUB_ENV"
+      - name: Build debug APK for testing
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-AI-Android-test
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

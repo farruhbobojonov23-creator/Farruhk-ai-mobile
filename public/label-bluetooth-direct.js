@@ -5,6 +5,9 @@
 const W=464, H=320, DPI=8, encoder=new TextEncoder();
 const asBytes=value=>encoder.encode(value);
 const printerState={port:null,connected:false,working:false};
+const androidNative=!!window.FarukhPrinter?.postMessage;
+const nativeSend=data=>window.FarukhPrinter.postMessage(JSON.stringify(data));
+const encode64=bytes=>{let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(binary)};
 const $=id=>document.getElementById(id);
 const status=$('bluetooth-status'),connect=$('bt-connect'),button=$('direct-print');
 const available=()=>!!navigator.serial&&!!navigator.serial.requestPort;
@@ -15,11 +18,19 @@ function say(message,error=false){
 }
 function setUI(){
   button.disabled=printerState.working||$('print').disabled;
+  if(androidNative){connect.disabled=printerState.working;connect.textContent='⌁ Выбрать Bluetooth-принтер';return}
   connect.disabled=printerState.working||!available();
   connect.textContent=printerState.connected?'✓ V3 подключён':'⌁ Подключить V3 BT';
 }
-if(!available()){
-  say('Для прямой Bluetooth-печати нужен актуальный Google Chrome на Android (Web Serial). 4Barcode и системная печать останутся доступны.',true);
+if(androidNative){
+  say('Приложение FARUKH AI: Bluetooth-печать готова. Нажми «Печатать на V3».');
+  window.FarukhPrinter.onmessage=event=>{
+    try{const m=JSON.parse(event.data);say(m.message||'Ответ принтера',!m.ok)}
+    catch{say('Ответ от приложения получен.')}
+    printerState.working=false;setUI();
+  };
+}else if(!available()){
+  say('Прямой Bluetooth из браузера недоступен. Установи Android-приложение FARUKH AI.',true);
   connect.disabled=true;
 }else say('Подключи V3 BT один раз, затем печатай прямо из FARUKH AI.');
 async function selectPort(){
@@ -33,6 +44,7 @@ async function selectPort(){
 }
 connect.addEventListener('click',async()=>{
   if(printerState.working)return;
+  if(androidNative){printerState.working=true;setUI();try{nativeSend({type:'select'})}catch(e){printerState.working=false;say(e.message,true);setUI()}return}
   if(printerState.connected){say('Принтер уже подключён. Нажми «Печатать на V3».');return}
   if(!available()){say('В этом браузере нет Web Serial. Открой страницу в последней версии Google Chrome.',true);return}
   try{
@@ -165,6 +177,15 @@ async function printNow(){
   let job;
   try{job=app?.getPrintJob();if(!job)throw Error('Сначала подтверди сведения на этикетке и укажи дату.')}
   catch(e){say(e.message,true);return}
+  if(androidNative){
+    printerState.working=true;setUI();
+    try{
+      const bytes=buildTSPL(rasterLabel(job.product,job.epoch),job.copies);
+      nativeSend({type:'print',tspl:encode64(bytes)});
+      say('Передаю задание в Bluetooth-принтер…');
+    }catch(e){say('Печать не отправлена: '+e.message,true);printerState.working=false;setUI()}
+    return;
+  }
   if(!available()){say('Прямой Bluetooth-печати нет в этом браузере. Открой FARUKH AI через Google Chrome.',true);return}
   if(!printerState.connected||!printerState.port){
     // The same print tap may request Bluetooth access and then submit the job.
@@ -200,7 +221,7 @@ observer.observe($('print'),{attributes:true,attributeFilter:['disabled']});
 setUI();
 // After the first explicit pairing, Chrome may remember the grant. Try to
 // reconnect without opening another picker; failures do not print anything.
-if(available()&&navigator.serial.getPorts){
+if(!androidNative&&available()&&navigator.serial.getPorts){
   void navigator.serial.getPorts().then(async ports=>{
     if(printerState.port||printerState.working||ports.length!==1)return;
     try{

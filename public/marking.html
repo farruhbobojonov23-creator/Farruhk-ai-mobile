@@ -212,7 +212,7 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
     const sheet=$('print-sheet');sheet.replaceChildren();const l=labelData(p);
     for(let i=0;i<copies;i++){const label=makeLabel(l);label.classList.add('print-label');sheet.append(label)}
     data.logs.unshift({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name:p.name,point:selectedPoint,copies,at:formatTime(Date.now()),prepared:l.made,expires:l.expires});
-    data.logs=data.logs.slice(0,500);store();renderLogs();window.print();
+    data.logs=data.logs.slice(0,500);store();renderLogs();if(window.FarukhPrinter?.postMessage&&typeof window.FARUKH_PREP_NATIVE_PRINT==='function')window.FARUKH_PREP_NATIVE_PRINT(l,copies);else window.print();
   }
   function editProduct(p){editing=p?.id||null;$('dialog-title').textContent=p?'Редактировать полуфабрикат':'Добавить полуфабрикат';
     $('name').value=p?.name||'';$('category').value=p?.category||'Прочее';$('hours').value=p?.hours??'';$('storage').value=p?.storage||'';$('delete').hidden=!p;$('product-dialog').showModal();
@@ -258,5 +258,6 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
   boot();
 })();
 </script>
+<script type="module" src="/prep-android-print.js?v=1"></script>
 </body>
 </html>
