@@ -39,9 +39,8 @@ jobs:
             cp -R /tmp/androidcmd/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
             SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           fi
-          chmod +x "$SDKMANAGER"
-          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
-          "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
+          yes | sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+          sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
       - name: Build debug APK for testing
