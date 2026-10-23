@@ -69,6 +69,18 @@ test('Owner creates employee, credentials are one-time, only authorized kitchen 
  const log=(await call('get','/api/farukh-print/admin/staff/activity',own)).data.events;
  assert.equal(log.length,1);assert.equal(log[0].copies,2);
  assert.match(log[0].status,/не подтверждение физической печати/);
+ const changed=await call('put','/api/farukh-print/admin/catalog',{
+  ...own,body:{revision:1,products:[draft,{...approved,hours:12}]}
+ });
+ assert.equal(changed.code,200);
+ const stale=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}
+ });
+ assert.equal(stale.code,409);
+ const current=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:2}
+ });
+ assert.equal(current.code,200);
  const disabled=await call('post','/api/farukh-print/admin/staff/:id/status',{...own,params:{id:account.id},body:{active:false}});
  assert.equal(disabled.code,200);
  const denied=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff,body:{productId:'p2',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:1}});
