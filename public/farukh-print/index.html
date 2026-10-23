@@ -46,6 +46,7 @@
   <div class="sub-head"><button class="back" id="manage-back" type="button">← Назад</button><div><div class="eyebrow">ЛОКАЛЬНАЯ БАЗА</div><h2>Управление этикетками</h2></div></div>
   <p class="lead">Создай свою базу один раз. Она хранится на этом устройстве, отдельно от FARUKH AI. Для переноса на телефон или планшет используй резервную копию.</p>
   <div class="manage-head"><div class="pills"><button id="manage-ready" class="pill selected" type="button">58 × 40 <span id="manage-count-ready">0</span></button><button id="manage-prep" class="pill" type="button">31 × 20 <span id="manage-count-prep">0</span></button></div><button id="add-item" class="button button-main" type="button">＋ Добавить товар</button></div>
+  <div class="sanpin-info"><strong>19 полуфабрикатов из списка</strong><p>Названия внесены без неподтверждённых сроков. Действует СанПиН 2.3/2.4.4282-26 (с 01.09.2026). Для печати каждого полуфабриката необходимо подтвердить состав, способ обработки, срок и условия хранения по технологической документации или маркировке изготовителя.</p><button type="button" class="button button-ghost" id="load-starter-prep">＋ Добавить отсутствующие из списка (19)</button></div>
   <div id="manage-list" class="manage-list"></div><div id="manage-empty" class="empty" hidden>В этой категории ещё нет этикеток. Нажми «Добавить товар».</div>
   <div class="backup"><div><strong>Резервная копия базы</strong><small>Перенос товаров между телефоном и планшетом без синхронизации.</small></div><div class="backup-actions"><button id="export-db" class="button button-ghost" type="button">↓ Сохранить базу</button><button id="import-db" class="button button-ghost" type="button">↑ Загрузить базу</button><input id="import-file" type="file" accept=".json,application/json" hidden></div></div>
   <div class="security-note">Доступ к настройкам пока не защищён паролем. Учётные записи и журнал действий добавим отдельно, когда согласуем систему пользователей.</div>
@@ -62,11 +63,12 @@
     <div class="edit-grid"><label class="field">Вес нетто, г<input id="edit-weight" type="number" min="1" max="10000" step="1" required></label><label class="field">Допуск ±, г<input id="edit-tolerance" type="number" min="0" max="1000" step="1" value="10" required></label></div>
   </div>
   <div id="prep-fields" hidden><label class="field">Точка (по умолчанию)<input id="edit-point" type="text" maxlength="40" placeholder="Плазма"></label></div>
+  <label id="approval-area" class="approval-area" hidden><input type="checkbox" id="edit-approval"><span>Подтверждаю, что срок и условия хранения установлены по документации и соответствуют способу приготовления, составу и фактическому температурному режиму. Пока не отмечено — печать заблокирована.</span></label>
   <div class="edit-grid"><label class="field">Условия хранения<input id="edit-storage" type="text" maxlength="60" placeholder="+2…+6 °C" required></label><label class="field">Срок годности, часов<input id="edit-hours" type="number" min="1" max="8760" step="1" required></label></div>
   <div class="edit-actions"><button id="cancel-editor" type="button" class="button button-ghost">Отмена</button><button type="submit" class="button button-main">Сохранить товар</button></div>
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./print.js?v=1" defer></script>
+<script src="./print.js?v=2" defer></script>
 </body>
 </html>
