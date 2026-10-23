@@ -152,8 +152,10 @@ function preview(){const p=product(),epoch=toEpoch($('made').value),box=$('previ
  $('status').textContent=msg;$('print').disabled=!!msg;$('edit').disabled=!p;
 }
 function render(){const box=$('products'),q=$('query').value.trim().toLowerCase();box.replaceChildren();
- const items=state.products.filter(p=>p.name.toLowerCase().includes(q));
+ const matches=state.products.filter(p=>p.name.toLowerCase().includes(q));
+ const items=matches.slice(0,70); // Keep Android responsive even when hundreds of TTKs are imported.
  if(!items.length)box.append(text('p','Ничего не найдено.','caption'));
+ if(matches.length>70)box.append(text('p','Показано 70 из '+matches.length+'. Введи название в поиске, чтобы найти остальные.','caption'));
  for(const p of items){const b=text('button',undefined,'item'+(p.id===current?' selected':''));b.type='button';
  const icon=text('span','🍣','icon'),txt=text('span');txt.append(text('b',p.name),text('small',(p.weight??'—')+' г · '+p.hours+' ч'+(p.ttkId?' · из ТТК':'')));if(p.needsReview||p.sourceChanged)txt.append(text('small',p.sourceChanged?'ТТК обновилась — проверь':'Требуется подтверждение','ttk-badge warn'));
  b.append(icon,txt,text('strong','→'));b.onclick=()=>{current=p.id;$('made').value=nowLocal();render();preview()};box.append(b)}
