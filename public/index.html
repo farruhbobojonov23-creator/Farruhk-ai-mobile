@@ -224,7 +224,7 @@ function guard(fn){return async e=>{e?.preventDefault();try{await fn(e)}catch(er
 function empty(box,text){const p=document.createElement('p');p.className='empty';p.textContent=text;box.append(p)}
 function row(box,text,button,action){const r=document.createElement('div');r.className='row';const s=document.createElement('span');s.textContent=text;r.append(s);if(button){const b=document.createElement('button');b.textContent=button;b.onclick=guard(action);r.append(b)}box.append(r)}
 const printCenter=mountPrintControl({root:$('print-control-root')});
-mountPrintCloudControl({root:$('print-control-root'),renderLocal:()=>printCenter.render()});
+let printCloud=null;
 function render(){
  if(view==='print-control'){printCenter.render();return}
  siteSettings?.render();
@@ -483,7 +483,7 @@ mountMyRecipeTemplates({getState:()=>state,save,notify:notice,createRecipe:async
 }});
 mountUnifiedWorkspace();
 siteSettings=mountSiteSettings({getState:()=>state,save,show,titles,settingsDialog,notify:notice});
-try{await requireOwner();await loadAssistantState();
+try{await requireOwner();printCloud=mountPrintCloudControl({root:$('print-control-root'),renderLocal:()=>printCenter.render()});await loadAssistantState();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}
 </script></body></html>
