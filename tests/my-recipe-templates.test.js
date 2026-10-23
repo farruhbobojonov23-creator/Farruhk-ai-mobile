@@ -18,3 +18,10 @@ test('application combines storage without changing template',()=>{
 test('corrupt template backup is rejected',()=>{
  assert.throws(()=>validateMyTemplates([{}]));assert.throws(()=>validateMyTemplates([{...template,forming:42}]));validateMyTemplates([template]);validateMyTemplates(undefined);
 });
+
+import {resolveCategoryFields,templateFor} from '../public/recipe-math.js';
+import {cleanState} from '../assistant-store.js';
+test('personal template fields survive export normalization including intentional blanks',()=>{
+ const recipe={id:'personal',name:'Мой вок',category:'Воки',ingredients:[],customTemplate:true,forming:templateFor('Холодные роллы',8).forming,storage:'',appearance:'',taste:'Авторский текст'};
+ const clean=cleanState({recipes:[recipe]}).recipes[0];assert.equal(clean.customTemplate,true);assert.equal(resolveCategoryFields(clean).forming,recipe.forming);assert.equal(resolveCategoryFields(clean).storage,'');assert.equal(resolveCategoryFields(clean).appearance,'');assert.equal(resolveCategoryFields(clean).taste,'Авторский текст');
+});

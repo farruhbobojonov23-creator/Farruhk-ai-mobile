@@ -219,6 +219,7 @@ export function templateFor(category,pieces=8){
 export const categoryTextFields=['rawRequirements','preparation','forming','serving','storage','appearance','taste','safety'];
 // Upgrade known default text only. User-written descriptions remain intact.
 export function resolveCategoryFields(recipe){
+ if(recipe.customTemplate===true)return {...recipe};
  const next=templateFor(recipe.category,recipe.pieces);
  const known=recipeCategories.flatMap(c=>[legacyTemplateFor(c,recipe.pieces),templateFor(c,recipe.pieces),{...previousCategoryFields[c],safety:rollTemplate.safety+' Контролируют подготовку компонентов и операции, указанные в технологическом процессе категории «'+c+'».'}]);
  const result={...recipe};
