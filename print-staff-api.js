@@ -55,7 +55,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  const passwordFromOwner=body=>{
   if(body?.password===undefined||body?.password===null||body?.password==='')return {password:token().slice(0,16),custom:false};
   if(typeof body.password!=='string'||body.password.length<8||body.password.length>128
-    ||body.password!==body.password.trim()||/[\\u0000-\\u001f\\u007f]/.test(body.password)
+    ||body.password!==body.password.trim()||Array.from(body.password).some(ch=>ch.charCodeAt(0)<32||ch.charCodeAt(0)===127)
     ||['password','12345678','87654321','qwerty123','11111111','00000000'].includes(body.password.toLowerCase()))
     throw bad(400,'Пароль должен быть от 8 до 128 символов, без пробелов по краям, управляющих символов и простых комбинаций.');
   return {password:body.password,custom:true};
