@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6f6f8">
-<title>Маркировка полуфабрикатов · FARUKH AI</title>
+<title>Маркировка полуфабрикатов 31 × 20 · FARUKH AI</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#1c222d;background:#f5f6f8;font-synthesis:none}
 *{box-sizing:border-box}html,body{min-height:100%;margin:0}button,input,select{font:inherit}button{cursor:pointer}
@@ -70,13 +70,32 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
  .print-label:last-child{break-after:auto;page-break-after:auto}
  .label{transform:none!important;border:0!important}
 }
+
+/* Compact 31 × 20 mm labels for semi-finished ingredients; separate from 58 × 40 mm retail. */
+.label{width:31mm;height:20mm;padding:.55mm .8mm}
+.label__head{font-size:4pt;letter-spacing:0;padding-bottom:.25mm;border-bottom:.22mm solid #000;gap:.3mm}
+.label__head b{font-size:3.5pt}
+.label__title{font-size:7.4pt;line-height:1;max-height:4.5mm;margin:.6mm 0 .45mm}
+.label__row{margin:.15mm 0;font-size:4.5pt;gap:.8mm;line-height:1}
+.label__row span{font-size:4.3pt}
+.label__row strong{font-size:5pt}
+.label__expires{border:.18mm solid #000;padding:.25mm .3mm;margin:.2mm 0}
+.label__footer{padding-top:.25mm;margin-top:auto;font-size:3.6pt;border-top:.18mm solid #000}
+.label__footer strong{font-size:3.6pt}
+.preview-stage .label{transform:scale(2.25)}
+@page{size:31mm 20mm;margin:0}
+@media print{
+ html,body{width:31mm!important}
+ .print-label{width:31mm!important;height:20mm!important}
+ .label{width:31mm!important;height:20mm!important}
+}
 </style>
 </head>
 <body>
 <div class="page">
  <header class="top">
    <div><div class="brand">FARRUH <em>AI</em></div><span class="subbrand">КУХНЯ · МАРКИРОВКА</span></div>
-   <div class="top-right"><span class="live">● Независимо от Frontpad</span><a class="ghost" href="/">← В кабинет</a></div>
+   <div class="top-right"><span class="live">● Независимо от Frontpad</span><a class="ghost" href="/finished-labels.html">58 × 40 · Готовая продукция</a><a class="ghost" href="/">← В кабинет</a></div>
  </header>
  <div class="hero">
    <div><span class="overline">РАБОЧИЙ ИНСТРУМЕНТ</span><h1>Маркировка заготовок</h1><p class="lead">Выбери точку и нажми на продукт — откроется печать этикетки.</p></div>
@@ -90,7 +109,7 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
    <p class="hint">Первоначальные позиции — примеры. Сроки и условия хранения нужно настроить по утверждённым ТТК перед печатью.</p>
   </section>
   <section class="panel" aria-label="Этикетка и печать">
-   <div class="panel-head"><h2>Этикетка <span style="color:#9a9da5;font-size:12px">58 × 40 мм</span></h2><button id="edit" class="linkish" type="button">✎ Изменить</button></div>
+   <div class="panel-head"><h2>Этикетка <span style="color:#9a9da5;font-size:12px">31 × 20 мм</span></h2><button id="edit" class="linkish" type="button">✎ Изменить</button></div>
    <div class="preview-stage"><div id="preview" class="label"></div></div>
    <div class="formline">
     <label class="fieldwrap">ВРЕМЯ ИЗГОТОВЛЕНИЯ<input id="prepared" class="field" type="datetime-local" required></label>
@@ -98,7 +117,7 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
    </div>
    <div class="actions"><button id="now" type="button" class="soft">↺ Сейчас</button><button id="print" type="button" class="button-primary">▣ Печатать этикетку</button></div>
    <div id="status" class="status" role="status"></div>
-   <div class="warning"><b>Важно:</b> браузер откроет окно печати. Выбери принтер этикеток и размер 58 × 40 мм, отключи колонтитулы и дополнительные поля. Для печати совсем без диалога потребуется настройка рабочего компьютера или локального печатного агента.</div>
+   <div class="warning"><b>Важно:</b> браузер откроет окно печати. Выбери принтер этикеток и размер 31 × 20 мм, отключи колонтитулы и дополнительные поля. Для печати совсем без диалога потребуется настройка рабочего компьютера или локального печатного агента.</div>
    <div class="log">
     <div class="panel-head"><h2 style="font-size:15px">История заданий печати</h2><button id="csv" type="button" class="linkish">↓ CSV</button></div>
     <p class="hint">Записи сохраняются только на этом устройстве. Запуск диалога печати не подтверждает, что принтер напечатал этикетку.</p>
@@ -151,7 +170,7 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
     return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute;
   };
   const timestamp=v=>{if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v))return NaN;const d=new Date(v+':00+03:00');return Number.isFinite(d.getTime())?d.getTime():NaN};
-  const formatTime=ms=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
+  const formatTime=ms=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
   function store(){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true;return true}catch{storageOK=false;alert('Не удалось сохранить данные на устройстве. Проверь свободное место и разрешение на хранение.');return false}}
   function load(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.version===1&&Array.isArray(r.products)&&Array.isArray(r.points)&&Array.isArray(r.logs)){data=r;data.points=data.points.slice(0,4);while(data.points.length<4)data.points.push('');data.logs=data.logs.slice(0,500)}}catch{storageOK=false}}
   function notice(v){const n=$('message');n.textContent=v;n.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>n.hidden=true,3500)}
@@ -159,7 +178,7 @@ dialog::backdrop{background:#171c29a8}dialog .dialog-body{padding:22px;overflow:
   function makeLabel(obj){const node=elt('div','label');const h=elt('div','label__head'),b=elt('span','', 'FARRUH AI · МАРКИРОВКА'),t=elt('b','','ПОЛУФАБРИКАТ');h.append(b,t);
     const title=elt('div','label__title',obj.name||'НАЗВАНИЕ ПРОДУКТА');
     const row=(label,value,cls='')=>{const r=elt('div','label__row '+cls);r.append(elt('span','',label),elt('strong','',value));return r};
-    node.append(h,title,row('ИЗГОТОВЛЕНО',obj.made||'—'),row('ГОДЕН ДО',obj.expires||'НЕ НАСТРОЕНО','label__expires'));
+    node.append(h,title,row('Изгот.',obj.made||'—'),row('Годен',obj.expires||'НЕ НАСТРОЕНО','label__expires'));
     const foot=elt('div','label__footer');foot.append(elt('span','',obj.storage||'Условия хранения не заданы'),elt('strong','',obj.point||'Выберите точку'));node.append(foot);return node;
   }
   function labelData(p){const start=timestamp($('prepared').value);return {name:p?.name||'',made:Number.isFinite(start)?formatTime(start):'—',expires:isReady(p)&&Number.isFinite(start)?formatTime(start+Number(p.hours)*3600000):'НЕ НАСТРОЕНО',storage:p?.storage||'',point:selectedPoint}}
