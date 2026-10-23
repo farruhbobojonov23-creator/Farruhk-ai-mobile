@@ -274,7 +274,7 @@ function drawPrep(p,epoch,point){
 function makePreview(){
  const p=current();if(!p){previewError='';return null}
  if(kind==='prep'&&(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0)){
-   throw Error('Сначала подтверди срок годности и условия хранения для этого полуфабриката в «Управлении этикетками».');
+   throw Error('Этот продукт пока не готов к печати. Нажми «Заполнить срок и условия хранения» ниже, укажи данные по ТТК или маркировке изготовителя и подтверди их.');
  }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
@@ -396,6 +396,7 @@ function boot(){
  $('editor-form').addEventListener('submit',saveEditor);
  $('cancel-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('close-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
+ $('editor').addEventListener('cancel',()=>{editFromCatalog=null});
  $('fix-label').onclick=()=>{
    const p=current();if(!p||p.kind!=='prep')return;
    editFromCatalog=p.id;manageKind='prep';openEditor(p);
