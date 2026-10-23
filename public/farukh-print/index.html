@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9">
+<meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 31×20 мм с Bluetooth-печатью.">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./print.css?v=1">
+<title>FARUKH PRINT — Этикетки</title>
+</head>
+<body>
+<div class="app">
+<header class="header">
+  <button id="go-home" class="brand" type="button" aria-label="На главный экран"><span class="brand-mark">FP<span class="brand-dot">.</span></span><span><strong>FARUKH <em>PRINT</em></strong><small>Этикетки · V3 BT</small></span></button>
+  <div class="header-actions"><span class="status-dot" title="База на этом устройстве"></span><span class="local-text">Автосохранение</span><button id="open-settings" type="button" class="iconbtn" aria-label="Управление этикетками">⚙</button></div>
+</header>
+<main>
+<section id="home" class="screen">
+  <div class="intro"><div class="eyebrow"><span class="pulse"></span> ПРОСТО. БЫСТРО. ТОЧНО.</div><h1>Печать <span>этикеток.</span></h1><p>Выбери тип продукции, товар и количество. Всё остальное сделает принтер.</p></div>
+  <div class="choice-grid">
+    <button class="type-card" id="choose-ready" type="button"><span class="type-icon">▣</span><span class="type-content"><small>01 · ГОТОВАЯ ПРОДУКЦИЯ</small><strong>Этикетки<br>58 × 40</strong><span>Роллы, воки, супы, готовые блюда</span></span><span class="type-bottom"><b><span id="count-ready">0</span> товаров</b><span class="arrow">↗</span></span></button>
+    <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>31 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
+  </div>
+  <button class="manage-link" id="manage-from-home" type="button"><span>⚙</span><span><strong>Управление этикетками</strong><small>Добавление, редактирование, сохранение базы</small></span><span class="arrow">→</span></button>
+  <div class="app-foot">FARUKH PRINT <b>·</b> Независимое приложение <b>·</b> Никакой синхронизации</div>
+</section>
+<section id="catalog" class="screen" hidden>
+  <div class="sub-head"><button class="back" id="catalog-back" type="button">← Назад</button><div><div class="eyebrow" id="catalog-kicker">ГОТОВАЯ ПРОДУКЦИЯ</div><h2 id="catalog-title">Этикетки 58 × 40</h2></div></div>
+  <label class="search-wrap"><span>⌕</span><input id="catalog-search" type="search" placeholder="Найти товар..." autocomplete="off"></label>
+  <div class="catalog-grid"><div class="product-panel"><div id="product-list" class="product-list"></div><div id="catalog-empty" class="empty" hidden>Пока нет товаров. Добавь их в разделе «Управление этикетками».</div></div>
+  <div class="printing-panel">
+    <div class="panel-heading"><strong>Просмотр этикетки</strong><span id="print-size-badge" class="badge">58 × 40 мм</span></div>
+    <div class="preview-wrap"><canvas id="preview-canvas" role="img" aria-label="Предпросмотр этикетки"></canvas><div id="no-preview" class="preview-hint">Выбери товар для просмотра</div></div>
+    <label class="field">Дата и время изготовления<input id="printed-at" type="datetime-local"></label>
+    <label class="field" id="point-field" hidden>Название точки<input id="point-name" type="text" maxlength="40" placeholder="Например, Плазма"></label>
+    <div class="print-row"><label class="field">Количество этикеток<input id="copies" type="number" min="1" max="20" value="1"></label><button class="button button-ghost" id="select-printer" type="button">⌁ Принтер V3 BT</button></div>
+    <button class="button button-main" id="print-now" type="button">▣ Печатать этикетку <span>→</span></button>
+    <button class="system-print" id="print-system" type="button">Системная печать / PDF</button>
+    <p id="print-message" role="status" aria-live="polite" class="print-message">Ожидаю выбора товара.</p>
+    <p class="print-note">Android: печать напрямую через Bluetooth. В браузере — системная печать. Проверь первую наклейку на принтере V3 BT.</p>
+  </div></div>
+</section>
+<section id="manage" class="screen" hidden>
+  <div class="sub-head"><button class="back" id="manage-back" type="button">← Назад</button><div><div class="eyebrow">ЛОКАЛЬНАЯ БАЗА</div><h2>Управление этикетками</h2></div></div>
+  <p class="lead">Создай свою базу один раз. Она хранится на этом устройстве, отдельно от FARUKH AI. Для переноса на телефон или планшет используй резервную копию.</p>
+  <div class="manage-head"><div class="pills"><button id="manage-ready" class="pill selected" type="button">58 × 40 <span id="manage-count-ready">0</span></button><button id="manage-prep" class="pill" type="button">31 × 20 <span id="manage-count-prep">0</span></button></div><button id="add-item" class="button button-main" type="button">＋ Добавить товар</button></div>
+  <div id="manage-list" class="manage-list"></div><div id="manage-empty" class="empty" hidden>В этой категории ещё нет этикеток. Нажми «Добавить товар».</div>
+  <div class="backup"><div><strong>Резервная копия базы</strong><small>Перенос товаров между телефоном и планшетом без синхронизации.</small></div><div class="backup-actions"><button id="export-db" class="button button-ghost" type="button">↓ Сохранить базу</button><button id="import-db" class="button button-ghost" type="button">↑ Загрузить базу</button><input id="import-file" type="file" accept=".json,application/json" hidden></div></div>
+  <div class="security-note">Доступ к настройкам пока не защищён паролем. Учётные записи и журнал действий добавим отдельно, когда согласуем систему пользователей.</div>
+</section>
+</main>
+</div>
+<dialog id="editor">
+<form method="dialog" id="editor-form" class="editor-form">
+  <div class="edit-top"><div><div class="eyebrow">БАЗА ЭТИКЕТОК</div><h2 id="editor-title">Новый товар</h2></div><button class="iconbtn" id="close-editor" type="button">✕</button></div>
+  <label class="field">Название товара <input name="name" id="edit-name" type="text" maxlength="90" placeholder="Например, Ролл Филадельфия" required></label>
+  <div id="ready-fields">
+    <label class="field">Состав <textarea name="composition" id="edit-composition" maxlength="600" rows="3" placeholder="Рис, нори, сыр, лосось..." required></textarea></label>
+    <div class="edit-grid four"><label class="field">Белки /100 г<input id="edit-p" type="number" min="0" max="100" step=".01" required></label><label class="field">Жиры /100 г<input id="edit-f" type="number" min="0" max="100" step=".01" required></label><label class="field">Углеводы /100 г<input id="edit-c" type="number" min="0" max="100" step=".01" required></label><label class="field">Ккал /100 г<input id="edit-kcal" type="number" min="0" max="900" step=".01" required></label></div>
+    <div class="edit-grid"><label class="field">Вес нетто, г<input id="edit-weight" type="number" min="1" max="10000" step="1" required></label><label class="field">Допуск ±, г<input id="edit-tolerance" type="number" min="0" max="1000" step="1" value="10" required></label></div>
+  </div>
+  <div id="prep-fields" hidden><label class="field">Точка (по умолчанию)<input id="edit-point" type="text" maxlength="40" placeholder="Плазма"></label></div>
+  <div class="edit-grid"><label class="field">Условия хранения<input id="edit-storage" type="text" maxlength="60" placeholder="+2…+6 °C" required></label><label class="field">Срок годности, часов<input id="edit-hours" type="number" min="1" max="8760" step="1" required></label></div>
+  <div class="edit-actions"><button id="cancel-editor" type="button" class="button button-ghost">Отмена</button><button type="submit" class="button button-main">Сохранить товар</button></div>
+</form>
+</dialog>
+<div id="print-paper" class="paper-only" aria-hidden="true"></div>
+<script src="./print.js?v=1" defer></script>
+</body>
+</html>
