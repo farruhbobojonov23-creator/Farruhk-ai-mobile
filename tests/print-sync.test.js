@@ -106,14 +106,14 @@ test('FARUKH PRINT variant 3 is three-column and supports owner-managed photo pi
 
 test('ready TTK import preserves existing labels, bumps revision once and respects later deletions',async()=>{
  const catalog=await import('../public/farukh-print/ready-catalog.js');
- assert.equal(catalog.products.length,47);
+ assert.equal(catalog.products.length,48);
  const {req,cloud}=makeApi(catalog);
  const custom={...catalog.products[0],weight:999,photo:'data:image/jpeg;base64,AAAA'};
  cloud.set('farukh-print-catalog.json',{revision:7,products:[custom]});
  const owner={cookie:'fai_owner=ok'};
  const first=await req('get','/api/farukh-print/admin/catalog',owner);
  assert.equal(first.code,200);assert.equal(first.payload.revision,8);
- assert.equal(first.payload.products.length,47);
+ assert.equal(first.payload.products.length,48);
  assert.equal(first.payload.products[0].weight,999);
  assert.equal(first.payload.products[0].photo,custom.photo);
  const next=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:8,products:[]}});
@@ -129,12 +129,28 @@ test('ready TTK import is additive, idempotent and excludes disputed cards',asyn
  const prep={id:'my-prep',kind:'prep',name:'Капуста',hours:12};
  const edited={...products[0],id:'owner-id',name:products[0].name.toUpperCase(),weight:321};
  const list=merge([prep,edited]);
- assert.equal(list.length,48);assert.deepEqual(list.slice(0,2),[prep,edited]);
+ assert.equal(list.length,49);assert.deepEqual(list.slice(0,2),[prep,edited]);
  assert.deepEqual(merge(list),list);
  for(const p of products){
   assert.equal(p.kind,'ready');assert.ok(p.composition);assert.ok(p.weight>0);
   for(const key of ['p','f','c','kcal'])assert.ok(Number.isFinite(p[key]));
   assert.equal(p.hours,12);assert.equal(p.storage,'+2…+6 °C');
-  assert.ok(!/^Запеченный краб Том Ям$/.test(p.name));
+  if(p.name==='Запеченный краб Том Ям')assert.equal(p.weight,280);
  }
+});
+
+
+test('v2 imports only the newly approved crab roll on previously imported devices',async()=>{
+ const catalog=await import('../public/farukh-print/ready-catalog.js');
+ const upgraded=catalog.merge([],true);
+ assert.equal(upgraded.length,1);
+ assert.equal(upgraded[0].name,'Запеченный краб Том Ям');
+ assert.equal(upgraded[0].weight,280);
+ assert.deepEqual(catalog.merge(upgraded,true),upgraded);
+ const {req,cloud}=makeApi(catalog);
+ cloud.set('farukh-print-catalog.json',{revision:10,products:[],appliedImports:[catalog.previousVersion]});
+ const result=await req('get','/api/farukh-print/admin/catalog',{cookie:'fai_owner=ok'});
+ assert.equal(result.code,200);assert.equal(result.payload.products.length,1);
+ assert.equal(result.payload.revision,11);
+ assert.deepEqual(result.payload.appliedImports,[catalog.previousVersion,catalog.version]);
 });

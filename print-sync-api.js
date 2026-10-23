@@ -70,7 +70,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport}){
     if(!importPromise)importPromise=store.transaction(async()=>{
       const current=await readCatalog();
       if(current.appliedImports?.includes(readyCatalogImport.version))return;
-      const products=validateCatalog(readyCatalogImport.merge(current.products));
+      const products=validateCatalog(readyCatalogImport.merge(current.products,current.appliedImports?.includes(readyCatalogImport.previousVersion)));
       await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,
         appliedImports:[...(current.appliedImports||[]),readyCatalogImport.version],updatedAt:new Date().toISOString()});
     }).catch(e=>{importPromise=null;throw e});

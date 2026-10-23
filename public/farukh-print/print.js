@@ -655,11 +655,11 @@ function boot(){
 function importReadyCatalog(){
 // One-time additive import for standalone devices. Managed devices receive the
 // same import through their authenticated cloud catalog, never a local override.
-import('./ready-catalog.js?v=1').then(catalog=>{
+import('./ready-catalog.js?v=2').then(catalog=>{
  const marker='farukh-print:import:'+catalog.version;
  if(isManaged()||cloudPaired||localStorage.getItem(marker))return;
  const previous=products;
- products=catalog.merge(products);
+ products=catalog.merge(products,!!localStorage.getItem('farukh-print:import:'+catalog.previousVersion));
  if(!save()){products=previous;return}
  localStorage.setItem(marker,'1');
  renderHome();

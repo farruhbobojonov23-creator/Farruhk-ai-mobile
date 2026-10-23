@@ -1,7 +1,23 @@
 // Label fields from owner's TTK; pineapple and cheddar weights corrected by owner.
-// California nutrition retained as requested. Baked crab Tom Yam awaits clarification.
-export const version = 'ttk-rolls-2026-10-24-v1';
+// California nutrition retained as requested. Baked crab Tom Yam approved at 280 g.
+export const previousVersion = 'ttk-rolls-2026-10-24-v1';
+export const version = 'ttk-rolls-2026-10-24-v2';
 export const products = [
+{
+  "id": "ttk-2026-t.avaujlytqikt",
+  "kind": "ready",
+  "name": "Запеченный краб Том Ям",
+  "composition": "Рис фирменный (готовый, заправленный), Водоросли Нори, Сыр творожный, Омлет японский, Огурец свежая, Краб замес (снежный краб/соус фирменный), Чеддер слайсы, Соус унаги / рисовые шарики Том Ям",
+  "weight": 280,
+  "tolerance": 10,
+  "p": 6.6,
+  "f": 14.9,
+  "c": 17.6,
+  "kcal": 234.8,
+  "storage": "+2…+6 °C",
+  "hours": 12,
+  "needsReview": false
+},
   {
     "id": "ttk-2026-t.wd4du0tniv08",
     "kind": "ready",
@@ -710,10 +726,11 @@ export const products = [
 ];
 
 // Add only missing labels: retain owner edits, photos, IDs and semifinished goods.
-export function merge(existing) {
+export function merge(existing, previousImported = false) {
   const names = new Set(existing.map(p => p.kind + '|' + p.name.trim().toLocaleLowerCase('ru')));
   const ids = new Set(existing.map(p => p.id));
-  const additions = products.filter(p => !ids.has(p.id) && !names.has(p.kind + '|' + p.name.trim().toLocaleLowerCase('ru')));
+  const candidates = previousImported ? products.filter(p => p.id === 'ttk-2026-t.avaujlytqikt') : products;
+  const additions = candidates.filter(p => !ids.has(p.id) && !names.has(p.kind + '|' + p.name.trim().toLocaleLowerCase('ru')));
   if (existing.length + additions.length > 1000) throw Error('Недостаточно места в каталоге для импорта роллов.');
   return [...existing, ...structuredClone(additions)];
 }
