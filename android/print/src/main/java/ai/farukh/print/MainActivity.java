@@ -172,10 +172,10 @@ public final class MainActivity extends Activity {
         if (startsWith(packet, "\r\nSIZE 58 mm,40 mm\r\n")) {
             raster = 58 * 320;
             header = "\r\nSIZE 58 mm,40 mm\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,58,320,0,";
-        } else if (startsWith(packet, "\r\nSIZE 31 mm,20 mm\r\n")) {
-            raster = 31 * 160;
-            header = "\r\nSIZE 31 mm,20 mm\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,31,160,0,";
-        } else throw new IllegalArgumentException("размер должен быть 58×40 или 31×20");
+        } else if (startsWith(packet, "\r\nSIZE 30 mm,20 mm\r\n")) {
+            raster = 30 * 160;
+            header = "\r\nSIZE 30 mm,20 mm\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,30,160,0,";
+        } else throw new IllegalArgumentException("размер должен быть 58×40 или 30×20");
         byte[] prefix = header.getBytes(StandardCharsets.US_ASCII);
         if (packet.length < prefix.length + raster + 13 || !startsWith(packet, header))
             throw new IllegalArgumentException("нет блока печати");

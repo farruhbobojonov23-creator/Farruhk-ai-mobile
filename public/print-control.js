@@ -63,11 +63,11 @@ export function mountPrintControl({root}){
  const notice=el('p','pc-alert');notice.hidden=true;
  const cardGrid=el('div','pc-stats');
  const statReady=el('div','pc-stat'),statPrep=el('div','pc-stat'),statReview=el('div','pc-stat'),statApproved=el('div','pc-stat');
- for(const [card,title] of [[statReady,'58 × 40 · готовая'],[statPrep,'31 × 20 · полуфабрикаты'],[statReview,'Требуют проверки'],[statApproved,'Готовы к печати']]){card.append(el('small','',title),el('strong','','0'));cardGrid.append(card)}
+ for(const [card,title] of [[statReady,'58 × 40 · готовая'],[statPrep,'30 × 20 · полуфабрикаты'],[statReview,'Требуют проверки'],[statApproved,'Готовы к печати']]){card.append(el('small','',title),el('strong','','0'));cardGrid.append(card)}
  const toolbar=el('div','pc-toolbar');
  const left=el('div','pc-tabs');
  const readyTab=btn('58 × 40','pc-tab',()=>{group='ready';query='';search.value='';render()});
- const prepTab=btn('31 × 20','pc-tab',()=>{group='prep';query='';search.value='';render()});
+ const prepTab=btn('30 × 20','pc-tab',()=>{group='prep';query='';search.value='';render()});
  left.append(readyTab,prepTab);
  const right=el('div','pc-toolbar-actions');
  const add=btn('＋ Добавить этикетку','pc-primary',()=>edit(null));
@@ -197,7 +197,7 @@ export function mountPrintControl({root}){
  }
  function edit(product){
   currentEdit=product?.id||null;const v=product||{...empty,kind:group};
-  formTitle.textContent=(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'31 × 20 мм');
+  formTitle.textContent=(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';
   const values={...empty,...v};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
