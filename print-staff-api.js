@@ -3,7 +3,7 @@
 // Password hashes persist in protected Yandex store, sessions are held only in
 // process memory and expire after 12 hours / immediately upon account revocation.
 import crypto from 'node:crypto';
-const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json';
+const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json';
 const EXPIRE=12*60*60*1000,MAX_STAFF=80,MAX_EVENTS=500;
 const bad=(status,message)=>Object.assign(new Error(message),{status});
 const sha=t=>crypto.createHash('sha256').update(t).digest('hex');
@@ -22,6 +22,15 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const data=await store.read(USERS,[]);
   if(!Array.isArray(data)||data.some(x=>!x||typeof x.id!=='string'||typeof x.passhash!=='string'))throw bad(503,'Файл учётных записей повреждён.');
   return data;
+ };
+ const pointName=v=>String(v||'').trim();
+ const validPoint=v=>v.length>=2&&v.length<=60&&!/[\\x00-\\x1F]/.test(v);
+ const samePoint=(a,b)=>a.toLocaleLowerCase('ru')===b.toLocaleLowerCase('ru');
+ const readPoints=async()=>{
+  const points=await store.read(POINTS,['Плазма']);
+  if(!Array.isArray(points)||points.length<1||points.length>30||points.some(p=>typeof p!=='string'||!validPoint(p)))throw bad(503,'Список точек повреждён. Изменения заблокированы.');
+  if(new Set(points.map(p=>p.toLocaleLowerCase('ru'))).size!==points.length)throw bad(503,'Список точек содержит дубликаты.');
+  return points;
  };
  const safe=fn=>async(req,res)=>{try{await fn(req,res)}catch(e){console.warn('[print-staff]',e.status||500,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Сервис временно недоступен.'})}};
  const owner=(req,res,next)=>{
@@ -52,6 +61,91 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(row.n>7)return res.status(429).json({ok:false,error:'Слишком много попыток. Повтори через 15 минут.'});
   next();
  };
+ app.get('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
+  res.set('Cache-Control','no-store');res.json({ok:true,points:await readPoints()});
+ }));
+ app.post('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
+  const name=pointName(req.body?.name);
+  if(!validPoint(name))throw bad(400,'Название точки должно содержать от 2 до 60 символов.');
+  const points=await store.transaction(async()=>{
+   const list=await readPoints();
+   if(list.some(p=>samePoint(p,name)))throw bad(409,'Такая точка уже есть.');
+   if(list.length>=30)throw bad(409,'Достигнут лимит точек.');
+   list.push(name);await store.write(POINTS,list);return list;
+  });
+  res.status(201).json({ok:true,points});
+ }));
+ app.patch('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
+  const former=pointName(req.body?.oldName),name=pointName(req.body?.name);
+  if(!validPoint(former)||!validPoint(name))throw bad(400,'Проверь название точки.');
+  const result=await store.transaction(async()=>{
+   const list=await readPoints(),index=list.findIndex(p=>samePoint(p,former));
+   if(index<0)throw bad(404,'Точка не найдена.');
+   if(list.some((p,i)=>i!==index&&samePoint(p,name)))throw bad(409,'Такая точка уже существует.');
+   const currentName=list[index],employees=await readUsers();
+   list[index]=name;
+   for(const employee of employees)if(samePoint(employee.point,currentName))employee.point=name;
+   // A rename changes the permitted employee point and revokes current sessions.
+   // Historical requests keep their original location for audit correctness.
+   await store.write(POINTS,list);
+   await store.write(USERS,employees);
+   return {points:list,users:employees,prior:currentName};
+  });
+  for(const [key,session] of sessions)if(result.users.some(u=>u.id===session.userId&&samePoint(u.point,name)))sessions.delete(key);
+  res.json({ok:true,points:result.points,notice:'Учётные записи переведены на новую точку. Старые запросы печати не изменены.'});
+ }));
+ app.delete('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
+  const name=pointName(req.body?.name);
+  const points=await store.transaction(async()=>{
+   const list=await readPoints();
+   if(list.length<=1)throw bad(409,'Нельзя удалить последнюю точку.');
+   const pos=list.findIndex(p=>samePoint(p,name));if(pos<0)throw bad(404,'Точка не найдена.');
+   if((await readUsers()).some(u=>samePoint(u.point,name)))throw bad(409,'Сначала переведи сотрудников на другую точку.');
+   list.splice(pos,1);await store.write(POINTS,list);return list;
+  });
+  res.json({ok:true,points});
+ }));
+ app.patch('/api/farukh-print/admin/staff/:id',owner,safe(async(req,res)=>{
+  const name=pointName(req.body?.name),login=pointName(req.body?.login).toLowerCase(),point=pointName(req.body?.point);
+  if(name.length<2||name.length>65||!/^[a-z][a-z0-9_-]{2,31}$/.test(login)||!validPoint(point))throw bad(400,'Нужны имя, логин латиницей и точка.');
+  const result=await store.transaction(async()=>{
+   const points=await readPoints();
+   const actual=points.find(p=>samePoint(p,point));
+   if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
+   const users=await readUsers(),employee=users.find(u=>u.id===req.params.id);
+   if(!employee)throw bad(404,'Сотрудник не найден.');
+   if(users.some(u=>u.id!==employee.id&&u.login===login))throw bad(409,'Этот логин уже занят.');
+   const changed=employee.name!==name||employee.login!==login||employee.point!==actual;
+   employee.name=name;employee.login=login;employee.point=actual;
+   if(changed)await store.write(USERS,users);
+   return {employee,changed};
+  });
+  if(result.changed)for(const [key,session] of sessions)if(session.userId===result.employee.id)sessions.delete(key);
+  res.json({ok:true,staff:userSafe(result.employee),sessionRevoked:result.changed});
+ }));
+ app.get('/api/farukh-print/admin/staff/report',owner,safe(async(req,res)=>{
+  const days=String(req.query?.days||'30');
+  if(!['7','30','90','all'].includes(days))throw bad(400,'Период отчёта: 7, 30, 90 дней или всё время.');
+  const point=pointName(req.query?.point);
+  const [configured,users,events]=await Promise.all([readPoints(),readUsers(),store.read(HISTORY,[])]);
+  if(!Array.isArray(events))throw bad(503,'Журнал действий повреждён.');
+  const after=days==='all'?-Infinity:Date.now()-Number(days)*86400000;
+  const valid=events.filter(e=>e&&Number.isFinite(Date.parse(e.at))&&Date.parse(e.at)>=after);
+  const points=[...new Set([...configured,...users.map(u=>u.point),...valid.map(e=>e.point)].filter(Boolean))];
+  if(point&&!points.some(p=>samePoint(p,point)))throw bad(404,'Точка не найдена.');
+  const rows=points.filter(p=>!point||samePoint(p,point)).map(p=>{
+   const workers=users.filter(u=>samePoint(u.point,p)),logs=valid.filter(e=>samePoint(e.point,p));
+   return {point:p,staff:workers.length,active:workers.filter(u=>u.active!==false).length,requests:logs.length,
+    labels:logs.reduce((acc,e)=>acc+(Number.isSafeInteger(e.copies)&&e.copies>0?e.copies:0),0),
+    lastRequestAt:logs.length?logs.reduce((a,e)=>a>e.at?a:e.at,''):null,
+    users:workers.map(u=>({id:u.id,name:u.name,login:u.login,active:u.active!==false,
+      requests:logs.filter(e=>e.login===u.login).length}))};
+  });
+  const sum=k=>rows.reduce((n,r)=>n+r[k],0);
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,days,point,summary:{points:rows.length,staff:sum('staff'),active:sum('active'),requests:sum('requests'),labels:sum('labels')},
+   rows,historyLimit:MAX_EVENTS,note:'Это запросы печати, а не доказательство фактической печати. Журнал хранит последние 500 запросов.'});
+ }));
  app.get('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
   res.set('Cache-Control','no-store');
   res.json({ok:true,staff:(await readUsers()).map(userSafe)});
@@ -59,8 +153,10 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  app.post('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
   const name=trim(req.body?.name,65),login=trim(req.body?.login,32).toLowerCase(),point=trim(req.body?.point,60);
   if(!name||name.length<2||!point||point.length<2||!/^[a-z][a-z0-9_-]{2,31}$/.test(login))throw bad(400,'Нужны имя, точка и логин латиницей (3–32 символа).');
+  const configured=await readPoints(),actual=configured.find(p=>samePoint(p,point));
+  if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
   const password=token().slice(0,16);const salt=crypto.randomBytes(16).toString('hex');
-  const user={id:crypto.randomUUID(),name,login,point,passhash:hash(password,salt),salt,active:true,createdAt:new Date().toISOString()};
+  const user={id:crypto.randomUUID(),name,login,point:actual,passhash:hash(password,salt),salt,active:true,createdAt:new Date().toISOString()};
   await store.transaction(async()=>{
    const all=await readUsers();if(all.length>=MAX_STAFF)throw bad(409,'Достигнут лимит сотрудников.');
    if(all.some(x=>x.login===login))throw bad(409,'Этот логин уже занят.');
