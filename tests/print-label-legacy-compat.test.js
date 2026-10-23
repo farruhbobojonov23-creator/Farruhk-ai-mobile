@@ -9,7 +9,7 @@ function makeHarness(){
   constructor(){this.width=0;this.height=0;this.ctx={
     fillRect(){},strokeRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fillText(){},scale(){},drawImage(){},clearRect(){},
     font:'12px Arial',
-    measureText(word){return {width:String(word).length*8}},
+    measureText(word){const fontSize=Number(/(\d+(?:\.\d+)?)px/.exec(this.font)?.[1]||12);return {width:String(word).length*fontSize*0.52}},
     getImageData(x,y,w,h){const data=new Uint8ClampedArray(w*h*4);data.fill(255);return {data}}
    }}
   getContext(){return this.ctx}
