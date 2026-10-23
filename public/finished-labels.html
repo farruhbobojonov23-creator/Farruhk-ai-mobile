@@ -24,7 +24,7 @@ h1{font-size:clamp(30px,4vw,45px);letter-spacing:-.055em;line-height:1.08;margin
 .item b{display:block;font-size:14px}.item small{display:block;margin-top:5px;font-size:11px;color:#7c828a}.item strong{margin-left:auto;color:#b32d43}
 .tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.size{font-weight:760;color:#a33146;background:#fcf1f2;border-radius:9px;padding:7px 9px;font-size:11px}
 .stage{display:grid;place-items:center;min-height:405px;border-radius:15px;background:linear-gradient(135deg,#f7f8fa,#ebeef1);border:1px dashed #d6dae1;overflow:hidden;margin-bottom:18px}
-.preview-scale{width:116mm;height:80mm;transform-origin:center;transform:scale(.95);box-shadow:0 14px 35px #17202c24;background:white}
+.preview-scale{width:116mm;height:80mm;display:grid;place-items:center;transform-origin:center;transform:scale(.95);box-shadow:0 14px 35px #17202c24;background:white}
 .caption{font-size:11px;color:#737985;line-height:1.5}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
 .field-label{font-size:11px;font-weight:750;color:#68707b;display:block}
@@ -140,7 +140,7 @@ function makeLabel(p,epoch){
  const ingredients=text('div',undefined,'lb-ingredients');ingredients.append(text('b','Состав: '),document.createTextNode(p.composition));inner.append(ingredients);
  const b=text('div',undefined,'lb-bottom'),weight=text('div',undefined,'lb-weight');
  weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г (±'+p.tolerance+' г)'));
- const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изготовлено:',fmt(epoch)],['Годен до:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
+ const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изгот.:',fmt(epoch)],['Годен:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
  const storage=text('div',undefined,'lb-storage');const s1=text('div');s1.append(text('span','Хранить при:'),text('b',p.storage));const s2=text('div');s2.append(text('span','Срок годности:'),text('b',p.hours+' ч'));storage.append(s1,s2);
  b.append(weight,dates,storage);inner.append(b);root.append(inner);return root;
 }
