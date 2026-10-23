@@ -665,7 +665,19 @@ import('./ready-catalog.js?v=2').then(catalog=>{
  renderHome();
  if(!$('catalog').hidden)renderCatalog();
  if(!$('manage').hidden)renderManage();
-}).catch(e=>status('Не удалось загрузить роллы: '+e.message,true));
+}).then(importCatalogPhotos).catch(e=>status('Не удалось загрузить роллы: '+e.message,true));
+}
+async function importCatalogPhotos(){
+ if(isManaged()||cloudPaired)return;
+ const catalog=await import('./catalog-photos.js?v=1');
+ const marker='farukh-print:import:'+catalog.version;
+ if(isManaged()||cloudPaired||localStorage.getItem(marker))return;
+ const previous=products;
+ products=catalog.merge(products);
+ if(!save()){products=previous;return}
+ localStorage.setItem(marker,'1');
+ if(!$('catalog').hidden)renderCatalog();
+ if(!$('manage').hidden)renderManage();
 }
 boot();
 })();

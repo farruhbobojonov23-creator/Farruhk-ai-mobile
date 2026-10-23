@@ -55,7 +55,7 @@ function validateCatalog(data){
 }
 const safeDevice=d=>({id:d.id,name:d.name,createdAt:d.createdAt,lastSeenAt:d.lastSeenAt||null,revoked:!!d.revoked});
 const digits=(len)=>Array.from(crypto.randomBytes(len),b=>printableChars[b%printableChars.length]).join('');
-export function installPrintSyncApi(app,{store,auth,readyCatalogImport}){
+export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport}){
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
@@ -66,13 +66,23 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport}){
   };
   let importPromise;
   const ensureReadyCatalog=async()=>{
-    if(!enabled||!readyCatalogImport)return;
+    if(!enabled||(!readyCatalogImport&&!catalogPhotoImport))return;
     if(!importPromise)importPromise=store.transaction(async()=>{
       const current=await readCatalog();
-      if(current.appliedImports?.includes(readyCatalogImport.version))return;
-      const products=validateCatalog(readyCatalogImport.merge(current.products,current.appliedImports?.includes(readyCatalogImport.previousVersion)));
+      const appliedImports=[...(current.appliedImports||[])];
+      let imported=current.products;
+      if(readyCatalogImport&&!appliedImports.includes(readyCatalogImport.version)){
+        imported=readyCatalogImport.merge(imported,appliedImports.includes(readyCatalogImport.previousVersion));
+        appliedImports.push(readyCatalogImport.version);
+      }
+      if(catalogPhotoImport&&!appliedImports.includes(catalogPhotoImport.version)){
+        imported=catalogPhotoImport.merge(imported);
+        appliedImports.push(catalogPhotoImport.version);
+      }
+      if(appliedImports.length===(current.appliedImports||[]).length)return;
+      const products=validateCatalog(imported);
       await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,
-        appliedImports:[...(current.appliedImports||[]),readyCatalogImport.version],updatedAt:new Date().toISOString()});
+        appliedImports,updatedAt:new Date().toISOString()});
     }).catch(e=>{importPromise=null;throw e});
     await importPromise;
   };
