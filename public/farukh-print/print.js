@@ -10,6 +10,31 @@ const STARTER_PREP_NAMES=[
  'Сливочный соус','Перец','Омлет','Морковь','Бульон Том Ям',
  'Унаги соус','Терияки соус','Сладкий чили'
 ];
+// Рекомендации по оформлению сведений без назначения вымышленных сроков.
+// Категория описывает ожидаемый способ использования, но не доказывает
+// безопасность, отсутствие термообработки или исходную температуру.
+const PREP_GUIDANCE={
+ 'Соус спайси':['Соус собственного приготовления, без нагрева','ТТК, состав, документы на майонез после вскрытия; 48 ч — только предложение владельца, не норма СанПиН.'],
+ 'Соус сырный':['Соус собственного приготовления','ТТК с полным составом, технологией и утверждённым сроком смешанной продукции.'],
+ 'Фирменный соус':['Соус собственного приготовления','ТТК с полным составом, обработкой и утверждённым сроком хранения.'],
+ 'Сливочный соус':['Соус собственного приготовления','ТТК: уточнить состав, наличие нагрева, охлаждение и срок.'],
+ 'Огурцы':['Свежие овощи, подготовленные к использованию','Форма обработки: цельные, промытые или нарезанные; срок после обработки по ТТК.'],
+ 'Капуста':['Свежие овощи, подготовленные к использованию','Состав заготовки и обработка: целая, шинкованная, маринованная; срок по ТТК.'],
+ 'Перец':['Свежие овощи, подготовленные к использованию','Форма нарезки, мойка, режим хранения и утверждённая ТТК.'],
+ 'Морковь':['Свежие овощи, подготовленные к использованию','Мойка, очистка и нарезка; технология и срок по ТТК.'],
+ 'Такуан':['Готовый к использованию маринованный продукт','Маркировка поставщика и указанный изготовителем срок после вскрытия; факт нарезки.'],
+ 'Форель':['Рыба для приготовления блюд','Особо важно: происхождение, сырой/солёный/термообработанный вид, размораживание, температура по маркировке, ТТК.'],
+ 'Угорь':['Рыба/рыбная заготовка','Уточнить, готовый ли термообработанный угорь или иной продукт; маркировка поставщика после вскрытия и ТТК.'],
+ 'Креветка':['Морепродукт для приготовления блюд','Уточнить сырая/варёная/размороженная, упаковка, дата вскрытия и условия изготовителя.'],
+ 'Курица готовая':['Готовая птица после тепловой обработки','ТТК: достаточность термообработки, охлаждение, порционирование и утверждённый срок.'],
+ 'Снежный краб':['Готовый крабовый продукт/сурими — тип уточняется','Маркировка изготовителя, фактический состав, режим и срок после вскрытия; ТТК при смешивании.'],
+ 'Омлет':['Готовый продукт из яиц','ТТК, термообработка, охлаждение, хранение; не переносить срок другого продукта.'],
+ 'Бульон Том Ям':['Готовая заготовка бульона','ТТК: термообработка, охлаждение, контейнер, хранение; срок обосновать.'],
+ 'Унаги соус':['Соус: готовый заводской или собственный — уточняется','Для заводского — маркировка после вскрытия; для собственного — рецептура и ТТК.'],
+ 'Терияки соус':['Соус: готовый заводской или собственный — уточняется','Для заводского — маркировка после вскрытия; для собственного — рецептура и ТТК.'],
+ 'Сладкий чили':['Соус: готовый заводской или собственный — уточняется','Для заводского — маркировка после вскрытия; для собственного — рецептура и ТТК.']
+};
+const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрикат','Состав, технологию, температуру и срок подтвердить по ТТК/производителю.']:null;
 const WIDTH={ready:464,prep:248},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='';
 const native=typeof window.FarukhPrinter?.postMessage==='function';
@@ -84,7 +109,9 @@ function renderCatalog(){
  $('catalog-empty').hidden=items.length!==0;
  for(const p of items){
   const item=node('button','product-item'+(p.id===selected?' selected':''));item.type='button';
-  const left=node('span');left.append(node('strong','',p.name),node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено: 48 ч · +2…+6 °C · требуется подтверждение':'Требуется проверка срока и условий хранения'):kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
+  const left=node('span');left.append(node('strong','',p.name));
+  const guide=guideFor(p);if(guide)left.append(node('small','',guide[0]));
+  left.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено: 48 ч · +2…+6 °C · требуется подтверждение':'Срок и хранение — только после подтверждения'):kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
   item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=p.point||'';renderCatalog()});list.append(item);
  }
  updatePreview();
@@ -99,7 +126,10 @@ function renderManage(){
  $('manage-empty').hidden=items.length>0;
  for(const p of items){
   const row=node('div','manage-item'), info=node('div');
-  info.append(node('strong','',p.name),node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
+  info.append(node('strong','',p.name));
+  const guide=guideFor(p);
+  if(guide){info.append(node('small','prep-kind',guide[0]));info.append(node('small','prep-guide',guide[1]))}
+  info.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
   edit.type='button';del.type='button';edit.onclick=()=>openEditor(p);
   del.onclick=()=>{if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
@@ -120,6 +150,9 @@ function openEditor(p){
  const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??10,point:p?.point||'',storage:p?.storage??(type==='ready'?'+2…+6 °C':''),hours:p?.hours??(type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
  $('edit-approval').checked=!!p&&!p.needsReview;
+ const tip=guideFor(p||{kind:type,name:str($('edit-name').value)});
+ $('sanpin-item-guidance').hidden=!tip;
+ $('sanpin-item-guidance').textContent=tip?'Для проверки: '+tip[1]:'';
  $('editor').showModal();setTimeout(()=>$('edit-name').focus(),30);
 }
 function saveEditor(ev){
