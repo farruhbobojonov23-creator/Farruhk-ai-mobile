@@ -95,3 +95,64 @@
 @media(max-width:430px){.product-list{gap:7px}.product-list .product-item.product-tile{padding:5px 5px 9px;border-radius:12px}.product-tile .product-visual{border-radius:9px}.product-tile .product-photo-placeholder{font-size:30px}.product-tile .product-tile-info strong{font-size:11.2px}.product-tile .product-tile-meta{font-size:9.5px}}
 @media(max-width:330px){.product-list{grid-template-columns:repeat(2,minmax(0,1fr))}.product-tile .product-tile-info strong{font-size:13px}}
 @media(max-width:460px){.edit-photo-section{gap:10px}.edit-photo-display{width:96px;height:95px;flex-basis:96px}}
+
+
+/* EMPLOYEE HOME V1 — dedicated work screen on paired kitchen devices. */
+.worker-dashboard{padding:19px 23px 14px;background:linear-gradient(135deg,#fff,#f5f9fb);border:1px solid #dce6eb;border-radius:20px;margin:18px 0 18px}
+.worker-dashboard[hidden]{display:none!important}
+.worker-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap}
+.worker-heading h1{font-size:clamp(24px,4vw,32px);line-height:1.15;letter-spacing:-.8px;margin:7px 0 6px;color:#293b45}
+.worker-heading p{font-size:13px;line-height:1.5;color:#677883;margin:0}
+.worker-eyebrow{font-size:10px;letter-spacing:1.4px;color:#bb354f;font-weight:900}
+.worker-point{color:#356e69;background:#eaf6f2;border:1px solid #d2e8e1;border-radius:50px;padding:9px 15px;font-weight:850;font-size:12px;max-width:100%;overflow-wrap:anywhere}
+.worker-tabs{display:flex;gap:8px;margin:19px 0 12px}
+.worker-tab{flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:1px solid #dce5e9;background:#fff;border-radius:12px;color:#687884;padding:12px 13px;font-weight:840;font-size:13px;min-height:53px}
+.worker-tab.selected{border-color:#ba3150;background:#fff3f6;color:#973549;box-shadow:inset 0 0 0 1px #d8a0ae}
+.worker-tab small{white-space:nowrap;font-size:11px;font-weight:700}
+.worker-sync{display:flex;justify-content:space-between;align-items:center;gap:13px;font-size:11px;line-height:1.45;color:#758a91;border-top:1px solid #e8eef0;padding:11px 2px 0}
+.worker-sync span{min-width:0;overflow-wrap:anywhere}
+.worker-sync button{border:0;background:#e9f1f3;border-radius:9px;color:#4d7180;padding:9px 12px;flex-shrink:0;font-size:11px;font-weight:850;min-height:36px}
+.worker-close-preview{width:100%;margin:0 0 13px;padding:10px;background:#f6f8fa;color:#8e3d54;border:1px solid #e4e7ec;border-radius:9px;font-size:12px;font-weight:850}
+.worker-preview-backdrop[hidden]{display:none!important}
+body.worker-managed .header-actions #open-settings,body.worker-managed #manage,body.worker-managed .manage-link{display:none!important}
+body.worker-managed.worker-logged-in #catalog>.sub-head{display:none}
+body.worker-managed.worker-logged-in .staff-login{margin:10px 0 8px;padding:11px 16px}
+body.worker-managed.worker-logged-in .staff-login>p.staff-notice,
+body.worker-managed.worker-logged-in .staff-login>p:not(.staff-session-info),
+body.worker-managed.worker-logged-in .staff-login .staff-session-info{display:none!important}
+body.worker-managed.worker-logged-in .staff-login-top strong{font-size:13px}
+body.worker-managed.worker-logged-in .staff-login .staff-logout{display:inline-flex;margin-top:8px;font-size:11px;padding:8px 12px}
+body.worker-managed:not(.worker-logged-in) #home .intro,
+body.worker-managed:not(.worker-logged-in) #home .choice-grid,
+body.worker-managed:not(.worker-logged-in) #home .manage-link,
+body.worker-managed:not(.worker-logged-in) #home .app-foot{display:none!important}
+body.worker-managed:not(.worker-logged-in) #catalog{display:none!important}
+body.worker-managed:not(.worker-logged-in) #home .print-sync{margin-top:12px}
+body.worker-managed.worker-logged-in #point-field{display:none!important}
+@media(max-width:770px){
+ .worker-dashboard{padding:16px;margin:13px 0}
+ .worker-heading h1{font-size:26px}
+ .worker-tabs{gap:8px}
+ .worker-tab{min-width:0;font-size:11px;line-height:1.3;padding:9px;display:grid;justify-items:start;gap:4px}
+ .worker-tab small{font-size:10px}
+ .worker-sync{flex-wrap:wrap}
+ .worker-sync button{min-height:34px}
+ body.worker-managed.worker-logged-in #catalog .catalog-grid{grid-template-columns:1fr}
+ body.worker-managed.worker-logged-in #catalog .printing-panel{display:none}
+ body.worker-managed.worker-logged-in.worker-preview-open .worker-preview-backdrop{display:block!important;position:fixed;inset:0;background:#0b152f9c;z-index:298}
+ body.worker-managed.worker-logged-in.worker-preview-open #catalog .printing-panel{
+   position:fixed;display:block;z-index:299;left:0;right:0;bottom:0;
+   max-height:min(85dvh,850px);overflow-y:auto;overscroll-behavior:contain;
+   border-radius:22px 22px 0 0;padding:19px 20px calc(23px + env(safe-area-inset-bottom));
+   box-shadow:0 -12px 48px #0d1a2b3b;animation:workerPanelUp .22s ease-out;
+ }
+ body.worker-managed.worker-logged-in.worker-preview-open{overflow:hidden}
+ body.worker-managed.worker-logged-in.worker-preview-open .worker-close-preview{display:block}
+ body.worker-managed.worker-logged-in .printing-panel .print-note{display:none}
+ @keyframes workerPanelUp{from{transform:translateY(40px);opacity:.7}to{transform:translateY(0);opacity:1}}
+}
+@media(min-width:771px){
+ body.worker-managed.worker-logged-in #catalog .printing-panel{position:sticky;top:20px}
+ body.worker-managed.worker-logged-in .worker-close-preview{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){body.worker-managed .printing-panel{animation:none!important}}
