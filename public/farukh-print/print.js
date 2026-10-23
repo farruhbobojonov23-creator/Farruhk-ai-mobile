@@ -36,7 +36,7 @@ const PREP_GUIDANCE={
 };
 const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрикат','Состав, технологию, температуру и срок подтвердить по ТТК/производителю.']:null;
 const WIDTH={ready:464,prep:248},HEIGHT={ready:320,prep:160};
-let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null;
+let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -131,8 +131,8 @@ function renderManage(){
   if(guide){info.append(node('small','prep-kind',guide[0]));info.append(node('small','prep-guide',guide[1]))}
   info.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
-  edit.type='button';del.type='button';edit.onclick=()=>openEditor(p);
-  del.onclick=()=>{if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
+  edit.type='button';del.type='button';edit.disabled=cloudPaired;del.disabled=cloudPaired;edit.onclick=()=>openEditor(p);
+  del.onclick=()=>{if(cloudPaired)return;if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
   actions.append(edit,del);row.append(info,actions);list.append(row);
  }
 }
@@ -143,6 +143,7 @@ function setFormKind(type){
  $('approval-area').hidden=type!=='prep';
 }
 function openEditor(p){
+ if(cloudPaired){alert('Каталог управляется из FARUKH AI. Здесь можно только печатать и скачать резервную копию.');return}
  editing=p?.id||null;
  const type=p?.kind||manageKind;
  setFormKind(type);
@@ -157,6 +158,7 @@ function openEditor(p){
 }
 function saveEditor(ev){
  ev.preventDefault();
+ if(cloudPaired)return;
  const type=manageKind, fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:Number($('edit-hours').value)};
  if(!fields.name||!fields.storage||!Number.isSafeInteger(fields.hours)||fields.hours<=0||fields.hours>8760){alert('Заполни название, хранение и срок годности.');return}
  if(type==='ready'){
@@ -371,11 +373,30 @@ async function importDB(ev){
    const key=p.kind+'|'+p.name.toLocaleLowerCase('ru');if(used.has(key))throw Error('В резервной копии есть дублирующиеся товары.');used.add(key);
    items.push({...p,id:makeId(),name:p.name.slice(0,90),storage:p.storage.slice(0,60),composition:str(p.composition).slice(0,600),point:str(p.point).slice(0,40)});
   }
+  if(cloudPaired){alert('Отключи облачную синхронизацию, прежде чем импортировать локальную базу.');return}
   if(!confirm('Заменить текущую базу из '+products.length+' товаров на '+items.length+' товаров из резервной копии?'))return;
   const old=products;products=items;if(!save()){products=old;return}
   selected=null;renderManage();alert('Готово! Импортировано '+items.length+' товаров.');
  }catch(e){alert('Не удалось загрузить базу: '+e.message)}
 }
+window.FARUKH_PRINT_SYNC_API={
+ get:()=>structuredClone(products),
+ setPaired:yes=>{
+  cloudPaired=!!yes;
+  if($('add-item'))$('add-item').disabled=cloudPaired;
+  if($('load-starter-prep'))$('load-starter-prep').disabled=cloudPaired;
+  if($('import-db'))$('import-db').disabled=cloudPaired;
+  if(!$('manage').hidden)renderManage();
+ },
+ replace:newProducts=>{
+  if(!Array.isArray(newProducts)||newProducts.length>1000||newProducts.some(p=>!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'))throw Error('Получена повреждённая облачная база.');
+  const old=products;products=structuredClone(newProducts);
+  if(!save()){products=old;throw Error('Невозможно сохранить базу на Android.')}
+  renderHome();
+  if(!$('catalog').hidden)renderCatalog();
+  if(!$('manage').hidden)renderManage();
+ }
+};
 function boot(){
  load();renderHome();$('printed-at').value=nowLocal();
  $('choose-ready').onclick=()=>openCatalog('ready');$('choose-prep').onclick=()=>openCatalog('prep');
@@ -387,6 +408,7 @@ function boot(){
  $('point-name').addEventListener('input',updatePreview);
  $('manage-ready').onclick=()=>openManage('ready');$('manage-prep').onclick=()=>openManage('prep');
  $('load-starter-prep').onclick=()=>{
+  if(cloudPaired){alert('Каталог управляется из FARUKH AI.');return}
   const count=STARTER_PREP_NAMES.filter(n=>!products.some(p=>p.kind==='prep'&&p.name.toLocaleLowerCase('ru')===n.toLocaleLowerCase('ru'))).length;
   if(!count){alert('Все 19 названий уже есть в базе.');return}
   if(!confirm('Добавить '+count+' полуфабрикатов из согласованного списка? Сроки хранения останутся незаполненными, до проверки печать недоступна.'))return;

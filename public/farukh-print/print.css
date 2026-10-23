@@ -17,3 +17,21 @@
 
 .fix-unconfirmed{width:100%;margin:-11px 0 18px;border-color:#d2aeb7;background:#fff8fa;color:#9f3048;font-size:13px}
 .fix-unconfirmed[hidden]{display:none!important}
+
+
+.print-sync{background:#fff;border:1px solid #dce8e4;border-radius:19px;padding:20px 24px;margin-top:20px;box-shadow:0 4px 18px #25483909}
+.print-sync-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.print-sync-head strong{font-size:15px;color:#273e3c;letter-spacing:-.4px}
+.print-sync-badge{color:#a2a3a8;font-weight:800;font-size:11px}
+.print-sync-badge[data-connected=yes]{color:#29876c}
+.print-sync p{font-size:12px;line-height:1.6;color:#8b9498}
+.print-sync-form{display:grid;grid-template-columns:1fr 1.35fr auto;gap:9px}
+.print-sync-form input{border:1px solid #dfe5e8;border-radius:10px;min-width:0;padding:13px;font-size:13px;color:#25323b;background:#fff}
+.print-sync button{border:1px solid #c8d8d6;color:#366a60;background:#f1faf7;border-radius:10px;padding:12px;font-size:12px;font-weight:800}
+.print-sync button:hover{background:#e4f4ee}.print-sync button:disabled{opacity:.5}
+.print-sync-buttons{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.print-sync-buttons button{flex:1}
+.print-sync-buttons .print-sync-danger{background:#fff7f7;color:#9f4352;border-color:#e8cfd3}
+.print-sync-message{padding:10px 12px;background:#f4faf8;border-radius:9px;margin:12px 0 0!important;color:#507267!important}
+.print-sync-message[data-error=yes]{background:#fff0f2;color:#a23f53!important}
+@media(max-width:750px){.print-sync{padding:19px}.print-sync-form{grid-template-columns:1fr}.print-sync-buttons{flex-direction:column}}

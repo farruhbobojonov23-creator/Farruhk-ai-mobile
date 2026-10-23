@@ -177,7 +177,9 @@ export function mountPrintControl({root}){
   // Never overwrite a damaged database.
   if(readDatabase().broken)throw Error('Текущая база повреждена. Сначала восстанови резервную копию.');
   localStorage.setItem(DB_KEY,JSON.stringify(next));
-  pushLog(action,name);lastAction=action+' · '+name;render();message('Сохранено на этом устройстве: '+lastAction+'. Для другого Android-приложения скачай копию JSON.');
+  pushLog(action,name);lastAction=action+' · '+name;render();
+  window.dispatchEvent(new CustomEvent('farukh-print-catalog-local-updated',{detail:{action,name}}));
+  message('Сохранено на устройстве. Если облако подключено и каталоги согласованы, изменения отправляются автоматически.');
  }
  function importStarter(){
   try{
@@ -246,7 +248,7 @@ export function mountPrintControl({root}){
    const parsed=validateBackup(JSON.parse(await file.text()));
    if(!confirm('Заменить всю локальную базу ('+records.length+' шт.) данными из файла ('+parsed.length+' шт.)? Перед заменой рекомендуется скачать резервную копию.'))return;
    // Allow recovery from corrupted data ONLY through validated import.
-   localStorage.setItem(DB_KEY,JSON.stringify(parsed));pushLog('Импорт резервной копии',parsed.length+' поз.');render();message('Загружено '+parsed.length+' этикеток. Проверь карточки и сроки.');
+   localStorage.setItem(DB_KEY,JSON.stringify(parsed));pushLog('Импорт резервной копии',parsed.length+' поз.');render();window.dispatchEvent(new CustomEvent('farukh-print-catalog-local-updated',{detail:{action:'Импорт',name:'Резервная копия'}}));message('Загружено '+parsed.length+' этикеток. Проверь карточки и сроки.');
   }catch(e){message('Не удалось загрузить базу: '+e.message,true)}
  }
  window.addEventListener('storage',event=>{if([DB_KEY,LOG_KEY].includes(event.key))render()});
