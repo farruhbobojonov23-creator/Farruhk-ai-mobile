@@ -35,7 +35,8 @@ const PREP_GUIDANCE={
  'Сладкий чили':['Соус: готовый заводской или собственный — уточняется','Для заводского — маркировка после вскрытия; для собственного — рецептура и ТТК.']
 };
 const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрикат','Состав, технологию, температуру и срок подтвердить по ТТК/производителю.']:null;
-const WIDTH={ready:464,prep:248},HEIGHT={ready:320,prep:160};
+// 203 dpi printer: 30 mm × 20 mm = 240 × 160 dots; ready product remains 58 × 40 mm.
+const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
@@ -94,9 +95,9 @@ function renderHome(){
 }
 function openCatalog(type){
  kind=type;selected=null;$('catalog-search').value='';
- $('catalog-title').textContent=type==='ready'?'Готовая продукция · 58 × 40':'Полуфабрикаты · 31 × 20';
+ $('catalog-title').textContent=type==='ready'?'Готовая продукция · 58 × 40':'Полуфабрикаты · 30 × 20';
  $('catalog-kicker').textContent=type==='ready'?'ГОТОВАЯ ПРОДУКЦИЯ':'ПОЛУФАБРИКАТЫ';
- $('print-size-badge').textContent=type==='ready'?'58 × 40 мм':'31 × 20 мм';
+ $('print-size-badge').textContent=type==='ready'?'58 × 40 мм':'30 × 20 мм';
  $('point-field').hidden=type==='ready';
  $('printed-at').value=nowLocal();$('copies').value='1';
  show('catalog');renderCatalog();
@@ -211,9 +212,18 @@ function wrap(g,text,maxWidth,maxLines,size,weight='400'){
  if(out.length>maxLines)throw Error('Состав не помещается на этикетку 58 × 40. Сократи текст или название ингредиентов.');
  return out;
 }
-function canvasBase(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});if(!g)throw Error('Canvas недоступен');g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';return {c,g}}
-function drawReady(p,epoch){
- const {c,g}=canvasBase(464,320);
+function canvasBase(w,h,scale=1){
+ // Logical coordinates match the actual 203 dpi printer raster. Render a
+ // separate hi-DPI canvas for preview; NEVER send oversized data to V3 BT.
+ const c=document.createElement('canvas');c.width=w*scale;c.height=h*scale;
+ const g=c.getContext('2d',{willReadFrequently:scale===1});
+ if(!g)throw Error('Canvas недоступен');
+ if(scale!==1)g.scale(scale,scale);
+ g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
+ return {c,g};
+}
+function drawReady(p,epoch,scale=1){
+ const {c,g}=canvasBase(464,320,scale);
  rect(g,6,6,452,308);rect(g,12,12,440,296);
  hLine(g,50,19,445);write(g,'СУШИ БЕРИ',23,33,{size:21,weight:'900',width:200});
  write(g,'Готовая продукция',443,34,{size:11,weight:'400',align:'right',width:182});
@@ -251,36 +261,45 @@ function drawReady(p,epoch){
  write(g,p.hours+' ч',392,291,{size:15.5,min:10,width:96,align:'center',weight:'900'});
  return c;
 }
-function drawPrep(p,epoch,point){
- const {c,g}=canvasBase(248,160);
- rect(g,3,3,242,154);
- write(g,'FARUKH PRINT · МАРКИРОВКА',10,14,{size:9,min:7,width:199});
- write(g,'П/Ф',238,14,{size:9,min:7,width:34,align:'right'});
- hLine(g,24,9,239);
- const name=p.name.toUpperCase();
- if(!fit(g,name,225,17,9,'900')){
-  const rows=wrap(g,name,225,2,13,'900');
-  rows.forEach((line,i)=>write(g,line,124,36+i*13,{size:13,min:8,width:225,align:'center',weight:'900'}));
- }else write(g,name,124,41,{size:17,min:9,width:226,align:'center',weight:'900'});
- hLine(g,56,9,239);
- write(g,'Изгот.:',10,72,{size:10.7,width:60});
- write(g,formatted(epoch),238,72,{size:12,min:9,width:150,align:'right'});
- rect(g,9,87,230,30);
- write(g,'Годен до:',14,103,{size:10.5,width:84});
- write(g,formatted(epoch+Number(p.hours)*3600000),234,103,{size:12.7,min:9,width:138,align:'right'});
- hLine(g,131,9,239);
- write(g,p.storage,10,144,{size:11,min:8,width:150});
- write(g,point||'—',238,144,{size:10,min:8,width:75,align:'right'});
+// Premium v2: double border, large name, two clear date rows and storage.
+// Final TSPL raster remains strictly 240 x 160; scale affects PREVIEW only.
+function drawPrep(p,epoch,point,scale=1){
+ const {c,g}=canvasBase(240,160,scale);
+ rect(g,3,3,234,154,2);
+ rect(g,7,7,226,146,1);
+ g.lineWidth=1.2;
+ const label=(point&&fit(g,str(point).toUpperCase(),52,8.8,7,'800'))
+   ?str(point).toUpperCase():'П/Ф';
+ write(g,'FARUKH PRINT · МАРКИРОВКА',14,19,{size:9.5,min:7.5,width:171,weight:'800'});
+ write(g,label,226,19,{size:9,min:7,width:53,align:'right',weight:'800'});
+ hLine(g,32,13,227);
+ const title=p.name.toUpperCase();
+ if(fit(g,title,206,21.5,13,'900')){
+  write(g,title,120,54,{size:21.5,min:13,width:206,weight:'900',align:'center'});
+ }else{
+  const rows=wrap(g,title,207,2,14.5,'900');
+  rows.forEach((row,index)=>write(g,row,120,47+index*18,{size:14.5,min:10,width:208,weight:'900',align:'center'}));
+ }
+ g.lineWidth=1.5;hLine(g,74,13,227);
+ g.lineWidth=1.0;vLine(g,91,76,128);hLine(g,101,13,227);
+ write(g,'Изгот.:',16,88,{size:11,min:10,width:71,weight:'800'});
+ write(g,formatted(epoch),226,88,{size:12.1,min:10,width:129,align:'right',weight:'800'});
+ write(g,'Годен до:',16,115,{size:11,min:9,width:71,weight:'800'});
+ write(g,formatted(epoch+Number(p.hours)*3600000),226,115,{size:12.1,min:10,width:129,align:'right',weight:'800'});
+ g.lineWidth=1.2;hLine(g,129,13,227);
+ write(g,'Темп. хранения:',16,141,{size:10.2,min:9,width:108,weight:'700'});
+ write(g,p.storage,226,141,{size:12.7,min:9,width:98,align:'right',weight:'900'});
  return c;
 }
-function makePreview(){
+
+function makePreview(scale=1){
  const p=current();if(!p){previewError='';return null}
  if(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0){
    throw Error('Этот продукт пока не готов к печати. Укажи срок и условия хранения по ТТК или маркировке изготовителя и подтверди их.');
  }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
- return kind==='ready'?drawReady(p,when):drawPrep(p,when,str($('point-name').value)||p.point);
+ return kind==='ready'?drawReady(p,when,scale):drawPrep(p,when,str($('point-name').value)||p.point,scale);
 }
 function updatePreview(){
  const p=current();$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
@@ -288,8 +307,10 @@ function updatePreview(){
  $('fix-label').hidden=!p||!p.needsReview;
  if(!p){status('Выбери товар из списка.');return}
  try{
-  const canvas=makePreview();const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
-  prev.getContext('2d').drawImage(canvas,0,0);
+  const renderScale=3; // 720 px wide 30×20 preview; no CSS upscaling of 240-dot printer bitmap
+  const canvas=makePreview(renderScale);const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
+  const pg=prev.getContext('2d');pg.clearRect(0,0,prev.width,prev.height);
+  pg.drawImage(canvas,0,0);
   previewError='';$('no-preview').textContent='Выбери товар для просмотра';
   status(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.');
  }catch(e){
@@ -300,14 +321,14 @@ function updatePreview(){
 }
 function tspl(canvas,copies){
  const w=canvas.width,h=canvas.height;
- if(!((w===464&&h===320)||(w===248&&h===160)))throw Error('Неподдерживаемый формат этикетки.');
+ if(!((w===464&&h===320)||(w===240&&h===160)))throw Error('Неподдерживаемый формат этикетки.');
  const info=canvas.getContext('2d').getImageData(0,0,w,h).data;
  const bitmap=new Uint8Array((w/8)*h);bitmap.fill(255);
  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const i=(y*w+x)*4;
   if((info[i]*299+info[i+1]*587+info[i+2]*114)/1000<164&&info[i+3]>80)bitmap[y*w/8+(x>>3)]&=~(128>>(x&7));
  }
- const mm=w===464?'58 mm,40 mm':'31 mm,20 mm';
+ const mm=w===464?'58 mm,40 mm':'30 mm,20 mm';
  const prefix=new TextEncoder().encode('\r\nSIZE '+mm+'\r\nGAP 2 mm,0 mm\r\nSPEED 3\r\nDENSITY 8\r\nDIRECTION 0,0\r\nREFERENCE 0,0\r\nCLS\r\nBITMAP 0,0,'+(w/8)+','+h+',0,');
  const suffix=new TextEncoder().encode('\r\nPRINT 1,'+copies+'\r\n');
  const result=new Uint8Array(prefix.length+bitmap.length+suffix.length);
@@ -324,11 +345,13 @@ function job(){
 }
 function browserPrint({canvas,copies}){
  const paper=$('print-paper');paper.replaceChildren();
- const width=canvas.width===464?58:31,height=canvas.height===320?40:20;
+ const width=canvas.width===464?58:30,height=canvas.height===320?40:20;
  const printStyle=$('print-size-style')||node('style');printStyle.id='print-size-style';
  printStyle.textContent='@media print{@page{size:'+width+'mm '+height+'mm;margin:0}.paper-only{width:'+width+'mm!important}.paper-only img{width:'+width+'mm!important;height:'+height+'mm!important}}';
  if(!printStyle.parentElement)document.head.append(printStyle);
- const url=canvas.toDataURL('image/png');
+ // System print/PDF gets 3× vector-rasterized preview for sharp output.
+ const highRes=makePreview(3);
+ const url=highRes.toDataURL('image/png');
  for(let i=0;i<copies;i++){const img=node('img');img.src=url;img.alt='Этикетка';paper.append(img)}
  window.print();
 }
