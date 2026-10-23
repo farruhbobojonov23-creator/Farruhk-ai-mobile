@@ -1,6 +1,6 @@
 // Fast, conservative PWA cache. A full download of 50+ assets during every
 // release used to compete with Android WebView for network and CPU.
-const CACHE='farrukh-arctic-sapphire-v61';
+const CACHE='farrukh-arctic-sapphire-v62';
 const CORE=['/','/index.html','/manifest.webmanifest','/icon-192.svg','/icon-512.svg'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE)
@@ -31,4 +31,5 @@ self.addEventListener('fetch',event=>{
 });
 self.addEventListener('push',e=>{let d={};try{d=e.data.json()}catch{}e.waitUntil(self.registration.showNotification(d.title||'FARRUKH AI',{body:d.body||'Напоминание',tag:d.tag||'reminder',data:{url:'/?open=tasks'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{for(const c of list){if('focus'in c){c.navigate('/?open=tasks');return c.focus()}}if(clients.openWindow)return clients.openWindow('/?open=tasks')}))});
+
 

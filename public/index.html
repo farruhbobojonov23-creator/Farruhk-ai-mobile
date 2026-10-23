@@ -95,7 +95,7 @@ import {requireOwner} from '/owner-login.js';
 import {createVoiceConversation} from '/chef-voice.js?v=80';
 import {mountVoiceDiagnostics} from '/voice-diagnostics.js?v=1';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=77';
-import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=69';
+import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=70';
 import {mountRubyHome} from '/ruby-studio.js?v=78';
 import {mountTaskBoard} from '/task-board.js?v=1';
 // HACCP is loaded independently to keep navigation responsive if its module fails.
@@ -109,6 +109,7 @@ import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
+import {mountMyRecipeTemplates} from '/my-recipe-templates.js?v=1';
 import {mountSiteSettings} from '/site-settings.js?v=5';
 let siteSettings;
 const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
@@ -342,14 +343,15 @@ function refreshKnownIngredientNames(){
   const option=document.createElement('option');option.value=name;return option;
  }));
 }$('editor').addEventListener('input',()=>{editorDirty=true});window.addEventListener('beforeunload',e=>{if(editorDirty&&!$('editor').hidden){e.preventDefault();e.returnValue=''}});
+let usingMyTemplate=false;
 let currentTemplate=templateFor('Холодные роллы',8);
 function applyTemplate(onlyEmpty=false){const next=templateFor($('recipe-category').value,Number($('card-pieces').value)||8);for(const [key,id] of [...Object.entries(cardFields),['forming','technology']]){if(next[key]&&(!$(id).value.trim()||(!onlyEmpty&&$(id).value===currentTemplate[key])))$(id).value=next[key]}currentTemplate=next;recipeSheet.refresh()}
 $('recipe-category').onchange=()=>applyTemplate();$('card-pieces').onchange=()=>applyTemplate();$('apply-roll-template').onclick=()=>applyTemplate(true);
 async function removeRecipe(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');if(!window.confirm('Удалить техкарту «'+recipe.name+'»? Она исчезнет из техкарт и калькулятора. Ранее скачанный PDF останется на устройстве.'))return;await save(s=>deleteRecipe(s,id));if(editId===id){$('editor').hidden=true;document.body.classList.remove('editing-recipe');editorDirty=false;editId=null}notice('Техкарта «'+recipe.name+'» удалена.');}
 $('delete-recipe').onclick=guard(()=>removeRecipe(editId));
-function openEditor(r=null){refreshKnownIngredientNames();if(r)pearlHome.remember(r);if(r)r=resolveCategoryFields(r);if(r?.pieces&&![...$('card-pieces').options].some(o=>o.value===String(r.pieces)))$('card-pieces').add(new Option(r.pieces+' шт.',String(r.pieces)));if(!state){notice('Данные ещё загружаются.',true);return}if(view!=='recipes')show('recipes');editId=r?.id||null;$('delete-recipe').hidden=!editId;$('editor').hidden=false;document.body.classList.add('editing-recipe');$('edit-title').textContent=r?'Редактирование техкарты':'Новая техкарта';$('recipe-name').value=r?.name||'';const category=r?.category||(recipeFilter!=='Все'?recipeFilter:'Холодные роллы');if(![...$('recipe-category').options].some(o=>o.value===category))$('recipe-category').add(new Option(category,category));$('recipe-category').value=category;currentTemplate=templateFor(category,r?.pieces||8);$('recipe-status').value=r?.status||'draft';$('technology').value=r?.forming||r?.technology||currentTemplate.forming;$('nutrition-auto').checked=r?r.nutritionMode==='ingredients':true;for(const [key,id] of Object.entries(cardFields))$(id).value=r?.[key]||currentTemplate[key]|| (key==='pieces'?8:key==='cardNumber'?nextCardNumber(state.recipes):key==='cardDate'?cardDateNow():'');for(const key of ['protein','fat','carbs','kcal'])$('card-'+key).value=r?.nutrition?.[key]??'';$('ingredients').replaceChildren();$('ingredient-nutrition').replaceChildren();(r?.ingredients?.length?r.ingredients:[{}]).forEach(ingredient);applyTemplate(true);$('card-storage').value=storageWithSanpin($('card-storage').value);updateNutrition();recipeSheet.refresh();editorDirty=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
+function openEditor(r=null){usingMyTemplate=!!r?.customTemplate;refreshKnownIngredientNames();if(r)pearlHome.remember(r);if(r&&!usingMyTemplate)r=resolveCategoryFields(r);if(r?.pieces&&![...$('card-pieces').options].some(o=>o.value===String(r.pieces)))$('card-pieces').add(new Option(r.pieces+' шт.',String(r.pieces)));if(!state){notice('Данные ещё загружаются.',true);return}if(view!=='recipes')show('recipes');editId=r?.id||null;$('delete-recipe').hidden=!editId;$('editor').hidden=false;document.body.classList.add('editing-recipe');$('edit-title').textContent=r?'Редактирование техкарты':'Новая техкарта';$('recipe-name').value=r?.name||'';const category=r?.category||(recipeFilter!=='Все'?recipeFilter:'Холодные роллы');if(![...$('recipe-category').options].some(o=>o.value===category))$('recipe-category').add(new Option(category,category));$('recipe-category').value=category;currentTemplate=templateFor(category,r?.pieces||8);$('recipe-status').value=r?.status||'draft';$('technology').value=usingMyTemplate?(r.forming??r.technology??''):(r?.forming||r?.technology||currentTemplate.forming);$('nutrition-auto').checked=r?r.nutritionMode==='ingredients':true;for(const [key,id] of Object.entries(cardFields))$(id).value=usingMyTemplate?(r[key]??''):r?.[key]||currentTemplate[key]|| (key==='pieces'?8:key==='cardNumber'?nextCardNumber(state.recipes):key==='cardDate'?cardDateNow():'');for(const key of ['protein','fat','carbs','kcal'])$('card-'+key).value=r?.nutrition?.[key]??'';$('ingredients').replaceChildren();$('ingredient-nutrition').replaceChildren();(r?.ingredients?.length?r.ingredients:[{}]).forEach(ingredient);if(!usingMyTemplate)applyTemplate(true);$('card-storage').value=storageWithSanpin($('card-storage').value);updateNutrition();recipeSheet.refresh();editorDirty=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
 $('newrecipe').onclick=$('home-new-recipe').onclick=()=>openEditor();$('quickrecipe').onclick=()=>{show('recipes');openEditor()};$('addingredient').onclick=()=>ingredient();$('closeeditor').onclick=()=>{if(editorDirty&&!confirm('В техкарте есть несохранённые изменения. Закрыть без сохранения?'))return;$('editor').hidden=true;document.body.classList.remove('editing-recipe');editorDirty=false};
-async function saveRecipeEditor({close=true,download=false}={}){recipeSheet.refresh();updateNutrition();const ingredients=readIngredients();if(ingredients.some(i=>i.grossGrams==null||i.grossGrams<i.grams))throw Error('Проверь брутто и нетто ингредиентов.');if(!ingredients.length)throw Error('Добавь хотя бы один ингредиент.');const recipe={id:editId||crypto.randomUUID(),name:$('recipe-name').value.trim(),category:$('recipe-category').value.trim(),status:$('recipe-status').value,technology:$('technology').value.trim(),ingredients};for(const [key,id] of Object.entries(cardFields)){const v=$(id).value.trim();recipe[key]=['netYieldGrams','pieces'].includes(key)?(v===''?null:Number(v)):v}recipe.storage=storageWithSanpin(recipe.storage);recipe.forming=recipe.technology;recipe.nutritionMode=$('nutrition-auto').checked?'ingredients':'manual';recipe.nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,$('card-'+k).value===''?null:Number($('card-'+k).value)]));if(!recipe.name)throw Error('Укажи название.');await save(s=>upsertRecipe(s,recipe,{editing:!!editId}));editId=recipe.id;pearlHome.remember(recipe);$('delete-recipe').hidden=false;$('editor').hidden=close;editorDirty=false;if(close)document.body.classList.remove('editing-recipe');if(download)await downloadRecipe(recipe.id)}
+async function saveRecipeEditor({close=true,download=false}={}){recipeSheet.refresh();updateNutrition();const ingredients=readIngredients();if(ingredients.some(i=>i.grossGrams==null||i.grossGrams<i.grams))throw Error('Проверь брутто и нетто ингредиентов.');if(!ingredients.length)throw Error('Добавь хотя бы один ингредиент.');const recipe={id:editId||crypto.randomUUID(),name:$('recipe-name').value.trim(),category:$('recipe-category').value.trim(),status:$('recipe-status').value,technology:$('technology').value.trim(),ingredients};for(const [key,id] of Object.entries(cardFields)){const v=$(id).value.trim();recipe[key]=['netYieldGrams','pieces'].includes(key)?(v===''?null:Number(v)):v}recipe.storage=storageWithSanpin(recipe.storage);recipe.customTemplate=usingMyTemplate;recipe.forming=recipe.technology;recipe.nutritionMode=$('nutrition-auto').checked?'ingredients':'manual';recipe.nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,$('card-'+k).value===''?null:Number($('card-'+k).value)]));if(!recipe.name)throw Error('Укажи название.');await save(s=>upsertRecipe(s,recipe,{editing:!!editId}));editId=recipe.id;pearlHome.remember(recipe);$('delete-recipe').hidden=false;$('editor').hidden=close;editorDirty=false;if(close)document.body.classList.remove('editing-recipe');if(download)await downloadRecipe(recipe.id)}
 $('editor').onsubmit=guard(()=>saveRecipeEditor());
 recipeSheet.downloadButton.onclick=guard(async()=>{if(!$('editor').reportValidity())return;await saveRecipeEditor({close:false,download:true})});
 
@@ -461,9 +463,21 @@ async function loadAssistantState(){
  finally{loadingState=false}
 }
 retryLoad.onclick=loadAssistantState;
+mountMyRecipeTemplates({getState:()=>state,save,notify:notice,createRecipe:async t=>{
+ if(editorDirty&&!confirm('Открыть новую техкарту? Несохранённые изменения текущей карты будут потеряны.'))return false;
+ openEditor();
+ if(![...$('recipe-category').options].some(o=>o.value===t.category))$('recipe-category').add(new Option(t.category,t.category));
+ $('recipe-category').value=t.category;
+ currentTemplate=templateFor(t.category,1);
+ $('card-pieces').value='1';
+ for(const [key,id] of [...Object.entries(cardFields),['forming','technology']])if(typeof currentTemplate[key]==='string')$(id).value=currentTemplate[key];
+ for(const [key,id] of [['preparation','card-prep'],['forming','technology'],['serving','card-serving'],['storage','card-storage'],['appearance','card-appearance'],['taste','card-taste']])$(id).value=t[key]||'';
+ usingMyTemplate=true;editorDirty=true;recipeSheet.refresh();return true;
+}});
 mountUnifiedWorkspace();
 siteSettings=mountSiteSettings({getState:()=>state,save,show,titles,settingsDialog,notify:notice});
 try{await requireOwner();await loadAssistantState();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}
 </script></body></html>
+
