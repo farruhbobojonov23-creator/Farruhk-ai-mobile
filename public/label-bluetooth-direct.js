@@ -90,7 +90,13 @@ export function rasterLabel(p,epoch,can=document.createElement('canvas')){
   horizontal(g,50,19,445);
   write(g,'СУШИ БЕРИ',23,33,{size:21,weight:'900',width:220});
   write(g,'Готовая продукция',443,34,{size:11,weight:'400',align:'right',width:187});
-  write(g,String(p.name||'').toUpperCase(),232,73,{size:24,min:11,weight:'900',align:'center',width:412});
+  const title=String(p.name||'').toUpperCase();
+  g.font='900 11px Arial,sans-serif';
+  if(g.measureText(title).width>412){
+    const wrapped=lines(g,title,404,2,17);
+    if(wrapped.truncated)throw Error('Название слишком длинное для этикетки. Укороти его в редакторе.');
+    wrapped.draw.forEach((line,i)=>write(g,line,232,65+i*19,{size:18,min:11,weight:'900',align:'center',width:410}));
+  }else write(g,title,232,73,{size:24,min:11,weight:'900',align:'center',width:412});
   horizontal(g,96,19,445);
   // KБЖУ — fixed height, dedicated centered cells.
   rect(g,20,99,425,60,2);
@@ -161,8 +167,13 @@ async function printNow(){
   catch(e){say(e.message,true);return}
   if(!available()){say('Прямой Bluetooth-печати нет в этом браузере. Открой FARUKH AI через Google Chrome.',true);return}
   if(!printerState.connected||!printerState.port){
-    say('Сначала нажми «Подключить V3 BT» и выбери принтер. После этого одна кнопка будет печатать напрямую.',true);
-    return;
+    // The same print tap may request Bluetooth access and then submit the job.
+    // requestPort is invoked before the first await to retain user activation.
+    try{await selectPort()}catch(e){
+      if(e.name==='NotFoundError')say('Нужно выбрать V3 BT в окне Bluetooth. Попробуй снова.',true);
+      else say('Не удалось подключить V3: '+(e.message||'ошибка')+'. Закрой 4Barcode и повтори.',true);
+      setUI();return;
+    }
   }
   printerState.working=true;setUI();
   try{
@@ -187,3 +198,18 @@ button.addEventListener('click',printNow);
 const observer=new MutationObserver(setUI);
 observer.observe($('print'),{attributes:true,attributeFilter:['disabled']});
 setUI();
+// After the first explicit pairing, Chrome may remember the grant. Try to
+// reconnect without opening another picker; failures do not print anything.
+if(available()&&navigator.serial.getPorts){
+  void navigator.serial.getPorts().then(async ports=>{
+    if(printerState.port||printerState.working||ports.length!==1)return;
+    try{
+      await ports[0].open({baudRate:9600});
+      printerState.port=ports[0];printerState.connected=true;
+      say('Сохранённый принтер V3 BT подключён. Можно печатать одной кнопкой.');setUI();
+    }catch{
+      // Printer may be off or busy with 4Barcode. User can connect manually.
+      say('Нажми «Печатать на V3», чтобы подключить принтер и распечатать этикетку.');
+    }
+  }).catch(()=>{});
+}
