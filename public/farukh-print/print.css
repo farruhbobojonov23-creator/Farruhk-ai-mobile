@@ -156,3 +156,65 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
  body.worker-managed.worker-logged-in .worker-close-preview{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){body.worker-managed .printing-panel{animation:none!important}}
+
+
+/* Worker-first compact print screen. Only paired + signed-in kitchen staff. */
+.worker-dashboard{margin:16px 0 20px;background:linear-gradient(120deg,#fff,#f8fbfc);border:1px solid #dce7eb;border-radius:18px;padding:22px 24px;box-shadow:0 5px 20px #1d303908}
+.worker-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.worker-eyebrow{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#b03049}
+.worker-heading h1{font-size:clamp(23px,3vw,35px);letter-spacing:-1.2px;margin:7px 0 5px;color:#25343c}
+.worker-heading p{font-size:12px;margin:0;color:#76848e;font-weight:650}
+.worker-point{border:1px solid #cbe9df;color:#277c65;font-weight:850;background:#edf9f3;padding:11px 13px;font-size:12px;border-radius:11px}
+.worker-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 12px}
+.worker-tab{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:9px;background:#f5f7f9;border:1px solid #e2e8eb;border-radius:13px;padding:13px 15px;text-align:left;color:#53636c;font-size:13px;font-weight:850}
+.worker-tab small{font-size:10px;font-weight:800;color:#82949c;white-space:nowrap}
+.worker-tab.selected{background:#b02d49;color:white;border-color:#a62a46}
+.worker-tab.selected small{color:#ffe1e8}
+.worker-sync{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:11px;border-top:1px solid #e5eaed}
+.worker-sync span{font-size:11px;line-height:1.4;color:#758e92;max-width:80%}
+.worker-sync button{flex:0 0 auto;border:1px solid #d4e1e6;background:#fff;color:#526f79;border-radius:10px;padding:9px 12px;font-size:11px;font-weight:850}
+.worker-preview-backdrop{display:none}
+.worker-close-preview{border:0;background:#f4f6f8;color:#4a5c65;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:850;align-self:flex-start;margin-bottom:12px}
+body.worker-managed .header-actions #open-settings{display:none!important}
+body.worker-managed .manage-link{display:none!important}
+body.worker-managed .sanpin-info,body.worker-managed .security-note{display:none}
+body.worker-managed .print-sync{margin:15px 0}
+body.worker-managed .app-foot{display:none}
+body.worker-managed.worker-logged-in .intro,body.worker-managed.worker-logged-in .choice-grid{display:none}
+body.worker-managed.worker-logged-in .screen#catalog>.sub-head{display:none}
+body.worker-managed.worker-logged-in #catalog .search-wrap{max-width:none}
+body.worker-managed.worker-logged-in #catalog .product-tile{min-height:0}
+body.worker-managed:not(.worker-logged-in) .intro{padding:16px 0 16px}
+body.worker-managed:not(.worker-logged-in) .choice-grid{display:none}
+@media(max-width:770px){
+ .worker-dashboard{padding:17px;margin:12px 0 16px}
+ .worker-heading{gap:10px}
+ .worker-heading h1{font-size:27px}
+ .worker-point{font-size:11px}
+ .worker-tabs{margin-top:13px}
+ .worker-tab{min-height:62px;padding:11px;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;font-size:12px}
+ .worker-sync{align-items:flex-start}
+ .worker-sync span{max-width:61%;font-size:10.5px}
+ .worker-sync button{padding:9px;font-size:10px}
+ body.worker-managed.worker-logged-in .printing-panel{
+  position:fixed;z-index:1002;bottom:0;left:0;right:0;top:auto;width:100%;max-height:87dvh;overflow:auto;
+  border-radius:23px 23px 0 0;margin:0;padding:19px 17px max(24px,env(safe-area-inset-bottom));
+  box-shadow:0 -10px 45px #1127353b;transform:translateY(105%);opacity:0;visibility:hidden;pointer-events:none;
+  transition:transform .2s ease,opacity .2s ease,visibility .2s
+ }
+ body.worker-managed.worker-logged-in.worker-preview-open .printing-panel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}
+ body.worker-managed.worker-logged-in.worker-preview-open .worker-preview-backdrop{
+  display:block!important;position:fixed;inset:0;z-index:1001;background:#1427319c;backdrop-filter:blur(2px)
+ }
+ body.worker-preview-open{overflow:hidden}
+ body.worker-managed.worker-logged-in .printing-panel .preview-wrap{min-height:145px;padding:10px}
+ body.worker-managed.worker-logged-in .printing-panel .field{font-size:12px}
+ body.worker-managed.worker-logged-in .printing-panel .print-note{display:none}
+ body.worker-managed.worker-logged-in #print-now{min-height:57px;font-size:15px}
+ body.worker-managed.worker-logged-in .worker-close-preview{display:block!important}
+}
+@media(min-width:771px){
+ body.worker-managed.worker-logged-in #catalog .catalog-grid{grid-template-columns:minmax(0,1fr) minmax(310px,410px)}
+ body.worker-managed.worker-logged-in .printing-panel{position:sticky;top:20px}
+}
+@media(prefers-reduced-motion:reduce){body.worker-managed .printing-panel{transition:none!important}}
