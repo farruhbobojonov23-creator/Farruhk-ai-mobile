@@ -92,3 +92,41 @@
 #print-control .pcloud-owner-password{height:40px;min-width:0;width:100%;padding:9px 11px;border:1px solid #cbdadd;border-radius:10px;font-size:15px;color:#24323c;background:#fff;box-sizing:border-box}
 #print-control .pcloud-login-button{height:40px;background:#ad2e47;color:#fff;border-color:#ad2e47;white-space:nowrap;padding:9px 19px}
 @media(max-width:600px){#print-control .pcloud-owner-login{grid-template-columns:1fr}#print-control .pcloud-login-button{width:100%}}
+
+
+/* FARUKH PRINT staff control: visible only inside owner-managed workspace. */
+#print-control .pstaff{margin:18px 0 24px;padding:24px;border:1px solid #d3e2e8;border-radius:18px;background:linear-gradient(130deg,#fff,#f6fafc)}
+#print-control .pstaff-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#print-control .pstaff-header h2{font-size:21px;letter-spacing:-.5px;color:#273744;margin:0}
+#print-control .pstaff-role{color:#277964;background:#e7f8f2;border:1px solid #bedfd5;padding:9px 11px;border-radius:50px;font-size:10px;font-weight:850;letter-spacing:.3px}
+#print-control .pstaff-info{color:#77868d;font-size:12px;line-height:1.7;max-width:760px}
+#print-control .pstaff-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin:17px 0}
+#print-control .pstaff-field{display:flex;flex-direction:column;gap:8px;color:#66757e;font-size:11px;font-weight:800}
+#print-control .pstaff-field input{height:43px;border:1px solid #d9e3e6;color:#273742;padding:10px 12px;border-radius:10px;min-width:0;background:#fff;font-size:13px}
+#print-control .pstaff-create{height:43px;background:#ad2e47;color:#fff;border:0;border-radius:10px;padding:10px 15px;font-size:12px;font-weight:850;white-space:nowrap}
+#print-control .pstaff-create:disabled,#print-control .pstaff-button:disabled{opacity:.55}
+#print-control .pstaff-message{font-size:12px;background:#f0f8fc;color:#446a80;border-radius:11px;padding:12px;line-height:1.5}
+#print-control .pstaff-message[data-error=yes]{background:#fff0f2;color:#a73548}
+#print-control .pstaff-new-key{background:#fff9ea;border:2px solid #dec891;border-radius:13px;padding:18px 16px;margin:18px 0}
+#print-control .pstaff-new-key[hidden]{display:none!important}
+#print-control .pstaff-new-key>strong{display:block;font-size:14px;color:#70562d}
+#print-control .pstaff-new-key>p{font-size:12px;color:#7e7259;line-height:1.5}
+#print-control .pstaff-secret{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+#print-control .pstaff-secret>div{display:flex;flex-direction:column;gap:5px;padding:12px 16px;border:1px solid #e6d8b3;background:white;border-radius:11px;min-width:160px}
+#print-control .pstaff-secret small{font-size:11px;color:#93876b}
+#print-control .pstaff-secret strong{font-size:16px;letter-spacing:.4px;color:#2b3a44;user-select:all}
+#print-control .pstaff-button{padding:10px 13px;background:#fff;border:1px solid #d5e0e6;color:#547078;border-radius:10px;font-size:12px;font-weight:750;margin:4px 0 11px}
+#print-control .pstaff h3{font-size:14px;color:#40515d;margin:25px 0 8px}
+#print-control .pstaff-list{display:grid;gap:8px}
+#print-control .pstaff-item{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:16px;background:#fff;border:1px solid #dfe8eb;border-radius:12px}
+#print-control .pstaff-item strong{display:block;font-size:13px;color:#263742}
+#print-control .pstaff-item small{display:block;color:#87949a;font-size:12px;margin-top:7px}
+#print-control .pstaff-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#print-control .pstaff-controls button{font-size:11px;color:#8f3047;border:1px solid #e8cdd2;background:#fff8fa;border-radius:9px;padding:9px 10px;white-space:nowrap}
+#print-control .pstaff-empty{padding:15px;border:1px dashed #dfe8eb;border-radius:10px;font-size:12px;color:#91a0a3}
+#print-control .pstaff-activity{display:grid;gap:7px}
+#print-control .pstaff-event{padding:10px 13px;background:#fff;border:1px solid #e8edef;border-radius:9px}
+#print-control .pstaff-event strong{display:block;color:#35454e;font-size:12px}
+#print-control .pstaff-event small{display:block;color:#88969f;font-size:11px;margin-top:5px}
+@media(max-width:900px){#print-control .pstaff-form{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){#print-control .pstaff{padding:16px}#print-control .pstaff-form{grid-template-columns:1fr}#print-control .pstaff-item{align-items:stretch;flex-direction:column}#print-control .pstaff-controls{justify-content:flex-start}#print-control .pstaff-create{width:100%}}
