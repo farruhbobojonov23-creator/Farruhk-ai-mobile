@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -114,7 +115,7 @@ public final class MainActivity extends Activity {
             }
         });
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-            WebViewCompat.addWebMessageListener(webView, "FarukhPrinter", Set.of(ORIGIN),
+            WebViewCompat.addWebMessageListener(webView, "FarukhPrinter", Collections.singleton(ORIGIN),
                 (view, message, origin, isMainFrame, replyProxy) -> {
                     if (!isMainFrame || !ORIGIN.equals(origin.toString())) {
                         respond(replyProxy, false, "Запрос отклонён: неверный источник.");
