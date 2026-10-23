@@ -7,7 +7,7 @@
 <meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 30×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=8">
+<link rel="stylesheet" href="./print.css?v=9">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -24,13 +24,25 @@
     <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>30 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
   </div>
   <button class="manage-link" id="manage-from-home" type="button"><span>⚙</span><span><strong>Управление этикетками</strong><small>Добавление, редактирование, сохранение базы</small></span><span class="arrow">→</span></button>
-  <div class="app-foot">FARUKH PRINT <b>·</b> Независимое приложение <b>·</b> Никакой синхронизации</div>
+  <div class="app-foot">FARUKH PRINT <b>·</b> Bluetooth-печать <b>·</b> Управление каталогом через FARUKH AI</div>
 </section>
 <section id="catalog" class="screen" hidden>
+  <section id="worker-dashboard" class="worker-dashboard" hidden aria-label="Рабочий экран повара">
+    <div class="worker-heading"><div><small class="worker-eyebrow">FARUKH PRINT · РАБОЧЕЕ МЕСТО</small>
+      <h1>Печать этикеток</h1><p id="worker-staff-info">Для печати войди под личным логином.</p>
+    </div><div class="worker-point" id="worker-point">Точка не выбрана</div></div>
+    <div class="worker-tabs" role="group" aria-label="Тип этикеток">
+      <button id="worker-prep-tab" class="worker-tab selected" type="button">Полуфабрикаты <small>30 × 20</small></button>
+      <button id="worker-ready-tab" class="worker-tab" type="button">Готовая продукция <small>58 × 40</small></button>
+    </div>
+    <div class="worker-sync"><span id="worker-sync-status">Проверяю обновления каталога…</span>
+      <button id="worker-refresh" type="button">↻ Обновить товары</button></div>
+  </section>
   <div class="sub-head"><button class="back" id="catalog-back" type="button">← Назад</button><div><div class="eyebrow" id="catalog-kicker">ГОТОВАЯ ПРОДУКЦИЯ</div><h2 id="catalog-title">Этикетки 58 × 40</h2></div></div>
   <label class="search-wrap"><span>⌕</span><input id="catalog-search" type="search" placeholder="Найти товар..." autocomplete="off"></label>
   <div class="catalog-grid"><div class="product-panel"><div id="product-list" class="product-list"></div><div id="catalog-empty" class="empty" hidden>Пока нет товаров. Добавь их в разделе «Управление этикетками».</div></div>
-  <div class="printing-panel">
+  <div class="printing-panel" id="printing-panel">
+    <button id="worker-close-preview" class="worker-close-preview" type="button" hidden>← К списку товаров</button>
     <div class="panel-heading"><strong>Просмотр этикетки</strong><span id="print-size-badge" class="badge">58 × 40 мм</span></div>
     <div class="preview-wrap"><canvas id="preview-canvas" role="img" aria-label="Предпросмотр этикетки"></canvas><div id="no-preview" class="preview-hint">Выбери товар для просмотра</div></div>
     <button class="button button-ghost fix-unconfirmed" id="fix-label" type="button" hidden>⚙ Заполнить срок и условия хранения →</button>
@@ -43,6 +55,7 @@
     <p class="print-note">Android: печать напрямую через Bluetooth. В браузере — системная печать. Проверь первую наклейку на принтере V3 BT.</p>
   </div></div>
 </section>
+<div id="worker-preview-backdrop" class="worker-preview-backdrop" hidden></div>
 <section id="manage" class="screen" hidden>
   <div class="sub-head"><button class="back" id="manage-back" type="button">← Назад</button><div><div class="eyebrow">ЛОКАЛЬНАЯ БАЗА</div><h2>Управление этикетками</h2></div></div>
   <p class="lead">Создай свою базу один раз. Она хранится на этом устройстве, отдельно от FARUKH AI. Для переноса на телефон или планшет используй резервную копию.</p>
@@ -50,7 +63,7 @@
   <div class="sanpin-info"><strong>19 позиций · свежая и готовая продукция</strong><p>Для овощей, рыбы, мяса, омлета, бульона и соусов в каталоге добавлены категории и необходимые документы для проверки. Новый СанПиН 2.3/2.4.4282-26 действует с 01.09.2026. Он не устанавливает одинаковый срок в часах для каждой из этих позиций. Сроки и условия хранения подтверждаются по ТТК и маркировке изготовителя (ТР ТС 021/2011). Предложенные 48 ч для спайси — не нормативный срок. Пока подтверждения нет, печать заблокирована.</p><button type="button" class="button button-ghost" id="load-starter-prep">＋ Добавить отсутствующие из списка (19)</button><p><a href="https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/" target="_blank" rel="noopener noreferrer">СанПиН 2.3/2.4.4282-26, п. 11 и 32 ↗</a> · <a href="https://legalacts.ru/doc/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n-880-o/" target="_blank" rel="noopener noreferrer">ТР ТС 021/2011 ↗</a></p></div>
   <div id="manage-list" class="manage-list"></div><div id="manage-empty" class="empty" hidden>В этой категории ещё нет этикеток. Нажми «Добавить товар».</div>
   <div class="backup"><div><strong>Резервная копия базы</strong><small>Перенос товаров между телефоном и планшетом без синхронизации.</small></div><div class="backup-actions"><button id="export-db" class="button button-ghost" type="button">↓ Сохранить базу</button><button id="import-db" class="button button-ghost" type="button">↑ Загрузить базу</button><input id="import-file" type="file" accept=".json,application/json" hidden></div></div>
-  <div class="security-note">Доступ к настройкам пока не защищён паролем. Учётные записи и журнал действий добавим отдельно, когда согласуем систему пользователей.</div>
+  <div class="security-note">На подключённых устройствах редактировать товары, фотографии и сроки может только владелец через управляющий центр FARUKH AI. Сотрудникам доступна только печать после входа.</div>
 </section>
 </main>
 </div>
@@ -78,6 +91,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=11" defer></script><script src="./print-sync.js?v=2" defer></script><script src="./print-staff.js?v=1" defer></script>
+<script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=12" defer></script><script src="./print-sync.js?v=3" defer></script><script src="./print-staff.js?v=2" defer></script>
 </body>
 </html>
