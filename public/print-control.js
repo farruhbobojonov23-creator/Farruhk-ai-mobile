@@ -31,7 +31,7 @@ function validate(entry){
  if(storage.length>60)throw Error('Условия хранения слишком длинные (до 60 символов).');
  const unverified=entry.needsReview===true;
  if(!unverified&&(!storage||!Number.isInteger(hours)||hours<1||hours>8760))throw Error('Для подтверждённого товара укажи условия и срок годности.');
- if(entry.kind==='ready'&&!unverified){
+ if(entry.kind==='ready'){
   if(!text(entry.composition)||text(entry.composition).length>600)throw Error('Нужен состав готовой продукции.');
   for(const key of ['p','f','c','kcal','weight','tolerance'])if(!Number.isFinite(entry[key])||entry[key]<0)throw Error('Проверь КБЖУ и вес: '+key);
   if(entry.weight<=0)throw Error('Вес должен быть больше нуля.');
