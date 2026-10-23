@@ -183,7 +183,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const sum=k=>rows.reduce((n,r)=>n+r[k],0);
   res.set('Cache-Control','no-store');
   res.json({ok:true,days,point,summary:{points:rows.length,staff:sum('staff'),active:sum('active'),requests:sum('requests'),labels:sum('labels')},
-   rows,historyLimit:MAX_EVENTS,note:'Отправка на принтер не подтверждает физическую выдачу наклейки. Смена — с последнего входа сотрудника на устройстве. История хранит последние 4000 запросов.'});
+   rows,historyLimit:MAX_EVENTS,note:'Запросы и передача на принтер — не доказательство фактической печати. Смена — с последнего входа сотрудника на устройстве. История хранит последние 4000 запросов.'});
  }));
  app.get('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
   res.set('Cache-Control','no-store');
@@ -304,7 +304,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
     throw bad(409,'Каталог обновлён владельцем. Нажми «Обновить товары» и выбери этикетку заново.');
   const product=list.products.find(x=>x.id===productId);
   if(!product||product.needsReview===true||!product.storage||!Number.isInteger(product.hours)||product.hours<=0)throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
-  const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати',result:'pending',
+  const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',result:'pending',
     staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
     deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,
     productId:product.id,product:product.name,copies,device:req.farukhPrintDevice.name};
