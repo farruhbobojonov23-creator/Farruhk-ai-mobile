@@ -59,3 +59,26 @@
 .pc-form-actions{justify-content:flex-end}.pc-error{color:#9f3045;background:#ffeff1;font-size:12px;border-radius:10px;padding:9px 12px}
 @media(max-width:920px){.pc-stats{grid-template-columns:repeat(2,1fr)}.pc-hero{flex-direction:column}.pc-toolbar{align-items:stretch}.pc-toolbar-actions{width:100%}}
 @media(max-width:530px){#print-control{padding:2px}.pc-hero{padding:22px}.pc-row{flex-direction:column;align-items:stretch;gap:12px}.pc-row-controls{justify-content:flex-start}.pc-form-four{grid-template-columns:repeat(2,1fr)}.pc-stat{padding:14px}.pc-stat strong{font-size:26px}.pc-transfer{padding:18px}.pc-transfer-buttons>*{width:100%}.pc-badge{font-size:10px}.pc-log-item{flex-direction:column;gap:4px}}
+
+/* Owner cloud section belongs exclusively to FARUKH AI Print Control. */
+#print-control .pcloud{margin:22px 0 18px;background:linear-gradient(125deg,#fff,#f2faf9);border:1px solid #cce3e2;padding:24px;border-radius:18px;box-shadow:0 3px 12px #08262708}
+#print-control .pcloud h2{margin:0 0 9px;font-size:20px;letter-spacing:-.5px;color:#263641}
+#print-control .pcloud>p{font-size:13px;color:#6a7c82;line-height:1.65;max-width:760px}
+#print-control .pcloud-status{padding:11px 14px;border-radius:10px;background:#e7f7ed;color:#266e52!important}
+#print-control .pcloud-status[data-error=yes]{background:#fff0f2;color:#9e3546!important}
+#print-control .pcloud-actions{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
+#print-control .pcloud-btn{border:1px solid #d3e0df;padding:11px 14px;color:#365b57;background:#fff;font-size:12px;font-weight:850;border-radius:10px}
+#print-control .pcloud-btn:disabled{opacity:.44}
+#print-control .pcloud-btn:hover{background:#eef6f4}
+#print-control .pcloud-pairing{border:1px dashed #79bda8;background:#f0fbf6;border-radius:13px;padding:15px;margin:18px 0;display:grid;gap:8px}
+#print-control .pcloud-pairing[hidden]{display:none!important}
+#print-control .pcloud-pairing small{color:#5c8177;font-size:12px}
+#print-control .pcloud-code{letter-spacing:4px;font-weight:900;font-size:clamp(19px,3.8vw,27px);color:#145c48;word-break:break-all}
+#print-control .pcloud h3{font-size:14px;margin:23px 0 12px;color:#344953}
+#print-control .pcloud-device{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid #e1e9e9;background:#fff;padding:14px;border-radius:12px;margin-bottom:8px}
+#print-control .pcloud-device strong{display:block;color:#2d3c43;font-size:13px}
+#print-control .pcloud-device small{color:#96a0a3;font-size:11px;margin-top:5px;display:block;line-height:1.5}
+#print-control .pcloud-revoke{background:#fff0f2;color:#a43849;padding:9px 13px;border:0;border-radius:9px;white-space:nowrap}
+#print-control .pcloud-empty{font-size:12px;color:#89999a}
+#print-control .pcloud-foot{font-size:11px!important;color:#97a2a6!important;line-height:1.6}
+@media(max-width:640px){#print-control .pcloud{padding:17px}#print-control .pcloud-actions button{flex:1 1 100%}#print-control .pcloud-device{align-items:flex-start;flex-direction:column}}
