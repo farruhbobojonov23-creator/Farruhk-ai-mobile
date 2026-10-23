@@ -77,6 +77,7 @@ export function mountPrintCloudControl({root,renderLocal}){
     auto=JSON.stringify(local)===JSON.stringify(remoteProducts)&&local.length===remoteProducts.length;
     tell('Облако: '+remoteProducts.length+' позиций · версия '+rev+'. Локально: '+local.length+'. '+(auto?'Каталоги совпадают, последующие изменения будут публиковаться автоматически.':'Каталоги отличаются. Выбери «Опубликовать» или «Загрузить».'),false);
     await loadDevices();
+    window.dispatchEvent(new Event('farukh-print-owner-authenticated'));
   }catch(e){fetched=false;auto=false;if(e.status===401)askForLogin();else tell('Облачный каталог не загружен: '+e.message,true)}
   finally{lock(false);updateState()}
  }
