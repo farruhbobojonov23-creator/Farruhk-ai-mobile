@@ -47,7 +47,7 @@ export function mountPrintStaffControl({root}){
  const pointFilter=el('select','pstaff-select');pointFilter.setAttribute('aria-label','Выбор точки');
  const search=el('input','pstaff-search');search.type='search';search.placeholder='Поиск сотрудника по имени или логину';search.setAttribute('aria-label','Поиск сотрудников');search.maxLength=100;
  const period=el('select','pstaff-select');period.setAttribute('aria-label','Период отчёта');
- for(const [v,label] of [['7','7 дней'],['30','30 дней'],['90','90 дней'],['all','Всё время']])period.append(opt(v,label));
+ for(const [v,label] of [['shift','С момента входа'],['today','Сегодня'],['7','7 дней'],['30','30 дней'],['month','Этот месяц'],['90','90 дней'],['all','Всё время']])period.append(opt(v,label));
  period.value='30';
  const reload=button('↻ Обновить',()=>reloadAll(),'pstaff-button');
  filters.append(pointFilter,search,period,reload);
@@ -97,14 +97,30 @@ export function mountPrintStaffControl({root}){
  const rosterHead=el('h3','','Сотрудники');
  const staffList=el('div','pstaff-list');
  const reportHead=el('div','pstaff-report-head');reportHead.append(el('h3','','Отчёт по точкам'));
- const reportNote=el('p','pstaff-report-note','Учитываются только запросы на отправку этикетки, а не подтверждённая физическая печать. Журнал ограничен последними 500 запросами.');
+ const reportNote=el('p','pstaff-report-note','Запросы, отправки и ошибки ведутся отдельно. Отправка данных принтеру не означает физическую печать. «С момента входа» — статистика текущих активных сеансов.');
  const reportGrid=el('div','pstaff-report-grid');
- const activityTitle=el('h3','','Последние запросы выбранной точки');
+ const workerReportHeading=el('h3','','Статистика сотрудников');
+ const workerReport=el('div','pstaff-worker-report');
+ const alertsHeading=el('h3','','Уведомления владельцу');
+ const alertsHelp=el('p','pstaff-report-note','Здесь показываются ошибки отправки на принтер и устройства без связи более 20 минут. Это сообщения внутри FARUKH AI, не push-уведомления.');
+ const alertCount=el('span','pstaff-alert-count','Нет новых ошибок');
+ const alerts=el('div','pstaff-alerts');
+ const activityTitle=el('h3','','История печати · фильтры');
+ const activityFilters=el('div','pstaff-history-filters');
+ const staffFilter=el('input','pstaff-search');staffFilter.type='search';staffFilter.maxLength=32;staffFilter.placeholder='Логин сотрудника';staffFilter.setAttribute('aria-label','История: логин сотрудника');
+ const startDate=el('input');startDate.type='date';startDate.setAttribute('aria-label','Начало периода истории');
+ const endDate=el('input');endDate.type='date';endDate.setAttribute('aria-label','Конец периода истории');
+ const statusFilter=el('select','pstaff-select');statusFilter.setAttribute('aria-label','Результат печати');
+ for(const [v,label] of [['','Все результаты'],['sent','Передано принтеру'],['failed','Ошибка'],['system','Диалог печати'],['pending','Ожидает результата']])statusFilter.append(opt(v,label));
+ const historyCount=el('p','pstaff-report-note');
+ activityFilters.append(staffFilter,startDate,endDate,statusFilter);
  const activity=el('div','pstaff-activity');
- panel.append(header,summary,notification,metrics,filters,managePoints,createHeading,createForm,secret,rosterHead,staffList,reportHead,reportNote,reportGrid,activityTitle,activity);
+ panel.append(header,summary,notification,metrics,filters,managePoints,createHeading,createForm,secret,rosterHead,staffList,
+  reportHead,reportNote,reportGrid,workerReportHeading,workerReport,alertsHeading,alertsHelp,alertCount,alerts,
+  activityTitle,activityFilters,historyCount,activity);
  root.insertBefore(panel,root.querySelector('.pc-toolbar')||null);
 
- let points=[],users=[],report=null,events=[],authorized=false,busy=false;
+ let points=[],users=[],report=null,events=[],alertRows=[],historyTotal=0,authorized=false,busy=false,historyTimer=null;
  const notify=(message,error=false)=>{notification.textContent=message;notification.dataset.error=error?'yes':'no'};
  const disabled=on=>{busy=on;addPoint.disabled=on;addStaff.disabled=on;reload.disabled=on};
  const selection=()=>pointFilter.value;
@@ -217,38 +233,78 @@ export function mountPrintStaffControl({root}){
   }
  }
  function renderReport(){
-  reportGrid.replaceChildren();const chosen=selection();
+  reportGrid.replaceChildren();workerReport.replaceChildren();
   nStaff.textContent=report?.summary?.staff??'—';
   nActive.textContent=report?.summary?.active??'—';
   nRequests.textContent=report?.summary?.requests??'—';
   nLabels.textContent=report?.summary?.labels??'—';
   const rows=report?.rows||[];
-  if(!rows.length){reportGrid.append(el('p','pstaff-empty','Нет данных по точкам. Добавь хотя бы одну точку.'))}
+  if(!rows.length)reportGrid.append(el('p','pstaff-empty','Нет данных за выбранный период.'));
   for(const row of rows){
-   const card=el('div','pstaff-report-card');
-   card.append(el('strong','',row.point));
+   const card=el('div','pstaff-report-card');card.append(el('strong','',row.point));
    const counters=el('div','pstaff-report-values');
-   for(const [value,label] of [[row.active+' / '+row.staff,'сотрудников активно'],[row.requests,'запросов печати'],[row.labels,'наклеек в запросах']]){
+   for(const [value,label] of [[row.active+' / '+row.staff,'сотрудников активно'],[row.requests,'запросов'],[row.labels,'наклеек запрошено'],[row.transmitted||0,'передано принтеру'],[row.failed||0,'ошибок']]){
     const item=el('div');item.append(el('strong','',String(value)),el('small','',label));counters.append(item)
    }
    card.append(counters,el('small','','Последний запрос: '+smallTime(row.lastRequestAt)));reportGrid.append(card);
+   for(const user of row.users||[]){
+    const line=el('div','pstaff-worker-row');
+    const who=el('div');who.append(el('strong','',user.name),el('small','',user.login+' · '+row.point));
+    const numbers=el('span','','Запросы: '+user.requests+' · Этикетки: '+user.labels+' · Передано: '+user.transmitted+' · Ошибки: '+user.failed);
+    line.append(who,numbers);workerReport.append(line);
+   }
   }
+  if(!workerReport.children.length)workerReport.append(el('p','pstaff-empty','Сотрудники не найдены.'));
+  reportNote.textContent=report?.note||reportNote.textContent;
+ }
+ function renderAlerts(){
+  alerts.replaceChildren();const chosen=selection();
+  const visible=alertRows.filter(e=>!chosen||!e.point||pointEqual(e.point,chosen));
+  alertCount.textContent=visible.length?'Требуют внимания: '+visible.length:'Ошибок и длительных отключений не обнаружено';
+  alertCount.dataset.active=visible.length?'yes':'no';
+  if(!visible.length){alerts.append(el('p','pstaff-empty','Уведомлений пока нет.'));return}
+  for(const row of visible.slice(0,20)){
+   const box=el('div','pstaff-alert-item');
+   box.append(el('strong','',row.type==='offline'?'Нет связи с устройством':'Ошибка отправки на принтер'));
+   box.append(el('small','',(row.device||'')+(row.point?' · '+row.point:'')+' · '+smallTime(row.at)));
+   box.append(el('span','',row.message||'Нет сведений'));
+   alerts.append(box);
+  }
+ }
+ function renderActivity(){
   activity.replaceChildren();
-  const after=period.value==='all'?-Infinity:Date.now()-Number(period.value)*86400000;
-  const matches=events.filter(ev=>(!chosen||pointEqual(ev.point,chosen))&&Number.isFinite(Date.parse(ev.at))&&Date.parse(ev.at)>=after);
-  if(!matches.length)activity.append(el('p','pstaff-empty','Запросов печати пока нет.'));
-  for(const event of matches.slice(0,20)){
+  historyCount.textContent='Найдено записей: '+historyTotal+' · показаны последние '+events.length+' (не более 300).';
+  if(!events.length)activity.append(el('p','pstaff-empty','За этот период запросов печати нет.'));
+  const label=e=>({sent:'Передано на принтер',failed:'Ошибка отправки',system:'Системный диалог',pending:'Ожидает результата'})[e.result||'pending']||'Запрос';
+  for(const event of events){
    const item=el('div','pstaff-event');
    item.append(el('strong','',(event.staff||'Сотрудник')+' · '+(event.product||'Этикетка')));
-   item.append(el('small','',(event.point||'')+' · '+smallTime(event.at)+' · '+event.copies+' шт. · Запрос (не факт печати)'));
+   item.append(el('small','',(event.point||'')+' · '+smallTime(event.at)+' · '+event.copies+' шт. · '+label(event)));
+   if(event.details)item.append(el('small','',event.details));
    activity.append(item);
   }
  }
  async function reportLoad(){
   const params=new URLSearchParams({days:period.value});
   if(selection())params.set('point',selection());
-  const [r,h]=await Promise.all([fetchStaff('/report?'+params.toString()),fetchStaff('/activity')]);
-  report=r;events=h.events||[];renderReport();
+  report=await fetchStaff('/report?'+params.toString());
+  renderReport();
+ }
+ async function historyLoad(){
+  const params=new URLSearchParams({limit:'300'});
+  if(selection())params.set('point',selection());
+  if(staffFilter.value.trim())params.set('login',staffFilter.value.trim().toLowerCase());
+  if(startDate.value)params.set('from',startDate.value);
+  if(endDate.value)params.set('to',endDate.value);
+  if(statusFilter.value)params.set('result',statusFilter.value);
+  const r=await fetchStaff('/activity?'+params);
+  events=r.events||[];historyTotal=r.total??events.length;renderActivity();
+ }
+ async function alertsLoad(){
+  const r=await fetchStaff('/alerts');alertRows=r.alerts||[];renderAlerts();
+ }
+ async function reloadMetrics(){
+  await Promise.all([reportLoad(),historyLoad(),alertsLoad()]);
  }
  async function reloadAll(){
   if(busy)return;
@@ -261,7 +317,7 @@ export function mountPrintStaffControl({root}){
    fillOptions(pointFilter,points,{all:true,value:prior});
    fillOptions(staffPoint,points,{value:staffPoint.value});
    renderPointRows();renderStaff();
-   await reportLoad();
+   await reloadMetrics();
    notify('Готово. Сотрудников: '+users.length+'; точек настроено: '+points.length+'.');
   }catch(e){
    if(e.status===401)notify('Войди как владелец в облачном управлении выше.',true);
@@ -300,9 +356,14 @@ export function mountPrintStaffControl({root}){
    notify(custom?'Доступ создан. Сотрудник может войти с придуманным тобой паролем.':'Доступ создан. Сохрани автоматически созданный пароль.');
   }catch(e){notify(e.message,true)}finally{disabled(false)}
  });
- pointFilter.addEventListener('change',()=>{renderStaff();void reportLoad().catch(e=>notify(e.message,true))});
+ pointFilter.addEventListener('change',()=>{
+  renderStaff();void reloadMetrics().catch(e=>notify(e.message,true))
+ });
  search.addEventListener('input',renderStaff);
  period.addEventListener('change',()=>{void reportLoad().catch(e=>notify(e.message,true))});
+ const debounceHistory=()=>{clearTimeout(historyTimer);historyTimer=setTimeout(()=>void historyLoad().catch(e=>notify(e.message,true)),350)};
+ staffFilter.addEventListener('input',debounceHistory);
+ for(const field of [startDate,endDate,statusFilter])field.addEventListener('change',debounceHistory);
  window.addEventListener('farukh-print-owner-authenticated',()=>void reloadAll());
  void reloadAll();
  return {refresh:reloadAll};

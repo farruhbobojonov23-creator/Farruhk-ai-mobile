@@ -3,8 +3,8 @@
 // Password hashes persist in protected Yandex store, sessions are held only in
 // process memory and expire after 12 hours / immediately upon account revocation.
 import crypto from 'node:crypto';
-const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json';
-const EXPIRE=12*60*60*1000,MAX_STAFF=80,MAX_EVENTS=500;
+const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json',SESSIONS='farukh-print-staff-sessions.json';
+const MAX_STAFF=80,MAX_EVENTS=4000,MAX_SESSIONS=200;
 const bad=(status,message)=>Object.assign(new Error(message),{status});
 const sha=t=>crypto.createHash('sha256').update(t).digest('hex');
 const token=()=>crypto.randomBytes(32).toString('base64url');
@@ -17,7 +17,26 @@ const sameOrigin=req=>{
 const ownerCookie=req=>String(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('fai_owner='))?.slice(10)||'';
 const trim=(v,n)=>String(v||'').trim().slice(0,n);
 export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readCatalog}){
- const sessions=new Map(),limits=new Map();
+ const limits=new Map();
+ const readSessions=async()=>{
+  const entries=await store.read(SESSIONS,[]);
+  if(!Array.isArray(entries)||entries.length>MAX_SESSIONS||entries.some(x=>!x||typeof x.hash!=='string'||typeof x.userId!=='string'||typeof x.deviceId!=='string'))throw bad(503,'Журнал входов сотрудников повреждён.');
+  return entries;
+ };
+ const revokeSessions=async userId=>{
+  await store.transaction(async()=>{
+   const all=await readSessions();
+   const remaining=all.filter(x=>x.userId!==userId);
+   if(remaining.length!==all.length)await store.write(SESSIONS,remaining);
+  });
+ };
+ const moscowDay=at=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
+ const readHistory=async()=>{
+  const records=await store.read(HISTORY,[]);
+  if(!Array.isArray(records))throw bad(503,'Журнал действий повреждён.');
+  return records;
+ };
+
  const readUsers=async()=>{
   const data=await store.read(USERS,[]);
   if(!Array.isArray(data)||data.some(x=>!x||typeof x.id!=='string'||typeof x.passhash!=='string'))throw bad(503,'Файл учётных записей повреждён.');
@@ -42,14 +61,14 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  const requireStaff=async(req,res,next)=>{
   const credential=String(req.get('X-Farukh-Print-Staff')||'');
   if(!/^[A-Za-z0-9_-]{43}$/.test(credential))return res.status(401).json({ok:false,error:'Нужен вход сотрудника.'});
-  const id=sha(credential),session=sessions.get(id);
-  if(!session||session.until<=Date.now()||session.deviceId!==req.farukhPrintDevice.id){
-   sessions.delete(id);return res.status(401).json({ok:false,error:'Сеанс сотрудника завершён. Войди снова.'});
-  }
   try{
+   // Durable device-bound sessions survive browser restarts and server deploys.
+   // A session remains valid until explicit logout or owner reset/block/revoke.
+   const id=sha(credential),session=(await readSessions()).find(x=>x.hash===id&&x.deviceId===req.farukhPrintDevice.id);
+   if(!session)return res.status(401).json({ok:false,error:'Сеанс сотрудника завершён. Войди снова.'});
    const user=(await readUsers()).find(x=>x.id===session.userId&&x.active!==false);
-   if(!user){sessions.delete(id);return res.status(403).json({ok:false,error:'Доступ сотрудника отключён владельцем.'})}
-   req.farukhStaff=user;req.farukhSession=id;next();
+   if(!user)return res.status(403).json({ok:false,error:'Доступ сотрудника отключён владельцем.'});
+   req.farukhStaff=user;req.farukhSession=id;req.farukhSessionData=session;next();
   }catch(e){return res.status(e.status||503).json({ok:false,error:'Не удалось проверить права сотрудника.'})}
  };
  const passwordFromOwner=body=>{
@@ -99,7 +118,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    await store.write(USERS,employees);
    return {points:list,users:employees,prior:currentName};
   });
-  for(const [key,session] of sessions)if(result.users.some(u=>u.id===session.userId&&samePoint(u.point,name)))sessions.delete(key);
+  for(const u of result.users)if(samePoint(u.point,name))await revokeSessions(u.id);
   res.json({ok:true,points:result.points,notice:'Учётные записи переведены на новую точку. Старые запросы печати не изменены.'});
  }));
  app.delete('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
@@ -128,17 +147,24 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    if(changed)await store.write(USERS,users);
    return {employee,changed};
   });
-  if(result.changed)for(const [key,session] of sessions)if(session.userId===result.employee.id)sessions.delete(key);
+  if(result.changed)await revokeSessions(result.employee.id);
   res.json({ok:true,staff:userSafe(result.employee),sessionRevoked:result.changed});
  }));
  app.get('/api/farukh-print/admin/staff/report',owner,safe(async(req,res)=>{
   const days=String(req.query?.days||'30');
-  if(!['7','30','90','all'].includes(days))throw bad(400,'Период отчёта: 7, 30, 90 дней или всё время.');
+  if(!['shift','today','month','7','30','90','all'].includes(days))throw bad(400,'Период отчёта: с момента входа, сегодня, этот месяц, 7/30/90 дней или всё время.');
   const point=pointName(req.query?.point);
-  const [configured,users,events]=await Promise.all([readPoints(),readUsers(),store.read(HISTORY,[])]);
+  const [configured,users,events,activeSessions]=await Promise.all([readPoints(),readUsers(),readHistory(),readSessions()]);
   if(!Array.isArray(events))throw bad(503,'Журнал действий повреждён.');
-  const after=days==='all'?-Infinity:Date.now()-Number(days)*86400000;
-  const valid=events.filter(e=>e&&Number.isFinite(Date.parse(e.at))&&Date.parse(e.at)>=after);
+  const today=moscowDay(Date.now());
+  const after=['all','shift','today','month'].includes(days)?-Infinity:Date.now()-Number(days)*86400000;
+  const valid=events.filter(e=>{
+   if(!e||!Number.isFinite(Date.parse(e.at)))return false;
+   if(days==='today')return moscowDay(e.at)===today;
+   if(days==='month')return moscowDay(e.at).slice(0,7)===today.slice(0,7);
+   if(days==='shift')return activeSessions.some(t=>t.userId===e.userId&&t.deviceId===e.deviceId&&t.loginAt===e.sessionAt);
+   return Date.parse(e.at)>=after;
+  });
   const points=[...new Set([...configured,...users.map(u=>u.point),...valid.map(e=>e.point)].filter(Boolean))];
   if(point&&!points.some(p=>samePoint(p,point)))throw bad(404,'Точка не найдена.');
   const rows=points.filter(p=>!point||samePoint(p,point)).map(p=>{
@@ -146,13 +172,18 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    return {point:p,staff:workers.length,active:workers.filter(u=>u.active!==false).length,requests:logs.length,
     labels:logs.reduce((acc,e)=>acc+(Number.isSafeInteger(e.copies)&&e.copies>0?e.copies:0),0),
     lastRequestAt:logs.length?logs.reduce((a,e)=>a>e.at?a:e.at,''):null,
-    users:workers.map(u=>({id:u.id,name:u.name,login:u.login,active:u.active!==false,
-      requests:logs.filter(e=>e.login===u.login).length}))};
+    transmitted:logs.filter(e=>e.result==='sent').length,failed:logs.filter(e=>e.result==='failed').length,
+    users:workers.map(u=>{
+      const requests=logs.filter(e=>e.userId===u.id||(!e.userId&&e.login===u.login));
+      return {id:u.id,name:u.name,login:u.login,active:u.active!==false,
+       requests:requests.length,labels:requests.reduce((n,e)=>n+(e.copies||0),0),
+       transmitted:requests.filter(e=>e.result==='sent').length,failed:requests.filter(e=>e.result==='failed').length};
+    })};
   });
   const sum=k=>rows.reduce((n,r)=>n+r[k],0);
   res.set('Cache-Control','no-store');
   res.json({ok:true,days,point,summary:{points:rows.length,staff:sum('staff'),active:sum('active'),requests:sum('requests'),labels:sum('labels')},
-   rows,historyLimit:MAX_EVENTS,note:'Это запросы печати, а не доказательство фактической печати. Журнал хранит последние 500 запросов.'});
+   rows,historyLimit:MAX_EVENTS,note:'Запросы и передача на принтер — не доказательство фактической печати. Смена — с последнего входа сотрудника на устройстве. История хранит последние 4000 запросов.'});
  }));
  app.get('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
   res.set('Cache-Control','no-store');
@@ -185,7 +216,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    target.salt=salt;target.passhash=hash(password,salt);target.active=true;
    await store.write(USERS,all);
   });
-  for(const [key,session] of sessions)if(session.userId===target.id)sessions.delete(key);
+  await revokeSessions(target.id);
   res.set('Cache-Control','no-store');
   res.json({ok:true,staff:userSafe(target),...(!custom?{password}:{}),
     warning:custom?'Пароль сотрудника обновлён владельцем.':'Новый пароль показан только сейчас.'});
@@ -197,14 +228,39 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    const all=await readUsers();target=all.find(x=>x.id===req.params.id);if(!target)throw bad(404,'Сотрудник не найден.');
    target.active=req.body.active;await store.write(USERS,all);
   });
-  if(!target.active)for(const [key,session] of sessions)if(session.userId===target.id)sessions.delete(key);
+  if(!target.active)await revokeSessions(target.id);
   res.json({ok:true,staff:userSafe(target)});
  }));
  app.get('/api/farukh-print/admin/staff/activity',owner,safe(async(req,res)=>{
-  const entries=await store.read(HISTORY,[]);
-  if(!Array.isArray(entries))throw bad(503,'Журнал действий повреждён.');
+  const start=String(req.query?.from||''),end=String(req.query?.to||'');
+  if((start&&!/^\d{4}-\d{2}-\d{2}$/.test(start))||(end&&!/^\d{4}-\d{2}-\d{2}$/.test(end))||(start&&end&&start>end))throw bad(400,'Неверный диапазон дат.');
+  const point=trim(req.query?.point,60),login=trim(req.query?.login,32).toLowerCase(),state=trim(req.query?.result,20);
+  if(state&&!['sent','failed','system','pending'].includes(state))throw bad(400,'Неверный статус печати.');
+  const limit=Math.min(300,Math.max(1,Number(req.query?.limit)||100));
+  const records=(await readHistory()).filter(e=>{
+   if(point&&e.point!==point)return false;
+   if(login&&e.login!==login)return false;
+   if(state&&(e.result||'pending')!==state)return false;
+   if(!Number.isFinite(Date.parse(e.at)))return false;
+   const day=moscowDay(e.at);
+   return (!start||day>=start)&&(!end||day<=end);
+  });
   res.set('Cache-Control','no-store');
-  res.json({ok:true,events:entries.slice(-70).reverse()});
+  res.json({ok:true,events:records.slice(-limit).reverse(),total:records.length,historyLimit:MAX_EVENTS});
+ }));
+ app.get('/api/farukh-print/admin/staff/alerts',owner,safe(async(req,res)=>{
+  const events=await readHistory();
+  const errors=events.filter(e=>e.result==='failed').slice(-30).reverse().map(e=>({
+   type:'print_error',id:e.id,at:e.resultAt||e.at,point:e.point,staff:e.staff,device:e.device,
+   message:(e.product||'Этикетка')+' · '+(e.details||'Не удалось отправить на принтер')
+  }));
+  const devices=await store.read('farukh-print-devices.json',[]);
+  if(!Array.isArray(devices))throw bad(503,'Не удалось прочитать устройства.');
+  const offline=devices.filter(d=>!d.revoked&&d.lastSeenAt&&Date.now()-Date.parse(d.lastSeenAt)>20*60*1000)
+   .map(d=>({type:'offline',id:d.id,at:d.lastSeenAt,device:d.name,message:'Нет связи более 20 минут'}));
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,alerts:[...errors,...offline].sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,60),
+   note:'Уведомления показываются в управляющем центре. Если устройство без сети, ошибка появится только после передачи данных.'});
  }));
  app.post('/api/farukh-print/device/staff/login',protectDevice,staffRate,safe(async(req,res)=>{
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
@@ -215,18 +271,26 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const expected=account?.passhash||'0'.repeat(64);
   const actual=hash(password,salt);
   if(!crypto.timingSafeEqual(Buffer.from(actual,'hex'),Buffer.from(expected,'hex'))||!account)throw bad(401,'Неверный логин или пароль.');
-  for(const [k,v] of sessions)if(v.until<Date.now())sessions.delete(k);
-  const session=token();
-  sessions.set(sha(session),{userId:account.id,deviceId:req.farukhPrintDevice.id,until:Date.now()+EXPIRE});
+  const session=token(),since=new Date().toISOString();
+  await store.transaction(async()=>{
+   const all=await readSessions();
+   const next=all.filter(x=>!(x.userId===account.id&&x.deviceId===req.farukhPrintDevice.id));
+   if(next.length>=MAX_SESSIONS)throw bad(429,'Слишком много активных входов. Обратись к управляющему.');
+   next.push({hash:sha(session),userId:account.id,deviceId:req.farukhPrintDevice.id,loginAt:since});
+   await store.write(SESSIONS,next);
+  });
   res.set('Cache-Control','no-store');
-  res.json({ok:true,session,expiresAt:new Date(Date.now()+EXPIRE).toISOString(),staff:userSafe(account)});
+  res.json({ok:true,session,staff:userSafe(account),remembered:true});
  }));
  app.get('/api/farukh-print/device/staff/session',protectDevice,requireStaff,safe(async(req,res)=>{
   res.set('Cache-Control','no-store');
   res.json({ok:true,staff:userSafe(req.farukhStaff)});
  }));
  app.post('/api/farukh-print/device/staff/logout',protectDevice,requireStaff,safe(async(req,res)=>{
-  sessions.delete(req.farukhSession);res.json({ok:true});
+  await store.transaction(async()=>{
+   const all=await readSessions();await store.write(SESSIONS,all.filter(x=>x.hash!==req.farukhSession));
+  });
+  res.json({ok:true});
  }));
  app.post('/api/farukh-print/device/staff/authorize-print',protectDevice,requireStaff,safe(async(req,res)=>{
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
@@ -240,13 +304,32 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
     throw bad(409,'Каталог обновлён владельцем. Нажми «Обновить товары» и выбери этикетку заново.');
   const product=list.products.find(x=>x.id===productId);
   if(!product||product.needsReview===true||!product.storage||!Number.isInteger(product.hours)||product.hours<=0)throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
-  const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',staff:req.farukhStaff.name,
-    login:req.farukhStaff.login,point:req.farukhStaff.point,product:product.name,copies,device:req.farukhPrintDevice.name};
+  const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',result:'pending',
+    staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
+    deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,
+    productId:product.id,product:product.name,copies,device:req.farukhPrintDevice.name};
   await store.transaction(async()=>{
-   const events=await store.read(HISTORY,[]);
-   if(!Array.isArray(events))throw bad(503,'Журнал действий повреждён.');
+   const events=await readHistory();
    events.push(item);await store.write(HISTORY,events.slice(-MAX_EVENTS));
   });
   res.set('Cache-Control','no-store');res.json({ok:true,eventId:item.id,staff:userSafe(req.farukhStaff)});
  }));
+ app.post('/api/farukh-print/device/staff/print-result',protectDevice,requireStaff,safe(async(req,res)=>{
+  if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
+  const id=String(req.body?.eventId||''),result=String(req.body?.result||'');
+  if(!/^[a-f0-9-]{36}$/.test(id)||!['sent','failed','system'].includes(result))throw bad(400,'Неверные данные результата.');
+  const details=trim(req.body?.details,160);
+  const updated=await store.transaction(async()=>{
+   const rows=await readHistory();
+   const entry=rows.find(e=>e.id===id&&e.userId===req.farukhStaff.id&&e.deviceId===req.farukhPrintDevice.id);
+   if(!entry)throw bad(404,'Запрос печати не найден.');
+   if(entry.result!=='pending')return entry;
+   entry.result=result;entry.resultAt=new Date().toISOString();entry.details=details;
+   entry.status=result==='sent'?'Данные переданы принтеру':result==='failed'?'Ошибка отправки': 'Открыт системный диалог печати';
+   await store.write(HISTORY,rows);return entry;
+  });
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,eventId:updated.id,result:updated.result});
+ }));
+
 }

@@ -215,3 +215,23 @@
 #print-control .pstaff-reset-actions button{font-size:11px;margin:0;min-height:41px}
 @media(max-width:720px){#print-control .pstaff-password-group{grid-template-columns:1fr 1fr}#print-control .pstaff-password-toggle{grid-column:1/-1}}
 @media(max-width:540px){#print-control .pstaff-password-group{grid-template-columns:1fr}#print-control .pstaff-reset-box{grid-template-columns:1fr}}
+
+
+/* Owner audit board: per-worker shift/day/month, alerts and date-range history. */
+#print-control .pstaff-worker-report{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#print-control .pstaff-worker-row{min-width:0;background:#fff;border:1px solid #e0e8ed;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:11px}
+#print-control .pstaff-worker-row strong{font-size:12px;color:#354750}
+#print-control .pstaff-worker-row small{display:block;margin:4px 0 0;font-size:10px;color:#94a0a4}
+#print-control .pstaff-worker-row>span{font-size:11px;line-height:1.6;color:#467c75;background:#f3faf7;border-radius:9px;padding:9px}
+#print-control .pstaff-history-filters{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:9px;margin:12px 0 10px}
+#print-control .pstaff-history-filters input,#print-control .pstaff-history-filters select{width:100%;height:43px;min-width:0;border:1px solid #d7e4e9;background:white;border-radius:10px;padding:9px 10px;color:#3d525d;font-family:inherit;font-size:12px;box-sizing:border-box}
+#print-control .pstaff-alert-count{display:inline-block;padding:7px 12px;border-radius:40px;border:1px solid #d1e8d9;color:#458769;background:#f0faf2;font-size:11px;font-weight:820;margin:6px 0 12px}
+#print-control .pstaff-alert-count[data-active=yes]{color:#ac364c;background:#fff0f2;border-color:#edc9d0}
+#print-control .pstaff-alerts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#print-control .pstaff-alert-item{background:#fff9fa;border:1px solid #eacfd5;border-radius:12px;padding:12px;display:grid;gap:6px;line-height:1.5}
+#print-control .pstaff-alert-item strong{font-size:12px;color:#a83c54}
+#print-control .pstaff-alert-item small{font-size:10px;color:#938b8f}
+#print-control .pstaff-alert-item span{font-size:11px;color:#68585d;overflow-wrap:anywhere}
+#print-control .pstaff-report-values{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:790px){#print-control .pstaff-history-filters{grid-template-columns:repeat(2,minmax(0,1fr))}#print-control .pstaff-report-values{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:570px){#print-control .pstaff-worker-report,#print-control .pstaff-alerts{grid-template-columns:1fr}#print-control .pstaff-history-filters{grid-template-columns:1fr 1fr}#print-control .pstaff-report-values{grid-template-columns:repeat(2,minmax(0,1fr))}}

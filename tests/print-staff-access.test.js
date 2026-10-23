@@ -153,3 +153,64 @@ test('Owner sees honest counts of print REQUESTS by each point and period',async
  assert.equal((await call('get','/api/farukh-print/admin/staff/report',{...own,query:{days:'3'}})).code,400);
  assert.equal((await call('get','/api/farukh-print/admin/staff/report',{query:{days:'30'}})).code,401);
 });
+
+
+test('Staff login remains saved on the server until explicit sign-out and never stores a raw session token',async()=>{
+ const {call,persist}=setup(),owner={owner:'ok'};
+ const member=(await call('post','/api/farukh-print/admin/staff',{...owner,body:{name:'Ирина',login:'irina_staff',point:'Плазма',password:'Ready-To-Print-72'}})).data.staff;
+ const pair=(await call('post','/api/farukh-print/admin/pair',owner)).data.code;
+ const device=(await call('post','/api/farukh-print/device/pair',{body:{code:pair}})).data.token;
+ const signed=await call('post','/api/farukh-print/device/staff/login',{device,body:{login:member.login,password:'Ready-To-Print-72'}});
+ assert.equal(signed.code,200);
+ const active=(await call('get','/api/farukh-print/device/staff/session',{device,staff:signed.data.session}));
+ assert.equal(active.code,200);
+ const stored=persist.get('farukh-print-staff-sessions.json');
+ assert.equal(stored.length,1);assert.equal(stored[0].userId,member.id);
+ assert.equal(stored[0].deviceId,persist.get('farukh-print-devices.json')[0].id);
+ assert.equal('until' in stored[0],false);
+ assert.equal('session' in stored[0],false);
+ assert.ok(!JSON.stringify(stored).includes(signed.data.session));
+ const signedOut=await call('post','/api/farukh-print/device/staff/logout',{device,staff:signed.data.session});
+ assert.equal(signedOut.code,200);
+ assert.equal((await call('get','/api/farukh-print/device/staff/session',{device,staff:signed.data.session})).code,401);
+ assert.deepEqual(persist.get('farukh-print-staff-sessions.json'),[]);
+});
+
+test('Print result history, point/date/status filters, current-session report and error alerts are owner-only',async()=>{
+ const {call,persist}=setup(),owner={owner:'ok'};
+ const member=(await call('post','/api/farukh-print/admin/staff',{...owner,body:{name:'Ирина',login:'irina_staff',point:'Плазма',password:'Ready-To-Print-72'}})).data.staff;
+ const label={id:'confirmed-1',kind:'prep',name:'Соус сырный',storage:'+2…+6 °C',hours:24,needsReview:false};
+ assert.equal((await call('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[label]}})).code,200);
+ const pair=(await call('post','/api/farukh-print/admin/pair',owner)).data.code;
+ const device=(await call('post','/api/farukh-print/device/pair',{body:{code:pair,name:'Плазма рабочий планшет'}})).data.token;
+ const signed=(await call('post','/api/farukh-print/device/staff/login',{device,body:{login:member.login,password:'Ready-To-Print-72'}})).data.session;
+ async function print(copies){
+  return call('post','/api/farukh-print/device/staff/authorize-print',{
+   device,staff:signed,body:{productId:label.id,point:'Плазма',copies,printedAt:new Date().toISOString(),catalogRevision:1}
+  });
+ }
+ const first=(await print(2)).data,second=(await print(3)).data;
+ const sent=await call('post','/api/farukh-print/device/staff/print-result',{device,staff:signed,body:{eventId:first.eventId,result:'sent',details:'Отправлено на V3 BT'}});
+ assert.equal(sent.code,200);
+ const fail=await call('post','/api/farukh-print/device/staff/print-result',{device,staff:signed,body:{eventId:second.eventId,result:'failed',details:'Принтер отключён'}});
+ assert.equal(fail.code,200);
+ const repeat=await call('post','/api/farukh-print/device/staff/print-result',{device,staff:signed,body:{eventId:second.eventId,result:'sent'}});
+ assert.equal(repeat.code,200);assert.equal(repeat.data.result,'failed');
+ const invalid=await call('post','/api/farukh-print/device/staff/print-result',{device,staff:signed,body:{eventId:second.eventId,result:'printed'}});assert.equal(invalid.code,400);
+ const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const history=(await call('get','/api/farukh-print/admin/staff/activity',{...owner,query:{from:today,to:today,point:'Плазма',login:member.login,result:'failed'}}));
+ assert.equal(history.code,200);assert.equal(history.data.events.length,1);assert.equal(history.data.events[0].id,second.eventId);
+ assert.equal((await call('get','/api/farukh-print/admin/staff/activity',{query:{result:'failed'}})).code,401);
+ const report=(await call('get','/api/farukh-print/admin/staff/report',{...owner,query:{days:'shift'}})).data;
+ assert.equal(report.summary.requests,2);assert.equal(report.summary.labels,5);
+ const plasma=report.rows.find(x=>x.point==='Плазма');
+ assert.equal(plasma.failed,1);assert.equal(plasma.transmitted,1);
+ assert.equal(plasma.users[0].requests,2);assert.equal(plasma.users[0].labels,5);
+ assert.equal((await call('get','/api/farukh-print/admin/staff/report',{...owner,query:{days:'today'}})).data.summary.requests,2);
+ assert.equal((await call('get','/api/farukh-print/admin/staff/report',{...owner,query:{days:'month'}})).data.summary.requests,2);
+ const alerts=(await call('get','/api/farukh-print/admin/staff/alerts',owner)).data.alerts;
+ assert.ok(alerts.some(a=>a.type==='print_error'&&a.message.includes('Принтер отключён')));
+ const devices=persist.get('farukh-print-devices.json');devices[0].lastSeenAt='2020-01-01T00:00:00Z';persist.set('farukh-print-devices.json',devices);
+ const offline=(await call('get','/api/farukh-print/admin/staff/alerts',owner)).data.alerts;
+ assert.ok(offline.some(a=>a.type==='offline'&&a.device==='Плазма рабочий планшет'));
+});

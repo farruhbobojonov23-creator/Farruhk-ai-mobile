@@ -152,8 +152,8 @@ export function installPrintSyncApi(app,{store,auth}){
     const state=await readCatalog();
     res.set('Cache-Control','no-store');res.json({ok:true,...state,device:safeDevice(req.farukhPrintDevice)});
     const device=req.farukhPrintDevice;
-    // Last connection is not a print log. Throttle cloud writes to once per hour.
-    if(Date.now()-Date.parse(device.lastSeenAt||0)>60*60*1000){
+    // Connection heartbeat is not a print confirmation. Update no more than every five minutes.
+    if(Date.now()-Date.parse(device.lastSeenAt||0)>5*60*1000){
       void store.transaction(async()=>{
         const rows=await readDevices(),found=rows.find(d=>d.id===device.id&&!d.revoked);
         if(found){found.lastSeenAt=new Date().toISOString();await store.write(FILE_DEVICES,rows)}
