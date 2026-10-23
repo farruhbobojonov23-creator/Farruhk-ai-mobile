@@ -38,6 +38,11 @@ function paint(){
   const point=document.getElementById('point-name');if(point){point.value='';point.readOnly=paired}
  }
  submit.disabled=busy;
+ // Keep the employee print workspace synchronized after login/logout/expiry.
+ window.dispatchEvent(new CustomEvent('farukh-print-staff-changed',{detail:{
+  managed:paired,
+  staff:staff?{name:staff.name,point:staff.point,login:staff.login}:null
+ }}));
 }
 async function call(path,opts={}){
  const device=deviceToken();
