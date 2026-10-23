@@ -95,7 +95,7 @@ import {requireOwner} from '/owner-login.js';
 import {createVoiceConversation} from '/chef-voice.js?v=80';
 import {mountVoiceDiagnostics} from '/voice-diagnostics.js?v=1';
 import {mountWorkbenchVoice} from '/workbench-voice.js?v=77';
-import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=68';
+import {DeviceStore,validateDeviceState,mergeDeviceState} from '/device-store.js?v=69';
 import {mountRubyHome} from '/ruby-studio.js?v=78';
 import {mountTaskBoard} from '/task-board.js?v=1';
 // HACCP is loaded independently to keep navigation responsive if its module fails.
@@ -109,7 +109,7 @@ import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
-import {mountSiteSettings} from '/site-settings.js?v=1';
+import {mountSiteSettings} from '/site-settings.js?v=2';
 let siteSettings;
 const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
 const desktopMenu=matchMedia('(min-width:1000px)');
