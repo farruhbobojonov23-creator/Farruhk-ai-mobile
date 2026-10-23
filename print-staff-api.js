@@ -24,7 +24,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   return data;
  };
  const pointName=v=>String(v||'').trim();
- const validPoint=v=>v.length>=2&&v.length<=60&&!/[\\x00-\\x1F]/.test(v);
+ const validPoint=v=>v.length>=2&&v.length<=60&&!Array.from(v).some(ch=>ch.charCodeAt(0)<32);
  const samePoint=(a,b)=>a.toLocaleLowerCase('ru')===b.toLocaleLowerCase('ru');
  const readPoints=async()=>{
   const points=await store.read(POINTS,['Плазма']);
