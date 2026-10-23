@@ -32,13 +32,15 @@ function validate(entry){
  if(!name||name.length>90)throw Error('Название товара должно быть до 90 символов.');
  if(storage.length>60)throw Error('Условия хранения слишком длинные (до 60 символов).');
  const unverified=entry.needsReview===true;
+ const photo=entry.photo||'';
+ if(photo&&(!window.FarukhPrintPhotos?.isPhoto(photo)))throw Error('Фото должно быть JPEG не более 45 КБ. Выбери его повторно.');
  if(!unverified&&(!storage||!Number.isInteger(hours)||hours<1||hours>8760))throw Error('Для подтверждённого товара укажи условия и срок годности.');
  if(entry.kind==='ready'){
   if(!text(entry.composition)||text(entry.composition).length>600)throw Error('Нужен состав готовой продукции.');
   for(const key of ['p','f','c','kcal','weight','tolerance'])if(!Number.isFinite(entry[key])||entry[key]<0)throw Error('Проверь КБЖУ и вес: '+key);
   if(entry.weight<=0)throw Error('Вес должен быть больше нуля.');
  }
- return {...entry,name,storage,needsReview:unverified};
+ return {...entry,name,storage,needsReview:unverified,photo};
 }
 function validateBackup(content){
  if(content?.format!=='farukh-print-catalog-v1'||!Array.isArray(content.products)||content.products.length>MAX)throw Error('Неверный формат резервной копии FARUKH PRINT.');
@@ -107,9 +109,32 @@ export function mountPrintControl({root}){
   if(opts.maxlength)input.maxLength=opts.maxlength;
   fields[name]=input;holder.append(title,input);return holder;
  }
+ let chosenPhoto='';
+ const photoPanel=el('section','pc-photo-field');
+ const photoPreview=el('img','pc-photo-preview');
+ photoPreview.alt='Фото товара';photoPreview.hidden=true;
+ const photoEmpty=el('div','pc-photo-empty','◇');const photoCaption=el('div','pc-photo-controls');
+ photoCaption.append(el('strong','','Фото для каталога'),el('small','','Можно выбрать или заменить самостоятельно. На чёрно-белых этикетках фото не печатается.'));
+ const photoPick=btn('＋ Загрузить фото','pc-secondary',()=>photoFile.click());
+ const photoRemove=btn('Убрать фото','pc-secondary',()=>{chosenPhoto='';showPhoto()});
+ const photoFile=el('input');photoFile.type='file';photoFile.accept='image/jpeg,image/png,image/webp';photoFile.hidden=true;
+ function showPhoto(){
+  const filled=!!chosenPhoto;
+  photoPreview.hidden=!filled;photoEmpty.hidden=filled;photoRemove.disabled=!filled;
+  if(filled)photoPreview.src=chosenPhoto;else photoPreview.removeAttribute('src');
+ }
+ photoFile.addEventListener('change',async()=>{
+  const file=photoFile.files?.[0];photoFile.value='';if(!file)return;
+  photoPick.disabled=true;
+  try{chosenPhoto=await window.FarukhPrintPhotos.compress(file);showPhoto();formError.hidden=true}
+  catch(e){formError.textContent='Не удалось загрузить фото: '+e.message;formError.hidden=false}
+  finally{photoPick.disabled=false}
+ });
+ photoCaption.append(photoPick,photoRemove,photoFile);
+ photoPanel.append(photoPreview,photoEmpty,photoCaption);
  const formHeading=el('div','pc-form-title');
  formHeading.append(formTitle,btn('✕','pc-close',()=>dialog.close()));
- content.append(formHeading,field('name','Название','text',{maxlength:90}));
+ content.append(formHeading,field('name','Название','text',{maxlength:90}),photoPanel);
  const readyFields=el('div','pc-ready-fields');
  readyFields.append(field('composition','Состав','textarea',{maxlength:600}));
  const nutr=el('div','pc-form-four');
@@ -153,6 +178,7 @@ export function mountPrintControl({root}){
    desc.append(details);
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
+   controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
    row.append(desc,controls);table.append(row);
@@ -199,6 +225,8 @@ export function mountPrintControl({root}){
   currentEdit=product?.id||null;const v=product||{...empty,kind:group};
   formTitle.textContent=(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';
+  chosenPhoto=window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo||'':'';
+  showPhoto();
   const values={...empty,...v};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
   verify.checked=product?product.needsReview!==true:false;
@@ -209,7 +237,7 @@ export function mountPrintControl({root}){
   const existing=currentEdit?records.find(p=>p.id===currentEdit):null,kind=existing?.kind||group;
   const name=text(fields.name.value);
   const hoursValue=text(fields.hours.value);
-  const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked};
+  const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked,photo:chosenPhoto};
   if(kind==='prep')p.point=text(fields.point.value);
   else{
    p.composition=text(fields.composition.value);

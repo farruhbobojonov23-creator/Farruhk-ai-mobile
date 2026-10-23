@@ -177,3 +177,18 @@
 @media(max-width:950px){#print-control .pstaff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#print-control .pstaff-inline-edit{grid-template-columns:repeat(3,minmax(0,1fr))}#print-control .pstaff-inline-edit button{grid-column:auto}}
 @media(max-width:700px){#print-control .pstaff-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#print-control .pstaff-toolbar .pstaff-search{grid-column:1/-1;grid-row:2}#print-control .pstaff-report-grid{grid-template-columns:1fr}#print-control .pstaff-point-form{flex-wrap:wrap}#print-control .pstaff-point-form .pstaff-create{width:100%}}
 @media(max-width:530px){#print-control .pstaff-item{grid-template-columns:1fr}#print-control .pstaff-item>.pstaff-controls{justify-content:flex-start}#print-control .pstaff-inline-edit{grid-template-columns:1fr}#print-control .pstaff-inline-edit button{width:100%}#print-control .pstaff-toolbar{grid-template-columns:1fr 1fr}#print-control .pstaff-toolbar .pstaff-button{grid-column:1/-1}#print-control .pstaff-point-row{align-items:flex-start;flex-direction:column}#print-control .pstaff-point-row .pstaff-controls{justify-content:flex-start}}
+
+
+/* Owner-supplied photos for variant-3 FARUKH PRINT grid. */
+#print-control .pc-photo-field{display:flex;align-items:center;gap:14px;background:#f8fafb;border:1px solid #e0e7ed;border-radius:14px;padding:12px;margin:10px 0 20px}
+#print-control .pc-photo-preview,#print-control .pc-photo-empty{width:125px;height:105px;flex:0 0 125px;border:1px solid #e0e7ec;border-radius:10px;background:#fff;object-fit:contain}
+#print-control .pc-photo-preview[hidden],#print-control .pc-photo-empty[hidden]{display:none!important}
+#print-control .pc-photo-empty{display:flex;align-items:center;justify-content:center;font-size:34px;color:#c2cad2}
+#print-control .pc-photo-controls{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;min-width:0}
+#print-control .pc-photo-controls strong,#print-control .pc-photo-controls small{width:100%}
+#print-control .pc-photo-controls strong{font-size:13px;color:#303a44}
+#print-control .pc-photo-controls small{font-size:11px;color:#8e99a3;line-height:1.45}
+#print-control .pc-photo-controls button{font-size:11px;min-height:32px;padding:7px 10px}
+#print-control .pc-photo-controls button:disabled{opacity:.43;cursor:default}
+#print-control .pc-photo-btn{background:#fff2f4;color:#9d2c48;border:1px solid #f0dae0}
+@media(max-width:480px){#print-control .pc-photo-field{gap:10px}#print-control .pc-photo-preview,#print-control .pc-photo-empty{width:98px;height:98px;flex-basis:98px}}

@@ -33,6 +33,13 @@ function validateCatalog(data){
     if(!needsReview&&(!storage||hours===null))throw error(400,'Для готовой к печати этикетки необходим подтверждённый срок и хранение: '+name);
     const clean={id:typeof p.id==='string'&&p.id.length<=150?p.id:crypto.randomUUID(),kind,name,storage,hours,
       needsReview,point:String(p.point||'').slice(0,40)};
+    // User-selected JPG thumbnail, aggressively compressed on device. Photos
+    // are not printed on thermal labels and never bypass expiry approval.
+    if(p.photo!==undefined&&p.photo!==''){
+      if(typeof p.photo!=='string'||p.photo.length>45000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(p.photo))
+        throw error(400,'Фотография «'+name+'» должна быть сжата до 45 КБ в JPEG. Попробуй выбрать её повторно.');
+      clean.photo=p.photo;
+    }
     if(typeof p.recipeMemo==='string')clean.recipeMemo=p.recipeMemo.slice(0,1000);
     if(kind==='ready'){
       clean.composition=String(p.composition||'').slice(0,600);

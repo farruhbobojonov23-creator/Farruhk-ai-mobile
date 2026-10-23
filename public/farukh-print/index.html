@@ -7,7 +7,7 @@
 <meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 30×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=7">
+<link rel="stylesheet" href="./print.css?v=8">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -58,6 +58,13 @@
 <form method="dialog" id="editor-form" class="editor-form">
   <div class="edit-top"><div><div class="eyebrow">БАЗА ЭТИКЕТОК</div><h2 id="editor-title">Новый товар</h2></div><button class="iconbtn" id="close-editor" type="button">✕</button></div>
   <label class="field">Название товара <input name="name" id="edit-name" type="text" maxlength="90" placeholder="Например, Ролл Филадельфия" required></label>
+  <section class="edit-photo-section"><div class="edit-photo-display">
+    <img id="edit-photo-preview" alt="Фото товара" hidden><div id="edit-photo-empty">◇<small>Фото ещё не загружено</small></div>
+  </div><div class="edit-photo-buttons"><strong>Фотография для каталога</strong><small>Только отображение в карточке. На этикетке фото не печатается.</small>
+    <input id="edit-photo-file" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+    <button type="button" id="edit-photo-pick" class="button button-ghost">＋ Выбрать фото</button>
+    <button type="button" id="edit-photo-clear" class="button button-ghost" disabled>Убрать фото</button>
+  </div></section>
   <div id="ready-fields">
     <label class="field">Состав <textarea name="composition" id="edit-composition" maxlength="600" rows="3" placeholder="Рис, нори, сыр, лосось..." required></textarea></label>
     <div class="edit-grid four"><label class="field">Белки /100 г<input id="edit-p" type="number" min="0" max="100" step=".01" required></label><label class="field">Жиры /100 г<input id="edit-f" type="number" min="0" max="100" step=".01" required></label><label class="field">Углеводы /100 г<input id="edit-c" type="number" min="0" max="100" step=".01" required></label><label class="field">Ккал /100 г<input id="edit-kcal" type="number" min="0" max="900" step=".01" required></label></div>
@@ -71,6 +78,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./print.js?v=10" defer></script><script src="./print-sync.js?v=2" defer></script><script src="./print-staff.js?v=1" defer></script>
+<script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=11" defer></script><script src="./print-sync.js?v=2" defer></script><script src="./print-staff.js?v=1" defer></script>
 </body>
 </html>

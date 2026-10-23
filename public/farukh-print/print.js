@@ -41,7 +41,7 @@ let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
-let legacyNative30Transport=false,pendingNativePrint=null;
+let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='';
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -113,11 +113,24 @@ function renderCatalog(){
  if(selected&&!products.some(p=>p.id===selected&&p.kind===kind))selected=null;
  $('catalog-empty').hidden=items.length!==0;
  for(const p of items){
-  const item=node('button','product-item'+(p.id===selected?' selected':''));item.type='button';
-  const left=node('span');left.append(node('strong','',p.name));
-  const guide=guideFor(p);if(guide)left.append(node('small','',guide[0]));
-  left.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено: 48 ч · +2…+6 °C · требуется подтверждение':'Срок и хранение — только после подтверждения'):kind==='ready'?(p.weight+' г · '+p.hours+' ч'):(p.hours+' ч · '+p.storage)));
-  item.append(left,node('span','chevron','›'));item.addEventListener('click',()=>{selected=p.id;if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog()});list.append(item);
+  const item=node('button','product-item product-tile'+(p.id===selected?' selected':''));item.type='button';
+  const visual=node('span','product-visual');
+  if(window.FarukhPrintPhotos?.isPhoto(p.photo)&&p.photo){
+    const img=node('img','product-photo');img.src=p.photo;img.alt='Фото товара '+p.name;img.loading='lazy';img.decoding='async';visual.append(img);
+  }else{
+    visual.append(node('span','product-photo-placeholder','◇'));
+  }
+  const bottom=node('span','product-tile-info');
+  bottom.append(node('strong','',p.name));
+  const details=p.needsReview?'Требует проверки':(p.hours+' ч · '+p.storage);
+  bottom.append(node('small','product-tile-meta'+(p.needsReview?' needs-review':''),details));
+  item.append(visual,bottom);
+  item.addEventListener('click',()=>{
+   selected=p.id;
+   if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
+   renderCatalog()
+  });
+  list.append(item);
  }
  updatePreview();
 }
@@ -147,9 +160,25 @@ function setFormKind(type){
  $('prep-fields').querySelectorAll('input').forEach(el=>el.disabled=type!=='prep');
  $('approval-area').hidden=type!=='prep';
 }
+function renderEditorPhoto(){
+ const img=$('edit-photo-preview'),empty=$('edit-photo-empty');
+ const ok=!!editorPhoto;
+ img.hidden=!ok;empty.hidden=ok;
+ if(ok)img.src=editorPhoto;else img.removeAttribute('src');
+ $('edit-photo-clear').disabled=!ok;
+}
+async function chooseEditorPhoto(ev){
+ const file=ev.target.files?.[0];ev.target.value='';if(!file)return;
+ try{
+  editorPhoto=await window.FarukhPrintPhotos.compress(file);
+  renderEditorPhoto();
+ }catch(e){alert('Фото не добавлено: '+e.message)}
+}
 function openEditor(p){
  if(cloudPaired){alert('Каталог управляется из FARUKH AI. Здесь можно только печатать и скачать резервную копию.');return}
  editing=p?.id||null;
+ editorPhoto=window.FarukhPrintPhotos?.isPhoto(p?.photo)?p?.photo||'':'';
+ renderEditorPhoto();
  const type=p?.kind||manageKind;
  setFormKind(type);
  $('editor-title').textContent=p?'Изменить этикетку':'Новый товар';
@@ -164,15 +193,23 @@ function openEditor(p){
 function saveEditor(ev){
  ev.preventDefault();
  if(cloudPaired)return;
- const type=manageKind, fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:Number($('edit-hours').value)};
- if(!fields.name||!fields.storage||!Number.isSafeInteger(fields.hours)||fields.hours<=0||fields.hours>8760){alert('Заполни название, хранение и срок годности.');return}
+ const type=manageKind;
+ const hoursText=str($('edit-hours').value);
+ const needsReview=type==='prep'&&!$('edit-approval').checked;
+ const fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:hoursText?Number(hoursText):null,photo:editorPhoto};
+ if(!fields.name||fields.name.length>90||hoursText&&(!Number.isSafeInteger(fields.hours)||fields.hours<1||fields.hours>8760)){
+  alert('Укажи название и корректный срок годности, если он известен.');return;
+ }
+ if(!needsReview&&(!fields.storage||!Number.isSafeInteger(fields.hours)||fields.hours<1)){
+  alert('Подтверди условия хранения и срок годности.');return;
+ }
  if(type==='ready'){
   fields.composition=str($('edit-composition').value);
   for(const x of ['p','f','c','kcal','weight','tolerance'])fields[x]=Number($('edit-'+x).value);
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){
    alert('Заполни состав, вес и все значения КБЖУ. Неизвестные цифры нельзя заменять нулями.');return;
   }
- }else{fields.point=str($('edit-point').value);fields.needsReview=!$('edit-approval').checked}
+ }else{fields.point=str($('edit-point').value);fields.needsReview=needsReview}
  if(!editing&&products.some(p=>p.kind===type&&p.name.toLocaleLowerCase('ru')===fields.name.toLocaleLowerCase('ru'))){
   alert('Этикетка с таким названием уже есть в выбранной категории.');return;
  }
@@ -440,6 +477,7 @@ async function importDB(ev){
   for(const p of payload.products){
    if(!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||!str(p.name))throw Error('Не все товары имеют названия.');
    if(!p.needsReview&&(!str(p.storage)||!Number.isSafeInteger(p.hours)||p.hours<1||p.hours>8760))throw Error('Не все действующие этикетки имеют подтверждённый срок и хранение.');
+   if(p.photo&&!window.FarukhPrintPhotos?.isPhoto(p.photo))throw Error('Некорректный формат фотографии.');
    if(p.kind==='ready'&&(!str(p.composition)||!['p','f','c','kcal','weight','tolerance'].every(k=>typeof p[k]==='number'&&Number.isFinite(p[k]))))throw Error('Ошибка состава, веса или КБЖУ.');
    const key=p.kind+'|'+p.name.toLocaleLowerCase('ru');if(used.has(key))throw Error('В резервной копии есть дублирующиеся товары.');used.add(key);
    items.push({...p,id:makeId(),name:p.name.slice(0,90),storage:p.storage.slice(0,60),composition:str(p.composition).slice(0,600),point:str(p.point).slice(0,40)});
@@ -460,7 +498,7 @@ window.FARUKH_PRINT_SYNC_API={
   if(!$('manage').hidden)renderManage();
  },
  replace:newProducts=>{
-  if(!Array.isArray(newProducts)||newProducts.length>1000||newProducts.some(p=>!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'))throw Error('Получена повреждённая облачная база.');
+  if(!Array.isArray(newProducts)||newProducts.length>1000||newProducts.some(p=>!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||(p.photo&&!window.FarukhPrintPhotos?.isPhoto(p.photo))))throw Error('Получена повреждённая облачная база.');
   const old=products;products=structuredClone(newProducts);
   if(!save()){products=old;throw Error('Невозможно сохранить базу на Android.')}
   renderHome();
@@ -487,6 +525,9 @@ function boot(){
  };
  $('add-item').onclick=()=>openEditor(null);
  $('editor-form').addEventListener('submit',saveEditor);
+ $('edit-photo-file').addEventListener('change',chooseEditorPhoto);
+ $('edit-photo-pick').onclick=()=>$('edit-photo-file').click();
+ $('edit-photo-clear').onclick=()=>{editorPhoto='';renderEditorPhoto()};
  $('cancel-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('close-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('editor').addEventListener('cancel',()=>{editFromCatalog=null});

@@ -74,3 +74,31 @@ test('FARUKH PRINT cloud disabled without durable storage or owner auth',async()
  routes.get('/api/farukh-print/sync/status')[0]({},res);
  assert.equal(res.payload.enabled,false);
 });
+
+test('photo thumbnails survive owner cloud publishing and device catalog pull',async()=>{
+ const {req}=makeApi(),owner={cookie:'fai_owner=ok'};
+ const photo='data:image/jpeg;base64,'+Buffer.alloc(25000,49).toString('base64');
+ const record={id:'sauce-1',kind:'prep',name:'Соус спайси',needsReview:true,storage:'',hours:null,photo};
+ const published=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[record]}});
+ assert.equal(published.code,200);
+ assert.equal(published.payload.products[0].photo,photo);
+ const fromCloud=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(fromCloud.payload.products[0].photo,photo);
+ const tooLarge='data:image/jpeg;base64,'+'A'.repeat(47000);
+ const invalid=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...record,photo:tooLarge}]}});
+ assert.equal(invalid.code,400);
+ const unsafe=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...record,photo:'https://example.com/tracker'}]}});
+ assert.equal(unsafe.code,400);
+});
+test('FARUKH PRINT variant 3 is three-column and supports owner-managed photo picker',async()=>{
+ const fs=await import('node:fs/promises');
+ const css=await fs.readFile(new URL('../public/farukh-print/print.css',import.meta.url),'utf8');
+ const js=await fs.readFile(new URL('../public/farukh-print/print.js',import.meta.url),'utf8');
+ const owner=await fs.readFile(new URL('../public/print-control.js',import.meta.url),'utf8');
+ const html=await fs.readFile(new URL('../public/farukh-print/index.html',import.meta.url),'utf8');
+ assert.match(css,/\.product-list\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(js,/product-visual/);
+ assert.match(html,/id="edit-photo-file"/);
+ assert.match(owner,/Фотография|Фото для каталога|Фото/);
+ assert.match(js,/function drawPrep\(/);
+});
