@@ -14,6 +14,11 @@ if(labelApp){
    running=true;localBtn.disabled=cloudBtn.disabled=true;
    msg(google?'Проверяю последнюю резервную копию Google Диска…':'Ищу готовые техкарты на устройстве…');
    try{
+     // Respect the owner's login before reading potentially private TTKs from the device.
+     const sessionResponse=await fetch('/api/auth/session',{cache:'no-store',credentials:'same-origin'});
+     if(!sessionResponse.ok)throw Error('Не удалось проверить вход владельца.');
+     const session=await sessionResponse.json();
+     if(!session.authenticated)throw Error('Войди в FARUKH AI через главный экран, затем открой этикетки снова.');
      const source=google?await googleBackupReadyRecipes():await deviceReadyRecipes();
      const recipes=source.recipes||[];
      if(!recipes.length){
