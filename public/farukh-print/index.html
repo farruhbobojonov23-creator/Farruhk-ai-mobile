@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6f7f9">
-<meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 31×20 мм с Bluetooth-печатью.">
+<meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 30×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=5">
+<link rel="stylesheet" href="./print.css?v=6">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -21,7 +21,7 @@
   <div class="intro"><div class="eyebrow"><span class="pulse"></span> ПРОСТО. БЫСТРО. ТОЧНО.</div><h1>Печать <span>этикеток.</span></h1><p>Выбери тип продукции, товар и количество. Всё остальное сделает принтер.</p></div>
   <div class="choice-grid">
     <button class="type-card" id="choose-ready" type="button"><span class="type-icon">▣</span><span class="type-content"><small>01 · ГОТОВАЯ ПРОДУКЦИЯ</small><strong>Этикетки<br>58 × 40</strong><span>Роллы, воки, супы, готовые блюда</span></span><span class="type-bottom"><b><span id="count-ready">0</span> товаров</b><span class="arrow">↗</span></span></button>
-    <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>31 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
+    <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>30 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
   </div>
   <button class="manage-link" id="manage-from-home" type="button"><span>⚙</span><span><strong>Управление этикетками</strong><small>Добавление, редактирование, сохранение базы</small></span><span class="arrow">→</span></button>
   <div class="app-foot">FARUKH PRINT <b>·</b> Независимое приложение <b>·</b> Никакой синхронизации</div>
@@ -46,7 +46,7 @@
 <section id="manage" class="screen" hidden>
   <div class="sub-head"><button class="back" id="manage-back" type="button">← Назад</button><div><div class="eyebrow">ЛОКАЛЬНАЯ БАЗА</div><h2>Управление этикетками</h2></div></div>
   <p class="lead">Создай свою базу один раз. Она хранится на этом устройстве, отдельно от FARUKH AI. Для переноса на телефон или планшет используй резервную копию.</p>
-  <div class="manage-head"><div class="pills"><button id="manage-ready" class="pill selected" type="button">58 × 40 <span id="manage-count-ready">0</span></button><button id="manage-prep" class="pill" type="button">31 × 20 <span id="manage-count-prep">0</span></button></div><button id="add-item" class="button button-main" type="button">＋ Добавить товар</button></div>
+  <div class="manage-head"><div class="pills"><button id="manage-ready" class="pill selected" type="button">58 × 40 <span id="manage-count-ready">0</span></button><button id="manage-prep" class="pill" type="button">30 × 20 <span id="manage-count-prep">0</span></button></div><button id="add-item" class="button button-main" type="button">＋ Добавить товар</button></div>
   <div class="sanpin-info"><strong>19 позиций · свежая и готовая продукция</strong><p>Для овощей, рыбы, мяса, омлета, бульона и соусов в каталоге добавлены категории и необходимые документы для проверки. Новый СанПиН 2.3/2.4.4282-26 действует с 01.09.2026. Он не устанавливает одинаковый срок в часах для каждой из этих позиций. Сроки и условия хранения подтверждаются по ТТК и маркировке изготовителя (ТР ТС 021/2011). Предложенные 48 ч для спайси — не нормативный срок. Пока подтверждения нет, печать заблокирована.</p><button type="button" class="button button-ghost" id="load-starter-prep">＋ Добавить отсутствующие из списка (19)</button><p><a href="https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/" target="_blank" rel="noopener noreferrer">СанПиН 2.3/2.4.4282-26, п. 11 и 32 ↗</a> · <a href="https://legalacts.ru/doc/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n-880-o/" target="_blank" rel="noopener noreferrer">ТР ТС 021/2011 ↗</a></p></div>
   <div id="manage-list" class="manage-list"></div><div id="manage-empty" class="empty" hidden>В этой категории ещё нет этикеток. Нажми «Добавить товар».</div>
   <div class="backup"><div><strong>Резервная копия базы</strong><small>Перенос товаров между телефоном и планшетом без синхронизации.</small></div><div class="backup-actions"><button id="export-db" class="button button-ghost" type="button">↓ Сохранить базу</button><button id="import-db" class="button button-ghost" type="button">↑ Загрузить базу</button><input id="import-file" type="file" accept=".json,application/json" hidden></div></div>
@@ -71,6 +71,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./print.js?v=7" defer></script><script src="./print-sync.js?v=2" defer></script>
+<script src="./print.js?v=8" defer></script><script src="./print-sync.js?v=2" defer></script>
 </body>
 </html>
