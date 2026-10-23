@@ -43,6 +43,11 @@ jobs:
           sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Prepare writable Android user and debug keystore dirs
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.config/.android" || true
+          mkdir -p "$RUNNER_TEMP/android-user-home"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/android-user-home" >> "$GITHUB_ENV"
       - name: Build debug APK for testing
         working-directory: android
         run: gradle :app:assembleDebug --no-daemon --stacktrace
