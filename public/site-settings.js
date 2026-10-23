@@ -24,7 +24,7 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
  function apply(c){
   document.body.classList.toggle('config-still',!c.motion);document.documentElement.style.fontSize=16*c.scale+'px';
   document.querySelectorAll('.aurora-brand,.sidebar .brand,.arctic-title strong,.arctic-greeting .eyebrow').forEach(n=>n.textContent=c.brand);
-  document.querySelector('.arctic-greeting h1').textContent=c.headline;document.querySelector('.arctic-greeting p').textContent=c.subtitle;
+  const heading=document.querySelector('.arctic-greeting h1');if(c.headline==='Будущее. В ваших руках.')heading.replaceChildren(document.createTextNode('Будущее.'),el('br'),el('em','В ваших руках.'));else heading.textContent=c.headline;document.querySelector('.arctic-greeting p').textContent=c.subtitle;
   const scene=document.querySelector('.arctic-art-area');let custom=scene.querySelector('.owner-home-image');if(c.homeImage){if(!custom){custom=el('img');custom.className='owner-home-image';custom.alt='Изображение главного экрана';custom.style.cssText='width:100%;height:100%;object-fit:contain;position:absolute;inset:0';scene.append(custom)}custom.src=c.homeImage}if(custom)custom.hidden=!c.homeImage;scene.querySelector('.ruby-scene').style.visibility=c.homeImage?'hidden':'';
   const nav=document.querySelector('#chef-menu .nav');nav.querySelectorAll('[data-custom-nav]').forEach(n=>n.remove());
   document.querySelectorAll('[data-custom-page],[data-custom-shortcut]').forEach(n=>n.remove());
@@ -49,7 +49,7 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
  }
  function mountHomeEditor(){
   const panel=el('dialog');panel.setAttribute('aria-label','Настроить главный экран');panel.style.cssText='width:min(620px,92vw);max-height:85dvh;overflow:auto;border:1px solid #c7d8e8;border-radius:22px;padding:20px;background:#f3f8ff;color:#17324d';document.body.append(panel);
-  const entry=button('Настроить',open);entry.id='configure-home';entry.style.cssText='min-height:44px;padding:8px 14px;font-size:14px';document.querySelector('.arctic-top-actions').append(entry);
+  const entry=document.getElementById('ruby-settings');entry.textContent='Настроить';entry.setAttribute('aria-label','Настроить главный экран');entry.title='Настроить главный экран';entry.onclick=open;entry.style.cssText='width:auto;min-height:44px;padding:8px 14px;font-size:14px';
   let working=null,saving=false;
   const cancel=()=>{if(saving)return;apply(config());panel.close();working=null};
   panel.addEventListener('cancel',e=>{e.preventDefault();cancel()});

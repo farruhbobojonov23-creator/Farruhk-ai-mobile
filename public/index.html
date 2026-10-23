@@ -109,7 +109,7 @@ import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
-import {mountSiteSettings} from '/site-settings.js?v=3';
+import {mountSiteSettings} from '/site-settings.js?v=4';
 let siteSettings;
 const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
 const desktopMenu=matchMedia('(min-width:1000px)');
@@ -467,4 +467,3 @@ try{await requireOwner();await loadAssistantState();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}
 </script></body></html>
-
