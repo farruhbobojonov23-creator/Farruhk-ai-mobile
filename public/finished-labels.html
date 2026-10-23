@@ -120,7 +120,7 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 'use strict';
 const KEY='farruh:ready-labels:v1',TZ='Europe/Moscow';
 const seed=()=>({version:1,products:[{id:'philadelphia',name:'Ролл Филадельфия',composition:'рис, нори, сыр творожный, огурец, форель',p:7,f:10.2,c:15.5,kcal:183,weight:275,tolerance:10,hours:12,storage:'+2…+6 °C'}]});
-let state=seed(),current='philadelphia',editing=null;
+let state=seed(),current='philadelphia',editing=null,pendingTtkSignature=null;
 const $=id=>document.getElementById(id);
 const text=(tag,content,cls)=>{const n=document.createElement(tag);if(content!==undefined)n.textContent=String(content);if(cls)n.className=cls;return n};
 function safeLoad(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x?.version===1&&Array.isArray(x.products))state=x}catch{}}
@@ -159,19 +159,19 @@ function render(){const box=$('products'),q=$('query').value.trim().toLowerCase(
  b.append(icon,txt,text('strong','→'));b.onclick=()=>{current=p.id;$('made').value=nowLocal();render();preview()};box.append(b)}
  preview();
 }
-function openEditor(p){editing=p?.id||null;$('editor-heading').textContent=p?'Редактировать товар':'Добавить товар';
+function openEditor(p){editing=p?.id||null;pendingTtkSignature=null;$('editor-heading').textContent=p?'Редактировать товар':'Добавить товар';
  const fields={name:'name',composition:'composition',p:'p',f:'f',c:'c',kcal:'kcal',weight:'weight',tolerance:'tolerance',hours:'hours',storage:'storage'};
  for(const [field,key] of Object.entries(fields))$('f-'+field).value=p?.[key]??'';
  $('delete').hidden=!p;$('editor').showModal();
 }
 function submit(e){e.preventDefault();
  const name=$('f-name').value.trim(),composition=$('f-composition').value.trim(),storage=$('f-storage').value.trim();
- const previous=state.products.find(x=>x.id===editing);const p={...previous,id:editing||('product-'+Date.now().toString(36)),name,composition,storage,needsReview:false,sourceChanged:false,manualEdited:!!previous?.ttkId};
+ const previous=state.products.find(x=>x.id===editing);const p={...previous,id:editing||('product-'+Date.now().toString(36)),name,composition,storage,needsReview:false,sourceChanged:false,manualEdited:!!previous?.ttkId};if(previous?.ttkId&&pendingTtkSignature)p.ttkSignature=pendingTtkSignature;
  for(const key of ['p','f','c','kcal','weight','tolerance','hours'])p[key]=Number($('f-'+key).value);
  if(!valid(p)||p.name.length>70||p.composition.length>280||p.weight>50000||p.tolerance>p.weight||p.hours>720){$('status').textContent='Проверь введённые поля.';return}
  if(state.products.some(x=>x.id!==editing&&x.name.toLowerCase()===name.toLowerCase())){alert('Такой товар уже есть.');return}
  let i=state.products.findIndex(x=>x.id===editing);if(i<0)state.products.push(p);else state.products[i]=p;
- current=p.id;persist();$('editor').close();render();
+ current=p.id;pendingTtkSignature=null;persist();$('editor').close();render();
 }
 function print(){const p=product(),epoch=toEpoch($('made').value),copies=Number($('copies').value);
  if(!valid(p)||p.needsReview||p.sourceChanged||!Number.isFinite(epoch)||!Number.isInteger(copies)||copies<1||copies>20)return;
@@ -184,7 +184,7 @@ $('reset-time').onclick=()=>{$('made').value=nowLocal();preview()};
 $('add').onclick=()=>openEditor(null);$('edit').onclick=()=>openEditor(product());
 $('close').onclick=()=>$('editor').close();$('form').addEventListener('submit',submit);
 $('delete').onclick=()=>{const p=product();if(!p||!confirm('Удалить товар «'+p.name+'»?'))return;state.products=state.products.filter(x=>x.id!==p.id);current=state.products[0]?.id||null;persist();$('editor').close();render()};
-window.FARUKH_LABELS={getProducts:()=>state.products,applyProducts:products=>{state.products=products;if(!persist())throw Error('Не удалось сохранить этикетки на устройстве');render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';const p=product();if(p&&p.ttkId===imported.ttkId){p.ttkSignature=imported.ttkSignature;p.sourceChanged=false;persist();render();}}};
+window.FARUKH_LABELS={getProducts:()=>state.products,applyProducts:products=>{const prev=state.products;state.products=products;if(!persist()){state.products=prev;throw Error('Не удалось сохранить этикетки на устройстве')}render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';if(product()?.ttkId===imported.ttkId)pendingTtkSignature=imported.ttkSignature;}};
 $('print').onclick=print;window.addEventListener('afterprint',()=>$('printsheet').replaceChildren());render();
 })();
 </script><script type="module" src="/label-auto-ui.js?v=1"></script>
