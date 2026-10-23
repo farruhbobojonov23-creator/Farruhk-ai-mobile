@@ -25,3 +25,5 @@ test('personal template fields survive export normalization including intentiona
  const recipe={id:'personal',name:'Мой вок',category:'Воки',ingredients:[],customTemplate:true,forming:templateFor('Холодные роллы',8).forming,storage:'',appearance:'',taste:'Авторский текст'};
  const clean=cleanState({recipes:[recipe]}).recipes[0];assert.equal(clean.customTemplate,true);assert.equal(resolveCategoryFields(clean).forming,recipe.forming);assert.equal(resolveCategoryFields(clean).storage,'');assert.equal(resolveCategoryFields(clean).appearance,'');assert.equal(resolveCategoryFields(clean).taste,'Авторский текст');
 });
+
+test('delivery mode and packaging carry into new card without changing original template',()=>{const t={...template,deliveryMode:'Горячая доставка',packaging:'Контейнер для горячего'};const values=templateValues(t);assert.match(values.storage,/Режим: Горячая доставка/);assert.match(values.storage,/Упаковка и доставка: Контейнер/);assert.equal(t.storage,template.storage);validateMyTemplates([t]);assert.throws(()=>validateMyTemplates([{...t,packaging:42}]));});
