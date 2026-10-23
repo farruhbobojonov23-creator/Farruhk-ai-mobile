@@ -48,6 +48,8 @@ export function combineWithTTKs(existing,recipes,{source='device'}={}){
     const ix=products.findIndex(x=>x.ttkId===String(recipe.id));
     if(ix>=0){
       const old=products[ix];
+      // A potentially stale Google backup must never overwrite data imported from the live device TTK.
+      if(source==='google'&&old.ttkSource==='device'){stats.unchanged++;continue}
       if(old.ttkSignature===imported.ttkSignature){stats.unchanged++;continue}
       if(old.manualEdited){
         products[ix]={...old,sourceChanged:true};
