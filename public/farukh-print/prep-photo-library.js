@@ -2,6 +2,7 @@
 // The real photo the owner uploaded is always preferred. Remote reference
 // photos never become a hidden catalog field, and never alter printed labels.
 // Each source can be opened for author, full license and attribution.
+// Source URLs are optional catalogue previews. They are never a shelf life reference.
 (()=>{
 'use strict';
 const entries=[
@@ -56,13 +57,13 @@ const entries=[
   [
     "Сырная начинка",
     "Requeijão Cremoso.jpg",
-    "Wikimedia Commons contributor",
+    "Wikimedia Commons",
     "CC"
   ],
   [
     "Шапка сырная",
     "Requeijão Cremoso.jpg",
-    "Wikimedia Commons contributor",
+    "Wikimedia Commons",
     "CC"
   ],
   [
