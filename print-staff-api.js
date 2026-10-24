@@ -188,7 +188,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(point&&!points.some(p=>samePoint(p,point)))throw bad(404,'Точка не найдена.');
   const rows=points.filter(p=>!point||samePoint(p,point)).map(p=>{
    const workers=users.filter(u=>samePoint(u.point,p)),logs=valid.filter(e=>samePoint(e.point,p));
-   return {point:p,staff:workers.length,active:workers.filter(canAccess).length,requests:logs.length,
+   return {point:p,staff:workers.length,active:workers.filter(u=>canAccess(u)).length,requests:logs.length,
     labels:logs.reduce((acc,e)=>acc+(Number.isSafeInteger(e.copies)&&e.copies>0?e.copies:0),0),
     lastRequestAt:logs.length?logs.reduce((a,e)=>a>e.at?a:e.at,''):null,
     transmitted:logs.filter(e=>e.result==='sent').length,failed:logs.filter(e=>e.result==='failed').length,
@@ -313,7 +313,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const expected=account?.passhash||'0'.repeat(64);
   const actual=hash(password,salt);
   if(!crypto.timingSafeEqual(Buffer.from(actual,'hex'),Buffer.from(expected,'hex'))||!account)throw bad(401,'Неверный логин или пароль.');
-  if(account.active===false)throw bad(403,'Доступ сотрудника отключён владельцем.');
+  if(account.active===false)throw bad(401,'Неверный логин или пароль.');
   if(expiryReached(account))throw bad(403,'Срок доступа сотрудника истёк. Обратись к управляющему для продления.');
   const session=token(),since=new Date().toISOString();
   await store.transaction(async()=>{
