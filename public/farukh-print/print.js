@@ -228,9 +228,13 @@ function renderCategories(){
 }
 // The studio atlas is decoded asynchronously after initial paint; repaint
 // only the visible gallery. This changes images, never product/shelf data.
-if(typeof window.addEventListener==='function')window.addEventListener('farukh-studio-ready',()=>{
- if(typeof document!=='undefined'&&document.getElementById('catalog')&&!$('catalog').hidden)renderCatalog();
-});
+if(typeof window.addEventListener==='function'){
+ const refreshIngredientArt=()=>{
+  if(typeof document!=='undefined'&&document.getElementById('catalog')&&!$('catalog').hidden)renderCatalog();
+ };
+ window.addEventListener('farukh-studio-ready',refreshIngredientArt);
+ window.addEventListener('farukh-approved-3d-ready',refreshIngredientArt);
+}
 function renderCatalog(){
  renderCategories();
  const list=$('product-list');list.replaceChildren();
@@ -244,25 +248,31 @@ function renderCatalog(){
   const item=node('div','product-item product-tile'+(p.id===selected?' selected':'')),select=node('button','product-select');select.type='button';
   select.setAttribute('aria-label','Открыть этикетку: '+p.name);
   const visual=node('span','product-visual');
-  // Prefer the specifically matched 3D-style food element for EVERY known
-  // semi-finished ingredient. Existing product photos remain untouched in
-  // the catalogue and can still be selected explicitly by the owner.
+  // Owner-approved visually rich 3D-style renders take priority for the
+  // 12 matching prep ingredients. Other prep items use their real/studio
+  // food imagery before a vector fallback. Never mutate p.photo or labels.
+  const approved=p.kind==='prep'?window.FarukhApprovedPrep3D?.find(p):null;
   const threeD=p.kind==='prep'?window.FarukhPrep3DElements?.find(p):null;
   const fallback=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
   const original=p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
   const usingCustom=!!original&&p.photoStyle==='manual';
-  const displayed=usingCustom?original:(threeD?.url||original||fallback?.url||'');
+  const displayed=usingCustom?original:(approved?.url||original||fallback?.url||threeD?.url||'');
   if(displayed){
-   if(displayed===threeD?.url)visual.classList.add('prep-3d-preview');
+   if(displayed===approved?.url)visual.classList.add('prep-photo3d-preview');
+   else if(displayed===threeD?.url)visual.classList.add('prep-3d-preview');
    else if(displayed===fallback?.url&&fallback?.studio)visual.classList.add('studio-preview');
    const img=node('img','product-photo');img.src=displayed;
-   img.alt=(displayed===threeD?.url?'Объёмная 3D-иллюстрация: ':'Фото продукта: ')+p.name;
+   img.alt=(displayed===approved?.url?'Реалистичный 3D-рендер: ':displayed===threeD?.url?'3D-иллюстрация: ':'Изображение продукта: ')+p.name;
    img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
-   if(displayed===threeD?.url)img.title='3D-иллюстрация FARUKH PRINT — '+p.name;
+   if(displayed===approved?.url)img.title='Утверждённый объёмный рендер FARUKH PRINT — '+p.name;
    let triedFallback=false;
    img.onerror=()=>{
-    const backup=original||fallback?.url;
-    if(!triedFallback&&backup&&backup!==displayed){triedFallback=true;img.src=backup;visual.classList.remove('prep-3d-preview');return}
+    const backup=original||fallback?.url||threeD?.url;
+    if(!triedFallback&&backup&&backup!==displayed){
+     triedFallback=true;img.src=backup;
+     visual.classList.remove('prep-photo3d-preview','prep-3d-preview');
+     return;
+    }
     img.remove();visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
    };
    visual.append(img);
