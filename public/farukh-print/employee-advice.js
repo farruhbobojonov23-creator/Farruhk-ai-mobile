@@ -85,6 +85,67 @@ export function neighborsFor(product){
  }
  return BASE_NEIGHBORS;
 }
+
+const PHOTO_RULES=[
+ [/огур|овощ|зелень|капуст|морков/i,['огурцы','капуста','морковь']],
+ [/ролл|суши|готовые к употреблению|готовая продукция/i,['филадельфия','калифорния','запеченный краб']],
+ [/соусы|соус|заправк/i,['соус спайси','фирменный соус','терияки соус']],
+ [/форел|рыба/i,['форель','угорь']],
+ [/кревет|морепродукт/i,['креветка','снежный краб']],
+ [/куриц|птица готовая/i,['курица готовая']],
+ [/омлет/i,['омлет']],
+ [/бульон/i,['бульон том ям']]
+];
+const safePhoto=src=>typeof src==='string'&&(/^(data:image\/(png|jpeg|webp);base64,|https:\/\/)/i.test(src));
+function findProductPhoto(phrase,catalogPhotos,allowApprox=false){
+ if(!Array.isArray(catalogPhotos))return null;
+ const word=norm(phrase);
+ const candidates=PHOTO_RULES.find(([pattern])=>pattern.test(word))?.[1]||[];
+ if(!allowApprox&&/(сыр[аоые]|сырое мясо|сырую птицу|птиц[ау]\b|сильным запахом|химическ|инвентар)/i.test(word))return null;
+ const photos=catalogPhotos.filter(p=>safePhoto(p.photo));
+ for(const hint of candidates){
+  const found=photos.find(p=>norm(p.name)===hint)||photos.find(p=>norm(p.name).includes(hint));
+  if(found)return found.photo;
+ }
+ return null;
+}
+const PICTOGRAMS={
+ 'Температура':'🌡️','Упаковка':'📦','Контроль':'✅','Важно':'⚠️',
+ 'Форма':'🥡','Тара':'🫙','Проверка':'🔎','Технология':'📋','Справка':'📖'
+};
+function rowIllustration(icon,product){
+ const holder=create('span','print-advice-illustration art-'+(icon==='Важно'||icon==='Проверка'?'warn':icon==='Контроль'?'good':'neutral'));
+ holder.setAttribute('aria-hidden','true');
+ holder.textContent=PICTOGRAMS[icon]||'◈';
+ if(icon==='Форма'&&safePhoto(product.photo)){
+  const img=create('img','print-advice-step-photo');img.src=product.photo;img.alt='';img.loading='lazy';
+  img.onerror=()=>img.remove();holder.replaceChildren(img);
+ }
+ return holder;
+}
+function neighborIllustration(line,catalogPhotos){
+ const thumb=create('span','print-advice-neighbor-thumb');
+ thumb.setAttribute('aria-hidden','true');
+ const photo=findProductPhoto(line,catalogPhotos);
+ if(photo){
+  const img=create('img','print-advice-neighbor-photo');img.src=photo;img.alt='';img.loading='lazy';img.decoding='async';
+  img.onerror=()=>{thumb.replaceChildren(create('span','print-advice-neighbor-emoji','🍱'));};
+  thumb.append(img);return thumb;
+ }
+ let emoji='🥡';
+ if(/овощ|огур|зелень|капуст|морков|немытые/i.test(line))emoji='🥬';
+ else if(/сыр[аоые]|молочн/i.test(line))emoji='🧀';
+ else if(/мяс|птиц|куриц/i.test(line))emoji='🥩';
+ else if(/морепродукт|кревет/i.test(line))emoji='🦐';
+ else if(/рыб/i.test(line))emoji='🐟';
+ else if(/лук|чеснок|запах/i.test(line))emoji='🧄';
+ else if(/хим|моющ|инвентар/i.test(line))emoji='🧴';
+ else if(/соус|заправк/i.test(line))emoji='🥣';
+ else if(/ролл|суши|готов/i.test(line))emoji='🍣';
+ thumb.append(create('span','print-advice-neighbor-emoji',emoji));
+ return thumb;
+}
+
 const sectionData=(product,tips,norms)=>({
  'Советы':[
   ['Температура','Требуемый режим',tips.temperature],
@@ -111,7 +172,7 @@ export function closeAdvice(){
   activeDialog.remove();activeDialog=null;
  }
 }
-export function openAdvice(product,{onPrint}={}){
+export function openAdvice(product,{onPrint,catalogPhotos=[]}={}){
  if(!product)return;
  closeAdvice();
  const tips=storageAdviceFor(product);
@@ -169,7 +230,11 @@ export function openAdvice(product,{onPrint}={}){
    for(const [key,title,items] of [['yes','✓ Можно хранить рядом',neighbor.yes],['no','× Нельзя хранить рядом',neighbor.no]]){
     const group=create('section','print-advice-neighbor '+(key==='yes'?'allowed':'disallowed'));
     group.append(create('h5','',title));
-    for(const line of items){group.append(create('div','print-advice-neighbor-item',line));}
+    for(const line of items){
+     const item=create('div','print-advice-neighbor-item');
+     item.append(neighborIllustration(line,catalogPhotos),create('span','print-advice-neighbor-text',line));
+     group.append(item);
+    }
     grid.append(group);
    }
    content.append(grid,create('p','print-advice-note',neighbor.note));
@@ -177,7 +242,7 @@ export function openAdvice(product,{onPrint}={}){
    const list=create('div','print-advice-rows');
    for(const [icon,title,desc] of sections[label]||[]){
     const row=create('article','print-advice-row');
-    row.append(create('span','print-advice-icon',icon.slice(0,1)),create('div','print-advice-row-body'));
+    row.append(rowIllustration(icon,product),create('div','print-advice-row-body'));
     row.lastChild.append(create('h5','',title),create('p','',desc));
     list.append(row);
    }
