@@ -53,7 +53,7 @@ test('Full catalog of older preparations uses approved template without new ingr
  assert.match(html,/premium-prep-label\.js\?v=1/);
  assert.match(html,/use-premium-prep/);
  assert.match(html,/home-premium-prep/);
- assert.match(html,/print\.js\?v=31/);
+ assert.match(html,/print\.js\?v=32/);
  assert.match(html,/print\.css\?v=19/);
  assert.match(ui,/fields\.prepEvent=\$\('edit-prep-event'\)\.value/);
  assert.match(ui,/fields\.labelStyle='premium-prep-30x20'/);
