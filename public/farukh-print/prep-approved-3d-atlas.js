@@ -17,9 +17,32 @@ atlas.onload=()=>{
   const canvas=document.createElement('canvas');canvas.width=244;canvas.height=190;
   const ctx=canvas.getContext('2d');if(!ctx)return;
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  // Remove the white screenshot/photo rectangle: retain only the
+  // illustrated FOOD PIXELS with a smoothly feathered transparency mask.
+  // The atlas contains 12 corresponding ingredient renders; never copy
+  // screenshot UI pixels, star buttons or the light photo backdrop.
+  const clamp01=x=>Math.max(0,Math.min(1,x));
   names.forEach((name,i)=>{
-   ctx.fillStyle='#fff';ctx.fillRect(0,0,244,190);
+   ctx.clearRect(0,0,244,190);
    ctx.drawImage(atlas,(i%4)*244,Math.floor(i/4)*190,244,190,0,0,244,190);
+   const data=ctx.getImageData(0,0,244,190);
+   const p=data.data;
+   for(let y=0;y<190;y++)for(let x=0;x<244;x++){
+    const index=(y*244+x)*4,r=p[index],g=p[index+1],b=p[index+2];
+    const contrast=255-Math.min(r,g,b);
+    const chroma=Math.max(r,g,b)-Math.min(r,g,b);
+    // White/neutral studio background becomes transparent; product textures
+    // retain full color and fine highlights without a surrounding image box.
+    let a=clamp01((contrast-17)/37);
+    if(chroma<7&&contrast<62)a*=.2;
+    // The screenshot's favorite chip is not part of the ingredient.
+    if(x>194&&y<65)a=0;
+    // Feather crop boundaries: no hard rectangular photo edges.
+    const fx=Math.min(clamp01((x-5)/16),clamp01((239-x)/14));
+    const fy=Math.min(clamp01((y-7)/9),clamp01((183-y)/16));
+    p[index+3]=Math.round(255*a*fx*fy);
+   }
+   ctx.putImageData(data,0,0);
    images.set(key(name),canvas.toDataURL('image/webp',.94));
   });
   window.FarukhApprovedPrep3D.ready=true;
