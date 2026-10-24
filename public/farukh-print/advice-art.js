@@ -63,6 +63,11 @@ export function subjectFor(text,fallback='container'){
  if(/ролл|суши|готовая продукция|готовые блюда/.test(value))return 'sushi';
  if(/форел|лосос|угор|рыб/.test(value))return 'fish';
  if(/лук|чеснок|сильным запах/.test(value))return 'onion';
+ if(/зелень|укроп|петруш|салат/.test(value))return 'herbs';
+ if(/сыр|молочн/.test(value)&&!/сырой|сырая|сырые|сырого/.test(value))return 'cheese';
+ if(/огур/.test(value))return 'cucumber';
+ if(/овощ|морков|перец|капуст|помидор/.test(value))return 'vegetables';
+ if(/соус|майонез|сливочн/.test(value))return 'sauce';
  for(const [fragment,which] of Object.entries(aliases))if(value.includes(fragment))return which;
  return fallback;
 }
