@@ -1,7 +1,7 @@
 // Staff access for paired FARUKH PRINT devices. Owner controls accounts;
 // employees may only authorize a print job for their assigned kitchen point.
-// Password hashes persist in protected Yandex store, sessions are held only in
-// process memory and expire after 12 hours / immediately upon account revocation.
+// Password hashes and device-bound hashed sessions persist in protected store.
+// Every login and printing request checks staff expiry against server time.
 import crypto from 'node:crypto';
 import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json',SESSIONS='farukh-print-staff-sessions.json';
@@ -10,7 +10,24 @@ const bad=(status,message)=>Object.assign(new Error(message),{status});
 const sha=t=>crypto.createHash('sha256').update(t).digest('hex');
 const token=()=>crypto.randomBytes(32).toString('base64url');
 const hash=(pass,salt)=>crypto.scryptSync(pass,salt,32,{N:16384,r:8,p:1}).toString('hex');
-const userSafe=u=>({id:u.id,name:u.name,login:u.login,point:u.point,role:'Повар · только печать',active:u.active!==false,createdAt:u.createdAt});
+// Missing expiry on legacy employee records means indefinite access.
+const expiryReached=(u,now=Date.now())=>!!u.expiresAt&&(!Number.isFinite(Date.parse(u.expiresAt))||Date.parse(u.expiresAt)<=now);
+const canAccess=(u,now=Date.now())=>!!u&&u.active!==false&&!expiryReached(u,now);
+const userSafe=u=>({id:u.id,name:u.name,login:u.login,point:u.point,role:'Повар · только печать',
+ active:u.active!==false,accessAllowed:canAccess(u),expired:expiryReached(u),
+ expiresAt:u.expiresAt||null,createdAt:u.createdAt});
+const expiryFromDays=(days,now=Date.now())=>{
+ if(days===null)return null;
+ if(!Number.isInteger(days)||days<1||days>3650)throw bad(400,'Срок доступа должен быть от 1 до 3650 дней либо без ограничения.');
+ return new Date(now+days*86400000).toISOString();
+};
+const accessDaysFromBody=(body,{creation=false}={})=>{
+ if(!Object.prototype.hasOwnProperty.call(body||{},'accessDays')){
+  if(creation)return null; // Keep older integrations working, no silent edits.
+  throw bad(400,'Укажи срок доступа: число дней или «Без ограничения».');
+ }
+ return body.accessDays;
+};
 const sameOrigin=req=>{
  const origin=req.get('origin');if(!origin)return true;
  try{return new URL(origin).origin==='https://'+req.get('host')}catch{return false}
@@ -67,8 +84,9 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    // A session remains valid until explicit logout or owner reset/block/revoke.
    const id=sha(credential),session=(await readSessions()).find(x=>x.hash===id&&x.deviceId===req.farukhPrintDevice.id);
    if(!session)return res.status(401).json({ok:false,error:'Сеанс сотрудника завершён. Войди снова.'});
-   const user=(await readUsers()).find(x=>x.id===session.userId&&x.active!==false);
-   if(!user)return res.status(403).json({ok:false,error:'Доступ сотрудника отключён владельцем.'});
+   const user=(await readUsers()).find(x=>x.id===session.userId);
+   if(!user||user.active===false)return res.status(403).json({ok:false,error:'Доступ сотрудника отключён владельцем.'});
+   if(expiryReached(user))return res.status(403).json({ok:false,error:'Срок доступа сотрудника истёк. Обратись к управляющему для продления.'});
    req.farukhStaff=user;req.farukhSession=id;req.farukhSessionData=session;next();
   }catch(e){return res.status(e.status||503).json({ok:false,error:'Не удалось проверить права сотрудника.'})}
  };
@@ -170,13 +188,13 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(point&&!points.some(p=>samePoint(p,point)))throw bad(404,'Точка не найдена.');
   const rows=points.filter(p=>!point||samePoint(p,point)).map(p=>{
    const workers=users.filter(u=>samePoint(u.point,p)),logs=valid.filter(e=>samePoint(e.point,p));
-   return {point:p,staff:workers.length,active:workers.filter(u=>u.active!==false).length,requests:logs.length,
+   return {point:p,staff:workers.length,active:workers.filter(u=>canAccess(u)).length,requests:logs.length,
     labels:logs.reduce((acc,e)=>acc+(Number.isSafeInteger(e.copies)&&e.copies>0?e.copies:0),0),
     lastRequestAt:logs.length?logs.reduce((a,e)=>a>e.at?a:e.at,''):null,
     transmitted:logs.filter(e=>e.result==='sent').length,failed:logs.filter(e=>e.result==='failed').length,
     users:workers.map(u=>{
       const requests=logs.filter(e=>e.userId===u.id||(!e.userId&&e.login===u.login));
-      return {id:u.id,name:u.name,login:u.login,active:u.active!==false,
+      return {id:u.id,name:u.name,login:u.login,active:canAccess(u),
        requests:requests.length,labels:requests.reduce((n,e)=>n+(e.copies||0),0),
        transmitted:requests.filter(e=>e.result==='sent').length,failed:requests.filter(e=>e.result==='failed').length};
     })};
@@ -196,8 +214,10 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const configured=await readPoints(),actual=configured.find(p=>samePoint(p,point));
   if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
   const {password,custom}=passwordFromOwner(req.body);
+  const expiresAt=expiryFromDays(accessDaysFromBody(req.body,{creation:true}));
   const salt=crypto.randomBytes(16).toString('hex');
-  const user={id:crypto.randomUUID(),name,login,point:actual,passhash:hash(password,salt),salt,active:true,createdAt:new Date().toISOString()};
+  const user={id:crypto.randomUUID(),name,login,point:actual,passhash:hash(password,salt),salt,
+   active:true,expiresAt,createdAt:new Date().toISOString()};
   await store.transaction(async()=>{
    const all=await readUsers();if(all.length>=MAX_STAFF)throw bad(409,'Достигнут лимит сотрудников.');
    if(all.some(x=>x.login===login))throw bad(409,'Этот логин уже занят.');
@@ -206,6 +226,27 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   res.set('Cache-Control','no-store');
   res.status(201).json({ok:true,staff:userSafe(user),...(!custom?{password}:{}),
     warning:custom?'Сотрудник создан с заданным владельцем паролем. Он хранится только в виде защищённого хеша.':'Сохрани сгенерированный пароль сейчас: повторно посмотреть его нельзя.'});
+ }));
+ // A new term starts at the moment of the owner's action, not at the previous expiry.
+ // Limit changes revoke sessions and require a fresh login; no existing credentials or
+ // employee history are destroyed. Explicit null grants unlimited access.
+ app.post('/api/farukh-print/admin/staff/:id/access',owner,safe(async(req,res)=>{
+  const days=accessDaysFromBody(req.body);
+  const expiresAt=expiryFromDays(days);
+  let target,changed=false;
+  await store.transaction(async()=>{
+   const users=await readUsers();target=users.find(x=>x.id===req.params.id);
+   if(!target)throw bad(404,'Сотрудник не найден.');
+   changed=(target.expiresAt||null)!==expiresAt;
+   if(changed){
+    target.expiresAt=expiresAt;
+    await store.write(USERS,users);
+   }
+  });
+  if(changed)await revokeSessions(target.id);
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,staff:userSafe(target),sessionRevoked:changed,
+   notice:days===null?'Срок доступа снят.':'Срок доступа установлен до '+new Date(expiresAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'})+' (Москва).'});
  }));
  app.post('/api/farukh-print/admin/staff/:id/reset',owner,safe(async(req,res)=>{
   const {password,custom}=passwordFromOwner(req.body);
@@ -267,11 +308,13 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
   const login=trim(req.body?.login,32).toLowerCase(),password=String(req.body?.password||'');
   if(!/^[a-z][a-z0-9_-]{2,31}$/.test(login)||password.length<8||password.length>180)throw bad(401,'Неверный логин или пароль.');
-  const account=(await readUsers()).find(x=>x.login===login&&x.active!==false);
+  const account=(await readUsers()).find(x=>x.login===login);
   const salt=account?.salt||'0'.repeat(32);
   const expected=account?.passhash||'0'.repeat(64);
   const actual=hash(password,salt);
   if(!crypto.timingSafeEqual(Buffer.from(actual,'hex'),Buffer.from(expected,'hex'))||!account)throw bad(401,'Неверный логин или пароль.');
+  if(account.active===false)throw bad(401,'Неверный логин или пароль.');
+  if(expiryReached(account))throw bad(403,'Срок доступа сотрудника истёк. Обратись к управляющему для продления.');
   const session=token(),since=new Date().toISOString();
   await store.transaction(async()=>{
    const all=await readSessions();

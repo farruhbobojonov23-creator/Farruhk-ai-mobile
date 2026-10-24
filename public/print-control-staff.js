@@ -25,6 +25,21 @@ const fillOptions=(select,points,{all=false,value=''}={})=>{
  else if(all)select.value='';
  else select.selectedIndex=0;
 };
+const accessPicker=(label='Срок доступа',value='30')=>{
+ const wrap=el('div','pstaff-access-picker');
+ const field=el('label','pstaff-field');field.append(el('span','',label));
+ const select=el('select','pstaff-select');select.setAttribute('aria-label',label);
+ for(const [v,t] of [['1','1 день'],['7','7 дней'],['30','30 дней'],['90','90 дней'],['180','180 дней'],['365','1 год'],['custom','Своё количество дней'],['unlimited','Без ограничения']])select.append(opt(v,t));
+ select.value=value;
+ const custom=el('input','pstaff-password-input');custom.type='number';custom.min='1';custom.max='3650';custom.step='1';custom.value='30';custom.placeholder='От 1 до 3650 дней';custom.setAttribute('aria-label','Количество дней доступа');
+ const change=()=>{custom.hidden=select.value!=='custom'};select.addEventListener('change',change);change();
+ const hint=el('small','pstaff-access-hint','Автоматическое отключение в установленный срок. Старые сотрудники без срока сохраняют прежний доступ.');
+ field.append(select);wrap.append(field,custom,hint);
+ const days=()=>{const val=select.value==='unlimited'?null:select.value==='custom'?Number(custom.value):Number(select.value);
+  if(val!==null&&(!Number.isInteger(val)||val<1||val>3650))throw Error('Укажи срок от 1 до 3650 дней.');
+  return val;};
+ return {wrap,days,select};
+};
 const smallTime=at=>{
  if(!at)return '—';
  const d=new Date(at);
@@ -73,6 +88,7 @@ export function mountPrintStaffControl({root}){
  const pointLabel=el('label','pstaff-field');pointLabel.append(el('span','','Назначить точку'));
  const staffPoint=el('select','pstaff-select');staffPoint.required=true;staffPoint.setAttribute('aria-label','Точка нового сотрудника');pointLabel.append(staffPoint);
  const addStaff=el('button','pstaff-create','＋ Создать доступ');addStaff.type='submit';
+ const createAccess=accessPicker('Доступ на срок','30');
  const createPassword=el('input','pstaff-password-input');
  createPassword.type='password';createPassword.autocomplete='new-password';
  createPassword.placeholder='Придумай пароль (от 8 символов)';
@@ -90,7 +106,7 @@ export function mountPrintStaffControl({root}){
   viewPw.textContent=show?'Скрыть пароль':'Показать пароль'
  },'pstaff-password-toggle');
  passwordGroup.append(pwField,confirmField,viewPw,pwHint);
- createForm.append(name.wrap,login.wrap,pointLabel,passwordGroup,addStaff);
+ createForm.append(name.wrap,login.wrap,pointLabel,createAccess.wrap,passwordGroup,addStaff);
  const secret=el('div','pstaff-new-key');secret.hidden=true;
  secret.append(el('strong','','Пароль показан только один раз — сохрани и передай сотруднику лично.'));
  const creds=el('div','pstaff-secret');secret.append(creds,button('Пароль сохранён · закрыть',()=>{secret.hidden=true;creds.replaceChildren()}));
@@ -192,7 +208,12 @@ export function mountPrintStaffControl({root}){
    const card=el('div','pstaff-item');
    const identity=el('div','pstaff-identity');
    identity.append(el('strong','',user.name),el('small','',user.login+' · '+user.point));
-   identity.append(el('span','pstaff-status '+(user.active?'pstaff-status-on':'pstaff-status-off'),user.active?'● Доступ открыт':'○ Доступ отключён'));
+   const expired=user.expired===true;
+   const currentlyAllowed=user.active&&!expired;
+   identity.append(el('span','pstaff-status '+(currentlyAllowed?'pstaff-status-on':'pstaff-status-off'),
+    !user.active?'○ Доступ отключён':expired?'○ Срок истёк':'● Доступ открыт'));
+   const timeLabel=user.expiresAt?'Доступ до: '+smallTime(user.expiresAt)+' (Москва)':'Доступ без ограничения';
+   identity.append(el('small','pstaff-access-date',timeLabel));
    const controls=el('div','pstaff-controls');
    const editBox=el('form','pstaff-inline-edit');editBox.hidden=true;
    const editName=el('input');editName.value=user.name;editName.maxLength=65;editName.required=true;editName.setAttribute('aria-label','Имя сотрудника');
@@ -241,12 +262,26 @@ export function mountPrintStaffControl({root}){
     }catch(e){notify(e.message,true)}finally{disabled(false)}
    });
    const reset=button('Пароль',()=>{resetBox.hidden=!resetBox.hidden});
+   const accessBox=el('form','pstaff-access-box');accessBox.hidden=true;
+   const accessTitle=el('strong','','Установить новый срок для «'+user.name+'»');
+   const periodPicker=accessPicker('Новый срок доступа',user.expiresAt?'30':'unlimited');
+   const accessButtons=el('div','pstaff-reset-actions');
+   const saveAccess=el('button','pstaff-create','Сохранить срок');saveAccess.type='submit';
+   accessButtons.append(saveAccess,button('Отмена',()=>{accessBox.hidden=true}));
+   accessBox.append(accessTitle,periodPicker.wrap,accessButtons);
+   accessBox.addEventListener('submit',async e=>{
+    e.preventDefault();
+    let days;try{days=periodPicker.days()}catch(err){notify(err.message,true);return}
+    if(!confirm((days===null?'Убрать ограничение срока доступа':'Выдать новый доступ на '+days+' дн.')+' для «'+user.name+'»? Активный сеанс будет завершён.'))return;
+    await mutate('/'+encodeURIComponent(user.id)+'/access','POST',{accessDays:days});
+   });
+   const setAccess=button(expired?'Продлить':'Срок',()=>{accessBox.hidden=!accessBox.hidden;});
    const toggle=button(user.active?'Отключить':'Включить',async()=>{
     if(!confirm((user.active?'Отключить':'Включить')+' доступ «'+user.name+'»?'))return;
     await mutate('/'+encodeURIComponent(user.id)+'/status','POST',{active:!user.active});
    });
-   controls.append(editBtn,reset,toggle);
-   card.append(identity,controls,editBox,resetBox);staffList.append(card);
+   controls.append(editBtn,setAccess,reset,toggle);
+   card.append(identity,controls,editBox,accessBox,resetBox);staffList.append(card);
   }
  }
  function renderReport(){
@@ -368,15 +403,18 @@ export function mountPrintStaffControl({root}){
   disabled(true);
   try{
    const custom=!!createPassword.value;
+   const days=createAccess.days();
    const result=await send('','POST',{
     name:name.input.value.trim(),login:login.input.value.trim().toLowerCase(),point:staffPoint.value,
+    accessDays:days,
     ...(custom?{password:createPassword.value}:{})
    });
    name.input.value='';login.input.value='';createPassword.value='';createConfirm.value='';
    if(custom){secret.hidden=true;creds.replaceChildren()}
    else secretShow(result);
    disabled(false);await reloadAll();
-   notify(custom?'Доступ создан. Сотрудник может войти с придуманным тобой паролем.':'Доступ создан. Сохрани автоматически созданный пароль.');
+   notify((custom?'Доступ создан с заданным паролем.':'Доступ создан. Сохрани автоматически созданный пароль.')+
+    (days===null?' Без ограничения срока.':' Срок '+days+' дн., после него вход и печать будут заблокированы.'));
   }catch(e){notify(e.message,true)}finally{disabled(false)}
  });
  pointFilter.addEventListener('change',()=>{

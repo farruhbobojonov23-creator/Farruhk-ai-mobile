@@ -214,3 +214,71 @@ test('Print result history, point/date/status filters, current-session report an
  const offline=(await call('get','/api/farukh-print/admin/staff/alerts',owner)).data.alerts;
  assert.ok(offline.some(a=>a.type==='offline'&&a.device==='Плазма рабочий планшет'));
 });
+
+
+test('Temporary 30-day employee access expires server-side, including remembered sessions and print requests',async()=>{
+ const {call,persist}=setup(),own={owner:'ok'},url='/api/farukh-print/admin/staff';
+ const created=await call('post',url,{...own,body:{name:'Временный повар',login:'temp_cook',point:'Плазма',accessDays:30}});
+ assert.equal(created.code,201);
+ const employee=created.data.staff;
+ assert.equal(employee.expired,false);
+ assert.equal(employee.accessAllowed,true);
+ const deadline=Date.parse(employee.expiresAt);
+ assert.ok(deadline>Date.now()+29*86400000&&deadline<Date.now()+31*86400000);
+ const code=(await call('post','/api/farukh-print/admin/pair',own)).data.code;
+ const device=(await call('post','/api/farukh-print/device/pair',{body:{code}})).data.token;
+ const signed=await call('post','/api/farukh-print/device/staff/login',{device,body:{login:employee.login,password:created.data.password}});
+ assert.equal(signed.code,200);
+ const session=signed.data.session;
+ assert.equal((await call('get','/api/farukh-print/device/staff/session',{device,staff:session})).code,200);
+ // Simulate the passing of 30 days without relying on machine time or sleeping.
+ const accounts=persist.get('farukh-print-staff.json');
+ accounts[0].expiresAt=new Date(Date.now()-1000).toISOString();
+ persist.set('farukh-print-staff.json',accounts);
+ const denied=await call('get','/api/farukh-print/device/staff/session',{device,staff:session});
+ assert.equal(denied.code,403);
+ assert.match(denied.data.error,/Срок доступа.*истёк/);
+ const blocked=await call('post','/api/farukh-print/device/staff/login',{device,body:{login:employee.login,password:created.data.password}});
+ assert.equal(blocked.code,403);
+ assert.match(blocked.data.error,/истёк/);
+ const print=await call('post','/api/farukh-print/device/staff/authorize-print',{device,staff:session,body:{productId:'item',point:'Плазма',copies:1,printedAt:new Date().toISOString(),catalogRevision:0}});
+ assert.equal(print.code,403);
+ const report=(await call('get',url+'/report',{...own,query:{days:'30'}})).data;
+ assert.equal(report.summary.active,0);
+ const listing=(await call('get',url,own)).data.staff[0];
+ assert.equal(listing.active,true); // Expiry does not delete the account or alter manual status.
+ assert.equal(listing.expired,true);
+ assert.equal(listing.accessAllowed,false);
+ const renewed=await call('post',url+'/:id/access',{...own,params:{id:employee.id},body:{accessDays:7}});
+ assert.equal(renewed.code,200);
+ assert.equal(renewed.data.staff.expired,false);
+ assert.equal(renewed.data.staff.accessAllowed,true);
+ assert.ok(Date.parse(renewed.data.staff.expiresAt)>Date.now()+6*86400000);
+ assert.equal((await call('get','/api/farukh-print/device/staff/session',{device,staff:session})).code,401);
+ assert.equal((await call('post','/api/farukh-print/device/staff/login',{device,body:{login:employee.login,password:created.data.password}})).code,200);
+});
+
+test('Owner can grant unlimited access, but bad durations and unauthorized renewals are refused',async()=>{
+ const {call,persist}=setup(),owner={owner:'ok'};
+ const path='/api/farukh-print/admin/staff';
+ for(const invalid of [0,-3,1.5,'30',3651,true,{},'unlimited']){
+  const res=await call('post',path,{...owner,body:{name:'Повар',login:'goodcook',point:'Плазма',accessDays:invalid}});
+  assert.equal(res.code,400,'Invalid duration '+String(invalid));
+ }
+ const created=await call('post',path,{...owner,body:{name:'Повар',login:'goodcook',point:'Плазма',accessDays:1}});
+ assert.equal(created.code,201);
+ const id=created.data.staff.id;
+ assert.equal((await call('post',path+'/:id/access',{params:{id},body:{accessDays:null}})).code,401);
+ assert.equal((await call('post',path+'/:id/access',{...owner,params:{id},body:{}})).code,400);
+ assert.equal((await call('post',path+'/:id/access',{...owner,params:{id},body:{accessDays:-1}})).code,400);
+ const unlimited=await call('post',path+'/:id/access',{...owner,params:{id},body:{accessDays:null}});
+ assert.equal(unlimited.code,200);assert.equal(unlimited.data.staff.expiresAt,null);
+ const stored=persist.get('farukh-print-staff.json')[0];
+ assert.equal(stored.expiresAt,null);
+ // The migration is non-destructive: employees created with older UI have no expiry.
+ delete stored.expiresAt;
+ persist.set('farukh-print-staff.json',[stored]);
+ const legacy=(await call('get',path,owner)).data.staff[0];
+ assert.equal(legacy.accessAllowed,true);
+ assert.equal(legacy.expiresAt,null);
+});
