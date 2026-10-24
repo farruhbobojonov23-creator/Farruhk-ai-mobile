@@ -2,7 +2,7 @@
 // catalog, durations or product data. Managed and standalone modes use one UI.
 import {storageAdviceFor,PRACTICE_REFERENCES} from './storage-advice.js';
 import {guidanceForProduct,REFERENCES} from './shelf-life-guidance.js';
-import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js';
+import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js?v=2';
 
 const norm=v=>String(v||'').toLocaleLowerCase('ru').replace(/ё/g,'е');
 const create=(tag,cls,txt)=>{
