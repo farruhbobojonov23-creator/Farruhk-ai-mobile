@@ -1,6 +1,7 @@
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=1';
 import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
+import {storageAdviceFor,PRACTICE_REFERENCES} from './farukh-print/storage-advice.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
 // Одна локальная база для страниц одного браузера/домена.
 // Android APK используют отдельные WebView-хранилища: перенос JSON вручную.
@@ -150,24 +151,50 @@ export function mountPrintControl({root}){
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
  function showGuidance(p){
-  const g=guidanceForProduct({...p,...(p.kind==='ready'&&!p.template?{category:categoryFor(p)}:{})});
+  const item={...p,...(p.kind==='ready'&&!p.template?{category:categoryFor(p)}:{})};
+  const g=guidanceForProduct(item),tips=storageAdviceFor(item);
   guideBody.replaceChildren();
-  guideBody.append(el('h2','',p.template?'Нормы для служебной этикетки · '+p.name:'Проверка срока · '+p.name));
-  const currentStatus=p.template?'Служебная этикетка: нормы пищевых сроков к ней неприменимы.'
+  guideBody.append(el('h2','',p.template?'Нормы и советы · '+p.name:'Практические советы · '+p.name));
+  const currentStatus=p.template?'Служебная этикетка ХАССП: сроки пищевых продуктов к ней не применяются.'
    :(p.needsReview===true||!p.hours||!p.storage)
-    ?'Срок или условия не подтверждены. Печать должна оставаться заблокированной.'
-    :'В каталоге указано '+p.hours+' ч · '+p.storage+'. Проверь соответствие реальной технологии.';
+    ?'Срок или условия хранения не подтверждены — печать должна оставаться заблокированной.'
+    :'В каталоге: '+p.hours+' ч · '+p.storage+'. Эти параметры не изменены.';
   guideBody.append(el('p','pc-guide-current',currentStatus));
-  if(g){
-   guideBody.append(el('h3','',g.group),el('p','',g.question),el('div','pc-guide-example',g.example));
-  }else{
-   guideBody.append(el('p','','Для этой позиции в справочнике нет однозначного аналога. Уточни способ приготовления, состояние при приёмке, момент отсчёта, режим охлаждения и маркировку изготовителя.'));
+  guideBody.append(el('p','pc-advice-intro','Главное — практические действия на кухне. Температура и сроки из справки не заменяют маркировку производителя, ТТК и требования ХАССП.'));
+  const adviceSection=el('section','pc-advice-section');
+  adviceSection.append(el('h3','','Как правильно хранить и контролировать'));
+  const grid=el('div','pc-advice-grid');
+  for(const [title,body] of [
+   ['Температура хранения',tips.temperature],
+   ['В каком виде лучше хранить',tips.form],
+   ['Тара и маркировка',tips.packaging],
+   ['Как распознать возможную порчу',tips.spoilage],
+   ['Контроль на смене',tips.control],
+   ['Типичные ошибки',tips.avoid]
+  ]){
+   const card=el('article','pc-advice-card');
+   card.append(el('h4','',title),el('p','',body));
+   grid.append(card);
   }
-  guideBody.append(el('p','pc-guide-warning',p.template?'Сроки пищевых продуктов здесь не используются; правила для средств и инвентаря проверяй отдельно.':'Примеры не вносятся в этикетку автоматически и не означают утверждённый срок для конкретной рецептуры.'));
-  const refTitle=el('strong','','Нормативные источники');guideBody.append(refTitle);
-  for(const ref of (p.template?REFERENCES.slice(0,1):REFERENCES)){
-   const link=el('a','pc-guide-link',ref.name+' ↗');link.href=ref.url;link.rel='noopener noreferrer';link.target='_blank';guideBody.append(link);
+  adviceSection.append(grid);
+  guideBody.append(adviceSection);
+  const safety=el('p','pc-advice-safety',p.template?'Не используйте бытовые продукты или пищевой инвентарь для работы с химическими растворами.':
+   'Важно: по запаху, цвету и вкусу невозможно надёжно определить безопасность пищи. Не пробуйте сомнительные продукты; при нарушении срока или температуры применяйте процедуру списания.');
+  guideBody.append(safety);
+  const normDetails=el('details','pc-guide-norm-details');
+  normDetails.append(el('summary','','Нормативная справка и источники'));
+  const normContent=el('div','pc-guide-norm-content');
+  normContent.append(el('h3','',g.group),el('p','',g.question),el('div','pc-guide-example',g.example));
+  normContent.append(el('p','pc-guide-warning',p.template?
+   'Для служебной этикетки применяйте инструкции по используемому средству и внутренние процедуры ХАССП.' :
+   'Примеры нормативных сроков не разрешают автоматически назначить такой срок любой рецептуре.'));
+  normContent.append(el('strong','','Документы и материалы'));
+  const links=p.template?[REFERENCES[0],PRACTICE_REFERENCES[1]]:[...REFERENCES,...PRACTICE_REFERENCES];
+  for(const ref of links){
+   const link=el('a','pc-guide-link',ref.name+' ↗');
+   link.href=ref.url;link.rel='noopener noreferrer';link.target='_blank';normContent.append(link);
   }
+  normDetails.append(normContent);guideBody.append(normDetails);
   const actions=el('div','pc-form-actions');
   actions.append(btn('Закрыть','pc-secondary',()=>guideDialog.close()));
   if(!p.template)actions.append(btn('Редактировать срок и условия','pc-primary',()=>{guideDialog.close();edit(p)}));
