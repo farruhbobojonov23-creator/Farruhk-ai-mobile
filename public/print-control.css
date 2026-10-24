@@ -384,3 +384,8 @@
 
 /* The manual catalog template must not crowd Employees, Cloud and Backups. */
 #print-control-root:not([data-pc-workspace="catalog"]) .pc-premium-template{display:none!important}
+
+/* Approved 30×20 reusable premium template. Owner-only, same catalog permissions. */
+#print-control .pc-prep-template{margin-top:-9px;border-color:#d8e3e9;background:linear-gradient(112deg,#fff,#f4f9ff)}
+#print-control .pc-prep-template .pc-premium-template-badge{color:#637e90}
+#print-control .pc-field select{width:100%;min-width:0;min-height:42px;padding:10px 12px;background:#fff;color:#25333f;border:1px solid #dce2e8;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box}
