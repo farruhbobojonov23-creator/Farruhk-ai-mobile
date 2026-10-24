@@ -1,3 +1,4 @@
+import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js';
 import './farukh-print/categories.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
 // Одна локальная база для страниц одного браузера/домена.
@@ -28,6 +29,7 @@ function pushLog(action,name){
  }catch{/* User can still export an in-memory copy on storage errors. */}
 }
 function validate(entry){
+ if(entry?.template){const t=getHaccpTemplate(entry);if(!t)throw Error('Неизвестный шаблон ХАССП');return {...t,id:entry.id||t.id};}
  if(!entry||!['ready','prep'].includes(entry.kind))throw Error('Неизвестный формат этикетки.');
  const name=text(entry.name),storage=text(entry.storage),hours=entry.hours;
  if(!name||name.length>90)throw Error('Название товара должно быть до 90 символов.');
@@ -49,7 +51,7 @@ function validateBackup(content){
  return content.products.map(raw=>{
   const p=validate(raw),uniq=p.kind+'|'+p.name.toLocaleLowerCase('ru');
   if(used.has(uniq))throw Error('В файле повторяется товар «'+p.name+'».');
-  used.add(uniq);return {...p,id:uid()};
+  used.add(uniq);return {...p,id:p.template?p.id:uid()};
  });
 }
 function el(tag,cls,content){const x=document.createElement(tag);if(cls)x.className=cls;if(content!==undefined)x.textContent=content;return x}
@@ -177,12 +179,12 @@ export function mountPrintControl({root}){
    const row=el('div','pc-row');
    const desc=el('div','pc-item');
    desc.append(el('strong','',p.name));
-   const details=el('small','',p.needsReview===true?'Срок не подтверждён · печать заблокирована':(p.hours? p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
+   const details=el('small','',p.template?'ХАССП · Чёткая таблица':p.needsReview===true?'Срок не подтверждён · печать заблокирована':(p.hours? p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
    desc.append(details);
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
-   controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
-   controls.append(btn('Изменить','pc-edit',()=>edit(p)));
+   if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
+   if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
    row.append(desc,controls);table.append(row);
   }

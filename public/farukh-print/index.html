@@ -52,6 +52,12 @@
     <div class="panel-heading"><strong>Просмотр этикетки</strong><span id="print-size-badge" class="badge">58 × 40 мм</span></div>
     <div class="preview-wrap"><canvas id="preview-canvas" role="img" aria-label="Предпросмотр этикетки"></canvas><div id="no-preview" class="preview-hint">Выбери товар для просмотра</div></div>
     <button class="button button-ghost fix-unconfirmed" id="fix-label" type="button" hidden>⚙ Заполнить срок и условия хранения →</button>
+    <div id="haccp-controls" hidden>
+      <p id="haccp-help" class="print-note"></p>
+      <label id="haccp-limit-field" class="field"><span id="haccp-limit-title">Заводской срок годности</span><input id="haccp-limit" type="datetime-local"></label>
+      <button id="haccp-new" class="button button-ghost" type="button">Новая порция / заполнение</button>
+      <p class="print-note">Даты сохраняются на этом устройстве для выбранной точки. Для другой ёмкости начни новую порцию. Повторная печать сохраняет исходные даты.</p>
+    </div>
     <label class="field">Дата и время изготовления<input id="printed-at" type="datetime-local"></label>
     <label class="field" id="point-field" hidden>Название точки<input id="point-name" type="text" maxlength="40" placeholder="Например, Плазма"></label>
     <div class="print-row"><label class="field">Количество этикеток<input id="copies" type="number" min="1" max="20" value="1"></label><button class="button button-ghost" id="select-printer" type="button">⌁ Принтер V3 BT</button></div>
@@ -98,6 +104,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=18" defer></script><script src="./print-sync.js?v=3" defer></script><script src="./print-staff.js?v=4" defer></script>
+<script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=1" defer></script><script src="./print.js?v=19" defer></script><script src="./print-sync.js?v=3" defer></script><script src="./print-staff.js?v=4" defer></script>
 </body>
 </html>

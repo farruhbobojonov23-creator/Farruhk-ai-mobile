@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installPrintSyncApi} from '../print-sync-api.js';
 
-function makeApi(readyCatalogImport,catalogPhotoImport){
+function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport){
  const routes=new Map(),cloud=new Map();
  const app={};
  for(const method of ['get','post','put','patch','delete'])app[method]=(path,...handlers)=>routes.set(method+' '+path,handlers);
@@ -12,7 +12,7 @@ function makeApi(readyCatalogImport,catalogPhotoImport){
   transaction:async(fn)=>fn()
  };
  const auth={enabled:true,verify:value=>value==='ok'};
- installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport});
+ installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport});
  async function req(method,path,{body={},token='',cookie='',params={}}={}){
   const route=routes.get(method+' '+path);
   assert.ok(route,'route '+method+' '+path);
@@ -199,4 +199,19 @@ test('ready categories classify 48 rolls and preserve custom assignments through
  assert.equal(result.code,200);assert.equal(result.payload.products[0].category,'Новинки');
  const bad=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...products[0],category:'x'.repeat(61)}]}});
  assert.equal(bad.code,400);
+});
+
+
+test('HACCP migration survives cloud validation without food fields and runs once',async()=>{
+ const h=await import('../public/farukh-print/haccp-catalog.js');
+ const {req}=makeApi(null,null,h),owner={cookie:'fai_owner=ok'};
+ const a=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(a.code,200);assert.equal(a.payload.products.length,9);
+ assert.ok(a.payload.products.every(p=>p.category==='ХАССП'&&!('weight' in p)));
+ const b=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:a.payload.revision,products:a.payload.products}});
+ assert.equal(b.code,200);assert.equal(b.payload.products.length,9);
+ const c=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(c.payload.revision,b.payload.revision);
+ const invalid=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:c.payload.revision,products:[{kind:'ready',name:'Bad',template:'unknown'}]}});
+ assert.equal(invalid.code,400);
 });

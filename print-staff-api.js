@@ -3,6 +3,7 @@
 // Password hashes persist in protected Yandex store, sessions are held only in
 // process memory and expire after 12 hours / immediately upon account revocation.
 import crypto from 'node:crypto';
+import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json',SESSIONS='farukh-print-staff-sessions.json';
 const MAX_STAFF=80,MAX_EVENTS=4000,MAX_SESSIONS=200;
 const bad=(status,message)=>Object.assign(new Error(message),{status});
@@ -303,7 +304,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!Number.isSafeInteger(req.body?.catalogRevision)||req.body.catalogRevision!==list.revision)
     throw bad(409,'Каталог обновлён владельцем. Нажми «Обновить товары» и выбери этикетку заново.');
   const product=list.products.find(x=>x.id===productId);
-  if(!product||product.needsReview===true||!product.storage||!Number.isInteger(product.hours)||product.hours<=0)throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
+  if(!product||product.needsReview===true||(!getTemplate(product)&&(!product.storage||!Number.isInteger(product.hours)||product.hours<=0)))throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
   const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',result:'pending',
     staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
     deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,

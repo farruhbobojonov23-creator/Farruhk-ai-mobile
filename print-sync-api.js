@@ -4,6 +4,7 @@
 // A Render free ephemeral disk is NOT a safe database: fail closed without
 // Yandex cloud or an explicitly configured persistent installation.
 import crypto from 'node:crypto';
+import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 import {installPrintStaffApi} from './print-staff-api.js';
 
 const FILE_CATALOG='farukh-print-catalog.json';
@@ -28,6 +29,7 @@ function validateCatalog(data){
     const needsReview=p.needsReview===true;
     const key=kind+'|'+name.toLocaleLowerCase('ru');
     if(names.has(key))throw error(400,'В каталоге есть повторяющиеся названия.');names.add(key);
+    if(p.template){const t=getTemplate(p);if(!t)throw error(400,'Неизвестный шаблон ХАССП.');return {...t,id:typeof p.id==='string'?p.id:t.id};}
     let hours=p.hours===null||p.hours===undefined||p.hours===''?null:Number(p.hours);
     if(hours!==null&&(!Number.isSafeInteger(hours)||hours<1||hours>8760))throw error(400,'Неверный срок годности «'+name+'».');
     if(!needsReview&&(!storage||hours===null))throw error(400,'Для готовой к печати этикетки необходим подтверждённый срок и хранение: '+name);
@@ -59,7 +61,7 @@ function validateCatalog(data){
 }
 const safeDevice=d=>({id:d.id,name:d.name,createdAt:d.createdAt,lastSeenAt:d.lastSeenAt||null,revoked:!!d.revoked});
 const digits=(len)=>Array.from(crypto.randomBytes(len),b=>printableChars[b%printableChars.length]).join('');
-export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport}){
+export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport}){
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
@@ -70,7 +72,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
   };
   let importPromise;
   const ensureReadyCatalog=async()=>{
-    if(!enabled||(!readyCatalogImport&&!catalogPhotoImport))return;
+    if(!enabled||(!readyCatalogImport&&!catalogPhotoImport&&!haccpCatalogImport))return;
     if(!importPromise)importPromise=store.transaction(async()=>{
       const current=await readCatalog();
       const appliedImports=[...(current.appliedImports||[])];
@@ -83,6 +85,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
         imported=catalogPhotoImport.merge(imported);
         appliedImports.push(catalogPhotoImport.version);
       }
+      if(haccpCatalogImport&&!appliedImports.includes(haccpCatalogImport.version)){imported=haccpCatalogImport.merge(imported);appliedImports.push(haccpCatalogImport.version);}
       if(appliedImports.length===(current.appliedImports||[]).length)return;
       const products=validateCatalog(imported);
       await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,

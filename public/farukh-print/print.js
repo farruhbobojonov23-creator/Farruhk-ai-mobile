@@ -39,6 +39,8 @@ const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрик
 const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
 let activeCategory='';
+let HACCP=null,haccpDraft=null;
+const isHaccp=p=>!!HACCP?.getTemplate(p);
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
@@ -98,9 +100,9 @@ function renderShortcuts(){
  $('worker-fav-filter').classList.toggle('selected',favoritesOnly);
  $('worker-fav-filter').setAttribute('aria-pressed',String(favoritesOnly));
  const row=lastSent(),p=row&&products.find(x=>x.id===row.id&&x.kind===row.kind);
- $('worker-repeat').disabled=!p||!!p.needsReview||!p.hours||!p.storage;
+ $('worker-repeat').disabled=!p||!!p.needsReview||(!isHaccp(p)&&(!p.hours||!p.storage));
  $('worker-repeat').textContent=p?'↻ Повторить: '+p.name+' · '+row.copies+' шт.':'↻ Повторить отправку';
- $('worker-repeat-hint').textContent=p?'Новая дата и повторная проверка доступа':'Нет предыдущей отправки';
+ $('worker-repeat-hint').textContent=p?(isHaccp(p)?'Повтор с сохранёнными датами':'Новая дата и повторная проверка доступа'):'Нет предыдущей отправки';
 }
 function saveLast(p,copies){
  if(!p)return;
@@ -115,7 +117,7 @@ function toggleFav(id){
 async function repeatLast(){
  if(busy||!workerLoggedIn)return;
  const old=lastSent(),p=old&&products.find(x=>x.id===old.id&&x.kind===old.kind);
- if(!p||p.needsReview||!p.hours||!p.storage){status('Последнюю этикетку нельзя повторить — проверь товар.',true);return}
+ if(!p||p.needsReview||(!isHaccp(p)&&(!p.hours||!p.storage))){status('Последнюю этикетку нельзя повторить — проверь товар.',true);return}
  if(kind!==p.kind)openCatalog(p.kind);
  activeCategory='';
  selected=p.id;$('printed-at').value=nowLocal();$('copies').value=String(Math.min(20,Math.max(1,Number(old.copies)||1)));
@@ -213,8 +215,8 @@ function renderCatalog(){
   if(window.FarukhPrintPhotos?.isPhoto(p.photo)&&p.photo){const img=node('img','product-photo');img.src=p.photo;img.alt='Фото товара '+p.name;img.loading='lazy';img.decoding='async';visual.append(img)}
   else visual.append(node('span','product-photo-placeholder','◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
-  bottom.append(node('small','product-tile-meta'+(p.needsReview?' needs-review':''),p.needsReview?'Требует проверки':p.hours+' ч · '+p.storage));
-  select.append(visual,bottom);select.onclick=()=>{selected=p.id;if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog();openWorkerPreview()};item.append(select);
+  bottom.append(node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?'Требует проверки':p.hours+' ч · '+p.storage));
+  select.append(visual,bottom);select.onclick=()=>{selected=p.id;haccpDraft=null;$('haccp-limit').value='';if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog();openWorkerPreview()};item.append(select);
   if(worker){const star=node('button','product-favorite'+(favorite.has(p.id)?' is-favorite':''),favorite.has(p.id)?'★':'☆');star.type='button';star.setAttribute('aria-label',(favorite.has(p.id)?'Убрать из избранного: ':'В избранное: ')+p.name);star.setAttribute('aria-pressed',String(favorite.has(p.id)));star.onclick=()=>toggleFav(p.id);item.append(star)}
   list.append(item);
  }
@@ -234,9 +236,9 @@ function renderManage(){
   info.append(node('strong','',p.name));
   const guide=guideFor(p);
   if(guide){info.append(node('small','prep-kind',guide[0]));info.append(node('small','prep-guide',guide[1]))}
-  info.append(node('small','',p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
+  info.append(node('small','',isHaccp(p)?'ХАССП · Чёткая таблица':p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
-  edit.type='button';del.type='button';edit.disabled=cloudPaired;del.disabled=cloudPaired;edit.onclick=()=>openEditor(p);
+  edit.type='button';del.type='button';edit.disabled=cloudPaired||isHaccp(p);del.disabled=cloudPaired;edit.onclick=()=>openEditor(p);
   del.onclick=()=>{if(cloudPaired)return;if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
   actions.append(edit,del);row.append(info,actions);list.append(row);
  }
@@ -423,8 +425,41 @@ function drawPrep(p,epoch,point,scale=1){
  return c;
 }
 
+function haccpKey(p){return 'farukh-print:haccp-batch:v1:'+encodeURIComponent(workerLoggedIn?.point||'local')+':'+p.id}
+function haccpSaved(p){try{return JSON.parse(localStorage.getItem(haccpKey(p))||'null')}catch{return null}}
+function haccpBatch(p){return haccpDraft?.id===p.id?haccpDraft.batch:haccpSaved(p)}
+function prepareHaccp(p){
+ const t=HACCP.getTemplate(p);if(t.mode==='place')return;
+ let b=haccpBatch(p);
+ if(!b){const start=Date.now(),limit=new Date($('haccp-limit').value).getTime();b={start,end:HACCP.deadline(t,start,limit),limit:Number.isFinite(limit)?limit:null};}
+ if(!Number.isFinite(b.start)||!Number.isFinite(b.end)||b.end<=Date.now())throw Error('Срок этой порции истёк. Приготовь новую и нажми «Новая порция / заполнение».');
+ // Persist before dispatch: cancelled or failed printing must not extend dates.
+ localStorage.setItem(haccpKey(p),JSON.stringify(b));haccpDraft=null;
+ $('printed-at').value=new Date(b.start-new Date(b.start).getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
+function haccpControls(p){
+ const yes=isHaccp(p),box=$('haccp-controls');if(!box)return;
+ box.hidden=!yes;$('printed-at').parentElement.hidden=yes;
+ if(!yes)return;
+ const t=HACCP.getTemplate(p),b=haccpBatch(p),limited=['shift','replacement'].includes(t.mode);
+ $('haccp-new').hidden=t.mode==='place';
+ $('haccp-limit-field').hidden=!limited;
+ $('haccp-limit-title').textContent=t.mode==='shift'?'Окончание текущей смены':'Заводской срок годности (с упаковки)';
+ $('haccp-limit').disabled=!!b;
+ if(b?.limit)$('haccp-limit').value=new Date(b.limit-new Date(b.limit).getTimezoneOffset()*60000).toISOString().slice(0,16);
+ $('haccp-help').textContent=t.mode==='place'?'Маркировка места хранения.':t.mode==='stock'?'Отдельный запас раствора, 21 день. Печатай при приготовлении. Концентрация и режим обработки — по инструкции средства.':t.mode==='shift'?'Отдельная порция для замачивания. Укажи конец смены. Режим обработки — по инструкции средства.':'30 дней — срок замены, заданный владельцем, не подтверждённый срок производителя. Укажи заводской срок; если после вскрытия он короче — укажи более раннюю дату. DECO S9: название сохранено со слов владельца.';
+}
+function drawHaccp(p,scale){
+ const {c,g}=canvasBase(464,320,scale),t=HACCP.getTemplate(p);
+ const rows=HACCP.rows(t,haccpBatch(p),formatted);
+ rect(g,7,7,450,306);const heights=rows.map((_,i)=>i===0?58:i===1?48:(306-106)/(rows.length-2));
+ let y=7;
+ rows.forEach((s,i)=>{const h=heights[i];if(i)hLine(g,y,7,457);write(g,s,232,y+h/2,{width:432,size:i===0?34:i===1?23:19,min:12,align:'center',weight:i<2?'900':'600'});y+=h;});
+ return c;
+}
 function makePreview(scale=1){
  const p=current();if(!p){previewError='';return null}
+ if(isHaccp(p))return drawHaccp(p,scale);
  if(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0){
    throw Error('Этот продукт пока не готов к печати. Укажи срок и условия хранения по ТТК или маркировке изготовителя и подтверди их.');
  }
@@ -433,7 +468,7 @@ function makePreview(scale=1){
  return kind==='ready'?drawReady(p,when,scale):drawPrep(p,when,str($('point-name').value)||p.point,scale);
 }
 function updatePreview(){
- const p=current();$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
+ const p=current();haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
  $('print-now').disabled=!p;
  $('fix-label').hidden=!p||!p.needsReview||isManaged();
  if(!p){status('Выбери товар из списка.');return}
@@ -496,6 +531,7 @@ async function doPrint(forceSystem=false){
    if(!point)throw Error('Сначала войди под своим логином в разделе «Доступ сотрудников».');
    $('point-name').value=point;
   }
+  if(isHaccp(current())){prepareHaccp(current());updatePreview();}
   value=job();
  }catch(e){status(e.message,true);return}
  busy=true;$('print-now').disabled=true;
@@ -572,6 +608,7 @@ async function importDB(ev){
   const items=[];const used=new Set();
   for(const p of payload.products){
    if(!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||!str(p.name))throw Error('Не все товары имеют названия.');
+   if(p.template){const t=HACCP?.getTemplate(p);if(!t)throw Error('Неизвестная этикетка ХАССП');items.push({...t,id:p.id||makeId()});continue;}
    if(!p.needsReview&&(!str(p.storage)||!Number.isSafeInteger(p.hours)||p.hours<1||p.hours>8760))throw Error('Не все действующие этикетки имеют подтверждённый срок и хранение.');
    if(p.photo&&!window.FarukhPrintPhotos?.isPhoto(p.photo))throw Error('Некорректный формат фотографии.');
    if(p.kind==='ready'&&(!str(p.composition)||!['p','f','c','kcal','weight','tolerance'].every(k=>typeof p[k]==='number'&&Number.isFinite(p[k]))))throw Error('Ошибка состава, веса или КБЖУ.');
@@ -603,6 +640,7 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
+ import('./haccp-catalog.js?v=1').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
  load();renderHome();$('printed-at').value=nowLocal();
  renderWorker();
@@ -633,6 +671,8 @@ function boot(){
  $('catalog-back').onclick=()=>{show('home');renderHome()};$('manage-back').onclick=()=>{show('home');renderHome()};
  $('catalog-search').addEventListener('input',renderCatalog);
  $('printed-at').addEventListener('input',updatePreview);
+ $('haccp-new').onclick=()=>{const p=current();if(!isHaccp(p))return;if(!confirm('Начать новую порцию для этой ёмкости? Нажимай только после приготовления или заполнения.'))return;haccpDraft={id:p.id,batch:null};$('haccp-limit').value='';updatePreview();};
+ $('haccp-limit').addEventListener('input',updatePreview);
  $('point-name').addEventListener('input',updatePreview);
  $('manage-ready').onclick=()=>openManage('ready');$('manage-prep').onclick=()=>openManage('prep');
  $('load-starter-prep').onclick=()=>{
