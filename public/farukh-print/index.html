@@ -7,7 +7,7 @@
 <meta name="description" content="FARUKH PRINT — самостоятельное приложение для этикеток 58×40 и 30×20 мм с Bluetooth-печатью.">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./print.css?v=16">
+<link rel="stylesheet" href="./print.css?v=17">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -24,6 +24,7 @@
     <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>30 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
   </div>
   <button class="manage-link" id="manage-from-home" type="button"><span>⚙</span><span><strong>Управление этикетками</strong><small>Добавление, редактирование, сохранение базы</small></span><span class="arrow">→</span></button>
+  <button id="home-premium-template" class="premium-template-home" type="button"><span class="template-glyph">▤</span><span><strong>Премиум-шаблон · 58 × 40 мм</strong><small>＋ Вручную заполнить новую позицию по утверждённому эталону</small></span><span class="arrow">→</span></button>
   <div class="app-foot">FARUKH PRINT <b>·</b> Bluetooth-печать <b>·</b> Управление каталогом через FARUKH AI</div>
 </section>
 <section id="catalog" class="screen" hidden>
@@ -72,6 +73,7 @@
   <div class="sub-head"><button class="back" id="manage-back" type="button">← Назад</button><div><div class="eyebrow">ЛОКАЛЬНАЯ БАЗА</div><h2>Управление этикетками</h2></div></div>
   <p class="lead">Создай свою базу один раз. Она хранится на этом устройстве, отдельно от FARUKH AI. Для переноса на телефон или планшет используй резервную копию.</p>
   <div class="manage-head"><div class="pills"><button id="manage-ready" class="pill selected" type="button">58 × 40 <span id="manage-count-ready">0</span></button><button id="manage-prep" class="pill" type="button">30 × 20 <span id="manage-count-prep">0</span></button></div><button id="add-item" class="button button-main" type="button">＋ Добавить товар</button></div>
+  <section class="premium-template-box" id="premium-template-card"><div><span class="template-label">СОХРАНЁННЫЙ ЭТАЛОН · 58 × 40 ММ</span><h3>Премиальная этикетка</h3><p>Двойная рамка, состав, таблица КБЖУ, даты и пиктограммы. Новый товар можно ввести вручную без изменения самого шаблона.</p></div><button id="use-premium-template" class="button button-main" type="button">＋ Заполнить шаблон</button></section>
   <div class="sanpin-info"><strong>19 позиций · свежая и готовая продукция</strong><p>Для овощей, рыбы, мяса, омлета, бульона и соусов в каталоге добавлены категории и необходимые документы для проверки. Новый СанПиН 2.3/2.4.4282-26 действует с 01.09.2026. Он не устанавливает одинаковый срок в часах для каждой из этих позиций. Сроки и условия хранения подтверждаются по ТТК и маркировке изготовителя (ТР ТС 021/2011). Предложенные 48 ч для спайси — не нормативный срок. Пока подтверждения нет, печать заблокирована.</p><button type="button" class="button button-ghost" id="load-starter-prep">＋ Добавить отсутствующие из списка (19)</button><p><a href="https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/" target="_blank" rel="noopener noreferrer">СанПиН 2.3/2.4.4282-26, п. 11 и 32 ↗</a> · <a href="https://legalacts.ru/doc/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n-880-o/" target="_blank" rel="noopener noreferrer">ТР ТС 021/2011 ↗</a></p></div>
   <div id="manage-list" class="manage-list"></div><div id="manage-empty" class="empty" hidden>В этой категории ещё нет этикеток. Нажми «Добавить товар».</div>
   <div class="backup"><div><strong>Резервная копия базы</strong><small>Перенос товаров между телефоном и планшетом без синхронизации.</small></div><div class="backup-actions"><button id="export-db" class="button button-ghost" type="button">↓ Сохранить базу</button><button id="import-db" class="button button-ghost" type="button">↑ Загрузить базу</button><input id="import-file" type="file" accept=".json,application/json" hidden></div></div>
@@ -100,10 +102,11 @@
   <div id="sanpin-item-guidance" class="item-guidance" hidden></div>
   <label id="approval-area" class="approval-area" hidden><input type="checkbox" id="edit-approval"><span>Подтверждаю, что срок и условия хранения установлены по документации и соответствуют способу приготовления, составу и фактическому температурному режиму. Пока не отмечено — печать заблокирована.</span></label>
   <div class="edit-grid"><label class="field">Условия хранения<input id="edit-storage" type="text" maxlength="60" placeholder="+2…+6 °C" required></label><label class="field">Срок годности, часов<input id="edit-hours" type="number" min="1" max="8760" step="1" required></label></div>
+  <section id="manual-template-preview" class="premium-template-preview" hidden><strong>Предпросмотр · Премиум 58 × 40</strong><p id="manual-template-preview-hint">После заполнения всех полей здесь появится этикетка с твоими данными.</p><div id="manual-template-preview-svg" class="premium-template-preview-art"></div></section>
   <div class="edit-actions"><button id="cancel-editor" type="button" class="button button-ghost">Отмена</button><button type="submit" class="button button-main">Сохранить товар</button></div>
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=1" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./print.js?v=27" defer></script><script src="./print-sync.js?v=4" defer></script><script src="./print-staff.js?v=6" defer></script>
+<script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=1" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./print.js?v=28" defer></script><script src="./print-sync.js?v=4" defer></script><script src="./print-staff.js?v=6" defer></script>
 </body>
 </html>
