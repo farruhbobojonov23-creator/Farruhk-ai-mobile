@@ -161,7 +161,7 @@ function imageFor(name){
 }
 function svg(body){
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 190" width="520" height="380" role="img">'+
- defs+'<rect width="260" height="190" fill="#fff"/>'+
+ defs+
  ellipse(131,166,76,11,'#8c96a4').replace('fill="#8c96a4"','fill="#8c96a4" opacity=".23" filter="url(#shadow)"')+
  body+'</svg>';
 }
