@@ -58,6 +58,6 @@ test('Norms modal leads with practical tips and keeps underlying expiry unchange
  assert.match(body,/pc-advice-grid/);
  assert.match(body,/pc-guide-norm-details/);
  assert.ok(body.indexOf('pc-advice-grid')<body.indexOf('pc-guide-norm-details'));
- assert.doesNotMatch(body,/(?:p|item)\.(?:hours|storage|needsReview)\s*=/);
+ assert.doesNotMatch(body,/(?:p|item)\.(?:hours|storage|needsReview)\s*=(?!=)/);
  assert.match(ui,/controls.append\(btn\('Нормы','pc-edit pc-norms-btn'/);
 });
