@@ -73,8 +73,8 @@ export function mountPrintControl({root}){
   return '';
  }
  function loadPhotoAssets(){
-  if(group==='prep'&&!prepLoading){prepLoading=Promise.all([import('./farukh-print/supplemental-photos.js?v=1'),import('./farukh-print/broth-photo.js?v=1')]).then(([supplement,broth])=>{supplementalPhotos=supplement;brothPhoto=broth.photo;renderRows()}).catch(()=>{});}
-  if(group==='ready'&&!readyLoading){readyLoading=import('./farukh-print/catalog-photos.js?v=1').then(m=>{readyPhotos=m;renderRows()}).catch(()=>{});}
+  if(group==='prep'&&!prepLoading){prepLoading=Promise.all([import('./farukh-print/supplemental-photos.js?v=2'),import('./farukh-print/broth-photo.js?v=2')]).then(([supplement,broth])=>{supplementalPhotos=supplement;brothPhoto=broth.photo;renderRows()}).catch(()=>{});}
+  if(group==='ready'&&!readyLoading){readyLoading=import('./farukh-print/catalog-photos.js?v=2').then(m=>{readyPhotos=m;renderRows()}).catch(()=>{});}
  }
  function categoryFor(p){
   if(p.kind==='ready')return window.FarukhPrintCategories?.category(p)||'Без категории';
