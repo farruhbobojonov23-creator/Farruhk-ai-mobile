@@ -16,7 +16,7 @@ test('Ingredient photo fallbacks cover every added Japanese preparation, preserv
  assert.match(app,/img\.onerror/);
  assert.match(owner,/displayPhoto\(p\)/);
  assert.match(owner,/window\.FarukhPrepPhotoLibrary\?\.find\(p\)/);
- assert.match(html,/prep-photo-library\.js\?v=1/);
+ assert.match(html,/prep-photo-library\.js\?v=2/);
  assert.match(html,/print\.js\?v=35/);
 });
 
