@@ -189,5 +189,5 @@ $('delete').onclick=()=>{const p=product();if(!p||!confirm('Удалить то�
 window.FARUKH_LABELS={getPrintJob:()=>{const p=product(),epoch=toEpoch($('made').value),copies=Number($('copies').value);if(!valid(p)||p.needsReview||p.sourceChanged||!Number.isFinite(epoch)||!Number.isInteger(copies)||copies<1||copies>20)return null;return {product:structuredClone(p),epoch,copies}},getProducts:()=>state.products,applyProducts:products=>{const prev=state.products;state.products=products;if(!persist()){state.products=prev;throw Error('Не удалось сохранить этикетки на устройстве')}render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';if(product()?.ttkId===imported.ttkId)pendingTtkSignature=imported.ttkSignature;}};
 $('print').onclick=print;window.addEventListener('afterprint',()=>$('printsheet').replaceChildren());render();
 })();
-</script><script type="module" src="/label-auto-ui.js?v=1"></script><script type="module" src="/label-bluetooth-direct.js?v=1"></script>
+</script><script type="module" src="/label-auto-ui.js?v=1"></script><script type="module" src="/label-bluetooth-direct.js?v=2"></script>
 </body></html>
