@@ -147,19 +147,20 @@ function draw(g,p,epoch,{formatDate}={}){
  const tableBottom=234.5,tableHeight=tableBottom-tableTop;
  box(g,16,tableTop,432,tableHeight,5.5,1.35);
  box(g,18.5,tableTop+2.5,427,tableHeight-5,4.5,.65);
- const separator=tableTop+24;
- text(g,'КБЖУ НА 100 Г',232,tableTop+12.5,{family:SERIF,size:14.1,min:12,weight:'900',width:415,align:'center'});
+ const compactTable=tableTop>=171;
+ const separator=tableTop+(compactTable?20:24);
+ text(g,'КБЖУ НА 100 Г',232,tableTop+(compactTable?10.2:12.5),{family:SERIF,size:compactTable?13.1:14.1,min:12,weight:'900',width:415,align:'center'});
  line(g,18.5,separator,445.5,separator,1.05);
  const data=[['Б',decimal(p.p)],['Ж',decimal(p.f)],['У',decimal(p.c)],['ККАЛ',decimal(p.kcal)]];
  const cellHeight=tableBottom-separator;
- // Labels and numeric baselines move together when the composition grows.
- const keyY=separator+cellHeight*.30;
- const valueY=separator+cellHeight*.71;
+ // Never let food-value captions touch the large numbers or the table frame.
+ const keyY=compactTable?separator+8.5:separator+cellHeight*.30;
+ const valueY=tableBottom-(compactTable?14:16);
  for(let i=0;i<4;i++){
   const cx=70+i*108;
   if(i)line(g,16+i*108,separator+1,16+i*108,tableBottom-2,1.05);
-  text(g,data[i][0],cx,keyY,{family:SERIF,size:12,min:10,weight:'700',width:96,align:'center'});
-  text(g,data[i][1],cx,valueY,{family:SERIF,size:19.7,min:12.8,weight:'900',width:100,align:'center'});
+  text(g,data[i][0],cx,keyY,{family:SERIF,size:compactTable?11.2:12,min:10,weight:'700',width:96,align:'center'});
+  text(g,data[i][1],cx,valueY,{family:SERIF,size:compactTable?18.2:19.7,min:12.8,weight:'900',width:100,align:'center'});
  }
 
  // 6. Raised data band with date icons on left and right.
