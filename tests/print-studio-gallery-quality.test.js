@@ -9,7 +9,7 @@ test('17 local studio images render at crisp 3× quality with original image asp
  const css=await source('public/farukh-print/print.css');
  const page=await source('public/farukh-print/index.html');
  assert.match(atlas,/const names=\[/);
- assert.equal((atlas.match(/'[^']+\([^)]+\)'/g)||[]).length>=15,true);
+ const names=atlas.match(/const names=\[([^\]]+)\];/);\n assert.ok(names);\n assert.equal(names[1].split(\"','\").length,17);
  assert.match(atlas,/w:450,h:288/);
  assert.match(atlas,/imageSmoothingQuality='high'/);
  assert.match(atlas,/canvas\.toDataURL\('image\/webp',\.94\)/);
