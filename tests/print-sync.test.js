@@ -50,7 +50,10 @@ test('Missing photos fill all 76 cards, preserve owner photos and survive public
  assert.equal(filled.code,200);assert.equal(filled.payload.revision,13);
  assert.equal(filled.payload.products.length,76);
  assert.ok(filled.payload.products.every(p=>p.photo?.startsWith('data:image/jpeg;base64,')));
- for(const p of filled.payload.products)if(before.has(p.id))assert.equal(p.photo,before.get(p.id));
+ for(const p of filled.payload.products)if(before.has(p.id)&&p.name!=='Бульон Том Ям')assert.equal(p.photo,before.get(p.id));
+ const broth=filled.payload.products.find(p=>p.name==='Бульон Том Ям');
+ assert.notEqual(broth.photo,before.get(broth.id));
+ assert.equal(broth.photo,(await import('../public/farukh-print/broth-photo.js')).photo);
  assert.ok(Buffer.byteLength(JSON.stringify({revision:13,products:filled.payload.products}))<1024*1024);
  const again=await req('get','/api/farukh-print/admin/catalog',owner);assert.equal(again.payload.revision,13);
  const custom=filled.payload.products.map(p=>p.template==='soap'?{...p,photo:'data:image/jpeg;base64,AAAA'}:p);
@@ -142,7 +145,7 @@ test('ready TTK import preserves existing labels, bumps revision once and respec
  assert.equal(first.payload.products[0].photo,custom.photo);
  const next=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:8,products:[]}});
  assert.equal(next.code,200);
- assert.deepEqual(next.payload.appliedImports,[catalog.version,'missing-card-photos-2026-10-24-v1']);
+ assert.deepEqual(next.payload.appliedImports,[catalog.version,'missing-card-photos-2026-10-24-v1','tom-yum-broth-photo-2026-10-24-v1']);
  const reread=await req('get','/api/farukh-print/admin/catalog',owner);
  assert.deepEqual(reread.payload.products,[]);
  assert.equal(reread.payload.revision,9);
@@ -176,7 +179,7 @@ test('v2 imports only the newly approved crab roll on previously imported device
  const result=await req('get','/api/farukh-print/admin/catalog',{cookie:'fai_owner=ok'});
  assert.equal(result.code,200);assert.equal(result.payload.products.length,1);
  assert.equal(result.payload.revision,11);
- assert.deepEqual(result.payload.appliedImports,[catalog.previousVersion,catalog.version,'missing-card-photos-2026-10-24-v1']);
+ assert.deepEqual(result.payload.appliedImports,[catalog.previousVersion,catalog.version,'missing-card-photos-2026-10-24-v1','tom-yum-broth-photo-2026-10-24-v1']);
 });
 
 
