@@ -45,5 +45,5 @@ test('Current 2026 SanPiN guidance does not invent universal hours or authorize 
  assert.match(owner,/checkbox\.append\(verify/);
  assert.match(owner,/needsReview:!verify\.checked/);
  assert.match(app,/печать до подтверждения заблокирована/);
- assert.match(await source('public/farukh-print/index.html'),/prep-photo-library\.js\?v=1/);
+ assert.match(await source('public/farukh-print/index.html'),/prep-photo-library\.js\?v=2/);
 });
