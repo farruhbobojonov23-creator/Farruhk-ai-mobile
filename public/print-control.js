@@ -290,20 +290,20 @@ export function mountPrintControl({root}){
  const actions=el('div','pc-form-actions');actions.append(btn('Отмена','pc-secondary',()=>dialog.close()));
  const save=el('button','pc-primary','Сохранить');save.type='submit';actions.append(save);
  const formError=el('p','pc-error');formError.hidden=true;
- let premiumLoader=null,previewTimeout=null;
+ const premiumLoaders=new Map();let previewTimeout=null;
  function loadPremiumRenderer(kind='ready'){
   const prep=kind==='prep';
   if(window.FarukhLabelSVG?.surface&&(prep?window.FarukhPremiumPrep?.draw:window.FarukhPremiumReady?.draw))return Promise.resolve();
-  if(premiumLoader)return premiumLoader;
+  if(premiumLoaders.has(kind))return premiumLoaders.get(kind);
   const addScript=(url)=>new Promise((resolve,reject)=>{
    const node=document.createElement('script');node.src=url;node.onload=resolve;node.onerror=()=>reject(Error('Не удалось загрузить шаблон этикетки.'));document.head.append(node);
   });
-  premiumLoader=Promise.resolve().then(async()=>{
+  const load=Promise.resolve().then(async()=>{
    if(!window.FarukhLabelSVG?.surface)await addScript('/farukh-print/label-svg.js?v=3');
    if(prep){if(!window.FarukhPremiumPrep?.draw)await addScript('/farukh-print/premium-prep-label.js?v=1')}
    else if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=3');
-  }).catch(e=>{premiumLoader=null;throw e});
-  return premiumLoader;
+  }).catch(e=>{premiumLoaders.delete(kind);throw e});
+  premiumLoaders.set(kind,load);return load;
  }
  function updateTemplatePreview(){
   if(!dialog.open||templatePreview.hidden)return;
