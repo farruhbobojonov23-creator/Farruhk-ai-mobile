@@ -329,3 +329,23 @@
 #print-control .pstaff-access-box>strong{font-size:13px;color:#314853}
 #print-control .pstaff-access-date{display:block;color:#7c8c95!important;font-weight:700}
 @media(max-width:600px){#print-control .pstaff-access-picker{grid-template-columns:1fr}#print-control .pstaff-access-picker>input{width:100%}}
+
+/* Owner's norm-grounded expiry verification: references never auto-enable print. */
+#print-control-root:not([data-pc-workspace="catalog"]) .pc-normative-notice{display:none!important}
+#print-control-root .pc-normative-notice[hidden],#print-control-root .pc-pending[hidden]{display:none!important}
+#print-control-root .pc-normative-notice{display:grid;gap:6px;background:#fffaf1;border:1px solid #ecd8ae;border-radius:12px;padding:13px;margin:0 0 13px;font-size:11px;line-height:1.55;color:#785b37}
+#print-control-root .pc-normative-notice strong{font-size:12px;color:#79532d}
+#print-control-root .pc-normative-notice a{color:#7f4057;font-weight:800;width:max-content;max-width:100%;overflow-wrap:anywhere}
+#print-control-root .pc-pending{border-color:#eac99b;color:#936536;background:#fff7e9}
+#print-control-root .pc-pending.active{background:#95622e;color:white}
+#print-control-root .pc-norms-btn{background:#fff4e3;color:#8b6439;border:1px solid #eedbc1}
+#print-control-root .pc-guide-body{padding:19px;max-height:80vh;overflow:auto;display:grid;gap:9px}
+#print-control-root .pc-guide-body h2{color:#253c46;font-size:20px;line-height:1.28;margin:0}
+#print-control-root .pc-guide-body h3{margin:7px 0 0;font-size:14px;color:#425969}
+#print-control-root .pc-guide-body p{font-size:12px;line-height:1.7;color:#5b6c76;margin:0}
+#print-control-root .pc-guide-body .pc-guide-current{font-weight:800;color:#a26d37}
+#print-control-root .pc-guide-example{padding:12px;background:#edf7fa;border-left:3px solid #7bb3c7;border-radius:8px;color:#3a5968;font-size:12px;line-height:1.65}
+#print-control-root .pc-guide-warning{padding:11px;background:#fff4e9;color:#98653b!important;border-radius:8px}
+#print-control-root .pc-guide-link{font-size:12px;color:#9b3d52;text-decoration:underline;overflow-wrap:anywhere}
+#print-control-root .pc-guide-body>.pc-form-actions{margin-top:9px}
+@media(max-width:560px){#print-control-root .pc-guide-body{padding:13px}#print-control-root .pc-guide-body>.pc-form-actions{justify-content:stretch}#print-control-root .pc-guide-body>.pc-form-actions button{flex:1 1 100%}}
