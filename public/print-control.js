@@ -187,7 +187,7 @@ export function mountPrintControl({root}){
   normContent.append(el('h3','',g.group),el('p','',g.question),el('div','pc-guide-example',g.example));
   normContent.append(el('p','pc-guide-warning',p.template?
    'Для служебной этикетки применяйте инструкции по используемому средству и внутренние процедуры ХАССП.' :
-   'Примеры нормативных сроков не разрешают автоматически назначить такой срок любой рецептуре.'));
+   'Примеры не вносятся в этикетку автоматически и не означают утверждённый срок для конкретной рецептуры.'));
   normContent.append(el('strong','','Документы и материалы'));
   const links=p.template?[REFERENCES[0],PRACTICE_REFERENCES[1]]:[...REFERENCES,...PRACTICE_REFERENCES];
   for(const ref of links){
