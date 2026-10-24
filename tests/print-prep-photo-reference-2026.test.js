@@ -6,6 +6,8 @@ const source=path=>fs.readFile(new URL('../'+path,import.meta.url),'utf8');
 test('All 17 new sushi prep products show curated Wikimedia representative ingredient photos, credited and owner-overridable',async()=>{
  const {definitions}=await import('../public/farukh-print/japanese-prep-catalog.js');
  const context={window:{}};
+ const studio=await source('public/farukh-print/prep-studio-images.js');
+ vm.runInNewContext(studio,context);
  const photos=await source('public/farukh-print/prep-photo-library.js');
  vm.runInNewContext(photos,context);
  const p=context.window.FarukhPrepPhotoLibrary;
