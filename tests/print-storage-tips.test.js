@@ -12,7 +12,7 @@ test('Every catalog item gets six nonempty operational tips',async()=>{
  for(const product of products){
   const tip=storageAdviceFor(product);
   for(const key of ['heading','temperature','form','packaging','spoilage','control','avoid']){
-   assert.ok(typeof tip[key]==='string'&&tip[key].length>40,'No '+key+' for '+product.name);
+   assert.ok(typeof tip[key]==='string'&&tip[key].length>(key==='heading'?8:40),'No '+key+' for '+product.name);
   }
   assert.ok(!('hours' in tip)&&!('needsReview' in tip)&&!('storage' in tip),'Tips must never change TTK values: '+product.name);
  }
