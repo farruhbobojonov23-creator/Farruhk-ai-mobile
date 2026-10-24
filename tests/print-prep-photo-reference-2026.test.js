@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 const source=path=>fs.readFile(new URL('../'+path,import.meta.url),'utf8');
-test('All 17 new sushi prep products show curated Wikimedia representative ingredient photos, credited and owner-overridable',async()=>{
+test('All 17 new sushi prep products show studio or credited ingredient previews, credited and owner-overridable',async()=>{
  const {definitions}=await import('../public/farukh-print/japanese-prep-catalog.js');
  const context={window:{}};
  const studio=await source('public/farukh-print/prep-studio-images.js');
@@ -15,8 +15,8 @@ test('All 17 new sushi prep products show curated Wikimedia representative ingre
  for(const item of definitions.slice(19)){
   const photo=p.find(item.name);
   assert.ok(photo, 'Missing representative photo for '+item.name);
-  assert.match(photo.url,/^https:\/\/commons\.wikimedia\.org\/wiki\/Special:FilePath\//);
-  assert.match(photo.creditUrl,/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+  if(photo.studio){assert.match(photo.url,/^data:image\/webp;base64,UklG/);assert.equal(photo.creditUrl,undefined)}
+  else{assert.match(photo.url,/^https:\/\/commons\.wikimedia\.org\/wiki\/Special:FilePath\//);assert.match(photo.creditUrl,/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)}
   assert.ok(photo.author);
   assert.ok(photo.license);
  }
