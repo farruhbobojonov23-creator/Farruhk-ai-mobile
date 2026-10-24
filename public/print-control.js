@@ -398,7 +398,7 @@ export function mountPrintControl({root}){
  }
  function edit(product,fromTemplate=false){
   manualTemplate=!!fromTemplate;
-  currentEdit=product?.id||null;const v=product||{...empty,kind:group};
+  currentEdit=product?.id||null;const v=product||{...empty,kind:group,...(manualTemplate?{tolerance:''}:{})};
   formTitle.textContent=manualTemplate?'Новая этикетка · Премиум 58 × 40 мм':(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';templatePreview.hidden=v.kind!=='ready';templatePreviewCanvas.replaceChildren();
   chosenPhoto=displayPhoto(v);
