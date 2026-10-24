@@ -84,7 +84,7 @@ export function mountPrintControl({root}){
  function loadPhotoAssets(){
   if(group==='prep'&&!photoLibraryLoading){
    photoLibraryLoading=Promise.all([
-    import('./farukh-print/prep-studio-images.js?v=1').then(()=>import('./farukh-print/prep-studio-atlas.js?v=1')).then(()=>import('./farukh-print/prep-photo-library.js?v=2')), 
+    import('./farukh-print/prep-studio-images.js?v=1').then(()=>import('./farukh-print/prep-studio-atlas.js?v=2')).then(()=>import('./farukh-print/prep-photo-library.js?v=2')), 
     import('./farukh-print/prep-sanpin-sources.js?v=1')
    ]).then(()=>{renderRows();if(dialog?.open)showPhoto()}).catch(()=>{});
   }
