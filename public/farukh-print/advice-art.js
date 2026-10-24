@@ -56,6 +56,13 @@ const aliases={
 const name=v=>String(v||'').toLocaleLowerCase('ru').replace(/ё/g,'е');
 export function subjectFor(text,fallback='container'){
  const value=name(text);
+ // "сырая" contains "сыр" but means RAW, never cheese. Match food groups
+ // before single-word illustrative hints to avoid misleading neighborhood art.
+ if(/морепродукт|кревет|краб|мидии|сурими/.test(value))return 'seafood';
+ if(/мяс|птиц|говяд|куриц/.test(value))return 'rawmeat';
+ if(/ролл|суши|готовая продукция|готовые блюда/.test(value))return 'sushi';
+ if(/форел|лосос|угор|рыб/.test(value))return 'fish';
+ if(/лук|чеснок|сильным запах/.test(value))return 'onion';
  for(const [fragment,which] of Object.entries(aliases))if(value.includes(fragment))return which;
  return fallback;
 }
