@@ -276,3 +276,90 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
  .print-advice-aside{grid-template-columns:84px minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.print-advice-dialog{scroll-behavior:auto}}
+
+/* 2026-10-24 approved illustrated guide: crisp local vector mini-illustrations
+   rather than initials or bare text. Retains native print process untouched. */
+.print-advice-dialog{background:#fff;box-shadow:0 25px 95px #10253555}
+.print-advice-layout{grid-template-columns:minmax(0,32%) minmax(0,68%)}
+.print-advice-aside{background:#fff}
+.print-advice-hero{background:#fff;min-height:160px}
+.print-advice-photo{max-height:230px;filter:drop-shadow(0 5px 8px #23364212)}
+.print-advice-facts{box-shadow:0 3px 15px #23354208}
+.print-advice-fact{display:grid;grid-template-columns:28px minmax(0,1fr);justify-content:start;align-items:center;gap:8px}
+.print-advice-fact-symbol{font-size:20px;font-weight:850;color:#8ba0b2;text-align:center}
+.print-advice-fact-value{display:flex;align-items:flex-start;flex-direction:column;gap:5px;min-width:0}
+.print-advice-fact-value span{font-size:10.5px;max-width:100%;color:#899ba9}
+.print-advice-fact-value strong{font-size:12px;max-width:100%;text-align:left;color:#294356;line-height:1.35}
+.print-advice-main{background:#fff}
+.print-advice-tabs{border-bottom:1px solid #e3e9ec;padding-bottom:8px;gap:5px}
+.print-advice-tab{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:39px;border-radius:11px;background:#fff;box-shadow:0 1px 5px #213a4b0c}
+.print-advice-tab-icon{font-size:16px;line-height:1;opacity:.85}
+.print-advice-row{grid-template-columns:minmax(78px,105px) minmax(0,1fr);align-items:center;gap:13px;padding:11px 13px;background:#fff;border-color:#e2e9ee;min-height:94px;box-shadow:0 3px 11px #253a4705}
+.print-advice-row.tone-good{background:linear-gradient(110deg,#f1fcf5,#fff 65%);border-color:#dcefe6}
+.print-advice-row.tone-cool{background:linear-gradient(110deg,#f1f8ff,#fff 65%);border-color:#deedf8}
+.print-advice-row.tone-danger{background:linear-gradient(110deg,#fff1f2,#fff 65%);border-color:#f4dfe3}
+.print-advice-row-picture{display:block;width:100%;height:80px;object-fit:contain;border-radius:10px;filter:drop-shadow(0 5px 5px #263f4a13)}
+.print-advice-row-body{min-width:0}
+.print-advice-row h5{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:850;color:#233e50;line-height:1.28;margin:0 0 7px}
+.print-advice-status-symbol{flex:none;display:grid;place-items:center;border-radius:50%;width:26px;height:26px;font-size:15px;font-weight:900;background:#e9f3fb;color:#298fc3}
+.print-advice-row.tone-good .print-advice-status-symbol{color:#229550;background:#e3f6e9}
+.print-advice-row.tone-danger .print-advice-status-symbol{color:#cf2845;background:#ffeaed}
+.print-advice-row p{color:#526779;font-size:11.5px;line-height:1.52}
+.print-advice-title{font-size:15px;font-weight:850;color:#2b4452;margin-bottom:13px}
+.print-advice-neighbor-grid{gap:12px}
+.print-advice-neighbor{padding:13px 11px;gap:7px;box-shadow:0 4px 12px #1838440a}
+.print-advice-neighbor.allowed{background:linear-gradient(145deg,#e7f9ee,#f5fff8);border-color:#d8ecdf}
+.print-advice-neighbor.disallowed{background:linear-gradient(145deg,#fff0f3,#fffafb);border-color:#f0dfe3}
+.print-advice-neighbor h5{font-size:12.5px;margin-bottom:5px}
+.print-advice-neighbor-item{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:7px;padding:4px 10px 4px 5px;min-height:63px;line-height:1.45;background:#fff;border:1px solid #e5eded;box-shadow:0 1px 4px #304b3907}
+.print-advice-neighbor-item>span{display:block;font-size:11px;color:#344c59;font-weight:650}
+.print-advice-neighbor-picture{display:block;width:56px;height:55px;object-fit:contain;filter:drop-shadow(0 3px 4px #2a3d4921)}
+.print-advice-note{border-radius:12px;font-size:11.5px;line-height:1.6}
+.print-advice-links a{font-size:11.5px}
+.print-advice-safety{border-radius:13px;font-weight:500}
+@media(min-width:701px){
+ .print-advice-neighbor-item{grid-template-columns:56px 1fr}
+ .print-advice-hero{min-height:175px}
+}
+@media(max-width:700px){
+ .print-advice-dialog{max-height:94dvh;width:calc(100% - 16px)}
+ .print-advice-aside{grid-template-columns:102px minmax(0,1fr);gap:5px 12px;padding:18px 17px 14px}
+ .print-advice-hero{min-height:110px;max-height:120px}
+ .print-advice-photo{max-height:116px}
+ .print-advice-facts{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;padding:8px}
+ .print-advice-fact{display:grid;grid-template-columns:22px minmax(0,1fr);gap:5px}
+ .print-advice-fact-symbol{font-size:17px}
+ .print-advice-fact-value span{font-size:10px}
+ .print-advice-fact-value strong{font-size:11.5px}
+ .print-advice-main{padding:17px 15px 20px}
+ .print-advice-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .print-advice-tab{min-height:43px;padding:9px 3px;font-size:11px;gap:4px;flex-basis:auto}
+ .print-advice-tab-icon{font-size:14px}
+ .print-advice-row{grid-template-columns:94px minmax(0,1fr);min-height:91px;gap:11px;padding:11px 10px}
+ .print-advice-row-picture{height:86px}
+ .print-advice-row h5{font-size:12.6px}
+ .print-advice-row p{font-size:11px;line-height:1.5}
+ .print-advice-neighbor-grid{grid-template-columns:1fr 1fr;gap:8px}
+ .print-advice-neighbor{padding:10px 7px}
+ .print-advice-neighbor-item{grid-template-columns:40px 1fr;padding:5px 5px;min-height:65px;gap:4px}
+ .print-advice-neighbor-picture{width:40px;height:46px}
+ .print-advice-neighbor-item>span{font-size:10px;font-weight:650}
+ .print-advice-neighbor h5{font-size:11px;line-height:1.3}
+}
+@media(max-width:410px){
+ .print-advice-dialog{width:calc(100% - 12px)}
+ .print-advice-aside{grid-template-columns:90px minmax(0,1fr)}
+ .print-advice-hero{min-height:103px}
+ .print-advice-main{padding:14px 11px 18px}
+ .print-advice-tabs{gap:3px}
+ .print-advice-tab{font-size:10px;gap:3px;padding:7px 2px}
+ .print-advice-tab-icon{font-size:12px}
+ .print-advice-row{grid-template-columns:80px minmax(0,1fr);gap:8px;padding:9px 8px}
+ .print-advice-row-picture{height:75px}
+ .print-advice-row h5{font-size:12.4px}
+ .print-advice-row p{font-size:10.9px}
+ .print-advice-neighbor-grid{grid-template-columns:1fr}
+ .print-advice-neighbor-item{grid-template-columns:65px minmax(0,1fr);gap:8px;min-height:61px}
+ .print-advice-neighbor-picture{width:63px;height:55px}
+ .print-advice-neighbor-item>span{font-size:11.4px}
+}
