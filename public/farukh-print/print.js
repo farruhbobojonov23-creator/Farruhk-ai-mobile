@@ -101,13 +101,15 @@ function load(){
  try{saved=localStorage.getItem(KEY);const old=JSON.parse(saved||'[]');products=Array.isArray(old)?old.filter(x=>x&&['ready','prep'].includes(x.kind)&&typeof x.name==='string').slice(0,1000):[]}catch{products=[]}
  // Only fresh installations are seeded automatically. Existing user data is
  // never overwritten and can be supplemented with the explicit import button.
- if(saved===null){mergeStarterPrep();save()}
- else if(fillSpicyProposal())save()
+ // A staff-only first visit must not create a separate local catalogue before
+ // the owner's approved cloud catalogue is downloaded.
+ if(saved===null){if(!window.FARUKH_PRINT_EMPLOYEE_ENTRY){mergeStarterPrep();save()}}
+ else if(!window.FARUKH_PRINT_EMPLOYEE_ENTRY&&fillSpicyProposal())save()
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(products));return true}catch(e){alert('Не удалось сохранить базу на этом устройстве: '+e.message);return false}}
 function node(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}
 function current(){return products.find(p=>p.id===selected&&p.kind===kind)||null}
-const isManaged=()=>localStorage.getItem('farukh-print:staff-managed:v1')==='1';
+const isManaged=()=>window.FARUKH_PRINT_EMPLOYEE_ENTRY===true||localStorage.getItem('farukh-print:staff-managed:v1')==='1';
 let workerLoggedIn=null;
 const pref=which=>'farukh-print:'+which+':v1:'+(workerLoggedIn?.login||'local');
 const favs=()=>{try{const x=JSON.parse(localStorage.getItem(pref('favs'))||'[]');return Array.isArray(x)?x:[]}catch{return []}};

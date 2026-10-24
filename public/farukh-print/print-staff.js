@@ -9,7 +9,8 @@ const base='/api/farukh-print/device/staff';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e};
 const root=document.querySelector('.app'),head=root?.querySelector('.header');
 if(!root||!head)return;
-let paired=localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='',rechecking=false;
+const employeeEntry=window.FARUKH_PRINT_EMPLOYEE_ENTRY===true;
+let paired=employeeEntry||localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='',rechecking=false;
 try{
  session=localStorage.getItem(SESSION)||sessionStorage.getItem(SESSION)||'';
  if(session)localStorage.setItem(SESSION,session);
@@ -30,9 +31,11 @@ head.after(panel);
 function deviceToken(){try{return JSON.parse(localStorage.getItem(DEV)||'null')?.token||''}catch{return ''}}
 const tell=(msg,error=false)=>{notice.textContent=msg;notice.dataset.error=error?'yes':'no'};
 function paint(){
- paired=localStorage.getItem(MANAGED)==='1';
+ paired=employeeEntry||localStorage.getItem(MANAGED)==='1';
+ const enrolled=!!deviceToken();
  panel.hidden=!paired;
- form.hidden=!paired||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;
+ form.hidden=!paired||!enrolled||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;
+ if(!enrolled&&!staff&&paired)tell('Для первого входа подключи устройство кодом из FARUKH AI в разделе «Связь с управляющим центром» ниже.');
  badge.textContent=staff?'● '+staff.name:'○ Вход обязателен';
  badge.dataset.active=staff?'yes':'no';
  if(staff){const deadline=staff.expiresAt?' · Доступ до '+new Date(staff.expiresAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' (Москва)':' · Без ограничения срока';
@@ -108,8 +111,10 @@ async function flushResults(){
 }
 const API={
  setPaired(value){
-  if(value)localStorage.setItem(MANAGED,'1');
-  const prior=paired;paired=localStorage.getItem(MANAGED)==='1';
+  // Previewing the employee URL must not permanently lock a personal owner
+  // browser. Actual device pairing persists managed mode in print-sync.js.
+  if(value&&!employeeEntry)localStorage.setItem(MANAGED,'1');
+  const prior=paired;paired=employeeEntry||localStorage.getItem(MANAGED)==='1';
   paint();
   if(paired&&!prior)void recheck();
  },
