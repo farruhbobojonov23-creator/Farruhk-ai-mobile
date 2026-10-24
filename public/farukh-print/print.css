@@ -437,3 +437,8 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
 .premium-template-preview-art svg{width:100%;height:auto;max-width:464px;display:block;background:#fff;box-shadow:0 4px 17px #0002}
 body.worker-managed .premium-template-home,body.worker-managed #premium-template-card{display:none!important}
 @media(max-width:610px){.premium-template-box{flex-direction:column;align-items:stretch}.premium-template-box .button{width:100%}}
+
+/* Owner's reusable 30×20 template; hidden for employees just like ready format. */
+#premium-prep-card{margin-top:12px;background:linear-gradient(130deg,#fff,#f5f9ff);border-color:#d9e4ef}
+#prep-fields select{width:100%;min-height:43px;border:1px solid #d8e2ea;border-radius:11px;padding:10px 12px;font-size:14px;background:#fff;color:#2b3b45}
+body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{display:none!important}
