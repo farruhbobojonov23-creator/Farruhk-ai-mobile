@@ -2,6 +2,7 @@
 // catalog, durations or product data. Managed and standalone modes use one UI.
 import {storageAdviceFor,PRACTICE_REFERENCES} from './storage-advice.js';
 import {guidanceForProduct,REFERENCES} from './shelf-life-guidance.js';
+import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js';
 
 const norm=v=>String(v||'').toLocaleLowerCase('ru').replace(/ё/g,'е');
 const create=(tag,cls,txt)=>{
@@ -87,10 +88,12 @@ export function neighborsFor(product){
 }
 const sectionData=(product,tips,norms)=>({
  'Советы':[
-  ['Температура','Требуемый режим',tips.temperature],
   ['Упаковка','Как правильно хранить',tips.packaging],
-  ['Контроль','Проверка на смене',tips.control],
-  ['Важно','Чего избегать',tips.avoid]
+  ['Форма','В каком виде лучше хранить',tips.form],
+  ['Температура','Температура и охлаждение',tips.temperature],
+  ['Порча','Признаки возможной порчи',tips.spoilage],
+  ['Контроль','Контроль на смене',tips.control],
+  ['Важно','Чего нельзя делать',tips.avoid]
  ],
  'Хранение':[
   ['Температура','При какой температуре',tips.temperature],
@@ -103,6 +106,9 @@ const sectionData=(product,tips,norms)=>({
   ['Справка','Условия применения',norms.example]
  ]
 });
+const rowTone=title=>/порч|нельзя|избег|ошиб/i.test(title)?'danger':/хранить|контрол|вид/i.test(title)?'good':/температур|охлажден/i.test(title)?'cool':'neutral';
+const iconSymbol=title=>/порч|нельзя|избег/i.test(title)?'!':/температур|охлажден/i.test(title)?'❄':/контрол|провер/i.test(title)?'✓':/хранить|вид/i.test(title)?'✓':'●';
+const picture=(src,cls,alt)=>{const im=create('img',cls);im.src=src;im.alt=alt;im.decoding='async';im.loading='lazy';return im;};
 
 let activeDialog=null;
 export function closeAdvice(){
@@ -125,10 +131,11 @@ export function openAdvice(product,{onPrint}={}){
  closeBtn.type='button';closeBtn.setAttribute('aria-label','Закрыть советы');
  closeBtn.onclick=closeAdvice;
  const hero=create('div','print-advice-hero');
- if(product.photo&&typeof product.photo==='string'&&(/^data:image\/(?:jpeg|png|webp);base64,/.test(product.photo)||/^https:\/\//.test(product.photo))){
-  const img=create('img','print-advice-photo');
-  img.src=product.photo;img.alt='Фото: '+product.name;img.decoding='async';hero.append(img);
- }else hero.append(create('div','print-advice-photo-blank','Фото товара'));
+ if(isCatalogPhoto(product.photo)){
+  hero.append(picture(product.photo,'print-advice-photo','Фото: '+product.name));
+ }else{
+  hero.append(picture(illustrationFor('container'),'print-advice-photo','Иллюстрация: '+product.name));
+ }
  aside.append(hero,create('h2','',product.name));
  aside.append(create('p','print-advice-kind',product.template?'Служебная этикетка ХАССП':product.kind==='ready'?'Готовая продукция':'Полуфабрикат'));
  const facts=create('div','print-advice-facts');
@@ -139,7 +146,9 @@ export function openAdvice(product,{onPrint}={}){
  ];
  for(const [k,v] of factsRows){
   const row=create('div','print-advice-fact');
-  row.append(create('span','',k),create('strong','',v));facts.append(row);
+  const icon=create('span','print-advice-fact-symbol',k==='Срок хранения'?'◷':k==='Условия хранения'?'♧':'▣');
+  const val=create('div','print-advice-fact-value');
+  val.append(create('span','',k),create('strong','',v));row.append(icon,val);facts.append(row);
  }
  aside.append(facts);
  if(typeof onPrint==='function'){
@@ -169,17 +178,24 @@ export function openAdvice(product,{onPrint}={}){
    for(const [key,title,items] of [['yes','✓ Можно хранить рядом',neighbor.yes],['no','× Нельзя хранить рядом',neighbor.no]]){
     const group=create('section','print-advice-neighbor '+(key==='yes'?'allowed':'disallowed'));
     group.append(create('h5','',title));
-    for(const line of items){group.append(create('div','print-advice-neighbor-item',line));}
+    for(const line of items){
+     const block=create('div','print-advice-neighbor-item');
+     block.append(picture(neighborPicture(line),'print-advice-neighbor-picture','Иллюстрация товарной группы'));
+     block.append(create('span','',line));group.append(block);
+    }
     grid.append(group);
    }
    content.append(grid,create('p','print-advice-note',neighbor.note));
   }else{
    const list=create('div','print-advice-rows');
    for(const [icon,title,desc] of sections[label]||[]){
-    const row=create('article','print-advice-row');
-    row.append(create('span','print-advice-icon',icon.slice(0,1)),create('div','print-advice-row-body'));
-    row.lastChild.append(create('h5','',title),create('p','',desc));
-    list.append(row);
+    const row=create('article','print-advice-row tone-'+rowTone(title));
+    row.append(picture(advicePicture(product,icon,title),'print-advice-row-picture','Иллюстрация: '+title));
+    const wrapper=create('div','print-advice-row-body');
+    const h=create('h5','',title);
+    h.prepend(create('span','print-advice-status-symbol',iconSymbol(title)));
+    wrapper.append(h,create('p','',desc));
+    row.append(wrapper);list.append(row);
    }
    content.append(list);
    if(label==='Нормы'){
@@ -193,8 +209,9 @@ export function openAdvice(product,{onPrint}={}){
    }
   }
  }
- for(const [label,icon] of [['Советы','✦'],['Хранение','❄'],['Соседство','▱'],['Нормы','▤']]){
-  const button=create('button','print-advice-tab',icon+' '+label);
+ for(const [label,icon] of [['Советы','♧'],['Хранение','❄'],['Соседство','▱'],['Нормы','▤']]){
+  const button=create('button','print-advice-tab');
+  button.append(create('span','print-advice-tab-icon',icon),create('span','',label));
   button.type='button';button.setAttribute('role','tab');button.setAttribute('aria-selected','false');
   button.onclick=()=>renderTab(label);tabs.append(button);tabsMap.set(label,button);
  }
