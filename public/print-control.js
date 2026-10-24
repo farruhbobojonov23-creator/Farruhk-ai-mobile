@@ -65,6 +65,10 @@ export function mountPrintControl({root}){
  const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
  const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
  let photoLibraryLoading=null;
+ // Atlas onload finishes after import(): re-render when thumbnails are ready.
+ window.addEventListener('farukh-studio-ready',()=>{
+  if(group==='prep'){renderRows();if(dialog?.open)showPhoto();}
+ });
  function displayPhoto(p){
   // isPhoto('') is deliberately true for optional form fields, but an empty
   // string is not an actual image. Do not stop before cloud/static fallbacks.
@@ -80,7 +84,7 @@ export function mountPrintControl({root}){
  function loadPhotoAssets(){
   if(group==='prep'&&!photoLibraryLoading){
    photoLibraryLoading=Promise.all([
-    import('./farukh-print/prep-studio-images.js?v=1').then(()=>import('./farukh-print/prep-photo-library.js?v=2')), 
+    import('./farukh-print/prep-studio-images.js?v=1').then(()=>import('./farukh-print/prep-studio-atlas.js?v=1')).then(()=>import('./farukh-print/prep-photo-library.js?v=2')), 
     import('./farukh-print/prep-sanpin-sources.js?v=1')
    ]).then(()=>{renderRows();if(dialog?.open)showPhoto()}).catch(()=>{});
   }
