@@ -381,73 +381,93 @@ function canvasBase(w,h,scale=1,vector=false){
  g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
  return {c,g};
 }
+// Crisp monochrome layout v3. Physical raster: 58×40 mm = 464×320 dots.
+// The saved TTK, production times, nutritional values and shelf-life are the
+// only data used. Decorative example values are NEVER inserted into labels.
 function drawReady(p,epoch,scale=1,vector=false){
  const {c,g}=canvasBase(464,320,scale,vector);
- rect(g,6,6,452,308);rect(g,12,12,440,296);
- hLine(g,50,19,445);write(g,'СУШИ БЕРИ',23,33,{size:21,weight:'900',width:200});
- write(g,'Готовая продукция',443,34,{size:11,weight:'400',align:'right',width:182});
- const title=p.name.toUpperCase();
- if(!fit(g,title,412,24,11,'900')){
-  const rows=wrap(g,title,402,2,17,'900');
-  rows.forEach((line,i)=>write(g,line,232,65+i*19,{size:17,min:10,weight:'900',align:'center',width:409}));
- }else write(g,title,232,73,{size:24,min:11,weight:'900',align:'center',width:412});
- hLine(g,96,19,445);
- rect(g,20,99,425,60);hLine(g,122,20,445);hLine(g,141,20,445);
- write(g,'Пищевая ценность на 100 г',232,111,{size:13,width:410,align:'center',weight:'800'});
- const nutr=[['Б (г)',nv(p.p)],['Ж (г)',nv(p.f)],['У (г)',nv(p.c)],['Ккал',nv(p.kcal)]];
- const cell=425/4;
- for(let i=0;i<4;i++){if(i)vLine(g,20+cell*i,122,159);const mid=20+cell*(i+.5);
-  write(g,nutr[i][0],mid,132,{size:13,min:9,width:cell-8,align:'center',weight:'800'});
-  write(g,nutr[i][1],mid,149.3,{size:13,min:9,width:cell-8,align:'center'});
+ // Single strong border consumes less ink and stays legible at 203 dpi.
+ rect(g,6,6,452,308,2);
+ write(g,'СУШИ БЕРИ',18,26,{size:19,min:16,weight:'900',width:240});
+ write(g,'ГОТОВАЯ ПРОДУКЦИЯ',444,26,{size:11.5,min:9,weight:'800',align:'right',width:190});
+ g.lineWidth=2;hLine(g,42,14,450);
+
+ const title=str(p.name).toUpperCase();
+ if(fit(g,title,419,25,16,'900')){
+  write(g,title,232,70,{size:25,min:16,weight:'900',align:'center',width:422});
+ }else{
+  const lines=wrap(g,title,420,2,18,'900');
+  lines.forEach((line,i)=>write(g,line,232,59+i*21,{size:18,min:13,weight:'900',align:'center',width:420}));
  }
- rect(g,20,163,425,49);
- let composition='Состав: '+p.composition;
- let rows;
- try{rows=wrap(g,composition,410,3,11.2)}catch{rows=wrap(g,composition,410,4,9.2)}
- const font=rows.length<=3?11.2:9.2,step=rows.length<=3?13:9.5;
- g.font='400 '+font+'px Arial,sans-serif';g.textAlign='left';
- rows.forEach((line,i)=>g.fillText(line,27,174+i*step));
- rect(g,20,216,425,88);vLine(g,179,216,304);vLine(g,339,216,304);hLine(g,260,339,445);
- write(g,'Вес нетто:',27,245,{size:12,width:145});
- write(g,p.weight+' г (±'+p.tolerance+' г)',27,266,{size:18,min:10,width:149,weight:'900'});
- write(g,'Изготовлено:',185,229,{size:11,width:146});
- write(g,formatted(epoch),185,244,{size:12.6,min:10,width:148});
- write(g,'Годен до:',185,270,{size:11,width:146});
- write(g,formatted(epoch+Number(p.hours)*3600000),185,285,{size:12.6,min:10,width:148});
- write(g,'Хранить при:',392,229,{size:10.5,min:8,width:96,align:'center',weight:'400'});
- write(g,p.storage,392,247,{size:13.1,min:8,width:95,align:'center',weight:'900'});
- write(g,'Срок годн.:',392,274,{size:10,min:8,width:96,align:'center',weight:'400'});
- write(g,p.hours+' ч',392,291,{size:15.5,min:10,width:96,align:'center',weight:'900'});
+ g.lineWidth=1.5;hLine(g,97,14,450);
+
+ // Ingredients remain printable even when a recipe contains several words.
+ // Never silently ellipsize or hide ingredients if the text doesn't fit.
+ const full='Состав: '+str(p.composition);
+ let lines,sz=11.8,step=13.1;
+ try{lines=wrap(g,full,425,4,sz)}
+ catch{sz=10.3;step=11.5;lines=wrap(g,full,425,5,sz)}
+ g.font='600 '+sz+'px Arial,sans-serif';g.textAlign='left';
+ lines.forEach((line,i)=>g.fillText(line,19,113+i*step));
+
+ // KBZhU is a symmetrical fixed grid; no text overlaps the lines.
+ rect(g,14,176,436,54,1.5);
+ hLine(g,196,14,450);
+ write(g,'КБЖУ НА 100 Г',232,185,{size:12.2,min:11,weight:'900',align:'center',width:412});
+ const nutritional=[['Б',nv(p.p)],['Ж',nv(p.f)],['У',nv(p.c)],['ККАЛ',nv(p.kcal)]];
+ const cellW=109;
+ for(let i=0;i<4;i++){
+  const x=14+cellW*i;
+  if(i)g.lineWidth=1.2,vLine(g,x,196,230);
+  const mid=x+cellW/2;
+  write(g,nutritional[i][0],mid,203,{size:10.5,min:9.5,weight:'800',align:'center',width:cellW-8});
+  write(g,nutritional[i][1],mid,218,{size:16,min:12,weight:'900',align:'center',width:cellW-8});
+ }
+
+ // Dates are explicit, both from the actual order/production timestamp.
+ g.lineWidth=1.3;hLine(g,236,14,450);
+ vLine(g,232,236,276);
+ write(g,'ИЗГОТОВЛЕНО',22,246,{size:10.6,min:9.2,weight:'700',width:185});
+ write(g,formatted(epoch),22,264,{size:15,min:11,weight:'900',width:195});
+ write(g,'ГОДЕН ДО',243,246,{size:10.6,min:9.2,weight:'700',width:187});
+ write(g,formatted(epoch+Number(p.hours)*3600000),243,264,{size:15,min:11,weight:'900',width:198});
+
+ hLine(g,278,14,450);
+ vLine(g,164,278,308);vLine(g,313,278,308);
+ write(g,'ВЕС НЕТТО',20,285,{size:9.2,weight:'700',width:139});
+ write(g,p.weight+' г ±'+p.tolerance+' г',20,299,{size:14.4,min:10,weight:'900',width:138});
+ write(g,'ХРАНИТЬ',175,285,{size:9.2,weight:'700',width:130});
+ write(g,p.storage,175,299,{size:13.7,min:10,weight:'900',width:129});
+ write(g,'СРОК',324,285,{size:9.2,weight:'700',width:119});
+ write(g,p.hours+' ч',324,299,{size:14.4,min:10,weight:'900',width:119});
  return c;
 }
-// Premium v2: double border, large name, two clear date rows and storage.
-// Final TSPL raster remains strictly 240 x 160; scale affects PREVIEW only.
+
+// Same sharp typography, simplified for a dense 240×160 monochrome raster.
+// The previous 30-mm layout is retained for known V3 BT / older APK compatibility.
 function drawPrep(p,epoch,point,scale=1,vector=false){
  const {c,g}=canvasBase(240,160,scale,vector);
- rect(g,3,3,234,154,2);
- rect(g,7,7,226,146,1);
- g.lineWidth=1.2;
- const label=(point&&fit(g,str(point).toUpperCase(),52,8.8,7,'800'))
-   ?str(point).toUpperCase():'П/Ф';
- write(g,'FARUKH PRINT · МАРКИРОВКА',14,19,{size:9.5,min:7.5,width:171,weight:'800'});
- write(g,label,226,19,{size:9,min:7,width:53,align:'right',weight:'800'});
- hLine(g,32,13,227);
- const title=p.name.toUpperCase();
- if(fit(g,title,206,21.5,13,'900')){
-  write(g,title,120,54,{size:21.5,min:13,width:206,weight:'900',align:'center'});
+ rect(g,4,4,232,152,2);
+ write(g,'FARUKH PRINT',13,16,{size:11,min:9,weight:'900',width:145});
+ const pointName=point&&fit(g,str(point).toUpperCase(),77,10,8,'800')?str(point).toUpperCase():'П/Ф';
+ write(g,pointName,227,16,{size:10,min:8,weight:'800',align:'right',width:77});
+ g.lineWidth=1.5;hLine(g,29,11,229);
+ const name=str(p.name).toUpperCase();
+ if(fit(g,name,210,22.5,14.5,'900')){
+  write(g,name,120,51,{size:22.5,min:14.5,weight:'900',align:'center',width:210});
  }else{
-  const rows=wrap(g,title,207,2,14.5,'900');
-  rows.forEach((row,index)=>write(g,row,120,47+index*18,{size:14.5,min:10,width:208,weight:'900',align:'center'}));
+  const lines=wrap(g,name,207,2,15,'900');
+  lines.forEach((line,i)=>write(g,line,120,44+i*20,{size:15,min:10.5,weight:'900',align:'center',width:210}));
  }
- g.lineWidth=1.5;hLine(g,74,13,227);
- g.lineWidth=1.0;vLine(g,91,76,128);hLine(g,101,13,227);
- write(g,'Изгот.:',16,88,{size:11,min:10,width:71,weight:'800'});
- write(g,formatted(epoch),226,88,{size:12.1,min:10,width:129,align:'right',weight:'800'});
- write(g,'Годен до:',16,115,{size:11,min:9,width:71,weight:'800'});
- write(g,formatted(epoch+Number(p.hours)*3600000),226,115,{size:12.1,min:10,width:129,align:'right',weight:'800'});
- g.lineWidth=1.2;hLine(g,129,13,227);
- write(g,'Темп. хранения:',16,141,{size:10.2,min:9,width:108,weight:'700'});
- write(g,p.storage,226,141,{size:12.7,min:9,width:98,align:'right',weight:'900'});
+ g.lineWidth=1.8;hLine(g,77,11,229);
+ write(g,'Изгот.:',13,94,{size:11.1,min:10,weight:'800',width:80});
+ write(g,formatted(epoch),228,94,{size:12.5,min:10,weight:'900',align:'right',width:129});
+ g.lineWidth=1;hLine(g,106,11,229);
+ write(g,'Годен до:',13,120,{size:11.1,min:10,weight:'800',width:83});
+ write(g,formatted(epoch+Number(p.hours)*3600000),228,120,{size:12.5,min:10,weight:'900',align:'right',width:129});
+ g.lineWidth=1.5;hLine(g,134,11,229);
+ write(g,'Хранить:',13,146,{size:10.5,min:9.3,weight:'800',width:82});
+ write(g,p.storage,228,146,{size:13,min:10,weight:'900',align:'right',width:129});
  return c;
 }
 

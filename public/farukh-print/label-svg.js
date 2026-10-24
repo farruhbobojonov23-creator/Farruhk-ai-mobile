@@ -18,13 +18,13 @@ function surface(width,height){
    measure.font=this.font;
    return measure.measureText(String(value??''));
   },
-  fillRect(x,y,w,h){shapes.push('<rect x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="'+n(h)+'" fill="'+escapeXML(this.fillStyle)+'"/>');},
-  strokeRect(x,y,w,h){shapes.push('<rect x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="'+n(h)+'" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');},
+  fillRect(x,y,w,h){shapes.push('<rect x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="'+n(h)+'" shape-rendering="crispEdges" fill="'+escapeXML(this.fillStyle)+'"/>');},
+  strokeRect(x,y,w,h){shapes.push('<rect x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="'+n(h)+'" shape-rendering="crispEdges" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');},
   beginPath(){path=[];},
   moveTo(x,y){path.push('M'+n(x)+' '+n(y));},
   lineTo(x,y){path.push('L'+n(x)+' '+n(y));},
   stroke(){
-   if(path.length)shapes.push('<path d="'+path.join(' ')+'" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');
+   if(path.length)shapes.push('<path d="'+path.join(' ')+'" shape-rendering="crispEdges" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');
    path=[];
   },
   fillText(value,x,y){
@@ -35,7 +35,7 @@ function surface(width,height){
   }
  };
  const c={width,height,toSVG(){
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+mm[0]+'mm" height="'+mm[1]+'mm" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Этикетка '+mm[0]+' на '+mm[1]+' миллиметров" text-rendering="geometricPrecision" shape-rendering="geometricPrecision">'+shapes.join('')+'</svg>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+mm[0]+'mm" height="'+mm[1]+'mm" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Этикетка '+mm[0]+' на '+mm[1]+' миллиметров" text-rendering="optimizeLegibility" shape-rendering="geometricPrecision">'+shapes.join('')+'</svg>';
  }};
  return {c,g};
 }
