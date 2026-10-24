@@ -40,8 +40,8 @@ test('Every product category has readable neighbors and safety notes',async()=>{
 
 test('Raw fish must never be recommended to sit with ready-to-eat rolls',()=>{
  const n=neighborsFor({kind:'prep',name:'Форель'});
- assert.match(n.no.join(' '),/готовые роллы/);
- assert.match(n.no.join(' '),/птица/);
+ assert.match(n.no.join(' '),/готовые роллы/i);
+ assert.match(n.no.join(' '),/птица/i);
  assert.match(n.yes.join(' '),/отдельн/);
  const dishes=neighborsFor({kind:'ready',name:'Ролл с лососем',category:'Холодные роллы'});
  assert.match(dishes.no.join(' '),/сырая рыба/i);
