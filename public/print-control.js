@@ -64,6 +64,7 @@ export function mountPrintControl({root}){
  let category='all',page=1,onlyPending=false;const PAGE_SIZE=8;
  const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
  const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
+ let photoLibraryLoading=null;
  function displayPhoto(p){
   // isPhoto('') is deliberately true for optional form fields, but an empty
   // string is not an actual image. Do not stop before cloud/static fallbacks.
@@ -76,7 +77,6 @@ export function mountPrintControl({root}){
   // Built-in licensed representative photo, not a saved owner upload.
   return p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p)?.url||'':'';
  }
- let photoLibraryLoading=null;
  function loadPhotoAssets(){
   if(group==='prep'&&!photoLibraryLoading){
    photoLibraryLoading=Promise.all([
