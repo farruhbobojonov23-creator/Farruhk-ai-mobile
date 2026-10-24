@@ -254,7 +254,7 @@
 #print-control-root .pc-category-filter{appearance:auto}
 #print-control-root .pc-list{gap:7px;margin-bottom:8px}
 #print-control-root .pc-row{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:11px;padding:10px 12px;align-items:center;min-width:0}
-#print-control-root .pc-row-photo{width:70px;height:66px;display:grid;place-items:center;background:#f5f9fb;border-radius:10px;border:1px solid #e5edf0;overflow:hidden}
+#print-control-root .pc-row-photo{width:70px;height:66px;display:grid;place-items:center;background:#fff;border-radius:10px;border:1px solid #e5edf0;overflow:hidden}
 #print-control-root .pc-row-photo img{display:block;width:100%;height:100%;object-fit:contain}
 #print-control-root .pc-photo-placeholder{font-size:9px;color:#96a4ad;line-height:1.35;text-align:center;padding:5px}
 #print-control-root .pc-item{gap:3px}

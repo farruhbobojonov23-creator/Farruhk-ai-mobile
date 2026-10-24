@@ -244,7 +244,7 @@ function renderCatalog(){
   if(original||fallback){
    const img=node('img','product-photo');img.src=original||fallback.url;img.alt=(original?'Фото товара ':'Иллюстративное фото ингредиента ')+p.name;
    img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
-   if(!original&&fallback){img.title='Иллюстративное фото. '+fallback.author+' · '+fallback.license+' · Wikimedia Commons';}
+   if(!original&&fallback){img.title=fallback.studio?'Студийный образец FARUKH PRINT':'Иллюстративное фото. '+fallback.author+' · '+fallback.license+' · Wikimedia Commons';}
    img.onerror=()=>{img.remove();visual.append(node('span','product-photo-placeholder','🍱'));};
    visual.append(img);
   }else visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));

@@ -144,8 +144,8 @@ export function openAdvice(product,{onPrint}={}){
  }
  aside.append(hero,create('h2','',product.name));
  if(representative&&!isCatalogPhoto(product.photo)){
-  const credit=create('a','print-advice-photo-credit','Фото: '+representative.author+' · '+representative.license+' · Wikimedia Commons ↗');
-  credit.href=representative.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';aside.append(credit);
+  if(representative.creditUrl){const credit=create('a','print-advice-photo-credit','Фото: '+representative.author+' · '+representative.license+' · Wikimedia Commons ↗');credit.href=representative.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';aside.append(credit)}
+  else aside.append(create('small','print-advice-photo-credit','Студийная иллюстрация FARUKH PRINT'));
  }
  aside.append(create('p','print-advice-kind',product.template?'Служебная этикетка ХАССП':product.kind==='ready'?'Готовая продукция':'Полуфабрикат'));
  const facts=create('div','print-advice-facts');

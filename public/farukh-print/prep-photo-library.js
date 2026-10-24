@@ -117,7 +117,13 @@ const photos=Object.fromEntries(entries.map(([name,file,author,license])=>[
  }
 ]));
 const emoji={"Лайм (дольки)":"🍋","Кальмар (подготовленный)":"🦑","Икра масаго (открытая)":"🍣","Спайси-майо":"🥣","Сырная начинка":"🧀","Шапка сырная":"🧀","Сливочный сыр (открытый)":"🧀","Соус Том Ям (база)":"🥣","Мидии (мясо)":"🦪","Чука (открытая)":"🥬","Авокадо (нарезка)":"🥑"};
-const find=p=>photos[String(typeof p==='string'?p:p?.name||'').trim().toLocaleLowerCase('ru')]||null;
+// Owner-provided images remain first priority in the application. Then our
+// studio cutouts, then the external attributed reference as a final fallback.
+const find=p=>{
+ const studio=window.FarukhStudioPrep?.find(p);
+ if(studio)return {url:studio,author:'FARUKH PRINT',license:'Студийная иллюстрация',studio:true,illustrative:true};
+ return photos[String(typeof p==='string'?p:p?.name||'').trim().toLocaleLowerCase('ru')]||null;
+};
 const mark=p=>emoji[typeof p==='string'?p:p?.name]||'🍱';
 window.FarukhPrepPhotoLibrary={find,mark,entries};
 })();
