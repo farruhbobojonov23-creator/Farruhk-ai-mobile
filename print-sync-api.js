@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 import {installPrintStaffApi} from './print-staff-api.js';
 import {configuredPrintStore} from './print-recovery-store.js';
+import * as japanesePrepCatalog from './public/farukh-print/japanese-prep-catalog.js';
 import * as brothPhoto from './public/farukh-print/broth-photo.js';
 import * as supplementalPhotos from './public/farukh-print/supplemental-photos.js';
 
@@ -106,6 +107,12 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
       if(haccpCatalogImport&&!appliedImports.includes(haccpCatalogImport.version)){imported=haccpCatalogImport.merge(imported);appliedImports.push(haccpCatalogImport.version);}
       if(!appliedImports.includes(supplementalPhotos.version)){imported=supplementalPhotos.merge(imported);appliedImports.push(supplementalPhotos.version);}
       if(!appliedImports.includes(brothPhoto.version)){imported=brothPhoto.merge(imported);appliedImports.push(brothPhoto.version);}
+      // One-time additive import. Existing approved recipes/dates are never
+      // replaced; all new preparation/storage suggestions stay review-locked.
+      if(!appliedImports.includes(japanesePrepCatalog.version)){
+        imported=japanesePrepCatalog.merge(imported);
+        appliedImports.push(japanesePrepCatalog.version);
+      }
       if(appliedImports.length===(current.appliedImports||[]).length)return;
       const products=validateCatalog(imported);
       await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,
