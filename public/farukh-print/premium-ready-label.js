@@ -106,7 +106,7 @@ function ingredientRows(g,ingredients,size,maxRows){
  g.font='900 '+size+'px '+SERIF;
  const start=left+g.measureText(label).width+gap;
  g.font='500 '+size+'px '+SERIF;
- const words=value(ingredients).split(/\\s+/).filter(Boolean);
+ const words=value(ingredients).split(/\s+/).filter(Boolean);
  const rows=[];
  let row={x:start,text:''};
  for(const word of words){
