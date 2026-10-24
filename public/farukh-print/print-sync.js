@@ -22,10 +22,10 @@ controls.append(update,forget);
 const message=document.createElement('p');message.className='print-sync-message';message.setAttribute('role','status');
 box.append(top,hint,form,controls,message);
 const homeFoot=root.querySelector('.app-foot');if(homeFoot)homeFoot.before(box);else root.append(box);
-let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred=false;
+let stored=null,connected=false,cloudRev=-1,busy=false,poll=null,consentDeferred=false,connectionHealthy=false;
 try{const raw=localStorage.getItem(TOKEN_KEY);if(raw)stored=JSON.parse(raw)}catch{}
 function note(str,error=false){
- message.textContent=str;message.dataset.error=error?'yes':'no';
+ connectionHealthy=!error;message.textContent=str;message.dataset.error=error?'yes':'no';
  window.dispatchEvent(new CustomEvent('farukh-print-sync-status',{detail:{
   state:error?'error':'ready',message:str,revision:cloudRev,connected,
   count:window.FARUKH_PRINT_SYNC_API.get().length
@@ -34,8 +34,8 @@ function note(str,error=false){
 function paint(){
  controls.hidden=!connected;form.hidden=connected; // re-pairing does not unlock employee print gate
  link.disabled=busy;update.disabled=busy;
- badge.textContent=connected?'● Подключено':localStorage.getItem(STAFF_MANAGED)==='1'?'● Нужна повторная привязка':'○ Не подключено';
- badge.dataset.connected=connected?'yes':'no';
+ badge.textContent=connected?(connectionHealthy?'● Подключено':'○ Связь не подтверждена'):localStorage.getItem(STAFF_MANAGED)==='1'?'● Нужна повторная привязка':'○ Не подключено';
+ badge.dataset.connected=connected&&connectionHealthy?'yes':'no';
  const protectedDevice=connected||localStorage.getItem(STAFF_MANAGED)==='1';
  window.FARUKH_PRINT_SYNC_API.setPaired(protectedDevice);
  window.FARUKH_PRINT_STAFF_API?.setPaired(protectedDevice);

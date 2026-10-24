@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installPrintSyncApi} from '../print-sync-api.js';
@@ -214,4 +215,18 @@ test('HACCP migration survives cloud validation without food fields and runs onc
  assert.equal(c.payload.revision,b.payload.revision);
  const invalid=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:c.payload.revision,products:[{kind:'ready',name:'Bad',template:'unknown'}]}});
  assert.equal(invalid.code,400);
+});
+
+
+test('Catalog migration outage cannot turn a valid device into a login failure',async()=>{
+ const broken={version:'broken-import',merge(){throw Error('Cloud catalog update failed')}};
+ const {req,cloud}=makeApi(null,null,broken);
+ const token='x'.repeat(43);
+ cloud.set('farukh-print-devices.json',[{id:'paired',hash:crypto.createHash('sha256').update(token).digest('hex'),name:'Kitchen',revoked:false}]);
+ const session=await req('get','/api/farukh-print/device/staff/session',{token});
+ assert.equal(session.code,401); // device passed; no employee session supplied
+ assert.notEqual(session.payload.error,'Не удалось подтвердить устройство.');
+ const catalog=await req('get','/api/farukh-print/device/catalog',{token});
+ assert.equal(catalog.code,503); // catalog remains fail closed, without denying login
+ assert.equal(cloud.get('farukh-print-devices.json').length,1);
 });

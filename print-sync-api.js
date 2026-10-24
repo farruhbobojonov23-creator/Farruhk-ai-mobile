@@ -112,9 +112,9 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
       const devices=await readDevices(),entry=devices.find(d=>d.hash===sha(token)&&!d.revoked);
       if(!entry)return res.status(403).json({ok:false,error:'Доступ устройства отключён владельцем.'});
       req.farukhPrintDevice=entry;
-      await ensureReadyCatalog();
+      // Login must not depend on an unrelated catalog migration/upload.
       next();
-    }catch(e){res.status(e.status||503).json({ok:false,error:'Не удалось подтвердить устройство.'})}
+    }catch(e){console.error('[farukh-print-device] storage-unavailable status='+(e.status||0));res.status(503).json({ok:false,error:'Облачное хранилище временно недоступно. Привязка устройства сохранена; повтори вход позже.'})}
   };
   const wrap=fn=>async(req,res)=>{try{await ensureReadyCatalog();await fn(req,res)}catch(e){console.error('[farukh-print-sync]',e.status||503,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Хранилище временно недоступно. Изменения не опубликованы.'})}};
   app.get('/api/farukh-print/sync/status',(req,res)=>res.json({ok:true,enabled,permanent:!!persistent,ownerConfigured:!!auth?.enabled}));

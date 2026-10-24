@@ -9,7 +9,7 @@ const base='/api/farukh-print/device/staff';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e};
 const root=document.querySelector('.app'),head=root?.querySelector('.header');
 if(!root||!head)return;
-let paired=localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='';
+let paired=localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='',rechecking=false;
 try{
  session=localStorage.getItem(SESSION)||sessionStorage.getItem(SESSION)||'';
  if(session)localStorage.setItem(SESSION,session);
@@ -59,14 +59,18 @@ async function call(path,opts={}){
  return data;
 }
 async function recheck(){
- if(!paired||!session)return;
+ if(!paired||!session||rechecking||busy)return;
+ rechecking=true;
  try{
   const result=await call('/session');
   staff=result.staff;tell('Можно печатать утверждённые этикетки для точки «'+staff.point+'».');void flushResults();
  }catch(e){
-  staff=null;session='';try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
-  tell('Требуется вход сотрудника: '+e.message,true);
- }
+  staff=null;
+  if(e.status===401||e.status===403){
+   session='';try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
+   tell('Требуется вход сотрудника: '+e.message,true);
+  }else tell('Сохранённый вход проверится автоматически после восстановления связи. '+e.message,true);
+ }finally{rechecking=false}
  paint();
 }
 async function signin(e){
@@ -78,7 +82,7 @@ async function signin(e){
   session=data.session;try{localStorage.setItem(SESSION,session);sessionStorage.removeItem(SESSION)}catch{}
   staff=data.staff;login.value='';password.value='';
   tell('Вход сохранён до нажатия «Выйти» или отключения доступа владельцем.');void flushResults();
- }catch(e){password.value='';tell(e.message,true)}
+ }catch(e){if(e.status===401||e.status===403)password.value='';tell(e.message,true)}
  finally{busy=false;paint()}
 }
 async function signout(){
@@ -147,5 +151,7 @@ const API={
  }
 };
 window.FARUKH_PRINT_STAFF_API=API;
-paint();if(paired)void recheck();setInterval(()=>{if(document.visibilityState!=='hidden')void flushResults()},60_000);
+paint();if(paired)void recheck();
+window.addEventListener('online',()=>{if(paired&&!staff)void recheck()});
+setInterval(()=>{if(document.visibilityState!=='hidden'){if(paired&&session&&!staff)void recheck();void flushResults()}},30_000);
 })();
