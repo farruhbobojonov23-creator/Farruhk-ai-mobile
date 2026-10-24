@@ -20,7 +20,7 @@ const entries=[
   [
     "Дайкон (нарезка)",
     "Sliced daikon.jpg",
-    "Wikimedia Commons contributor",
+    "Carrotkit",
     "CC BY-SA 4.0"
   ],
   [
