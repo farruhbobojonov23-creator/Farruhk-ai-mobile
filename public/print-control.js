@@ -7,7 +7,6 @@ import {storageAdviceFor,PRACTICE_REFERENCES} from './farukh-print/storage-advic
 // Android APK используют отдельные WebView-хранилища: перенос JSON вручную.
 const DB_KEY='farukh-print:catalog:v1',LOG_KEY='farukh-print:control-log:v1';
 const MAX=1000;
-const BASIC_PREP=['Соус спайси','Соус сырный','Фирменный соус','Огурцы','Капуста','Такуан','Форель','Угорь','Креветка','Курица готовая','Снежный краб','Сливочный соус','Перец','Омлет','Морковь','Бульон Том Ям','Унаги соус','Терияки соус','Сладкий чили'];
 
 const uid=()=>crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2);
 const text=v=>String(v??'').trim();
@@ -120,7 +119,7 @@ export function mountPrintControl({root}){
   onlyPending=!onlyPending;page=1;render();
  });
  const add=btn('＋ Добавить этикетку','pc-primary',()=>edit(null));
- const seed=btn('＋ База 19 полуфабрикатов','pc-secondary',importStarter);
+ const seed=btn('＋ 36 заготовок японской кухни','pc-secondary',importStarter);
  const open=el('a','pc-secondary','Открыть FARUKH PRINT ↗');open.href='/farukh-print/';open.target='_blank';open.rel='noopener noreferrer';
  right.append(pending,add,seed,open);toolbar.append(left,right);
  const templateCard=el('section','pc-premium-template');
@@ -140,7 +139,7 @@ export function mountPrintControl({root}){
  const filters=el('div','pc-filters');filters.append(search,categorySelect);
  const normativeNotice=el('div','pc-normative-notice');
  normativeNotice.append(el('strong','','Нормативная справка для всех товаров'),
-  el('span','','Нажми «Нормы» у любой позиции: роллов, полуфабрикатов или служебной этикетки. Указанные ориентиры не меняют срок автоматически: учитываются технология, маркировка изготовителя и ТТК.'));
+  el('span','','Нажми «Нормы» у любой позиции. Для полуфабрикатов возможен черновой внутренний ориентир 12 ч при +2…+6 °C — это НЕ единый срок по СанПиН. Пока фактический срок не подтверждён по ТТК/изготовителю, печать запрещена.'));
  const guideLink=el('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
  guideLink.href=REFERENCES[0].url;guideLink.target='_blank';guideLink.rel='noopener noreferrer';normativeNotice.append(guideLink);
  const table=el('div','pc-list');
@@ -402,19 +401,15 @@ export function mountPrintControl({root}){
   window.dispatchEvent(new CustomEvent('farukh-print-catalog-local-updated',{detail:{action,name}}));
   message('Сохранено на устройстве. Если облако подключено и каталоги согласованы, изменения отправляются автоматически.');
  }
- function importStarter(){
+ async function importStarter(){
   try{
-   const exists=new Set(records.filter(r=>r.kind==='prep').map(r=>r.name.toLocaleLowerCase('ru')));
-   const missing=BASIC_PREP.filter(name=>!exists.has(name.toLocaleLowerCase('ru')));
-   if(!missing.length){message('Все 19 базовых полуфабрикатов уже есть в каталоге.');return}
-   if(!confirm('Добавить '+missing.length+' полуфабрикатов в локальную базу центра? Непроверенные сроки останутся заблокированы для печати.'))return;
-   const added=missing.map(name=>({
-     id:uid(),kind:'prep',name,storage:name==='Соус спайси'?'+2…+6 °C':'',
-     hours:name==='Соус спайси'?48:null,point:'',needsReview:true,
-     ...(name==='Соус спайси'?{recipeMemo:'Майонез «Печагин» 67%, сухие специи, без нагрева. 48 ч предложено владельцем, не подтверждено нормативом.'}:{})
-   }));
-   commit([...records,...added],'Добавлена стартовая база',missing.length+' позиций');
-  }catch(e){message(e.message,true)}
+   const catalog=await import('./farukh-print/japanese-prep-catalog.js?v=1');
+   const next=catalog.merge(records),added=next.length-records.length;
+   const changed=next.some((p,i)=>p!==records[i]);
+   if(!changed){message('Все 36 заготовок уже в каталоге. Подтверждённые сроки не изменены.');return}
+   if(!confirm('Добавить '+added+' новых полуфабрикатов и заполнить отсутствующие ПРЕДЛОЖЕННЫЕ сроки в черновиках? 12 ч при +2…+6 °C — внутренний ориентир, НЕ норма СанПиН. Неподтверждённые позиции запрещены для печати. Ранее утверждённые сроки сохраняются.'))return;
+   commit(next,'Добавлены предложения для японских заготовок',added+' новых, 36 типов; требуется ТТК');
+  }catch(e){message('Импорт полуфабрикатов не выполнен: '+e.message,true)}
  }
  function edit(product,fromTemplate=false){
   manualTemplate=fromTemplate===true?'ready':fromTemplate==='prep'?'prep':'';

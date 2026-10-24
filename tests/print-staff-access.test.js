@@ -12,7 +12,7 @@ function setup(){
   write:async(name,data)=>{persist.set(name,structuredClone(data))},
   transaction:async fn=>fn(),
  };
- installPrintSyncApi(app,{store,auth:{enabled:true,verify:t=>t==='ok'}});
+ installPrintSyncApi(app,{store,auth:{enabled:true,verify:t=>t==='ok'},prepCatalogImport:null});
  const call=async(method,path,{body={},owner='',device='',staff='',params={},query={},ip='127.0.0.1'}={})=>{
   const stack=routes.get(method+' '+path);
   assert.ok(stack,'Missing '+method+' '+path);

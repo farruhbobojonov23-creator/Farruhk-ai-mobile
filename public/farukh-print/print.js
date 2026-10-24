@@ -783,7 +783,22 @@ function boot(){
  import('./supplemental-photos.js?v=1').then(m=>{if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
  import('./haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
- load();renderHome();$('printed-at').value=nowLocal();
+ // Add once for standalone owner installations; paired/staff clients receive
+ // the same version directly from the protected FARUKH AI cloud catalogue.
+ load();
+ void import('./japanese-prep-catalog.js?v=1').then(catalog=>{
+  if(isManaged()||cloudPaired)return;
+  const marker='farukh-print:import:'+catalog.version;
+  if(localStorage.getItem(marker))return;
+  const before=products,updated=catalog.merge(products);
+  if(updated.some((p,i)=>p!==before[i])&&updated.length<=1000){
+   products=updated;
+   if(!save()){products=before;return}
+  }
+  localStorage.setItem(marker,'1');
+  renderHome();if(!$('catalog').hidden)renderCatalog();if(!$('manage').hidden)renderManage();
+ }).catch(e=>status('Предложения сроков для полуфабрикатов: '+e.message,true));
+ renderHome();$('printed-at').value=nowLocal();
  renderWorker();
  window.addEventListener('farukh-print-staff-changed',e=>updateWorkerSession(e.detail?.staff||null));
  window.addEventListener('farukh-print-sync-status',e=>{
@@ -816,12 +831,16 @@ function boot(){
  $('haccp-limit').addEventListener('input',updatePreview);
  $('point-name').addEventListener('input',updatePreview);
  $('manage-ready').onclick=()=>openManage('ready');$('manage-prep').onclick=()=>openManage('prep');
- $('load-starter-prep').onclick=()=>{
-  if(cloudPaired){alert('Каталог управляется из FARUKH AI.');return}
-  const count=STARTER_PREP_NAMES.filter(n=>!products.some(p=>p.kind==='prep'&&p.name.toLocaleLowerCase('ru')===n.toLocaleLowerCase('ru'))).length;
-  if(!count){alert('Все 19 названий уже есть в базе.');return}
-  if(!confirm('Добавить '+count+' полуфабрикатов из согласованного списка? Сроки хранения останутся незаполненными, до проверки печать недоступна.'))return;
-  const old=[...products];mergeStarterPrep();if(save()){openManage('prep');alert('Добавлено '+count+' названий. Уточним сроки и затем разрешим печать.')}else products=old;
+ $('load-starter-prep').onclick=async()=>{
+  if(isManaged()||cloudPaired){alert('Каталог сотрудников управляется только из FARUKH AI.');return}
+  try{
+   const catalog=await import('./japanese-prep-catalog.js?v=1');
+   const next=catalog.merge(products),added=next.length-products.length;
+   if(!next.some((p,i)=>p!==products[i])){alert('Все 36 заготовок уже есть. Проверь сроки в карточках.');return}
+   if(!confirm('Добавить '+added+' новых заготовок и заполнить пустые поля предложенным ВНУТРЕННИМ сроком 12 ч? Это НЕ норма СанПиН. Новые сроки требуют подтверждения ТТК/маркировкой и до него печать заблокирована.'))return;
+   const old=products;products=next;
+   if(save()){openManage('prep');alert('Добавлено '+added+' полуфабрикатов. Предложения заполнены, но печать до подтверждения недоступна.')}else products=old;
+  }catch(e){alert('Не удалось обновить базу: '+e.message)}
  };
  $('add-item').onclick=()=>openEditor(null);
  const openPremiumTemplate=()=>{
