@@ -415,3 +415,25 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
  .print-advice-neighbor-picture{width:58px;height:55px}
  .print-advice-neighbor-item>span{font-size:11px}
 }
+
+/* The approved 58×40 label is reusable as a manually completed template. */
+.premium-template-home,.premium-template-box{display:flex;align-items:center;gap:15px;padding:18px 21px;background:linear-gradient(120deg,#fff,#fff8fa);border:1px solid #e9c9d1;border-radius:17px;margin:15px 0 0;box-shadow:0 3px 14px #ad304311}
+.premium-template-home{width:100%;text-align:left;color:#293641;cursor:pointer}
+.premium-template-home>span:nth-child(2){display:grid;gap:6px;min-width:0;flex:1}
+.premium-template-home strong{font-size:14px;font-weight:850}
+.premium-template-home small{font-size:11px;line-height:1.5;color:#859099}
+.premium-template-home .arrow{font-size:22px;color:#b6334e}
+.template-glyph{width:43px;height:43px;flex:0 0 43px;border-radius:12px;display:grid;place-items:center;background:#f9e4e9;color:#a92c47;font-size:24px}
+.premium-template-box{justify-content:space-between;margin:3px 0 21px}
+.premium-template-box>div{max-width:590px}
+.premium-template-box h3{margin:6px 0;font-size:18px;color:#2c3640}
+.premium-template-box p{margin:0;font-size:12px;line-height:1.6;color:#7a858d}
+.template-label{color:#aa2e48;letter-spacing:1px;font-weight:900;font-size:10px}
+.premium-template-box .button{white-space:nowrap}
+.premium-template-preview{border:1px solid #dce4e8;border-radius:13px;background:#f6f8fa;padding:13px;margin:10px 0}
+.premium-template-preview strong{display:block;font-size:13px;color:#34454e}
+.premium-template-preview p{font-size:11px;color:#85929c;line-height:1.6}
+.premium-template-preview-art{display:grid;place-items:center}
+.premium-template-preview-art svg{width:100%;height:auto;max-width:464px;display:block;background:#fff;box-shadow:0 4px 17px #0002}
+body.worker-managed .premium-template-home,body.worker-managed #premium-template-card{display:none!important}
+@media(max-width:610px){.premium-template-box{flex-direction:column;align-items:stretch}.premium-template-box .button{width:100%}}

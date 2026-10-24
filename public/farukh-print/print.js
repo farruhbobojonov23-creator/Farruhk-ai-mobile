@@ -61,7 +61,7 @@ const isHaccp=p=>!!HACCP?.getTemplate(p);
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
-let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null;
+let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -166,6 +166,8 @@ function renderWorker(){
  $('worker-prep-tab').classList.toggle('selected',kind==='prep');
  $('open-settings').hidden=managed;
  $('manage-from-home').hidden=managed;
+ $('home-premium-template').hidden=managed||cloudPaired;
+ $('use-premium-template').disabled=managed||cloudPaired;
  if(managed)$('point-field').hidden=true;
  if(!showWorker)closeWorkerPreview();
 }
@@ -184,6 +186,8 @@ function show(section){
  window.scrollTo?.({top:0,behavior:'instant'});
 }
 function renderHome(){
+ $('home-premium-template').hidden=isManaged()||cloudPaired;
+ $('use-premium-template').disabled=isManaged()||cloudPaired;
  $('count-ready').textContent=products.filter(x=>x.kind==='ready').length;
  $('count-prep').textContent=products.filter(x=>x.kind==='prep').length;
  $('manage-count-ready').textContent=products.filter(x=>x.kind==='ready').length;
@@ -268,7 +272,9 @@ function setFormKind(type){
  $('ready-fields').hidden=type!=='ready';$('prep-fields').hidden=type!=='prep';
  $('ready-fields').querySelectorAll('input,textarea').forEach(el=>el.disabled=type!=='ready');
  $('prep-fields').querySelectorAll('input').forEach(el=>el.disabled=type!=='prep');
- $('approval-area').hidden=type!=='prep';
+ // Both manually created ready food and semi-finished products require
+ // explicit review of the actual TTK/supplier storage conditions.
+ $('approval-area').hidden=false;
 }
 function renderEditorPhoto(){
  const img=$('edit-photo-preview'),empty=$('edit-photo-empty');
@@ -284,8 +290,11 @@ async function chooseEditorPhoto(ev){
   renderEditorPhoto();
  }catch(e){alert('Фото не добавлено: '+e.message)}
 }
-function openEditor(p){
+function openEditor(p,fromPremiumTemplate=false){
+ if(isManaged())return;
  if(cloudPaired){alert('Каталог управляется из FARUKH AI. Здесь можно только печатать и скачать резервную копию.');return}
+ manualPremium=!!fromPremiumTemplate;
+ manageKind=p?.kind||(manualPremium?'ready':manageKind);
  editing=p?.id||null;
  editorPhoto=window.FarukhPrintPhotos?.isPhoto(p?.photo)?p?.photo||'':'';
  renderEditorPhoto();
@@ -293,21 +302,35 @@ function openEditor(p){
  setFormKind(type);
  $('ready-category-options').replaceChildren(...window.FarukhPrintCategories.list(products).map(name=>{const option=node('option');option.value=name;return option}));
  $('edit-category').value=p?window.FarukhPrintCategories.category(p):'';
- $('editor-title').textContent=p?'Изменить этикетку':'Новый товар';
- const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??10,point:p?.point||'',storage:p?.storage??(type==='ready'?'+2…+6 °C':''),hours:p?.hours??(type==='ready'?12:'')};
+ $('editor-title').textContent=manualPremium?'Эталон 58 × 40 · Вручную':p?'Изменить этикетку':'Новый товар';
+ const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??(manualPremium?'':10),point:p?.point||'',storage:p?.storage??(manualPremium?'':type==='ready'?'+2…+6 °C':''),hours:p?.hours??(manualPremium?'':type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
  $('edit-approval').checked=!!p&&!p.needsReview;
  const tip=guideFor(p||{kind:type,name:str($('edit-name').value)});
  $('sanpin-item-guidance').hidden=!tip;
  $('sanpin-item-guidance').textContent=tip?'Для проверки: '+tip[1]:'';
- $('editor').showModal();setTimeout(()=>$('edit-name').focus(),30);
+ $('manual-template-preview').hidden=type!=='ready';
+ $('editor').showModal();updateManualPreview();setTimeout(()=>$('edit-name').focus(),30);
+}
+function updateManualPreview(){
+ if($('manual-template-preview').hidden||!$('editor').open)return;
+ const hint=$('manual-template-preview-hint'),host=$('manual-template-preview-svg');
+ const keys=['name','composition','p','f','c','kcal','weight','tolerance','storage','hours'];
+ if(keys.some(k=>!str($('edit-'+k).value))){host.replaceChildren();hint.textContent='Заполни название, полный состав, КБЖУ, вес, условия и срок хранения. Никаких примерных сроков не подставляется.';return}
+ const p={};for(const key of keys)p[key]=['p','f','c','kcal','weight','tolerance','hours'].includes(key)?Number($('edit-'+key).value):str($('edit-'+key).value);
+ try{
+  const surface=window.FarukhLabelSVG.surface(464,320);
+  window.FarukhPremiumReady.draw(surface.g,p,Date.now(),{formatDate:formatted});
+  host.replaceChildren(window.FarukhLabelSVG.element(surface.c.toSVG()));
+  hint.textContent='Предпросмотр с твоими данными. Фактическую дату изготовления выберешь перед печатью; неподтверждённые сроки печатать нельзя.';
+ }catch(e){host.replaceChildren();hint.textContent='Предпросмотр: '+e.message}
 }
 function saveEditor(ev){
  ev.preventDefault();
  if(cloudPaired)return;
  const type=manageKind;
  const hoursText=str($('edit-hours').value);
- const needsReview=type==='prep'&&!$('edit-approval').checked;
+ const needsReview=!$('edit-approval').checked;
  const fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:hoursText?Number(hoursText):null,photo:editorPhoto};
  if(!fields.name||fields.name.length>90||hoursText&&(!Number.isSafeInteger(fields.hours)||fields.hours<1||fields.hours>8760)){
   alert('Укажи название и корректный срок годности, если он известен.');return;
@@ -322,7 +345,9 @@ function saveEditor(ev){
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){
    alert('Заполни состав, вес и все значения КБЖУ. Неизвестные цифры нельзя заменять нулями.');return;
   }
- }else{fields.point=str($('edit-point').value);fields.needsReview=needsReview}
+ }else{fields.point=str($('edit-point').value)}
+ fields.needsReview=needsReview;
+ if(type==='ready'&&manualPremium&&!editing)fields.labelStyle='premium-ready-58x40';
  if(!editing&&products.some(p=>p.kind===type&&p.name.toLocaleLowerCase('ru')===fields.name.toLocaleLowerCase('ru'))){
   alert('Этикетка с таким названием уже есть в выбранной категории.');return;
  }
@@ -706,6 +731,8 @@ window.FARUKH_PRINT_SYNC_API={
  setPaired:yes=>{
   cloudPaired=!!yes;
   if($('add-item'))$('add-item').disabled=cloudPaired;
+  $('use-premium-template').disabled=cloudPaired||isManaged();
+  $('home-premium-template').hidden=cloudPaired||isManaged();
   if($('load-starter-prep'))$('load-starter-prep').disabled=cloudPaired;
   if($('import-db'))$('import-db').disabled=cloudPaired;
   if(!$('manage').hidden)renderManage();
@@ -765,6 +792,14 @@ function boot(){
   const old=[...products];mergeStarterPrep();if(save()){openManage('prep');alert('Добавлено '+count+' названий. Уточним сроки и затем разрешим печать.')}else products=old;
  };
  $('add-item').onclick=()=>openEditor(null);
+ const openPremiumTemplate=()=>{
+  if(isManaged()||cloudPaired){alert('На подключённом устройстве новые товары создаются в управляющем центре FARUKH AI.');return}
+  manageKind='ready';openManage('ready');openEditor(null,true);
+ };
+ $('use-premium-template').onclick=openPremiumTemplate;
+ $('home-premium-template').onclick=openPremiumTemplate;
+ let manualPreviewTimer;
+ $('editor-form').addEventListener('input',()=>{clearTimeout(manualPreviewTimer);manualPreviewTimer=setTimeout(updateManualPreview,200)});
  $('editor-form').addEventListener('submit',saveEditor);
  $('edit-photo-file').addEventListener('change',chooseEditorPhoto);
  $('edit-photo-pick').onclick=()=>$('edit-photo-file').click();

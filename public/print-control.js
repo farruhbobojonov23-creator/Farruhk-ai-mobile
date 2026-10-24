@@ -61,7 +61,7 @@ function btn(label,cls,handler){const x=el('button',cls,label);x.type='button';x
 const empty={name:'',kind:'prep',storage:'',hours:null,composition:'',p:'',f:'',c:'',kcal:'',weight:'',tolerance:10,point:'',needsReview:true};
 export function mountPrintControl({root}){
  if(!root)throw Error('Контейнер центра FARUKH PRINT не найден.');
- let group='prep',query='',records=[],warn='',log=[],currentEdit=null,lastAction='',loaded=false,form;
+ let group='prep',query='',records=[],warn='',log=[],currentEdit=null,lastAction='',loaded=false,form,manualTemplate=false;
  let category='all',page=1,onlyPending=false;const PAGE_SIZE=8;
  const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
  const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
@@ -123,6 +123,11 @@ export function mountPrintControl({root}){
  const seed=btn('＋ База 19 полуфабрикатов','pc-secondary',importStarter);
  const open=el('a','pc-secondary','Открыть FARUKH PRINT ↗');open.href='/farukh-print/';open.target='_blank';open.rel='noopener noreferrer';
  right.append(pending,add,seed,open);toolbar.append(left,right);
+ const templateCard=el('section','pc-premium-template');
+ const templateIntro=el('div','pc-premium-template-text');
+ templateIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 58 × 40 ММ'),el('h2','','Премиальная этикетка'),el('p','','Сохранённый чёрно-белый шаблон: рамки, состав, таблица КБЖУ, даты и иконки. Создай новую позицию вручную — эталон применится автоматически.'));
+ const templateButton=btn('＋ Заполнить вручную','pc-primary pc-premium-template-button',()=>{group='ready';query='';category='all';onlyPending=false;page=1;search.value='';render();edit(null,true)});
+ templateCard.append(templateIntro,templateButton);
  const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();page=1;renderRows()});
  const categorySelect=el('select','pc-search pc-category-filter');categorySelect.setAttribute('aria-label','Фильтр по категории');categorySelect.addEventListener('change',()=>{category=categorySelect.value;page=1;renderRows()});
  const filters=el('div','pc-filters');filters.append(search,categorySelect);
@@ -146,7 +151,7 @@ export function mountPrintControl({root}){
  const roadmap=el('p','pc-roadmap','Пока не подключены: удалённая автоматическая синхронизация между Android-приложениями, персональные логины, журнал входов и удалённая блокировка сотрудников. Для этого понадобится отдельный серверный доступ и защищённое постоянное хранилище.');
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
- root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,filters,normativeNotice,table,pagination,sub,integration,logSection);
+ root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
  // The editor lives in the same root; controls are never inserted from user HTML.
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
@@ -253,6 +258,11 @@ export function mountPrintControl({root}){
  const weights=el('div','pc-form-two');
  weights.append(field('weight','Вес, г','number',{min:1,step:'1'}),field('tolerance','Допуск ±, г','number',{min:0,step:'1'}));
  readyFields.append(weights);content.append(readyFields);
+ const templatePreview=el('section','pc-template-preview');
+ const templatePreviewTitle=el('strong','','Предпросмотр эталона · 58 × 40 мм');
+ const templatePreviewHint=el('p','','Заполни название, состав, КБЖУ, вес, температуру и срок — здесь появится твоя этикетка. Незаполненные данные не подставляются.');
+ const templatePreviewCanvas=el('div','pc-template-preview-art');
+ templatePreview.append(templatePreviewTitle,templatePreviewHint,templatePreviewCanvas);content.append(templatePreview);
  const prepFields=el('div');
  prepFields.append(field('point','Точка по умолчанию','text',{maxlength:40}));
  content.append(prepFields);
@@ -265,6 +275,35 @@ export function mountPrintControl({root}){
  const actions=el('div','pc-form-actions');actions.append(btn('Отмена','pc-secondary',()=>dialog.close()));
  const save=el('button','pc-primary','Сохранить');save.type='submit';actions.append(save);
  const formError=el('p','pc-error');formError.hidden=true;
+ let premiumLoader=null,previewTimeout=null;
+ function loadPremiumRenderer(){
+  if(window.FarukhLabelSVG?.surface&&window.FarukhPremiumReady?.draw)return Promise.resolve();
+  if(premiumLoader)return premiumLoader;
+  const addScript=(url)=>new Promise((resolve,reject)=>{
+   const node=document.createElement('script');node.src=url;node.onload=resolve;node.onerror=()=>reject(Error('Не удалось загрузить шаблон этикетки.'));document.head.append(node);
+  });
+  premiumLoader=Promise.resolve().then(async()=>{
+   if(!window.FarukhLabelSVG?.surface)await addScript('/farukh-print/label-svg.js?v=3');
+   if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=3');
+  }).catch(e=>{premiumLoader=null;throw e});
+  return premiumLoader;
+ }
+ function updateTemplatePreview(){
+  if(readyFields.hidden||!dialog.open)return;
+  const keys=['name','composition','p','f','c','kcal','weight','tolerance','storage','hours'];
+  if(keys.some(k=>!text(fields[k].value))){templatePreviewCanvas.replaceChildren();templatePreviewHint.textContent='Заполни все поля выше. Для срока и температуры используются только твои значения — примерные цифры не вставляются.';return;}
+  const p={};for(const k of keys)p[k]=['p','f','c','kcal','weight','tolerance','hours'].includes(k)?Number(fields[k].value):text(fields[k].value);
+  if(!p.name||!p.composition||!p.storage||p.hours<=0||p.weight<=0){templatePreviewCanvas.replaceChildren();return}
+  loadPremiumRenderer().then(()=>{
+   if(!dialog.open||readyFields.hidden)return;
+   const surface=window.FarukhLabelSVG.surface(464,320);
+   const fmt=ms=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
+   window.FarukhPremiumReady.draw(surface.g,p,Date.now(),{formatDate:fmt});
+   templatePreviewCanvas.replaceChildren(window.FarukhLabelSVG.element(surface.c.toSVG()));
+   templatePreviewHint.textContent='Это предварительный просмотр по заполненным полям. Дата изготовления задаётся при печати. До подтверждения срока печать запрещена.';
+  }).catch(e=>{if(dialog.open){templatePreviewCanvas.replaceChildren();templatePreviewHint.textContent='Предпросмотр: '+e.message}});
+ }
+ content.addEventListener('input',()=>{clearTimeout(previewTimeout);previewTimeout=setTimeout(updateTemplatePreview,180)});
  content.append(formError,actions);content.addEventListener('submit',event=>{event.preventDefault();saveEditor()});
  dialog.append(content);root.append(dialog);
  function message(value,isError=false){warn=value;notice.hidden=!value;notice.textContent=value;notice.classList.toggle('error',isError)}
@@ -357,10 +396,11 @@ export function mountPrintControl({root}){
    commit([...records,...added],'Добавлена стартовая база',missing.length+' позиций');
   }catch(e){message(e.message,true)}
  }
- function edit(product){
-  currentEdit=product?.id||null;const v=product||{...empty,kind:group};
-  formTitle.textContent=(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
-  readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';
+ function edit(product,fromTemplate=false){
+  manualTemplate=!!fromTemplate;
+  currentEdit=product?.id||null;const v=product||{...empty,kind:group,...(manualTemplate?{tolerance:''}:{})};
+  formTitle.textContent=manualTemplate?'Новая этикетка · Премиум 58 × 40 мм':(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
+  readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';templatePreview.hidden=v.kind!=='ready';templatePreviewCanvas.replaceChildren();
   chosenPhoto=displayPhoto(v);
   showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
@@ -368,13 +408,14 @@ export function mountPrintControl({root}){
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
   verify.checked=product?product.needsReview!==true:false;
   formError.hidden=true;
-  dialog.showModal();
+  dialog.showModal();updateTemplatePreview();
  }
  function saveEditor(){
   const existing=currentEdit?records.find(p=>p.id===currentEdit):null,kind=existing?.kind||group;
   const name=text(fields.name.value);
   const hoursValue=text(fields.hours.value);
   const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked,photo:chosenPhoto};
+  if(kind==='ready'&&manualTemplate&&!existing)p.labelStyle='premium-ready-58x40';
   if(kind==='prep')p.point=text(fields.point.value);
   else{
    p.category=text(fields.category.value).slice(0,60);

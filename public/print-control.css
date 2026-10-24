@@ -367,3 +367,20 @@
 #print-control .pc-guide-norm-content>strong{font-size:12px;color:#455e6d}
 #print-control .pc-guide-body .pc-guide-norm-content p{font-size:11px;line-height:1.6}
 @media(max-width:600px){#print-control .pc-advice-grid{grid-template-columns:1fr}#print-control .pc-advice-card{padding:11px}#print-control .pc-guide-body .pc-advice-section>h3{font-size:14px}}
+
+/* Owner-only reusable premium 58×40 template; never changes production labels. */
+#print-control .pc-premium-template{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:4px 0 19px;padding:19px 21px;background:linear-gradient(110deg,#fff,#fff9fa);border:1px solid #e7c8d0;border-radius:16px;box-shadow:0 4px 17px #60203207}
+#print-control .pc-premium-template h2{font-size:18px;margin:7px 0 5px;letter-spacing:-.5px;color:#293743}
+#print-control .pc-premium-template p{margin:0;font-size:12px;line-height:1.6;color:#74808b;max-width:590px}
+#print-control .pc-premium-template-badge{font-size:10px;font-weight:900;letter-spacing:1.1px;color:#a52c49}
+#print-control .pc-premium-template-button{white-space:nowrap;flex:0 0 auto}
+#print-control .pc-template-preview{margin:17px 0 20px;border:1px solid #dce4e8;background:#f6f8fa;border-radius:14px;padding:14px}
+#print-control .pc-template-preview[hidden]{display:none!important}
+#print-control .pc-template-preview>strong{display:block;font-size:13px;color:#39434c;margin-bottom:6px}
+#print-control .pc-template-preview>p{font-size:11px;line-height:1.6;margin:0 0 10px;color:#87919a}
+#print-control .pc-template-preview-art{min-height:40px;display:grid;place-items:center}
+#print-control .pc-template-preview-art svg{display:block;width:100%;height:auto;max-width:464px;background:#fff;box-shadow:0 3px 12px #151e2920}
+@media(max-width:610px){#print-control .pc-premium-template{flex-direction:column;align-items:stretch;padding:17px}#print-control .pc-premium-template-button{width:100%}}
+
+/* The manual catalog template must not crowd Employees, Cloud and Backups. */
+#print-control-root:not([data-pc-workspace="catalog"]) .pc-premium-template{display:none!important}
