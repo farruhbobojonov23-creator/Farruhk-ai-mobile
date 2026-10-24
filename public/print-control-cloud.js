@@ -44,6 +44,15 @@ export function mountPrintCloudControl({root,renderLocal}){
  const refresh=btn('↻ Проверить облако',refreshRemote);
  const pairing=btn('＋ Подключить телефон / планшет',pair);
  actions.append(syncUp,syncDown,refresh,pairing);
+ const staffUrl='/farukh-print/staff/';
+ const staffLink=el('a','pcloud-btn pcloud-staff-link','↗ Открыть страницу сотрудников');
+ staffLink.href=staffUrl;staffLink.target='_blank';staffLink.rel='noopener noreferrer';
+ const copyStaff=btn('⧉ Скопировать ссылку для сотрудников',async()=>{
+  const url=new URL(staffUrl,location.origin).href;
+  try{await navigator.clipboard.writeText(url);tell('Ссылка для сотрудников скопирована. Отправь её на iPhone или Android. Для доступа к каталогу нужен код подключения устройства и личный логин.')}
+  catch{window.prompt('Скопируй и отправь сотруднику эту ссылку:',url)}
+ });
+ actions.append(staffLink,copyStaff);
  const codeBox=el('div','pcloud-pairing');codeBox.hidden=true;
  const codeLabel=el('small','','Код для ввода на устройстве (действует 10 минут):');
  const codeValue=el('strong','pcloud-code','');const codeUntil=el('small','','');
