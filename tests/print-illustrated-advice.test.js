@@ -61,7 +61,7 @@ test('Every printed-product advice tab displays colorful themed artwork, not ini
  assert.match(ui,/\['Форма','Форма хранения',tips\.form\]/);
  assert.doesNotMatch(ui,/В каком виде лучше хранить/);
  assert.match(app,/employee-advice\.js\?v=4/);
- assert.match(html,/print\.css\?v=19/);
+ assert.match(html,/print\.css\?v=20/);
  assert.match(html,/print\.js\?v=34/);
 });
 
