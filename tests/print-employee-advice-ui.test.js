@@ -18,8 +18,8 @@ test('Variant B has a visible independent advice button on every gallery tile',a
  assert.ok(render.indexOf('bottom.append')<render.indexOf('tipsButton.onclick'));
  assert.match(render,/item\.append\(tipsButton,meta\)/);
  assert.match(css,/\.product-tile \.product-tips/);
- assert.match(html,/\.\/print\.js\?v=23/);
- assert.match(html,/\.\/print\.css\?v=14/);
+ assert.match(html,/\.\/print\.js\?v=24/);
+ assert.match(html,/\.\/print\.css\?v=15/);
 });
 
 test('Every product category has readable neighbors and safety notes',async()=>{
@@ -52,6 +52,9 @@ test('Kitchen advice UI separates reading from authorizing a print',async()=>{
  const app=await fs.readFile(new URL('../public/farukh-print/print.js',import.meta.url),'utf8');
  assert.match(ui,/\['Советы','✦'\],\['Хранение','❄'\],\['Соседство','▱'\],\['Нормы','▤'\]/);
  assert.match(ui,/print-advice-neighbor-grid/);
+ assert.match(ui,/neighborIllustration\(line,catalogPhotos\)/);
+ assert.match(ui,/print-advice-neighbor-photo/);
+ assert.match(ui,/rowIllustration\(icon,product\)/);
  assert.match(ui,/\!product\.needsReview&&Number\(product\.hours\)>0&&!!product\.storage/);
  assert.match(ui,/printBtn\.disabled=!available/);
  assert.match(app,/renderCatalog\(\);openWorkerPreview\(\)/);

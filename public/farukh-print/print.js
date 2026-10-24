@@ -38,10 +38,11 @@ const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрик
 let adviceLoader=null;
 function openProductAdvice(p){
  // Load only if the employee asks for advice, keeping the print catalog fast.
- if(!adviceLoader)adviceLoader=import('./employee-advice.js?v=1').catch(e=>{adviceLoader=null;throw e});
+ if(!adviceLoader)adviceLoader=import('./employee-advice.js?v=2').catch(e=>{adviceLoader=null;throw e});
  void adviceLoader.then(({openAdvice})=>openAdvice({
   ...p,category:p.category||(p.kind==='ready'?window.FarukhPrintCategories?.category?.(p):'')
  },{
+  catalogPhotos:products.filter(x=>x.photo&&x.name).map(x=>({name:x.name,photo:x.photo})),
   onPrint:(product)=>{
    if(!products.some(x=>x.id===product.id&&x.kind===product.kind))return;
    if(kind!==product.kind)openCatalog(product.kind);
