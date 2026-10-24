@@ -64,9 +64,11 @@ export function mountPrintControl({root}){
  const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
  const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
  function displayPhoto(p){
-  if(window.FarukhPrintPhotos?.isPhoto(p.photo))return p.photo;
+  // isPhoto('') is deliberately true for optional form fields, but an empty
+  // string is not an actual image. Do not stop before cloud/static fallbacks.
+  if(p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo))return p.photo;
   const remote=cloudPhotos.get(p.id)||cloudPhotos.get(photoKey(p));
-  if(window.FarukhPrintPhotos?.isPhoto(remote))return remote;
+  if(remote&&window.FarukhPrintPhotos?.isPhoto(remote))return remote;
   if(p.kind==='prep'&&text(p.name)==='Бульон Том Ям'&&brothPhoto)return brothPhoto;
   const supplement=supplementalPhotos?.photoFor(p);if(supplement)return supplement;
   if(p.kind==='ready'&&readyPhotos){const withPhoto=readyPhotos.merge([p])[0];if(withPhoto.photo)return withPhoto.photo}
