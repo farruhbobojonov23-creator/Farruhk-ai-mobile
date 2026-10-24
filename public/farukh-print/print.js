@@ -256,7 +256,7 @@ function renderCatalog(){
   const fallback=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
   const original=p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
   const usingCustom=!!original&&p.photoStyle==='manual';
-  const displayed=usingCustom?original:(approved?.url||original||fallback?.url||threeD?.url||'');
+  const displayed=usingCustom?original:(approved?.url||threeD?.url||original||fallback?.url||'');
   if(displayed){
    if(displayed===approved?.url)visual.classList.add('prep-photo3d-preview');
    else if(displayed===threeD?.url)visual.classList.add('prep-3d-preview');
