@@ -55,6 +55,11 @@ test('Every printed-product advice tab displays colorful themed artwork, not ini
  assert.match(style,/\.print-advice-row-picture\{/);
  assert.match(style,/\.print-advice-neighbor-picture\{/);
  assert.match(style,/\.print-advice-neighbor-grid/);
+ assert.match(style,/max-width:900px/);
+ assert.match(style,/orientation:portrait/);
+ assert.match(style,/print-advice-aside h2/);
+ assert.match(ui,/\['Форма','Форма хранения',tips\.form\]/);
+ assert.doesNotMatch(ui,/В каком виде лучше хранить/);
  assert.match(app,/employee-advice\.js\?v=3/);
  assert.match(html,/print\.css\?v=16/);
  assert.match(html,/print\.js\?v=25/);
