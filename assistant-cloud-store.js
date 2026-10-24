@@ -7,7 +7,10 @@ export function downloadFailureSummary(status,headers,body){
   try{const data=JSON.parse(body);const value=data.error||data.code;if(typeof value==='string'&&/^[A-Za-z]{1,60}Error$/.test(value))code=value}catch{}
   const kind=/json/i.test(headers['content-type']||'')?'json':/html/i.test(headers['content-type']||'')?'html':'other';
   const reason=/user.agent/i.test(body)?'user-agent':/quota|download.?limit|too many requests/i.test(body)?'limit':/expired|signature/i.test(body)?'signature':/access denied|forbidden|unauthorized/i.test(body)?'access':/internal.?error|internal server error|service unavailable/i.test(body)?'upstream':'unknown';
-  return 'status='+status+' type='+kind+' bytes='+Buffer.byteLength(body)+' code='+code+' reason='+reason;
+  // A small plain-text gateway error can explain protocol failures. Permit
+  // only ordinary prose; JSON, URLs, numbers and long identifiers are excluded.
+  const prose=body.length<=160&&/^[A-Za-z \t\r\n.,:;!?'-]+$/.test(body)?body.replace(/[A-Za-z]{17,}/g,'[redacted]').replace(/\s+/g,' ').trim():'omitted';
+  return 'status='+status+' type='+kind+' bytes='+Buffer.byteLength(body)+' code='+code+' reason='+reason+' gateway='+prose;
 }
 
 // Download hosts can time out over IPv6 from the hosting network.
