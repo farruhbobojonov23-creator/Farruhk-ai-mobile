@@ -67,10 +67,10 @@ test('No substitute demo values and all information always comes from real produ
 });
 
 test('FARUKH AI, FARUKH PRINT and direct V3 printing are all wired to one approved design',()=>{
- assert.match(printPage,/premium-ready-label\.js\?v=1/);
+ assert.match(printPage,/premium-ready-label\.js\?v=2/);
  assert.match(printPage,/label-svg\.js\?v=3/);
  assert.match(print,/FarukhPremiumReady\.draw\(g,p,epoch/);
- assert.match(aiPage,/premium-ready-label\.js\?v=1/);
+ assert.match(aiPage,/premium-ready-label\.js\?v=2/);
  assert.match(aiPage,/FarukhPremiumReady\.draw\(surface\.g,p,epoch/);
  assert.match(aiPage,/premium-svg-label/);
  assert.match(aiBluetooth,/FarukhPremiumReady\.draw\(g,p,epoch/);
