@@ -19,7 +19,7 @@ test('Full studio atlas bundles 17 aligned, self-hosted photos instead of mismat
  assert.match(source,/Грибы \(нарезка\)/);
  assert.match(source,/Икра масаго \(открытая\)/);
  assert.match(source,/Томаты черри \(нарезка\)/);
- assert.match(source,/canvas\.toDataURL\('image\/webp',\.82\)/);
+ assert.match(source,/canvas\.toDataURL\('image\/webp',\.94\)/);
  assert.match(source,/farukh-studio-ready/);
 });
 
@@ -29,14 +29,14 @@ test('Staff and FARUKH AI both load the complete atlas and repaint after image d
  const control=await get('public/print-control.js');
  const library=await get('public/farukh-print/prep-photo-library.js');
  const shell=await get('public/index.html');
- assert.match(html,/prep-studio-atlas\.js\?v=1/);
- assert.ok(html.indexOf('prep-studio-atlas.js?v=1')<html.indexOf('prep-photo-library.js?v=2'));
+ assert.match(html,/prep-studio-atlas\.js\?v=2/);
+ assert.ok(html.indexOf('prep-studio-atlas.js?v=2')<html.indexOf('prep-photo-library.js?v=2'));
  assert.match(app,/window\.addEventListener\('farukh-studio-ready'/);
- assert.match(control,/import\('\.\/farukh-print\/prep-studio-atlas\.js\?v=1'\)/);
+ assert.match(control,/import\('\.\/farukh-print\/prep-studio-atlas\.js\?v=2'\)/);
  assert.match(control,/window\.addEventListener\('farukh-studio-ready'/);
  assert.match(library,/window\.FarukhStudioPrep\?\.find\(p\)/);
- assert.match(shell,/print-control\.js\?v=17/);
- assert.match(html,/print\.js\?v=36/);
+ assert.match(shell,/print-control\.js\?v=18/);
+ assert.match(html,/print\.js\?v=37/);
 });
 
 test('White studio art is a preview only: owner uploads override and shelf approvals remain unchanged',async()=>{
