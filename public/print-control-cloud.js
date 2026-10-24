@@ -1,11 +1,17 @@
 // FARUKH AI's owner-only remote catalog publishing and device administration.
 // Protected /api/farukh-print/admin/* requires the existing owner login cookie.
 // Publishing to cloud is opt-in, guarded by optimistic revision comparison.
-const KEY='farukh-print:catalog:v1';
+const KEY='farukh-print:catalog:v1', AGREED='farukh-print:owner-cloud-agreed:v1';
 const remote='/api/farukh-print';
 const el=(tag,cl,text)=>{const e=document.createElement(tag);if(cl)e.className=cl;if(text!==undefined)e.textContent=text;return e};
 const btn=(label,handler,cls='pcloud-btn')=>{const b=el('button',cls,label);b.type='button';b.onclick=handler;return b};
 const read=()=>{try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(data)?data:[]}catch{throw Error('Локальная база повреждена. Восстанови резервную копию.')}}
+// Store compact agreement only after owner-approved publication/download.
+// Without this, server-side validation normalizes optional fields and a page
+// reload incorrectly disables automatic publishing even for an agreed catalog.
+const digest=list=>{const str=JSON.stringify(list);let hash=2166136261;for(let i=0;i<str.length;i++)hash=Math.imul(hash^str.charCodeAt(i),16777619);return (hash>>>0).toString(16)+':'+str.length};
+const agreed=()=>{try{return JSON.parse(localStorage.getItem(AGREED)||'null')}catch{return null}};
+const remember=(revision,local,remote)=>{try{localStorage.setItem(AGREED,JSON.stringify({revision,local:digest(local),remote:digest(remote)}))}catch{/* no privileges are stored here */}};
 async function api(path,options={}){
  const r=await fetch(remote+path,{credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json',...options.headers},...options});
  const data=await r.json().catch(()=>({}));
@@ -84,7 +90,13 @@ export function mountPrintCloudControl({root,renderLocal}){
     fetched=true;rev=data.revision;remoteProducts=data.products;loginRequired=false;loginForm.hidden=true;
     if(typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('farukh-print-cloud-catalog',{detail:{products:remoteProducts}}));
     const local=read();
-    auto=JSON.stringify(local)===JSON.stringify(remoteProducts)&&local.length===remoteProducts.length;
+    const accepted=agreed();
+    // Restore the owner's previously confirmed automatic mode ONLY when
+    // neither the remote revision nor either database has drifted.
+    const same=JSON.stringify(local)===JSON.stringify(remoteProducts);
+    const continued=accepted?.revision===rev&&accepted.local===digest(local)&&accepted.remote===digest(remoteProducts);
+    auto=same||continued;
+    if(same)remember(rev,local,remoteProducts);
     mark(auto?'Каталог синхронизирован · версия '+rev:'Есть неопубликованные отличия · версия '+rev,!auto);
     tell('Облако: '+remoteProducts.length+' позиций · версия '+rev+'. Локально: '+local.length+'. '+(auto?'Каталоги совпадают, последующие изменения будут публиковаться автоматически.':'Каталоги отличаются. Выбери «Опубликовать» или «Загрузить».'),false);
     await loadDevices();
@@ -102,6 +114,7 @@ export function mountPrintCloudControl({root,renderLocal}){
   try{
     const out=await api('/admin/catalog',{method:'PUT',body:JSON.stringify({revision:originalRev,products:local})});
     rev=out.revision;remoteProducts=out.products;auto=true;
+    remember(rev,local,remoteProducts);
     if(typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('farukh-print-cloud-catalog',{detail:{products:remoteProducts}}));
     mark('Опубликовано · версия '+rev);
     tell('Опубликована версия '+rev+' · '+out.products.length+' этикеток. Телефоны и планшеты получат обновление.');
@@ -116,7 +129,8 @@ export function mountPrintCloudControl({root,renderLocal}){
     localStorage.setItem(KEY,JSON.stringify(remoteProducts));
     window.dispatchEvent(new StorageEvent('storage',{key:KEY,newValue:JSON.stringify(remoteProducts)}));
     renderLocal?.();
-    auto=true;mark('Каталог синхронизирован · версия '+rev);tell('База загружена из облака. Теперь изменения через управляющий центр будут публиковаться автоматически.');
+    auto=true;remember(rev,remoteProducts,remoteProducts);
+    mark('Каталог синхронизирован · версия '+rev);tell('База загружена из облака. Теперь изменения через управляющий центр будут публиковаться автоматически.');
   }catch(e){tell('Ошибка записи локальной базы: '+e.message,true)}
   updateState();
  }

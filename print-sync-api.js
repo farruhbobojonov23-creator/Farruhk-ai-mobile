@@ -38,6 +38,20 @@ function validateCatalog(data){
     if(!needsReview&&(!storage||hours===null))throw error(400,'Для готовой к печати этикетки необходим подтверждённый срок и хранение: '+name);
     const clean={id:typeof p.id==='string'&&p.id.length<=150?p.id:crypto.randomUUID(),kind,name,storage,hours,
       needsReview,point:String(p.point||'').slice(0,40)};
+    // These fields are part of the approved label templates, not merely local
+    // preferences. Stripping them in the cloud used to turn "РАЗМОРОЖЕНО"
+    // back into "ИЗГОТОВЛЕНО" on kitchen printers after synchronization.
+    // Preserve only the known values; never allow arbitrary markup or styles.
+    if(p.labelStyle!==undefined&&p.labelStyle!==''){
+      const style=kind==='prep'?'premium-prep-30x20':'premium-ready-58x40';
+      if(p.labelStyle!==style)throw error(400,'Неизвестный шаблон этикетки «'+name+'».');
+      clean.labelStyle=style;
+    }
+    if(p.prepEvent!==undefined&&p.prepEvent!==''){
+      if(kind!=='prep'||!['prepared','thawed','opened'].includes(p.prepEvent))
+        throw error(400,'Неверное событие изготовления/разморозки у «'+name+'».');
+      clean.prepEvent=p.prepEvent;
+    }
     // User-selected JPG thumbnail, aggressively compressed on device. Photos
     // are not printed on thermal labels and never bypass expiry approval.
     if(p.photo!==undefined&&p.photo!==''){

@@ -59,7 +59,11 @@ async function sync(first=false){
      const should=confirm('Подключиться к облачной базе из '+state.products.length+' товаров? Это заменит локальные '+current.length+' позиций на устройстве. Перед подключением рекомендуем сохранить локальную JSON-копию в «Управлении этикетками».');
      if(!should){connected=true;consentDeferred=true;note('Код принят, но загрузка ещё не подтверждена. Сохрани JSON-копию через «Управление этикетками», затем нажми «Обновить базу».',true);return}
    }
-   if(first||state.revision!==cloudRev){
+   // A connected device can lose localStorage (or another tab can change
+   // it) while keeping the same revision in RAM. Repair against the current
+   // authenticated catalog instead of silently using stale food labels.
+   const localMatches=JSON.stringify(current)===JSON.stringify(state.products);
+   if(first||state.revision!==cloudRev||!localMatches){
      window.FARUKH_PRINT_SYNC_API.replace(state.products);
      cloudRev=state.revision;
    }

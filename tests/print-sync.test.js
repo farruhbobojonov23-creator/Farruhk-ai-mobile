@@ -256,3 +256,77 @@ test('Catalog migration outage cannot turn a valid device into a login failure',
  assert.equal(catalog.code,503); // catalog remains fail closed, without denying login
  assert.equal(cloud.get('farukh-print-devices.json').length,1);
 });
+
+
+test('End-to-end catalog: owner changes reach two paired devices with prep date events, styles, and photos intact',async()=>{
+ const {req}=makeApi(),owner={cookie:'fai_owner=ok'};
+ const jpeg='data:image/jpeg;base64,AAAA';
+ const ready={id:'roll-new',kind:'ready',name:'Ролл Премиум',category:'Новинки',composition:'рис, нори, форель',p:6.4,f:8.1,c:20,kcal:182,weight:230,tolerance:10,
+   storage:'+2…+6 °C',hours:12,needsReview:false,photo:jpeg,labelStyle:'premium-ready-58x40'};
+ const prep={id:'fish-new',kind:'prep',name:'Форель',storage:'0…+2 °C',hours:24,needsReview:false,prepEvent:'thawed',
+   labelStyle:'premium-prep-30x20',photo:jpeg};
+ const first=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[ready,prep]}});
+ assert.equal(first.code,200,JSON.stringify(first.payload));
+ assert.equal(first.payload.revision,1);
+ assert.equal(first.payload.products[0].labelStyle,'premium-ready-58x40');
+ assert.equal(first.payload.products[1].labelStyle,'premium-prep-30x20');
+ assert.equal(first.payload.products[1].prepEvent,'thawed');
+ const tokens=[];
+ for(const name of ['Плазма — планшет','Точка 2 — телефон']){
+   const invite=await req('post','/api/farukh-print/admin/pair',{...owner,body:{}});
+   assert.equal(invite.code,200);
+   const paired=await req('post','/api/farukh-print/device/pair',{body:{code:invite.payload.code,name}});
+   assert.equal(paired.code,200);tokens.push(paired.payload.token);
+ }
+ for(const token of tokens){
+   const r=await req('get','/api/farukh-print/device/catalog',{token});
+   assert.equal(r.code,200);assert.equal(r.payload.revision,1);
+   assert.deepEqual(r.payload.products,first.payload.products);
+ }
+ const changed=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{
+   revision:1,products:[{...ready,weight:245,photo:'data:image/jpeg;base64,AQID'}, {...prep,hours:16,prepEvent:'opened',needsReview:true}]
+ }});
+ assert.equal(changed.code,200);assert.equal(changed.payload.revision,2);
+ for(const token of tokens){
+   const r=await req('get','/api/farukh-print/device/catalog',{token});
+   assert.equal(r.code,200);
+   assert.equal(r.payload.revision,2);
+   assert.equal(r.payload.products.find(p=>p.id==='roll-new').weight,245);
+   assert.equal(r.payload.products.find(p=>p.id==='roll-new').photo,'data:image/jpeg;base64,AQID');
+   const fish=r.payload.products.find(p=>p.id==='fish-new');
+   assert.equal(fish.hours,16);assert.equal(fish.prepEvent,'opened');assert.equal(fish.needsReview,true);
+   assert.equal(fish.labelStyle,'premium-prep-30x20');
+ }
+ const stale=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[ready,prep]}});
+ assert.equal(stale.code,409);
+ const current=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(current.payload.revision,2);
+});
+
+test('Cloud rejects invalid type/style/event combinations instead of erasing template choices',async()=>{
+ const {req}=makeApi(),owner={cookie:'fai_owner=ok'};
+ const prep={id:'1',kind:'prep',name:'Морковь',hours:24,storage:'+2…+6 °C',needsReview:true};
+ for(const record of [
+  {...prep,prepEvent:'nonsense'},
+  {...prep,labelStyle:'premium-ready-58x40'},
+  {...prep,prepEvent:'<svg onload=evil()>'},
+  {...prep,kind:'ready',prepEvent:'thawed'},
+  {...prep,labelStyle:'unknown'}
+ ]){
+  const result=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[record]}});
+  assert.equal(result.code,400,JSON.stringify(result.payload));
+ }
+});
+
+test('Owner confirmed sync survives reloads; connected devices repair mismatched local revisions',async()=>{
+ const fs=await import('node:fs/promises');
+ const cloud=await fs.readFile(new URL('../public/print-control-cloud.js',import.meta.url),'utf8');
+ const client=await fs.readFile(new URL('../public/farukh-print/print-sync.js',import.meta.url),'utf8');
+ assert.match(cloud,/farukh-print:owner-cloud-agreed:v1/);
+ assert.match(cloud,/const continued=accepted\?\.revision===rev/);
+ assert.match(cloud,/remember\(rev,local,remoteProducts\)/);
+ assert.match(cloud,/remember\(rev,remoteProducts,remoteProducts\)/);
+ assert.match(client,/state\.revision!==cloudRev\|\|!localMatches/);
+ assert.match(client,/JSON\.stringify\(current\)===JSON\.stringify\(state\.products\)/);
+ assert.match(client,/sync\(cloudRev<0\)/);
+});
