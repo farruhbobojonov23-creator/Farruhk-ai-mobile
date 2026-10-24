@@ -1,6 +1,6 @@
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=1';
-import {guidanceFor,reviewExisting,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=1';
+import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
 // Одна локальная база для страниц одного браузера/домена.
 // Android APK используют отдельные WebView-хранилища: перенос JSON вручную.
@@ -126,8 +126,8 @@ export function mountPrintControl({root}){
  const categorySelect=el('select','pc-search pc-category-filter');categorySelect.setAttribute('aria-label','Фильтр по категории');categorySelect.addEventListener('change',()=>{category=categorySelect.value;page=1;renderRows()});
  const filters=el('div','pc-filters');filters.append(search,categorySelect);
  const normativeNotice=el('div','pc-normative-notice');
- normativeNotice.append(el('strong','','Как назначать срок строго по санитарным правилам'),
-  el('span','','Срок не вычисляется по одному названию: нужна технология, маркировка поставщика и ТТК. Примеры из старого приложения — только для совпадающего вида продукции. Неподтверждённые позиции не разрешены к печати.'));
+ normativeNotice.append(el('strong','','Нормативная справка для всех товаров'),
+  el('span','','Нажми «Нормы» у любой позиции: роллов, полуфабрикатов или служебной этикетки. Указанные ориентиры не меняют срок автоматически: учитываются технология, маркировка изготовителя и ТТК.'));
  const guideLink=el('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
  guideLink.href=REFERENCES[0].url;guideLink.target='_blank';guideLink.rel='noopener noreferrer';normativeNotice.append(guideLink);
  const table=el('div','pc-list');
@@ -150,24 +150,27 @@ export function mountPrintControl({root}){
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
  function showGuidance(p){
-  const g=guidanceFor(p.name)||reviewExisting(p.name);
+  const g=guidanceForProduct({...p,...(p.kind==='ready'&&!p.template?{category:categoryFor(p)}:{})});
   guideBody.replaceChildren();
-  guideBody.append(el('h2','','Проверка срока · '+p.name),
-   el('p','pc-guide-current',(p.needsReview===true||!p.hours)?'Срок ещё не утверждён. Печать должна быть заблокирована.':'Уже указан срок '+p.hours+' ч. Проверь соответствие реальному процессу.'));
+  guideBody.append(el('h2','',p.template?'Нормы для служебной этикетки · '+p.name:'Проверка срока · '+p.name));
+  const currentStatus=p.template?'Служебная этикетка: нормы пищевых сроков к ней неприменимы.'
+   :(p.needsReview===true||!p.hours||!p.storage)
+    ?'Срок или условия не подтверждены. Печать должна оставаться заблокированной.'
+    :'В каталоге указано '+p.hours+' ч · '+p.storage+'. Проверь соответствие реальной технологии.';
+  guideBody.append(el('p','pc-guide-current',currentStatus));
   if(g){
    guideBody.append(el('h3','',g.group),el('p','',g.question),el('div','pc-guide-example',g.example));
   }else{
    guideBody.append(el('p','','Для этой позиции в справочнике нет однозначного аналога. Уточни способ приготовления, состояние при приёмке, момент отсчёта, режим охлаждения и маркировку изготовителя.'));
   }
-  guideBody.append(el('p','pc-guide-warning','Примеры не вносятся в этикетку автоматически и не означают утверждённый срок для конкретной рецептуры.'));
+  guideBody.append(el('p','pc-guide-warning',p.template?'Сроки пищевых продуктов здесь не используются; правила для средств и инвентаря проверяй отдельно.':'Примеры не вносятся в этикетку автоматически и не означают утверждённый срок для конкретной рецептуры.'));
   const refTitle=el('strong','','Нормативные источники');guideBody.append(refTitle);
-  for(const ref of REFERENCES){
+  for(const ref of (p.template?REFERENCES.slice(0,1):REFERENCES)){
    const link=el('a','pc-guide-link',ref.name+' ↗');link.href=ref.url;link.rel='noopener noreferrer';link.target='_blank';guideBody.append(link);
   }
-  const actions=el('div','pc-form-actions');actions.append(
-   btn('Закрыть','pc-secondary',()=>guideDialog.close()),
-   btn('Редактировать срок и условия','pc-primary',()=>{guideDialog.close();edit(p)})
-  );
+  const actions=el('div','pc-form-actions');
+  actions.append(btn('Закрыть','pc-secondary',()=>guideDialog.close()));
+  if(!p.template)actions.append(btn('Редактировать срок и условия','pc-primary',()=>{guideDialog.close();edit(p)}));
   guideBody.append(actions);
   if(typeof guideDialog.showModal==='function')guideDialog.showModal();else guideDialog.setAttribute('open','');
  }
@@ -277,9 +280,7 @@ export function mountPrintControl({root}){
    desc.append(details);
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
-   if(p.kind==='prep'&&!p.template&&(p.needsReview===true||!p.hours||reviewExisting(p.name))){
-    controls.append(btn('Нормы','pc-edit pc-norms-btn',()=>showGuidance(p)));
-   }
+   controls.append(btn('Нормы','pc-edit pc-norms-btn',()=>showGuidance(p)));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
@@ -302,7 +303,7 @@ export function mountPrintControl({root}){
   const count=records.filter(p=>p.kind==='prep'&&(p.needsReview===true||!p.hours||!p.storage)).length;
   pending.textContent=onlyPending?'Все полуфабрикаты':'Сроки: проверить '+count;
   pending.classList.toggle('active',onlyPending);
-  normativeNotice.hidden=group!=='prep';
+  normativeNotice.hidden=false;
   renderRows();renderLog();loadPhotoAssets();
  }
  function commit(next,action,name){
