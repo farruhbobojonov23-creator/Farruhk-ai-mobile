@@ -18,7 +18,18 @@ test('Illustrated advice has genuine local SVG food images and is independent of
 
 test('Food photographs in owner catalog are reused for the correct product, not mixed with unrelated photos',()=>{
  const photo='data:image/jpeg;base64,abcDEF123';
- assert.equal(advicePicture({name:'Огурцы',photo},'Форма','В каком виде лучше хранить'),photo);
+ // The real photograph belongs only to the product heading. Internal advice
+ // cards must be identical, universal and clean for any ingredient.
+ for(const id of ['Форма','Упаковка','Температура','Порча','Контроль','Важно','Технология','Справка']){
+  const a=advicePicture({name:'Форель',photo},id,'Форма хранения');
+  const b=advicePicture({name:'Снежный краб',photo},id,'Форма хранения');
+  const d=advicePicture({name:'Огурцы',photo},id,'Форма хранения');
+  assert.equal(a,b,id+' changed picture by product name');
+  assert.equal(b,d,id+' changed picture by product name');
+  assert.match(a,/^data:image\\/svg\\+xml/);
+  assert.notEqual(a,photo);
+ }
+ assert.notEqual(advicePicture({name:'Огурцы'},'Форма','Форма хранения'),advicePicture({name:'Огурцы'},'Температура','Температура и охлаждение'));
  assert.match(advicePicture({name:'Огурцы'},'Температура','При какой температуре'),/^data:image\/svg\+xml/);
  assert.equal(subjectFor('зелень (в контейнере)'),'herbs');
  assert.equal(subjectFor('сырое мясо и птица'),'rawmeat');
@@ -44,9 +55,9 @@ test('Every printed-product advice tab displays colorful themed artwork, not ini
  assert.match(style,/\.print-advice-row-picture\{/);
  assert.match(style,/\.print-advice-neighbor-picture\{/);
  assert.match(style,/\.print-advice-neighbor-grid/);
- assert.match(app,/employee-advice\.js\?v=2/);
- assert.match(html,/print\.css\?v=15/);
- assert.match(html,/print\.js\?v=24/);
+ assert.match(app,/employee-advice\.js\?v=3/);
+ assert.match(html,/print\.css\?v=16/);
+ assert.match(html,/print\.js\?v=25/);
 });
 
 test('Advice never guesses or writes shelf-life values, and does not override print authorization',async()=>{
