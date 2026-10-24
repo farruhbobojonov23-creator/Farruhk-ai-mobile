@@ -7,7 +7,7 @@ import {photoFor} from '../public/farukh-print/supplemental-photos.js';
 // supplied as arguments. Do not duplicate implementation in a test helper.
 const source=await fs.readFile(new URL('../public/print-control.js',import.meta.url),'utf8');
 const match=source.match(/ function displayPhoto\(p\)\{([\s\S]*?)\n \}\n function loadPhotoAssets\(\)/);
-assert.ok(match,'Could not locate FARUKH AI catalog's displayPhoto');
+assert.ok(match,"Could not locate FARUKH AI catalog's displayPhoto");
 const compute=new Function('p','window','cloudPhotos','photoKey','text','brothPhoto','supplementalPhotos','readyPhotos',match[1]);
 const isPhoto=value=>value===''||(typeof value==='string'&&value.length<=45000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
 const createContext=(name,{local='',remote='',supplemental={photoFor},broth='',ready=null}={})=>{
