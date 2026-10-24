@@ -92,66 +92,14 @@ function lines(ctx,text,maxWidth,maxLines,size=11.5){
 // Rasterized rendering of the *same approved label content* on a 203-dpi canvas.
 // Typography is tailored to 58x40mm, without PDF scaling or system margins.
 export function rasterLabel(p,epoch,can=document.createElement('canvas')){
+  // Real Bluetooth raster uses the SAME vector geometry as both previews.
+  // No independent old template, no test values or substituted timestamps.
   can.width=W;can.height=H;
   const g=can.getContext('2d',{willReadFrequently:true});
   if(!g)throw Error('Canvas на этом устройстве недоступен.');
-  g.fillStyle='#fff';g.fillRect(0,0,W,H);
-  g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';g.lineJoin='miter';g.lineWidth=2;
-  rect(g,6,6,452,308,2);rect(g,12,12,440,296,2);
-  // Header and product name.
-  horizontal(g,50,19,445);
-  write(g,'СУШИ БЕРИ',23,33,{size:21,weight:'900',width:220});
-  write(g,'Готовая продукция',443,34,{size:11,weight:'400',align:'right',width:187});
-  const title=String(p.name||'').toUpperCase();
-  g.font='900 11px Arial,sans-serif';
-  if(g.measureText(title).width>412){
-    const wrapped=lines(g,title,404,2,17);
-    if(wrapped.truncated)throw Error('Название слишком длинное для этикетки. Укороти его в редакторе.');
-    wrapped.draw.forEach((line,i)=>write(g,line,232,65+i*19,{size:18,min:11,weight:'900',align:'center',width:410}));
-  }else write(g,title,232,73,{size:24,min:11,weight:'900',align:'center',width:412});
-  horizontal(g,96,19,445);
-  // KБЖУ — fixed height, dedicated centered cells.
-  rect(g,20,99,425,60,2);
-  horizontal(g,122,20,445); horizontal(g,141,20,445);
-  write(g,'Пищевая ценность на 100 г',232,111,{align:'center',size:13.2,min:11.5,width:415,weight:'800'});
-  const nutrition=[
-    ['Б (г)',String(p.p).replace('.',',')],['Ж (г)',String(p.f).replace('.',',')],
-    ['У (г)',String(p.c).replace('.',',')],['Ккал',String(p.kcal)]
-  ];
-  const colW=425/4;
-  for(let i=0;i<4;i++){
-    if(i)vertical(g,20+colW*i,122,159);
-    const mid=20+colW*(i+.5);
-    write(g,nutrition[i][0],mid,132,{size:13,min:10,weight:'800',align:'center',width:colW-7});
-    write(g,nutrition[i][1],mid,149.4,{size:13.1,min:10,weight:'700',align:'center',width:colW-7});
-  }
-  // Composition block: no text may spill outside the frame.
-  rect(g,20,163,425,49,2);
-  const composition='Состав: '+String(p.composition||'');
-  let composed=lines(g,composition,411,3,11.2);
-  if(composed.truncated){
-    composed=lines(g,composition,411,4,9.1);
-    if(composed.truncated)throw Error('Состав слишком длинный для этикетки 58×40. Сократи текст в редакторе.');
-    g.font='normal 9.1px Arial, sans-serif';
-    composed.draw.forEach((v,i)=>g.fillText(v,27,173.4+i*9.6));
-  }else{
-    g.font='normal 11.2px Arial, sans-serif';
-    composed.draw.forEach((v,i)=>g.fillText(v,27,174+i*13.2));
-  }
-  // Bottom 3 columns: weight / two datetimes / temperature & storage.
-  rect(g,20,216,425,88,2);
-  vertical(g,179,216,304);vertical(g,339,216,304);horizontal(g,260,339,445);
-  write(g,'Вес нетто:',27,245,{size:12,min:10,width:145,weight:'700'});
-  write(g,p.weight+' г (±'+p.tolerance+' г)',27,266,{size:19,min:11,width:149,weight:'900'});
-  const dateFmt=milliseconds=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(milliseconds)).replace(',','');
-  write(g,'Изготовлено:',185,229,{size:11,min:9,width:146});
-  write(g,dateFmt(epoch),185,244,{size:12.6,min:10,width:146,weight:'800'});
-  write(g,'Годен до:',185,270,{size:11,min:9,width:146});
-  write(g,dateFmt(epoch+Number(p.hours)*3600000),185,285,{size:12.6,min:10,width:146,weight:'800'});
-  write(g,'Хранить при:',392,229,{size:10.5,min:8,width:98,align:'center',weight:'400'});
-  write(g,p.storage,392,247,{size:13.1,min:9,width:97,align:'center',weight:'900'});
-  write(g,'Срок годн.:',392,274,{size:10,min:8,align:'center',width:97,weight:'400'});
-  write(g,p.hours+' ч',392,291,{size:15.5,min:10,align:'center',width:97,weight:'900'});
+  if(!window.FarukhPremiumReady?.draw)throw Error('Премиальный шаблон этикетки ещё не загрузился.');
+  const dateFmt=ms=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
+  window.FarukhPremiumReady.draw(g,p,epoch,{formatDate:dateFmt});
   return can;
 }
 export function buildTSPL(canvas,copies=1){
