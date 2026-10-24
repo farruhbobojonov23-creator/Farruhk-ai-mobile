@@ -80,7 +80,7 @@ export function mountPrintControl({root}){
  function loadPhotoAssets(){
   if(group==='prep'&&!photoLibraryLoading){
    photoLibraryLoading=Promise.all([
-    import('./farukh-print/prep-photo-library.js?v=1'),
+    import('./farukh-print/prep-studio-images.js?v=1').then(()=>import('./farukh-print/prep-photo-library.js?v=2')), 
     import('./farukh-print/prep-sanpin-sources.js?v=1')
    ]).then(()=>{renderRows();if(dialog?.open)showPhoto()}).catch(()=>{});
   }
@@ -227,9 +227,8 @@ export function mountPrintControl({root}){
   normDetails.append(normContent);guideBody.append(normDetails);
   const photoCredit=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
   if(photoCredit&&displayPhoto(p)===photoCredit.url){
-   const credit=el('a','pc-guide-link','Иллюстративное фото: '+photoCredit.author+' · '+photoCredit.license+' · Wikimedia Commons ↗');
-   credit.href=photoCredit.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';
-   guideBody.append(credit);
+   if(photoCredit.creditUrl){const credit=el('a','pc-guide-link','Фото: '+photoCredit.author+' · '+photoCredit.license+' · Wikimedia Commons ↗');credit.href=photoCredit.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';guideBody.append(credit)}
+   else guideBody.append(el('small','','Студийный образец: FARUKH PRINT'));
   }
   const actions=el('div','pc-form-actions');
   actions.append(btn('Закрыть','pc-secondary',()=>guideDialog.close()));
@@ -387,7 +386,7 @@ export function mountPrintControl({root}){
    if(source){
     const img=el('img');img.src=source;img.alt='Фото '+p.name;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
     const cred=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
-    if(cred&&source===cred.url)img.title='Иллюстративное фото. '+cred.author+' · '+cred.license+' · Wikimedia Commons';
+    if(cred&&source===cred.url)img.title=cred.studio?'Студийный образец FARUKH PRINT':'Справочное фото. '+cred.author+' · '+cred.license+' · Wikimedia Commons';
     img.onerror=()=>{img.remove();pic.append(el('span','pc-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'Фото недоступно'))};
     pic.append(img);
    }else pic.append(el('span','pc-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'Фото не загружено'));
