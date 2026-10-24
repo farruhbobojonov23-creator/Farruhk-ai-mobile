@@ -131,16 +131,26 @@ export function openAdvice(product,{onPrint}={}){
  closeBtn.type='button';closeBtn.setAttribute('aria-label','Закрыть советы');
  closeBtn.onclick=closeAdvice;
  const hero=create('div','print-advice-hero');
+ const representative=product.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(product):null;
  if(isCatalogPhoto(product.photo)){
   hero.append(picture(product.photo,'print-advice-photo','Фото: '+product.name));
+ }else if(representative){
+  const img=picture(representative.url,'print-advice-photo','Иллюстративное фото: '+product.name);
+  img.referrerPolicy='no-referrer';
+  img.onerror=()=>{img.remove();hero.append(create('div','print-advice-photo-blank',window.FarukhPrepPhotoLibrary?.mark(product)||'Фото недоступно'))};
+  hero.append(img);
  }else{
-  hero.append(create('div','print-advice-photo-blank','Фото товара пока не добавлено'));
+  hero.append(create('div','print-advice-photo-blank',window.FarukhPrepPhotoLibrary?.mark(product)||'Фото товара пока не добавлено'));
  }
  aside.append(hero,create('h2','',product.name));
+ if(representative&&!isCatalogPhoto(product.photo)){
+  const credit=create('a','print-advice-photo-credit','Фото: '+representative.author+' · '+representative.license+' · Wikimedia Commons ↗');
+  credit.href=representative.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';aside.append(credit);
+ }
  aside.append(create('p','print-advice-kind',product.template?'Служебная этикетка ХАССП':product.kind==='ready'?'Готовая продукция':'Полуфабрикат'));
  const facts=create('div','print-advice-facts');
  const factsRows=[
-  ['Срок хранения',product.template?'По инструкции':product.needsReview||!product.hours?'Требует проверки':product.hours+' часов'],
+  ['Срок хранения',product.template?'По инструкции':product.needsReview?(product.hours?product.hours+' ч · на проверке':'Требует проверки'):product.hours+' часов'],
   ['Условия хранения',product.template?'По инструкции средства':product.storage||'Уточнить по ТТК'],
   ['Форма хранения',product.form|| (product.template?'По инструкции':'См. рекомендации ниже')],
  ];
@@ -151,6 +161,18 @@ export function openAdvice(product,{onPrint}={}){
   val.append(create('span','',k),create('strong','',v));row.append(icon,val);facts.append(row);
  }
  aside.append(facts);
+ if(product.kind==='prep'){
+  const ref=window.FarukhPrepShelfReference?.get(product.name);
+  if(ref){
+   const info=create('div','print-advice-norm-ref');
+   info.append(create('strong','','Источник: '+ref.category));
+   if(ref.clause)info.append(create('p','',ref.clause+(ref.hours?' · '+ref.hours+' ч при '+ref.temp:'')));
+   info.append(create('p','',ref.warning));
+   const link=create('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
+   link.href=ref.source;link.target='_blank';link.rel='noopener noreferrer';info.append(link);
+   aside.append(info);
+  }
+ }
  if(typeof onPrint==='function'){
   const printBtn=create('button','print-advice-print','▤  Печатать этикетку');
   printBtn.type='button';

@@ -53,8 +53,8 @@ test('Full catalog of older preparations uses approved template without new ingr
  assert.match(html,/premium-prep-label\.js\?v=1/);
  assert.match(html,/use-premium-prep/);
  assert.match(html,/home-premium-prep/);
- assert.match(html,/print\.js\?v=32/);
- assert.match(html,/print\.css\?v=19/);
+ assert.match(html,/print\.js\?v=34/);
+ assert.match(html,/print\.css\?v=20/);
  assert.match(ui,/fields\.prepEvent=\$\('edit-prep-event'\)\.value/);
  assert.match(ui,/fields\.labelStyle='premium-prep-30x20'/);
  assert.match(ui,/const needsReview=!\$\('edit-approval'\)\.checked/);
@@ -70,6 +70,6 @@ test('FARUKH AI owner controls can fill small approved blank template and previe
  assert.match(owner,/FarukhPremiumPrep\.draw\(surface\.g,p/);
  assert.match(owner,/premium-prep-label\.js\?v=1/);
  assert.match(owner,/prepEvent:/);
- assert.match(home,/print-control\.js\?v=14/);
+ assert.match(home,/print-control\.js\?v=15/);
  assert.match(home,/print-control\.css\?v=15/);
 });

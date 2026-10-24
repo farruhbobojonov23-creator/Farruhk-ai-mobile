@@ -64,6 +64,7 @@ export function mountPrintControl({root}){
  let category='all',page=1,onlyPending=false;const PAGE_SIZE=8;
  const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
  const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
+ let photoLibraryLoading=null;
  function displayPhoto(p){
   // isPhoto('') is deliberately true for optional form fields, but an empty
   // string is not an actual image. Do not stop before cloud/static fallbacks.
@@ -73,9 +74,16 @@ export function mountPrintControl({root}){
   if(p.kind==='prep'&&text(p.name)==='Бульон Том Ям'&&brothPhoto)return brothPhoto;
   const supplement=supplementalPhotos?.photoFor(p);if(supplement)return supplement;
   if(p.kind==='ready'&&readyPhotos){const withPhoto=readyPhotos.merge([p])[0];if(withPhoto.photo)return withPhoto.photo}
-  return '';
+  // Built-in licensed representative photo, not a saved owner upload.
+  return p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p)?.url||'':'';
  }
  function loadPhotoAssets(){
+  if(group==='prep'&&!photoLibraryLoading){
+   photoLibraryLoading=Promise.all([
+    import('./farukh-print/prep-photo-library.js?v=1'),
+    import('./farukh-print/prep-sanpin-sources.js?v=1')
+   ]).then(()=>{renderRows();if(dialog?.open)showPhoto()}).catch(()=>{});
+  }
   if(group==='prep'&&!prepLoading){prepLoading=Promise.all([import('./farukh-print/supplemental-photos.js?v=2'),import('./farukh-print/broth-photo.js?v=2')]).then(([supplement,broth])=>{supplementalPhotos=supplement;brothPhoto=broth.photo;renderRows()}).catch(()=>{});}
   if(group==='ready'&&!readyLoading){readyLoading=import('./farukh-print/catalog-photos.js?v=2').then(m=>{readyPhotos=m;renderRows()}).catch(()=>{});}
  }
@@ -194,6 +202,17 @@ export function mountPrintControl({root}){
   guideBody.append(safety);
   const normDetails=el('details','pc-guide-norm-details');
   normDetails.append(el('summary','','Нормативная справка и источники'));
+  if(p.kind==='prep'){
+   const sr=window.FarukhPrepShelfReference?.get(p.name);
+   if(sr){
+    const box=el('section','pc-guide-example');
+    box.append(el('strong','','Срок по санитарным таблицам: '+sr.category));
+    if(sr.clause)box.append(el('p','',sr.clause+(sr.hours?' · '+sr.hours+' ч при '+sr.temp:'')));
+    box.append(el('p','',sr.warning));
+    if(sr.kind==='analogy')box.append(el('p','','Это СРАВНИМАЯ категория, не норма автоматически для данного продукта.'));
+    normDetails.append(box);
+   }
+  }
   const normContent=el('div','pc-guide-norm-content');
   normContent.append(el('h3','',g.group),el('p','',g.question),el('div','pc-guide-example',g.example));
   normContent.append(el('p','pc-guide-warning',p.template?
@@ -206,6 +225,12 @@ export function mountPrintControl({root}){
    link.href=ref.url;link.rel='noopener noreferrer';link.target='_blank';normContent.append(link);
   }
   normDetails.append(normContent);guideBody.append(normDetails);
+  const photoCredit=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
+  if(photoCredit&&displayPhoto(p)===photoCredit.url){
+   const credit=el('a','pc-guide-link','Иллюстративное фото: '+photoCredit.author+' · '+photoCredit.license+' · Wikimedia Commons ↗');
+   credit.href=photoCredit.creditUrl;credit.target='_blank';credit.rel='noopener noreferrer';
+   guideBody.append(credit);
+  }
   const actions=el('div','pc-form-actions');
   actions.append(btn('Закрыть','pc-secondary',()=>guideDialog.close()));
   if(!p.template)actions.append(btn('Редактировать срок и условия','pc-primary',()=>{guideDialog.close();edit(p)}));
@@ -238,9 +263,12 @@ export function mountPrintControl({root}){
  const photoRemove=btn('Убрать фото','pc-secondary',()=>{chosenPhoto='';showPhoto()});
  const photoFile=el('input');photoFile.type='file';photoFile.accept='image/jpeg,image/png,image/webp';photoFile.hidden=true;
  function showPhoto(){
-  const filled=!!chosenPhoto;
-  photoPreview.hidden=!filled;photoEmpty.hidden=filled;photoRemove.disabled=!filled;
-  if(filled)photoPreview.src=chosenPhoto;else photoPreview.removeAttribute('src');
+  const entry=currentEdit?records.find(p=>p.id===currentEdit):null;
+  const preview=chosenPhoto||(entry?displayPhoto(entry):'');
+  photoPreview.hidden=!preview;photoEmpty.hidden=!!preview;photoRemove.disabled=!chosenPhoto;
+  if(preview){photoPreview.src=preview;photoPreview.onerror=()=>{
+   photoPreview.hidden=true;photoEmpty.hidden=false;photoPreview.removeAttribute('src');
+  };}else photoPreview.removeAttribute('src');
  }
  photoFile.addEventListener('change',async()=>{
   const file=photoFile.files?.[0];photoFile.value='';if(!file)return;
@@ -356,16 +384,22 @@ export function mountPrintControl({root}){
    const row=el('div','pc-row');
    const pic=el('div','pc-row-photo');
    const source=displayPhoto(p);
-   if(source){const img=el('img');img.src=source;img.alt='Фото '+p.name;img.loading='lazy';img.decoding='async';pic.append(img)}
-   else pic.append(el('span','pc-photo-placeholder','Фото не загружено'));
+   if(source){
+    const img=el('img');img.src=source;img.alt='Фото '+p.name;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
+    const cred=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
+    if(cred&&source===cred.url)img.title='Иллюстративное фото. '+cred.author+' · '+cred.license+' · Wikimedia Commons';
+    img.onerror=()=>{img.remove();pic.append(el('span','pc-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'Фото недоступно'))};
+    pic.append(img);
+   }else pic.append(el('span','pc-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'Фото не загружено'));
    const desc=el('div','pc-item');
    desc.append(el('strong','',p.name));
    desc.append(el('small','pc-category-label',categoryFor(p)));
-   const details=el('small','',p.template?'ХАССП · Таблица для печати':p.needsReview===true?'Срок не подтверждён · печать заблокирована':(p.hours?p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
+   const details=el('small','',p.template?'ХАССП · Таблица для печати':p.needsReview===true?(p.hours&&p.storage?p.hours+' ч · '+p.storage+' · ждёт подтверждения по ТТК':'Срок не подтверждён · печать заблокирована'):(p.hours?p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
    desc.append(details);
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
    controls.append(btn('Нормы','pc-edit pc-norms-btn',()=>showGuidance(p)));
+   if(p.kind==='prep'&&p.needsReview)controls.append(btn('✓ Подтвердить по ТТК','pc-edit pc-verify-btn',()=>{edit(p);verify.focus()}));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
@@ -418,7 +452,8 @@ export function mountPrintControl({root}){
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';templatePreview.hidden=false;
  templatePreviewTitle.textContent=v.kind==='prep'?'Предпросмотр эталона · 30 × 20 мм':'Предпросмотр эталона · 58 × 40 мм';
  templatePreviewCanvas.replaceChildren();
-  chosenPhoto=displayPhoto(v);
+  // External illustrative references must never be saved as uploaded JPEGs.
+  chosenPhoto=v.photo&&window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo:'';
   showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
   const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v)};
