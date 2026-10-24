@@ -35,7 +35,8 @@ function paint(){
  form.hidden=!paired||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;
  badge.textContent=staff?'● '+staff.name:'○ Вход обязателен';
  badge.dataset.active=staff?'yes':'no';
- if(staff){sessionText.textContent='Точка: '+staff.point+' · Только печать';
+ if(staff){const deadline=staff.expiresAt?' · Доступ до '+new Date(staff.expiresAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' (Москва)':' · Без ограничения срока';
+  sessionText.textContent='Точка: '+staff.point+' · Только печать'+deadline;
   const point=document.getElementById('point-name');
   if(point){point.value=staff.point;point.readOnly=true;point.title='Точка назначена в FARUKH AI';}
  }else{
@@ -81,7 +82,7 @@ async function signin(e){
   const data=await call('/login',{method:'POST',body:JSON.stringify({login:name,password:password.value})});
   session=data.session;try{localStorage.setItem(SESSION,session);sessionStorage.removeItem(SESSION)}catch{}
   staff=data.staff;login.value='';password.value='';
-  tell('Вход сохранён до нажатия «Выйти» или отключения доступа владельцем.');void flushResults();
+  tell('Вход выполнен. Доступ действует до указанного срока или отключения владельцем.');void flushResults();
  }catch(e){if(e.status===401||e.status===403)password.value='';tell(e.message,true)}
  finally{busy=false;paint()}
 }
@@ -142,7 +143,7 @@ const API={
    });
    return result;
   }catch(e){
-   if(e.status===401||(e.status===403&&/Доступ устройства отключён|Устройство не подключено/.test(e.message))){
+   if(e.status===401||(e.status===403&&/Доступ устройства отключён|Устройство не подключено|Срок доступа.*истёк|Доступ сотрудника отключён/.test(e.message))){
     staff=null;session='';try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
     tell('Доступ к печати закрыт: '+e.message,true);paint();
    }
