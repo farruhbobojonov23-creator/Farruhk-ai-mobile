@@ -257,6 +257,7 @@ function openManage(type=manageKind){
 }
 function renderManage(){
  renderHome();$('manage-ready').classList.toggle('selected',manageKind==='ready');$('manage-prep').classList.toggle('selected',manageKind==='prep');
+ $('premium-template-card').hidden=manageKind!=='ready';$('premium-prep-card').hidden=manageKind!=='prep';
  const list=$('manage-list');list.replaceChildren();
  const items=products.filter(p=>p.kind===manageKind).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
  $('manage-empty').hidden=items.length>0;
