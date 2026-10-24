@@ -61,7 +61,7 @@ const isHaccp=p=>!!HACCP?.getTemplate(p);
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
-let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false,manualPrepPremium=false;
+let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false,manualPrepPremium=false,editorPhotoChanged=false;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -244,16 +244,27 @@ function renderCatalog(){
   const item=node('div','product-item product-tile'+(p.id===selected?' selected':'')),select=node('button','product-select');select.type='button';
   select.setAttribute('aria-label','Открыть этикетку: '+p.name);
   const visual=node('span','product-visual');
+  // Prefer the specifically matched 3D-style food element for EVERY known
+  // semi-finished ingredient. Existing product photos remain untouched in
+  // the catalogue and can still be selected explicitly by the owner.
+  const threeD=p.kind==='prep'?window.FarukhPrep3DElements?.find(p):null;
   const fallback=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
   const original=p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
-  if(original||fallback){
-   // Studio assets have a 1.56:1 native framing; match their image box so
-   // they aren't letterboxed like portrait/packaging photos.
-   if(!original&&fallback?.studio)visual.classList.add('studio-preview');
-   const img=node('img','product-photo');img.src=original||fallback.url;img.alt=(original?'Фото товара ':'Иллюстративное фото ингредиента ')+p.name;
+  const usingCustom=!!original&&p.photoStyle==='manual';
+  const displayed=usingCustom?original:(threeD?.url||original||fallback?.url||'');
+  if(displayed){
+   if(displayed===threeD?.url)visual.classList.add('prep-3d-preview');
+   else if(displayed===fallback?.url&&fallback?.studio)visual.classList.add('studio-preview');
+   const img=node('img','product-photo');img.src=displayed;
+   img.alt=(displayed===threeD?.url?'Объёмная 3D-иллюстрация: ':'Фото продукта: ')+p.name;
    img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
-   if(!original&&fallback){img.title=fallback.studio?'Студийный образец FARUKH PRINT':'Иллюстративное фото. '+fallback.author+' · '+fallback.license+' · Wikimedia Commons';}
-   img.onerror=()=>{img.remove();visual.append(node('span','product-photo-placeholder','🍱'));};
+   if(displayed===threeD?.url)img.title='3D-иллюстрация FARUKH PRINT — '+p.name;
+   let triedFallback=false;
+   img.onerror=()=>{
+    const backup=original||fallback?.url;
+    if(!triedFallback&&backup&&backup!==displayed){triedFallback=true;img.src=backup;visual.classList.remove('prep-3d-preview');return}
+    img.remove();visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
+   };
    visual.append(img);
   }else visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
@@ -309,6 +320,7 @@ async function chooseEditorPhoto(ev){
  const file=ev.target.files?.[0];ev.target.value='';if(!file)return;
  try{
   editorPhoto=await window.FarukhPrintPhotos.compress(file);
+  editorPhotoChanged=true;
   renderEditorPhoto();
  }catch(e){alert('Фото не добавлено: '+e.message)}
 }
@@ -320,6 +332,7 @@ function openEditor(p,fromPremiumTemplate=false){
  manageKind=p?.kind||(manualPrepPremium?'prep':manualPremium?'ready':manageKind);
  editing=p?.id||null;
  editorPhoto=window.FarukhPrintPhotos?.isPhoto(p?.photo)?p?.photo||'':'';
+ editorPhotoChanged=false;
  renderEditorPhoto();
  const type=p?.kind||manageKind;
  setFormKind(type);
@@ -361,6 +374,7 @@ function saveEditor(ev){
  const hoursText=str($('edit-hours').value);
  const needsReview=!$('edit-approval').checked;
  const fields={name:str($('edit-name').value),kind:type,storage:str($('edit-storage').value),hours:hoursText?Number(hoursText):null,photo:editorPhoto};
+ if(type==='prep')fields.photoStyle=editorPhotoChanged?(editorPhoto?'manual':'3d'):(products.find(p=>p.id===editing)?.photoStyle||'3d');
  if(!fields.name||fields.name.length>90||hoursText&&(!Number.isSafeInteger(fields.hours)||fields.hours<1||fields.hours>8760)){
   alert('Укажи название и корректный срок годности, если он известен.');return;
  }
@@ -875,7 +889,7 @@ function boot(){
  $('editor-form').addEventListener('submit',saveEditor);
  $('edit-photo-file').addEventListener('change',chooseEditorPhoto);
  $('edit-photo-pick').onclick=()=>$('edit-photo-file').click();
- $('edit-photo-clear').onclick=()=>{editorPhoto='';renderEditorPhoto()};
+ $('edit-photo-clear').onclick=()=>{editorPhoto='';editorPhotoChanged=true;renderEditorPhoto()};
  $('cancel-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('close-editor').onclick=()=>{editFromCatalog=null;$('editor').close()};
  $('editor').addEventListener('cancel',()=>{editFromCatalog=null});
