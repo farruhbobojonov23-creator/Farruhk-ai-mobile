@@ -168,7 +168,7 @@ export function openAdvice(product,{onPrint}={}){
    info.append(create('strong','','Источник: '+ref.category));
    if(ref.clause)info.append(create('p','',ref.clause+(ref.hours?' · '+ref.hours+' ч при '+ref.temp:'')));
    info.append(create('p','',ref.warning));
-   const link=create('a','','Приложение к СанПиН 2.3.2.1324-03 ↗');
+   const link=create('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
    link.href=ref.source;link.target='_blank';link.rel='noopener noreferrer';info.append(link);
    aside.append(info);
   }
