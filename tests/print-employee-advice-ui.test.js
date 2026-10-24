@@ -18,7 +18,7 @@ test('Variant B has a visible independent advice button on every gallery tile',a
  assert.ok(render.indexOf('bottom.append')<render.indexOf('tipsButton.onclick'));
  assert.match(render,/item\.append\(tipsButton,meta\)/);
  assert.match(css,/\.product-tile \.product-tips/);
- assert.match(html,/\.\/print\.js\?v=35/);
+ assert.match(html,/\.\/print\.js\?v=36/);
  assert.match(html,/\.\/print\.css\?v=21/);
 });
 
