@@ -96,6 +96,20 @@ app.get(['/', '/index.html'], async (req,res,next)=>{
 });
 
 installWeatherApi(app);
+// Dedicated employee entry — stable URL, same trusted frontend and catalogue.
+// Do not fork the label templates or employee authorization into a second app.
+app.get(['/farukh-print/staff','/farukh-print/staff/'],async(req,res,next)=>{
+  try{
+    const html=await fs.readFile(new URL('./public/farukh-print/index.html',import.meta.url),'utf8');
+    const employee=html.replace('<head>',`<head>
+<base href="/farukh-print/">
+<script>window.FARUKH_PRINT_EMPLOYEE_ENTRY=true;</script>`)
+      .replace('href="./manifest.webmanifest"','href="/farukh-print/staff/manifest.webmanifest"')
+      .replace('<title>FARUKH PRINT — Этикетки</title>','<title>FARUKH PRINT — Сотрудникам</title>');
+    res.set('Cache-Control','no-cache');
+    res.type('html').send(employee);
+  }catch(error){next(error)}
+});
 app.use(express.static('public'));
 
 // Gemini is enabled only when a server-side API key exists. Never expose keys to the browser.
