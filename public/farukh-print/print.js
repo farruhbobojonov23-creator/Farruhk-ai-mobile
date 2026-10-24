@@ -384,7 +384,15 @@ function canvasBase(w,h,scale=1,vector=false){
 // Crisp monochrome layout v3. Physical raster: 58×40 mm = 464×320 dots.
 // The saved TTK, production times, nutritional values and shelf-life are the
 // only data used. Decorative example values are NEVER inserted into labels.
+// Approved 58×40 premium image: second concept + icon set from first.
+// Both FARUKH PRINT and FARUKH AI use the same vector geometry.
 function drawReady(p,epoch,scale=1,vector=false){
+ if(!window.FarukhPremiumReady?.draw)return drawReadyPrevious(p,epoch,scale,vector);
+ const {c,g}=canvasBase(464,320,scale,vector);
+ window.FarukhPremiumReady.draw(g,p,epoch,{formatDate:formatted});
+ return c;
+}
+function drawReadyPrevious(p,epoch,scale=1,vector=false){
  const {c,g}=canvasBase(464,320,scale,vector);
  // Single strong border consumes less ink and stays legible at 203 dpi.
  rect(g,6,6,452,308,2);
