@@ -573,7 +573,12 @@ function makeSVG(){
  return surface?.toSVG()||null;
 }
 function updatePreview(){
- const p=current();haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=true;
+ const p=current();
+ const dateField=$('printed-at').parentElement;
+ if(dateField&&dateField.firstChild?.nodeType===Node.TEXT_NODE){
+  dateField.firstChild.textContent=(p?.kind==='prep'&&p.prepEvent==='thawed'?'Дата и время разморозки':p?.kind==='prep'&&p.prepEvent==='opened'?'Дата и время вскрытия':'Дата и время изготовления');
+ }
+ haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=true;
  const vectorHost=$('preview-svg');if(vectorHost)vectorHost.hidden=true;
  $('print-now').disabled=!p;
  $('fix-label').hidden=!p||!p.needsReview||isManaged();
