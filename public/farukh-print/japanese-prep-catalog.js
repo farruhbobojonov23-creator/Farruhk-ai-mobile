@@ -239,7 +239,7 @@ const items=[
   }
 ];
 export const definitions=items;
-const normalize=name=>String(name||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/\\s+/g,' ').trim();
+const normalize=name=>String(name||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/\s+/g,' ').trim();
 const found = new Map();
 for(const d of definitions)for(const alias of [d.name,...(d.aliases||[])])found.set(normalize(alias),d);
 const memo=d=>'Предложение для проверки (НЕ срок, установленный СанПиН): внутрицеховой предел не более 12 часов при +2…+6 °C, только после подтверждения безопасности и ТТК. '+d.description+' Если требования изготовителя строже — применяются они. ';
