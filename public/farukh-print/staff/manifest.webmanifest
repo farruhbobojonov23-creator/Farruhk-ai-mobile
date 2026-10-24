@@ -1,0 +1,18 @@
+{
+  "name": "FARUKH PRINT — Сотрудникам",
+  "short_name": "FARUKH PRINT",
+  "description": "Рабочая печать этикеток 58×40 и 30×20 мм для персонала",
+  "start_url": "/farukh-print/staff/",
+  "scope": "/farukh-print/staff/",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#f6f7f9",
+  "icons": [
+    {
+      "src": "/farukh-print/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
