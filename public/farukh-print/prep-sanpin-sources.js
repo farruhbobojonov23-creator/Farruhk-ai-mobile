@@ -3,12 +3,12 @@
 // food safety assessment and manufacturer instructions. No auto-approval.
 (()=>{
 'use strict';
-const source='https://www.consultant.ru/document/cons_doc_LAW_42704/7293c9cc6e6854c6dec240f63c0dcf6e6a49a11f/';
+const source='https://base.garant.ru/4179307/';
 const current='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';
 const food='https://sudact.ru/law/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n_2/tr-ts-0212011/glava-2/statia-7/';
 const direct={
  'дайкон (нарезка)':{hours:12,temp:'+2…+6 °C',clause:'Приложение 1, п. 82',category:'Обработанные, нарезанные редис и редька',warning:'Соответствие этой заготовки позиции таблицы и условиям производства подтверждает технолог.'},
- 'лук зелёный (нарезка)':{hours:18,temp:'+2…+6 °C',clause:'Приложение 1, п. 84',category:'Лук зелёный обработанный',warning:'Это справочный срок для обработанного лука; внутренний более короткий срок 12 часов не противоречит этому ориентиру.'}
+ 'лук зеленый (нарезка)':{hours:18,temp:'+2…+6 °C',clause:'Приложение 1, п. 84',category:'Лук зелёный обработанный',warning:'Это справочный срок для обработанного лука; внутренний более короткий срок 12 часов не противоречит этому ориентиру.'}
 };
 const analogous={
  'форель':{clause:'Приложение 1, п. 40',category:'Филе рыбное — 24 ч при 0…−2 °C',warning:'Это НЕ готовая норма для размороженной форели при +2…+6 °C. Проверь маркировку и ТТК.'},
@@ -23,7 +23,7 @@ const get=name=>{
  if(d)return {...d,kind:'direct',source,current,food};
  if(a)return {...a,kind:'analogy',source,current,food};
  return {kind:'individual',source,current,food,
-  category:'Нет специального срока для этой конкретной заготовки в санитарной таблице',
+  category:'Для точной заготовки нет однозначного сопоставления с санитарной таблицей',
   warning:'Срок назначается и подтверждается по утверждённой ТТК, технологии, условиям хранения и маркировке производителя. 12 ч — предложение, а не норма СанПиН.'};
 };
 window.FarukhPrepShelfReference={get,source,current,food};
