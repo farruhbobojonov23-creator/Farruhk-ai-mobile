@@ -1,6 +1,15 @@
 import {AssistantStore,httpError} from './assistant-store.js';
 import https from 'node:https';
 
+// Log only classifications, never response bodies, credentials or signed URLs.
+export function downloadFailureSummary(status,headers,body){
+  let code='unknown';
+  try{const data=JSON.parse(body);const value=data.error||data.code;if(typeof value==='string'&&/^[A-Za-z]{1,60}Error$/.test(value))code=value}catch{}
+  const kind=/json/i.test(headers['content-type']||'')?'json':/html/i.test(headers['content-type']||'')?'html':'other';
+  const reason=/quota|download.?limit|too many requests/i.test(body)?'limit':/expired|signature/i.test(body)?'signature':/access denied|forbidden|unauthorized/i.test(body)?'access':/internal server error|service unavailable/i.test(body)?'upstream':'unknown';
+  return 'status='+status+' type='+kind+' bytes='+Buffer.byteLength(body)+' code='+code+' reason='+reason;
+}
+
 // Download hosts can time out over IPv6 from the hosting network.
 // Keep TLS verification and follow only HTTPS redirects, without OAuth headers.
 export function cloudDownload(url,{signal}={},redirects=0){
@@ -13,7 +22,7 @@ export function cloudDownload(url,{signal}={},redirects=0){
       }
       const chunks=[];let size=0;
       res.on('data',chunk=>{size+=chunk.length;if(size>20*1024*1024){res.destroy(httpError(502,'Файл облака слишком большой'));return}chunks.push(chunk)});
-      res.on('error',reject);res.on('end',()=>{const body=Buffer.concat(chunks).toString('utf8');resolve({ok:res.statusCode>=200&&res.statusCode<300,status:res.statusCode,json:async()=>JSON.parse(body)})});
+      res.on('error',reject);res.on('end',()=>{const body=Buffer.concat(chunks).toString('utf8');if(res.statusCode>=400)console.error('[cloud-download-detail] '+downloadFailureSummary(res.statusCode,res.headers,body));resolve({ok:res.statusCode>=200&&res.statusCode<300,status:res.statusCode,json:async()=>JSON.parse(body)})});
     });
     req.on('timeout',()=>req.destroy(Object.assign(new Error('Cloud download timeout'),{code:'ETIMEDOUT'})));req.on('error',reject);
   });
