@@ -128,6 +128,13 @@ export function mountPrintControl({root}){
  templateIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 58 × 40 ММ'),el('h2','','Премиальная этикетка'),el('p','','Сохранённый чёрно-белый шаблон: рамки, состав, таблица КБЖУ, даты и иконки. Создай новую позицию вручную — эталон применится автоматически.'));
  const templateButton=btn('＋ Заполнить вручную','pc-primary pc-premium-template-button',()=>{group='ready';query='';category='all';onlyPending=false;page=1;search.value='';render();edit(null,true)});
  templateCard.append(templateIntro,templateButton);
+ const prepCard=el('section','pc-premium-template pc-prep-template');
+ const prepIntro=el('div','pc-premium-template-text');
+ prepIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 30 × 20 ММ'),
+  el('h2','','Премиальная этикетка полуфабриката'),
+  el('p','','Строго выбранный третий вариант: двойная рамка, название, изготовлено/разморожено, годен до, температура и срок. Без состава.'));
+ const prepButton=btn('＋ Заполнить вручную','pc-primary pc-premium-template-button',()=>{group='prep';query='';category='all';onlyPending=false;page=1;search.value='';render();edit(null,'prep')});
+ prepCard.append(prepIntro,prepButton);
  const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();page=1;renderRows()});
  const categorySelect=el('select','pc-search pc-category-filter');categorySelect.setAttribute('aria-label','Фильтр по категории');categorySelect.addEventListener('change',()=>{category=categorySelect.value;page=1;renderRows()});
  const filters=el('div','pc-filters');filters.append(search,categorySelect);
@@ -151,7 +158,7 @@ export function mountPrintControl({root}){
  const roadmap=el('p','pc-roadmap','Пока не подключены: удалённая автоматическая синхронизация между Android-приложениями, персональные логины, журнал входов и удалённая блокировка сотрудников. Для этого понадобится отдельный серверный доступ и защищённое постоянное хранилище.');
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
- root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
+ root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,prepCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
  // The editor lives in the same root; controls are never inserted from user HTML.
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
@@ -265,6 +272,14 @@ export function mountPrintControl({root}){
  templatePreview.append(templatePreviewTitle,templatePreviewHint,templatePreviewCanvas);content.append(templatePreview);
  const prepFields=el('div');
  prepFields.append(field('point','Точка по умолчанию','text',{maxlength:40}));
+ const prepEventHolder=el('label','pc-field');
+ const prepEventTitle=el('span','','Обозначение даты');
+ const prepEventSelect=el('select');
+ prepEventSelect.id='pc-field-prepEvent';fields.prepEvent=prepEventSelect;
+ for(const [value,label] of [['prepared','Изготовлено'],['thawed','Разморожено'],['opened','Вскрыто']]){
+  const option=el('option','',label);option.value=value;prepEventSelect.append(option);
+ }
+ prepEventHolder.append(prepEventTitle,prepEventSelect);prepFields.append(prepEventHolder);
  content.append(prepFields);
  const bottom=el('div','pc-form-two');
  bottom.append(field('storage','Условия хранения','text',{maxlength:60}),field('hours','Срок годности, часы','number',{min:1,max:8760,step:'1'}));
@@ -275,30 +290,35 @@ export function mountPrintControl({root}){
  const actions=el('div','pc-form-actions');actions.append(btn('Отмена','pc-secondary',()=>dialog.close()));
  const save=el('button','pc-primary','Сохранить');save.type='submit';actions.append(save);
  const formError=el('p','pc-error');formError.hidden=true;
- let premiumLoader=null,previewTimeout=null;
- function loadPremiumRenderer(){
-  if(window.FarukhLabelSVG?.surface&&window.FarukhPremiumReady?.draw)return Promise.resolve();
-  if(premiumLoader)return premiumLoader;
+ const premiumLoaders=new Map();let previewTimeout=null;
+ function loadPremiumRenderer(kind='ready'){
+  const prep=kind==='prep';
+  if(window.FarukhLabelSVG?.surface&&(prep?window.FarukhPremiumPrep?.draw:window.FarukhPremiumReady?.draw))return Promise.resolve();
+  if(premiumLoaders.has(kind))return premiumLoaders.get(kind);
   const addScript=(url)=>new Promise((resolve,reject)=>{
    const node=document.createElement('script');node.src=url;node.onload=resolve;node.onerror=()=>reject(Error('Не удалось загрузить шаблон этикетки.'));document.head.append(node);
   });
-  premiumLoader=Promise.resolve().then(async()=>{
+  const load=Promise.resolve().then(async()=>{
    if(!window.FarukhLabelSVG?.surface)await addScript('/farukh-print/label-svg.js?v=3');
-   if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=3');
-  }).catch(e=>{premiumLoader=null;throw e});
-  return premiumLoader;
+   if(prep){if(!window.FarukhPremiumPrep?.draw)await addScript('/farukh-print/premium-prep-label.js?v=1')}
+   else if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=3');
+  }).catch(e=>{premiumLoaders.delete(kind);throw e});
+  premiumLoaders.set(kind,load);return load;
  }
  function updateTemplatePreview(){
-  if(readyFields.hidden||!dialog.open)return;
-  const keys=['name','composition','p','f','c','kcal','weight','tolerance','storage','hours'];
+  if(!dialog.open||templatePreview.hidden)return;
+  const prep=readyFields.hidden;
+  const keys=prep?['name','storage','hours']:['name','composition','p','f','c','kcal','weight','tolerance','storage','hours'];
   if(keys.some(k=>!text(fields[k].value))){templatePreviewCanvas.replaceChildren();templatePreviewHint.textContent='Заполни все поля выше. Для срока и температуры используются только твои значения — примерные цифры не вставляются.';return;}
   const p={};for(const k of keys)p[k]=['p','f','c','kcal','weight','tolerance','hours'].includes(k)?Number(fields[k].value):text(fields[k].value);
-  if(!p.name||!p.composition||!p.storage||p.hours<=0||p.weight<=0){templatePreviewCanvas.replaceChildren();return}
-  loadPremiumRenderer().then(()=>{
-   if(!dialog.open||readyFields.hidden)return;
-   const surface=window.FarukhLabelSVG.surface(464,320);
+  if(!p.name||!p.storage||p.hours<=0||(!prep&&(!p.composition||p.weight<=0))){templatePreviewCanvas.replaceChildren();return}
+  if(prep)p.prepEvent=fields.prepEvent.value;
+  loadPremiumRenderer(prep?'prep':'ready').then(()=>{
+   if(!dialog.open||templatePreview.hidden)return;
+   const surface=window.FarukhLabelSVG.surface(prep?240:464,prep?160:320);
    const fmt=ms=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
-   window.FarukhPremiumReady.draw(surface.g,p,Date.now(),{formatDate:fmt});
+   if(prep)window.FarukhPremiumPrep.draw(surface.g,p,Date.now(),{formatDate:fmt});
+   else window.FarukhPremiumReady.draw(surface.g,p,Date.now(),{formatDate:fmt});
    templatePreviewCanvas.replaceChildren(window.FarukhLabelSVG.element(surface.c.toSVG()));
    templatePreviewHint.textContent='Это предварительный просмотр по заполненным полям. Дата изготовления задаётся при печати. До подтверждения срока печать запрещена.';
   }).catch(e=>{if(dialog.open){templatePreviewCanvas.replaceChildren();templatePreviewHint.textContent='Предпросмотр: '+e.message}});
@@ -397,14 +417,16 @@ export function mountPrintControl({root}){
   }catch(e){message(e.message,true)}
  }
  function edit(product,fromTemplate=false){
-  manualTemplate=!!fromTemplate;
+  manualTemplate=fromTemplate===true?'ready':fromTemplate==='prep'?'prep':'';
   currentEdit=product?.id||null;const v=product||{...empty,kind:group,...(manualTemplate?{tolerance:''}:{})};
-  formTitle.textContent=manualTemplate?'Новая этикетка · Премиум 58 × 40 мм':(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
-  readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';templatePreview.hidden=v.kind!=='ready';templatePreviewCanvas.replaceChildren();
+  formTitle.textContent=manualTemplate==='prep'?'Новая этикетка · Премиум 30 × 20 мм':manualTemplate==='ready'?'Новая этикетка · Премиум 58 × 40 мм':(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
+  readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';templatePreview.hidden=false;
+ templatePreviewTitle.textContent=v.kind==='prep'?'Предпросмотр эталона · 30 × 20 мм':'Предпросмотр эталона · 58 × 40 мм';
+ templatePreviewCanvas.replaceChildren();
   chosenPhoto=displayPhoto(v);
   showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
-  const values={...empty,...v,category:window.FarukhPrintCategories.category(v)};
+  const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v)};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
   verify.checked=product?product.needsReview!==true:false;
   formError.hidden=true;
@@ -415,8 +437,12 @@ export function mountPrintControl({root}){
   const name=text(fields.name.value);
   const hoursValue=text(fields.hours.value);
   const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked,photo:chosenPhoto};
-  if(kind==='ready'&&manualTemplate&&!existing)p.labelStyle='premium-ready-58x40';
-  if(kind==='prep')p.point=text(fields.point.value);
+  if(kind==='ready'&&manualTemplate==='ready'&&!existing)p.labelStyle='premium-ready-58x40';
+  if(kind==='prep'&&manualTemplate==='prep'&&!existing)p.labelStyle='premium-prep-30x20';
+  if(kind==='prep'){
+   p.point=text(fields.point.value);
+   p.prepEvent=['prepared','thawed','opened'].includes(fields.prepEvent.value)?fields.prepEvent.value:'prepared';
+  }
   else{
    p.category=text(fields.category.value).slice(0,60);
    p.composition=text(fields.composition.value);

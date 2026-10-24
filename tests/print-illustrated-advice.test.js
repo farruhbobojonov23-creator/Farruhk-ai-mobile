@@ -61,8 +61,8 @@ test('Every printed-product advice tab displays colorful themed artwork, not ini
  assert.match(ui,/\['Форма','Форма хранения',tips\.form\]/);
  assert.doesNotMatch(ui,/В каком виде лучше хранить/);
  assert.match(app,/employee-advice\.js\?v=3/);
- assert.match(html,/print\.css\?v=17/);
- assert.match(html,/print\.js\?v=28/);
+ assert.match(html,/print\.css\?v=19/);
+ assert.match(html,/print\.js\?v=30/);
 });
 
 test('Advice never guesses or writes shelf-life values, and does not override print authorization',async()=>{
