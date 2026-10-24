@@ -239,10 +239,17 @@ function renderCatalog(){
   const item=node('div','product-item product-tile'+(p.id===selected?' selected':'')),select=node('button','product-select');select.type='button';
   select.setAttribute('aria-label','Открыть этикетку: '+p.name);
   const visual=node('span','product-visual');
-  if(window.FarukhPrintPhotos?.isPhoto(p.photo)&&p.photo){const img=node('img','product-photo');img.src=p.photo;img.alt='Фото товара '+p.name;img.loading='lazy';img.decoding='async';visual.append(img)}
-  else visual.append(node('span','product-photo-placeholder','◇'));
+  const fallback=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
+  const original=p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
+  if(original||fallback){
+   const img=node('img','product-photo');img.src=original||fallback.url;img.alt=(original?'Фото товара ':'Иллюстративное фото ингредиента ')+p.name;
+   img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
+   if(!original&&fallback){img.title='Иллюстративное фото. '+fallback.author+' · '+fallback.license+' · Wikimedia Commons';}
+   img.onerror=()=>{img.remove();visual.append(node('span','product-photo-placeholder','🍱'));};
+   visual.append(img);
+  }else visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
-  const meta=node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?'Требует проверки':p.hours+' ч · '+p.storage);
+  const meta=node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?(p.hours&&p.storage?p.hours+' ч · '+p.storage+' · требует подтверждения':'Срок требует проверки'):p.hours+' ч · '+p.storage);
   select.append(visual,bottom);select.onclick=()=>{selected=p.id;haccpDraft=null;$('haccp-limit').value='';if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog();openWorkerPreview()};item.append(select);
   const tipsButton=node('button','product-tips','▣ Советы');
   tipsButton.type='button';tipsButton.setAttribute('aria-label','Советы по хранению: '+p.name);
@@ -268,7 +275,7 @@ function renderManage(){
   info.append(node('strong','',p.name));
   const guide=guideFor(p);
   if(guide){info.append(node('small','prep-kind',guide[0]));info.append(node('small','prep-guide',guide[1]))}
-  info.append(node('small','',isHaccp(p)?'ХАССП · Чёткая таблица':p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована'):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
+  info.append(node('small','',isHaccp(p)?'ХАССП · Чёткая таблица':p.needsReview?(isSpicy(p)&&p.hours===48?'Предложено владельцем: 48 ч · +2…+6 °C · печать до подтверждения заблокирована':(p.hours&&p.storage?'Предложено: '+p.hours+' ч · '+p.storage+' · печать до подтверждения заблокирована':'Требуется подтверждение данных · печать заблокирована')):manageKind==='ready'?('Вес '+p.weight+' г · '+p.hours+' ч · '+p.storage):(p.hours+' ч · '+p.storage)));
   const actions=node('div');const edit=node('button','','Изменить'),del=node('button','delete','Удалить');
   edit.type='button';del.type='button';edit.disabled=cloudPaired||isHaccp(p);del.disabled=cloudPaired;edit.onclick=()=>openEditor(p);
   del.onclick=()=>{if(cloudPaired)return;if(!confirm('Удалить этикетку «'+p.name+'» из базы?'))return;products=products.filter(x=>x.id!==p.id);if(save()){renderManage();if(selected===p.id)selected=null}};
