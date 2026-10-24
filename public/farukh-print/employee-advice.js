@@ -2,7 +2,7 @@
 // catalog, durations or product data. Managed and standalone modes use one UI.
 import {storageAdviceFor,PRACTICE_REFERENCES} from './storage-advice.js';
 import {guidanceForProduct,REFERENCES} from './shelf-life-guidance.js';
-import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js';
+import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js?v=2';
 
 const norm=v=>String(v||'').toLocaleLowerCase('ru').replace(/ё/g,'е');
 const create=(tag,cls,txt)=>{
@@ -89,7 +89,7 @@ export function neighborsFor(product){
 const sectionData=(product,tips,norms)=>({
  'Советы':[
   ['Упаковка','Как правильно хранить',tips.packaging],
-  ['Форма','В каком виде лучше хранить',tips.form],
+  ['Форма','Форма хранения',tips.form],
   ['Температура','Температура и охлаждение',tips.temperature],
   ['Порча','Признаки возможной порчи',tips.spoilage],
   ['Контроль','Контроль на смене',tips.control],
@@ -97,7 +97,7 @@ const sectionData=(product,tips,norms)=>({
  ],
  'Хранение':[
   ['Температура','При какой температуре',tips.temperature],
-  ['Форма','В каком виде лучше хранить',tips.form],
+  ['Форма','Форма хранения',tips.form],
   ['Тара','Какая упаковка подходит',tips.packaging],
   ['Проверка','Как распознать возможную порчу',tips.spoilage]
  ],
@@ -134,7 +134,7 @@ export function openAdvice(product,{onPrint}={}){
  if(isCatalogPhoto(product.photo)){
   hero.append(picture(product.photo,'print-advice-photo','Фото: '+product.name));
  }else{
-  hero.append(picture(illustrationFor('container'),'print-advice-photo','Иллюстрация: '+product.name));
+  hero.append(create('div','print-advice-photo-blank','Фото товара пока не добавлено'));
  }
  aside.append(hero,create('h2','',product.name));
  aside.append(create('p','print-advice-kind',product.template?'Служебная этикетка ХАССП':product.kind==='ready'?'Готовая продукция':'Полуфабрикат'));
@@ -142,7 +142,7 @@ export function openAdvice(product,{onPrint}={}){
  const factsRows=[
   ['Срок хранения',product.template?'По инструкции':product.needsReview||!product.hours?'Требует проверки':product.hours+' часов'],
   ['Условия хранения',product.template?'По инструкции средства':product.storage||'Уточнить по ТТК'],
-  ['Форма хранения',tips.heading],
+  ['Форма хранения',product.form|| (product.template?'По инструкции':'См. рекомендации ниже')],
  ];
  for(const [k,v] of factsRows){
   const row=create('div','print-advice-fact');

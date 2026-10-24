@@ -38,10 +38,21 @@ const icons={
  chemical:'<g filter="url(#shade)"><path d="M25 35H90L83 83H33Z" fill="#80cde8" stroke="#468fa6" stroke-width="3"/><path d="M36 52H80" stroke="#e8f8fd" stroke-width="3"/><path d="M39 32Q57 9 77 32" fill="none" stroke="#468fa6" stroke-width="6"/><path d="M44 60h30" stroke="white" stroke-width="5"/></g>',
  fish:'<g filter="url(#shade)"><path d="M12 55Q39 12 82 37Q101 52 82 70Q42 91 12 55Z" fill="url(#salmon)" stroke="#d67869" stroke-width="2"/><path d="M20 48Q48 34 78 43M24 59Q50 47 82 55M33 70Q55 56 78 64" stroke="#ffe3d2" stroke-width="4" fill="none" stroke-linecap="round"/></g>'
 };
+// Generic storage pictograms must NEVER contain a product (including the
+// cucumber previously embedded in the container, refrigerator and loupe).
+// Product-specific illustrations belong exclusively to the neighbors tab.
+Object.assign(icons,{
+ container:'<g filter="url(#shade)"><path d="M15 32H106L99 77Q97 86 85 88H37Q26 86 23 77Z" fill="url(#glass)" stroke="#87b7ce" stroke-width="3"/><path d="M28 42h67l-5 35q-32 7-55 0Z" fill="#c8e7f1" opacity=".52"/><rect x="31" y="49" width="22" height="19" rx="3" fill="#f6fffe" stroke="#83b9c4" stroke-width="2"/><path d="M34 54h15M34 60h10" stroke="#71b4c1" stroke-width="2.5"/><rect x="60" y="50" width="24" height="18" rx="4" fill="#dce9f3" stroke="#9fbacb" stroke-width="2"/><path d="M68 53v11M64 58h8" stroke="#86adc2" stroke-width="2"/><path d="M11 28Q12 21 22 21H98Q110 21 110 28Q110 36 98 36H22Q11 36 11 28Z" fill="#e0f8f3" stroke="#7eb9b3" stroke-width="2.4"/><path d="M32 26h58" stroke="white" stroke-width="3" opacity=".8"/></g>',
+ fridge:'<g filter="url(#shade)"><rect x="23" y="9" width="74" height="85" rx="8" fill="#d4eafa" stroke="#97bed7" stroke-width="3"/><rect x="31" y="17" width="58" height="67" rx="4" fill="#f4fbff"/><path d="M31 49H89" stroke="#aecbdf" stroke-width="3"/><path d="M31 68H89" stroke="#cbddeb" stroke-width="2"/><rect x="36" y="24" width="25" height="20" rx="4" fill="#bbdef3" stroke="#81bbda" stroke-width="2"/><rect x="65" y="28" width="18" height="16" rx="3" fill="#d0f2f1" stroke="#84c5bd" stroke-width="2"/><rect x="40" y="54" width="37" height="9" rx="3" fill="#dcecf5"/><rect x="37" y="72" width="25" height="7" rx="3" fill="#d8eaf5"/><path d="M20 16V84" stroke="#86adbf" stroke-width="3"/><path d="M49 30v9m-4-5h9" stroke="white" stroke-width="2"/></g>',
+ spoiled:'<g filter="url(#shade)"><path d="M60 11L111 91H9Z" fill="#ffe9e5" stroke="#d93749" stroke-width="7" stroke-linejoin="round"/><path d="M60 38V66" stroke="#c82745" stroke-width="9" stroke-linecap="round"/><circle cx="60" cy="78" r="5" fill="#c82745"/></g>',
+ magnifier:'<g filter="url(#shade)"><rect x="17" y="10" width="67" height="76" rx="7" fill="#f6fdff" stroke="#98bfcd" stroke-width="3"/><rect x="37" y="6" width="26" height="10" rx="4" fill="#74b7cd"/><path d="M29 34l6 6 9-12M29 54l6 6 9-12" stroke="#38a56d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M50 36h17M50 56h16" stroke="#a8bac9" stroke-width="3"/><circle cx="75" cy="68" r="19" fill="#d5f2fc" fill-opacity=".55" stroke="#385869" stroke-width="6"/><path d="M88 81l15 15" stroke="#385869" stroke-width="8" stroke-linecap="round"/></g>',
+ vacuum:'<g filter="url(#shade)"><path d="M13 23Q12 14 21 14H99Q108 14 107 23L101 81Q100 89 91 89H28Q19 89 18 80Z" fill="#f0fbff" stroke="#7bacc8" stroke-width="3"/><path d="M18 26H103" stroke="#9acbdf" stroke-width="6"/><rect x="28" y="38" width="64" height="36" rx="8" fill="#cee4f4" stroke="#8ab6cd" stroke-width="2"/><path d="M40 54H81M40 61H73" stroke="#86a9bf" stroke-width="3" stroke-linecap="round"/><path d="M40 44h28" stroke="white" stroke-width="3"/><circle cx="87" cy="24" r="3" fill="#51bfad"/></g>',
+ prohibited:'<g filter="url(#shade)"><circle cx="60" cy="50" r="38" fill="#fff3f4" stroke="#d62c48" stroke-width="8"/><path d="M35 25L85 75" stroke="#d62c48" stroke-width="9" stroke-linecap="round"/><path d="M40 54h41" stroke="#e79ea6" stroke-width="5" stroke-linecap="round"/></g>'
+});
 const aliases={
  'холодильник':'fridge','температура':'fridge','термометр':'fridge','режим':'fridge',
  'тара':'container','емкость':'container','контейнер':'container','упаковка':'container','вакуум':'container','хранить':'container',
- 'форма':'cucumber','вид':'cucumber','огур':'cucumber','овощ':'vegetables','морков':'vegetables','перец':'vegetables','капуст':'vegetables',
+ 'форма':'vacuum','вид':'vacuum','огур':'cucumber','овощ':'vegetables','морков':'vegetables','перец':'vegetables','капуст':'vegetables',
  'зелень':'herbs','салат':'herbs','укроп':'herbs','петруш':'herbs','сыр':'cheese','молочн':'cheese',
  'соус':'sauce','майонез':'sauce','маринад':'sauce','масло':'sauce',
  'мясо':'rawmeat','птица':'rawmeat','куриц':'rawmeat','говядин':'rawmeat',
@@ -77,19 +88,24 @@ export function illustrationFor(which){
 }
 export function isCatalogPhoto(value){return typeof value==='string'&&(/^data:image\/(?:jpeg|png|webp);base64,/.test(value)||/^https:\/\//.test(value))}
 export function advicePicture(product,section,title){
- const n=name(product?.name),t=name(title);
- // The owner's real photo remains visible for the product, when available.
- if((/в каком виде|лучше хранить|подготовка/.test(t)||section==='Форма')&&isCatalogPhoto(product?.photo))return product.photo;
- if(/температур|режим|охлаждени|размороз/.test(t))return illustrationFor('fridge');
- if(/упаков|тар|емкост|хранить/.test(t))return illustrationFor('container');
- if(/порч|брак|нельзя|ошиб/.test(t))return illustrationFor('spoiled');
+ // All food items share meaning-based pictograms on Tips, Storage and Norms.
+ // Do not insert the product photo or a random ingredient in the inner cards.
+ const bySection={
+  'Упаковка':'container','Форма':'vacuum','Температура':'fridge',
+  'Порча':'spoiled','Контроль':'magnifier','Важно':'prohibited',
+  'Тара':'container','Проверка':'spoiled','Технология':'clipboard',
+  'Справка':'books'
+ };
+ if(bySection[section])return illustrationFor(bySection[section]);
+ const t=name(title);
+ if(/порч|брак|ошиб|опасн/.test(t))return illustrationFor('spoiled');
+ if(/запрет|нельзя|избег/.test(t))return illustrationFor('prohibited');
  if(/контрол|провер/.test(t))return illustrationFor('magnifier');
+ if(/температур|режим|охлажден|размороз/.test(t))return illustrationFor('fridge');
+ if(/форм|вид хранен|вакуум/.test(t))return illustrationFor('vacuum');
+ if(/норм|условия применения/.test(t))return illustrationFor('books');
  if(/срок|технолог/.test(t))return illustrationFor('clipboard');
- if(/нормат|условия применения/.test(t))return illustrationFor('books');
- if(/форел|лосос|угор/.test(n))return illustrationFor('fish');
- if(/кревет|краб|морепродукт/.test(n))return illustrationFor('seafood');
- if(/огур/.test(n))return illustrationFor('cucumber');
- return illustrationFor(subjectFor(n,'package'));
+ return illustrationFor('container');
 }
 export function neighborPicture(text){
  return illustrationFor(subjectFor(text,'package'));

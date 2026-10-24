@@ -363,3 +363,55 @@ body.worker-managed.worker-logged-in #point-field{display:none!important}
  .print-advice-neighbor-picture{width:63px;height:55px}
  .print-advice-neighbor-item>span{font-size:11.4px}
 }
+
+/* Approved universal kitchen reference: readable phones, no 1-character
+   vertical titles when a high-DPI Android device reports >700 CSS px. */
+.print-advice-dialog{overflow-x:hidden}
+.print-advice-aside,.print-advice-main,.print-advice-facts,.print-advice-fact-value{min-width:0}
+.print-advice-aside h2{word-break:normal;overflow-wrap:break-word;hyphens:manual;min-width:0}
+.print-advice-photo-blank{display:grid;place-items:center;min-height:98px;font-size:11px;line-height:1.4;color:#8d9fa9;text-align:center}
+@media (max-width:900px), (orientation:portrait){
+ .print-advice-dialog{box-sizing:border-box;width:calc(100% - 16px);max-width:740px;max-height:calc(100dvh - 24px);border-radius:20px;margin:auto}
+ .print-advice-layout{display:block;min-width:0}
+ .print-advice-aside{border-right:0;border-bottom:1px solid #e5ebf0;padding:16px 17px 13px;background:#fff;display:grid;grid-template-columns:112px minmax(0,1fr);column-gap:12px;row-gap:5px}
+ .print-advice-hero{grid-column:1;grid-row:1/span 2;min-height:112px;max-height:126px;border-radius:12px}
+ .print-advice-photo{height:119px;max-height:119px;object-fit:contain}
+ .print-advice-aside h2{grid-column:2;align-self:end;font-size:clamp(18px,4vw,25px);line-height:1.25;letter-spacing:-.4px;overflow-wrap:break-word;word-break:normal;margin:0 44px 0 0;max-width:100%}
+ .print-advice-kind{grid-column:2;grid-row:2;align-self:start;margin:1px 0 0;font-size:12px}
+ .print-advice-facts{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 5px;padding:7px 8px;border-radius:12px;margin-top:6px}
+ .print-advice-fact{padding:6px;min-width:0;border:0;display:grid;grid-template-columns:24px minmax(0,1fr);gap:5px}
+ .print-advice-fact:last-child{grid-column:1/-1;border-top:1px solid #edf1f3}
+ .print-advice-fact-value span{max-width:100%}
+ .print-advice-fact-value strong{max-width:100%;font-size:12px;line-height:1.4;text-align:left;overflow-wrap:break-word;word-break:normal}
+ .print-advice-print{grid-column:1/-1;min-height:46px;margin-top:2px}
+ .print-advice-close{position:sticky;top:9px;float:right;margin:9px 10px -50px 0;z-index:10}
+ .print-advice-main{display:block;padding:18px 15px 22px;width:100%;min-width:0}
+ .print-advice-heading h3{font-size:clamp(18px,3vw,23px);margin:4px 39px 13px 0}
+ .print-advice-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;overflow-x:visible}
+ .print-advice-tab{min-width:0;flex:initial;font-size:clamp(10px,1.6vw,12px);padding:8px 3px;line-height:1.35;min-height:42px;white-space:nowrap}
+ .print-advice-neighbor-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .print-advice-neighbor{min-width:0}
+ .print-advice-neighbor-item{grid-template-columns:48px minmax(0,1fr)}
+ .print-advice-neighbor-picture{width:47px;height:50px}
+ .print-advice-neighbor-item>span{overflow-wrap:break-word}
+}
+@media(max-width:480px){
+ .print-advice-dialog{width:calc(100% - 12px);max-height:calc(100dvh - 14px)}
+ .print-advice-aside{grid-template-columns:86px minmax(0,1fr);padding:12px 13px 12px;gap:6px}
+ .print-advice-hero{min-height:93px;max-height:110px}
+ .print-advice-photo{height:100px;max-height:100px}
+ .print-advice-aside h2{font-size:19px;margin-right:35px}
+ .print-advice-facts{padding:5px}
+ .print-advice-fact{grid-template-columns:19px 1fr}
+ .print-advice-fact-value span{font-size:10px}
+ .print-advice-fact-value strong{font-size:11px}
+ .print-advice-main{padding:14px 11px 19px}
+ .print-advice-tab{font-size:10px;gap:3px;padding:8px 2px}
+ .print-advice-tab-icon{font-size:13px}
+ .print-advice-row{grid-template-columns:76px minmax(0,1fr);gap:8px;padding:10px 9px}
+ .print-advice-row-picture{width:76px;height:76px}
+ .print-advice-neighbor-grid{grid-template-columns:1fr}
+ .print-advice-neighbor-item{grid-template-columns:60px minmax(0,1fr);min-height:62px}
+ .print-advice-neighbor-picture{width:58px;height:55px}
+ .print-advice-neighbor-item>span{font-size:11px}
+}
