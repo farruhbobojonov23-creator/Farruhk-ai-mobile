@@ -4,7 +4,7 @@
 // contains conditional examples and must not be treated as universal values.
 // Never write these examples into an actual printing label automatically.
 export const REFERENCES=Object.freeze([
- {name:'СанПиН 2.3/2.4.4282-26',url:'https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/'},
+ {name:'СанПиН 2.3/2.4.4282-26',url:'https://base.garant.ru/414329257/'},
  {name:'ТР ТС 021/2011 · ст. 7, п. 6',url:'https://sudact.ru/law/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n_2/tr-ts-0212011/glava-2/statia-7/'},
  {name:'СанПиН 2.3.2.1324-03 · примеры из приложения 1',url:'https://base.garant.ru/4179307/'},
 ]);
