@@ -80,11 +80,15 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
  .label{break-after:page;page-break-after:always;break-inside:avoid;width:58mm;height:40mm}
  .label:last-child{break-after:auto;page-break-after:auto}
 }
+/* Identical crisp 58x40 premium SVG in FARUKH AI, including print output. */
+.label.premium-svg-label{display:block;padding:0!important;box-sizing:border-box;overflow:hidden}
+.label.premium-svg-label svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
+@media print{.label.premium-svg-label{margin:0;box-shadow:none;transform:none!important}}
 </style></head>
 <body>
 <div class="shell">
 <header><div><div class="brand">СУШИ <em>БЕРИ</em></div><div class="crumb">МАРКИРОВКА · FARRUH AI</div></div><div class="tools"><a class="link" href="/marking.html">31 × 20 · Полуфабрикаты</a><a class="link" href="/">← Главная</a></div></header>
-<div class="title"><span class="eyebrow">Готовая продукция</span><h1>Этикетки 58 × 40 мм</h1><p class="desc">Чёрно-белый шаблон №1: строгие рамки, таблица пищевой ценности, состав и автоматические даты.</p></div>
+<div class="title"><span class="eyebrow">Готовая продукция</span><h1>Этикетки 58 × 40 мм</h1><p class="desc">Премиальная чёрно-белая этикетка: двойная рамка, крупное название, состав, таблица КБЖУ, даты и пиктограммы.</p></div>
 <div class="grid">
 <section class="box"><div class="heading"><h2>Товары</h2><button id="add" class="soft">＋ Добавить товар</button></div>
 <div class="ttk-tools"><button id="sync-ttk" class="soft" type="button">↻ Из техкарт FARUKH AI</button><button id="sync-google" class="soft" type="button">☁ Из копии Google</button></div><p id="ttk-state" class="ttk-state" role="status" aria-live="polite">Ищу готовые ТТК на устройстве…</p>
@@ -116,6 +120,8 @@ footer{font-size:11px;color:#777e87;text-align:center;margin-top:25px}
 </div>
 <div class="dialog-actions"><button type="button" id="delete" class="danger">Удалить товар</button><button type="submit" class="primary">Сохранить</button></div>
 </form></dialog>
+<script src="/farukh-print/label-svg.js?v=3"></script>
+<script src="/farukh-print/premium-ready-label.js?v=1"></script>
 <script>
 (()=>{
 'use strict';
@@ -131,20 +137,13 @@ function nowLocal(){const x=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'n
 function toEpoch(value){if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))return NaN;let ms=Date.parse(value+':00+03:00');return Number.isFinite(ms)?ms:NaN}
 function fmt(ms){return new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','')}
 const num=v=>Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1,minimumFractionDigits:1});
+// FARUKH AI displays precisely the same real vector label as FARUKH PRINT.
 function makeLabel(p,epoch){
- const exp=epoch+Number(p.hours)*3600000;
- const root=text('div',undefined,'label'),inner=text('div',undefined,'label-inner');
- const h=text('div',undefined,'lb-top');h.append(text('b','СУШИ БЕРИ'),text('span','Готовая продукция'));inner.append(h);
- const title=text('div',p.name.toUpperCase(),'lb-title'+(p.name.length>24?' small':''));inner.append(title);
- const nutri=text('div',undefined,'lb-nutri'),nh=text('div','Пищевая ценность на 100 г','lb-nutri-head'),nv=text('div',undefined,'lb-nutri-values');
- for(const [k,v] of [['Б (г)',num(p.p)],['Ж (г)',num(p.f)],['У (г)',num(p.c)],['Ккал',String(p.kcal)]]){let cell=text('div');cell.append(text('b',k),text('span',v));nv.append(cell)}
- nutri.append(nh,nv);inner.append(nutri);
- const ingredients=text('div',undefined,'lb-ingredients');ingredients.append(text('b','Состав: '),document.createTextNode(p.composition));inner.append(ingredients);
- const b=text('div',undefined,'lb-bottom'),weight=text('div',undefined,'lb-weight');
- weight.append(text('small','Вес нетто:'),text('strong',p.weight+' г (±'+p.tolerance+' г)'));
- const dates=text('div',undefined,'lb-dates');for(const [k,v] of [['Изгот.:',fmt(epoch)],['Годен:',fmt(exp)]]){const line=text('div');line.append(text('b',k),text('span',v));dates.append(line)}
- const storage=text('div',undefined,'lb-storage');const s1=text('div');s1.append(text('span','Хранить при:'),text('b',p.storage));const s2=text('div');s2.append(text('span','Срок годн.:'),text('b',p.hours+' ч'));storage.append(s1,s2);
- b.append(weight,dates,storage);inner.append(b);root.append(inner);return root;
+ const surface=window.FarukhLabelSVG.surface(464,320);
+ window.FarukhPremiumReady.draw(surface.g,p,epoch,{formatDate:fmt});
+ const root=text('div',undefined,'label premium-svg-label');
+ root.append(window.FarukhLabelSVG.element(surface.c.toSVG()));
+ return root;
 }
 function valid(p){return !!p&&p.name?.trim()&&p.name.length<=70&&p.composition?.trim()&&p.composition.length<=280&&p.storage?.trim()&&[p.p,p.f,p.c,p.kcal,p.weight,p.tolerance,p.hours].every(x=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x))&&Number(x)>=0)&&Number(p.weight)>0&&Number(p.hours)>=.5&&Number(p.hours)<=720}
 function preview(){const p=product(),epoch=toEpoch($('made').value),box=$('preview');box.replaceChildren();
@@ -190,5 +189,5 @@ $('delete').onclick=()=>{const p=product();if(!p||!confirm('Удалить то�
 window.FARUKH_LABELS={getPrintJob:()=>{const p=product(),epoch=toEpoch($('made').value),copies=Number($('copies').value);if(!valid(p)||p.needsReview||p.sourceChanged||!Number.isFinite(epoch)||!Number.isInteger(copies)||copies<1||copies>20)return null;return {product:structuredClone(p),epoch,copies}},getProducts:()=>state.products,applyProducts:products=>{const prev=state.products;state.products=products;if(!persist()){state.products=prev;throw Error('Не удалось сохранить этикетки на устройстве')}render()},getCurrent:()=>product(),updateEditorFields:imported=>{for(const key of ['name','composition','p','f','c','kcal','weight'])$('f-'+key).value=imported[key]??'';if(product()?.ttkId===imported.ttkId)pendingTtkSignature=imported.ttkSignature;}};
 $('print').onclick=print;window.addEventListener('afterprint',()=>$('printsheet').replaceChildren());render();
 })();
-</script><script type="module" src="/label-auto-ui.js?v=1"></script><script type="module" src="/label-bluetooth-direct.js?v=1"></script>
+</script><script type="module" src="/label-auto-ui.js?v=1"></script><script type="module" src="/label-bluetooth-direct.js?v=2"></script>
 </body></html>
