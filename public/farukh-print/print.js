@@ -640,7 +640,8 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
- import('./haccp-catalog.js?v=1').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
+ import('./supplemental-photos.js?v=1').then(m=>{if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('./haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
  load();renderHome();$('printed-at').value=nowLocal();
  renderWorker();

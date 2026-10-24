@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 import {installPrintStaffApi} from './print-staff-api.js';
 import {configuredPrintStore} from './print-recovery-store.js';
+import * as supplementalPhotos from './public/farukh-print/supplemental-photos.js';
 
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
@@ -88,13 +89,16 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
         appliedImports.push(catalogPhotoImport.version);
       }
       if(haccpCatalogImport&&!appliedImports.includes(haccpCatalogImport.version)){imported=haccpCatalogImport.merge(imported);appliedImports.push(haccpCatalogImport.version);}
+      if(!appliedImports.includes(supplementalPhotos.version)){imported=supplementalPhotos.merge(imported);appliedImports.push(supplementalPhotos.version);}
       if(appliedImports.length===(current.appliedImports||[]).length)return;
       const products=validateCatalog(imported);
       await store.write(FILE_CATALOG,{...current,products,revision:current.revision+1,
         appliedImports,updatedAt:new Date().toISOString()});
+      console.info('[print-catalog] revision='+(current.revision+1)+' products='+products.length+' photos='+products.filter(p=>p.photo).length);
     }).catch(e=>{importPromise=null;throw e});
     await importPromise;
   };
+  if(enabled&&process.env.FARUKH_PRINT_RECOVERY_GENERATION==='20261024-v1')void ensureReadyCatalog().catch(e=>console.error('[print-catalog] migration-unavailable status='+(e.status||0)));
   const readDevices=async()=>{
     const data=await store.read(FILE_DEVICES,[]);
     if(!Array.isArray(data))throw error(503,'Список устройств повреждён.');

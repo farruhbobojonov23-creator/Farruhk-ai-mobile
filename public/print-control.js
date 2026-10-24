@@ -1,4 +1,4 @@
-import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js';
+import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
 // Одна локальная база для страниц одного браузера/домена.

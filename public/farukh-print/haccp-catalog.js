@@ -1,4 +1,5 @@
 // Dedicated non-food templates. Durations are not food expiry fields.
+import {photoFor} from './supplemental-photos.js';
 export const version='haccp-2026-10-24-v1';
 const definitions=[
  ['nika-stock','Ника-2 · запас раствора','НИКА-2','ЗАПАС РАБОЧЕГО РАСТВОРА','stock',21],
@@ -12,8 +13,13 @@ const definitions=[
  ['broom','Место хранения искусственного веника','МЕСТО ХРАНЕНИЯ','ИСКУССТВЕННОГО ВЕНИКА','place',0]
 ];
 export const templates=definitions.map(([template,name,title,subtitle,mode,days])=>({id:'haccp-'+template,kind:'ready',category:'ХАССП',template,name,title,subtitle,mode,days,needsReview:false}));
-export const getTemplate=p=>p&&templates.find(t=>t.template===p.template);
-export function merge(existing){return [...existing,...templates.filter(t=>!existing.some(p=>p.template===t.template)).map(t=>({...t}))]}
+export const getTemplate=p=>{
+ const t=p&&templates.find(t=>t.template===p.template);if(!t)return undefined;
+ const photo=p.photo||photoFor(t);
+ if(photo&&(typeof photo!=='string'||photo.length>45000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(photo)))throw Error('Некорректная фотография ХАССП.');
+ return {...t,...(photo?{photo}:{})};
+};
+export function merge(existing){return [...existing,...templates.filter(t=>!existing.some(p=>p.template===t.template)).map(t=>getTemplate(t))]}
 export function deadline(t,start,limit){
  if(t.mode==='place')return null;
  if(!Number.isFinite(start))throw Error('Неверная дата приготовления.');

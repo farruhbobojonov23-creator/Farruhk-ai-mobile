@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installPrintSyncApi} from '../print-sync-api.js';
+import fs from 'node:fs';
 
 function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport){
  const routes=new Map(),cloud=new Map();
@@ -34,6 +35,28 @@ function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport){
  }
  return {req,cloud};
 }
+
+test('Missing photos fill all 76 cards, preserve owner photos and survive publication',async()=>{
+ const ready=await import('../public/farukh-print/ready-catalog.js');
+ const photo=await import('../public/farukh-print/catalog-photos.js');
+ const haccp=await import('../public/farukh-print/haccp-catalog.js');
+ const seed=JSON.parse(fs.readFileSync(new URL('../print-recovery-catalog.json',import.meta.url),'utf8'));
+ const products=haccp.merge(photo.merge(ready.merge(seed)));
+ const before=new Map(products.filter(p=>p.photo).map(p=>[p.id,p.photo]));
+ const {req,cloud}=makeApi(ready,photo,haccp);
+ cloud.set('farukh-print-catalog.json',{revision:12,products,appliedImports:[ready.version,photo.version,haccp.version]});
+ const owner={cookie:'fai_owner=ok'};
+ const filled=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(filled.code,200);assert.equal(filled.payload.revision,13);
+ assert.equal(filled.payload.products.length,76);
+ assert.ok(filled.payload.products.every(p=>p.photo?.startsWith('data:image/jpeg;base64,')));
+ for(const p of filled.payload.products)if(before.has(p.id))assert.equal(p.photo,before.get(p.id));
+ assert.ok(Buffer.byteLength(JSON.stringify({revision:13,products:filled.payload.products}))<1024*1024);
+ const again=await req('get','/api/farukh-print/admin/catalog',owner);assert.equal(again.payload.revision,13);
+ const custom=filled.payload.products.map(p=>p.template==='soap'?{...p,photo:'data:image/jpeg;base64,AAAA'}:p);
+ const saved=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:13,products:custom}});
+ assert.equal(saved.code,200);assert.equal(saved.payload.products.find(p=>p.template==='soap').photo,'data:image/jpeg;base64,AAAA');
+});
 
 test('FARUKH PRINT cloud sync: owner auth, atomic revisions, device pairing and revoke',async()=>{
  const {req}=makeApi();
@@ -119,7 +142,7 @@ test('ready TTK import preserves existing labels, bumps revision once and respec
  assert.equal(first.payload.products[0].photo,custom.photo);
  const next=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:8,products:[]}});
  assert.equal(next.code,200);
- assert.deepEqual(next.payload.appliedImports,[catalog.version]);
+ assert.deepEqual(next.payload.appliedImports,[catalog.version,'missing-card-photos-2026-10-24-v1']);
  const reread=await req('get','/api/farukh-print/admin/catalog',owner);
  assert.deepEqual(reread.payload.products,[]);
  assert.equal(reread.payload.revision,9);
@@ -153,7 +176,7 @@ test('v2 imports only the newly approved crab roll on previously imported device
  const result=await req('get','/api/farukh-print/admin/catalog',{cookie:'fai_owner=ok'});
  assert.equal(result.code,200);assert.equal(result.payload.products.length,1);
  assert.equal(result.payload.revision,11);
- assert.deepEqual(result.payload.appliedImports,[catalog.previousVersion,catalog.version]);
+ assert.deepEqual(result.payload.appliedImports,[catalog.previousVersion,catalog.version,'missing-card-photos-2026-10-24-v1']);
 });
 
 
