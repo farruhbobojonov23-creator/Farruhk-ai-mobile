@@ -1,30 +1,29 @@
-// Read-only source guidance for Japanese kitchen prep shelf life.
-// Applicable norms DO NOT waive the owner's responsibility for a documented
-// food safety assessment and manufacturer instructions. No auto-approval.
+// Current food safety requirements for prep labels, read-only. No
+// universal SanPiN 12h value exists for every Japanese kitchen product.
+// DO NOT approve a label from this informational widget.
 (()=>{
 'use strict';
-const source='https://base.garant.ru/4179307/';
 const current='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';
-const food='https://sudact.ru/law/reshenie-komissii-tamozhennogo-soiuza-ot-09122011-n_2/tr-ts-0212011/glava-2/statia-7/';
-const direct={
- 'дайкон (нарезка)':{hours:12,temp:'+2…+6 °C',clause:'Приложение 1, п. 82',category:'Обработанные, нарезанные редис и редька',warning:'Соответствие этой заготовки позиции таблицы и условиям производства подтверждает технолог.'},
- 'лук зеленый (нарезка)':{hours:18,temp:'+2…+6 °C',clause:'Приложение 1, п. 84',category:'Лук зелёный обработанный',warning:'Это справочный срок для обработанного лука; внутренний более короткий срок 12 часов не противоречит этому ориентиру.'}
-};
-const analogous={
- 'форель':{clause:'Приложение 1, п. 40',category:'Филе рыбное — 24 ч при 0…−2 °C',warning:'Это НЕ готовая норма для размороженной форели при +2…+6 °C. Проверь маркировку и ТТК.'},
- 'лосось (размороженный)':{clause:'Приложение 1, п. 40',category:'Филе рыбное — 24 ч при 0…−2 °C',warning:'Нельзя переносить срок на размороженное филе при другой температуре.'},
- 'креветка':{clause:'Приложение 1, п. 53',category:'Варёные креветки — 12 ч при +2…+6 °C',warning:'В карточке неизвестно, сырая креветка или варёная. Для сырой не применять.'},
- 'снежный краб':{clause:'Приложение 1, п. 54',category:'Структурированные изделия (крабовые палочки и др.) — 48 ч',warning:'Не относится автоматически к продукту после вскрытия, сурими неизвестного состава и температуры.'},
- 'соус спайси':{clause:'Приложение 1, п. 93',category:'Соусы и заправки для вторых блюд — 48 ч',warning:'Вид соуса, рецептура майонеза, отсутствие нагрева и фактическая технология требуют отдельного подтверждения.'}
+const marking='https://www.consultant.ru/document/cons_doc_LAW_124614/b3dc5be1288e1b6de39f7097b87c4a4dba39d263/';
+const instructions={
+ 'форель':'Особая группа риска: размороженная рыба. Температуру, время с момента разморозки и применимость продукта без термообработки подтверждают маркировка и ТТК.',
+ 'лосось (размороженный)':'Рыба после размораживания: требования для исходного замороженного продукта не являются сроком после размораживания.',
+ 'креветка':'Сырая и варёная креветка — разные виды продукции с разными технологическими картами.',
+ 'снежный краб':'Уточни фактический продукт (сурими/краб) и дату вскрытия заводской упаковки.',
+ 'соус спайси':'Соус на майонезной основе без нагрева: срок устанавливается для смеси в составе конкретной ТТК; ранее внесённые 48 часов требуют документального подтверждения.',
+ 'дайкон (нарезка)':'Свежая нарезанная редька: учитывай мойку, нарезку и время приготовления партии.',
+ 'лук зелёный (нарезка)':'Обработанный зелёный лук: срок зависит от технологии подготовки и контроля температуры.',
+ 'бульон том ям':'Бульон после термообработки требует безопасного охлаждения, раздельного хранения и контроля партии.'
 };
 const norm=name=>String(name||'').toLocaleLowerCase('ru').trim().replace(/ё/g,'е');
 const get=name=>{
- const key=norm(name),d=direct[key],a=analogous[key];
- if(d)return {...d,kind:'direct',source,current,food};
- if(a)return {...a,kind:'analogy',source,current,food};
- return {kind:'individual',source,current,food,
-  category:'Для точной заготовки нет однозначного сопоставления с санитарной таблицей',
-  warning:'Срок назначается и подтверждается по утверждённой ТТК, технологии, условиям хранения и маркировке производителя. 12 ч — предложение, а не норма СанПиН.'};
+ const n=norm(name);
+ const extra=instructions[n];
+ return {
+  kind:'individual',source:current,current,marking,
+  category:'СанПиН 2.3/2.4.4282-26: соблюдение сроков годности и ТТК',
+  warning:(extra?extra+' ':'')+'Универсального подтверждённого срока для этой конкретной заготовки в действующем СанПиН нет. Предложенный срок в карточке — НЕ норматив и НЕ разрешение на печать. Для фабричной продукции проверь маркировку производителя; для цеховой — утверждённую ТТК и фактический процесс.'
+ };
 };
-window.FarukhPrepShelfReference={get,source,current,food};
+window.FarukhPrepShelfReference={get,current,marking};
 })();
