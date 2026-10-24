@@ -6,6 +6,7 @@
 import crypto from 'node:crypto';
 import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 import {installPrintStaffApi} from './print-staff-api.js';
+import {configuredPrintStore} from './print-recovery-store.js';
 
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
@@ -62,6 +63,7 @@ function validateCatalog(data){
 const safeDevice=d=>({id:d.id,name:d.name,createdAt:d.createdAt,lastSeenAt:d.lastSeenAt||null,revoked:!!d.revoked});
 const digits=(len)=>Array.from(crypto.randomBytes(len),b=>printableChars[b%printableChars.length]).join('');
 export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport}){
+  store=configuredPrintStore(store);
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
