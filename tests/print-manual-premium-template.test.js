@@ -46,7 +46,7 @@ test('Template never invents a shelf-life, calories or production date in saved 
  assert.match(sources.owner,/manualTemplate\?\{tolerance:''\}/);
  assert.match(sources.owner,/\['name','composition','p','f','c','kcal','weight','tolerance','storage','hours'\]/);
  assert.match(sources.standalone,/manualPremium\?'':type==='ready'/);
- assert.match(sources.standalone,/if\(fields\.composit/); // actual manual validation for nutrition
+ assert.match(sources.standalone,/if\(!fields\.composition/); // actual manual validation for nutrition
  assert.match(sources.renderer,/Требуются название, состав, хранение и подтверждённый срок/);
  assert.doesNotMatch(sources.standalone,/manualPremium\?48:12/);
 });
