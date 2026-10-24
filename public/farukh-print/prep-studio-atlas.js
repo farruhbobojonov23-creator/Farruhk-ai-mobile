@@ -16,13 +16,23 @@ window.FarukhStudioPrep={find(p){return cache.get(norm(p))||prior?.find(p)||''},
 const img=new Image();
 img.onload=()=>{
  try{
-  const canvas=document.createElement('canvas');canvas.width=150;canvas.height=96;
+  // Original collage cells are only 150×96 pixels. Previously each crop
+  // was *re-compressed* at that tiny resolution (WebP quality .82), making the
+  // food look washed-out on Retina / Android high-density displays.
+  // Sample each cell once with high-quality interpolation at device-friendly
+  // 3× resolution. This preserves the source's detail without adding invented
+  // sharpness or changing any product data.
+  const size={w:450,h:288};
+  const canvas=document.createElement('canvas');
+  canvas.width=size.w;canvas.height=size.h;
   const ctx=canvas.getContext('2d',{willReadFrequently:false});
   if(!ctx)return;
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
   for(let i=0;i<names.length;i++){
-   ctx.clearRect(0,0,150,96);
-   ctx.drawImage(img,(i%5)*150,Math.floor(i/5)*96,150,96,0,0,150,96);
-   cache.set(norm(names[i]),canvas.toDataURL('image/webp',.82));
+   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size.w,size.h);
+   ctx.drawImage(img,(i%5)*150,Math.floor(i/5)*96,150,96,0,0,size.w,size.h);
+   cache.set(norm(names[i]),canvas.toDataURL('image/webp',.94));
   }
   window.dispatchEvent(new Event('farukh-studio-ready'));
  }catch(error){console.warn('Studio atlas unavailable',error)}

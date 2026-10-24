@@ -452,3 +452,32 @@ body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{di
 .print-advice-norm-ref strong{display:block;font-size:12px}
 .print-advice-norm-ref p{margin:7px 0}
 .print-advice-norm-ref a{color:#a62c47;text-decoration:underline}
+
+
+/* 2026-10-25 — calibrated three-column ingredient gallery.
+ * The locally bundled studio art is 150:96. Matching this ratio stops
+ * vertical letterboxing; user-uploaded photos retain their original fit.
+ * The raster cache is now 450×288 @ high quality, never stretched/cropped.
+ */
+.product-tile .product-visual.studio-preview{
+  aspect-ratio:150 / 96;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+}
+.product-tile .product-visual.studio-preview .product-photo{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  image-rendering:auto;
+}
+.product-list .product-tile .product-tile-meta.needs-review{
+  color:#8c665a;
+  line-height:1.45;
+}
+@media(max-width:430px){
+ .product-tile .product-visual.studio-preview{border-radius:9px}
+ .product-list .product-tile .product-tile-meta{font-size:10px}
+}

@@ -23,7 +23,7 @@ test('FARUKH AI has a saved premium 58x40 manual template with real-data SVG liv
  assert.match(sources.ownerStyle,/pc-premium-template/);
  assert.match(sources.ownerStyle,/pc-template-preview-art svg/);
  assert.match(sources.ownerStyle,/not\(\[data-pc-workspace="catalog"\]\)/);
- assert.match(sources.ownerPage,/print-control\.js\?v=17/);
+ assert.match(sources.ownerPage,/print-control\.js\?v=18/);
  assert.match(sources.ownerPage,/print-control\.css\?v=16/);
 });
 
@@ -31,8 +31,8 @@ test('Standalone FARUKH PRINT can start a new blank premium label and keeps staf
  assert.match(sources.standalonePage,/id="home-premium-template"/);
  assert.match(sources.standalonePage,/id="use-premium-template"/);
  assert.match(sources.standalonePage,/id="manual-template-preview"/);
- assert.match(sources.standalonePage,/print\.js\?v=36/);
- assert.match(sources.standalonePage,/print\.css\?v=21/);
+ assert.match(sources.standalonePage,/print\.js\?v=37/);
+ assert.match(sources.standalonePage,/print\.css\?v=22/);
  assert.match(sources.standalone,/openEditor\(null,true\)/);
  assert.match(sources.standalone,/manualPremium\?'':/);
  assert.match(sources.standalone,/needsReview=!\$\('edit-approval'\)\.checked/);
