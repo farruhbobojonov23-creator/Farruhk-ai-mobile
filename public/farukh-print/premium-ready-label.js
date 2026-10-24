@@ -99,12 +99,12 @@ function draw(g,p,epoch,{formatDate}={}){
  g.fillStyle='#fff';g.fillRect(0,0,464,320);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
 
  // 1. Fine double premium border, only printable monochrome paths.
- box(g,4.5,4.5,455,311,8.5,2.2);
- box(g,9,9,446,302,6.2,1.1);
+ box(g,4.5,4.5,455,311,8.5,2.0);
+ box(g,9,9,446,302,6.2,1.0);
 
  // 2. Brand header & signature double rule.
  text(g,'СУШИ БЕРИ',20,27,{size:23,min:20,width:238,weight:'900'});
- text(g,'ГОТОВАЯ ПРОДУКЦИЯ',442,27,{size:13,min:11.3,width:182,family:SERIF,weight:'700',align:'right'});
+ text(g,'ГОТОВАЯ ПРОДУКЦИЯ',442,26.5,{size:12.8,min:11.3,width:182,family:SERIF,weight:'700',align:'right'});
  for(const y of [45,48]){
   line(g,18,y,217,y,1.25);line(g,248,y,446,y,1.25);
  }
@@ -120,55 +120,70 @@ function draw(g,p,epoch,{formatDate}={}){
   let parts;
   try{parts=lines(g,heading,408,2,21.5,font,'900')}
   catch{parts=lines(g,heading,408,2,18,font,'900')}
-  parts.forEach((s,i)=>text(g,s,232,69+i*22,{size:21.5,min:15,width:408,weight:'900',family:font,align:'center'}));
+  parts.forEach((s,i)=>text(g,s,232,65+i*21.5,{size:21.5,min:15,width:408,weight:'900',family:font,align:'center'}));
  }
  for(const y of [103,106]){
   line(g,18,y,221,y,1.0);line(g,243,y,446,y,1.0);
  }
  diamond(g,232,104.5,4.3);
 
- // 4. Plain composition; the complete TTK text must fit, never truncate it.
+ // 4. Composition is a complete, readable ingredient list. Its actual height
+ // sets the KBZhU frame, so short recipes do not leave a blank half-label.
  const composition='Состав: '+value(p.composition);
- let arr,fs=11.6,step=12.7;
+ let arr,fs=12.15,step=13.9;
  try{arr=lines(g,composition,420,4,fs,SERIF,'500')}
- catch{fs=10.25;step=10.9;arr=lines(g,composition,420,5,fs,SERIF,'500')}
+ catch{fs=10.7;step=11.55;arr=lines(g,composition,420,5,fs,SERIF,'500')}
+ const compositionY=117.5;
  g.font='500 '+fs+'px '+SERIF;g.textAlign='left';
- arr.forEach((s,i)=>g.fillText(s,21,117+i*step));
+ arr.forEach((s,i)=>g.fillText(s,21,compositionY+i*step));
+ // Emphasize only the "Состав:" label, retaining the exact measured line
+ // widths and preventing ingredients from being shortened or hidden.
+ g.font='900 '+fs+'px '+SERIF;
+ g.fillText('Состав:',21,compositionY);
 
- // 5. Light framed symmetrical KBZhU table with four bold numbers.
- box(g,16,175,432,60,6,1.5);box(g,19,178,426,54,4.5,.8);
- text(g,'КБЖУ НА 100 Г',232,186,{family:SERIF,size:14.7,min:12,weight:'900',width:420,align:'center'});
- line(g,18,197,446,197,1.2);
+ // 5. Balanced KBZhU table. The frame always finishes at a fixed baseline,
+ // keeping dates and the lower band perfectly aligned for every recipe.
+ const tableTop=arr.length<=2?155:arr.length===3?163:arr.length===4?171:177;
+ const tableBottom=234.5,tableHeight=tableBottom-tableTop;
+ box(g,16,tableTop,432,tableHeight,5.5,1.35);
+ box(g,18.5,tableTop+2.5,427,tableHeight-5,4.5,.65);
+ const separator=tableTop+24;
+ text(g,'КБЖУ НА 100 Г',232,tableTop+12.5,{family:SERIF,size:14.1,min:12,weight:'900',width:415,align:'center'});
+ line(g,18.5,separator,445.5,separator,1.05);
  const data=[['Б',decimal(p.p)],['Ж',decimal(p.f)],['У',decimal(p.c)],['ККАЛ',decimal(p.kcal)]];
+ const cellHeight=tableBottom-separator;
+ // Labels and numeric baselines move together when the composition grows.
+ const keyY=separator+cellHeight*.30;
+ const valueY=separator+cellHeight*.71;
  for(let i=0;i<4;i++){
   const cx=70+i*108;
-  if(i)line(g,16+i*108,198,16+i*108,233,1.2);
-  text(g,data[i][0],cx,205,{family:SERIF,size:12.5,min:10,weight:'700',width:95,align:'center'});
-  text(g,data[i][1],cx,221,{family:SERIF,size:20.5,min:13,weight:'900',width:98,align:'center'});
+  if(i)line(g,16+i*108,separator+1,16+i*108,tableBottom-2,1.05);
+  text(g,data[i][0],cx,keyY,{family:SERIF,size:12,min:10,weight:'700',width:96,align:'center'});
+  text(g,data[i][1],cx,valueY,{family:SERIF,size:19.7,min:12.8,weight:'900',width:100,align:'center'});
  }
 
  // 6. Raised data band with date icons on left and right.
- box(g,16,240,432,40,4.5,1.3);
- calendar(g,27,249);
- text(g,'ИЗГОТОВЛЕНО',50,251,{family:SERIF,size:10,min:9,width:161,weight:'700'});
- text(g,formatted(Number(epoch)),50,266,{family:SERIF,size:16,min:11,width:165,weight:'900'});
- line(g,232,245,232,276,1.2);diamond(g,232,261,2.9);
- calendar(g,244,249);
- text(g,'ГОДЕН ДО',268,251,{family:SERIF,size:10,min:9,width:159,weight:'700'});
- text(g,formatted(Number(epoch)+Number(p.hours)*3600000),268,266,{family:SERIF,size:16,min:11,width:170,weight:'900'});
+ box(g,16,239,432,39,4.5,1.2);
+ calendar(g,27,248.5);
+ text(g,'ИЗГОТОВЛЕНО',50,251.0,{family:SERIF,size:10.2,min:9,width:161,weight:'700'});
+ text(g,formatted(Number(epoch)),50,265.5,{family:SERIF,size:15.9,min:11,width:165,weight:'900'});
+ line(g,232,244,232,274,1.05);diamond(g,232,259,2.6);
+ calendar(g,244,248.5);
+ text(g,'ГОДЕН ДО',268,251.0,{family:SERIF,size:10.2,min:9,width:159,weight:'700'});
+ text(g,formatted(Number(epoch)+Number(p.hours)*3600000),268,265.5,{family:SERIF,size:15.9,min:11,width:170,weight:'900'});
 
  // 7. Short bottom info band with precise line pictograms.
- box(g,16,281,432,30,4.5,1.3);
- line(g,161,283,161,309,1.05);line(g,311,283,311,309,1.05);
- scale(g,24,286);
- text(g,'ВЕС НЕТТО',50,289,{size:9.5,min:8.4,family:SERIF,weight:'700',width:102});
- text(g,p.weight+' г ±'+p.tolerance+' г',50,302,{size:15,min:10,family:SERIF,weight:'900',width:106});
- thermometer(g,174,286);
- text(g,'ХРАНИТЬ',198,289,{size:9.5,min:8.4,family:SERIF,weight:'700',width:105});
- text(g,p.storage,198,302,{size:14.2,min:10,family:SERIF,weight:'900',width:108});
- clock(g,320,287);
- text(g,'СРОК',350,289,{size:9.5,min:8.4,family:SERIF,weight:'700',width:88});
- text(g,p.hours+' ч',350,302,{size:15,min:10,family:SERIF,weight:'900',width:92});
+ box(g,16,280.5,432,30.5,4.5,1.2);
+ line(g,161,283,161,308.5,1.0);line(g,311,283,311,308.5,1.0);
+ scale(g,24,285.5);
+ text(g,'ВЕС НЕТТО',50,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:102});
+ text(g,p.weight+' г ±'+p.tolerance+' г',50,300.5,{size:14.3,min:10,family:SERIF,weight:'900',width:106});
+ thermometer(g,174,285.5);
+ text(g,'ХРАНИТЬ',198,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:105});
+ text(g,p.storage,198,300.5,{size:13.9,min:10,family:SERIF,weight:'900',width:108});
+ clock(g,320,285.8);
+ text(g,'СРОК',350,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:88});
+ text(g,p.hours+' ч',350,300.5,{size:14.3,min:10,family:SERIF,weight:'900',width:92});
 }
 window.FarukhPremiumReady={draw};
 })();
