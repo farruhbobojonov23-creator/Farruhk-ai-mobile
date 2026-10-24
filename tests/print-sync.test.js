@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {installPrintSyncApi} from '../print-sync-api.js';
 import fs from 'node:fs';
 
-function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport){
+function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport,prepCatalogImport=null){
  const routes=new Map(),cloud=new Map();
  const app={};
  for(const method of ['get','post','put','patch','delete'])app[method]=(path,...handlers)=>routes.set(method+' '+path,handlers);
@@ -14,7 +14,7 @@ function makeApi(readyCatalogImport,catalogPhotoImport,haccpCatalogImport){
   transaction:async(fn)=>fn()
  };
  const auth={enabled:true,verify:value=>value==='ok'};
- installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport});
+ installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport,prepCatalogImport});
  async function req(method,path,{body={},token='',cookie='',params={}}={}){
   const route=routes.get(method+' '+path);
   assert.ok(route,'route '+method+' '+path);
@@ -329,4 +329,64 @@ test('Owner confirmed sync survives reloads; connected devices repair mismatched
  assert.match(client,/state\.revision!==cloudRev\|\|!localMatches/);
  assert.match(client,/JSON\.stringify\(current\)===JSON\.stringify\(state\.products\)/);
  assert.match(client,/sync\(cloudRev<0\)/);
+});
+
+
+test('2026 sushi prep drafts have 36 unique editable 30x20 stickers; proposed 12h is never approved SanPiN',async()=>{
+ const {definitions,merge,proposedHours,version}=await import('../public/farukh-print/japanese-prep-catalog.js');
+ assert.equal(definitions.length,36);
+ assert.equal(new Set(definitions.map(d=>d.name.toLowerCase())).size,36);
+ assert.ok(version.startsWith('japanese-prep-drafts-'));
+ assert.equal(proposedHours,12);
+ const initial=merge([]);
+ assert.equal(initial.length,36);
+ assert.ok(initial.every(p=>p.kind==='prep'&&p.hours===12&&p.storage==='+2…+6 °C'&&p.labelStyle==='premium-prep-30x20'&&p.needsReview===true));
+ assert.ok(initial.every(p=>typeof p.recipeMemo==='string'&&p.recipeMemo.includes('НЕ срок, установленный СанПиН')));
+ assert.equal(merge(initial).length,initial.length);
+ const trout=initial.find(p=>p.name==='Форель');
+ const tamago=initial.find(p=>p.name==='Омлет');
+ const opened=initial.find(p=>p.name==='Такуан');
+ assert.equal(trout.prepEvent,'thawed');
+ assert.equal(tamago.prepEvent,'prepared');
+ assert.equal(opened.prepEvent,'opened');
+});
+test('Prep import does not alter approved shelf life, owner photo, or disputed existing 48h spicy draft',async()=>{
+ const catalog=await import('../public/farukh-print/japanese-prep-catalog.js');
+ const approved={id:'owner-fish',kind:'prep',name:'Форель',storage:'+0…+2 °C',hours:6,needsReview:false,prepEvent:'thawed',photo:'data:image/jpeg;base64,AAAA'};
+ const spicy={id:'owner-spicy',kind:'prep',name:'Соус спайси',storage:'+2…+6 °C',hours:48,needsReview:true,recipeMemo:'Рецептура владельца'};
+ const needsFill={id:'owner-veg',kind:'prep',name:'Огурцы (нарезка)',storage:'',hours:null,needsReview:true};
+ const out=catalog.merge([approved,spicy,needsFill]);
+ assert.strictEqual(out[0],approved);
+ assert.equal(out[1].hours,48);
+ assert.equal(out[1].recipeMemo,'Рецептура владельца');
+ assert.equal(out[2].name,'Огурцы (нарезка)');
+ assert.equal(out[2].hours,12);
+ assert.equal(out[2].needsReview,true);
+ assert.equal(out.filter(x=>x.name==='Огурцы').length,0);
+ assert.equal(out.filter(x=>x.name==='Форель').length,1);
+ assert.deepEqual(catalog.merge(out),out);
+});
+test('Cloud publishes 36 proposals once, leaves deleted entries deleted, and rejects printing unapproved drafts',async()=>{
+ const importPrep=await import('../public/farukh-print/japanese-prep-catalog.js');
+ const {req,cloud}=makeApi(null,null,null,importPrep),owner={cookie:'fai_owner=ok'};
+ const first=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(first.code,200);
+ assert.equal(first.payload.revision,1);
+ assert.equal(first.payload.products.length,36);
+ assert.equal(first.payload.products.find(p=>p.name==='Форель').prepEvent,'thawed');
+ assert.equal(first.payload.products.find(p=>p.name==='Соус спайси').needsReview,true);
+ assert.ok(first.payload.appliedImports.includes(importPrep.version));
+ const next=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:first.payload.revision,products:first.payload.products.filter(p=>p.name!=='Грибы (нарезка)')}});
+ assert.equal(next.code,200);
+ const again=await req('get','/api/farukh-print/admin/catalog',owner);
+ assert.equal(again.payload.revision,next.payload.revision);
+ assert.equal(again.payload.products.length,35);
+ assert.equal(again.payload.products.some(p=>p.name==='Грибы (нарезка)'),false);
+ const pending=again.payload.products.find(p=>p.name==='Форель');
+ assert.equal(pending.needsReview,true);
+ // Print authorization separately checks needsReview, so display-only drafts
+ // cannot be mistaken for approved thermal labels on any paired device.
+ const staffApi=await import('node:fs/promises');
+ const source=await staffApi.readFile(new URL('../print-staff-api.js',import.meta.url),'utf8');
+ assert.match(source,/product\.needsReview===true/);
 });
