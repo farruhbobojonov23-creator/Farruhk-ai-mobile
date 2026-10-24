@@ -23,15 +23,29 @@ function surface(width,height){
   beginPath(){path=[];},
   moveTo(x,y){path.push('M'+n(x)+' '+n(y));},
   lineTo(x,y){path.push('L'+n(x)+' '+n(y));},
+  roundRect(x,y,w,h,r=0){
+   const v=Math.max(0,Math.min(Number(r)||0,Math.abs(w)/2,Math.abs(h)/2));
+   path.push('M'+n(x+v)+' '+n(y)+' H'+n(x+w-v)+' Q'+n(x+w)+' '+n(y)+' '+n(x+w)+' '+n(y+v)+
+    ' V'+n(y+h-v)+' Q'+n(x+w)+' '+n(y+h)+' '+n(x+w-v)+' '+n(y+h)+
+    ' H'+n(x+v)+' Q'+n(x)+' '+n(y+h)+' '+n(x)+' '+n(y+h-v)+
+    ' V'+n(y+v)+' Q'+n(x)+' '+n(y)+' '+n(x+v)+' '+n(y)+' Z');
+  },
+  arc(x,y,r,start,end){
+   // Full-circle glyphs are needed for calendar weight, thermometer and clock;
+   // approximate partial arcs are not used by the approved label.
+   if(Math.abs(end-start)<Math.PI*1.999)throw Error('Неподдерживаемая дуга SVG');
+   path.push('M'+n(x+r)+' '+n(y)+' A'+n(r)+' '+n(r)+' 0 1 0 '+n(x-r)+' '+n(y)+
+    ' A'+n(r)+' '+n(r)+' 0 1 0 '+n(x+r)+' '+n(y));
+  },
   stroke(){
-   if(path.length)shapes.push('<path d="'+path.join(' ')+'" shape-rendering="crispEdges" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');
+   if(path.length)shapes.push('<path d="'+path.join(' ')+'" shape-rendering="geometricPrecision" stroke-linejoin="round" fill="none" stroke="'+escapeXML(this.strokeStyle)+'" stroke-width="'+n(this.lineWidth)+'"/>');
    path=[];
   },
   fillText(value,x,y){
    const parts=/^\s*(\d+)\s+([\d.]+)px\s+(.+)$/.exec(this.font);
-   const weight=parts?parts[1]:'400',size=parts?parts[2]:'12';
+   const weight=parts?parts[1]:'400',size=parts?parts[2]:'12',family=parts?parts[3]:'Arial,sans-serif';
    const anchor=this.textAlign==='center'?'middle':this.textAlign==='right'?'end':'start';
-   shapes.push('<text x="'+n(x)+'" y="'+n(y)+'" text-anchor="'+anchor+'" dominant-baseline="central" font-family="Arial, sans-serif" font-size="'+escapeXML(size)+'" font-weight="'+escapeXML(weight)+'" fill="'+escapeXML(this.fillStyle)+'">'+escapeXML(value)+'</text>');
+   shapes.push('<text x="'+n(x)+'" y="'+n(y)+'" text-anchor="'+anchor+'" dominant-baseline="central" font-family="'+escapeXML(family)+'" font-size="'+escapeXML(size)+'" font-weight="'+escapeXML(weight)+'" fill="'+escapeXML(this.fillStyle)+'">'+escapeXML(value)+'</text>');
   }
  };
  const c={width,height,toSVG(){
