@@ -35,6 +35,23 @@ const PREP_GUIDANCE={
  'Сладкий чили':['Соус: готовый заводской или собственный — уточняется','Для заводского — маркировка после вскрытия; для собственного — рецептура и ТТК.']
 };
 const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрикат','Состав, технологию, температуру и срок подтвердить по ТТК/производителю.']:null;
+let adviceLoader=null;
+function openProductAdvice(p){
+ // Load only if the employee asks for advice, keeping the print catalog fast.
+ if(!adviceLoader)adviceLoader=import('./employee-advice.js?v=1').catch(e=>{adviceLoader=null;throw e});
+ void adviceLoader.then(({openAdvice})=>openAdvice({
+  ...p,category:p.category||(p.kind==='ready'?window.FarukhPrintCategories?.category?.(p):'')
+ },{
+  onPrint:(product)=>{
+   if(!products.some(x=>x.id===product.id&&x.kind===product.kind))return;
+   if(kind!==product.kind)openCatalog(product.kind);
+   selected=product.id;haccpDraft=null;$('haccp-limit').value='';
+   if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||product.point||'';
+   renderCatalog();openWorkerPreview();
+  }
+ })).catch(e=>status('Советы недоступны: '+e.message,true));
+}
+
 // 203 dpi printer: 30 mm × 20 mm = 240 × 160 dots; ready product remains 58 × 40 mm.
 const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
@@ -215,8 +232,12 @@ function renderCatalog(){
   if(window.FarukhPrintPhotos?.isPhoto(p.photo)&&p.photo){const img=node('img','product-photo');img.src=p.photo;img.alt='Фото товара '+p.name;img.loading='lazy';img.decoding='async';visual.append(img)}
   else visual.append(node('span','product-photo-placeholder','◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
-  bottom.append(node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?'Требует проверки':p.hours+' ч · '+p.storage));
+  const meta=node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?'Требует проверки':p.hours+' ч · '+p.storage);
   select.append(visual,bottom);select.onclick=()=>{selected=p.id;haccpDraft=null;$('haccp-limit').value='';if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog();openWorkerPreview()};item.append(select);
+  const tipsButton=node('button','product-tips','▣ Советы');
+  tipsButton.type='button';tipsButton.setAttribute('aria-label','Советы по хранению: '+p.name);
+  tipsButton.onclick=()=>openProductAdvice(p);
+  item.append(tipsButton,meta);
   if(worker){const star=node('button','product-favorite'+(favorite.has(p.id)?' is-favorite':''),favorite.has(p.id)?'★':'☆');star.type='button';star.setAttribute('aria-label',(favorite.has(p.id)?'Убрать из избранного: ':'В избранное: ')+p.name);star.setAttribute('aria-pressed',String(favorite.has(p.id)));star.onclick=()=>toggleFav(p.id);item.append(star)}
   list.append(item);
  }
