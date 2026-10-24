@@ -71,5 +71,5 @@ test('FARUKH AI owner controls can fill small approved blank template and previe
  assert.match(owner,/premium-prep-label\.js\?v=1/);
  assert.match(owner,/prepEvent:/);
  assert.match(home,/print-control\.js\?v=17/);
- assert.match(home,/print-control\.css\?v=17/);
+ assert.match(home,/print-control\.css\?v=16/);
 });
