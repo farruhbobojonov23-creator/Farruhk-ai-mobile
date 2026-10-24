@@ -37,6 +37,6 @@ test('Employee and owner photo precedence does not overwrite original uploads or
  assert.match(owner,/if\(p\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(p\.photo\)\)return p\.photo/);
  assert.match(app,/p\.needsReview/);
  assert.match(owner,/verify\.checked=product\?product\.needsReview!==true:false/);
- assert.match(home,/print-control\.js\?v=16/);
- assert.match(html,/print\.js\?v=35/);
+ assert.match(home,/print-control\.js\?v=17/);
+ assert.match(html,/print\.js\?v=36/);
 });
