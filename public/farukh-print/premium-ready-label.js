@@ -84,10 +84,51 @@ function thermometer(g,x,y){
  circle(g,x+8,y+18,5,1.8);
  line(g,x+8,y+8,x+8,y+21,2.4);
 }
-function clock(g,x,y){
- circle(g,x+10,y+10,10,2);
- line(g,x+10,y+4,x+10,y+10,2);
- line(g,x+10,y+10,x+15,y+13,2);
+function hourglass(g,x,y){
+ // Shelf-life pictogram, not the clock used for current time.
+ // Four open triangles and two strong horizontal bars remain recognizable at 203 dpi.
+ line(g,x+2,y+1.5,x+19,y+1.5,2.0);
+ line(g,x+2,y+22,x+19,y+22,2.0);
+ line(g,x+4,y+3.5,x+4,y+7,1.8);
+ line(g,x+17,y+3.5,x+17,y+7,1.8);
+ line(g,x+4,y+7,x+10.5,y+12,1.6);
+ line(g,x+17,y+7,x+10.5,y+12,1.6);
+ line(g,x+10.5,y+12,x+4,y+17.5,1.6);
+ line(g,x+10.5,y+12,x+17,y+17.5,1.6);
+ line(g,x+4,y+17.5,x+4,y+20,1.8);
+ line(g,x+17,y+17.5,x+17,y+20,1.8);
+ line(g,x+10.5,y+16,x+10.5,y+19.5,2.2);
+}
+// Mixed-weight wrap: once bold "Состав:" is drawn, ingredient text starts
+// after its *measured* width. Never paint the label twice over itself.
+function ingredientRows(g,ingredients,size,maxRows){
+ const label='Состав:',left=21,right=442,gap=6;
+ g.font='900 '+size+'px '+SERIF;
+ const start=left+g.measureText(label).width+gap;
+ g.font='500 '+size+'px '+SERIF;
+ const words=value(ingredients).split(/\s+/).filter(Boolean);
+ const rows=[];
+ let row={x:start,text:''};
+ for(const word of words){
+  let remaining=word;
+  while(remaining){
+   const next=row.text?row.text+' '+remaining:remaining;
+   if(g.measureText(next).width<=right-row.x){
+    row.text=next;remaining='';continue;
+   }
+   if(row.text){rows.push(row);row={x:left,text:''};continue;}
+   // Extremely long uninterrupted ingredient names must also be preserved.
+   let length=1;
+   while(length<remaining.length&&g.measureText(remaining.slice(0,length+1)).width<=right-row.x)length++;
+   if(g.measureText(remaining.slice(0,length)).width>right-row.x)throw Error('Слишком длинное слово в составе.');
+   row.text=remaining.slice(0,length);
+   remaining=remaining.slice(length);
+   rows.push(row);row={x:left,text:''};
+  }
+ }
+ if(row.text)rows.push(row);
+ if(rows.length>maxRows)throw Error('Состав слишком длинный для этикетки 58×40 мм. Укороти текст в редакторе.');
+ return rows;
 }
 function draw(g,p,epoch,{formatDate}={}){
  if(!g||!p||!Number.isFinite(Number(epoch)))throw Error('Нет данных для этикетки.');
@@ -127,19 +168,16 @@ function draw(g,p,epoch,{formatDate}={}){
  }
  diamond(g,232,104.5,4.3);
 
- // 4. Composition is a complete, readable ingredient list. Its actual height
- // sets the KBZhU frame, so short recipes do not leave a blank half-label.
- const composition='Состав: '+value(p.composition);
+ // 4. Complete composition with no overlap in the "Состав:" prefix.
+ // Word wrapping accounts for the *bold* label width on the first line.
  let arr,fs=12.15,step=13.9;
- try{arr=lines(g,composition,420,4,fs,SERIF,'500')}
- catch{fs=10.7;step=11.55;arr=lines(g,composition,420,5,fs,SERIF,'500')}
+ try{arr=ingredientRows(g,p.composition,fs,4)}
+ catch{fs=10.7;step=11.55;arr=ingredientRows(g,p.composition,fs,5)}
  const compositionY=117.5;
- g.font='500 '+fs+'px '+SERIF;g.textAlign='left';
- arr.forEach((s,i)=>g.fillText(s,21,compositionY+i*step));
- // Emphasize only the "Состав:" label, retaining the exact measured line
- // widths and preventing ingredients from being shortened or hidden.
- g.font='900 '+fs+'px '+SERIF;
+ g.font='900 '+fs+'px '+SERIF;g.textAlign='left';
  g.fillText('Состав:',21,compositionY);
+ g.font='500 '+fs+'px '+SERIF;
+ arr.forEach((row,i)=>g.fillText(row.text,row.x,compositionY+i*step));
 
  // 5. Balanced KBZhU table. The frame always finishes at a fixed baseline,
  // keeping dates and the lower band perfectly aligned for every recipe.
@@ -182,8 +220,8 @@ function draw(g,p,epoch,{formatDate}={}){
  thermometer(g,174,285.5);
  text(g,'ХРАНИТЬ',198,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:105});
  text(g,p.storage,198,300.5,{size:13.9,min:10,family:SERIF,weight:'900',width:108});
- clock(g,320,285.8);
- text(g,'СРОК',350,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:88});
+ hourglass(g,320,283.5);
+ text(g,'СРОК ГОДН.',350,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:88});
  text(g,p.hours+' ч',350,300.5,{size:14.3,min:10,family:SERIF,weight:'900',width:92});
 }
 window.FarukhPremiumReady={draw};
