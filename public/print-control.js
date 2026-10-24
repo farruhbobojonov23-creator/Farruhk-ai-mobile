@@ -60,27 +60,66 @@ const empty={name:'',kind:'prep',storage:'',hours:null,composition:'',p:'',f:'',
 export function mountPrintControl({root}){
  if(!root)throw Error('Контейнер центра FARUKH PRINT не найден.');
  let group='prep',query='',records=[],warn='',log=[],currentEdit=null,lastAction='',loaded=false,form;
+ let category='all',page=1;const PAGE_SIZE=8;
+ const cloudPhotos=new Map();let supplementalPhotos=null,brothPhoto='',readyPhotos=null,prepLoading=null,readyLoading=null;
+ const photoKey=p=>p.kind+'|'+text(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
+ function displayPhoto(p){
+  if(window.FarukhPrintPhotos?.isPhoto(p.photo))return p.photo;
+  const remote=cloudPhotos.get(p.id)||cloudPhotos.get(photoKey(p));
+  if(window.FarukhPrintPhotos?.isPhoto(remote))return remote;
+  if(p.kind==='prep'&&text(p.name)==='Бульон Том Ям'&&brothPhoto)return brothPhoto;
+  const supplement=supplementalPhotos?.photoFor(p);if(supplement)return supplement;
+  if(p.kind==='ready'&&readyPhotos){const withPhoto=readyPhotos.merge([p])[0];if(withPhoto.photo)return withPhoto.photo}
+  return '';
+ }
+ function loadPhotoAssets(){
+  if(group==='prep'&&!prepLoading){prepLoading=Promise.all([import('./farukh-print/supplemental-photos.js?v=1'),import('./farukh-print/broth-photo.js?v=1')]).then(([supplement,broth])=>{supplementalPhotos=supplement;brothPhoto=broth.photo;renderRows()}).catch(()=>{});}
+  if(group==='ready'&&!readyLoading){readyLoading=import('./farukh-print/catalog-photos.js?v=1').then(m=>{readyPhotos=m;renderRows()}).catch(()=>{});}
+ }
+ function categoryFor(p){
+  if(p.kind==='ready')return window.FarukhPrintCategories?.category(p)||'Без категории';
+  if(p.template)return 'ХАССП';const n=text(p.name).toLocaleLowerCase('ru');
+  if(/соус|унаги|терияки|чили|спайси|майонез/.test(n))return 'Соусы';
+  if(/кревет|краб|форел|угор|рыб|лосос|тунец/.test(n))return 'Рыба и морепродукты';
+  if(/куриц|мясо|говяд/.test(n))return 'Мясо и птица';
+  if(/огур|капуст|перец|морков|такуан|овощ/.test(n))return 'Овощи';
+  return 'Прочие заготовки';
+ }
+ function categoryItems(){return [...new Set(records.filter(p=>p.kind===group).map(categoryFor))].sort((a,b)=>a.localeCompare(b,'ru'))}
+
  const head=el('div','pc-hero');
  const headInfo=el('div');
  headInfo.append(el('span','pc-kicker','ПОДКЛЮЧЕННЫЙ ИНСТРУМЕНТ · FARUKH PRINT'),el('h1','','Управляющий центр'),el('p','','Каталог двух форматов, контроль готовности этикеток и перенос базы на телефон или планшет.'));
  const pill=el('span','pc-badge','База этого устройства');
  head.append(headInfo,pill);
  const notice=el('p','pc-alert');notice.hidden=true;
+ const workspaceNav=el('nav','pc-workspace-tabs');workspaceNav.setAttribute('aria-label','Разделы управления печатью');
+ root.dataset.pcWorkspace='catalog';
+ for(const [view,label] of [['catalog','Товары'],['staff','Сотрудники'],['cloud','Облако'],['backup','Копии и настройки']]){
+  const item=btn(label,'pc-workspace-tab'+(view==='catalog'?' active':''),()=>{
+   root.dataset.pcWorkspace=view;
+   for(const b of workspaceNav.children){const active=b.dataset.workspace===view;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')}
+  });item.dataset.workspace=view;item.setAttribute('aria-current',view==='catalog'?'page':'false');workspaceNav.append(item);
+ }
  const cardGrid=el('div','pc-stats');
  const statReady=el('div','pc-stat'),statPrep=el('div','pc-stat'),statReview=el('div','pc-stat'),statApproved=el('div','pc-stat');
  for(const [card,title] of [[statReady,'58 × 40 · готовая'],[statPrep,'30 × 20 · полуфабрикаты'],[statReview,'Требуют проверки'],[statApproved,'Готовы к печати']]){card.append(el('small','',title),el('strong','','0'));cardGrid.append(card)}
+ const readiness=el('div','pc-readiness');const readinessLabel=el('strong','','Готовность каталога');const readinessCount=el('span','','0%');const readinessTrack=el('div','pc-readiness-track');const readinessFill=el('div','pc-readiness-fill');readinessTrack.append(readinessFill);readiness.append(readinessLabel,readinessCount,readinessTrack);
  const toolbar=el('div','pc-toolbar');
  const left=el('div','pc-tabs');
- const readyTab=btn('58 × 40','pc-tab',()=>{group='ready';query='';search.value='';render()});
- const prepTab=btn('30 × 20','pc-tab',()=>{group='prep';query='';search.value='';render()});
+ const readyTab=btn('58 × 40','pc-tab',()=>{group='ready';query='';category='all';page=1;search.value='';render()});
+ const prepTab=btn('30 × 20','pc-tab',()=>{group='prep';query='';category='all';page=1;search.value='';render()});
  left.append(readyTab,prepTab);
  const right=el('div','pc-toolbar-actions');
  const add=btn('＋ Добавить этикетку','pc-primary',()=>edit(null));
  const seed=btn('＋ База 19 полуфабрикатов','pc-secondary',importStarter);
  const open=el('a','pc-secondary','Открыть FARUKH PRINT ↗');open.href='/farukh-print/';open.target='_blank';open.rel='noopener noreferrer';
  right.append(add,seed,open);toolbar.append(left,right);
- const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();renderRows()});
+ const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();page=1;renderRows()});
+ const categorySelect=el('select','pc-search pc-category-filter');categorySelect.setAttribute('aria-label','Фильтр по категории');categorySelect.addEventListener('change',()=>{category=categorySelect.value;page=1;renderRows()});
+ const filters=el('div','pc-filters');filters.append(search,categorySelect);
  const table=el('div','pc-list');
+ const pagination=el('div','pc-pagination');const paginationText=el('span','','');const prev=btn('← Назад','pc-pager',()=>{if(page>1){page--;renderRows()}});const next=btn('Далее →','pc-pager',()=>{page++;renderRows()});pagination.append(paginationText,prev,next);
  const sub=el('div','pc-transfer');
  const transferHead=el('div');transferHead.append(el('h2','','Перенос базы'),el('p','','На одном браузере FARUKH AI и FARUKH PRINT видят общую базу. Android-приложения имеют отдельные хранилища: после изменений скачай копию и загрузи её в FARUKH PRINT на нужном устройстве.'));
  const transferActions=el('div','pc-transfer-buttons');
@@ -94,7 +133,7 @@ export function mountPrintControl({root}){
  const roadmap=el('p','pc-roadmap','Пока не подключены: удалённая автоматическая синхронизация между Android-приложениями, персональные логины, журнал входов и удалённая блокировка сотрудников. Для этого понадобится отдельный серверный доступ и защищённое постоянное хранилище.');
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
- root.append(head,notice,cardGrid,toolbar,search,table,sub,integration,logSection);
+ root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,filters,table,pagination,sub,integration,logSection);
  // The editor lives in the same root; controls are never inserted from user HTML.
  const dialog=el('dialog','pc-dialog');
  const content=el('form','pc-form');content.noValidate=true;
@@ -170,23 +209,42 @@ export function mountPrintControl({root}){
   else if(!data.initialized)message('База FARUKH PRINT на этом устройстве пока пустая. Она может находиться в отдельном Android-приложении — перенеси её через файл JSON.');
   else message('');
   for(const [node,count] of [[statReady,records.filter(p=>p.kind==='ready').length],[statPrep,records.filter(p=>p.kind==='prep').length],[statReview,records.filter(p=>p.needsReview===true).length],[statApproved,records.filter(p=>p.needsReview!==true).length]])node.querySelector('strong').textContent=count;
+  const approved=records.filter(p=>p.needsReview!==true).length;
+  const percent=records.length?Math.round(100*approved/records.length):0;readinessCount.textContent=percent+'% · '+approved+' из '+records.length;
+  readinessFill.style.width=percent+'%';readinessTrack.setAttribute('role','progressbar');readinessTrack.setAttribute('aria-valuemin','0');readinessTrack.setAttribute('aria-valuemax','100');readinessTrack.setAttribute('aria-valuenow',String(percent));
  }
  function renderRows(){
   table.replaceChildren();
-  const selected=records.filter(p=>p.kind===group&&p.name.toLocaleLowerCase('ru').includes(query)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
-  if(!selected.length){table.append(el('p','pc-empty',query?'Ничего не найдено.':'В этой категории нет этикеток на данном устройстве.'));return}
-  for(const p of selected){
+  categorySelect.replaceChildren();
+  const all=el('option','','Все категории');all.value='all';categorySelect.append(all);
+  for(const name of categoryItems()){const option=el('option','',name);option.value=name;categorySelect.append(option)}
+  if(category!=='all'&&!categoryItems().includes(category))category='all';
+  categorySelect.value=category;
+  const selected=records.filter(p=>p.kind===group&&p.name.toLocaleLowerCase('ru').includes(query)&&(category==='all'||categoryFor(p)===category))
+   .sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  const pages=Math.max(1,Math.ceil(selected.length/PAGE_SIZE));page=Math.max(1,Math.min(page,pages));
+  const offset=(page-1)*PAGE_SIZE;
+  pagination.hidden=selected.length<=PAGE_SIZE;
+  paginationText.textContent=selected.length?'Показано '+(offset+1)+'–'+Math.min(offset+PAGE_SIZE,selected.length)+' из '+selected.length:'Нет товаров';
+  prev.disabled=page===1;next.disabled=page>=pages;
+  if(!selected.length){table.append(el('p','pc-empty',query||category!=='all'?'Ничего не найдено. Сбрось фильтр или поиск.':'В этой категории пока нет этикеток на данном устройстве.'));return}
+  for(const p of selected.slice(offset,offset+PAGE_SIZE)){
    const row=el('div','pc-row');
+   const pic=el('div','pc-row-photo');
+   const source=displayPhoto(p);
+   if(source){const img=el('img');img.src=source;img.alt='Фото '+p.name;img.loading='lazy';img.decoding='async';pic.append(img)}
+   else pic.append(el('span','pc-photo-placeholder','Фото не загружено'));
    const desc=el('div','pc-item');
    desc.append(el('strong','',p.name));
-   const details=el('small','',p.template?'ХАССП · Чёткая таблица':p.needsReview===true?'Срок не подтверждён · печать заблокирована':(p.hours? p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
+   desc.append(el('small','pc-category-label',categoryFor(p)));
+   const details=el('small','',p.template?'ХАССП · Таблица для печати':p.needsReview===true?'Срок не подтверждён · печать заблокирована':(p.hours?p.hours+' ч · '+(p.storage||'нет условий хранения'):'Проверь условия и срок'));
    desc.append(details);
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
-   row.append(desc,controls);table.append(row);
+   row.append(pic,desc,controls);table.append(row);
   }
  }
  function renderLog(){
@@ -200,7 +258,7 @@ export function mountPrintControl({root}){
   }
  }
  function render(){
-  reload();readyTab.classList.toggle('active',group==='ready');prepTab.classList.toggle('active',group==='prep');renderRows();renderLog();
+  reload();readyTab.classList.toggle('active',group==='ready');prepTab.classList.toggle('active',group==='prep');renderRows();renderLog();loadPhotoAssets();
  }
  function commit(next,action,name){
   if(next.length>MAX)throw Error('Лимит '+MAX+' этикеток.');
@@ -230,7 +288,7 @@ export function mountPrintControl({root}){
   currentEdit=product?.id||null;const v=product||{...empty,kind:group};
   formTitle.textContent=(product?'Изменить':'Добавить')+' · '+(v.kind==='ready'?'58 × 40 мм':'30 × 20 мм');
   readyFields.hidden=v.kind!=='ready';prepFields.hidden=v.kind!=='prep';
-  chosenPhoto=window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo||'':'';
+  chosenPhoto=displayPhoto(v);
   showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
   const values={...empty,...v,category:window.FarukhPrintCategories.category(v)};
@@ -286,6 +344,9 @@ export function mountPrintControl({root}){
    localStorage.setItem(DB_KEY,JSON.stringify(parsed));pushLog('Импорт резервной копии',parsed.length+' поз.');render();window.dispatchEvent(new CustomEvent('farukh-print-catalog-local-updated',{detail:{action:'Импорт',name:'Резервная копия'}}));message('Загружено '+parsed.length+' этикеток. Проверь карточки и сроки.');
   }catch(e){message('Не удалось загрузить базу: '+e.message,true)}
  }
+ window.addEventListener('farukh-print-cloud-catalog',event=>{
+  cloudPhotos.clear();for(const p of event.detail?.products||[]){if(!window.FarukhPrintPhotos?.isPhoto(p.photo))continue;cloudPhotos.set(p.id,p.photo);cloudPhotos.set(photoKey(p),p.photo)}renderRows();
+ });
  window.addEventListener('storage',event=>{if([DB_KEY,LOG_KEY].includes(event.key))render()});
  return {render,kind:()=>group,count:()=>records.length};
 }

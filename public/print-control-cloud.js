@@ -82,6 +82,7 @@ export function mountPrintCloudControl({root,renderLocal}){
   try{
     const data=await api('/admin/catalog');
     fetched=true;rev=data.revision;remoteProducts=data.products;loginRequired=false;loginForm.hidden=true;
+    if(typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('farukh-print-cloud-catalog',{detail:{products:remoteProducts}}));
     const local=read();
     auto=JSON.stringify(local)===JSON.stringify(remoteProducts)&&local.length===remoteProducts.length;
     mark(auto?'Каталог синхронизирован · версия '+rev:'Есть неопубликованные отличия · версия '+rev,!auto);
@@ -101,6 +102,7 @@ export function mountPrintCloudControl({root,renderLocal}){
   try{
     const out=await api('/admin/catalog',{method:'PUT',body:JSON.stringify({revision:originalRev,products:local})});
     rev=out.revision;remoteProducts=out.products;auto=true;
+    if(typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('farukh-print-cloud-catalog',{detail:{products:remoteProducts}}));
     mark('Опубликовано · версия '+rev);
     tell('Опубликована версия '+rev+' · '+out.products.length+' этикеток. Телефоны и планшеты получат обновление.');
   }catch(e){

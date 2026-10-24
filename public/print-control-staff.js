@@ -50,7 +50,7 @@ export function mountPrintStaffControl({root}){
  for(const [v,label] of [['shift','С момента входа'],['today','Сегодня'],['7','7 дней'],['30','30 дней'],['month','Этот месяц'],['90','90 дней'],['all','Всё время']])period.append(opt(v,label));
  period.value='30';
  const reload=button('↻ Обновить',()=>reloadAll(),'pstaff-button');
- filters.append(pointFilter,search,period,reload);
+ filters.append(pointFilter,period,reload);
  const managePoints=el('details','pstaff-points');
  const pointsHeading=el('summary','','Настроить названия точек');
  const pointsInfo=el('p','','Добавь остальные точки самостоятельно. «Плазма» уже указана. Переименование переведёт сотрудников на новое название и завершит их текущие сеансы.');
@@ -115,9 +115,26 @@ export function mountPrintStaffControl({root}){
  const historyCount=el('p','pstaff-report-note');
  activityFilters.append(staffFilter,startDate,endDate,statusFilter);
  const activity=el('div','pstaff-activity');
- panel.append(header,summary,notification,metrics,filters,managePoints,createHeading,createForm,secret,rosterHead,staffList,
-  reportHead,reportNote,reportGrid,workerReportHeading,workerReport,alertsHeading,alertsHelp,alertCount,alerts,
-  activityTitle,activityFilters,historyCount,activity);
+ const tabNav=el('nav','pstaff-tabbar');tabNav.setAttribute('aria-label','Разделы сотрудников');
+ const overviewPanel=el('section','pstaff-tab-panel');const teamPanel=el('section','pstaff-tab-panel');
+ const historyPanel=el('section','pstaff-tab-panel');const pointsPanel=el('section','pstaff-tab-panel');
+ const staffPages=[['overview','Обзор',overviewPanel],['team','Команда',teamPanel],['history','История',historyPanel],['points','Точки',pointsPanel]];
+ const tabs=[];
+ for(const [key,label] of staffPages){
+  const t=button(label,()=>selectTab(key),'pstaff-tab');t.dataset.tab=key;tabNav.append(t);tabs.push(t);
+ }
+ function selectTab(key){
+  for(const [name,,section] of staffPages)section.hidden=key!==name;
+  for(const tab of tabs){const chosen=tab.dataset.tab===key;tab.classList.toggle('active',chosen);tab.setAttribute('aria-selected',String(chosen))}
+ }
+ const workerDetails=el('details','pstaff-worker-details');workerDetails.append(el('summary','','Статистика сотрудников по отдельности'),workerReport);
+ const createDetails=el('details','pstaff-create-details');createDetails.append(el('summary','','＋ Добавить сотрудника'),createForm);
+ overviewPanel.append(metrics,reportHead,reportNote,reportGrid,workerDetails,alertsHeading,alertsHelp,alertCount,alerts);
+ teamPanel.append(search,createDetails,secret,rosterHead,staffList);
+ historyPanel.append(activityTitle,activityFilters,historyCount,activity);
+ pointsPanel.append(managePoints);
+ panel.append(header,summary,notification,filters,tabNav,overviewPanel,teamPanel,historyPanel,pointsPanel);
+ selectTab('overview');
  root.insertBefore(panel,root.querySelector('.pc-toolbar')||null);
 
  let points=[],users=[],report=null,events=[],alertRows=[],historyTotal=0,authorized=false,busy=false,historyTimer=null;
@@ -239,6 +256,7 @@ export function mountPrintStaffControl({root}){
   nRequests.textContent=report?.summary?.requests??'—';
   nLabels.textContent=report?.summary?.labels??'—';
   const rows=report?.rows||[];
+  const maxRequests=Math.max(1,...rows.map(item=>Number(item.requests)||0));
   if(!rows.length)reportGrid.append(el('p','pstaff-empty','Нет данных за выбранный период.'));
   for(const row of rows){
    const card=el('div','pstaff-report-card');card.append(el('strong','',row.point));
@@ -246,7 +264,12 @@ export function mountPrintStaffControl({root}){
    for(const [value,label] of [[row.active+' / '+row.staff,'сотрудников активно'],[row.requests,'запросов'],[row.labels,'наклеек запрошено'],[row.transmitted||0,'передано принтеру'],[row.failed||0,'ошибок']]){
     const item=el('div');item.append(el('strong','',String(value)),el('small','',label));counters.append(item)
    }
-   card.append(counters,el('small','','Последний запрос: '+smallTime(row.lastRequestAt)));reportGrid.append(card);
+   const chart=el('div','pstaff-mini-chart');const chartLabel=el('span','','Активность · '+(Number(row.requests)||0)+' запросов');
+   const track=el('div','pstaff-mini-track');const bar=el('span','pstaff-mini-bar');
+   bar.style.width=Math.min(100,Math.max(0,(Number(row.requests)||0)/maxRequests*100))+'%';
+   track.setAttribute('role','img');track.setAttribute('aria-label',String(row.requests||0)+' запросов из максимальных '+maxRequests+' среди точек');
+   track.append(bar);chart.append(chartLabel,track);
+   card.append(counters,chart,el('small','','Последний запрос: '+smallTime(row.lastRequestAt)));reportGrid.append(card);
    for(const user of row.users||[]){
     const line=el('div','pstaff-worker-row');
     const who=el('div');who.append(el('strong','',user.name),el('small','',user.login+' · '+row.point));
