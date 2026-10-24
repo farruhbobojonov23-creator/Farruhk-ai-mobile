@@ -26,7 +26,7 @@ test('Food photographs in owner catalog are reused for the correct product, not 
   const d=advicePicture({name:'Огурцы',photo},id,'Форма хранения');
   assert.equal(a,b,id+' changed picture by product name');
   assert.equal(b,d,id+' changed picture by product name');
-  assert.match(a,/^data:image\\/svg\\+xml/);
+  assert.match(a,/^data:image\/svg\+xml/);
   assert.notEqual(a,photo);
  }
  assert.notEqual(advicePicture({name:'Огурцы'},'Форма','Форма хранения'),advicePicture({name:'Огурцы'},'Температура','Температура и охлаждение'));
