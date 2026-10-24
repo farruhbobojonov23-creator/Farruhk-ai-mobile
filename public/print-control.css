@@ -381,3 +381,6 @@
 #print-control .pc-template-preview-art{min-height:40px;display:grid;place-items:center}
 #print-control .pc-template-preview-art svg{display:block;width:100%;height:auto;max-width:464px;background:#fff;box-shadow:0 3px 12px #151e2920}
 @media(max-width:610px){#print-control .pc-premium-template{flex-direction:column;align-items:stretch;padding:17px}#print-control .pc-premium-template-button{width:100%}}
+
+/* The manual catalog template must not crowd Employees, Cloud and Backups. */
+#print-control-root:not([data-pc-workspace="catalog"]) .pc-premium-template{display:none!important}
