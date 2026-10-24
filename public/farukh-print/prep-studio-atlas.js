@@ -32,7 +32,7 @@ img.onload=()=>{
   for(let i=0;i<names.length;i++){
    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size.w,size.h);
    ctx.drawImage(img,(i%5)*150,Math.floor(i/5)*96,150,96,0,0,size.w,size.h);
-   cache.set(norm(names[i]),canvas.toDataURL('image/webp',.98));
+   cache.set(norm(names[i]),canvas.toDataURL('image/webp',.94));
   }
   window.dispatchEvent(new Event('farukh-studio-ready'));
  }catch(error){console.warn('Studio atlas unavailable',error)}
