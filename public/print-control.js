@@ -303,7 +303,7 @@ export function mountPrintControl({root}){
   const count=records.filter(p=>p.kind==='prep'&&(p.needsReview===true||!p.hours||!p.storage)).length;
   pending.textContent=onlyPending?'Все полуфабрикаты':'Сроки: проверить '+count;
   pending.classList.toggle('active',onlyPending);
-  normativeNotice.hidden=false;
+  normativeNotice.hidden=group!=='prep';
   renderRows();renderLog();loadPhotoAssets();
  }
  function commit(next,action,name){
