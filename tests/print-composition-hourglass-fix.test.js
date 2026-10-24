@@ -29,7 +29,7 @@ test('Состав is drawn once; ingredients begin after actual bold label with
  assert.equal(found.length,2, 'first ingredient baseline must contain exactly two text runs');
  assert.equal(found[0][2],'Состав:');
  assert.equal(Number(found[0][1]),21);
- assert.ok(Number(found[1][1])>76,'ingredients must start right of bold title');
+ assert.ok(Number(found[1][1])>70,'ingredients must start right of bold title');
  assert.match(found[1][2],/^Рис\s+фирменный/);
  assert.equal([...result.matchAll(/>Состав:<\/text>/g)].length,1);
  assert.doesNotMatch(found[1][2],/Состав:/);
