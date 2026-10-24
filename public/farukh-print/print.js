@@ -228,7 +228,7 @@ function renderCategories(){
 }
 // The studio atlas is decoded asynchronously after initial paint; repaint
 // only the visible gallery. This changes images, never product/shelf data.
-window.addEventListener('farukh-studio-ready',()=>{
+if(typeof window.addEventListener==='function')window.addEventListener('farukh-studio-ready',()=>{
  if(typeof document!=='undefined'&&document.getElementById('catalog')&&!$('catalog').hidden)renderCatalog();
 });
 function renderCatalog(){
