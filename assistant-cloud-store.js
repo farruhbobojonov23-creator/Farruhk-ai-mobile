@@ -6,7 +6,7 @@ export function downloadFailureSummary(status,headers,body){
   let code='unknown';
   try{const data=JSON.parse(body);const value=data.error||data.code;if(typeof value==='string'&&/^[A-Za-z]{1,60}Error$/.test(value))code=value}catch{}
   const kind=/json/i.test(headers['content-type']||'')?'json':/html/i.test(headers['content-type']||'')?'html':'other';
-  const reason=/quota|download.?limit|too many requests/i.test(body)?'limit':/expired|signature/i.test(body)?'signature':/access denied|forbidden|unauthorized/i.test(body)?'access':/internal server error|service unavailable/i.test(body)?'upstream':'unknown';
+  const reason=/user.agent/i.test(body)?'user-agent':/quota|download.?limit|too many requests/i.test(body)?'limit':/expired|signature/i.test(body)?'signature':/access denied|forbidden|unauthorized/i.test(body)?'access':/internal.?error|internal server error|service unavailable/i.test(body)?'upstream':'unknown';
   return 'status='+status+' type='+kind+' bytes='+Buffer.byteLength(body)+' code='+code+' reason='+reason;
 }
 
@@ -15,7 +15,7 @@ export function downloadFailureSummary(status,headers,body){
 export function cloudDownload(url,{signal}={},redirects=0){
   return new Promise((resolve,reject)=>{
     const target=new URL(url);if(target.protocol!=='https:')return reject(httpError(502,'Небезопасная ссылка облака'));
-    const req=https.get(target,{family:4,signal,timeout:30000},res=>{
+    const req=https.get(target,{family:4,signal,timeout:30000,headers:{'User-Agent':'FARUKH-AI/3.0','Accept':'application/json, */*'}},res=>{
       if([301,302,303,307,308].includes(res.statusCode)&&res.headers.location){
         res.resume();if(redirects>=5)return reject(httpError(502,'Слишком много перенаправлений облака'));
         resolve(cloudDownload(new URL(res.headers.location,target).href,{signal},redirects+1));return;
