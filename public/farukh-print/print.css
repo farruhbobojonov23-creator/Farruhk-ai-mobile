@@ -442,3 +442,6 @@ body.worker-managed .premium-template-home,body.worker-managed #premium-template
 #premium-prep-card{margin-top:12px;background:linear-gradient(130deg,#fff,#f5f9ff);border-color:#d9e4ef}
 #prep-fields select{width:100%;min-height:43px;border:1px solid #d8e2ea;border-radius:11px;padding:10px 12px;font-size:14px;background:#fff;color:#2b3b45}
 body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{display:none!important}
+
+/* Do not let custom flex layout override the hidden chosen template size. */
+.premium-template-box[hidden]{display:none!important}
