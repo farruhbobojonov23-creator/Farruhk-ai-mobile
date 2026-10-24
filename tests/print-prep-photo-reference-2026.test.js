@@ -26,15 +26,16 @@ test('All 17 new sushi prep products show curated Wikimedia representative ingre
  assert.match(control,/return p\.kind==='prep'\?window\.FarukhPrepPhotoLibrary\?\.find\(p\)\?\.url\|\|'':''/);
  assert.match(control,/✓ Подтвердить по ТТК/);
 });
-test('2026 SanPiN guidance uses exact 2003 annex matches, never marks unknown products legally approved',async()=>{
+test('Current 2026 SanPiN guidance does not invent universal hours or authorize labels',async()=>{
  const c={window:{}};
  vm.runInNewContext(await source('public/farukh-print/prep-sanpin-sources.js'),c);
  const ref=c.window.FarukhPrepShelfReference;
- assert.equal(ref.get('Дайкон (нарезка)').hours,12);
- assert.equal(ref.get('Лук зелёный (нарезка)').hours,18);
- assert.equal(ref.get('Лук зелёный (нарезка)').kind,'direct');
- assert.equal(ref.get('Форель').kind,'analogy');
- assert.match(ref.get('Форель').warning,/НЕ готовая норма/);
+ assert.equal(ref.get('Дайкон (нарезка)').hours,undefined);
+ assert.equal(ref.get('Лук зелёный (нарезка)').hours,undefined);
+ assert.equal(ref.get('Лук зелёный (нарезка)').kind,'individual');
+ assert.equal(ref.get('Форель').kind,'individual');
+ assert.match(ref.get('Форель').warning,/НЕ норматив и НЕ разрешение на печать/);
+ assert.match(ref.get('Форель').source,/2026/);
  assert.equal(ref.get('Икра масаго (открытая)').kind,'individual');
  const app=await source('public/farukh-print/print.js');
  const owner=await source('public/print-control.js');
