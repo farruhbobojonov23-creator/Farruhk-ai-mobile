@@ -31,7 +31,7 @@ test('Standalone FARUKH PRINT can start a new blank premium label and keeps staf
  assert.match(sources.standalonePage,/id="home-premium-template"/);
  assert.match(sources.standalonePage,/id="use-premium-template"/);
  assert.match(sources.standalonePage,/id="manual-template-preview"/);
- assert.match(sources.standalonePage,/print\.js\?v=35/);
+ assert.match(sources.standalonePage,/print\.js\?v=36/);
  assert.match(sources.standalonePage,/print\.css\?v=21/);
  assert.match(sources.standalone,/openEditor\(null,true\)/);
  assert.match(sources.standalone,/manualPremium\?'':/);
