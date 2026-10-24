@@ -399,6 +399,7 @@ export function mountPrintControl({root}){
    const controls=el('div','pc-row-controls');
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
    controls.append(btn('Нормы','pc-edit pc-norms-btn',()=>showGuidance(p)));
+   if(p.kind==='prep'&&p.needsReview)controls.append(btn('✓ Подтвердить по ТТК','pc-edit pc-verify-btn',()=>{edit(p);verify.focus()}));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
