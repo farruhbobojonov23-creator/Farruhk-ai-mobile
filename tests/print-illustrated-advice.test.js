@@ -12,7 +12,7 @@ test('Illustrated advice has genuine local SVG food images and is independent of
   assert.match(markup,/<defs>/);
   assert.match(markup,/<\/svg>$/);
   assert.ok(markup.length>500,id+' has no illustration');
-  assert.doesNotMatch(markup,/https?:\/\//);
+  assert.doesNotMatch(markup.replace('xmlns="http://www.w3.org/2000/svg"',''),/https?:\/\//);
  }
 });
 
