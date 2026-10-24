@@ -345,9 +345,14 @@ function wrap(g,text,maxWidth,maxLines,size,weight='400'){
  if(out.length>maxLines)throw Error('Состав не помещается на этикетку 58 × 40. Сократи текст или название ингредиентов.');
  return out;
 }
-function canvasBase(w,h,scale=1){
- // Logical coordinates match the actual 203 dpi printer raster. Render a
- // separate hi-DPI canvas for preview; NEVER send oversized data to V3 BT.
+function canvasBase(w,h,scale=1,vector=false){
+ if(vector){
+  if(!window.FarukhLabelSVG)throw Error('SVG-движок этикеток не загрузился.');
+  const {c,g}=window.FarukhLabelSVG.surface(w,h);
+  g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
+  return {c,g};
+ }
+ // Native V3 BT works at 203 dpi; its bitmap has fixed physical dimensions.
  const c=document.createElement('canvas');c.width=w*scale;c.height=h*scale;
  const g=c.getContext('2d',{willReadFrequently:scale===1});
  if(!g)throw Error('Canvas недоступен');
@@ -355,8 +360,8 @@ function canvasBase(w,h,scale=1){
  g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
  return {c,g};
 }
-function drawReady(p,epoch,scale=1){
- const {c,g}=canvasBase(464,320,scale);
+function drawReady(p,epoch,scale=1,vector=false){
+ const {c,g}=canvasBase(464,320,scale,vector);
  rect(g,6,6,452,308);rect(g,12,12,440,296);
  hLine(g,50,19,445);write(g,'СУШИ БЕРИ',23,33,{size:21,weight:'900',width:200});
  write(g,'Готовая продукция',443,34,{size:11,weight:'400',align:'right',width:182});
@@ -396,8 +401,8 @@ function drawReady(p,epoch,scale=1){
 }
 // Premium v2: double border, large name, two clear date rows and storage.
 // Final TSPL raster remains strictly 240 x 160; scale affects PREVIEW only.
-function drawPrep(p,epoch,point,scale=1){
- const {c,g}=canvasBase(240,160,scale);
+function drawPrep(p,epoch,point,scale=1,vector=false){
+ const {c,g}=canvasBase(240,160,scale,vector);
  rect(g,3,3,234,154,2);
  rect(g,7,7,226,146,1);
  g.lineWidth=1.2;
@@ -449,38 +454,51 @@ function haccpControls(p){
  if(b?.limit)$('haccp-limit').value=new Date(b.limit-new Date(b.limit).getTimezoneOffset()*60000).toISOString().slice(0,16);
  $('haccp-help').textContent=t.mode==='place'?'Маркировка места хранения.':t.mode==='stock'?'Отдельный запас раствора, 21 день. Печатай при приготовлении. Концентрация и режим обработки — по инструкции средства.':t.mode==='shift'?'Отдельная порция для замачивания. Укажи конец смены. Режим обработки — по инструкции средства.':'30 дней — срок замены, заданный владельцем, не подтверждённый срок производителя. Укажи заводской срок; если после вскрытия он короче — укажи более раннюю дату. DECO S9: название сохранено со слов владельца.';
 }
-function drawHaccp(p,scale){
- const {c,g}=canvasBase(464,320,scale),t=HACCP.getTemplate(p);
+function drawHaccp(p,scale,vector=false){
+ const {c,g}=canvasBase(464,320,scale,vector),t=HACCP.getTemplate(p);
  const rows=HACCP.rows(t,haccpBatch(p),formatted);
  rect(g,7,7,450,306);const heights=rows.map((_,i)=>i===0?58:i===1?48:(306-106)/(rows.length-2));
  let y=7;
  rows.forEach((s,i)=>{const h=heights[i];if(i)hLine(g,y,7,457);write(g,s,232,y+h/2,{width:432,size:i===0?34:i===1?23:19,min:12,align:'center',weight:i<2?'900':'600'});y+=h;});
  return c;
 }
-function makePreview(scale=1){
+function makePreview(scale=1,vector=false){
  const p=current();if(!p){previewError='';return null}
- if(isHaccp(p))return drawHaccp(p,scale);
+ if(isHaccp(p))return drawHaccp(p,scale,vector);
  if(p.needsReview||!str(p.storage)||!Number.isInteger(p.hours)||p.hours<=0){
    throw Error('Этот продукт пока не готов к печати. Укажи срок и условия хранения по ТТК или маркировке изготовителя и подтверди их.');
  }
  const when=new Date($('printed-at').value).getTime();
  if(!Number.isFinite(when))throw Error('Укажи дату и время изготовления.');
- return kind==='ready'?drawReady(p,when,scale):drawPrep(p,when,str($('point-name').value)||p.point,scale);
+ return kind==='ready'?drawReady(p,when,scale,vector):drawPrep(p,when,str($('point-name').value)||p.point,scale,vector);
+}
+function makeSVG(){
+ const surface=makePreview(1,true);
+ return surface?.toSVG()||null;
 }
 function updatePreview(){
- const p=current();haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=!p;
+ const p=current();haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=true;
+ const vectorHost=$('preview-svg');if(vectorHost)vectorHost.hidden=true;
  $('print-now').disabled=!p;
  $('fix-label').hidden=!p||!p.needsReview||isManaged();
  if(!p){status('Выбери товар из списка.');return}
  try{
-  const renderScale=3; // 720 px wide 30×20 preview; no CSS upscaling of 240-dot printer bitmap
-  const canvas=makePreview(renderScale);const prev=$('preview-canvas');prev.width=canvas.width;prev.height=canvas.height;
-  const pg=prev.getContext('2d');pg.clearRect(0,0,prev.width,prev.height);
-  pg.drawImage(canvas,0,0);
+  if(window.FarukhLabelSVG&&vectorHost){
+   // True resolution-independent vector SVG; no bitmap scaling in the preview.
+   vectorHost.replaceChildren(window.FarukhLabelSVG.element(makeSVG()));
+   vectorHost.hidden=false;
+  }else{
+   const canvas=makePreview(3);const prev=$('preview-canvas');
+   prev.width=canvas.width;prev.height=canvas.height;
+   const pg=prev.getContext('2d');pg.clearRect(0,0,prev.width,prev.height);
+   pg.drawImage(canvas,0,0);prev.hidden=false;
+  }
   previewError='';$('no-preview').textContent='Выбери товар для просмотра';
   status(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.');
  }catch(e){
-  previewError=e.message;$('preview-canvas').hidden=true;$('no-preview').hidden=false;
+  previewError=e.message;$('preview-canvas').hidden=true;
+  if(vectorHost){vectorHost.hidden=true;vectorHost.replaceChildren()}
+  $('no-preview').hidden=false;
   $('no-preview').textContent='Срок и условия хранения не подтверждены';
   status('Проверь данные: '+e.message,true);$('print-now').disabled=true
  }
@@ -509,18 +527,27 @@ function job(){
  const p=current();if(!p)throw Error('Выбери товар.');
  const copies=Number($('copies').value);
  if(!Number.isInteger(copies)||copies<1||copies>20)throw Error('Количество — от 1 до 20.');
- const canvas=makePreview();return {canvas,copies};
+ const canvas=makePreview();
+ const svg=window.FarukhLabelSVG?makeSVG():null;
+ return {canvas,svg,copies};
 }
-function browserPrint({canvas,copies}){
+function browserPrint({canvas,svg,copies}){
  const paper=$('print-paper');paper.replaceChildren();
  const width=canvas.width===464?58:30,height=canvas.height===320?40:20;
  const printStyle=$('print-size-style')||node('style');printStyle.id='print-size-style';
- printStyle.textContent='@media print{@page{size:'+width+'mm '+height+'mm;margin:0}.paper-only{width:'+width+'mm!important}.paper-only img{width:'+width+'mm!important;height:'+height+'mm!important}}';
+ printStyle.textContent='@media print{@page{size:'+width+'mm '+height+'mm;margin:0}.paper-only{width:'+width+'mm!important}.paper-only .print-label,.paper-only svg,.paper-only img{width:'+width+'mm!important;height:'+height+'mm!important}}';
  if(!printStyle.parentElement)document.head.append(printStyle);
- // System print/PDF gets 3× vector-rasterized preview for sharp output.
- const highRes=makePreview(3);
- const url=highRes.toDataURL('image/png');
- for(let i=0;i<copies;i++){const img=node('img');img.src=url;img.alt='Этикетка';paper.append(img)}
+ if(svg&&window.FarukhLabelSVG){
+  // Browser print and PDF keep paths and text as actual SVG vectors.
+  for(let i=0;i<copies;i++){
+   const label=node('div','print-label');
+   label.append(window.FarukhLabelSVG.element(svg));
+   paper.append(label);
+  }
+ }else{
+  const highRes=makePreview(3),url=highRes.toDataURL('image/png');
+  for(let i=0;i<copies;i++){const img=node('img');img.src=url;img.alt='Этикетка';paper.append(img)}
+ }
  window.print();
 }
 async function doPrint(forceSystem=false){
@@ -548,6 +575,10 @@ async function doPrint(forceSystem=false){
    if(activePrintEvent)void window.FARUKH_PRINT_STAFF_API?.reportPrint(activePrintEvent,'system','Открыт системный диалог, не факт печати.');
    activePrintEvent=null;saveLast(current(),value.copies);
    status('Открыт системный диалог печати. Физическая печать не подтверждена.');return;
+  }
+  // V3 BT receives the SAME SVG rasterized only at the physical 203-dpi grid.
+  if(value.svg&&window.FarukhLabelSVG?.rasterize){
+   value.canvas=await window.FarukhLabelSVG.rasterize(value.svg,value.canvas.width,value.canvas.height);
   }
   const legacy=legacyNative30Transport&&value.canvas.width===240;
   pendingNativePrint={...value,legacy,eventId:activePrintEvent,product:current()};activePrintEvent=null;
