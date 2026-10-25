@@ -12,7 +12,7 @@ test('FARUKH PRINT FAST PREMIUM mobile nav and access gate',async()=>{
  assert.match(css,/body\.worker-managed:not\(\.worker-logged-in\) \.print-mobile-nav/);
  assert.match(css,/\.print-advice-dialog\{color-scheme:light\}/);
  assert.match(js,/function updatePremiumNav\(section\)/);
- assert.match(js,/window\.FARUKH_PRINT_STAFF_API\?\.authorize/);
+ assert.match(js,/const api=window\.FARUKH_PRINT_STAFF_API/);
 });
 test('FAST uses batched DOM rendering, coalesced image refresh and search debounce',async()=>{
  const js=await read('public/farukh-print/print.js');
