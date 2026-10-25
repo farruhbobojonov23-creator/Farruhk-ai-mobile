@@ -13,7 +13,7 @@ for (const relative of sources) {
   const sourcePath = new URL(relative, dir);
   const outputPath = new URL('legacy/' + relative, dir);
   const code = await fs.readFile(sourcePath, 'utf8');
-  const result = await transform(code, { target: 'safari12', format: 'iife', loader: 'js', legalComments: 'inline' });
+  const result = await transform(code, { target: 'es2018', format: 'iife', loader: 'js', legalComments: 'inline' });
   await fs.mkdir(path.dirname(outputPath.pathname), { recursive: true });
   await fs.writeFile(outputPath, result.code);
 }
