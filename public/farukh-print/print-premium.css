@@ -1,0 +1,103 @@
+
+/* FARUKH PRINT | FAST + PREMIUM 2026 | Visual styling only. */
+:root{color-scheme:dark;background:#0b0d13;color:#f2f4f8}
+html,body{background:#0b0d13;color:#f2f4f8}
+body{min-height:100dvh;background:radial-gradient(ellipse at 45% -5%,#38202d 0%,#181820 38%,#0b0d13 73%)}
+.app{max-width:1260px;padding-bottom:100px}
+.header{background:#141820;border-color:#39414e;padding:0 14px;border-radius:0 0 19px 19px}
+.brand,.brand strong{color:#f5f7fa}.brand em{color:#f94e69}
+.brand-mark{background:linear-gradient(145deg,#f04761,#a31d3b);box-shadow:0 5px 18px #d82e4a4a}
+.brand small{color:#a8b6c6}.iconbtn{background:#1b2530;border-color:#3c4a57;color:#fff}
+.intro{padding:25px 0 23px}.eyebrow,.worker-eyebrow{color:#f1667e}
+.intro h1{color:#fff;font-size:clamp(32px,6vw,56px);letter-spacing:-1.8px;margin:15px 0 11px}.intro h1 span{color:#f34863}
+.intro p,.lead{color:#abb8c5}
+.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.type-card,.type-card:hover{min-height:248px;padding:20px 18px;color:#f9fafd;border:1px solid #49515e;border-radius:22px;background:linear-gradient(150deg,#303441,#191f29 54%,#13151c);box-shadow:0 12px 32px #0007}
+.type-card.prep,.type-card.prep:hover{border-color:#ba3551;background:radial-gradient(ellipse at 50% 0%,#992b48,#492033 56%,#15141b)}
+.type-card .type-icon{width:52px;height:52px;font-size:27px;background:#394b5e;color:#fff;border:1px solid #65758a;border-radius:15px}
+.type-card.prep .type-icon{background:#b72543;border-color:#f55c75}
+.type-content strong{color:#fff;font-size:clamp(21px,3vw,36px);line-height:1.1;letter-spacing:-.6px}
+.type-content small,.type-card.prep small{font-size:10px;letter-spacing:1px;color:#ffd5de}
+.type-content>span,.type-bottom b{color:#cbd4de}.type-bottom{border-color:#ffffff2d}
+.type-bottom .arrow{color:#ff7b91}.type-card:active{transform:scale(.985)}
+.manage-link,.premium-template-home,.premium-template-box,.backup{background:linear-gradient(125deg,#232b37,#141820);color:#eef3f9;border-color:#3e4b5b;box-shadow:none}
+.manage-link strong,.premium-template-home strong,.backup strong,.premium-template-box h3{color:#f7f8fa}
+.manage-link small,.premium-template-home small,.backup small,.premium-template-box p{color:#b7c2ce}
+.manage-link>span:first-child,.template-glyph{color:#ff8299;background:#37222e}
+.app-foot{color:#8390a0}.app-foot b{color:#f1546d}
+.staff-login,.print-sync{background:linear-gradient(145deg,#222a36,#161b24);border:1px solid #414c5c;box-shadow:0 12px 29px #0005}
+.staff-login-top strong,.print-sync-head strong{color:#eef3f8}
+.staff-badge{color:#ffbeca;border-color:#8d4b60}
+.staff-badge[data-active=yes]{color:#9de8c4;background:#173c2f;border-color:#3f8a69}
+.staff-login p,.print-sync p{color:#b1bfcb}
+.staff-login-form input,.print-sync-form input{min-height:48px;background:#121924;color:#f1f6fb;border-color:#485969;color-scheme:dark}
+.staff-login-form input::placeholder,.print-sync-form input::placeholder{color:#8294a5}
+.staff-login-form button,.print-sync-form button{min-height:48px;color:#fff;border-color:#f44d68;background:linear-gradient(115deg,#e43855,#ae213e)}
+.staff-logout,.print-sync-buttons button{background:#293340;color:#ffd1da;border-color:#704656}
+.staff-session-info{color:#8ddfbb!important}
+.staff-notice,.print-sync-message{background:#173128!important;color:#b5ddc9!important}
+.staff-notice[data-error=yes],.print-sync-message[data-error=yes]{background:#42202e!important;color:#ffbac8!important}
+.print-sync-badge{color:#f4b6c5}.print-sync-badge[data-connected=yes]{color:#8be1b6}
+.print-sync .print-sync-danger{background:#3e2630;color:#ffc2ce;border-color:#8b5365}
+.worker-dashboard{background:linear-gradient(135deg,#222936,#111721);border-color:#465467}
+.worker-heading h1,.sub-head h2{color:#f6f8fb}.worker-heading p{color:#b4c1ce}
+.worker-point{color:#91ebbf;background:#183d2e;border-color:#408969}
+.worker-tab{background:#212a37;color:#e3ebf4;border-color:#455368}
+.worker-tab.selected{background:#492432;color:#ffc8d4;border-color:#da405d;box-shadow:none}
+.worker-tab small{color:#b2c0cd}
+.worker-sync{color:#b4c0cd;border-color:#3d4a58}
+.worker-sync button{color:#e3edf5;background:#2f3a49}
+.back,.pill,.worker-close-preview,.category-chip,.worker-shortcuts button{background:#222c39;color:#ebf1f8;border-color:#445469}
+.category-chip.selected,.pill.selected{color:#fff;background:#ac2744;border-color:#ed4b67}
+.search-wrap{background:#1b2530;border-color:#405064}.search-wrap span{color:#dce6ef}
+.search-wrap input{color:#fff}.search-wrap input::placeholder{color:#99aab9}
+.product-list .product-item.product-tile{background:linear-gradient(150deg,#242d38,#161b23);border-color:#344555;box-shadow:0 6px 20px #0005}
+.product-list .product-item.product-tile.selected{background:#3e2733;border-color:#ee4866;box-shadow:0 0 0 1px #f1506e}
+.product-tile .product-visual,.product-tile .product-photo{background:transparent}
+.product-tile .product-photo-placeholder{background:#1e2935;color:#879bac}
+.product-tile .product-tile-info strong{color:#f5f8fb}
+.product-tile .product-tile-meta{color:#b0c0d0}.product-tile .product-tile-meta.needs-review{color:#ffc2a1}
+.product-tile .product-tips{background:#362730!important;border-color:#79475b!important;color:#ffd2dc!important}
+.printing-panel{background:#1e2632;color:#f1f6fa;border-color:#425366}
+.panel-heading strong{color:#fff}.badge{background:#472538;color:#ffc3d0}
+.preview-wrap{background:#111821;border-color:#455467}.preview-svg,.preview-svg svg,#preview-canvas{background:#fff}
+.field{color:#d2dfeb}.field input,.field textarea,#prep-fields select{background:#17202b;color:#fff;border-color:#495b6d;color-scheme:dark}
+.print-message{color:#b9c8d7;background:#263441}
+.print-message[data-error=yes]{color:#ffc3d0;background:#452534}
+.print-note{color:#b1becd}.button-ghost{background:#293745;color:#f4f7fb;border-color:#506273}
+.button-main{background:linear-gradient(110deg,#f04360,#af2240);border-color:#f0546f}
+.system-print{color:#b6c9d7}
+.manage-item{background:#222b35;color:#f2f6f9;border-color:#405263}
+.manage-item small{color:#b0c2cf}.manage-item button{background:#303b47;color:#f4f7fa}
+.sanpin-info,.item-guidance{background:#33271b;border-color:#6a553a;color:#f5e5bf}
+.sanpin-info p{color:#dccba9}.sanpin-info a{color:#ffe2a8}
+#editor,#editor .editor-form{background:#1e2632;color:#f4f7fb}
+#editor .edit-top h2{color:#fff}
+.edit-photo-section{background:#273441;border-color:#536475}
+.approval-area{background:#3b2a36;border-color:#7a5364;color:#ffdae1}
+.security-note{color:#acbac7}
+.print-advice-dialog{color-scheme:light}
+.print-mobile-nav{display:none}
+@media(max-width:770px){
+ .app{padding:0 14px calc(104px + env(safe-area-inset-bottom,0px))}
+ .header{height:78px;padding:0 9px;margin:0 -9px 11px}
+ .brand strong{font-size:17px}
+ .intro{padding:17px 0}.intro h1{font-size:34px}
+ .choice-grid{gap:9px}
+ .type-card,.type-card:hover{min-height:224px;padding:15px 12px;border-radius:20px}
+ .type-card .type-icon{width:43px;height:43px;font-size:24px}
+ .type-content strong{font-size:clamp(20px,5vw,29px)}
+ .type-content small{font-size:9px;letter-spacing:.5px}
+ .type-content>span{font-size:11px}.type-bottom b{font-size:10px}
+ .print-mobile-nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:20;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:8px;border:1px solid #405062;border-radius:21px;background:#161d28f1;box-shadow:0 16px 38px #000a;backdrop-filter:blur(13px)}
+ .print-mobile-nav button{min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:15px;background:transparent;color:#adbece;font-size:11px;font-weight:800;touch-action:manipulation}
+ .print-mobile-nav button span{font-size:20px;line-height:1}
+ .print-mobile-nav button[aria-current=page]{color:#fff;background:linear-gradient(120deg,#db3854,#9f233f)}
+ body.worker-managed:not(.worker-logged-in) .print-mobile-nav{display:none}
+ .worker-dashboard{padding:15px}.worker-heading h1{font-size:23px}
+ .worker-tab{padding:10px 8px;font-size:11px;gap:4px}
+ .worker-tab small{font-size:10px}
+ .printing-panel{padding:16px}
+}
+@media(max-width:345px){.type-content strong{font-size:19px}.worker-tab{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.type-card,.print-mobile-nav button{transition:none!important;animation:none!important}}
