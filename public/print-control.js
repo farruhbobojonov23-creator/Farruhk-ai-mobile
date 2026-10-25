@@ -161,9 +161,11 @@ export function mountPrintControl({root}){
  const transferActions=el('div','pc-transfer-buttons');
  const download=btn('↓ Скачать базу JSON','pc-primary',exportBackup);
  const importButton=btn('↑ Загрузить базу JSON','pc-secondary',()=>fileInput.click());
+ const legacyButton=btn('⇄ Объединить старую базу телефона / планшета','pc-secondary',()=>legacyFileInput.click());
+ const legacyFileInput=el('input');legacyFileInput.type='file';legacyFileInput.accept='.json,application/json';legacyFileInput.hidden=true;legacyFileInput.addEventListener('change',importLegacyFromDevice);
  const fileInput=el('input');fileInput.type='file';fileInput.accept='.json,application/json';fileInput.hidden=true;fileInput.addEventListener('change',importBackup);
  const openManager=el('a','pc-secondary','Управление в FARUKH PRINT ↗');openManager.href='/farukh-print/?manage=prep';openManager.target='_blank';openManager.rel='noopener noreferrer';
- transferActions.append(download,importButton,openManager,fileInput);sub.append(transferHead,transferActions);
+ transferActions.append(download,importButton,legacyButton,openManager,fileInput,legacyFileInput);sub.append(transferHead,transferActions);
  const integration=el('div','pc-integration');
  integration.append(el('h2','','Что уже подключено'),el('p','','Состав и сроки этикеток, быстрый поиск, просмотр готовности, выгрузка и загрузка одной базы для FARUKH PRINT. ТТК из основного FARUKH AI автоматически не подмешиваются.'));
  const roadmap=el('p','pc-roadmap','Пока не подключены: удалённая автоматическая синхронизация между Android-приложениями, персональные логины, журнал входов и удалённая блокировка сотрудников. Для этого понадобится отдельный серверный доступ и защищённое постоянное хранилище.');
@@ -517,6 +519,63 @@ export function mountPrintControl({root}){
    pushLog('Экспорт резервной копии',state.records.length+' поз.');renderLog();
    message('База выгружена. Передай JSON на Android-устройство и импортируй в FARUKH PRINT → Управление этикетками.');
   }catch(e){message(e.message,true)}
+ }
+ async function importLegacyFromDevice(){
+  const file=legacyFileInput.files?.[0];legacyFileInput.value='';if(!file)return;
+  try{
+   if(file.size>5*1024*1024)throw Error('Файл больше 5 МБ. Выбери JSON-копию с телефона или планшета.');
+   const payload=JSON.parse(await file.text());
+   if(payload?.format!=='farukh-print-legacy-v1'||!Array.isArray(payload.products))
+    throw Error('Нужна резервная копия старой FARUKH PRINT, скачанная на телефоне или планшете.');
+   if(payload.products.length>1000)throw Error('В старой копии слишком много позиций.');
+   const converted=[],seen=new Set();
+   const number=(value,fallback=0)=>{const n=Number(value);return Number.isFinite(n)&&n>=0?n:fallback};
+   for(const raw of payload.products){
+    if(!raw||!['semi','ready'].includes(raw.type))continue;
+    const name=text(raw.name).slice(0,90),kind=raw.type==='semi'?'prep':'ready';
+    if(!name)continue;
+    const key=kind+'|'+name.toLocaleLowerCase('ru');
+    if(seen.has(key))continue;seen.add(key);
+    const hours=Number(raw.hours),safeHours=Number.isSafeInteger(hours)&&hours>=1&&hours<=8760?hours:null;
+    const storage=text(raw.storage).slice(0,60);
+    // Import does not endorse legacy shelf-life values: owner review is mandatory.
+    const item={id:uid(),kind,name,storage,hours:safeHours,needsReview:true,
+      recipeMemo:'Импорт из старой базы телефона/планшета. Срок и технология требуют проверки.',
+      point:text(raw.point).slice(0,40),
+      labelStyle:kind==='prep'?'premium-prep-30x20':'premium-ready-58x40'};
+    if(typeof raw.photo==='string'&&raw.photo.length<=45000&&window.FarukhPrintPhotos?.isPhoto(raw.photo)){
+      item.photo=raw.photo;if(kind==='prep')item.photoStyle='manual';
+    }
+    if(kind==='ready'){
+      item.composition=text(raw.composition).slice(0,600)||'Состав требует уточнения';
+      item.p=number(raw.protein);item.f=number(raw.fat);item.c=number(raw.carb);item.kcal=number(raw.kcal);
+      item.weight=number(raw.weight,1)||1;item.tolerance=number(raw.tolerance,10);
+    }
+    converted.push(item);
+   }
+   if(!converted.length)throw Error('В резервной копии нет подходящих карточек.');
+   // The source of truth is the current owner-authorized server revision,
+   // NEVER a stale local browser catalog. Add new names only; preserve cloud
+   // photos, approved expiry settings, staff and device access unchanged.
+   const response=await fetch('/api/farukh-print/admin/catalog',{credentials:'same-origin',cache:'no-store'});
+   const current=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(current.error||'Сначала войди как владелец в разделе «Облако».');
+   const existing=new Set(current.products.map(p=>p.kind+'|'+p.name.toLocaleLowerCase('ru')));
+   const additions=converted.filter(p=>!existing.has(p.kind+'|'+p.name.toLocaleLowerCase('ru')));
+   const skipped=converted.length-additions.length;
+   if(!additions.length){message('Новых позиций нет: все '+skipped+' уже есть в общей базе. Облачные фотографии и сроки сохранены.');return}
+   if(current.products.length+additions.length>1000)throw Error('Слишком много товаров для облачной базы.');
+   if(!confirm('Добавить в общую базу '+additions.length+' новых позиций из «'+file.name+'»? '+skipped+' совпадающих не изменятся. Новые карточки будут заблокированы для печати до проверки сроков владельцем.'))return;
+   const upload=await fetch('/api/farukh-print/admin/catalog',{method:'PUT',credentials:'same-origin',cache:'no-store',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:current.revision,products:[...current.products,...additions]})});
+   const result=await upload.json().catch(()=>({}));
+   if(!upload.ok)throw Error((result.error||'Не удалось опубликовать')+(upload.status===409?' База изменилась — повтори импорт файла.':''));
+   localStorage.setItem(DB_KEY,JSON.stringify(result.products));
+   pushLog('Объединение старой базы',additions.length+' нов. / '+skipped+' совп.');
+   render();
+   window.dispatchEvent(new Event('farukh-print-cloud-refresh'));
+   message('✓ В общей базе '+result.products.length+' товаров. Добавлено '+additions.length+', пропущено совпадений '+skipped+'. Новые карточки ожидают проверки срока перед печатью.');
+  }catch(e){message('Объединение не выполнено: '+e.message,true)}
  }
  async function importBackup(){
   const file=fileInput.files?.[0];fileInput.value='';if(!file)return;
