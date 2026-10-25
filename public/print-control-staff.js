@@ -117,6 +117,9 @@ export function mountPrintStaffControl({root}){
  const reportGrid=el('div','pstaff-report-grid');
  const workerReportHeading=el('h3','','Статистика сотрудников');
  const workerReport=el('div','pstaff-worker-report');
+ const topProductsHeading=el('h3','','Популярные товары по запросам');
+ const topProducts=el('div','pstaff-products');
+ const topProductsHint=el('p','pstaff-report-note','Количество запросов и отправок не означает подтверждённую физическую печать.');
  const alertsHeading=el('h3','','Уведомления владельцу');
  const alertsHelp=el('p','pstaff-report-note','Здесь показываются ошибки отправки на принтер и устройства без связи более 20 минут. Это сообщения внутри FARUKH AI, не push-уведомления.');
  const alertCount=el('span','pstaff-alert-count','Нет новых ошибок');
@@ -124,12 +127,14 @@ export function mountPrintStaffControl({root}){
  const activityTitle=el('h3','','История печати · фильтры');
  const activityFilters=el('div','pstaff-history-filters');
  const staffFilter=el('input','pstaff-search');staffFilter.type='search';staffFilter.maxLength=32;staffFilter.placeholder='Логин сотрудника';staffFilter.setAttribute('aria-label','История: логин сотрудника');
+ const productFilter=el('input','pstaff-search');productFilter.type='search';productFilter.maxLength=90;productFilter.placeholder='Название товара';productFilter.setAttribute('aria-label','История: поиск товара');
  const startDate=el('input');startDate.type='date';startDate.setAttribute('aria-label','Начало периода истории');
  const endDate=el('input');endDate.type='date';endDate.setAttribute('aria-label','Конец периода истории');
  const statusFilter=el('select','pstaff-select');statusFilter.setAttribute('aria-label','Результат печати');
  for(const [v,label] of [['','Все результаты'],['sent','Передано принтеру'],['failed','Ошибка'],['system','Диалог печати'],['pending','Ожидает результата']])statusFilter.append(opt(v,label));
  const historyCount=el('p','pstaff-report-note');
- activityFilters.append(staffFilter,startDate,endDate,statusFilter);
+ const exportCsv=button('⇩ Скачать историю CSV',()=>void downloadHistory(),'pstaff-button pstaff-export');
+ activityFilters.append(staffFilter,productFilter,startDate,endDate,statusFilter,exportCsv);
  const activity=el('div','pstaff-activity');
  const tabNav=el('nav','pstaff-tabbar');tabNav.setAttribute('aria-label','Разделы сотрудников');
  const overviewPanel=el('section','pstaff-tab-panel');const teamPanel=el('section','pstaff-tab-panel');
@@ -145,7 +150,7 @@ export function mountPrintStaffControl({root}){
  }
  const workerDetails=el('details','pstaff-worker-details');workerDetails.append(el('summary','','Статистика сотрудников по отдельности'),workerReport);
  const createDetails=el('details','pstaff-create-details');createDetails.append(el('summary','','＋ Добавить сотрудника'),createForm);
- overviewPanel.append(metrics,reportHead,reportNote,reportGrid,workerDetails,alertsHeading,alertsHelp,alertCount,alerts);
+ overviewPanel.append(metrics,reportHead,reportNote,reportGrid,workerDetails,topProductsHeading,topProducts,topProductsHint,alertsHeading,alertsHelp,alertCount,alerts);
  teamPanel.append(search,createDetails,secret,rosterHead,staffList);
  historyPanel.append(activityTitle,activityFilters,historyCount,activity);
  pointsPanel.append(managePoints);
@@ -285,7 +290,7 @@ export function mountPrintStaffControl({root}){
   }
  }
  function renderReport(){
-  reportGrid.replaceChildren();workerReport.replaceChildren();
+  reportGrid.replaceChildren();workerReport.replaceChildren();topProducts.replaceChildren();
   nStaff.textContent=report?.summary?.staff??'—';
   nActive.textContent=report?.summary?.active??'—';
   nRequests.textContent=report?.summary?.requests??'—';
@@ -313,6 +318,13 @@ export function mountPrintStaffControl({root}){
    }
   }
   if(!workerReport.children.length)workerReport.append(el('p','pstaff-empty','Сотрудники не найдены.'));
+  for(const [index,product] of (report?.topProducts||[]).entries()){
+   const row=el('div','pstaff-product-row');
+   row.append(el('b','','#'+(index+1)),el('strong','',product.name),
+    el('span','',product.requests+' запросов · '+product.requestedLabels+' этикеток запрошено · '+product.transmittedJobs+' передано · '+product.failedJobs+' ошибок'));
+   topProducts.append(row);
+  }
+  if(!topProducts.children.length)topProducts.append(el('p','pstaff-empty','За выбранный период запросов нет.'));
   reportNote.textContent=report?.note||reportNote.textContent;
  }
  function renderAlerts(){
@@ -348,15 +360,38 @@ export function mountPrintStaffControl({root}){
   report=await fetchStaff('/report?'+params.toString());
   renderReport();
  }
- async function historyLoad(){
-  const params=new URLSearchParams({limit:'300'});
+ function historyParams(){
+  const params=new URLSearchParams();
   if(selection())params.set('point',selection());
   if(staffFilter.value.trim())params.set('login',staffFilter.value.trim().toLowerCase());
+  if(productFilter.value.trim())params.set('product',productFilter.value.trim());
   if(startDate.value)params.set('from',startDate.value);
   if(endDate.value)params.set('to',endDate.value);
   if(statusFilter.value)params.set('result',statusFilter.value);
+  return params;
+ }
+ async function historyLoad(){
+  const params=historyParams();params.set('limit','300');
   const r=await fetchStaff('/activity?'+params);
   events=r.events||[];historyTotal=r.total??events.length;renderActivity();
+ }
+ async function downloadHistory(){
+  if(busy)return;
+  exportCsv.disabled=true;
+  try{
+   const response=await fetch(API+'/activity-export?'+historyParams(),{credentials:'same-origin',cache:'no-store'});
+   if(!response.ok){
+    const error=await response.json().catch(()=>({}));
+    throw Error(error.error||'Не удалось скачать историю.');
+   }
+   const blob=await response.blob();
+   if(blob.size>8*1024*1024)throw Error('Файл слишком большой для загрузки.');
+   const url=URL.createObjectURL(blob);
+   const link=el('a');link.href=url;link.download='FARUKH-PRINT-история-'+new Date().toISOString().slice(0,10)+'.csv';
+   document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
+   notify('История по выбранным фильтрам выгружена в CSV.');
+  }catch(e){notify('Экспорт не выполнен: '+e.message,true)}
+  finally{exportCsv.disabled=false}
  }
  async function alertsLoad(){
   const r=await fetchStaff('/alerts');alertRows=r.alerts||[];renderAlerts();
@@ -424,6 +459,7 @@ export function mountPrintStaffControl({root}){
  period.addEventListener('change',()=>{void reportLoad().catch(e=>notify(e.message,true))});
  const debounceHistory=()=>{clearTimeout(historyTimer);historyTimer=setTimeout(()=>void historyLoad().catch(e=>notify(e.message,true)),350)};
  staffFilter.addEventListener('input',debounceHistory);
+ productFilter.addEventListener('input',debounceHistory);
  for(const field of [startDate,endDate,statusFilter])field.addEventListener('change',debounceHistory);
  window.addEventListener('farukh-print-owner-authenticated',()=>void reloadAll());
  void reloadAll();
