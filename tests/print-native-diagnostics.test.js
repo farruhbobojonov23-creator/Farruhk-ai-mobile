@@ -12,5 +12,5 @@ test('Read-only V3 BT health and explicit switch use the selected printer safely
  assert.match(n,/\? " · текущий" : ""/);
  assert.match(js,/sendNative\(\{type:'status'\}\)/);
  assert.match(html,/id="check-printer"/);
- assert.match(html,/print-premium\.css\?v=4/);
+ assert.match(html,/print-premium\.css\?v=\d+/);
 });

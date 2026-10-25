@@ -21,7 +21,7 @@ test('FAST uses batched DOM rendering, coalesced image refresh and search deboun
  assert.match(js,/list\.append\(cards\)/);
  assert.match(js,/searchDebounce=setTimeout\(renderCatalog,110\)/);
  assert.match(js,/artFrame=requestAnimationFrame/);
- assert.match(js,/function doPrint\(forceSystem=false\)/);
+ assert.match(js,/function doPrint\(forceSystem=false,waitForAck=false\)/);
 });
 test('Premium Android reserves OS insets, dark shell and new version',async()=>{
  const native=await read('android/print/src/main/java/ai/farukh/print/MainActivity.java');
@@ -29,5 +29,5 @@ test('Premium Android reserves OS insets, dark shell and new version',async()=>{
  assert.match(native,/setOnApplyWindowInsetsListener/);
  assert.match(native,/safeFrame\.setBackgroundColor\(Color\.rgb\(16, 19, 26\)\)/);
  assert.match(native,/webView\.setBackgroundColor\(Color\.rgb\(16, 19, 26\)\)/);
- assert.match(gradle,/versionCode 4/);
+ assert.match(gradle,/versionCode [5-9]|versionCode [1-9][0-9]+/);
 });

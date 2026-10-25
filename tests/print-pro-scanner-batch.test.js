@@ -8,7 +8,7 @@ test('PRO batch queues one approved same-format label at a time',async()=>{
  assert.match(app,/batchSelection\.size<10/);
  assert.match(app,/function batchReady\(p\)/);
  assert.match(app,/!p\.needsReview&&!isHaccp\(p\)/);
- assert.match(app,/const success=await doPrint\(false\)/);
+ assert.match(app,/const success=await doPrint\(false,true\)/);
  assert.match(app,/if\(!success\).*break;/);
  assert.match(app,/nativePrintResolver=resolve/);
  assert.match(app,/const resolve=nativePrintResolver;nativePrintResolver=null;resolve\(answer\.ok===true\)/);
