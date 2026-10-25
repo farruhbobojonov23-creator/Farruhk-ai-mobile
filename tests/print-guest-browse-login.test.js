@@ -31,7 +31,7 @@ test('Guests can never print (Bluetooth, system dialog, batch, or printer pairin
  assert.equal(await access.doPrint(true),false);
  assert.match(state.message,/Сначала подключи устройство/);
  assert.equal(await access.doPrint(false),false);
- access.choosePrinter();assert.match(state.message,/войти под логином/);
+ access.choosePrinter();assert.match(state.message,/войди под логином/);
  await access.runBatchPrint();assert.match(state.message,/Пакетная печать/);
  localStorage.setItem('farukh-print:staff-managed:v1','1');
  assert.equal(access.canPrint(),false,'Pairing is not authentication');
