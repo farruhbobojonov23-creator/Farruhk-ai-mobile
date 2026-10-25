@@ -14,7 +14,9 @@ import * as supplementalPhotos from './public/farukh-print/supplemental-photos.j
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
 const MAX_PRODUCTS=1000;
-const MAX_JSON=1024*1024;
+// 93+ catalogue items with owner photos can exceed the old 1 MiB body cap.
+// Keep per-photo validation (45 KiB) and the independent product count limit.
+const MAX_JSON=5*1024*1024;
 const printableChars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const error=(status,message)=>Object.assign(new Error(message),{status});
 const sha=t=>crypto.createHash('sha256').update(t).digest('hex');
