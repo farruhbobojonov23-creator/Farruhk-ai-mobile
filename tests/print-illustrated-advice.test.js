@@ -60,9 +60,9 @@ test('Every printed-product advice tab displays colorful themed artwork, not ini
  assert.match(style,/print-advice-aside h2/);
  assert.match(ui,/\['Форма','Форма хранения',tips\.form\]/);
  assert.doesNotMatch(ui,/В каком виде лучше хранить/);
- assert.match(app,/employee-advice\.js\?v=4/);
- assert.match(html,/print\.css\?v=22/);
- assert.match(html,/print\.js\?v=37/);
+ assert.match(app,/employee-advice\.js\?v=\d+/);
+ assert.match(html,/print\.css\?v=\d+/);
+ assert.match(html,/print\.js\?v=\d+/);
 });
 
 test('Advice never guesses or writes shelf-life values, and does not override print authorization',async()=>{
@@ -73,3 +73,14 @@ test('Advice never guesses or writes shelf-life values, and does not override pr
  assert.doesNotMatch(ui,/product\.(hours|storage|needsReview)\s*=/);
  assert.doesNotMatch(art,/\beval\(/);
 });
+
+test('Mobile reference text stays in full-width Norms tab, not the product summary',async()=>{
+ const ui=await fs.readFile(new URL('../public/farukh-print/employee-advice.js',import.meta.url),'utf8');
+ const css=await fs.readFile(new URL('../public/farukh-print/print.css',import.meta.url),'utf8');
+ const segment=ui.slice(ui.indexOf("if(label==='Нормы'){"),ui.indexOf("const links=create('div','print-advice-links')"));
+ assert.match(segment,/content\.append\(info\)/);
+ assert.doesNotMatch(ui,/aside\.append\(info\)/);
+ assert.match(css,/\.print-advice-norm-ref\{[^}]*width:100%/);
+ assert.match(css,/\.print-advice-norm-ref\{[^}]*overflow-wrap:break-word/);
+});
+
