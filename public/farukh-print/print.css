@@ -448,7 +448,7 @@ body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{di
 
 /* 2026-10-24: readable source attribution / documented shelf-life guidance. */
 .print-advice-photo-credit{display:block;color:#6c7988;font-size:10px;margin:0 12px 12px;text-decoration:underline;line-height:1.35}
-.print-advice-norm-ref{border:1px solid #dce5ec;background:#f4f9fa;border-radius:13px;padding:12px;margin:12px 0;color:#33465a;font-size:12px;line-height:1.45}
+.print-advice-norm-ref{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;border:1px solid #dce5ec;background:#f4f9fa;border-radius:13px;padding:14px 15px;margin:15px 0;color:#33465a;font-size:13px;line-height:1.6;overflow-wrap:break-word;word-break:normal}
 .print-advice-norm-ref strong{display:block;font-size:12px}
 .print-advice-norm-ref p{margin:7px 0}
 .print-advice-norm-ref a{color:#a62c47;text-decoration:underline}
