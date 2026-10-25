@@ -137,7 +137,7 @@ void (async()=>{
    const info=await call('/sync/status');
    if(!info.enabled){
      form.hidden=true;controls.hidden=true;badge.textContent='Не настроено';
-     note('Онлайн-связь пока не включена владельцем. Этикетки и Bluetooth-печать работают отдельно.');
+     note('Онлайн-связь пока не включена владельцем. Каталог доступен для просмотра. Печать требует привязки устройства и входа сотрудника.');
      return;
    }
    connected=!!stored?.token;
