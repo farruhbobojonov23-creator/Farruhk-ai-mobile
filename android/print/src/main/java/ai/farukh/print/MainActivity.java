@@ -74,6 +74,10 @@ public final class MainActivity extends Activity {
     private final AtomicBoolean printing = new AtomicBoolean(false);
     private final ExecutorService printerWorker = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private volatile BluetoothSocket heldSocket;
+    private String heldAddress;
+    private long socketLease;
+
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -310,6 +314,19 @@ public final class MainActivity extends Activity {
         catch (SecurityException e) { return "Bluetooth-принтер"; }
     }
 
+    /**
+     * Reuse one authenticated RFCOMM session for nearby print jobs.
+     * Reconnecting for every label creates several seconds of avoidable
+     * Bluetooth negotiation; releasing it after 60 s lets another tablet
+     * use the same V3 BT. All regular access is on printerWorker.
+     */
+    private void closeHeldSocket() {
+        BluetoothSocket old = heldSocket;
+        heldSocket = null;
+        heldAddress = null;
+        if (old != null) try { old.close(); } catch (Exception ignored) {}
+    }
+
     private void sendLabel(BluetoothDevice device) {
         final byte[] label = pendingLabel;
         final JavaScriptReplyProxy callback = pendingPrinterReply;
@@ -322,29 +339,46 @@ public final class MainActivity extends Activity {
         printerWorker.execute(() -> {
             BluetoothSocket socket = null;
             Runnable timeout = null;
+            boolean sent = false;
             final AtomicBoolean completed = new AtomicBoolean(false);
             try {
-                socket = device.createRfcommSocketToServiceRecord(SPP);
+                // An older idle-close callback must not close a newly reused socket.
+                socketLease++;
+                final String address = device.getAddress();
+                if (heldSocket != null && address.equals(heldAddress) && heldSocket.isConnected()) {
+                    socket = heldSocket;
+                } else {
+                    closeHeldSocket();
+                    socket = device.createRfcommSocketToServiceRecord(SPP);
+                }
+                final boolean reused = socket == heldSocket;
                 final BluetoothSocket active = socket;
-                // Close hung V3 BT connection/write after 45 s, never auto-retry.
-                // Some labels could have physically printed before a timeout.
+                // Always cap a hung connection or write; NEVER auto-retry
+                // because the printer might already have printed the label.
                 timeout = () -> {
                     if (!completed.get()) try { active.close(); }
                     catch (Exception ignored) {}
                 };
                 mainHandler.postDelayed(timeout, 45000);
-                socket.connect();
+                if (!reused) {
+                    socket.connect();
+                    heldSocket = socket;
+                    heldAddress = address;
+                }
                 OutputStream stream = socket.getOutputStream();
-                // Many compact V3 printers have a small Bluetooth receive buffer.
+                // Small V3 BT receive buffer: keep the proven safe pacing.
                 for (int offset = 0; offset < label.length; offset += 256) {
                     int size = Math.min(256, label.length - offset);
                     stream.write(label, offset, size);
                     stream.flush();
                     Thread.sleep(20);
                 }
+                sent = true;
                 mainHandler.post(() -> respond(callback, true,
                     "Задание отправлено. Проверь выход этикетки из принтера."));
             } catch (Exception error) {
+                closeHeldSocket();
+                if (socket != null) try { socket.close(); } catch (Exception ignored) {}
                 final String hint = error.getMessage() == null ? "ошибка Bluetooth" : error.getMessage();
                 mainHandler.post(() -> respond(callback, false,
                     "Принтер не принял задание: " + hint +
@@ -352,8 +386,18 @@ public final class MainActivity extends Activity {
             } finally {
                 completed.set(true);
                 if (timeout != null) mainHandler.removeCallbacks(timeout);
-                if (socket != null) try { socket.close(); } catch (Exception ignored) {}
                 printing.set(false);
+                if (sent) {
+                    final long lease = ++socketLease;
+                    mainHandler.postDelayed(() -> {
+                        if (printerWorker.isShutdown()) return;
+                        try {
+                            printerWorker.execute(() -> {
+                                if (socketLease == lease && !printing.get()) closeHeldSocket();
+                            });
+                        } catch (java.util.concurrent.RejectedExecutionException ignored) {}
+                    }, 60_000);
+                }
             }
         });
     }
@@ -436,6 +480,9 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onDestroy() {
         printerWorker.shutdownNow();
+        // Free Bluetooth immediately on app exit so another workstation
+        // can connect. A running write will fail instead of silently retrying.
+        closeHeldSocket();
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();
