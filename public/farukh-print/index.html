@@ -47,6 +47,22 @@ if (typeof window.structuredClone !== 'function') {
   };
 }
 </script>
+<script id="farukh-ios12-replace-children">
+/* DOM replaceChildren was introduced after Safari 12. */
+(function () {
+  function replaceChildrenCompat() {
+    while (this.firstChild) this.removeChild(this.firstChild);
+    for (var i = 0; i < arguments.length; i++) {
+      var item = arguments[i];
+      this.appendChild(item && typeof item.nodeType === 'number' ? item : document.createTextNode(String(item)));
+    }
+  }
+  var prototypes = [Element.prototype, Document.prototype, DocumentFragment.prototype];
+  for (var i = 0; i < prototypes.length; i++) {
+    if (prototypes[i] && !prototypes[i].replaceChildren) prototypes[i].replaceChildren = replaceChildrenCompat;
+  }
+})();
+</script>
 </head>
 <body>
 <div class="app">
