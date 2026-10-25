@@ -27,5 +27,5 @@ test('Advice modal has a large accessible close target above card content',async
  assert.match(js,/closeBtn\.setAttribute\('aria-label','Закрыть советы'\)/);
  assert.match(js,/closeBtn\.onclick=closeAdvice/);
  assert.match(js,/dialog\.addEventListener\('click',e=>\{if\(e\.target===dialog\)closeAdvice\(\)\}\)/);
- assert.match(html,/\.\/print\.css\?v=29/);
+ assert.match(html,/\.\/print\.css\?v=30/);
 });
