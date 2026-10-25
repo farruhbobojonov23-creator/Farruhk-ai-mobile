@@ -78,6 +78,39 @@ const assistant=installAssistantApi(app,{multer,ExcelJS,migrateState:async()=>{
   try{const meta=await yandexRequest('/resources/download?path='+encodeURIComponent('/FARRUKH_AI_STORAGE/FARRUKH_AI/state.json'),{method:'GET'});const r=await cloudDownload(meta.href,{signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('Cloud migration failed');return await r.json()}catch(e){if(e.status===404)return null;throw e}
 }});
 
+// Security boundary for the owner web app and APIs registered below this point.
+// Changing the public URL is not authentication. Require a valid owner session
+// before serving the management UI or invoking private export/backup endpoints.
+// FARUKH PRINT staff endpoints remain separately protected by device + staff tokens.
+const ownerSessionToken=req=>String(req.headers.cookie||'').split(';')
+  .map(part=>part.trim()).find(part=>part.startsWith('fai_owner='))?.slice('fai_owner='.length)||'';
+const ownerSessionValid=req=>Boolean(assistant.auth?.enabled&&assistant.auth.verify(ownerSessionToken(req)));
+const ownerOnlyPaths=new Set(['/','/index.html','/marking.html','/finished-labels.html']);
+app.use((req,res,next)=>{
+  if(ownerOnlyPaths.has(req.path)&&!ownerSessionValid(req)){
+    res.setHeader('Cache-Control','no-store');
+    res.setHeader('Content-Type','text/html; charset=utf-8');
+    if(!assistant.auth?.enabled){
+      return res.status(503).send(`<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARRUH AI — доступ закрыт</title><body style="margin:0;background:#f4f7fb;font:16px Arial,sans-serif;color:#202b3b;display:grid;min-height:100vh;place-items:center"><main style="max-width:420px;padding:28px;background:white;border-radius:20px;box-shadow:0 12px 40px #14233a18"><h1 style="margin-top:0">FARRUH AI</h1><p>Панель управления закрыта: владелец должен настроить пароль и секрет сессии на сервере.</p></main></body></html>`);
+    }
+    return res.status(401).send(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Вход владельца · FARRUH AI</title></head><body style="margin:0;background:#f2f6fb;font:16px Arial,sans-serif;color:#202b3b;display:grid;min-height:100vh;place-items:center"><main style="box-sizing:border-box;width:min(420px,calc(100% - 28px));padding:28px;background:white;border:1px solid #e1e8f0;border-radius:22px;box-shadow:0 16px 50px #14233a16"><div style="font-size:12px;letter-spacing:2px;color:#bc3045;font-weight:800">PRIVATE ACCESS</div><h1 style="margin:10px 0">FARRUH AI</h1><p style="color:#687589;line-height:1.5">Для входа в панель управления требуется пароль владельца.</p><form id="login"><label for="password">Пароль владельца</label><input id="password" type="password" autocomplete="current-password" required style="display:block;box-sizing:border-box;width:100%;margin:8px 0 14px;padding:13px;border:1px solid #d9e1eb;border-radius:10px;font:inherit"><button style="width:100%;padding:13px;border:0;border-radius:10px;background:#c92f43;color:white;font-weight:700;font:inherit">Войти</button><p id="message" role="status" style="color:#b42335;line-height:1.4"></p></form></main><script>document.getElementById('login').addEventListener('submit',async e=>{e.preventDefault();const message=document.getElementById('message');message.textContent='Проверка…';try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Вход не выполнен');location.replace('/')}catch(err){message.textContent=err.message||'Вход не выполнен'}});</script></body></html>`);
+  }
+  const sensitiveExport =
+    req.path==='/api/backups/google-drive' ||
+    req.path==='/api/voice/speak' ||
+    /^\/api\/recipes(?:\/|$)/.test(req.path) ||
+    /^\/api\/(?:haccp-journal|haccp-temperature|temperature-journal)(?:\/|$)/.test(req.path);
+  if(sensitiveExport&&!ownerSessionValid(req)){
+    res.setHeader('Cache-Control','no-store');
+    return res.status(401).json({ok:false,error:'Требуется авторизация владельца.'});
+  }
+  if(sensitiveExport&&!['GET','HEAD','OPTIONS'].includes(req.method)){
+    const origin=String(req.headers.origin||'');
+    if(origin){try{if(new URL(origin).host!==req.get('host'))return res.status(403).json({ok:false,error:'Запрос отклонён'});}catch{return res.status(403).json({ok:false,error:'Запрос отклонён'});}}
+  }
+  next();
+});
+
 installPrintSyncApi(app,{store:assistant.store,auth:assistant.auth,readyCatalogImport,catalogPhotoImport,haccpCatalogImport});
 installRecipePdfApi(app,{store:assistant.store});
 installRecipeExportApi(app);
