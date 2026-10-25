@@ -157,7 +157,7 @@ export function mountPrintControl({root}){
  const table=el('div','pc-list');
  const pagination=el('div','pc-pagination');const paginationText=el('span','','');const prev=btn('← Назад','pc-pager',()=>{if(page>1){page--;renderRows()}});const next=btn('Далее →','pc-pager',()=>{page++;renderRows()});pagination.append(paginationText,prev,next);
  const sub=el('div','pc-transfer');
- const transferHead=el('div');transferHead.append(el('h2','','Перенос базы'),el('p','','На одном браузере FARUKH AI и FARUKH PRINT видят общую базу. Android-приложения имеют отдельные хранилища: после изменений скачай копию и загрузи её в FARUKH PRINT на нужном устройстве.'));
+ const transferHead=el('div');transferHead.append(el('h2','','Перенос базы'),el('p','','Главный каталог хранится в облаке FARUKH AI и обновляется на подключённых телефонах и планшетах. Если на старом устройстве остались отдельные позиции, скачай там копию и добавь её через «Объединить старую базу» ниже.'));
  const transferActions=el('div','pc-transfer-buttons');
  const download=btn('↓ Скачать базу JSON','pc-primary',exportBackup);
  const importButton=btn('↑ Загрузить базу JSON','pc-secondary',()=>fileInput.click());
@@ -168,7 +168,7 @@ export function mountPrintControl({root}){
  transferActions.append(download,importButton,legacyButton,openManager,fileInput,legacyFileInput);sub.append(transferHead,transferActions);
  const integration=el('div','pc-integration');
  integration.append(el('h2','','Что уже подключено'),el('p','','Состав и сроки этикеток, быстрый поиск, просмотр готовности, выгрузка и загрузка одной базы для FARUKH PRINT. ТТК из основного FARUKH AI автоматически не подмешиваются.'));
- const roadmap=el('p','pc-roadmap','Пока не подключены: удалённая автоматическая синхронизация между Android-приложениями, персональные логины, журнал входов и удалённая блокировка сотрудников. Для этого понадобится отдельный серверный доступ и защищённое постоянное хранилище.');
+ const roadmap=el('p','pc-roadmap','Общая база, привязка устройств, логины сотрудников и журнал доступа работают через защищённое облако. Перед печатью на новом устройстве подключи его по коду владельца и войди в аккаунт сотрудника.');
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
  root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,prepCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
