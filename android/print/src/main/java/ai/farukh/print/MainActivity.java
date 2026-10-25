@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +18,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Base64;
+import android.view.View;
+import android.view.WindowInsets;
 import android.webkit.CookieManager;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
@@ -26,6 +29,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import android.widget.FrameLayout;
 
 import androidx.webkit.JavaScriptReplyProxy;
 import androidx.webkit.WebMessageCompat;
@@ -73,8 +77,36 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Android 15 (targetSdk 35) draws content edge-to-edge by default.
+        // Keep the embedded page *below* the real status bar and *above*
+        // system navigation, rather than covering toolbar buttons with OS touches.
+        final FrameLayout safeFrame = new FrameLayout(this);
+        safeFrame.setBackgroundColor(Color.rgb(246, 247, 249));
         webView = new WebView(this);
-        setContentView(webView);
+        safeFrame.addView(webView, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        safeFrame.setOnApplyWindowInsetsListener((view, insets) -> {
+            final int top;
+            final int bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                final android.graphics.Insets bars = insets.getInsets(
+                    WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()
+                        | WindowInsets.Type.displayCutout());
+                top = bars.top;
+                bottom = bars.bottom;
+            } else {
+                top = insets.getSystemWindowInsetTop();
+                bottom = insets.getSystemWindowInsetBottom();
+            }
+            if (view.getPaddingTop() != top || view.getPaddingBottom() != bottom)
+                view.setPadding(0, top, 0, bottom);
+            return insets;
+        });
+        // Dark status-bar icons on the light FARUKH PRINT background.
+        getWindow().getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        setContentView(safeFrame);
+        safeFrame.requestApplyInsets();
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);

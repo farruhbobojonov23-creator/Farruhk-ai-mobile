@@ -545,3 +545,44 @@ body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{di
   transition:none;
  }
 }
+
+/* 2026-10-25: Android 15 edge-to-edge and reliable mobile dialog close.
+   Native APK applies actual window insets to the WebView container; PWA
+   safe-area rules are used when launched standalone from the home screen. */
+@media (display-mode: standalone) and (max-width:900px){
+ .app{padding-top:env(safe-area-inset-top,0px)}
+ .header{height:calc(78px + env(safe-area-inset-top,0px))}
+}
+.print-advice-dialog .print-advice-close{
+ position:sticky;
+ top:14px;
+ float:right;
+ z-index:1000;
+ width:54px;
+ min-width:54px;
+ height:54px;
+ min-height:54px;
+ margin:14px 14px -68px 0;
+ padding:0;
+ display:grid;
+ place-items:center;
+ line-height:1;
+ border:1px solid #cfdee6;
+ border-radius:50%;
+ background:#f4f8fa;
+ color:#334a59;
+ font-size:29px;
+ cursor:pointer;
+ pointer-events:auto;
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+ box-shadow:0 3px 12px rgb(25 47 65 / 12%);
+}
+@media(max-width:480px){
+ .print-advice-dialog .print-advice-close{
+  top:12px;
+  margin:12px 12px -66px 0;
+  width:54px;height:54px;
+ }
+ .print-advice-dialog{scroll-padding-top:70px}
+}
