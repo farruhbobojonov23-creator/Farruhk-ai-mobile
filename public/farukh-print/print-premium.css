@@ -177,3 +177,6 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 
 /* Crisp branded printer emblem stays vector-sharp on high-DPI Android screens. */
 .brand .brand-printer-icon{display:block;width:28px;height:28px;color:#fff;stroke-linecap:round;stroke-linejoin:round}
+
+/* Read-only BT health check, never prints an unapproved label. */
+.check-printer{display:block;width:100%;margin:10px 0;min-height:44px;font-size:12px;font-weight:850;border-style:dashed;border-radius:13px}
