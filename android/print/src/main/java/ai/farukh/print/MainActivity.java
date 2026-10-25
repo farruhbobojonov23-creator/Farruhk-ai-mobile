@@ -175,6 +175,10 @@ public final class MainActivity extends Activity {
         try { request = new JSONObject(message.getData()); }
         catch (Exception error) { respond(reply, false, "Некорректная команда."); return; }
         String type = request.optString("type", "");
+        if (pendingPrinterReply != null || printing.get()) {
+            respond(reply, false, "Заверши предыдущее действие с Bluetooth-принтером.");
+            return;
+        }
         if ("select".equals(type)) {
             pendingLabel = null;
             pendingSelectOnly = true;
@@ -278,8 +282,18 @@ public final class MainActivity extends Activity {
         }
         printerWorker.execute(() -> {
             BluetoothSocket socket = null;
+            Runnable timeout = null;
+            final AtomicBoolean completed = new AtomicBoolean(false);
             try {
                 socket = device.createRfcommSocketToServiceRecord(SPP);
+                final BluetoothSocket active = socket;
+                // Close hung V3 BT connection/write after 45 s, never auto-retry.
+                // Some labels could have physically printed before a timeout.
+                timeout = () -> {
+                    if (!completed.get()) try { active.close(); }
+                    catch (Exception ignored) {}
+                };
+                mainHandler.postDelayed(timeout, 45000);
                 socket.connect();
                 OutputStream stream = socket.getOutputStream();
                 // Many compact V3 printers have a small Bluetooth receive buffer.
@@ -297,6 +311,8 @@ public final class MainActivity extends Activity {
                     "Принтер не принял задание: " + hint +
                     ". Закрой 4Barcode, проверь подключение Printer001 и повтори."));
             } finally {
+                completed.set(true);
+                if (timeout != null) mainHandler.removeCallbacks(timeout);
                 if (socket != null) try { socket.close(); } catch (Exception ignored) {}
                 printing.set(false);
             }

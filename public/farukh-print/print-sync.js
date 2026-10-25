@@ -44,6 +44,7 @@ async function call(path,opts={}){
  const headers={'Content-Type':'application/json',...opts.headers};
  if(stored?.token)headers['X-Farukh-Print-Device']=stored.token;
  const res=await fetch(BASE+path,{...opts,headers,cache:'no-store'});
+ if(res.status===304)return {notModified:true};
  const data=await res.json().catch(()=>({}));
  if(!res.ok)throw Object.assign(Error(data.error||'Сервер временно недоступен.'),{status:res.status});
  return data;
@@ -52,7 +53,13 @@ async function sync(first=false){
  if(!stored?.token||busy||(consentDeferred&&!first))return;
  busy=true;paint();
  try{
-   const state=await call('/device/catalog');
+   const currentRevision=cloudRev>=0&&!first&&Number.isSafeInteger(stored.syncedRevision)&&stored.syncedRevision===cloudRev;
+   const state=await call('/device/catalog',currentRevision?{headers:{'If-None-Match':'"farukh-print-r'+cloudRev+'"'}}:{});
+   if(state.notModified){
+     connected=true;
+     note('Каталог актуален · версия '+cloudRev+' · проверено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'.');
+     return;
+   }
    const current=window.FARUKH_PRINT_SYNC_API.get();
    const requiresConsent=!Number.isInteger(stored.syncedRevision);
    if((first||requiresConsent)&&current.length&&requiresConsent){

@@ -217,7 +217,11 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
   }));
   app.get('/api/farukh-print/device/catalog',protectDevice,wrap(async(req,res)=>{
     const state=await readCatalog();
-    res.set('Cache-Control','no-store');res.json({ok:true,...state,device:safeDevice(req.farukhPrintDevice)});
+    res.set('Cache-Control','no-store');
+    // Authenticated revision check; no 5 MiB re-download for unchanged data.
+    const etag='"farukh-print-r'+state.revision+'"';res.set('ETag',etag);
+    if(req.get('If-None-Match')===etag)res.status(304).end();
+    else res.json({ok:true,...state,device:safeDevice(req.farukhPrintDevice)});
     const device=req.farukhPrintDevice;
     // Connection heartbeat is not a print confirmation. Update no more than every five minutes.
     if(Date.now()-Date.parse(device.lastSeenAt||0)>5*60*1000){

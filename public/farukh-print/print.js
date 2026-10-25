@@ -63,6 +63,7 @@ const isHaccp=p=>!!HACCP?.getTemplate(p);
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
 // solely when the old native validator explicitly rejects 30×20.
 let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false,manualPrepPremium=false,editorPhotoChanged=false;
+let lastSuccessfulTransfer=null;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -376,7 +377,13 @@ function renderCatalog(){
   }else visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
   const meta=node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?(p.hours&&p.storage?p.hours+' ч · '+p.storage+' · требует подтверждения':'Срок требует проверки'):p.hours+' ч · '+p.storage);
-  select.append(visual,bottom);select.onclick=()=>{selected=p.id;haccpDraft=null;$('haccp-limit').value='';if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';renderCatalog();openWorkerPreview()};item.append(select);
+  select.append(visual,bottom);select.onclick=()=>{
+    selected=p.id;haccpDraft=null;$('haccp-limit').value='';
+    if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
+    // Do not remount 90+ food pictures on each product tap.
+    list.querySelector('.product-tile.selected')?.classList.remove('selected');
+    item.classList.add('selected');updatePreview();openWorkerPreview();
+   };item.append(select);
   const tipsButton=node('button','product-tips','▣ Советы');
   tipsButton.type='button';tipsButton.setAttribute('aria-label','Советы по хранению: '+p.name);
   tipsButton.onclick=()=>openProductAdvice(p);
@@ -801,6 +808,11 @@ async function doPrint(forceSystem=false){
   }
   if(isHaccp(current())){prepareHaccp(current());updatePreview();}
   value=job();
+  const key=current().id+'|'+$('printed-at').value+'|'+value.copies;
+  if(native&&!forceSystem&&lastSuccessfulTransfer?.key===key&&Date.now()-lastSuccessfulTransfer.at<12000){
+   if(!confirm('Такая же этикетка уже отправлена менее 12 секунд назад. Напечатать повторно?'))return;
+  }
+  value.transferKey=key;
  }catch(e){status(e.message,true);return}
  busy=true;$('print-now').disabled=true;
  try{
@@ -857,7 +869,10 @@ if(native){
   }
   busy=false;
   if(pendingNativePrint?.eventId)void window.FARUKH_PRINT_STAFF_API?.reportPrint(pendingNativePrint.eventId,answer.ok?'sent':'failed',answer.message||'');
-  if(answer.ok&&pendingNativePrint?.product)saveLast(pendingNativePrint.product,pendingNativePrint.copies);
+  if(answer.ok&&pendingNativePrint?.product){
+   saveLast(pendingNativePrint.product,pendingNativePrint.copies);
+   lastSuccessfulTransfer={key:pendingNativePrint.transferKey,at:Date.now()};
+  }
   if(answer.ok&&pendingNativePrint?.legacy){
    status(String(answer.message||'Этикетка отправлена.')+' Режим совместимости со старым APK: макет 30 мм в транспортном поле 31 мм. Проверь выравнивание первой наклейки.');
   }else status(answer.message,answer.ok===false);
