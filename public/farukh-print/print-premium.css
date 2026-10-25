@@ -174,3 +174,6 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
  .home-quick-heading span{display:none}
  .product-tile .product-tips{font-size:9px!important}
 }
+
+/* Crisp branded printer emblem stays vector-sharp on high-DPI Android screens. */
+.brand .brand-printer-icon{display:block;width:28px;height:28px;color:#fff;stroke-linecap:round;stroke-linejoin:round}
