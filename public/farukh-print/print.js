@@ -1127,6 +1127,19 @@ function boot(){
  };
  $('print-now').onclick=()=>doPrint(false);$('print-system').onclick=()=>doPrint(true);
  $('select-printer').onclick=choosePrinter;
+ $('print-geometry-check').onclick=()=>{
+  if(busy){status('Печать ещё выполняется. Проверку можно запустить после завершения.',true);return}
+  try{
+   const value=job(),p=current(),expected={ready:[464,320],prep:[240,160]}[p.kind];
+   if(!expected||value.canvas.width!==expected[0]||value.canvas.height!==expected[1])
+    throw Error('Размер растра не соответствует формату этикетки.');
+   if(window.FarukhLabelSVG&&!value.svg)throw Error('Векторный SVG не сформирован.');
+   const instruction=tspl(value.canvas,1,{legacy30:false});
+   if(!instruction||instruction.length<100)throw Error('Команда V3 BT не сформирована.');
+   status('✓ Макет '+(p.kind==='prep'?'30 × 20':'58 × 40')+' мм · '+
+    expected.join(' × ')+' точек · SVG и TSPL проверены без отправки. Для проверки отступов, плотности и резкости нужна пробная печать.');
+  }catch(e){status('Проверка макета: '+e.message,true)}
+ };
  $('check-printer').onclick=()=>{
   if(!native){status('Проверка V3 BT доступна только в Android-приложении.');return;}
   if(busy)return;
