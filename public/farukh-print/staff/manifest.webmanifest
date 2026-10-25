@@ -5,8 +5,8 @@
   "start_url": "/farukh-print/staff/",
   "scope": "/farukh-print/staff/",
   "display": "standalone",
-  "background_color": "#f6f7f9",
-  "theme_color": "#f6f7f9",
+  "background_color": "#10131a",
+  "theme_color": "#10131a",
   "icons": [
     {
       "src": "/farukh-print/icon.svg",
