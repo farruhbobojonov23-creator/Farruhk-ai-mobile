@@ -14,6 +14,9 @@ test('Stable public release channel publishes one permanent asset URL and verifi
  assert.match(page,/releases\/tags\/farukh-print-current/);
  assert.match(page,/FARUKH-PRINT-test\.apk/);
  assert.match(page,/Подпись APK может меняться/);
+ assert.match(page,/id="download" class="primary" href="https:\/\/github\.com\/[^" ]+\/FARUKH-PRINT-test\.apk"/);
+ assert.doesNotMatch(page,/id="download"[^>]+aria-disabled="true"/);
+ assert.match(workflow,/keeping original signed binary/);
 });
 test('Updater is explicitly opt-in and compares installed native APK version to release metadata',async()=>{
  const java=await read('android/print/src/main/java/ai/farukh/print/MainActivity.java');
