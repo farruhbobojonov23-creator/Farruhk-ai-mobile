@@ -115,6 +115,35 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(products));return tr
 function node(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}
 function current(){return products.find(p=>p.id===selected&&p.kind===kind)||null}
 const isManaged=()=>window.FARUKH_PRINT_EMPLOYEE_ENTRY===true||localStorage.getItem('farukh-print:staff-managed:v1')==='1';
+let ownerApproved=false;
+const canManage=()=>ownerApproved&&!isManaged()&&!cloudPaired;
+const canPrint=()=>localStorage.getItem('farukh-print:staff-managed:v1')==='1'
+ &&window.FARUKH_PRINT_STAFF_API?.loggedIn()===true
+ &&window.FARUKH_PRINT_DEVICE_SYNC?.state()?.connected===true;
+// Each actual print must also be authorized by the protected server endpoint.
+function requirePrintAccess(){
+ if(!canPrint())throw Error('Сначала подключи устройство к FARUKH AI и войди под логином сотрудника. Каталог открыт для просмотра.');
+}
+function updatePrintAccessUI(){
+ const allowed=canPrint(),p=current(),note=$('print-access-note');
+ document.body.classList.toggle('print-guest',!allowed);
+ document.body.classList.toggle('print-owner',canManage());
+ if(note){note.hidden=allowed;note.textContent='Режим просмотра: каталог и этикетки доступны. Для печати подключи устройство через FARUKH AI и войди под логином сотрудника.';}
+ $('print-now').disabled=!allowed||!p||!!previewError||busy;
+ $('print-system').disabled=!allowed||!p||!!previewError||busy;
+ $('select-printer').disabled=!allowed||busy;
+ $('check-printer').disabled=!allowed||busy;
+ $('pro-batch-toggle').disabled=!allowed||batchRunning;
+ $('pro-batch-start').disabled=!allowed||batchRunning||!native||!batchSelection.size;
+}
+async function checkOwnerAccess(){
+ if(isManaged())return;
+ try{
+  const reply=await fetch('/api/farukh-print/admin/session',{credentials:'same-origin',cache:'no-store'});
+  ownerApproved=reply.ok;
+ }catch{ownerApproved=false}
+ renderWorker();renderHome();
+}
 let workerLoggedIn=null;
 const pref=which=>'farukh-print:'+which+':v1:'+(workerLoggedIn?.login||'local');
 const favs=()=>{try{const x=JSON.parse(localStorage.getItem(pref('favs'))||'[]');return Array.isArray(x)?x:[]}catch{return []}};
@@ -171,14 +200,15 @@ function renderWorker(){
  $('worker-point').textContent=showWorker?'Точка · '+workerLoggedIn.point:'Точка не выбрана';
  $('worker-ready-tab').classList.toggle('selected',kind==='ready');
  $('worker-prep-tab').classList.toggle('selected',kind==='prep');
- $('open-settings').hidden=managed;
- $('manage-from-home').hidden=managed;
- $('home-premium-template').hidden=managed||cloudPaired;
- $('home-premium-prep').hidden=managed||cloudPaired;
- $('use-premium-prep').disabled=managed||cloudPaired;
- $('use-premium-template').disabled=managed||cloudPaired;
+ $('open-settings').hidden=!canManage();
+ $('manage-from-home').hidden=!canManage();
+ $('home-premium-template').hidden=!canManage();
+ $('home-premium-prep').hidden=!canManage();
+ $('use-premium-prep').disabled=!canManage();
+ $('use-premium-template').disabled=!canManage();
  if(managed)$('point-field').hidden=true;
  if(!showWorker)closeWorkerPreview();
+  updatePrintAccessUI();
 }
 function updateWorkerSession(staff){
  const wasLoggedIn=!!workerLoggedIn;
@@ -256,10 +286,10 @@ function homeQuickAccess(){
  list.append(frag);
 }
 function renderHome(){
- $('home-premium-template').hidden=isManaged()||cloudPaired;
- $('home-premium-prep').hidden=isManaged()||cloudPaired;
- $('use-premium-prep').disabled=isManaged()||cloudPaired;
- $('use-premium-template').disabled=isManaged()||cloudPaired;
+ $('home-premium-template').hidden=!canManage();
+ $('home-premium-prep').hidden=!canManage();
+ $('use-premium-prep').disabled=!canManage();
+ $('use-premium-template').disabled=!canManage();
  $('count-ready').textContent=products.filter(x=>x.kind==='ready').length;
  $('count-prep').textContent=products.filter(x=>x.kind==='prep').length;
  $('manage-count-ready').textContent=products.filter(x=>x.kind==='ready').length;
@@ -271,8 +301,8 @@ function renderHome(){
   $('home-point-name').textContent=workerLoggedIn.point;
   point.hidden=false;
  }else{
-  status.textContent='● '+(isManaged()?'Требуется вход':'Готово к работе');
-  info.textContent='Выбери тип продукции и открой нужную этикетку.';
+  status.textContent='○ Просмотр без печати';
+  info.textContent='Выбирай товары и смотри этикетки. Для печати нужен вход сотрудника.';
   point.hidden=true;
  }
  homeFeatureArt();homeQuickAccess();
@@ -417,6 +447,7 @@ function renderCatalog(){
 }
 function openManage(type=manageKind){
  if(isManaged())return;
+ if(!canManage())return;
  manageKind=type;show('manage');renderManage();
 }
 function renderManage(){
@@ -461,7 +492,7 @@ async function chooseEditorPhoto(ev){
  }catch(e){alert('Фото не добавлено: '+e.message)}
 }
 function openEditor(p,fromPremiumTemplate=false){
- if(isManaged())return;
+ if(isManaged()||!canManage())return;
  if(cloudPaired){alert('Каталог управляется из FARUKH AI. Здесь можно только печатать и скачать резервную копию.');return}
  manualPremium=!!fromPremiumTemplate;
  manualPrepPremium=fromPremiumTemplate==='prep';
@@ -505,7 +536,7 @@ function updateManualPreview(){
 }
 function saveEditor(ev){
  ev.preventDefault();
- if(cloudPaired)return;
+ if(cloudPaired||!canManage())return;
  const type=manageKind;
  const hoursText=str($('edit-hours').value);
  const needsReview=!$('edit-approval').checked;
@@ -748,8 +779,9 @@ function updatePreview(){
  }
  haccpControls(p);$('no-preview').hidden=!!p;$('preview-canvas').hidden=true;
  const vectorHost=$('preview-svg');if(vectorHost)vectorHost.hidden=true;
- $('print-now').disabled=!p;
- $('fix-label').hidden=!p||!p.needsReview||isManaged();
+ $('print-now').disabled=!canPrint()||!p;
+ $('fix-label').hidden=!p||!p.needsReview||!canManage();
+ updatePrintAccessUI();
  if(!p){status('Выбери товар из списка.');return}
  try{
   if(window.FarukhLabelSVG&&vectorHost){
@@ -763,7 +795,7 @@ function updatePreview(){
    pg.drawImage(canvas,0,0);prev.hidden=false;
   }
   previewError='';$('no-preview').textContent='Выбери товар для просмотра';
-  status(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.');
+  status(canPrint()?(native?'Готово. Bluetooth-печать из приложения.':'Готово. Браузер откроет системную печать.'):'Просмотр этикетки. Для печати войди под логином сотрудника.');
  }catch(e){
   previewError=e.message;$('preview-canvas').hidden=true;
   if(vectorHost){vectorHost.hidden=true;vectorHost.replaceChildren()}
@@ -822,6 +854,7 @@ function browserPrint({canvas,svg,copies}){
 async function doPrint(forceSystem=false,waitForAck=false){
  if(busy)return false;
  let value;try{
+  requirePrintAccess();
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
    const point=window.FARUKH_PRINT_STAFF_API?.point();
    if(!point)throw Error('Сначала войди под своим логином в разделе «Доступ сотрудников».');
@@ -837,6 +870,7 @@ async function doPrint(forceSystem=false,waitForAck=false){
  }catch(e){status(e.message,true);return false}
  busy=true;$('print-now').disabled=true;
  try{
+  requirePrintAccess();
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
    const api=window.FARUKH_PRINT_STAFF_API;
    if(!api)throw Error('Проверка сотрудников ещё не загрузилась. Закрой и открой приложение.');
@@ -844,6 +878,7 @@ async function doPrint(forceSystem=false,waitForAck=false){
    const authorized=await api.authorize({...value,product:current(),dateValue:$('printed-at').value});
    activePrintEvent=authorized.eventId||null;
   }
+  requirePrintAccess();
   if(!native||forceSystem){
    browserPrint(value);busy=false;$('print-now').disabled=false;
    if(activePrintEvent)void window.FARUKH_PRINT_STAFF_API?.reportPrint(activePrintEvent,'system','Открыт системный диалог, не факт печати.');
@@ -854,6 +889,7 @@ async function doPrint(forceSystem=false,waitForAck=false){
   if(value.svg&&window.FarukhLabelSVG?.rasterize){
    value.canvas=await window.FarukhLabelSVG.rasterize(value.svg,value.canvas.width,value.canvas.height);
   }
+  requirePrintAccess();
   const legacy=legacyNative30Transport&&value.canvas.width===240;
   pendingNativePrint={...value,legacy,eventId:activePrintEvent,product:current()};activePrintEvent=null;
   status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
@@ -875,6 +911,7 @@ async function doPrint(forceSystem=false,waitForAck=false){
  }
 }
 function choosePrinter(){
+ if(!canPrint()){status('Для подключения принтера сначала войди под логином сотрудника.',true);return}
  if(!native){status('Прямое подключение доступно в Android-приложении FARUKH PRINT. В браузере используй системную печать.');return}
  if(busy)return;busy=true;pendingNativePrint=null;status('Выбери Printer001 в списке Bluetooth-устройств…');
  try{sendNative({type:'select'})}catch(e){busy=false;status('Ошибка: '+e.message,true)}
@@ -907,7 +944,7 @@ if(native){
    status(String(answer.message||'Этикетка отправлена.')+' Режим совместимости со старым APK: макет 30 мм в транспортном поле 31 мм. Проверь выравнивание первой наклейки.');
   }else status(answer.message,answer.ok===false);
   pendingNativePrint=null;
-  $('print-now').disabled=!current()||!!previewError;
+  updatePrintAccessUI();
   if(nativePrintResolver){const resolve=nativePrintResolver;nativePrintResolver=null;resolve(answer.ok===true)}
  };
 }
@@ -915,17 +952,18 @@ function renderBatchToolbar(){
  const toggle=$('pro-batch-toggle'),bar=$('pro-batch-actions');
  if(!toggle||!bar)return;
  toggle.textContent=batchMode?'✕ Завершить выбор':'☷ Пакетная печать';
- toggle.disabled=batchRunning;
+ toggle.disabled=batchRunning||!canPrint();
  toggle.setAttribute('aria-pressed',String(batchMode));
  bar.hidden=!batchMode;
  $('pro-batch-count').textContent='Выбрано '+batchSelection.size+' из 10';
- $('pro-batch-start').disabled=batchRunning||batchSelection.size===0||!native;
+ $('pro-batch-start').disabled=batchRunning||batchSelection.size===0||!native||!canPrint();
  $('pro-batch-start').textContent=batchRunning?'Печать пакета…':'Печатать '+batchSelection.size+' позиций';
 }
 function batchReady(p){
  return p&&p.kind===kind&&!p.needsReview&&!isHaccp(p)&&Number.isSafeInteger(p.hours)&&p.hours>0&&!!str(p.storage);
 }
 async function runBatchPrint(){
+ if(!canPrint()){status('Пакетная печать доступна только после входа сотрудника.',true);return}
  if(batchRunning||busy||!native||!batchSelection.size)return;
  const jobs=[...batchSelection].map(id=>products.find(p=>p.id===id)).filter(Boolean);
  const wrong=jobs.filter(p=>!batchReady(p));
@@ -941,7 +979,7 @@ async function runBatchPrint(){
  try{
   for(const p of jobs){
    if(!batchReady(p))break;
-   if(isManaged()&&!workerLoggedIn){status('Сеанс сотрудника завершён. Пакет остановлен.',true);break;}
+   if(!canPrint()){status('Сеанс сотрудника завершён. Пакет остановлен.',true);break;}
    selected=p.id;haccpDraft=null;$('haccp-limit').value='';
    $('printed-at').value=when;$('copies').value='1';
    if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
@@ -959,12 +997,14 @@ async function runBatchPrint(){
  }
 }
 function exportDB(){
+ if(!canManage())return;
  const output={format:'farukh-print-catalog-v1',createdAt:new Date().toISOString(),products};
  const blob=new Blob([JSON.stringify(output,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob);const link=node('a');link.href=url;link.download='farukh-print-backup-'+new Date().toISOString().slice(0,10)+'.json';
  document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 async function importDB(ev){
+ if(!canManage())return;
  const file=ev.target.files?.[0];ev.target.value='';if(!file)return;
  if(file.size>5*1024*1024){alert('Файл базы слишком большой (лимит 5 МБ).');return}
  try{
@@ -980,7 +1020,7 @@ async function importDB(ev){
    const key=p.kind+'|'+p.name.toLocaleLowerCase('ru');if(used.has(key))throw Error('В резервной копии есть дублирующиеся товары.');used.add(key);
    items.push({...p,id:makeId(),name:p.name.slice(0,90),storage:p.storage.slice(0,60),composition:str(p.composition).slice(0,600),point:str(p.point).slice(0,40)});
   }
-  if(cloudPaired){alert('Отключи облачную синхронизацию, прежде чем импортировать локальную базу.');return}
+  if(cloudPaired||!canManage()){alert('Импорт базы доступен только владельцу после входа в FARUKH AI.');return}
   if(!confirm('Заменить текущую базу из '+products.length+' товаров на '+items.length+' товаров из резервной копии?'))return;
   const old=products;products=items;if(!save()){products=old;return}
   selected=null;renderManage();alert('Готово! Импортировано '+items.length+' товаров.');
@@ -1050,6 +1090,7 @@ function boot(){
  window.addEventListener('farukh-print-sync-status',e=>{
    const data=e.detail||{};
    $('worker-sync-status').textContent=data.message||'Каталог: ожидание связи';
+   updatePrintAccessUI();
  });
  $('worker-fav-filter').onclick=()=>{favoritesOnly=!favoritesOnly;renderCatalog()};
  $('worker-repeat').onclick=()=>void repeatLast();
@@ -1077,7 +1118,7 @@ function boot(){
  let searchDebounce=0;
  $('catalog-search').addEventListener('input',()=>{clearTimeout(searchDebounce);searchDebounce=setTimeout(renderCatalog,110)});
  $('pro-batch-toggle').onclick=()=>{
-  if(batchRunning||busy)return;
+  if(!canPrint()||batchRunning||busy)return;
   batchMode=!batchMode;batchSelection.clear();renderCatalog();
  };
  $('pro-batch-clear').onclick=()=>{batchSelection.clear();renderCatalog()};
@@ -1089,7 +1130,7 @@ function boot(){
  $('point-name').addEventListener('input',updatePreview);
  $('manage-ready').onclick=()=>openManage('ready');$('manage-prep').onclick=()=>openManage('prep');
  $('load-starter-prep').onclick=async()=>{
-  if(isManaged()||cloudPaired){alert('Каталог сотрудников управляется только из FARUKH AI.');return}
+  if(!canManage()){alert('Каталогом управляет владелец FARUKH AI.');return}
   try{
    const catalog=await import('./japanese-prep-catalog.js?v=1');
    const next=catalog.merge(products),added=next.length-products.length;
@@ -1101,13 +1142,13 @@ function boot(){
  };
  $('add-item').onclick=()=>openEditor(null);
  const openPremiumTemplate=()=>{
-  if(isManaged()||cloudPaired){alert('На подключённом устройстве новые товары создаются в управляющем центре FARUKH AI.');return}
+  if(!canManage()){alert('Новые товары создаёт владелец через FARUKH AI.');return}
   manageKind='ready';openManage('ready');openEditor(null,true);
  };
  $('use-premium-template').onclick=openPremiumTemplate;
  $('home-premium-template').onclick=openPremiumTemplate;
  const openPremiumPrep=()=>{
-  if(isManaged()||cloudPaired){alert('На подключённом устройстве новые позиции создаются только владельцем в FARUKH AI.');return}
+  if(!canManage()){alert('Новые позиции создаёт владелец через FARUKH AI.');return}
   openManage('prep');openEditor(null,'prep');
  };
  $('use-premium-prep').onclick=openPremiumPrep;
@@ -1141,6 +1182,7 @@ function boot(){
   }catch(e){status('Проверка макета: '+e.message,true)}
  };
  $('check-printer').onclick=()=>{
+  if(!canPrint()){status('Для Bluetooth-проверки нужен вход сотрудника.',true);return}
   if(!native){status('Проверка V3 BT доступна только в Android-приложении.');return;}
   if(busy)return;
   busy=true;status('Проверяю Bluetooth и сохранённый принтер…');
@@ -1154,6 +1196,7 @@ function boot(){
  if(!native){$('select-printer').textContent='Android Bluetooth';}
  const requested=new URLSearchParams(location.search).get('manage');
  if(['ready','prep'].includes(requested))openManage(requested);
+ void checkOwnerAccess();
  window.addEventListener('storage',ev=>{
   if(ev.key!==KEY)return;
   // Same-origin FARUKH AI center may have changed this database in another tab.
