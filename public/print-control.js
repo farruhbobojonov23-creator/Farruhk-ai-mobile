@@ -37,7 +37,7 @@ function validate(entry){
  if(storage.length>60)throw Error('Условия хранения слишком длинные (до 60 символов).');
  const unverified=entry.needsReview===true;
  const photo=entry.photo||'';
- if(photo&&(!window.FarukhPrintPhotos?.isPhoto(photo)))throw Error('Фото должно быть JPEG не более 45 КБ. Выбери его повторно.');
+ if(photo&&(!window.FarukhPrintPhotos?.isPhoto(photo)))throw Error('Фото должно быть JPG или прозрачным WEBP не более 45 КБ. Выбери его повторно.');
  if(!unverified&&(!storage||!Number.isInteger(hours)||hours<1||hours>8760))throw Error('Для подтверждённого товара укажи условия и срок годности.');
  if(entry.kind==='ready'){
   if(!text(entry.composition)||text(entry.composition).length>600)throw Error('Нужен состав готовой продукции.');
@@ -512,7 +512,7 @@ export function mountPrintControl({root}){
  async function importBackup(){
   const file=fileInput.files?.[0];fileInput.value='';if(!file)return;
   try{
-   if(file.size>2*1024*1024)throw Error('Размер копии превышает 2 МБ.');
+   if(file.size>5*1024*1024)throw Error('Размер копии превышает 5 МБ.');
    const parsed=validateBackup(JSON.parse(await file.text()));
    if(!confirm('Заменить всю локальную базу ('+records.length+' шт.) данными из файла ('+parsed.length+' шт.)? Перед заменой рекомендуется скачать резервную копию.'))return;
    // Allow recovery from corrupted data ONLY through validated import.
