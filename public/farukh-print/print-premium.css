@@ -215,3 +215,12 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 .pro-qr-product-title{text-align:center;font-size:18px!important;font-weight:900;color:#fff!important}
 .pro-qr-product-id{text-align:center;font-size:10px!important;overflow-wrap:anywhere;color:#91a3b6!important}
 .pro-qr-content #pro-qr-download{display:block;width:100%;margin-bottom:10px}
+
+/* FARUKH PRINT STABLE — low-cost release status panel, no label changes. */
+.print-updates{margin:20px 0 12px;padding:18px;border:1px solid #3b5167;border-radius:17px;background:linear-gradient(130deg,#202a36,#171f2c);color:#f3f6fa}
+.print-updates strong{font-size:15px;font-weight:850;color:#f3f6fb}
+.print-updates p{font-size:12px;color:#becbd7;line-height:1.65;max-width:650px;margin:9px 0 13px}
+.print-update-actions{display:flex;flex-wrap:wrap;gap:9px}
+.print-update-actions button,.print-update-actions a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:12px;border:1px solid #53647a;color:#fff;background:#253446;font-size:12px;font-weight:800;text-decoration:none;touch-action:manipulation}
+.print-update-actions a{background:linear-gradient(100deg,#db3855,#a92545);border-color:#ec5c79}
+.print-update-actions button:disabled{opacity:.5}
