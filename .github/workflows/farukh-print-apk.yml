@@ -5,8 +5,6 @@ on:
     paths:
       - 'android/print/**'
       - '.github/workflows/farukh-print-apk.yml'
-      - 'public/farukh-print/print-updates.js'
-      - 'public/farukh-print/download/**'
   pull_request:
     paths:
       - 'android/print/**'
@@ -24,7 +22,7 @@ jobs:
           node-version: '22'
       - name: Validate FARUKH PRINT critical functions
         run: |
-          node --test tests/print-fast-pro-reliability.test.js tests/print-native-diagnostics.test.js tests/print-pro-scanner-batch.test.js tests/print-pro-owner-report.test.js tests/print-premium-fast.test.js tests/print-premium-v2-home.test.js
+          node --test tests/print-fast-pro-reliability.test.js tests/print-native-diagnostics.test.js tests/print-pro-scanner-batch.test.js tests/print-pro-owner-report.test.js tests/print-premium-fast.test.js tests/print-premium-v2-home.test.js tests/print-stable-release.test.js
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -81,6 +79,15 @@ jobs:
           HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
           printf 'FARUKH_PRINT_VERSION_CODE=%s\nFARUKH_PRINT_VERSION_NAME=%s\nFARUKH_PRINT_SHA256=%s\n\nTest APK: debug signing can change with each build. Do not uninstall old APK without a full local backup. Real V3 BT printing still requires device checks.\n' "$CODE" "$NAME" "$HASH" > "$RUNNER_TEMP/farukh-release/notes.txt"
           if gh release view farukh-print-current --repo "$GH_REPO" >/dev/null 2>&1; then
+            EXISTING_CODE="$(gh release view farukh-print-current --repo "$GH_REPO" --json body --jq '.body' | sed -n 's/^FARUKH_PRINT_VERSION_CODE=\\([0-9]\\+\\)$/\\1/p' | head -1)"
+            EXISTING_ASSET="$(gh release view farukh-print-current --repo "$GH_REPO" --json assets --jq '.assets[].name' | grep -Fx 'FARUKH-PRINT-test.apk' || true)"
+            # Rebuilding debug APKs with unchanged versionCode can change their
+            # signing certificate, making an update impossible without data loss.
+            # Preserve the already-published binary until versionCode changes.
+            if [ "$EXISTING_CODE" = "$CODE" ] && [ -n "$EXISTING_ASSET" ]; then
+              echo "Published APK versionCode $CODE already exists; keeping original signed binary."
+              exit 0
+            fi
             gh release upload farukh-print-current "$APK" --clobber --repo "$GH_REPO"
             gh release edit farukh-print-current --title "FARUKH PRINT — текущая тестовая версия $NAME" --notes-file "$RUNNER_TEMP/farukh-release/notes.txt" --repo "$GH_REPO"
           else
