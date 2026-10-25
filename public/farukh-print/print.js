@@ -283,22 +283,32 @@ function openCatalog(type){
  $('printed-at').value=nowLocal();$('copies').value='1';
  show('catalog');renderWorker();renderCatalog();
 }
+function prepGroup(p){
+ const name=str(p.name).toLocaleLowerCase('ru').replace(/ё/g,'е');
+ if(/соус|унаги|терияки|чили|заправк|кимчи|бульон/.test(name))return 'Соусы и бульоны';
+ if(/форел|лосос|семг|угор|тунец|рыб|кревет|краб|сурими|мид|морепродукт|осьминог|кальмар/.test(name))return 'Рыба и морепродукты';
+ if(/огур|морков|капуст|перец|такуан|помидор|овощ|зелень|лук|дайкон|авокадо/.test(name))return 'Овощи и нарезки';
+ if(/сыр|молок|сливк|масло/.test(name))return 'Молочные';
+ return 'Другие заготовки';
+}
+function productGroup(p){
+ return p.kind==='prep'?prepGroup(p):window.FarukhPrintCategories.category(p);
+}
 function renderCategories(){
- const bar=$('catalog-categories');
- bar.hidden=kind!=='ready';
- if(bar.hidden)return;
- const api=window.FarukhPrintCategories;
- const names=api.list(products);
+ const bar=$('catalog-categories'),rows=products.filter(p=>p.kind===kind);
+ const names=kind==='ready'?window.FarukhPrintCategories.list(products):[...new Set(rows.map(prepGroup))];
  if(activeCategory&&!names.includes(activeCategory))activeCategory='';
  bar.replaceChildren();
+ const frag=document.createDocumentFragment();
  for(const name of ['',...names]){
-  const count=products.filter(p=>p.kind==='ready'&&(!name||api.category(p)===name)).length;
-  const button=node('button','category-chip'+(name===activeCategory?' selected':''));button.type='button';
-  button.setAttribute('aria-pressed',String(name===activeCategory));
+  const count=name?rows.filter(p=>productGroup(p)===name).length:rows.length;
+  const button=node('button','category-chip'+(name===activeCategory?' selected':''));
+  button.type='button';button.setAttribute('aria-pressed',String(name===activeCategory));
   button.append(node('span','',name||'Все'),node('small','',String(count)));
   button.onclick=()=>{activeCategory=name;selected=null;closeWorkerPreview();renderCatalog()};
-  bar.append(button);
+  frag.append(button);
  }
+ bar.append(frag);bar.hidden=rows.length===0;
 }
 // The studio atlas is decoded asynchronously after initial paint; repaint
 // only the visible gallery. This changes images, never product/shelf data.
@@ -309,16 +319,23 @@ if(typeof window.addEventListener==='function'){
   artFrame=requestAnimationFrame(()=>{artFrame=0;if(!$('catalog').hidden)renderCatalog()});
  };
  window.addEventListener('farukh-studio-ready',refreshIngredientArt);
- window.addEventListener('farukh-approved-3d-ready',refreshIngredientArt);
+ window.addEventListener('farukh-approved-3d-ready',()=>{
+  refreshIngredientArt();
+  if(!$('home').hidden)homeFeatureArt();
+ });
 }
 function renderCatalog(){
  renderCategories();
  const list=$('product-list');list.replaceChildren();
  const cards=document.createDocumentFragment();
  const q=str($('catalog-search').value).toLocaleLowerCase('ru'),favorite=new Set(favs()),worker=isManaged()&&!!workerLoggedIn;
- const items=products.filter(p=>p.kind===kind&&(kind!=='ready'||!activeCategory||window.FarukhPrintCategories.category(p)===activeCategory)&&p.name.toLocaleLowerCase('ru').includes(q)&&(!worker||!favoritesOnly||favorite.has(p.id)))
+ const items=products.filter(p=>p.kind===kind&&(!activeCategory||productGroup(p)===activeCategory)&&p.name.toLocaleLowerCase('ru').includes(q)&&(!worker||!favoritesOnly||favorite.has(p.id)))
   .sort((a,b)=>worker?Number(favorite.has(b.id))-Number(favorite.has(a.id))||a.name.localeCompare(b.name,'ru'):a.name.localeCompare(b.name,'ru'));
  if(selected&&!products.some(p=>p.id===selected&&p.kind===kind))selected=null;
+ $('catalog-found').textContent=items.length+' из '+products.filter(p=>p.kind===kind).length+' позиций';
+ const pending=items.filter(p=>p.needsReview).length;
+ $('catalog-review-count').textContent=pending?'На проверке: '+pending:'Сроки подтверждены';
+ $('catalog-review-count').classList.toggle('is-review',!!pending);
  $('catalog-empty').hidden=items.length!==0;
  $('catalog-empty').textContent=q?'По этому запросу ничего не найдено.':worker&&favoritesOnly?'Избранных пока нет. Нажми ☆ на карточке товара.':activeCategory==='ХАССП'?'Категория ХАССП пока пуста.':activeCategory?'В категории «'+activeCategory+'» пока нет товаров.':'В этой категории нет товаров.';
  for(const p of items){
@@ -899,8 +916,8 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
- import('./broth-photo.js?v=1').then(m=>{bundledBrothPhoto=m.photo;if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
- import('./supplemental-photos.js?v=1').then(m=>{bundledPrepPhotos=m;if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('./broth-photo.js?v=1').then(m=>{bundledBrothPhoto=m.photo;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('./supplemental-photos.js?v=1').then(m=>{bundledPrepPhotos=m;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
  import('./haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
  // Add once for standalone owner installations; paired/staff clients receive
