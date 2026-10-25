@@ -23,5 +23,5 @@ test('V3 BT native printing watchdog closes hung socket without automatic retry'
  assert.match(java,/mainHandler\.removeCallbacks\(timeout\)/);
  assert.match(java,/active\.close\(\)/);
  assert.match(java,/pendingPrinterReply != null \|\| printing\.get\(\)/);
- assert.match(build,/versionCode 3/);
+ assert.match(build,/versionCode 4/);
 });
