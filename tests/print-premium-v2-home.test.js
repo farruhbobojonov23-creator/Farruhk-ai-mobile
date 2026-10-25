@@ -7,7 +7,7 @@ test('Premium v2 has two correct formats and reuses user photos or existing appr
  const html=await read('public/farukh-print/index.html');
  const js=await read('public/farukh-print/print.js');
  const skin=await read('public/farukh-print/print-premium.css');
- assert.match(html,/print-premium\.css\?v=2/);
+ assert.match(html,/print-premium\.css\?v=3/);
  assert.ok(html.indexOf('id="choose-prep"')<html.indexOf('id="choose-ready"'));
  for(const id of ['home-prep-art','home-ready-art','home-status','home-worker-info','home-quick','home-point-name'])
   assert.match(html,new RegExp('id="'+id+'"'));
