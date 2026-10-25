@@ -16,7 +16,7 @@ try{
  if(session)localStorage.setItem(SESSION,session);
  sessionStorage.removeItem(SESSION);
 }catch{}
-const panel=el('section','staff-login');panel.hidden=!paired;
+const panel=el('section','staff-login');panel.hidden=false;
 const top=el('div','staff-login-top');const heading=el('strong','','Доступ сотрудников');const badge=el('span','staff-badge','Вход не выполнен');top.append(heading,badge);
 const info=el('p','','На подключённых устройствах доступна только печать. Войди под личным логином и паролем, полученным у управляющего.');
 const form=el('form','staff-login-form');
@@ -33,10 +33,11 @@ const tell=(msg,error=false)=>{notice.textContent=msg;notice.dataset.error=error
 function paint(){
  paired=employeeEntry||localStorage.getItem(MANAGED)==='1';
  const enrolled=!!deviceToken();
- panel.hidden=!paired;
+ // Browsing is public. Login is required only to print on a paired device.
+ panel.hidden=false;
  form.hidden=!paired||!enrolled||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;
- if(!enrolled&&!staff&&paired)tell('Для первого входа подключи устройство кодом из FARUKH AI в разделе «Связь с управляющим центром» ниже.');
- badge.textContent=staff?'● '+staff.name:'○ Вход обязателен';
+ if(!enrolled&&!staff)tell('Просмотр товаров открыт. Для печати подключи устройство кодом из FARUKH AI ниже, затем войди под логином сотрудника.');
+ badge.textContent=staff?'● '+staff.name:'○ Просмотр без печати';
  badge.dataset.active=staff?'yes':'no';
  if(staff){const deadline=staff.expiresAt?' · Доступ до '+new Date(staff.expiresAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' (Москва)':' · Без ограничения срока';
   sessionText.textContent='Точка: '+staff.point+' · Только печать'+deadline;
