@@ -161,18 +161,6 @@ export function openAdvice(product,{onPrint}={}){
   val.append(create('span','',k),create('strong','',v));row.append(icon,val);facts.append(row);
  }
  aside.append(facts);
- if(product.kind==='prep'){
-  const ref=window.FarukhPrepShelfReference?.get(product.name);
-  if(ref){
-   const info=create('div','print-advice-norm-ref');
-   info.append(create('strong','','Источник: '+ref.category));
-   if(ref.clause)info.append(create('p','',ref.clause+(ref.hours?' · '+ref.hours+' ч при '+ref.temp:'')));
-   info.append(create('p','',ref.warning));
-   const link=create('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
-   link.href=ref.source;link.target='_blank';link.rel='noopener noreferrer';info.append(link);
-   aside.append(info);
-  }
- }
  if(typeof onPrint==='function'){
   const printBtn=create('button','print-advice-print','▤  Печатать этикетку');
   printBtn.type='button';
@@ -221,6 +209,23 @@ export function openAdvice(product,{onPrint}={}){
    }
    content.append(list);
    if(label==='Нормы'){
+    // Detailed source explanations belong to the full-width Нормы tab.
+    // In the mobile summary they formerly occupied a 100px grid column,
+    // creating pages of single-word lines and hiding the actual tips.
+    if(product.kind==='prep'){
+     const ref=window.FarukhPrepShelfReference?.get(product.name);
+     if(ref){
+      const info=create('section','print-advice-norm-ref');
+      info.append(create('strong','','Источник: '+ref.category));
+      if(ref.clause)info.append(create('p','',ref.clause+(ref.hours?' · '+ref.hours+' ч при '+ref.temp:'')));
+      info.append(create('p','',ref.warning));
+      if(validateUrl(ref.source)){
+       const link=create('a','','Действующий СанПиН 2.3/2.4.4282-26 ↗');
+       link.href=ref.source;link.target='_blank';link.rel='noopener noreferrer';info.append(link);
+      }
+      content.append(info);
+     }
+    }
     const links=create('div','print-advice-links');
     links.append(create('strong','','Нормативные источники'));
     for(const ref of [...REFERENCES,...PRACTICE_REFERENCES]){
