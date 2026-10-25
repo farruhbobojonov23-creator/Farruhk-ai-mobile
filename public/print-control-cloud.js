@@ -58,11 +58,11 @@ export function mountPrintCloudControl({root,renderLocal}){
  const refresh=btn('↻ Проверить облако',refreshRemote);
  const pairing=btn('＋ Подключить телефон / планшет',pair);
  actions.append(syncUp,syncDown,refresh,pairing);
- const staffUrl='/farukh-print/staff/';
+ const staffUrl='https://farukh-print-staff-gateway.onrender.com/farukh-print/staff/';
  const staffLink=el('a','pcloud-btn pcloud-staff-link','↗ Открыть страницу сотрудников');
  staffLink.href=staffUrl;staffLink.target='_blank';staffLink.rel='noopener noreferrer';
  const copyStaff=btn('⧉ Скопировать ссылку для сотрудников',async()=>{
-  const url=new URL(staffUrl,location.origin).href;
+  const url=staffUrl;
   try{await navigator.clipboard.writeText(url);tell('Ссылка для сотрудников скопирована. Отправь её на iPhone или Android. Для доступа к каталогу нужен код подключения устройства и личный логин.')}
   catch{window.prompt('Скопируй и отправь сотруднику эту ссылку:',url)}
  });
