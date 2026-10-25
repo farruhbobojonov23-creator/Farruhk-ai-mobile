@@ -38,6 +38,15 @@ dialog[open] { position: fixed; z-index: 10000; max-height: 90vh; overflow: auto
   });
 })();
 </script>
+<script id="farukh-ios12-structured-clone">
+/* Safari 12 does not provide structuredClone. Used for plain catalog data. */
+if (typeof window.structuredClone !== 'function') {
+  window.structuredClone = function (value) {
+    if (value === undefined || value === null) return value;
+    return JSON.parse(JSON.stringify(value));
+  };
+}
+</script>
 </head>
 <body>
 <div class="app">
