@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./print.css?v=28">
-<link rel="stylesheet" href="./print-premium.css?v=1">
+<link rel="stylesheet" href="./print-premium.css?v=2">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -19,11 +19,20 @@
 </header>
 <main>
 <section id="home" class="screen">
-  <div class="intro"><div class="eyebrow"><span class="pulse"></span> ПРОСТО. БЫСТРО. ТОЧНО.</div><h1>Печать <span>этикеток.</span></h1><p>Выбери тип продукции, товар и количество. Всё остальное сделает принтер.</p></div>
-  <div class="choice-grid">
-    <button class="type-card" id="choose-ready" type="button"><span class="type-icon">▣</span><span class="type-content"><small>01 · ГОТОВАЯ ПРОДУКЦИЯ</small><strong>Этикетки<br>58 × 40</strong><span>Роллы, воки, супы, готовые блюда</span></span><span class="type-bottom"><b><span id="count-ready">0</span> товаров</b><span class="arrow">↗</span></span></button>
-    <button class="type-card prep" id="choose-prep" type="button"><span class="type-icon">▤</span><span class="type-content"><small>02 · ПОЛУФАБРИКАТЫ</small><strong>Этикетки<br>30 × 20</strong><span>Заготовки, продукты, полуфабрикаты</span></span><span class="type-bottom"><b><span id="count-prep">0</span> товаров</b><span class="arrow">↗</span></span></button>
+  <section class="home-welcome" aria-label="Рабочее место FARUKH PRINT">
+    <div class="home-welcome-top"><span class="home-kicker">ПЕЧАТЬ ЭТИКЕТОК · V3 BT</span><span id="home-status" class="home-status">● Рабочее место</span></div>
+    <h1>FARUKH <em>PRINT</em><small>Быстро. Красиво. Удобно.</small></h1>
+    <p id="home-worker-info">Выбери тип продукции и открой нужную этикетку.</p>
+    <div class="home-location" id="home-location" hidden><span>⌁</span><strong id="home-point-name"></strong></div>
+  </section>
+  <div class="choice-grid" aria-label="Форматы этикеток">
+    <button class="type-card prep" id="choose-prep" type="button"><span class="type-image"><img id="home-prep-art" alt="" decoding="async" hidden></span><span class="type-icon" aria-hidden="true">▤</span><span class="type-content"><small>01 · ПОЛУФАБРИКАТЫ</small><strong>Полуфабрикаты</strong><span>Этикетка 30 × 20 мм</span></span><span class="type-bottom"><b><span id="count-prep">0</span> позиций</b><span class="arrow">↗</span></span></button>
+    <button class="type-card ready" id="choose-ready" type="button"><span class="type-image"><img id="home-ready-art" alt="" decoding="async" hidden></span><span class="type-icon" aria-hidden="true">▣</span><span class="type-content"><small>02 · ГОТОВАЯ ПРОДУКЦИЯ</small><strong>Готовая продукция</strong><span>Этикетка 58 × 40 мм</span></span><span class="type-bottom"><b><span id="count-ready">0</span> позиций</b><span class="arrow">↗</span></span></button>
   </div>
+  <section id="home-quick" class="home-quick" aria-label="Быстрый доступ" hidden>
+    <div class="home-quick-heading"><strong>Быстрый доступ</strong><span>Избранное и последняя позиция</span></div>
+    <div id="home-quick-items" class="home-quick-items"></div>
+  </section>
   <button class="manage-link" id="manage-from-home" type="button"><span>⚙</span><span><strong>Управление этикетками</strong><small>Добавление, редактирование, сохранение базы</small></span><span class="arrow">→</span></button>
   <button id="home-premium-template" class="premium-template-home" type="button"><span class="template-glyph">▤</span><span><strong>Премиум-шаблон · 58 × 40 мм</strong><small>＋ Вручную заполнить новую позицию по утверждённому эталону</small></span><span class="arrow">→</span></button>
   <button id="home-premium-prep" class="premium-template-home" type="button"><span class="template-glyph">▤</span><span><strong>Премиум-шаблон · 30 × 20 мм</strong><small>＋ Вручную добавить полуфабрикат — без состава</small></span><span class="arrow">→</span></button>
@@ -42,7 +51,8 @@
       <button id="worker-refresh" type="button">↻ Обновить товары</button></div>
   </section>
   <div class="sub-head"><button class="back" id="catalog-back" type="button">← Назад</button><div><div class="eyebrow" id="catalog-kicker">ГОТОВАЯ ПРОДУКЦИЯ</div><h2 id="catalog-title">Этикетки 58 × 40</h2></div></div>
-  <label class="search-wrap"><span>⌕</span><input id="catalog-search" type="search" placeholder="Найти товар..." autocomplete="off"></label>
+  <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="catalog-search" type="search" placeholder="Название товара или ингредиента..." autocomplete="off" aria-label="Поиск товаров"></label>
+  <div class="catalog-summary" aria-live="polite"><strong id="catalog-found">0 позиций</strong><span id="catalog-review-count">Проверка сроков</span></div>
   <nav id="catalog-categories" class="catalog-categories" aria-label="Категории готовой продукции" hidden></nav>
   <div class="worker-shortcuts" id="worker-shortcuts" hidden>
     <button id="worker-fav-filter" type="button" aria-pressed="false">☆ Избранные</button>
