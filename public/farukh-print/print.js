@@ -181,10 +181,10 @@ function updateWorkerSession(staff){
  workerLoggedIn=staff||null;
  renderWorker();
  if(isManaged()&&workerLoggedIn&&!wasLoggedIn){
-   openCatalog('prep');
+   closeWorkerPreview();show('home');renderHome();
  }else if(isManaged()&&!workerLoggedIn){
-   selected=null;closeWorkerPreview();show('home');
- }
+   selected=null;closeWorkerPreview();show('home');renderHome();
+ }else renderHome();
 }
 function updatePremiumNav(section){
  const nav=$('print-mobile-nav');
@@ -204,6 +204,53 @@ function show(section){
  updatePremiumNav(section);
  window.scrollTo?.({top:0,behavior:'instant'});
 }
+function homeFeatureArt(){
+ // Home artwork reuses current products and owner-approved 3D renders.
+ // This never changes photos, expiration dates or label templates.
+ const choose=(type,names)=>{
+  const rows=products.filter(p=>p.kind===type);
+  return names.map(n=>rows.find(p=>str(p.name).toLocaleLowerCase('ru')===n))
+   .find(Boolean)||rows.find(p=>p.photo)||rows[0];
+ };
+ const picks=[['home-prep-art',choose('prep',['форель','креветка','огурцы','соус спайси'])],
+  ['home-ready-art',choose('ready',['филадельфия','фила','калифорния'])]];
+ for(const [id,p] of picks){
+  const image=$(id);if(!image)continue;
+  const valid=p&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
+  const stock=p?.kind==='prep'?(p.name==='Бульон Том Ям'?bundledBrothPhoto:bundledPrepPhotos?.photoFor(p)||''):'';
+  const owner=!!valid&&(p?.photoStyle==='manual'||(!p?.photoStyle&&stock&&valid!==stock));
+  const src=!p?'':p.kind==='ready'?valid:owner?valid:(window.FarukhApprovedPrep3D?.find(p)?.url||window.FarukhPrep3DElements?.find(p)?.url||valid||window.FarukhPrepPhotoLibrary?.find(p)?.url||'');
+  if(src){if(image.getAttribute('src')!==src)image.src=src;image.hidden=false;}
+  else{image.hidden=true;image.removeAttribute('src');}
+ }
+}
+function homeQuickAccess(){
+ const root=$('home-quick'),list=$('home-quick-items');
+ if(!root||!list)return;
+ list.replaceChildren();
+ if(isManaged()&&!workerLoggedIn){root.hidden=true;return;}
+ const saved=lastSent(),recent=saved&&products.find(p=>p.id===saved.id&&p.kind===saved.kind);
+ const picks=[],added=new Set();
+ if(recent&&!recent.needsReview){picks.push([recent,'Недавняя позиция']);added.add(recent.id);}
+ for(const id of favs()){
+  const p=products.find(x=>x.id===id);
+  if(p&&!added.has(p.id)){picks.push([p,'★ Избранное']);added.add(id);}
+  if(picks.length>=4)break;
+ }
+ root.hidden=!picks.length;
+ const frag=document.createDocumentFragment();
+ for(const [p,caption] of picks){
+  const button=node('button','home-quick-card');button.type='button';
+  button.append(node('small','',caption),node('strong','',p.name),node('span','',p.kind==='prep'?'30 × 20 мм':'58 × 40 мм'));
+  button.onclick=()=>{
+   openCatalog(p.kind);selected=p.id;
+   if(p.kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
+   renderCatalog();openWorkerPreview();
+  };
+  frag.append(button);
+ }
+ list.append(frag);
+}
 function renderHome(){
  $('home-premium-template').hidden=isManaged()||cloudPaired;
  $('home-premium-prep').hidden=isManaged()||cloudPaired;
@@ -213,6 +260,18 @@ function renderHome(){
  $('count-prep').textContent=products.filter(x=>x.kind==='prep').length;
  $('manage-count-ready').textContent=products.filter(x=>x.kind==='ready').length;
  $('manage-count-prep').textContent=products.filter(x=>x.kind==='prep').length;
+ const status=$('home-status'),info=$('home-worker-info'),point=$('home-location');
+ if(workerLoggedIn){
+  status.textContent='● Смена открыта';
+  info.textContent='Сотрудник: '+workerLoggedIn.name+' · Выбери категорию для печати';
+  $('home-point-name').textContent=workerLoggedIn.point;
+  point.hidden=false;
+ }else{
+  status.textContent='● '+(isManaged()?'Требуется вход':'Готово к работе');
+  info.textContent='Выбери тип продукции и открой нужную этикетку.';
+  point.hidden=true;
+ }
+ homeFeatureArt();homeQuickAccess();
 }
 function openCatalog(type){
  closeWorkerPreview();
