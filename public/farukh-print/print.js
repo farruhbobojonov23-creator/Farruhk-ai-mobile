@@ -1026,6 +1026,13 @@ function boot(){
  };
  $('print-now').onclick=()=>doPrint(false);$('print-system').onclick=()=>doPrint(true);
  $('select-printer').onclick=choosePrinter;
+ $('check-printer').onclick=()=>{
+  if(!native){status('Проверка V3 BT доступна только в Android-приложении.');return;}
+  if(busy)return;
+  busy=true;status('Проверяю Bluetooth и сохранённый принтер…');
+  try{sendNative({type:'status'})}
+  catch(e){busy=false;status('Диагностика недоступна: '+e.message,true)}
+ };
  $('export-db').onclick=exportDB;$('import-db').onclick=()=>$('import-file').click();
  $('import-file').addEventListener('change',importDB);
  window.addEventListener('afterprint',()=>$('print-paper').replaceChildren());
