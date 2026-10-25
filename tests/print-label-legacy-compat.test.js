@@ -23,7 +23,8 @@ function makeHarness({managed=false,staffApi=null}={}){
  const hook=src.replace('boot();\n})();',
  "window.__unit={tspl,doPrint,legacy:()=>legacyNative30Transport,pending:()=>pendingNativePrint,setSelected(p){products=[p];kind='prep';selected=p.id}};\n})();");
  assert.notEqual(hook,src);
- new Function('window','document','localStorage',hook)(win,doc,{getItem:key=>key==='farukh-print:staff-managed:v1'&&managed?'1':null});
+ // User explicitly confirms an intentional duplicate label in legacy test.
+ new Function('window','document','localStorage','confirm',hook)(win,doc,{getItem:key=>key==='farukh-print:staff-managed:v1'&&managed?'1':null},()=>true);
  const item={kind:'prep',name:'Бульон Том Ям',id:'broth',storage:'+2…+6 °C',hours:48,needsReview:false,point:''};
  win.__unit.setSelected(item);
  return {win,doc,sent,api:win.__unit,elems};
