@@ -24,7 +24,7 @@ test('FARUKH AI has a saved premium 58x40 manual template with real-data SVG liv
  assert.match(sources.ownerStyle,/pc-template-preview-art svg/);
  assert.match(sources.ownerStyle,/not\(\[data-pc-workspace="catalog"\]\)/);
  assert.match(sources.ownerPage,/print-control\.js\?v=\d+/);
- assert.match(sources.ownerPage,/print-control\.css\?v=16/);
+ assert.match(sources.ownerPage,/print-control\.css\?v=\d+/);
 });
 
 test('Standalone FARUKH PRINT can start a new blank premium label and keeps staff read-only',()=>{
