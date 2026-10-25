@@ -28,7 +28,7 @@ const sameOrigin=req=>{
 const cookie=req=>String(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('fai_owner='))?.slice(10)||'';
 function validateCatalog(data){
   if(!Array.isArray(data)||data.length>MAX_PRODUCTS)throw error(400,'База этикеток превышает допустимый размер.');
-  const names=new Set();
+  const names=new Set(),covers={ready:0,prep:0};
   return data.map(p=>{
     if(!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||!p.name.trim()||p.name.length>90)throw error(400,'Некорректное название или тип этикетки.');
     const kind=p.kind,name=p.name.trim(),storage=String(p.storage||'').slice(0,60);
@@ -41,6 +41,12 @@ function validateCatalog(data){
     if(!needsReview&&(!storage||hours===null))throw error(400,'Для готовой к печати этикетки необходим подтверждённый срок и хранение: '+name);
     const clean={id:typeof p.id==='string'&&p.id.length<=150?p.id:crypto.randomUUID(),kind,name,storage,hours,
       needsReview,point:String(p.point||'').slice(0,40)};
+    // The selected home-card artwork follows the catalogue across devices.
+    if(p.homeCover!==undefined&&typeof p.homeCover!=='boolean')throw error(400,'Некорректная настройка обложки «'+name+'».');
+    if(p.homeCover===true){
+      if(++covers[kind]>1)throw error(400,'В каталоге можно выбрать только одну обложку для каждого типа продукции.');
+      clean.homeCover=true;
+    }
     // These fields are part of the approved label templates, not merely local
     // preferences. Stripping them in the cloud used to turn "РАЗМОРОЖЕНО"
     // back into "ИЗГОТОВЛЕНО" on kitchen printers after synchronization.
