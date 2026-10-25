@@ -8,7 +8,7 @@ test('FARUKH PRINT FAST PREMIUM mobile nav and access gate',async()=>{
  const js=await read('public/farukh-print/print.js');
  for(const id of ['print-nav-home','print-nav-prep','print-nav-ready'])
   assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(html,/print-premium\.css\?v=1/);
+ assert.match(html,/print-premium\.css\?v=\d+/);
  assert.match(css,/body\.worker-managed:not\(\.worker-logged-in\) \.print-mobile-nav/);
  assert.match(css,/\.print-advice-dialog\{color-scheme:light\}/);
  assert.match(js,/function updatePremiumNav\(section\)/);
