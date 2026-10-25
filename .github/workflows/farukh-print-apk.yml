@@ -79,7 +79,7 @@ jobs:
           HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
           printf 'FARUKH_PRINT_VERSION_CODE=%s\nFARUKH_PRINT_VERSION_NAME=%s\nFARUKH_PRINT_SHA256=%s\n\nTest APK: debug signing can change with each build. Do not uninstall old APK without a full local backup. Real V3 BT printing still requires device checks.\n' "$CODE" "$NAME" "$HASH" > "$RUNNER_TEMP/farukh-release/notes.txt"
           if gh release view farukh-print-current --repo "$GH_REPO" >/dev/null 2>&1; then
-            EXISTING_CODE="$(gh release view farukh-print-current --repo "$GH_REPO" --json body --jq '.body' | sed -n 's/^FARUKH_PRINT_VERSION_CODE=\\([0-9]\\+\\)$/\\1/p' | head -1)"
+            EXISTING_CODE="$(gh release view farukh-print-current --repo "$GH_REPO" --json body --jq '.body' | grep -E '^FARUKH_PRINT_VERSION_CODE=[0-9]+$' | head -1 | cut -d= -f2 || true)"
             EXISTING_ASSET="$(gh release view farukh-print-current --repo "$GH_REPO" --json assets --jq '.assets[].name' | grep -Fx 'FARUKH-PRINT-test.apk' || true)"
             # Rebuilding debug APKs with unchanged versionCode can change their
             # signing certificate, making an update impossible without data loss.
