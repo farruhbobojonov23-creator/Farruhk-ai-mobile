@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./print.css?v=28">
-<link rel="stylesheet" href="./print-premium.css?v=5">
+<link rel="stylesheet" href="./print-premium.css?v=6">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -122,6 +122,18 @@
     <button id="pro-qr-restart" type="button" class="pro-tool-button">↻ Включить камеру</button>
   </section>
 </dialog>
+<dialog id="pro-qr-card" class="pro-qr-dialog" aria-labelledby="pro-qr-card-title">
+  <section class="pro-qr-content">
+    <header><div><small>FARUKH PRINT · QR ТОВАРА</small>
+      <h2 id="pro-qr-card-title">QR-код позиции</h2></div>
+      <button id="pro-qr-card-close" class="pro-qr-close" type="button" aria-label="Закрыть QR-код">✕</button></header>
+    <p id="pro-qr-product-name" class="pro-qr-product-title"></p>
+    <div id="pro-qr-art" class="pro-qr-art" role="img" aria-label="QR-код позиции для быстрого открытия"></div>
+    <p id="pro-qr-product-id" class="pro-qr-product-id"></p>
+    <button id="pro-qr-download" class="pro-batch-primary" type="button">⇩ Скачать QR в SVG</button>
+    <p>Этот QR открывает товар в FARUKH PRINT. Это не этикетка пищевой продукции. Утверждённые сроки и даты на этикетках он не меняет.</p>
+  </section>
+</dialog>
 <dialog id="editor">
 <form method="dialog" id="editor-form" class="editor-form">
   <div class="edit-top"><div><div class="eyebrow">БАЗА ЭТИКЕТОК</div><h2 id="editor-title">Новый товар</h2></div><button class="iconbtn" id="close-editor" type="button">✕</button></div>
@@ -151,6 +163,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./print-pro-scanner.js?v=1" defer></script><script src="./prep-studio-images.js?v=1" defer></script><script src="./prep-studio-atlas.js?v=2" defer></script><script src="./prep-photo-library.js?v=2" defer></script><script src="./prep-sanpin-sources.js?v=1" defer></script><script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=2" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./premium-prep-label.js?v=1" defer></script><script src="./prep-3d-elements.js?v=2" defer></script><script src="./prep-approved-3d-atlas.js?v=2" defer></script><script src="./print.js?v=50" defer></script><script src="./print-sync.js?v=6" defer></script><script src="./print-staff.js?v=7" defer></script>
+<script src="./vendor/qrcode.js?v=1" defer></script><script src="./vendor/jsqr.js?v=1" defer></script><script src="./print-pro-scanner.js?v=2" defer></script><script src="./prep-studio-images.js?v=1" defer></script><script src="./prep-studio-atlas.js?v=2" defer></script><script src="./prep-photo-library.js?v=2" defer></script><script src="./prep-sanpin-sources.js?v=1" defer></script><script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=2" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./premium-prep-label.js?v=1" defer></script><script src="./prep-3d-elements.js?v=2" defer></script><script src="./prep-approved-3d-atlas.js?v=2" defer></script><script src="./print.js?v=51" defer></script><script src="./print-sync.js?v=6" defer></script><script src="./print-staff.js?v=7" defer></script>
 </body>
 </html>

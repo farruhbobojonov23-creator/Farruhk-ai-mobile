@@ -405,7 +405,10 @@ function renderCatalog(){
   const tipsButton=node('button','product-tips','▣ Советы');
   tipsButton.type='button';tipsButton.setAttribute('aria-label','Советы по хранению: '+p.name);
   tipsButton.onclick=()=>openProductAdvice(p);
-  item.append(tipsButton,meta);
+  const qrButton=node('button','product-qr-button','▦ QR');
+  qrButton.type='button';qrButton.setAttribute('aria-label','QR-код товара: '+p.name);
+  qrButton.onclick=()=>window.FARUKH_PRINT_PRO_SCANNER?.showCode?.(p);
+  item.append(tipsButton,qrButton,meta);
   if(worker){const star=node('button','product-favorite'+(favorite.has(p.id)?' is-favorite':''),favorite.has(p.id)?'★':'☆');star.type='button';star.setAttribute('aria-label',(favorite.has(p.id)?'Убрать из избранного: ':'В избранное: ')+p.name);star.setAttribute('aria-pressed',String(favorite.has(p.id)));star.onclick=()=>toggleFav(p.id);item.append(star)}
   cards.append(item);
  }

@@ -207,3 +207,11 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 .pro-qr-manual input{min-height:46px;flex:1 1 190px;min-width:0;padding:0 12px;border-radius:12px;border:1px solid #485b70;color:#fff;background:#0d1521}
 .pro-qr-manual button{min-height:46px;padding:8px 15px;border:1px solid #f3637d;background:#c02d4a;color:#fff;border-radius:12px;font-weight:800}
 @media(max-width:380px){.pro-toolbar{gap:6px}.pro-tool-button{padding:8px 10px}.pro-qr-content{padding:15px}}
+
+/* QR cards are independent work aids, never printed on food safety labels. */
+.product-qr-button{min-height:31px;border:1px solid #637486;border-radius:9px;background:#243343;color:#f0f7ff;font-size:11px;font-weight:850;touch-action:manipulation;cursor:pointer}
+.pro-qr-art{margin:14px auto 8px;max-width:260px;width:100%;aspect-ratio:1;background:#fff;border:13px solid #fff;border-radius:16px;display:grid;place-items:center;box-sizing:border-box}
+.pro-qr-art svg{display:block;width:100%;height:100%}
+.pro-qr-product-title{text-align:center;font-size:18px!important;font-weight:900;color:#fff!important}
+.pro-qr-product-id{text-align:center;font-size:10px!important;overflow-wrap:anywhere;color:#91a3b6!important}
+.pro-qr-content #pro-qr-download{display:block;width:100%;margin-bottom:10px}
