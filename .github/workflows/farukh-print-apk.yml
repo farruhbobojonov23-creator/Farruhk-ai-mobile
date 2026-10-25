@@ -5,6 +5,8 @@ on:
     paths:
       - 'android/print/**'
       - '.github/workflows/farukh-print-apk.yml'
+      - 'public/farukh-print/print-updates.js'
+      - 'public/farukh-print/download/**'
   pull_request:
     paths:
       - 'android/print/**'
@@ -14,9 +16,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate FARUKH PRINT critical functions
+        run: |
+          node --test tests/print-fast-pro-reliability.test.js tests/print-native-diagnostics.test.js tests/print-pro-scanner-batch.test.js tests/print-pro-owner-report.test.js tests/print-premium-fast.test.js tests/print-premium-v2-home.test.js
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -57,3 +65,24 @@ jobs:
           name: FARUKH-PRINT-Android-test
           path: android/print/build/outputs/apk/debug/print-debug.apk
           if-no-files-found: error
+      - name: Publish stable public TEST APK URL
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/farukh-release"
+          APK="$RUNNER_TEMP/farukh-release/FARUKH-PRINT-test.apk"
+          cp android/print/build/outputs/apk/debug/print-debug.apk "$APK"
+          CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\([0-9]\+\).*/\1/p' android/print/build.gradle | head -1)"
+          NAME="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*'\([^']*\)'.*/\1/p" android/print/build.gradle | head -1)"
+          HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
+          printf 'FARUKH_PRINT_VERSION_CODE=%s\nFARUKH_PRINT_VERSION_NAME=%s\nFARUKH_PRINT_SHA256=%s\n\nTest APK: debug signing can change with each build. Do not uninstall old APK without a full local backup. Real V3 BT printing still requires device checks.\n' "$CODE" "$NAME" "$HASH" > "$RUNNER_TEMP/farukh-release/notes.txt"
+          if gh release view farukh-print-current --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload farukh-print-current "$APK" --clobber --repo "$GH_REPO"
+            gh release edit farukh-print-current --title "FARUKH PRINT — текущая тестовая версия $NAME" --notes-file "$RUNNER_TEMP/farukh-release/notes.txt" --repo "$GH_REPO"
+          else
+            gh release create farukh-print-current "$APK" --target "$GITHUB_SHA" --title "FARUKH PRINT — текущая тестовая версия $NAME" --notes-file "$RUNNER_TEMP/farukh-release/notes.txt" --prerelease --repo "$GH_REPO"
+          fi
