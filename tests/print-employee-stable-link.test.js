@@ -17,8 +17,8 @@ test('FARUKH PRINT staff has a distinct installable shareable URL backed by same
  assert.equal(manifest.display,'standalone');
  assert.match(html,/premium-prep-label\.js\?v=1/);
  assert.match(html,/premium-ready-label\.js\?v=3/);
- assert.match(html,/print\.js\?v=37/);
- assert.match(html,/print-staff\.js\?v=7/);
+ assert.match(html,/print\.js\?v=53/);
+ assert.match(html,/print-staff\.js\?v=8/);
 });
 
 test('Employee URL blocks owner management before device pairing without permanently changing personal owner localStorage',async()=>{
@@ -31,7 +31,7 @@ test('Employee URL blocks owner management before device pairing without permane
  assert.match(staff,/const employeeEntry=window\.FARUKH_PRINT_EMPLOYEE_ENTRY===true/);
  assert.match(staff,/form\.hidden=!paired\|\|!enrolled\|\|!!staff/);
  assert.match(staff,/if\(value&&!employeeEntry\)localStorage\.setItem\(MANAGED,'1'\)/);
- assert.match(staff,/Сначала подключи устройство|Для первого входа подключи устройство/);
+ assert.match(staff,/Для печати подключи устройство/);
  assert.match(sync,/localStorage\.setItem\(STAFF_MANAGED,'1'\)/); // actual pairing still persists restricted mode
  assert.match(staff,/X-Farukh-Print-Staff/);
  assert.match(staff,/authorize-print/);
