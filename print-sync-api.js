@@ -58,8 +58,8 @@ function validateCatalog(data){
     // User-selected JPG thumbnail, aggressively compressed on device. Photos
     // are not printed on thermal labels and never bypass expiry approval.
     if(p.photo!==undefined&&p.photo!==''){
-      if(typeof p.photo!=='string'||p.photo.length>45000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(p.photo))
-        throw error(400,'Фотография «'+name+'» должна быть сжата до 45 КБ в JPEG. Попробуй выбрать её повторно.');
+      if(typeof p.photo!=='string'||p.photo.length>45000||!/^data:image\/(?:jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(p.photo))
+        throw error(400,'Фотография «'+name+'» должна быть JPG или WEBP до 45 КБ. Попробуй выбрать её повторно.');
       clean.photo=p.photo;
     }
     // Persist the owner's display choice. Otherwise cloud validation strips
