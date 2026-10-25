@@ -184,7 +184,8 @@ function closeWorkerPreview(){
  $('worker-close-preview').hidden=true;
 }
 function openWorkerPreview(){
- if(!isManaged()||!workerLoggedIn)return;
+ // Visitors may open the same label preview; printing remains server-authorized.
+ if(!current())return;
  document.body.classList.add('worker-preview-open');
  $('worker-preview-backdrop').hidden=false;
  $('worker-close-preview').hidden=false;
