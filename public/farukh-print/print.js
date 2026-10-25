@@ -64,6 +64,9 @@ const isHaccp=p=>!!HACCP?.getTemplate(p);
 // solely when the old native validator explicitly rejects 30×20.
 let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false,manualPrepPremium=false,editorPhotoChanged=false;
 let lastSuccessfulTransfer=null;
+let batchMode=false,batchRunning=false;
+const batchSelection=new Set();
+let nativePrintResolver=null;
 const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
@@ -276,6 +279,7 @@ function renderHome(){
 }
 function openCatalog(type){
  closeWorkerPreview();
+ batchMode=false;batchSelection.clear();renderBatchToolbar();
  kind=type;selected=null;activeCategory='';$('catalog-search').value='';
  $('catalog-title').textContent=type==='ready'?'Готовая продукция · 58 × 40':'Полуфабрикаты · 30 × 20';
  $('catalog-kicker').textContent=type==='ready'?'ГОТОВАЯ ПРОДУКЦИЯ':'ПОЛУФАБРИКАТЫ';
@@ -327,6 +331,7 @@ if(typeof window.addEventListener==='function'){
 }
 function renderCatalog(){
  renderCategories();
+ renderBatchToolbar();
  const list=$('product-list');list.replaceChildren();
  const cards=document.createDocumentFragment();
  const q=str($('catalog-search').value).toLocaleLowerCase('ru'),favorite=new Set(favs()),worker=isManaged()&&!!workerLoggedIn;
@@ -377,7 +382,20 @@ function renderCatalog(){
   }else visual.append(node('span','product-photo-placeholder',window.FarukhPrepPhotoLibrary?.mark(p)||'◇'));
   const bottom=node('span','product-tile-info');bottom.append(node('strong','',p.name));
   const meta=node('small','product-tile-meta'+(p.needsReview?' needs-review':''),isHaccp(p)?(p.mode==='place'?'Место хранения · 58 × 40':p.mode==='shift'?'Замена до конца смены':p.days+' дней · 58 × 40'):p.needsReview?(p.hours&&p.storage?p.hours+' ч · '+p.storage+' · требует подтверждения':'Срок требует проверки'):p.hours+' ч · '+p.storage);
+  if(batchMode){
+   const mark=node('span','pro-pick-mark',batchSelection.has(p.id)?'✓':'＋');
+   mark.setAttribute('aria-hidden','true');item.append(mark);
+   if(batchSelection.has(p.id))item.classList.add('pro-picked');
+  }
   select.append(visual,bottom);select.onclick=()=>{
+    if(batchMode){
+     if(batchSelection.has(p.id))batchSelection.delete(p.id);
+     else if(batchSelection.size<10)batchSelection.add(p.id);
+     else{status('За один пакет можно выбрать до 10 позиций.',true);return}
+     item.classList.toggle('pro-picked',batchSelection.has(p.id));
+     const mark=item.querySelector('.pro-pick-mark');if(mark)mark.textContent=batchSelection.has(p.id)?'✓':'＋';
+     renderBatchToolbar();return;
+    }
     selected=p.id;haccpDraft=null;$('haccp-limit').value='';
     if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
     // Do not remount 90+ food pictures on each product tap.
@@ -799,7 +817,7 @@ function browserPrint({canvas,svg,copies}){
  window.print();
 }
 async function doPrint(forceSystem=false){
- if(busy)return;
+ if(busy)return false;
  let value;try{
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
    const point=window.FARUKH_PRINT_STAFF_API?.point();
@@ -813,7 +831,7 @@ async function doPrint(forceSystem=false){
    if(!confirm('Такая же этикетка уже отправлена менее 12 секунд назад. Напечатать повторно?'))return;
   }
   value.transferKey=key;
- }catch(e){status(e.message,true);return}
+ }catch(e){status(e.message,true);return false}
  busy=true;$('print-now').disabled=true;
  try{
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
@@ -827,7 +845,7 @@ async function doPrint(forceSystem=false){
    browserPrint(value);busy=false;$('print-now').disabled=false;
    if(activePrintEvent)void window.FARUKH_PRINT_STAFF_API?.reportPrint(activePrintEvent,'system','Открыт системный диалог, не факт печати.');
    activePrintEvent=null;saveLast(current(),value.copies);
-   status('Открыт системный диалог печати. Физическая печать не подтверждена.');return;
+   status('Открыт системный диалог печати. Физическая печать не подтверждена.');return true;
   }
   // V3 BT receives the SAME SVG rasterized only at the physical 203-dpi grid.
   if(value.svg&&window.FarukhLabelSVG?.rasterize){
@@ -836,12 +854,19 @@ async function doPrint(forceSystem=false){
   const legacy=legacyNative30Transport&&value.canvas.width===240;
   pendingNativePrint={...value,legacy,eventId:activePrintEvent,product:current()};activePrintEvent=null;
   status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
-  sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))});
+  // The native callback resolves the promise only after Android replies.
+  // Batch mode processes one product at a time; never auto-retries failures.
+  return await new Promise((resolve,reject)=>{
+   nativePrintResolver=resolve;
+   try{sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))})}
+   catch(e){nativePrintResolver=null;reject(e)}
+  });
  }catch(e){
   const id=activePrintEvent||pendingNativePrint?.eventId;
   if(id)void window.FARUKH_PRINT_STAFF_API?.reportPrint(id,'failed',e.message);
   activePrintEvent=null;busy=false;pendingNativePrint=null;$('print-now').disabled=false;
   status('Печать не выполнена: '+e.message,true);
+  return false;
  }
 }
 function choosePrinter(){
@@ -878,7 +903,55 @@ if(native){
   }else status(answer.message,answer.ok===false);
   pendingNativePrint=null;
   $('print-now').disabled=!current()||!!previewError;
+  if(nativePrintResolver){const resolve=nativePrintResolver;nativePrintResolver=null;resolve(answer.ok===true)}
  };
+}
+function renderBatchToolbar(){
+ const toggle=$('pro-batch-toggle'),bar=$('pro-batch-actions');
+ if(!toggle||!bar)return;
+ toggle.textContent=batchMode?'✕ Завершить выбор':'☷ Пакетная печать';
+ toggle.disabled=batchRunning;
+ toggle.setAttribute('aria-pressed',String(batchMode));
+ bar.hidden=!batchMode;
+ $('pro-batch-count').textContent='Выбрано '+batchSelection.size+' из 10';
+ $('pro-batch-start').disabled=batchRunning||batchSelection.size===0||!native;
+ $('pro-batch-start').textContent=batchRunning?'Печать пакета…':'Печатать '+batchSelection.size+' позиций';
+}
+function batchReady(p){
+ return p&&p.kind===kind&&!p.needsReview&&!isHaccp(p)&&Number.isSafeInteger(p.hours)&&p.hours>0&&!!str(p.storage);
+}
+async function runBatchPrint(){
+ if(batchRunning||busy||!native||!batchSelection.size)return;
+ const jobs=[...batchSelection].map(id=>products.find(p=>p.id===id)).filter(Boolean);
+ const wrong=jobs.filter(p=>!batchReady(p));
+ if(wrong.length){status('Нельзя печатать пакет: '+wrong.map(p=>p.name).join(', ')+'. Проверь сроки и разрешения.',true);return;}
+ if(Number($('copies').value)!==1){
+  status('Для пакетной печати укажи 1 экземпляр: каждый товар — отдельная этикетка.',true);return;
+ }
+ const when=$('printed-at').value||nowLocal();
+ if(!confirm('Отправить '+jobs.length+' отдельных заданий на V3 BT? Все товары получат дату '+when+
+  '. Подтверди, что у всех выбранных заготовок действительно одинаковое время изготовления / разморозки. После ошибки пакет остановится.'))return;
+ batchRunning=true;renderBatchToolbar();
+ let done=0;
+ try{
+  for(const p of jobs){
+   if(!batchReady(p))break;
+   if(isManaged()&&!workerLoggedIn){status('Сеанс сотрудника завершён. Пакет остановлен.',true);break;}
+   selected=p.id;haccpDraft=null;$('haccp-limit').value='';
+   $('printed-at').value=when;$('copies').value='1';
+   if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
+   // Server checks employee and catalog revision for EVERY packet separately.
+   updatePreview();
+   if(previewError){status('Пакет остановлен: '+previewError,true);break;}
+   status('Задание '+(done+1)+'/'+jobs.length+': '+p.name);
+   const success=await doPrint(false);
+   if(!success){status('Пакет остановлен после '+done+' успешных передач. Проверь принтер перед повтором.',true);break;}
+   done++;
+  }
+  if(done===jobs.length)status('Все '+done+' заданий переданы V3 BT. Проверь фактический выход этикеток.');
+ }finally{
+  batchRunning=false;batchMode=false;batchSelection.clear();renderCatalog();
+ }
 }
 function exportDB(){
  const output={format:'farukh-print-catalog-v1',createdAt:new Date().toISOString(),products};
@@ -908,6 +981,21 @@ async function importDB(ev){
   selected=null;renderManage();alert('Готово! Импортировано '+items.length+' товаров.');
  }catch(e){alert('Не удалось загрузить базу: '+e.message)}
 }
+window.FARUKH_PRINT_PRO_SCAN={
+ find:(value)=>{
+  const token=str(value);
+  if(!token||token.length>512)return null;
+  const key=token.replace(/^farukh-print:(?:product:)?/i,'').replace(/^FP\|/i,'').trim().toLocaleLowerCase('ru');
+  return products.find(p=>p.id.toLocaleLowerCase('ru')===key)
+   ||products.find(p=>p.name.toLocaleLowerCase('ru')===key)||null;
+ },
+ select:p=>{
+  if(!p||!products.some(x=>x.id===p.id&&x.kind===p.kind))return false;
+  openCatalog(p.kind);selected=p.id;
+  if(p.kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
+  renderCatalog();openWorkerPreview();return true;
+ }
+};
 window.FARUKH_PRINT_SYNC_API={
  get:()=>structuredClone(products),
  setPaired:yes=>{
@@ -926,6 +1014,7 @@ window.FARUKH_PRINT_SYNC_API={
   const old=products;products=structuredClone(newProducts);
   if(!save()){products=old;throw Error('Невозможно сохранить базу на Android.')}
   renderHome();
+  batchMode=false;batchSelection.clear();
   if(!$('catalog').hidden)renderCatalog();
   if(!$('manage').hidden)renderManage();
  }
@@ -982,6 +1071,13 @@ function boot(){
  $('catalog-back').onclick=()=>{show('home');renderHome()};$('manage-back').onclick=()=>{show('home');renderHome()};
  let searchDebounce=0;
  $('catalog-search').addEventListener('input',()=>{clearTimeout(searchDebounce);searchDebounce=setTimeout(renderCatalog,110)});
+ $('pro-batch-toggle').onclick=()=>{
+  if(batchRunning||busy)return;
+  batchMode=!batchMode;batchSelection.clear();renderCatalog();
+ };
+ $('pro-batch-clear').onclick=()=>{batchSelection.clear();renderCatalog()};
+ $('pro-batch-start').onclick=()=>void runBatchPrint();
+ $('pro-qr-open').onclick=()=>window.FARUKH_PRINT_PRO_SCANNER?.open?.();
  $('printed-at').addEventListener('input',updatePreview);
  $('haccp-new').onclick=()=>{const p=current();if(!isHaccp(p))return;if(!confirm('Начать новую порцию для этой ёмкости? Нажимай только после приготовления или заполнения.'))return;haccpDraft={id:p.id,batch:null};$('haccp-limit').value='';updatePreview();};
  $('haccp-limit').addEventListener('input',updatePreview);
