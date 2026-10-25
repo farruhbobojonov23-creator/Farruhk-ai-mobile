@@ -81,8 +81,9 @@ public final class MainActivity extends Activity {
         // Keep the embedded page *below* the real status bar and *above*
         // system navigation, rather than covering toolbar buttons with OS touches.
         final FrameLayout safeFrame = new FrameLayout(this);
-        safeFrame.setBackgroundColor(Color.rgb(246, 247, 249));
+        safeFrame.setBackgroundColor(Color.rgb(16, 19, 26));
         webView = new WebView(this);
+        webView.setBackgroundColor(Color.rgb(16, 19, 26));
         safeFrame.addView(webView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         safeFrame.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -102,9 +103,10 @@ public final class MainActivity extends Activity {
                 view.setPadding(0, top, 0, bottom);
             return insets;
         });
-        // Dark status-bar icons on the light FARUKH PRINT background.
-        getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        // Premium dark chrome keeps status icons and navigation legible.
+        getWindow().setStatusBarColor(Color.rgb(16, 19, 26));
+        getWindow().setNavigationBarColor(Color.rgb(16, 19, 26));
+        getWindow().getDecorView().setSystemUiVisibility(0);
         setContentView(safeFrame);
         safeFrame.requestApplyInsets();
         WebSettings settings = webView.getSettings();
