@@ -244,6 +244,8 @@ function homeFeatureArt(){
  // This never changes photos, expiration dates or label templates.
  const choose=(type,names)=>{
   const rows=products.filter(p=>p.kind===type);
+  const selectedCover=rows.find(p=>p.homeCover===true);
+  if(selectedCover)return selectedCover;
   const matches=names.map(n=>rows.find(p=>str(p.name).toLocaleLowerCase('ru')===n)).filter(Boolean);
   return (type==='ready'?(matches.find(p=>p.photo)||rows.find(p=>p.photo)||matches[0]):matches[0])||rows[0];
  };
