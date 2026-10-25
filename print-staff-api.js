@@ -202,7 +202,16 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const sum=k=>rows.reduce((n,r)=>n+r[k],0);
   res.set('Cache-Control','no-store');
   res.json({ok:true,days,point,summary:{points:rows.length,staff:sum('staff'),active:sum('active'),requests:sum('requests'),labels:sum('labels')},
-   rows,historyLimit:MAX_EVENTS,note:'Запросы и передача на принтер — не доказательство фактической печати. Смена — с последнего входа сотрудника на устройстве. История хранит последние 4000 запросов.'});
+   rows,
+   topProducts:[...valid.filter(e=>!point||samePoint(e.point,point)).reduce((map,e)=>{
+    const key=e.productId||e.product||'unknown';
+    const row=map.get(key)||{id:key,name:e.product||'Этикетка',requests:0,requestedLabels:0,transmittedJobs:0,failedJobs:0};
+    row.requests++;row.requestedLabels+=Number.isSafeInteger(e.copies)?e.copies:0;
+    if(e.result==='sent')row.transmittedJobs++;
+    if(e.result==='failed')row.failedJobs++;
+    map.set(key,row);return map;
+   },new Map()).values()].sort((a,b)=>b.requests-a.requests).slice(0,12),
+   historyLimit:MAX_EVENTS,note:'Запросы и передача на принтер — не доказательство фактической печати. Смена — с последнего входа сотрудника на устройстве. История хранит последние 4000 запросов.'});
  }));
  app.get('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
   res.set('Cache-Control','no-store');
@@ -276,12 +285,14 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  app.get('/api/farukh-print/admin/staff/activity',owner,safe(async(req,res)=>{
   const start=String(req.query?.from||''),end=String(req.query?.to||'');
   if((start&&!/^\d{4}-\d{2}-\d{2}$/.test(start))||(end&&!/^\d{4}-\d{2}-\d{2}$/.test(end))||(start&&end&&start>end))throw bad(400,'Неверный диапазон дат.');
-  const point=trim(req.query?.point,60),login=trim(req.query?.login,32).toLowerCase(),state=trim(req.query?.result,20);
+  const point=trim(req.query?.point,60),login=trim(req.query?.login,32).toLowerCase(),state=trim(req.query?.result,20),
+   product=trim(req.query?.product,90).toLocaleLowerCase('ru');
   if(state&&!['sent','failed','system','pending'].includes(state))throw bad(400,'Неверный статус печати.');
   const limit=Math.min(300,Math.max(1,Number(req.query?.limit)||100));
   const records=(await readHistory()).filter(e=>{
    if(point&&e.point!==point)return false;
    if(login&&e.login!==login)return false;
+   if(product&&!String(e.product||'').toLocaleLowerCase('ru').includes(product))return false;
    if(state&&(e.result||'pending')!==state)return false;
    if(!Number.isFinite(Date.parse(e.at)))return false;
    const day=moscowDay(e.at);
@@ -289,6 +300,37 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   });
   res.set('Cache-Control','no-store');
   res.json({ok:true,events:records.slice(-limit).reverse(),total:records.length,historyLimit:MAX_EVENTS});
+ }));
+ // Owner-only full filtered CSV export. Never includes employee passwords,
+ // session tokens or printer binary data. Escape CSV formula injection.
+ app.get('/api/farukh-print/admin/staff/activity-export',owner,safe(async(req,res)=>{
+  const start=String(req.query?.from||''),end=String(req.query?.to||'');
+  if((start&&!/^\d{4}-\d{2}-\d{2}$/.test(start))||(end&&!/^\d{4}-\d{2}-\d{2}$/.test(end))||(start&&end&&start>end))
+   throw bad(400,'Неверный диапазон дат.');
+  const point=trim(req.query?.point,60),login=trim(req.query?.login,32).toLowerCase(),
+   state=trim(req.query?.result,20),product=trim(req.query?.product,90).toLocaleLowerCase('ru');
+  if(state&&!['sent','failed','system','pending'].includes(state))throw bad(400,'Неверный статус.');
+  const events=(await readHistory()).filter(e=>{
+   if(point&&e.point!==point)return false;
+   if(login&&e.login!==login)return false;
+   if(product&&!String(e.product||'').toLocaleLowerCase('ru').includes(product))return false;
+   if(state&&(e.result||'pending')!==state)return false;
+   if(!Number.isFinite(Date.parse(e.at)))return false;
+   const day=moscowDay(e.at);
+   return (!start||day>=start)&&(!end||day<=end);
+  });
+  const csvField=value=>{
+   const clean=String(value??'').replace(/[\r\n\t]+/g,' ').slice(0,250);
+   const safe=/^[\s]*[=+@-]/.test(clean)?"'"+clean:clean;
+   return '"'+safe.replace(/"/g,'""')+'"';
+  };
+  const fields=['Дата UTC','Точка','Сотрудник','Логин','Товар','Количество в запросе','Результат','Устройство','Описание'];
+  const rows=[fields,...events.map(e=>[e.at,e.point,e.staff,e.login,e.product,e.copies,e.result||'pending',e.device,e.details])];
+  const csv='\uFEFF'+rows.map(r=>r.map(csvField).join(';')).join('\r\n')+'\r\n';
+  res.set('Cache-Control','no-store');
+  res.set('Content-Type','text/csv; charset=utf-8');
+  res.set('Content-Disposition','attachment; filename="farukh-print-history.csv"');
+  res.send(csv);
  }));
  app.get('/api/farukh-print/admin/staff/alerts',owner,safe(async(req,res)=>{
   const events=await readHistory();
