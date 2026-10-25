@@ -103,12 +103,21 @@ export function mountPrintCloudControl({root,renderLocal}){
     // Restore the owner's previously confirmed automatic mode ONLY when
     // neither the remote revision nor either database has drifted.
     const same=JSON.stringify(local)===JSON.stringify(remoteProducts);
-    const continued=accepted?.revision===rev&&accepted.local===digest(local)&&accepted.remote===digest(remoteProducts);
+    // A saved local edit makes accepted.local differ after a reload. The
+    // revision + remote digest still prove the cloud baseline was approved.
+    // Recover automatic publication without overwriting concurrent edits.
+    const continued=accepted?.revision===rev&&accepted.remote===digest(remoteProducts);
     auto=same||continued;
     if(same)remember(rev,local,remoteProducts);
     mark(auto?'Каталог синхронизирован · версия '+rev:'Есть неопубликованные отличия · версия '+rev,!auto);
     tell('Облако: '+remoteProducts.length+' позиций · версия '+rev+'. Локально: '+local.length+'. '+(auto?'Каталоги совпадают, последующие изменения будут публиковаться автоматически.':'Каталоги отличаются. Выбери «Опубликовать» или «Загрузить».'),false);
     await loadDevices();
+    // Resume changes saved offline or just before a page reload, but ONLY
+    // when the owner-approved remote revision is still unchanged.
+    if(auto&&!same){
+      tell('Есть локальные изменения. Отправляю их в FARUKH PRINT…');
+      setTimeout(()=>{queue=queue.then(()=>publish(true)).catch(e=>tell('Автосинхронизация: '+e.message,true))},0);
+    }
     if(typeof window.dispatchEvent==='function')window.dispatchEvent(new Event('farukh-print-owner-authenticated'));
   }catch(e){fetched=false;auto=false;mark('Облако: недоступно',true);if(e.status===401)askForLogin();else tell('Облачный каталог не загружен: '+e.message,true)}
   finally{lock(false);updateState()}

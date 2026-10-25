@@ -105,12 +105,16 @@ test('FARUKH PRINT cloud disabled without durable storage or owner auth',async()
 test('photo thumbnails survive owner cloud publishing and device catalog pull',async()=>{
  const {req}=makeApi(),owner={cookie:'fai_owner=ok'};
  const photo='data:image/jpeg;base64,'+Buffer.alloc(25000,49).toString('base64');
- const record={id:'sauce-1',kind:'prep',name:'Соус спайси',needsReview:true,storage:'',hours:null,photo};
+ const record={id:'sauce-1',kind:'prep',name:'Соус спайси',needsReview:true,storage:'',hours:null,photo,photoStyle:'manual'};
  const published=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[record]}});
  assert.equal(published.code,200);
  assert.equal(published.payload.products[0].photo,photo);
+ assert.equal(published.payload.products[0].photoStyle,'manual');
  const fromCloud=await req('get','/api/farukh-print/admin/catalog',owner);
  assert.equal(fromCloud.payload.products[0].photo,photo);
+ assert.equal(fromCloud.payload.products[0].photoStyle,'manual');
+ const badStyle=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...record,photoStyle:'javascript:alert(1)'}]}});
+ assert.equal(badStyle.code,400);
  const tooLarge='data:image/jpeg;base64,'+'A'.repeat(47000);
  const invalid=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...record,photo:tooLarge}]}});
  assert.equal(invalid.code,400);

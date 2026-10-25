@@ -60,6 +60,12 @@ function validateCatalog(data){
         throw error(400,'Фотография «'+name+'» должна быть сжата до 45 КБ в JPEG. Попробуй выбрать её повторно.');
       clean.photo=p.photo;
     }
+    // Persist the owner's display choice. Otherwise cloud validation strips
+    // photoStyle and FARUKH PRINT always prioritizes its bundled 3D images.
+    if(kind==='prep'&&p.photoStyle!==undefined&&p.photoStyle!==''){
+      if(!['manual','3d'].includes(p.photoStyle))throw error(400,'Неизвестный режим изображения «'+name+'».');
+      clean.photoStyle=p.photoStyle;
+    }
     if(typeof p.recipeMemo==='string')clean.recipeMemo=p.recipeMemo.slice(0,1000);
     if(kind==='ready'){
       if(p.category!==undefined){

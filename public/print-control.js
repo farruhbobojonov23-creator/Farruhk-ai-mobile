@@ -256,14 +256,14 @@ export function mountPrintControl({root}){
   if(opts.maxlength)input.maxLength=opts.maxlength;
   fields[name]=input;holder.append(title,input);return holder;
  }
- let chosenPhoto='';
+ let chosenPhoto='',photoChanged=false;
  const photoPanel=el('section','pc-photo-field');
  const photoPreview=el('img','pc-photo-preview');
  photoPreview.alt='Фото товара';photoPreview.hidden=true;
  const photoEmpty=el('div','pc-photo-empty','◇');const photoCaption=el('div','pc-photo-controls');
  photoCaption.append(el('strong','','Фото для каталога'),el('small','','Можно выбрать или заменить самостоятельно. На чёрно-белых этикетках фото не печатается.'));
  const photoPick=btn('＋ Загрузить фото','pc-secondary',()=>photoFile.click());
- const photoRemove=btn('Убрать фото','pc-secondary',()=>{chosenPhoto='';showPhoto()});
+ const photoRemove=btn('Убрать фото','pc-secondary',()=>{chosenPhoto='';photoChanged=true;showPhoto()});
  const photoFile=el('input');photoFile.type='file';photoFile.accept='image/jpeg,image/png,image/webp';photoFile.hidden=true;
  function showPhoto(){
   const entry=currentEdit?records.find(p=>p.id===currentEdit):null;
@@ -276,7 +276,7 @@ export function mountPrintControl({root}){
  photoFile.addEventListener('change',async()=>{
   const file=photoFile.files?.[0];photoFile.value='';if(!file)return;
   photoPick.disabled=true;
-  try{chosenPhoto=await window.FarukhPrintPhotos.compress(file);showPhoto();formError.hidden=true}
+  try{chosenPhoto=await window.FarukhPrintPhotos.compress(file);photoChanged=true;showPhoto();formError.hidden=true}
   catch(e){formError.textContent='Не удалось загрузить фото: '+e.message;formError.hidden=false}
   finally{photoPick.disabled=false}
  });
@@ -457,7 +457,7 @@ export function mountPrintControl({root}){
  templatePreviewCanvas.replaceChildren();
   // External illustrative references must never be saved as uploaded JPEGs.
   chosenPhoto=v.photo&&window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo:'';
-  showPhoto();
+  photoChanged=false;showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
   const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v)};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
@@ -470,6 +470,8 @@ export function mountPrintControl({root}){
   const name=text(fields.name.value);
   const hoursValue=text(fields.hours.value);
   const p={...existing,id:existing?.id||uid(),name,kind,storage:text(fields.storage.value),hours:hoursValue?Number(hoursValue):null,needsReview:!verify.checked,photo:chosenPhoto};
+  // 3D thumbnails are defaults only: an uploaded owner photo must win on staff devices.
+  if(kind==='prep'&&photoChanged)p.photoStyle=chosenPhoto?'manual':'3d';
   if(kind==='ready'&&manualTemplate==='ready'&&!existing)p.labelStyle='premium-ready-58x40';
   if(kind==='prep'&&manualTemplate==='prep'&&!existing)p.labelStyle='premium-prep-30x20';
   if(kind==='prep'){
