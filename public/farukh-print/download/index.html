@@ -21,8 +21,8 @@ footer{margin:22px 0;color:#98a9b9;font-size:12px}
 <span class="tag">● СТРАНИЦА ЗАГРУЗКИ</span>
 <h1>Актуальная версия<br>FARUKH PRINT</h1>
 <p>Одна постоянная ссылка для скачивания приложения. Больше не нужно искать APK в переписке.</p>
-<p id="status" role="status">Проверяю опубликованную версию…</p>
-<a id="download" class="primary" href="#" aria-disabled="true">⬇ Скачать APK для Android</a>
+<p id="status" role="status">Ссылка на установочный файл доступна. Проверяю версию…</p>
+<a id="download" class="primary" href="https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/download/farukh-print-current/FARUKH-PRINT-test.apk" rel="noopener noreferrer">⬇ Скачать APK для Android</a>
 <a class="secondary" href="https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/tag/farukh-print-current" target="_blank" rel="noopener noreferrer">Открыть официальный выпуск в GitHub ↗</a>
 <div class="warning"><h2>⚠ Важное предупреждение</h2><ul>
 <li>Текущие сборки являются тестовыми. Подпись APK может меняться, поэтому установка поверх старой версии иногда блокируется Android.</li>
@@ -38,10 +38,10 @@ footer{margin:22px 0;color:#98a9b9;font-size:12px}
   const response=await fetch('https://api.github.com/repos/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/tags/farukh-print-current',{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
   if(!response.ok)throw Error('выпуск ещё не опубликован или сервис временно недоступен');
   const release=await response.json(),asset=(release.assets||[]).find(a=>a.name==='FARUKH-PRINT-test.apk'&&a.browser_download_url?.startsWith('https://github.com/'));
-  if(!asset)throw Error('публичный APK пока не опубликован');
+  if(!asset)throw Error('не удалось подтвердить файл через API');
   const name=/^FARUKH_PRINT_VERSION_NAME=([^\r\n]+)/m.exec(release.body||'');
   status.textContent='Версия '+(name?.[1]||release.name||release.tag_name)+' · размер '+(asset.size/1024/1024).toFixed(2)+' МБ';
-  button.href=asset.browser_download_url;button.removeAttribute('aria-disabled');
- }catch(e){status.textContent='Не удалось получить ссылку: '+e.message+'. Открой выпуск в GitHub ниже.'}
+  button.href=asset.browser_download_url;
+ }catch(e){status.textContent='Не удалось проверить номер версии ('+e.message+'). Кнопка скачивания работает напрямую через GitHub.'}
 })();
 </script></body></html>
