@@ -25,3 +25,18 @@ test('V3 BT native printing watchdog closes hung socket without automatic retry'
  assert.match(java,/pendingPrinterReply != null \|\| printing\.get\(\)/);
  assert.match(build,/versionCode [5-9]|versionCode [1-9][0-9]+/);
 });
+
+test('V3 BT session is reused briefly and released for other tablets',async()=>{
+ const java=await read('android/print/src/main/java/ai/farukh/print/MainActivity.java');
+ const build=await read('android/print/build.gradle');
+ assert.match(java,/socket = heldSocket;/);
+ assert.match(java,/socket = device\.createRfcommSocketToServiceRecord\(SPP\)/);
+ assert.match(java,/if \(!reused\) \{/);
+ assert.match(java,/socketLease == lease && !printing\.get\(\)/);
+ assert.match(java,/closeHeldSocket\(\)/);
+ assert.match(java, /\}, 60_000\);/);
+ assert.match(java,/mainHandler\.postDelayed\(timeout, 45000\)/);
+ assert.match(java,/stream\.write\(label, offset, size\)/);
+ assert.doesNotMatch(java,/socket\.connect\(\)[\s\S]{0,30}socket\.connect\(\)/);
+ assert.match(build,/versionCode 8/);
+});
