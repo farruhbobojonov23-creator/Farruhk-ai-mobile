@@ -180,3 +180,30 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 
 /* Read-only BT health check, never prints an unapproved label. */
 .check-printer{display:block;width:100%;margin:10px 0;min-height:44px;font-size:12px;font-weight:850;border-style:dashed;border-radius:13px}
+
+/* FARUKH PRINT PRO: camera scanner and safe per-item batch print. */
+.pro-toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 14px}
+.pro-tool-button{min-height:44px;border-radius:13px;background:#232c3a;border:1px solid #516071;color:#eef5fc;padding:9px 15px;font-size:12px;font-weight:800;touch-action:manipulation}
+.pro-tool-button[aria-pressed=true]{background:#522235;color:#ffd4dd;border-color:#e05271}
+.pro-batch-actions{padding:13px 15px;margin:0 0 16px;border:1px solid #775265;background:#322531;border-radius:17px;color:#fbe7ea}
+.pro-batch-actions[hidden]{display:none!important}
+.pro-batch-actions>div{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:11px 0}
+.pro-batch-actions small{color:#edc2ce;line-height:1.5;display:block}
+.pro-batch-primary{border:1px solid #f76b84;background:linear-gradient(115deg,#e63c5a,#aa2442);color:#fff;border-radius:12px;min-height:44px;padding:9px 16px;font-size:13px;font-weight:800}
+.pro-batch-primary:disabled{opacity:.45;cursor:not-allowed}
+.product-list .product-item.pro-picked{outline:2px solid #f46c87;outline-offset:-1px;background:#502538}
+.pro-pick-mark{position:absolute;top:7px;right:7px;min-width:29px;min-height:29px;border-radius:50%;display:grid;place-items:center;pointer-events:none;color:#fff;background:#b73753;border:1px solid #ff8ba1;font-weight:900;z-index:2}
+.pro-qr-dialog{width:min(95vw,520px);max-width:520px;max-height:calc(100dvh - 45px);padding:0;box-sizing:border-box;background:#161e2a;color:#f6f8fd;border:1px solid #526070;border-radius:24px;overflow:auto}
+.pro-qr-dialog::backdrop{background:#05080de0}
+.pro-qr-content{padding:21px}
+.pro-qr-content header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.pro-qr-content header small{color:#ff95a9;font-size:10px;letter-spacing:1px;font-weight:900}
+.pro-qr-content h2{font-size:23px;margin:6px 0 10px;color:#fff}
+.pro-qr-content p{font-size:13px;line-height:1.6;color:#b6c6d6}
+.pro-qr-close{width:52px;height:52px;flex:0 0 52px;border-radius:50%;border:1px solid #5b6b7a;background:#283341;color:#fff;font-size:23px;touch-action:manipulation}
+#pro-qr-video{display:block;width:100%;height:min(54vw,265px);min-height:180px;object-fit:cover;background:#0b1019;border:1px solid #4b5e6d;border-radius:16px}
+.pro-qr-status{min-height:24px}
+.pro-qr-manual{display:flex;gap:8px;flex-wrap:wrap}
+.pro-qr-manual input{min-height:46px;flex:1 1 190px;min-width:0;padding:0 12px;border-radius:12px;border:1px solid #485b70;color:#fff;background:#0d1521}
+.pro-qr-manual button{min-height:46px;padding:8px 15px;border:1px solid #f3637d;background:#c02d4a;color:#fff;border-radius:12px;font-weight:800}
+@media(max-width:380px){.pro-toolbar{gap:6px}.pro-tool-button{padding:8px 10px}.pro-qr-content{padding:15px}}

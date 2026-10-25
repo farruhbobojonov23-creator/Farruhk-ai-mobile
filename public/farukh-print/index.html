@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./print.css?v=28">
-<link rel="stylesheet" href="./print-premium.css?v=4">
+<link rel="stylesheet" href="./print-premium.css?v=5">
 <title>FARUKH PRINT — Этикетки</title>
 </head>
 <body>
@@ -53,6 +53,16 @@
   <div class="sub-head"><button class="back" id="catalog-back" type="button">← Назад</button><div><div class="eyebrow" id="catalog-kicker">ГОТОВАЯ ПРОДУКЦИЯ</div><h2 id="catalog-title">Этикетки 58 × 40</h2></div></div>
   <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="catalog-search" type="search" placeholder="Название товара или ингредиента..." autocomplete="off" aria-label="Поиск товаров"></label>
   <div class="catalog-summary" aria-live="polite"><strong id="catalog-found">0 позиций</strong><span id="catalog-review-count">Проверка сроков</span></div>
+  <div class="pro-toolbar" role="group" aria-label="Быстрые действия с товарами">
+    <button id="pro-qr-open" type="button" class="pro-tool-button">▦ Сканировать QR</button>
+    <button id="pro-batch-toggle" type="button" class="pro-tool-button" aria-pressed="false">☷ Пакетная печать</button>
+  </div>
+  <div id="pro-batch-actions" class="pro-batch-actions" hidden>
+    <strong id="pro-batch-count">Выбрано 0 из 10</strong>
+    <div><button id="pro-batch-clear" type="button" class="pro-tool-button">Очистить</button>
+    <button id="pro-batch-start" type="button" class="pro-batch-primary" disabled>Печатать выбранные</button></div>
+    <small>Только утверждённые позиции одного формата. Дата должна совпадать для каждой заготовки. Задания отправляются по одному, без автоматического повтора.</small>
+  </div>
   <nav id="catalog-categories" class="catalog-categories" aria-label="Категории готовой продукции" hidden></nav>
   <div class="worker-shortcuts" id="worker-shortcuts" hidden>
     <button id="worker-fav-filter" type="button" aria-pressed="false">☆ Избранные</button>
@@ -100,6 +110,18 @@
 <button id="print-nav-ready" type="button"><span>▣</span>Готовое</button>
 </nav>
 </div>
+<dialog id="pro-qr-dialog" class="pro-qr-dialog" aria-labelledby="pro-qr-title">
+  <section class="pro-qr-content">
+    <header><div><small>FARUKH PRINT · PRO</small><h2 id="pro-qr-title">Сканирование QR товара</h2></div>
+      <button id="pro-qr-close" type="button" class="pro-qr-close" aria-label="Закрыть сканер">✕</button></header>
+    <p>Наведите камеру на QR с кодом товара FARUKH PRINT или его точным названием. Код считывается только на этом устройстве.</p>
+    <video id="pro-qr-video" autoplay playsinline muted aria-label="Камера QR-сканера"></video>
+    <p id="pro-qr-status" class="pro-qr-status" role="status">Камера не запущена.</p>
+    <div class="pro-qr-manual"><input id="pro-qr-value" type="text" maxlength="512" autocomplete="off" placeholder="Код товара или название" aria-label="Код товара вручную">
+      <button id="pro-qr-find" type="button">Открыть товар</button></div>
+    <button id="pro-qr-restart" type="button" class="pro-tool-button">↻ Включить камеру</button>
+  </section>
+</dialog>
 <dialog id="editor">
 <form method="dialog" id="editor-form" class="editor-form">
   <div class="edit-top"><div><div class="eyebrow">БАЗА ЭТИКЕТОК</div><h2 id="editor-title">Новый товар</h2></div><button class="iconbtn" id="close-editor" type="button">✕</button></div>
@@ -129,6 +151,6 @@
 </form>
 </dialog>
 <div id="print-paper" class="paper-only" aria-hidden="true"></div>
-<script src="./prep-studio-images.js?v=1" defer></script><script src="./prep-studio-atlas.js?v=2" defer></script><script src="./prep-photo-library.js?v=2" defer></script><script src="./prep-sanpin-sources.js?v=1" defer></script><script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=2" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./premium-prep-label.js?v=1" defer></script><script src="./prep-3d-elements.js?v=2" defer></script><script src="./prep-approved-3d-atlas.js?v=2" defer></script><script src="./print.js?v=49" defer></script><script src="./print-sync.js?v=6" defer></script><script src="./print-staff.js?v=7" defer></script>
+<script src="./print-pro-scanner.js?v=1" defer></script><script src="./prep-studio-images.js?v=1" defer></script><script src="./prep-studio-atlas.js?v=2" defer></script><script src="./prep-photo-library.js?v=2" defer></script><script src="./prep-sanpin-sources.js?v=1" defer></script><script src="./categories.js?v=1" defer></script><script src="./photo-utils.js?v=2" defer></script><script src="./label-svg.js?v=3" defer></script><script src="./premium-ready-label.js?v=3" defer></script><script src="./premium-prep-label.js?v=1" defer></script><script src="./prep-3d-elements.js?v=2" defer></script><script src="./prep-approved-3d-atlas.js?v=2" defer></script><script src="./print.js?v=50" defer></script><script src="./print-sync.js?v=6" defer></script><script src="./print-staff.js?v=7" defer></script>
 </body>
 </html>
