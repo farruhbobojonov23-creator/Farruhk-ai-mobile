@@ -155,6 +155,10 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
   };
   const wrap=fn=>async(req,res)=>{try{await ensureReadyCatalog();await fn(req,res)}catch(e){console.error('[farukh-print-sync]',e.status||503,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Хранилище временно недоступно. Изменения не опубликованы.'})}};
   app.get('/api/farukh-print/sync/status',(req,res)=>res.json({ok:true,enabled,permanent:!!persistent,ownerConfigured:!!auth?.enabled}));
+  // Lightweight signed-in owner check: never expose catalog data to visitors.
+  app.get('/api/farukh-print/admin/session',protectOwner,(req,res)=>{
+    res.set('Cache-Control','no-store');res.json({ok:true,owner:true});
+  });
   app.get('/api/farukh-print/admin/catalog',protectOwner,wrap(async(req,res)=>{
     const catalog=await readCatalog();res.set('Cache-Control','no-store');res.json({ok:true,...catalog});
   }));
