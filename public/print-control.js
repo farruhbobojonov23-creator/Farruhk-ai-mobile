@@ -403,6 +403,7 @@ export function mountPrintControl({root}){
    controls.append(el('span','pc-tag '+(p.needsReview===true?'pc-wait':'pc-ok'),p.needsReview===true?'На проверке':'Подтверждено'));
    controls.append(btn('Нормы','pc-edit pc-norms-btn',()=>showGuidance(p)));
    if(p.kind==='prep'&&p.needsReview)controls.append(btn('✓ Подтвердить по ТТК','pc-edit pc-verify-btn',()=>{edit(p);verify.focus()}));
+   if(!p.template)controls.append(btn(p.homeCover===true?'★ Обложка':'☆ На главную','pc-edit pc-cover-btn'+(p.homeCover===true?' active':''),()=>setHomeCover(p)));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
    controls.append(btn('×','pc-remove',()=>remove(p)));
@@ -491,6 +492,14 @@ export function mountPrintControl({root}){
    const next=records.filter(r=>r.id!==p.id);next.push(validated);
    commit(next,existing?'Изменено':'Добавлено',p.name);dialog.close();
   }catch(e){formError.textContent=e.message;formError.hidden=false}
+ }
+ function setHomeCover(p){
+  try{
+   const wasSelected=p.homeCover===true;
+   const next=records.map(x=>x.kind!==p.kind?x:{...x,homeCover:x.id===p.id?!wasSelected:false});
+   commit(next,wasSelected?'Обложка сброшена':'Обложка выбрана',p.name);
+   message(wasSelected?'Обложка сброшена. На главной FARUKH PRINT появится автоматическое изображение.':'Обложка «'+p.name+'» выбрана для '+(p.kind==='prep'?'полуфабрикатов':'готовой продукции')+'. После публикации облака её увидят подключённые устройства.');
+  }catch(e){message('Настройка обложки: '+e.message,true)}
  }
  function remove(p){
   if(!confirm('Удалить этикетку «'+p.name+'»? Отменить удаление можно только через резервную копию.'))return;
