@@ -15,6 +15,8 @@ test('Cloud recovers accepted offline edits and staff favors manual photos',asyn
  const sync=await load('public/farukh-print/print-sync.js');
  assert.match(cloud,/accepted\?\.revision===rev&&accepted\.remote===digest\(remoteProducts\)/);
  assert.match(cloud,/if\(auto&&!same\)/);
+ assert.match(cloud,/carryOwnerPhotos\(local,remoteProducts\)/);
+ assert.match(cloud,/photoStyle:p\.photo\?'manual':'3d'/);
  assert.match(app,/const usingCustom=!!original&&p\.photoStyle==='manual'/);
  assert.match(sync,/cache:'no-store'/);
  assert.match(sync,/!localMatches/);

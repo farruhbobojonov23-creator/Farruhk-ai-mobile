@@ -3,6 +3,20 @@
 // Publishing to cloud is opt-in, guarded by optimistic revision comparison.
 const KEY='farukh-print:catalog:v1', AGREED='farukh-print:owner-cloud-agreed:v1';
 const remote='/api/farukh-print';
+// Backward-compatible recovery for photos selected before photoStyle existed.
+// Only mark photographs changed versus the exact authenticated cloud baseline;
+// older built-in illustrations remain in the approved 3D presentation.
+const carryOwnerPhotos=(local,remoteProducts)=>{
+ const ids=new Map(remoteProducts.map(p=>[p.id,p]));
+ const keys=new Map(remoteProducts.map(p=>[p.kind+'|'+p.name.toLocaleLowerCase('ru'),p]));
+ return local.map(p=>{
+   if(p.kind!=='prep'||p.photoStyle==='manual'||p.photoStyle==='3d')return p;
+   const old=ids.get(p.id)||keys.get(p.kind+'|'+p.name.toLocaleLowerCase('ru'));
+   if((old&&String(p.photo||'')!==String(old.photo||''))||(!old&&p.photo))
+     return {...p,photoStyle:p.photo?'manual':'3d'};
+   return p;
+ });
+};
 const el=(tag,cl,text)=>{const e=document.createElement(tag);if(cl)e.className=cl;if(text!==undefined)e.textContent=text;return e};
 const btn=(label,handler,cls='pcloud-btn')=>{const b=el('button',cls,label);b.type='button';b.onclick=handler;return b};
 const read=()=>{try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(data)?data:[]}catch{throw Error('Локальная база повреждена. Восстанови резервную копию.')}}
@@ -127,12 +141,16 @@ export function mountPrintCloudControl({root,renderLocal}){
   // Interactive manual publication is confirmed. Automatic publication only
   // happens after the owner has linked identical or explicitly chosen data.
   if(!autoMode&&!confirm('Опубликовать текущую локальную базу на все подключённые устройства? Перед публикацией проверь сроки хранения.'))return;
-  const local=read(),originalRev=rev;
+  const local=read(),submitted=carryOwnerPhotos(local,remoteProducts),originalRev=rev;
   lock(true);mark('Публикую изменения…',true);
   try{
-    const out=await api('/admin/catalog',{method:'PUT',body:JSON.stringify({revision:originalRev,products:local})});
+    const out=await api('/admin/catalog',{method:'PUT',body:JSON.stringify({revision:originalRev,products:submitted})});
     rev=out.revision;remoteProducts=out.products;auto=true;
-    remember(rev,local,remoteProducts);
+    if(JSON.stringify(local)!==JSON.stringify(submitted)){
+      localStorage.setItem(KEY,JSON.stringify(submitted));
+      renderLocal?.();
+    }
+    remember(rev,submitted,remoteProducts);
     if(typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('farukh-print-cloud-catalog',{detail:{products:remoteProducts}}));
     mark('Опубликовано · версия '+rev);
     tell('Опубликована версия '+rev+' · '+out.products.length+' этикеток. Телефоны и планшеты получат обновление.');
