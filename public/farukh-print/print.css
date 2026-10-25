@@ -122,11 +122,6 @@ body.worker-managed.worker-logged-in .staff-login>p:not(.staff-session-info),
 body.worker-managed.worker-logged-in .staff-login .staff-session-info{display:none!important}
 body.worker-managed.worker-logged-in .staff-login-top strong{font-size:13px}
 body.worker-managed.worker-logged-in .staff-login .staff-logout{display:inline-flex;margin-top:8px;font-size:11px;padding:8px 12px}
-body.worker-managed:not(.worker-logged-in) #home .intro,
-body.worker-managed:not(.worker-logged-in) #home .choice-grid,
-body.worker-managed:not(.worker-logged-in) #home .manage-link,
-body.worker-managed:not(.worker-logged-in) #home .app-foot{display:none!important}
-body.worker-managed:not(.worker-logged-in) #catalog{display:none!important}
 body.worker-managed:not(.worker-logged-in) #home .print-sync{margin-top:12px}
 body.worker-managed.worker-logged-in #point-field{display:none!important}
 @media(max-width:770px){
@@ -586,3 +581,9 @@ body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{di
  }
  .print-advice-dialog{scroll-padding-top:70px}
 }
+
+/* Guests can view the catalog, but cannot print or manage data. */
+.print-access-note{padding:12px 14px;border-radius:12px;background:#fff5e8;border:1px solid #edd2ae;color:#795326;font-size:12px;line-height:1.5;margin:12px 0}
+.print-access-note[hidden]{display:none!important}
+body.print-guest #print-now,body.print-guest #print-system{opacity:.5;cursor:not-allowed}
+body.print-guest:not(.print-owner) #open-settings,body.print-guest:not(.print-owner) #manage-from-home,body.print-guest:not(.print-owner) #manage,body.print-guest:not(.print-owner) .premium-template-home{display:none!important}
