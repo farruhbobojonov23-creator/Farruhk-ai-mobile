@@ -186,8 +186,22 @@ function updateWorkerSession(staff){
    selected=null;closeWorkerPreview();show('home');
  }
 }
+function updatePremiumNav(section){
+ const nav=$('print-mobile-nav');
+ if(!nav)return;
+ for(const [id,active] of [
+  ['print-nav-home',section==='home'||section==='manage'],
+  ['print-nav-prep',section==='catalog'&&kind==='prep'],
+  ['print-nav-ready',section==='catalog'&&kind==='ready']
+ ]){
+  const button=$(id);
+  if(active)button.setAttribute('aria-current','page');
+  else button.removeAttribute('aria-current');
+ }
+}
 function show(section){
  for(const id of ['home','catalog','manage'])$(id).hidden=id!==section;
+ updatePremiumNav(section);
  window.scrollTo?.({top:0,behavior:'instant'});
 }
 function renderHome(){
@@ -230,8 +244,10 @@ function renderCategories(){
 // The studio atlas is decoded asynchronously after initial paint; repaint
 // only the visible gallery. This changes images, never product/shelf data.
 if(typeof window.addEventListener==='function'){
+ let artFrame=0;
  const refreshIngredientArt=()=>{
-  if(typeof document!=='undefined'&&document.getElementById('catalog')&&!$('catalog').hidden)renderCatalog();
+  if(artFrame||typeof document==='undefined'||!document.getElementById('catalog')||$('catalog').hidden)return;
+  artFrame=requestAnimationFrame(()=>{artFrame=0;if(!$('catalog').hidden)renderCatalog()});
  };
  window.addEventListener('farukh-studio-ready',refreshIngredientArt);
  window.addEventListener('farukh-approved-3d-ready',refreshIngredientArt);
@@ -239,6 +255,7 @@ if(typeof window.addEventListener==='function'){
 function renderCatalog(){
  renderCategories();
  const list=$('product-list');list.replaceChildren();
+ const cards=document.createDocumentFragment();
  const q=str($('catalog-search').value).toLocaleLowerCase('ru'),favorite=new Set(favs()),worker=isManaged()&&!!workerLoggedIn;
  const items=products.filter(p=>p.kind===kind&&(kind!=='ready'||!activeCategory||window.FarukhPrintCategories.category(p)===activeCategory)&&p.name.toLocaleLowerCase('ru').includes(q)&&(!worker||!favoritesOnly||favorite.has(p.id)))
   .sort((a,b)=>worker?Number(favorite.has(b.id))-Number(favorite.has(a.id))||a.name.localeCompare(b.name,'ru'):a.name.localeCompare(b.name,'ru'));
@@ -289,8 +306,9 @@ function renderCatalog(){
   tipsButton.onclick=()=>openProductAdvice(p);
   item.append(tipsButton,meta);
   if(worker){const star=node('button','product-favorite'+(favorite.has(p.id)?' is-favorite':''),favorite.has(p.id)?'★':'☆');star.type='button';star.setAttribute('aria-label',(favorite.has(p.id)?'Убрать из избранного: ':'В избранное: ')+p.name);star.setAttribute('aria-pressed',String(favorite.has(p.id)));star.onclick=()=>toggleFav(p.id);item.append(star)}
-  list.append(item);
+  cards.append(item);
  }
+ list.append(cards);
  renderShortcuts();updatePreview();
 }
 function openManage(type=manageKind){
@@ -866,9 +884,13 @@ function boot(){
  $('worker-preview-backdrop').onclick=closeWorkerPreview;
  $('choose-ready').onclick=()=>openCatalog('ready');$('choose-prep').onclick=()=>openCatalog('prep');
  $('manage-from-home').onclick=()=>openManage('ready');$('open-settings').onclick=()=>openManage('ready');
+ $('print-nav-home').onclick=()=>{closeWorkerPreview();show('home');renderHome()};
+ $('print-nav-prep').onclick=()=>openCatalog('prep');
+ $('print-nav-ready').onclick=()=>openCatalog('ready');
  $('go-home').onclick=()=>{show('home');renderHome()};
  $('catalog-back').onclick=()=>{show('home');renderHome()};$('manage-back').onclick=()=>{show('home');renderHome()};
- $('catalog-search').addEventListener('input',renderCatalog);
+ let searchDebounce=0;
+ $('catalog-search').addEventListener('input',()=>{clearTimeout(searchDebounce);searchDebounce=setTimeout(renderCatalog,110)});
  $('printed-at').addEventListener('input',updatePreview);
  $('haccp-new').onclick=()=>{const p=current();if(!isHaccp(p))return;if(!confirm('Начать новую порцию для этой ёмкости? Нажимай только после приготовления или заполнения.'))return;haccpDraft={id:p.id,batch:null};$('haccp-limit').value='';updatePreview();};
  $('haccp-limit').addEventListener('input',updatePreview);
