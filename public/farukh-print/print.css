@@ -587,3 +587,11 @@ body.worker-managed #premium-prep-card,body.worker-managed #home-premium-prep{di
 .print-access-note[hidden]{display:none!important}
 body.print-guest #print-now,body.print-guest #print-system{opacity:.5;cursor:not-allowed}
 body.print-guest:not(.print-owner) #open-settings,body.print-guest:not(.print-owner) #manage-from-home,body.print-guest:not(.print-owner) #manage,body.print-guest:not(.print-owner) .premium-template-home{display:none!important}
+
+/* On phones, guest tap on a product opens a read-only preview sheet. */
+@media(max-width:770px){
+ body.print-guest.worker-preview-open .worker-preview-backdrop{display:block!important;position:fixed;inset:0;background:#0b152f9c;z-index:298}
+ body.print-guest.worker-preview-open #catalog .printing-panel{position:fixed;display:block!important;z-index:299;left:0;right:0;bottom:0;max-height:min(85dvh,850px);overflow-y:auto;overscroll-behavior:contain;border-radius:22px 22px 0 0;padding:19px 20px calc(23px + env(safe-area-inset-bottom));box-shadow:0 -12px 48px #0d1a2b3b}
+ body.print-guest.worker-preview-open{overflow:hidden}
+ body.print-guest.worker-preview-open .worker-close-preview{display:block}
+}
