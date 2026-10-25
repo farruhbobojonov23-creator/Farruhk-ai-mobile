@@ -10,6 +10,34 @@
 <link rel="stylesheet" href="./print.css?v=30">
 <link rel="stylesheet" href="./print-premium.css?v=7">
 <title>FARUKH PRINT — Этикетки</title>
+<style id="ipad-safari-dialog-compat">
+/* Older iPad Safari may render closed <dialog> elements inline. */
+dialog:not([open]) { display: none !important; }
+dialog[open] { position: fixed; z-index: 10000; max-height: 90vh; overflow: auto; }
+</style>
+<script>
+/* Minimal dialog fallback for Safari versions without HTMLDialogElement.showModal. */
+(function () {
+  function patchDialog(dialog) {
+    if (typeof dialog.showModal !== 'function') {
+      dialog.showModal = function () {
+        this.setAttribute('open', '');
+        this.style.display = 'block';
+      };
+    }
+    if (typeof dialog.close !== 'function') {
+      dialog.close = function () {
+        this.removeAttribute('open');
+        this.style.display = '';
+      };
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var dialogs = document.querySelectorAll('dialog');
+    for (var i = 0; i < dialogs.length; i++) patchDialog(dialogs[i]);
+  });
+})();
+</script>
 </head>
 <body>
 <div class="app">
