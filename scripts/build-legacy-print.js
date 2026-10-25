@@ -4,7 +4,11 @@ import { transform } from 'esbuild';
 
 const dir = new URL('../public/farukh-print/', import.meta.url);
 const html = await fs.readFile(new URL('index.html', dir), 'utf8');
-const sources = [...html.matchAll(/<script\\s+src="\\.\\/([^"?]+\\.js)(?:\\?[^"]*)?"\\s+defer><\\/script>/g)].map(m => m[1].replace('legacy/', ''));
+const sources = [];
+for (const part of html.split('<script src="./').slice(1)) {
+  const src = part.split('"')[0].split('?')[0];
+  if (src.endsWith('.js')) sources.push(src.startsWith('legacy/') ? src.slice(7) : src);
+}
 for (const relative of sources) {
   const sourcePath = new URL(relative, dir);
   const outputPath = new URL('legacy/' + relative, dir);
