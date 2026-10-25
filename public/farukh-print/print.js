@@ -334,7 +334,7 @@ function renderCatalog(){
  if(selected&&!products.some(p=>p.id===selected&&p.kind===kind))selected=null;
  $('catalog-found').textContent=items.length+' из '+products.filter(p=>p.kind===kind).length+' позиций';
  const pending=items.filter(p=>p.needsReview).length;
- $('catalog-review-count').textContent=pending?'На проверке: '+pending:'Сроки подтверждены';
+ $('catalog-review-count').textContent=pending?'На проверке: '+pending:'Нет пометок «на проверке»';
  $('catalog-review-count').classList.toggle('is-review',!!pending);
  $('catalog-empty').hidden=items.length!==0;
  $('catalog-empty').textContent=q?'По этому запросу ничего не найдено.':worker&&favoritesOnly?'Избранных пока нет. Нажми ☆ на карточке товара.':activeCategory==='ХАССП'?'Категория ХАССП пока пуста.':activeCategory?'В категории «'+activeCategory+'» пока нет товаров.':'В этой категории нет товаров.';
