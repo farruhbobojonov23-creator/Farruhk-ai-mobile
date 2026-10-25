@@ -1,0 +1,36 @@
+name: FARUKH PRINT — Guest Access QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/farukh-print/print.js'
+      - 'public/farukh-print/print-staff.js'
+      - 'public/farukh-print/print.css'
+      - 'public/farukh-print/index.html'
+      - 'print-sync-api.js'
+      - 'tests/print-guest-browse-login.test.js'
+      - '.github/workflows/farukh-print-guest-qa.yml'
+  pull_request:
+    paths:
+      - 'public/farukh-print/**'
+      - 'print-sync-api.js'
+      - 'tests/print-guest-browse-login.test.js'
+      - '.github/workflows/farukh-print-guest-qa.yml'
+permissions:
+  contents: read
+jobs:
+  guest-print-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify guest browsing, staff login and cloud authorization
+        run: |
+          node --check public/farukh-print/print.js
+          node --check public/farukh-print/print-staff.js
+          node --test tests/print-guest-browse-login.test.js tests/print-staff-access.test.js tests/print-worker-home.test.js tests/print-employee-stable-link.test.js tests/print-android-safe-area.test.js
