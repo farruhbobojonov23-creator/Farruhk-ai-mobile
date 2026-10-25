@@ -888,7 +888,7 @@ function exportDB(){
 }
 async function importDB(ev){
  const file=ev.target.files?.[0];ev.target.value='';if(!file)return;
- if(file.size>2*1024*1024){alert('Файл базы слишком большой (лимит 2 МБ).');return}
+ if(file.size>5*1024*1024){alert('Файл базы слишком большой (лимит 5 МБ).');return}
  try{
   const payload=JSON.parse(await file.text());
   if(payload.format!=='farukh-print-catalog-v1'||!Array.isArray(payload.products)||payload.products.length>1000)throw Error('Неверный формат базы FARUKH PRINT.');
