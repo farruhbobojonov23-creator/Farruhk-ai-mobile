@@ -5,6 +5,9 @@ on:
     paths:
       - 'public/farukh-print/print.js'
       - 'public/farukh-print/print-staff.js'
+      - 'public/farukh-print/print-sync.js'
+      - 'tests/print-employee-stable-link.test.js'
+      - 'tests/print-android-safe-area.test.js'
       - 'public/farukh-print/print.css'
       - 'public/farukh-print/index.html'
       - 'print-sync-api.js'
