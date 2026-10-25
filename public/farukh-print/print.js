@@ -819,7 +819,7 @@ function browserPrint({canvas,svg,copies}){
  }
  window.print();
 }
-async function doPrint(forceSystem=false){
+async function doPrint(forceSystem=false,waitForAck=false){
  if(busy)return false;
  let value;try{
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
@@ -859,9 +859,11 @@ async function doPrint(forceSystem=false){
   status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
   // The native callback resolves the promise only after Android replies.
   // Batch mode processes one product at a time; never auto-retries failures.
+  const packet={type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))};
+  if(!waitForAck){sendNative(packet);return true}
   return await new Promise((resolve,reject)=>{
    nativePrintResolver=resolve;
-   try{sendNative({type:'print',tspl:toBase64(tspl(value.canvas,value.copies,{legacy30:legacy}))})}
+   try{sendNative(packet)}
    catch(e){nativePrintResolver=null;reject(e)}
   });
  }catch(e){
@@ -947,7 +949,7 @@ async function runBatchPrint(){
    updatePreview();
    if(previewError){status('Пакет остановлен: '+previewError,true);break;}
    status('Задание '+(done+1)+'/'+jobs.length+': '+p.name);
-   const success=await doPrint(false);
+   const success=await doPrint(false,true);
    if(!success){status('Пакет остановлен после '+done+' успешных передач. Проверь принтер перед повтором.',true);break;}
    done++;
   }
