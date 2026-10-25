@@ -49,18 +49,28 @@ async function call(path,opts={}){
  if(!res.ok)throw Object.assign(Error(data.error||'Сервер временно недоступен.'),{status:res.status});
  return data;
 }
+// Detect local drift before trusting the server's authenticated 304.
+// This is a local integrity marker, NOT an authorization credential.
+function catalogFingerprint(items){
+ const source=JSON.stringify(items);
+ let hash=2166136261;
+ for(let i=0;i<source.length;i++){hash^=source.charCodeAt(i);hash=Math.imul(hash,16777619)}
+ return source.length+':'+(hash>>>0).toString(16);
+}
 async function sync(first=false){
  if(!stored?.token||busy||(consentDeferred&&!first))return;
  busy=true;paint();
  try{
-   const currentRevision=cloudRev>=0&&!first&&Number.isSafeInteger(stored.syncedRevision)&&stored.syncedRevision===cloudRev;
+   const current=window.FARUKH_PRINT_SYNC_API.get();
+   const localFingerprint=catalogFingerprint(current);
+   const currentRevision=cloudRev>=0&&!first&&Number.isSafeInteger(stored.syncedRevision)&&stored.syncedRevision===cloudRev
+    &&typeof stored.catalogFingerprint==='string'&&stored.catalogFingerprint===localFingerprint;
    const state=await call('/device/catalog',currentRevision?{headers:{'If-None-Match':'"farukh-print-r'+cloudRev+'"'}}:{});
    if(state.notModified){
      connected=true;
-     note('Каталог актуален · версия '+cloudRev+' · проверено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'.');
+     note('✓ Синхронизировано · версия '+cloudRev+' · проверено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'.');
      return;
    }
-   const current=window.FARUKH_PRINT_SYNC_API.get();
    const requiresConsent=!Number.isInteger(stored.syncedRevision);
    if((first||requiresConsent)&&current.length&&requiresConsent){
      const should=confirm('Подключиться к облачной базе из '+state.products.length+' товаров? Это заменит локальные '+current.length+' позиций на устройстве. Перед подключением рекомендуем сохранить локальную JSON-копию в «Управлении этикетками».');
@@ -75,9 +85,11 @@ async function sync(first=false){
      cloudRev=state.revision;
    }
    consentDeferred=false;
-   stored.syncedRevision=state.revision;localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
+   stored.syncedRevision=state.revision;
+   stored.catalogFingerprint=catalogFingerprint(window.FARUKH_PRINT_SYNC_API.get());
+   localStorage.setItem(TOKEN_KEY,JSON.stringify(stored));
    connected=true;
-   note('База синхронизирована: '+state.products.length+' этикеток · версия '+state.revision+'. Обновления поступают автоматически.');
+   note('✓ Синхронизировано: '+state.products.length+' этикеток · версия '+state.revision+'. Обновления поступают автоматически.');
  }catch(e){
    if(e.status===401||e.status===403){
      connected=false;clearInterval(poll);poll=null;stored=null;localStorage.removeItem(TOKEN_KEY);
