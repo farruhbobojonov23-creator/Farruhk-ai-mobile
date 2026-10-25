@@ -29,5 +29,5 @@ test('Premium Android reserves OS insets, dark shell and new version',async()=>{
  assert.match(native,/setOnApplyWindowInsetsListener/);
  assert.match(native,/safeFrame\.setBackgroundColor\(Color\.rgb\(16, 19, 26\)\)/);
  assert.match(native,/webView\.setBackgroundColor\(Color\.rgb\(16, 19, 26\)\)/);
- assert.match(gradle,/versionCode 3/);
+ assert.match(gradle,/versionCode 4/);
 });
