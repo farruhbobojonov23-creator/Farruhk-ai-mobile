@@ -57,6 +57,7 @@ const WIDTH={ready:464,prep:240},HEIGHT={ready:320,prep:160};
 let products=[],kind='ready',manageKind='ready',selected=null,editing=null,busy=false,previewError='',editFromCatalog=null,cloudPaired=false;
 let activeCategory='';
 let HACCP=null,haccpDraft=null;
+let bundledPrepPhotos=null,bundledBrothPhoto='';
 const isHaccp=p=>!!HACCP?.getTemplate(p);
 // Original FARUKH PRINT APK accepts only a 31×20 mm TSPL transport.
 // Preserve the 30×20 mm visual layout and pad exactly 1 mm of EMPTY bits
@@ -255,7 +256,10 @@ function renderCatalog(){
   const threeD=p.kind==='prep'?window.FarukhPrep3DElements?.find(p):null;
   const fallback=p.kind==='prep'?window.FarukhPrepPhotoLibrary?.find(p):null;
   const original=p.photo&&window.FarukhPrintPhotos?.isPhoto(p.photo)?p.photo:'';
-  const usingCustom=!!original&&p.photoStyle==='manual';
+  // Existing owner images saved before photoStyle was introduced must also
+  // win over the default 3D artwork if they differ from the bundled stock.
+  const bundled=p.kind==='prep'?(p.name==='Бульон Том Ям'?bundledBrothPhoto:bundledPrepPhotos?.photoFor(p)||''):'';
+  const usingCustom=!!original&&(p.photoStyle==='manual'||(!p.photoStyle&&!!bundled&&original!==bundled));
   const displayed=usingCustom?original:(approved?.url||threeD?.url||original||fallback?.url||'');
   if(displayed){
    if(displayed===approved?.url)visual.classList.add('prep-photo3d-preview');
@@ -818,8 +822,8 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
- import('./broth-photo.js?v=1').then(m=>{if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
- import('./supplemental-photos.js?v=1').then(m=>{if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('./broth-photo.js?v=1').then(m=>{bundledBrothPhoto=m.photo;if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('./supplemental-photos.js?v=1').then(m=>{bundledPrepPhotos=m;if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
  import('./haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
  // Add once for standalone owner installations; paired/staff clients receive

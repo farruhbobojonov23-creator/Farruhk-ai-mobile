@@ -17,7 +17,8 @@ test('Cloud recovers accepted offline edits and staff favors manual photos',asyn
  assert.match(cloud,/if\(auto&&!same\)/);
  assert.match(cloud,/carryOwnerPhotos\(local,remoteProducts\)/);
  assert.match(cloud,/photoStyle:p\.photo\?'manual':'3d'/);
- assert.match(app,/const usingCustom=!!original&&p\.photoStyle==='manual'/);
+ assert.match(app,/p\.photoStyle==='manual'\|\|\(!p\.photoStyle&&!!bundled&&original!==bundled\)/);
+ assert.match(app,/bundledPrepPhotos=m/);
  assert.match(sync,/cache:'no-store'/);
  assert.match(sync,/!localMatches/);
 });
