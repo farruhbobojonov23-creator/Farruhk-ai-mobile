@@ -220,6 +220,7 @@ export function mountPrintCloudControl({root,renderLocal}){
    }catch(e){tell('Вход не выполнен: '+e.message,true);loginRequired=true;loginForm.hidden=false;password.value='';updateState()}
    finally{loginButton.disabled=false}
  });
+ window.addEventListener('farukh-print-cloud-refresh',()=>{if(enabled)void refreshRemote()});
  window.addEventListener('farukh-print-catalog-local-updated',()=>{
    if(!enabled||!fetched){
      mark('Локальные изменения ожидают подключения',true);
