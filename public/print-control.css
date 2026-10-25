@@ -389,3 +389,12 @@
 #print-control .pc-prep-template{margin-top:-9px;border-color:#d8e3e9;background:linear-gradient(112deg,#fff,#f4f9ff)}
 #print-control .pc-prep-template .pc-premium-template-badge{color:#637e90}
 #print-control .pc-field select{width:100%;min-width:0;min-height:42px;padding:10px 12px;background:#fff;color:#25333f;border:1px solid #dce2e8;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box}
+
+/* FARUKH PRINT PRO owner analytics — scoped to owner center only. */
+#print-control .pstaff-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+#print-control .pstaff-product-row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:3px 10px;min-width:0;align-items:start;border-radius:13px;padding:12px 14px;background:linear-gradient(135deg,#f8fbff,#f1f5fb);border:1px solid #d5e1eb;color:#273f51}
+#print-control .pstaff-product-row>b{display:grid;place-items:center;grid-row:span 2;width:34px;height:34px;border-radius:10px;background:#e5d7df;color:#973951;font-size:13px}
+#print-control .pstaff-product-row strong{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+#print-control .pstaff-product-row>span{font-size:11px;color:#6e8594;line-height:1.6;overflow-wrap:anywhere}
+#print-control .pstaff-history-filters .pstaff-export{background:#a52d49;color:#fff;border-color:#ad314d;min-height:42px;white-space:normal}
+@media(max-width:660px){#print-control .pstaff-products{grid-template-columns:1fr}#print-control .pstaff-history-filters .pstaff-export{grid-column:1/-1}}

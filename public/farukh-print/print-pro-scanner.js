@@ -42,7 +42,11 @@ async function step(){
     if(decoded?.data&&select(decoded.data))return;
    }
   }
- }catch(e){note('Сканирование: '+(e.message||'ошибка камеры'))}
+ }catch(e){
+  if(detector&&typeof window.jsQR==='function'){
+   detector=null;note('Переключено на локальный QR-декодер без отправки изображений.');
+  }else note('Сканирование: '+(e.message||'ошибка камеры'));
+ }
  if(active)timer=setTimeout(step,260);
 }
 async function start(){
