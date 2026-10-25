@@ -175,6 +175,7 @@ public final class MainActivity extends Activity {
         try { request = new JSONObject(message.getData()); }
         catch (Exception error) { respond(reply, false, "Некорректная команда."); return; }
         String type = request.optString("type", "");
+        if ("status".equals(type)) { printerStatus(reply); return; }
         if (pendingPrinterReply != null || printing.get()) {
             respond(reply, false, "Заверши предыдущее действие с Bluetooth-принтером.");
             return;
@@ -231,6 +232,34 @@ public final class MainActivity extends Activity {
         return true;
     }
 
+    private void printerStatus(JavaScriptReplyProxy reply) {
+        if (printing.get()) { respond(reply, false, "Передача этикетки ещё выполняется."); return; }
+        BluetoothManager manager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+        BluetoothAdapter adapter = manager != null ? manager.getAdapter() : null;
+        if (adapter == null) { respond(reply, false, "Bluetooth на этом Android отсутствует."); return; }
+        if (!adapter.isEnabled()) { respond(reply, false, "Bluetooth выключен. Включи его в настройках Android."); return; }
+        if (Build.VERSION.SDK_INT >= 31 && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            respond(reply, false, "Нет разрешения Bluetooth. Нажми «Выбрать принтер» и разреши подключение.");
+            return;
+        }
+        try {
+            String saved = getPreferences(MODE_PRIVATE).getString("printerAddress", "");
+            Set<BluetoothDevice> devices = adapter.getBondedDevices();
+            if (devices.isEmpty()) { respond(reply, false, "Нет сопряжённых устройств. Подключи V3 BT в настройках Bluetooth."); return; }
+            for (BluetoothDevice printer : devices) {
+                if (saved.equals(printer.getAddress())) {
+                    respond(reply, true, "Bluetooth включён · выбран " + safeName(printer)
+                        + ". Это проверка сопряжения, не пробная печать.");
+                    return;
+                }
+            }
+            respond(reply, false, "Найдено сопряжённых устройств: " + devices.size()
+                + ". Выбери принтер V3 BT кнопкой «Выбрать принтер».");
+        } catch (SecurityException e) {
+            respond(reply, false, "Разреши приложению доступ к Bluetooth в настройках Android.");
+        }
+    }
+
     private void chooseOrPrint() {
         BluetoothManager manager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = manager != null ? manager.getAdapter() : null;
@@ -246,13 +275,15 @@ public final class MainActivity extends Activity {
         }
         List<BluetoothDevice> devices = new ArrayList<>(paired);
         String saved = getPreferences(MODE_PRIVATE).getString("printerAddress", "");
-        for (BluetoothDevice item : devices) if (saved.equals(item.getAddress())) {
-            if (pendingSelectOnly) finishPending(true, "Выбран принтер " + safeName(item));
-            else sendLabel(item);
+        // A saved device is reused only for printing. Explicit selection
+        // must show all paired printers so switching V3 BT actually works.
+        for (BluetoothDevice item : devices) if (saved.equals(item.getAddress()) && !pendingSelectOnly) {
+            sendLabel(item);
             return;
         }
         String[] names = new String[devices.size()];
-        for (int i = 0; i < devices.size(); i++) names[i] = safeName(devices.get(i));
+        for (int i = 0; i < devices.size(); i++)
+            names[i] = safeName(devices.get(i)) + (saved.equals(devices.get(i).getAddress()) ? " · текущий" : "");
         new AlertDialog.Builder(this)
             .setTitle("Выбери Bluetooth-принтер")
             .setItems(names, (dialog, i) -> {
