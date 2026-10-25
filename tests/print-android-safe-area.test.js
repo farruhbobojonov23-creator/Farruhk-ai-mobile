@@ -11,7 +11,8 @@ test('Android 15 print APK insets prevent status bar and navigation overlay',asy
  assert.match(native,/WindowInsets\.Type\.displayCutout\(\)/);
  assert.match(native,/view\.setPadding\(0, top, 0, bottom\)/);
  assert.match(native,/setContentView\(safeFrame\)/);
- assert.match(native,/SYSTEM_UI_FLAG_LIGHT_STATUS_BAR/);
+ assert.match(native,/getWindow\(\)\.getDecorView\(\)\.setSystemUiVisibility\(0\)/);
+ assert.match(native,/getWindow\(\)\.setStatusBarColor\(Color\.rgb\(16, 19, 26\)\)/);
  const gradle=await read('android/print/build.gradle');
  assert.match(gradle,/targetSdk 35/);
 });
