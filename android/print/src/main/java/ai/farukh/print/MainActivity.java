@@ -111,6 +111,14 @@ public final class MainActivity extends Activity {
         safeFrame.requestApplyInsets();
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
+        // Version marker is public metadata only, never a secret or session token.
+        // Android retains full control of whether to download/install an update.
+        try {
+            android.content.pm.PackageInfo info =
+                getPackageManager().getPackageInfo(getPackageName(), 0);
+            settings.setUserAgentString(settings.getUserAgentString()
+                + " FarukhPrintAndroid/" + info.versionCode);
+        } catch (PackageManager.NameNotFoundException ignored) {}
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(false);
