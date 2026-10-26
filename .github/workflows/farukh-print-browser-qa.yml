@@ -1,0 +1,42 @@
+name: FARUKH PRINT — Android and iPad Tap QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/farukh-print/**'
+      - 'tests/print-qr-browser-smoke.mjs'
+      - 'scripts/build-legacy-print.js'
+      - '.github/workflows/farukh-print-browser-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: print-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  tap-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Build Safari-compatible static assets
+        run: node scripts/build-legacy-print.js
+      - name: Install real browser for touch QA
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Tap QR / Advice / Navigation on Android and iPad viewports
+        run: |
+          mkdir -p artifacts
+          node tests/print-qr-browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: farukh-print-browser-tap-screenshots
+          path: artifacts/print-qr-*.png
+          if-no-files-found: ignore
