@@ -1068,14 +1068,14 @@ window.FARUKH_PRINT_SYNC_API={
  }
 };
 function boot(){
- import('./broth-photo.js?v=1').then(m=>{bundledBrothPhoto=m.photo;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
- import('./supplemental-photos.js?v=1').then(m=>{bundledPrepPhotos=m;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
- import('./haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
+ import('/farukh-print/broth-photo.js?v=1').then(m=>{bundledBrothPhoto=m.photo;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('/farukh-print/supplemental-photos.js?v=1').then(m=>{bundledPrepPhotos=m;if(!$('home').hidden)homeFeatureArt();if(!$('catalog').hidden)renderCatalog();if(isManaged()||cloudPaired)return;const marker='farukh-print:import:'+m.version;if(localStorage.getItem(marker))return;products=m.merge(products);if(save())localStorage.setItem(marker,'1');renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('Фото: '+e.message,true));
+ import('/farukh-print/haccp-catalog.js?v=2').then(m=>{HACCP=m;if(!isManaged()&&!cloudPaired&&!localStorage.getItem('farukh-print:import:'+m.version)){products=m.merge(products);if(save())localStorage.setItem('farukh-print:import:'+m.version,'1');}renderHome();if(!$('catalog').hidden)renderCatalog();}).catch(e=>status('ХАССП: '+e.message,true));
  importReadyCatalog();
  // Add once for standalone owner installations; paired/staff clients receive
  // the same version directly from the protected FARUKH AI cloud catalogue.
  load();
- void import('./japanese-prep-catalog.js?v=1').then(catalog=>{
+ void import('/farukh-print/japanese-prep-catalog.js?v=1').then(catalog=>{
   if(isManaged()||cloudPaired)return;
   const marker='farukh-print:import:'+catalog.version;
   if(localStorage.getItem(marker))return;
@@ -1135,7 +1135,7 @@ function boot(){
  $('load-starter-prep').onclick=async()=>{
   if(!canManage()){alert('Каталогом управляет владелец FARUKH AI.');return}
   try{
-   const catalog=await import('./japanese-prep-catalog.js?v=1');
+   const catalog=await import('/farukh-print/japanese-prep-catalog.js?v=1');
    const next=catalog.merge(products),added=next.length-products.length;
    if(!next.some((p,i)=>p!==products[i])){alert('Все 36 заготовок уже есть. Проверь сроки в карточках.');return}
    if(!confirm('Добавить '+added+' новых заготовок и заполнить пустые поля предложенным ВНУТРЕННИМ сроком 12 ч? Это НЕ норма СанПиН. Новые сроки требуют подтверждения ТТК/маркировкой и до него печать заблокирована.'))return;
@@ -1215,7 +1215,7 @@ function boot(){
 function importReadyCatalog(){
 // One-time additive import for standalone devices. Managed devices receive the
 // same import through their authenticated cloud catalog, never a local override.
-import('./ready-catalog.js?v=2').then(catalog=>{
+import('/farukh-print/ready-catalog.js?v=2').then(catalog=>{
  const marker='farukh-print:import:'+catalog.version;
  if(isManaged()||cloudPaired||localStorage.getItem(marker))return;
  const previous=products;
@@ -1229,7 +1229,7 @@ import('./ready-catalog.js?v=2').then(catalog=>{
 }
 async function importCatalogPhotos(){
  if(isManaged()||cloudPaired)return;
- const catalog=await import('./catalog-photos.js?v=1');
+ const catalog=await import('/farukh-print/catalog-photos.js?v=1');
  const marker='farukh-print:import:'+catalog.version;
  if(isManaged()||cloudPaired||localStorage.getItem(marker))return;
  const previous=products;
