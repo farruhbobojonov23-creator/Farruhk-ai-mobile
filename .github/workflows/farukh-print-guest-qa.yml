@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'public/farukh-print/print.js'
+      - 'public/farukh-print/print-pro-scanner.js'
+      - 'public/farukh-print/vendor/qrcode.js'
+      - 'tests/print-qr-interactions.test.js'
       - 'public/farukh-print/print-staff.js'
       - 'public/farukh-print/print-sync.js'
       - 'tests/print-employee-stable-link.test.js'
@@ -36,4 +39,4 @@ jobs:
         run: |
           node --check public/farukh-print/print.js
           node --check public/farukh-print/print-staff.js
-          node --test tests/print-guest-browse-login.test.js tests/print-staff-access.test.js tests/print-worker-home.test.js tests/print-employee-stable-link.test.js tests/print-android-safe-area.test.js
+          node --test tests/print-guest-browse-login.test.js tests/print-staff-access.test.js tests/print-worker-home.test.js tests/print-employee-stable-link.test.js tests/print-android-safe-area.test.js tests/print-qr-interactions.test.js
