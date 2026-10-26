@@ -82,9 +82,13 @@ dialog.addEventListener('close',stop);
 dialog.addEventListener('cancel',stop);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&dialog.open){stop();note('Камера выключена. Для продолжения нажми «Включить камеру».')}});
 function showCode(p){
- if(!p?.id||!p?.name)return;
+ if(!p?.id||!p?.name)return false;
  const wrapper=$('pro-qr-card'),box=$('pro-qr-art');
- if(!wrapper||!box||typeof window.qrcode!=='function')return;
+ if(!wrapper||!box){window.alert('Окно QR-кода отсутствует. Обнови приложение.');return false}
+ if(typeof window.qrcode!=='function'){
+  window.alert('Генератор QR-кода не загрузился. Закрой FARUKH PRINT и открой снова.');
+  return false;
+ }
  try{
   const qr=window.qrcode(0,'M');qr.addData('FP|'+p.id);qr.make();
   const svg=qr.createSvgTag(6,4);
@@ -99,8 +103,13 @@ function showCode(p){
    a.href=url;a.download='QR-FARUKH-PRINT-'+p.id.replace(/[^a-z0-9-]/gi,'').slice(0,60)+'.svg';
    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
   };
-  wrapper.showModal();
- }catch(e){note('Не удалось создать QR: '+e.message)}
+  if(!wrapper.open)wrapper.showModal();
+  return true;
+ }catch(e){
+  const message='Не удалось открыть QR-код: '+(e?.message||'неизвестная ошибка');
+  window.alert(message);
+  return false;
+ }
 }
 $('pro-qr-card-close')?.addEventListener('click',()=>$('pro-qr-card').close());
 window.FARUKH_PRINT_PRO_SCANNER={open,close,showCode};
