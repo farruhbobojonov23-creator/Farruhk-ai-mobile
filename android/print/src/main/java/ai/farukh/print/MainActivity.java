@@ -341,6 +341,7 @@ public final class MainActivity extends Activity {
             Runnable timeout = null;
             boolean sent = false;
             final AtomicBoolean completed = new AtomicBoolean(false);
+            final long startedAt = android.os.SystemClock.elapsedRealtime();
             try {
                 // An older idle-close callback must not close a newly reused socket.
                 socketLease++;
@@ -365,17 +366,25 @@ public final class MainActivity extends Activity {
                     heldSocket = socket;
                     heldAddress = address;
                 }
+                final long connectedAt = android.os.SystemClock.elapsedRealtime();
                 OutputStream stream = socket.getOutputStream();
-                // Small V3 BT receive buffer: keep the proven safe pacing.
+                // Conservative V3 BT pacing: retain 256-byte packets for the small
+                // receiver, but shorten idle pauses and never sleep after the final
+                // packet. Avoid bigger writes without a real-printer verification.
                 for (int offset = 0; offset < label.length; offset += 256) {
                     int size = Math.min(256, label.length - offset);
                     stream.write(label, offset, size);
                     stream.flush();
-                    Thread.sleep(20);
+                    if (offset + size < label.length) Thread.sleep(12);
                 }
+                final long writtenAt = android.os.SystemClock.elapsedRealtime();
                 sent = true;
+                final long connectMs = connectedAt - startedAt;
+                final long transferMs = writtenAt - connectedAt;
                 mainHandler.post(() -> respond(callback, true,
-                    "Задание отправлено. Проверь выход этикетки из принтера."));
+                    "Задание отправлено. Проверь выход этикетки из принтера."
+                    + " Bluetooth: подключение " + (connectMs / 1000.0)
+                    + " с, передача " + (transferMs / 1000.0) + " с."));
             } catch (Exception error) {
                 closeHeldSocket();
                 if (socket != null) try { socket.close(); } catch (Exception ignored) {}
