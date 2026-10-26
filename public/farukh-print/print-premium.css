@@ -209,7 +209,7 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 @media(max-width:380px){.pro-toolbar{gap:6px}.pro-tool-button{padding:8px 10px}.pro-qr-content{padding:15px}}
 
 /* QR cards are independent work aids, never printed on food safety labels. */
-.product-qr-button{min-height:31px;border:1px solid #637486;border-radius:9px;background:#243343;color:#f0f7ff;font-size:11px;font-weight:850;touch-action:manipulation;cursor:pointer}
+.product-qr-button{position:relative;z-index:1;min-height:42px;border:1px solid #637486;border-radius:9px;background:#243343;color:#f0f7ff;font-size:11px;font-weight:850;touch-action:manipulation;cursor:pointer;pointer-events:auto;user-select:none;-webkit-tap-highlight-color:transparent}
 .pro-qr-art{margin:14px auto 8px;max-width:260px;width:100%;aspect-ratio:1;background:#fff;border:13px solid #fff;border-radius:16px;display:grid;place-items:center;box-sizing:border-box}
 .pro-qr-art svg{display:block;width:100%;height:100%}
 .pro-qr-product-title{text-align:center;font-size:18px!important;font-weight:900;color:#fff!important}
@@ -224,3 +224,7 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 .print-update-actions button,.print-update-actions a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:12px;border:1px solid #53647a;color:#fff;background:#253446;font-size:12px;font-weight:800;text-decoration:none;touch-action:manipulation}
 .print-update-actions a{background:linear-gradient(100deg,#db3855,#a92545);border-color:#ec5c79}
 .print-update-actions button:disabled{opacity:.5}
+
+/* Android / iPad: gallery action buttons need independent touch targets. */
+.product-tile .product-tips{position:relative;z-index:1;min-height:37px;touch-action:manipulation;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+.product-tile .product-qr-button:focus-visible,.product-tile .product-tips:focus-visible{outline:3px solid #ffc0cf;outline-offset:2px}
