@@ -53,7 +53,7 @@ async function tapFlow(browser,config){
   assert.equal(await page.locator('#print-now').isDisabled(),true,'guest cannot print');
   const chips=page.locator('.category-chip');
   if(await chips.count()>1)await chips.nth(1).click();
-  await page.locator('#print-nav-home').click();
+  await page.locator(config.mobile?'#print-nav-home':'#go-home').click();
   await page.locator('#choose-ready').click();
   assert.ok(await page.locator('#catalog').isVisible());
   const screenshotPath='artifacts/print-qr-'+config.name+'.png';
