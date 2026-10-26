@@ -867,6 +867,9 @@ function browserPrint({canvas,svg,copies}){
 }
 async function doPrint(forceSystem=false,waitForAck=false){
  if(busy)return false;
+ const startedAt=Date.now();
+ let authorizationMs=0,rasterMs=0;
+ let rasterTask=null;
  let value;try{
   requirePrintAccess();
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
@@ -881,6 +884,13 @@ async function doPrint(forceSystem=false,waitForAck=false){
    if(!confirm('Такая же этикетка уже отправлена менее 12 секунд назад. Напечатать повторно?'))return;
   }
   value.transferKey=key;
+  // Prepare the exact label while the server checks this employee's rights.
+  // No printer output is permitted until the server returns authorization.
+  if(native&&!forceSystem&&value.svg&&typeof window.FarukhLabelSVG?.rasterize==='function'){
+   const startRaster=Date.now();
+   rasterTask=Promise.resolve().then(()=>window.FarukhLabelSVG.rasterize(value.svg,value.canvas.width,value.canvas.height))
+    .then(canvas=>({canvas,elapsed:Date.now()-startRaster}),error=>({error,elapsed:Date.now()-startRaster}));
+  }
  }catch(e){status(e.message,true);return false}
  busy=true;$('print-now').disabled=true;
  try{
@@ -889,7 +899,9 @@ async function doPrint(forceSystem=false,waitForAck=false){
    const api=window.FARUKH_PRINT_STAFF_API;
    if(!api)throw Error('Проверка сотрудников ещё не загрузилась. Закрой и открой приложение.');
    status('Проверяю права сотрудника и утверждённую этикетку…');
+   const beginAuth=Date.now();
    const authorized=await api.authorize({...value,product:current(),dateValue:$('printed-at').value});
+   authorizationMs=Date.now()-beginAuth;
    activePrintEvent=authorized.eventId||null;
   }
   requirePrintAccess();
@@ -900,12 +912,20 @@ async function doPrint(forceSystem=false,waitForAck=false){
    status('Открыт системный диалог печати. Физическая печать не подтверждена.');return true;
   }
   // V3 BT receives the SAME SVG rasterized only at the physical 203-dpi grid.
-  if(value.svg&&window.FarukhLabelSVG?.rasterize){
+  if(rasterTask){
+   const rendered=await rasterTask;
+   rasterMs=rendered.elapsed;
+   if(rendered.error)throw rendered.error;
+   value.canvas=rendered.canvas;
+  }else if(value.svg&&window.FarukhLabelSVG?.rasterize){
+   const beforeRaster=Date.now();
    value.canvas=await window.FarukhLabelSVG.rasterize(value.svg,value.canvas.width,value.canvas.height);
+   rasterMs=Date.now()-beforeRaster;
   }
   requirePrintAccess();
   const legacy=legacyNative30Transport&&value.canvas.width===240;
-  pendingNativePrint={...value,legacy,eventId:activePrintEvent,product:current()};activePrintEvent=null;
+  pendingNativePrint={...value,legacy,eventId:activePrintEvent,product:current(),
+   startedAt,authorizationMs,rasterMs};activePrintEvent=null;
   status(legacy?'Печатаю 30-мм макет в режиме совместимости старого Android-приложения…':'Передаю этикетку на Bluetooth-принтер V3 BT…');
   // The native callback resolves the promise only after Android replies.
   // Batch mode processes one product at a time; never auto-retries failures.
@@ -956,6 +976,12 @@ if(native){
   }
   if(answer.ok&&pendingNativePrint?.legacy){
    status(String(answer.message||'Этикетка отправлена.')+' Режим совместимости со старым APK: макет 30 мм в транспортном поле 31 мм. Проверь выравнивание первой наклейки.');
+  }else if(answer.ok&&pendingNativePrint?.startedAt){
+   const total=((Date.now()-pendingNativePrint.startedAt)/1000).toFixed(1);
+   const auth=(pendingNativePrint.authorizationMs/1000).toFixed(1);
+   const render=(pendingNativePrint.rasterMs/1000).toFixed(1);
+   status(String(answer.message||'Задание отправлено.')+
+    ' · Всего '+total+' с (проверка '+auth+' с, подготовка '+render+' с).');
   }else status(answer.message,answer.ok===false);
   pendingNativePrint=null;
   updatePrintAccessUI();
