@@ -835,8 +835,15 @@ function job(){
  const p=current();if(!p)throw Error('Выбери товар.');
  const copies=Number($('copies').value);
  if(!Number.isInteger(copies)||copies<1||copies>20)throw Error('Количество — от 1 до 20.');
- const canvas=makePreview();
+ // The native printer always rasterizes the approved SVG at the exact 203-dpi
+ // bitmap size. Avoid drawing the same label to a disposable canvas first.
  const svg=window.FarukhLabelSVG?makeSVG():null;
+ let canvas;
+ if(native&&svg&&typeof window.FarukhLabelSVG?.rasterize==='function'){
+  canvas=document.createElement('canvas');
+  canvas.width=kind==='ready'?464:240;
+  canvas.height=kind==='ready'?320:160;
+ }else canvas=makePreview();
  return {canvas,svg,copies};
 }
 function browserPrint({canvas,svg,copies}){
