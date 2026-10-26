@@ -2295,3 +2295,8 @@ var qrcode = function() {
 }(function () {
     return qrcode;
 }));
+
+// Explicit global export: the Safari-compatible legacy builder wraps scripts in
+// an IIFE, so the original top-level `var qrcode` is NOT exposed on window.
+// Keep the local MIT library available to the QR product-card buttons.
+if (typeof window !== 'undefined') window.qrcode = qrcode;
