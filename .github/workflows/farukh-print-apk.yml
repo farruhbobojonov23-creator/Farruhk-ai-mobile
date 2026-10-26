@@ -4,10 +4,14 @@ on:
     branches: [main]
     paths:
       - 'android/print/**'
+      - 'tests/print-fast-pro-reliability.test.js'
+      - 'tests/print-native-diagnostics.test.js'
       - '.github/workflows/farukh-print-apk.yml'
   pull_request:
     paths:
       - 'android/print/**'
+      - 'tests/print-fast-pro-reliability.test.js'
+      - 'tests/print-native-diagnostics.test.js'
       - '.github/workflows/farukh-print-apk.yml'
   workflow_dispatch:
 jobs:
