@@ -192,7 +192,9 @@ button,input,select,textarea{font:inherit}
   .fullDesc{font-size:14px!important;line-height:1.62!important}
 }
 </style>
-<script src="analytics.js?v=1" defer></script><link rel="preconnect" href="https://farruhk-ai-mobile.onrender.com" crossorigin>\n<script src="perf.js?v=1" defer></script>\n</head><body>
+<script src="analytics.js?v=1" defer></script><link rel="preconnect" href="https://farruhk-ai-mobile.onrender.com" crossorigin>
+<script src="perf.js?v=2" defer></script>
+</head><body>
 <header><div class="wrap nav"><a class="brand brandHome" href="index.html" aria-label="На главную"><b>SHEF51</b> · FARRUKH AKA</a><nav class="links"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="suppliers.html">Поставщикам</a><a href="projects.html">Проектам</a><a href="about.html">Обо мне</a></nav><button class="menuToggle" type="button" aria-label="Открыть меню">☰</button><a class="btn navBook" href="book.html">Забронировать</a></div><div class="mobileMenu"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="suppliers.html">Поставщикам</a><a href="projects.html">Владельцам проектов</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div><div class="mobileQuickTabs"><a href="index.html">Главная</a><a href="products.html">Товары</a><a href="services.html">Услуги</a><a href="suppliers.html">Поставщикам</a><a href="projects.html">Проектам</a><a href="about.html">Обо мне</a><a href="book.html">Забронировать</a></div></header><main>
 <style>
 .cats{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 34px}.chip{padding:11px 18px;border:1px solid #333;border-radius:999px;background:#0b0b0b;color:#ddd;cursor:pointer}.chip.active{background:#ef2634;border-color:#ef2634}
@@ -278,6 +280,8 @@ button,input,select,textarea{font:inherit}
   cursor:pointer;
   box-shadow:0 0 0 1px rgba(255,51,68,.08) inset,0 0 18px rgba(255,51,68,.14);
 }
+.prod[hidden]{display:none!important}
+.prod[hidden] *:after{content:none!important}
 .detailsBtn:after{
   content:"›";
   position:absolute;
@@ -412,7 +416,7 @@ document.querySelectorAll('.prod').forEach(p=>{
 });
 function applyFilter(){
   const active=document.querySelector('.chip.active')?.dataset.cat||'all';
-  document.querySelectorAll('.prod').forEach(p=>p.style.display=(active==='all'||p.dataset.cat===active)?'block':'none');
+  document.querySelectorAll('.prod').forEach(p=>{const visible=active==='all'||p.dataset.cat===active;p.hidden=!visible;p.style.display=visible?'block':'none';});
 }
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
@@ -427,7 +431,7 @@ function shortComposition(text){
 
 function activateProductImages(root=document){
   root.querySelectorAll('img.foodPhoto').forEach(img=>{
-    const done=()=>img.classList.add('loaded');
+    const done=()=>{if(img.naturalWidth>0)img.classList.add('loaded')};
     if(img.complete)done(); else img.addEventListener('load',done,{once:true});
   });
 }
@@ -438,7 +442,7 @@ function renderMenu(items){
     let src=x.imageUrl||existingImages[x.name]||'';
     if(src.startsWith('/api/'))src=API_BASE+src;
     const imgAttrs=i<2?' decoding="async" fetchpriority="high"':' loading="lazy" decoding="async" fetchpriority="low"';
-    const visual=src?'<img decoding="async" loading="lazy" class="foodPhoto" src="'+esc(src)+'" alt="'+esc(x.name)+'"'+imgAttrs+'>':'<div class="demoFood"></div>';
+    const visual=src?'<img class="foodPhoto" src="'+esc(src)+'" alt="'+esc(x.name)+'"'+imgAttrs+'>':'<div class="demoFood"></div>';
     const full=esc(x.description||'');
     return '<article class="prod" data-motion data-cat="'+esc(x.category)+'" data-i="'+i+'"><div class="prodVisual">'+visual+'</div><h3>'+esc(x.name)+'</h3><button class="detailsBtn" type="button">Подробнее</button><div class="fullDesc">'+full+'</div><div class="price">'+esc(x.portion||'')+'</div></article>';
   }).join('');
