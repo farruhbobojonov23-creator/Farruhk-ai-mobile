@@ -17,7 +17,7 @@ test('FARUKH PRINT staff has a distinct installable shareable URL backed by same
  assert.equal(manifest.display,'standalone');
  assert.match(html,/premium-prep-label\.js\?v=1/);
  assert.match(html,/premium-ready-label\.js\?v=3/);
- assert.match(html,/print\.js\?v=54/);
+ assert.match(html,/\.\/legacy\/print\.js\?v=\d+/);
  assert.match(html,/print-staff\.js\?v=8/);
 });
 
@@ -39,7 +39,7 @@ test('Employee URL blocks owner management before device pairing without permane
 
 test('Owner dashboard provides a copyable employee link, independent from owner panel',async()=>{
  const owner=await source('public/print-control-cloud.js');
- assert.match(owner,/const staffUrl='\/farukh-print\/staff\/'/);
+ assert.match(owner,/const staffUrl='https:\/\/farukh-print-staff-gateway\.onrender\.com\/farukh-print\/staff\/'/);
  assert.match(owner,/navigator\.clipboard\.writeText\(url\)/);
  assert.match(owner,/Открыть страницу сотрудников/);
  assert.match(owner,/код подключения устройства и личный логин/);
