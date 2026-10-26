@@ -440,7 +440,11 @@ function renderCatalog(){
   tipsButton.onclick=()=>openProductAdvice(p);
   const qrButton=node('button','product-qr-button','▦ QR');
   qrButton.type='button';qrButton.setAttribute('aria-label','QR-код товара: '+p.name);
-  qrButton.onclick=()=>window.FARUKH_PRINT_PRO_SCANNER?.showCode?.(p);
+  qrButton.onclick=()=>{
+   const scanner=window.FARUKH_PRINT_PRO_SCANNER;
+   if(typeof scanner?.showCode!=='function'){status('QR-код ещё не загрузился. Обнови FARUKH PRINT.',true);return;}
+   scanner.showCode(p);
+  };
   item.append(tipsButton,qrButton,meta);
   if(worker){const star=node('button','product-favorite'+(favorite.has(p.id)?' is-favorite':''),favorite.has(p.id)?'★':'☆');star.type='button';star.setAttribute('aria-label',(favorite.has(p.id)?'Убрать из избранного: ':'В избранное: ')+p.name);star.setAttribute('aria-pressed',String(favorite.has(p.id)));star.onclick=()=>toggleFav(p.id);item.append(star)}
   cards.append(item);
@@ -1126,7 +1130,11 @@ function boot(){
  };
  $('pro-batch-clear').onclick=()=>{batchSelection.clear();renderCatalog()};
  $('pro-batch-start').onclick=()=>void runBatchPrint();
- $('pro-qr-open').onclick=()=>window.FARUKH_PRINT_PRO_SCANNER?.open?.();
+ $('pro-qr-open').onclick=()=>{
+  const scanner=window.FARUKH_PRINT_PRO_SCANNER;
+  if(typeof scanner?.open!=='function'){status('QR-сканер ещё не загрузился. Обнови FARUKH PRINT.',true);return;}
+  scanner.open();
+ };
  $('printed-at').addEventListener('input',updatePreview);
  $('haccp-new').onclick=()=>{const p=current();if(!isHaccp(p))return;if(!confirm('Начать новую порцию для этой ёмкости? Нажимай только после приготовления или заполнения.'))return;haccpDraft={id:p.id,batch:null};$('haccp-limit').value='';updatePreview();};
  $('haccp-limit').addEventListener('input',updatePreview);
