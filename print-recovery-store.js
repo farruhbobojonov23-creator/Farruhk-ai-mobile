@@ -14,7 +14,7 @@ export function createPrintRecoveryStore(source,initialProducts){
     'farukh-print-catalog.json':{revision:1,products:initialProducts,appliedImports:[ready.version,photos.version,haccp.version],updatedAt:new Date().toISOString()},
     'farukh-print-devices.json':[], 'farukh-print-staff.json':[],
     'farukh-print-staff-sessions.json':[], 'farukh-print-staff-activity.json':[],
-    'farukh-print-points.json':['Плазма']
+    'farukh-print-points.json':['Баумана 18','Плазма','Героев североморцев','Полярные зори']
   };
   let pending;
   const envelope=payload=>({format:'farukh-print-cloud-envelope-v1',nonce:crypto.randomUUID(),payload});

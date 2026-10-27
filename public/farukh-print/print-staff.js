@@ -4,13 +4,19 @@
 // unpaired personal installations retain their existing offline behavior.
 (()=>{
 'use strict';
-const DEV='farukh-print:device:v1',MANAGED='farukh-print:staff-managed:v1',SESSION='farukh-print:staff-session:v1';
+const DEV='farukh-print:device:v1',MANAGED='farukh-print:staff-managed:v1',SESSION='farukh-print:staff-session:v1',POINT_SELECTION='farukh-print:selected-point:v1';
 const base='/api/farukh-print/device/staff';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e};
 const root=document.querySelector('.app'),head=root?.querySelector('.header');
 if(!root||!head)return;
 const employeeEntry=window.FARUKH_PRINT_EMPLOYEE_ENTRY===true;
 let paired=employeeEntry||localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='',rechecking=false;
+ const allowedPoints=()=>staff?(Array.isArray(staff.points)&&staff.points.length?staff.points:[staff.point].filter(Boolean)):[];
+ const selectedPoint=()=>{
+  const list=allowedPoints();
+  let saved='';try{saved=localStorage.getItem(POINT_SELECTION)||''}catch{}
+  return list.includes(saved)?saved:list[0]||'';
+ };
 // Server permission is prepared while the label is visible, held in RAM
 // for <= 12 seconds and consumed exactly once. Never enable offline printing.
 let prepared=null,preparing=null,prepareEpoch=0;
@@ -19,7 +25,7 @@ function grantKey(job){
  const revision=window.FARUKH_PRINT_DEVICE_SYNC?.state()?.revision;
  const product=job?.product;
  if(!Number.isSafeInteger(revision)||revision<0||!product?.id||!Number.isInteger(job.copies)||job.copies<1||job.copies>20)return '';
- return [deviceToken(),session,staff?.point||'',revision,product.id,job.copies].join('|');
+ return [deviceToken(),session,selectedPoint(),revision,product.id,job.copies].join('|');
 }
 try{
  session=localStorage.getItem(SESSION)||sessionStorage.getItem(SESSION)||'';
@@ -34,9 +40,17 @@ const login=el('input');login.placeholder='Логин сотрудника';logi
 const password=el('input');password.type='password';password.placeholder='Пароль';password.autocomplete='current-password';password.maxLength=180;
 const submit=el('button','','Войти');submit.type='submit';form.append(login,password,submit);
 const sessionText=el('p','staff-session-info','');
+ const pointLabel=el('label','staff-point-picker','Выбери точку для печати');
+ const pointSelect=el('select','staff-point-select');pointSelect.setAttribute('aria-label','Точка печати');
+ pointLabel.append(pointSelect);
+ pointSelect.addEventListener('change',()=>{
+  if(!allowedPoints().includes(pointSelect.value))return;
+  try{localStorage.setItem(POINT_SELECTION,pointSelect.value)}catch{}
+  clearPrepared();paint();
+ });
 const logout=el('button','staff-logout','Выйти');logout.type='button';
 const notice=el('p','staff-notice');notice.setAttribute('role','status');
-panel.append(top,info,form,sessionText,logout,notice);
+panel.append(top,info,form,sessionText,pointLabel,logout,notice);
 head.after(panel);
 function deviceToken(){try{return JSON.parse(localStorage.getItem(DEV)||'null')?.token||''}catch{return ''}}
 const tell=(msg,error=false)=>{notice.textContent=msg;notice.dataset.error=error?'yes':'no'};
@@ -45,14 +59,17 @@ function paint(){
  const enrolled=!!deviceToken();
  // Browsing is public. Login is required only to print on a paired device.
  panel.hidden=false;
- form.hidden=!paired||!enrolled||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;
+ form.hidden=!paired||!enrolled||!!staff;logout.hidden=!paired||!staff;sessionText.hidden=!paired||!staff;pointLabel.hidden=!paired||!staff||allowedPoints().length<2;
  if(!enrolled&&!staff)tell('Просмотр товаров открыт. Для печати подключи устройство кодом из FARUKH AI ниже, затем войди под логином сотрудника.');
  badge.textContent=staff?'● '+staff.name:'○ Просмотр без печати';
  badge.dataset.active=staff?'yes':'no';
  if(staff){const deadline=staff.expiresAt?' · Доступ до '+new Date(staff.expiresAt).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' (Москва)':' · Без ограничения срока';
-  sessionText.textContent='Точка: '+staff.point+' · Только печать'+deadline;
+  const selected=selectedPoint();
+   pointSelect.replaceChildren(...allowedPoints().map(p=>{const option=el('option','',p);option.value=p;return option}));
+   pointSelect.value=selected;
+   sessionText.textContent='Точка: '+selected+' · Только печать'+deadline;
   const point=document.getElementById('point-name');
-  if(point){point.value=staff.point;point.readOnly=true;point.title='Точка назначена в FARUKH AI';}
+  if(point){point.value=selected;point.readOnly=true;point.title='Точка выбрана из разрешённых в FARUKH AI';}
  }else{
   const point=document.getElementById('point-name');if(point){point.value='';point.readOnly=paired}
  }
@@ -60,7 +77,7 @@ function paint(){
  // Keep the employee print workspace synchronized after login/logout/expiry.
  window.dispatchEvent(new CustomEvent('farukh-print-staff-changed',{detail:{
   managed:paired,
-  staff:staff?{name:staff.name,point:staff.point,login:staff.login}:null
+  staff:staff?{name:staff.name,point:selectedPoint(),points:allowedPoints(),login:staff.login}:null
  }}));
 }
 async function call(path,opts={}){
@@ -78,7 +95,7 @@ async function recheck(){
  rechecking=true;
  try{
   const result=await call('/session');
-  staff=result.staff;tell('Можно печатать утверждённые этикетки для точки «'+staff.point+'».');void flushResults();
+  staff=result.staff;tell('Можно печатать утверждённые этикетки на разрешённых точках.');void flushResults();
  }catch(e){
   staff=null;
   if(e.status===401||e.status===403){
@@ -149,7 +166,7 @@ const API={
   const promise=(async()=>{
    try{
     const response=await call('/preflight',{method:'POST',body:JSON.stringify({
-     productId:job.product.id,copies:job.copies,point:staff.point,
+     productId:job.product.id,copies:job.copies,point:selectedPoint(),
      printedAt:new Date(job.dateValue).toISOString(),
      catalogRevision:window.FARUKH_PRINT_DEVICE_SYNC.state().revision
     })});
@@ -166,7 +183,7 @@ const API={
   return promise;
  },
  login:()=>staff?.login||'',
- point:()=>staff?.point||'',
+ point:()=>selectedPoint(),
  async reportPrint(eventId,result,details=''){
   if(!eventId||!['sent','failed','system'].includes(result))return;
   const entry={eventId,result,details:String(details).slice(0,160)};
@@ -196,7 +213,7 @@ const API={
    clearPrepared(); // Never reuse after an attempted print.
    const result=await call('/authorize-print',{
     method:'POST',body:JSON.stringify({
-     productId:product.id,copies:job.copies,point:staff.point,
+     productId:product.id,copies:job.copies,point:selectedPoint(),
      printedAt:new Date(job.dateValue).toISOString(),catalogRevision:revision,
      ...(fastTicket?{fastTicket}:{})
     })

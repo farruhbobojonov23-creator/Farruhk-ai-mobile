@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import {getTemplate} from './public/farukh-print/haccp-catalog.js';
 const USERS='farukh-print-staff.json',HISTORY='farukh-print-staff-activity.json',POINTS='farukh-print-points.json',SESSIONS='farukh-print-staff-sessions.json';
 const MAX_STAFF=80,MAX_EVENTS=4000,MAX_SESSIONS=200;
+const FOUR_POINTS=['Баумана 18','Плазма','Героев североморцев','Полярные зори'];
 const bad=(status,message)=>Object.assign(new Error(message),{status});
 const sha=t=>crypto.createHash('sha256').update(t).digest('hex');
 const token=()=>crypto.randomBytes(32).toString('base64url');
@@ -13,7 +14,8 @@ const hash=(pass,salt)=>crypto.scryptSync(pass,salt,32,{N:16384,r:8,p:1}).toStri
 // Missing expiry on legacy employee records means indefinite access.
 const expiryReached=(u,now=Date.now())=>!!u.expiresAt&&(!Number.isFinite(Date.parse(u.expiresAt))||Date.parse(u.expiresAt)<=now);
 const canAccess=(u,now=Date.now())=>!!u&&u.active!==false&&!expiryReached(u,now);
-const userSafe=u=>({id:u.id,name:u.name,login:u.login,point:u.point,role:'Повар · только печать',
+const assignedPoints=u=>Array.isArray(u?.points)&&u.points.length?u.points:[u?.point].filter(Boolean);
+const userSafe=u=>({id:u.id,name:u.name,login:u.login,point:assignedPoints(u)[0]||'',points:assignedPoints(u),role:'Повар · только печать',
  active:u.active!==false,accessAllowed:canAccess(u),expired:expiryReached(u),
  expiresAt:u.expiresAt||null,createdAt:u.createdAt});
 const expiryFromDays=(days,now=Date.now())=>{
@@ -70,7 +72,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    ||ticket.sessionHash!==sha(String(req.get('X-Farukh-Print-Staff')||''))
    ||ticket.product.id!==req.body?.productId
    ||ticket.copies!==Number(req.body?.copies)
-   ||ticket.staff.point!==req.body?.point
+   ||ticket.point!==req.body?.point
    ||ticket.revision!==req.body?.catalogRevision
    ||!Number.isFinite(Date.parse(req.body?.printedAt)))return next();
   req.farukhPrintFast=ticket;
@@ -117,10 +119,20 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  const validPoint=v=>v.length>=2&&v.length<=60&&!Array.from(v).some(ch=>ch.charCodeAt(0)<32);
  const samePoint=(a,b)=>a.toLocaleLowerCase('ru')===b.toLocaleLowerCase('ru');
  const readPoints=async()=>{
-  const points=await store.read(POINTS,['Плазма']);
-  if(!Array.isArray(points)||points.length<1||points.length>30||points.some(p=>typeof p!=='string'||!validPoint(p)))throw bad(503,'Список точек повреждён. Изменения заблокированы.');
-  if(new Set(points.map(p=>p.toLocaleLowerCase('ru'))).size!==points.length)throw bad(503,'Список точек содержит дубликаты.');
-  return points;
+  const stored=await store.read(POINTS,FOUR_POINTS);
+  if(!Array.isArray(stored)||stored.length<1||stored.length>30||stored.some(p=>typeof p!=='string'||!validPoint(p)))throw bad(503,'Список точек повреждён.');
+  if(new Set(stored.map(p=>p.toLocaleLowerCase('ru'))).size!==stored.length)throw bad(503,'Список точек содержит дубликаты.');
+  const extras=stored.filter(p=>!FOUR_POINTS.some(name=>samePoint(name,p)));
+  if(extras.length+FOUR_POINTS.length>30)throw bad(503,'Превышен лимит точек.');
+  return [...FOUR_POINTS,...extras];
+ };
+ const requestedPoints=(body,configured)=>{
+  const input=Array.isArray(body?.points)?body.points:[body?.point];
+  if(!input.length||input.some(p=>typeof p!=='string'||!validPoint(pointName(p))))throw bad(400,'Выбери хотя бы одну точку.');
+  const actual=input.map(p=>configured.find(value=>samePoint(value,pointName(p))));
+  if(actual.some(p=>!p))throw bad(400,'Одна из точек отсутствует в списке.');
+  if(new Set(actual).size!==actual.length)throw bad(400,'Одинаковая точка выбрана несколько раз.');
+  return actual;
  };
  const safe=fn=>async(req,res)=>{try{await fn(req,res)}catch(e){console.warn('[print-staff]',e.status||500,e.message);res.status(e.status||503).json({ok:false,error:e.status?e.message:'Сервис временно недоступен.'})}};
  const owner=(req,res,next)=>{
@@ -179,6 +191,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  }));
  app.patch('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
   const former=pointName(req.body?.oldName),name=pointName(req.body?.name);
+  if(FOUR_POINTS.some(p=>samePoint(p,former)))throw bad(403,'Основные четыре точки нельзя переименовать.');
   if(!validPoint(former)||!validPoint(name))throw bad(400,'Проверь название точки.');
   const result=await store.transaction(async()=>{
    const list=await readPoints(),index=list.findIndex(p=>samePoint(p,former));
@@ -186,39 +199,38 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    if(list.some((p,i)=>i!==index&&samePoint(p,name)))throw bad(409,'Такая точка уже существует.');
    const currentName=list[index],employees=await readUsers();
    list[index]=name;
-   for(const employee of employees)if(samePoint(employee.point,currentName))employee.point=name;
+   for(const employee of employees){employee.points=assignedPoints(employee).map(p=>samePoint(p,currentName)?name:p);employee.point=employee.points[0];}
    // A rename changes the permitted employee point and revokes current sessions.
    // Historical requests keep their original location for audit correctness.
    await store.write(POINTS,list);
    await store.write(USERS,employees);
    return {points:list,users:employees,prior:currentName};
   });
-  for(const u of result.users)if(samePoint(u.point,name))await revokeSessions(u.id);
+  for(const u of result.users)if(assignedPoints(u).some(p=>samePoint(p,name)))await revokeSessions(u.id);
   res.json({ok:true,points:result.points,notice:'Учётные записи переведены на новую точку. Старые запросы печати не изменены.'});
  }));
  app.delete('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
   const name=pointName(req.body?.name);
+  if(FOUR_POINTS.some(p=>samePoint(p,name)))throw bad(403,'Основные четыре точки нельзя удалить.');
   const points=await store.transaction(async()=>{
    const list=await readPoints();
    if(list.length<=1)throw bad(409,'Нельзя удалить последнюю точку.');
    const pos=list.findIndex(p=>samePoint(p,name));if(pos<0)throw bad(404,'Точка не найдена.');
-   if((await readUsers()).some(u=>samePoint(u.point,name)))throw bad(409,'Сначала переведи сотрудников на другую точку.');
+   if((await readUsers()).some(u=>assignedPoints(u).some(p=>samePoint(p,name))))throw bad(409,'Сначала переведи сотрудников на другую точку.');
    list.splice(pos,1);await store.write(POINTS,list);return list;
   });
   res.json({ok:true,points});
  }));
  app.patch('/api/farukh-print/admin/staff/:id',owner,safe(async(req,res)=>{
-  const name=pointName(req.body?.name),login=pointName(req.body?.login).toLowerCase(),point=pointName(req.body?.point);
-  if(name.length<2||name.length>65||!/^[a-z][a-z0-9_-]{2,31}$/.test(login)||!validPoint(point))throw bad(400,'Нужны имя, логин латиницей и точка.');
+  const name=pointName(req.body?.name),login=pointName(req.body?.login).toLowerCase();
+  if(name.length<2||name.length>65||!/^[a-z][a-z0-9_-]{2,31}$/.test(login))throw bad(400,'Нужны имя и логин латиницей.');
   const result=await store.transaction(async()=>{
-   const points=await readPoints();
-   const actual=points.find(p=>samePoint(p,point));
-   if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
+   const actual=requestedPoints(req.body,await readPoints());
    const users=await readUsers(),employee=users.find(u=>u.id===req.params.id);
    if(!employee)throw bad(404,'Сотрудник не найден.');
    if(users.some(u=>u.id!==employee.id&&u.login===login))throw bad(409,'Этот логин уже занят.');
-   const changed=employee.name!==name||employee.login!==login||employee.point!==actual;
-   employee.name=name;employee.login=login;employee.point=actual;
+   const changed=employee.name!==name||employee.login!==login||JSON.stringify(assignedPoints(employee))!==JSON.stringify(actual);
+   employee.name=name;employee.login=login;employee.point=actual[0];employee.points=actual;
    if(changed)await store.write(USERS,users);
    return {employee,changed};
   });
@@ -240,10 +252,10 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    if(days==='shift')return activeSessions.some(t=>t.userId===e.userId&&t.deviceId===e.deviceId&&t.loginAt===e.sessionAt);
    return Date.parse(e.at)>=after;
   });
-  const points=[...new Set([...configured,...users.map(u=>u.point),...valid.map(e=>e.point)].filter(Boolean))];
+  const points=[...new Set([...configured,...users.flatMap(assignedPoints),...valid.map(e=>e.point)].filter(Boolean))];
   if(point&&!points.some(p=>samePoint(p,point)))throw bad(404,'Точка не найдена.');
   const rows=points.filter(p=>!point||samePoint(p,point)).map(p=>{
-   const workers=users.filter(u=>samePoint(u.point,p)),logs=valid.filter(e=>samePoint(e.point,p));
+   const workers=users.filter(u=>assignedPoints(u).some(allowed=>samePoint(allowed,p))),logs=valid.filter(e=>samePoint(e.point,p));
    return {point:p,staff:workers.length,active:workers.filter(u=>canAccess(u)).length,requests:logs.length,
     labels:logs.reduce((acc,e)=>acc+(Number.isSafeInteger(e.copies)&&e.copies>0?e.copies:0),0),
     lastRequestAt:logs.length?logs.reduce((a,e)=>a>e.at?a:e.at,''):null,
@@ -274,14 +286,13 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   res.json({ok:true,staff:(await readUsers()).map(userSafe)});
  }));
  app.post('/api/farukh-print/admin/staff',owner,safe(async(req,res)=>{
-  const name=trim(req.body?.name,65),login=trim(req.body?.login,32).toLowerCase(),point=trim(req.body?.point,60);
-  if(!name||name.length<2||!point||point.length<2||!/^[a-z][a-z0-9_-]{2,31}$/.test(login))throw bad(400,'Нужны имя, точка и логин латиницей (3–32 символа).');
-  const configured=await readPoints(),actual=configured.find(p=>samePoint(p,point));
-  if(!actual)throw bad(400,'Сначала добавь эту точку в список точек.');
+  const name=trim(req.body?.name,65),login=trim(req.body?.login,32).toLowerCase();
+  if(!name||name.length<2||!/^[a-z][a-z0-9_-]{2,31}$/.test(login))throw bad(400,'Нужны имя и логин латиницей (3–32 символа).');
+  const actual=requestedPoints(req.body,await readPoints());
   const {password,custom}=passwordFromOwner(req.body);
   const expiresAt=expiryFromDays(accessDaysFromBody(req.body,{creation:true}));
   const salt=crypto.randomBytes(16).toString('hex');
-  const user={id:crypto.randomUUID(),name,login,point:actual,passhash:hash(password,salt),salt,
+  const user={id:crypto.randomUUID(),name,login,point:actual[0],points:actual,passhash:hash(password,salt),salt,
    active:true,expiresAt,createdAt:new Date().toISOString()};
   await store.transaction(async()=>{
    const all=await readUsers();if(all.length>=MAX_STAFF)throw bad(409,'Достигнут лимит сотрудников.');
@@ -439,7 +450,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  app.post('/api/farukh-print/device/staff/preflight',protectDevice,requireStaff,safe(async(req,res)=>{
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
   const productId=trim(req.body?.productId,150),copies=Number(req.body?.copies),point=trim(req.body?.point,60);
-  if(!Number.isSafeInteger(copies)||copies<1||copies>20||point!==req.farukhStaff.point
+  if(!Number.isSafeInteger(copies)||copies<1||copies>20||!assignedPoints(req.farukhStaff).includes(point)
      ||!Number.isFinite(Date.parse(req.body?.printedAt)))throw bad(403,'Неверные данные печати.');
   const catalog=await readCatalog();
   if(!Number.isSafeInteger(req.body?.catalogRevision)||req.body.catalogRevision!==catalog.revision)
@@ -456,8 +467,8 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    sessionHash:sha(String(req.get('X-Farukh-Print-Staff')||'')),
    device:{id:req.farukhPrintDevice.id,name:req.farukhPrintDevice.name},
    staff:{id:req.farukhStaff.id,name:req.farukhStaff.name,login:req.farukhStaff.login,
-    point:req.farukhStaff.point,expiresAt:req.farukhStaff.expiresAt,active:true},
-   loginAt:req.farukhSessionData.loginAt,product,copies,revision:catalog.revision,
+    point:req.farukhStaff.point,points:assignedPoints(req.farukhStaff),expiresAt:req.farukhStaff.expiresAt,active:true},
+   point,loginAt:req.farukhSessionData.loginAt,product,copies,revision:catalog.revision,
    expiresAt:Math.min(now+FAST_TTL_MS,req.farukhStaff.expiresAt?Date.parse(req.farukhStaff.expiresAt):Infinity)});
   res.set('Cache-Control','no-store');
   res.json({ok:true,fastTicket:id,expiresInMs:FAST_TTL_MS,expiresAt:fastTickets.get(id).expiresAt});
@@ -466,7 +477,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
   const productId=trim(req.body?.productId,150),copies=Number(req.body?.copies),point=trim(req.body?.point,60);
   const printedAt=String(req.body?.printedAt||'');
-  if(!Number.isSafeInteger(copies)||copies<1||copies>20||point!==req.farukhStaff.point||!Number.isFinite(Date.parse(printedAt)))throw bad(403,'Нельзя печатать на другой точке или с неверными данными.');
+  if(!Number.isSafeInteger(copies)||copies<1||copies>20||!assignedPoints(req.farukhStaff).includes(point)||!Number.isFinite(Date.parse(printedAt)))throw bad(403,'Нельзя печатать на другой точке или с неверными данными.');
   const list=req.farukhPrintFast?
    {revision:req.farukhPrintFast.revision,products:[req.farukhPrintFast.product]}:await readCatalog();
   // A worker must not print dates/temperatures from an out-of-date local
@@ -477,7 +488,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!product||product.needsReview===true||(!getTemplate(product)&&(!product.storage||!Number.isInteger(product.hours)||product.hours<=0)))throw bad(403,'Этикетка отсутствует в утверждённой облачной базе или не проверена.');
   const item={id:crypto.randomUUID(),at:new Date().toISOString(),status:'Запрос печати (не подтверждение физической печати)',result:'pending',
     staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
-    deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,
+    deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point,
     productId:product.id,product:product.name,copies,device:req.farukhPrintDevice.name};
   // All grants — fast preflight and strict online fallback — have passed
   // server-side device, session, expiry, and catalog validation by this point.
