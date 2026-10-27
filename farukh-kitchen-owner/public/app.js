@@ -69,6 +69,7 @@ const PRESETS={
  seafood:{category:'Рыба и морепродукты',type:'prep',ingredients:['Рыба / морепродукты исходные'],hint:'1. Проверить сопроводительные документы и условия приёмки.\n2. Выполнить разделку/очистку по утверждённому способу.\n3. Провести необходимую обработку по верифицированному режиму.\n4. Зафиксировать потери, выход и маркировку.'}
 };
 let wizardStep=0;
+let pendingPdfExport=false;
 let lastPresetCode="";
 function row(item={}){
  const el=document.createElement('div');el.className='ingredient-row';
@@ -86,13 +87,14 @@ function sumIngredients(){
  $('#sum-net').textContent=total('.ingredient-net input').toLocaleString('ru-RU',{maximumFractionDigits:2})+' г';
 }
 function setStep(step){
- wizardStep=Math.max(0,Math.min(2,step));
+ wizardStep=Math.max(0,Math.min(1,step));
  $$('[data-panel]').forEach(p=>p.hidden=Number(p.dataset.panel)!==wizardStep);
  $$('.wizard-tab').forEach(t=>{const active=Number(t.dataset.step)===wizardStep;t.classList.toggle('current',active);t.classList.toggle('completed',Number(t.dataset.step)<wizardStep);if(active)t.setAttribute('aria-current','step');else t.removeAttribute('aria-current')});
  $('#step-prev').hidden=wizardStep===0;
- $('#step-next').hidden=wizardStep===2;
- $('#save-record').hidden=wizardStep!==2;
- const scroll=$('.editor');if(scroll)scroll.scrollTop=0;
+ $('#step-next').hidden=wizardStep===1;
+ $('#save-record').hidden=false;
+ $('#save-pdf').hidden=false;
+ const scroll=$('#record-form');if(scroll)scroll.scrollTop=0;
 }
 function applyPreset(code,{initial=false}={}){
  const p=PRESETS[code];if(!p)return;
@@ -123,7 +125,7 @@ function applyPreset(code,{initial=false}={}){
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
  state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
- const f=$('#record-form');f.reset();lastPresetCode=existing?.preset||'';
+ const f=$('#record-form');f.reset();pendingPdfExport=false;lastPresetCode=existing?.preset||'';
  const put=(name,val)=>{const el=f.elements.namedItem(name);if(el)el.value=val??''};
  const values={
  name:existing?.name||'',category:existing?.category||'',yield:existing?.yield||'',status:existing?.status||'Черновик',
@@ -154,6 +156,7 @@ function showEditor(idOrType='dish'){
  else{const code=idOrType==='prep'?'sauce':'cold';put('preset',code);applyPreset(code,{initial:true})}
  if(existing&&ingredients.length)sumIngredients();
  updatePhoto();setStep(0);
+ const refNumber=$('#paper-ref-number');if(refNumber)refNumber.textContent=f.elements.namedItem('cardNumber')?.value||'—';
  $('#editor-backdrop').hidden=false;document.body.style.overflow='hidden';$('#close-editor').focus();
 }
 function updatePhoto(){const p=$('#image-preview');if(state.photo){p.src=state.photo;p.hidden=false}else{p.hidden=true;p.removeAttribute('src')}}
@@ -184,17 +187,19 @@ function submit(e){
  nutrition:{protein:field('protein'),fat:field('fat'),carb:field('carb'),kcal:field('kcal')},
  approvedBy:field('approvedBy'),approvedDate:field('approvedDate'),updatedAt:new Date().toISOString()
  });
- if(!r.name||r.yield<=0){setStep(0);toast('Заполни наименование и фактический выход');return}
- if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){setStep(2);toast('Для срока годности укажи документальное обоснование');return}
+ if(!r.name||r.yield<=0){pendingPdfExport=false;setStep(0);toast('Заполни наименование и фактический выход');return}
+ if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){pendingPdfExport=false;setStep(1);toast('Для срока годности укажи документальное обоснование');return}
  if(r.status==='Утверждена'){
   const mandatory=r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)&&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()&&r.presentation.trim()&&r.storage.trim()&&r.shelfLifeHours>0&&r.shelfBasis.trim()&&r.organoleptic.trim()&&r.safety.trim()&&r.approvedBy.trim()&&r.approvedDate;
-  if(!mandatory){setStep(2);toast('Не все обязательные разделы заполнены. Сохрани как черновик.');return}
+  if(!mandatory){pendingPdfExport=false;setStep(1);toast('Не все обязательные разделы заполнены. Сохрани как черновик.');return}
   if(!confirm('Утверждение означает, что рецептура проработана, условия хранения обоснованы, а документ подписан руководителем. Подтверждаешь?'))return;
  }
  const before=state.records.slice();
  if(was)state.records=state.records.map(x=>x.id===r.id?r:x);else state.records.unshift(r);
- if(!keep()){state.records=before;return}
- closeEditor();state.search='';state.filter='Все';render();toast('ТТК сохранена локально. Не забудь экспорт JSON.');
+ if(!keep()){state.records=before;pendingPdfExport=false;return}
+ const downloadPdf=pendingPdfExport;pendingPdfExport=false;
+ closeEditor();state.search='';state.filter='Все';render();toast(downloadPdf?'ТТК сохранена. В окне печати выбери «Сохранить как PDF».':'ТТК сохранена локально. Не забудь экспорт JSON.');
+ if(downloadPdf)printTTK(r.id);
 }
 function exportJson(){const out={format:'FARUKH_KITCHEN_OWNER_DRAFTS',version:1,exportedAt:new Date().toISOString(),records:state.records};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='FARUKH_KITCHEN_BACKUP_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Резервная копия подготовлена')}
 async function importJson(file){if(!file)return;if(file.size>5e6){toast('Файл больше 5 МБ — импорт отменён');return}try{const data=JSON.parse(await file.text());if(data.format!=='FARUKH_KITCHEN_OWNER_DRAFTS'||!Array.isArray(data.records)||data.records.length>500)throw Error('Неизвестный формат резервной копии');if(!confirm('Заменить все текущие локальные черновики содержимым файла?'))return;const items=data.records.map(cleanRecord);const prev=state.records;state.records=items;if(!keep()){state.records=prev;return}render();toast('Импортировано ТТК: '+items.length)}catch(e){toast('Ошибка импорта: '+e.message)}}
@@ -239,6 +244,7 @@ async function bind(){
  if(t.id==='menu'){$('#sidebar').classList.add('open');$('#shade').hidden=false;$('#shade').classList.add('visible');return}
  if(t.dataset.page){nav(t.dataset.page);return}
  if(t.id==='quick-new'){showEditor('dish');return}
+ if(t.id==='save-pdf'){pendingPdfExport=true;$('#record-form').requestSubmit();return}
  if(t.dataset.new){showEditor(t.dataset.new);return}
  if(t.dataset.print){printTTK(t.dataset.print);return}
  if(t.dataset.edit){showEditor(t.dataset.edit);return}
@@ -254,7 +260,7 @@ async function bind(){
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
  });
- document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows'))sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
+ document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows'))sumIngredients();if(e.target.name==='cardNumber'){$('#paper-ref-number').textContent=e.target.value||'—'}if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
  document.addEventListener('change',async e=>{if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
