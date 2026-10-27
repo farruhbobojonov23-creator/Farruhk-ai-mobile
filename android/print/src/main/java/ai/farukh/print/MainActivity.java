@@ -66,6 +66,7 @@ public final class MainActivity extends Activity {
     private static final int MAX_PAYLOAD = 64_000;
 
     private WebView webView;
+    private NativeUpdater updater;
     private ValueCallback<Uri[]> fileChooser;
     private PermissionRequest pendingWebPermission;
     private JavaScriptReplyProxy pendingPrinterReply;
@@ -177,6 +178,13 @@ public final class MainActivity extends Activity {
         }
         if (savedInstanceState != null) webView.restoreState(savedInstanceState);
         else webView.loadUrl(HOME);
+        updater = new NativeUpdater(this);
+    }
+
+    boolean isPrintBusy() { return printing.get() || pendingPrinterReply != null; }
+    @Override protected void onResume() {
+        super.onResume();
+        if (updater != null) updater.onResume();
     }
 
     private boolean isOurUrl(Uri url) {
@@ -500,6 +508,7 @@ public final class MainActivity extends Activity {
         super.onSaveInstanceState(out);
     }
     @Override protected void onDestroy() {
+        if (updater != null) updater.close();
         printerWorker.shutdownNow();
         // Free Bluetooth immediately on app exit so another workstation
         // can connect. A running write will fail instead of silently retrying.
