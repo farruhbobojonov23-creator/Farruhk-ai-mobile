@@ -69,6 +69,7 @@ const PRESETS={
  seafood:{category:'Рыба и морепродукты',type:'prep',ingredients:['Рыба / морепродукты исходные'],hint:'1. Проверить сопроводительные документы и условия приёмки.\n2. Выполнить разделку/очистку по утверждённому способу.\n3. Провести необходимую обработку по верифицированному режиму.\n4. Зафиксировать потери, выход и маркировку.'}
 };
 let wizardStep=0;
+let lastPresetCode="";
 function row(item={}){
  const el=document.createElement('div');el.className='ingredient-row';
  el.innerHTML='<label class="ingredient-name">Ингредиент<input aria-label="Ингредиент" placeholder="Рис, нори, сыр…" maxlength="130"></label><label class="ingredient-gross">Брутто, г<input type="number" aria-label="Брутто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><label class="ingredient-net">Нетто, г<input type="number" aria-label="Нетто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><button type="button" title="Удалить ингредиент" aria-label="Удалить ингредиент" class="remove-row">×</button>';
@@ -96,8 +97,13 @@ function setStep(step){
 function applyPreset(code,{initial=false}={}){
  const p=PRESETS[code];if(!p)return;
  const rows=$$('#ingredient-rows .ingredient-row');
- const hasManual=rows.some(r=>r.querySelector('.ingredient-name input')?.value.trim()||r.querySelector('.ingredient-net input')?.value);
- if(!initial&&hasManual&&!confirm('Заменить список ингредиентов готовым шаблоном? Указанные граммовки будут потеряны.')){$('#preset').value=state.records.find(x=>x.id===state.editing)?.preset||'';return}
+ const previous=PRESETS[lastPresetCode];
+ const hasManual=rows.some((r,i)=>{
+  const typedName=r.querySelector('.ingredient-name input')?.value.trim();
+  const enteredWeights=r.querySelector('.ingredient-net input')?.value.trim()||r.querySelector('.ingredient-gross input')?.value.trim();
+  return enteredWeights||(typedName&&(typedName!==previous?.ingredients[i]));
+ });
+ if(!initial&&hasManual&&!confirm('Заменить список ингредиентов готовым шаблоном? Указанные граммовки будут потеряны.')){$('#preset').value=lastPresetCode;return}
  const f=$('#record-form');
  f.elements.namedItem('category').value=p.category;
  $('#editor-kicker').textContent=badgePage(p.type);
@@ -105,13 +111,19 @@ function applyPreset(code,{initial=false}={}){
  $('#ingredient-rows').replaceChildren();
  p.ingredients.forEach(name=>addRow({name,grams:null,gross:null}));
  const steps=f.elements.namedItem('steps');
- if(!steps.value.trim())steps.value=p.hint;
- toast('Шаблон готов: заполни граммовки по проработке');
+ if(!steps.value.trim()||steps.value===previous?.hint)steps.value=p.hint;
+ const raw=f.elements.namedItem('rawRequirements');
+ if(!raw.value.trim())raw.value='Для изготовления использовать пищевое сырьё с необходимой маркировкой и сопроводительными документами, подтверждающими безопасность и качество; соблюдать требования действующих технических регламентов и программы производственного контроля.';
+ const scope=f.elements.namedItem('scope');
+ if(!scope.value.trim())scope.value='Настоящая карта предназначена для изготовления продукции категории «'+p.category+'» в пределах утверждённого ассортимента предприятия.';
+ lastPresetCode=code;
+ if(!initial)toast('Шаблон готов: укажи фактические граммовки');
+
 }
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
  state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
- const f=$('#record-form');f.reset();
+ const f=$('#record-form');f.reset();lastPresetCode=existing?.preset||'';
  const put=(name,val)=>{const el=f.elements.namedItem(name);if(el)el.value=val??''};
  const values={
  name:existing?.name||'',category:existing?.category||'',yield:existing?.yield||'',status:existing?.status||'Черновик',
@@ -167,7 +179,7 @@ function submit(e){
  if(!r.name||r.yield<=0){setStep(0);toast('Заполни наименование и фактический выход');return}
  if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){setStep(2);toast('Для срока годности укажи документальное обоснование');return}
  if(r.status==='Утверждена'){
-  const mandatory=r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)&&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()&&r.presentation.trim()&&r.storage.trim()&&r.organoleptic.trim()&&r.safety.trim()&&r.approvedBy.trim()&&r.approvedDate;
+  const mandatory=r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)&&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()&&r.presentation.trim()&&r.storage.trim()&&r.shelfLifeHours>0&&r.shelfBasis.trim()&&r.organoleptic.trim()&&r.safety.trim()&&r.approvedBy.trim()&&r.approvedDate;
   if(!mandatory){setStep(2);toast('Не все обязательные разделы заполнены. Сохрани как черновик.');return}
   if(!confirm('Утверждение означает, что рецептура проработана, условия хранения обоснованы, а документ подписан руководителем. Подтверждаешь?'))return;
  }
@@ -229,7 +241,7 @@ async function bind(){
  if(t.id==='step-next'){setStep(wizardStep+1);return}
  if(t.id==='step-prev'){setStep(wizardStep-1);return}
  if(t.id==='add-ingredient'){if($$('#ingredient-rows .ingredient-row').length>=100)return toast('Достигнут лимит 100 ингредиентов');addRow();return}
- if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');return}
+ if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();return}
  if(t.id==='clear-photo'){state.photo=null;$('#photo-input').value='';updatePhoto();return}
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
