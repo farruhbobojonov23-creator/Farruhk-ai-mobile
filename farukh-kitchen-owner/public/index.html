@@ -1,0 +1,23 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7eddf"><meta name="robots" content="noindex,nofollow,noarchive"><title>FARUKH KITCHEN · Центр шеф-повара</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div id="shell"><aside id="sidebar"><div class="brand"><span class="logo">✦</span><div><strong>FARUKH<br>KITCHEN</strong><small>CHEF CONTROL</small></div></div><div class="owner-chip">♛ Личный кабинет владельца</div><nav aria-label="Навигация по кабинету" class="side-links">
+<button data-page="home" class="selected"><i>⌂</i> Обзор</button><button data-page="dish"><i>▦</i> ТТК блюд</button><button data-page="prep"><i>◇</i> Полуфабрикаты</button><button data-page="packages"><i>◈</i> Пакеты для продажи</button><button data-page="settings"><i>↧</i> База и резервные копии</button></nav>
+<div class="side-foot"><p>Демонстрационный управляющий центр. Данные сохраняются только в этом браузере. Экспортируйте JSON после изменений.</p><button id="logout" class="outline">Выйти из кабинета ↗</button></div></aside>
+<div id="area"><header class="topbar"><button class="hamburger" id="menu" aria-label="Открыть меню">☰</button><div class="top-left"><div class="top-kicker">Профессиональная платформа японской кухни</div><strong id="top-title">Обзор</strong></div><div class="top-right"><span class="demo-chip">● ПРОТОТИП</span><button id="quick-new" class="main-button">＋ Добавить ТТК</button></div></header><main id="main"></main></div></div>
+<div id="shade" hidden></div><nav class="bottom-nav" aria-label="Нижняя навигация"><button data-page="home" class="selected"><span>⌂</span><small>Главная</small></button><button data-page="dish"><span>▦</span><small>ТТК</small></button><button data-page="prep"><span>◇</span><small>ПФ</small></button><button data-page="packages"><span>◈</span><small>Пакеты</small></button><button data-page="settings"><span>⚙</span><small>База</small></button></nav>
+<div id="editor-backdrop" hidden><div class="editor" role="dialog" aria-modal="true" aria-labelledby="editor-title"><header class="editor-head"><div><small id="editor-kicker">ТЕХНОЛОГИЧЕСКАЯ КАРТА</small><h2 id="editor-title">Новая ТТК</h2></div><button type="button" id="close-editor" aria-label="Закрыть редактор">×</button></header>
+<form id="record-form"><div class="form-grid">
+<label class="full">Наименование *<input required name="name" maxlength="140" placeholder="Например: Ролл с лососем"></label>
+<label>Категория<input name="category" maxlength="90" placeholder="Холодные роллы"></label>
+<label>Выход, г *<input type="number" name="yield" min="0.1" max="1000000" step=".1" required placeholder="280"></label>
+<label>Статус<select name="status"><option>Черновик</option><option>На проверке</option><option>Утверждена</option></select></label>
+<label>Версия<input name="version" value="1.0" maxlength="12"></label>
+<label class="full">Фотография блюда <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp"></label>
+<div class="full image-row"><img id="image-preview" alt="Предпросмотр фотографии" hidden><div class="image-hint">Изображение сохраняется только локально. Для надёжного хранения позже подключим защищённое облако.</div><button type="button" class="outline" id="clear-photo">Убрать фото</button></div>
+<div class="full ingredients-head"><h3>Ингредиенты и граммовки</h3><button type="button" class="outline" id="add-ingredient">＋ Ингредиент</button></div>
+<div id="ingredient-rows" class="full ingredient-rows"></div>
+<label class="full">Технология приготовления <small>Каждый шаг — с новой строки.</small><textarea name="steps" rows="6" maxlength="8000" placeholder="1. Подготовить сырьё...
+2. Сформировать ролл..."></textarea></label>
+<label class="full">Примечания и проверка <textarea name="notes" rows="3" maxlength="4000" placeholder="Контроль массы, условия хранения, необходимые испытания..."></textarea></label>
+</div><div class="form-note">🛡 «Утверждена» — только после реальной технологической проверки. Сроки годности не назначаются автоматически. Публикации на витрине пока нет.</div>
+<footer class="editor-foot"><button type="button" class="outline" id="cancel-editor">Отмена</button><button type="submit" class="main-button">Сохранить черновик</button></footer></form></div></div>
+<input type="file" id="import-json" accept="application/json,.json" hidden><div id="toast" role="status" aria-live="polite"></div><script defer src="/app.js"></script></body></html>
