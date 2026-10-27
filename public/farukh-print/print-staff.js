@@ -142,7 +142,9 @@ const API={
   if(prepared?.key===key&&Date.now()<prepared.expiresAt-4000)return true;
   if(preparing?.key===key)return preparing.promise;
   const epoch=++prepareEpoch;
-  prepared=null;
+  // While renewing the grant, keep the previous STILL-VALID grant usable
+  // so a tap during the network request does not fall back to slow I/O.
+  if(!prepared||prepared.key!==key||Date.now()>=prepared.expiresAt)prepared=null;
   // No event is logged during preview; print button logs one real request.
   const promise=(async()=>{
    try{
@@ -153,7 +155,9 @@ const API={
     })});
     if(epoch!==prepareEpoch||!response.fastTicket)return false;
     prepared={key,ticket:response.fastTicket,
-     expiresAt:Number(response.expiresAt)||Date.now()+Math.min(12_000,Number(response.expiresInMs)||0)-900};
+     // Phone clocks can differ from server time; server still enforces the
+     // absolute 12-second expiry. Use local remaining time conservatively.
+     expiresAt:Date.now()+Math.min(12_000,Number(response.expiresInMs)||0)-1500};
     return true;
    }catch{return false;} // The print action still performs normal live checks.
    finally{if(preparing?.epoch===epoch)preparing=null;}
