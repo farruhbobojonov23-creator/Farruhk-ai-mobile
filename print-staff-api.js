@@ -100,6 +100,13 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!Array.isArray(records))throw bad(503,'Журнал действий повреждён.');
   return records;
  };
+ const readHistoryForOwner=async()=>{
+  // Owner's counters/history must be accurate even when the print button
+  // responds before the slow cloud journal save completes.
+  const tasks=[...pendingAudit.values()].map(x=>x.task||appendAudit(x.item));
+  if(tasks.length)await Promise.all(tasks);
+  return readHistory();
+ };
 
  const readUsers=async()=>{
   const data=await store.read(USERS,[]);
@@ -222,7 +229,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const days=String(req.query?.days||'30');
   if(!['shift','today','month','7','30','90','all'].includes(days))throw bad(400,'Период отчёта: с момента входа, сегодня, этот месяц, 7/30/90 дней или всё время.');
   const point=pointName(req.query?.point);
-  const [configured,users,events,activeSessions]=await Promise.all([readPoints(),readUsers(),readHistory(),readSessions()]);
+  const [configured,users,events,activeSessions]=await Promise.all([readPoints(),readUsers(),readHistoryForOwner(),readSessions()]);
   if(!Array.isArray(events))throw bad(503,'Журнал действий повреждён.');
   const today=moscowDay(Date.now());
   const after=['all','shift','today','month'].includes(days)?-Infinity:Date.now()-Number(days)*86400000;
@@ -338,7 +345,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    product=trim(req.query?.product,90).toLocaleLowerCase('ru');
   if(state&&!['sent','failed','system','pending'].includes(state))throw bad(400,'Неверный статус печати.');
   const limit=Math.min(300,Math.max(1,Number(req.query?.limit)||100));
-  const records=(await readHistory()).filter(e=>{
+  const records=(await readHistoryForOwner()).filter(e=>{
    if(point&&e.point!==point)return false;
    if(login&&e.login!==login)return false;
    if(product&&!String(e.product||'').toLocaleLowerCase('ru').includes(product))return false;
@@ -359,7 +366,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const point=trim(req.query?.point,60),login=trim(req.query?.login,32).toLowerCase(),
    state=trim(req.query?.result,20),product=trim(req.query?.product,90).toLocaleLowerCase('ru');
   if(state&&!['sent','failed','system','pending'].includes(state))throw bad(400,'Неверный статус.');
-  const events=(await readHistory()).filter(e=>{
+  const events=(await readHistoryForOwner()).filter(e=>{
    if(point&&e.point!==point)return false;
    if(login&&e.login!==login)return false;
    if(product&&!String(e.product||'').toLocaleLowerCase('ru').includes(product))return false;
@@ -382,7 +389,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   res.send(csv);
  }));
  app.get('/api/farukh-print/admin/staff/alerts',owner,safe(async(req,res)=>{
-  const events=await readHistory();
+  const events=await readHistoryForOwner();
   const errors=events.filter(e=>e.result==='failed').slice(-30).reverse().map(e=>({
    type:'print_error',id:e.id,at:e.resultAt||e.at,point:e.point,staff:e.staff,device:e.device,
    message:(e.product||'Этикетка')+' · '+(e.details||'Не удалось отправить на принтер')
