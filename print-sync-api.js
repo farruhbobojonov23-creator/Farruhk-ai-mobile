@@ -98,6 +98,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
+  let invalidateFastTickets=()=>{};
   const readCatalog=async()=>{
     const data=await store.read(FILE_CATALOG,{revision:0,products:[],updatedAt:null});
     if(!data||!Number.isSafeInteger(data.revision)||data.revision<0||!Array.isArray(data.products))throw error(503,'База FARUKH PRINT повреждена: изменения запрещены.');
@@ -148,6 +149,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
     next();
   };
   const protectDevice=async(req,res,next)=>{
+    if(req.farukhPrintFast)return next(); // fresh, one-use device-bound server approval
     if(!enabled)return res.status(503).json({ok:false,error:'Онлайн-синхронизация ещё не настроена владельцем.'});
     const token=String(req.get('X-Farukh-Print-Device')||'');
     if(!/^[a-zA-Z0-9_-]{43,90}$/.test(token))return res.status(401).json({ok:false,error:'Устройство не подключено.'});
@@ -179,6 +181,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
       const newState={...current,revision:revision+1,products:incoming,updatedAt:new Date().toISOString()};
       await store.write(FILE_CATALOG,newState);return newState;
     });
+    invalidateFastTickets(); // reject stale preview approvals after a catalog change
     res.json({ok:true,...next});
   }));
   app.get('/api/farukh-print/admin/devices',protectOwner,wrap(async(req,res)=>{
@@ -198,6 +201,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
       d.revoked=true;d.revokedAt=new Date().toISOString();
       await store.write(FILE_DEVICES,found);return found;
     });
+    invalidateFastTickets(); // access revocations take effect for unused tickets
     res.json({ok:true,devices:list.map(safeDevice)});
   }));
   app.post('/api/farukh-print/device/pair',wrap(async(req,res)=>{
@@ -241,5 +245,6 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
       }).catch(e=>console.warn('[farukh-print-last-seen]',e.status||'unavailable'));
     }
   }));
-  installPrintStaffApi(app,{store,auth,enabled,protectDevice,readCatalog});
+  const staffApi=installPrintStaffApi(app,{store,auth,enabled,protectDevice,readCatalog});
+  invalidateFastTickets=staffApi.invalidateFastTickets;
 }
