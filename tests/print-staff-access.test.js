@@ -322,7 +322,9 @@ test('Warm preview approval prints once quickly and still records employee, poin
   device,staff,body:{...job,fastTicket:preview.data.fastTicket}
  });
  assert.equal(second.code,200,'Used fast ticket must fall back to live authorization');
- assert.equal(persist.get('farukh-print-staff-activity.json').length,2);
+ const ownerAudit=await call('get','/api/farukh-print/admin/staff/activity',owner);
+ assert.equal(ownerAudit.code,200);
+ assert.equal(ownerAudit.data.events.length,2,'Owner history awaits asynchronous journal writes');
 });
 test('Owner revoking a worker or changing catalog invalidates unused fast print approvals',async()=>{
  const {call}=setup(),owner={owner:'ok'};
