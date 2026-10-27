@@ -425,6 +425,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   await store.transaction(async()=>{
    const all=await readSessions();await store.write(SESSIONS,all.filter(x=>x.hash!==req.farukhSession));
   });
+  invalidateFastTickets();
   res.json({ok:true});
  }));
  // Prefetch while the cook examines a label; no audit event is recorded yet.
@@ -452,7 +453,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    loginAt:req.farukhSessionData.loginAt,product,copies,revision:catalog.revision,
    expiresAt:Math.min(now+FAST_TTL_MS,req.farukhStaff.expiresAt?Date.parse(req.farukhStaff.expiresAt):Infinity)});
   res.set('Cache-Control','no-store');
-  res.json({ok:true,fastTicket:id,expiresInMs:FAST_TTL_MS});
+  res.json({ok:true,fastTicket:id,expiresInMs:FAST_TTL_MS,expiresAt:fastTickets.get(id).expiresAt});
  }));
  app.post('/api/farukh-print/device/staff/authorize-print',consumeFast,protectDevice,requireStaff,safe(async(req,res)=>{
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
