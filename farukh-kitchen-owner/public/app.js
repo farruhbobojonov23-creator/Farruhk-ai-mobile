@@ -51,7 +51,7 @@ function addRow(item){$('#ingredient-rows').appendChild(row(item))}
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
  state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
- const f=$('#record-form');f.reset();f.elements.name.value=existing?.name||'';f.elements.category.value=existing?.category||(idOrType==='prep'?'Соусы и заготовки':'Холодные роллы');f.elements.yield.value=existing?.yield||'';f.elements.status.value=existing?.status||'Черновик';f.elements.version.value=existing?.version||'1.0';f.elements.steps.value=existing?.steps||'';f.elements.notes.value=existing?.notes||'';
+ const f=$('#record-form');f.reset();f.elements.namedItem('name').value=existing?.name||'';f.elements.namedItem('category').value=existing?.category||(idOrType==='prep'?'Соусы и заготовки':'Холодные роллы');f.elements.namedItem('yield').value=existing?.yield||'';f.elements.namedItem('status').value=existing?.status||'Черновик';f.elements.namedItem('version').value=existing?.version||'1.0';f.elements.namedItem('steps').value=existing?.steps||'';f.elements.namedItem('notes').value=existing?.notes||'';
  $('#editor-title').textContent=existing?'Редактирование ТТК':(idOrType==='prep'?'Новый полуфабрикат':'Новая ТТК блюда');
  $('#editor-kicker').textContent=badgePage(existing?.type||idOrType);
  $('#ingredient-rows').replaceChildren();
@@ -68,7 +68,7 @@ async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'
 }
 function submit(e){e.preventDefault();const f=e.currentTarget;const list=$$('#ingredient-rows .ingredient-row').map(row=>({name:row.children[0].value.trim(),grams:Math.max(0,n(row.children[1].value))})).filter(x=>x.name);
  const was=state.records.find(x=>x.id===state.editing);
- const r=cleanRecord({id:was?.id||uuid(),type:was?.type||($('#editor-kicker').textContent.includes('ПОЛУФАБРИКАТ')?'prep':'dish'),name:f.elements.name.value.trim(),category:f.elements.category.value.trim(),yield:f.elements.yield.value,status:f.elements.status.value,version:f.elements.version.value,steps:f.elements.steps.value,notes:f.elements.notes.value,photo:state.photo,ingredients:list,updatedAt:new Date().toISOString()});
+ const r=cleanRecord({id:was?.id||uuid(),type:was?.type||($('#editor-kicker').textContent.includes('ПОЛУФАБРИКАТ')?'prep':'dish'),name:f.elements.namedItem('name').value.trim(),category:f.elements.namedItem('category').value.trim(),yield:f.elements.namedItem('yield').value,status:f.elements.namedItem('status').value,version:f.elements.namedItem('version').value,steps:f.elements.namedItem('steps').value,notes:f.elements.namedItem('notes').value,photo:state.photo,ingredients:list,updatedAt:new Date().toISOString()});
  // Do not allow empty approved recipes in the prototype.
  if(!r.name||r.yield<=0){toast('Укажи название и выход');return}
  if(r.status==='Утверждена'&&(!r.ingredients.length||!r.steps.trim())){toast('Для статуса «Утверждена» нужны ингредиенты и технология');return}
