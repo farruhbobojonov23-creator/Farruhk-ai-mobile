@@ -11,6 +11,16 @@ const root=document.querySelector('.app'),head=root?.querySelector('.header');
 if(!root||!head)return;
 const employeeEntry=window.FARUKH_PRINT_EMPLOYEE_ENTRY===true;
 let paired=employeeEntry||localStorage.getItem(MANAGED)==='1',staff=null,busy=false,session='',rechecking=false;
+// Server permission is prepared while the label is visible, held in RAM
+// for <= 12 seconds and consumed exactly once. Never enable offline printing.
+let prepared=null,preparing=null,prepareEpoch=0;
+function clearPrepared(){prepareEpoch++;prepared=null;preparing=null;}
+function grantKey(job){
+ const revision=window.FARUKH_PRINT_DEVICE_SYNC?.state()?.revision;
+ const product=job?.product;
+ if(!Number.isSafeInteger(revision)||revision<0||!product?.id||!Number.isInteger(job.copies)||job.copies<1||job.copies>20)return '';
+ return [deviceToken(),session,staff?.point||'',revision,product.id,job.copies].join('|');
+}
 try{
  session=localStorage.getItem(SESSION)||sessionStorage.getItem(SESSION)||'';
  if(session)localStorage.setItem(SESSION,session);
@@ -79,6 +89,7 @@ async function recheck(){
  paint();
 }
 async function signin(e){
+ clearPrepared();
  e.preventDefault();if(busy)return;
  busy=true;submit.disabled=true;
  try{
@@ -91,6 +102,7 @@ async function signin(e){
  finally{busy=false;paint()}
 }
 async function signout(){
+ clearPrepared();
  try{if(session&&deviceToken())await call('/logout',{method:'POST',body:'{}'})}catch{}
  session='';staff=null;try{localStorage.removeItem(SESSION);sessionStorage.removeItem(SESSION)}catch{}
  tell('Выход выполнен. Для печати войди под своим логином.');paint();
@@ -112,6 +124,7 @@ async function flushResults(){
 }
 const API={
  setPaired(value){
+  clearPrepared();
   // Previewing the employee URL must not permanently lock a personal owner
   // browser. Actual device pairing persists managed mode in print-sync.js.
   if(value&&!employeeEntry)localStorage.setItem(MANAGED,'1');
@@ -120,6 +133,33 @@ const API={
   if(paired&&!prior)void recheck();
  },
  loggedIn:()=>!!staff,
+ clearPrepared,
+ async prepare(job){
+  if(!staff||!session||localStorage.getItem(MANAGED)!=='1')return false;
+  const key=grantKey(job);
+  if(!key)return false;
+  if(prepared?.key===key&&Date.now()<prepared.expiresAt)return true;
+  if(preparing?.key===key)return preparing.promise;
+  const epoch=++prepareEpoch;
+  prepared=null;
+  // No event is logged during preview; print button logs one real request.
+  const promise=(async()=>{
+   try{
+    const response=await call('/preflight',{method:'POST',body:JSON.stringify({
+     productId:job.product.id,copies:job.copies,point:staff.point,
+     printedAt:new Date(job.dateValue).toISOString(),
+     catalogRevision:window.FARUKH_PRINT_DEVICE_SYNC.state().revision
+    })});
+    if(epoch!==prepareEpoch||!response.fastTicket)return false;
+    prepared={key,ticket:response.fastTicket,
+     expiresAt:Date.now()+Math.min(12_000,Number(response.expiresInMs)||0)-900};
+    return true;
+   }catch{return false;} // The print action still performs normal live checks.
+   finally{if(preparing?.epoch===epoch)preparing=null;}
+  })();
+  preparing={key,epoch,promise};
+  return promise;
+ },
  login:()=>staff?.login||'',
  point:()=>staff?.point||'',
  async reportPrint(eventId,result,details=''){
@@ -141,10 +181,14 @@ const API={
   try{
    const revision=window.FARUKH_PRINT_DEVICE_SYNC?.state().revision;
    if(!Number.isSafeInteger(revision)||revision<0)throw Error('Каталог ещё не загружен из FARUKH AI. Нажми «Обновить товары» и повтори.');
+   const key=grantKey(job);
+   const fastTicket=prepared?.key===key&&Date.now()<prepared.expiresAt?prepared.ticket:null;
+   clearPrepared(); // Never reuse after an attempted print.
    const result=await call('/authorize-print',{
     method:'POST',body:JSON.stringify({
      productId:product.id,copies:job.copies,point:staff.point,
-     printedAt:new Date(job.dateValue).toISOString(),catalogRevision:revision
+     printedAt:new Date(job.dateValue).toISOString(),catalogRevision:revision,
+     ...(fastTicket?{fastTicket}:{})
     })
    });
    return result;
