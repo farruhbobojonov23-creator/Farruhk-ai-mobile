@@ -246,3 +246,79 @@ body{background:linear-gradient(160deg,#fffdf9 0%,#f9f0e5 55%,#f6e9d7 100%);back
  .recipe-card .card-topline{font-size:8px}
  .recipe-card .card-status{font-size:7px}
 }
+
+/* FARUKH KITCHEN buyer prototype v0.7 — one company profile, whole package print */
+.buyer-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 19px}
+.buyer-summary>div{display:flex;gap:11px;align-items:center;min-height:83px;padding:14px 15px;border:1px solid #e2cb9f;border-radius:15px;background:linear-gradient(125deg,#fffefa,#f5e4ca);box-shadow:0 7px 24px #91622d16;flex-wrap:wrap}
+.buyer-summary-mark{display:grid;place-items:center;width:35px;height:35px;flex:0 0 35px;border-radius:12px;background:linear-gradient(130deg,#f8dfa9,#b98336);color:#fffefc;font-weight:900}
+.buyer-summary strong{display:block;flex:1 1 calc(100% - 50px);color:#493119;font-size:12px}
+.buyer-summary small{display:block;padding-left:46px;margin-top:-10px;color:#937b5a;font-size:10px;width:100%}
+.buyer-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px;margin-bottom:23px;align-items:stretch}
+.buyer-layout .white-panel{padding:23px;border-color:#e1cba9;border-radius:19px;box-shadow:0 11px 32px #9470491b,inset 0 1px #fff}
+.buyer-layout h2{font-size:20px;margin:10px 0 6px;color:#3f2b19}
+.buyer-layout .muted{font-size:12px;color:#89745c;line-height:1.8;margin:4px 0 17px}
+.buyer-company-form{display:grid;gap:9px}
+.buyer-company-form label{font-size:12px;font-weight:850;color:#725331;margin-top:7px}
+.buyer-company-form .field{min-height:49px;width:100%;background:#fffdf9;border:1px solid #dbc29d;border-radius:11px;padding:12px 14px;font-size:13px;color:#392818}
+.buyer-company-form .field:focus-visible{outline:3px solid #d1a468;outline-offset:1px}
+.buyer-save-button{min-height:47px;margin-top:14px;font-size:12px}
+.buyer-saved-info{padding:15px;border-radius:13px;margin:17px 0 0;background:linear-gradient(130deg,#fbf4e6,#f0e1c8);border:1px solid #e3cba4}
+.buyer-saved-info .buyer-status-pill{display:inline-block;color:#3d7951;background:#e5f3e4;padding:5px 9px;font-size:10px;font-weight:900;border-radius:40px}
+.buyer-saved-info .buyer-saved-title{font-size:14px;color:#3d2b19;font-weight:900;margin:12px 0 4px}
+.buyer-saved-info span{display:block;color:#7c6344;font-size:11px}
+.buyer-saved-info small{display:block;margin-top:8px;color:#9a8464;font-size:10px;line-height:1.4}
+.buyer-empty-profile p{color:#886b43;font-size:11px;margin:9px 0 0;line-height:1.6}
+.buyer-bundle-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}
+.buyer-bundle-numbers>div{border:1px solid #e6d2b0;border-radius:11px;padding:12px 5px;text-align:center;background:#fff8e9}
+.buyer-bundle-numbers b{display:block;font-size:26px;color:#9d6c2a;line-height:1.1}
+.buyer-bundle-numbers span{display:block;font-size:10px;color:#846a49;margin-top:6px}
+.buyer-preview-card{border-radius:14px;border:1px solid #e5cea6;background:linear-gradient(125deg,#fffdfa,#f7e8d0);padding:18px;margin:0 0 14px}
+.buyer-preview-card strong{font-size:13px;color:#4e3420}
+.buyer-preview-card p{color:#8c7558;font-size:11px;line-height:1.75;margin:9px 0 0}
+.buyer-bundle-btn{width:100%;min-height:49px}
+.buyer-file-help{font-size:11px;line-height:1.6;color:#94795b;text-align:center;margin:11px 0 18px}
+.buyer-pack-panel>.secondary-action{width:100%;min-height:40px}
+.buyer-legal-note{border:1px solid #dfc49a;background:linear-gradient(120deg,#fff8ea,#faecd5);border-radius:13px}
+#buyer-print-root{display:none}
+@media(max-width:1100px){.buyer-summary>div{padding:12px 10px;gap:7px}.buyer-summary-mark{width:30px;height:30px;flex-basis:30px}.buyer-summary small{padding-left:0;margin-top:0}}
+@media(max-width:900px){.buyer-layout{grid-template-columns:1fr}.buyer-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.buyer-summary>div{justify-content:center;flex-direction:column;gap:6px;text-align:center}.buyer-summary strong{flex:0 0 auto;font-size:10px}.buyer-summary small{font-size:9px}}
+@media(max-width:600px){.buyer-summary{gap:7px}.buyer-summary>div{min-height:118px;padding:9px 5px}.buyer-summary-mark{height:28px;width:28px;flex-basis:28px;font-size:11px}.buyer-summary strong{font-size:9px;line-height:1.4}.buyer-summary small{font-size:8px;line-height:1.35}.buyer-layout{gap:12px}.buyer-layout .white-panel{padding:17px}.buyer-layout h2{font-size:18px}.buyer-bundle-numbers b{font-size:23px}.buyer-bundle-numbers span{font-size:9px}}
+@page{size:A4 portrait;margin:13mm 12mm}
+@media print{
+ body,html{background:white!important;color:#111!important;margin:0!important;padding:0!important}
+ body>*:not(#buyer-print-root){display:none!important}
+ #buyer-print-root{display:block!important;position:static!important;width:100%!important;background:white!important}
+ #buyer-print-root *{box-sizing:border-box!important;box-shadow:none!important;text-shadow:none!important}
+ #buyer-print-root .buyer-sheet{page-break-after:always;break-after:page;page-break-inside:avoid;break-inside:avoid-page;width:100%;min-height:259mm;padding:8mm 5mm 4mm;font-family:Arial,sans-serif;font-size:9pt;line-height:1.35;color:#111;background:white;position:relative}
+ #buyer-print-root .buyer-sheet:last-child{page-break-after:auto;break-after:auto}
+ #buyer-print-root .buyer-sheet h2{text-align:center;font-size:12pt;margin:9px 0}
+ #buyer-print-root .buyer-sheet h3{text-align:center;font-size:13pt;margin:9px 0 15px}
+ #buyer-print-root .buyer-sheet h4{font-size:9pt;margin:0 0 5px}
+ #buyer-print-root .buyer-sheet p{margin:4px 0 8px;font-size:8.5pt}
+ #buyer-print-root .buyer-sheet section{padding:5px 0;border-top:1px solid #aaa;break-inside:avoid}
+ #buyer-print-root .buyer-paper-approval{display:flex;align-items:flex-start;justify-content:space-between;gap:12mm;padding-bottom:10px}
+ #buyer-print-root .buyer-paper-approval>div{max-width:53%}
+ #buyer-print-root .buyer-paper-approver{text-align:right}
+ #buyer-print-root .buyer-paper-approver p{margin:5px 0}
+ #buyer-print-root .buyer-paper-brand{text-align:center;font-size:8pt;font-weight:bold;letter-spacing:.08em;margin:12px 0}
+ #buyer-print-root .buyer-sheet table{border-collapse:collapse;width:100%;margin:6px 0;table-layout:fixed}
+ #buyer-print-root .buyer-sheet th,#buyer-print-root .buyer-sheet td{border:1px solid #666;padding:4px 6px;text-align:left;overflow-wrap:anywhere;font-size:8pt}
+ #buyer-print-root .buyer-sheet th:first-child{width:7%}
+ #buyer-print-root .buyer-sheet th:nth-child(3),#buyer-print-root .buyer-sheet th:nth-child(4){width:17%}
+ #buyer-print-root .buyer-sheet tr{break-inside:avoid}
+ #buyer-print-root .buyer-sheet ol{padding-left:22px;margin:5px 0 8px}
+ #buyer-print-root .buyer-sheet li{margin:3px 0;font-size:8.3pt}
+ #buyer-print-root .buyer-paper-watermark{border:2px solid #555;padding:9px;font-size:12pt;text-align:center;font-weight:900;margin:16px 0}
+ #buyer-print-root .buyer-paper-warning{font-weight:700}
+ #buyer-print-root .buyer-sheet footer{font-size:7pt;line-height:1.45;border-top:1px solid #999;margin-top:10px;padding:6px 0;color:#555}
+ #buyer-print-root .buyer-sheet-cover{padding-top:40mm!important}
+ #buyer-print-root .buyer-cover-brand{font-size:25pt;text-align:center;color:#6c4821;font-weight:900}
+ #buyer-print-root .buyer-cover-brand span{color:#b28244}
+ #buyer-print-root .buyer-cover-kicker{text-align:center;font-size:10pt;letter-spacing:.16em;margin:15mm 0}
+ #buyer-print-root .buyer-sheet-cover h1{text-align:center;font-size:21pt;margin:10mm 0}
+ #buyer-print-root .buyer-sheet-cover h2{text-align:center;font-size:13pt;margin-bottom:16mm}
+ #buyer-print-root .buyer-cover-company{border:2px solid #c4ad85;padding:12mm;margin:0 auto 10mm;width:85%}
+ #buyer-print-root .buyer-cover-company p{font-size:12pt;padding-bottom:6mm}
+ #buyer-print-root .buyer-cover-counts{text-align:center;font-weight:bold;margin:12mm 0}
+ #buyer-print-root .buyer-cover-warning{border:3px solid #333;text-align:center;padding:8mm;font-weight:bold!important;font-size:12pt!important}
+}
