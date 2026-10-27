@@ -123,6 +123,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   if(!Array.isArray(stored)||stored.length<1||stored.length>30||stored.some(p=>typeof p!=='string'||!validPoint(p)))throw bad(503,'Список точек повреждён.');
   if(new Set(stored.map(p=>p.toLocaleLowerCase('ru'))).size!==stored.length)throw bad(503,'Список точек содержит дубликаты.');
   const extras=stored.filter(p=>!FOUR_POINTS.some(name=>samePoint(name,p)));
+  if(extras.length+FOUR_POINTS.length>30)throw bad(503,'Превышен лимит точек.');
   return [...FOUR_POINTS,...extras];
  };
  const requestedPoints=(body,configured)=>{
@@ -190,6 +191,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  }));
  app.patch('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
   const former=pointName(req.body?.oldName),name=pointName(req.body?.name);
+  if(FOUR_POINTS.some(p=>samePoint(p,former)))throw bad(403,'Основные четыре точки нельзя переименовать.');
   if(!validPoint(former)||!validPoint(name))throw bad(400,'Проверь название точки.');
   const result=await store.transaction(async()=>{
    const list=await readPoints(),index=list.findIndex(p=>samePoint(p,former));
@@ -204,11 +206,12 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    await store.write(USERS,employees);
    return {points:list,users:employees,prior:currentName};
   });
-  for(const u of result.users)if(samePoint(u.point,name))await revokeSessions(u.id);
+  for(const u of result.users)if(assignedPoints(u).some(p=>samePoint(p,name)))await revokeSessions(u.id);
   res.json({ok:true,points:result.points,notice:'Учётные записи переведены на новую точку. Старые запросы печати не изменены.'});
  }));
  app.delete('/api/farukh-print/admin/staff/points',owner,safe(async(req,res)=>{
   const name=pointName(req.body?.name);
+  if(FOUR_POINTS.some(p=>samePoint(p,name)))throw bad(403,'Основные четыре точки нельзя удалить.');
   const points=await store.transaction(async()=>{
    const list=await readPoints();
    if(list.length<=1)throw bad(409,'Нельзя удалить последнюю точку.');
