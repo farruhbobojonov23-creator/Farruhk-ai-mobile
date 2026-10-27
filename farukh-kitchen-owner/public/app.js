@@ -206,7 +206,7 @@ async function importJson(file){if(!file)return;if(file.size>5e6){toast('Фай�
 async function logout(){await fetch('/api/logout',{method:'POST',credentials:'same-origin'});location.replace('/')}
 
 function printTTK(id){
- const r=state.records.find(x=>x.id===id);if(!r)return toast('Карта не найдена');
+ const r=typeof id==='object'?id:state.records.find(x=>x.id===id);if(!r)return toast('Карта не найдена');
  const line=x=>esc(x||'—').replace(/\n/g,'<br>');
  const rows=(r.ingredients||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${it.gross??'—'}</td><td>${it.grams??'—'}</td></tr>`).join('');
  const val=x=>x===null||x===undefined||x===''?'—':esc(x);
@@ -235,6 +235,20 @@ function printTTK(id){
  window.print();
 }
 
+function blankPDF(){
+ const kind=$('#record-form')?.elements?.namedItem('documentType')?.value||'ТТК';
+ const r={documentType:kind,cardNumber:'_________',name:'_________________________',organization:'________________',
+ category:'____________',yield:'____',approvedBy:'_________________________',approvedDate:'___________',status:'Черновик',version:'—',
+ ingredients:Array.from({length:8},()=>({name:'_________________________',gross:'',grams:''})),
+ scope:'________________________________________________________________________________',
+ rawRequirements:'________________________________________________________________________________',
+ steps:'________________________________________________________________________________\n________________________________________________________________________________',
+ presentation:'________________________________________________________________________________',storage:'________________________________________________________________________________',
+ organoleptic:'________________________________________________________________________________',safety:'________________________________________________________________________________',
+ developmentAct:'____________________',shelfBasis:'________________________',shelfLifeHours:null,notes:'____________________________________',
+ nutrition:{protein:null,fat:null,carb:null,kcal:null}};
+ printTTK(r);
+}
 async function bind(){
  const check=await fetch('/api/session',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>({authenticated:false}));if(!check.authenticated){location.replace('/');return}
  const config=await fetch('/api/config',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}));sheet=config.sheetUrl||'';
@@ -245,6 +259,7 @@ async function bind(){
  if(t.dataset.page){nav(t.dataset.page);return}
  if(t.id==='quick-new'){showEditor('dish');return}
  if(t.id==='save-pdf'){pendingPdfExport=true;$('#record-form').requestSubmit();return}
+ if(t.id==='blank-pdf'){blankPDF();return}
  if(t.dataset.new){showEditor(t.dataset.new);return}
  if(t.dataset.print){printTTK(t.dataset.print);return}
  if(t.dataset.edit){showEditor(t.dataset.edit);return}
