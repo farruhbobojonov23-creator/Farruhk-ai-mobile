@@ -64,6 +64,9 @@ const isHaccp=p=>!!HACCP?.getTemplate(p);
 // solely when the old native validator explicitly rejects 30×20.
 let legacyNative30Transport=false,pendingNativePrint=null,editorPhoto='',favoritesOnly=false,activePrintEvent=null,manualPremium=false,manualPrepPremium=false,editorPhotoChanged=false;
 let lastSuccessfulTransfer=null;
+// New products start with the current local production time. Manual edits freeze
+// that value until the cook selects another product or presses «Сейчас».
+let autoPrintedAt=true;
 let batchMode=false,batchRunning=false;
 const batchSelection=new Set();
 let nativePrintResolver=null;
@@ -71,6 +74,15 @@ const native=typeof window.FarukhPrinter?.postMessage==='function';
 const sendNative=packet=>window.FarukhPrinter.postMessage(JSON.stringify(packet));
 const status=(message,error=false)=>{const node=$('print-message');node.textContent=message;node.dataset.error=error?'yes':'no'};
 const nowLocal=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
+function refreshPrintedAt(){
+ // Do not overwrite real batch timestamps, HACCP times, or a manual edit.
+ if(!autoPrintedAt||busy||batchRunning||!current()||isHaccp(current())||$('catalog').hidden)return false;
+ const now=nowLocal();
+ if($('printed-at').value===now)return false;
+ $('printed-at').value=now;
+ updatePreview();
+ return true;
+}
 const formatted=epoch=>new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(epoch)).replace(',','');
 const nv=n=>String(n).replace('.',',');
 const str=s=>String(s??'').trim();
@@ -173,7 +185,7 @@ async function repeatLast(){
  if(!p||p.needsReview||(!isHaccp(p)&&(!p.hours||!p.storage))){status('Последнюю этикетку нельзя повторить — проверь товар.',true);return}
  if(kind!==p.kind)openCatalog(p.kind);
  activeCategory='';
- selected=p.id;$('printed-at').value=nowLocal();$('copies').value=String(Math.min(20,Math.max(1,Number(old.copies)||1)));
+ selected=p.id;autoPrintedAt=true;$('printed-at').value=nowLocal();$('copies').value=String(Math.min(20,Math.max(1,Number(old.copies)||1)));
  if(p.kind==='prep')$('point-name').value=workerLoggedIn.point;
  favoritesOnly=false;renderCatalog();openWorkerPreview();await doPrint(false);
 }
@@ -318,7 +330,7 @@ function openCatalog(type){
  $('catalog-kicker').textContent=type==='ready'?'ГОТОВАЯ ПРОДУКЦИЯ':'ПОЛУФАБРИКАТЫ';
  $('print-size-badge').textContent=type==='ready'?'58 × 40 мм':'30 × 20 мм';
  $('point-field').hidden=type==='ready'||isManaged();
- $('printed-at').value=nowLocal();$('copies').value='1';
+ autoPrintedAt=true;$('printed-at').value=nowLocal();$('copies').value='1';
  show('catalog');renderWorker();renderCatalog();
 }
 function prepGroup(p){
@@ -430,6 +442,8 @@ function renderCatalog(){
      renderBatchToolbar();return;
     }
     selected=p.id;haccpDraft=null;$('haccp-limit').value='';
+    // Switching rolls should never carry the previous roll's stale time.
+    autoPrintedAt=true;$('printed-at').value=nowLocal();
     if(kind==='prep')$('point-name').value=window.FARUKH_PRINT_STAFF_API?.point()||p.point||'';
     // Do not remount 90+ food pictures on each product tap.
     list.querySelector('.product-tile.selected')?.classList.remove('selected');
@@ -867,6 +881,8 @@ function browserPrint({canvas,svg,copies}){
 }
 async function doPrint(forceSystem=false,waitForAck=false){
  if(busy)return false;
+ // Refresh the time immediately before printing unless manually fixed.
+ refreshPrintedAt();
  const startedAt=Date.now();
  let authorizationMs=0,rasterMs=0;
  let rasterTask=null;
@@ -1168,7 +1184,11 @@ function boot(){
   if(typeof scanner?.open!=='function'){status('QR-сканер ещё не загрузился. Обнови FARUKH PRINT.',true);return;}
   scanner.open();
  };
- $('printed-at').addEventListener('input',updatePreview);
+ $('printed-at').addEventListener('input',()=>{autoPrintedAt=false;updatePreview()});
+ $('printed-at-now').onclick=()=>{autoPrintedAt=true;$('printed-at').value=nowLocal();updatePreview()};
+ setInterval(refreshPrintedAt,20_000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPrintedAt()});
+ window.addEventListener('pageshow',refreshPrintedAt);
  $('haccp-new').onclick=()=>{const p=current();if(!isHaccp(p))return;if(!confirm('Начать новую порцию для этой ёмкости? Нажимай только после приготовления или заполнения.'))return;haccpDraft={id:p.id,batch:null};$('haccp-limit').value='';updatePreview();};
  $('haccp-limit').addEventListener('input',updatePreview);
  $('point-name').addEventListener('input',updatePreview);
