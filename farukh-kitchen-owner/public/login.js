@@ -1,1 +1,31 @@
-'use strict';document.getElementById('login').addEventListener('submit',async(e)=>{e.preventDefault();const form=e.currentTarget,b=form.querySelector('button'),msg=document.getElementById('message');msg.textContent='Проверка доступа…';b.disabled=true;try{const r=await fetch('/api/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username:form.elements.namedItem('username').value,password:form.elements.namedItem('password').value})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Вход не выполнен');form.elements.namedItem('password').value='';location.replace('/admin')}catch(err){msg.textContent=err.message;b.disabled=false}});
+'use strict';
+const form = document.getElementById('login');
+const msg = document.getElementById('message');
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = form.querySelector('button[type="submit"]');
+  const usernameInput = form.querySelector('input[name="username"]');
+  const passwordInput = form.querySelector('input[name="password"]');
+  msg.textContent = 'Проверка доступа…';
+  button.disabled = true;
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        username: usernameInput.value.trim(),
+        password: passwordInput.value
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Не удалось войти');
+    passwordInput.value = '';
+    window.location.replace('/admin');
+  } catch (error) {
+    msg.textContent = error instanceof Error ? error.message : 'Ошибка входа';
+  } finally {
+    button.disabled = false;
+  }
+});
