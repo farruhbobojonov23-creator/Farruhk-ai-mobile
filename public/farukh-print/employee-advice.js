@@ -108,6 +108,7 @@ const sectionData=(product,tips,norms,individual)=>({
   ['Проверка','Как распознать возможную порчу',tips.spoilage]
  ],
  'Нормы':[
+  ...(individual?[['Полка','Схема размещения по ХАССП',individual.shelf],['Проверка','Для этой заготовки проверить',individual.tips.control]]:[]),
   ['Технология',norms.group,norms.question],
   ['Справка','Условия применения',norms.example]
  ]
