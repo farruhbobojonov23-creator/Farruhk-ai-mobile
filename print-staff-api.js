@@ -472,11 +472,12 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
     staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
     deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,
     productId:product.id,product:product.name,copies,device:req.farukhPrintDevice.name};
-  if(req.farukhPrintFast){
-   // Do not block Bluetooth on a slow cloud audit write. Result endpoint
-   // awaits the queued record; locally queued results can be retried later.
-   writeAuditInBackground(item);
-  }else await appendAudit(item);
+  // All grants — fast preflight and strict online fallback — have passed
+  // server-side device, session, expiry, and catalog validation by this point.
+  // Don't block a physical Bluetooth print on a separate slow journal write.
+  // print-result awaits/retries this in-flight entry before marking it sent.
+  if(pendingAudit.size>=500)throw bad(503,'Журнал печати перегружен. Подожди восстановления облака.');
+  writeAuditInBackground(item);
   res.set('Cache-Control','no-store');res.json({ok:true,eventId:item.id,staff:userSafe(req.farukhStaff)});
  }));
  app.post('/api/farukh-print/device/staff/print-result',protectDevice,requireStaff,safe(async(req,res)=>{
