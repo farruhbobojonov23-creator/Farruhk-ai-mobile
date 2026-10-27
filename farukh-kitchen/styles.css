@@ -216,3 +216,33 @@ body{background:linear-gradient(160deg,#fffdf9 0%,#f9f0e5 55%,#f6e9d7 100%);back
 /* FARUKH KITCHEN: consistent premium mobile navigation icons */
 .bottom-link svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:0 0 24px}
 .bottom-link.active svg{stroke-width:2}
+
+/* FARUKH KITCHEN v0.5: two-column mobile catalogs */
+@media (min-width:681px) and (max-width:950px) {
+ .recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:680px) {
+ /* Both finished-dish and semi-finished-product catalogs use one shared recipe-grid. */
+ .recipe-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;align-items:stretch}
+ .recipe-card{min-width:0;min-height:0;border-radius:14px;overflow:hidden}
+ .recipe-card .food-visual{height:clamp(116px,32vw,165px)}
+ .recipe-card .recipe-photo{object-position:center}
+ .recipe-card .card-caption{min-width:0;padding:12px 10px 11px}
+ .recipe-card .card-topline{font-size:9px;line-height:1.3;letter-spacing:0;gap:5px;align-items:flex-start}
+ .recipe-card .card-topline>span:first-child{min-width:0;overflow-wrap:anywhere}
+ .recipe-card .card-status{font-size:8px;padding:3px 5px;flex:0 0 auto}
+ .recipe-card .card-caption h3{font-size:14px;line-height:1.35;min-height:38px;margin:9px 0 4px;overflow-wrap:anywhere}
+ .recipe-card .card-caption p{display:none}
+ .recipe-card .card-bottom{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding-top:10px}
+ .recipe-card .card-bottom span{font-size:10px;color:#846d4f;line-height:1.3}
+ .recipe-card .card-bottom button{display:block;width:100%;min-height:40px;background:linear-gradient(120deg,#fff2d6,#e7bf83);border:1px solid #dfbb85;border-radius:9px;color:#68421f;font-size:11px;text-align:center;touch-action:manipulation}
+ .recipe-card .card-bottom button:focus-visible{outline:3px solid #a6752e;outline-offset:2px}
+ .recipe-card .photo-disclaimer{bottom:5px;right:5px;font-size:8px;padding:2px 5px}
+}
+@media (max-width:340px) {
+ .recipe-grid{gap:7px}
+ .recipe-card .card-caption{padding:9px 7px}
+ .recipe-card .card-caption h3{font-size:12px;min-height:36px}
+ .recipe-card .card-topline{font-size:8px}
+ .recipe-card .card-status{font-size:7px}
+}
