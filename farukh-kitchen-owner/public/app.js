@@ -179,6 +179,37 @@ function submit(e){
 function exportJson(){const out={format:'FARUKH_KITCHEN_OWNER_DRAFTS',version:1,exportedAt:new Date().toISOString(),records:state.records};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='FARUKH_KITCHEN_BACKUP_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Резервная копия подготовлена')}
 async function importJson(file){if(!file)return;if(file.size>5e6){toast('Файл больше 5 МБ — импорт отменён');return}try{const data=JSON.parse(await file.text());if(data.format!=='FARUKH_KITCHEN_OWNER_DRAFTS'||!Array.isArray(data.records)||data.records.length>500)throw Error('Неизвестный формат резервной копии');if(!confirm('Заменить все текущие локальные черновики содержимым файла?'))return;const items=data.records.map(cleanRecord);const prev=state.records;state.records=items;if(!keep()){state.records=prev;return}render();toast('Импортировано ТТК: '+items.length)}catch(e){toast('Ошибка импорта: '+e.message)}}
 async function logout(){await fetch('/api/logout',{method:'POST',credentials:'same-origin'});location.replace('/')}
+
+function printTTK(id){
+ const r=state.records.find(x=>x.id===id);if(!r)return toast('Карта не найдена');
+ const line=x=>esc(x||'—').replace(/\n/g,'<br>');
+ const rows=(r.ingredients||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${it.gross??'—'}</td><td>${it.grams??'—'}</td></tr>`).join('');
+ const val=x=>x===null||x===undefined||x===''?'—':esc(x);
+ const nutr=r.nutrition||{};
+ const print=document.getElementById('print-area')||document.createElement('div');
+ print.id='print-area';
+ print.innerHTML=`<div class="print-document">
+ <div class="print-approval"><span>УТВЕРЖДАЮ<br>${val(r.approvedBy)}<br>Дата: ${val(r.approvedDate)}</span><span>Статус: <b>${esc(r.status)}</b><br>Версия: ${esc(r.version)}</span></div>
+ <div class="print-brand">FARUKH KITCHEN · ТЕХНОЛОГИЧЕСКИЕ ДОКУМЕНТЫ</div>
+ <h1>${r.documentType==='ТК'?'ТЕХНОЛОГИЧЕСКАЯ КАРТА':'ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'} № ${val(r.cardNumber)}</h1>
+ <h2>${esc(r.name)}</h2><p><b>Предприятие:</b> ${val(r.organization)} &nbsp; <b>Категория:</b> ${val(r.category)}</p>
+ <h3>1. Область применения</h3><p>${line(r.scope)}</p>
+ <h3>2. Требования к сырью</h3><p>${line(r.rawRequirements)}</p>
+ <h3>3. Рецептура / нормы закладки</h3>
+ <table><thead><tr><th>№</th><th>Наименование сырья / ПФ</th><th>Брутто, г</th><th>Нетто, г</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Не заполнено</td></tr>'}</tbody></table>
+ <p><b>Выход готового изделия / ПФ:</b> ${val(r.yield)} г. <b>Проработка:</b> ${val(r.developmentAct)}</p>
+ <h3>4. Технологический процесс</h3><p>${line(r.steps)}</p>
+ <h3>5. Оформление, подача, реализация и хранение</h3><p><b>Оформление и подача:</b> ${line(r.presentation)}</p><p><b>Условия:</b> ${line(r.storage)}</p><p><b>Срок:</b> ${r.shelfLifeHours??'не установлен'}${r.shelfLifeHours?' ч':''}. <b>Обоснование:</b> ${line(r.shelfBasis)}</p>
+ <h3>6. Качество и безопасность</h3><p><b>Органолептика:</b> ${line(r.organoleptic)}</p><p><b>Контроль безопасности:</b> ${line(r.safety)}</p>
+ <h3>7. Пищевая и энергетическая ценность на 100 г</h3><table><thead><tr><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Ккал</th></tr></thead><tbody><tr><td>${val(nutr.protein)}</td><td>${val(nutr.fat)}</td><td>${val(nutr.carb)}</td><td>${val(nutr.kcal)}</td></tr></tbody></table>
+ <h3>8. Примечания и аллергены</h3><p>${line(r.notes)}</p>
+ <div class="print-status">${r.status==='Утверждена'?'Запись обозначена как утверждённая владельцем; проверьте оригиналы подтверждающих документов и подпись.':'ЧЕРНОВИК · НЕ УТВЕРЖДЕНО · НЕ ДЛЯ ПРОИЗВОДСТВА'}</div>
+ <p class="print-foot">Структура разделов: ГОСТ 31987-2012. СанПиН 2.3/2.4.3590-20 регулирует безопасность производства; данный шаблон не заменяет выполнение санитарных правил и документальную верификацию.</p>
+ </div>`;
+ if(!print.parentNode)document.body.appendChild(print);
+ window.print();
+}
+
 async function bind(){
  const check=await fetch('/api/session',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>({authenticated:false}));if(!check.authenticated){location.replace('/');return}
  const config=await fetch('/api/config',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}));sheet=config.sheetUrl||'';
@@ -189,18 +220,22 @@ async function bind(){
  if(t.dataset.page){nav(t.dataset.page);return}
  if(t.id==='quick-new'){showEditor('dish');return}
  if(t.dataset.new){showEditor(t.dataset.new);return}
+ if(t.dataset.print){printTTK(t.dataset.print);return}
  if(t.dataset.edit){showEditor(t.dataset.edit);return}
  if(t.dataset.delete){const r=state.records.find(x=>x.id===t.dataset.delete);if(!r||!confirm('Удалить «'+r.name+'» из локальной базы?'))return;const before=state.records;state.records=before.filter(x=>x.id!==r.id);if(!keep()){state.records=before;return}render();toast('ТТК удалена локально');return}
  if(t.dataset.filter){state.filter=t.dataset.filter;render();return}
  if(t.id==='close-editor'||t.id==='cancel-editor'){closeEditor();return}
+ if(t.dataset.step!==undefined){setStep(Number(t.dataset.step));return}
+ if(t.id==='step-next'){setStep(wizardStep+1);return}
+ if(t.id==='step-prev'){setStep(wizardStep-1);return}
  if(t.id==='add-ingredient'){if($$('#ingredient-rows .ingredient-row').length>=100)return toast('Достигнут лимит 100 ингредиентов');addRow();return}
  if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');return}
  if(t.id==='clear-photo'){state.photo=null;$('#photo-input').value='';updatePhoto();return}
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
  });
- document.addEventListener('input',e=>{if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
- document.addEventListener('change',async e=>{if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
+ document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows'))sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
+ document.addEventListener('change',async e=>{if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
  $('#editor-backdrop').addEventListener('click',e=>{if(e.target.id==='editor-backdrop')closeEditor()});
