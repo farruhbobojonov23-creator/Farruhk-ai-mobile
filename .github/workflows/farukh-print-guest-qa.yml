@@ -15,6 +15,8 @@ on:
       - 'public/farukh-print/index.html'
       - 'print-sync-api.js'
       - 'print-staff-api.js'
+      - 'print-fast-store.js'
+      - 'tests/print-fast-store.test.js'
       - 'tests/print-staff-access.test.js'
       - 'tests/print-guest-browse-login.test.js'
       - '.github/workflows/farukh-print-guest-qa.yml'
@@ -41,4 +43,4 @@ jobs:
         run: |
           node --check public/farukh-print/print.js
           node --check public/farukh-print/print-staff.js
-          node --test tests/print-guest-browse-login.test.js tests/print-staff-access.test.js tests/print-worker-home.test.js tests/print-employee-stable-link.test.js tests/print-android-safe-area.test.js tests/print-qr-interactions.test.js
+          node --test tests/print-guest-browse-login.test.js tests/print-staff-access.test.js tests/print-fast-store.test.js tests/print-worker-home.test.js tests/print-employee-stable-link.test.js tests/print-android-safe-area.test.js tests/print-qr-interactions.test.js
