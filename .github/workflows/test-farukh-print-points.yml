@@ -1,0 +1,31 @@
+name: FARUKH PRINT location access tests
+on:
+  pull_request:
+    paths:
+      - 'print-staff-api.js'
+      - 'print-recovery-store.js'
+      - 'public/farukh-print/print-staff.js'
+      - 'public/print-control-staff.js'
+      - 'tests/print-staff-multipoint.test.js'
+      - '.github/workflows/test-farukh-print-points.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'print-staff-api.js'
+      - 'tests/print-staff-multipoint.test.js'
+jobs:
+  points:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: |
+          node --check print-staff-api.js
+          node --check public/farukh-print/print-staff.js
+          node --check public/print-control-staff.js
+      - name: Test employee permissions for kitchen points
+        run: node --test tests/print-staff-multipoint.test.js
