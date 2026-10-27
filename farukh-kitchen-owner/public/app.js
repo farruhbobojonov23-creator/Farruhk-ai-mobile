@@ -9,10 +9,21 @@ function safePhoto(x){return typeof x==='string'&&/^data:image\/(jpeg|png|webp);
 function keep(){try{localStorage.setItem(key,JSON.stringify(state.records));return true}catch(e){toast('Недостаточно памяти браузера. Экспортируйте JSON.');return false}}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3400)}
 const n=(v)=>Number(v)||0;
-function cleanItem(x){return {name:String(x?.name||'').slice(0,130),grams:Math.max(0,n(x?.grams))}}
+function cleanItem(x){return {name:String(x?.name||'').slice(0,130),gross:x?.gross===null||x?.gross===''?null:(Number.isFinite(Number(x?.gross))?Math.max(0,Number(x.gross)):null),grams:x?.grams===null||x?.grams===''?null:(Number.isFinite(Number(x?.grams))?Math.max(0,Number(x.grams)):null)}}
 function cleanRecord(x){
  const t=x?.type==='prep'?'prep':'dish',stat=['Черновик','На проверке','Утверждена'].includes(x?.status)?x.status:'Черновик';
- return {id:String(x?.id||uuid()).slice(0,65),type:t,name:String(x?.name||'').slice(0,140),category:String(x?.category||'').slice(0,90),yield:Math.max(0,n(x?.yield)),status:stat,version:String(x?.version||'1.0').slice(0,12),photo:safePhoto(x?.photo),ingredients:Array.isArray(x?.ingredients)?x.ingredients.slice(0,100).map(cleanItem):[],steps:String(x?.steps||'').slice(0,8000),notes:String(x?.notes||'').slice(0,4000),updatedAt:String(x?.updatedAt||new Date().toISOString()).slice(0,40)};
+ const safe=(v,max=2500)=>String(v??'').slice(0,max);
+ const nutrition={};
+ for(const k of ['protein','fat','carb','kcal'])nutrition[k]=x?.nutrition?.[k]===null||x?.nutrition?.[k]===''||x?.nutrition?.[k]===undefined?null:Math.max(0,Number(x.nutrition[k])||0);
+ return {id:safe(x?.id||uuid(),65),type:t,
+ name:safe(x?.name,140),category:safe(x?.category,90),yield:Math.max(0,n(x?.yield)),status:stat,version:safe(x?.version||'1.0',12),photo:safePhoto(x?.photo),
+ documentType:x?.documentType==='ТК'?'ТК':'ТТК',preset:safe(x?.preset,60),cardNumber:safe(x?.cardNumber,50),organization:safe(x?.organization,160),
+ scope:safe(x?.scope,2000),rawRequirements:safe(x?.rawRequirements,2500),developmentAct:safe(x?.developmentAct,150),
+ presentation:safe(x?.presentation,2500),storage:safe(x?.storage,2500),
+ shelfLifeHours:x?.shelfLifeHours===null||x?.shelfLifeHours===''||x?.shelfLifeHours===undefined?null:Math.max(0,Number(x.shelfLifeHours)||0),shelfBasis:safe(x?.shelfBasis,500),
+ organoleptic:safe(x?.organoleptic,2500),safety:safe(x?.safety,2500),nutrition,
+ approvedBy:safe(x?.approvedBy,150),approvedDate:safe(x?.approvedDate,15),
+ ingredients:Array.isArray(x?.ingredients)?x.ingredients.slice(0,100).map(cleanItem):[],steps:safe(x?.steps,8000),notes:safe(x?.notes,4000),updatedAt:safe(x?.updatedAt||new Date().toISOString(),40)};
 }
 function chip(s){return '<span class="status '+(s==='Утверждена'?'approved':s==='На проверке'?'review':'')+'">'+esc(s)+'</span>'}
 function badgePage(type){return type==='prep'?'ПОЛУФАБРИКАТ':'ТЕХНОЛОГИЧЕСКАЯ КАРТА'}
@@ -33,7 +44,7 @@ function home(){
 function empty(t,p){return `<div class="empty"><div style="font-size:35px">🍣</div><b>${esc(t)}</b><p>${esc(p)}</p><button class="main-button" data-new="${state.page==='prep'?'prep':'dish'}">＋ Создать первую карту</button></div>`}
 function recordCard(r){
  const total=(r.ingredients||[]).length, icon=r.type==='prep'?'🥑':'🍣';
- return `<article class="record"><div class="record-image">${safePhoto(r.photo)?`<img loading="lazy" src="${safePhoto(r.photo)}" alt="Фото: ${esc(r.name)}">`:`<span aria-hidden="true">${icon}</span>`}<span class="type-badge">${r.type==='prep'?'ПФ':'ТТК'}</span></div><div class="record-content">${chip(r.status)}<h3>${esc(r.name)}</h3><p>${esc(r.category||'Категория не указана')}</p><div class="muted">Выход: ${r.yield||'—'} г · Ингредиенты: ${total} · Версия ${esc(r.version)}</div><div class="record-actions"><button data-edit="${esc(r.id)}">Редактировать ↗</button><button class="delete" aria-label="Удалить" data-delete="${esc(r.id)}">✕</button></div></div></article>`;
+ return `<article class="record"><div class="record-image">${safePhoto(r.photo)?`<img loading="lazy" src="${safePhoto(r.photo)}" alt="Фото: ${esc(r.name)}">`:`<span aria-hidden="true">${icon}</span>`}<span class="type-badge">${r.type==='prep'?'ПФ':'ТТК'}</span></div><div class="record-content">${chip(r.status)}<h3>${esc(r.name)}</h3><p>${esc(r.category||'Категория не указана')}</p><div class="muted">Выход: ${r.yield||'—'} г · Ингредиенты: ${total} · Версия ${esc(r.version)}</div><div class="record-actions"><button data-edit="${esc(r.id)}">Редактировать ↗</button><button data-print="${esc(r.id)}" aria-label="Печать ТТК">🖨</button><button class="delete" aria-label="Удалить" data-delete="${esc(r.id)}">✕</button></div></div></article>`;
 }
 function catalog(type){
  const title=type==='dish'?'ТТК готовых блюд':'ТТК полуфабрикатов',list=state.records.filter(x=>x.type===type),filtered=list.filter(x=>(state.filter==='Все'||x.status===state.filter)&&([x.name,x.category].join(' ').toLowerCase().includes(state.search.toLowerCase())));
