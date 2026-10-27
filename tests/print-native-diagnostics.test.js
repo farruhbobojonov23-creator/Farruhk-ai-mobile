@@ -14,3 +14,36 @@ test('Read-only V3 BT health and explicit switch use the selected printer safely
  assert.match(html,/id="check-printer"/);
  assert.match(html,/print-premium\.css\?v=\d+/);
 });
+
+test('Native updater checks fresh release every six hours and never performs silent installation',async()=>{
+ const updater=await read('android/print/src/main/java/ai/farukh/print/NativeUpdater.java');
+ const manifest=await read('android/print/src/main/AndroidManifest.xml');
+ const paths=await read('android/print/src/main/res/xml/update_paths.xml');
+ const java=await read('android/print/src/main/java/ai/farukh/print/MainActivity.java');
+ const build=await read('android/print/build.gradle');
+ const workflow=await read('.github/workflows/farukh-print-apk.yml');
+ assert.match(updater,/EVERY_MS = 6L \* 60 \* 60 \* 1000/);
+ assert.match(updater,/FARUKH_PRINT_VERSION_CODE/);
+ assert.match(updater,/FARUKH_PRINT_SHA256/);
+ assert.match(updater,/inspectCandidate\(output, version\)/);
+ assert.match(updater,/PackageManager\.GET_SIGNING_CERTIFICATES/);
+ assert.match(updater,/signer\.equals\(second\)/);
+ assert.match(updater,/activity\.isPrintBusy\(\)/);
+ assert.match(updater,/Settings\.ACTION_MANAGE_UNKNOWN_APP_SOURCES/);
+ assert.match(updater,/Intent\.ACTION_VIEW/);
+ assert.match(updater,/FileProvider\.getUriForFile/);
+ assert.match(updater,/\.setPositiveButton\("Обновить"/);
+ assert.doesNotMatch(updater,/Runtime\.getRuntime\(\)\.exec/);
+ assert.match(java,/updater = new NativeUpdater\(this\)/);
+ assert.match(java,/updater\.onResume\(\)/);
+ assert.match(manifest,/REQUEST_INSTALL_PACKAGES/);
+ assert.match(manifest,/androidx\.core\.content\.FileProvider/);
+ assert.match(paths,/<cache-path name="verified-updates" path="updates\/"/);
+ assert.match(build,/androidx\.core:core:1\.15\.0/);
+ assert.match(build,/versionCode 11/);
+ assert.match(build,/FARUKH_PRINT_SIGNING_STORE_FILE/);
+ assert.match(workflow,/FARUKH_PRINT_KEYSTORE_BASE64/);
+ assert.match(workflow,/gradle :print:assembleRelease/);
+ assert.match(workflow,/Stable signing secrets are missing/);
+ assert.match(workflow,/keeping original signed binary/);
+});
