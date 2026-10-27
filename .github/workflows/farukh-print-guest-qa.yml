@@ -14,6 +14,8 @@ on:
       - 'public/farukh-print/print.css'
       - 'public/farukh-print/index.html'
       - 'print-sync-api.js'
+      - 'print-staff-api.js'
+      - 'tests/print-staff-access.test.js'
       - 'tests/print-guest-browse-login.test.js'
       - '.github/workflows/farukh-print-guest-qa.yml'
   pull_request:
