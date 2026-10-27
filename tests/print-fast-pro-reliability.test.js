@@ -38,7 +38,7 @@ test('V3 BT session is reused briefly and released for other tablets',async()=>{
  assert.match(java,/mainHandler\.postDelayed\(timeout, 20_000\)/);
  assert.match(java,/stream\.write\(label, offset, size\)/);
  assert.doesNotMatch(java,/socket\.connect\(\)[\s\S]{0,30}socket\.connect\(\)/);
- assert.match(build,/versionCode 10/);
+ assert.match(build,/versionCode 11/);
  assert.match(java,/offset \+ size < label\.length\) Thread\.sleep\(12\)/);
  assert.doesNotMatch(java,/Thread\.sleep\(20\)/);
  assert.match(java,/SOCKET_IDLE_MS = 180_000/);
