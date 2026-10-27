@@ -56,5 +56,32 @@ test('New roll timestamps refresh automatically without losing manual production
  assert.match(js,/if\(busy\)return false;\s*\/\/ Refresh the time immediately before printing unless manually fixed\.\s*refreshPrintedAt\(\)/);
  assert.match(js,/if\(!autoPrintedAt\|\|busy\|\|batchRunning\|\|!current\(\)\|\|isHaccp\(current\(\)\)\|\|\$\('catalog'\)\.hidden\)return false/);
  assert.match(html,/id="printed-at-now"/);
- assert.match(html,/legacy\/print\.js\?v=60/);
+ assert.match(html,/legacy\/print\.js\?v=61/);
+});
+
+test('Fast printing checks staff and exact approved catalog before the cook taps Print',async()=>{
+ const server=await read('print-staff-api.js');
+ const sync=await read('print-sync-api.js');
+ const staff=await read('public/farukh-print/print-staff.js');
+ const ui=await read('public/farukh-print/print.js');
+ const html=await read('public/farukh-print/index.html');
+ assert.match(server,/device\/staff\/preflight',protectDevice,requireStaff/);
+ assert.match(server,/catalog\.products\.find\(p=>p\.id===productId\)/);
+ assert.match(server,/product\.needsReview===true/);
+ assert.match(server,/FAST_TTL_MS=12_000/);
+ assert.match(server,/fastTickets\.delete\(key\)/);
+ assert.match(server,/ticket\.deviceHash!==sha/);
+ assert.match(server,/ticket\.sessionHash!==sha/);
+ assert.match(server,/ticket\.copies!==Number\(req\.body\?\.copies\)/);
+ assert.match(server,/app\.post\('\/api\/farukh-print\/device\/staff\/authorize-print',consumeFast,protectDevice,requireStaff/);
+ assert.match(server,/writeAuditInBackground\(item\)/);
+ assert.match(server,/if\(pending\)\{/);
+ assert.match(sync,/if\(req\.farukhPrintFast\)return next\(\)/);
+ assert.match(sync,/invalidateFastTickets\(\)/);
+ assert.match(staff,/call\('\/preflight'/);
+ assert.match(staff,/clearPrepared\(\)/);
+ assert.match(staff,/fastTicket=prepared\?\.key===key/);
+ assert.match(ui,/function prepareFastPrint\(\)/);
+ assert.match(ui,/prepareFastPrint\(\);/);
+ assert.match(html,/legacy\/print-staff\.js\?v=9/);
 });
