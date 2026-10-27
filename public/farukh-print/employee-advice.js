@@ -1,6 +1,7 @@
 // Read-only employee guidance shown in FARUKH PRINT; never alters printing,
 // catalog, durations or product data. Managed and standalone modes use one UI.
 import {storageAdviceFor,PRACTICE_REFERENCES} from './storage-advice.js';
+import {individualPrepAdviceFor} from './individual-prep-advice.js';
 import {guidanceForProduct,REFERENCES} from './shelf-life-guidance.js';
 import {advicePicture,neighborPicture,illustrationFor,isCatalogPhoto} from './advice-art.js?v=2';
 
@@ -13,6 +14,7 @@ const create=(tag,cls,txt)=>{
 };
 const validateUrl=url=>typeof url==='string'&&url.startsWith('https://');
 const BASE_NEIGHBORS={
+ title:'Полуфабрикат · уточнить группу хранения',
  yes:['Продукты той же группы — в отдельных чистых закрытых ёмкостях, если температурный режим совпадает.',
       'Партии одного вида продукции — раздельно, с собственными маркировками.'],
  no:['Сырое мясо и птица — без контакта с другими продуктами.',
@@ -30,6 +32,8 @@ export function neighborsFor(product){
        'Чистая пищевая тара и рабочие поверхности для приготовления еды.'],
    note:'Уборочный инвентарь и рабочие растворы должны храниться отдельно от продуктов и посуды.'};
  }
+ const individual=individualPrepAdviceFor(p);
+ if(individual){return {title:individual.title,yes:individual.yes,no:individual.no,note:individual.note,shelf:individual.shelf};}
  if(p.kind==='ready'){
   return {...BASE_NEIGHBORS,title:'Готовые роллы и блюда',
    yes:['Другие готовые к употреблению блюда — в отдельной закрытой пищевой упаковке.',
@@ -86,8 +90,9 @@ export function neighborsFor(product){
  }
  return BASE_NEIGHBORS;
 }
-const sectionData=(product,tips,norms)=>({
+const sectionData=(product,tips,norms,individual)=>({
  'Советы':[
+  ...(individual?[['Полка','Где хранить: полка и зона',individual.shelf]]:[]),
   ['Упаковка','Как правильно хранить',tips.packaging],
   ['Форма','Форма хранения',tips.form],
   ['Температура','Температура и охлаждение',tips.temperature],
@@ -96,6 +101,7 @@ const sectionData=(product,tips,norms)=>({
   ['Важно','Чего нельзя делать',tips.avoid]
  ],
  'Хранение':[
+  ...(individual?[['Полка','Рекомендуемая полка / зона',individual.shelf]]:[]),
   ['Температура','При какой температуре',tips.temperature],
   ['Форма','Форма хранения',tips.form],
   ['Тара','Какая упаковка подходит',tips.packaging],
@@ -120,7 +126,8 @@ export function closeAdvice(){
 export function openAdvice(product,{onPrint}={}){
  if(!product)return;
  closeAdvice();
- const tips=storageAdviceFor(product);
+ const individual=individualPrepAdviceFor(product);
+ const tips={...storageAdviceFor(product),...(individual?.tips||{})};
  const norms=guidanceForProduct(product);
  const neighbor=neighborsFor(product);
  const dialog=create('dialog','print-advice-dialog');
@@ -153,6 +160,7 @@ export function openAdvice(product,{onPrint}={}){
   ['Срок хранения',product.template?'По инструкции':product.needsReview?(product.hours?product.hours+' ч · на проверке':'Требует проверки'):product.hours+' часов'],
   ['Условия хранения',product.template?'По инструкции средства':product.storage||'Уточнить по ТТК'],
   ['Форма хранения',product.form|| (product.template?'По инструкции':'См. рекомендации ниже')],
+  ...(individual?[['Рекомендуемая зона',individual.short]]:[]),
  ];
  for(const [k,v] of factsRows){
   const row=create('div','print-advice-fact');
@@ -176,7 +184,7 @@ export function openAdvice(product,{onPrint}={}){
  const tabs=create('div','print-advice-tabs');
  tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Разделы справки');
  const content=create('div','print-advice-content');
- const tabsMap=new Map(),sections=sectionData(product,tips,norms);
+ const tabsMap=new Map(),sections=sectionData(product,tips,norms,individual);
  let current='Советы';
  function renderTab(label){
   current=label;
@@ -184,6 +192,7 @@ export function openAdvice(product,{onPrint}={}){
   content.replaceChildren();
   if(label==='Соседство'){
    content.append(create('h4','print-advice-title','Товарное соседство · '+neighbor.title));
+   if(neighbor.shelf)content.append(create('p','print-advice-note','Рекомендуемая полка / зона: '+neighbor.shelf));
    const grid=create('div','print-advice-neighbor-grid');
    for(const [key,title,items] of [['yes','✓ Можно хранить рядом',neighbor.yes],['no','× Нельзя хранить рядом',neighbor.no]]){
     const group=create('section','print-advice-neighbor '+(key==='yes'?'allowed':'disallowed'));
@@ -209,6 +218,7 @@ export function openAdvice(product,{onPrint}={}){
    }
    content.append(list);
    if(label==='Нормы'){
+    if(individual)content.append(create('p','print-advice-note','Полка — рекомендуемая организационная зона ХАССП, а не номер полки, предписанный СанПиН. Для каждого холодильника место утверждается ответственным с учётом сырья, температуры и защиты от загрязнения.'));
     // Detailed source explanations belong to the full-width Нормы tab.
     // In the mobile summary they formerly occupied a 100px grid column,
     // creating pages of single-word lines and hiding the actual tips.
