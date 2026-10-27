@@ -104,12 +104,12 @@ test('New password ends existing employee session immediately',async()=>{
 
 test('Owner can configure four points and switch employee location without losing account',async()=>{
  const {call}=setup(),own={owner:'ok'};
- assert.deepEqual((await call('get','/api/farukh-print/admin/staff/points',own)).data.points,['Плазма']);
+ assert.deepEqual((await call('get','/api/farukh-print/admin/staff/points',own)).data.points,['Баумана 18','Плазма','Героев североморцев','Полярные зори']);
  for(const name of ['Пункт 2','Пункт 3','Пункт 4']){
   const res=await call('post','/api/farukh-print/admin/staff/points',{...own,body:{name}});
   assert.equal(res.code,201);
  }
- assert.equal((await call('get','/api/farukh-print/admin/staff/points',own)).data.points.length,4);
+ assert.equal((await call('get','/api/farukh-print/admin/staff/points',own)).data.points.length,7);
  assert.equal((await call('post','/api/farukh-print/admin/staff/points',{...own,body:{name:'пЛаЗмА'}})).code,409);
  const worker=(await call('post','/api/farukh-print/admin/staff',{...own,body:{name:'Повар один',login:'cook_one',point:'Плазма'}})).data.staff;
  const renamed=await call('patch','/api/farukh-print/admin/staff/:id',{...own,params:{id:worker.id},body:{name:'Повар первый',login:'cook_one',point:'Пункт 2'}});
@@ -143,7 +143,7 @@ test('Owner sees honest counts of print REQUESTS by each point and period',async
  const sent=await call('post','/api/farukh-print/device/staff/authorize-print',{device:paired,staff,body:{productId:'roll-1',point:'Плазма',copies:3,printedAt:new Date().toISOString(),catalogRevision:1}});
  assert.equal(sent.code,200);
  const report=(await call('get','/api/farukh-print/admin/staff/report',{...own,query:{days:'30'}})).data;
- assert.equal(report.summary.points,2);assert.equal(report.summary.staff,2);
+ assert.equal(report.summary.points,5);assert.equal(report.summary.staff,2);
  assert.equal(report.summary.requests,1);assert.equal(report.summary.labels,3);
  assert.equal(report.rows.find(r=>r.point==='Плазма').requests,1);
  assert.equal(report.rows.find(r=>r.point==='Пункт 2').requests,0);
