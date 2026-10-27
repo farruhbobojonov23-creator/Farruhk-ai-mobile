@@ -12,7 +12,7 @@
 <body>
   <div class="site-shell">
     <aside class="sidebar" id="sidebar" aria-label="Основная навигация">
-      <div class="sidebar-top">
+      <div class="sidebar-top"><button type="button" class="sidebar-close" id="sidebar-close" aria-label="Закрыть меню">✕ <span>Закрыть</span></button>
         <div class="brand"><div class="brand-symbol"><span>F</span><b>•</b></div><div><strong>FARUKH</strong><span>KITCHEN</span></div></div>
         <div class="sidebar-label">ТЕХНОЛОГИИ ДЛЯ КУХНИ</div>
         <nav class="navigation">
@@ -30,7 +30,7 @@
       </div>
       <div class="sidebar-bottom">
         <div class="sidebar-box"><span class="tiny-glow">✦</span><strong>Создайте свою ТТК</strong><p>Добавляйте рецептуры и сохраняйте локально.</p><button class="small-sidebar-button" id="side-create">+ Новая карта</button></div>
-        <div class="sidebar-version"><span class="green-dot"></span> Независимый демопроект <span>v0.3</span></div>
+        <div class="sidebar-version"><span class="green-dot"></span> Независимый демопроект <span>v0.4</span></div>
       </div>
     </aside>
 
@@ -40,10 +40,17 @@
         <div class="topbar-actions"><div class="demo-pill"><span class="green-dot"></span> ДЕМО-ВЕРСИЯ</div><button class="top-button" id="top-create">+ Создать ТТК</button><div class="avatar" title="Демо-кабинет">FK</div></div>
       </header>
       <main id="main" tabindex="-1"></main>
-      <footer><span>© FARUKH KITCHEN · Прототип проекта</span><span>Рецептуры и цены — учебные примеры, не для производства.</span></footer>
+      <footer><span>© FARUKH KITCHEN · Прототип проекта</span><span>Фото — иллюстрации (Unsplash). ТТК и цены — учебные примеры.</span></footer>
     </div>
   </div>
-  <div class="mobile-backdrop" id="mobile-backdrop"></div>
+  <nav class="bottom-nav" aria-label="Нижняя навигация">
+ <button class="bottom-link active" data-page="home" aria-current="page"><span aria-hidden="true">⌂</span><small>Главная</small></button>
+ <button class="bottom-link" data-page="recipes"><span aria-hidden="true">▦</span><small>ТТК</small></button>
+ <button class="bottom-link" data-page="prep"><span aria-hidden="true">◈</span><small>ПФ</small></button>
+ <button class="bottom-link" data-page="packages"><span aria-hidden="true">◇</span><small>Пакеты</small></button>
+ <button class="bottom-link" data-page="workspace"><span aria-hidden="true">♙</span><small>Моё</small></button>
+</nav>
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
   <div id="modal-root"></div>
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="app.js" defer></script>
