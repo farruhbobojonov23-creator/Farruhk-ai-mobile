@@ -212,3 +212,7 @@ body{background:linear-gradient(160deg,#fffdf9 0%,#f9f0e5 55%,#f6e9d7 100%);back
  .hero-actions button{font-size:10px}
 }
 @media print{.bottom-nav,.sidebar-close,.hero-image-note{display:none!important}.main-area{padding-bottom:0}}
+
+/* FARUKH KITCHEN: consistent premium mobile navigation icons */
+.bottom-link svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:0 0 24px}
+.bottom-link.active svg{stroke-width:2}
