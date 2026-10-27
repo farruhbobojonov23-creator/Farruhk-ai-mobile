@@ -41,6 +41,25 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
  const FAST_TTL_MS=12_000,MAX_FAST_TICKETS=128;
  const fastTickets=new Map();
  const invalidateFastTickets=()=>fastTickets.clear();
+ const pendingAudit=new Map();
+ const appendAudit=item=>store.transaction(async()=>{
+  const events=await readHistory();
+  if(!events.some(row=>row.id===item.id)){
+   events.push(item);await store.write(HISTORY,events.slice(-MAX_EVENTS));
+  }
+ });
+ const writeAuditInBackground=item=>{
+  const record={item,task:null};
+  pendingAudit.set(item.id,record);
+  record.task=Promise.resolve().then(()=>appendAudit(item));
+  record.task.then(()=>{
+    if(pendingAudit.get(item.id)===record)pendingAudit.delete(item.id);
+  },e=>{
+    record.task=null; // retry on print-result, don't silently lose an error
+    console.warn('[farukh-print-fast-audit] delayed',e.status||503);
+  });
+ };
+
  const consumeFast=(req,res,next)=>{
   const key=String(req.body?.fastTicket||''),ticket=fastTickets.get(key);
   if(!ticket)return next();
@@ -73,6 +92,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    const remaining=all.filter(x=>x.userId!==userId);
    if(remaining.length!==all.length)await store.write(SESSIONS,remaining);
   });
+  invalidateFastTickets();
  };
  const moscowDay=at=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
  const readHistory=async()=>{
@@ -451,10 +471,11 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
     staff:req.farukhStaff.name,userId:req.farukhStaff.id,sessionAt:req.farukhSessionData.loginAt,
     deviceId:req.farukhPrintDevice.id,login:req.farukhStaff.login,point:req.farukhStaff.point,
     productId:product.id,product:product.name,copies,device:req.farukhPrintDevice.name};
-  await store.transaction(async()=>{
-   const events=await readHistory();
-   events.push(item);await store.write(HISTORY,events.slice(-MAX_EVENTS));
-  });
+  if(req.farukhPrintFast){
+   // Do not block Bluetooth on a slow cloud audit write. Result endpoint
+   // awaits the queued record; locally queued results can be retried later.
+   writeAuditInBackground(item);
+  }else await appendAudit(item);
   res.set('Cache-Control','no-store');res.json({ok:true,eventId:item.id,staff:userSafe(req.farukhStaff)});
  }));
  app.post('/api/farukh-print/device/staff/print-result',protectDevice,requireStaff,safe(async(req,res)=>{
@@ -462,6 +483,12 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   const id=String(req.body?.eventId||''),result=String(req.body?.result||'');
   if(!/^[a-f0-9-]{36}$/.test(id)||!['sent','failed','system'].includes(result))throw bad(400,'Неверные данные результата.');
   const details=trim(req.body?.details,160);
+  const pending=pendingAudit.get(id);
+  if(pending){
+   if(!pending.task)pending.task=Promise.resolve().then(()=>appendAudit(pending.item));
+   await pending.task;
+   pendingAudit.delete(id);
+  }
   const updated=await store.transaction(async()=>{
    const rows=await readHistory();
    const entry=rows.find(e=>e.id===id&&e.userId===req.farukhStaff.id&&e.deviceId===req.farukhPrintDevice.id);
