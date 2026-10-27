@@ -282,3 +282,73 @@ test('Owner can grant unlimited access, but bad durations and unauthorized renew
  assert.equal(legacy.accessAllowed,true);
  assert.equal(legacy.expiresAt,null);
 });
+
+test('Warm preview approval prints once quickly and still records employee, point and result',async()=>{
+ const {call,persist}=setup(),owner={owner:'ok'};
+ const employee=(await call('post','/api/farukh-print/admin/staff',{
+  ...owner,body:{name:'Кухня',login:'fastcook',point:'Плазма'}
+ })).data;
+ const product={kind:'prep',id:'spicy',name:'Соус спайси',hours:48,storage:'+2…+6 °C',needsReview:false};
+ assert.equal((await call('put','/api/farukh-print/admin/catalog',{
+  ...owner,body:{revision:0,products:[product]}
+ })).code,200);
+ const code=(await call('post','/api/farukh-print/admin/pair',owner)).data.code;
+ const device=(await call('post','/api/farukh-print/device/pair',{body:{code,name:'Рабочая точка'}})).data.token;
+ const staff=(await call('post','/api/farukh-print/device/staff/login',{
+  device,body:{login:'fastcook',password:employee.password}
+ })).data.session;
+ const job={productId:'spicy',copies:10,point:'Плазма',printedAt:new Date().toISOString(),catalogRevision:1};
+ const preview=await call('post','/api/farukh-print/device/staff/preflight',{device,staff,body:job});
+ assert.equal(preview.code,200);
+ assert.ok(preview.data.fastTicket.length>=43);
+ assert.ok(preview.data.expiresAt>Date.now());
+ assert.equal(persist.get('farukh-print-staff-activity.json')?.length||0,0,'Preview is not a print request');
+ const printed=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{...job,fastTicket:preview.data.fastTicket}
+ });
+ assert.equal(printed.code,200);assert.ok(printed.data.eventId);
+ const report=await call('post','/api/farukh-print/device/staff/print-result',{
+  device,staff,body:{eventId:printed.data.eventId,result:'sent'}
+ });
+ assert.equal(report.code,200);
+ const activity=(await call('get','/api/farukh-print/admin/staff/activity',owner)).data.events;
+ assert.equal(activity.length,1);
+ assert.equal(activity[0].result,'sent');assert.equal(activity[0].copies,10);
+ assert.equal(activity[0].login,'fastcook');assert.equal(activity[0].point,'Плазма');
+ const second=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{...job,fastTicket:preview.data.fastTicket}
+ });
+ assert.equal(second.code,200,'Used fast ticket must fall back to live authorization');
+ assert.equal(persist.get('farukh-print-staff-activity.json').length,2);
+});
+test('Owner revoking a worker or changing catalog invalidates unused fast print approvals',async()=>{
+ const {call}=setup(),owner={owner:'ok'};
+ const employee=(await call('post','/api/farukh-print/admin/staff',{
+  ...owner,body:{name:'Кухня',login:'safechef',point:'Плазма'}
+ })).data;
+ const product={kind:'prep',id:'spicy',name:'Соус спайси',hours:48,storage:'+2…+6 °C',needsReview:false};
+ assert.equal((await call('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[product]}})).code,200);
+ const pair=(await call('post','/api/farukh-print/admin/pair',owner)).data.code;
+ const device=(await call('post','/api/farukh-print/device/pair',{body:{code:pair}})).data.token;
+ const staff=(await call('post','/api/farukh-print/device/staff/login',{
+  device,body:{login:'safechef',password:employee.password}
+ })).data.session;
+ const job={productId:'spicy',copies:1,point:'Плазма',printedAt:new Date().toISOString(),catalogRevision:1};
+ const p1=(await call('post','/api/farukh-print/device/staff/preflight',{device,staff,body:job})).data.fastTicket;
+ assert.equal((await call('put','/api/farukh-print/admin/catalog',{
+  ...owner,body:{revision:1,products:[{...product,hours:12}]}
+ })).code,200);
+ const stale=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{...job,fastTicket:p1}
+ });
+ assert.equal(stale.code,409,'Server must reject stale approved food terms');
+ const newJob={...job,catalogRevision:2};
+ const p2=(await call('post','/api/farukh-print/device/staff/preflight',{device,staff,body:newJob})).data.fastTicket;
+ assert.equal((await call('post','/api/farukh-print/admin/staff/:id/status',{
+  ...owner,params:{id:employee.staff.id},body:{active:false}
+ })).code,200);
+ const revoked=await call('post','/api/farukh-print/device/staff/authorize-print',{
+  device,staff,body:{...newJob,fastTicket:p2}
+ });
+ assert.equal(revoked.code,401,'Disabling the employee must revoke saved session and prepared print approval');
+});
