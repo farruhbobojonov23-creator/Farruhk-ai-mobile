@@ -1,6 +1,6 @@
 'use strict';
 const $$=s=>Array.from(document.querySelectorAll(s)), $=s=>document.querySelector(s);
-const key='fk_owner_drafts_v07',sheet='https://docs.google.com/spreadsheets/d/1LSFx5vdj1aXUOqyAbiz4wiNMUMmjOxwgz1tU5eZZrfQ/edit';
+const key='fk_owner_drafts_v07';let sheet='';
 const state={page:'home',filter:'Все',search:'',editing:null,photo:null,records:read()};
 const uuid=()=>('FK-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)).toUpperCase();
 function read(){try{const d=JSON.parse(localStorage.getItem(key));return Array.isArray(d)?d:[]}catch{return []}}
@@ -81,6 +81,7 @@ async function importJson(file){if(!file)return;if(file.size>5e6){toast('Фай�
 async function logout(){await fetch('/api/logout',{method:'POST',credentials:'same-origin'});location.replace('/')}
 async function bind(){
  const check=await fetch('/api/session',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>({authenticated:false}));if(!check.authenticated){location.replace('/');return}
+ const config=await fetch('/api/config',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}));sheet=config.sheetUrl||'';
  document.addEventListener('click',async(e)=>{
  const t=e.target.closest('button');if(!t)return;
  if(t.id==='logout'){await logout();return}
