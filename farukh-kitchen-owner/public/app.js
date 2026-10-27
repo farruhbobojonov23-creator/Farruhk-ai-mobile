@@ -137,6 +137,14 @@ function showEditor(idOrType='dish'){
  approvedBy:existing?.approvedBy||'',approvedDate:existing?.approvedDate||''
  };
  Object.entries(values).forEach(([name,val])=>put(name,val));
+ if(!existing){
+  const prefix=idOrType==='prep'?'ПФ':'ТТК';
+  const seen=new Set(state.records.map(r=>r.cardNumber).filter(Boolean));
+  let index=state.records.filter(r=>r.type===(idOrType==='prep'?'prep':'dish')).length+1;
+  let number=prefix+'-'+String(index).padStart(4,'0');
+  while(seen.has(number)){index++;number=prefix+'-'+String(index).padStart(4,'0')}
+  put('cardNumber',number);
+ }
  $('#editor-title').textContent=existing?'Редактирование · '+existing.name:(idOrType==='prep'?'Новый полуфабрикат':'Новая ТТК блюда');
  $('#editor-kicker').textContent=badgePage(existing?.type||idOrType);
  $('#ingredient-rows').replaceChildren();
