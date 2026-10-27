@@ -17,6 +17,22 @@ async function fetchStaff(path='',opts={}){
 const send=(path,method,payload={})=>fetchStaff(path,{method,body:JSON.stringify(payload)});
 const pointEqual=(a,b)=>String(a).toLocaleLowerCase('ru')===String(b).toLocaleLowerCase('ru');
 const opt=(v,label=v)=>{const o=el('option','',label);o.value=v;return o};
+const userPoints=u=>Array.isArray(u.points)&&u.points.length?u.points:[u.point].filter(Boolean);
+const multiPointPicker=()=>{
+ const box=el('div','pstaff-point-checks');
+ box.style.cssText='display:flex;flex-wrap:wrap;gap:8px 14px;padding:10px 12px;border:1px solid #ccd9df;border-radius:10px';
+ const values=()=>Array.from(box.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+ const render=(all,chosen=[])=>{
+  box.replaceChildren();
+  for(const value of all){
+   const label=el('label','pstaff-point-option');
+   label.style.cssText='display:flex;align-items:center;gap:7px;min-width:140px;cursor:pointer;font-size:14px';
+   const input=el('input');input.type='checkbox';input.value=value;input.checked=chosen.some(x=>pointEqual(x,value));
+   label.append(input,el('span','',value));box.append(label);
+  }
+ };
+ return {box,values,render};
+};
 const fillOptions=(select,points,{all=false,value=''}={})=>{
  select.replaceChildren();
  if(all)select.append(opt('','Все точки'));
@@ -68,7 +84,7 @@ export function mountPrintStaffControl({root}){
  filters.append(pointFilter,period,reload);
  const managePoints=el('details','pstaff-points');
  const pointsHeading=el('summary','','Настроить названия точек');
- const pointsInfo=el('p','','Добавь остальные точки самостоятельно. «Плазма» уже указана. Переименование переведёт сотрудников на новое название и завершит их текущие сеансы.');
+ const pointsInfo=el('p','','Четыре точки доступны для назначения. Можно дать сотруднику доступ к одной, нескольким или всем точкам. При переименовании разрешения обновляются, активные сеансы закрываются.');
  const pointForm=el('form','pstaff-point-form');
  const newPoint=el('input');newPoint.placeholder='Название новой точки';newPoint.maxLength=60;newPoint.required=true;newPoint.setAttribute('aria-label','Новая точка');
  const addPoint=el('button','pstaff-create','＋ Добавить точку');addPoint.type='submit';
@@ -85,8 +101,8 @@ export function mountPrintStaffControl({root}){
  const name=field('Имя','Например, Гуля');
  const login=field('Логин латиницей','Например, gulya01');
  login.input.pattern='[a-z][a-z0-9_-]{2,31}';login.input.maxLength=32;name.input.maxLength=65;
- const pointLabel=el('label','pstaff-field');pointLabel.append(el('span','','Назначить точку'));
- const staffPoint=el('select','pstaff-select');staffPoint.required=true;staffPoint.setAttribute('aria-label','Точка нового сотрудника');pointLabel.append(staffPoint);
+ const pointLabel=el('div','pstaff-field');pointLabel.append(el('span','','Разрешённые точки — можно выбрать несколько'));
+  const createPointPicker=multiPointPicker();pointLabel.append(createPointPicker.box);
  const addStaff=el('button','pstaff-create','＋ Создать доступ');addStaff.type='submit';
  const createAccess=accessPicker('Доступ на срок','30');
  const createPassword=el('input','pstaff-password-input');
@@ -203,8 +219,8 @@ export function mountPrintStaffControl({root}){
  function renderStaff(){
   staffList.replaceChildren();
   const phrase=search.value.trim().toLocaleLowerCase('ru'),chosen=selection();
-  const visible=users.filter(u=>(!chosen||pointEqual(u.point,chosen))&&
-   (!phrase||(u.name+' '+u.login+' '+u.point).toLocaleLowerCase('ru').includes(phrase)))
+  const visible=users.filter(u=>(!chosen||userPoints(u).some(p=>pointEqual(p,chosen)))&&
+    (!phrase||(u.name+' '+u.login+' '+userPoints(u).join(' ')).toLocaleLowerCase('ru').includes(phrase)))
    .sort((a,b)=>Number(b.active)-Number(a.active)||a.name.localeCompare(b.name,'ru'));
   if(!visible.length){
    staffList.append(el('p','pstaff-empty',users.length?'По этому фильтру сотрудники не найдены.':'Сотрудников ещё нет. Создай доступ выше.'));return;
@@ -212,7 +228,7 @@ export function mountPrintStaffControl({root}){
   for(const user of visible){
    const card=el('div','pstaff-item');
    const identity=el('div','pstaff-identity');
-   identity.append(el('strong','',user.name),el('small','',user.login+' · '+user.point));
+   identity.append(el('strong','',user.name),el('small','',user.login+' · '+userPoints(user).join(', ')));
    const expired=user.expired===true;
    const currentlyAllowed=user.active&&!expired;
    identity.append(el('span','pstaff-status '+(currentlyAllowed?'pstaff-status-on':'pstaff-status-off'),
@@ -223,14 +239,16 @@ export function mountPrintStaffControl({root}){
    const editBox=el('form','pstaff-inline-edit');editBox.hidden=true;
    const editName=el('input');editName.value=user.name;editName.maxLength=65;editName.required=true;editName.setAttribute('aria-label','Имя сотрудника');
    const editLogin=el('input');editLogin.value=user.login;editLogin.maxLength=32;editLogin.pattern='[a-z][a-z0-9_-]{2,31}';editLogin.required=true;editLogin.setAttribute('aria-label','Логин сотрудника');
-   const editPoint=el('select','pstaff-select');editPoint.setAttribute('aria-label','Изменить точку сотрудника');fillOptions(editPoint,[...new Set([...points,user.point])],{value:user.point});
+   const editPoint=multiPointPicker();editPoint.render(points,userPoints(user));
    const saveBtn=el('button','pstaff-create','Сохранить');saveBtn.type='submit';
    const cancel=button('Отмена',()=>{editBox.hidden=true});
-   editBox.append(editName,editLogin,editPoint,saveBtn,cancel);
+   editBox.append(editName,editLogin,editPoint.box,saveBtn,cancel);
    editBox.addEventListener('submit',async e=>{
     e.preventDefault();
     if(!confirm('Изменить данные «'+user.name+'»? Активный сеанс сотрудника будет завершён.'))return;
-    await mutate('/'+encodeURIComponent(user.id),'PATCH',{name:editName.value.trim(),login:editLogin.value.trim().toLowerCase(),point:editPoint.value});
+    const selected=editPoint.values();
+     if(!selected.length)return notify('Выбери хотя бы одну точку.',true);
+     await mutate('/'+encodeURIComponent(user.id),'PATCH',{name:editName.value.trim(),login:editLogin.value.trim().toLowerCase(),points:selected});
    });
    const editBtn=button('Изменить',()=>{editBox.hidden=!editBox.hidden;});
    const resetBox=el('form','pstaff-reset-box');resetBox.hidden=true;
@@ -408,7 +426,7 @@ export function mountPrintStaffControl({root}){
    const prior=pointFilter.dataset.nextValue!==undefined?pointFilter.dataset.nextValue:selection();
    delete pointFilter.dataset.nextValue;
    fillOptions(pointFilter,points,{all:true,value:prior});
-   fillOptions(staffPoint,points,{value:staffPoint.value});
+   createPointPicker.render(points,createPointPicker.values());
    renderPointRows();renderStaff();
    await reloadMetrics();
    notify('Готово. Сотрудников: '+users.length+'; точек настроено: '+points.length+'.');
@@ -439,12 +457,13 @@ export function mountPrintStaffControl({root}){
   try{
    const custom=!!createPassword.value;
    const days=createAccess.days();
+    if(!createPointPicker.values().length)throw Error('Выбери хотя бы одну точку для сотрудника.');
    const result=await send('','POST',{
-    name:name.input.value.trim(),login:login.input.value.trim().toLowerCase(),point:staffPoint.value,
+    name:name.input.value.trim(),login:login.input.value.trim().toLowerCase(),points:createPointPicker.values(),
     accessDays:days,
     ...(custom?{password:createPassword.value}:{})
    });
-   name.input.value='';login.input.value='';createPassword.value='';createConfirm.value='';
+   name.input.value='';login.input.value='';createPassword.value='';createConfirm.value='';createPointPicker.render(points,[]);
    if(custom){secret.hidden=true;creds.replaceChildren()}
    else secretShow(result);
    disabled(false);await reloadAll();
