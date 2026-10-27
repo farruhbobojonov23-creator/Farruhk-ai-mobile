@@ -12,3 +12,122 @@
 .metric-action:focus-visible{outline:3px solid #2199e9;outline-offset:3px}
 .metric-action-hint{position:absolute;right:16px;bottom:11px;color:#167bb6;font-size:11px;font-weight:800;white-space:nowrap}
 @media(max-width:520px){.metric-action{padding:16px 12px 29px;min-height:112px}.metric-action-hint{right:11px;bottom:9px;font-size:10px}}
+
+/* FARUKH KITCHEN ULTRA · CHAMPAGNE GOLD v0.3 */
+:root{
+ --navy:#352416;--navy2:#644222;--blue:#a96b1c;--blue-dark:#805019;
+ --cyan:#fff3da;--bg:#fbf6ee;--text:#352718;--muted:#807360;
+ --border:#e9dbc7;--white:#fffdf9;--shadow:0 12px 30px rgba(105,72,27,.09);
+ color-scheme:light
+}
+body{background:linear-gradient(155deg,#fffdf9 0%,#fcf5e9 47%,#f3e8d7 100%);background-attachment:fixed;color:var(--text)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline:3px solid #bf893d;outline-offset:3px
+}
+.sidebar{
+ background:linear-gradient(165deg,#fffefb 0%,#f7ebd9 54%,#e7cda6 100%);
+ color:#3c2b19;border-right:1px solid #d8bd94;
+ box-shadow:4px 0 26px rgba(115,81,33,.09)
+}
+.brand{color:#392919}
+.brand-symbol{
+ color:#fff;background:linear-gradient(125deg,#f4d6a1 0%,#d6a353 33%,#99601f 80%,#e5c184 100%);
+ box-shadow:inset 0 1px 1px #fff9,0 8px 20px #b3895266;border:1px solid #c49149;
+}
+.brand-symbol b{color:#f9e9c7}.brand>div:last-child span{color:#94631e}
+.sidebar-label{color:#977e5c}
+.nav-link{color:#6e5739}
+.nav-link:hover,.nav-link.active{
+ background:linear-gradient(100deg,#fffefb 0%,#eed7b0 100%);
+ box-shadow:0 3px 14px #b78d5430;color:#4b3017
+}
+.nav-link.active:before{background:linear-gradient(#ffefb9,#c18a36)}
+.nav-icon{color:#a8752f}
+.nav-count{background:#efe0c9;color:#825a27}
+.sidebar-box{
+ background:linear-gradient(130deg,#fffef9,#f0dab9);
+ border:1px solid #d8bb89;box-shadow:0 6px 18px #92713b17
+}
+.tiny-glow{color:#b7842e}
+.sidebar-box p{color:#7b6951}
+.small-sidebar-button,.top-button,.primary-button{
+ color:#fffef9;border:1px solid #a2712e;
+ background:linear-gradient(120deg,#f0ca86 0%,#cc9447 22%,#96601e 62%,#b8843d 100%);
+ box-shadow:inset 0 1px 0 #fff8,0 7px 18px #94622c3a;
+ text-shadow:0 1px 1px #65401580
+}
+.small-sidebar-button:hover,.top-button:hover,.primary-button:hover{filter:brightness(1.06)}
+.sidebar-version{color:#886f4b}
+.topbar{background:linear-gradient(90deg,#fffcf7,#f8eddd);border-bottom:1px solid #e6d2b2}
+.breadcrumb{color:#857762}.breadcrumb span{color:#bda789}.breadcrumb strong{color:#5b4228}
+.avatar{background:linear-gradient(135deg,#fff7e7,#ecd2a9);border:1px solid #ead5b3;color:#8b5e25}
+.menu-toggle{color:#694820}
+.demo-pill{background:#fff4dc;color:#876027;border:1px solid #ead1a5}
+.page-kicker,.link-button{color:#a67327}
+.page-lead{color:#847562}
+.hero{
+ background:linear-gradient(111deg,#fffdf8 0%,#fbedd8 47%,#d8af71 100%);
+ color:#3b2b1d;border:1px solid #e0c49a;
+ box-shadow:inset 0 2px 0 #fff9,0 18px 36px #99662824;
+}
+.hero:before{
+ border-color:#fff8e255;box-shadow:0 0 0 70px #fff7dd40,0 0 0 145px #fff6df22
+}
+.hero:after{background:radial-gradient(circle at 62% 46%,#fff9edc8,transparent 72%);pointer-events:none}
+.hero-copy{z-index:3}.hero-kicker{color:#996721}.hero-kicker:before{background:#cf9644}
+.hero h1 span{color:#a36d22}.hero p{color:#6d573a}
+.hero .secondary-button{background:#fffcf6c9;color:#815521;border:1px solid #d9b37f}
+.hero .secondary-button:hover{background:white}
+.sushi-art{filter:drop-shadow(8px 18px 12px #74452345)}
+.metric-card,.category-card,.recipe-card,.plan,.white-panel,.workspace-item,.empty,.modal{
+ background:linear-gradient(145deg,#fffefb,#fff9ef);
+ border-color:#e8d8c0;box-shadow:inset 0 1px 0 #fff,0 9px 26px #8c62341a
+}
+.metric-action:hover,.category-card:hover,.recipe-card:hover{
+ border-color:#c79a59;box-shadow:0 15px 32px #90612d29
+}
+.metric-icon,.category-image{
+ background:linear-gradient(135deg,#fffdf7,#f0dcb9);
+ color:#9d6927;border:1px solid #e9d7b9
+}
+.metric-label,.category-card small,.section-subtitle{color:#877968}
+.metric-action-hint,.category-arrow{color:#9d6824}
+.metric-action:focus-visible{outline-color:#b5843b}
+.food-visual{background:radial-gradient(ellipse at 51% 60%,#f3e6d1 2%,#eedac0 31%,#fffaf0 70%,#f7ebd8 100%)}
+.food-visual:before{background:linear-gradient(145deg,#fffef8,#e8d8bb);box-shadow:0 16px 23px #73502d25,0 0 0 10px #ffffff8c}
+.food-visual.prep{background:radial-gradient(ellipse at 40% 30%,#fff8e6,#f1dfc2 75%)}
+.filter{background:#fffdf9;color:#876944;border-color:#e4d3bb}
+.filter.active,.filter:hover{background:#f5e2c2;color:#7b4b14;border-color:#d8b57d}
+.searchbox{background:#fffdf8;color:#987c53}.searchbox input{background:transparent;color:#48331c}
+.plan.featured{border:2px solid #bb873d;box-shadow:0 17px 42px #a5753436}
+.plan-mark{color:#af752f}.plan .short,.plan ul{color:#776853}.plan .price small{color:#9b8769}
+.featured-flag{background:linear-gradient(110deg,#f2d69d,#a96c23)}
+.totals-box{background:linear-gradient(120deg,#ad7732,#704319)}
+.tag{color:#91601f;background:#f7e6c7}
+.tab.active{color:#9a6220;border-bottom:2px solid #be8b41}
+.pf-link,.secondary-action,.workspace-item button{
+ background:#fff5e4;color:#87571f;border:1px solid #e6cb9d
+}
+.pf-link:hover{background:#ffecd0}
+.detail-panel{background:#faf1e3}.detail-panel p,.tech-list{color:#796850}
+.close-modal{background:#f8eddb;color:#7c5a31}
+.modal-head small{color:#a87429}.modal-head p{color:#8c775b}
+.secondary-button,.outline-button{border-color:#dcc4a1;color:#80571f}
+.field{background:#fffefa;border-color:#e2d2ba;color:#342717}
+.mini-qr{background:#fff6e6;border-color:#cfad74;color:#604320}
+#toast{background:#654320;color:white}
+footer{border-color:#e7d7bd;color:#8f7a5f}
+@media(max-width:950px){
+ .sidebar{box-shadow:7px 0 30px #67441925}
+ .hero-art{display:grid;position:absolute;right:-62px;bottom:-66px;width:198px;min-width:0;height:202px;opacity:.30;pointer-events:none}
+ .hero .sushi-art{transform:rotate(-11deg) scale(.70)}
+ .hero-copy{max-width:100%}
+}
+@media(max-width:680px){
+ .hero{background:linear-gradient(125deg,#fffcf6 0%,#f9e7cb 67%,#e5c58f 100%)}
+ .hero p{color:#6c5537}
+ .metric-action{background:linear-gradient(130deg,#fffdfa,#faeedb);border-color:#ead6b5}
+}
+@media print{
+ body,.sidebar,.topbar,.modal,.modal-content,.detail-panel{background:white!important;color:#111!important}
+}
