@@ -387,7 +387,7 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
    type:'print_error',id:e.id,at:e.resultAt||e.at,point:e.point,staff:e.staff,device:e.device,
    message:(e.product||'Этикетка')+' · '+(e.details||'Не удалось отправить на принтер')
   }));
-  const devices=await store.read('farukh-print-devices.json',[]);
+  const devices=await (store.readUncached?store.readUncached('farukh-print-devices.json',[]):store.read('farukh-print-devices.json',[]));
   if(!Array.isArray(devices))throw bad(503,'Не удалось прочитать устройства.');
   const offline=devices.filter(d=>!d.revoked&&d.lastSeenAt&&Date.now()-Date.parse(d.lastSeenAt)>20*60*1000)
    .map(d=>({type:'offline',id:d.id,at:d.lastSeenAt,device:d.name,message:'Нет связи более 20 минут'}));
