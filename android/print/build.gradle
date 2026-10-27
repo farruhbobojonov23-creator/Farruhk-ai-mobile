@@ -1,4 +1,6 @@
 plugins { id 'com.android.application' }
+// A single stable keystore, stored in GitHub Actions Secrets, must sign every
+// installable release. DO NOT publish ephemeral debug-signed APKs as updates.
 android {
     namespace 'ai.farukh.print'
     compileSdk 35
@@ -6,8 +8,18 @@ android {
         applicationId 'ai.farukh.print'
         minSdk 26
         targetSdk 35
-        versionCode 10
-        versionName '1.4.3-test'
+        versionCode 11
+        versionName '1.4.4-test'
+    }
+    signingConfigs {
+        stableRelease {
+            if (System.getenv('FARUKH_PRINT_SIGNING_STORE_FILE')) {
+                storeFile file(System.getenv('FARUKH_PRINT_SIGNING_STORE_FILE'))
+                storePassword System.getenv('FARUKH_PRINT_SIGNING_STORE_PASSWORD')
+                keyAlias System.getenv('FARUKH_PRINT_SIGNING_KEY_ALIAS')
+                keyPassword System.getenv('FARUKH_PRINT_SIGNING_KEY_PASSWORD')
+            }
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -15,9 +27,13 @@ android {
     }
     buildTypes {
         debug { minifyEnabled false }
-        release { minifyEnabled false }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.stableRelease
+        }
     }
 }
 dependencies {
     implementation 'androidx.webkit:webkit:1.13.0'
+    implementation 'androidx.core:core:1.15.0'
 }
