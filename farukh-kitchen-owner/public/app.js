@@ -57,17 +57,83 @@ function packages(){
 function settings(){return `<div class="eyebrow">ХРАНЕНИЕ И БЕЗОПАСНОСТЬ</div><h1 class="page-title">База и резервные копии</h1><p class="page-lead">Пока данные этого редактора хранятся только в браузере. Экспортируй их регулярно.</p><div class="two-pane"><div class="exportbox"><h3>Скачать все мои ТТК</h3><p>Файл JSON с твоими локальными черновиками, граммовками, технологией и небольшими фотографиями. Храни его в надёжном месте.</p><div class="import-section"><button class="main-button" id="export">↓ Экспорт JSON</button><button class="outline" id="import">↑ Импорт JSON</button></div><div class="note">Импорт заменит текущие локальные черновики после твоего подтверждения. Сделай экспорт перед импортом.</div></div><div class="exportbox"><h3>Отдельная приватная Google-база</h3><p>В Google Drive уже создана структура из восьми таблиц: ТТК, ПФ, состав, технология, пакеты, покупатели и журнал изменений.</p><a class="outline" href="${sheet}" target="_blank" rel="noopener noreferrer">Открыть приватную Google-таблицу ↗</a><div class="note">Синхронизация между этим редактором и Google Sheets пока НЕ подключена. Экспорт JSON не загружает данные туда автоматически.</div></div></div><div class="panel" style="margin-top:20px"><h2>Что дальше будет в коммерческой версии</h2><p>Защищённое серверное хранение, вход владельца по личному аккаунту, версии ТТК, фотоэталоны, связь ТТК/ПФ, подготовка лицензий и управление покупателями. Ни одной опубликованной рецептуры до проверки.</p></div>`}
 function closeSidebar(){$('#sidebar').classList.remove('open');$('#shade').classList.remove('visible');$('#shade').hidden=true}
 function nav(page){if(!['home','dish','prep','packages','settings'].includes(page))return;state.page=page;state.search='';state.filter='Все';closeSidebar();render();window.scrollTo(0,0)}
-function row(item={}){const el=document.createElement('div');el.className='ingredient-row';el.innerHTML='<input aria-label="Ингредиент" placeholder="Название ингредиента" maxlength="130"><input type="number" aria-label="Нетто, г" placeholder="Нетто, г" min="0" max="1000000" step=".1"><button type="button" title="Удалить строку" class="remove-row">×</button>';el.children[0].value=item.name||'';el.children[1].value=item.grams??'';return el}
-function addRow(item){$('#ingredient-rows').appendChild(row(item))}
+
+const PRESETS={
+ cold:{category:'Холодные роллы',type:'dish',ingredients:['Рис подготовленный','Нори','Сыр сливочный','Огурец','Рыба / морепродукт'],hint:'1. Проверить сырьё, маркировку и подготовку рабочих поверхностей.\n2. Подготовить рис, нори и начинку по утверждённому эталону.\n3. Сформировать ролл по утверждённой технологии.\n4. Проверить выход, количество частей и соответствие фотоэталону.'},
+ baked:{category:'Запечённые роллы',type:'dish',ingredients:['Рис подготовленный','Нори','Сыр сливочный','Начинка','Соус для запекания'],hint:'1. Провести входной контроль компонентов.\n2. Сформировать ролл и нанести соус.\n3. Выполнить обработку по проверенным времени и температуре.\n4. Проконтролировать готовность и выход.'},
+ tempura:{category:'Темпурные роллы',type:'dish',ingredients:['Рис подготовленный','Нори','Начинка','Кляр темпура','Сухари панко','Масло фритюрное'],hint:'1. Проверить сырьё и состояние масла.\n2. Подготовить и сформировать ролл.\n3. Выполнить панировку и жарку по утверждённому режиму.\n4. Проверить готовность, выход и качество.'},
+ onigiri:{category:'Онигири',type:'dish',ingredients:['Рис подготовленный','Начинка','Нори'],hint:'1. Проверить ингредиенты и их маркировку.\n2. Подготовить начинку и рис.\n3. Сформировать онигири по эталону.\n4. Проверить массу, целостность и упаковку.'},
+ sushi:{category:'Суши',type:'dish',ingredients:['Рис подготовленный','Рыба / морепродукты'],hint:'1. Подготовить и проверить компоненты.\n2. Сформировать порцию риса.\n3. Подготовить и уложить верхний ингредиент.\n4. Проверить выход и качество.'},
+ sauce:{category:'Соусы и заготовки',type:'prep',ingredients:['Основа соуса','Дополнительный ингредиент','Специи / приправы'],hint:'1. Проверить входящее сырьё.\n2. Дозировать компоненты согласно проработанной рецептуре.\n3. Смешать по утверждённой технологии.\n4. Определить фактический выход, промаркировать партию.'},
+ rice:{category:'Рис и основы',type:'prep',ingredients:['Рис сухой','Вода','Заправка рисовая'],hint:'1. Проверить сырьё и подготовить оборудование.\n2. Промыть рис по установленной технологии.\n3. Приготовить и внести заправку по проверенному режиму.\n4. Замерить выход и определить контрольные точки.'},
+ seafood:{category:'Рыба и морепродукты',type:'prep',ingredients:['Рыба / морепродукты исходные'],hint:'1. Проверить сопроводительные документы и условия приёмки.\n2. Выполнить разделку/очистку по утверждённому способу.\n3. Провести необходимую обработку по верифицированному режиму.\n4. Зафиксировать потери, выход и маркировку.'}
+};
+let wizardStep=0;
+function row(item={}){
+ const el=document.createElement('div');el.className='ingredient-row';
+ el.innerHTML='<label class="ingredient-name">Ингредиент<input aria-label="Ингредиент" placeholder="Рис, нори, сыр…" maxlength="130"></label><label class="ingredient-gross">Брутто, г<input type="number" aria-label="Брутто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><label class="ingredient-net">Нетто, г<input type="number" aria-label="Нетто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><button type="button" title="Удалить ингредиент" aria-label="Удалить ингредиент" class="remove-row">×</button>';
+ el.querySelector('.ingredient-name input').value=item.name||'';
+ el.querySelector('.ingredient-gross input').value=item.gross??'';
+ el.querySelector('.ingredient-net input').value=item.grams??'';
+ return el;
+}
+function addRow(item){$('#ingredient-rows').appendChild(row(item));sumIngredients()}
+function sumIngredients(){
+ const rows=$$('#ingredient-rows .ingredient-row');
+ const total=(sel)=>rows.reduce((sum,r)=>sum+(Number(r.querySelector(sel)?.value)||0),0);
+ $('#sum-gross').textContent=total('.ingredient-gross input').toLocaleString('ru-RU',{maximumFractionDigits:2})+' г';
+ $('#sum-net').textContent=total('.ingredient-net input').toLocaleString('ru-RU',{maximumFractionDigits:2})+' г';
+}
+function setStep(step){
+ wizardStep=Math.max(0,Math.min(2,step));
+ $$('[data-panel]').forEach(p=>p.hidden=Number(p.dataset.panel)!==wizardStep);
+ $$('.wizard-tab').forEach(t=>{const active=Number(t.dataset.step)===wizardStep;t.classList.toggle('current',active);t.classList.toggle('completed',Number(t.dataset.step)<wizardStep);if(active)t.setAttribute('aria-current','step');else t.removeAttribute('aria-current')});
+ $('#step-prev').hidden=wizardStep===0;
+ $('#step-next').hidden=wizardStep===2;
+ $('#save-record').hidden=wizardStep!==2;
+ const scroll=$('.editor');if(scroll)scroll.scrollTop=0;
+}
+function applyPreset(code,{initial=false}={}){
+ const p=PRESETS[code];if(!p)return;
+ const rows=$$('#ingredient-rows .ingredient-row');
+ const hasManual=rows.some(r=>r.querySelector('.ingredient-name input')?.value.trim()||r.querySelector('.ingredient-net input')?.value);
+ if(!initial&&hasManual&&!confirm('Заменить список ингредиентов готовым шаблоном? Указанные граммовки будут потеряны.')){$('#preset').value=state.records.find(x=>x.id===state.editing)?.preset||'';return}
+ const f=$('#record-form');
+ f.elements.namedItem('category').value=p.category;
+ $('#editor-kicker').textContent=badgePage(p.type);
+ $('#editor-title').textContent=p.type==='prep'?'Новый полуфабрикат':'Новая ТТК блюда';
+ $('#ingredient-rows').replaceChildren();
+ p.ingredients.forEach(name=>addRow({name,grams:null,gross:null}));
+ const steps=f.elements.namedItem('steps');
+ if(!steps.value.trim())steps.value=p.hint;
+ toast('Шаблон готов: заполни граммовки по проработке');
+}
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
  state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
- const f=$('#record-form');f.reset();f.elements.namedItem('name').value=existing?.name||'';f.elements.namedItem('category').value=existing?.category||(idOrType==='prep'?'Соусы и заготовки':'Холодные роллы');f.elements.namedItem('yield').value=existing?.yield||'';f.elements.namedItem('status').value=existing?.status||'Черновик';f.elements.namedItem('version').value=existing?.version||'1.0';f.elements.namedItem('steps').value=existing?.steps||'';f.elements.namedItem('notes').value=existing?.notes||'';
- $('#editor-title').textContent=existing?'Редактирование ТТК':(idOrType==='prep'?'Новый полуфабрикат':'Новая ТТК блюда');
+ const f=$('#record-form');f.reset();
+ const put=(name,val)=>{const el=f.elements.namedItem(name);if(el)el.value=val??''};
+ const values={
+ name:existing?.name||'',category:existing?.category||'',yield:existing?.yield||'',status:existing?.status||'Черновик',
+ version:existing?.version||'1.0',steps:existing?.steps||'',notes:existing?.notes||'',
+ preset:existing?.preset||'',documentType:existing?.documentType||'ТТК',cardNumber:existing?.cardNumber||'',
+ organization:existing?.organization||'',scope:existing?.scope||'',rawRequirements:existing?.rawRequirements||'',
+ developmentAct:existing?.developmentAct||'',presentation:existing?.presentation||'',storage:existing?.storage||'',
+ shelfLifeHours:existing?.shelfLifeHours??'',shelfBasis:existing?.shelfBasis||'',
+ organoleptic:existing?.organoleptic||'',safety:existing?.safety||'',
+ protein:existing?.nutrition?.protein??'',fat:existing?.nutrition?.fat??'',carb:existing?.nutrition?.carb??'',kcal:existing?.nutrition?.kcal??'',
+ approvedBy:existing?.approvedBy||'',approvedDate:existing?.approvedDate||''
+ };
+ Object.entries(values).forEach(([name,val])=>put(name,val));
+ $('#editor-title').textContent=existing?'Редактирование · '+existing.name:(idOrType==='prep'?'Новый полуфабрикат':'Новая ТТК блюда');
  $('#editor-kicker').textContent=badgePage(existing?.type||idOrType);
  $('#ingredient-rows').replaceChildren();
- const ingredients=existing?.ingredients||[];if(ingredients.length)ingredients.forEach(addRow);else addRow();
- updatePhoto();
+ const ingredients=existing?.ingredients||[];
+ if(ingredients.length)ingredients.forEach(addRow);
+ else if(existing)addRow();
+ else{const code=idOrType==='prep'?'sauce':'cold';put('preset',code);applyPreset(code,{initial:true})}
+ if(existing&&ingredients.length)sumIngredients();
+ updatePhoto();setStep(0);
  $('#editor-backdrop').hidden=false;document.body.style.overflow='hidden';$('#close-editor').focus();
 }
 function updatePhoto(){const p=$('#image-preview');if(state.photo){p.src=state.photo;p.hidden=false}else{p.hidden=true;p.removeAttribute('src')}}
@@ -77,14 +143,37 @@ async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'
  let data=canvas.toDataURL('image/jpeg',.67);if(data.length>400000){canvas.width=Math.round(canvas.width*.7);canvas.height=Math.round(canvas.height*.7);const image=await createImageBitmap(file);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);image.close();data=canvas.toDataURL('image/jpeg',.54)}
  if(data.length>400000)throw Error('Фотография не поместилась в локальное хранилище');return data;
 }
-function submit(e){e.preventDefault();const f=e.currentTarget;const list=$$('#ingredient-rows .ingredient-row').map(row=>({name:row.children[0].value.trim(),grams:Math.max(0,n(row.children[1].value))})).filter(x=>x.name);
+
+function submit(e){
+ e.preventDefault();const f=e.currentTarget,field=name=>f.elements.namedItem(name)?.value??'';
+ const list=$$('#ingredient-rows .ingredient-row').map(row=>{
+  const name=row.querySelector('.ingredient-name input').value.trim();
+  const gross=row.querySelector('.ingredient-gross input').value;
+  const net=row.querySelector('.ingredient-net input').value;
+  return {name,gross:gross===''?null:Number(gross),grams:net===''?null:Number(net)}
+ }).filter(x=>x.name);
  const was=state.records.find(x=>x.id===state.editing);
- const r=cleanRecord({id:was?.id||uuid(),type:was?.type||($('#editor-kicker').textContent.includes('ПОЛУФАБРИКАТ')?'prep':'dish'),name:f.elements.namedItem('name').value.trim(),category:f.elements.namedItem('category').value.trim(),yield:f.elements.namedItem('yield').value,status:f.elements.namedItem('status').value,version:f.elements.namedItem('version').value,steps:f.elements.namedItem('steps').value,notes:f.elements.namedItem('notes').value,photo:state.photo,ingredients:list,updatedAt:new Date().toISOString()});
- // Do not allow empty approved recipes in the prototype.
- if(!r.name||r.yield<=0){toast('Укажи название и выход');return}
- if(r.status==='Утверждена'&&(!r.ingredients.length||!r.steps.trim())){toast('Для статуса «Утверждена» нужны ингредиенты и технология');return}
- const prev=state.records.slice();if(was)state.records=state.records.map(x=>x.id===r.id?r:x);else state.records.unshift(r);
- if(!keep()){state.records=prev;return}
+ const r=cleanRecord({
+ id:was?.id||uuid(),type:was?.type||(PRESETS[field('preset')]?.type||'dish'),
+ name:field('name').trim(),category:field('category').trim(),yield:field('yield'),status:field('status'),
+ version:field('version'),steps:field('steps'),notes:field('notes'),photo:state.photo,ingredients:list,
+ preset:field('preset'),documentType:field('documentType'),cardNumber:field('cardNumber'),organization:field('organization'),
+ scope:field('scope'),rawRequirements:field('rawRequirements'),developmentAct:field('developmentAct'),
+ presentation:field('presentation'),storage:field('storage'),shelfLifeHours:field('shelfLifeHours'),shelfBasis:field('shelfBasis'),
+ organoleptic:field('organoleptic'),safety:field('safety'),
+ nutrition:{protein:field('protein'),fat:field('fat'),carb:field('carb'),kcal:field('kcal')},
+ approvedBy:field('approvedBy'),approvedDate:field('approvedDate'),updatedAt:new Date().toISOString()
+ });
+ if(!r.name||r.yield<=0){setStep(0);toast('Заполни наименование и фактический выход');return}
+ if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){setStep(2);toast('Для срока годности укажи документальное обоснование');return}
+ if(r.status==='Утверждена'){
+  const mandatory=r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)&&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()&&r.presentation.trim()&&r.storage.trim()&&r.organoleptic.trim()&&r.safety.trim()&&r.approvedBy.trim()&&r.approvedDate;
+  if(!mandatory){setStep(2);toast('Не все обязательные разделы заполнены. Сохрани как черновик.');return}
+  if(!confirm('Утверждение означает, что рецептура проработана, условия хранения обоснованы, а документ подписан руководителем. Подтверждаешь?'))return;
+ }
+ const before=state.records.slice();
+ if(was)state.records=state.records.map(x=>x.id===r.id?r:x);else state.records.unshift(r);
+ if(!keep()){state.records=before;return}
  closeEditor();state.search='';state.filter='Все';render();toast('ТТК сохранена локально. Не забудь экспорт JSON.');
 }
 function exportJson(){const out={format:'FARUKH_KITCHEN_OWNER_DRAFTS',version:1,exportedAt:new Date().toISOString(),records:state.records};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='FARUKH_KITCHEN_BACKUP_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Резервная копия подготовлена')}
