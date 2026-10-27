@@ -1121,6 +1121,7 @@ window.FARUKH_PRINT_SYNC_API={
   if(!$('manage').hidden)renderManage();
  },
  replace:newProducts=>{
+  window.FARUKH_PRINT_STAFF_API?.clearPrepared?.();
   if(!Array.isArray(newProducts)||newProducts.length>1000||newProducts.some(p=>!p||!['ready','prep'].includes(p.kind)||typeof p.name!=='string'||(p.photo&&!window.FarukhPrintPhotos?.isPhoto(p.photo))))throw Error('Получена повреждённая облачная база.');
   const old=products;products=structuredClone(newProducts);
   if(!save()){products=old;throw Error('Невозможно сохранить базу на Android.')}
