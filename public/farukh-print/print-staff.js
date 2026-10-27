@@ -138,7 +138,8 @@ const API={
   if(!staff||!session||localStorage.getItem(MANAGED)!=='1')return false;
   const key=grantKey(job);
   if(!key)return false;
-  if(prepared?.key===key&&Date.now()<prepared.expiresAt)return true;
+  // Refresh before the 12-second grant expires while a roll stays open.
+  if(prepared?.key===key&&Date.now()<prepared.expiresAt-4000)return true;
   if(preparing?.key===key)return preparing.promise;
   const epoch=++prepareEpoch;
   prepared=null;
