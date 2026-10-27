@@ -68,7 +68,7 @@ async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'
 }
 function submit(e){e.preventDefault();const f=e.currentTarget;const list=$$('#ingredient-rows .ingredient-row').map(row=>({name:row.children[0].value.trim(),grams:Math.max(0,n(row.children[1].value))})).filter(x=>x.name);
  const was=state.records.find(x=>x.id===state.editing);
- const r=cleanRecord({id:was?.id||uuid(),type:was?.type||$('#editor-kicker').textContent.includes('ПОЛУФАБРИКАТ')?'prep':'dish',name:f.elements.name.value.trim(),category:f.elements.category.value.trim(),yield:f.elements.yield.value,status:f.elements.status.value,version:f.elements.version.value,steps:f.elements.steps.value,notes:f.elements.notes.value,photo:state.photo,ingredients:list,updatedAt:new Date().toISOString()});
+ const r=cleanRecord({id:was?.id||uuid(),type:was?.type||($('#editor-kicker').textContent.includes('ПОЛУФАБРИКАТ')?'prep':'dish'),name:f.elements.name.value.trim(),category:f.elements.category.value.trim(),yield:f.elements.yield.value,status:f.elements.status.value,version:f.elements.version.value,steps:f.elements.steps.value,notes:f.elements.notes.value,photo:state.photo,ingredients:list,updatedAt:new Date().toISOString()});
  // Do not allow empty approved recipes in the prototype.
  if(!r.name||r.yield<=0){toast('Укажи название и выход');return}
  if(r.status==='Утверждена'&&(!r.ingredients.length||!r.steps.trim())){toast('Для статуса «Утверждена» нужны ингредиенты и технология');return}
