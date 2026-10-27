@@ -231,10 +231,12 @@ test('Temporary 30-day employee access expires server-side, including remembered
  assert.equal(signed.code,200);
  const session=signed.data.session;
  assert.equal((await call('get','/api/farukh-print/device/staff/session',{device,staff:session})).code,200);
- // Simulate the passing of 30 days without relying on machine time or sleeping.
- const accounts=persist.get('farukh-print-staff.json');
- accounts[0].expiresAt=new Date(Date.now()-1000).toISOString();
- persist.set('farukh-print-staff.json',accounts);
+ // Simulate the real expiry deadline passing. Importantly, this exercises
+ // the cached user's actual expiry timestamp at every request, not a manual
+ // out-of-band modification to the cloud database.
+ const actualNow=Date.now;
+ Date.now=()=>deadline+1000;
+ try{
  const denied=await call('get','/api/farukh-print/device/staff/session',{device,staff:session});
  assert.equal(denied.code,403);
  assert.match(denied.data.error,/Срок доступа.*истёк/);
@@ -256,6 +258,7 @@ test('Temporary 30-day employee access expires server-side, including remembered
  assert.ok(Date.parse(renewed.data.staff.expiresAt)>Date.now()+6*86400000);
  assert.equal((await call('get','/api/farukh-print/device/staff/session',{device,staff:session})).code,401);
  assert.equal((await call('post','/api/farukh-print/device/staff/login',{device,body:{login:employee.login,password:created.data.password}})).code,200);
+ }finally{Date.now=actualNow}
 });
 
 test('Owner can grant unlimited access, but bad durations and unauthorized renewals are refused',async()=>{
