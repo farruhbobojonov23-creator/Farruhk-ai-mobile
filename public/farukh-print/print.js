@@ -1198,6 +1198,12 @@ function boot(){
  };
  $('printed-at').addEventListener('input',()=>{autoPrintedAt=false;updatePreview()});
  $('printed-at-now').onclick=()=>{autoPrintedAt=true;$('printed-at').value=nowLocal();updatePreview()};
+ // Re-validate an open roll proactively, so the print button never relies on
+ // an expired 12-second staff grant after the cook pauses for a few minutes.
+ setInterval(()=>{
+  if(!document.hidden&&document.body.classList.contains('worker-preview-open')
+     &&!$('catalog').hidden&&!busy&&!batchRunning)prepareFastPrint();
+ },4000);
  let prepareTimer;
  $('copies').addEventListener('input',()=>{window.FARUKH_PRINT_STAFF_API?.clearPrepared?.();clearTimeout(prepareTimer);prepareTimer=setTimeout(prepareFastPrint,220)});
  setInterval(refreshPrintedAt,20_000);
