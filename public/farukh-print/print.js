@@ -38,7 +38,7 @@ const guideFor=p=>p?.kind==='prep'?PREP_GUIDANCE[p.name]||['Полуфабрик
 let adviceLoader=null;
 function openProductAdvice(p){
  // Load only if the employee asks for advice, keeping the print catalog fast.
- if(!adviceLoader)adviceLoader=import('/farukh-print/employee-advice.js?v=6').catch(e=>{adviceLoader=null;throw e});
+ if(!adviceLoader)adviceLoader=import('/farukh-print/employee-advice.js?v=7').catch(e=>{adviceLoader=null;throw e});
  void adviceLoader.then(({openAdvice})=>openAdvice({
   ...p,category:p.category||(p.kind==='ready'?window.FarukhPrintCategories?.category?.(p):'')
  },{
