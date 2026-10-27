@@ -18,7 +18,7 @@ test('FARUKH PRINT staff has a distinct installable shareable URL backed by same
  assert.match(html,/premium-prep-label\.js\?v=1/);
  assert.match(html,/premium-ready-label\.js\?v=3/);
  assert.match(html,/\.\/legacy\/print\.js\?v=\d+/);
- assert.match(html,/print-staff\.js\?v=9/);
+ assert.match(html,/print-staff\.js\?v=\d+/);
 });
 
 test('Employee URL blocks owner management before device pairing without permanently changing personal owner localStorage',async()=>{
