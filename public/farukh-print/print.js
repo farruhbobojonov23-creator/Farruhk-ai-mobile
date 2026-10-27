@@ -195,9 +195,18 @@ function closeWorkerPreview(){
  $('worker-preview-backdrop').hidden=true;
  $('worker-close-preview').hidden=true;
 }
+function prepareFastPrint(){
+ const p=current(),api=window.FARUKH_PRINT_STAFF_API;
+ if(!canPrint()||!api?.prepare||!p||p.needsReview||busy||batchRunning)return;
+ const copies=Number($('copies').value),dateValue=$('printed-at').value;
+ if(!Number.isInteger(copies)||copies<1||copies>20||!dateValue)return;
+ void api.prepare({product:p,copies,dateValue});
+}
 function openWorkerPreview(){
  // Visitors may open the same label preview; printing remains server-authorized.
  if(!current())return;
+ // Pre-check permissions while the cook examines the label.
+ prepareFastPrint();
  document.body.classList.add('worker-preview-open');
  $('worker-preview-backdrop').hidden=false;
  $('worker-close-preview').hidden=false;
@@ -224,6 +233,7 @@ function renderWorker(){
   updatePrintAccessUI();
 }
 function updateWorkerSession(staff){
+ window.FARUKH_PRINT_STAFF_API?.clearPrepared?.();
  const wasLoggedIn=!!workerLoggedIn;
  workerLoggedIn=staff||null;
  renderWorker();
@@ -914,7 +924,7 @@ async function doPrint(forceSystem=false,waitForAck=false){
   if(localStorage.getItem('farukh-print:staff-managed:v1')==='1'){
    const api=window.FARUKH_PRINT_STAFF_API;
    if(!api)throw Error('Проверка сотрудников ещё не загрузилась. Закрой и открой приложение.');
-   status('Проверяю права сотрудника и утверждённую этикетку…');
+   status('Проверяю доступ к печати…');
    const beginAuth=Date.now();
    const authorized=await api.authorize({...value,product:current(),dateValue:$('printed-at').value});
    authorizationMs=Date.now()-beginAuth;
@@ -1146,6 +1156,7 @@ function boot(){
  window.addEventListener('farukh-print-sync-status',e=>{
    const data=e.detail||{};
    $('worker-sync-status').textContent=data.message||'Каталог: ожидание связи';
+   window.FARUKH_PRINT_STAFF_API?.clearPrepared?.();
    updatePrintAccessUI();
  });
  $('worker-fav-filter').onclick=()=>{favoritesOnly=!favoritesOnly;renderCatalog()};
@@ -1186,6 +1197,8 @@ function boot(){
  };
  $('printed-at').addEventListener('input',()=>{autoPrintedAt=false;updatePreview()});
  $('printed-at-now').onclick=()=>{autoPrintedAt=true;$('printed-at').value=nowLocal();updatePreview()};
+ let prepareTimer;
+ $('copies').addEventListener('input',()=>{window.FARUKH_PRINT_STAFF_API?.clearPrepared?.();clearTimeout(prepareTimer);prepareTimer=setTimeout(prepareFastPrint,220)});
  setInterval(refreshPrintedAt,20_000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPrintedAt()});
  window.addEventListener('pageshow',refreshPrintedAt);
