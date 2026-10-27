@@ -20,13 +20,12 @@ const opt=(v,label=v)=>{const o=el('option','',label);o.value=v;return o};
 const userPoints=u=>Array.isArray(u.points)&&u.points.length?u.points:[u.point].filter(Boolean);
 const multiPointPicker=()=>{
  const box=el('div','pstaff-point-checks');
- box.style.cssText='display:flex;flex-wrap:wrap;gap:8px 14px;padding:10px 12px;border:1px solid #ccd9df;border-radius:10px';
+ box.setAttribute('role','group');box.setAttribute('aria-label','Разрешённые точки');
  const values=()=>Array.from(box.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
  const render=(all,chosen=[])=>{
   box.replaceChildren();
   for(const value of all){
    const label=el('label','pstaff-point-option');
-   label.style.cssText='display:flex;align-items:center;gap:7px;min-width:140px;cursor:pointer;font-size:14px';
    const input=el('input');input.type='checkbox';input.value=value;input.checked=chosen.some(x=>pointEqual(x,value));
    label.append(input,el('span','',value));box.append(label);
   }
@@ -101,7 +100,7 @@ export function mountPrintStaffControl({root}){
  const name=field('Имя','Например, Гуля');
  const login=field('Логин латиницей','Например, gulya01');
  login.input.pattern='[a-z][a-z0-9_-]{2,31}';login.input.maxLength=32;name.input.maxLength=65;
- const pointLabel=el('div','pstaff-field');pointLabel.append(el('span','','Разрешённые точки — можно выбрать несколько'));
+ const pointLabel=el('div','pstaff-field pstaff-point-field');pointLabel.append(el('span','','Разрешённые точки — можно выбрать несколько'));
   const createPointPicker=multiPointPicker();pointLabel.append(createPointPicker.box);
  const addStaff=el('button','pstaff-create','＋ Создать доступ');addStaff.type='submit';
  const createAccess=accessPicker('Доступ на срок','30');
