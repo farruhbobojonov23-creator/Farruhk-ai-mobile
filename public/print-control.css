@@ -398,3 +398,99 @@
 #print-control .pstaff-product-row>span{font-size:11px;color:#6e8594;line-height:1.6;overflow-wrap:anywhere}
 #print-control .pstaff-history-filters .pstaff-export{background:#a52d49;color:#fff;border-color:#ad314d;min-height:42px;white-space:normal}
 @media(max-width:660px){#print-control .pstaff-products{grid-template-columns:1fr}#print-control .pstaff-history-filters .pstaff-export{grid-column:1/-1}}
+
+
+/* FARUKH PRINT: mobile-friendly multi-location staff editor.
+   Keep the location grid on its own row; never stretch checkbox inputs
+   through the generic text-input rule or place the list in a narrow column. */
+#print-control .pstaff-inline-edit {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  align-items:stretch;
+  min-width:0;
+}
+#print-control .pstaff-inline-edit > input:not([type="checkbox"]) {
+  min-width:0;
+  width:100%;
+}
+#print-control .pstaff-inline-edit > .pstaff-point-checks {
+  grid-column:1/-1;
+}
+#print-control .pstaff-inline-edit > button {
+  grid-column:auto;
+  width:100%;
+  margin:0;
+}
+#print-control .pstaff-form > .pstaff-point-field {
+  grid-column:1/-1;
+  min-width:0;
+}
+#print-control .pstaff-point-checks {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  gap:8px;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  padding:9px;
+  border:1px solid #ccd9df;
+  border-radius:12px;
+  background:#f8fbfd;
+}
+#print-control .pstaff-point-option {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  min-height:44px;
+  box-sizing:border-box;
+  border:1px solid #e2ebef;
+  border-radius:9px;
+  padding:8px 10px;
+  color:#304a57;
+  background:#fff;
+  cursor:pointer;
+  font-size:13px;
+  line-height:1.4;
+  font-weight:700;
+}
+#print-control .pstaff-point-option:has(input:checked) {
+  background:#f4fbff;
+  border-color:#aac9db;
+}
+#print-control .pstaff-point-option input[type="checkbox"],
+#print-control .pstaff-inline-edit .pstaff-point-option input[type="checkbox"] {
+  appearance:auto;
+  -webkit-appearance:checkbox;
+  flex:0 0 20px;
+  display:block;
+  width:20px;
+  min-width:20px;
+  max-width:20px;
+  height:20px;
+  min-height:20px;
+  margin:0;
+  padding:0;
+  border-radius:4px;
+  accent-color:#a82d49;
+  box-sizing:border-box;
+}
+#print-control .pstaff-point-option > span {
+  flex:1 1 auto;
+  min-width:0;
+  overflow-wrap:anywhere;
+  white-space:normal;
+}
+@media(max-width:530px){
+  #print-control .pstaff-inline-edit {
+    grid-template-columns:minmax(0,1fr);
+  }
+  #print-control .pstaff-inline-edit > .pstaff-point-checks {
+    grid-column:1;
+  }
+  #print-control .pstaff-point-checks {
+    grid-template-columns:minmax(0,1fr);
+  }
+}

@@ -6,6 +6,9 @@ on:
       - 'print-recovery-store.js'
       - 'public/farukh-print/print-staff.js'
       - 'public/print-control-staff.js'
+      - 'public/print-control.css'
+      - 'public/index.html'
+      - 'tests/print-staff-mobile-layout.test.js'
       - 'tests/print-staff-multipoint.test.js'
       - '.github/workflows/test-farukh-print-points.yml'
   push:
@@ -14,6 +17,7 @@ on:
     paths:
       - 'print-staff-api.js'
       - 'tests/print-staff-multipoint.test.js'
+      - 'tests/print-staff-mobile-layout.test.js'
 jobs:
   points:
     runs-on: ubuntu-latest
@@ -28,4 +32,4 @@ jobs:
           node --check public/farukh-print/print-staff.js
           node --check public/print-control-staff.js
       - name: Test employee permissions for kitchen points
-        run: node --test tests/print-staff-multipoint.test.js
+        run: node --test tests/print-staff-multipoint.test.js tests/print-staff-mobile-layout.test.js
