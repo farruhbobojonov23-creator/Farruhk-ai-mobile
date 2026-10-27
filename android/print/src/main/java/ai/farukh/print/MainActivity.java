@@ -77,6 +77,9 @@ public final class MainActivity extends Activity {
     private volatile BluetoothSocket heldSocket;
     private String heldAddress;
     private long socketLease;
+    // Reuse the paired V3 BT connection while the cook switches between rolls.
+    // Release after three idle minutes so another workstation can take over.
+    private static final long SOCKET_IDLE_MS = 180_000;
 
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -317,7 +320,7 @@ public final class MainActivity extends Activity {
     /**
      * Reuse one authenticated RFCOMM session for nearby print jobs.
      * Reconnecting for every label creates several seconds of avoidable
-     * Bluetooth negotiation; releasing it after 60 s lets another tablet
+     * Bluetooth negotiation; releasing it after three idle minutes lets another tablet
      * use the same V3 BT. All regular access is on printerWorker.
      */
     private void closeHeldSocket() {
@@ -360,8 +363,17 @@ public final class MainActivity extends Activity {
                     if (!completed.get()) try { active.close(); }
                     catch (Exception ignored) {}
                 };
-                mainHandler.postDelayed(timeout, 45000);
+                mainHandler.postDelayed(timeout, 20_000);
                 if (!reused) {
+                    // An ongoing Android Bluetooth scan slows down RFCOMM pairing.
+                    // On Android 12+ this may require BLUETOOTH_SCAN; if unavailable,
+                    // skip cancellation rather than block printing.
+                    BluetoothManager manager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+                    BluetoothAdapter adapter = manager != null ? manager.getAdapter() : null;
+                    if (adapter != null) {
+                        try { if (adapter.isDiscovering()) adapter.cancelDiscovery(); }
+                        catch (SecurityException ignored) {}
+                    }
                     socket.connect();
                     heldSocket = socket;
                     heldAddress = address;
@@ -405,7 +417,7 @@ public final class MainActivity extends Activity {
                                 if (socketLease == lease && !printing.get()) closeHeldSocket();
                             });
                         } catch (java.util.concurrent.RejectedExecutionException ignored) {}
-                    }, 60_000);
+                    }, SOCKET_IDLE_MS);
                 }
             }
         });
