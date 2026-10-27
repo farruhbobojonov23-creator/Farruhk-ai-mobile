@@ -1,0 +1,12 @@
+{
+  "name": "farukh-kitchen-owner",
+  "version": "0.7.0",
+  "private": true,
+  "description": "Independent protected owner console - prototype",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
