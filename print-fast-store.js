@@ -77,6 +77,7 @@ export function acceleratePrintStore(source){
  return {
   ...source,
   read,
+  readUncached:freshRead,
   async write(name,value){
    invalidate(name);
    try{return await source.write(name,value);}
