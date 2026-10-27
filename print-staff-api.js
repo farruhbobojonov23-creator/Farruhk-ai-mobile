@@ -36,6 +36,32 @@ const ownerCookie=req=>String(req.headers.cookie||'').split(';').map(x=>x.trim()
 const trim=(v,n)=>String(v||'').trim().slice(0,n);
 export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readCatalog}){
  const limits=new Map();
+ // A fast print ticket is an APPROVAL issued by the server on preview,
+ // valid once and for at most 12 seconds. No permanent offline grants.
+ const FAST_TTL_MS=12_000,MAX_FAST_TICKETS=128;
+ const fastTickets=new Map();
+ const invalidateFastTickets=()=>fastTickets.clear();
+ const consumeFast=(req,res,next)=>{
+  const key=String(req.body?.fastTicket||''),ticket=fastTickets.get(key);
+  if(!ticket)return next();
+  fastTickets.delete(key); // one-use; no replay
+  const now=Date.now();
+  if(ticket.expiresAt<=now||expiryReached(ticket.staff,now)
+   ||ticket.deviceHash!==sha(String(req.get('X-Farukh-Print-Device')||''))
+   ||ticket.sessionHash!==sha(String(req.get('X-Farukh-Print-Staff')||''))
+   ||ticket.product.id!==req.body?.productId
+   ||ticket.copies!==Number(req.body?.copies)
+   ||ticket.staff.point!==req.body?.point
+   ||ticket.revision!==req.body?.catalogRevision
+   ||!Number.isFinite(Date.parse(req.body?.printedAt)))return next();
+  req.farukhPrintFast=ticket;
+  req.farukhPrintDevice=ticket.device;
+  req.farukhStaff=ticket.staff;
+  req.farukhSession=ticket.sessionHash;
+  req.farukhSessionData={loginAt:ticket.loginAt};
+  next();
+ };
+
  const readSessions=async()=>{
   const entries=await store.read(SESSIONS,[]);
   if(!Array.isArray(entries)||entries.length>MAX_SESSIONS||entries.some(x=>!x||typeof x.hash!=='string'||typeof x.userId!=='string'||typeof x.deviceId!=='string'))throw bad(503,'Журнал входов сотрудников повреждён.');
@@ -77,14 +103,17 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   next();
  };
  const requireStaff=async(req,res,next)=>{
+  if(req.farukhPrintFast)return next();
   const credential=String(req.get('X-Farukh-Print-Staff')||'');
   if(!/^[A-Za-z0-9_-]{43}$/.test(credential))return res.status(401).json({ok:false,error:'Нужен вход сотрудника.'});
   try{
    // Durable device-bound sessions survive browser restarts and server deploys.
    // A session remains valid until explicit logout or owner reset/block/revoke.
-   const id=sha(credential),session=(await readSessions()).find(x=>x.hash===id&&x.deviceId===req.farukhPrintDevice.id);
+   const id=sha(credential);
+   const [sessions,users]=await Promise.all([readSessions(),readUsers()]);
+   const session=sessions.find(x=>x.hash===id&&x.deviceId===req.farukhPrintDevice.id);
    if(!session)return res.status(401).json({ok:false,error:'Сеанс сотрудника завершён. Войди снова.'});
-   const user=(await readUsers()).find(x=>x.id===session.userId);
+   const user=users.find(x=>x.id===session.userId);
    if(!user||user.active===false)return res.status(403).json({ok:false,error:'Доступ сотрудника отключён владельцем.'});
    if(expiryReached(user))return res.status(403).json({ok:false,error:'Срок доступа сотрудника истёк. Обратись к управляющему для продления.'});
    req.farukhStaff=user;req.farukhSession=id;req.farukhSessionData=session;next();
@@ -378,12 +407,40 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   });
   res.json({ok:true});
  }));
- app.post('/api/farukh-print/device/staff/authorize-print',protectDevice,requireStaff,safe(async(req,res)=>{
+ // Prefetch while the cook examines a label; no audit event is recorded yet.
+ app.post('/api/farukh-print/device/staff/preflight',protectDevice,requireStaff,safe(async(req,res)=>{
+  if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
+  const productId=trim(req.body?.productId,150),copies=Number(req.body?.copies),point=trim(req.body?.point,60);
+  if(!Number.isSafeInteger(copies)||copies<1||copies>20||point!==req.farukhStaff.point
+     ||!Number.isFinite(Date.parse(req.body?.printedAt)))throw bad(403,'Неверные данные печати.');
+  const catalog=await readCatalog();
+  if(!Number.isSafeInteger(req.body?.catalogRevision)||req.body.catalogRevision!==catalog.revision)
+   throw bad(409,'Каталог обновлён владельцем. Нажми «Обновить товары» и повтори.');
+  const product=catalog.products.find(p=>p.id===productId);
+  if(!product||product.needsReview===true
+     ||(!getTemplate(product)&&(!product.storage||!Number.isInteger(product.hours)||product.hours<=0)))
+   throw bad(403,'Этикетка отсутствует в утверждённой базе или не проверена.');
+  const now=Date.now();
+  for(const [id,v] of fastTickets)if(v.expiresAt<=now)fastTickets.delete(id);
+  if(fastTickets.size>=MAX_FAST_TICKETS)fastTickets.delete(fastTickets.keys().next().value);
+  const id=token();
+  fastTickets.set(id,{deviceHash:sha(String(req.get('X-Farukh-Print-Device')||'')),
+   sessionHash:sha(String(req.get('X-Farukh-Print-Staff')||'')),
+   device:{id:req.farukhPrintDevice.id,name:req.farukhPrintDevice.name},
+   staff:{id:req.farukhStaff.id,name:req.farukhStaff.name,login:req.farukhStaff.login,
+    point:req.farukhStaff.point,expiresAt:req.farukhStaff.expiresAt,active:true},
+   loginAt:req.farukhSessionData.loginAt,product,copies,revision:catalog.revision,
+   expiresAt:Math.min(now+FAST_TTL_MS,req.farukhStaff.expiresAt?Date.parse(req.farukhStaff.expiresAt):Infinity)});
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,fastTicket:id,expiresInMs:FAST_TTL_MS});
+ }));
+ app.post('/api/farukh-print/device/staff/authorize-print',consumeFast,protectDevice,requireStaff,safe(async(req,res)=>{
   if(!sameOrigin(req))throw bad(403,'Неверный источник запроса.');
   const productId=trim(req.body?.productId,150),copies=Number(req.body?.copies),point=trim(req.body?.point,60);
   const printedAt=String(req.body?.printedAt||'');
   if(!Number.isSafeInteger(copies)||copies<1||copies>20||point!==req.farukhStaff.point||!Number.isFinite(Date.parse(printedAt)))throw bad(403,'Нельзя печатать на другой точке или с неверными данными.');
-  const list=await readCatalog();
+  const list=req.farukhPrintFast?
+   {revision:req.farukhPrintFast.revision,products:[req.farukhPrintFast.product]}:await readCatalog();
   // A worker must not print dates/temperatures from an out-of-date local
   // catalog after the owner has changed a TTK or expiry in FARUKH AI.
   if(!Number.isSafeInteger(req.body?.catalogRevision)||req.body.catalogRevision!==list.revision)
@@ -417,5 +474,5 @@ export function installPrintStaffApi(app,{store,auth,enabled,protectDevice,readC
   res.set('Cache-Control','no-store');
   res.json({ok:true,eventId:updated.id,result:updated.result});
  }));
-
+ return {invalidateFastTickets};
 }
