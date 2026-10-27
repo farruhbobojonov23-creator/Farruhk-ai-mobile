@@ -220,3 +220,8 @@
  .paper-page .paper-documentno{grid-template-columns:60px 1fr 72px}
  .paper-page .ingredient-row label input{font-size:10px!important}
 }
+
+/* Printable empty TTK PDF shortcut */
+.paper-blank-pdf{min-height:37px;border:1px solid #c9aa7a;background:linear-gradient(120deg,#fffdfa,#f1dfc0);color:#6d4b25;border-radius:9px;padding:8px 12px;white-space:nowrap;font-size:11px;font-weight:850}
+.paper-blank-pdf:hover{background:#eddbbb}
+@media(max-width:690px){.pdf-bar-controls{display:flex;justify-content:space-between}.paper-blank-pdf{padding:7px 8px;white-space:nowrap;font-size:10px}.pdf-preset select{width:min(49vw,200px)}}
