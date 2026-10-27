@@ -15,7 +15,7 @@ test('known preps get product-specific shelf, neighbors and handling',()=>{
   ['Сыр творожный в кондитерском мешке','молочных'],
   ['Кунжут жаренный белый','Сухой склад'],
   ['Сухари панко и лук жаренный сухой (замесе)','Сухой склад'],
-  ['Сироп для кофе','изготовителя']
+  ['Сироп для кофе','маркировке']
  ]){
   const result=individualPrepAdviceFor(prep(name));
   assert.equal(result.recognized,true,name);
