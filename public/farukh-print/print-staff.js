@@ -152,7 +152,7 @@ const API={
     })});
     if(epoch!==prepareEpoch||!response.fastTicket)return false;
     prepared={key,ticket:response.fastTicket,
-     expiresAt:Date.now()+Math.min(12_000,Number(response.expiresInMs)||0)-900};
+     expiresAt:Number(response.expiresAt)||Date.now()+Math.min(12_000,Number(response.expiresInMs)||0)-900};
     return true;
    }catch{return false;} // The print action still performs normal live checks.
    finally{if(preparing?.epoch===epoch)preparing=null;}
@@ -182,6 +182,11 @@ const API={
    const revision=window.FARUKH_PRINT_DEVICE_SYNC?.state().revision;
    if(!Number.isSafeInteger(revision)||revision<0)throw Error('Каталог ещё не загружен из FARUKH AI. Нажми «Обновить товары» и повтори.');
    const key=grantKey(job);
+   // If the cook tapped immediately after selecting the roll, reuse the
+   // already-in-flight preview check rather than launching duplicate cloud reads.
+   if(key&&preparing?.key===key&&!prepared){
+    await Promise.race([preparing.promise,new Promise(resolve=>setTimeout(resolve,4500))]);
+   }
    const fastTicket=prepared?.key===key&&Date.now()<prepared.expiresAt?prepared.ticket:null;
    clearPrepared(); // Never reuse after an attempted print.
    const result=await call('/authorize-print',{
