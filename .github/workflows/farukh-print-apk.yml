@@ -111,8 +111,19 @@ jobs:
           CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\([0-9]\+\).*/\1/p' android/print/build.gradle | head -1)"
           NAME="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*'\([^']*\)'.*/\1/p" android/print/build.gradle | head -1)"
           HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
-          printf 'FARUKH_PRINT_VERSION_CODE=%s\nFARUKH_PRINT_VERSION_NAME=%s\nFARUKH_PRINT_SHA256=%s\n\nAndroid checks the existing application signature and asks before installation. Earlier debug-signed versions may need a one-time migration after backing up JSON.\n' "$CODE" "$NAME" "$HASH" > "$RUNNER_TEMP/farukh-release/notes.txt"
+          # Protect a published stable release against accidental key replacement.
+          CERT_SHA256="$(keytool -list -v -keystore "$KEYSTORE" -storepass "$FARUKH_PRINT_SIGNING_STORE_PASSWORD" -alias "$FARUKH_PRINT_SIGNING_KEY_ALIAS" 2>/dev/null | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' | head -1)"
+          if [ -z "$CERT_SHA256" ]; then
+            echo "::error::Cannot identify signing certificate"
+            exit 1
+          fi
+          printf 'FARUKH_PRINT_VERSION_CODE=%s\nFARUKH_PRINT_VERSION_NAME=%s\nFARUKH_PRINT_SHA256=%s\nFARUKH_PRINT_CERT_SHA256=%s\n\nAndroid checks the existing application signature and asks before installation. Earlier debug-signed versions need a one-time migration after backing up JSON.\n' "$CODE" "$NAME" "$HASH" "$CERT_SHA256" > "$RUNNER_TEMP/farukh-release/notes.txt"
           if gh release view farukh-print-current --repo "$GH_REPO" >/dev/null 2>&1; then
+            EXISTING_CERT="$(gh release view farukh-print-current --repo "$GH_REPO" --json body --jq '.body' | sed -n 's/^FARUKH_PRINT_CERT_SHA256=//p' | head -1)"
+            if [ -n "$EXISTING_CERT" ] && [ "$EXISTING_CERT" != "$CERT_SHA256" ]; then
+              echo "::error::Signing key changed. Refusing to overwrite previously signed APK."
+              exit 1
+            fi
             EXISTING_CODE="$(gh release view farukh-print-current --repo "$GH_REPO" --json body --jq '.body' | grep -E '^FARUKH_PRINT_VERSION_CODE=[0-9]+$' | head -1 | cut -d= -f2 || true)"
             EXISTING_ASSET="$(gh release view farukh-print-current --repo "$GH_REPO" --json assets --jq '.assets[].name' | grep -Fx 'FARUKH-PRINT-test.apk' || true)"
             if [ "$EXISTING_CODE" = "$CODE" ] && [ -n "$EXISTING_ASSET" ]; then
