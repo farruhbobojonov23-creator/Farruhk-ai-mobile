@@ -48,7 +48,7 @@ function fkCloudMount(){
  if(fkCloudSession?.access_token)fkCloudCheck().catch(()=>{});
 }
 function fkCloudHeaders(token,extra={}){
- return {'apikey':FK_CLOUD_KEY,'Authorization':'Bearer '+(token||FK_CLOUD_KEY),...extra};
+ return {'apikey':FK_CLOUD_KEY,...(token?{'Authorization':'Bearer '+token}:{}),...extra};
 }
 async function fkCloudFetch(path,{method='GET',payload=null,prefer=''}={}){
  const token=fkCloudSession?.access_token;
