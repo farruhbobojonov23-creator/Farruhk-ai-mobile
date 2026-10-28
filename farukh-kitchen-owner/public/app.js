@@ -9,7 +9,12 @@ function safePhoto(x){return typeof x==='string'&&/^data:image\/(jpeg|png|webp);
 function keep(){try{localStorage.setItem(key,JSON.stringify(state.records));return true}catch(e){toast('Недостаточно памяти браузера. Экспортируйте JSON.');return false}}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3400)}
 const n=(v)=>Number(v)||0;
-function cleanItem(x){return {name:String(x?.name||'').slice(0,130),gross:x?.gross===null||x?.gross===''?null:(Number.isFinite(Number(x?.gross))?Math.max(0,Number(x.gross)):null),grams:x?.grams===null||x?.grams===''?null:(Number.isFinite(Number(x?.grams))?Math.max(0,Number(x.grams)):null)}}
+function safeNum(v){if(v===null||v===undefined||String(v).trim()==='')return null;const x=Number(v);return Number.isFinite(x)&&x>=0?x:null}
+function cleanItem(x){
+ const nutr={};for(const k of ['protein','fat','carb','kcal'])nutr[k]=safeNum(x?.nutrition?.[k]);
+ return {name:String(x?.name||'').slice(0,130),gross:safeNum(x?.gross),grams:safeNum(x?.grams),nutrition:nutr};
+}
+
 function cleanRecord(x){
  const t=x?.type==='prep'?'prep':'dish',stat=['Черновик','На проверке','Утверждена'].includes(x?.status)?x.status:'Черновик';
  const safe=(v,max=2500)=>String(v??'').slice(0,max);
@@ -20,9 +25,9 @@ function cleanRecord(x){
  documentType:x?.documentType==='ТК'?'ТК':'ТТК',preset:safe(x?.preset,60),cardNumber:safe(x?.cardNumber,50),organization:safe(x?.organization,160),
  scope:safe(x?.scope,2000),rawRequirements:safe(x?.rawRequirements,2500),developmentAct:safe(x?.developmentAct,150),
  presentation:safe(x?.presentation,2500),storage:safe(x?.storage,2500),
- shelfLifeHours:x?.shelfLifeHours===null||x?.shelfLifeHours===''||x?.shelfLifeHours===undefined?null:Math.max(0,Number(x.shelfLifeHours)||0),shelfBasis:safe(x?.shelfBasis,500),
- organoleptic:safe(x?.organoleptic,2500),safety:safe(x?.safety,2500),nutrition,
- approvedBy:safe(x?.approvedBy,150),approvedDate:safe(x?.approvedDate,15),
+ shelfLifeHours:safeNum(x?.shelfLifeHours),shelfBasis:safe(x?.shelfBasis,500),
+ organoleptic:safe(x?.organoleptic,2500),appearance:safe(x?.appearance,1600),safety:safe(x?.safety,2500),nutrition,nutritionAuto:x?.nutritionAuto!==false,
+ approvedBy:safe(x?.approvedBy,150),approvedDate:safe(x?.approvedDate,15),chefName:safe(x?.chefName,150),productionDate:safe(x?.productionDate,15),quantity:safe(x?.quantity||'8 шт.',24),stepSections:x?.stepSections&&typeof x.stepSections==='object'?{prep:safe(x.stepSections.prep,4000),make:safe(x.stepSections.make,4000),serve:safe(x.stepSections.serve,4000)}:null,
  ingredients:Array.isArray(x?.ingredients)?x.ingredients.slice(0,100).map(cleanItem):[],steps:safe(x?.steps,8000),notes:safe(x?.notes,4000),updatedAt:safe(x?.updatedAt||new Date().toISOString(),40)};
 }
 function chip(s){return '<span class="status '+(s==='Утверждена'?'approved':s==='На проверке'?'review':'')+'">'+esc(s)+'</span>'}
@@ -71,31 +76,93 @@ const PRESETS={
 let wizardStep=0;
 let pendingPdfExport=false;
 let lastPresetCode="";
+
+const nutrKeys=['protein','fat','carb','kcal'];
+const NUTRIENT_LIB='fk_kitchen_verified_nutrition_v1';
+let nutrientLibrary={};try{nutrientLibrary=JSON.parse(localStorage.getItem(NUTRIENT_LIB)||'{}')||{}}catch{}
+let weightBasis=null;
+const fmt=(v,d=2)=>v===null||v===undefined?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:d});
+const numeric=(s)=>safeNum(s);
+function nutrientInputs(r){
+ return '<details class="ingredient-nutrients"><summary>КБЖУ на 100 г ↳</summary><div class="ingredient-nutrient-grid">'+
+ nutrKeys.map((k,i)=>'<label>'+['Белки','Жиры','Углеводы','Ккал'][i]+'<input type="number" min="0" max="10000" step=".01" data-nutrient="'+k+'" inputmode="decimal" placeholder="—"></label>').join('')+
+ '</div><small>Только значения с упаковки или подтверждённого справочника.</small></details>';
+}
 function row(item={}){
  const el=document.createElement('div');el.className='ingredient-row';
- el.innerHTML='<label class="ingredient-name">Ингредиент<input aria-label="Ингредиент" placeholder="Рис, нори, сыр…" maxlength="130"></label><label class="ingredient-gross">Брутто, г<input type="number" aria-label="Брутто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><label class="ingredient-net">Нетто, г<input type="number" aria-label="Нетто, граммы" placeholder="—" min="0" max="1000000" step=".1" inputmode="decimal"></label><button type="button" title="Удалить ингредиент" aria-label="Удалить ингредиент" class="remove-row">×</button>';
+ el.innerHTML='<label class="ingredient-name">Сырьё<input aria-label="Название ингредиента" placeholder="Рис, нори, сыр…" maxlength="130" list="nutrition-names"></label>'+
+ '<label class="ingredient-gross">Брутто, г<input type="number" aria-label="Брутто" placeholder="—" min="0" max="1000000" step=".01" inputmode="decimal"></label>'+
+ '<label class="ingredient-net">Нетто, г<input type="number" aria-label="Нетто" placeholder="—" min="0" max="1000000" step=".01" inputmode="decimal"></label>'+
+ '<output class="ingredient-waste" aria-label="Отходы">—</output>'+
+ '<button type="button" title="Удалить ингредиент" aria-label="Удалить ингредиент" class="remove-row">×</button>'+
+ nutrientInputs();
  el.querySelector('.ingredient-name input').value=item.name||'';
  el.querySelector('.ingredient-gross input').value=item.gross??'';
  el.querySelector('.ingredient-net input').value=item.grams??'';
+ const nut=item.nutrition||nutrientLibrary[String(item.name||'').toLowerCase().trim()]||{};
+ nutrKeys.forEach(k=>{el.querySelector('[data-nutrient="'+k+'"]').value=nut[k]??''});
  return el;
 }
-function addRow(item){$('#ingredient-rows').appendChild(row(item));sumIngredients()}
+function addRow(item){if($$('#ingredient-rows .ingredient-row').length>=100){toast('Максимум 100 ингредиентов');return}$('#ingredient-rows').appendChild(row(item));sumIngredients()}
+function rowValues(row){
+ const nut={};nutrKeys.forEach(k=>nut[k]=safeNum(row.querySelector('[data-nutrient="'+k+'"]')?.value));
+ return {name:row.querySelector('.ingredient-name input').value.trim(),
+ gross:safeNum(row.querySelector('.ingredient-gross input').value),
+ grams:safeNum(row.querySelector('.ingredient-net input').value),nutrition:nut};
+}
+function rememberNutrition(row){
+ const item=rowValues(row);if(!item.name||!nutrKeys.every(k=>item.nutrition[k]!==null))return;
+ nutrientLibrary[item.name.toLowerCase()]=item.nutrition;
+ try{localStorage.setItem(NUTRIENT_LIB,JSON.stringify(nutrientLibrary))}catch{}
+}
+function useNutritionLibrary(row){
+ const name=row.querySelector('.ingredient-name input')?.value.trim().toLowerCase();
+ const n=nutrientLibrary[name];if(!n)return;
+ const hasData=nutrKeys.some(k=>row.querySelector('[data-nutrient="'+k+'"]')?.value!=='');
+ if(hasData)return;
+ nutrKeys.forEach(k=>row.querySelector('[data-nutrient="'+k+'"]').value=n[k]??'');
+ sumIngredients();
+}
 function sumIngredients(){
- const rows=$$('#ingredient-rows .ingredient-row');
- const total=(sel)=>rows.reduce((sum,r)=>sum+(Number(r.querySelector(sel)?.value)||0),0);
- $('#sum-gross').textContent=total('.ingredient-gross input').toLocaleString('ru-RU',{maximumFractionDigits:2})+' г';
- $('#sum-net').textContent=total('.ingredient-net input').toLocaleString('ru-RU',{maximumFractionDigits:2})+' г';
+ const rows=$$('#ingredient-rows .ingredient-row'),ingredients=rows.map(rowValues).filter(x=>x.name);
+ const gross=ingredients.reduce((a,x)=>a+(x.gross||0),0),net=ingredients.reduce((a,x)=>a+(x.grams||0),0);
+ $('#sum-gross').textContent=fmt(gross)+' г';$('#sum-net').textContent=fmt(net)+' г';
+ $('#sum-waste').textContent=gross>0?fmt((gross-net)/gross*100,1)+' %':'—';
+ rows.forEach(row=>{
+  const x=rowValues(row),out=row.querySelector('.ingredient-waste');
+  out.textContent=x.gross!==null&&x.gross>0&&x.grams!==null?fmt((x.gross-x.grams)/x.gross*100,1)+' %':'—';
+  out.classList.toggle('negative',x.gross!==null&&x.grams!==null&&x.grams>x.gross);
+ });
+ const auto=$('#nutrition-auto')?.checked!==false,f=$('#record-form'),yieldG=safeNum(f?.elements.namedItem('yield')?.value);
+ for(const k of nutrKeys){
+  const el=f?.elements.namedItem(k);if(el)el.readOnly=auto;
+ }
+ const hasNutrients=ingredients.length>0&&yieldG>0&&ingredients.every(x=>x.grams!==null&&nutrKeys.every(k=>x.nutrition[k]!==null));
+ const n={};
+ if(auto){
+  for(const k of nutrKeys){const v=hasNutrients?ingredients.reduce((total,x)=>total+x.grams*x.nutrition[k]/100,0)*100/yieldG:null;n[k]=v;
+   const el=f?.elements.namedItem(k);if(el)el.value=v===null?'':v.toFixed(2);
+  }
+ }else for(const k of nutrKeys)n[k]=safeNum(f?.elements.namedItem(k)?.value);
+ nutrKeys.forEach(k=>{
+  const el=$('#per-portion-'+k);
+  if(el)el.textContent=n[k]!==null&&yieldG>0?fmt(n[k]*yieldG/100):'—';
+ });
+ const msg=$('#nutrition-message');
+ if(msg)msg.textContent=auto?(hasNutrients?'✓ КБЖУ рассчитаны из данных ингредиентов. Проверь выход и потери.':'⚠ Для точного расчёта добавь нетто, КБЖУ на 100 г каждого ингредиента и выход.'):'Ручное заполнение: значения требуют подтверждения.';
+ checkA4Fit({quiet:true});
 }
-function setStep(step){
- wizardStep=Math.max(0,Math.min(1,step));
- $$('[data-panel]').forEach(p=>p.hidden=Number(p.dataset.panel)!==wizardStep);
- $$('.wizard-tab').forEach(t=>{const active=Number(t.dataset.step)===wizardStep;t.classList.toggle('current',active);t.classList.toggle('completed',Number(t.dataset.step)<wizardStep);if(active)t.setAttribute('aria-current','step');else t.removeAttribute('aria-current')});
- $('#step-prev').hidden=wizardStep===0;
- $('#step-next').hidden=wizardStep===1;
- $('#save-record').hidden=false;
- $('#save-pdf').hidden=false;
- const scroll=$('#record-form');if(scroll)scroll.scrollTop=0;
+function setStep(){const scroll=$('#record-form');if(scroll)scroll.scrollTop=0;}
+function checkA4Fit({quiet=false}={}){
+ const rows=$$('#ingredient-rows .ingredient-row').length;
+ const field=(name)=>$('#record-form')?.elements.namedItem(name)?.value||'';
+ const textLength=['scope','rawRequirements','stepPrep','stepMake','stepServe','presentation','storage','organoleptic','safety','notes'].reduce((v,k)=>v+field(k).length,0);
+ const danger=rows>22||textLength>2700;
+ const e=$('#ttk-fit-status');if(e){e.textContent=danger?'⚠ Переполнение А4 возможно — проверь PDF':'✓ Цель: компактный лист А4';e.classList.toggle('fit-warn',danger)}
+ if(!quiet)toast(danger?'Слишком много текста или строк для читаемого А4. Возможно приложение к ТТК.':'Компактность проверена по объёму. Точный размер проверь в PDF.');
+ return !danger;
 }
+
 function applyPreset(code,{initial=false}={}){
  const p=PRESETS[code];if(!p)return;
  const rows=$$('#ingredient-rows .ingredient-row');
