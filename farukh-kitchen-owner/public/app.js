@@ -334,7 +334,7 @@ function submit(e){
  if(r.status==='Утверждена'){
   const nutritionReady=nutrKeys.every(k=>r.nutrition[k]!==null);
   const mandatory=r.yield>0&&r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)
-  &&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()
+  &&r.stepSections&&Object.values(r.stepSections).every(v=>v.trim())&&r.rawRequirements.trim()&&r.developmentAct.trim()
   &&r.presentation.trim()&&r.storage.trim()&&r.shelfLifeHours>0&&r.shelfBasis.trim()
   &&r.organoleptic.trim()&&r.safety.trim()&&nutritionReady&&r.approvedBy.trim()&&r.approvedDate;
   if(!mandatory){pendingPdfExport=false;toast('Не все данные подтверждены. Сохрани как «Черновик» или «На проверке».');return}
