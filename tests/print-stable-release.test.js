@@ -53,7 +53,7 @@ test('Update panel has a single contextual button, with no manual check or compe
  assert.match(script,/setButton\('Актуальная версия'\)/);
  assert.match(script,/window.location.assign\(BASE\)/);
  assert.doesNotMatch(script,/Посмотреть обновление|↻ Проверить|Скачать APK ↗/);
- const versionBody='FARUKH_PRINT_VERSION_CODE=10\\nFARUKH_PRINT_VERSION_NAME=1.4.3-test\\n';
+ const versionBody='FARUKH_PRINT_VERSION_CODE=10\nFARUKH_PRINT_VERSION_NAME=1.4.3-test\n';
  const response={ok:true,json:async()=>({body:versionBody,assets:[{name:'FARUKH-PRINT-test.apk',browser_download_url:'https://github.com/example/release.apk'}]})};
  async function runPanel(userAgent,source){
    const elements=[],redirects=[];
