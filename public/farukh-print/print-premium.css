@@ -225,6 +225,13 @@ body.worker-managed:not(.worker-logged-in) #home .home-quick{display:none!import
 .print-update-actions a{background:linear-gradient(100deg,#db3855,#a92545);border-color:#ec5c79}
 .print-update-actions button:disabled{opacity:.5}
 
+/* One automatic update action: readable version metadata and a single tappable state. */
+.print-update-versions{display:flex;flex-wrap:wrap;gap:5px 20px;margin:12px 0 4px;font-size:12px;font-weight:750;color:#dce6ef}
+.print-update-versions span{min-width:0;overflow-wrap:anywhere}
+.print-update-actions .print-update-primary{min-width:190px;background:linear-gradient(100deg,#db3855,#a92545);border-color:#ec5c79;color:#fff}
+.print-update-actions .print-update-primary:disabled{opacity:1;background:#283746;border-color:#53647a;color:#bed0df;cursor:default}
+@media(max-width:420px){.print-update-actions .print-update-primary{width:100%;min-height:48px}}
+
 /* Android / iPad: gallery action buttons need independent touch targets. */
 .product-tile .product-tips{position:relative;z-index:1;min-height:37px;touch-action:manipulation;pointer-events:auto;-webkit-tap-highlight-color:transparent}
 .product-tile .product-qr-button:focus-visible,.product-tile .product-tips:focus-visible{outline:3px solid #ffc0cf;outline-offset:2px}
