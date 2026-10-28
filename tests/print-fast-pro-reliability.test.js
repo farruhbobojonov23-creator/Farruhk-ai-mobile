@@ -26,24 +26,24 @@ test('V3 BT native printing watchdog closes hung socket without automatic retry'
  assert.match(build,/versionCode [5-9]|versionCode [1-9][0-9]+/);
 });
 
-test('V3 BT session is reused briefly and released for other tablets',async()=>{
+test('V3 BT releases Bluetooth after every label for the next employee',async()=>{
  const java=await read('android/print/src/main/java/ai/farukh/print/MainActivity.java');
  const build=await read('android/print/build.gradle');
- assert.match(java,/socket = heldSocket;/);
  assert.match(java,/socket = device\.createRfcommSocketToServiceRecord\(SPP\)/);
- assert.match(java,/if \(!reused\) \{/);
- assert.match(java,/socketLease == lease && !printing\.get\(\)/);
- assert.match(java,/closeHeldSocket\(\)/);
- assert.match(java, /\}, SOCKET_IDLE_MS\);/);
+ assert.match(java,/socket\.connect\(\)/);
+ assert.match(java,/activeSocket = socket;/);
+ assert.match(java,/finally \{\s*completed\.set\(true\);/);
+ assert.match(java,/if \(socket != null\) try \{ socket\.close\(\); \}/);
+ assert.match(java,/activeSocket = null;/);
+ assert.match(java,/Bluetooth принтера освобождён для следующего сотрудника/);
+ assert.doesNotMatch(java,/heldSocket|heldAddress|socketLease|SOCKET_IDLE_MS|closeHeldSocket/);
  assert.match(java,/mainHandler\.postDelayed\(timeout, 20_000\)/);
  assert.match(java,/stream\.write\(label, offset, size\)/);
- assert.doesNotMatch(java,/socket\.connect\(\)[\s\S]{0,30}socket\.connect\(\)/);
- assert.match(build,/versionCode 11/);
  assert.match(java,/offset \+ size < label\.length\) Thread\.sleep\(12\)/);
- assert.doesNotMatch(java,/Thread\.sleep\(20\)/);
- assert.match(java,/SOCKET_IDLE_MS = 180_000/);
  assert.match(java,/adapter\.cancelDiscovery\(\)/);
- assert.match(java,/final long connectedAt = android\.os\.SystemClock\.elapsedRealtime\(\)/);
+ assert.match(java,/Thread\.sleep\(250\)/);
+ assert.match(build,/versionCode 12/);
+ assert.match(build,/versionName '1\.4\.5-test'/);
 });
 
 test('New roll timestamps refresh automatically without losing manual production times',async()=>{

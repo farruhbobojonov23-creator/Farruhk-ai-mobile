@@ -75,12 +75,9 @@ public final class MainActivity extends Activity {
     private final AtomicBoolean printing = new AtomicBoolean(false);
     private final ExecutorService printerWorker = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private volatile BluetoothSocket heldSocket;
-    private String heldAddress;
-    private long socketLease;
-    // Reuse the paired V3 BT connection while the cook switches between rolls.
-    // Release after three idle minutes so another workstation can take over.
-    private static final long SOCKET_IDLE_MS = 180_000;
+    // Only the currently printing job owns the socket. Never retain it between
+    // employees' jobs: a single V3 BT accepts only one RFCOMM connection at once.
+    private volatile BluetoothSocket activeSocket;
 
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -326,18 +323,13 @@ public final class MainActivity extends Activity {
     }
 
     /**
-     * Reuse one authenticated RFCOMM session for nearby print jobs.
-     * Reconnecting for every label creates several seconds of avoidable
-     * Bluetooth negotiation; releasing it after three idle minutes lets another tablet
-     * use the same V3 BT. All regular access is on printerWorker.
+     * Each job connects to the saved, paired V3 BT, sends one TSPL packet,
+     * then releases the RFCOMM channel in finally (including on errors).
+     * No separate tablet, Bluetooth toggle, or cross-device queue is required
+     * for employees who take turns. Concurrent taps on different phones still
+     * depend on the printer's single-connection limit and can fail as busy.
+     * Never automatically retry a print: the label may already be on paper.
      */
-    private void closeHeldSocket() {
-        BluetoothSocket old = heldSocket;
-        heldSocket = null;
-        heldAddress = null;
-        if (old != null) try { old.close(); } catch (Exception ignored) {}
-    }
-
     private void sendLabel(BluetoothDevice device) {
         final byte[] label = pendingLabel;
         final JavaScriptReplyProxy callback = pendingPrinterReply;
@@ -350,82 +342,63 @@ public final class MainActivity extends Activity {
         printerWorker.execute(() -> {
             BluetoothSocket socket = null;
             Runnable timeout = null;
-            boolean sent = false;
+            String successMessage = null;
             final AtomicBoolean completed = new AtomicBoolean(false);
             final long startedAt = android.os.SystemClock.elapsedRealtime();
             try {
-                // An older idle-close callback must not close a newly reused socket.
-                socketLease++;
-                final String address = device.getAddress();
-                if (heldSocket != null && address.equals(heldAddress) && heldSocket.isConnected()) {
-                    socket = heldSocket;
-                } else {
-                    closeHeldSocket();
-                    socket = device.createRfcommSocketToServiceRecord(SPP);
-                }
-                final boolean reused = socket == heldSocket;
-                final BluetoothSocket active = socket;
-                // Always cap a hung connection or write; NEVER auto-retry
-                // because the printer might already have printed the label.
+                // New connection for every job; holding it blocks other cooks'
+                // Android phones for minutes even though printing has finished.
+                socket = device.createRfcommSocketToServiceRecord(SPP);
+                activeSocket = socket;
+                final BluetoothSocket currentSocket = socket;
+                // Cap hung connect/write. Do NOT resend automatically after a
+                // timeout: printer receipt cannot be verified over this channel.
                 timeout = () -> {
-                    if (!completed.get()) try { active.close(); }
+                    if (!completed.get()) try { currentSocket.close(); }
                     catch (Exception ignored) {}
                 };
                 mainHandler.postDelayed(timeout, 20_000);
-                if (!reused) {
-                    // An ongoing Android Bluetooth scan slows down RFCOMM pairing.
-                    // On Android 12+ this may require BLUETOOTH_SCAN; if unavailable,
-                    // skip cancellation rather than block printing.
-                    BluetoothManager manager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
-                    BluetoothAdapter adapter = manager != null ? manager.getAdapter() : null;
-                    if (adapter != null) {
-                        try { if (adapter.isDiscovering()) adapter.cancelDiscovery(); }
-                        catch (SecurityException ignored) {}
-                    }
-                    socket.connect();
-                    heldSocket = socket;
-                    heldAddress = address;
+                BluetoothManager manager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+                BluetoothAdapter adapter = manager != null ? manager.getAdapter() : null;
+                if (adapter != null) {
+                    try { if (adapter.isDiscovering()) adapter.cancelDiscovery(); }
+                    catch (SecurityException ignored) {}
                 }
+                socket.connect();
                 final long connectedAt = android.os.SystemClock.elapsedRealtime();
                 OutputStream stream = socket.getOutputStream();
-                // Conservative V3 BT pacing: retain 256-byte packets for the small
-                // receiver, but shorten idle pauses and never sleep after the final
-                // packet. Avoid bigger writes without a real-printer verification.
+                // Conservative 256-byte packets to protect the V3's small buffer.
                 for (int offset = 0; offset < label.length; offset += 256) {
                     int size = Math.min(256, label.length - offset);
                     stream.write(label, offset, size);
                     stream.flush();
                     if (offset + size < label.length) Thread.sleep(12);
                 }
+                // Give the small Bluetooth receiver time to drain its buffer
+                // before closing; this is not a paper/print-complete receipt.
+                Thread.sleep(250);
                 final long writtenAt = android.os.SystemClock.elapsedRealtime();
-                sent = true;
                 final long connectMs = connectedAt - startedAt;
                 final long transferMs = writtenAt - connectedAt;
-                mainHandler.post(() -> respond(callback, true,
-                    "Задание отправлено. Проверь выход этикетки из принтера."
-                    + " Bluetooth: подключение " + (connectMs / 1000.0)
-                    + " с, передача " + (transferMs / 1000.0) + " с."));
+                successMessage = "Задание отправлено. Bluetooth принтера освобождён для следующего сотрудника."
+                    + " Проверь выход этикетки. Подключение " + (connectMs / 1000.0)
+                    + " с, передача " + (transferMs / 1000.0) + " с.";
             } catch (Exception error) {
-                closeHeldSocket();
-                if (socket != null) try { socket.close(); } catch (Exception ignored) {}
                 final String hint = error.getMessage() == null ? "ошибка Bluetooth" : error.getMessage();
                 mainHandler.post(() -> respond(callback, false,
-                    "Принтер не принял задание: " + hint +
-                    ". Закрой 4Barcode, проверь подключение Printer001 и повтори."));
+                    "Не удалось передать этикетку: " + hint
+                    + ". Если коллега печатает, дождись завершения. Закрой 4Barcode и попробуй ещё раз."));
             } finally {
                 completed.set(true);
                 if (timeout != null) mainHandler.removeCallbacks(timeout);
+                // Must release on success and failure; never keep the printer
+                // connected for an idle window on one employee's phone.
+                if (socket != null) try { socket.close(); } catch (Exception ignored) {}
+                activeSocket = null;
                 printing.set(false);
-                if (sent) {
-                    final long lease = ++socketLease;
-                    mainHandler.postDelayed(() -> {
-                        if (printerWorker.isShutdown()) return;
-                        try {
-                            printerWorker.execute(() -> {
-                                if (socketLease == lease && !printing.get()) closeHeldSocket();
-                            });
-                        } catch (java.util.concurrent.RejectedExecutionException ignored) {}
-                    }, SOCKET_IDLE_MS);
+                if (successMessage != null) {
+                    final String message = successMessage;
+                    mainHandler.post(() -> respond(callback, true, message));
                 }
             }
         });
@@ -510,9 +483,9 @@ public final class MainActivity extends Activity {
     @Override protected void onDestroy() {
         if (updater != null) updater.close();
         printerWorker.shutdownNow();
-        // Free Bluetooth immediately on app exit so another workstation
-        // can connect. A running write will fail instead of silently retrying.
-        closeHeldSocket();
+        // Also free a print interrupted by app shutdown.
+        BluetoothSocket socket = activeSocket;
+        if (socket != null) try { socket.close(); } catch (Exception ignored) {}
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();
