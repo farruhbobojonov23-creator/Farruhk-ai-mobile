@@ -225,3 +225,187 @@
 .paper-blank-pdf{min-height:37px;border:1px solid #c9aa7a;background:linear-gradient(120deg,#fffdfa,#f1dfc0);color:#6d4b25;border-radius:9px;padding:8px 12px;white-space:nowrap;font-size:11px;font-weight:850}
 .paper-blank-pdf:hover{background:#eddbbb}
 @media(max-width:690px){.pdf-bar-controls{display:flex;justify-content:space-between}.paper-blank-pdf{padding:7px 8px;white-space:nowrap;font-size:10px}.pdf-preset select{width:min(49vw,200px)}}
+
+/* FARUKH KITCHEN 1.2 — compact single-A4 chef template, original visual reference */
+.editor{width:min(1020px,100%);height:min(96dvh,1250px);max-height:96dvh;background:#e6eef3}
+.editor-head{flex:0 0 auto;background:#f4faff;border-bottom:1px solid #cfdde6}
+#record-form.compact-ttk-form{display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;background:linear-gradient(145deg,#e6f2fc,#e0ecf4);padding:0}
+.ttk-smartbar{padding:13px 22px;background:#edf7ff;border-bottom:1px solid #d1e0ed;box-shadow:0 3px 15px #49647512}
+.ttk-bar-top{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.ttk-bar-top strong{font-size:15px;color:#28485a;display:block}
+.ttk-bar-top small{font-size:10px;color:#698295;display:block;margin-top:3px}
+.ttk-smart-actions{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin:9px 0}
+.ttk-smart-actions>label{font-size:10px;font-weight:800;color:#4b6679;display:flex;flex-direction:column;gap:4px;min-width:190px;flex:1}
+.ttk-smart-actions select{min-height:40px;border:1px solid #bdd2e0;border-radius:9px;background:#fff;color:#244658;padding:9px 12px;max-width:100%;font-size:13px}
+.ttk-smart-actions>.outline{min-height:40px;background:#f5fbff;border-color:#c5dbe6;color:#2f6176;font-size:11px}
+.ttk-editor-status{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10px;color:#46677a}
+.ttk-editor-status .fit-warn{color:#ad5b22;font-weight:850}
+.ttk-a4-wrap{width:100%;display:flex;justify-content:center;padding:17px 18px 20px;min-height:0}
+.ttk-a4-sheet{background:#fff;width:min(100%,794px);min-height:1050px;box-shadow:0 13px 36px #4b657433;border:1px solid #d3d8dc;padding:30px 26px 23px;color:#172633;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.35}
+.ttk-a4-sheet input,.ttk-a4-sheet select,.ttk-a4-sheet textarea{font:inherit;color:#223c4e;background:#f7fbff;border:1px solid #d0dce6;border-radius:2px;max-width:100%;min-width:0;min-height:31px;padding:5px 7px;box-shadow:none}
+.ttk-a4-sheet input:focus,.ttk-a4-sheet textarea:focus,.ttk-a4-sheet select:focus{background:#f1faff;outline:2px solid #4b90b4;outline-offset:0}
+.ttk-a4-sheet textarea{width:100%;resize:vertical;line-height:1.36;min-height:45px}
+.ttk-paper-title{font-size:12px;border-bottom:1px solid #bdcbd3;padding:4px 0 11px;margin-bottom:10px;color:#172d3e}
+.ttk-paper-meta{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #cbd4da;border-left:1px solid #cbd4da;margin-bottom:10px}
+.ttk-paper-meta>label{min-width:0;display:grid;grid-template-columns:43% 57%;align-items:center;border-right:1px solid #cbd4da;border-bottom:1px solid #cbd4da;font-size:10px;background:#f3f3f4;min-height:32px}
+.ttk-paper-meta label input,.ttk-paper-meta label select{width:100%;height:31px;min-height:31px;margin:0;border:0;border-left:1px solid #cbd4da;background:#f8fbff;border-radius:0;padding:4px 7px;font-size:10px}
+.ttk-paper-meta>label{padding-left:7px}
+.ttk-paper-meta>label:nth-child(2n){border-left:0}
+.ttk-dual{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;align-items:stretch}
+.ttk-section{margin:0;min-width:0;break-inside:avoid}
+.ttk-section h3{margin:0!important;padding:7px 8px;background:#2b4c60;color:#fff!important;border-radius:5px 5px 0 0;font:700 11px/1.15 Arial,sans-serif!important;letter-spacing:0}
+.ttk-section>textarea{width:100%;height:100%;min-height:82px;border:1px solid #d7dfe6;background:#f5f9ff;font-size:10px;line-height:1.4;border-radius:0}
+.ttk-section-full{margin-bottom:9px}
+.ttk-table-heading,.ttk-a4-sheet .ingredient-row{display:grid;grid-template-columns:minmax(0,2.12fr) minmax(0,.64fr) minmax(0,.64fr) minmax(0,.59fr) 26px;gap:0;align-items:stretch}
+.ttk-table-heading{background:#f1f2f4;border-left:1px solid #c8d4dc;border-top:0}
+.ttk-table-heading span{padding:6px 3px;border-right:1px solid #c8d4dc;border-bottom:1px solid #c8d4dc;text-align:center;font-size:9px;font-weight:700;line-height:1.18;display:flex;align-items:center;justify-content:center}
+.ttk-a4-sheet .ingredient-rows{gap:0;margin:0}
+.ttk-a4-sheet .ingredient-row{background:#fff;padding:0;border:0;border-radius:0;position:relative}
+.ttk-a4-sheet .ingredient-row label{border-left:1px solid #c8d4dc;border-bottom:1px solid #c8d4dc;padding:0;margin:0;font-size:0!important;color:transparent;display:block;min-width:0}
+.ttk-a4-sheet .ingredient-row .ingredient-name label{font-size:0}
+.ttk-a4-sheet .ingredient-row label input{border:0!important;margin:0!important;background:#f7fbff!important;width:100%!important;min-height:32px!important;padding:5px!important;border-radius:0!important;color:#192e40;font-size:10px!important;text-align:center!important}
+.ttk-a4-sheet .ingredient-row .ingredient-name input{text-align:left!important}
+.ttk-a4-sheet .ingredient-row .ingredient-net{border-right:0}
+.ttk-a4-sheet .ingredient-waste{display:grid;place-items:center;font:10px Arial,sans-serif;color:#385666;border-left:1px solid #c8d4dc;border-bottom:1px solid #c8d4dc}
+.ttk-a4-sheet .ingredient-waste.negative{color:#b14324;background:#fff1e9}
+.ttk-a4-sheet .ingredient-row button.remove-row{border:1px solid #c8d4dc;border-top:0;min-height:32px;height:auto;background:#edf6fb;border-radius:0;color:#60788b;font-size:17px;grid-column:5;grid-row:1}
+.ttk-a4-sheet .ingredient-nutrients{grid-column:1/-1;background:#f6fbff;border-left:1px solid #d6e1e8;border-right:1px solid #d6e1e8;border-bottom:1px solid #d6e1e8;padding:4px 8px;display:block}
+.ttk-a4-sheet .ingredient-nutrients:not([open]){padding:0}
+.ttk-a4-sheet .ingredient-nutrients summary{font-size:9px;color:#497b9c;cursor:pointer;padding:3px 7px;list-style:revert}
+.ttk-a4-sheet .ingredient-nutrients:not([open]) summary{font-size:8px;line-height:1}
+.ttk-a4-sheet .ingredient-nutrient-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:6px 0 4px}
+.ttk-a4-sheet .ingredient-nutrient-grid label{font-size:10px!important;color:#2e4658;border:0}
+.ttk-a4-sheet .ingredient-nutrient-grid input{background:#fff!important;border:1px solid #c5dce9!important}
+.ttk-a4-sheet .ingredient-nutrients small{font-size:9px;color:#6a8192}
+.ttk-add-row{border:1px solid #d8e4ec;border-radius:2px;background:#f2faff;color:#376985;font-size:10px;font-weight:700;padding:7px 12px;margin:7px 0 9px}
+.ttk-yield-row{display:grid;grid-template-columns:1.2fr 1fr 1fr .8fr;gap:1px;border:1px solid #d4dce3;background:#d4dce3;align-items:stretch}
+.ttk-yield-row>*{background:#f8fbfd;padding:6px 7px;display:flex;align-items:center;justify-content:center;font-size:10px;gap:6px;min-width:0}
+.ttk-yield-row label{justify-content:flex-start}
+.ttk-yield-row input{min-width:0;width:64px;height:28px;min-height:28px;font-size:11px;margin:0}
+.ttk-yield-row strong{color:#203b4f;white-space:nowrap}
+.ttk-steps{display:grid;border-left:1px solid #cbd6de}
+.ttk-steps label{display:grid;grid-template-columns:27% 73%;min-height:40px;font-size:10px}
+.ttk-steps label>span{background:#f3f4f6;display:flex;align-items:center;border-right:1px solid #cbd6de;border-bottom:1px solid #cbd6de;padding:7px}
+.ttk-steps textarea{border:0;border-bottom:1px solid #cbd6de;border-right:1px solid #cbd6de;background:#f7fbff;min-height:43px;padding:6px;font-size:10px;border-radius:0}
+.ttk-shelf{display:grid;grid-template-columns:1fr 1.6fr;gap:5px;padding:5px 0}
+.ttk-shelf label{font-size:9px;display:flex;align-items:center;gap:4px}
+.ttk-shelf input{width:100%;min-height:29px;font-size:10px}
+.ttk-quality-label{display:grid;grid-template-columns:26% 74%;align-items:stretch}
+.ttk-quality-label textarea{border:0;border-bottom:1px solid #d9e0e7;border-right:1px solid #d9e0e7;background:#f7fbff;font-size:10px;padding:6px;min-height:56px}
+.ttk-quality-label{font-size:10px;border-left:1px solid #d9e0e7}
+.ttk-quality-label::first-line{font-size:10px}
+.ttk-section .ttk-quality-label{padding-left:6px}
+.ttk-section-full>textarea{min-height:48px;height:auto}
+.ttk-nutri-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 5px;color:#4f6b7b;font-size:9px}
+.ttk-nutri-tools>label{display:flex;gap:5px;align-items:center;white-space:nowrap}
+.ttk-nutri-tools input{min-height:0;width:14px;height:14px;accent-color:#2b728a}
+.ttk-nutri-tools small{font-size:9px;color:#9b7138;line-height:1.4}
+.ttk-nutri-head,.ttk-nutri-row{display:grid;grid-template-columns:1fr repeat(4,minmax(0,.77fr));align-items:stretch;background:#cbd8e3;gap:1px;font-size:9px}
+.ttk-nutri-head span,.ttk-nutri-row>*{padding:7px 4px;text-align:center;min-width:0;background:#eff2f5;font:10px Arial,sans-serif}
+.ttk-nutri-head span{font-size:9px;font-weight:700;background:#e3e7eb}
+.ttk-nutri-row>strong{font-size:10px;background:#f0f4f7;display:grid;place-items:center}
+.ttk-nutri-row input{width:100%;min-height:30px;border:0;border-radius:0;background:#f7fbff;font-size:11px;line-height:1.3;padding:6px 3px;text-align:center}
+.ttk-nutri-row input[readonly]{color:#2a6077;background:#eaf6fc}
+.ttk-nutri-row output{font-size:10px;padding:8px 4px}
+.ttk-nutrition-help{background:#f5fbff;border:1px solid #d5e4ed;margin-top:6px;font-size:10px;padding:6px;border-radius:3px}
+.ttk-nutrition-help summary{font-size:10px;color:#426b81;cursor:pointer}
+.ttk-nutrition-help p{font-size:10px;color:#527188}
+.ttk-signature{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d6dfe5;margin-top:11px;background:#f4f5f6;gap:1px}
+.ttk-signature label{display:grid;grid-template-columns:43% 57%;align-items:center;font-size:10px;padding-left:6px}
+.ttk-signature input{border:0;border-left:1px solid #d6dfe5;border-radius:0;min-height:31px;background:#fff;font-size:10px}
+.ttk-meta-foot{display:flex;justify-content:space-between;gap:12px;line-height:1.3;border-top:1px solid #cbd6df;margin-top:10px;padding:7px 0;color:#7e8b95;font-size:8.5px}
+.ttk-meta-foot>span:last-child{font-weight:900;white-space:nowrap}
+.ttk-bottom-helper{margin:0 auto 14px;max-width:794px;width:calc(100% - 36px);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid #c2d5e2;border-radius:11px;background:#f5fbff;font-size:11px;color:#537385}
+.ttk-bottom-helper label{display:flex;gap:9px;align-items:center;flex:1 1 330px;font-weight:700}
+.ttk-bottom-helper input{min-height:35px;flex:1;border:1px solid #c5d9e5;border-radius:7px;padding:9px;font-size:12px}
+.ttk-bottom-helper>span{flex:2 1 400px}
+.ttk-bottom-helper .outline{background:#e8f5fd;color:#2e637e;border-color:#bcd6e6}
+.pdf-editor-footer{flex:0 0 auto;position:sticky;bottom:0;background:#eff8fd;box-shadow:0 -4px 18px #5d8aa322;padding:10px 17px;display:flex;justify-content:flex-start;gap:10px}
+.pdf-editor-footer button{min-height:43px;padding:10px 14px}
+.pdf-editor-footer #save-pdf{margin-left:auto}
+/* Print A4: the template is compact and the document is never silently cropped. */
+@page{size:A4 portrait;margin:6mm 8mm}
+@media print{
+ html,body{margin:0!important;padding:0!important;background:white!important}
+ body>*:not(#print-area){display:none!important}
+ #print-area{display:block!important;position:static!important;background:white!important}
+ .print-document.single-ttk{box-sizing:border-box;width:100%!important;max-width:none;margin:0!important;padding:0!important;overflow:visible!important;color:#111!important;font:7.4pt/1.2 Arial,Helvetica,sans-serif!important;break-inside:auto;page-break-inside:auto}
+ .single-ttk *{box-sizing:border-box!important;box-shadow:none!important;max-width:100%}
+ .single-ttk section{margin:0 0 3px;break-inside:avoid}
+ .single-ttk h3{font:700 7.5pt/1.17 Arial!important;background:#2d5064!important;color:white!important;padding:4px 6px!important;border-radius:2px 2px 0 0!important;margin:0!important;break-after:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .single-ttk .ttk-p-title{font:700 10.5pt Arial!important;border-bottom:1px solid #666;padding:5px 0 8px;margin:0 0 6px}
+ .single-ttk .ttk-p-meta,.single-ttk .ttk-p-sign{width:100%;border-collapse:collapse;margin:2px 0 6px}
+ .single-ttk .ttk-p-meta td,.single-ttk .ttk-p-sign td{width:50%;padding:4px 6px;border:1px solid #c4cbd0;font:7.5pt Arial!important}
+ .single-ttk .ttk-p-meta td{background:#f4f6f7!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .single-ttk .ttk-p-dual{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin-bottom:5px;break-inside:avoid}
+ .single-ttk .ttk-p-dual section{border:1px solid #d1d8de;margin:0}
+ .single-ttk p{font:7.3pt/1.22 Arial!important;margin:0!important;padding:5px 6px!important;overflow-wrap:anywhere}
+ .single-ttk table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0}
+ .single-ttk th,.single-ttk td{border:1px solid #c4cdd5;padding:3px 5px;font:7.1pt/1.15 Arial!important;overflow-wrap:anywhere;vertical-align:top}
+ .single-ttk thead th{background:#e9eef2!important;font-weight:bold!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .single-ttk th:first-child{width:56%}
+ .single-ttk th:not(:first-child){width:auto}
+ .single-ttk .ttk-p-totals{display:flex;justify-content:space-between;gap:9px;padding:6px 4px;font-size:7.3pt;break-inside:avoid}
+ .single-ttk .ttk-p-steps td:first-child{width:25%;background:#f1f2f3!important}
+ .single-ttk .ttk-p-nutri th:first-child{width:24%}
+ .single-ttk .ttk-p-nutri td{text-align:center}
+ .single-ttk .ttk-p-sign{margin:4px 0}
+ .single-ttk .ttk-p-foot{border-top:1px solid #888;padding:5px 0;font:6.3pt/1.18 Arial;color:#555}
+ .single-ttk.compact-paper{font-size:6.9pt!important;line-height:1.13}
+ .single-ttk.compact-paper th,.single-ttk.compact-paper td,.single-ttk.compact-paper p{font-size:6.7pt!important;padding:2px 4px!important}
+ .single-ttk.dense-paper{font-size:6.3pt!important;line-height:1.10}
+ .single-ttk.dense-paper th,.single-ttk.dense-paper td,.single-ttk.dense-paper p{font-size:6.15pt!important;padding:2px 3px!important}
+}
+@media(max-width:700px){
+ .editor{height:calc(100dvh - 8px);max-height:calc(100dvh - 8px);width:100%}
+ .editor-head{min-height:56px;padding:10px 13px}
+ .editor-head h2{font-size:16px}
+ .ttk-smartbar{padding:9px 12px}
+ .ttk-bar-top strong{font-size:12px}
+ .ttk-bar-top small{font-size:9px}
+ .ttk-smart-actions{gap:6px}
+ .ttk-smart-actions>label{flex:1 1 100%;font-size:10px}
+ .ttk-smart-actions>.outline{flex:1;font-size:10px;padding:7px 9px}
+ .ttk-editor-status{font-size:9px}
+ .ttk-a4-wrap{padding:9px 7px 12px}
+ .ttk-a4-sheet{min-height:0;padding:13px 9px 12px;font-size:10px}
+ .ttk-paper-title{font-size:10px;padding:4px 0 9px}
+ .ttk-paper-meta>label{font-size:9px;min-height:30px;grid-template-columns:41% 59%;padding-left:3px}
+ .ttk-paper-meta label input,.ttk-paper-meta label select{font-size:9px;min-height:30px;padding:4px}
+ .ttk-dual{gap:5px;margin-bottom:7px}
+ .ttk-section h3{font-size:10px!important;padding:6px 5px!important;line-height:1.15!important}
+ .ttk-section>textarea{min-height:78px;font-size:9px;padding:5px}
+ .ttk-section-full{margin-bottom:7px}
+ .ttk-table-heading,.ttk-a4-sheet .ingredient-row{grid-template-columns:minmax(0,1.8fr) minmax(0,.64fr) minmax(0,.64fr) minmax(0,.57fr) 21px}
+ .ttk-table-heading span{font-size:7px;padding:5px 1px}
+ .ttk-a4-sheet .ingredient-row label input{min-height:31px!important;padding:3px!important;font-size:9px!important}
+ .ttk-a4-sheet .ingredient-row button.remove-row{font-size:15px;min-height:31px}
+ .ttk-a4-sheet .ingredient-waste{font-size:8px}
+ .ttk-add-row{font-size:9px;padding:6px 7px}
+ .ttk-yield-row{grid-template-columns:1fr 1fr}
+ .ttk-yield-row>*{font-size:9px;padding:4px;min-height:36px}
+ .ttk-yield-row label{font-size:9px}
+ .ttk-yield-row input{width:70px;font-size:10px}
+ .ttk-steps label{grid-template-columns:30% 70%;min-height:43px}
+ .ttk-steps label>span{font-size:9px;padding:5px}
+ .ttk-steps textarea{font-size:9px;min-height:43px}
+ .ttk-quality-label{grid-template-columns:1fr}
+ .ttk-quality-label textarea{font-size:9px;min-height:46px}
+ .ttk-shelf{display:grid;grid-template-columns:1fr}
+ .ttk-shelf label{font-size:8px}
+ .ttk-section-full>textarea{font-size:9px}
+ .ttk-nutri-tools{font-size:9px}
+ .ttk-nutri-tools small{font-size:8px}
+ .ttk-nutri-head span,.ttk-nutri-row>*{font-size:8px;padding:6px 3px}
+ .ttk-nutri-row input{font-size:10px}
+ .ttk-signature label{font-size:8px;grid-template-columns:44% 56%;padding-left:3px}
+ .ttk-signature input{font-size:9px;padding:3px}
+ .ttk-meta-foot{font-size:7px}
+ .ttk-bottom-helper{padding:9px;width:calc(100% - 14px);margin-bottom:8px;font-size:9px}
+ .ttk-bottom-helper label{flex-wrap:wrap}
+ .ttk-bottom-helper input{width:100%;flex:1 1 100%}
+ .pdf-editor-footer{gap:6px;padding:8px 9px}
+ .pdf-editor-footer button{font-size:10px;padding:7px 9px;min-height:41px}
+ .pdf-editor-footer #cancel-editor{display:none}
+ .pdf-editor-footer #save-record,.pdf-editor-footer #save-pdf{flex:1}
+}
