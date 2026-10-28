@@ -1,0 +1,85 @@
+name: FARUKH PRINT 1.4.5 isolated test APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/farukh-print-preview-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify current V3 BT print handling
+        run: node --test tests/print-fast-pro-reliability.test.js tests/print-native-diagnostics.test.js tests/print-pro-scanner-batch.test.js tests/print-pro-owner-report.test.js tests/print-premium-fast.test.js tests/print-premium-v2-home.test.js tests/print-stable-release.test.js
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Ensure Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
+          if [ -z "$SDKMANAGER" ]; then
+            curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
+            mkdir -p /tmp/androidcmd
+            unzip -q /tmp/android-tools.zip -d /tmp/androidcmd
+            mkdir -p "$SDK_ROOT/cmdline-tools/latest"
+            cp -R /tmp/androidcmd/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          yes | sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+          sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Set Android home
+        run: |
+          mkdir -p "$RUNNER_TEMP/android-user-home"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/android-user-home" >> "$GITHUB_ENV"
+      - name: Assemble isolated debug-signed test build
+        working-directory: android
+        run: gradle :print:assembleDebug --no-daemon
+      - name: Publish isolated prerelease only (never overwrite current APK)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*'\\([^']*\\)'.*/\\1/p" android/print/build.gradle | head -1)"
+          CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\\([0-9]\\+\\).*/\\1/p' android/print/build.gradle | head -1)"
+          test "$VERSION" = '1.4.5-test'
+          test "$CODE" = '12'
+          APK="$RUNNER_TEMP/FARUKH-PRINT-1.4.5-PREVIEW-debug.apk"
+          cp android/print/build/outputs/apk/debug/print-debug.apk "$APK"
+          HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
+          {
+            echo 'FARUKH PRINT 1.4.5 TEST: Bluetooth connection closes after each label.'
+            echo
+            echo '**IMPORTANT: DIAGNOSTIC APK, NOT AN IN-PLACE UPDATE.**'
+            echo 'This is signed by an ephemeral GitHub runner debug key, not the existing installed application's key.'
+            echo 'Android can reject installation over FARUKH PRINT 1.4.3 or other versions.'
+            echo 'Use only on a separate test phone / clean installation. Do not uninstall a working app without exporting and verifying a full JSON backup.'
+            echo 'The stable farukh-print-current asset is deliberately unchanged.'
+            echo
+            echo "versionCode=$CODE"
+            echo "versionName=$VERSION"
+            echo "sha256=$HASH"
+          } > "$RUNNER_TEMP/notes.txt"
+          TAG='farukh-print-1.4.5-preview-debug'
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Preview already exists, not overwriting it."
+            exit 0
+          fi
+          gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'FARUKH PRINT 1.4.5 — тестовая сборка (не обновление)' --notes-file "$RUNNER_TEMP/notes.txt" --prerelease
