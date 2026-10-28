@@ -57,10 +57,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          VERSION="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*'\\([^']*\\)'.*/\\1/p" android/print/build.gradle | head -1)"
-          CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\\([0-9]\\+\\).*/\\1/p' android/print/build.gradle | head -1)"
-          test "$VERSION" = '1.4.5-test'
-          test "$CODE" = '12'
+          grep -Eq 'versionCode[[:space:]]+12' android/print/build.gradle
+          grep -Fq "versionName '1.4.5-test'" android/print/build.gradle
+          VERSION='1.4.5-test'
+          CODE='12'
           APK="$RUNNER_TEMP/FARUKH-PRINT-1.4.5-PREVIEW-debug.apk"
           cp android/print/build/outputs/apk/debug/print-debug.apk "$APK"
           HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
