@@ -163,69 +163,136 @@ function checkA4Fit({quiet=false}={}){
  return !danger;
 }
 
-function applyPreset(code,{initial=false}={}){
- const p=PRESETS[code];if(!p)return;
- const rows=$$('#ingredient-rows .ingredient-row');
- const previous=PRESETS[lastPresetCode];
- const hasManual=rows.some((r,i)=>{
-  const typedName=r.querySelector('.ingredient-name input')?.value.trim();
-  const enteredWeights=r.querySelector('.ingredient-net input')?.value.trim()||r.querySelector('.ingredient-gross input')?.value.trim();
-  return enteredWeights||(typedName&&(typedName!==previous?.ingredients[i]));
- });
- if(!initial&&hasManual&&!confirm('Заменить список ингредиентов готовым шаблоном? Указанные граммовки будут потеряны.')){$('#preset').value=lastPresetCode;return}
- const f=$('#record-form');
- f.elements.namedItem('category').value=p.category;
- $('#editor-kicker').textContent=badgePage(p.type);
- $('#editor-title').textContent=p.type==='prep'?'Новый полуфабрикат':'Новая ТТК блюда';
- $('#ingredient-rows').replaceChildren();
- p.ingredients.forEach(name=>addRow({name,grams:null,gross:null}));
- const steps=f.elements.namedItem('steps');
- if(!steps.value.trim()||steps.value===previous?.hint)steps.value=p.hint;
- const raw=f.elements.namedItem('rawRequirements');
- if(!raw.value.trim())raw.value='Для изготовления использовать пищевое сырьё с необходимой маркировкой и сопроводительными документами, подтверждающими безопасность и качество; соблюдать требования действующих технических регламентов и программы производственного контроля.';
- const scope=f.elements.namedItem('scope');
- if(!scope.value.trim())scope.value='Настоящая карта предназначена для изготовления продукции категории «'+p.category+'» в пределах утверждённого ассортимента предприятия.';
- lastPresetCode=code;
- if(!initial)toast('Шаблон готов: укажи фактические граммовки');
 
+const stageExamples={
+ cold:['Проверить маркировку сырья, температуру и состояние полуфабрикатов. Подготовить рис, нори, начинку и инвентарь.','По утверждённой рецептуре распределить рис и начинку. Сформировать ролл, соблюдая нормы закладки и технологию предприятия.','Нарезать ролл на части по утверждённому фотоэталону. Проверить выход и оформление.'],
+ baked:['Проверить маркировку и подготовить полуфабрикаты и начинки.','Сформировать ролл. Добавить соус. Запекать по установленному и подтверждённому режиму.','Проверить готовность, внешний вид, массу и условия реализации.'],
+ tempura:['Проверить сырьё, подготовить кляр, панировку и фритюрное оборудование.','Сформировать ролл, выполнить панировку и тепловую обработку по подтверждённым времени и температуре.','Проверить готовность, массу и внешний вид; оформить подачу.'],
+ onigiri:['Проверить компоненты, подготовить рис и начинку.','Сформировать изделие с начинкой, при необходимости оформить нори.','Проверить форму, выход, маркировку и упаковку.'],
+ sushi:['Подготовить рис и проверенное сырьё.','Сформировать суши согласно рецептуре и утверждённому способу.','Проверить массу, внешний вид и условия реализации.'],
+ sauce:['Провести входной контроль сырья, подготовить тару и инвентарь.','Дозировать, соединить и перемешать компоненты по утверждённой технологии.','Зафиксировать выход, маркировку и подтверждённые условия хранения.'],
+ rice:['Провести входной контроль сухого риса, подготовить оборудование и ингредиенты.','Промыть, сварить, внести заправку по проверенному режиму.','Проконтролировать выход и условия использования заготовки.'],
+ seafood:['Проверить документы и состояние исходного сырья.','Провести разделку, очистку и при необходимости обработку в установленном режиме.','Зафиксировать отходы, выход, маркировку и условия хранения.']
+};
+const titlePresets=[
+ [/филадельф/i,{code:'cold',names:['Рис подготовленный','Нори','Сыр сливочный','Огурец','Лосось подготовленный']}],
+ [/калифорни/i,{code:'cold',names:['Рис подготовленный','Нори','Крабовая начинка','Огурец','Икра масаго']}],
+ [/канада/i,{code:'cold',names:['Рис подготовленный','Нори','Сыр сливочный','Огурец','Угорь','Соус унаги']}],
+ [/темпур/i,{code:'tempura'}],[/запеч|под чеддером/i,{code:'baked'}],
+ [/онигири/i,{code:'onigiri'}],[/суши|нигири/i,{code:'sushi'}],
+ [/рис|заправка/i,{code:'rice'}],[/соус|майонез|спайси/i,{code:'sauce'}],
+ [/креветк|лосось подготов|угорь подготов/i,{code:'seafood'}]
+];
+function applyPreset(code,{initial=false}={}){
+ const preset=PRESETS[code];if(!preset)return;
+ const previous=PRESETS[lastPresetCode];
+ const rows=$$('#ingredient-rows .ingredient-row');
+ const hasManual=rows.some((r,i)=>{
+  const x=rowValues(r);
+  return x.gross!==null||x.grams!==null||x.name&&(x.name!==previous?.ingredients[i]);
+ });
+ if(!initial&&hasManual&&!confirm('Заменить список ингредиентов шаблоном? Введённые значения потеряются.')){$('#preset').value=lastPresetCode;return}
+ const f=$('#record-form'),put=(name,value)=>{const el=f.elements.namedItem(name);if(el)el.value=value??''};
+ put('category',preset.category);
+ if(code==='sauce'||code==='rice'||code==='seafood')put('quantity','Партия');
+ else if(code==='sushi')put('quantity','1 шт.');
+ else put('quantity','8 шт.');
+ $('#editor-kicker').textContent=badgePage(preset.type);
+ $('#ingredient-rows').replaceChildren();
+ preset.ingredients.forEach(name=>addRow({name}));
+ const stages=stageExamples[code]||[];
+ ['stepPrep','stepMake','stepServe'].forEach((field,i)=>{
+  const el=f.elements.namedItem(field);
+  if(el&&!el.value.trim())el.value=stages[i]||'';
+ });
+ if(!f.elements.namedItem('scope').value.trim())put('scope','Техкарта предназначена для изготовления блюда «'+(f.elements.namedItem('name').value||'указанного наименования')+'» на предприятии, использующем данную рецептуру. Требования и применимость проверить перед утверждением.');
+ if(!f.elements.namedItem('rawRequirements').value.trim())put('rawRequirements','Использовать сырьё и полуфабрикаты с прослеживаемостью, сопроводительной документацией, действующей маркировкой и подтверждённой пригодностью. Соблюдать условия приёмки, хранения и разделение потоков.');
+ if(!f.elements.namedItem('presentation').value.trim())put('presentation',preset.type==='prep'?'Выход и упаковка по проверенному стандарту.':'Оформление, комплектность и внешний вид по согласованному фотоэталону; контролировать массу и количество частей.');
+ if(!f.elements.namedItem('safety').value.trim())put('safety','Контроль по программе производственного контроля и процедурам ХАССП предприятия; конкретные показатели и режимы установить по действующим документам и проверенной технологии.');
+ if(!f.elements.namedItem('appearance').value.trim())put('appearance','Форма и оформление соответствуют утверждённому фотоэталону; без посторонних включений.');
+ lastPresetCode=code;
+ sumIngredients();
+ if(!initial)toast('Стандартные разделы заполнены. Проверь текст и реальные данные.');
+}
+function autoFillByTitle(){
+ const f=$('#record-form'),name=f.elements.namedItem('name').value.trim();
+ if(!name)return toast('Сначала введи название блюда');
+ const matching=state.records.find(x=>x.name.toLowerCase().trim()===name.toLowerCase().trim()&&x.id!==state.editing);
+ if(matching){
+   if(!confirm('Найден сохранённый рецепт «'+matching.name+'». Заполнить поля и граммовки из него?'))return;
+   const originalNumber=f.elements.namedItem('cardNumber').value;
+   const currentId=state.editing;
+   fillFromRecord(matching,{preserveName:name,preserveNumber:originalNumber});
+   weightBasis=matching.yield>0?matching.yield:null;
+   toast('Загружен сохранённый рецепт. Проверь проработку и дату.');
+   return;
+ }
+ const title=titlePresets.find(x=>x[0].test(name.toLowerCase()));
+ if(!title)return toast('Точного шаблона нет. Выбери категорию — общие разделы будут заполнены.');
+ const code=title[1].code;$('#preset').value=code;
+ applyPreset(code);
+ if(title[1].names){
+   const hasManual=$$('#ingredient-rows .ingredient-row').some(r=>rowValues(r).grams!==null);
+   if(!hasManual){$('#ingredient-rows').replaceChildren();title[1].names.forEach(name=>addRow({name}));}
+ }
+ const scope=f.elements.namedItem('scope');
+ if(scope)scope.value='Настоящая карта применяется для изготовления «'+name+'» на предприятии, использующем разработанную рецептуру. Требуется проверка для конкретной площадки.';
+ toast('Шаблон по названию готов — нормы закладки и выход не выдуманы.');
+}
+function fillFromRecord(r,{preserveName='',preserveNumber=''}={}){
+ const f=$('#record-form');const put=(n,v)=>{const e=f.elements.namedItem(n);if(e)e.value=v??''};
+ const fields=['category','yield','preset','organization','scope','rawRequirements','presentation','storage','shelfLifeHours','shelfBasis','appearance','organoleptic','safety','productionDate','quantity','chefName','developmentAct'];
+ fields.forEach(k=>put(k,r[k]));
+ put('name',preserveName||r.name);put('cardNumber',preserveNumber||r.cardNumber);put('status','Черновик');
+ const st=r.stepSections||{};
+ const parts=r.steps?.split(/\n(?=\d+\.|Формовка|Нарезка)/)||[];
+ ['stepPrep','stepMake','stepServe'].forEach((k,i)=>put(k,st[['prep','make','serve'][i]]||parts[i]||''));
+ $('#ingredient-rows').replaceChildren();(r.ingredients||[]).forEach(addRow);
+ if(!r.ingredients?.length)addRow();
+ put('protein',r.nutrition?.protein);put('fat',r.nutrition?.fat);put('carb',r.nutrition?.carb);put('kcal',r.nutrition?.kcal);
+ $('#nutrition-auto').checked=r.nutritionAuto!==false;
+ $('#ttk-act').value=r.developmentAct||'';
+ sumIngredients();
 }
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
  state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
  const f=$('#record-form');f.reset();pendingPdfExport=false;lastPresetCode=existing?.preset||'';
  const put=(name,val)=>{const el=f.elements.namedItem(name);if(el)el.value=val??''};
- const values={
- name:existing?.name||'',category:existing?.category||'',yield:existing?.yield||'',status:existing?.status||'Черновик',
- version:existing?.version||'1.0',steps:existing?.steps||'',notes:existing?.notes||'',
- preset:existing?.preset||'',documentType:existing?.documentType||'ТТК',cardNumber:existing?.cardNumber||'',
- organization:existing?.organization||'',scope:existing?.scope||'',rawRequirements:existing?.rawRequirements||'',
- developmentAct:existing?.developmentAct||'',presentation:existing?.presentation||'',storage:existing?.storage||'',
- shelfLifeHours:existing?.shelfLifeHours??'',shelfBasis:existing?.shelfBasis||'',
- organoleptic:existing?.organoleptic||'',safety:existing?.safety||'',
- protein:existing?.nutrition?.protein??'',fat:existing?.nutrition?.fat??'',carb:existing?.nutrition?.carb??'',kcal:existing?.nutrition?.kcal??'',
- approvedBy:existing?.approvedBy||'',approvedDate:existing?.approvedDate||''
- };
- Object.entries(values).forEach(([name,val])=>put(name,val));
- if(!existing){
-  const prefix=idOrType==='prep'?'ПФ':'ТТК';
-  const seen=new Set(state.records.map(r=>r.cardNumber).filter(Boolean));
-  let index=state.records.filter(r=>r.type===(idOrType==='prep'?'prep':'dish')).length+1;
-  let number=prefix+'-'+String(index).padStart(4,'0');
-  while(seen.has(number)){index++;number=prefix+'-'+String(index).padStart(4,'0')}
-  put('cardNumber',number);
+ if(existing){
+  fillFromRecord(existing);
+  put('status',existing.status);put('version',existing.version);put('approvedBy',existing.approvedBy);
+  put('approvedDate',existing.approvedDate);put('notes',existing.notes);
+  weightBasis=existing.yield>0?existing.yield:null;
+ }else{
+  const prefix=idOrType==='prep'?'ПФ':'ТТК',seen=new Set(state.records.map(x=>x.cardNumber).filter(Boolean));
+  let index=state.records.filter(x=>x.type===(idOrType==='prep'?'prep':'dish')).length+1;
+  let card=prefix+'-'+String(index).padStart(4,'0');while(seen.has(card)){index++;card=prefix+'-'+String(index).padStart(4,'0')}
+  put('cardNumber',card);put('quantity',idOrType==='prep'?'Партия':'8 шт.');
+  put('productionDate',new Date().toLocaleDateString('en-CA'));
+  const code=idOrType==='prep'?'sauce':'cold';put('preset',code);applyPreset(code,{initial:true});
+  weightBasis=null;
  }
- $('#editor-title').textContent=existing?'Редактирование · '+existing.name:(idOrType==='prep'?'Новый полуфабрикат':'Новая ТТК блюда');
+ $('#editor-title').textContent=existing?'Редактирование · '+existing.name:(idOrType==='prep'?'Новая ТТК полуфабриката':'Новая ТТК блюда');
  $('#editor-kicker').textContent=badgePage(existing?.type||idOrType);
- $('#ingredient-rows').replaceChildren();
- const ingredients=existing?.ingredients||[];
- if(ingredients.length)ingredients.forEach(addRow);
- else if(existing)addRow();
- else{const code=idOrType==='prep'?'sauce':'cold';put('preset',code);applyPreset(code,{initial:true})}
- if(existing&&ingredients.length)sumIngredients();
- updatePhoto();setStep(0);
- const refNumber=$('#paper-ref-number');if(refNumber)refNumber.textContent=f.elements.namedItem('cardNumber')?.value||'—';
- $('#editor-backdrop').hidden=false;document.body.style.overflow='hidden';$('#close-editor').focus();
+ updatePhoto();sumIngredients();
+ $('#editor-backdrop').hidden=false;document.body.style.overflow='hidden';
+ $('#record-form').scrollTop=0;
 }
+function scaleRecipe(){
+ const f=$('#record-form'),y=safeNum(f.elements.namedItem('yield').value);
+ if(!y||!weightBasis)return toast('Сначала открой сохранённую ТТК с граммовками и укажи новый выход.');
+ const ratio=y/weightBasis;
+ if(ratio<0.05||ratio>20)return toast('Коэффициент слишком большой — проверь выход');
+ const rows=$$('#ingredient-rows .ingredient-row');
+ if(!rows.length||rows.every(r=>rowValues(r).grams===null))return toast('В рецептуре нет числовых норм закладки');
+ rows.forEach(row=>{
+  for(const sel of ['.ingredient-net input','.ingredient-gross input']){const el=row.querySelector(sel);const v=safeNum(el?.value);if(v!==null)el.value=(v*ratio).toFixed(2)}
+ });
+ weightBasis=y;sumIngredients();
+ toast('Граммовки пересчитаны пропорционально: коэффициент '+fmt(ratio,3)+'. Проверь технологические потери.');
+}
+
 function updatePhoto(){const p=$('#image-preview');if(state.photo){p.src=state.photo;p.hidden=false}else{p.hidden=true;p.removeAttribute('src')}}
 function closeEditor(){$('#editor-backdrop').hidden=true;document.body.style.overflow='';state.editing=null;state.photo=null}
 async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Нужна фотография JPG, PNG или WEBP');if(file.size>8*1024*1024)throw Error('Файл слишком большой (максимум 8 МБ)');
