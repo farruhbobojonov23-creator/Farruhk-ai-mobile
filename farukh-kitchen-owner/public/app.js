@@ -106,7 +106,7 @@ function row(item={}){
 }
 function renderNutritionTable(){
  const root=$('#ttk-ingredient-nutrients');if(!root)return;
- const rows=$('#ingredient-rows .ingredient-row');
+ const rows=$$('#ingredient-rows .ingredient-row');
  if(!rows.length){root.innerHTML='<p>Нет ингредиентов</p>';return}
  root.innerHTML='<div class="ttk-global-nutri-row ttk-nutri-header"><span>Ингредиент</span><span>Б, г</span><span>Ж, г</span><span>У, г</span><span>Ккал</span></div>'+
  rows.map((row,i)=>{
@@ -118,7 +118,7 @@ function renderNutritionTable(){
  }).join('');
 }
 function addRow(item){
- if($('#ingredient-rows .ingredient-row').length>=100){toast('Максимум 100 ингредиентов');return}
+ if($$('#ingredient-rows .ingredient-row').length>=100){toast('Максимум 100 ингредиентов');return}
  $('#ingredient-rows').appendChild(row(item));sumIngredients();renderNutritionTable();
 }
 function rowValues(row){
@@ -141,7 +141,7 @@ function useNutritionLibrary(row){
  sumIngredients();
 }
 function sumIngredients(){
- const rows=$$('#ingredient-rows .ingredient-row'),ingredients=rows.map(rowValues).filter(x=>x.name);
+ const rows=$$$('#ingredient-rows .ingredient-row'),ingredients=rows.map(rowValues).filter(x=>x.name);
  const gross=ingredients.reduce((a,x)=>a+(x.gross||0),0),net=ingredients.reduce((a,x)=>a+(x.grams||0),0);
  $('#sum-gross').textContent=fmt(gross)+' г';$('#sum-net').textContent=fmt(net)+' г';
  $('#sum-waste').textContent=gross>0?fmt((gross-net)/gross*100,1)+' %':'—';
@@ -171,7 +171,7 @@ function sumIngredients(){
 }
 function setStep(){const scroll=$('#record-form');if(scroll)scroll.scrollTop=0;}
 function checkA4Fit({quiet=false}={}){
- const rows=$$('#ingredient-rows .ingredient-row').length;
+ const rows=$$$('#ingredient-rows .ingredient-row').length;
  const field=(name)=>$('#record-form')?.elements.namedItem(name)?.value||'';
  const textLength=['scope','rawRequirements','stepPrep','stepMake','stepServe','presentation','storage','organoleptic','safety','notes'].reduce((v,k)=>v+field(k).length,0);
  const danger=rows>22||textLength>2700;
@@ -203,7 +203,7 @@ const titlePresets=[
 function applyPreset(code,{initial=false}={}){
  const preset=PRESETS[code];if(!preset)return;
  const previous=PRESETS[lastPresetCode];
- const rows=$$('#ingredient-rows .ingredient-row');
+ const rows=$$$('#ingredient-rows .ingredient-row');
  const hasManual=rows.some((r,i)=>{
   const x=rowValues(r);
   return x.gross!==null||x.grams!==null||x.name&&(x.name!==previous?.ingredients[i]);
@@ -250,7 +250,7 @@ function autoFillByTitle(){
  const code=title[1].code;$('#preset').value=code;
  applyPreset(code);
  if(title[1].names){
-   const hasManual=$$('#ingredient-rows .ingredient-row').some(r=>rowValues(r).grams!==null);
+   const hasManual=$$$('#ingredient-rows .ingredient-row').some(r=>rowValues(r).grams!==null);
    if(!hasManual){$('#ingredient-rows').replaceChildren();title[1].names.forEach(name=>addRow({name}));}
  }
  const scope=f.elements.namedItem('scope');
@@ -302,7 +302,7 @@ function scaleRecipe(){
  if(!y||!weightBasis)return toast('Сначала открой сохранённую ТТК с граммовками и укажи новый выход.');
  const ratio=y/weightBasis;
  if(ratio<0.05||ratio>20)return toast('Коэффициент слишком большой — проверь выход');
- const rows=$$('#ingredient-rows .ingredient-row');
+ const rows=$$$('#ingredient-rows .ingredient-row');
  if(!rows.length||rows.every(r=>rowValues(r).grams===null))return toast('В рецептуре нет числовых норм закладки');
  rows.forEach(row=>{
   for(const sel of ['.ingredient-net input','.ingredient-gross input']){const el=row.querySelector(sel);const v=safeNum(el?.value);if(v!==null)el.value=(v*ratio).toFixed(2)}
@@ -323,7 +323,7 @@ async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'
 function submit(e){
  e.preventDefault();
  const f=$('#record-form'),field=name=>f.elements.namedItem(name)?.value??'';
- const rows=$$('#ingredient-rows .ingredient-row');
+ const rows=$$$('#ingredient-rows .ingredient-row');
  const ingredients=rows.map(rowValues).filter(x=>x.name);
  const was=state.records.find(x=>x.id===state.editing);
  const stage={prep:field('stepPrep'),make:field('stepMake'),serve:field('stepServe')};
@@ -456,14 +456,14 @@ async function bind(){
  if(t.id==='step-next'){setStep(wizardStep+1);return}
  if(t.id==='step-prev'){setStep(wizardStep-1);return}
  if(t.id==='add-ingredient'){addRow();return}
- if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();renderNutritionTable();return}
+ if(t.classList.contains('remove-row')){const rows=$$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();renderNutritionTable();return}
  if(t.id==='clear-photo'){state.photo=null;$('#photo-input').value='';updatePhoto();return}
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
  });
  document.addEventListener('input',e=>{
  if(e.target.hasAttribute('data-nutri-row')){
-  const row=$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];
+  const row=$$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];
   const field=row?.querySelector('[data-nutrient="'+e.target.dataset.nutriKey+'"]');
   if(field){field.value=e.target.value;sumIngredients()}
  }
@@ -471,11 +471,11 @@ async function bind(){
  document.addEventListener('change',async e=>{
  if(e.target.name==='name'&&state.editing===null){
   const title=e.target.value.trim().toLowerCase();
-  const hasEntered=$('#ingredient-rows .ingredient-row').some(row=>rowValues(row).grams!==null||rowValues(row).gross!==null);
+  const hasEntered=$$('#ingredient-rows .ingredient-row').some(row=>rowValues(row).grams!==null||rowValues(row).gross!==null);
   const hasSaved=state.records.some(r=>r.name.toLowerCase().trim()===title);
   if(title&&title!==lastAutofilledTitle&&!hasEntered&&!hasSaved&&titlePresets.some(([re])=>re.test(title)))autoFillByTitle();
  }
- if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input')){useNutritionLibrary(e.target.closest('.ingredient-row'));renderNutritionTable()}if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()} if(e.target.hasAttribute('data-nutri-row')){const row=$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];if(row)rememberNutrition(row)}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
+ if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input')){useNutritionLibrary(e.target.closest('.ingredient-row'));renderNutritionTable()}if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()} if(e.target.hasAttribute('data-nutri-row')){const row=$$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];if(row)rememberNutrition(row)}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
  $('#editor-backdrop').addEventListener('click',e=>{if(e.target.id==='editor-backdrop')closeEditor()});
