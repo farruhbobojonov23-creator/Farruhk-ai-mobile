@@ -426,3 +426,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:360px){.catalog-image{height:240px}.collection-card strong{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.food-revealed,.chef-hero-image img,.collection-card img,.catalog-image img{animation:none!important;transition:none!important}.collection-card,.collection-recipe{transition:none}}
 }
+
+/* Transparent product artwork, 2026-10-29. */
+@media screen {
+ .chef-hero-image,.collection-card .food-stage,.catalog-image,.reader-image{background:transparent}
+ .chef-hero-image{border:0;box-shadow:none;overflow:visible}
+ .collection-card .food-stage{border-bottom:0}
+ .collection-card .food-stage{height:260px}
+ .collection-card .food-stage img{padding:10px 4px 12px}
+ .catalog-image{height:290px}
+ .image-open{padding:10px 4px 24px}
+ .chef-hero-image{padding:8px 0 34px}
+ .chef-hero-image img{max-width:none}
+ .reader-image{padding:8px}
+ @media(max-width:760px){
+  .collection-card .food-stage{height:200px;aspect-ratio:auto}
+  .catalog-image{height:220px}
+  .chef-hero-image{margin:12px 0 6px;aspect-ratio:1.1;padding:8px 0 32px}
+  .chef-hero-image img{max-height:none}
+ }
+ .catalog-image .image-open{background:transparent}
+ .image-illustration{background:#16434b;color:#d4dedb}
+ .chef-hero-image img,.collection-card .food-stage img,.catalog-image img,.reader-image img{mix-blend-mode:normal;opacity:1;filter:none}
+ @media(prefers-reduced-motion:no-preference){
+  .chef-hero-image img,.collection-card .food-stage img,.catalog-image img{animation-duration:7.5s}
+ }
+}

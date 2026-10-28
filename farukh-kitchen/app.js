@@ -35,8 +35,8 @@ const photoFor=r=>r.type==='prep'
   ?(/рис|заправ/i.test(r.name)?SHOWCASE_IMAGES.rice:SHOWCASE_IMAGES.assortment)
   :(/темпур|запеч/i.test(r.cat)?SHOWCASE_IMAGES.baked:SHOWCASE_IMAGES.roll);
 
-const FOOD_BASE='https://raw.githubusercontent.com/farruhbobojonov23-creator/Farruhk-ai-mobile/7d4c4e80f618f06b66b52d95b4a44fd2b98f8ecd/public/assets/categories/';
-const foodImage=key=>FOOD_BASE+key+'.png';
+const FOOD_BASE='assets/food-cutouts/';
+const foodImage=key=>FOOD_BASE+key+'.webp';
 const planLabel=key=>key==='start'?'Shef Start':'Shef PRO';
 const statusLabel=key=>({missing:'ТТК готовится',review:'Сверить название',draft:'На проверке'}[key]||'На проверке');
 const catalogPhoto=(r,priority=false)=>`<img src="${foodImage(r.photo)}" alt="Иллюстрация категории ${esc(r.cat)}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async" referrerpolicy="no-referrer">`;
