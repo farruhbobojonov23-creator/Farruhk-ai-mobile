@@ -40,7 +40,7 @@ test('Native updater checks fresh release every six hours and never performs sil
  assert.match(manifest,/androidx\.core\.content\.FileProvider/);
  assert.match(paths,/<cache-path name="verified-updates" path="updates\/"/);
  assert.match(build,/androidx\.core:core:1\.15\.0/);
- assert.match(build,/versionCode 11/);
+ assert.match(build,/versionCode 12/);
  assert.match(build,/FARUKH_PRINT_SIGNING_STORE_FILE/);
  assert.match(workflow,/FARUKH_PRINT_KEYSTORE_BASE64/);
  assert.match(workflow,/gradle :print:assembleRelease/);
