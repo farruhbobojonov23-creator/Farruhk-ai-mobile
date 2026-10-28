@@ -301,88 +301,119 @@ async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'
  if(data.length>400000)throw Error('Фотография не поместилась в локальное хранилище');return data;
 }
 
+
 function submit(e){
- e.preventDefault();const f=e.currentTarget,field=name=>f.elements.namedItem(name)?.value??'';
- const list=$$('#ingredient-rows .ingredient-row').map(row=>{
-  const name=row.querySelector('.ingredient-name input').value.trim();
-  const gross=row.querySelector('.ingredient-gross input').value;
-  const net=row.querySelector('.ingredient-net input').value;
-  return {name,gross:gross===''?null:Number(gross),grams:net===''?null:Number(net)}
- }).filter(x=>x.name);
+ e.preventDefault();
+ const f=$('#record-form'),field=name=>f.elements.namedItem(name)?.value??'';
+ const rows=$$('#ingredient-rows .ingredient-row');
+ const ingredients=rows.map(rowValues).filter(x=>x.name);
  const was=state.records.find(x=>x.id===state.editing);
+ const stage={prep:field('stepPrep'),make:field('stepMake'),serve:field('stepServe')};
+ const steps=['Подготовка: '+stage.prep,'Формовка / приготовление: '+stage.make,'Нарезка / подача: '+stage.serve].join('\n');
  const r=cleanRecord({
- id:was?.id||uuid(),type:was?.type||(PRESETS[field('preset')]?.type||'dish'),
- name:field('name').trim(),category:field('category').trim(),yield:field('yield'),status:field('status'),
- version:field('version'),steps:field('steps'),notes:field('notes'),photo:state.photo,ingredients:list,
- preset:field('preset'),documentType:field('documentType'),cardNumber:field('cardNumber'),organization:field('organization'),
- scope:field('scope'),rawRequirements:field('rawRequirements'),developmentAct:field('developmentAct'),
- presentation:field('presentation'),storage:field('storage'),shelfLifeHours:field('shelfLifeHours'),shelfBasis:field('shelfBasis'),
- organoleptic:field('organoleptic'),safety:field('safety'),
- nutrition:{protein:field('protein'),fat:field('fat'),carb:field('carb'),kcal:field('kcal')},
- approvedBy:field('approvedBy'),approvedDate:field('approvedDate'),updatedAt:new Date().toISOString()
+  id:was?.id||uuid(),type:was?.type||(PRESETS[field('preset')]?.type||'dish'),
+  name:field('name').trim(),category:field('category').trim(),yield:field('yield'),status:field('status'),
+  cardNumber:field('cardNumber'),preset:field('preset'),version:field('version'),documentType:field('documentType'),
+  photo:state.photo,organization:field('organization'),productionDate:field('productionDate'),quantity:field('quantity'),
+  chefName:field('chefName'),scope:field('scope'),rawRequirements:field('rawRequirements'),developmentAct:$('#ttk-act').value,
+  ingredients,stepSections:stage,steps,presentation:field('presentation'),storage:field('storage'),
+  shelfLifeHours:field('shelfLifeHours'),shelfBasis:field('shelfBasis'),
+  appearance:field('appearance'),organoleptic:field('organoleptic'),safety:field('safety'),
+  nutritionAuto:$('#nutrition-auto').checked,
+  nutrition:Object.fromEntries(nutrKeys.map(k=>[k,field(k)])),
+  approvedBy:field('approvedBy'),approvedDate:field('approvedDate'),notes:field('notes'),
+  updatedAt:new Date().toISOString()
  });
- if(!r.name||r.yield<=0){pendingPdfExport=false;setStep(0);toast('Заполни наименование и фактический выход');return}
- if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){pendingPdfExport=false;setStep(1);toast('Для срока годности укажи документальное обоснование');return}
+ if(!r.name){pendingPdfExport=false;toast('Укажи название ТТК');return}
+ if(r.ingredients.some(x=>x.gross!==null&&x.grams!==null&&x.grams>x.gross)){
+  if(!confirm('Есть ингредиент, у которого нетто превышает брутто. Проверить граммовки перед сохранением?')){pendingPdfExport=false;return}
+ }
+ if(r.shelfLifeHours!==null&&r.shelfLifeHours>0&&!r.shelfBasis.trim()){
+  pendingPdfExport=false;toast('Укажи обоснование срока годности или убери срок');return
+ }
  if(r.status==='Утверждена'){
-  const mandatory=r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)&&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()&&r.presentation.trim()&&r.storage.trim()&&r.shelfLifeHours>0&&r.shelfBasis.trim()&&r.organoleptic.trim()&&r.safety.trim()&&r.approvedBy.trim()&&r.approvedDate;
-  if(!mandatory){pendingPdfExport=false;setStep(1);toast('Не все обязательные разделы заполнены. Сохрани как черновик.');return}
-  if(!confirm('Утверждение означает, что рецептура проработана, условия хранения обоснованы, а документ подписан руководителем. Подтверждаешь?'))return;
+  const nutritionReady=nutrKeys.every(k=>r.nutrition[k]!==null);
+  const mandatory=r.yield>0&&r.ingredients.length>0&&r.ingredients.every(x=>x.name&&x.gross!==null&&x.grams!==null)
+  &&r.steps.trim()&&r.rawRequirements.trim()&&r.developmentAct.trim()
+  &&r.presentation.trim()&&r.storage.trim()&&r.shelfLifeHours>0&&r.shelfBasis.trim()
+  &&r.organoleptic.trim()&&r.safety.trim()&&nutritionReady&&r.approvedBy.trim()&&r.approvedDate;
+  if(!mandatory){pendingPdfExport=false;toast('Не все данные подтверждены. Сохрани как «Черновик» или «На проверке».');return}
+  if(!confirm('Подтверждаешь реальную проработку, проверку КБЖУ и режимов, а также фактическое утверждение уполномоченным лицом?')){pendingPdfExport=false;return}
  }
  const before=state.records.slice();
  if(was)state.records=state.records.map(x=>x.id===r.id?r:x);else state.records.unshift(r);
  if(!keep()){state.records=before;pendingPdfExport=false;return}
- const downloadPdf=pendingPdfExport;pendingPdfExport=false;
- closeEditor();state.search='';state.filter='Все';render();toast(downloadPdf?'ТТК сохранена. В окне печати выбери «Сохранить как PDF».':'ТТК сохранена локально. Не забудь экспорт JSON.');
- if(downloadPdf)printTTK(r.id);
+ const pdf=pendingPdfExport;pendingPdfExport=false;
+ closeEditor();render();toast(pdf?'Карта сохранена. В печати выбери «Сохранить как PDF».':'Черновик сохранён на этом устройстве. Экспортируй JSON для резервной копии.');
+ if(pdf)printTTK(r);
 }
+
 function exportJson(){const out={format:'FARUKH_KITCHEN_OWNER_DRAFTS',version:1,exportedAt:new Date().toISOString(),records:state.records};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='FARUKH_KITCHEN_BACKUP_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Резервная копия подготовлена')}
 async function importJson(file){if(!file)return;if(file.size>5e6){toast('Файл больше 5 МБ — импорт отменён');return}try{const data=JSON.parse(await file.text());if(data.format!=='FARUKH_KITCHEN_OWNER_DRAFTS'||!Array.isArray(data.records)||data.records.length>500)throw Error('Неизвестный формат резервной копии');if(!confirm('Заменить все текущие локальные черновики содержимым файла?'))return;const items=data.records.map(cleanRecord);const prev=state.records;state.records=items;if(!keep()){state.records=prev;return}render();toast('Импортировано ТТК: '+items.length)}catch(e){toast('Ошибка импорта: '+e.message)}}
 async function logout(){await fetch('/api/logout',{method:'POST',credentials:'same-origin'});location.replace('/')}
 
+
 function printTTK(id){
- const r=typeof id==='object'?id:state.records.find(x=>x.id===id);if(!r)return toast('Карта не найдена');
- const line=x=>esc(x||'—').replace(/\n/g,'<br>');
- const rows=(r.ingredients||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${it.gross??'—'}</td><td>${it.grams??'—'}</td></tr>`).join('');
- const val=x=>x===null||x===undefined||x===''?'—':esc(x);
- const nutr=r.nutrition||{};
+ const r=typeof id==='object'?id:state.records.find(x=>x.id===id);
+ if(!r)return toast('ТТК не найдена');
+ const text=x=>esc(x===null||x===undefined||String(x).trim()===''?'—':x).replace(/\n/g,'<br>');
+ const val=x=>x===null||x===undefined||x===''?'—':fmt(x);
+ const nut=r.nutrition||{};
+ const y=r.yield||0;
+ const portion=k=>nut[k]===null||nut[k]===undefined||!y?'—':fmt(nut[k]*y/100);
+ const items=(r.ingredients||[]).filter(x=>x.name);
+ if(items.length>22||(['scope','rawRequirements','steps','presentation','storage','appearance','organoleptic','safety'].reduce((n,k)=>n+(r[k]||'').length,0)>2800)){
+  if(!confirm('В этой ТТК много ингредиентов или текста. Один лист А4 может оказаться нечитаемым или понадобится приложение. Продолжить печать без обрезки данных?'))return;
+ }
+ const rows=items.length?items.map((it,i)=>{
+  const waste=it.gross!==null&&it.gross>0&&it.grams!==null?fmt((it.gross-it.grams)/it.gross*100,1)+'%':'—';
+  return `<tr><td>${i+1}. ${text(it.name)}</td><td>${val(it.gross)}</td><td>${val(it.grams)}</td><td>${waste}</td></tr>`;
+ }).join(''):'<tr><td colspan="4">Рецептура не заполнена</td></tr>';
+ const st=r.stepSections||{};
+ const getStage=(k,idx)=>st[k]||(!r.stepSections?(r.steps||'').split(/\n/)[idx]:'')||'';
+ const date=r.productionDate||'—';
+ const totalG=items.reduce((a,x)=>a+(x.gross||0),0),totalN=items.reduce((a,x)=>a+(x.grams||0),0);
  const print=document.getElementById('print-area')||document.createElement('div');
  print.id='print-area';
- print.innerHTML=`<div class="print-document">
- <div class="print-approval"><span>УТВЕРЖДАЮ<br>${val(r.approvedBy)}<br>Дата: ${val(r.approvedDate)}</span><span>Статус: <b>${esc(r.status)}</b><br>Версия: ${esc(r.version)}</span></div>
- <div class="print-brand">FARUKH KITCHEN · ТЕХНОЛОГИЧЕСКИЕ ДОКУМЕНТЫ</div>
- <h1>${r.documentType==='ТК'?'ТЕХНОЛОГИЧЕСКАЯ КАРТА':'ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'} № ${val(r.cardNumber)}</h1>
- <h2>${esc(r.name)}</h2><p><b>Предприятие:</b> ${val(r.organization)} &nbsp; <b>Категория:</b> ${val(r.category)}</p>
- <h3>1. Область применения</h3><p>${line(r.scope)}</p>
- <h3>2. Требования к сырью</h3><p>${line(r.rawRequirements)}</p>
- <h3>3. Рецептура / нормы закладки</h3>
- <table><thead><tr><th>№</th><th>Наименование сырья / ПФ</th><th>Брутто, г</th><th>Нетто, г</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Не заполнено</td></tr>'}</tbody></table>
- <p><b>Выход готового изделия / ПФ:</b> ${val(r.yield)} г. <b>Проработка:</b> ${val(r.developmentAct)}</p>
- <h3>4. Технологический процесс</h3><p>${line(r.steps)}</p>
- <h3>5. Оформление, подача, реализация и хранение</h3><p><b>Оформление и подача:</b> ${line(r.presentation)}</p><p><b>Условия:</b> ${line(r.storage)}</p><p><b>Срок:</b> ${r.shelfLifeHours??'не установлен'}${r.shelfLifeHours?' ч':''}. <b>Обоснование:</b> ${line(r.shelfBasis)}</p>
- <h3>6. Качество и безопасность</h3><p><b>Органолептика:</b> ${line(r.organoleptic)}</p><p><b>Контроль безопасности:</b> ${line(r.safety)}</p>
- <h3>7. Пищевая и энергетическая ценность на 100 г</h3><table><thead><tr><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Ккал</th></tr></thead><tbody><tr><td>${val(nutr.protein)}</td><td>${val(nutr.fat)}</td><td>${val(nutr.carb)}</td><td>${val(nutr.kcal)}</td></tr></tbody></table>
- <h3>8. Примечания и аллергены</h3><p>${line(r.notes)}</p>
- <div class="print-status">${r.status==='Утверждена'?'Запись обозначена как утверждённая владельцем; проверьте оригиналы подтверждающих документов и подпись.':'ЧЕРНОВИК · НЕ УТВЕРЖДЕНО · НЕ ДЛЯ ПРОИЗВОДСТВА'}</div>
- <p class="print-foot">Структура разделов: ГОСТ 31987-2012. СанПиН 2.3/2.4.3590-20 регулирует безопасность производства; данный шаблон не заменяет выполнение санитарных правил и документальную верификацию.</p>
+ print.innerHTML=`<div class="print-document single-ttk">
+ <div class="ttk-p-title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (FARUKH KITCHEN)</div>
+ <table class="ttk-p-meta"><tbody>
+ <tr><td>Блюдо: <b>${text(r.name)}</b></td><td>Дата разработки: ${text(date)}</td></tr>
+ <tr><td>Категория: ${text(r.category)}</td><td>ТТК №: ${text(r.cardNumber)}</td></tr>
+ <tr><td>Статус: ${text(r.status)}</td><td>Количество: ${text(r.quantity||'8 шт.')}</td></tr></tbody></table>
+ <div class="ttk-p-dual">
+ <section><h3>1. Область применения</h3><p>${text(r.scope)}</p></section>
+ <section><h3>2. Требования к сырью</h3><p>${text(r.rawRequirements)}</p></section>
+ </div>
+ <section><h3>3. Рецептура</h3><table><thead><tr><th>Наименование сырья / полуфабриката</th><th>Брутто, г</th><th>Нетто, г</th><th>Отходы, %</th></tr></thead><tbody>${rows}</tbody></table>
+ <div class="ttk-p-totals"><span>Выход: <b>${val(r.yield)} г</b></span><span>Σ брутто: ${fmt(totalG)} г</span><span>Σ нетто: ${fmt(totalN)} г</span></div></section>
+ <section><h3>4. Технологический процесс</h3><table class="ttk-p-steps"><tbody><tr><td>Подготовка</td><td>${text(getStage('prep',0))}</td></tr><tr><td>Формовка / приготовление</td><td>${text(getStage('make',1))}</td></tr><tr><td>Нарезка / подача</td><td>${text(getStage('serve',2))}</td></tr></tbody></table></section>
+ <div class="ttk-p-dual">
+ <section><h3>5. Оформление, подача, реализация и хранение</h3><p>${text(r.presentation)}</p><p>${text(r.storage)}</p><p>Срок: ${r.shelfLifeHours?val(r.shelfLifeHours)+' ч':'не установлен'}. Основание: ${text(r.shelfBasis)}</p></section>
+ <section><h3>6. Показатели качества</h3><p><b>Внешний вид:</b> ${text(r.appearance)}</p><p><b>Вкус, запах и консистенция:</b> ${text(r.organoleptic)}</p></section>
+ </div>
+ <section><h3>Безопасность</h3><p>${text(r.safety)}</p></section>
+ <section><h3>7. Пищевая ценность (на 100 г / на порцию)</h3>
+ <table class="ttk-p-nutri"><thead><tr><th>Показатель</th><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Ккал</th></tr></thead>
+ <tbody><tr><td>На 100 г</td><td>${val(nut.protein)}</td><td>${val(nut.fat)}</td><td>${val(nut.carb)}</td><td>${val(nut.kcal)}</td></tr>
+ <tr><td>На порцию</td><td>${portion('protein')}</td><td>${portion('fat')}</td><td>${portion('carb')}</td><td>${portion('kcal')}</td></tr></tbody></table></section>
+ <table class="ttk-p-sign"><tbody><tr><td>Разработал (шеф): ${text(r.chefName)}</td><td>Утверждаю (руководитель): ${text(r.approvedBy)}</td></tr><tr><td>Акт проработки: ${text(r.developmentAct)}</td><td>Дата утверждения: ${text(r.approvedDate)}</td></tr></tbody></table>
+ <div class="ttk-p-foot">Структура: ГОСТ 31987-2012 · Производственная безопасность: СанПиН 2.3/2.4.3590-20. ${r.status==='Утверждена'?'Требуется фактическое утверждение и подтверждающая документация.':'ЧЕРНОВИК · НЕ УТВЕРЖДЕНО · НЕ ДЛЯ ПРОИЗВОДСТВА'}</div>
  </div>`;
  if(!print.parentNode)document.body.appendChild(print);
  window.print();
 }
-
 function blankPDF(){
- const kind=$('#record-form')?.elements?.namedItem('documentType')?.value||'ТТК';
- const r={documentType:kind,cardNumber:'_________',name:'_________________________',organization:'________________',
- category:'____________',yield:'____',approvedBy:'_________________________',approvedDate:'___________',status:'Черновик',version:'—',
- ingredients:Array.from({length:8},()=>({name:'_________________________',gross:'',grams:''})),
- scope:'________________________________________________________________________________',
- rawRequirements:'________________________________________________________________________________',
- steps:'________________________________________________________________________________\n________________________________________________________________________________',
- presentation:'________________________________________________________________________________',storage:'________________________________________________________________________________',
- organoleptic:'________________________________________________________________________________',safety:'________________________________________________________________________________',
- developmentAct:'____________________',shelfBasis:'________________________',shelfLifeHours:null,notes:'____________________________________',
- nutrition:{protein:null,fat:null,carb:null,kcal:null}};
+ const r={documentType:'ТТК',name:'________________',cardNumber:'_________',category:'_________',quantity:'8 шт.',status:'Черновик',
+ productionDate:'__________',chefName:'__________',approvedBy:'____________',approvedDate:'________',
+ yield:0,scope:'________________________',rawRequirements:'________________________',
+ ingredients:Array.from({length:9},()=>({name:'________________',gross:null,grams:null})),
+ stepSections:{prep:'____________________',make:'____________________',serve:'____________________'},
+ presentation:'________________',storage:'________________',appearance:'________________',organoleptic:'________________',
+ safety:'________________',shelfLifeHours:null,shelfBasis:'________________',nutrition:{protein:null,fat:null,carb:null,kcal:null}};
  printTTK(r);
 }
+
 async function bind(){
  const check=await fetch('/api/session',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>({authenticated:false}));if(!check.authenticated){location.replace('/');return}
  const config=await fetch('/api/config',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}));sheet=config.sheetUrl||'';
