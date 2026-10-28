@@ -68,7 +68,7 @@ jobs:
             echo 'FARUKH PRINT 1.4.5 TEST: Bluetooth connection closes after each label.'
             echo
             echo '**IMPORTANT: DIAGNOSTIC APK, NOT AN IN-PLACE UPDATE.**'
-            echo 'This is signed by an ephemeral GitHub runner debug key, not the existing installed application's key.'
+            echo 'This is signed by an ephemeral debug key rather than the signature of the installed app.'
             echo 'Android can reject installation over FARUKH PRINT 1.4.3 or other versions.'
             echo 'Use only on a separate test phone / clean installation. Do not uninstall a working app without exporting and verifying a full JSON backup.'
             echo 'The stable farukh-print-current asset is deliberately unchanged.'
