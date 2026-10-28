@@ -104,7 +104,23 @@ function row(item={}){
  nutrKeys.forEach(k=>{el.querySelector('[data-nutrient="'+k+'"]').value=nut[k]??''});
  return el;
 }
-function addRow(item){if($$('#ingredient-rows .ingredient-row').length>=100){toast('Максимум 100 ингредиентов');return}$('#ingredient-rows').appendChild(row(item));sumIngredients()}
+function renderNutritionTable(){
+ const root=$('#ttk-ingredient-nutrients');if(!root)return;
+ const rows=$('#ingredient-rows .ingredient-row');
+ if(!rows.length){root.innerHTML='<p>Нет ингредиентов</p>';return}
+ root.innerHTML='<div class="ttk-global-nutri-row ttk-nutri-header"><span>Ингредиент</span><span>Б, г</span><span>Ж, г</span><span>У, г</span><span>Ккал</span></div>'+
+ rows.map((row,i)=>{
+  const name=row.querySelector('.ingredient-name input')?.value.trim()||'Ингредиент '+(i+1);
+  const nut=rowValues(row).nutrition;
+  return '<div class="ttk-global-nutri-row"><span>'+esc(name)+'</span>'+
+    nutrKeys.map(k=>'<input aria-label="'+esc(name)+' — '+k+'" data-nutri-row="'+i+'" data-nutri-key="'+k+'" type="number" min="0" max="10000" step=".01" inputmode="decimal" value="'+(nut[k]??'')+'" placeholder="—">').join('')+
+  '</div>'
+ }).join('');
+}
+function addRow(item){
+ if($('#ingredient-rows .ingredient-row').length>=100){toast('Максимум 100 ингредиентов');return}
+ $('#ingredient-rows').appendChild(row(item));sumIngredients();renderNutritionTable();
+}
 function rowValues(row){
  const nut={};nutrKeys.forEach(k=>nut[k]=safeNum(row.querySelector('[data-nutrient="'+k+'"]')?.value));
  return {name:row.querySelector('.ingredient-name input').value.trim(),
@@ -277,7 +293,7 @@ function showEditor(idOrType='dish'){
  }
  $('#editor-title').textContent=existing?'Редактирование · '+existing.name:(idOrType==='prep'?'Новая ТТК полуфабриката':'Новая ТТК блюда');
  $('#editor-kicker').textContent=badgePage(existing?.type||idOrType);
- updatePhoto();sumIngredients();
+ updatePhoto();sumIngredients();renderNutritionTable();
  $('#editor-backdrop').hidden=false;document.body.style.overflow='hidden';
  $('#record-form').scrollTop=0;
 }
@@ -440,12 +456,18 @@ async function bind(){
  if(t.id==='step-next'){setStep(wizardStep+1);return}
  if(t.id==='step-prev'){setStep(wizardStep-1);return}
  if(t.id==='add-ingredient'){addRow();return}
- if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();return}
+ if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();renderNutritionTable();return}
  if(t.id==='clear-photo'){state.photo=null;$('#photo-input').value='';updatePhoto();return}
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
  });
- document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows')||e.target.name==='yield'||e.target.name==='protein'||e.target.name==='fat'||e.target.name==='carb'||e.target.name==='kcal')sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
+ document.addEventListener('input',e=>{
+ if(e.target.hasAttribute('data-nutri-row')){
+  const row=$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];
+  const field=row?.querySelector('[data-nutrient="'+e.target.dataset.nutriKey+'"]');
+  if(field){field.value=e.target.value;sumIngredients()}
+ }
+ if(e.target.closest('#ingredient-rows')||e.target.name==='yield'||e.target.name==='protein'||e.target.name==='fat'||e.target.name==='carb'||e.target.name==='kcal')sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
  document.addEventListener('change',async e=>{
  if(e.target.name==='name'&&state.editing===null){
   const title=e.target.value.trim().toLowerCase();
@@ -453,7 +475,7 @@ async function bind(){
   const hasSaved=state.records.some(r=>r.name.toLowerCase().trim()===title);
   if(title&&title!==lastAutofilledTitle&&!hasEntered&&!hasSaved&&titlePresets.some(([re])=>re.test(title)))autoFillByTitle();
  }
- if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input'))useNutritionLibrary(e.target.closest('.ingredient-row'));if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
+ if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input')){useNutritionLibrary(e.target.closest('.ingredient-row'));renderNutritionTable()}if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()} if(e.target.hasAttribute('data-nutri-row')){const row=$('#ingredient-rows .ingredient-row')[Number(e.target.dataset.nutriRow)];if(row)rememberNutrition(row)}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
  $('#editor-backdrop').addEventListener('click',e=>{if(e.target.id==='editor-backdrop')closeEditor()});
