@@ -1,81 +1,23 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7eddf"><meta name="robots" content="noindex,nofollow,noarchive"><title>FARUKH KITCHEN · Центр шеф-повара</title><link rel="stylesheet" href="/styles.css?v=17"></head><body>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7eddf"><meta name="robots" content="noindex,nofollow,noarchive"><title>FARUKH KITCHEN · Центр шеф-повара</title><link rel="stylesheet" href="/styles.css?v=rollback-01"></head><body>
 <div id="shell"><aside id="sidebar"><div class="brand"><span class="logo">✦</span><div><strong>FARUKH<br>KITCHEN</strong><small>CHEF CONTROL</small></div></div><div class="owner-chip">♛ Личный кабинет владельца</div><nav aria-label="Навигация по кабинету" class="side-links">
 <button data-page="home" class="selected"><i>⌂</i> Обзор</button><button data-page="dish"><i>▦</i> ТТК блюд</button><button data-page="prep"><i>◇</i> Полуфабрикаты</button><button data-page="packages"><i>◈</i> Пакеты для продажи</button><button data-page="settings"><i>↧</i> База и резервные копии</button></nav>
 <div class="side-foot"><p>Демонстрационный управляющий центр. Данные сохраняются только в этом браузере. Экспортируйте JSON после изменений.</p><button id="logout" class="outline">Выйти из кабинета ↗</button></div></aside>
 <div id="area"><header class="topbar"><button class="hamburger" id="menu" aria-label="Открыть меню">☰</button><div class="top-left"><div class="top-kicker">Профессиональная платформа японской кухни</div><strong id="top-title">Обзор</strong></div><div class="top-right"><span class="demo-chip">● ПРОТОТИП</span><button id="quick-new" class="main-button">＋ Добавить ТТК</button></div></header><main id="main"></main></div></div>
 <div id="shade" hidden></div><nav class="bottom-nav" aria-label="Нижняя навигация"><button data-page="home" class="selected"><span>⌂</span><small>Главная</small></button><button data-page="dish"><span>▦</span><small>ТТК</small></button><button data-page="prep"><span>◇</span><small>ПФ</small></button><button data-page="packages"><span>◈</span><small>Пакеты</small></button><button data-page="settings"><span>⚙</span><small>База</small></button></nav>
 <div id="editor-backdrop" hidden><div class="editor" role="dialog" aria-modal="true" aria-labelledby="editor-title"><header class="editor-head"><div><small id="editor-kicker">ТЕХНОЛОГИЧЕСКАЯ КАРТА</small><h2 id="editor-title">Новая ТТК</h2></div><button type="button" id="close-editor" aria-label="Закрыть редактор">×</button></header>
-<form id="record-form" class="pdf-editor-form compact-ttk-form" novalidate>
- <div class="ttk-smartbar">
-   <div class="ttk-bar-top"><div><strong>📋 ТТК · ГОТОВЫЙ БЛАНК А4</strong><small>По структуре ГОСТ 31987-2012 · единый лист</small></div><button type="button" id="blank-pdf" class="paper-blank-pdf">🖨 Пустой PDF</button></div>
-   <div class="ttk-smart-actions">
-     <label>Шаблон категории<select name="preset" id="preset"><option value="">Выбрать категорию</option><option value="cold">🍣 Холодные роллы</option><option value="baked">🔥 Запечённые роллы</option><option value="tempura">🍤 Темпура</option><option value="onigiri">🍙 Онигири</option><option value="sushi">🍣 Суши / нигири</option><option value="sauce">🥣 Соусы / начинки ПФ</option><option value="rice">🍚 Рис / заготовки ПФ</option><option value="seafood">🦐 Рыба / морепродукты ПФ</option></select></label>
-     <button type="button" id="ttk-autofill" class="outline">✦ Заполнить по названию</button>
-     <button type="button" id="ttk-scale" class="outline">⚖ Пересчитать под выход</button>
-   </div>
-   <div class="ttk-editor-status"><span id="ttk-fit-status">Формат: А4 · 1 лист при достаточном месте</span><span id="ttk-auto-hint">Вес и КБЖУ рассчитываются по проверенным данным</span></div>
- </div>
- <div class="ttk-a4-wrap"><section id="ttk-a4-sheet" class="ttk-a4-sheet" aria-label="Технико-технологическая карта для заполнения">
-   <div class="ttk-paper-title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (FARUKH KITCHEN)</div>
-   <div class="ttk-paper-meta">
-     <label>Блюдо<input name="name" maxlength="140" placeholder="Название ролла / ПФ"></label>
-     <label>Дата разработки<input name="productionDate" type="date"></label>
-     <label>Категория<input name="category" maxlength="90" placeholder="Холодные роллы"></label>
-     <label>ТТК №<input name="cardNumber" maxlength="50" placeholder="ТТК-0001"></label>
-     <label>Статус<select name="status"><option>Черновик</option><option>На проверке</option><option>Утверждена</option></select></label>
-     <label>Количество<select name="quantity"><option value="8 шт.">8 шт.</option><option value="6 шт.">6 шт.</option><option value="4 шт.">4 шт.</option><option value="1 шт.">1 шт.</option><option value="1 порция">1 порция</option><option value="1 кг">1 кг</option><option value="Партия">Партия</option></select></label>
-   </div>
-   <div class="ttk-dual">
-     <section class="ttk-section"><h3>1. Область применения</h3><textarea name="scope" maxlength="2000" rows="3" placeholder="Заполнится по категории. Проверить применимость..."></textarea></section>
-     <section class="ttk-section"><h3>2. Требования к сырью</h3><textarea name="rawRequirements" maxlength="2500" rows="3" placeholder="Подставятся общие требования. Проверить для конкретного сырья..."></textarea></section>
-   </div>
-   <section class="ttk-section ttk-section-full"><h3>3. Рецептура</h3>
-     <div class="ttk-table-heading"><span>Наименование сырья / полуфабриката</span><span>Брутто, г</span><span>Нетто, г</span><span>Отходы, %</span><span></span></div>
-     <div id="ingredient-rows" class="ingredient-rows"></div>
-     <button type="button" id="add-ingredient" class="ttk-add-row">+ Добавить ингредиент</button>
-     <div class="ttk-yield-row"><label>Выход готового блюда, г<input name="yield" type="number" min=".1" step=".1" inputmode="decimal" placeholder="Фактический"></label><span>Итого брутто: <strong id="sum-gross">0 г</strong></span><span>Сумма нетто: <strong id="sum-net">0 г</strong></span><span>Потери: <strong id="sum-waste">—</strong></span></div>
-   </section>
-   <section class="ttk-section ttk-section-full"><h3>4. Технологический процесс</h3>
-     <div class="ttk-steps">
-       <label><span>Подготовка</span><textarea name="stepPrep" rows="2" maxlength="4000" placeholder="Контроль, подготовка ингредиентов..."></textarea></label>
-       <label><span>Формовка / приготовление</span><textarea name="stepMake" rows="2" maxlength="4000" placeholder="Операции сборки или тепловой обработки..."></textarea></label>
-       <label><span>Нарезка / подача</span><textarea name="stepServe" rows="2" maxlength="4000" placeholder="Форма, нарезка, контроль и подача..."></textarea></label>
-       <textarea name="steps" hidden></textarea>
-     </div>
-   </section>
-   <div class="ttk-dual">
-     <section class="ttk-section"><h3>5. Оформление, подача, реализация и хранение</h3>
-       <textarea name="presentation" rows="2" maxlength="2500" placeholder="Подача и оформление..."></textarea>
-       <textarea name="storage" rows="2" maxlength="2500" placeholder="Условия хранения — по подтверждённым данным..."></textarea>
-       <div class="ttk-shelf"><label>Срок, ч<input name="shelfLifeHours" type="number" min=".1" step=".1" inputmode="decimal" placeholder="—"></label><label>Основание<input name="shelfBasis" maxlength="500" placeholder="Протокол / документ"></label></div>
-     </section>
-     <section class="ttk-section"><h3>6. Показатели качества</h3>
-       <label class="ttk-quality-label">Внешний вид<textarea name="appearance" rows="2" maxlength="1600" placeholder="Форма и оформление..."></textarea></label>
-       <label class="ttk-quality-label">Вкус, запах, консистенция<textarea name="organoleptic" rows="2" maxlength="2500" placeholder="Признаки качества..."></textarea></label>
-     </section>
-   </div>
-   <section class="ttk-section ttk-section-full"><h3>Безопасность</h3><textarea name="safety" rows="2" maxlength="2500" placeholder="Контроль по программе производственного контроля / ХАССП. Без непроверенных нормативных значений."></textarea></section>
-   <section class="ttk-section ttk-section-full">
-      <h3>7. Пищевая и энергетическая ценность (на 100 г / на порцию)</h3>
-      <div class="ttk-nutri-tools"><label><input name="nutritionAuto" id="nutrition-auto" type="checkbox" checked> Автоматический расчёт КБЖУ</label><small id="nutrition-message">Для расчёта нужны проверенные КБЖУ ингредиентов.</small></div>
-      <div class="ttk-nutri-head"><span>Показатель</span><span>Белки, г</span><span>Жиры, г</span><span>Углеводы, г</span><span>Ккал</span></div>
-      <div class="ttk-nutri-row"><strong>На 100 г</strong><input name="protein" type="number" min="0" step=".01" inputmode="decimal" placeholder="—"><input name="fat" type="number" min="0" step=".01" inputmode="decimal" placeholder="—"><input name="carb" type="number" min="0" step=".01" inputmode="decimal" placeholder="—"><input name="kcal" type="number" min="0" step=".01" inputmode="decimal" placeholder="—"></div>
-      <div class="ttk-nutri-row ttk-nutri-calculated"><strong>На порцию</strong><output id="per-portion-protein">—</output><output id="per-portion-fat">—</output><output id="per-portion-carb">—</output><output id="per-portion-kcal">—</output></div>
-      <details id="ttk-nutrition-help" class="ttk-nutrition-help"><summary>⚖ Источники КБЖУ ингредиентов — открыть таблицу</summary><p>Укажи значения на 100 г по упаковке или проверенному справочнику. Они сохраняются в рецептуре и используются для автоматического расчёта. Пустые значения НЕ заменяются нулями.</p><p>Заполни проверенные КБЖУ сырья в таблице ниже. В самой ТТК ингредиенты остаются компактными строками.</p><div id="ttk-ingredient-nutrients" class="ttk-global-nutri-table"></div></details>
-   </section>
-   <div class="ttk-signature"><label>Разработал (шеф)<input name="chefName" maxlength="150" placeholder="ФИО, должность разработчика"></label><label>Утверждаю (руководитель)<input name="approvedBy" maxlength="150" placeholder="Заполняет предприятие"></label></div>
-   <div class="ttk-meta-foot"><span>ГОСТ 31987-2012: структура ТТК. СанПиН 2.3/2.4.3590-20: условия производства и утверждения.</span><span>FARUKH KITCHEN</span></div>
-   <div class="ttk-aux" hidden>
-     <input name="version" value="1.0"><select name="documentType"><option value="ТТК">ТТК</option><option value="ТК">ТК</option></select>
-     <input name="organization"><input name="developmentAct"><input name="notes"><input name="photoPath">
-   </div>
- </section></div>
- <div class="ttk-bottom-helper">
-   <label class="ttk-photo-editor">Фотоэталон<input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp"></label><img id="image-preview" class="ttk-photo-preview" alt="Фото блюда" hidden><button type="button" class="outline" id="clear-photo">Убрать фото</button>
-   <label>Акт проработки (для утверждения)<input id="ttk-act" maxlength="150" placeholder="Номер и дата фактической проработки"></label><label class="ttk-approved-date">Дата фактического утверждения<input type="date" name="approvedDate"></label>
-   <span>Брутто / нетто и нормы должны быть подтверждены проработкой. Дата утверждения и подпись покупателя не подставляются автоматически.</span>
-   <button id="ttk-check-fit" class="outline" type="button">📐 Проверить 1 лист А4</button>
- </div>
- <footer class="editor-foot pdf-editor-footer"><button type="button" class="outline" id="cancel-editor">Закрыть</button><button type="submit" class="main-button" id="save-record">Сохранить</button><button type="button" class="main-button" id="save-pdf">Сохранить и PDF ↓</button></footer>
-</form></div></div>
-<input type="file" id="import-json" accept="application/json,.json" hidden><div id="toast" role="status" aria-live="polite"></div><script defer src="/app.js?v=17"></script></body></html>
+<form id="record-form"><div class="form-grid">
+<label class="full">Наименование *<input required name="name" maxlength="140" placeholder="Например: Ролл с лососем"></label>
+<label>Категория<input name="category" maxlength="90" placeholder="Холодные роллы"></label>
+<label>Выход, г *<input type="number" name="yield" min="0.1" max="1000000" step=".1" required placeholder="280"></label>
+<label>Статус<select name="status"><option>Черновик</option><option>На проверке</option><option>Утверждена</option></select></label>
+<label>Версия<input name="version" value="1.0" maxlength="12"></label>
+<label class="full">Фотография блюда <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp"></label>
+<div class="full image-row"><img id="image-preview" alt="Предпросмотр фотографии" hidden><div class="image-hint">Изображение сохраняется только локально. Для надёжного хранения позже подключим защищённое облако.</div><button type="button" class="outline" id="clear-photo">Убрать фото</button></div>
+<div class="full ingredients-head"><h3>Ингредиенты и граммовки</h3><button type="button" class="outline" id="add-ingredient">＋ Ингредиент</button></div>
+<div id="ingredient-rows" class="full ingredient-rows"></div>
+<label class="full">Технология приготовления <small>Каждый шаг — с новой строки.</small><textarea name="steps" rows="6" maxlength="8000" placeholder="1. Подготовить сырьё...
+2. Сформировать ролл..."></textarea></label>
+<label class="full">Примечания и проверка <textarea name="notes" rows="3" maxlength="4000" placeholder="Контроль массы, условия хранения, необходимые испытания..."></textarea></label>
+</div><div class="form-note">🛡 «Утверждена» — только после реальной технологической проверки. Сроки годности не назначаются автоматически. Публикации на витрине пока нет.</div>
+<footer class="editor-foot"><button type="button" class="outline" id="cancel-editor">Отмена</button><button type="submit" class="main-button">Сохранить черновик</button></footer></form></div></div>
+<input type="file" id="import-json" accept="application/json,.json" hidden><div id="toast" role="status" aria-live="polite"></div><script defer src="/app.js?v=rollback-01"></script></body></html>
