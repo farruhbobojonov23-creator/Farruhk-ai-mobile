@@ -1,0 +1,21 @@
+/* Verified product-specific Sushi Beri photos. Preserve the nine floating category cutouts. */
+@media screen {
+ .registry-card .catalog-image{background:radial-gradient(circle at 50% 44%,rgba(68,95,91,.17),transparent 75%)!important}
+ .catalog-image img[data-product-photo],.reader-image img[data-product-photo]{
+  width:100%!important;height:100%!important;max-height:100%!important;
+  object-fit:contain!important;image-rendering:auto;mix-blend-mode:normal!important;
+  filter:drop-shadow(0 17px 15px rgba(0,9,13,.27))!important;
+  padding:4px 6px 18px;box-sizing:border-box;
+ }
+ .reader-image img[data-product-photo]{height:230px!important;max-height:250px!important;padding:0 8px 8px}
+ .catalog-image .image-open{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+ .catalog-image img.product-photo-ready,.reader-image img.product-photo-ready{object-position:center center}
+ .image-illustration{z-index:2}
+ @media(max-width:760px){
+  .catalog-image img[data-product-photo]{padding:2px 4px 12px}
+  .reader-image img[data-product-photo]{height:215px!important;max-height:220px!important}
+ }
+ @media(prefers-reduced-motion:reduce){
+  .catalog-image img[data-product-photo]{animation:none!important;transition:none!important}
+ }
+}
