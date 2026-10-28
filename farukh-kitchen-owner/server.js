@@ -58,7 +58,7 @@ const server=http.createServer(async(req,res)=>{
    return reply(res,401,{error:'Необходим вход владельца'});
  }
  if(p==='/'||p==='/admin'||p==='/index.html')return file(res,'index.html');
- if(p==='/app.js'||p==='/styles.css')return file(res,p.slice(1));
+ if(p==='/app.js'||p==='/styles.css'||p==='/cloud.js')return file(res,p.slice(1));
  return reply(res,404,{error:'Not found'});
  }catch(e){return reply(res,400,{error:'Некорректный запрос'})}
 });
