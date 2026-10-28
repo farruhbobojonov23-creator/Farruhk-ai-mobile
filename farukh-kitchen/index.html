@@ -22,10 +22,12 @@ body{background:#f8f4ec!important;color:#302920!important;font-family:Arial,sans
 @keyframes fkRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 .fk-identity{font-size:13px;color:#e9c28e;margin-top:30px}
 @media(prefers-reduced-motion:reduce){.fk-new-hero .fk-animated{animation:none}}
+
+.fk-disclaimer{margin:0 22px 18px;padding:10px 14px;border-radius:12px;background:#fff7e9;color:#6e5842;font-size:12px;line-height:1.5}.fk-new-hero{margin:22px}.sidebar-version{font-size:12px}@media(max-width:760px){.fk-new-hero{margin:14px 12px 20px;padding:32px 20px}.fk-disclaimer{margin:0 12px 14px}.fk-new-hero h1{font-size:38px}}
 </style>
 </head>
 <body>
-<section class="fk-new-hero" aria-label="О FARUKH KITCHEN"><div class="eyebrow fk-animated">CHEF AKA · FARUKH KITCHEN</div><h1 class="fk-animated">Японская кухня.<br>Технологии от шефа.</h1><p class="fk-animated">Я — Фаррух Ака, бренд-шеф японской кухни. Делюсь профессиональным подходом к роллам, заготовкам и организации кухни. Изучайте примеры технологических карт и форматы будущего доступа.</p><div class="fk-actions"><button type="button" onclick="document.querySelector('[data-page=recipes]')?.click()">Смотреть товары →</button><button type="button" onclick="document.querySelector('[data-page=packages]')?.click()">Три пакета доступа</button></div><div class="fk-identity">Точность · Качество · Опыт</div></section>
+
   <div class="site-shell">
     <aside class="sidebar" id="sidebar" aria-label="Основная навигация">
       <div class="sidebar-top"><button type="button" class="sidebar-close" id="sidebar-close" aria-label="Закрыть меню">✕ <span>Закрыть</span></button>
@@ -46,19 +48,20 @@ body{background:#f8f4ec!important;color:#302920!important;font-family:Arial,sans
       </div>
       <div class="sidebar-bottom">
         <div class="sidebar-box"><span class="tiny-glow">✦</span><strong>Технология без франшизы</strong><p>Ознакомьтесь с демонстрационными примерами карт и каталогом пакетов.</p><button class="small-sidebar-button" type="button" data-route="packages">Смотреть пакеты →</button></div>
-        <div class="sidebar-version"><span class="green-dot"></span> Независимый демопроект <span>v0.7</span></div>
+        <div class="sidebar-version"><span class="green-dot"></span> FARUKH KITCHEN <span>2026</span></div>
       </div>
     </aside>
 
     <div class="main-area">
       <header class="topbar">
         <div class="topbar-left"><button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню">☰</button><div class="breadcrumb">Платформа <span>/</span> <strong id="breadcrumb-current">Главная</strong></div></div>
-        <div class="topbar-actions"><div class="demo-pill"><span class="green-dot"></span> ДЕМО-ВЕРСИЯ</div><div class="avatar" title="Демо-каталог">FK</div></div>
+        <div class="topbar-actions"><div class="demo-pill"><span class="green-dot"></span> КАТАЛОГ</div><div class="avatar" title="Демо-каталог">FK</div></div>
       </header>
-      <section role="status" style="margin:16px 22px;padding:16px 18px;border:1px solid #e4d8bf;border-radius:14px;background:#fffaf0;color:#4d402e;font:inherit"><strong>FARUKH KITCHEN · ПРОЕКТ / НА ПРОВЕРКЕ</strong><p style="margin:8px 0 0;line-height:1.55">Внутренняя подготовка: START — 20, PRO — 50, PREMIUM — 100 плановых ТТК. Из 100 запланированных позиций 60 находятся в рабочем реестре, ещё 40 — только концепции. Рецептуры, выходы, КБЖУ, себестоимость и сроки хранения требуют проверки. Представленные ниже карточки — демонстрационные примеры, не утверждённые производственные ТТК. Продажи и оплата отключены; приватные материалы не опубликованы.</p></section>
+      <div class="fk-disclaimer">Каталог содержит демонстрационные примеры. Производственные ТТК, КБЖУ и сроки хранения проходят проверку. Оплата пока отключена.</div>
       <div style="padding:0 22px 12px"><a href="catalog-project.html" style="display:inline-block;padding:12px 18px;background:#49392b;color:#fff;border-radius:12px;text-decoration:none;font-weight:600">Открыть каталог 60 ТТК · START / PRO / PREMIUM →</a></div>
+      <section class="fk-new-hero" aria-label="О FARUKH KITCHEN"><div class="eyebrow fk-animated">CHEF AKA · FARUKH KITCHEN</div><h1 class="fk-animated">Японская кухня.<br>Технологии от шефа.</h1><p class="fk-animated">Я — Фаррух Ака, бренд-шеф японской кухни. Делюсь профессиональным подходом к роллам, заготовкам и организации кухни. Изучайте примеры технологических карт и форматы будущего доступа.</p><div class="fk-actions"><button type="button" onclick="document.querySelector('[data-page=recipes]')?.click()">Смотреть товары →</button><button type="button" onclick="document.querySelector('[data-page=packages]')?.click()">Три пакета доступа</button></div><div class="fk-identity">Точность · Качество · Опыт</div></section>
       <main id="main" tabindex="-1"></main>
-      <footer><span>© FARUKH KITCHEN · Прототип платформы</span><span>Фото — иллюстрации (Unsplash). ТТК и цены — учебные примеры.</span></footer>
+      <footer><span>© FARUKH KITCHEN · Chef Aka</span><span>Фото и карточки — ознакомительные примеры.</span></footer>
     </div>
   </div>
   <nav class="bottom-nav" aria-label="Нижняя навигация">
