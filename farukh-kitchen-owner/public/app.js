@@ -21,6 +21,7 @@ function render(){
  $('#top-title').textContent=titles[state.page]||'Обзор';
  $$('[data-page]').forEach(el=>{const yes=el.dataset.page===state.page;el.classList.toggle('selected',yes);if(yes)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});
  $('#main').innerHTML=({home:home,dish:()=>catalog('dish'),prep:()=>catalog('prep'),packages:packages,settings:settings}[state.page]||home)();
+ if(state.page==='settings'&&typeof fkCloudMount==='function')fkCloudMount();
 }
 function home(){
  const all=state.records;const checked=all.filter(x=>x.status==='Утверждена').length;
