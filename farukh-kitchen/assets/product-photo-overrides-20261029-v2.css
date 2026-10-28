@@ -1,0 +1,38 @@
+/* FARUKH KITCHEN • catalog readability + photo framing revision */
+@media screen {
+ .selected-catalog{align-items:start}
+ .selected-catalog .collection-recipe{min-height:0!important;align-self:stretch}
+ .collection-recipe .card-caption{flex:0 0 auto;display:flex;flex-direction:column;gap:0;padding:14px 14px 16px}
+ .collection-recipe .card-caption h3{margin:10px 0 12px;min-height:0;line-height:1.32;font-size:16px}
+ .collection-recipe .card-bottom{padding-top:3px;margin-top:0;display:flex;flex-direction:column;align-items:stretch;gap:9px}
+ .collection-recipe .card-bottom .material-status{color:#e8d0a3!important;font-size:11px!important;font-weight:600;line-height:1.3;min-height:15px}
+ .collection-recipe .card-bottom .material-status.draft{color:#dfded1!important}
+ .collection-recipe .card-bottom button{width:100%;min-height:42px;margin:0;padding:9px 10px;font-size:12px}
+ .collection-recipe .card-topline{font-size:10px;color:#e0e8e6}
+ .catalog-image{height:225px!important;min-height:0}
+ .catalog-image .image-open{padding:5px 4px 10px!important}
+ .catalog-image img[data-product-photo]{padding:0 2px 5px!important;object-fit:contain!important;
+  filter:drop-shadow(0 16px 16px rgba(0,12,16,.3))!important}
+ .reader-image img[data-product-photo]{height:260px!important;max-height:270px!important;object-fit:contain}
+ .image-illustration{font-size:9px;left:10px;bottom:8px;background:#11333bcb;padding:4px 6px;border-radius:5px;color:#e7dfc3}
+ .photo-pending{display:flex;flex-direction:column;gap:9px;align-items:center;justify-content:center;width:100%;height:100%;
+  color:#e8d6ac;background:radial-gradient(circle at 50% 45%,rgba(215,190,143,.10),transparent 67%);}
+ .photo-pending-mark{display:grid;place-items:center;width:78px;height:78px;border:1px solid #d7c28e66;border-radius:50%;
+  font:600 32px/1 Georgia,serif;color:#d4b985;letter-spacing:-4px}
+ .photo-pending-title{font-size:12px;line-height:1.6;color:#e0e0d3;text-align:center}
+ .catalog-image .photo-pending{min-height:170px}
+ .reader-image .photo-pending{min-height:240px}
+ @media(max-width:760px){
+  .catalog-image{height:186px!important}
+  .collection-recipe .card-caption{padding:12px 10px 13px}
+  .collection-recipe .card-caption h3{font-size:14px!important;margin:10px 0 10px}
+  .collection-recipe .card-bottom .material-status{font-size:10px!important}
+  .collection-recipe .card-topline{font-size:9px}
+  .catalog-image .photo-pending{min-height:155px}
+  .photo-pending-mark{width:65px;height:65px;font-size:27px}
+  .photo-pending-title{font-size:10px}
+  .reader-image img[data-product-photo]{height:220px!important;max-height:225px!important}
+ }
+ @media(max-width:360px){.catalog-image{height:220px!important}}
+ @media(prefers-reduced-motion:reduce){.catalog-image img{animation:none!important;transition:none!important}}
+}
