@@ -422,3 +422,109 @@
  .ttk-bottom-helper .ttk-photo-editor input[type=file]{margin-top:6px}
  .ttk-bottom-helper .ttk-approved-date input{max-width:none}
 }
+
+/* HOTFIX v1.6: eliminate paper overflow and horizontal ingredient-row collapse on mobile.
+   These overrides deliberately outrank legacy editor/wizard CSS. */
+#editor-backdrop .editor{overflow:hidden;display:flex;flex-direction:column;min-height:0}
+#editor-backdrop .editor-head{position:relative;top:auto;flex:0 0 auto;z-index:5}
+#editor-backdrop #record-form.compact-ttk-form{
+  flex:1 1 0;min-height:0;height:auto;overflow-y:auto;overflow-x:hidden;
+  display:block;position:relative;overscroll-behavior:contain
+}
+#editor-backdrop .ttk-smartbar{position:relative;top:auto;z-index:auto}
+#editor-backdrop .ttk-a4-wrap{
+  width:100%;max-width:100%;height:auto;min-height:unset!important;
+  flex:none!important;display:block;overflow:visible!important;
+}
+#editor-backdrop .ttk-a4-sheet{
+  width:100%;height:auto;max-width:794px;min-height:0!important;
+  overflow:visible!important;margin:0 auto;position:relative;
+}
+#editor-backdrop .ttk-section, #editor-backdrop .ttk-dual,
+#editor-backdrop .ttk-steps, #editor-backdrop .ttk-quality-label {
+  height:auto!important;min-height:0;position:static;overflow:visible;
+}
+#editor-backdrop .ttk-dual{align-items:start}
+#editor-backdrop .ttk-section>textarea,
+#editor-backdrop .ttk-section .ttk-quality-label textarea{
+  display:block;width:100%;height:auto!important;max-height:none!important;
+  min-height:56px!important;resize:vertical;overflow:auto;
+}
+#editor-backdrop .ttk-section>textarea[name="safety"]{min-height:48px!important}
+#editor-backdrop .ttk-section .ttk-quality-label{height:auto!important}
+#editor-backdrop .ttk-bottom-helper{
+  position:relative!important;top:auto!important;bottom:auto!important;
+  z-index:1!important;flex:none!important;height:auto!important;
+  margin-top:14px;overflow:visible!important;box-shadow:none;
+}
+#editor-backdrop .pdf-editor-footer{
+  position:sticky!important;bottom:0!important;top:auto!important;z-index:8;
+  flex:0 0 auto;min-height:64px;margin:0;transform:none!important
+}
+#editor-backdrop .ttk-yield-row, #editor-backdrop .ttk-signature,
+#editor-backdrop .ttk-paper-meta{height:auto;overflow:visible}
+#editor-backdrop .ttk-a4-sheet .ingredient-rows{display:block!important;min-width:0}
+#editor-backdrop .ttk-a4-sheet .ingredient-row{
+  display:grid!important;grid-template-columns:minmax(0,2.1fr) minmax(0,.7fr) minmax(0,.7fr) minmax(0,.65fr) 25px!important;
+  grid-template-rows:minmax(35px,auto)!important;align-items:stretch!important;
+  grid-auto-flow:row;gap:0!important;min-width:0!important;
+  margin:0!important;padding:0!important;border:0!important;min-height:35px;height:auto;
+  background:#fff!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row .ingredient-name{
+  grid-column:1!important;grid-row:1!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row .ingredient-gross{
+  grid-column:2!important;grid-row:1!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row .ingredient-net{
+  grid-column:3!important;grid-row:1!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row .ingredient-waste{
+  grid-column:4!important;grid-row:1!important;display:grid!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row button.remove-row{
+  grid-column:5!important;grid-row:1!important;width:100%!important;
+  max-width:none!important;height:auto!important;min-height:35px!important;
+  margin:0!important
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row>label{
+  display:block!important;grid-row:1!important;min-height:35px;min-width:0!important;
+  padding:0!important;overflow:hidden
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row>label input{
+  display:block!important;width:100%!important;min-width:0!important;height:35px!important;
+  font-size:10px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+#editor-backdrop .ttk-a4-sheet .ingredient-row .ingredient-nutrients{
+  display:none!important;position:absolute!important;grid-column:auto!important;
+}
+#editor-backdrop .ttk-table-heading{
+  display:grid!important;grid-template-columns:minmax(0,2.1fr) minmax(0,.7fr) minmax(0,.7fr) minmax(0,.65fr) 25px!important;
+  min-width:0
+}
+#editor-backdrop .ttk-table-heading>span{min-width:0;word-break:normal;overflow-wrap:anywhere}
+#editor-backdrop .ttk-photo-editor,
+#editor-backdrop .ttk-photo-preview,#editor-backdrop #clear-photo{position:static!important;transform:none!important}
+#editor-backdrop .ttk-a4-sheet .ttk-nutrition-help{display:block}
+.ttk-global-nutri-table{display:grid;gap:0;border:1px solid #cddbe4;margin:8px 0}
+.ttk-global-nutri-row{display:grid;grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,.7fr));min-height:34px;background:#f5faff}
+.ttk-global-nutri-row>*{border-right:1px solid #d3e0e7;border-bottom:1px solid #d3e0e7;min-width:0;padding:5px 4px;font-size:9px}
+.ttk-global-nutri-row>span{font-weight:750;align-content:center;overflow-wrap:anywhere}
+.ttk-global-nutri-row input{width:100%;min-width:0;min-height:30px;background:#fff;border:0;padding:3px;font-size:10px;text-align:center;border-radius:0}
+.ttk-global-nutri-row.ttk-nutri-header{background:#e3eef5;font-weight:850}
+@media(max-width:700px){
+ #editor-backdrop .editor{max-height:calc(100dvh - 12px);height:calc(100dvh - 12px)}
+ #editor-backdrop .ttk-a4-wrap{padding:9px 7px 15px}
+ #editor-backdrop .ttk-a4-sheet{padding:12px 9px 15px}
+ #editor-backdrop .ttk-a4-sheet .ingredient-row,#editor-backdrop .ttk-table-heading{
+   grid-template-columns:minmax(0,1.9fr) minmax(0,.64fr) minmax(0,.64fr) minmax(0,.55fr) 22px!important
+ }
+ #editor-backdrop .ttk-a4-sheet .ingredient-row>label input{
+   font-size:9px!important;min-height:35px!important;height:35px!important;padding:3px!important
+ }
+ #editor-backdrop .ttk-section>textarea{min-height:57px!important}
+ #editor-backdrop .ttk-dual{align-items:start!important}
+ #editor-backdrop .ttk-bottom-helper{margin-top:12px;display:flex}
+ #editor-backdrop .pdf-editor-footer{padding:9px 10px calc(9px + env(safe-area-inset-bottom));min-height:59px}
+}
