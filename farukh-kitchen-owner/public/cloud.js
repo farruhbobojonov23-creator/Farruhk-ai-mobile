@@ -85,7 +85,7 @@ async function fkCloudLogin(mode){
  if(!email||password.length<8)return fkCloudMessage('Введите почту и пароль не короче 8 символов','error');
  fkCloudBusy=true;fkCloudMessage(mode==='signup'?'Создаём аккаунт…':'Проверяем доступ…');
  try{
-  const route=mode==='signup'?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
+  const route=mode==='signup'?'/auth/v1/signup?redirect_to='+encodeURIComponent('https://farukh-kitchen-owner.onrender.com/'):'/auth/v1/token?grant_type=password';
   const response=await fetch(FK_CLOUD_URL+route,{method:'POST',
     headers:fkCloudHeaders(null,{'Content-Type':'application/json'}),
     body:JSON.stringify({email,password})});
