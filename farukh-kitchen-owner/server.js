@@ -48,6 +48,8 @@ const server=http.createServer(async(req,res)=>{
    return reply(res,200,{ok:true,expiresIn:maxAge});
  }
  if(p==='/api/logout'&&req.method==='POST'){res.setHeader('Set-Cookie','fk_owner=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');return reply(res,200,{ok:true})}
+ if(p==='/api/claim-code'&&req.method==='GET')
+   return session(req)?reply(res,200,{bootstrapToken:process.env.FK_OWNER_CLAIM_TOKEN||null}):reply(res,401,{error:'Только для владельца'});
  if(p==='/api/session')return reply(res,200,{authenticated:session(req)});
  if(p==='/api/config')return session(req)?reply(res,200,{sheetUrl:process.env.OWNER_SHEET_URL||''}):reply(res,401,{error:'Требуется вход'});
  if(p==='/login.js'||p==='/login.css')return file(res,p.slice(1));
