@@ -293,7 +293,7 @@ function scaleRecipe(){
  toast('Граммовки пересчитаны пропорционально: коэффициент '+fmt(ratio,3)+'. Проверь технологические потери.');
 }
 
-function updatePhoto(){const p=$('#image-preview');if(state.photo){p.src=state.photo;p.hidden=false}else{p.hidden=true;p.removeAttribute('src')}}
+function updatePhoto(){const p=$('#image-preview');if(!p)return;if(state.photo){p.src=state.photo;p.hidden=false}else{p.hidden=true;p.removeAttribute('src')}}
 function closeEditor(){$('#editor-backdrop').hidden=true;document.body.style.overflow='';state.editing=null;state.photo=null}
 async function filePhoto(file){if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Нужна фотография JPG, PNG или WEBP');if(file.size>8*1024*1024)throw Error('Файл слишком большой (максимум 8 МБ)');
  const img=await createImageBitmap(file);const scale=Math.min(1,720/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);img.close();
@@ -375,7 +375,7 @@ function printTTK(id){
  const totalG=items.reduce((a,x)=>a+(x.gross||0),0),totalN=items.reduce((a,x)=>a+(x.grams||0),0);
  const print=document.getElementById('print-area')||document.createElement('div');
  print.id='print-area';
- print.innerHTML=`<div class="print-document single-ttk">
+ print.innerHTML=`<div class="print-document single-ttk ${items.length>24?'dense-paper':items.length>15?'compact-paper':''}">
  <div class="ttk-p-title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (FARUKH KITCHEN)</div>
  <table class="ttk-p-meta"><tbody>
  <tr><td>Блюдо: <b>${text(r.name)}</b></td><td>Дата разработки: ${text(date)}</td></tr>
@@ -424,6 +424,9 @@ async function bind(){
  if(t.dataset.page){nav(t.dataset.page);return}
  if(t.id==='quick-new'){showEditor('dish');return}
  if(t.id==='save-pdf'){pendingPdfExport=true;$('#record-form').requestSubmit();return}
+ if(t.id==='ttk-autofill'){autoFillByTitle();return}
+ if(t.id==='ttk-scale'){scaleRecipe();return}
+ if(t.id==='ttk-check-fit'){checkA4Fit();return}
  if(t.id==='blank-pdf'){blankPDF();return}
  if(t.dataset.new){showEditor(t.dataset.new);return}
  if(t.dataset.print){printTTK(t.dataset.print);return}
@@ -434,14 +437,14 @@ async function bind(){
  if(t.dataset.step!==undefined){setStep(Number(t.dataset.step));return}
  if(t.id==='step-next'){setStep(wizardStep+1);return}
  if(t.id==='step-prev'){setStep(wizardStep-1);return}
- if(t.id==='add-ingredient'){if($$('#ingredient-rows .ingredient-row').length>=100)return toast('Достигнут лимит 100 ингредиентов');addRow();return}
+ if(t.id==='add-ingredient'){addRow();return}
  if(t.classList.contains('remove-row')){const rows=$$('#ingredient-rows .ingredient-row');if(rows.length>1)t.closest('.ingredient-row')?.remove();else rows[0].querySelectorAll('input').forEach(x=>x.value='');sumIngredients();return}
  if(t.id==='clear-photo'){state.photo=null;$('#photo-input').value='';updatePhoto();return}
  if(t.id==='export'){exportJson();return}
  if(t.id==='import'){$('#import-json').click();return}
  });
- document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows'))sumIngredients();if(e.target.name==='cardNumber'){$('#paper-ref-number').textContent=e.target.value||'—'}if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
- document.addEventListener('change',async e=>{if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
+ document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows')||e.target.name==='yield'||e.target.name==='protein'||e.target.name==='fat'||e.target.name==='carb'||e.target.name==='kcal')sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
+ document.addEventListener('change',async e=>{if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input'))useNutritionLibrary(e.target.closest('.ingredient-row'));if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
  $('#editor-backdrop').addEventListener('click',e=>{if(e.target.id==='editor-backdrop')closeEditor()});
