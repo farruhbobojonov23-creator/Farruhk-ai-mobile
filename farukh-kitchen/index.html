@@ -3,28 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#fbf6ee" />
+  <meta name="theme-color" content="#f5f4ef" />
   <meta name="description" content="FARUKH KITCHEN — технологические карты японской кухни и полуфабрикатов. Демонстрационная версия платформы." />
   <title>FARUKH KITCHEN — Технологии японской кухни</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=gold-20261028" />
-<style id="fk-refresh-20261028">
-body{font-family:Manrope,Arial,sans-serif}
-.fk-new-hero{position:relative;overflow:hidden;margin:14px 14px 22px;padding:36px 23px 40px;border-radius:24px;background:linear-gradient(115deg,#201a16 0%,#403025 68%,#765337 100%);color:#fff;box-shadow:0 20px 50px #31251a22}
-.fk-new-hero .eyebrow{letter-spacing:.24em;font-size:11px;color:#e9c28e;font-weight:700}
-.fk-new-hero h1{font-size:clamp(33px,6vw,68px);line-height:1.06;max-width:780px;margin:22px 0 16px;letter-spacing:-.045em}
-.fk-new-hero p{font-size:clamp(15px,2vw,20px);line-height:1.65;color:#f1e7dc;max-width:630px}
-.fk-new-hero .fk-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:27px}
-.fk-new-hero button{border:1px solid #c99a5e;background:#d2a468;color:#21160d;padding:14px 22px;border-radius:12px;font-weight:700;cursor:pointer}
-.fk-new-hero button+button{background:transparent;color:white;border-color:#a98b69}
-.fk-new-hero .fk-animated{display:inline-block;animation:fkRise .9s ease both}
-.fk-new-hero .fk-animated:nth-child(2){animation-delay:.18s}
-@keyframes fkRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-.fk-identity{font-size:13px;color:#e9c28e;margin-top:30px}
-@media(prefers-reduced-motion:reduce){.fk-new-hero .fk-animated{animation:none}}
+  <link rel="stylesheet" href="styles.css?v=unified-20261028" />
 
-.fk-disclaimer{margin:0 22px 18px;padding:10px 14px;border-radius:12px;background:#fff7e9;color:#6e5842;font-size:12px;line-height:1.5}.fk-new-hero{margin:22px}.sidebar-version{font-size:12px}@media(max-width:760px){.fk-new-hero{margin:14px 12px 20px;padding:32px 20px}.fk-disclaimer{margin:0 12px 14px}.fk-new-hero h1{font-size:38px}}
-</style>
 </head>
 <body>
 
@@ -35,7 +19,7 @@ body{font-family:Manrope,Arial,sans-serif}
         <div class="sidebar-label">ТЕХНОЛОГИИ ДЛЯ КУХНИ</div>
         <nav class="navigation">
           <button class="nav-link active" data-page="home"><span class="nav-icon">⌂</span><span>Главная</span></button>
-          <button class="nav-link" data-page="recipes"><span class="nav-icon">▦</span><span>ТТК блюд</span><span class="nav-count">6</span></button>
+          <button class="nav-link" data-page="recipes"><span class="nav-icon">▦</span><span>Каталог</span><span class="nav-count">60</span></button>
           <button class="nav-link" data-page="prep"><span class="nav-icon">◈</span><span>Полуфабрикаты</span><span class="nav-count">7</span></button>
           <button class="nav-link" data-page="calculator"><span class="nav-icon">◫</span><span>Калькулятор</span></button>
           <button class="nav-link" data-page="packages"><span class="nav-icon">◇</span><span>Пакеты ТТК</span></button>
@@ -43,6 +27,7 @@ body{font-family:Manrope,Arial,sans-serif}
         </nav>
         <div class="sidebar-label tools-label">ДЛЯ ПОКУПАТЕЛЯ</div>
         <nav class="navigation">
+          <button class="nav-link" data-page="saved"><span class="nav-icon">♡</span><span>Мои ТТК</span></button>
           <button class="nav-link" data-page="workspace"><span class="nav-icon">✎</span><span>Профиль</span></button>
         </nav>
       </div>
@@ -57,23 +42,22 @@ body{font-family:Manrope,Arial,sans-serif}
         <div class="topbar-left"><button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню">☰</button><div class="breadcrumb">Платформа <span>/</span> <strong id="breadcrumb-current">Главная</strong></div></div>
         <div class="topbar-actions"><div class="demo-pill"><span class="green-dot"></span> КАТАЛОГ</div><div class="avatar" title="Демо-каталог">FK</div></div>
       </header>
-      <div class="fk-disclaimer">Каталог содержит демонстрационные примеры. Производственные ТТК, КБЖУ и сроки хранения проходят проверку. Оплата пока отключена.</div>
-      <div style="padding:0 22px 12px"><a href="catalog-project.html" style="display:inline-block;padding:12px 18px;background:#49392b;color:#fff;border-radius:12px;text-decoration:none;font-weight:600">Открыть каталог 60 ТТК · START / PRO / PREMIUM →</a></div>
-      <section class="fk-new-hero" aria-label="О FARUKH KITCHEN"><div class="eyebrow fk-animated">CHEF AKA · FARUKH KITCHEN</div><h1 class="fk-animated">Японская кухня.<br>Технологии от шефа.</h1><p class="fk-animated">Я — Фаррух Ака, бренд-шеф японской кухни. Делюсь профессиональным подходом к роллам, заготовкам и организации кухни. Изучайте примеры технологических карт и форматы будущего доступа.</p><div class="fk-actions"><button type="button" onclick="document.querySelector('[data-page=recipes]')?.click()">Смотреть товары →</button><button type="button" onclick="document.querySelector('[data-page=packages]')?.click()">Три пакета доступа</button></div><div class="fk-identity">Точность · Качество · Опыт</div></section>
+      <div class="fk-disclaimer">Предпросмотр платформы · 60 позиций на проверке · Оплата пока недоступна</div>
       <main id="main" tabindex="-1"></main>
       <footer><span>© FARUKH KITCHEN · Chef Aka</span><span>Фото и карточки — ознакомительные примеры.</span></footer>
     </div>
   </div>
   <nav class="bottom-nav" aria-label="Нижняя навигация">
  <button type="button" class="bottom-link active" data-page="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><small>Главная</small></button>
- <button type="button" class="bottom-link" data-page="recipes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><small>ТТК</small></button>
- <button type="button" class="bottom-link" data-page="prep"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg><small>ПФ</small></button>
+ <button type="button" class="bottom-link" data-page="recipes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><small>Каталог</small></button>
+ <button type="button" class="bottom-link" data-page="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg><small>Мои ТТК</small></button>
  <button type="button" class="bottom-link" data-page="packages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v13H4zM3 5h18v3H3zM12 5v16M9 5c-4-4-5 1-2 1h5M15 5c4-4 5 1 2 1h-5"/></svg><small>Пакеты</small></button>
  <button type="button" class="bottom-link" data-page="workspace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-7 8-7s8 2 8 7"/></svg><small>Профиль</small></button>
 </nav>
 <div class="mobile-backdrop" id="mobile-backdrop"></div>
   <div id="modal-root"></div>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=gold-20261028" defer></script>
+  <script src="catalog-data.js?v=unified-20261028" defer></script>
+  <script src="app.js?v=unified-20261028" defer></script>
 </body>
 </html>
