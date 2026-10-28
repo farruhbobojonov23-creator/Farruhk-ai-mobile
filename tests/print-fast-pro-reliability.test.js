@@ -21,7 +21,7 @@ test('V3 BT native printing watchdog closes hung socket without automatic retry'
  const build=await read('android/print/build.gradle');
  assert.match(java,/mainHandler\.postDelayed\(timeout, 20_000\)/);
  assert.match(java,/mainHandler\.removeCallbacks\(timeout\)/);
- assert.match(java,/active\.close\(\)/);
+ assert.match(java,/currentSocket\.close\(\)/);
  assert.match(java,/pendingPrinterReply != null \|\| printing\.get\(\)/);
  assert.match(build,/versionCode [5-9]|versionCode [1-9][0-9]+/);
 });
@@ -56,7 +56,7 @@ test('New roll timestamps refresh automatically without losing manual production
  assert.match(js,/if\(busy\)return false;\s*\/\/ Refresh the time immediately before printing unless manually fixed\.\s*refreshPrintedAt\(\)/);
  assert.match(js,/if\(!autoPrintedAt\|\|busy\|\|batchRunning\|\|!current\(\)\|\|isHaccp\(current\(\)\)\|\|\$\('catalog'\)\.hidden\)return false/);
  assert.match(html,/id="printed-at-now"/);
- assert.match(html,/legacy\/print\.js\?v=61/);
+ assert.match(html,/legacy\/print\.js\?v=62/);
 });
 
 test('Fast printing checks staff and exact approved catalog before the cook taps Print',async()=>{
@@ -83,5 +83,5 @@ test('Fast printing checks staff and exact approved catalog before the cook taps
  assert.match(staff,/fastTicket=prepared\?\.key===key/);
  assert.match(ui,/function prepareFastPrint\(\)/);
  assert.match(ui,/prepareFastPrint\(\);/);
- assert.match(html,/legacy\/print-staff\.js\?v=9/);
+ assert.match(html,/legacy\/print-staff\.js\?v=10/);
 });
