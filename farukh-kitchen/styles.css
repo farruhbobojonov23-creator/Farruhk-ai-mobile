@@ -322,3 +322,38 @@ body{background:linear-gradient(160deg,#fffdf9 0%,#f9f0e5 55%,#f6e9d7 100%);back
  #buyer-print-root .buyer-cover-counts{text-align:center;font-weight:bold;margin:12mm 0}
  #buyer-print-root .buyer-cover-warning{border:3px solid #333;text-align:center;padding:8mm;font-weight:bold!important;font-size:12pt!important}
 }
+
+
+/* FARUKH KITCHEN — premium black / gold mobile design, isolated from SHEF51 */
+:root{--navy:#090909;--navy2:#171717;--blue:#d6a94e;--blue-dark:#a77a2c;--cyan:#29231a;--bg:#080808;--text:#f5f0e8;--muted:#b2a99b;--border:#3a3125;--white:#181818;--shadow:0 12px 36px #0008}
+html,body{background:#080808!important;color:#f5f0e8!important}
+body{font-family:Manrope,Arial,sans-serif!important}
+.sidebar{background:linear-gradient(160deg,#080808,#1d1710)!important;border-right:1px solid #4b3922}
+.brand-symbol{background:linear-gradient(145deg,#ffe09a,#a56b16)!important;color:#130e08!important;box-shadow:0 5px 20px #b27c2e55}
+.brand>div:last-child span,.sidebar-label{color:#cba65f!important}
+.nav-link.active,.nav-link:hover{background:linear-gradient(100deg,#e5bd70,#a77a2c)!important;color:#1a1208!important;border-radius:12px}
+.main-area,.topbar,main,footer{background:#080808!important;color:#f5f0e8!important}
+.topbar{border-bottom:1px solid #3d3124!important}
+.breadcrumb,.breadcrumb strong,.topbar-actions{color:#e8d5b7!important}
+.demo-pill,.avatar,.sidebar-box,.sidebar-bottom{background:#1b1712!important;color:#dfbd7e!important;border-color:#5a4326!important}
+.fk-new-hero{background:radial-gradient(circle at 88% 85%,#71502a 0%,transparent 38%),linear-gradient(130deg,#090909,#24180f 70%,#090909)!important;border:1px solid #614829!important;box-shadow:0 22px 55px #000b!important}
+.fk-new-hero h1{color:#fff7e8!important}
+.fk-new-hero .eyebrow,.fk-identity{color:#e6b85f!important}
+.fk-new-hero button{background:linear-gradient(130deg,#ffe6a2,#bf8730)!important;color:#171006!important;border:0!important}
+.fk-new-hero button+button{background:#191510!important;color:#f6d49a!important;border:1px solid #b68a47!important}
+.fk-disclaimer{background:#17130e!important;color:#bfae93!important;border:1px solid #47351d}
+#main,#main *{border-color:#403324}
+#main section,#main article,#main [class*="card"],#main [class*="panel"],#main [class*="box"]{background-color:#181715;color:#f3e8d7;border-color:#473b2c}
+#main h1,#main h2,#main h3,#main h4,#main strong{color:#fff1d8}
+#main p,#main small,#main label,#main [class*="muted"]{color:#c8b9a6}
+#main button,#main a{transition:transform .2s ease,box-shadow .2s ease}
+#main button:hover,#main a:hover{transform:translateY(-1px)}
+#main input,#main select,#main textarea{background:#121212!important;color:#fff!important;border:1px solid #66502e!important}
+#main button[class*="primary"],#main [class*="btn-primary"],#main [class*="button-primary"]{background:linear-gradient(120deg,#f6d992,#bd842c)!important;color:#171006!important}
+.bottom-nav{background:#101010!important;border-top:1px solid #4b3922!important;box-shadow:0 -6px 28px #0008!important}
+.bottom-link{color:#d0bea2!important}
+.bottom-link.active{color:#1c1409!important;background:linear-gradient(140deg,#fce0a0,#b57c2d)!important}
+.bottom-link svg{stroke:currentColor!important}
+footer{border-top:1px solid #362a1d!important;color:#b6a88d!important}
+@media(max-width:760px){.main-area{background:#080808!important}.topbar{background:#100e0b!important}.fk-new-hero{border-radius:22px!important}.bottom-nav{padding-bottom:env(safe-area-inset-bottom)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
