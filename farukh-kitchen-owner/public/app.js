@@ -81,6 +81,7 @@ const nutrKeys=['protein','fat','carb','kcal'];
 const NUTRIENT_LIB='fk_kitchen_verified_nutrition_v1';
 let nutrientLibrary={};try{nutrientLibrary=JSON.parse(localStorage.getItem(NUTRIENT_LIB)||'{}')||{}}catch{}
 let weightBasis=null;
+let lastAutofilledTitle='';
 const fmt=(v,d=2)=>v===null||v===undefined?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:d});
 const numeric=(s)=>safeNum(s);
 function nutrientInputs(r){
@@ -217,6 +218,7 @@ function applyPreset(code,{initial=false}={}){
 function autoFillByTitle(){
  const f=$('#record-form'),name=f.elements.namedItem('name').value.trim();
  if(!name)return toast('Сначала введи название блюда');
+ if(state.editing===null)lastAutofilledTitle=name.toLowerCase();
  const matching=state.records.find(x=>x.name.toLowerCase().trim()===name.toLowerCase().trim()&&x.id!==state.editing);
  if(matching){
    if(!confirm('Найден сохранённый рецепт «'+matching.name+'». Заполнить поля и граммовки из него?'))return;
@@ -256,7 +258,7 @@ function fillFromRecord(r,{preserveName='',preserveNumber=''}={}){
 }
 function showEditor(idOrType='dish'){
  const existing=state.records.find(x=>x.id===idOrType);
- state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;
+ state.editing=existing?existing.id:null;state.photo=existing?safePhoto(existing.photo):null;lastAutofilledTitle='';
  const f=$('#record-form');f.reset();pendingPdfExport=false;lastPresetCode=existing?.preset||'';
  const put=(name,val)=>{const el=f.elements.namedItem(name);if(el)el.value=val??''};
  if(existing){
@@ -444,7 +446,14 @@ async function bind(){
  if(t.id==='import'){$('#import-json').click();return}
  });
  document.addEventListener('input',e=>{if(e.target.closest('#ingredient-rows')||e.target.name==='yield'||e.target.name==='protein'||e.target.name==='fat'||e.target.name==='carb'||e.target.name==='kcal')sumIngredients();if(e.target.id==='search'){state.search=e.target.value;const pos=e.target.selectionStart;render();$('#search')?.focus();try{$('#search')?.setSelectionRange(pos,pos)}catch{}}});
- document.addEventListener('change',async e=>{if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input'))useNutritionLibrary(e.target.closest('.ingredient-row'));if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
+ document.addEventListener('change',async e=>{
+ if(e.target.name==='name'&&state.editing===null){
+  const title=e.target.value.trim().toLowerCase();
+  const hasEntered=$('#ingredient-rows .ingredient-row').some(row=>rowValues(row).grams!==null||rowValues(row).gross!==null);
+  const hasSaved=state.records.some(r=>r.name.toLowerCase().trim()===title);
+  if(title&&title!==lastAutofilledTitle&&!hasEntered&&!hasSaved&&titlePresets.some(([re])=>re.test(title)))autoFillByTitle();
+ }
+ if(e.target.id==='preset')applyPreset(e.target.value);if(e.target.id==='nutrition-auto')sumIngredients();if(e.target.matches('.ingredient-name input'))useNutritionLibrary(e.target.closest('.ingredient-row'));if(e.target.matches('[data-nutrient]')){rememberNutrition(e.target.closest('.ingredient-row'));sumIngredients()}if(e.target.id==='photo-input'){try{state.photo=await filePhoto(e.target.files?.[0]);updatePhoto();toast('Фотография добавлена в черновик')}catch(err){toast(err.message)}}if(e.target.id==='import-json'){await importJson(e.target.files?.[0]);e.target.value=''}});
  $('#record-form').addEventListener('submit',submit);
  $('#shade').addEventListener('click',closeSidebar);
  $('#editor-backdrop').addEventListener('click',e=>{if(e.target.id==='editor-backdrop')closeEditor()});
