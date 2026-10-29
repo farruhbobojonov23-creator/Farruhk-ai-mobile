@@ -1,6 +1,5 @@
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=1';
-import {mountPrintDesignStudio} from './print-design-studio.js?v=5';
 import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
 import {storageAdviceFor,PRACTICE_REFERENCES} from './farukh-print/storage-advice.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
@@ -111,7 +110,7 @@ export function mountPrintControl({root}){
  const notice=el('p','pc-alert');notice.hidden=true;
  const workspaceNav=el('nav','pc-workspace-tabs');workspaceNav.setAttribute('aria-label','Разделы управления печатью');
  root.dataset.pcWorkspace='catalog';
- for(const [view,label] of [['catalog','Товары'],['templates','Мои шаблоны'],['staff','Сотрудники'],['cloud','Облако'],['backup','Копии и настройки']]){
+ for(const [view,label] of [['catalog','Товары'],['staff','Сотрудники'],['cloud','Облако'],['backup','Копии и настройки']]){
   const item=btn(label,'pc-workspace-tab'+(view==='catalog'?' active':''),()=>{
    root.dataset.pcWorkspace=view;
    for(const b of workspaceNav.children){const active=b.dataset.workspace===view;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')}
@@ -173,7 +172,6 @@ export function mountPrintControl({root}){
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
  root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,prepCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
- mountPrintDesignStudio({root});
  // The editor lives in the same root; controls are never inserted from user HTML.
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
