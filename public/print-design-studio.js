@@ -267,6 +267,10 @@ export function mountPrintDesignStudio({root}){
   '#print-control-root .pds-inspector{border:1px solid #b9d8e7;background:#f5fbff;border-radius:12px;padding:13px;margin-top:12px}'+
   '#print-control-root .pds-inspector h3{font-size:15px;margin:0 0 7px}'+
   '#print-control-root .pds-message{min-height:19px;color:#226c58;font-size:12px;font-weight:700}'+
+  '#print-control-root .pds-assignments{max-height:195px;overflow:auto;display:grid;gap:4px;margin:10px 0;padding:9px;border:1px solid #d9e3ea;border-radius:10px;background:#f9fcfe}'+
+  '#print-control-root .pds-assignments label{display:flex;align-items:center;gap:9px;padding:4px 3px;font-size:12px;font-weight:650;cursor:pointer}'+
+  '#print-control-root .pds-assignments input{width:17px;height:17px;flex:0 0 17px}'+
+  '#print-control-root .pds-cloudstate{font-size:12px;color:#587587;line-height:1.5;border-top:1px solid #d9e4eb;margin-top:14px;padding-top:12px}'+
   '@media(max-width:780px){#print-control-root .pds-grid{grid-template-columns:1fr}#print-control-root .pc-workspace-tabs{display:flex!important;overflow-x:auto}#print-control-root .pc-workspace-tab{flex:0 0 auto;min-width:95px}}'+
   '@media(max-width:460px){#print-control-root .pds-fields{grid-template-columns:1fr}#print-control-root .pds-panel{padding:12px}}';
   document.head.append(el);
@@ -315,6 +319,69 @@ export function mountPrintDesignStudio({root}){
  const reset=dom('button','','Вернуть позиции как в композиции');inspector.append(reset);
  const status=dom('div','pds-message');status.setAttribute('role','status');editor.append(status);
  const actions=dom('div','pds-actions'),save=dom('button','primary','Сохранить макет'),exportSvg=dom('button','','Скачать SVG');actions.append(save,exportSvg);editor.append(actions);
+ const cloudPanel=dom('section','pds-panel');cloudPanel.style.marginTop='15px';editor.append(cloudPanel);
+ cloudPanel.append(dom('h3','','☁ Публикация шаблона'));
+ cloudPanel.append(dom('p','','Сохрани макет, выбери готовые товары и опубликуй. Подключённые сотрудники получат дизайн для просмотра. Печать по этим макетам будет включена отдельно после проверки.'));
+ const cloudState=dom('div','pds-cloudstate','Проверяю доступ к облаку…');cloudPanel.append(cloudState);
+ const cloudBar=dom('div','pds-actions'),refresh=dom('button','','↻ Обновить список'),publish=dom('button','primary','☁ Опубликовать'),unpublish=dom('button','danger','Снять с публикации');
+ cloudBar.append(refresh,publish,unpublish);cloudPanel.append(cloudBar);
+ cloudPanel.append(dom('strong','','Назначить готовой продукции:'));
+ const assignments=dom('div','pds-assignments');cloudPanel.append(assignments);
+ let published={revision:0,entries:[]},cloudProducts=[],cloudReady=false,assigned=new Set(),cloudBusy=false;
+ const remote=async(path,method='GET',payload)=>{
+  const response=await fetch('/api/farukh-print'+path,{method,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},...(payload?{body:JSON.stringify(payload)}:{})});
+  const json=await response.json().catch(()=>({}));
+  if(!response.ok)throw Object.assign(Error(json.error||'Облачный сервер недоступен.'),{status:response.status});
+  return json;
+ };
+ const publishedItem=()=>published.entries.find(x=>x.id===selectedId);
+ const renderAssign=()=>{
+  assignments.replaceChildren();
+  for(const p of cloudProducts){
+   const label=dom('label'),check=dom('input');check.type='checkbox';check.checked=assigned.has(p.id);
+   check.onchange=()=>{if(check.checked)assigned.add(p.id);else assigned.delete(p.id)};
+   label.append(check,dom('span','',p.name));assignments.append(label);
+  }
+  if(!cloudProducts.length)assignments.append(dom('p','','Нет подтверждённых товаров. Добавь их в «Товары» и опубликуй каталог.'));
+  publish.disabled=!cloudReady||cloudBusy||!cloudProducts.length;
+  unpublish.disabled=!cloudReady||cloudBusy||!publishedItem();
+  cloudState.textContent=!cloudReady?'Облако не подключено или не выполнен вход владельца.'
+   :publishedItem()?'Опубликован · '+publishedItem().productIds.length+' товар(ов) · ревизия '+published.revision
+   :'Черновик: ещё не опубликован. Облачная ревизия '+published.revision;
+ };
+ const refreshCloud=async()=>{
+  if(cloudBusy)return;cloudBusy=true;publish.disabled=true;unpublish.disabled=true;
+  try{
+   const [designs,catalog]=await Promise.all([remote('/admin/designs'),remote('/admin/catalog')]);
+   published={revision:designs.revision,entries:designs.entries};
+   cloudProducts=catalog.products.filter(x=>x.kind==='ready'&&x.needsReview!==true&&x.hours>0&&x.storage&&x.composition);
+   cloudReady=true;assigned=new Set(publishedItem()?.productIds||[]);renderAssign();
+  }catch(err){cloudReady=false;cloudState.textContent='Публикация недоступна: '+err.message+'. Для облака войди как владелец FARUKH AI.';renderAssign()}
+  finally{cloudBusy=false;renderAssign()}
+ };
+ refresh.onclick=refreshCloud;
+ publish.onclick=async()=>{
+  if(dirty){status.textContent='Сначала нажми «Сохранить макет».';return}
+  if(!cloudReady){status.textContent='Сначала подключи облако и войди как владелец.';return}
+  const selectedProducts=[...assigned];if(!selectedProducts.length){status.textContent='Выбери хотя бы один товар для публикации.';return}
+  if(!confirm('Опубликовать «'+draft.name+'» для '+selectedProducts.length+' товар(ов)? Дизайн пока доступен сотрудникам для просмотра, без новой производственной печати.'))return;
+  publish.disabled=true;unpublish.disabled=true;
+  try{
+   const out=await remote('/admin/designs/'+encodeURIComponent(selectedId),'PUT',{revision:published.revision,design:validate(draft),productIds:selectedProducts});
+   published={revision:out.revision,entries:out.entries};cloudReady=true;renderAssign();
+   status.textContent='✓ Макет опубликован в облаке для просмотра подключёнными устройствами. Текущая печать не менялась.';
+  }catch(err){status.textContent='Публикация не выполнена: '+err.message;await refreshCloud()}
+  finally{renderAssign()}
+ };
+ unpublish.onclick=async()=>{
+  if(!publishedItem()||!confirm('Снять «'+publishedItem().name+'» с публикации для всех устройств?'))return;
+  unpublish.disabled=true;publish.disabled=true;
+  try{
+   const out=await remote('/admin/designs/'+encodeURIComponent(selectedId),'DELETE',{revision:published.revision});
+   published={revision:out.revision,entries:out.entries};assigned.clear();renderAssign();status.textContent='✓ Публикация снята. Товары и штатная печать не изменены.';
+  }catch(err){status.textContent='Не удалось снять публикацию: '+err.message;await refreshCloud()}
+  finally{renderAssign()}
+ };
  let items=[],selectedId=null,currentField='flavor',draft=null,dirty=false;
  try{const loaded=load();items=loaded.items;if(loaded.first)localStorage.setItem(KEY,JSON.stringify(items))}
  catch(err){status.textContent=err.message;for(const x of [add,copy,remove,save,restore,backup])x.disabled=true;return}
@@ -338,7 +405,7 @@ export function mountPrintDesignStudio({root}){
   selectedId=id;draft=validate(item);dirty=false;
   name.value=draft.name;style.value=draft.style;frame.value=draft.frame;rule.value=draft.rule;font.value=draft.font;stroke.value=draft.stroke;
   product.value=draft.texts.product;flavor.value=draft.texts.flavor;composition.value=draft.texts.composition;storage.value=draft.texts.storage;
-  status.textContent='Макет сохранён на этом устройстве';refreshList();inspectRefresh();
+  status.textContent='Макет сохранён на этом устройстве';refreshList();inspectRefresh();if(typeof renderAssign==='function'){assigned=new Set(publishedItem()?.productIds||[]);renderAssign()}
  };
  const applyTextChange=(key,value)=>{
   draft.texts[key]=String(value).slice(0,key==='composition'?500:140);
@@ -432,4 +499,5 @@ export function mountPrintDesignStudio({root}){
   }catch(err){status.textContent='Импорт: '+err.message}
  };
  choose(items[0]?.id);
+ void refreshCloud();
 }
