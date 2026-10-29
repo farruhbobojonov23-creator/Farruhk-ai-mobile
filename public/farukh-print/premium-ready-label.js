@@ -7,6 +7,7 @@ const SERIF="Georgia,'Times New Roman',serif";
 const SANS="Arial,sans-serif";
 const value=v=>String(v??'').trim();
 const decimal=v=>value(v).replace('.',',');
+const validUnit=u=>['г','кг','мл','л','шт'].includes(u)?u:'г';
 const round=v=>Math.round(v*100)/100;
 function text(g,text,x,y,{size=13,min=9,width=410,weight='700',family=SANS,align='left'}={}){
  const s=value(text);let sz=size;
@@ -145,7 +146,7 @@ function draw(g,p,epoch,{formatDate}={}){
 
  // 2. Brand header & signature double rule.
  text(g,'СУШИ БЕРИ',20,27,{size:23,min:20,width:238,weight:'900'});
- text(g,'ГОТОВАЯ ПРОДУКЦИЯ',442,26.5,{size:12.8,min:11.3,width:182,family:SERIF,weight:'700',align:'right'});
+ text(g,/полуфабрикат/i.test(value(p.category))?'ПОЛУФАБРИКАТ':'ГОТОВАЯ ПРОДУКЦИЯ',442,26.5,{size:12.8,min:11.3,width:182,family:SERIF,weight:'700',align:'right'});
  for(const y of [45,48]){
   line(g,18,y,217,y,1.25);line(g,248,y,446,y,1.25);
  }
@@ -187,7 +188,7 @@ function draw(g,p,epoch,{formatDate}={}){
  box(g,18.5,tableTop+2.5,427,tableHeight-5,4.5,.65);
  const compactTable=tableTop>=171;
  const separator=tableTop+(compactTable?20:24);
- text(g,'КБЖУ НА 100 Г',232,tableTop+(compactTable?10.2:12.5),{family:SERIF,size:compactTable?13.1:14.1,min:12,weight:'900',width:415,align:'center'});
+ text(g,['мл','л'].includes(validUnit(p.weightUnit))?'КБЖУ НА 100 МЛ':'КБЖУ НА 100 Г',232,tableTop+(compactTable?10.2:12.5),{family:SERIF,size:compactTable?13.1:14.1,min:12,weight:'900',width:415,align:'center'});
  line(g,18.5,separator,445.5,separator,1.05);
  const data=[['Б',decimal(p.p)],['Ж',decimal(p.f)],['У',decimal(p.c)],['ККАЛ',decimal(p.kcal)]];
  const cellHeight=tableBottom-separator;
@@ -215,8 +216,10 @@ function draw(g,p,epoch,{formatDate}={}){
  box(g,16,280.5,432,30.5,4.5,1.2);
  line(g,161,283,161,308.5,1.0);line(g,311,283,311,308.5,1.0);
  scale(g,24,285.5);
- text(g,'ВЕС НЕТТО',50,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:102});
- text(g,p.weight+' г ±'+p.tolerance+' г',50,300.5,{size:14.3,min:10,family:SERIF,weight:'900',width:106});
+ const unit=validUnit(p.weightUnit);
+ text(g,['мл','л'].includes(unit)?'ОБЪЁМ НЕТТО':unit==='шт'?'КОЛИЧЕСТВО':'ВЕС НЕТТО',50,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:102});
+ const amount=decimal(p.weight)+' '+unit+(unit==='шт'&&Number(p.tolerance)===0?'':' ±'+decimal(p.tolerance)+' '+unit);
+ text(g,amount,50,300.5,{size:14.3,min:10,family:SERIF,weight:'900',width:106});
  thermometer(g,174,285.5);
  text(g,'ХРАНИТЬ',198,288.8,{size:9.4,min:8.3,family:SERIF,weight:'700',width:105});
  text(g,p.storage,198,300.5,{size:13.9,min:10,family:SERIF,weight:'900',width:108});
