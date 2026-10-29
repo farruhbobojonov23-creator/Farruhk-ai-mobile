@@ -235,7 +235,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-010",
-    "name": "Запечённый с лососем",
+    "name": "Запечённый с форелью",
     "cat": "Запечённые роллы",
     "photo": "baked",
     "plans": [
@@ -277,7 +277,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-057",
-    "name": "Кранч с лососем",
+    "name": "Кранч с форелью",
     "cat": "Запечённые роллы",
     "photo": "baked",
     "plans": [
@@ -386,7 +386,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-047",
-    "name": "Сливочный лосось",
+    "name": "Сливочный Форель",
     "cat": "Запечённые роллы",
     "photo": "baked",
     "plans": [
@@ -440,7 +440,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-015",
-    "name": "Темпура с лососем",
+    "name": "Темпура с форелью",
     "cat": "Темпура",
     "photo": "tempura",
     "plans": [
@@ -510,7 +510,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-019",
-    "name": "Маки с лососем",
+    "name": "Маки с форелью",
     "cat": "Маки",
     "photo": "maki",
     "plans": [
@@ -538,7 +538,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-N040",
-    "name": "Суши с лососем",
+    "name": "Суши с форелью",
     "cat": "Суши",
     "photo": "sushi",
     "plans": [
@@ -594,7 +594,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-N044",
-    "name": "Гункан с лососем",
+    "name": "Гункан с форелью",
     "cat": "Гунканы",
     "photo": "gunkan",
     "plans": [
@@ -622,7 +622,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-020",
-    "name": "Онигири с лососем",
+    "name": "Онигири с форелью",
     "cat": "Онигири",
     "photo": "onigiri",
     "plans": [
