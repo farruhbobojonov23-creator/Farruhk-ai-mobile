@@ -522,6 +522,10 @@ async function chooseEditorPhoto(ev){
   renderEditorPhoto();
  }catch(e){alert('Фото не добавлено: '+e.message)}
 }
+function updateNutritionUnits(){
+ const basis=['мл','л'].includes($('edit-weightUnit').value)?'мл':'г';
+ for(const [key,label] of [['p','Белки'],['f','Жиры'],['c','Углеводы'],['kcal','Ккал']])$('edit-'+key).parentElement.firstChild.nodeValue=label+' /100 '+basis;
+}
 function openEditor(p,fromPremiumTemplate=false){
  if(isManaged()||!canManage())return;
  if(cloudPaired){alert('Каталог управляется из FARUKH AI. Здесь можно только печатать и скачать резервную копию.');return}
@@ -541,6 +545,7 @@ function openEditor(p,fromPremiumTemplate=false){
  const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??(manualPremium?'':10),point:p?.point||'',storage:p?.storage??(manualPremium?'':type==='ready'?'+2…+6 °C':''),hours:p?.hours??(manualPremium?'':type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
  $('edit-weightUnit').value=p?.weightUnit||'г';
+ updateNutritionUnits();
  $('edit-approval').checked=!!p&&!p.needsReview;
  $('edit-prep-event').value=p?.prepEvent||'prepared';
  const tip=guideFor(p||{kind:type,name:str($('edit-name').value)});
@@ -1243,6 +1248,7 @@ function boot(){
  $('home-premium-prep').onclick=openPremiumPrep;
  let manualPreviewTimer;
  $('editor-form').addEventListener('input',()=>{clearTimeout(manualPreviewTimer);manualPreviewTimer=setTimeout(updateManualPreview,200)});
+ $('edit-weightUnit').addEventListener('change',()=>{updateNutritionUnits();updateManualPreview()});
  $('editor-form').addEventListener('submit',saveEditor);
  $('edit-photo-file').addEventListener('change',chooseEditorPhoto);
  $('edit-photo-pick').onclick=()=>$('edit-photo-file').click();
