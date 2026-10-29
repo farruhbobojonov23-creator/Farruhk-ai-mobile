@@ -32,7 +32,7 @@ test('Standalone FARUKH PRINT can start a new blank premium label and keeps staf
  assert.match(sources.standalonePage,/id="use-premium-template"/);
  assert.match(sources.standalonePage,/id="manual-template-preview"/);
  assert.match(sources.standalonePage,/print\.js\?v=63/);
- assert.match(sources.standalonePage,/print\.css\?v=22/);
+ assert.match(sources.standalonePage,/print\.css\?v=30/);
  assert.match(sources.standalone,/openEditor\(null,true\)/);
  assert.match(sources.standalone,/manualPremium\?'':/);
  assert.match(sources.standalone,/needsReview=!\$\('edit-approval'\)\.checked/);
@@ -54,5 +54,5 @@ test('Template never invents a shelf-life, calories or production date in saved 
 test('Manual editor remains a reusable template, not a new saved placeholder product',()=>{
  assert.match(sources.owner,/const p=\{\.\.\.existing,id:existing\?\.id\|\|uid\(\)/);
  assert.match(sources.standalone,/else products\.push\(\{id:makeId\(\),\.\.\.fields\}\)/);
- assert.match(sources.standalone,/cloudPaired\)return/);
+ assert.match(sources.standalone,/cloudPaired\|\|!canManage\(\)\)return/);
 });
