@@ -24,9 +24,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "review",
-    "sourceName": "Ролл Тигровая",
+    "sourceName": "Филадельфия тигровая",
     "sourceRef": "SRC-003",
-    "sampleId": ""
+    "sampleId": "",
+    "sourceOriginalName": "Ролл Тигровая"
   },
   {
     "id": "FK-007",
@@ -94,9 +95,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "draft",
-    "sourceName": "Ролл Гейша",
+    "sourceName": "Гейша",
     "sourceRef": "SRC-017",
-    "sampleId": ""
+    "sampleId": "",
+    "sourceOriginalName": "Ролл Гейша"
   },
   {
     "id": "FK-052",
@@ -108,9 +110,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "draft",
-    "sourceName": "Ролл Гейша к креветкой",
+    "sourceName": "Гейша с креветкой",
     "sourceRef": "SRC-019",
-    "sampleId": ""
+    "sampleId": "",
+    "sourceOriginalName": "Ролл Гейша к креветкой"
   },
   {
     "id": "FK-005",
@@ -406,9 +409,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "review",
-    "sourceName": "Суши пицца с крабом",
+    "sourceName": "Суши пицца",
     "sourceRef": "SRC-042",
-    "sampleId": ""
+    "sampleId": "",
+    "sourceOriginalName": "Суши пицца с крабом"
   },
   {
     "id": "FK-021",
@@ -518,9 +522,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "draft",
-    "sourceName": "Маки с лососем",
+    "sourceName": "Маки с форелью",
     "sourceRef": "SRC-049",
-    "sampleId": ""
+    "sampleId": "",
+    "sourceOriginalName": "Маки с лососем"
   },
   {
     "id": "FK-N039",
@@ -631,9 +636,10 @@ const PROJECT_CATALOG = [
       "pro"
     ],
     "status": "draft",
-    "sourceName": "Онигири с лососем",
+    "sourceName": "Онигири с форелью",
     "sourceRef": "SRC-054",
-    "sampleId": "dish-onigiri"
+    "sampleId": "dish-onigiri",
+    "sourceOriginalName": "Онигири с лососем"
   },
   {
     "id": "FK-N047",
