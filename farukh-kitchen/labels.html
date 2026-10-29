@@ -98,7 +98,7 @@ try{const old=JSON.parse(localStorage.getItem('fk_label_v1'));if(old){for(const 
    }
   }catch(e){}
   const source=window.FK_TTK_SOURCE_INDEX&&window.FK_TTK_SOURCE_INDEX[row.id];
-  const basis=source?'Исходная ТТК в закрытой базе есть.':'Для этой позиции исходная ТТК ещё не подготовлена.';
+  const basis=source?(source.review?'Исходная ТТК есть, но данные по позиции требуют сверки.':'Исходная ТТК есть в закрытой базе.'):'Для этой позиции исходная ТТК ещё не подготовлена.';
   status.textContent=(restored?'Восстановлен черновик этого товара с текущего устройства. ':'Автоматически заполнены название и категория. ')+basis+' Массу, состав, КБЖУ и сроки нужно проверить перед печатью.';
   update();
  }
