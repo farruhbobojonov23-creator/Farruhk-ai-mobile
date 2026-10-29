@@ -87,7 +87,7 @@ const USER_PHOTOS=Object.freeze({
  'FK-N059':'assets/user-photos/snack-mussels-spicy-43696.webp'
 });
 const isUserProductPhoto=r=>Boolean(USER_PHOTOS[r.id]);
-const isRealProductPhoto=r=>isUserProductPhoto(r)||Boolean(window.FK_PRODUCT_PHOTOS&&window.FK_PRODUCT_PHOTOS[r.id]);
+const isRealProductPhoto=r=>isUserProductPhoto(r); // Only chef-verified photographs, never legacy Sushi Beri fallbacks.
 const productImageCaption=r=>isUserProductPhoto(r)?'Фото Chef Aka':isRealProductPhoto(r)?'Фото Суши Бери':'Фото готовится';
 const catalogPhoto=(r,priority=false)=>isUserProductPhoto(r)
  ?`<img src="${USER_PHOTOS[r.id]}" data-user-photo="${esc(r.id)}" alt="${esc(r.name)} — фото шефа" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`
