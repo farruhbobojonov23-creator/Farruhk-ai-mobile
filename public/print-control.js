@@ -1,6 +1,6 @@
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=1';
-import {mountPrintDesignStudio} from './print-design-studio.js?v=1';
+import {mountPrintDesignStudio} from './print-design-studio.js?v=2';
 import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
 import {storageAdviceFor,PRACTICE_REFERENCES} from './farukh-print/storage-advice.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
