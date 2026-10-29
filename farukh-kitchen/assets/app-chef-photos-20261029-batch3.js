@@ -86,11 +86,12 @@ const USER_PHOTOS=Object.freeze({
  'FK-N058':'assets/user-photos/snack-mussels-cheese-43697.webp',
  'FK-N059':'assets/user-photos/snack-mussels-spicy-43696.webp'
 });
-const isUserProductPhoto=r=>Boolean(USER_PHOTOS[r.id]);
+const chefPhotoSource=r=>USER_PHOTOS[r.id]||window.FK_CHEF_PHOTOS?.[r.id]||'';
+const isUserProductPhoto=r=>Boolean(chefPhotoSource(r));
 const isRealProductPhoto=r=>isUserProductPhoto(r); // Only chef-verified photographs, never legacy Sushi Beri fallbacks.
-const productImageCaption=r=>isUserProductPhoto(r)?'Фото Chef Aka':isRealProductPhoto(r)?'Фото Суши Бери':'Фото готовится';
+const productImageCaption=r=>isUserProductPhoto(r)?'Фото Chef Aka':'Фото готовится';
 const catalogPhoto=(r,priority=false)=>isUserProductPhoto(r)
- ?`<img src="${USER_PHOTOS[r.id]}" data-user-photo="${esc(r.id)}" alt="${esc(r.name)} — фото шефа" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`
+ ?`<img src="${chefPhotoSource(r)}" data-user-photo="${esc(r.id)}" alt="${esc(r.name)} — фото шефа" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`
  :isRealProductPhoto(r)
  ?`<img src="${foodImage(r.photo)}" data-product-photo="${esc(r.id)}" data-photo-name="${esc(r.name)}" alt="Фотография блюда ${esc(r.name)}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async" referrerpolicy="no-referrer">`
  :`<span class="photo-pending" role="img" aria-label="Индивидуальное фото блюда ${esc(r.name)} ещё готовится"><span class="photo-pending-mark">FK</span><span class="photo-pending-title">Фотография блюда<br>готовится</span></span>`;
