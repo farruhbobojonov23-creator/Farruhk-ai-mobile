@@ -501,3 +501,5 @@ export function mountPrintDesignStudio({root}){
  choose(items[0]?.id);
  void refreshCloud();
 }
+// Read-only preview for authenticated, paired FARUKH PRINT staff devices.
+export function renderPublishedDesignPreview(design){return draw(validate(design));}
