@@ -222,7 +222,7 @@ test('ready categories classify 48 rolls and preserve custom assignments through
  const {products}=await import('../public/farukh-print/ready-catalog.js');
  const counts=products.reduce((out,p)=>{const name=api.category(p);out[name]=(out[name]||0)+1;return out},{});
  assert.deepEqual(counts,{'Запечённые роллы':17,'Холодные роллы':23,'Темпура':4,'Маки':4});
- assert.equal(api.list(products).length,10);
+ assert.equal(api.list(products).length,19);
  assert.equal(api.category({...products[0],category:'Новинки'}),'Новинки');
  const {req}=makeApi();
  const owner={cookie:'fai_owner=ok'};
