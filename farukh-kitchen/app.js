@@ -52,7 +52,16 @@ const USER_PHOTOS=Object.freeze({
  'FK-036':'assets/user-photos/batch2-phila-premium.webp',
  'FK-007':'assets/user-photos/batch2-california-masago.webp',
  'FK-006':'assets/user-photos/batch2-canada-double.webp',
- 'FK-005':'assets/user-photos/batch2-phila-double.webp'
+ 'FK-005':'assets/user-photos/batch2-phila-double.webp',
+ 'FK-023':'assets/user-photos/batch3-maki-shrimp.webp',
+ 'FK-022':'assets/user-photos/batch3-maki-crab.webp',
+ 'FK-019':'assets/user-photos/batch3-maki-salmon.webp',
+ 'FK-018':'assets/user-photos/batch3-maki-cucumber.webp',
+ 'FK-021':'assets/user-photos/batch3-tempura-caesar.webp',
+ 'FK-017':'assets/user-photos/batch3-tempura-crab.webp',
+ 'FK-016':'assets/user-photos/batch3-tempura-shrimp.webp',
+ 'FK-015':'assets/user-photos/batch3-tempura-salmon.webp',
+ 'FK-060':'assets/user-photos/batch3-sushi-pizza.webp'
 });
 const isUserProductPhoto=r=>Boolean(USER_PHOTOS[r.id]);
 const isRealProductPhoto=r=>isUserProductPhoto(r)||Boolean(window.FK_PRODUCT_PHOTOS&&window.FK_PRODUCT_PHOTOS[r.id]);
