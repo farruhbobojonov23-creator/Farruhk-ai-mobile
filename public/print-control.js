@@ -42,7 +42,8 @@ function validate(entry){
  if(entry.kind==='ready'){
   if(!text(entry.composition)||text(entry.composition).length>600)throw Error('Нужен состав готовой продукции.');
   for(const key of ['p','f','c','kcal','weight','tolerance'])if(!Number.isFinite(entry[key])||entry[key]<0)throw Error('Проверь КБЖУ и вес: '+key);
-  if(entry.weight<=0)throw Error('Вес должен быть больше нуля.');
+  if(entry.weight<=0)throw Error('Количество нетто должно быть больше нуля.');
+  if(entry.weightUnit!==undefined&&!['г','кг','мл','л','шт'].includes(entry.weightUnit))throw Error('Неизвестная единица нетто.');
  }
  return {...entry,name,storage,needsReview:unverified,photo};
 }
@@ -92,6 +93,7 @@ export function mountPrintControl({root}){
   if(group==='ready'&&!readyLoading){readyLoading=import('./farukh-print/catalog-photos.js?v=2').then(m=>{readyPhotos=m;renderRows()}).catch(()=>{});}
  }
  function categoryFor(p){
+  if(p.kind==='prep'&&text(p.category))return text(p.category);
   if(p.kind==='ready')return window.FarukhPrintCategories?.category(p)||'Без категории';
   if(p.template)return 'ХАССП';const n=text(p.name).toLocaleLowerCase('ru');
   if(/соус|унаги|терияки|чили|спайси|майонез/.test(n))return 'Соусы';
@@ -295,7 +297,11 @@ export function mountPrintControl({root}){
  for(const [key,label] of [['p','Белки /100 г'],['f','Жиры /100 г'],['c','Углеводы /100 г'],['kcal','Ккал /100 г']])nutr.append(field(key,label,'number',{min:0,step:'.01'}));
  readyFields.append(nutr);
  const weights=el('div','pc-form-two');
- weights.append(field('weight','Вес, г','number',{min:1,step:'1'}),field('tolerance','Допуск ±, г','number',{min:0,step:'1'}));
+ const unitHolder=el('label','pc-field'),unitSelect=el('select');
+ fields.weightUnit=unitSelect;unitSelect.id='pc-field-weightUnit';
+ for(const unit of ['г','кг','мл','л','шт']){const o=el('option','',unit);o.value=unit;unitSelect.append(o)}
+ unitHolder.append(el('span','','Единица нетто'),unitSelect);
+ weights.append(field('weight','Количество нетто','number',{min:0.001,step:'any'}),unitHolder,field('tolerance','Допуск ± (в выбранной единице)','number',{min:0,step:'any'}));
  readyFields.append(weights);content.append(readyFields);
  const templatePreview=el('section','pc-template-preview');
  const templatePreviewTitle=el('strong','','Предпросмотр эталона · 58 × 40 мм');
@@ -303,6 +309,8 @@ export function mountPrintControl({root}){
  const templatePreviewCanvas=el('div','pc-template-preview-art');
  templatePreview.append(templatePreviewTitle,templatePreviewHint,templatePreviewCanvas);content.append(templatePreview);
  const prepFields=el('div');
+ prepFields.append(field('prepCategory','Категория полуфабриката','text',{maxlength:60,placeholder:'Выберите или введите свою'}));
+ const prepCategoryOptions=el('datalist');prepCategoryOptions.id='pc-prep-category-options';fields.prepCategory.setAttribute('list',prepCategoryOptions.id);prepFields.append(prepCategoryOptions);
  prepFields.append(field('point','Точка по умолчанию','text',{maxlength:40}));
  const prepEventHolder=el('label','pc-field');
  const prepEventTitle=el('span','','Обозначение даты');
@@ -316,6 +324,10 @@ export function mountPrintControl({root}){
  const bottom=el('div','pc-form-two');
  bottom.append(field('storage','Условия хранения','text',{maxlength:60}),field('hours','Срок годности, часы','number',{min:1,max:8760,step:'1'}));
  content.append(bottom);
+ const storageOptions=el('datalist');storageOptions.id='pc-storage-options';
+ for(const option of ['+2…+6 °C','0…+4 °C','−18 °C','+5…+25 °C']){const o=el('option');o.value=option;storageOptions.append(o)}
+ fields.storage.setAttribute('list',storageOptions.id);content.append(storageOptions);
+ content.append(el('small','pc-storage-help','Условия и срок указывай по ТТК или маркировке. Варианты температур — подсказки, а не автоматическое подтверждение.'));
  const checkbox=el('label','pc-approval');
  const verify=document.createElement('input');verify.type='checkbox';checkbox.append(verify,el('span','','Подтверждаю, что срок и режим установлены по ТТК или маркировке изготовителя. Без подтверждения печать на FARUKH PRINT останется заблокированной.'));
  content.append(checkbox);
@@ -345,6 +357,7 @@ export function mountPrintControl({root}){
   const p={};for(const k of keys)p[k]=['p','f','c','kcal','weight','tolerance','hours'].includes(k)?Number(fields[k].value):text(fields[k].value);
   if(!p.name||!p.storage||p.hours<=0||(!prep&&(!p.composition||p.weight<=0))){templatePreviewCanvas.replaceChildren();return}
   if(prep)p.prepEvent=fields.prepEvent.value;
+  else{p.weightUnit=fields.weightUnit.value;p.category=fields.category.value;}
   loadPremiumRenderer(prep?'prep':'ready').then(()=>{
    if(!dialog.open||templatePreview.hidden)return;
    const surface=window.FarukhLabelSVG.surface(prep?240:464,prep?160:320);
@@ -462,7 +475,8 @@ export function mountPrintControl({root}){
   chosenPhoto=v.photo&&window.FarukhPrintPhotos?.isPhoto(v.photo)?v.photo:'';
   photoChanged=false;showPhoto();
   categoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
-  const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v)};
+  prepCategoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
+  const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v),prepCategory:v.category||'Полуфабрикаты',weightUnit:v.weightUnit||'г'};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
   verify.checked=product?product.needsReview!==true:false;
   formError.hidden=true;
@@ -479,10 +493,12 @@ export function mountPrintControl({root}){
   if(kind==='prep'&&manualTemplate==='prep'&&!existing)p.labelStyle='premium-prep-30x20';
   if(kind==='prep'){
    p.point=text(fields.point.value);
+   p.category=text(fields.prepCategory.value).slice(0,60);
    p.prepEvent=['prepared','thawed','opened'].includes(fields.prepEvent.value)?fields.prepEvent.value:'prepared';
   }
   else{
    p.category=text(fields.category.value).slice(0,60);
+   p.weightUnit=fields.weightUnit.value;
    p.composition=text(fields.composition.value);
    for(const key of ['p','f','c','kcal','weight','tolerance']){
     const x=text(fields[key].value);p[key]=x?Number(x):null;
