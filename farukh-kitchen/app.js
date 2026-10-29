@@ -44,7 +44,15 @@ const USER_PHOTOS=Object.freeze({
  'FK-042':'assets/user-photos/geisha-43764.webp',
  'FK-052':'assets/user-photos/geisha-shrimp-43758.webp',
  'FK-001':'assets/user-photos/philadelphia-43755.webp',
- 'FK-003':'assets/user-photos/philadelphia-tiger-43748.webp'
+ 'FK-003':'assets/user-photos/philadelphia-tiger-43748.webp',
+ 'FK-002':'assets/user-photos/batch2-canada.webp',
+ 'FK-008':'assets/user-photos/batch2-california-shrimp.webp',
+ 'FK-037':'assets/user-photos/batch2-phila-masago.webp',
+ 'FK-004':'assets/user-photos/batch2-phila-shrimp.webp',
+ 'FK-036':'assets/user-photos/batch2-phila-premium.webp',
+ 'FK-007':'assets/user-photos/batch2-california-masago.webp',
+ 'FK-006':'assets/user-photos/batch2-canada-double.webp',
+ 'FK-005':'assets/user-photos/batch2-phila-double.webp'
 });
 const isUserProductPhoto=r=>Boolean(USER_PHOTOS[r.id]);
 const isRealProductPhoto=r=>isUserProductPhoto(r)||Boolean(window.FK_PRODUCT_PHOTOS&&window.FK_PRODUCT_PHOTOS[r.id]);
