@@ -1,5 +1,5 @@
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
-import './farukh-print/categories.js?v=1';
+import './farukh-print/categories.js?v=2';
 import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
 import {storageAdviceFor,PRACTICE_REFERENCES} from './farukh-print/storage-advice.js?v=1';
 // FARUKH AI — управление независимой базой FARUKH PRINT.
@@ -350,7 +350,7 @@ export function mountPrintControl({root}){
   const load=Promise.resolve().then(async()=>{
    if(!window.FarukhLabelSVG?.surface)await addScript('/farukh-print/label-svg.js?v=3');
    if(prep){if(!window.FarukhPremiumPrep?.draw)await addScript('/farukh-print/premium-prep-label.js?v=1')}
-   else if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=3');
+   else if(!window.FarukhPremiumReady?.draw)await addScript('/farukh-print/premium-ready-label.js?v=4');
   }).catch(e=>{premiumLoaders.delete(kind);throw e});
   premiumLoaders.set(kind,load);return load;
  }
