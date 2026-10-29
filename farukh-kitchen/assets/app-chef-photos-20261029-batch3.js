@@ -115,6 +115,17 @@ function art(r){
  return `<div class="food-visual photo-visual"><img class="recipe-photo" loading="lazy" decoding="async" src="${photoFor(r)}" alt="Иллюстративная фотография японской кухни" referrerpolicy="no-referrer"><span class="photo-disclaimer">Иллюстрация</span></div>`;
 }
 function card(r){return `<article class="recipe-card">${art(r)}<div class="card-caption"><div class="card-topline"><span>${esc(r.type==='prep'?'ПОЛУФАБРИКАТ':r.cat.toUpperCase())}</span><span class="card-status">${r.isCustom?'ЛОКАЛЬНО':'ОБРАЗЕЦ'}</span></div><h3>${esc(r.name)}</h3><p>${r.type==='prep'?'Технология приготовления и связь с готовыми блюдами.':'Состав, технология и связанные полуфабрикаты.'}</p><div class="card-bottom"><span>Выход: ${Number(r.yield)||'—'} г</span><button data-detail="${esc(r.id)}">Открыть ТТК →</button></div></div></article>`}
+function sampleCatalog(kind='dish'){
+ const type=kind==='prep'?'prep':'dish';
+ const rows=DEMO_RECIPES.filter(r=>r.type===type);
+ const prep=type==='prep';
+ return `<div class="page-kicker">УЧЕБНЫЕ ОБРАЗЦЫ · ДЕМОНСТРАЦИЯ</div>
+ <h1 class="page-heading">${prep?'Полуфабрикаты':'Образцы ТТК'}</h1>
+ <p class="page-lead">${prep?'Примеры структуры заготовок и взаимосвязей ингредиентов.':'Образцы устройства карты и калькуляции.'} Это учебные материалы, а не проверенные производственные ТТК.</p>
+ <div class="notice"><span>⚠</span><div><strong>Не для производства.</strong> В этих примерах граммовки, КБЖУ, сроки и технологические режимы не утверждены. Полные авторские рецептуры доступны только после запуска защищённого доступа покупателя.</div></div>
+ <div class="recipe-grid">${rows.map(card).join('')}</div>
+ <div class="white-panel" style="margin-top:24px"><h3>Рабочая коллекция Chef Aka</h3><p>Проверенные технологические карты готовятся в отдельном комплекте. Открытый сайт не содержит исходные коммерческие рецептуры.</p><button class="secondary-action" data-route="packages">Смотреть пакеты START / PRO →</button></div>`;
+}
 function categoryCards(){
  const categoryImages=[SHOWCASE_IMAGES.roll,SHOWCASE_IMAGES.baked,SHOWCASE_IMAGES.assortment,SHOWCASE_IMAGES.rice];
  return `<div class="categories">${categories.map((x,i)=>`<button type="button" class="category-card category-photo-card" data-go="${esc(x.go)}" data-category="${esc(x.cat)}"><span class="category-photo"><img loading="lazy" decoding="async" src="${categoryImages[i]}" alt="" referrerpolicy="no-referrer"></span><span class="category-copy"><strong>${x.name}</strong><small>${x.count} · Открыть каталог ↗</small></span></button>`).join('')}</div>`
