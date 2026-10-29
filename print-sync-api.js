@@ -14,39 +14,6 @@ import * as supplementalPhotos from './public/farukh-print/supplemental-photos.j
 
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
-
-const FILE_DESIGNS='farukh-print-published-designs.json';
-const DESIGN_KEYS=['top','product','flavor','compositionTitle','composition','bottlingTitle','bottling','expiryTitle','expiry','storageTitle','storage','footer'];
-const DESIGN_ENUM={
- style:['editorial','modern',...Array.from({length:18},(_,i)=>'layout-'+String(i+3).padStart(2,'0'))],
- frame:['double','single','corners','triple','none','thick','dashed','dotted','inset','rounded','brackets','ticket','topbottom','leftbar','doublecorners'],
- rule:['double','solid','dashed','dotted','dashdot','thin','bold','triple','segmented','diamonds','dotsends','waves','zigzag','center','alternating'],
- font:['serif','sans','times','verdana','tahoma','trebuchet','courier','palatino','garamond','impact','arialblack','segoe','century','cambria','consolas']
-};
-function validatePublishedDesign(d){
- if(!d||typeof d!=='object'||!/^[-a-zA-Z0-9_]{1,120}$/.test(String(d.id||'')))throw error(400,'Неверный ID шаблона.');
- if(typeof d.name!=='string'||!d.name.trim()||d.name.length>70||d.size!=='58x40')throw error(400,'Шаблон: укажи название и формат 58×40.');
- const clean={id:d.id,name:d.name.trim(),size:'58x40',stroke:Number(d.stroke),sample:d.sample==='cranberry'?'cranberry':'currant'};
- if(!Number.isInteger(clean.stroke)||clean.stroke<1||clean.stroke>4)throw error(400,'Недопустимая толщина линий.');
- for(const [k,values] of Object.entries(DESIGN_ENUM)){if(!values.includes(d[k]))throw error(400,'Неизвестный параметр дизайна: '+k);clean[k]=d[k]}
- const text=d.texts,positions=d.positions,sizes=d.sizes;
- if(!text||typeof text!=='object'||Array.isArray(text))throw error(400,'Тексты шаблона не заполнены.');
- clean.texts={};clean.positions={};clean.sizes={};
- for(const key of DESIGN_KEYS){
-   const v=text[key];if(typeof v!=='string'||v.length>(key==='composition'?500:140))throw error(400,'Некорректный текст шаблона: '+key);
-   clean.texts[key]=v;
-   const point=positions?.[key];if(point!==undefined){
-     if(!Array.isArray(point)||point.length!==2||point.some(n=>typeof n!=='number'||!Number.isFinite(n)||n<0||n>464))throw error(400,'Неверные координаты надписи.');
-     clean.positions[key]=point;
-   }
-   const size=sizes?.[key];if(size!==undefined){
-     if(typeof size!=='number'||!Number.isFinite(size)||size<8||size>76)throw error(400,'Недопустимый размер шрифта.');
-     clean.sizes[key]=size;
-   }
- }
- return clean;
-}
-
 const MAX_PRODUCTS=1000;
 // 93+ catalogue items with owner photos can exceed the old 1 MiB body cap.
 // Keep per-photo validation (45 KiB) and the independent product count limit.
@@ -132,14 +99,6 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
   const persistent=store?.storage==='yandex'||process.env.FARUKH_PRINT_PERSISTENT_STORAGE==='true';
   const enabled=!!persistent&&!!auth?.enabled; // do not bypass owner password in passwordless mode
   const pending=new Map(),attempts=new Map();
-
-  const readPublished=async()=>{
-    const d=await store.read(FILE_DESIGNS,{revision:0,entries:[],updatedAt:null});
-    if(!d||!Number.isSafeInteger(d.revision)||d.revision<0||!Array.isArray(d.entries)||d.entries.length>100)
-      throw error(503,'Опубликованные шаблоны повреждены. Изменения запрещены.');
-    return d;
-  };
-
   let invalidateFastTickets=()=>{};
   const readCatalog=async()=>{
     const data=await store.read(FILE_CATALOG,{revision:0,products:[],updatedAt:null});
@@ -225,55 +184,6 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
     });
     invalidateFastTickets(); // reject stale preview approvals after a catalog change
     res.json({ok:true,...next});
-  }));
-
-  // Published designs live in their own cloud file: no draft can overwrite the live food-label catalog.
-  app.get('/api/farukh-print/admin/designs',protectOwner,wrap(async(req,res)=>{
-    res.set('Cache-Control','no-store');res.json({ok:true,...await readPublished()});
-  }));
-  app.put('/api/farukh-print/admin/designs/:id',protectOwner,wrap(async(req,res)=>{
-    if(JSON.stringify(req.body||{}).length>150000)throw error(413,'Шаблон слишком большой.');
-    const design=validatePublishedDesign(req.body?.design);
-    if(design.id!==req.params.id)throw error(400,'ID шаблона не совпадает.');
-    const revision=req.body?.revision,productIds=req.body?.productIds;
-    if(!Number.isSafeInteger(revision)||revision<0)throw error(400,'Укажи актуальную версию опубликованных шаблонов.');
-    if(!Array.isArray(productIds)||!productIds.length||productIds.length>100||productIds.some(id=>typeof id!=='string'||id.length>150)||new Set(productIds).size!==productIds.length)
-      throw error(400,'Выбери товары для публикации без повторений.');
-    const published=await store.transaction(async()=>{
-      const previous=await readPublished();
-      if(previous.revision!==revision)throw error(409,'Шаблоны изменены в другом окне. Обнови публикации.');
-      const catalog=await readCatalog();
-      for(const id of productIds){
-        const p=catalog.products.find(x=>x.id===id&&x.kind==='ready');
-        if(!p||p.needsReview||!p.hours||!p.storage||!p.composition)
-          throw error(400,'Для публикации нужен подтверждённый товар с составом, сроком и хранением.');
-      }
-      const assigned=new Set(productIds);
-      const entries=previous.entries
-        .filter(x=>x.id!==design.id)
-        .map(x=>({...x,productIds:(x.productIds||[]).filter(id=>!assigned.has(id))}));
-      if(entries.length>=100)throw error(400,'Достигнут лимит 100 опубликованных шаблонов.');
-      entries.push({id:design.id,name:design.name,design,productIds,updatedAt:new Date().toISOString()});
-      const next={revision:revision+1,entries,updatedAt:new Date().toISOString()};
-      await store.write(FILE_DESIGNS,next);return next;
-    });
-    res.set('Cache-Control','no-store');res.json({ok:true,...published});
-  }));
-  app.delete('/api/farukh-print/admin/designs/:id',protectOwner,wrap(async(req,res)=>{
-    const revision=req.body?.revision;
-    if(!Number.isSafeInteger(revision)||revision<0)throw error(400,'Укажи версию публикации.');
-    const published=await store.transaction(async()=>{
-      const previous=await readPublished();
-      if(previous.revision!==revision)throw error(409,'Шаблоны изменены в другом окне.');
-      const entries=previous.entries.filter(x=>x.id!==req.params.id);
-      if(entries.length===previous.entries.length)throw error(404,'Шаблон не опубликован.');
-      const next={revision:revision+1,entries,updatedAt:new Date().toISOString()};
-      await store.write(FILE_DESIGNS,next);return next;
-    });
-    res.json({ok:true,...published});
-  }));
-  app.get('/api/farukh-print/device/designs',protectDevice,wrap(async(req,res)=>{
-    res.set('Cache-Control','no-store');res.json({ok:true,...await readPublished()});
   }));
   app.get('/api/farukh-print/admin/devices',protectOwner,wrap(async(req,res)=>{
     res.set('Cache-Control','no-store');res.json({ok:true,devices:(await readDevices()).map(safeDevice)});
