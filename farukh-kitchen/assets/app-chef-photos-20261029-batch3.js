@@ -86,7 +86,7 @@ const USER_PHOTOS=Object.freeze({
  'FK-N058':'assets/user-photos/snack-mussels-cheese-43697.webp',
  'FK-N059':'assets/user-photos/snack-mussels-spicy-43696.webp'
 });
-const chefPhotoSource=r=>USER_PHOTOS[r.id]||window.FK_CHEF_PHOTOS?.[r.id]||'';
+const chefPhotoSource=r=>USER_PHOTOS[r.id]||window.FK_CHEF_PHOTOS?.[r.id]||(r.id==='FK-045'?window.FK_CHEF_UNASSIGNED?.['UNASSIGNED-43714']:r.id==='FK-012'?window.FK_CHEF_UNASSIGNED?.['UNASSIGNED-43720']:'')||'';
 const isUserProductPhoto=r=>Boolean(chefPhotoSource(r));
 const isRealProductPhoto=r=>isUserProductPhoto(r); // Only chef-verified photographs, never legacy Sushi Beri fallbacks.
 const productImageCaption=r=>isUserProductPhoto(r)?'Фото Chef Aka':'Фото готовится';
