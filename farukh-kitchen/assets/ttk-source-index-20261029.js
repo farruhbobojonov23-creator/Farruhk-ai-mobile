@@ -11,10 +11,12 @@ window.FK_TTK_SOURCE_INDEX={
     "review": null
   },
   "FK-003": {
-    "sourceName": "Ролл Тигровая",
+    "sourceName": "Филадельфия тигровая",
     "tabTitle": "Тигровая №003",
     "tabId": "t.2wazwndfv7nq",
-    "review": "В витрине «Филадельфия тигровая», в документе «Ролл Тигровая»."
+    "review": null,
+    "archivedOriginalName": "Ролл Тигровая",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-007": {
     "sourceName": "Ролл Калифорния масаго",
@@ -41,16 +43,20 @@ window.FK_TTK_SOURCE_INDEX={
     "review": null
   },
   "FK-042": {
-    "sourceName": "Ролл Гейша",
+    "sourceName": "Гейша",
     "tabTitle": "Гейша №017",
     "tabId": "t.du7nhdn4iknb",
-    "review": null
+    "review": null,
+    "archivedOriginalName": "Ролл Гейша",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-052": {
-    "sourceName": "Ролл Гейша к креветкой",
+    "sourceName": "Гейша с креветкой",
     "tabTitle": "Гейша с креветкой №019",
     "tabId": "t.ftbi9az3cxbm",
-    "review": "В документе буквально написано «Гейша к креветкой»."
+    "review": null,
+    "archivedOriginalName": "Ролл Гейша к креветкой",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-005": {
     "sourceName": "Ролл Филадельфия дабл",
@@ -179,10 +185,12 @@ window.FK_TTK_SOURCE_INDEX={
     "review": null
   },
   "FK-060": {
-    "sourceName": "Суши пицца с крабом",
+    "sourceName": "Суши пицца",
     "tabTitle": "Суши пицца с крабом №041",
     "tabId": "t.jps0o7nhgkw9",
-    "review": "В витрине «Суши пицца», в исходнике уточнено «с крабом»."
+    "review": null,
+    "archivedOriginalName": "Суши пицца с крабом",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-021": {
     "sourceName": "Темпура цезарь",
@@ -227,16 +235,20 @@ window.FK_TTK_SOURCE_INDEX={
     "review": null
   },
   "FK-019": {
-    "sourceName": "Маки с лососем",
+    "sourceName": "Маки с форелью",
     "tabTitle": "Маки с лососем",
     "tabId": "t.wwh7h14hoc1i",
-    "review": "По указанию шефа на сайте «Маки с форелью», в исходной ТТК дословно «Маки с лососем». Оригинал не изменён."
+    "review": "Название и сырьё в рабочей ТТК приведены к форели по решению шефа. КБЖУ необходимо проверить после замены рыбы.",
+    "archivedOriginalName": "Маки с лососем",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-020": {
-    "sourceName": "Онигири с лососем",
+    "sourceName": "Онигири с форелью",
     "tabTitle": "Онигири с лососем",
     "tabId": "t.hmkuint610kk",
-    "review": "По указанию шефа на сайте «Онигири с форелью», в исходной ТТК дословно «Онигири с лососем». Оригинал не изменён."
+    "review": "Название и сырьё в рабочей ТТК приведены к форели по решению шефа. КБЖУ необходимо проверить после замены рыбы.",
+    "archivedOriginalName": "Онигири с лососем",
+    "workingRevision": "v4 — название по каталогу FARUKH KITCHEN"
   },
   "FK-024": {
     "sourceName": "Онигири с крабом",
