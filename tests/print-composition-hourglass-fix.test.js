@@ -60,6 +60,6 @@ test('Expiry is a precise hourglass rather than a clock and is legibly labeled',
 test('Both AI and PRINT must request corrected v3 so mobile browsers do not display stale labels',async()=>{
  const page=await fs.readFile(new URL('../public/farukh-print/index.html',import.meta.url),'utf8');
  const ai=await fs.readFile(new URL('../public/finished-labels.html',import.meta.url),'utf8');
- assert.match(page,/premium-ready-label\.js\?v=3/);
- assert.match(ai,/premium-ready-label\.js\?v=3/);
+ assert.match(page,/premium-ready-label\.js\?v=4/);
+ assert.match(ai,/premium-ready-label\.js\?v=4/);
 });
