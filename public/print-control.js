@@ -296,11 +296,16 @@ export function mountPrintControl({root}){
  const nutr=el('div','pc-form-four');
  for(const [key,label] of [['p','Белки /100 г'],['f','Жиры /100 г'],['c','Углеводы /100 г'],['kcal','Ккал /100 г']])nutr.append(field(key,label,'number',{min:0,step:'.01'}));
  readyFields.append(nutr);
+ function updateNutritionUnits(){
+  const basis=['мл','л'].includes(fields.weightUnit?.value)?'мл':'г';
+  for(const [key,name] of [['p','Белки'],['f','Жиры'],['c','Углеводы'],['kcal','Ккал']])fields[key].parentElement.querySelector('span').textContent=name+' /100 '+basis;
+ }
  const weights=el('div','pc-form-two');
  const unitHolder=el('label','pc-field'),unitSelect=el('select');
  fields.weightUnit=unitSelect;unitSelect.id='pc-field-weightUnit';
  for(const unit of ['г','кг','мл','л','шт']){const o=el('option','',unit);o.value=unit;unitSelect.append(o)}
  unitHolder.append(el('span','','Единица нетто'),unitSelect);
+ unitSelect.addEventListener('change',()=>{updateNutritionUnits();updateTemplatePreview();});
  weights.append(field('weight','Количество нетто','number',{min:0.001,step:'any'}),unitHolder,field('tolerance','Допуск ± (в выбранной единице)','number',{min:0,step:'any'}));
  readyFields.append(weights);content.append(readyFields);
  const templatePreview=el('section','pc-template-preview');
@@ -478,6 +483,7 @@ export function mountPrintControl({root}){
   prepCategoryOptions.replaceChildren(...window.FarukhPrintCategories.list(records).map(name=>{const o=el('option');o.value=name;return o}));
   const values={...empty,...v,prepEvent:v.prepEvent||'prepared',category:window.FarukhPrintCategories.category(v),prepCategory:v.category||'Полуфабрикаты',weightUnit:v.weightUnit||'г'};
   for(const [key,input] of Object.entries(fields))input.value=values[key]??'';
+  updateNutritionUnits();
   verify.checked=product?product.needsReview!==true:false;
   formError.hidden=true;
   dialog.showModal();updateTemplatePreview();
