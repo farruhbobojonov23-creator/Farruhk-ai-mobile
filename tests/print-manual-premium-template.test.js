@@ -37,7 +37,7 @@ test('Standalone FARUKH PRINT can start a new blank premium label and keeps staf
  assert.match(sources.standalone,/manualPremium\?'':/);
  assert.match(sources.standalone,/needsReview=!\$\('edit-approval'\)\.checked/);
  assert.match(sources.standalone,/fields\.labelStyle='premium-ready-58x40'/);
- assert.match(sources.standalone,/if\(isManaged\(\)\|\|cloudPaired\)/);
+ assert.match(sources.standalone,/if\(isManaged\(\)\|\|!canManage\(\)\)/);
  assert.match(sources.standalone,/FarukhPremiumReady\.draw\(surface\.g,p/);
  assert.match(sources.standaloneStyle,/body\.worker-managed/);
 });
