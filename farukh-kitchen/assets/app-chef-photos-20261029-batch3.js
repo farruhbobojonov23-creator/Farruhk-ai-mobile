@@ -61,7 +61,30 @@ const USER_PHOTOS=Object.freeze({
  'FK-017':'assets/user-photos/batch3-tempura-crab.webp',
  'FK-016':'assets/user-photos/batch3-tempura-shrimp.webp',
  'FK-015':'assets/user-photos/batch3-tempura-salmon.webp',
- 'FK-060':'assets/user-photos/batch3-sushi-pizza.webp'
+ 'FK-060':'assets/user-photos/batch3-sushi-pizza.webp',
+ 'FK-009':'assets/user-photos/bonito-43763.webp',
+ 'FK-035':'assets/user-photos/canada-premium-43759.webp',
+ 'FK-N039':'assets/user-photos/sushi-shrimp-43740.webp',
+ 'FK-N040':'assets/user-photos/sushi-salmon-43742.webp',
+ 'FK-N041':'assets/user-photos/sushi-eel-43739.webp',
+ 'FK-N042':'assets/user-photos/gunkan-common-43741.webp',
+ 'FK-N043':'assets/user-photos/gunkan-common-43741.webp',
+ 'FK-N044':'assets/user-photos/gunkan-common-43741.webp',
+ 'FK-N045':'assets/user-photos/gunkan-common-43741.webp',
+ 'FK-020':'assets/user-photos/onigiri-salmon-43734.webp',
+ 'FK-N047':'assets/user-photos/onigiri-chicken-43737.webp',
+ 'FK-024':'assets/user-photos/onigiri-crab-43730.webp',
+ 'FK-025':'assets/user-photos/onigiri-shrimp-43732.webp',
+ 'FK-027':'assets/user-photos/batch4-wok-shrimp-teriyaki.webp',
+ 'FK-026':'assets/user-photos/batch4-wok-chicken-teriyaki.webp',
+ 'FK-028':'assets/user-photos/batch4-wok-shrimp-creamy.webp',
+ 'FK-029':'assets/user-photos/batch4-wok-chicken-creamy.webp',
+ 'FK-N054':'assets/user-photos/snack-fries-43703.webp',
+ 'FK-N055':'assets/user-photos/snack-nuggets-43699.webp',
+ 'FK-N056':'assets/user-photos/snack-cheese-sticks-43700.webp',
+ 'FK-N057':'assets/user-photos/snack-shrimp-tempura-43702.webp',
+ 'FK-N058':'assets/user-photos/snack-mussels-cheese-43697.webp',
+ 'FK-N059':'assets/user-photos/snack-mussels-spicy-43696.webp'
 });
 const isUserProductPhoto=r=>Boolean(USER_PHOTOS[r.id]);
 const isRealProductPhoto=r=>isUserProductPhoto(r)||Boolean(window.FK_PRODUCT_PHOTOS&&window.FK_PRODUCT_PHOTOS[r.id]);
