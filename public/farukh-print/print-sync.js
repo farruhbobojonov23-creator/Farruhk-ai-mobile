@@ -66,15 +66,6 @@ async function sync(first=false){
    const currentRevision=cloudRev>=0&&!first&&Number.isSafeInteger(stored.syncedRevision)&&stored.syncedRevision===cloudRev
     &&typeof stored.catalogFingerprint==='string'&&stored.catalogFingerprint===localFingerprint;
    const state=await call('/device/catalog',currentRevision?{headers:{'If-None-Match':'"farukh-print-r'+cloudRev+'"'}}:{});
-   // Published design previews are separate from approved production labels.
-   // Failure to load this optional gallery must never block existing kitchen printing.
-   try{
-     const designs=await call('/device/designs');
-     window.dispatchEvent(new CustomEvent('farukh-print-device-designs',{detail:{revision:designs.revision,entries:designs.entries}}));
-   }catch(error){
-     window.dispatchEvent(new CustomEvent('farukh-print-device-designs',{detail:{unavailable:true,entries:[]}}));
-     console.warn('[print-design-gallery]',error.message);
-   }
    if(state.notModified){
      connected=true;
      note('✓ Синхронизировано · версия '+cloudRev+' · проверено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'.');
