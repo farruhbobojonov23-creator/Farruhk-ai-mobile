@@ -536,9 +536,11 @@ function openEditor(p,fromPremiumTemplate=false){
  setFormKind(type);
  $('ready-category-options').replaceChildren(...window.FarukhPrintCategories.list(products).map(name=>{const option=node('option');option.value=name;return option}));
  $('edit-category').value=p?window.FarukhPrintCategories.category(p):'';
+ $('edit-prepCategory').value=p?.category||'Полуфабрикаты';
  $('editor-title').textContent=manualPrepPremium?'Эталон 30 × 20 · Вручную':manualPremium?'Эталон 58 × 40 · Вручную':p?'Изменить этикетку':'Новый товар';
  const vals={name:p?.name||'',composition:p?.composition||'',p:p?.p??'',f:p?.f??'',c:p?.c??'',kcal:p?.kcal??'',weight:p?.weight??'',tolerance:p?.tolerance??(manualPremium?'':10),point:p?.point||'',storage:p?.storage??(manualPremium?'':type==='ready'?'+2…+6 °C':''),hours:p?.hours??(manualPremium?'':type==='ready'?12:'')};
  for(const [key,val] of Object.entries(vals))$('edit-'+key).value=val;
+ $('edit-weightUnit').value=p?.weightUnit||'г';
  $('edit-approval').checked=!!p&&!p.needsReview;
  $('edit-prep-event').value=p?.prepEvent||'prepared';
  const tip=guideFor(p||{kind:type,name:str($('edit-name').value)});
@@ -558,6 +560,7 @@ function updateManualPreview(){
  try{
   const prep=type==='prep';
   if(prep)p.prepEvent=$('edit-prep-event').value;
+  else{p.weightUnit=$('edit-weightUnit').value;p.category=$('edit-category').value;}
   const surface=window.FarukhLabelSVG.surface(prep?240:464,prep?160:320);
   if(prep)window.FarukhPremiumPrep.draw(surface.g,p,Date.now(),{formatDate:formatted});
   else window.FarukhPremiumReady.draw(surface.g,p,Date.now(),{formatDate:formatted});
@@ -581,12 +584,13 @@ function saveEditor(ev){
  }
  if(type==='ready'){
   fields.category=str($('edit-category').value).slice(0,60);
+  fields.weightUnit=$('edit-weightUnit').value;
   fields.composition=str($('edit-composition').value);
   for(const x of ['p','f','c','kcal','weight','tolerance'])fields[x]=Number($('edit-'+x).value);
   if(!fields.composition||['p','f','c','kcal','weight','tolerance'].some(x=>$('edit-'+x).value===''||!Number.isFinite(fields[x]))||fields.weight<=0||fields.tolerance<0){
    alert('Заполни состав, вес и все значения КБЖУ. Неизвестные цифры нельзя заменять нулями.');return;
   }
- }else{fields.point=str($('edit-point').value)}
+ }else{fields.point=str($('edit-point').value);fields.category=str($('edit-prepCategory').value).slice(0,60)}
  fields.needsReview=needsReview;
  if(type==='prep')fields.prepEvent=$('edit-prep-event').value;
  if(type==='ready'&&manualPremium&&!editing)fields.labelStyle='premium-ready-58x40';
