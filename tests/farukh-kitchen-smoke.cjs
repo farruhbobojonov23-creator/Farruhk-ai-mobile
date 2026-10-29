@@ -39,9 +39,16 @@ assert.equal(data.filter(x=>x.plans.includes('start')).length,44);
 assert.equal(data.filter(x=>x.plans.includes('pro')).length,59);
 assert.equal(data.filter(x=>x.cat==='Онигири').length,4);
 assert.ok(data.filter(x=>x.cat==='Онигири').every(x=>x.yieldGrams===120));
-for(const page of ['home','recipes','prep','calculator','packages','how','saved','workspace']){
+for(const page of ['home','recipes','prep','calculator','packages','how','saved','workspace','buyer']){
  vm.runInContext('route('+JSON.stringify(page)+')',context,{timeout:15000});
  assert.ok(doc.getElementById('main').innerHTML.length>400,'Empty page: '+page);
+}
+for(const tab of ['overview','orders','files','company']){
+ vm.runInContext('state.page="buyer";state.buyerTab='+JSON.stringify(tab)+';render()',context,{timeout:15000});
+ const html=doc.getElementById('main').innerHTML;
+ assert.ok(html.includes('Защищённый вход пока не подключён'), 'Must disclose prelaunch status');
+ assert.ok(html.includes('aria-selected="true"'), 'Buyer tab not selected: '+tab);
+ assert.ok(!html.includes('href="assets/private'), 'Do not publish direct private TTK links');
 }
 vm.runInContext('showPackageCatalog("start")',context,{timeout:15000});
 assert.ok(doc.getElementById('main').innerHTML.includes('Найдено: 44'));
@@ -62,4 +69,4 @@ assert.equal(manifest.purchaseEnabled,false);
 assert.equal(manifest.loginEnabled,false);
 assert.equal(manifest.packages.start.sourceTtkCount,33);
 assert.equal(manifest.packages.pro.sourceTtkCount,45);
-console.log('PASS · FARUKH KITCHEN: 12 scripts, 8 pages, 59 products, 21 WebP, private files absent, START/PRO closed.');
+console.log('PASS · FARUKH KITCHEN: 12 scripts, 9 pages, 4 buyer tabs, 59 products, 21 WebP, private files absent, START/PRO closed.');
