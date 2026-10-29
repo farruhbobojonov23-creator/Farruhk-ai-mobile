@@ -62,8 +62,8 @@ test('All informational bands align at fixed baselines with light strokes and co
 test('Both printing entrypoints load premium version 2 and do not mutate any employee settings',async()=>{
  const printHtml=await fs.readFile(new URL('../public/farukh-print/index.html',import.meta.url),'utf8');
  const readyHtml=await fs.readFile(new URL('../public/finished-labels.html',import.meta.url),'utf8');
- assert.match(printHtml,/premium-ready-label\.js\?v=3/);
- assert.match(readyHtml,/premium-ready-label\.js\?v=3/);
+ assert.match(printHtml,/premium-ready-label\.js\?v=4/);
+ assert.match(readyHtml,/premium-ready-label\.js\?v=4/);
  assert.match(readyHtml,/label-bluetooth-direct\.js\?v=2/);
  const catalog=await fs.readFile(new URL('../public/print-control.js',import.meta.url),'utf8');
  assert.match(catalog,/needsReview/);
