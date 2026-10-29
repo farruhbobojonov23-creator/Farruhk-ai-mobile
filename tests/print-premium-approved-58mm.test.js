@@ -78,3 +78,26 @@ test('FARUKH AI, FARUKH PRINT and direct V3 printing are all wired to one approv
  assert.match(print,/p\.needsReview\|\|!str\(p\.storage\)/);
  assert.match(aiPage,/p\.needsReview\|\|p\.sourceChanged/);
 });
+
+
+test('Universal premium 58×40 preserves gram defaults and displays volume, pieces and kilogram labels',()=>{
+ const w=env();
+ for(const [unit,amount,tolerance,caption,quantity,nutrition] of [
+  [undefined,270,10,'ВЕС НЕТТО','270 г ±10 г','КБЖУ НА 100 Г'],
+  ['г',270,10,'ВЕС НЕТТО','270 г ±10 г','КБЖУ НА 100 Г'],
+  ['кг',1.2,0.1,'ВЕС НЕТТО','1,2 кг ±0,1 кг','КБЖУ НА 100 Г'],
+  ['мл',500,10,'ОБЪЁМ НЕТТО','500 мл ±10 мл','КБЖУ НА 100 МЛ'],
+  ['л',0.5,0.05,'ОБЪЁМ НЕТТО','0,5 л ±0,05 л','КБЖУ НА 100 МЛ'],
+  ['шт',2,0,'КОЛИЧЕСТВО','2 шт','КБЖУ НА 100 Г']
+ ]){
+  const s=w.FarukhLabelSVG.surface(464,320);
+  w.FarukhPremiumReady.draw(s.g,{...roll,weight:amount,tolerance,weightUnit:unit},when,{formatDate:fmt});
+  const svg=s.c.toSVG();
+  assert.match(svg,/width="58mm" height="40mm" viewBox="0 0 464 320"/);
+  assert.ok(svg.includes(caption),String(unit));
+  assert.ok(svg.includes(quantity),String(unit));
+  assert.ok(svg.includes(nutrition),String(unit));
+  assert.ok(svg.includes('СУШИ БЕРИ'),String(unit));
+  assert.ok(svg.includes('ГОДЕН ДО'),String(unit));
+ }
+});
