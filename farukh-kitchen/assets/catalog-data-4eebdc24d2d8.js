@@ -622,6 +622,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-020",
+    "yieldGrams": 120,
     "name": "Онигири с форелью",
     "cat": "Онигири",
     "photo": "onigiri",
@@ -636,6 +637,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-N047",
+    "yieldGrams": 120,
     "name": "Онигири с курицей",
     "cat": "Онигири",
     "photo": "onigiri",
@@ -650,6 +652,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-024",
+    "yieldGrams": 120,
     "name": "Онигири с крабом",
     "cat": "Онигири",
     "photo": "onigiri",
@@ -664,6 +667,7 @@ const PROJECT_CATALOG = [
   },
   {
     "id": "FK-025",
+    "yieldGrams": 120,
     "name": "Онигири с креветкой",
     "cat": "Онигири",
     "photo": "onigiri",
