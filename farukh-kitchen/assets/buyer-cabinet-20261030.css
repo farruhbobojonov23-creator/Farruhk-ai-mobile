@@ -1,0 +1,43 @@
+/* FARUKH KITCHEN · buyer area preview. Deliberately no fake authentication. */
+.fk-portal{max-width:1130px;margin:0 auto}
+.fk-portal-hero{border-radius:22px;padding:clamp(22px,4vw,38px);background:linear-gradient(115deg,#0c2732 0%,#113b45 62%,#21525b 100%);color:#fff;position:relative;overflow:hidden;box-shadow:0 15px 42px #082d381c}
+.fk-portal-hero:after{content:"FK";font-weight:900;letter-spacing:-.12em;font-size:clamp(120px,19vw,230px);position:absolute;right:10px;top:-82px;color:#fff;opacity:.035;pointer-events:none}
+.fk-portal-kicker{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:850;color:#e4c88c;letter-spacing:.11em;text-transform:uppercase;margin-bottom:16px}
+.fk-portal-hero h1{font-size:clamp(28px,3.8vw,46px);letter-spacing:-.04em;line-height:1.1;margin:0 0 12px;max-width:640px;font-weight:850;color:white}
+.fk-portal-hero p{max-width:660px;line-height:1.65;color:#cce1e3;font-size:13px;margin:0}
+.fk-portal-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;background:#e3c28c19;color:#f3d6a6;border:1px solid #d5ad7259;border-radius:50px;font-size:10px;font-weight:850;letter-spacing:.06em;margin-top:22px}
+.fk-portal-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:#e8c785}
+.fk-portal-progress{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;color:#d3e9e8;font-size:11px;font-weight:750}
+.fk-portal-progress span{border:1px solid #ffffff23;border-radius:100px;padding:8px 10px}
+.fk-portal-progress i{width:13px;height:1px;background:#96b9bc}
+.fk-portal-alert{display:flex;align-items:flex-start;gap:11px;border-radius:13px;border:1px solid #e4d9c5;background:#fffaf0;padding:15px 17px;color:#6b5a39;font-size:12px;line-height:1.65;margin:18px 0 22px}
+.fk-portal-alert strong{color:#59431e}
+.fk-portal-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.fk-portal-tabs button{border:1px solid #d6e2e9;background:white;color:#40586b;padding:10px 15px;border-radius:10px;font-weight:800;font-size:12px}
+.fk-portal-tabs button[aria-selected=true]{color:white;background:#174d60;border-color:#174d60;box-shadow:0 5px 14px #12507022}
+.fk-portal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.fk-portal-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fk-portal-card{min-width:0;background:#fff;border:1px solid #e1eaf0;border-radius:16px;padding:20px;box-shadow:0 8px 25px #06334b09}
+.fk-portal-icon{width:37px;height:37px;display:grid;place-items:center;background:#f0f7f7;border:1px solid #deebeb;border-radius:11px;font-size:19px;margin-bottom:18px;color:#2f606b}
+.fk-portal-card h3{font-size:17px;font-weight:850;margin:0 0 9px;color:#173241}
+.fk-portal-card p{font-size:12px;line-height:1.65;color:#718696;margin:0}
+.fk-portal-card strong.num{font-size:29px;color:#264857;letter-spacing:-.04em;line-height:1.3}
+.fk-portal-caption{font-size:10px;letter-spacing:.12em;font-weight:850;color:#7b98a1;text-transform:uppercase}
+.fk-portal-action{display:inline-flex;align-items:center;gap:7px;justify-content:center;border-radius:10px;background:#155470;color:#fff;padding:11px 15px;border:1px solid #155470;text-decoration:none;font-size:12px;font-weight:800;margin-top:16px}
+button.fk-portal-action{cursor:pointer}
+.fk-portal-action.secondary{color:#1b586c;background:#fff;border-color:#bad2d9}
+.fk-portal-action:hover{filter:brightness(.96)}
+.fk-portal-table{border:1px solid #dde7eb;border-radius:15px;overflow:hidden;background:#fff}
+.fk-portal-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:9px;align-items:center;padding:17px 19px;border-bottom:1px solid #e9f0f3;font-size:12px;color:#677e8b}
+.fk-portal-row:last-child{border-bottom:0}
+.fk-portal-row strong{font-size:14px;color:#214653}
+.fk-portal-row small{display:block;color:#7b94a0;margin-top:5px;line-height:1.45}
+.fk-portal-tag{background:#f4f2eb;color:#957b4b;border-radius:8px;padding:7px 9px;display:inline-flex;justify-content:center;max-width:fit-content;font-weight:850;font-size:11px}
+.fk-portal-empty{border:1px dashed #bad1db;background:#f9fcfc;border-radius:15px;padding:32px 22px;text-align:center}
+.fk-portal-empty .big{font-size:32px;display:block;margin-bottom:10px}
+.fk-portal-empty h3{font-size:18px;margin:0 0 7px;color:#274a59}
+.fk-portal-empty p{font-size:12px;line-height:1.65;color:#688391;max-width:570px;margin:auto}
+.fk-portal-section-title{font-weight:850;font-size:19px;color:#244454;margin:0 0 15px;letter-spacing:-.025em}
+.fk-portal-note{margin-top:18px;color:#7b919d;font-size:11px;line-height:1.65}
+@media (max-width:860px){.fk-portal-grid,.fk-portal-grid.two{grid-template-columns:1fr 1fr}}
+@media (max-width:610px){.fk-portal-grid,.fk-portal-grid.two{grid-template-columns:1fr}.fk-portal-row{grid-template-columns:1fr;gap:7px}.fk-portal-row>*:last-child{justify-self:start}.fk-portal-progress{gap:5px}.fk-portal-progress span{padding:7px 8px}.fk-portal-progress i{display:none}.fk-portal-tabs button{flex:1 1 calc(50% - 8px)}.fk-portal-hero{border-radius:15px}.fk-portal-card{padding:18px}}
