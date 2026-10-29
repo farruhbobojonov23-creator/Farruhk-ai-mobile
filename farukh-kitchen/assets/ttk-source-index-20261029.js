@@ -110,7 +110,7 @@ window.FK_TTK_SOURCE_INDEX={
     "sourceName": "Запеченный с Форелью",
     "tabTitle": "Запеченный с форелью №024",
     "tabId": "t.xcvmgbf9c3gv",
-    "review": "В витрине «лосось», в исходнике «форель»."
+    "review": null
   },
   "FK-012": {
     "sourceName": "Запеченный с курицей",
@@ -128,7 +128,7 @@ window.FK_TTK_SOURCE_INDEX={
     "sourceName": "Кранч с форелью",
     "tabTitle": "Кранч с форелью №038",
     "tabId": "t.ga9a5yxwy19s",
-    "review": "В витрине «лосось», в исходнике «форель»."
+    "review": null
   },
   "FK-058": {
     "sourceName": "Кранч с угрем",
@@ -176,7 +176,7 @@ window.FK_TTK_SOURCE_INDEX={
     "sourceName": "Сливочный Форель",
     "tabTitle": "Сливочный форель №032",
     "tabId": "t.iln14koqr2tp",
-    "review": "В витрине «лосось», в исходнике «форель»."
+    "review": null
   },
   "FK-060": {
     "sourceName": "Суши пицца с крабом",
@@ -200,7 +200,7 @@ window.FK_TTK_SOURCE_INDEX={
     "sourceName": "Темпура с форелью",
     "tabTitle": "Темпура с форелью №042",
     "tabId": "t.4hnbhu51hen1",
-    "review": "В витрине «лосось», в исходнике «форель»."
+    "review": null
   },
   "FK-016": {
     "sourceName": "Темпура с креветкой",
@@ -230,13 +230,13 @@ window.FK_TTK_SOURCE_INDEX={
     "sourceName": "Маки с лососем",
     "tabTitle": "Маки с лососем",
     "tabId": "t.wwh7h14hoc1i",
-    "review": null
+    "review": "По указанию шефа на сайте «Маки с форелью», в исходной ТТК дословно «Маки с лососем». Оригинал не изменён."
   },
   "FK-020": {
     "sourceName": "Онигири с лососем",
     "tabTitle": "Онигири с лососем",
     "tabId": "t.hmkuint610kk",
-    "review": null
+    "review": "По указанию шефа на сайте «Онигири с форелью», в исходной ТТК дословно «Онигири с лососем». Оригинал не изменён."
   },
   "FK-N047": {
     "sourceName": "Онигири с креветкой",
