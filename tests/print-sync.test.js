@@ -394,3 +394,17 @@ test('Cloud publishes 36 proposals once, leaves deleted entries deleted, and rej
  const source=await staffApi.readFile(new URL('../print-staff-api.js',import.meta.url),'utf8');
  assert.match(source,/product\.needsReview===true/);
 });
+
+
+test('Universal label units and semifinished categories survive owner cloud validation',async()=>{
+ const {products}=await import('../public/farukh-print/ready-catalog.js');
+ const {req}=makeApi();
+ const owner={cookie:'fai_owner=ok'};
+ const item={...products[0],category:'Лимонады',name:'Лимонад клубника',weight:0.5,tolerance:0.05,weightUnit:'л',storage:'+2…+6 °C'};
+ const one=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:0,products:[item]}});
+ assert.equal(one.code,200);
+ assert.equal(one.payload.products[0].weightUnit,'л');
+ assert.equal(one.payload.products[0].category,'Лимонады');
+ const wrong=await req('put','/api/farukh-print/admin/catalog',{...owner,body:{revision:1,products:[{...item,weightUnit:'литров'}]}});
+ assert.equal(wrong.code,400);
+});
