@@ -638,7 +638,7 @@ const PROJECT_CATALOG = [
     "status": "draft",
     "sourceName": "Онигири с форелью",
     "sourceRef": "SRC-054",
-    "sampleId": "dish-onigiri",
+    "sampleId": "",
     "sourceOriginalName": "Онигири с лососем"
   },
   {
