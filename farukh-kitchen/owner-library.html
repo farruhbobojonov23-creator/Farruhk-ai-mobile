@@ -39,6 +39,8 @@ a{color:#4f65ae}
 <section class="panel" id="loginPanel">
 <div class="kicker">ШАГ 1 · ВХОД</div><h2>Подтвердите почту</h2>
 <div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Ваш email" aria-label="Ваш email"><button id="sendLink">Отправить ссылку</button></div>
+<p class="muted"><small>Если у вас уже есть отдельный пароль Supabase из облачного раздела управляющего центра, войдите им напрямую:</small></p>
+<div class="row"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Пароль Supabase (не от сайта OWNER)"><button id="loginWithPassword" type="button" class="subtle">Войти по паролю</button></div>
 <p class="muted"><small>Почтовая ссылка должна вести на адрес этого кабинета. Для этого он должен быть указан в настройках Redirect URLs проекта Supabase.</small></p>
 </section>
 <section class="panel hidden" id="userPanel">
@@ -141,6 +143,14 @@ async function refresh(){
 $('sendLink').addEventListener('click',async()=>{
  const email=$('loginEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){status('Укажите корректную почту.',true);return}
  $('sendLink').disabled=true;try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;status('Отправлена ссылка входа. Проверьте почту.')}catch(e){status('Письмо не отправлено: '+(e.message||'ошибка'),true)}finally{$('sendLink').disabled=false}
+});
+$('loginWithPassword').addEventListener('click',async()=>{
+ const email=$('loginEmail').value.trim(),password=$('loginPassword').value;
+ if(!/^\S+@\S+\.\S+$/.test(email)||!password){status('Укажите почту и отдельный пароль Supabase.',true);return}
+ $('loginWithPassword').disabled=true;
+ try{const {error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;$('loginPassword').value='';await refresh()}
+ catch(e){status('Вход не выполнен: '+(e.message||'ошибка'),true)}
+ finally{$('loginWithPassword').disabled=false}
 });
 $('logout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
 $('claimOwner').addEventListener('click',async()=>{
