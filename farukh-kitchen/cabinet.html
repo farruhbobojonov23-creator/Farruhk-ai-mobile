@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Личный кабинет · FARUKH KITCHEN</title><meta name="robots" content="noindex,nofollow">
+<style>
+:root{color-scheme:light;--ink:#1a2951;--muted:#65728c;--line:#dce4f8;--blue:#4e6ff0;--purple:#8a6cda}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 'Segoe UI',Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf3ff,#f9f6ff 60%,#e9f8fb);min-height:100vh}
+main{max-width:960px;padding:32px 18px 64px;margin:auto}a{color:#3957a3}header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:38px}.brand{font-weight:900;font-size:22px;letter-spacing:.06em}.brand span{color:#7773dc}
+.tag{border:1px solid #d7def4;background:#ffffffaf;border-radius:24px;padding:8px 12px;font-size:12px;font-weight:650}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.16;margin:0 0 12px}h2{margin:8px 0 14px;font-size:22px}
+.lead,.muted{color:var(--muted)}.lead{max-width:660px;margin-bottom:26px}
+.panel{border:1px solid var(--line);background:#fffffff0;border-radius:20px;padding:24px;box-shadow:0 16px 45px #3b579015;margin:18px 0}
+.eyebrow{color:#5b67a7;font-weight:800;letter-spacing:.13em;font-size:11px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}input{border:1px solid #d4def4;padding:12px 14px;border-radius:11px;min-width:220px;flex:1;font:inherit}
+button{border:0;background:linear-gradient(125deg,var(--blue),var(--purple));color:white;padding:12px 18px;border-radius:11px;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+button.alt{background:#ecf0ff;color:#3b5594}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.file{border-top:1px solid #e8edfa;padding-top:12px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
+.small{font-size:13px}.hidden{display:none!important}#feedback{min-height:24px;color:#43539c;margin:20px 0}footer{color:#7b85a0;font-size:12px;margin-top:25px}
+</style></head><body><main>
+<header><div class="brand">FARUKH <span>KITCHEN</span></div><span class="tag">CHEF AKA · ЗАКРЫТАЯ БИБЛИОТЕКА</span></header>
+<a href="./">← Вернуться на сайт</a><h1>Ваши технологические карты</h1>
+<p class="lead">Пакеты SHEF START и SHEF PRO доступны только после подтверждения доступа владельцем. Оплата на сайте пока отключена. Коммерческие PDF и ZIP не размещаются в публичном каталоге.</p>
+<section class="panel" id="loginPanel"><div class="eyebrow">БЕЗОПАСНЫЙ ВХОД</div><h2>Войти по электронной почте</h2>
+<div class="row"><input id="email" type="email" maxlength="254" autocomplete="email" placeholder="Ваша электронная почта" aria-label="Электронная почта"><button id="login" type="button">Отправить ссылку</button></div>
+<p class="muted small">Вход не даёт доступа автоматически: материалы открываются только после подтверждения владельцем.</p></section>
+<section class="panel hidden" id="accountPanel"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ АККАУНТ</div><h2 id="accountLabel">—</h2></div><button class="alt" id="logout" type="button">Выйти</button></div></section>
+<div class="tiles"><section class="panel"><div class="eyebrow">ПАКЕТ</div><h2>SHEF START</h2><p class="muted small">44 ТТК, А4 · PDF и ZIP.</p><div id="startAssets" class="muted small">Войдите, чтобы проверить доступ.</div></section>
+<section class="panel"><div class="eyebrow">ПАКЕТ</div><h2>SHEF PRO</h2><p class="muted small">59 ТТК, А4 · PDF и ZIP, включая материалы START.</p><div id="proAssets" class="muted small">Войдите, чтобы проверить доступ.</div></section></div>
+<div id="feedback" role="status" aria-live="polite"></div>
+<footer>Пока идёт финальная технологическая проверка документов, библиотека может оставаться закрытой. Демо-функции основного сайта не являются доступом к коммерческим материалам.</footer>
+</main>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
+const client=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+const msg=(text,bad=false)=>{$('feedback').textContent=text;$('feedback').style.color=bad?'#b43152':'#43539c'};
+const put=(el,text)=>{el.replaceChildren();const p=document.createElement('p');p.className='muted small';p.textContent=text;el.append(p)};
+let renderTicket=0;
+async function download(asset,btn){btn.disabled=true;msg('Скачивание…');try{const {data,error}=await client.storage.from('fk-paid-ttk').download(asset.object_path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement('a');a.href=url;a.download=asset.filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);msg('Файл скачан.')}catch{msg('Файл пока недоступен или доступ отозван.',true)}finally{btn.disabled=false}}
+function items(el,assets){el.replaceChildren();for(const a of assets){const row=document.createElement('div');row.className='file';const label=document.createElement('span');label.textContent=a.asset_key.endsWith('_pdf')?'PDF · ТТК':'ZIP · ТТК';const btn=document.createElement('button');btn.type='button';btn.textContent='Скачать';btn.addEventListener('click',()=>download(a,btn));row.append(label,btn);el.append(row)}}
+async function refresh(){const current=++renderTicket;const {data:{user},error}=await client.auth.getUser();if(current!==renderTicket)return;
+if(error||!user){$('loginPanel').classList.remove('hidden');$('accountPanel').classList.add('hidden');put($('startAssets'),'Войдите, чтобы проверить доступ.');put($('proAssets'),'Войдите, чтобы проверить доступ.');return}
+$('loginPanel').classList.add('hidden');$('accountPanel').classList.remove('hidden');$('accountLabel').textContent=user.email||'Покупатель';
+const [{data:files,error:ferr},{data:grants,error:gerr}]=await Promise.all([
+ client.from('fk_paid_assets').select('asset_key,package_code,object_path,filename').eq('released',true),
+ client.from('fk_paid_access').select('package_code,status,expires_at').eq('user_id',user.id)
+]);if(current!==renderTicket)return;
+if(ferr||gerr){msg('Не удалось проверить права доступа. Повторите попытку.',true);return}
+const allowed=new Set((grants||[]).filter(x=>x.status==='active'&&(!x.expires_at||new Date(x.expires_at)>new Date())).map(x=>x.package_code));
+for(const key of ['start','pro']){const el=$(key+'Assets');const can=allowed.has('pro')||allowed.has(key);const list=can?(files||[]).filter(x=>x.package_code===key):[];
+if(list.length)items(el,list);else put(el,can?'Файлы ещё не опубликованы, идёт проверка.':'Доступ пока не активирован.')}
+msg('');
+}
+$('login').addEventListener('click',async()=>{const email=$('email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){msg('Укажите корректную электронную почту.',true);return}const b=$('login');b.disabled=true;try{const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;msg('Проверьте почту: запрос на отправку ссылки принят.')}catch{msg('Не удалось отправить письмо. Проверьте почту или настройки входа.',true)}finally{b.disabled=false}});
+$('logout').addEventListener('click',async()=>{await client.auth.signOut();await refresh()});
+client.auth.onAuthStateChange(()=>setTimeout(refresh,0));
+refresh();
+</script></body></html>
