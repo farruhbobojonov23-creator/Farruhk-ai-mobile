@@ -55,7 +55,7 @@ a{color:#4f65ae}
 <section id="adminPanel" class="hidden">
 <section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Четыре коммерческих файла</h2>
 <p class="muted">Выберите четыре локальных файла PDF/ZIP из утверждённого комплекта. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
-<div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите архив «FARUKH_KITCHEN_4_ФАЙЛА_ДЛЯ_ЗАГРУЗКИ.zip», подготовленный для владельца. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
+<div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите новый архив «FARUKH_KITCHEN_ПУБЛИКАЦИЯ_ФОТО_ГУНКАНОВ_4_ФАЙЛА.zip». В нём четыре финальных файла: START 44 ТТК, PRO 59 ТТК, на всех четырёх гунканах одно утверждённое фото. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
 <div class="tablewrap"><table><thead><tr><th>Файл</th><th>Размер</th><th>Хранилище</th><th>Выдача</th><th>Действие</th></tr></thead><tbody id="assetRows"></tbody></table></div>
 <p class="muted"><small>Кнопка «Разрешить» появляется после проверки загруженного файла. Доступ всё равно получают только подтверждённые покупатели START/PRO.</small></p>
 </section>
@@ -110,7 +110,7 @@ async function loadFiles(){
     status('Проверяю размер и SHA-256 файла '+asset.filename+'…');
     const got=await sha256(f);if(got!==asset.expected_sha256||f.size!==Number(asset.expected_size_bytes))throw new Error('Выбран другой файл: размер или SHA-256 не совпадает с утверждённой версией');
     status('Загружаю '+asset.filename+' в закрытое хранилище…');
-    const {error:e}=await sb.storage.from('fk-paid-ttk').upload(asset.object_path,f,{upsert:false,contentType:asset.asset_key.endsWith('_pdf')?'application/pdf':'application/zip',cacheControl:'0'});
+    const {error:e}=await sb.storage.from('fk-paid-ttk').upload(asset.object_path,f,{upsert:true,contentType:asset.asset_key.endsWith('_pdf')?'application/pdf':'application/zip',cacheControl:'0'});
     if(e)throw e;
     status('Файл загружен. Можно проверить и разрешить его выдачу.');
     await check();
@@ -203,7 +203,6 @@ $('uploadReleaseBundle').addEventListener('click',async()=>{
   for(let i=0;i<current.length;i++){
     const a=current[i],row=rows.find(x=>x.key===a.asset_key);
     status('Файл '+(i+1)+'/4: проверка SHA-256 и загрузка…');
-    if(a.released){await verifiedRemote(a);continue}
     const bytes=await zip.file(row.bundle_path).async('uint8array');
     const blob=new Blob([bytes],{type:a.asset_key.endsWith('_pdf')?'application/pdf':'application/zip'});
     if(blob.size!==Number(a.expected_size_bytes)||(await sha256(blob))!==a.expected_sha256)throw new Error('Ошибка контроля целостности '+a.asset_key);
