@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FARUKH KITCHEN · Управление закрытыми ТТК</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{color-scheme:light;--ink:#203055;--muted:#63718b;--line:#dde4f2;--accent:#596fe8}
+*{box-sizing:border-box}
+body{font:15px/1.55 system-ui,'Segoe UI',sans-serif;color:var(--ink);margin:0;background:linear-gradient(130deg,#e8effe,#fbf7ff 70%,#e9f7ff);min-height:100vh}
+main{max-width:1020px;margin:auto;padding:28px 18px 58px}
+header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:5px 0 22px}
+.brand{font-weight:900;letter-spacing:.09em;font-size:21px}.brand em{font-style:normal;color:#7670db}
+h1{font-size:clamp(27px,4.5vw,43px);line-height:1.2;margin:12px 0}
+h2{margin:5px 0 14px;font-size:20px}h3{margin:0 0 8px;font-size:17px}
+p{margin:9px 0}.muted{color:var(--muted)}.kicker{font-size:11px;letter-spacing:.15em;font-weight:800;color:#6771b3}
+.panel{background:#ffffffeb;border:1px solid var(--line);border-radius:18px;box-shadow:0 11px 35px #243b7412;padding:22px;margin:18px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px}
+input,select{width:100%;border:1px solid #cad5ee;border-radius:11px;font:inherit;padding:12px;background:#fff;color:var(--ink)}
+label{font-weight:700;font-size:13px;display:block;margin-bottom:7px}
+button{font:inherit;font-weight:700;color:white;border:0;border-radius:11px;padding:11px 15px;background:linear-gradient(110deg,#5679ea,#8270dd);cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.subtle{background:#e6ebff;color:#3e5694}
+button.warn{background:#f5eaf0;color:#ad4263}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1;min-width:145px}
+.hidden{display:none!important}
+.status{border-radius:12px;padding:12px;background:#ecf2ff;color:#49619f;margin:14px 0}
+.bad{background:#fff1f1;color:#b14764}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e7ecf7;vertical-align:middle}th{font-size:12px;color:#64708a}td button{white-space:nowrap}
+code{font-size:12px;background:#edf1f9;padding:4px;border-radius:5px;word-break:break-all}
+small{font-size:12px}
+a{color:#4f65ae}
+</style>
+</head>
+<body><main>
+<header><div class="brand">FARUKH <em>KITCHEN</em></div><div class="kicker">УПРАВЛЕНИЕ КОММЕРЧЕСКОЙ БИБЛИОТЕКОЙ</div></header>
+<a href="./">← На сайт</a><h1>Защищённая выдача ТТК</h1>
+<p class="muted">Только подтверждённый владелец может загружать материалы и назначать доступ. Пока оба пакета закрыты для продажи.</p>
+<section class="panel" id="loginPanel">
+<div class="kicker">ШАГ 1 · ВХОД</div><h2>Подтвердите почту</h2>
+<div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Ваш email" aria-label="Ваш email"><button id="sendLink">Отправить ссылку</button></div>
+<p class="muted"><small>Почтовая ссылка должна вести на адрес этого кабинета. Для этого он должен быть указан в настройках Redirect URLs проекта Supabase.</small></p>
+</section>
+<section class="panel hidden" id="userPanel">
+<div class="row"><strong id="userEmail">—</strong><button id="logout" type="button" class="subtle">Выйти</button></div>
+</section>
+<section class="panel hidden" id="claimPanel">
+<div class="kicker">ШАГ 2 · ПОДТВЕРЖДЕНИЕ ВЛАДЕЛЬЦА</div><h2>Защитить право администратора</h2>
+<p>Откройте <a href="https://farukh-kitchen-owner.onrender.com/" target="_blank" rel="noopener noreferrer">закрытый управляющий центр</a>, войдите своим логином и паролем, получите ключ первичной привязки и вставьте его сюда. Ключ не отправляйте в чат.</p>
+<div class="row"><input id="ownerToken" type="password" autocomplete="off" placeholder="Ключ подтверждения владельца"><button id="claimOwner">Подтвердить владельца</button></div>
+<p class="muted"><small>Эта операция однократная: после первого успешного подтверждения новых администраторов автоматически не создаём.</small></p>
+</section>
+<section id="adminPanel" class="hidden">
+<section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Четыре коммерческих файла</h2>
+<p class="muted">Выберите четыре локальных файла PDF/ZIP из утверждённого комплекта. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
+<div class="tablewrap"><table><thead><tr><th>Файл</th><th>Размер</th><th>Хранилище</th><th>Выдача</th><th>Действие</th></tr></thead><tbody id="assetRows"></tbody></table></div>
+<p class="muted"><small>Кнопка «Разрешить» появляется после проверки загруженного файла. Доступ всё равно получают только подтверждённые покупатели START/PRO.</small></p>
+</section>
+<section class="panel"><div class="kicker">ШАГ 4 · ДОСТУП ПОКУПАТЕЛЯ</div><h2>Выдать пакет по email</h2>
+<p class="muted">Покупатель должен сначала войти в <a href="cabinet.html">свой кабинет</a> по ссылке из письма. Подтвердите оплату вручную до выдачи доступа.</p>
+<div class="grid">
+<div><label for="buyerEmail">Почта покупателя</label><input id="buyerEmail" type="email" autocomplete="off" placeholder="buyer@example.com"></div>
+<div><label for="buyerTier">Тариф</label><select id="buyerTier"><option value="start">SHEF START</option><option value="pro">SHEF PRO</option></select></div>
+<div><label for="buyerExpiry">Доступ до (необязательно)</label><input type="date" id="buyerExpiry"></div>
+</div>
+<div class="row" style="margin-top:15px"><button id="grantBuyer">Выдать после проверки оплаты</button><button class="warn" id="revokeBuyer">Отозвать доступ</button></div>
+<p class="muted"><small>Выдача действует сразу после активации, если нужные файлы уже выпущены. Отзыв закрывает новые скачивания, но не удаляет ранее загруженные файлы у покупателя.</small></p>
+</section>
+</section>
+<div id="feedback" role="status" aria-live="polite" class="status">Войдите, чтобы продолжить.</div>
+<footer class="muted"><small>FARUKH KITCHEN · Chef Aka · Черновые технологические замечания и контроль ХАССП остаются в работе. Не публикуйте коммерческие PDF/ZIP в открытых папках сайта.</small></footer>
+</main>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
+const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=x=>document.getElementById(x);
+let user=null, isAdmin=false, assetList=[];
+function status(t,error=false){const el=$('feedback');el.textContent=t;el.classList.toggle('bad',error)}
+function setVisible(id,on){$(id).classList.toggle('hidden',!on)}
+async function sha256(file){const digest=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function verifiedRemote(asset){const {data,error}=await sb.storage.from('fk-paid-ttk').download(asset.object_path);if(error||!data)throw new Error('Файл в хранилище недоступен');const hash=await sha256(data);if(hash!==asset.expected_sha256||data.size!==Number(asset.expected_size_bytes))throw new Error('Файл в хранилище не совпадает с контрольной суммой.');return true}
+async function loadFiles(){
+ const {data,error}=await sb.from('fk_paid_assets').select('*').order('asset_key');
+ if(error)throw error;assetList=data||[];
+ const root=$('assetRows');root.replaceChildren();
+ for(const asset of assetList){
+  const tr=document.createElement('tr');
+  const name=document.createElement('td');name.textContent=asset.filename;
+  const size=document.createElement('td');size.textContent=(Number(asset.expected_size_bytes)/1048576).toFixed(2)+' МБ';
+  const cloud=document.createElement('td');cloud.textContent='Проверка…';
+  const rel=document.createElement('td');rel.textContent=asset.released?'Открыто по доступу':'Закрыто';
+  const action=document.createElement('td');
+  const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept=asset.asset_key.endsWith('_pdf')?'.pdf,application/pdf':'.zip,application/zip';fileInput.style.maxWidth='210px';fileInput.style.fontSize='12px';
+  const upload=document.createElement('button');upload.type='button';upload.textContent='Загрузить';upload.disabled=false;
+  const release=document.createElement('button');release.type='button';release.className='subtle';release.textContent='Проверить и разрешить';release.style.marginTop='6px';release.disabled=true;
+  const folder=asset.object_path.substring(0,asset.object_path.lastIndexOf('/'));
+  async function check(){
+   const {data:list,error:listErr}=await sb.storage.from('fk-paid-ttk').list(folder,{limit:100,search:asset.object_path.split('/').pop()});
+   const present=!listErr&&Array.isArray(list)&&list.some(f=>f.name===asset.object_path.split('/').pop());
+   cloud.textContent=present?'Загружено':'Нет файла';release.disabled=!present||asset.released;
+  }
+  upload.addEventListener('click',async()=>{
+   if(!fileInput.files||!fileInput.files.length){status('Выберите файл для '+asset.filename,true);return}
+   const f=fileInput.files[0];upload.disabled=true;
+   try{
+    status('Проверяю размер и SHA-256 файла '+asset.filename+'…');
+    const got=await sha256(f);if(got!==asset.expected_sha256||f.size!==Number(asset.expected_size_bytes))throw new Error('Выбран другой файл: размер или SHA-256 не совпадает с утверждённой версией');
+    status('Загружаю '+asset.filename+' в закрытое хранилище…');
+    const {error:e}=await sb.storage.from('fk-paid-ttk').upload(asset.object_path,f,{upsert:false,contentType:asset.asset_key.endsWith('_pdf')?'application/pdf':'application/zip',cacheControl:'0'});
+    if(e)throw e;
+    status('Файл загружен. Можно проверить и разрешить его выдачу.');
+    await check();
+   }catch(e){status(e.message||'Ошибка загрузки.',true)}finally{upload.disabled=false}
+  });
+  release.addEventListener('click',async()=>{
+   release.disabled=true;
+   try{
+    status('Проверяю фактическое содержимое в защищённом хранилище…');await verifiedRemote(asset);
+    const {error:e}=await sb.from('fk_paid_assets').update({released:true,approved_by:user.id,released_at:new Date().toISOString()}).eq('asset_key',asset.asset_key);
+    if(e)throw e;
+    status('Выдача '+asset.filename+' разрешена только покупателям с активным доступом.');await loadFiles();
+   }catch(e){status(e.message||'Ошибка выпуска файла.',true);release.disabled=false}
+  });
+  action.append(fileInput,document.createElement('br'),upload,document.createElement('br'),release);
+  tr.append(name,size,cloud,rel,action);root.append(tr);
+  await check();
+ }
+}
+async function refresh(){
+ const {data:{user:current},error}=await sb.auth.getUser();
+ user=error?null:current;
+ setVisible('loginPanel',!user);setVisible('userPanel',!!user);
+ $('userEmail').textContent=user?.email||'—';
+ isAdmin=false;
+ if(user){const {data,error:checkErr}=await sb.from('fk_admins').select('user_id').eq('user_id',user.id).maybeSingle();isAdmin=!!data&&!checkErr}
+ setVisible('claimPanel',!!user&&!isAdmin);setVisible('adminPanel',!!user&&isAdmin);
+ if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await loadFiles();status('Управляющий кабинет готов.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
+ else if(user)status('Вход выполнен. Подтвердите право владельца ключом из закрытого центра.');
+ else status('Войдите по почте, чтобы продолжить.');
+}
+$('sendLink').addEventListener('click',async()=>{
+ const email=$('loginEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){status('Укажите корректную почту.',true);return}
+ $('sendLink').disabled=true;try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;status('Отправлена ссылка входа. Проверьте почту.')}catch(e){status('Письмо не отправлено: '+(e.message||'ошибка'),true)}finally{$('sendLink').disabled=false}
+});
+$('logout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
+$('claimOwner').addEventListener('click',async()=>{
+ const p_token=$('ownerToken').value.trim();if(!p_token){status('Вставьте ключ владельца.',true);return}
+ $('claimOwner').disabled=true;try{
+ const {data,error}=await sb.rpc('fk_claim_first_owner',{p_token});if(error)throw error;
+ $('ownerToken').value='';if(!data)throw new Error('Ключ не подошёл или право владельца уже выдано');
+ await refresh();
+ }catch(e){status(e.message||'Подтверждение не удалось',true)}finally{$('claimOwner').disabled=false}
+});
+async function access(action){
+ if(!isAdmin){status('Доступно только владельцу',true);return}
+ const p_email=$('buyerEmail').value.trim(),p_package_code=$('buyerTier').value;
+ if(!/^\S+@\S+\.\S+$/.test(p_email)){status('Укажите почту покупателя.',true);return}
+ const exp=$('buyerExpiry').value;const p_expires_at=exp?new Date(exp+'T23:59:59').toISOString():null;
+ const btn=$(action==='activate'?'grantBuyer':'revokeBuyer');btn.disabled=true;
+ try{
+  const {data,error}=await sb.rpc('fk_owner_set_buyer_access',{p_email,p_package_code,p_action:action,p_expires_at});
+  if(error)throw error;if(!data?.ok)throw new Error('Покупатель ещё не зарегистрировался и не подтвердил email в личном кабинете.');
+  status(action==='activate'?'Доступ покупателю активирован.':'Доступ покупателю отозван.');
+ }catch(e){status(e.message||'Не удалось изменить доступ.',true)}finally{btn.disabled=false}
+}
+$('grantBuyer').addEventListener('click',()=>access('activate'));
+$('revokeBuyer').addEventListener('click',()=>access('revoke'));
+sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
+refresh();
+</script>
+</body></html>
