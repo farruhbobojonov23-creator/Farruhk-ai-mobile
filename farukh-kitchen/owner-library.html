@@ -55,6 +55,7 @@ a{color:#4f65ae}
 <section id="adminPanel" class="hidden">
 <section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Четыре коммерческих файла</h2>
 <p class="muted">Выберите четыре локальных файла PDF/ZIP из утверждённого комплекта. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
+<div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите архив «FARUKH_KITCHEN_4_ФАЙЛА_ДЛЯ_ЗАГРУЗКИ.zip», подготовленный для владельца. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
 <div class="tablewrap"><table><thead><tr><th>Файл</th><th>Размер</th><th>Хранилище</th><th>Выдача</th><th>Действие</th></tr></thead><tbody id="assetRows"></tbody></table></div>
 <p class="muted"><small>Кнопка «Разрешить» появляется после проверки загруженного файла. Доступ всё равно получают только подтверждённые покупатели START/PRO.</small></p>
 </section>
@@ -74,6 +75,7 @@ a{color:#4f65ae}
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
+import JSZip from 'https://esm.sh/jszip@3.10.1';
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=x=>document.getElementById(x);
 let user=null, isAdmin=false, assetList=[];
@@ -173,6 +175,53 @@ async function access(action){
   status(action==='activate'?'Доступ покупателю активирован.':'Доступ покупателю отозван.');
  }catch(e){status(e.message||'Не удалось изменить доступ.',true)}finally{btn.disabled=false}
 }
+
+$('uploadReleaseBundle').addEventListener('click',async()=>{
+ if(!isAdmin||!user){status('Войдите в подтверждённый аккаунт владельца.',true);return}
+ const input=$('releaseBundle');
+ if(!input.files||input.files.length!==1){status('Выберите единый ZIP-архив для загрузки.',true);return}
+ const button=$('uploadReleaseBundle');button.disabled=true;
+ try{
+  status('Открываю архив и проверяю его состав…');
+  const zip=await JSZip.loadAsync(input.files[0]);
+  const manifestFile=zip.file('manifest.json');
+  if(!manifestFile)throw new Error('Нет manifest.json. Выберите подготовленный для FARUKH KITCHEN архив.');
+  const manifest=JSON.parse(await manifestFile.async('string'));
+  const rows=Array.isArray(manifest.assets)?manifest.assets:[];
+  const expected=['start_pdf','start_zip','pro_pdf','pro_zip'];
+  if(rows.length!==4||!expected.every(key=>rows.some(row=>row.key===key)))throw new Error('В архиве отсутствует один из четырёх файлов.');
+  const {data:entries,error:entryError}=await sb.from('fk_paid_assets').select('*');
+  if(entryError)throw entryError;
+  const current=(entries||[]).filter(a=>expected.includes(a.asset_key));
+  if(current.length!==4)throw new Error('Манифест закрытой библиотеки не настроен');
+  // Validate all four before changing Storage.
+  for(const asset of current){
+    const row=rows.find(x=>x.key===asset.asset_key);
+    if(!row||!row.bundle_path||row.sha256!==asset.expected_sha256||Number(row.size)!==Number(asset.expected_size_bytes))throw new Error('Версия файла '+asset.asset_key+' не совпадает с утверждённой.');
+    if(!zip.file(row.bundle_path))throw new Error('Нет файла '+row.bundle_path);
+  }
+  for(let i=0;i<current.length;i++){
+    const a=current[i],row=rows.find(x=>x.key===a.asset_key);
+    status('Файл '+(i+1)+'/4: проверка SHA-256 и загрузка…');
+    if(a.released){await verifiedRemote(a);continue}
+    const bytes=await zip.file(row.bundle_path).async('uint8array');
+    const blob=new Blob([bytes],{type:a.asset_key.endsWith('_pdf')?'application/pdf':'application/zip'});
+    if(blob.size!==Number(a.expected_size_bytes)||(await sha256(blob))!==a.expected_sha256)throw new Error('Ошибка контроля целостности '+a.asset_key);
+    const {error:uploadErr}=await sb.storage.from('fk-paid-ttk').upload(a.object_path,blob,{upsert:true,contentType:blob.type,cacheControl:'0'});
+    if(uploadErr)throw uploadErr;
+    await verifiedRemote(a);
+  }
+  for(const asset of current){
+    if(asset.released)continue;
+    const {error:releaseErr}=await sb.from('fk_paid_assets').update({released:true,approved_by:user.id,released_at:new Date().toISOString()}).eq('asset_key',asset.asset_key);
+    if(releaseErr)throw releaseErr;
+  }
+  status('Готово: 4/4 файла загружены и проверены. Их могут скачивать только покупатели с подтверждённым доступом.');
+  await loadFiles();
+ }catch(e){status('Не удалось завершить загрузку: '+(e.message||'неизвестная ошибка'),true)}
+ finally{button.disabled=false}
+});
+
 $('grantBuyer').addEventListener('click',()=>access('activate'));
 $('revokeBuyer').addEventListener('click',()=>access('revoke'));
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
