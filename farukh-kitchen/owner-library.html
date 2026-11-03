@@ -103,8 +103,8 @@ a{color:#4f65ae}
 <div id="releaseStats" class="status" role="status" aria-live="polite">Проверка закрытого хранилища…</div>
 <div style="border:1px solid #aacdd1;border-radius:13px;padding:15px;margin:14px 0;background:#f2f9f8">
  <div class="kicker" style="color:#2a7e74">ШАГ 12 · КОНТРОЛЬ ДОСТУПА И ФАЙЛОВ</div>
- <h3>Проверка без выдачи покупателям</h3>
- <p class="muted small">Вы можете проверить скачивание оригинальных файлов от имени владельца, не открывая доступ к ним покупателям. Контроль размера, формата и SHA-256 выполняется непосредственно по данным из Supabase.</p>
+ <h3>Проверка файлов владельцем</h3>
+ <p class="muted small">Вы можете проверить скачивание оригинальных файлов от имени владельца. Права покупателей при проверке не меняются; действующие тарифы START и PRO имеют доступ к своей редакции. Контроль размера, формата и SHA-256 выполняется непосредственно по данным из Supabase.</p>
  <div class="row">
   <button id="fkTestPdf" type="button" class="subtle">Проверить 4 PDF</button>
   <button id="fkTestAll" type="button" class="subtle">Проверить все 38</button>
@@ -279,7 +279,7 @@ async function fkPreviewAsset(id){
   const url=URL.createObjectURL(blob);
   if(win){win.location.href=url+'#page=1';}
   else{const l=document.createElement('a');l.href=url;l.download=asset.filename;document.body.append(l);l.click();l.remove()}
-  el.textContent='✅ '+asset.filename+' проверен. Просмотр открыт без выдачи покупателям.';
+  el.textContent='✅ '+asset.filename+' проверен. Просмотр открыт. У покупателей доступ определяется только активным оплаченным тарифом.';
   setTimeout(()=>URL.revokeObjectURL(url),600000);
  }catch(e){if(win)win.close();el.textContent='❌ Не удалось открыть: '+(e.message||'ошибка')}
 }
