@@ -34,6 +34,9 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 .fk-request #submit{min-height:52px}
 .fk-request #submit:focus-visible{outline:3px solid #86d8ee;outline-offset:3px}
 .fk-request .step{border-bottom:1px solid #345561}
+.fk-request .fk-selected-price{padding:15px 17px;background:linear-gradient(135deg,#123e4d,#18384b);border:1px solid #6b806f;border-radius:13px;margin:16px 0 9px;display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+.fk-request .fk-selected-price strong{color:#f3d59d;font-size:clamp(27px,4vw,36px);font-weight:900;white-space:nowrap}
+.fk-request .fk-selected-price span{font-size:12px;color:#b7d0d7;font-weight:700}
 @media(max-width:720px){.fk-request .wrap{padding:32px 15px 50px}.fk-request .shell{grid-template-columns:1fr}.fk-request .panel{padding:19px}}
 </style>
 </head><body class="fk-site fk-request">
@@ -53,7 +56,9 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <div class="fk-eyebrow">ШАГ 01 / ВЫБОР ПАКЕТА</div><h2 style="margin-top:10px">Оставить заявку</h2>
 <form id="requestForm" novalidate>
 <label for="plan">Какой пакет интересует?</label>
-<select id="plan" required><option value="start">SHEF START — 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 59 ТТК + 34 ПФ + 59 инструкций</option></select>
+<select id="plan" required><option value="start">SHEF START — 49 900 ₽ · 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 79 900 ₽ · 59 ТТК + 34 ПФ + 59 инструкций</option></select>
+<div class="fk-selected-price" aria-live="polite"><span>Стоимость выбранного пакета</span><strong id="fkPlanPrice">49 900 ₽</strong></div>
+<p class="hint">Оплата после согласования с владельцем. Заявка не является оплатой.</p>
 <label for="name">Ваше имя</label>
 <input id="name" type="text" minlength="2" maxlength="80" autocomplete="name" placeholder="Как к вам обращаться?" required>
 <label for="contactType">Куда вам ответить?</label>
@@ -72,7 +77,7 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <div class="eyebrow">КАК ВСЁ ПРОИСХОДИТ</div>
 <div class="step"><strong>01 /</strong> Выберите START или PRO и оставьте контакт.</div>
 <div class="step"><strong>02 /</strong> Шеф получит заявку в закрытом кабинете.</div>
-<div class="step"><strong>03 /</strong> Вы согласуете условия и оплату лично с владельцем.</div>
+<div class="step"><strong>03 /</strong> Подтвердите стоимость выбранного комплекта (START — 49 900 ₽, PRO — 79 900 ₽) и условия с владельцем.</div>
 <div class="step"><strong>04 /</strong> Владелец создаст личный логин и пароль и передаст вам.</div>
 <div class="step"><strong>05 /</strong> Войдите в личный кабинет после получения логина и подтверждения доступа.</div>
 <p class="hint">Полные ТТК доступны только при действующем тарифе. До производственного применения рецептур необходимо проверить фактические выходы, аллергены и условия хранения. Заявка не является оплатой.</p>
@@ -86,6 +91,9 @@ const $=id=>document.getElementById(id);
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:false,autoRefreshToken:false}});
 const params=new URLSearchParams(location.search);
 if(params.get('plan')==='pro')$('plan').value='pro';
+function updatePlanPrice(){$('fkPlanPrice').textContent=$('plan').value==='pro'?'79 900 ₽':'49 900 ₽'}
+$('plan').addEventListener('change',updatePlanPrice);
+updatePlanPrice();
 $('contactType').addEventListener('change',()=>{
  const tele=$('contactType').value==='telegram';
  $('contactLabel').textContent=tele?'Ваш Telegram':'Ваш номер телефона';
