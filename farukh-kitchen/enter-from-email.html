@@ -62,7 +62,7 @@ $('send').addEventListener('click',async()=>{
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:new URL(destination,location.href).href}});
   if(error)throw error;
   status('Письмо отправлено. Скопируйте ссылку из письма (не открывая её) и вставьте ниже.');
- }catch(e){status('Не удалось отправить письмо: '+(e.message||'ошибка'),true)}
+ }catch(e){const limit=e?.code==='over_email_send_rate_limit'||e?.status===429||/email rate limit exceeded/i.test(e?.message||'');status(limit?'Лимит отправки писем Supabase исчерпан. Не отправляйте повторные запросы подряд; попробуйте позднее. Для клиентов потребуется настроить SMTP.':'Не удалось отправить письмо: '+(e.message||'ошибка'),true)}
  finally{b.disabled=false}
 });
 $('paste').addEventListener('click',async()=>{
