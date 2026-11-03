@@ -57,6 +57,13 @@
 .fk-unknown-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#bad2d9;padding:12px;width:100%;height:100%}
 .fk-unknown-mark{display:grid;place-items:center;font:italic 35px Georgia,serif;color:#e2c18d;border:1px solid rgba(201,226,236,.3);border-radius:50%;width:82px;height:82px;background:rgba(3,18,27,.25)}
 .fk-unknown-text{font-size:11px;font-weight:700;color:#bad2d9;line-height:1.35}
+.fk-unknown-photo-product{gap:5px;padding:10px;text-align:center;justify-content:center}
+.fk-unknown-photo-product .fk-placeholder-type{font-size:10px;font-weight:900;color:#edc58a;letter-spacing:.11em}
+.fk-unknown-photo-product .fk-unknown-ingredient{width:auto;min-width:78px;height:54px;padding:0 7px;border-radius:12px;font:900 16px system-ui;color:#fff4dc}
+.fk-unknown-photo-product .fk-unknown-text{font-size:11px;color:#d8e9ef;max-width:100%;line-height:1.27}
+.fk-unknown-photo-product small{font-size:9px;color:#91afb9;line-height:1.15}
+@media(max-width:620px){.fk-unknown-photo-product .fk-placeholder-type{font-size:9px}.fk-unknown-photo-product .fk-unknown-ingredient{height:39px;min-width:63px;font-size:13px}.fk-unknown-photo-product small{display:none}}
+
 .fk-item-photo img.fk-product-photo{object-fit:contain;object-position:center;width:94%;height:92%;max-width:100%;filter:drop-shadow(0 10px 18px rgba(0,0,0,.44))}
 @media(max-width:620px){.fk-item-photo img.fk-product-photo{width:95%;height:84%;object-fit:contain}.fk-unknown-mark{width:56px;height:56px;font-size:27px}.fk-unknown-text{font-size:10px}}
 </style></head><body class="fk-site">
@@ -102,11 +109,21 @@ let selectedCat=params.get('cat')||'all';
 let group=params.get('group')||'';
 let limit=18;
 const PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
-function photoPlaceholder(pic,isPrep){
- const box=document.createElement('div');box.className='fk-unknown-photo';
- const symbol=document.createElement('span');symbol.className='fk-unknown-mark';symbol.textContent=isPrep?'PF':'FK';
- const label=document.createElement('span');label.className='fk-unknown-text';label.textContent=isPrep?'ТТК полуфабриката':'Фото товара готовится';
- box.append(symbol,label);pic.replaceChildren(box);
+const PHOTO_MISSING_TAGS={
+ 'FK-A4-019':'КУРИЦА','FK-A4-022':'КРАБ',
+ 'FK-A4-049':'КРАБ','FK-A4-051':'КУРИЦА'
+};
+function photoPlaceholder(pic,row){
+ const isPrep=row.t==='prep';
+ const box=document.createElement('div');box.className='fk-unknown-photo fk-unknown-photo-product';
+ const top=document.createElement('span');top.className='fk-placeholder-type';
+ top.textContent=isPrep?'ПОЛУФАБРИКАТ':row.c==='Гунканы'?'ГУНКАН':row.c==='Запечённые роллы'?'ЗАПЕЧЁННЫЙ РОЛЛ':'ТТК';
+ const symbol=document.createElement('span');symbol.className='fk-unknown-mark fk-unknown-ingredient';
+ symbol.textContent=PHOTO_MISSING_TAGS[row.id]||'ТТК';
+ const label=document.createElement('span');label.className='fk-unknown-text';
+ label.textContent=isPrep?'ТТК-ПФ '+row.id.slice(-3):row.n;
+ const foot=document.createElement('small');foot.textContent='Фотография ещё не подтверждена';
+ box.append(top,symbol,label,foot);pic.replaceChildren(box);
 }
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sortByID=(a,b)=>{if(a.t!==b.t)return a.t==='dish'?-1:1;return Number(a.id.slice(-3))-Number(b.id.slice(-3))};
@@ -127,9 +144,9 @@ function card(r){
  if(photoSrc){
   const image=document.createElement('img');image.className='fk-product-photo';image.src=photoSrc;
   image.loading='lazy';image.decoding='async';image.alt='Фото блюда: '+r.n;
-  image.onerror=()=>photoPlaceholder(pic,isPrep);pic.append(image);
+  image.onerror=()=>photoPlaceholder(pic,r);pic.append(image);
   const badge=document.createElement('span');badge.className='fk-photo-caption';badge.textContent='Фото Chef Aka';pic.append(badge);
- }else photoPlaceholder(pic,isPrep);
+ }else photoPlaceholder(pic,r);
  const content=document.createElement('div');content.className='fk-item-content';
  const top=document.createElement('div');top.className='fk-item-top';
  const id=document.createElement('span');id.textContent=r.id;
