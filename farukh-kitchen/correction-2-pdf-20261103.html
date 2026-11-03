@@ -1,0 +1,52 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Редакционное обновление ТТК · FARUKH KITCHEN</title><style>body{font:16px/1.5 system-ui;background:#f0f6fa;color:#173b51;margin:0}header{background:#102f42;color:#fff;padding:20px}main{max-width:790px;margin:32px auto;padding:0 16px}section{background:#fff;padding:26px;border:1px solid #d1e1e9;border-radius:17px;margin:18px 0}button,input{font:inherit}button{padding:12px 18px;background:#204f78;color:#fff;border:0;border-radius:9px;margin-top:14px;cursor:pointer}button:disabled{opacity:.5}a{color:#2663a0}p.note{color:#756143;background:#fff5df;padding:15px;border-radius:8px}#out{white-space:pre-wrap;background:#eff5f9;padding:13px;border-radius:9px}input{max-width:100%}.muted{color:#597181}</style></head><body><header><b>FARUKH KITCHEN</b> · служебная редакция ТТК</header><main><h1>Обновление START / PRO</h1><p class="muted">Редакционно подтверждено 03.11.2026. Переносит только два исправленных PDF в закрытый Supabase Storage. Остальные 36 файлов остаются без изменений.</p><p class="note">Это документальная правка баланса массы и аллергенов, не подтверждение фактических выходов и этикеток поставщиков. Новые файлы остаются закрытыми для покупателей до отдельного выпуска.</p><section><h2>Загрузка двух PDF</h2><p>Используйте <a href="https://drive.google.com/file/d/19p1WSFkP9qeuZYWUD_OjWNUYWq3iBcdO/view" target="_blank" rel="noopener noreferrer">закрытый архив коррекции · 2 PDF</a>.</p><input id="f" type="file" accept=".zip"><br><button id="go" disabled>Проверить и обновить</button><p id="out" role="status" aria-live="polite">Проверяю право владельца…</p></section><p><a href="owner-library.html">← Управляющий кабинет</a></p></main><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2.118.0";
+const sb=createClient("https://rwvljbgsqnabvzmoaxgg.supabase.co","sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT",{auth:{persistSession:true,autoRefreshToken:true}});
+const a=[
+{key:"start_dishes_pdf",name:"START_44_NORM_20261103.pdf",object:"release/2026-11-03/docs/START_44_NORM_20261103.pdf",size:7367452,sha:"40ceeb18e44640f4ae9efa55b374f4be8ae6b24e75d8a569ae6a5705b750a5f6",pages:44},
+{key:"pro_dishes_pdf",name:"PRO_59_NORM_20261103.pdf",object:"release/2026-11-03/docs/PRO_59_NORM_20261103.pdf",size:9093927,sha:"63d8a65aa22bd26f2130881a1ca5c71a7adc784d21c9a59b8d87b6b2da3fd527",pages:59}];
+const $=id=>document.getElementById(id),say=t=>$("out").textContent=t;
+let owner=false;
+async function hash(buf){return [...new Uint8Array(await crypto.subtle.digest("SHA-256",buf))].map(n=>n.toString(16).padStart(2,"0")).join("")}
+async function checkOwner(){
+ const {data:{user},error}=await sb.auth.getUser();
+ if(error||!user){say("Войдите в управляющий кабинет и вернитесь сюда.");return}
+ const x=await sb.from("fk_admins").select("user_id").eq("user_id",user.id).maybeSingle();
+ owner=!x.error&&!!x.data;$("go").disabled=!owner;
+ say(owner?"Владелец подтверждён. Выберите исправленный архив ZIP.":"Нет прав владельца.");
+}
+$("go").onclick=async()=>{
+ if(!owner){say("Нет доступа.");return}
+ const file=$("f").files[0];if(!file){say("Выберите ZIP.");return}
+ const btn=$("go");btn.disabled=true;
+ try{
+ if(file.size>30000000)throw Error("Архив превышает лимит.");
+ const z=await JSZip.loadAsync(file),mf=z.file("manifest.json");
+ if(!mf)throw Error("Отсутствует манифест.");
+ const m=JSON.parse(await mf.async("text"));
+ if(m.format!=="farukh-kitchen-correction-two-v1"||m.count!==2||m.edition!=="2026-11-03"||m.assets?.length!==2)throw Error("Неподходящая редакция.");
+ const db=await sb.from("fk_release_assets").select("*").in("asset_key",a.map(x=>x.key));
+ if(db.error||db.data?.length!==2||db.data.some(x=>x.released))throw Error("Сначала требуется остановить действующий выпуск или проверить права.");
+ const bytes=new Map();
+ for(const item of a){
+  const meta=m.assets.find(x=>x.asset_key===item.key);
+  if(!meta||meta.bundle_path!=="files/"+item.name||meta.sha256!==item.sha||meta.size!==item.size||meta.object_path!==item.object)throw Error("Манифест не совпадает: "+item.name);
+  const data=await z.file("files/"+item.name)?.async("uint8array");
+  if(!data||data.byteLength!==item.size||(await hash(data))!==item.sha)throw Error("Ошибка SHA-256: "+item.name);
+  bytes.set(item.key,data);
+ }
+ for(const [i,item] of a.entries()){
+  say("Загружаю "+(i+1)+" из 2: "+item.name);
+  const u=await sb.storage.from("fk-paid-ttk").upload(item.object,new Blob([bytes.get(item.key)],{type:"application/pdf"}),{upsert:true,contentType:"application/pdf",cacheControl:"0"});
+  if(u.error)throw Error("Supabase: "+u.error.message);
+  const r=await sb.storage.from("fk-paid-ttk").download(item.object);
+  if(r.error||!r.data||r.data.size!==item.size||(await hash(await r.data.arrayBuffer()))!==item.sha)throw Error("Повторная проверка не прошла: "+item.name);
+ }
+ for(const item of a){
+  const u=await sb.from("fk_release_assets").update({object_path:item.object,filename:item.name,expected_size_bytes:item.size,expected_sha256:item.sha,released:false,released_at:null,approved_by:null}).eq("asset_key",item.key).eq("released",false).select("asset_key");
+  if(u.error||u.data?.length!==1)throw Error("Ссылку в базе не удалось обновить: "+item.key);
+ }
+ say("Готово: 2 исправленных PDF загружены, проверены SHA-256 и подключены к каталогу. Автоматическая выдача покупателям выключена.");
+ }catch(e){say("Ошибка: "+(e.message||"неизвестно")+". Существующие материалы остаются закрытыми.")}
+ finally{btn.disabled=!owner}
+};checkOwner();
+</script></body></html>
