@@ -218,6 +218,17 @@ function renderCards(){
      media.replaceChildren(img);pv.remove();
     }catch{pv.disabled=false;msg('Не удалось открыть фото. Попробуйте позже.',true)}
    });el.append(pv);
+   // Protected PF thumbnails: load the individually approved asset only
+   // after the authenticated user scrolls this card into view.
+   if('IntersectionObserver' in window){
+    const observer=new IntersectionObserver(entries=>{
+     if(entries.some(entry=>entry.isIntersecting)){
+      observer.disconnect();
+      if(pv.isConnected&&!pv.disabled)pv.click();
+     }
+    },{rootMargin:'250px'});
+    observer.observe(media);
+   }
   }
   root.append(el);
  }
