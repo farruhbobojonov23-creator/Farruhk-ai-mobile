@@ -250,7 +250,7 @@ async function refresh(){
  const current=++refreshCount;const {data:{user},error}=await sb.auth.getUser();if(current!==refreshCount)return;
  clearPhotos();show('loginPanel',!user||!!error);show('accountPanel',!!user&&!error);show('libraryPanel',!!user&&!error);
  if(!user||error){grants.clear();assets.clear();activePlan=null;isOwnerPreview=false;show('ownerPreviewPanel',false);msg('');return}
- $('userEmail').textContent=user.email||'Покупатель';msg('Проверяем разрешённые материалы…');
+ $('userEmail').textContent=user.email?.endsWith('@example.com')?'Покупатель · '+user.email.split('@')[0]:(user.email||'Покупатель');msg('Проверяем разрешённые материалы…');
  // Owner status is established by the private admin table and enforced by Supabase RLS.
  // A non-owner never queries unreleased assets.
  const own=await sb.from('fk_admins').select('user_id').eq('user_id',user.id).maybeSingle();
@@ -276,6 +276,7 @@ async function refresh(){
  :'Нет активного доступа. Для активации обратитесь к владельцу.';
  show('ownerPreviewPanel',isOwnerPreview);
  if(isOwnerPreview)$('ownerPreviewState').textContent='Открыты для проверки '+assets.size+' файлов. Покупатели с действующим доступом скачивают только свой тариф. Выбран '+(activePlan==='pro'?'SHEF PRO':'SHEF START')+'.';
+ show('fkDashboard',!!activePlan);
  renderPackageFiles();
  if(activePlan){$('recipesPanel').classList.remove('hidden');categories();
   if(!deepLinkedOnce){
