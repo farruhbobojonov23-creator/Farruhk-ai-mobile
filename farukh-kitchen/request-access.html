@@ -21,15 +21,36 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 .hide{display:none!important}.legal{font-size:13px;color:#bdd1d6;margin:25px 0}
 @media(max-width:670px){.shell{grid-template-columns:1fr}.wrap{padding:15px}.header{padding:15px}h1{margin:10px 0}.panel{padding:20px}}
 </style>
-</head><body>
-<header class="header"><div class="brand">FARUKH <b>KITCHEN</b></div><a href="catalog-verified.html">← Посмотреть каталог</a></header>
+<link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104">
+<style>
+.fk-request .header{max-width:none;margin:0;padding:0}
+.fk-request .wrap{max-width:1050px;padding:50px 18px 65px}
+.fk-request .shell{grid-template-columns:minmax(0,1.22fr) minmax(0,.78fr);gap:19px}
+.fk-request .panel{border-radius:22px;border-color:#3e6979;background:linear-gradient(150deg,#133949,#0e2836);box-shadow:0 14px 40px #0012}
+.fk-request .panel a,.fk-request .legal a{color:var(--fk-gold)}
+.fk-request h1{font-size:clamp(37px,6vw,66px);letter-spacing:-.047em}
+.fk-request .sub{font-size:16px;line-height:1.7}
+.fk-request input,.fk-request select{min-height:49px;border-color:#678d9b;background:#0c2736}
+.fk-request #submit{min-height:52px}
+.fk-request #submit:focus-visible{outline:3px solid #86d8ee;outline-offset:3px}
+.fk-request .step{border-bottom:1px solid #345561}
+@media(max-width:720px){.fk-request .wrap{padding:32px 15px 50px}.fk-request .shell{grid-template-columns:1fr}.fk-request .panel{padding:19px}}
+</style>
+</head><body class="fk-site fk-request">
+<header class="header fk-nav"><div class="fk-shell fk-nav-in">
+<a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
+<button id="fkMenu" type="button" class="fk-menu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
+<nav id="fkMenuLinks" class="fk-nav-links" aria-label="Основная навигация">
+<a href="index.html">Главная</a><a href="catalog-verified.html?plan=start">Каталог</a><a href="demo-ttk.html">Образец ТТК</a><a href="cabinet.html">Мой кабинет</a><a class="fk-nav-cta" href="request-access.html">Оставить заявку ↗</a>
+</nav></div></header>
 <main class="wrap">
-<div class="eyebrow">ЗАЯВКА НА ДОСТУП · БЕЗ РЕГИСТРАЦИИ И EMAIL</div>
+<div class="fk-eyebrow">ВАШ ДОСТУП · ТОЛЬКО ПО ЗАЯВКЕ</div>
 <h1>Получите ТТК<br>от шеф-повара.</h1>
-<p class="sub">Не нужно звонить или искать контакты. Оставьте Telegram или телефон — шеф сам свяжется с вами, расскажет об оплате и выдаст личный логин с паролем.</p>
+<p class="sub">Не нужно искать телефон шефа или регистрироваться через почту. Оставьте Telegram или телефон — я сам свяжусь с вами, согласую оплату и выдам личный логин и пароль.</p>
+<p class="hint" style="font-size:13px;color:#9ed2e4">Уже есть персональный логин? <a href="cabinet.html" style="font-weight:900;color:#f1d49e">Войти в кабинет ↗</a></p>
 <div class="shell">
 <section class="panel">
-<h2 style="margin-top:0">Оставить заявку</h2>
+<div class="fk-eyebrow">ШАГ 01 / ВЫБОР ПАКЕТА</div><h2 style="margin-top:10px">Оставить заявку</h2>
 <form id="requestForm" novalidate>
 <label for="plan">Какой пакет интересует?</label>
 <select id="plan" required><option value="start">SHEF START — 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 59 ТТК + 34 ПФ + 59 инструкций</option></select>
@@ -57,7 +78,7 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <p class="hint">Полные ТТК доступны только при действующем тарифе. До производственного применения рецептур необходимо проверить фактические выходы, аллергены и условия хранения. Заявка не является оплатой.</p>
 </aside>
 </div>
-<p class="legal">Отправляя заявку, вы соглашаетесь, что владелец FARUKH KITCHEN использует указанный контакт только для связи по вашей заявке. Не отправляйте платёжные данные или пароли через форму.</p>
+<p class="legal">FARUKH KITCHEN · Chef Aka. Мы используем контакт только для ответа по заявке. Данные карты или пароль в заявке не запрашиваются. Перед производственным применением ТТК требуется проверить выходы, аллергены и условия хранения.</p>
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
@@ -71,6 +92,7 @@ $('contactType').addEventListener('change',()=>{
  $('contact').placeholder=tele?'@username':'+7 999 123 45 67';
  $('contact').value='';
 });
+$('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),nav=$('fkMenuLinks'),expanded=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(expanded));nav.classList.toggle('is-open',expanded);b.textContent=expanded?'✕':'☰'});
 $('requestForm').addEventListener('submit',async e=>{
  e.preventDefault();
  const name=$('name').value.trim(),type=$('contactType').value,plan=$('plan').value;
