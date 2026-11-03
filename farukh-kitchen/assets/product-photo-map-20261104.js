@@ -2,8 +2,8 @@
  * Mapping was migrated by product NAMES, not legacy FK IDs, from chef-approved
  * originals already in the site's own repository. Legacy FK IDs had different
  * numbering! Do not fall back to an unrelated category photo.
- * User supplied chicken and crab photos; the same ingredient photo is reused
- * in baked and gunkan listings. The paired gunkan image illustrates the category.
+ * Per chef's direct request, all 4 gunkan listing pictures (049-052)
+ * use the same approved paired-gunkan illustration, not baked roll photos.
  * Photo paths are public product pictures; paid recipe PDFs stay private.
  */
 window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
@@ -55,10 +55,10 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-046": "assets/user-photos/sushi-shrimp-43740.webp",
   "FK-A4-047": "assets/user-photos/sushi-salmon-43742.webp",
   "FK-A4-048": "assets/user-photos/sushi-eel-43739.webp",
-  "FK-A4-049": "assets/photos/gunkan_crab_20261104.webp",
-  "FK-A4-050": "assets/user-photos/batch4-gunkan-shrimp.webp",
-  "FK-A4-051": "assets/photos/gunkan_chicken_20261104.webp",
-  "FK-A4-052": "assets/user-photos/batch4-gunkan-salmon.webp",
+  "FK-A4-049": "assets/photos/gunkan_pair_20261104.webp",
+  "FK-A4-050": "assets/photos/gunkan_pair_20261104.webp",
+  "FK-A4-051": "assets/photos/gunkan_pair_20261104.webp",
+  "FK-A4-052": "assets/photos/gunkan_pair_20261104.webp",
   "FK-A4-053": "assets/user-photos/onigiri-chicken-43737.webp",
   "FK-A4-054": "assets/user-photos/snack-fries-43703.webp",
   "FK-A4-055": "assets/user-photos/snack-nuggets-43699.webp",
