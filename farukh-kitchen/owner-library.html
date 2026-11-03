@@ -66,6 +66,18 @@ a{color:#4f65ae}
   <div><label for="releaseZipPhotos">34 фотографии полуфабрикатов · WebP</label><input id="releaseZipPhotos" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadPhotos" style="margin-top:9px">Загрузить 34 фото</button></div>
 </div>
 <div id="releaseStats" class="status" role="status" aria-live="polite">Проверка закрытого хранилища…</div>
+<div style="border:1px solid #aacdd1;border-radius:13px;padding:15px;margin:14px 0;background:#f2f9f8">
+ <div class="kicker" style="color:#2a7e74">ШАГ 12 · КОНТРОЛЬ ДОСТУПА И ФАЙЛОВ</div>
+ <h3>Проверка без выдачи покупателям</h3>
+ <p class="muted small">Вы можете проверить скачивание оригинальных файлов от имени владельца, не открывая доступ к ним покупателям. Контроль размера, формата и SHA-256 выполняется непосредственно по данным из Supabase.</p>
+ <div class="row">
+  <button id="fkTestPdf" type="button" class="subtle">Проверить 4 PDF</button>
+  <button id="fkTestAll" type="button" class="subtle">Проверить все 38</button>
+  <button id="fkOpenStart" type="button" class="subtle">Просмотр START</button>
+  <button id="fkOpenPro" type="button" class="subtle">Просмотр PRO</button>
+ </div>
+ <div id="fkTestResult" class="status" aria-live="polite" role="status">Проверка по запросу владельца. Файлы пока закрыты для покупателей.</div>
+</div>
 <details><summary style="cursor:pointer;font-weight:750;color:#465c90">Список новой редакции и проверка файлов</summary><div id="releaseRows" class="tablewrap" style="margin-top:12px"></div></details>
 <p class="muted"><small>Файлы проверяются по SHA-256 дважды: перед загрузкой и после скачивания из Supabase. После загрузки они остаются закрытыми, пока владелец отдельно не разрешит выдачу. Цена и автоматическая оплата не подключены.</small></p>
 </section>
@@ -187,6 +199,59 @@ async function loadReleaseEdition(){
   root.append(line);
  }
 }
+
+
+async function fkGetVerifiedAsset(asset){
+ const {data,error}=await sb.storage.from('fk-paid-ttk').download(asset.object_path);
+ if(error||!data)throw new Error('Скачивание не прошло: '+(error?.message||asset.filename));
+ if(data.size!==Number(asset.expected_size_bytes))throw new Error('Неверный размер '+asset.filename);
+ const sum=await sha256(data);
+ if(sum!==asset.expected_sha256.trim())throw new Error('Неверный SHA-256 '+asset.filename);
+ const buf=new Uint8Array(await data.slice(0,12).arrayBuffer());
+ if(asset.asset_kind==='pdf'&&!(buf[0]===37&&buf[1]===80&&buf[2]===68&&buf[3]===70))throw new Error('Это не PDF: '+asset.filename);
+ if(asset.asset_kind==='image'&&!(buf[0]===82&&buf[1]===73&&buf[2]===70&&buf[3]===70&&buf[8]===87&&buf[9]===69&&buf[10]===66&&buf[11]===80))throw new Error('Это не WebP: '+asset.filename);
+ return data;
+}
+async function fkRunDiagnostics(all){
+ if(!isAdmin){status('Только владелец может проводить проверку.',true);return}
+ const ids=['fkTestPdf','fkTestAll','fkOpenStart','fkOpenPro'];
+ for(const id of ids)$(id).disabled=true;
+ const target=$('fkTestResult');
+ try{
+  if(releaseEditionAssets.length!==38)await loadReleaseEdition();
+  const check=releaseEditionAssets.filter(x=>all||x.asset_kind==='pdf');
+  if(check.length!==(all?38:4))throw new Error('Некорректный перечень файлов: '+check.length);
+  let total=0,verified=0;
+  for(let i=0;i<check.length;i++){
+   const asset=check[i];target.textContent='Проверка '+(i+1)+' из '+check.length+': '+asset.filename;
+   const data=await fkGetVerifiedAsset(asset);
+   total+=data.size;verified++;
+  }
+  target.textContent='✅ Успешно: '+verified+' из '+check.length+' · '+(total/1048576).toFixed(2)+' МБ прочитано из приватного Supabase. SHA-256 и формат совпали. Права покупателей не изменялись.';
+ }catch(e){target.textContent='❌ Проверка прервана: '+(e.message||'ошибка чтения');status('Проверка файлов: '+(e.message||'ошибка'),true)}
+ finally{for(const id of ids)$(id).disabled=false}
+}
+async function fkPreviewAsset(id){
+ if(!isAdmin)return;
+ const win=window.open('about:blank','_blank');
+ const el=$('fkTestResult');
+ try{
+  if(releaseEditionAssets.length!==38)await loadReleaseEdition();
+  const asset=releaseEditionAssets.find(x=>x.asset_key===id);
+  if(!asset)throw new Error('Файл не зарегистрирован');
+  el.textContent='Проверка и открытие '+asset.filename+'…';
+  const blob=await fkGetVerifiedAsset(asset);
+  const url=URL.createObjectURL(blob);
+  if(win){win.location.href=url+'#page=1';}
+  else{const l=document.createElement('a');l.href=url;l.download=asset.filename;document.body.append(l);l.click();l.remove()}
+  el.textContent='✅ '+asset.filename+' проверен. Просмотр открыт без выдачи покупателям.';
+  setTimeout(()=>URL.revokeObjectURL(url),600000);
+ }catch(e){if(win)win.close();el.textContent='❌ Не удалось открыть: '+(e.message||'ошибка')}
+}
+$('fkTestPdf').addEventListener('click',()=>fkRunDiagnostics(false));
+$('fkTestAll').addEventListener('click',()=>fkRunDiagnostics(true));
+$('fkOpenStart').addEventListener('click',()=>fkPreviewAsset('start_dishes_pdf'));
+$('fkOpenPro').addEventListener('click',()=>fkPreviewAsset('pro_dishes_pdf'));
 
 async function uploadAllReleaseFiles(){
  if(!isAdmin||!user){status('Требуется подтверждённый доступ владельца.',true);return}
