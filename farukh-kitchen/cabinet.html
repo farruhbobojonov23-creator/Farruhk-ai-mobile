@@ -81,10 +81,16 @@ const $=id=>document.getElementById(id);let assets=new Map(),archive=[],grants=n
 let visibleLimit=12,favoritesOnly=false,deepLinkedOnce=false;const FAVORITES_KEY='fk_kitchen_favorites_v2';
 let favorites=new Set();try{const a=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');if(Array.isArray(a))favorites=new Set(a.filter(id=>typeof id==='string'&&DATA.some(r=>r.id===id)))}catch{}
 const CHEF_ITEM_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
-function photoUnavailable(media,isPrep){
- const label=document.createElement('div');label.className='fk-missing-photo';
- const sign=document.createElement('strong');sign.textContent=isPrep?'PF':'FK';
- const message=document.createElement('small');message.textContent=isPrep?'Фото ПФ в комплекте':'Фото товара готовится';
+const MISSING_PHOTO_LABELS={
+ 'FK-A4-019':'КУРИЦА','FK-A4-022':'КРАБ',
+ 'FK-A4-049':'КРАБ','FK-A4-051':'КУРИЦА'
+};
+function photoUnavailable(media,row){
+ const label=document.createElement('div');label.className='fk-missing-photo fk-missing-product';
+ const sign=document.createElement('strong');
+ sign.textContent=row.t==='prep'?'ПФ':MISSING_PHOTO_LABELS[row.id]||'ТТК';
+ const message=document.createElement('small');
+ message.textContent=row.t==='prep'?'Фото ПФ загружается':row.n+' · фото ожидается';
  label.append(sign,message);media.replaceChildren(label);
 }
 function saveFavorites(){try{localStorage.setItem(FAVORITES_KEY,JSON.stringify([...favorites]))}catch{}}
@@ -191,9 +197,9 @@ function renderCards(){
   if(src){
    const img=document.createElement('img');img.src=src;img.className='fk-exact-photo';
    img.loading='lazy';img.decoding='async';img.alt='Фото блюда '+r.n;
-   img.onerror=()=>photoUnavailable(media,false);
+   img.onerror=()=>photoUnavailable(media,r);
    media.append(img);
-  }else photoUnavailable(media,r.t==='prep');
+  }else photoUnavailable(media,r);
   const title=document.createElement('h4');title.textContent=r.n;
   const note=document.createElement('div');note.className='muted small';note.style.marginBottom='12px';
   note.textContent=r.c+(r.w==null?'':' · выход '+r.w+' г (расч.)');
