@@ -71,7 +71,7 @@
 </section>
 <footer class="footer">FARUKH KITCHEN · Chef Aka · Доступ контролируется на сервере через Supabase RLS. Копии файлов, уже сохранённые покупателем, не могут быть отозваны дистанционно.</footer>
 </main>
-<script src="assets/product-photo-map-20261104.js?v=2"></script>
+<script src="assets/product-photo-map-20261104.js?v=3"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -81,6 +81,12 @@ const $=id=>document.getElementById(id);let assets=new Map(),archive=[],grants=n
 let visibleLimit=12,favoritesOnly=false,deepLinkedOnce=false;const FAVORITES_KEY='fk_kitchen_favorites_v2';
 let favorites=new Set();try{const a=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');if(Array.isArray(a))favorites=new Set(a.filter(id=>typeof id==='string'&&DATA.some(r=>r.id===id)))}catch{}
 const CHEF_ITEM_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
+// Exact visual overrides for PF-014 and PF-015 (light vs. dark trout cuts).
+// The private original TTK PDF access is unchanged.
+const PF_DISPLAY_PHOTOS=Object.freeze({
+ 'ТТК-ПФ-014':'assets/photos/trout_pf014_light_v4.webp',
+ 'ТТК-ПФ-015':'assets/photos/trout_pf015_dark_v4.webp'
+});
 const MISSING_PHOTO_LABELS={
  'FK-A4-019':'КУРИЦА','FK-A4-022':'КРАБ',
  'FK-A4-049':'КРАБ','FK-A4-051':'КУРИЦА'
@@ -193,7 +199,7 @@ function renderCards(){
   fav.addEventListener('click',()=>{favorites.has(r.id)?favorites.delete(r.id):favorites.add(r.id);saveFavorites();renderCards()});
   header.append(code,fav);
   const media=document.createElement('div');media.className='fk-recipe-media';
-  const src=r.t==='dish'?CHEF_ITEM_PHOTOS[r.id]:null;
+  const src=r.t==='dish'?CHEF_ITEM_PHOTOS[r.id]:(PF_DISPLAY_PHOTOS[r.id]||null);
   if(src){
    const img=document.createElement('img');img.src=src;img.className='fk-exact-photo';
    img.loading='lazy';img.decoding='async';img.alt='Фото блюда '+r.n;
@@ -213,7 +219,7 @@ function renderCards(){
   one.addEventListener('click',()=>downloadSingleTTK(r,one));
   actions.append(view,one);
   el.append(header,media,title,note,actions);
-  if(r.t==='prep'&&assetReady('pf_photo_'+r.id.slice(-3))){
+  if(r.t==='prep'&&!PF_DISPLAY_PHOTOS[r.id]&&assetReady('pf_photo_'+r.id.slice(-3))){
    const photoKey='pf_photo_'+r.id.slice(-3);
    const pv=document.createElement('button');pv.className='btn tiny alt';pv.textContent='Показать фото ПФ';pv.style.marginTop='11px';
    pv.addEventListener('click',async()=>{
