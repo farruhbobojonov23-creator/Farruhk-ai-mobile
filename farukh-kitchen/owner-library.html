@@ -45,6 +45,11 @@ a{color:#4f65ae}
 </section>
 <section class="panel hidden" id="userPanel">
 <div class="row"><strong id="userEmail">—</strong><button id="logout" type="button" class="subtle">Выйти</button></div>
+<details style="margin-top:17px"><summary style="cursor:pointer;font-weight:850">Установить пароль: вход без почтовых ссылок</summary>
+<p class="muted"><small>Если вы уже вошли, установите надёжный пароль и в дальнейшем пользуйтесь кнопкой «Войти по паролю». Повторные письма Supabase не потребуются.</small></p>
+<div class="row"><input id="ownerSavePassword1" type="password" autocomplete="new-password" maxlength="72" placeholder="Новый пароль (от 12 символов)" aria-label="Новый пароль"><input id="ownerSavePassword2" type="password" autocomplete="new-password" maxlength="72" placeholder="Повторите пароль" aria-label="Повторите пароль"></div>
+<button id="ownerSavePassword" type="button" class="subtle" style="margin-top:12px">Сохранить пароль</button>
+<p id="ownerSavePasswordState" class="muted" role="status" aria-live="polite"></p></details>
 </section>
 <section class="panel hidden" id="claimPanel">
 <div class="kicker">ШАГ 2 · ПОДТВЕРЖДЕНИЕ ВЛАДЕЛЬЦА</div><h2>Защитить право администратора</h2>
@@ -366,6 +371,19 @@ $('loginWithPassword').addEventListener('click',async()=>{
  try{const {error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;$('loginPassword').value='';await refresh()}
  catch(e){status('Вход не выполнен: '+(e.message||'ошибка'),true)}
  finally{$('loginWithPassword').disabled=false}
+});
+$('ownerSavePassword').addEventListener('click',async()=>{
+ const p=$('ownerSavePassword1').value,q=$('ownerSavePassword2').value,t=$('ownerSavePasswordState'),b=$('ownerSavePassword');
+ if(p.length<12||p.length>72){t.textContent='Пароль: от 12 до 72 символов.';return}
+ if(p!==q){t.textContent='Пароли не совпадают.';return}
+ b.disabled=true;t.textContent='Сохраняю…';
+ try{
+  const {data:{user:current}}=await sb.auth.getUser();if(!current)throw Error('Войдите в аккаунт');
+  const {error}=await sb.auth.updateUser({password:p});if(error)throw error;
+  $('ownerSavePassword1').value='';$('ownerSavePassword2').value='';
+  t.textContent='Пароль установлен. Теперь входите по почте и паролю без писем.';
+ }catch(e){t.textContent='Ошибка: '+(e?.message||'не удалось сохранить')+'. Для смены пароля может понадобиться повторный вход.'}
+ finally{b.disabled=false}
 });
 $('logout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
 $('claimOwner').addEventListener('click',async()=>{
