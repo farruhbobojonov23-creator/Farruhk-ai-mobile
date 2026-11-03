@@ -37,11 +37,11 @@
 </details></section>
 <div id="feedback" role="status" aria-live="polite"></div>
 <section id="libraryPanel" class="hidden">
-<div class="guide" id="notice">Файлы новой редакции подготовлены и находятся в закрытом хранилище. До проверки и выпуска их не могут скачивать покупатели.</div>
+<div class="guide" id="notice">Документы доступны только покупателям с активным тарифом. Перед производственным применением необходима дополнительная проверка фактических выходов, аллергенов и условий хранения.</div>
 <div class="panel hidden" id="ownerPreviewPanel" style="border:2px solid #b28b4f;background:#fff9ed">
  <div class="eyebrow">ВЛАДЕЛЕЦ · ТЕСТОВЫЙ ПРОСМОТР · НЕ ДЛЯ ПРОИЗВОДСТВА</div>
  <h2>Проверка документов до продажи</h2>
- <p class="muted small">Ваш аккаунт подтверждён как владелец. Можно открыть и скачать уже загруженные PDF и фотографии без публикации и без выдачи клиентам. Тариф покупателя и права клиентов не изменяются.</p>
+ <p class="muted small">Ваш аккаунт подтверждён как владелец. Можно открывать все PDF и фотографии для проверки. Покупатели видят только документы своего активного тарифа, права клиентов не изменяются.</p>
  <div class="row" style="margin-top:14px">
   <button type="button" id="ownerStartView" class="btn">Проверить SHEF START · 78 карт</button>
   <button type="button" id="ownerProView" class="btn alt">Проверить SHEF PRO · 93 карты</button>
@@ -116,8 +116,8 @@ function renderPackageFiles(){
  if(!archive.length)plain(old,'Доступных архивных документов нет.');
  const complete=['pro_dishes_pdf','start_dishes_pdf','common_preps_pdf','pro_instructions_pdf'].every(k=>assets.has(k));
  $('notice').textContent=isOwnerPreview
- ?'🔒 РЕЖИМ ВЛАДЕЛЬЦА: документы загружены, но пока не выпущены для покупателей. Предпросмотр не означает готовность ТТК для производства.'
- :complete?'Редакция 03.11.2026 доступна согласно вашему активному тарифу.'
+ ?'РЕЖИМ ВЛАДЕЛЬЦА: выдача клиентам с активным тарифом разрешена. Перед применением ТТК в производстве необходимо подтвердить технологические выходы, аллергены и сроки хранения.'
+ :complete?'Редакция 03.11.2026 доступна по вашему активному тарифу. Перед применением в производстве необходимы контрольные проработки и проверка аллергенов и сроков хранения.'
  :'Редакция 03.11.2026 находится на проверке. Новые PDF закрыты для покупателей, хотя уже загружены; архив 30.10 хранится отдельно.';
 }
 function pageFor(row,plan){const n=Number(row.id.slice(-3));if(row.t==='prep')return n;if(plan==='pro')return n;return START_ORDER.indexOf(n)+1;}
@@ -168,7 +168,7 @@ async function refresh(){
  :activePlan?(activePlan==='pro'?'Активен SHEF PRO · доступны также материалы START':'Активен SHEF START')+(expiry?' · до '+new Date(expiry).toLocaleDateString('ru-RU'):'')
  :'Нет активного доступа. Для активации обратитесь к владельцу.';
  show('ownerPreviewPanel',isOwnerPreview);
- if(isOwnerPreview)$('ownerPreviewState').textContent='Открыты для проверки '+assets.size+' файлов. Покупателям не предоставлено право скачивания. Выбран '+(activePlan==='pro'?'SHEF PRO':'SHEF START')+'.';
+ if(isOwnerPreview)$('ownerPreviewState').textContent='Открыты для проверки '+assets.size+' файлов. Покупатели с действующим доступом скачивают только свой тариф. Выбран '+(activePlan==='pro'?'SHEF PRO':'SHEF START')+'.';
  renderPackageFiles();
  if(activePlan){$('recipesPanel').classList.remove('hidden');categories();renderCards()}
  else{$('recipesPanel').classList.add('hidden')}
@@ -184,7 +184,7 @@ async function login(kind){
 function changeOwnerPreview(plan){
  if(!isOwnerPreview||!['start','pro'].includes(plan))return;
  activePlan=plan;
- $('ownerPreviewState').textContent='Закрытый предпросмотр '+(plan==='pro'?'SHEF PRO · 93 карты':'SHEF START · 78 карт')+'. Для покупателей материалы не опубликованы.';
+ $('ownerPreviewState').textContent='Закрытый предпросмотр '+(plan==='pro'?'SHEF PRO · 93 карты':'SHEF START · 78 карт')+'. Покупатели видят только свой оплаченный тариф.';
  categories();renderCards();renderPackageFiles();
 }
 $('ownerStartView').addEventListener('click',()=>changeOwnerPreview('start'));
