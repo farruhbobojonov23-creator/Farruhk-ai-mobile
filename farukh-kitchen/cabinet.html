@@ -71,6 +71,7 @@
 </section>
 <footer class="footer">FARUKH KITCHEN · Chef Aka · Доступ контролируется на сервере через Supabase RLS. Копии файлов, уже сохранённые покупателем, не могут быть отозваны дистанционно.</footer>
 </main>
+<script src="assets/product-photo-map-20261104.js?v=1"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -79,7 +80,13 @@ const START_ORDER=[1,2,3,4,10,11,12,13,14,15,16,17,18,19,21,22,23,25,27,28,31,32
 const $=id=>document.getElementById(id);let assets=new Map(),archive=[],grants=new Set(),activePlan=null,refreshCount=0,isOwnerPreview=false;
 let visibleLimit=12,favoritesOnly=false,deepLinkedOnce=false;const FAVORITES_KEY='fk_kitchen_favorites_v2';
 let favorites=new Set();try{const a=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');if(Array.isArray(a))favorites=new Set(a.filter(id=>typeof id==='string'&&DATA.some(r=>r.id===id)))}catch{}
-const CARD_ART={'Холодные роллы':'cold','Запечённые роллы':'baked','Темпура':'tempura','Маки':'maki','Суши':'sushi','Гунканы':'gunkan','Онигири':'onigiri','WOK':'wok','Закуски':'snacks'};
+const CHEF_ITEM_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
+function photoUnavailable(media,isPrep){
+ const label=document.createElement('div');label.className='fk-missing-photo';
+ const sign=document.createElement('strong');sign.textContent=isPrep?'PF':'FK';
+ const message=document.createElement('small');message.textContent=isPrep?'Фото ПФ в комплекте':'Фото товара готовится';
+ label.append(sign,message);media.replaceChildren(label);
+}
 function saveFavorites(){try{localStorage.setItem(FAVORITES_KEY,JSON.stringify([...favorites]))}catch{}}
 let photos=new Map(),photoBlobUrls=new Map();
 const show=(id,v)=>$(id).classList.toggle('hidden',!v);
@@ -180,11 +187,13 @@ function renderCards(){
   fav.addEventListener('click',()=>{favorites.has(r.id)?favorites.delete(r.id):favorites.add(r.id);saveFavorites();renderCards()});
   header.append(code,fav);
   const media=document.createElement('div');media.className='fk-recipe-media';
-  const art=CARD_ART[r.c];
-  if(r.t==='dish'&&art){
-   const img=document.createElement('img');img.src='assets/food-cutouts/'+art+'.webp';
-   img.loading='lazy';img.decoding='async';img.alt='Иллюстрация категории '+r.c;media.append(img);
-  }else{const icon=document.createElement('strong');icon.style.cssText='font:italic 33px Georgia,serif;color:#7899a9';icon.textContent='PF';media.append(icon)}
+  const src=r.t==='dish'?CHEF_ITEM_PHOTOS[r.id]:null;
+  if(src){
+   const img=document.createElement('img');img.src=src;img.className='fk-exact-photo';
+   img.loading='lazy';img.decoding='async';img.alt='Фото блюда '+r.n;
+   img.onerror=()=>photoUnavailable(media,false);
+   media.append(img);
+  }else photoUnavailable(media,r.t==='prep');
   const title=document.createElement('h4');title.textContent=r.n;
   const note=document.createElement('div');note.className='muted small';note.style.marginBottom='12px';
   note.textContent=r.c+(r.w==null?'':' · выход '+r.w+' г (расч.)');
