@@ -2,7 +2,8 @@
  * Mapping was migrated by product NAMES, not legacy FK IDs, from chef-approved
  * originals already in the site's own repository. Legacy FK IDs had different
  * numbering! Do not fall back to an unrelated category photo.
- * Four products still lack a safe individual photo: 019, 022, 049, 051.
+ * User supplied chicken and crab photos; the same ingredient photo is reused
+ * in baked and gunkan listings. The paired gunkan image illustrates the category.
  * Photo paths are public product pictures; paid recipe PDFs stay private.
  */
 window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
@@ -24,8 +25,10 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-016": "assets/photos/product-enhancer-20261029-2.webp",
   "FK-A4-017": "assets/photos/product-enhancer-20261029-v2-3.webp",
   "FK-A4-018": "assets/photos/product-enhancer-20261029-1.webp",
+  "FK-A4-019": "assets/photos/gunkan_chicken_20261104.webp",
   "FK-A4-020": "assets/photos/app-real-photos-20261029-2.webp",
   "FK-A4-021": "assets/photos/product-enhancer-20261029-v2-1.webp",
+  "FK-A4-022": "assets/photos/gunkan_crab_20261104.webp",
   "FK-A4-023": "assets/photos/product-photos-20261029-4.webp",
   "FK-A4-024": "assets/photos/chef-corrected-4-final-20261029-1.webp",
   "FK-A4-025": "assets/photos/chef-actual-048-059-1.webp",
@@ -52,7 +55,9 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-046": "assets/user-photos/sushi-shrimp-43740.webp",
   "FK-A4-047": "assets/user-photos/sushi-salmon-43742.webp",
   "FK-A4-048": "assets/user-photos/sushi-eel-43739.webp",
+  "FK-A4-049": "assets/photos/gunkan_crab_20261104.webp",
   "FK-A4-050": "assets/user-photos/batch4-gunkan-shrimp.webp",
+  "FK-A4-051": "assets/photos/gunkan_chicken_20261104.webp",
   "FK-A4-052": "assets/user-photos/batch4-gunkan-salmon.webp",
   "FK-A4-053": "assets/user-photos/onigiri-chicken-43737.webp",
   "FK-A4-054": "assets/user-photos/snack-fries-43703.webp",
@@ -62,3 +67,4 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-058": "assets/user-photos/snack-mussels-cheese-43697.webp",
   "FK-A4-059": "assets/user-photos/snack-mussels-spicy-43696.webp"
 });
+window.FK_CATEGORY_GUNKAN_PHOTO='assets/photos/gunkan_pair_20261104.webp';
