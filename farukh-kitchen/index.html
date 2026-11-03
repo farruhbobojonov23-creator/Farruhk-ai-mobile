@@ -1,89 +1,116 @@
 <!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#05272e" />
-  <meta name="description" content="FARUKH KITCHEN — технологические карты японской кухни и полуфабрикатов. Демонстрационная версия платформы." />
-  <title>FARUKH KITCHEN — Технологии японской кухни</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-<style>/* Intrinsic icon safety while styles load. */.petrol-tech-row svg{width:28px;height:28px;max-width:28px;fill:none;stroke:currentColor;stroke-width:1.4}@media screen{.plans-grid.shef-plans{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-composition{margin:14px 0}.plan-composition div{display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid #ffffff18}.plan-composition dd{margin:0;color:#e7cc91;font-weight:700}.shef-plans .plan{min-width:0}.shef-plans h4{margin:0}}@media screen and (max-width:760px){.plans-grid.shef-plans{grid-template-columns:1fr}}</style>
-  <link rel="stylesheet" href="assets/styles-cutouts-20261029.css" />
-  <link rel="stylesheet" href="assets/product-photo-overrides-20261029-v2.css" />
-  <link rel="stylesheet" href="assets/chef-user-photos-20261029.css" />
-  <link rel="stylesheet" href="assets/buyer-cabinet-20261030.css?v=1" />
-
-
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06131f">
+<meta name="description" content="FARUKH KITCHEN от Chef Aka — технологические карты японской кухни. SHEF START 44 ТТК, SHEF PRO 59 ТТК, 34 полуфабриката. Защищённый личный кабинет, доступ по заявке.">
+<meta property="og:title" content="FARUKH KITCHEN — профессиональные ТТК японской кухни">
+<meta property="og:description" content="44 ТТК START · 59 ТТК PRO · 34 полуфабриката. Авторская технологическая база Chef Aka.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="assets/food-cutouts/cold.webp">
+<link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104">
+<title>FARUKH KITCHEN — технологические карты японской кухни · Chef Aka</title>
 </head>
-<body>
-
-  <div class="site-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Основная навигация">
-      <div class="sidebar-top"><button type="button" class="sidebar-close" id="sidebar-close" aria-label="Закрыть меню">✕ <span>Закрыть</span></button>
-        <div class="brand"><div class="brand-symbol"><span>F</span><b>•</b></div><div><strong>FARUKH</strong><span>KITCHEN</span></div></div>
-        <div class="sidebar-label">ТЕХНОЛОГИИ ДЛЯ КУХНИ</div>
-        <nav class="navigation">
-          <button class="nav-link active" data-page="home"><span class="nav-icon">⌂</span><span>Главная</span></button>
-          <a class="nav-link" href="catalog-verified.html" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">▦</span><span>Полный каталог</span><span class="nav-count">93</span></a>
-          <button class="nav-link" data-page="recipes"><span class="nav-icon">▦</span><span>Пробный каталог · демо</span><span class="nav-count">59</span></button>
-          <a class="nav-link" href="pf34.html" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">◈</span><span>ПФ · реестр</span><span class="nav-count">34</span></a>
-          <button class="nav-link" data-page="prep"><span class="nav-icon">◈</span><span>Демо ПФ</span><span class="nav-count">7</span></button>
-          <button class="nav-link" data-page="calculator"><span class="nav-icon">◫</span><span>Калькулятор</span></button>
-          <a class="nav-link" href="catalog-verified.html?plan=start" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">◇</span><span>SHEF START / PRO</span></a>
-          <a class="nav-link" href="demo-ttk.html" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">▤</span><span>Демо ТТК А4 · 4</span></a>
-          <a class="nav-link" href="catalog-verified.html?plan=pro" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">◇</span><span>START / PRO · состав</span></a>
-          <button class="nav-link" data-page="how"><span class="nav-icon">ⓘ</span><span>Как это работает</span></button>
-        </nav>
-        <div class="sidebar-label tools-label">ДЛЯ ПОКУПАТЕЛЯ</div>
-        <nav class="navigation">
-          <a class="nav-link" href="cabinet.html" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">▤</span><span>Кабинет покупателя</span></a>
-          <a class="nav-link" href="cabinet.html" style="display:flex;align-items:center;text-decoration:none"><span class="nav-icon">🔒</span><span>Закрытые ТТК · вход</span></a>
-          <button class="nav-link" data-page="saved"><span class="nav-icon">♡</span><span>Избранное</span></button>
-          <button class="nav-link" data-page="workspace"><span class="nav-icon">✎</span><span>Данные ресторана · демо</span></button>
-        </nav>
-      </div>
-      <div class="sidebar-bottom">
-        <div class="sidebar-box"><span class="tiny-glow">✦</span><strong>Технология без франшизы</strong><p>Ознакомьтесь с демонстрационными примерами карт и каталогом пакетов.</p><a class="small-sidebar-button" href="catalog-verified.html?plan=start" style="display:block;text-align:center;text-decoration:none">Смотреть пакеты →</a></div>
-        <div class="sidebar-version"><span class="green-dot"></span> FARUKH KITCHEN <span>2026</span></div>
-      </div>
-    </aside>
-
-    <div class="main-area">
-      <header class="topbar">
-        <div class="topbar-left"><button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню">☰</button><div class="breadcrumb">Платформа <span>/</span> <strong id="breadcrumb-current">Главная</strong></div></div>
-        <div class="topbar-actions"><div class="demo-pill"><span class="green-dot"></span> КАТАЛОГ</div><div class="avatar" title="Демо-каталог">FK</div></div>
-      </header>
-      <div class="fk-disclaimer">SHEF START — 44 ТТК · SHEF PRO — 59 ТТК · материалы находятся в закрытой библиотеке, проверка безопасности не завершена · <a href="cabinet.html" style="color:#d0ac64;font-weight:800;text-decoration:underline">Войти в закрытый кабинет</a> · <a href="packages-status.html" style="color:#d0ac64;font-weight:800;text-decoration:underline">Состав пакетов</a> · Онлайн-оплата пока отключена · Заявки принимаются</div>
-      <div style="max-width:1250px;margin:14px auto 4px;padding:0 18px">
-       <div style="background:linear-gradient(115deg,#0e3844,#1c4e52);border:1px solid #577478;border-radius:16px;padding:17px 20px;color:#e7f3f3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-        <div><strong style="font-size:18px">Получить ТТК SHEF START или PRO</strong><div style="font-size:13px;opacity:.9">Оставьте заявку на сайте — шеф сам напишет вам в Telegram или позвонит. Без регистрации и писем.</div></div>
-        <a href="request-access.html" style="display:inline-block;background:#f1d19a;color:#112d38;font-weight:850;padding:13px 17px;border-radius:12px;text-decoration:none">Оставить заявку →</a>
-       </div></div>
-      <main id="main" tabindex="-1"></main>
-      <footer><span>© FARUKH KITCHEN · Chef Aka</span><span>Chef Aka · Каталог авторских фотографий.</span></footer>
+<body class="fk-site" id="top">
+<a href="#main" style="position:absolute;left:-9999px;top:5px;background:#fff;color:#071927;padding:8px;z-index:40" onfocus="this.style.left='12px'" onblur="this.style.left='-9999px'">Перейти к содержимому</a>
+<header class="fk-nav">
+ <div class="fk-shell fk-nav-in">
+  <a class="fk-logo" href="index.html" aria-label="FARUKH KITCHEN — главная"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
+  <button class="fk-menu" id="fkMenu" type="button" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
+  <nav class="fk-nav-links" id="fkMenuLinks" aria-label="Главная навигация">
+   <a href="#plans">Тарифы</a>
+   <a href="catalog-verified.html?plan=pro">Каталог</a>
+   <a href="demo-ttk.html">Образец ТТК</a>
+   <a href="#chef">О шефе</a>
+   <a href="cabinet.html">Личный кабинет</a>
+   <a href="request-access.html" class="fk-nav-cta">Получить доступ ↗</a>
+  </nav>
+ </div>
+</header>
+<main id="main">
+ <section class="fk-hero">
+  <div class="fk-shell fk-hero-grid">
+   <div class="fk-hero-copy">
+    <div class="fk-eyebrow">CHEF AKA · БИБЛИОТЕКА ТЕХНОЛОГИЙ</div>
+    <h1>Японская кухня.<br><span>Технология<br>в деталях.</span></h1>
+    <p class="fk-hero-sub">Авторские технологические карты роллов, суши, WOK и полуфабрикатов. Структурированная база для профессиональной кухни — от рецептуры до технологических инструкций.</p>
+    <div class="fk-actions">
+     <a class="fk-btn fk-btn-primary" href="catalog-verified.html?plan=start">Смотреть каталог <span aria-hidden="true">↗</span></a>
+     <a class="fk-btn fk-btn-outline" href="request-access.html">Получить доступ</a>
     </div>
+    <div class="fk-hero-trust"><span>Формат A4</span><span>Личный кабинет</span><span>START и PRO</span></div>
+   </div>
+   <div class="fk-hero-visual">
+    <div class="fk-orbit" aria-hidden="true"></div>
+    <img src="assets/food-cutouts/cold.webp" alt="Иллюстрация ролла японской кухни на тёмном фоне" width="520" height="435" decoding="async" fetchpriority="high">
+    <div class="fk-visual-tag"><strong>CHEF’S COLLECTION</strong>Профессиональная библиотека ТТК</div>
+   </div>
   </div>
-  <nav class="bottom-nav" aria-label="Нижняя навигация">
- <button type="button" class="bottom-link active" data-page="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><small>Главная</small></button>
- <a class="bottom-link" href="catalog-verified.html" aria-label="Полный каталог ТТК" style="text-decoration:none"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><small>Каталог</small></a>
- <button type="button" class="bottom-link" data-page="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg><small>Избранное</small></button>
- <a class="bottom-link" href="catalog-verified.html?plan=start" aria-label="Пакеты ТТК" style="text-decoration:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v13H4zM3 5h18v3H3zM12 5v16M9 5c-4-4-5 1-2 1h5M15 5c4-4 5 1 2 1h-5"/></svg><small>Пакеты</small></a>
- <a class="bottom-link" href="cabinet.html" aria-label="Защищённый личный кабинет" style="text-decoration:none"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-7 8-7s8 2 8 7"/></svg><small>Кабинет</small></a>
-</nav>
-<div class="mobile-backdrop" id="mobile-backdrop"></div>
-  <div id="modal-root"></div>
-  <div id="toast" role="status" aria-live="polite"></div>
-  <script src="assets/catalog-data-4eebdc24d2d8.js?v=trout-20261029-1" defer></script>
-  <script src="assets/ttk-source-index-20261029.js?v=chef-trout-20261029-2" defer></script>
-  <script src="assets/product-photos-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/product-enhancer-20261029-v2.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/product-enhancer-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/chef-photo-corrections-20261029.js?v=chef-confirmed-legend-mozzarella" defer></script>
-  <script src="assets/app-real-photos-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/chef-corrected-4-final-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/chef-fila-slivochnaya-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/chef-actual-044-047-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/chef-actual-048-059-20261029.js?v=webp-native-20261030-1" defer></script>
-  <script src="assets/app-chef-photos-20261029-batch3.js?v=buyer-prelaunch-20261030-1" defer></script>
-</body>
-</html>
+ </section>
+ <div class="fk-shell fk-metrics" aria-label="Состав базы">
+  <div class="fk-metric"><b>44</b><span>ТТК SHEF START</span></div>
+  <div class="fk-metric"><b>59</b><span>ТТК SHEF PRO</span></div>
+  <div class="fk-metric"><b>34</b><span>ТТК полуфабрикатов</span></div>
+  <div class="fk-metric"><b>59</b><span>инструкций в PRO</span></div>
+ </div>
+ <section class="fk-section" id="categories">
+  <div class="fk-shell">
+   <div class="fk-section-head"><div><div class="fk-eyebrow">ОДНА БИБЛИОТЕКА · ВСЯ ЯПОНСКАЯ КУХНЯ</div><h2 class="fk-section-title">От Филадельфии <span>до WOK.</span></h2><p class="fk-lead">Изучайте позиции по категориям. Полные рецептуры доступны только авторизованным покупателям с активным тарифом.</p></div><a class="fk-text-link" href="catalog-verified.html?plan=pro">Открыть весь каталог ↗</a></div>
+   <div class="fk-category-grid"><a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%A5%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D1%8B%D0%B5%20%D1%80%D0%BE%D0%BB%D0%BB%D1%8B"><div class="fk-category-copy"><strong>Холодные роллы</strong><small>15 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/cold.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%97%D0%B0%D0%BF%D0%B5%D1%87%D1%91%D0%BD%D0%BD%D1%8B%D0%B5%20%D1%80%D0%BE%D0%BB%D0%BB%D1%8B"><div class="fk-category-copy"><strong>Запечённые роллы</strong><small>15 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/baked.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%A2%D0%B5%D0%BC%D0%BF%D1%83%D1%80%D0%B0"><div class="fk-category-copy"><strong>Темпура</strong><small>4 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/tempura.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%9C%D0%B0%D0%BA%D0%B8"><div class="fk-category-copy"><strong>Маки</strong><small>4 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/maki.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%A1%D1%83%D1%88%D0%B8"><div class="fk-category-copy"><strong>Суши и гунканы</strong><small>7 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/sushi.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%9E%D0%BD%D0%B8%D0%B3%D0%B8%D1%80%D0%B8"><div class="fk-category-copy"><strong>Онигири</strong><small>4 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/onigiri.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=WOK"><div class="fk-category-copy"><strong>WOK</strong><small>4 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/wok.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=dish&cat=%D0%97%D0%B0%D0%BA%D1%83%D1%81%D0%BA%D0%B8"><div class="fk-category-copy"><strong>Закуски</strong><small>6 ТТК · в SHEF PRO</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/snacks.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a>
+<a class="fk-category-card" href="catalog-verified.html?plan=pro&kind=prep&cat=all"><div class="fk-category-copy"><strong>Полуфабрикаты</strong><small>34 ТТК · в обоих пакетах</small><b aria-hidden="true">↗</b></div><img src="assets/food-cutouts/gunkan.webp" loading="lazy" decoding="async" alt="" aria-hidden="true"></a></div>
+   <p style="font-size:12px;color:#8fb1bc;margin-top:13px">Изображения категорий носят иллюстративный характер и не являются фотоэталонами конкретных ТТК.</p>
+  </div>
+ </section>
+ <section class="fk-section fk-section-light" id="plans">
+  <div class="fk-shell">
+   <div class="fk-eyebrow" style="color:#9a6c32">ДВА ПАКЕТА · ОДНА СИСТЕМА</div>
+   <h2 class="fk-section-title">Выберите масштаб <span>вашей кухни.</span></h2>
+   <p class="fk-lead">Чёткое содержание тарифов, без скрытых категорий. Стоимость согласовывается с владельцем при оформлении заявки.</p>
+   <div class="fk-plan-grid">
+    <article class="fk-plan"><div class="fk-plan-top"><span class="fk-plan-label">БАЗОВЫЙ КОМПЛЕКТ</span></div><h3>SHEF START</h3><p class="fk-plan-desc">Основные позиции японской кухни для запуска и стандартизации меню.</p>
+     <div class="fk-plan-figures"><div><b>44</b><span>ТТК блюд</span></div><div><b>34</b><span>ТТК ПФ</span></div><div><b>78</b><span>карт в базе</span></div></div>
+     <ul><li>Холодные и запечённые роллы</li><li>Маки, суши, гунканы, темпура</li><li>Онигири, WOK и закуски</li><li>Защищённый просмотр и скачивание PDF</li></ul>
+     <a class="fk-btn fk-btn-light" href="catalog-verified.html?plan=start">Посмотреть состав START ↗</a><a class="fk-btn fk-btn-primary" href="request-access.html?plan=start" style="margin-top:10px">Оставить заявку START</a>
+    </article>
+    <article class="fk-plan highlight"><div class="fk-plan-top"><span class="fk-plan-label">РАСШИРЕННЫЙ КОМПЛЕКТ</span><span class="fk-recommend">ВСЁ В ОДНОМ</span></div><h3>SHEF PRO</h3><p class="fk-plan-desc">Полная коллекция блюд с дополнительными технологическими инструкциями.</p>
+     <div class="fk-plan-figures"><div><b>59</b><span>ТТК блюд</span></div><div><b>34</b><span>ТТК ПФ</span></div><div><b>59</b><span>инструкций</span></div></div>
+     <ul><li>Все позиции START + 15 дополнительных блюд</li><li>Полуфабрикаты в полном объёме</li><li>59 отдельных инструкций приготовления</li><li>Защищённый просмотр и скачивание PDF</li></ul>
+     <a class="fk-btn fk-btn-light" href="catalog-verified.html?plan=pro">Посмотреть состав PRO ↗</a><a class="fk-btn fk-btn-primary" href="request-access.html?plan=pro" style="margin-top:10px">Оставить заявку PRO</a>
+    </article>
+   </div>
+   <p class="fk-plan-note">Не является франшизой. Выдача материалов осуществляется после ручной проверки заявки и оплаты. Перед использованием ТТК на производстве необходимо подтвердить фактические выходы, аллергены и режимы хранения.</p>
+  </div>
+ </section>
+ <section class="fk-section fk-section-dark" id="how">
+  <div class="fk-shell">
+   <div class="fk-section-head"><div><div class="fk-eyebrow">КАК ПОЛУЧИТЬ ДОСТУП</div><h2 class="fk-section-title">Три простых <span>шага.</span></h2><p class="fk-lead">Без сложной регистрации и подтверждений по электронной почте.</p></div><a class="fk-text-link" href="demo-ttk.html">Посмотреть образец документа ↗</a></div>
+   <div class="fk-steps">
+    <div class="fk-step"><div class="fk-step-number">01 / ВЫБОР</div><h3>Изучите каталог</h3><p>Сравните состав SHEF START и SHEF PRO, посмотрите открытый образец оформления ТТК.</p></div>
+    <div class="fk-step"><div class="fk-step-number">02 / ЗАЯВКА</div><h3>Оставьте контакт</h3><p>Укажите свой Telegram или телефон. Шеф сам свяжется с вами и согласует условия.</p></div>
+    <div class="fk-step"><div class="fk-step-number">03 / ДОСТУП</div><h3>Получите логин</h3><p>После подтверждения оплаты вы получите персональный логин и пароль для закрытой библиотеки.</p></div>
+   </div>
+  </div>
+ </section>
+ <section class="fk-section" id="chef">
+  <div class="fk-shell fk-about">
+   <div class="fk-about-signature" aria-label="Chef Aka"><span>A</span><small>CHEF AKA · JAPANESE CUISINE</small></div>
+   <div><div class="fk-eyebrow">АВТОР ПРОЕКТА</div><h2 class="fk-section-title">Подход <span>бренд-шефа.</span></h2><p><b>FARUKH KITCHEN</b> — персональная база технологических карт от Chef Aka, бренд-шефа японской кухни. Я создаю рецептуры с акцентом на повторяемость блюд, понятные заготовки и удобство работы команды.</p><p>Каждая ТТК оформляется в читаемом формате А4; комплект включает готовые блюда и полуфабрикаты.</p><a class="fk-btn fk-btn-outline" href="demo-ttk.html">Посмотреть оформление ТТК ↗</a></div>
+  </div>
+ </section>
+ <section class="fk-section" style="padding-top:0"><div class="fk-shell">
+  <div class="fk-cta"><div><div class="fk-eyebrow">FARUKH KITCHEN / PRIVATE ACCESS</div><h2>Начните с каталога.<br>Продолжите с технологией.</h2><p>Оставьте заявку — я свяжусь с вами лично.</p></div><a class="fk-btn fk-btn-primary" href="request-access.html">Получить доступ ↗</a></div>
+ </div></section>
+</main>
+<footer class="fk-footer"><div class="fk-shell"><div class="fk-footer-grid"><a class="fk-logo" href="#top"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em></span></a><div class="fk-footer-links"><a href="catalog-verified.html?plan=start">Каталог</a><a href="demo-ttk.html">Образец ТТК</a><a href="cabinet.html">Кабинет</a><a href="request-access.html">Заявка</a></div></div>
+ <p class="fk-warning">© 2026 FARUKH KITCHEN · Chef Aka. Изображения блюд в открытом каталоге могут быть иллюстративными. Показатели выходов и КБЖУ являются расчётными, если не подтверждены контрольной проработкой. Сведения не заменяют внутреннюю проверку технологической документации и требований безопасности пищевой продукции.</p></div></footer>
+<script>
+(()=>{const b=document.getElementById('fkMenu'),n=document.getElementById('fkMenuLinks');b.addEventListener('click',()=>{const v=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(v));n.classList.toggle('is-open',v);b.textContent=v?'✕':'☰'});n.addEventListener('click',e=>{if(e.target.closest('a')){n.classList.remove('is-open');b.setAttribute('aria-expanded','false');b.textContent='☰'}})})();
+</script>
+</body></html>
