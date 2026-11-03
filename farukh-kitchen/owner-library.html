@@ -58,6 +58,30 @@ a{color:#4f65ae}
 <p class="muted"><small>Эта операция однократная: после первого успешного подтверждения новых администраторов автоматически не создаём.</small></p>
 </section>
 <section id="adminPanel" class="hidden">
+<section class="panel" id="fkRequestsBox" style="border:2px solid #6da7a4;background:#f1fcfa">
+ <div class="kicker" style="color:#287b71">НОВЫЙ СПОСОБ ВЫДАЧИ · БЕЗ ПОЧТЫ И SMTP</div>
+ <h2>Заявки от покупателей</h2>
+ <p>Покупателю больше не нужно искать ваш телефон или Telegram. На <a href="request-access.html" target="_blank" rel="noopener noreferrer">странице заявки</a> он указывает <b>свой Telegram или телефон</b>. Вы видите запрос здесь и связываетесь с ним самостоятельно.</p>
+ <p class="muted"><small>Сначала согласуйте оплату лично. Только после проверки оплаты создайте логин и пароль. Доступ к закрытым ТТК до завершения производственной проверки всё равно остаётся отключённым.</small></p>
+ <div class="row">
+  <button id="fkRequestsRefresh" class="subtle" type="button">Обновить заявки</button>
+  <div><label for="fkNewAccountExpiry">Срок доступа до (необязательно)</label><input type="date" id="fkNewAccountExpiry" aria-label="Срок доступа до"></div>
+ </div>
+ <p class="muted"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:750"><input type="checkbox" id="fkPaidConfirmed" style="width:auto;min-width:auto"> Подтверждаю: оплату получил(а) и лично проверил(а)</label></p>
+ <div class="tablewrap"><table><thead><tr><th>Дата / имя</th><th>Пакет</th><th>Как связаться</th><th>Статус</th><th>Действие</th></tr></thead><tbody id="fkRequestsBody"><tr><td colspan="5">Проверяю заявки…</td></tr></tbody></table></div>
+ <div id="fkCredentialsWrap" class="hidden" style="border:2px solid #70a59d;border-radius:12px;padding:17px;background:#e0faf3;margin-top:18px">
+  <h3>Личные данные покупателя · покажем один раз</h3>
+  <p class="muted"><small>Скопируйте и отправьте покупателю лично через его контакт. Не публикуйте пароль в общем чате. Система хранит только защищённую версию пароля.</small></p>
+  <textarea id="fkCredentials" readonly aria-label="Логин и пароль покупателя" rows="7" style="width:100%;padding:12px;border:1px solid #90bdb4;border-radius:9px;font:inherit;resize:vertical"></textarea>
+  <button type="button" class="subtle" id="fkCopyCredentials" style="margin-top:10px">Скопировать данные для отправки</button>
+ </div>
+ <p id="fkRequestsStatus" class="status" role="status" aria-live="polite">Ожидаю заявок.</p>
+</section>
+<section class="panel" id="fkManagedAccounts">
+ <h2>Логины покупателей</h2>
+ <p class="muted"><small>Здесь можно сбросить пароль покупателя или отозвать его доступ. Пароли не сохраняются в таблице.</small></p>
+ <div class="tablewrap"><table><thead><tr><th>Логин</th><th>Пакет</th><th>Создан</th><th>Управление</th></tr></thead><tbody id="fkAccountsBody"><tr><td colspan="4">Нет созданных логинов.</td></tr></tbody></table></div>
+</section>
 <section class="panel" style="border:2px solid #99b7d4;background:#f4faff">
 <div class="kicker">РЕДАКЦИЯ СОГЛАСОВАНА · 03.11.2026</div>
 <h2>Исправленные ТТК SHEF START / PRO</h2>
@@ -348,6 +372,99 @@ async function uploadReleaseZip(group){
 $('releaseUploadDocs').addEventListener('click',()=>uploadReleaseZip('docs'));
 $('releaseUploadPhotos').addEventListener('click',()=>uploadReleaseZip('images'));
 
+const requestStatus=(txt,bad=false)=>{
+ const node=$('fkRequestsStatus');node.textContent=txt;node.classList.toggle('bad',bad);
+};
+function credentialReveal(login,password,packageCode){
+ const node=$('fkCredentials');
+ node.value='FARUKH KITCHEN — вход в личный кабинет\n\nСайт: https://farukh-kitchen-v02.onrender.com/cabinet.html\nЛогин: '+login+'\nПароль: '+password+'\nПакет: SHEF '+packageCode.toUpperCase()+'\n\nНе передавайте пароль другим. Доступ к файлам будет включён после официального выпуска.';
+ $('fkCredentialsWrap').classList.remove('hidden');
+ $('fkCredentialsWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function invokeOwnerBuyer(payload){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session?.access_token||!isAdmin)throw Error('Сначала войдите в учётную запись владельца.');
+ const res=await fetch('https://rwvljbgsqnabvzmoaxgg.supabase.co/functions/v1/fk-owner-create-buyer',{
+  method:'POST',cache:'no-store',
+  headers:{'Authorization':'Bearer '+session.access_token,'apikey':'sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT','Content-Type':'application/json'},
+  body:JSON.stringify(payload),
+ });
+ const json=await res.json().catch(()=>({ok:false,error:'bad_server_response'}));
+ if(!res.ok||!json.ok)throw Error(json.error||'Ошибка создания аккаунта');
+ return json;
+}
+async function loadBuyerRequests(){
+ if(!isAdmin)return;
+ const [reqRes,logRes]=await Promise.all([
+  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at').order('created_at',{ascending:false}).limit(100),
+  sb.from('fk_username_accounts').select('login,package_code,created_at').order('created_at',{ascending:false}).limit(100),
+ ]);
+ if(reqRes.error||logRes.error){requestStatus('Не удалось загрузить заявки: '+(reqRes.error?.message||logRes.error?.message),true);return}
+ const requestBody=$('fkRequestsBody');requestBody.replaceChildren();
+ const records=reqRes.data||[];
+ const cell=(textValue)=>{
+  const td=document.createElement('td');td.textContent=String(textValue??'');return td;
+ };
+ for(const item of records){
+  const tr=document.createElement('tr');
+  tr.append(cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name));
+  tr.append(cell('SHEF '+item.package_code.toUpperCase()));
+  const contactTd=document.createElement('td'),link=document.createElement('a');
+  link.textContent=item.contact_value;
+  link.href=item.contact_type==='telegram'?'https://t.me/'+item.contact_value.replace(/^@/,''):'tel:'+item.contact_value.replace(/[ ()-]/g,'');
+  link.target='_blank';link.rel='noopener noreferrer';contactTd.append(link);tr.append(contactTd);
+  tr.append(cell(item.status==='completed'?'Аккаунт создан':item.status==='new'?'Новая':item.status));
+  const actions=document.createElement('td'),button=document.createElement('button');
+  button.type='button';button.textContent='Создать логин';button.className='subtle';
+  if(item.status==='completed'||item.status==='dismissed')button.disabled=true;
+  button.addEventListener('click',async()=>{
+   if(!$('fkPaidConfirmed').checked){requestStatus('Сначала поставьте галочку «Оплату получил и проверил».',true);return}
+   if(!confirm('Подтверждаете, что получили оплату от этого покупателя? Создать персональный логин и пароль?'))return;
+   button.disabled=true;requestStatus('Создаю защищённый аккаунт без email…');
+   try{
+    const data=await invokeOwnerBuyer({action:'create',request_id:item.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
+    credentialReveal(data.login,data.password,data.package_code);
+    requestStatus('Логин создан! Отправьте данные покупателю лично. Документы пока закрыты до выпуска.');
+    $('fkPaidConfirmed').checked=false;
+    await loadBuyerRequests();
+   }catch(e){button.disabled=false;requestStatus('Не удалось создать логин: '+(e.message||'ошибка'),true)}
+  });
+  actions.append(button);tr.append(actions);requestBody.append(tr);
+ }
+ if(!records.length){const tr=document.createElement('tr'),td=cell('Заявок пока нет. Гостям достаточно отправить заявку на сайте.');td.colSpan=5;tr.append(td);requestBody.append(tr)}
+ const accountBody=$('fkAccountsBody');accountBody.replaceChildren();
+ for(const item of logRes.data||[]){
+  const tr=document.createElement('tr');tr.append(cell(item.login),cell(item.package_code.toUpperCase()),cell(new Date(item.created_at).toLocaleDateString('ru-RU')));
+  const td=document.createElement('td');
+  const reset=document.createElement('button');reset.className='subtle';reset.type='button';reset.textContent='Новый пароль';
+  reset.addEventListener('click',async()=>{
+   if(!confirm('Сбросить пароль для '+item.login+'? Старый пароль перестанет работать.'))return;
+   reset.disabled=true;
+   try{
+    const out=await invokeOwnerBuyer({action:'reset',login:item.login});
+    credentialReveal(out.login,out.password,item.package_code);
+    requestStatus('Новый пароль установлен. Отправьте его покупателю лично.');
+   }catch(e){requestStatus('Не удалось сбросить пароль: '+(e.message||'ошибка'),true)}
+   finally{reset.disabled=false}
+  });
+  const revoke=document.createElement('button');revoke.className='warn';revoke.type='button';revoke.textContent='Блокировать';revoke.style.marginLeft='6px';
+  revoke.addEventListener('click',async()=>{
+   if(!confirm('Заблокировать доступ '+item.login+' ко всем ТТК?'))return;
+   revoke.disabled=true;
+   try{await invokeOwnerBuyer({action:'revoke',login:item.login});requestStatus('Доступ '+item.login+' отозван.');}
+   catch(e){requestStatus('Ошибка отзыва доступа: '+(e.message||'ошибка'),true);revoke.disabled=false}
+  });
+  td.append(reset,revoke);tr.append(td);accountBody.append(tr);
+ }
+ if(!(logRes.data||[]).length){const tr=document.createElement('tr'),td=cell('Логинов ещё нет.');td.colSpan=4;tr.append(td);accountBody.append(tr)}
+ requestStatus('Получено заявок: '+records.length+'. Логинов создано: '+(logRes.data||[]).length+'.');
+}
+$('fkRequestsRefresh').addEventListener('click',()=>loadBuyerRequests());
+$('fkCopyCredentials').addEventListener('click',async()=>{
+ const val=$('fkCredentials').value;
+ try{await navigator.clipboard.writeText(val);requestStatus('Данные скопированы. Отправьте их покупателю лично.')}
+ catch{$('fkCredentials').select();requestStatus('Выделены данные: скопируйте вручную.')}
+});
 async function refresh(){
  const {data:{user:current},error}=await sb.auth.getUser();
  user=error?null:current;
@@ -356,7 +473,7 @@ async function refresh(){
  isAdmin=false;
  if(user){const {data,error:checkErr}=await sb.from('fk_admins').select('user_id').eq('user_id',user.id).maybeSingle();isAdmin=!!data&&!checkErr}
  setVisible('claimPanel',!!user&&!isAdmin);setVisible('adminPanel',!!user&&isAdmin);
- if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await Promise.all([loadFiles(),loadReleaseEdition()]);status('Управляющий кабинет готов.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
+ if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await Promise.all([loadFiles(),loadReleaseEdition(),loadBuyerRequests()]);status('Управляющий кабинет готов. Проверены также заявки покупателей.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
  else if(user)status('Вход выполнен. Подтвердите право владельца ключом из закрытого центра.');
  else status('Войдите по почте, чтобы продолжить.');
 }
