@@ -76,7 +76,7 @@
 <div class="fk-eyebrow">БИБЛИОТЕКА РЕЦЕПТУР · CHEF AKA</div><h1>Технологии,<br><em>собранные по делу.</em></h1><p class="fk-catalog-lead">59 технологических карт готовых блюд и 34 полуфабриката. Найдите нужные позиции и посмотрите, какие входят в SHEF START и SHEF PRO.</p>
 <div class="fk-catalog-steps"><span>01 · Выберите пакет</span><span>02 · Изучите каталог</span><span>03 · Получите личный доступ</span></div>
 <div class="fk-catalog-controls">
-<div class="fk-catalog-tabs" id="tabs" role="group" aria-label="Тариф"><button type="button" data-plan="start" aria-pressed="true">SHEF START · 78</button><button type="button" data-plan="pro" aria-pressed="false">SHEF PRO · 93</button><button type="button" data-plan="all" aria-pressed="false">Вся коллекция · 93</button></div>
+<div class="fk-catalog-tabs" id="tabs" role="group" aria-label="Тариф"><button type="button" data-plan="start" aria-pressed="true">SHEF START · 78 карт · 49 900 ₽</button><button type="button" data-plan="pro" aria-pressed="false">SHEF PRO · 93 карты · 79 900 ₽</button><button type="button" data-plan="all" aria-pressed="false">Вся коллекция · 93</button></div>
 <div class="fk-catalog-inputs">
 <label>ПОИСК ТТК<input id="search" type="search" autocomplete="off" placeholder="Филадельфия, креветка, FK-A4-001…" aria-label="Поиск по каталогу"></label>
 <label>ТИП ТТК<select id="kind"><option value="all">Все виды</option><option value="dish">Готовые блюда</option><option value="prep">Полуфабрикаты</option></select></label>
@@ -87,7 +87,7 @@
 <section id="grid" class="fk-catalog-grid" aria-label="Каталог технологических карт"></section>
 <div id="empty" class="fk-empty"><strong>По вашему запросу ничего не найдено.</strong><p>Попробуйте другой поиск или категорию.</p></div>
 <button id="more" type="button" class="fk-catalog-more" hidden>Показать ещё 18 позиций ↓</button>
-<div class="fk-catalog-callout"><div><div class="fk-eyebrow">ВАША ЛИЧНАЯ БИБЛИОТЕКА</div><h2>Нашли нужную технологию?</h2><p>Оставьте заявку — владелец свяжется с вами, согласует оплату и выдаст персональный логин.</p></div><a class="fk-btn fk-btn-primary" id="apply" href="request-access.html?plan=start">Получить доступ ↗</a></div>
+<div class="fk-catalog-callout"><div><div class="fk-eyebrow">ВАША ЛИЧНАЯ БИБЛИОТЕКА</div><h2>Нашли нужную технологию?</h2><p>Оставьте заявку — владелец свяжется с вами, подтвердит оплату и выдаст персональный логин.</p><p style="margin-top:7px;font-weight:800;color:#f2d29c" id="catalogPlanPrice">SHEF START — 49 900 ₽</p></div><a class="fk-btn fk-btn-primary" id="apply" href="request-access.html?plan=start">Получить доступ ↗</a></div>
 <p style="color:#9fb8c2;font-size:12px;line-height:1.7;margin:18px 0 45px">Публичный каталог содержит только названия и расчётные показатели выходов; он не раскрывает рецептуры. В карточках товаров показаны фотографии из коллекции Chef Aka, привязанные по названию продукта. Если соответствующего фото пока нет, вместо чужого блюда стоит нейтральная заглушка. Перед производственным применением ТТК проверяйте фактические выходы, аллергены и сроки хранения. Оплата проводится вручную, не через сайт.</p>
 </main>
 <dialog class="fk-catalog-dialog" id="itemDialog" aria-labelledby="dialogTitle">
@@ -172,6 +172,7 @@ function render(){const rows=matching();$('itemCount').textContent='Найден
  grid.replaceChildren(...rows.slice(0,limit).map(card));$('empty').style.display=rows.length?'none':'block';$('more').hidden=rows.length<=limit;
  document.querySelectorAll('[data-plan]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.plan===plan)));
  $('apply').href='request-access.html?plan='+(plan==='pro'||plan==='all'?'pro':'start');$('mobileApply').href=$('apply').href;
+ $('catalogPlanPrice').textContent=plan==='pro'?'SHEF PRO — 79 900 ₽':plan==='start'?'SHEF START — 49 900 ₽':'SHEF START — 49 900 ₽ · SHEF PRO — 79 900 ₽';
  updateURL();
 }
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(!b)return;plan=b.dataset.plan;limit=18;categories();render()});
