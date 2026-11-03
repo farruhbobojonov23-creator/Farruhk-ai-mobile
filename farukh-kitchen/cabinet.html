@@ -16,7 +16,14 @@
 <section id="loginPanel" class="panel"><div class="eyebrow">ШАГ 1 · ВХОД</div><h2>Войти в личный кабинет</h2><div class="row"><input id="email" type="email" autocomplete="email" maxlength="254" placeholder="Электронная почта" aria-label="Электронная почта"><button id="send" class="btn">Получить ссылку для входа</button></div>
 <details style="margin-top:15px"><summary style="cursor:pointer;color:#3c6076;font-weight:700">Уже есть пароль Supabase?</summary><div class="row" style="margin-top:12px"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль для входа"><button id="passwordSignIn" class="btn alt">Войти по паролю</button></div></details>
 <p class="muted small" style="margin:15px 0;padding:12px;border:1px solid #b6cdd4;border-radius:12px;background:#eef8f9">Письмо открыло ошибку <strong>localhost:3000</strong>? <a href="enter-from-email.html?next=cabinet" style="font-weight:850">Войти по скопированной ссылке из письма →</a>. Способ работает без перенаправления с почты.</p><p class="muted small">Вход не открывает платные документы автоматически. Доступ назначается владельцем после ручной проверки.</p></section>
-<section id="accountPanel" class="panel hidden"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ ПРОФИЛЬ</div><h2 id="userEmail">—</h2><p class="muted small" id="userAccess">Проверяем активный тариф…</p></div><button id="signout" class="btn alt" style="flex:0 0 auto">Выйти</button></div></section>
+<section id="accountPanel" class="panel hidden"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ ПРОФИЛЬ</div><h2 id="userEmail">—</h2><p class="muted small" id="userAccess">Проверяем активный тариф…</p></div><button id="signout" class="btn alt" style="flex:0 0 auto">Выйти</button></div>
+<details style="margin-top:18px;border-top:1px solid #d8e5e7;padding-top:14px">
+ <summary style="font-weight:800;cursor:pointer">Создать пароль для входа без писем</summary>
+ <p class="muted small">Пока вы уже вошли, можете установить пароль. В следующие разы используйте «Уже есть пароль Supabase?» — письма и их лимиты не нужны. Для первого входа почта по-прежнему требуется.</p>
+ <div class="row"><input id="savePassword1" type="password" autocomplete="new-password" maxlength="72" placeholder="Новый пароль (от 12 символов)" aria-label="Новый пароль"><input id="savePassword2" type="password" autocomplete="new-password" maxlength="72" placeholder="Повторите пароль" aria-label="Повторите пароль"></div>
+ <button type="button" id="savePassword" class="btn alt" style="margin-top:12px">Сохранить пароль</button>
+ <p id="savePasswordState" class="muted small" role="status" aria-live="polite"></p>
+</details></section>
 <div id="feedback" role="status" aria-live="polite"></div>
 <section id="libraryPanel" class="hidden">
 <div class="guide" id="notice">Файлы новой редакции подготовлены и находятся в закрытом хранилище. До проверки и выпуска их не могут скачивать покупатели.</div>
@@ -171,6 +178,19 @@ function changeOwnerPreview(plan){
 }
 $('ownerStartView').addEventListener('click',()=>changeOwnerPreview('start'));
 $('ownerProView').addEventListener('click',()=>changeOwnerPreview('pro'));
+$('savePassword').addEventListener('click',async()=>{
+ const p=$('savePassword1').value,q=$('savePassword2').value,t=$('savePasswordState'),b=$('savePassword');
+ if(p.length<12||p.length>72){t.textContent='Пароль должен содержать от 12 до 72 символов.';return}
+ if(p!==q){t.textContent='Пароли не совпадают.';return}
+ b.disabled=true;t.textContent='Сохраняю пароль для вашего аккаунта…';
+ try{
+  const {data:{user}}=await sb.auth.getUser();if(!user)throw Error('Войдите в аккаунт.');
+  const {error}=await sb.auth.updateUser({password:p});if(error)throw error;
+  $('savePassword1').value='';$('savePassword2').value='';
+  t.textContent='Пароль сохранён. В следующий раз входите по почте и паролю без отправки писем.';
+ }catch(e){t.textContent='Не удалось сохранить пароль: '+(e?.message||'ошибка')+'. Для изменения пароля Supabase может потребовать недавний вход.'}
+ finally{b.disabled=false}
+});
 $('send').addEventListener('click',()=>login('otp'));$('passwordSignIn').addEventListener('click',()=>login('password'));
 $('signout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
 $('recipeSearch').addEventListener('input',renderCards);$('recipeKind').addEventListener('change',()=>{categories();renderCards()});$('recipeCategory').addEventListener('change',renderCards);
