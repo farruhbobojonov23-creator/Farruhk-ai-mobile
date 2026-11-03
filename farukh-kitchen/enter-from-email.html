@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>FARUKH KITCHEN · Вход по ссылке из письма</title>
+<style>
+:root{color-scheme:light;--ink:#163448;--accent:#255b79;--gold:#af824b;--border:#d9e4e9;--muted:#58717f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font:16px/1.55 system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:linear-gradient(135deg,#edf6f9,#f7f9fb)}
+main{max-width:620px;margin:0 auto;padding:26px 16px 65px}.brand{font-weight:900;letter-spacing:.08em}.brand b{color:#a07c47}.card{margin:25px 0 0;padding:clamp(19px,5vw,32px);background:white;border:1px solid var(--border);border-radius:24px;box-shadow:0 15px 45px #17364a13}
+h1{font-size:clamp(27px,7vw,35px);margin:3px 0 12px;line-height:1.23}.sub{color:var(--muted)}.eyebrow{font-weight:900;font-size:12px;letter-spacing:.12em;color:var(--gold)}
+label{display:block;font-size:14px;font-weight:800;margin:16px 0 7px}input,textarea{display:block;width:100%;border:1px solid #b8cad4;border-radius:12px;font:inherit;padding:12px;background:#fff;color:var(--ink)}textarea{min-height:100px;resize:vertical;overflow-wrap:anywhere}input:focus,textarea:focus{outline:3px solid #a7d8ee;outline-offset:1px}
+button{cursor:pointer;border:0;border-radius:13px;padding:14px 16px;font:inherit;font-weight:800;background:var(--accent);color:white}button:disabled{opacity:.6;cursor:wait}.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1 1 190px}.soft{background:#e7f1f4;color:var(--ink)}.note{margin:20px 0;background:#eff8f9;padding:16px;border-radius:14px;color:#34566d}
+ol{margin:8px 0;padding-left:22px}li{margin:9px 0}.status{margin:16px 0;padding:12px 14px;border-radius:12px;background:#ecf3f7;color:#345a72;min-height:48px}.status.bad{background:#fff0f0;color:#a23838}
+a{color:var(--accent);font-weight:700}.fine{font-size:13px;color:var(--muted)}.hidden{display:none!important}
+</style>
+</head>
+<body><main>
+<div class="brand">FARUKH <b>KITCHEN</b></div>
+<section class="card">
+<div class="eyebrow">БЕЗОПАСНЫЙ ВХОД · РЕЗЕРВНЫЙ СПОСОБ</div>
+<h1>Войти через письмо без ошибки localhost</h1>
+<p class="sub">Если письмо Supabase уводит на <strong>localhost:3000</strong>, войдите по скопированной ссылке прямо на этом сайте. Менять настройки телефона не нужно.</p>
+<div id="alreadySigned" class="note hidden">Вы уже вошли. <a id="alreadyGo" href="cabinet.html">Открыть кабинет →</a></div>
+<label for="email">1. Укажите свою электронную почту</label>
+<input id="email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" aria-label="Email для входа">
+<button id="send" type="button" style="width:100%;margin-top:10px">Отправить новое письмо для входа</button>
+<div class="note">
+<strong>2. Откройте полученное письмо</strong>
+<ol>
+<li>Найдите сообщение от <strong>Supabase Auth</strong>.</li>
+<li><strong>Не открывайте ссылку.</strong> Нажмите и удерживайте «Sign in» (или «Войти»).</li>
+<li>Выберите «Копировать адрес ссылки».</li>
+<li>Вернитесь на эту страницу и вставьте ссылку в поле ниже.</li>
+</ol>
+<p class="fine">Если ссылка уже была открыта и появилась ошибка localhost, запросите <strong>новое письмо</strong>: использованная ссылка повторно не сработает.</p>
+</div>
+<label for="link">3. Ссылка из письма</label>
+<textarea id="link" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Вставьте скопированный адрес ссылки из письма. Он начинается с https://...supabase.co/auth/v1/verify?..." aria-label="Ссылка подтверждения из письма"></textarea>
+<div class="row"><button id="paste" type="button" class="soft">Вставить из буфера</button><button id="enter" type="button">Войти по ссылке</button></div>
+<div id="status" class="status" role="status" aria-live="polite">Ссылка проверяется внутри FARUKH KITCHEN, пароль не требуется.</div>
+<p class="fine">Ссылка одноразовая. Никому её не пересылайте. Для подтверждения используется официальный сервер вашего проекта Supabase; ссылка не сохраняется на сайте и не отправляется третьим лицам.</p>
+<p class="fine"><a id="back" href="cabinet.html">← Назад в личный кабинет</a></p>
+</section>
+</main>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
+const $=id=>document.getElementById(id);
+const owner=new URLSearchParams(location.search).get('next')==='owner';
+const destination=owner?'owner-library.html':'cabinet.html';
+$('back').href=destination;$('alreadyGo').href=destination;
+const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const status=(txt,err=false)=>{const e=$('status');e.textContent=txt;e.classList.toggle('bad',err)};
+sb.auth.getUser().then(({data:{user}})=>{$('alreadySigned').classList.toggle('hidden',!user)}).catch(()=>{});
+$('send').addEventListener('click',async()=>{
+ const email=$('email').value.trim();
+ if(!/^\S+@\S+\.\S+$/.test(email)){status('Укажите действующий email.',true);return}
+ const b=$('send');b.disabled=true;status('Отправляем одноразовое письмо…');
+ try{
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:new URL(destination,location.href).href}});
+  if(error)throw error;
+  status('Письмо отправлено. Скопируйте ссылку из письма (не открывая её) и вставьте ниже.');
+ }catch(e){status('Не удалось отправить письмо: '+(e.message||'ошибка'),true)}
+ finally{b.disabled=false}
+});
+$('paste').addEventListener('click',async()=>{
+ try{if(!navigator.clipboard?.readText)throw new Error();$('link').value=await navigator.clipboard.readText();status('Ссылка вставлена. Нажмите «Войти по ссылке».')}
+ catch{status('Разрешите вставку из буфера или нажмите и удерживайте поле «Ссылка из письма», затем «Вставить».',true);$('link').focus()}
+});
+$('enter').addEventListener('click',async()=>{
+ const input=$('link').value.trim();if(!input){status('Сначала вставьте ссылку из письма.',true);return}
+ let verification;
+ try{
+  if(input.length>5000)throw Error('too long');
+  const u=new URL(input);
+  if(u.protocol!=='https:'||u.hostname!=='rwvljbgsqnabvzmoaxgg.supabase.co'||u.pathname!=='/auth/v1/verify')throw Error('unknown URL');
+  const token_hash=u.searchParams.get('token_hash')||u.searchParams.get('token');
+  const rawType=(u.searchParams.get('type')||'').toLowerCase();
+  if(!token_hash||!/^[-_a-zA-Z0-9]{16,512}$/.test(token_hash))throw Error('invalid token');
+  if(!['magiclink','signup','email','invite'].includes(rawType))throw Error('invalid type');
+  verification={token_hash,type:rawType};
+ }catch{status('Это не ссылка входа FARUKH KITCHEN. Скопируйте адрес «Sign in» из нового письма Supabase Auth.',true);return}
+ const b=$('enter');b.disabled=true;status('Проверяем одноразовую ссылку на сервере авторизации…');
+ try{
+  const {data,error}=await sb.auth.verifyOtp(verification);
+  if(error)throw error;
+  if(!data?.session)throw Error('no session');
+  $('link').value='';
+  status('Вход успешен! Открываем личный кабинет…');
+  location.replace(new URL(destination,location.href).href);
+ }catch{status('Ссылка истекла или уже использована. Запросите новое письмо, скопируйте адрес без открытия и повторите вход.',true)}
+ finally{b.disabled=false}
+});
+</script>
+</body></html>
