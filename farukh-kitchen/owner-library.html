@@ -357,7 +357,7 @@ async function refresh(){
 }
 $('sendLink').addEventListener('click',async()=>{
  const email=$('loginEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){status('Укажите корректную почту.',true);return}
- $('sendLink').disabled=true;try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;status('Отправлена ссылка входа. Проверьте почту.')}catch(e){status('Письмо не отправлено: '+(e.message||'ошибка'),true)}finally{$('sendLink').disabled=false}
+ $('sendLink').disabled=true;try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;status('Отправлена ссылка входа. Проверьте почту.')}catch(e){const limit=e?.code==='over_email_send_rate_limit'||e?.status===429||/email rate limit exceeded/i.test(e?.message||'');status(limit?'Лимит писем Supabase исчерпан. Не запрашивайте новые письма подряд. Попробуйте позднее; для покупателей требуется отдельный SMTP.':'Письмо не отправлено: '+(e.message||'ошибка'),true)}finally{$('sendLink').disabled=false}
 });
 $('loginWithPassword').addEventListener('click',async()=>{
  const email=$('loginEmail').value.trim(),password=$('loginPassword').value;
