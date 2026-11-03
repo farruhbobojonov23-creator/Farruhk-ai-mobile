@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b2832"><meta name="description" content="Оставьте заявку на SHEF START или SHEF PRO в FARUKH KITCHEN — шеф свяжется с вами сам.">
+<title>Получить доступ · FARUKH KITCHEN</title>
+<style>
+:root{--bg:#0b202a;--card:#12323c;--ink:#f6f9f9;--muted:#c7d5da;--line:#345562;--gold:#ebc78f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 0% 0%,#244754,#0b202a 55%);color:var(--ink);font:16px/1.5 system-ui,'Segoe UI',sans-serif}
+a{color:var(--gold)}.header,.wrap{max-width:900px;margin:auto;padding:20px}.header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{font-size:20px;font-weight:900;letter-spacing:.07em}.brand b{color:var(--gold)}.header a{font-size:13px}
+h1{font-size:clamp(31px,7vw,53px);line-height:1.1;margin:15px 0}.sub{color:var(--muted);font-size:17px;max-width:620px}
+.shell{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start;margin-top:28px}
+.panel{background:#12323ce8;border:1px solid var(--line);border-radius:21px;padding:clamp(19px,4vw,30px);box-shadow:0 12px 45px #0002}
+label{display:block;font-weight:700;margin:14px 0 8px;font-size:14px}
+input,select{display:block;width:100%;background:#102936;border:1px solid #65808b;border-radius:10px;padding:12px 13px;color:white;font:inherit;outline-offset:2px}
+option{background:#102936}button{width:100%;border:0;border-radius:12px;padding:14px;margin-top:20px;background:var(--gold);font:inherit;font-weight:900;color:#142d35;cursor:pointer}
+button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);margin:9px 0}.eyebrow{font-weight:800;color:var(--gold);font-size:12px;letter-spacing:.16em}
+.step{padding:13px 0;border-bottom:1px solid #45606b}.step strong{color:var(--gold)}
+#feedback{margin-top:15px;color:#d8eff1;font-size:14px}#feedback.error{color:#ffb9ae}
+#success{background:#1a4c45;border:1px solid #4d9f87;padding:16px;border-radius:12px;margin-top:15px}
+.hide{display:none!important}.legal{font-size:13px;color:#bdd1d6;margin:25px 0}
+@media(max-width:670px){.shell{grid-template-columns:1fr}.wrap{padding:15px}.header{padding:15px}h1{margin:10px 0}.panel{padding:20px}}
+</style>
+</head><body>
+<header class="header"><div class="brand">FARUKH <b>KITCHEN</b></div><a href="catalog-verified.html">← Посмотреть каталог</a></header>
+<main class="wrap">
+<div class="eyebrow">ЗАЯВКА НА ДОСТУП · БЕЗ РЕГИСТРАЦИИ И EMAIL</div>
+<h1>Получите ТТК<br>от шеф-повара.</h1>
+<p class="sub">Не нужно звонить или искать контакты. Оставьте Telegram или телефон — шеф сам свяжется с вами, расскажет об оплате и выдаст личный логин с паролем.</p>
+<div class="shell">
+<section class="panel">
+<h2 style="margin-top:0">Оставить заявку</h2>
+<form id="requestForm" novalidate>
+<label for="plan">Какой пакет интересует?</label>
+<select id="plan" required><option value="start">SHEF START — 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 59 ТТК + 34 ПФ + 59 инструкций</option></select>
+<label for="name">Ваше имя</label>
+<input id="name" type="text" minlength="2" maxlength="80" autocomplete="name" placeholder="Как к вам обращаться?" required>
+<label for="contactType">Куда вам ответить?</label>
+<select id="contactType"><option value="telegram">Telegram — по @имени пользователя</option><option value="phone">Телефон — звонок или сообщение</option></select>
+<label for="contact" id="contactLabel">Ваш Telegram</label>
+<input id="contact" type="text" maxlength="100" autocomplete="off" placeholder="@username" required>
+<div style="position:absolute;left:-9999px" aria-hidden="true"><label for="website">Не заполнять</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+<p class="hint">Контакт увидит только владелец FARUKH KITCHEN. Ваш номер или Telegram не появится в открытом каталоге.</p>
+<button id="submit" type="submit">Отправить заявку шефу →</button>
+<div id="feedback" role="status" aria-live="polite"></div>
+<div id="success" class="hide" role="status"><strong>✅ Заявка получена!</strong><p>Шеф увидит её в управляющем кабинете и свяжется с вами по указанному контакту. Оплата и выдача логина — только после личного подтверждения.</p><p><a href="catalog-verified.html">Вернуться к каталогу →</a></p></div>
+</form>
+</section>
+<aside class="panel">
+<div class="eyebrow">КАК ВСЁ ПРОИСХОДИТ</div>
+<div class="step"><strong>01 /</strong> Выберите START или PRO и оставьте контакт.</div>
+<div class="step"><strong>02 /</strong> Шеф получит заявку в закрытом кабинете.</div>
+<div class="step"><strong>03 /</strong> Вы согласуете условия и оплату лично с владельцем.</div>
+<div class="step"><strong>04 /</strong> Владелец создаст личный логин и пароль и передаст вам.</div>
+<div class="step"><strong>05 /</strong> Войдите в кабинет, когда ваш комплект документов будет выпущен.</div>
+<p class="hint">Рецептуры и полные ТТК пока закрыты: проходит финальная проверка технологических документов. Размещение заявки не является оплатой или гарантией даты выдачи.</p>
+</aside>
+</div>
+<p class="legal">Отправляя заявку, вы соглашаетесь, что владелец FARUKH KITCHEN использует указанный контакт только для связи по вашей заявке. Не отправляйте платёжные данные или пароли через форму.</p>
+</main>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
+const $=id=>document.getElementById(id);
+const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:false,autoRefreshToken:false}});
+const params=new URLSearchParams(location.search);
+if(params.get('plan')==='pro')$('plan').value='pro';
+$('contactType').addEventListener('change',()=>{
+ const tele=$('contactType').value==='telegram';
+ $('contactLabel').textContent=tele?'Ваш Telegram':'Ваш номер телефона';
+ $('contact').placeholder=tele?'@username':'+7 999 123 45 67';
+ $('contact').value='';
+});
+$('requestForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const name=$('name').value.trim(),type=$('contactType').value,plan=$('plan').value;
+ let contact=$('contact').value.trim();
+ const feedback=$('feedback'),btn=$('submit');
+ feedback.classList.remove('error');
+ if($('website').value)return;
+ if(name.length<2||name.length>80||!['start','pro'].includes(plan)){feedback.textContent='Проверьте имя и пакет.';feedback.classList.add('error');return}
+ if(type==='telegram'){
+  if(!contact.startsWith('@'))contact='@'+contact;
+  if(!/^@[a-zA-Z0-9_]{5,32}$/.test(contact)){feedback.textContent='Telegram должен быть в формате @username (от 5 символов).';feedback.classList.add('error');return}
+ }else if(type==='phone'){
+  if(!/^\+?[0-9 ()-]{8,25}$/.test(contact)){feedback.textContent='Укажите номер телефона с кодом страны.';feedback.classList.add('error');return}
+ }else return;
+ btn.disabled=true;feedback.textContent='Передаю заявку в закрытый кабинет…';
+ try{
+  const {error}=await sb.from('fk_access_requests').insert({customer_name:name,package_code:plan,contact_type:type,contact_value:contact});
+  if(error)throw error;
+  $('requestForm').querySelectorAll('input:not(#website), select').forEach(el=>el.disabled=true);
+  btn.classList.add('hide');feedback.textContent='';
+  $('success').classList.remove('hide');
+ }catch{feedback.textContent='Не удалось отправить заявку. Проверьте интернет и повторите попытку позже.';feedback.classList.add('error')}
+ finally{btn.disabled=false}
+});
+</script></body></html>
