@@ -1,58 +1,144 @@
-<!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Личный кабинет · FARUKH KITCHEN</title><meta name="robots" content="noindex,nofollow">
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0f2c3c"><title>Личный кабинет · FARUKH KITCHEN</title>
 <style>
-:root{color-scheme:light;--ink:#1a2951;--muted:#65728c;--line:#dce4f8;--blue:#4e6ff0;--purple:#8a6cda}
-*{box-sizing:border-box}body{margin:0;font:16px/1.5 'Segoe UI',Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf3ff,#f9f6ff 60%,#e9f8fb);min-height:100vh}
-main{max-width:960px;padding:32px 18px 64px;margin:auto}a{color:#3957a3}header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:38px}.brand{font-weight:900;font-size:22px;letter-spacing:.06em}.brand span{color:#7773dc}
-.tag{border:1px solid #d7def4;background:#ffffffaf;border-radius:24px;padding:8px 12px;font-size:12px;font-weight:650}
-h1{font-size:clamp(28px,5vw,44px);line-height:1.16;margin:0 0 12px}h2{margin:8px 0 14px;font-size:22px}
-.lead,.muted{color:var(--muted)}.lead{max-width:660px;margin-bottom:26px}
-.panel{border:1px solid var(--line);background:#fffffff0;border-radius:20px;padding:24px;box-shadow:0 16px 45px #3b579015;margin:18px 0}
-.eyebrow{color:#5b67a7;font-weight:800;letter-spacing:.13em;font-size:11px}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}input{border:1px solid #d4def4;padding:12px 14px;border-radius:11px;min-width:220px;flex:1;font:inherit}
-button{border:0;background:linear-gradient(125deg,var(--blue),var(--purple));color:white;padding:12px 18px;border-radius:11px;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
-button.alt{background:#ecf0ff;color:#3b5594}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
-.file{border-top:1px solid #e8edfa;padding-top:12px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
-.small{font-size:13px}.hidden{display:none!important}#feedback{min-height:24px;color:#43539c;margin:20px 0}footer{color:#7b85a0;font-size:12px;margin-top:25px}
-</style></head><body><main>
-<header><div class="brand">FARUKH <span>KITCHEN</span></div><span class="tag">CHEF AKA · ЗАКРЫТАЯ БИБЛИОТЕКА</span></header>
-<a href="./">← Вернуться на сайт</a><h1>Ваши технологические карты</h1>
-<p class="lead">Пакеты SHEF START и SHEF PRO доступны только после подтверждения доступа владельцем. Оплата на сайте пока отключена. Коммерческие PDF и ZIP не размещаются в публичном каталоге.</p>
-<section class="panel" id="loginPanel"><div class="eyebrow">БЕЗОПАСНЫЙ ВХОД</div><h2>Войти по электронной почте</h2>
-<div class="row"><input id="email" type="email" maxlength="254" autocomplete="email" placeholder="Ваша электронная почта" aria-label="Электронная почта"><button id="login" type="button">Отправить ссылку</button></div>
-<p class="muted small">Вход не даёт доступа автоматически: материалы открываются только после подтверждения владельцем.</p></section>
-<section class="panel hidden" id="accountPanel"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ АККАУНТ</div><h2 id="accountLabel">—</h2></div><button class="alt" id="logout" type="button">Выйти</button></div></section>
-<div class="tiles"><section class="panel"><div class="eyebrow">ПАКЕТ</div><h2>SHEF START</h2><p class="muted small">44 ТТК, А4 · PDF и ZIP.</p><div id="startAssets" class="muted small">Войдите, чтобы проверить доступ.</div></section>
-<section class="panel"><div class="eyebrow">ПАКЕТ</div><h2>SHEF PRO</h2><p class="muted small">59 ТТК, А4 · PDF и ZIP, включая материалы START.</p><div id="proAssets" class="muted small">Войдите, чтобы проверить доступ.</div></section></div>
+:root{--navy:#102f42;--navy2:#173e52;--gold:#b78446;--ink:#18384a;--muted:#637f8c;--line:#d9e5eb;--soft:#f2f7fa;--card:#fff;--red:#ae4652}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(125deg,#e8f3f8,#f9fcfd 54%,#eef5fb);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;min-height:100vh}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}
+.top{background:linear-gradient(125deg,#0d2e40,#153e54);color:#fff}.nav{max-width:1200px;margin:auto;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:18px 22px}.brand{font-size:19px;font-weight:900;letter-spacing:.06em}.brand em{font-style:normal;color:#eed19d}.back{color:#dae9f3;border:1px solid #547388;border-radius:10px;padding:9px 13px;font-size:13px}
+.wrap{max-width:1200px;margin:auto;padding:36px 22px 84px}.eyebrow{font-size:11px;font-weight:850;letter-spacing:.17em;text-transform:uppercase;color:var(--gold)}h1{font-size:clamp(31px,5vw,50px);line-height:1.08;letter-spacing:-.04em;margin:14px 0}h2{font-size:24px;margin:9px 0 13px;letter-spacing:-.02em}.lead{color:var(--muted);max-width:810px;font-size:16px}.panel{border:1px solid var(--line);border-radius:19px;background:#fff;box-shadow:0 15px 43px #152e4212;padding:24px;margin:18px 0}.row{display:flex;gap:11px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:0}input,select{border:1px solid #cbdde8;border-radius:11px;padding:12px 13px;background:#fff;color:var(--ink)}input:focus,select:focus{outline:2px solid #83b9d5;outline-offset:1px}
+.btn{border:0;color:white;background:linear-gradient(120deg,#164b63,#267192);padding:12px 16px;border-radius:11px;font-weight:750;white-space:nowrap}.btn.alt{background:#ebf4f8;color:#21506d}.btn.gold{background:linear-gradient(120deg,#a97432,#d0ab73);color:#fff}.btn.tiny{font-size:12px;padding:8px 11px}.btn[disabled]{background:#dae3e8;color:#728995}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:13px}.guide{background:#edf6fa;border-left:4px solid #5488a5;border-radius:12px;padding:14px 17px;margin:20px 0;color:#33566a}.good{color:#116f57;font-weight:800}.pill{font-weight:800;background:#f4e7ce;color:#7a5627;padding:6px 11px;border-radius:999px;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.package-card{background:linear-gradient(165deg,#fff,#f5f9fb);border:1px solid var(--line);border-radius:17px;padding:21px}.package-card h3{margin:8px 0 3px;font-size:20px}.numbers{font-weight:800;color:#9b733b;font-size:13px}.release{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #e5edf2;margin-top:12px}.release label{font-weight:700}.release span{font-size:12px;color:var(--muted)}.release .buttons{display:flex;gap:6px;flex-shrink:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:21px 0 14px}.actions input{min-width:220px;flex:1}.actions select{min-width:150px}.recipes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.recipe{background:white;border:1px solid var(--line);border-radius:14px;padding:15px;min-height:145px;display:flex;flex-direction:column}.recipe h4{margin:8px 0 11px;font-size:15px;line-height:1.32}.recipe .code{font-weight:800;color:#8d683a;font-size:11px}.recipe .cat{font-size:11px;color:var(--muted)}.recipe .act{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:9px}.recipe .act span{font-size:11px;color:var(--muted)}.recipe img{margin:10px 0;width:100%;max-height:150px;object-fit:contain;background:#f0f6f8;border-radius:9px}
+#feedback{margin:15px 0;min-height:24px;font-size:13px;font-weight:650}.old{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:#fff}.old summary{cursor:pointer;font-weight:750;color:var(--ink)}.old .release{gap:11px}.footer{color:#728695;font-size:12px;padding:28px 0;border-top:1px solid var(--line);margin-top:35px}
+@media(max-width:950px){.recipes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.wrap{padding:25px 14px 60px}.nav{padding:14px}.brand{font-size:17px}.back{padding:7px 9px;font-size:11px}.grid,.recipes{grid-template-columns:1fr}.panel{padding:18px}.row,.actions{flex-direction:column;align-items:stretch}.row>*,.actions>*{width:100%;flex:initial}.release{flex-wrap:wrap}.release .buttons{width:100%}.release .buttons button{flex:1}.package-card{padding:17px}.recipe{min-height:120px}}
+</style></head><body>
+<header class="top"><div class="nav"><a href="index.html" class="brand">FARUKH <em>KITCHEN</em></a><a href="index.html" class="back">← Вернуться на сайт</a></div></header>
+<main class="wrap"><div class="eyebrow">CHEF AKA · ЗАЩИЩЁННАЯ БИБЛИОТЕКА</div><h1>Мои технологические карты</h1><p class="lead">Состав пакета, отдельные технологические карты, просмотр PDF и скачивание — только после подтверждённой владельцем выдачи доступа. Оплата на сайте пока отключена.</p>
+<section id="loginPanel" class="panel"><div class="eyebrow">ШАГ 1 · ВХОД</div><h2>Войти в личный кабинет</h2><div class="row"><input id="email" type="email" autocomplete="email" maxlength="254" placeholder="Электронная почта" aria-label="Электронная почта"><button id="send" class="btn">Получить ссылку для входа</button></div>
+<details style="margin-top:15px"><summary style="cursor:pointer;color:#3c6076;font-weight:700">Уже есть пароль Supabase?</summary><div class="row" style="margin-top:12px"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль для входа"><button id="passwordSignIn" class="btn alt">Войти по паролю</button></div></details>
+<p class="muted small">Вход не открывает платные документы автоматически. Доступ назначается владельцем после ручной проверки.</p></section>
+<section id="accountPanel" class="panel hidden"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ ПРОФИЛЬ</div><h2 id="userEmail">—</h2><p class="muted small" id="userAccess">Проверяем активный тариф…</p></div><button id="signout" class="btn alt" style="flex:0 0 auto">Выйти</button></div></section>
 <div id="feedback" role="status" aria-live="polite"></div>
-<footer>Пока идёт финальная технологическая проверка документов, библиотека может оставаться закрытой. Демо-функции основного сайта не являются доступом к коммерческим материалам.</footer>
+<section id="libraryPanel" class="hidden">
+<div class="guide" id="notice">Доступ к новой редакции 03.11.2026 появляется после загрузки и проверки файлов владельцем. Исторические документы отображаются отдельно.</div>
+<div class="grid"><article class="package-card"><div class="eyebrow">БАЗОВЫЙ КОМПЛЕКТ</div><h3>SHEF START</h3><div class="numbers">44 ТТК готовых блюд · 34 полуфабриката</div><div id="startFiles"></div></article>
+<article class="package-card"><div class="eyebrow">ПОЛНЫЙ КОМПЛЕКТ</div><h3>SHEF PRO</h3><div class="numbers">59 ТТК готовых блюд · 34 ПФ · 59 инструкций</div><div id="proFiles"></div></article></div>
+<section class="panel" id="recipesPanel"><div class="eyebrow">КАРТЫ ПОШТУЧНО</div><h2>Мой каталог ТТК</h2><p class="muted small">Кнопка «Открыть» ведёт на соответствующую страницу защищённого PDF. Если просмотр PDF не поддерживается телефоном, скачайте полный комплект.</p>
+<div class="actions"><input type="search" id="recipeSearch" placeholder="Поиск по названию или номеру" aria-label="Поиск ТТК"><select id="recipeKind" aria-label="Вид"><option value="all">Все ТТК</option><option value="dish">Готовые блюда</option><option value="prep">Полуфабрикаты</option></select><select id="recipeCategory" aria-label="Категория"><option value="all">Все категории</option></select></div>
+<div id="recipeCount" class="muted small" style="margin-bottom:13px"></div><div id="recipeCards" class="recipes"></div></section>
+<details id="archivePanel" class="old"><summary>Архивные документы · редакция 30.10.2026</summary><p>Предыдущая редакция может содержать устаревшие данные. Не используйте её для производства без проверки.</p><div id="oldFiles"></div></details>
+</section>
+<footer class="footer">FARUKH KITCHEN · Chef Aka · Доступ контролируется на сервере через Supabase RLS. Копии файлов, уже сохранённые покупателем, не могут быть отозваны дистанционно.</footer>
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
-const client=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const $=id=>document.getElementById(id);
-const msg=(text,bad=false)=>{$('feedback').textContent=text;$('feedback').style.color=bad?'#b43152':'#43539c'};
-const put=(el,text)=>{el.replaceChildren();const p=document.createElement('p');p.className='muted small';p.textContent=text;el.append(p)};
-let renderTicket=0;
-async function download(asset,btn){btn.disabled=true;msg('Скачивание…');try{const {data,error}=await client.storage.from('fk-paid-ttk').download(asset.object_path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement('a');a.href=url;a.download=asset.filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);msg('Файл скачан.')}catch{msg('Файл пока недоступен или доступ отозван.',true)}finally{btn.disabled=false}}
-function items(el,assets){el.replaceChildren();for(const a of assets){const row=document.createElement('div');row.className='file';const label=document.createElement('span');label.textContent=a.asset_key.endsWith('_pdf')?'PDF · ТТК':'ZIP · ТТК';const btn=document.createElement('button');btn.type='button';btn.textContent='Скачать';btn.addEventListener('click',()=>download(a,btn));row.append(label,btn);el.append(row)}}
-async function refresh(){const current=++renderTicket;const {data:{user},error}=await client.auth.getUser();if(current!==renderTicket)return;
-if(error||!user){$('loginPanel').classList.remove('hidden');$('accountPanel').classList.add('hidden');put($('startAssets'),'Войдите, чтобы проверить доступ.');put($('proAssets'),'Войдите, чтобы проверить доступ.');return}
-$('loginPanel').classList.add('hidden');$('accountPanel').classList.remove('hidden');$('accountLabel').textContent=user.email||'Покупатель';
-const [{data:files,error:ferr},{data:grants,error:gerr}]=await Promise.all([
- client.from('fk_paid_assets').select('asset_key,package_code,object_path,filename').eq('released',true),
- client.from('fk_paid_access').select('package_code,status,expires_at').eq('user_id',user.id)
-]);if(current!==renderTicket)return;
-if(ferr||gerr){msg('Не удалось проверить права доступа. Повторите попытку.',true);return}
-const allowed=new Set((grants||[]).filter(x=>x.status==='active'&&(!x.expires_at||new Date(x.expires_at)>new Date())).map(x=>x.package_code));
-for(const key of ['start','pro']){const el=$(key+'Assets');const can=allowed.has('pro')||allowed.has(key);const list=can?(files||[]).filter(x=>x.package_code===key):[];
-if(list.length)items(el,list);else put(el,can?'Файлы ещё не опубликованы, идёт проверка.':'Доступ пока не активирован.')}
-msg('');
+const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const DATA=[{"id":"FK-A4-001","n":"Ролл Филадельфия","c":"Холодные роллы","t":"dish","w":275,"start":true,"pro":true},{"id":"FK-A4-002","n":"Ролл Канада","c":"Холодные роллы","t":"dish","w":270,"start":true,"pro":true},{"id":"FK-A4-003","n":"Филадельфия тигровая","c":"Холодные роллы","t":"dish","w":270,"start":true,"pro":true},{"id":"FK-A4-004","n":"Ролл Филадельфия сливочная","c":"Холодные роллы","t":"dish","w":260,"start":true,"pro":true},{"id":"FK-A4-005","n":"Ролл Филадельфия с креветкой","c":"Холодные роллы","t":"dish","w":280,"start":false,"pro":true},{"id":"FK-A4-006","n":"Ролл Филадельфия дабл","c":"Холодные роллы","t":"dish","w":275,"start":false,"pro":true},{"id":"FK-A4-007","n":"Ролл Канада дабл","c":"Холодные роллы","t":"dish","w":270,"start":false,"pro":true},{"id":"FK-A4-008","n":"Ролл Канада премиум","c":"Холодные роллы","t":"dish","w":270,"start":false,"pro":true},{"id":"FK-A4-009","n":"Ролл Филадельфия премиум","c":"Холодные роллы","t":"dish","w":280,"start":false,"pro":true},{"id":"FK-A4-010","n":"Ролл Филадельфия масаго","c":"Холодные роллы","t":"dish","w":240,"start":true,"pro":true},{"id":"FK-A4-011","n":"Ролл Калифорния масаго","c":"Холодные роллы","t":"dish","w":240,"start":true,"pro":true},{"id":"FK-A4-012","n":"Ролл Калифорния с креветкой","c":"Холодные роллы","t":"dish","w":240,"start":true,"pro":true},{"id":"FK-A4-013","n":"Гейша","c":"Холодные роллы","t":"dish","w":220,"start":true,"pro":true},{"id":"FK-A4-014","n":"Гейша с креветкой","c":"Холодные роллы","t":"dish","w":220,"start":true,"pro":true},{"id":"FK-A4-015","n":"Ролл Бонито","c":"Холодные роллы","t":"dish","w":230,"start":true,"pro":true},{"id":"FK-A4-016","n":"Запеченный с Форелью","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-017","n":"Запеченный с Креветкой","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-018","n":"Запеченный с Мидиями","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-019","n":"Запеченный с курицей","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-020","n":"Запеченный Чиз","c":"Запечённые роллы","t":"dish","w":280,"start":false,"pro":true},{"id":"FK-A4-021","n":"Запеченная Калифорния","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-022","n":"Запеченный с крабом","c":"Запечённые роллы","t":"dish","w":200,"start":true,"pro":true},{"id":"FK-A4-023","n":"Запеченная сырная креветка","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-024","n":"Сливочный Форель","c":"Запечённые роллы","t":"dish","w":280,"start":false,"pro":true},{"id":"FK-A4-025","n":"Запеченная легенда","c":"Запечённые роллы","t":"dish","w":300,"start":true,"pro":true},{"id":"FK-A4-026","n":"Запеченная креветка под чеддером","c":"Запечённые роллы","t":"dish","w":300,"start":false,"pro":true},{"id":"FK-A4-027","n":"Кранч с форелью","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-028","n":"Кранч с угрем","c":"Запечённые роллы","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-029","n":"Запеченная креветка под моцареллой","c":"Запечённые роллы","t":"dish","w":300,"start":false,"pro":true},{"id":"FK-A4-030","n":"Суши пицца","c":"Запечённые роллы","t":"dish","w":320,"start":false,"pro":true},{"id":"FK-A4-031","n":"Темпура с форелью","c":"Темпура","t":"dish","w":270,"start":true,"pro":true},{"id":"FK-A4-032","n":"Темпура с креветкой","c":"Темпура","t":"dish","w":270,"start":true,"pro":true},{"id":"FK-A4-033","n":"Темпура с крабом","c":"Темпура","t":"dish","w":260,"start":true,"pro":true},{"id":"FK-A4-034","n":"Темпура цезарь","c":"Темпура","t":"dish","w":280,"start":true,"pro":true},{"id":"FK-A4-035","n":"Маки с огурцом","c":"Маки","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-036","n":"Маки с форелью","c":"Маки","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-037","n":"Маки с крабом","c":"Маки","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-038","n":"Маки с креветкой","c":"Маки","t":"dish","w":125,"start":true,"pro":true},{"id":"FK-A4-039","n":"Онигири с крабом","c":"Онигири","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-040","n":"Онигири с форелью","c":"Онигири","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-041","n":"Онигири с креветкой","c":"Онигири","t":"dish","w":120,"start":true,"pro":true},{"id":"FK-A4-042","n":"Wok с курицей (терияки)","c":"WOK","t":"dish","w":319,"start":true,"pro":true},{"id":"FK-A4-043","n":"Wok с креветкой (терияки)","c":"WOK","t":"dish","w":319,"start":true,"pro":true},{"id":"FK-A4-044","n":"Wok с креветкой (сливочный)","c":"WOK","t":"dish","w":319,"start":false,"pro":true},{"id":"FK-A4-045","n":"Wok с курицей (сливочный)","c":"WOK","t":"dish","w":319,"start":false,"pro":true},{"id":"FK-A4-046","n":"Суши с креветкой","c":"Суши","t":"dish","w":50,"start":true,"pro":true},{"id":"FK-A4-047","n":"Суши с форелью","c":"Суши","t":"dish","w":50,"start":true,"pro":true},{"id":"FK-A4-048","n":"Суши с угрём","c":"Суши","t":"dish","w":50,"start":true,"pro":true},{"id":"FK-A4-049","n":"Гункан с крабом","c":"Гунканы","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-050","n":"Гункан с креветкой","c":"Гунканы","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-051","n":"Гункан с курицей","c":"Гунканы","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-052","n":"Гункан с форелью","c":"Гунканы","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-053","n":"Онигири с курицей","c":"Онигири","t":"dish","w":null,"start":false,"pro":true},{"id":"FK-A4-054","n":"Картофель фри","c":"Закуски","t":"dish","w":150,"start":true,"pro":true},{"id":"FK-A4-055","n":"Наггетсы","c":"Закуски","t":"dish","w":160,"start":true,"pro":true},{"id":"FK-A4-056","n":"Сырные палочки","c":"Закуски","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-057","n":"Креветка в темпуре","c":"Закуски","t":"dish","w":null,"start":true,"pro":true},{"id":"FK-A4-058","n":"Мидии в сырном соусе","c":"Закуски","t":"dish","w":null,"start":false,"pro":true},{"id":"FK-A4-059","n":"Мидии в спайси-соусе","c":"Закуски","t":"dish","w":null,"start":false,"pro":true},{"id":"ТТК-ПФ-001","n":"Соус соевый ПФ","c":"Соусы и заправки","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-002","n":"Соус спайси ПФ","c":"Соусы и заправки","t":"prep","w":6340,"start":true,"pro":true},{"id":"ТТК-ПФ-003","n":"Соус сырный ПФ","c":"Соусы и заправки","t":"prep","w":5700,"start":true,"pro":true},{"id":"ТТК-ПФ-004","n":"Омлет ПФ","c":"Начинки и заготовки","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-005","n":"Сушидза ПФ","c":"Соусы и заправки","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-006","n":"Соус фирменный ПФ","c":"Соусы и заправки","t":"prep","w":6500,"start":true,"pro":true},{"id":"ТТК-ПФ-007","n":"Соус сливочный для WOK","c":"Соусы и заправки","t":"prep","w":925,"start":true,"pro":true},{"id":"ТТК-ПФ-008","n":"Краб ПФ","c":"Начинки и заготовки","t":"prep","w":1050,"start":true,"pro":true},{"id":"ТТК-ПФ-009","n":"Курица варёно-копчёная (толстая соломка) ПФ","c":"Начинки и заготовки","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-010","n":"Такуан маринованный (мелкая соломка) ПФ","c":"Начинки и заготовки","t":"prep","w":480,"start":true,"pro":true},{"id":"ТТК-ПФ-011","n":"Угорь жареный (слайсы) ПФ","c":"Рыба","t":"prep","w":660,"start":true,"pro":true},{"id":"ТТК-ПФ-012","n":"Угорь жареный (обрезки) ПФ","c":"Рыба","t":"prep","w":140,"start":true,"pro":true},{"id":"ТТК-ПФ-013","n":"Форель — слайсы по 30 г","c":"Рыба","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-014","n":"Форель — светлая нарезка","c":"Рыба","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-015","n":"Форель — тёмная нарезка","c":"Рыба","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-016","n":"Креветка ваннамей 16/20 — бабочка","c":"Морепродукты и икра","t":"prep","w":1440,"start":true,"pro":true},{"id":"ТТК-ПФ-017","n":"Креветка ваннамей 16/20 — очищенная отварная","c":"Морепродукты и икра","t":"prep","w":837,"start":true,"pro":true},{"id":"ТТК-ПФ-018","n":"Икра масаго — красная","c":"Морепродукты и икра","t":"prep","w":440,"start":true,"pro":true},{"id":"ТТК-ПФ-019","n":"Икра масаго — оранжевая","c":"Морепродукты и икра","t":"prep","w":440,"start":true,"pro":true},{"id":"ТТК-ПФ-020","n":"Капуста пекинская — тонкая соломка","c":"Овощи и зелень","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-021","n":"Лапша удон отварная","c":"Основы и панировка","t":"prep","w":2400,"start":true,"pro":true},{"id":"ТТК-ПФ-022","n":"Лук зелёный подготовленный нарезанный","c":"Овощи и зелень","t":"prep","w":900,"start":true,"pro":true},{"id":"ТТК-ПФ-023","n":"Огурец свежий — соломка для роллов","c":"Овощи и зелень","t":"prep","w":700,"start":true,"pro":true},{"id":"ТТК-ПФ-024","n":"Лук фри с панко","c":"Основы и панировка","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-025","n":"Мидии для запечённых роллов","c":"Морепродукты и икра","t":"prep","w":900,"start":true,"pro":true},{"id":"ТТК-ПФ-026","n":"Рис для суши отварной, заправленный","c":"Основы и панировка","t":"prep","w":null,"start":true,"pro":true},{"id":"ТТК-ПФ-027","n":"Сыр творожный «Савушкин»","c":"Основы и панировка","t":"prep","w":10500,"start":true,"pro":true},{"id":"ТТК-ПФ-028","n":"Морковь свежая — тонкая соломка для WOK","c":"Овощи и зелень","t":"prep","w":800,"start":true,"pro":true},{"id":"ТТК-ПФ-029","n":"Перец сладкий красный — тонкая соломка для WOK","c":"Овощи и зелень","t":"prep","w":800,"start":true,"pro":true},{"id":"ТТК-ПФ-030","n":"Кляр для японской темпуры","c":"Основы и панировка","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-031","n":"Форель со спайси","c":"Смеси для роллов","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-032","n":"Угорь со спайси","c":"Смеси для роллов","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-033","n":"Краб с фирменным соусом","c":"Смеси для роллов","t":"prep","w":1000,"start":true,"pro":true},{"id":"ТТК-ПФ-034","n":"Овощи для WOK аль денте","c":"Овощи и зелень","t":"prep","w":900,"start":true,"pro":true}];
+const START_ORDER=[1,2,3,4,10,11,12,13,14,15,16,17,18,19,21,22,23,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,46,47,48,49,50,51,52,54,55,56,57];
+const $=id=>document.getElementById(id);let assets=new Map(),archive=[],grants=new Set(),activePlan=null,refreshCount=0;
+let photos=new Map(),photoBlobUrls=new Map();
+const show=(id,v)=>$(id).classList.toggle('hidden',!v);
+const msg=(t,error=false)=>{$('feedback').textContent=t;$('feedback').style.color=error?'var(--red)':'#285c75'};
+const clean=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+function clearPhotos(){for(const u of photoBlobUrls.values())URL.revokeObjectURL(u);photoBlobUrls.clear();}
+function assetReady(key){return assets.has(key)}
+function editionAsset(key){return assets.get(key)}
+async function fileBlob(asset){const {data,error}=await sb.storage.from('fk-paid-ttk').download(asset.object_path);if(error||!data)throw new Error('Файл не разрешён или отсутствует');return data}
+async function viewFile(asset,page=1,btn){
+ const opened=window.open('about:blank','_blank');
+ if(btn)btn.disabled=true;msg('Открываю защищённый файл…');
+ try{
+  const blob=await fileBlob(asset);const url=URL.createObjectURL(blob);
+  if(opened){opened.location.href=url+(blob.type==='application/pdf'?'#page='+page:'');}
+  else{const a=document.createElement('a');a.href=url;a.download=asset.filename;a.click();}
+  setTimeout(()=>URL.revokeObjectURL(url),600000);msg('');
+ }catch(e){if(opened)opened.close();msg('Не удалось открыть: '+(e.message||'ошибка'),true)}
+ finally{if(btn)btn.disabled=false}
 }
-$('login').addEventListener('click',async()=>{const email=$('email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){msg('Укажите корректную электронную почту.',true);return}const b=$('login');b.disabled=true;try{const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;msg('Проверьте почту: запрос на отправку ссылки принят.')}catch{msg('Не удалось отправить письмо. Проверьте почту или настройки входа.',true)}finally{b.disabled=false}});
-$('logout').addEventListener('click',async()=>{await client.auth.signOut();await refresh()});
-client.auth.onAuthStateChange(()=>setTimeout(refresh,0));
-refresh();
+async function downloadFile(asset,btn){
+ if(btn)btn.disabled=true;msg('Подготавливаю скачивание…');
+ try{
+  const blob=await fileBlob(asset);const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=asset.filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);msg('Файл передан на скачивание.');
+ }catch(e){msg('Файл пока недоступен: '+(e.message||'нет доступа'),true)}
+ finally{if(btn)btn.disabled=false}
+}
+function addFileRow(target,asset,label){
+ const el=document.createElement('div');el.className='release';
+ const div=document.createElement('div');const strong=document.createElement('label');strong.textContent=label;const detail=document.createElement('span');detail.textContent=(Number(asset.expected_size_bytes)/1048576).toFixed(1)+' МБ · PDF · закрытое хранилище';div.append(strong,detail);
+ const buttons=document.createElement('div');buttons.className='buttons';
+ const view=document.createElement('button');view.className='btn tiny alt';view.textContent='Просмотр';view.addEventListener('click',()=>viewFile(asset,1,view));
+ const down=document.createElement('button');down.className='btn tiny';down.textContent='Скачать';down.addEventListener('click',()=>downloadFile(asset,down));
+ buttons.append(view,down);el.append(div,buttons);target.append(el);
+}
+function plain(target,t){const p=document.createElement('p');p.className='muted small';p.textContent=t;target.append(p)}
+function renderPackageFiles(){
+ for(const [key,nodeId] of [['start','startFiles'],['pro','proFiles']]){
+  const el=$(nodeId);el.replaceChildren();
+  const allowed=grants.has('pro')||grants.has(key);
+  if(!allowed){plain(el,'Доступ к тарифу не активирован.');continue}
+  const files=key==='start'?[['start_dishes_pdf','ТТК блюд · 44'],['common_preps_pdf','ТТК полуфабрикатов · 34']]
+  :[['pro_dishes_pdf','ТТК блюд · 59'],['common_preps_pdf','ТТК полуфабрикатов · 34'],['pro_instructions_pdf','Инструкции · 59']];
+  for(const [id,label] of files){const a=editionAsset(id);if(a)addFileRow(el,a,label);else plain(el,label+' — новая редакция ещё не выдана.')}
+ }
+ const old=$('oldFiles');old.replaceChildren();
+ for(const a of archive){const row=document.createElement('div');row.className='release';
+  const s=document.createElement('span');s.textContent=a.filename;
+  const btn=document.createElement('button');btn.className='btn tiny alt';btn.textContent='Скачать архив';btn.addEventListener('click',()=>downloadFile(a,btn));
+  row.append(s,btn);old.append(row);
+ }
+ if(!archive.length)plain(old,'Доступных архивных документов нет.');
+ const complete=['pro_dishes_pdf','start_dishes_pdf','common_preps_pdf','pro_instructions_pdf'].every(k=>assets.has(k));
+ $('notice').textContent=complete?'Редакция 03.11.2026 доступна согласно вашему активному тарифу.':'Редакция 03.11.2026 загружается и проверяется владельцем. До выпуска новые PDF недоступны; архив 30.10 хранится отдельно.';
+}
+function pageFor(row,plan){const n=Number(row.id.slice(-3));if(row.t==='prep')return n;if(plan==='pro')return n;return START_ORDER.indexOf(n)+1;}
+function assetFor(row){if(row.t==='prep')return editionAsset('common_preps_pdf');return editionAsset(activePlan==='pro'?'pro_dishes_pdf':'start_dishes_pdf');}
+function shownRows(){if(!activePlan)return [];const query=$('recipeSearch').value.trim().toLocaleLowerCase('ru'),kind=$('recipeKind').value,cat=$('recipeCategory').value;return DATA.filter(r=>(activePlan==='pro'||r.start)&&(kind==='all'||kind===r.t)&&(cat==='all'||cat===r.c)&&(query===''||(r.n+' '+r.id+' '+r.c).toLocaleLowerCase('ru').includes(query)))}
+function renderCards(){
+ const list=shownRows(),root=$('recipeCards');root.replaceChildren();
+ $('recipeCount').textContent='Показано '+list.length+' карт · '+(activePlan==='pro'?'SHEF PRO':'SHEF START');
+ for(const r of list){const el=document.createElement('article');el.className='recipe';const id=document.createElement('div');id.className='code';id.textContent=r.id;const title=document.createElement('h4');title.textContent=r.n;const end=document.createElement('div');end.className='act';const cat=document.createElement('span');cat.textContent=r.c;const b=document.createElement('button');b.className='btn tiny';b.textContent=assetFor(r)?'Открыть':'Ожидает PDF';b.disabled=!assetFor(r);b.addEventListener('click',()=>viewFile(assetFor(r),pageFor(r,activePlan),b));end.append(cat,b);
+  el.append(id,title,end);
+  if(r.t==='prep'){
+   const photoKey='pf_photo_'+r.id.slice(-3);
+   if(assetReady(photoKey)){const pv=document.createElement('button');pv.className='btn tiny alt';pv.textContent='Фото ПФ';pv.style.marginTop='10px';pv.addEventListener('click',async()=>{
+    pv.disabled=true;
+    try{const pic=await fileBlob(editionAsset(photoKey));const url=URL.createObjectURL(pic);photoBlobUrls.set(photoKey,url);const image=document.createElement('img');image.loading='lazy';image.alt='Фото '+r.n;image.src=url;el.insertBefore(image,end);pv.remove()}
+    catch{pv.disabled=false;msg('Фотография пока недоступна.',true)}
+   });el.insertBefore(pv,end)}
+  }root.append(el);
+ }
+}
+function categories(){const select=$('recipeCategory'),keep=select.value;const vals=[...new Set(DATA.filter(r=>activePlan==='pro'||r.start).filter(r=>$('recipeKind').value==='all'||r.t===$('recipeKind').value).map(r=>r.c))].sort((a,b)=>a.localeCompare(b,'ru'));select.replaceChildren();const all=document.createElement('option');all.value='all';all.textContent='Все категории';select.append(all);for(const v of vals){let o=document.createElement('option');o.value=v;o.textContent=v;select.append(o)}if(vals.includes(keep))select.value=keep}
+async function refresh(){
+ const current=++refreshCount;const {data:{user},error}=await sb.auth.getUser();if(current!==refreshCount)return;
+ clearPhotos();show('loginPanel',!user||!!error);show('accountPanel',!!user&&!error);show('libraryPanel',!!user&&!error);
+ if(!user||error){grants.clear();assets.clear();activePlan=null;msg('');return}
+ $('userEmail').textContent=user.email||'Покупатель';msg('Проверяем разрешённые материалы…');
+ const [g,a,old]=await Promise.all([
+  sb.from('fk_paid_access').select('package_code,status,expires_at').eq('user_id',user.id),
+  sb.from('fk_release_assets').select('asset_key,object_path,filename,expected_size_bytes,asset_kind,package_code,released').eq('edition','2026-11-03').eq('released',true),
+  sb.from('fk_paid_assets').select('asset_key,object_path,filename,expected_size_bytes,package_code').eq('released',true)
+ ]);
+ if(current!==refreshCount)return;
+ if(g.error||a.error||old.error){msg('Ошибка проверки доступа. Повторите вход.',true);return}
+ const now=Date.now();grants=new Set((g.data||[]).filter(x=>x.status==='active'&&(!x.expires_at||new Date(x.expires_at).getTime()>now)).map(x=>x.package_code));
+ activePlan=grants.has('pro')?'pro':grants.has('start')?'start':null;
+ assets=new Map((a.data||[]).map(x=>[x.asset_key,x]));archive=(old.data||[]).filter(x=>grants.has('pro')||grants.has(x.package_code));
+ const expiry=(g.data||[]).filter(x=>x.status==='active'&&(!x.expires_at||new Date(x.expires_at).getTime()>now)).map(x=>x.expires_at).filter(Boolean).sort()[0];
+ $('userAccess').textContent=activePlan?(activePlan==='pro'?'Активен SHEF PRO · доступны также материалы START':'Активен SHEF START')+(expiry?' · до '+new Date(expiry).toLocaleDateString('ru-RU'):''):'Нет активного доступа. Для активации обратитесь к владельцу.';
+ renderPackageFiles();
+ if(activePlan){$('recipesPanel').classList.remove('hidden');categories();renderCards()}
+ else{$('recipesPanel').classList.add('hidden')}
+ msg(activePlan?'Доступ проверен.': 'Учётная запись активна. Ожидается ручное назначение тарифа.');
+}
+async function login(kind){
+ const email=$('email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){msg('Укажите корректный email',true);return}
+ const btn=$(kind==='otp'?'send':'passwordSignIn');btn.disabled=true;
+ try{let error;if(kind==='otp')({error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}}));else{const p=$('password').value;if(!p)throw Error('Введите пароль');({error}=await sb.auth.signInWithPassword({email,password:p}))}if(error)throw error;if(kind==='otp')msg('Ссылка запрошена. Проверьте свою почту.');else{ $('password').value='';await refresh()}}
+ catch(e){msg('Не удалось войти: '+(e.message||'ошибка'),true)}
+ finally{btn.disabled=false}
+}
+$('send').addEventListener('click',()=>login('otp'));$('passwordSignIn').addEventListener('click',()=>login('password'));
+$('signout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
+$('recipeSearch').addEventListener('input',renderCards);$('recipeKind').addEventListener('change',()=>{categories();renderCards()});$('recipeCategory').addEventListener('change',renderCards);
+sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));refresh();
 </script></body></html>
