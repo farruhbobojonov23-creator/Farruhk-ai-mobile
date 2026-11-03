@@ -160,7 +160,7 @@ async function login(kind){
  const email=$('email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){msg('Укажите корректный email',true);return}
  const btn=$(kind==='otp'?'send':'passwordSignIn');btn.disabled=true;
  try{let error;if(kind==='otp')({error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}}));else{const p=$('password').value;if(!p)throw Error('Введите пароль');({error}=await sb.auth.signInWithPassword({email,password:p}))}if(error)throw error;if(kind==='otp')msg('Ссылка запрошена. Проверьте свою почту.');else{ $('password').value='';await refresh()}}
- catch(e){msg('Не удалось войти: '+(e.message||'ошибка'),true)}
+ catch(e){const limit=e?.code==='over_email_send_rate_limit'||e?.status===429||/email rate limit exceeded/i.test(e?.message||'');msg(limit?'Лимит писем Supabase временно исчерпан. Новые письма сейчас не отправляются. Не нажимайте кнопку повторно; попробуйте позднее. Для постоянной работы с покупателями нужен почтовый SMTP.':'Не удалось войти: '+(e.message||'ошибка'),true)}
  finally{btn.disabled=false}
 }
 function changeOwnerPreview(plan){
