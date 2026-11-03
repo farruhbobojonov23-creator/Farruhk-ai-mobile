@@ -108,3 +108,10 @@
 .fk-buyer .fk-footnote{font-size:12px;color:#627e8a;margin:15px 0}
 @media(max-width:900px){.fk-buyer #recipesPanel .recipes{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.fk-buyer .fk-dashboard{padding:20px}.fk-buyer .fk-dashboard-top{align-items:flex-start;flex-direction:column;gap:4px}.fk-buyer .fk-dashboard-buttons .btn{width:100%}.fk-buyer #recipesPanel .recipes{grid-template-columns:1fr}.fk-buyer .recipe .fk-recipe-media{height:125px}.fk-buyer .recipe .act{gap:6px}}
+
+/* Navigation consistency on the legacy-safe request form */
+.fk-request .fk-nav{display:block;position:sticky;top:0;width:100%;padding:0}
+.fk-request .fk-nav-in{width:100%;max-width:1240px;margin:0 auto;padding:0 24px}
+.fk-request .fk-nav-links{max-width:none}
+.fk-request .fk-btn-primary{color:#112736}
+@media(max-width:740px){.fk-request .fk-nav-in{padding:0 16px}}
