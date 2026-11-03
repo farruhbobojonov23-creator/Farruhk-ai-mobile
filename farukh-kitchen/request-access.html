@@ -41,6 +41,7 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <input id="contact" type="text" maxlength="100" autocomplete="off" placeholder="@username" required>
 <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="website">Не заполнять</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
 <p class="hint">Контакт увидит только владелец FARUKH KITCHEN. Ваш номер или Telegram не появится в открытом каталоге.</p>
+<label for="consent" style="display:flex;align-items:start;gap:10px;font-size:13px;font-weight:500;cursor:pointer"><input id="consent" type="checkbox" style="width:20px;min-width:20px;margin:2px 0" required> Согласен(на), чтобы владелец FARUKH KITCHEN сохранил мой контакт и связался со мной исключительно по этой заявке. Заявку можно отозвать, связавшись с владельцем после его ответа.</label>
 <button id="submit" type="submit">Отправить заявку шефу →</button>
 <div id="feedback" role="status" aria-live="polite"></div>
 <div id="success" class="hide" role="status"><strong>✅ Заявка получена!</strong><p>Шеф увидит её в управляющем кабинете и свяжется с вами по указанному контакту. Оплата и выдача логина — только после личного подтверждения.</p><p><a href="catalog-verified.html">Вернуться к каталогу →</a></p></div>
@@ -77,6 +78,7 @@ $('requestForm').addEventListener('submit',async e=>{
  const feedback=$('feedback'),btn=$('submit');
  feedback.classList.remove('error');
  if($('website').value)return;
+ if(!$('consent').checked){feedback.textContent='Чтобы отправить заявку, нужно согласие на обратную связь.';feedback.classList.add('error');return}
  if(name.length<2||name.length>80||!['start','pro'].includes(plan)){feedback.textContent='Проверьте имя и пакет.';feedback.classList.add('error');return}
  if(type==='telegram'){
   if(!contact.startsWith('@'))contact='@'+contact;
