@@ -55,6 +55,12 @@ a{color:#4f65ae}
 <section id="adminPanel" class="hidden">
 <section class="panel" id="release20261103"><div class="kicker">НОВАЯ РЕДАКЦИЯ · 03.11.2026</div><h2>Обновление PDF и 34 фотографий</h2>
 <p class="muted">Новая редакция готова к загрузке в <b>приватное хранилище</b>: четыре PDF и 34 WebP. Новые файлы отделены от предыдущего выпуска 30.10.2026. До проверки SHA-256 и вашего подтверждения они не показываются покупателям.</p>
+<div style="border:2px solid #aec5e4;border-radius:14px;background:#eff5ff;padding:17px;margin:15px 0 20px">
+ <h3 style="color:#274c79">Загрузить все 38 файлов за один раз</h3>
+ <p class="muted small">Выберите единый архив с 38 материалами. Проверим все контрольные суммы, загрузим PDF и фотографии в закрытое хранилище и повторно сверим файлы после передачи.</p>
+ <div class="row"><input id="releaseAllZip" type="file" accept=".zip,application/zip" aria-label="Единый ZIP с 38 файлами"><button type="button" id="releaseUploadAll38">Проверить и загрузить все 38</button></div>
+ <p class="muted small">Архив: <a href="https://drive.google.com/file/d/1MBVm2hi2JNpYlouHHoSXlBgUkC0CXZNr/view" target="_blank" rel="noopener noreferrer">FARUKH KITCHEN · 38 файлов · 03.11.2026</a>. Доступен только владельцу Google Drive.</p>
+</div>
 <div class="grid">
   <div><label for="releaseZipDocs">4 PDF · START / PRO / ПФ / инструкции</label><input id="releaseZipDocs" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadDocs" style="margin-top:9px">Загрузить 4 PDF</button></div>
   <div><label for="releaseZipPhotos">34 фотографии полуфабрикатов · WebP</label><input id="releaseZipPhotos" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadPhotos" style="margin-top:9px">Загрузить 34 фото</button></div>
@@ -181,6 +187,50 @@ async function loadReleaseEdition(){
   root.append(line);
  }
 }
+
+async function uploadAllReleaseFiles(){
+ if(!isAdmin||!user){status('Требуется подтверждённый доступ владельца.',true);return}
+ const file=$('releaseAllZip').files?.[0],button=$('releaseUploadAll38');
+ if(!file){status('Выберите объединённый ZIP с 38 файлами.',true);return}
+ if(file.size>65000000){status('Архив превышает допустимый размер.',true);return}
+ button.disabled=true;
+ try{
+  status('Проверяю манифест и контрольные суммы всех 38 файлов…');
+  const zip=await JSZip.loadAsync(file);
+  const mf=zip.file('manifest.json');
+  if(!mf)throw new Error('Нет manifest.json.');
+  const manifest=JSON.parse(await mf.async('string'));
+  if(manifest.format!=='farukh-kitchen-release-v1'||manifest.edition!=='2026-11-03'||manifest.count!==38||!Array.isArray(manifest.assets)||manifest.assets.length!==38)throw new Error('Архив не соответствует редакции 03.11.2026.');
+  if(releaseEditionAssets.length!==38)throw new Error('База данных обновления не готова.');
+  const expected=new Map(releaseEditionAssets.map(a=>[a.asset_key,a]));
+  if(expected.size!==38||new Set(manifest.assets.map(a=>a.asset_key)).size!==38)throw new Error('Дубли или пропуски в манифесте.');
+  // Verify the entire release before writing anything.
+  for(let i=0;i<manifest.assets.length;i++){
+   const a=manifest.assets[i],b=expected.get(a.asset_key);
+   if(!b||a.object_path!==b.object_path||a.bundle_path!=='files/'+b.filename||Number(a.size)!==Number(b.expected_size_bytes)||a.sha256!==b.expected_sha256||b.released)throw new Error('Несовпадение манифеста: '+a.asset_key);
+   const item=zip.file(a.bundle_path);
+   if(!item)throw new Error('Отсутствует '+a.bundle_path);
+   const bytes=await item.async('uint8array');
+   if(bytes.byteLength!==Number(b.expected_size_bytes)||(await sha256(new Blob([bytes])))!==b.expected_sha256)throw new Error('Неверная контрольная сумма '+a.asset_key);
+   if(i%5===4)status('Проверено '+(i+1)+' из 38 файлов…');
+  }
+  for(let i=0;i<manifest.assets.length;i++){
+   const a=manifest.assets[i],b=expected.get(a.asset_key),item=zip.file(a.bundle_path);
+   status('Загрузка '+(i+1)+'/38 · '+b.filename);
+   const bytes=await item.async('uint8array');
+   const blob=new Blob([bytes],{type:b.asset_kind==='pdf'?'application/pdf':'image/webp'});
+   const {error:up}=await sb.storage.from('fk-paid-ttk').upload(b.object_path,blob,{upsert:true,contentType:blob.type,cacheControl:'0'});
+   if(up)throw new Error('Ошибка записи '+b.filename+': '+up.message);
+   const {data:remote,error:down}=await sb.storage.from('fk-paid-ttk').download(b.object_path);
+   if(down||!remote||remote.size!==blob.size||(await sha256(remote))!==b.expected_sha256)throw new Error('Повторная проверка не прошла: '+b.filename);
+  }
+  status('38 из 38 файлов загружены и проверены. До решения владельца выпуск остаётся закрытым.');
+  await loadReleaseEdition();
+ }catch(e){status('Загрузка не завершена: '+(e.message||'неизвестная ошибка'),true)}
+ finally{button.disabled=false}
+}
+$('releaseUploadAll38').addEventListener('click',uploadAllReleaseFiles);
+
 async function uploadReleaseZip(group){
  if(!isAdmin||!user){status('Загрузка доступна только владельцу',true);return}
  const f=$(group==='docs'?'releaseZipDocs':'releaseZipPhotos').files?.[0], b=$(group==='docs'?'releaseUploadDocs':'releaseUploadPhotos');
