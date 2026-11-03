@@ -53,6 +53,17 @@ a{color:#4f65ae}
 <p class="muted"><small>Эта операция однократная: после первого успешного подтверждения новых администраторов автоматически не создаём.</small></p>
 </section>
 <section id="adminPanel" class="hidden">
+<section class="panel" id="release20261103"><div class="kicker">НОВАЯ РЕДАКЦИЯ · 03.11.2026</div><h2>Обновление PDF и 34 фотографий</h2>
+<p class="muted">Новая редакция готова к загрузке в <b>приватное хранилище</b>: четыре PDF и 34 WebP. Новые файлы отделены от предыдущего выпуска 30.10.2026. До проверки SHA-256 и вашего подтверждения они не показываются покупателям.</p>
+<div class="grid">
+  <div><label for="releaseZipDocs">4 PDF · START / PRO / ПФ / инструкции</label><input id="releaseZipDocs" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadDocs" style="margin-top:9px">Загрузить 4 PDF</button></div>
+  <div><label for="releaseZipPhotos">34 фотографии полуфабрикатов · WebP</label><input id="releaseZipPhotos" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadPhotos" style="margin-top:9px">Загрузить 34 фото</button></div>
+</div>
+<div id="releaseStats" class="status" role="status" aria-live="polite">Проверка закрытого хранилища…</div>
+<details><summary style="cursor:pointer;font-weight:750;color:#465c90">Список новой редакции и проверка файлов</summary><div id="releaseRows" class="tablewrap" style="margin-top:12px"></div></details>
+<p class="muted"><small>Файлы проверяются по SHA-256 дважды: перед загрузкой и после скачивания из Supabase. После загрузки они остаются закрытыми, пока владелец отдельно не разрешит выдачу. Цена и автоматическая оплата не подключены.</small></p>
+</section>
+
 <section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Четыре коммерческих файла</h2>
 <p class="muted">Выберите четыре локальных файла PDF/ZIP из утверждённого комплекта. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
 <div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите новый архив «FARUKH_KITCHEN_ПУБЛИКАЦИЯ_ФОТО_ГУНКАНОВ_4_ФАЙЛА.zip». В нём четыре финальных файла: START 44 ТТК, PRO 59 ТТК, на всех четырёх гунканах одно утверждённое фото. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
@@ -130,6 +141,87 @@ async function loadFiles(){
   await check();
  }
 }
+
+let releaseEditionAssets=[];
+async function loadReleaseEdition(){
+ if(!isAdmin)return;
+ const {data,error}=await sb.from('fk_release_assets').select('*').eq('edition','2026-11-03').order('asset_key');
+ if(error)throw error;
+ releaseEditionAssets=data||[];
+ const [docs,images]=await Promise.all([
+   sb.storage.from('fk-paid-ttk').list('release/2026-11-03/docs',{limit:100}),
+   sb.storage.from('fk-paid-ttk').list('release/2026-11-03/photos',{limit:100})
+ ]);
+ const present=new Set([...(docs.data||[]).map(x=>'release/2026-11-03/docs/'+x.name),...(images.data||[]).map(x=>'release/2026-11-03/photos/'+x.name)]);
+ const complete=releaseEditionAssets.filter(a=>present.has(a.object_path)).length;
+ const approved=releaseEditionAssets.filter(a=>a.released).length;
+ $('releaseStats').textContent='Запланировано: '+releaseEditionAssets.length+' файлов · в хранилище: '+complete+' · разрешено к выдаче: '+approved+'.';
+ const root=$('releaseRows');root.replaceChildren();
+ for(const asset of releaseEditionAssets){
+  const line=document.createElement('div');line.className='file';
+  const n=document.createElement('span');n.textContent=asset.filename+' · '+(present.has(asset.object_path)?'загружено':'ожидает загрузки')+(asset.released?' · доступно по тарифу':' · закрыто');
+  line.append(n);
+  if(present.has(asset.object_path)&&!asset.released){
+   const b=document.createElement('button');b.type='button';b.className='subtle';b.textContent='Проверить и разрешить';b.style.maxWidth='190px';
+   b.addEventListener('click',async()=>{
+    if(!isAdmin)return;
+    b.disabled=true;
+    try{
+     status('Проверка содержимого '+asset.filename+'…');
+     const {data:f,error:err}=await sb.storage.from('fk-paid-ttk').download(asset.object_path);
+     if(err||!f)throw new Error('Файл недоступен');
+     if(f.size!==Number(asset.expected_size_bytes)||(await sha256(f))!==asset.expected_sha256)throw new Error('SHA-256 или размер не соответствует базе');
+     const {error:uerr}=await sb.from('fk_release_assets').update({released:true,released_at:new Date().toISOString(),approved_by:user.id}).eq('asset_key',asset.asset_key).eq('released',false);
+     if(uerr)throw uerr;
+     status(asset.filename+' проверен и доступен только по подтверждённому тарифу.');
+     await loadReleaseEdition();
+    }catch(e){status('Не удалось разрешить: '+(e.message||'ошибка'),true);b.disabled=false}
+   });line.append(b);
+  }
+  root.append(line);
+ }
+}
+async function uploadReleaseZip(group){
+ if(!isAdmin||!user){status('Загрузка доступна только владельцу',true);return}
+ const f=$(group==='docs'?'releaseZipDocs':'releaseZipPhotos').files?.[0], b=$(group==='docs'?'releaseUploadDocs':'releaseUploadPhotos');
+ if(!f){status('Выберите ZIP новой редакции',true);return}
+ if(f.size>60000000){status('ZIP больше допустимого размера',true);return}
+ b.disabled=true;
+ try{
+   const z=await JSZip.loadAsync(f);
+   const mf=z.file('manifest.json');if(!mf)throw new Error('В ZIP нет manifest.json');
+   const m=JSON.parse(await mf.async('text'));
+   const expected=releaseEditionAssets.filter(a=>group==='docs'?a.asset_kind==='pdf':a.asset_kind==='image');
+   if(m.format!=='farukh-kitchen-release-v1'||m.edition!=='2026-11-03'||!Array.isArray(m.assets)||m.assets.length!==expected.length||expected.length!==(group==='docs'?4:34))throw new Error('Неправильный пакет обновления');
+   const keys=new Set(m.assets.map(x=>x.asset_key));
+   if(keys.size!==expected.length)throw new Error('Дубли ключей в манифесте');
+   // Verify every file before writing any object.
+   for(const a of expected){
+     const entry=m.assets.find(x=>x.asset_key===a.asset_key);
+     if(!entry||entry.bundle_path!=='files/'+a.filename||entry.sha256!==a.expected_sha256||Number(entry.size)!==Number(a.expected_size_bytes)||entry.object_path!==a.object_path)throw new Error('Несовпадение метаданных '+a.asset_key);
+     const file=z.file(entry.bundle_path);if(!file)throw new Error('Не найден файл '+entry.bundle_path);
+     const bytes=await file.async('uint8array');
+     const raw=new Blob([bytes]);
+     if(raw.size!==Number(a.expected_size_bytes)||(await sha256(raw))!==a.expected_sha256)throw new Error('Ошибка контрольной суммы '+a.filename);
+   }
+   for(let i=0;i<expected.length;i++){
+     const a=expected[i],entry=m.assets.find(x=>x.asset_key===a.asset_key);
+     status('Загрузка '+(i+1)+' из '+expected.length+': '+a.filename);
+     const bytes=await z.file(entry.bundle_path).async('uint8array');
+     const blob=new Blob([bytes],{type:a.asset_kind==='pdf'?'application/pdf':'image/webp'});
+     const {error:up}=await sb.storage.from('fk-paid-ttk').upload(a.object_path,blob,{upsert:true,contentType:blob.type,cacheControl:'0'});
+     if(up)throw up;
+     const {data:remote,error:down}=await sb.storage.from('fk-paid-ttk').download(a.object_path);
+     if(down||!remote||remote.size!==blob.size||(await sha256(remote))!==a.expected_sha256)throw new Error('Ошибка проверки после загрузки '+a.filename);
+   }
+   status(expected.length+' файлов загружены и проверены. Публикация ожидает подтверждения владельца.');
+   await loadReleaseEdition();
+ }catch(e){status('Ошибка загрузки новой редакции: '+(e.message||'неизвестная ошибка'),true)}
+ finally{b.disabled=false}
+}
+$('releaseUploadDocs').addEventListener('click',()=>uploadReleaseZip('docs'));
+$('releaseUploadPhotos').addEventListener('click',()=>uploadReleaseZip('images'));
+
 async function refresh(){
  const {data:{user:current},error}=await sb.auth.getUser();
  user=error?null:current;
@@ -138,7 +230,7 @@ async function refresh(){
  isAdmin=false;
  if(user){const {data,error:checkErr}=await sb.from('fk_admins').select('user_id').eq('user_id',user.id).maybeSingle();isAdmin=!!data&&!checkErr}
  setVisible('claimPanel',!!user&&!isAdmin);setVisible('adminPanel',!!user&&isAdmin);
- if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await loadFiles();status('Управляющий кабинет готов.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
+ if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await Promise.all([loadFiles(),loadReleaseEdition()]);status('Управляющий кабинет готов.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
  else if(user)status('Вход выполнен. Подтвердите право владельца ключом из закрытого центра.');
  else status('Войдите по почте, чтобы продолжить.');
 }
