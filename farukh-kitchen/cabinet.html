@@ -141,20 +141,109 @@ function renderPackageFiles(){
 function pageFor(row,plan){const n=Number(row.id.slice(-3));if(row.t==='prep')return n;if(plan==='pro')return n;return START_ORDER.indexOf(n)+1;}
 function assetFor(row){if(row.t==='prep')return editionAsset('common_preps_pdf');return editionAsset(activePlan==='pro'?'pro_dishes_pdf':'start_dishes_pdf');}
 function shownRows(){if(!activePlan)return [];const query=$('recipeSearch').value.trim().toLocaleLowerCase('ru'),kind=$('recipeKind').value,cat=$('recipeCategory').value;return DATA.filter(r=>(activePlan==='pro'||r.start)&&(kind==='all'||kind===r.t)&&(cat==='all'||cat===r.c)&&(query===''||(r.n+' '+r.id+' '+r.c).toLocaleLowerCase('ru').includes(query)))}
-function renderCards(){
- const list=shownRows(),root=$('recipeCards');root.replaceChildren();
- $('recipeCount').textContent='Показано '+list.length+' карт · '+(activePlan==='pro'?'SHEF PRO':'SHEF START');
- for(const r of list){const el=document.createElement('article');el.className='recipe';const id=document.createElement('div');id.className='code';id.textContent=r.id;const title=document.createElement('h4');title.textContent=r.n;const end=document.createElement('div');end.className='act';const cat=document.createElement('span');cat.textContent=r.c;const b=document.createElement('button');b.className='btn tiny';b.textContent=assetFor(r)?'Открыть':'Пока закрыто';b.disabled=!assetFor(r);b.addEventListener('click',()=>viewFile(assetFor(r),pageFor(r,activePlan),b));end.append(cat,b);
-  el.append(id,title,end);
-  if(r.t==='prep'){
-   const photoKey='pf_photo_'+r.id.slice(-3);
-   if(assetReady(photoKey)){const pv=document.createElement('button');pv.className='btn tiny alt';pv.textContent='Фото ПФ';pv.style.marginTop='10px';pv.addEventListener('click',async()=>{
-    pv.disabled=true;
-    try{const pic=await fileBlob(editionAsset(photoKey));const url=URL.createObjectURL(pic);photoBlobUrls.set(photoKey,url);const image=document.createElement('img');image.loading='lazy';image.alt='Фото '+r.n;image.src=url;el.insertBefore(image,end);pv.remove()}
-    catch{pv.disabled=false;msg('Фотография пока недоступна.',true)}
-   });el.insertBefore(pv,end)}
-  }root.append(el);
+function quickCategories(){
+ const box=$('fkQuickCategories');box.replaceChildren();
+ const options=[['Все ТТК','all'],...new Set(DATA.filter(r=>r.t==='dish'&&(activePlan==='pro'||r.start)).map(r=>r.c)).values()].map(v=>typeof v==='string'?[v,v]:v);
+ options.push(['Полуфабрикаты','prep']);
+ for(const [label,val] of options){
+  const btn=document.createElement('button');btn.type='button';btn.textContent=label;
+  const active=val==='all'?$('recipeKind').value==='all'&&$('recipeCategory').value==='all':val==='prep'?$('recipeKind').value==='prep':$('recipeKind').value==='dish'&&$('recipeCategory').value===val;
+  btn.setAttribute('aria-pressed',String(active));
+  btn.addEventListener('click',()=>{
+   $('recipeKind').value=val==='all'?'all':val==='prep'?'prep':'dish';
+   categories();$('recipeCategory').value=(val==='all'||val==='prep')?'all':val;
+   visibleLimit=12;renderCards();
+  });box.append(btn);
  }
+}
+function renderCards(){
+ if(!activePlan)return;
+ quickCategories();
+ const list=shownRows().filter(r=>!favoritesOnly||favorites.has(r.id));
+ const root=$('recipeCards');root.replaceChildren();
+ $('recipeCount').textContent='Найдено '+list.length+' карт · '+(activePlan==='pro'?'SHEF PRO':'SHEF START')+' · показано '+Math.min(visibleLimit,list.length);
+ $('fkFavoritesToggle').setAttribute('aria-pressed',String(favoritesOnly));
+ $('fkFavoritesToggle').textContent=favoritesOnly?'★ Избранное ('+favorites.size+')':'☆ Только избранное ('+favorites.size+')';
+ $('fkShowMore').classList.toggle('hidden',list.length<=visibleLimit);
+ if(!list.length){
+  const p=document.createElement('p');p.className='muted';
+  p.textContent=favoritesOnly?'Избранных карт пока нет. Нажмите ☆ на понравившейся ТТК.':'Нет ТТК по этому запросу.';
+  root.append(p);return;
+ }
+ for(const r of list.slice(0,visibleLimit)){
+  const el=document.createElement('article');el.className='recipe';
+  const header=document.createElement('div');header.className='fk-recipe-card-head';
+  const code=document.createElement('div');code.className='code';code.textContent=r.id;
+  const fav=document.createElement('button');fav.type='button';fav.className='fk-fav-btn';
+  fav.textContent=favorites.has(r.id)?'★':'☆';fav.setAttribute('aria-pressed',String(favorites.has(r.id)));
+  fav.setAttribute('aria-label',(favorites.has(r.id)?'Убрать из избранного ':'Добавить в избранное ')+r.n);
+  fav.addEventListener('click',()=>{favorites.has(r.id)?favorites.delete(r.id):favorites.add(r.id);saveFavorites();renderCards()});
+  header.append(code,fav);
+  const media=document.createElement('div');media.className='fk-recipe-media';
+  const art=CARD_ART[r.c];
+  if(r.t==='dish'&&art){
+   const img=document.createElement('img');img.src='assets/food-cutouts/'+art+'.webp';
+   img.loading='lazy';img.decoding='async';img.alt='Иллюстрация категории '+r.c;media.append(img);
+  }else{const icon=document.createElement('strong');icon.style.cssText='font:italic 33px Georgia,serif;color:#7899a9';icon.textContent='PF';media.append(icon)}
+  const title=document.createElement('h4');title.textContent=r.n;
+  const note=document.createElement('div');note.className='muted small';note.style.marginBottom='12px';
+  note.textContent=r.c+(r.w==null?'':' · выход '+r.w+' г (расч.)');
+  const actions=document.createElement('div');actions.className='act';
+  const asset=assetFor(r);
+  const view=document.createElement('button');view.className='btn tiny';
+  view.textContent=asset?'Открыть':'Пока закрыто';view.disabled=!asset;
+  view.addEventListener('click',()=>{if(asset)viewFile(asset,pageFor(r,activePlan),view)});
+  const one=document.createElement('button');one.className='btn tiny alt';one.textContent='↓ 1 ТТК';
+  one.title='Скачать только эту технологическую карту А4';one.disabled=!asset;
+  one.addEventListener('click',()=>downloadSingleTTK(r,one));
+  actions.append(view,one);
+  el.append(header,media,title,note,actions);
+  if(r.t==='prep'&&assetReady('pf_photo_'+r.id.slice(-3))){
+   const photoKey='pf_photo_'+r.id.slice(-3);
+   const pv=document.createElement('button');pv.className='btn tiny alt';pv.textContent='Показать фото ПФ';pv.style.marginTop='11px';
+   pv.addEventListener('click',async()=>{
+    pv.disabled=true;try{
+     const pic=await fileBlob(editionAsset(photoKey));const url=URL.createObjectURL(pic);
+     photoBlobUrls.set(photoKey,url);const img=document.createElement('img');
+     img.loading='lazy';img.src=url;img.alt='Фото полуфабриката '+r.n;
+     media.replaceChildren(img);pv.remove();
+    }catch{pv.disabled=false;msg('Не удалось открыть фото. Попробуйте позже.',true)}
+   });el.append(pv);
+  }
+  root.append(el);
+ }
+}
+async function downloadSingleTTK(row,btn){
+ const asset=assetFor(row);if(!asset){msg('Файл не разрешён для вашего тарифа.',true);return}
+ const index=pageFor(row,activePlan)-1;
+ if(index<0||index>=100){msg('Номер страницы ТТК не найден.',true);return}
+ btn.disabled=true;msg('Формирую отдельный PDF для '+row.n+'…');
+ try{
+  const original=await fileBlob(asset);
+  const {PDFDocument}=await import('https://esm.sh/pdf-lib@1.17.1?bundle');
+  const source=await PDFDocument.load(await original.arrayBuffer());
+  if(index>=source.getPageCount())throw Error('Страница не найдена');
+  const output=await PDFDocument.create();
+  const [page]=await output.copyPages(source,[index]);output.addPage(page);
+  const bytes=await output.save();
+  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  const a=document.createElement('a');a.href=url;a.download=row.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+  document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  msg('Отдельная карта передана на скачивание.');
+ }catch(e){msg('Не удалось создать отдельный PDF. Можно открыть ТТК или скачать полный комплект выше. '+(e.message||''),true)}
+ finally{btn.disabled=false}
+}
+function updateDashboard(){
+ if(!activePlan)return;
+ const pro=activePlan==='pro';
+ $('fkDashTitle').textContent='SHEF '+(pro?'PRO':'START');
+ $('fkDashSub').textContent=(isOwnerPreview?'Режим владельца':'Ваш действующий тариф')+' · '+(pro?'59 блюд · 34 ПФ · 59 инструкций':'44 блюда · 34 ПФ');
+ $('fkDashBadge').textContent=isOwnerPreview?'ВЛАДЕЛЕЦ':pro?'PRO · 93 КАРТЫ':'START · 78 КАРТ';
+ $('fkDownloadInstructions').classList.toggle('hidden',!pro);
+ $('fkDownloadDishes').disabled=!editionAsset(pro?'pro_dishes_pdf':'start_dishes_pdf');
+ $('fkDownloadPreps').disabled=!editionAsset('common_preps_pdf');
+ $('fkDownloadInstructions').disabled=!editionAsset('pro_instructions_pdf');
 }
 function categories(){const select=$('recipeCategory'),keep=select.value;const vals=[...new Set(DATA.filter(r=>activePlan==='pro'||r.start).filter(r=>$('recipeKind').value==='all'||r.t===$('recipeKind').value).map(r=>r.c))].sort((a,b)=>a.localeCompare(b,'ru'));select.replaceChildren();const all=document.createElement('option');all.value='all';all.textContent='Все категории';select.append(all);for(const v of vals){let o=document.createElement('option');o.value=v;o.textContent=v;select.append(o)}if(vals.includes(keep))select.value=keep}
 async function refresh(){
@@ -188,7 +277,15 @@ async function refresh(){
  show('ownerPreviewPanel',isOwnerPreview);
  if(isOwnerPreview)$('ownerPreviewState').textContent='Открыты для проверки '+assets.size+' файлов. Покупатели с действующим доступом скачивают только свой тариф. Выбран '+(activePlan==='pro'?'SHEF PRO':'SHEF START')+'.';
  renderPackageFiles();
- if(activePlan){$('recipesPanel').classList.remove('hidden');categories();renderCards()}
+ if(activePlan){$('recipesPanel').classList.remove('hidden');categories();
+  if(!deepLinkedOnce){
+   const deep=new URLSearchParams(location.search).get('recipe');
+   if(deep&&DATA.some(x=>x.id===deep)){
+    $('recipeSearch').value=deep;deepLinkedOnce=true;
+    setTimeout(()=>$('recipesPanel').scrollIntoView({behavior:'smooth',block:'start'}),120);
+   }
+  }
+  updateDashboard();renderCards()}
  else{$('recipesPanel').classList.add('hidden')}
  msg(isOwnerPreview?'Владелец подтверждён. Закрытый предпросмотр включён.':activePlan?'Доступ проверен.':'Учётная запись активна. Ожидается ручное назначение тарифа.');
 }
@@ -235,6 +332,16 @@ $('chefSignIn').addEventListener('click',async()=>{
 $('chefPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('chefSignIn').click()});
 $('send').addEventListener('click',()=>login('otp'));$('passwordSignIn').addEventListener('click',()=>login('password'));
 $('signout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
-$('recipeSearch').addEventListener('input',renderCards);$('recipeKind').addEventListener('change',()=>{categories();renderCards()});$('recipeCategory').addEventListener('change',renderCards);
+$('fkJumpCatalog').addEventListener('click',()=>{$('recipesPanel').scrollIntoView({behavior:'smooth',block:'start'})});
+$('fkJumpSearch').addEventListener('click',()=>{$('recipesPanel').scrollIntoView({behavior:'smooth',block:'start'});$('recipeSearch').focus()});
+$('fkDownloadDishes').addEventListener('click',()=>{const a=editionAsset(activePlan==='pro'?'pro_dishes_pdf':'start_dishes_pdf');if(a)downloadFile(a,$('fkDownloadDishes'))});
+$('fkDownloadPreps').addEventListener('click',()=>{const a=editionAsset('common_preps_pdf');if(a)downloadFile(a,$('fkDownloadPreps'))});
+$('fkDownloadInstructions').addEventListener('click',()=>{const a=editionAsset('pro_instructions_pdf');if(a)downloadFile(a,$('fkDownloadInstructions'))});
+$('fkJumpFavs').addEventListener('click',()=>{favoritesOnly=true;visibleLimit=12;renderCards();$('recipesPanel').scrollIntoView({behavior:'smooth',block:'start'})});
+$('fkFavoritesToggle').addEventListener('click',()=>{favoritesOnly=!favoritesOnly;visibleLimit=12;renderCards()});
+$('fkShowMore').addEventListener('click',()=>{visibleLimit+=12;renderCards()});
+$('recipeSearch').addEventListener('input',()=>{visibleLimit=12;renderCards()});
+$('recipeKind').addEventListener('change',()=>{visibleLimit=12;categories();renderCards()});
+$('recipeCategory').addEventListener('change',()=>{visibleLimit=12;renderCards()});
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));refresh();
 </script></body></html>
