@@ -118,8 +118,8 @@ function addFileRow(target,asset,label){
  const el=document.createElement('div');el.className='release';
  const div=document.createElement('div');const strong=document.createElement('label');strong.textContent=label;const detail=document.createElement('span');detail.textContent=(Number(asset.expected_size_bytes)/1048576).toFixed(1)+' МБ · PDF · '+(isOwnerPreview&&!asset.released?'предпросмотр владельца, не опубликовано':'закрытое хранилище');div.append(strong,detail);
  const buttons=document.createElement('div');buttons.className='buttons';
- const view=document.createElement('button');view.className='btn tiny alt';view.textContent='Просмотр';view.addEventListener('click',()=>viewFile(asset,1,view));
- const down=document.createElement('button');down.className='btn tiny';down.textContent='Скачать';down.addEventListener('click',()=>downloadFile(asset,down));
+ const view=document.createElement('button');view.className='btn tiny alt';view.textContent='Весь PDF';view.title='Просмотреть полный комплект всех ТТК в одном файле';view.addEventListener('click',()=>viewFile(asset,1,view));
+ const down=document.createElement('button');down.className='btn tiny';down.textContent='Скачать комплект';down.title='Скачать полный комплект ТТК';down.addEventListener('click',()=>downloadFile(asset,down));
  buttons.append(view,down);el.append(div,buttons);target.append(el);
 }
 function plain(target,t){const p=document.createElement('p');p.className='muted small';p.textContent=t;target.append(p)}
@@ -200,8 +200,8 @@ function renderCards(){
   const actions=document.createElement('div');actions.className='act';
   const asset=assetFor(r);
   const view=document.createElement('button');view.className='btn tiny';
-  view.textContent=asset?'Открыть':'Пока закрыто';view.disabled=!asset;
-  view.addEventListener('click',()=>{if(asset)viewFile(asset,pageFor(r,activePlan),view)});
+  view.textContent=asset?'Открыть 1 ТТК':'Пока закрыто';view.title='Открыть только эту технологическую карту, один лист PDF';view.disabled=!asset;
+  view.addEventListener('click',()=>{if(asset)openSingleTTK(r,view)});
   const one=document.createElement('button');one.className='btn tiny alt';one.textContent='↓ 1 ТТК';
   one.title='Скачать только эту технологическую карту А4';one.disabled=!asset;
   one.addEventListener('click',()=>downloadSingleTTK(r,one));
@@ -233,25 +233,66 @@ function renderCards(){
   root.append(el);
  }
 }
-async function downloadSingleTTK(row,btn){
- const asset=assetFor(row);if(!asset){msg('Файл не разрешён для вашего тарифа.',true);return}
+let pdfLibraryLoader=null;
+function loadPdfLibrary(){
+ if(!pdfLibraryLoader)pdfLibraryLoader=import('https://esm.sh/pdf-lib@1.17.1?bundle').catch(e=>{pdfLibraryLoader=null;throw e});
+ return pdfLibraryLoader;
+}
+async function createSingleTTKBlob(row){
+ const asset=assetFor(row);
+ if(!asset)throw Error('Файл не разрешён для вашего тарифа.');
  const index=pageFor(row,activePlan)-1;
- if(index<0||index>=100){msg('Номер страницы ТТК не найден.',true);return}
- btn.disabled=true;msg('Формирую отдельный PDF для '+row.n+'…');
+ if(!Number.isInteger(index)||index<0||index>=100)throw Error('Страница этой ТТК не найдена.');
+ const [{PDFDocument},original]=await Promise.all([loadPdfLibrary(),fileBlob(asset)]);
+ const source=await PDFDocument.load(await original.arrayBuffer());
+ if(index>=source.getPageCount())throw Error('Страница в исходном PDF отсутствует.');
+ const output=await PDFDocument.create();
+ const [page]=await output.copyPages(source,[index]);output.addPage(page);
+ if(output.getPageCount()!==1)throw Error('Не удалось сформировать одностраничный документ.');
+ const bytes=await output.save();
+ return new Blob([bytes],{type:'application/pdf'});
+}
+function singleTTKFileName(row){return row.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf'}
+async function openSingleTTK(row,btn){
+ // Create the tab synchronously on tap, before asynchronous PDF extraction,
+ // to avoid mobile pop-up blocking. Never show the full 44/59-page source.
+ const tab=window.open('about:blank','_blank');
+ if(tab){
+  try{
+   tab.document.title='FARUKH KITCHEN · '+row.id;
+   tab.document.body.style.cssText='font:16px system-ui;background:#eef4f7;color:#1b3c4b;padding:25px';
+   tab.document.body.textContent='Открываю отдельную ТТК '+row.n+' (1 страница)…';
+  }catch{}
+ }
+ btn.disabled=true;msg('Открываю одну ТТК: '+row.n+'…');
  try{
-  const original=await fileBlob(asset);
-  const {PDFDocument}=await import('https://esm.sh/pdf-lib@1.17.1?bundle');
-  const source=await PDFDocument.load(await original.arrayBuffer());
-  if(index>=source.getPageCount())throw Error('Страница не найдена');
-  const output=await PDFDocument.create();
-  const [page]=await output.copyPages(source,[index]);output.addPage(page);
-  const bytes=await output.save();
-  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-  const a=document.createElement('a');a.href=url;a.download=row.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+  const single=await createSingleTTKBlob(row);
+  const url=URL.createObjectURL(single);
+  if(tab&&!tab.closed){
+   tab.location.replace(url+'#page=1');
+  }else{
+   // Some mobile browsers do not open PDF tabs. Download only this one page.
+   const a=document.createElement('a');a.href=url;a.download=singleTTKFileName(row);
+   document.body.append(a);a.click();a.remove();
+   msg('Ваш браузер скачал одну ТТК (1 страница).');
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),600000);
+  if(tab)msg('Открыта только выбранная ТТК: '+row.n+'.');
+ }catch(e){
+  if(tab&&!tab.closed)tab.close();
+  msg('Не удалось открыть отдельную ТТК. Проверьте интернет и повторите. '+(e?.message||''),true);
+ }finally{btn.disabled=false}
+}
+async function downloadSingleTTK(row,btn){
+ btn.disabled=true;msg('Готовлю один лист PDF: '+row.n+'…');
+ try{
+  const single=await createSingleTTKBlob(row);
+  const url=URL.createObjectURL(single);
+  const a=document.createElement('a');a.href=url;a.download=singleTTKFileName(row);
   document.body.append(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
-  msg('Отдельная карта передана на скачивание.');
- }catch(e){msg('Не удалось создать отдельный PDF. Можно открыть ТТК или скачать полный комплект выше. '+(e.message||''),true)}
+  msg('Скачивается только выбранная ТТК (1 страница).');
+ }catch(e){msg('Не удалось скачать одну ТТК. '+(e?.message||''),true)}
  finally{btn.disabled=false}
 }
 function updateDashboard(){
