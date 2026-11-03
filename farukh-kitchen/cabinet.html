@@ -13,9 +13,20 @@
 </style></head><body>
 <header class="top"><div class="nav"><a href="index.html" class="brand">FARUKH <em>KITCHEN</em></a><a href="index.html" class="back">← Вернуться на сайт</a></div></header>
 <main class="wrap"><div class="eyebrow">CHEF AKA · ЗАЩИЩЁННАЯ БИБЛИОТЕКА</div><h1>Мои технологические карты</h1><p class="lead">Состав пакета, отдельные технологические карты, просмотр PDF и скачивание — только после подтверждённой владельцем выдачи доступа. Оплата на сайте пока отключена.</p>
-<section id="loginPanel" class="panel"><div class="eyebrow">ШАГ 1 · ВХОД</div><h2>Войти в личный кабинет</h2><div class="row"><input id="email" type="email" autocomplete="email" maxlength="254" placeholder="Электронная почта" aria-label="Электронная почта"><button id="send" class="btn">Получить ссылку для входа</button></div>
+<section id="loginPanel" class="panel">
+<div class="eyebrow">ПРОСТОЙ ВХОД · БЕЗ EMAIL И КОДОВ</div>
+<h2>Ваш логин и пароль от шефа</h2>
+<p class="muted small">После подтверждения заявки владелец выдаёт вам личные данные. Никаких писем и регистрации.</p>
+<div class="row">
+ <input id="chefLogin" type="text" inputmode="text" autocapitalize="off" autocomplete="username" placeholder="Логин, например chef1234567890" aria-label="Ваш логин">
+ <input id="chefPassword" type="password" autocomplete="current-password" placeholder="Пароль от шефа" aria-label="Пароль от шефа">
+ <button id="chefSignIn" type="button" class="btn">ВОЙТИ</button>
+</div>
+<p class="muted small" style="padding:14px;border-radius:12px;background:#f0f7f8"><strong>Ещё нет логина?</strong> <a href="request-access.html">Оставьте заявку на START или PRO →</a>. Шеф свяжется с вами сам по вашему Telegram или телефону; его личные контакты не нужно искать.</p>
+<details style="margin-top:16px"><summary style="cursor:pointer;font-weight:800;color:#4e7384">Вход по электронной почте (старый способ)</summary>
+<div style="margin-top:16px" class="eyebrow">ВХОД ПО EMAIL</div><h2>Войти в личный кабинет</h2><div class="row"><input id="email" type="email" autocomplete="email" maxlength="254" placeholder="Электронная почта" aria-label="Электронная почта"><button id="send" class="btn">Получить ссылку для входа</button></div>
 <details style="margin-top:15px"><summary style="cursor:pointer;color:#3c6076;font-weight:700">Уже есть пароль Supabase?</summary><div class="row" style="margin-top:12px"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль для входа"><button id="passwordSignIn" class="btn alt">Войти по паролю</button></div></details>
-<p class="muted small" style="margin:15px 0;padding:12px;border:1px solid #b6cdd4;border-radius:12px;background:#eef8f9">Письмо открыло ошибку <strong>localhost:3000</strong>? <a href="enter-from-email.html?next=cabinet" style="font-weight:850">Войти по скопированной ссылке из письма →</a>. Способ работает без перенаправления с почты.</p><p class="muted small">Вход не открывает платные документы автоматически. Доступ назначается владельцем после ручной проверки.</p></section>
+<p class="muted small" style="margin:15px 0;padding:12px;border:1px solid #b6cdd4;border-radius:12px;background:#eef8f9">Письмо открыло ошибку <strong>localhost:3000</strong>? <a href="enter-from-email.html?next=cabinet" style="font-weight:850">Войти по скопированной ссылке из письма →</a>. Способ работает без перенаправления с почты.</p><p class="muted small">Вход не открывает платные документы автоматически. Доступ назначается владельцем после ручной проверки.</p></details></section>
 <section id="accountPanel" class="panel hidden"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">ВАШ ПРОФИЛЬ</div><h2 id="userEmail">—</h2><p class="muted small" id="userAccess">Проверяем активный тариф…</p></div><button id="signout" class="btn alt" style="flex:0 0 auto">Выйти</button></div>
 <details style="margin-top:18px;border-top:1px solid #d8e5e7;padding-top:14px">
  <summary style="font-weight:800;cursor:pointer">Создать пароль для входа без писем</summary>
@@ -191,6 +202,19 @@ $('savePassword').addEventListener('click',async()=>{
  }catch(e){t.textContent='Не удалось сохранить пароль: '+(e?.message||'ошибка')+'. Для изменения пароля Supabase может потребовать недавний вход.'}
  finally{b.disabled=false}
 });
+$('chefSignIn').addEventListener('click',async()=>{
+ const login=$('chefLogin').value.trim().toLowerCase(),password=$('chefPassword').value,btn=$('chefSignIn');
+ if(!/^chef[0-9a-f]{10}$/.test(login)){msg('Введите выданный шефом логин. Он начинается с chef и содержит 10 символов после него.',true);return}
+ if(!password){msg('Введите личный пароль.',true);return}
+ btn.disabled=true;msg('Проверяю логин и пароль…');
+ try{
+  const {error}=await sb.auth.signInWithPassword({email:login+'@example.com',password});
+  if(error)throw error;
+  $('chefPassword').value='';await refresh();
+ }catch(e){msg('Логин или пароль неверный. Проверьте данные, полученные от шефа.',true)}
+ finally{btn.disabled=false}
+});
+$('chefPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('chefSignIn').click()});
 $('send').addEventListener('click',()=>login('otp'));$('passwordSignIn').addEventListener('click',()=>login('password'));
 $('signout').addEventListener('click',async()=>{await sb.auth.signOut();await refresh()});
 $('recipeSearch').addEventListener('input',renderCards);$('recipeKind').addEventListener('change',()=>{categories();renderCards()});$('recipeCategory').addEventListener('change',renderCards);
