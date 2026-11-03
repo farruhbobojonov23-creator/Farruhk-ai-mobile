@@ -62,7 +62,7 @@ a{color:#4f65ae}
  <div class="kicker" style="color:#287b71">НОВЫЙ СПОСОБ ВЫДАЧИ · БЕЗ ПОЧТЫ И SMTP</div>
  <h2>Заявки от покупателей</h2>
  <p>Покупателю больше не нужно искать ваш телефон или Telegram. На <a href="request-access.html" target="_blank" rel="noopener noreferrer">странице заявки</a> он указывает <b>свой Telegram или телефон</b>. Вы видите запрос здесь и связываетесь с ним самостоятельно.</p>
- <p class="muted"><small>Сначала согласуйте оплату лично. Только после проверки оплаты создайте логин и пароль. Доступ к закрытым ТТК до завершения производственной проверки всё равно остаётся отключённым.</small></p>
+ <p class="muted"><small>Сначала согласуйте оплату лично. Только после проверки оплаты создайте логин и пароль. Доступ к ТТК выдаётся по активному оплаченному тарифу. До использования рецептур в производстве необходима фактическая проверка выходов и безопасности.</small></p>
  <div class="row">
   <button id="fkRequestsRefresh" class="subtle" type="button">Обновить заявки</button>
   <div><label for="fkNewAccountExpiry">Срок доступа до (необязательно)</label><input type="date" id="fkNewAccountExpiry" aria-label="Срок доступа до"></div>
@@ -85,11 +85,11 @@ a{color:#4f65ae}
 <section class="panel" style="border:2px solid #99b7d4;background:#f4faff">
 <div class="kicker">РЕДАКЦИЯ СОГЛАСОВАНА · 03.11.2026</div>
 <h2>Исправленные ТТК SHEF START / PRO</h2>
-<p class="muted">Подготовлены новые PDF: 44 карты START и 59 карт PRO с отдельным учётом расчётных разниц масс и аллергенов. <b>Остальные 36 файлов уже загружены — их заменять не требуется.</b> До производственной проверки покупателям выдача закрыта.</p>
+<p class="muted">Подготовлены новые PDF: 44 карты START и 59 карт PRO с отдельным учётом расчётных разниц масс и аллергенов. <b>Остальные 36 файлов уже загружены — их заменять не требуется.</b> Выдача по активным тарифам включена по решению владельца. Документы требуют контрольной производственной проверки перед практическим применением.</p>
 <p><a href="correction-2-pdf-20261103.html" style="display:inline-block;background:#254b7b;color:white;text-decoration:none;border-radius:10px;padding:12px 16px;font-weight:800">Обновить только 2 исправленных PDF →</a></p>
 </section>
 <section class="panel" id="release20261103"><div class="kicker">НОВАЯ РЕДАКЦИЯ · 03.11.2026</div><h2>Обновление PDF и 34 фотографий</h2>
-<p class="muted">Новая редакция готова к загрузке в <b>приватное хранилище</b>: четыре PDF и 34 WebP. Новые файлы отделены от предыдущего выпуска 30.10.2026. До проверки SHA-256 и вашего подтверждения они не показываются покупателям.</p>
+<p class="muted">Новая редакция готова к загрузке в <b>приватное хранилище</b>: четыре PDF и 34 WebP. Новые файлы отделены от предыдущего выпуска 30.10.2026. Файлы проверены и выдаются только клиентам с действующим тарифом. Дополнительная производственная валидация пока не завершена.</p>
 <div style="border:2px solid #aec5e4;border-radius:14px;background:#eff5ff;padding:17px;margin:15px 0 20px">
  <h3 style="color:#274c79">Загрузить все 38 файлов за один раз</h3>
  <p class="muted small">Выберите единый архив с 38 материалами. Проверим все контрольные суммы, загрузим PDF и фотографии в закрытое хранилище и повторно сверим файлы после передачи.</p>
@@ -111,7 +111,7 @@ a{color:#4f65ae}
   <button id="fkOpenStart" type="button" class="subtle">Просмотр START</button>
   <button id="fkOpenPro" type="button" class="subtle">Просмотр PRO</button>
  </div>
- <div id="fkTestResult" class="status" aria-live="polite" role="status">Проверка по запросу владельца. Файлы пока закрыты для покупателей.</div>
+ <div id="fkTestResult" class="status" aria-live="polite" role="status">Проверка по запросу владельца. Выдача активна только для подтверждённых тарифов START/PRO; без доступа файлы закрыты.</div>
 </div>
 <details><summary style="cursor:pointer;font-weight:750;color:#465c90">Список новой редакции и проверка файлов</summary><div id="releaseRows" class="tablewrap" style="margin-top:12px"></div></details>
 <p class="muted"><small>Файлы проверяются по SHA-256 дважды: перед загрузкой и после скачивания из Supabase. После загрузки они остаются закрытыми, пока владелец отдельно не разрешит выдачу. Цена и автоматическая оплата не подключены.</small></p>
@@ -424,7 +424,7 @@ async function loadBuyerRequests(){
    try{
     const data=await invokeOwnerBuyer({action:'create',request_id:item.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
     credentialReveal(data.login,data.password,data.package_code);
-    requestStatus('Логин создан! Отправьте данные покупателю лично. Документы пока закрыты до выпуска.');
+    requestStatus('Логин создан! Отправьте данные покупателю лично. При активном тарифе доступ к выданным документам открыт.');
     $('fkPaidConfirmed').checked=false;
     await loadBuyerRequests();
    }catch(e){button.disabled=false;requestStatus('Не удалось создать логин: '+(e.message||'ошибка'),true)}
