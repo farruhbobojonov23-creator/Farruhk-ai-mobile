@@ -35,7 +35,7 @@ a{color:#4f65ae}
 <body><main>
 <header><div class="brand">FARUKH <em>KITCHEN</em></div><div class="kicker">УПРАВЛЕНИЕ КОММЕРЧЕСКОЙ БИБЛИОТЕКОЙ</div></header>
 <a href="./">← На сайт</a><h1>Защищённая выдача ТТК</h1>
-<p class="muted">Только подтверждённый владелец может загружать материалы и назначать доступ. Пока оба пакета закрыты для продажи.</p>
+<p class="muted">Только подтверждённый владелец может загружать материалы и назначать доступ. Покупательские PDF редакции 03.11.2026 находятся в защищённом хранилище. Оплата и выдача доступа — только после личного согласования; производственная проверка документов ещё продолжается.</p>
 <section class="panel" id="loginPanel">
 <div class="kicker">ШАГ 1 · ВХОД</div><h2>Подтвердите почту</h2>
 <div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Ваш email" aria-label="Ваш email"><button id="sendLink">Отправить ссылку</button></div>
@@ -58,6 +58,18 @@ a{color:#4f65ae}
 <p class="muted"><small>Эта операция однократная: после первого успешного подтверждения новых администраторов автоматически не создаём.</small></p>
 </section>
 <section id="adminPanel" class="hidden">
+<section class="panel" id="fkReadinessPanel" style="border:2px solid #b48f58;background:#fffaf0">
+ <div class="kicker" style="color:#8b642e">КОНТРОЛЬ ГОТОВНОСТИ К ПРОДАЖАМ</div>
+ <h2>Аудит пакетов FARUKH KITCHEN</h2>
+ <p class="muted"><small>Проверяем живые данные Supabase, а не описание каталога. Наличие PDF не подтверждает испытания рецептур на конкретном производстве.</small></p>
+ <div id="fkReadinessStats" class="status" role="status" aria-live="polite">Проверка документов и выдачи…</div>
+ <div class="row">
+   <button type="button" id="fkReadinessRefresh" class="subtle">Обновить проверку</button>
+   <a href="terms.html" target="_blank" rel="noopener noreferrer">Условия заказа ↗</a>
+   <a href="privacy.html" target="_blank" rel="noopener noreferrer">Обработка данных ↗</a>
+ </div>
+ <p class="muted small"><b>До начала масштабных продаж:</b> заполнить проверенные рецептуры, технологические шаги и индивидуальные режимы хранения; провести производственный контроль; утвердить юридические реквизиты продавца и условия оплаты.</p>
+</section>
 <section class="panel" id="fkRequestsBox" style="border:2px solid #6da7a4;background:#f1fcfa">
  <div class="kicker" style="color:#287b71">НОВЫЙ СПОСОБ ВЫДАЧИ · БЕЗ ПОЧТЫ И SMTP</div>
  <h2>Заявки от покупателей</h2>
@@ -117,8 +129,8 @@ a{color:#4f65ae}
 <p class="muted"><small>Файлы проверяются по SHA-256 дважды: перед загрузкой и после скачивания из Supabase. После загрузки они остаются закрытыми, пока владелец отдельно не разрешит выдачу. Цена и автоматическая оплата не подключены.</small></p>
 </section>
 
-<section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Четыре коммерческих файла</h2>
-<p class="muted">Выберите четыре локальных файла PDF/ZIP из утверждённого комплекта. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
+<section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Архив прошлой редакции — 4 файла</h2>
+<p class="muted">Это архив предыдущей редакции. Он оставлен с пометкой «не выпущен» и не должен выдаваться вместо актуальных файлов 03.11.2026 без отдельного решения владельца. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
 <div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите новый архив «FARUKH_KITCHEN_ПУБЛИКАЦИЯ_ФОТО_ГУНКАНОВ_4_ФАЙЛА.zip». В нём четыре финальных файла: START 44 ТТК, PRO 59 ТТК, на всех четырёх гунканах одно утверждённое фото. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
 <div class="tablewrap"><table><thead><tr><th>Файл</th><th>Размер</th><th>Хранилище</th><th>Выдача</th><th>Действие</th></tr></thead><tbody id="assetRows"></tbody></table></div>
 <p class="muted"><small>Кнопка «Разрешить» появляется после проверки загруженного файла. Доступ всё равно получают только подтверждённые покупатели START/PRO.</small></p>
@@ -470,6 +482,35 @@ $('fkCopyCredentials').addEventListener('click',async()=>{
  try{await navigator.clipboard.writeText(val);requestStatus('Данные скопированы. Отправьте их покупателю лично.')}
  catch{$('fkCredentials').select();requestStatus('Выделены данные: скопируйте вручную.')}
 });
+async function loadReadiness(){
+ const el=$('fkReadinessStats');if(!isAdmin||!el)return;
+ el.textContent='Проверяю 93 ТТК, структуру и приватные файлы…';
+ try{
+  const work=[
+   sb.from('fk_recipes').select('id',{head:true,count:'exact'}),
+   sb.from('fk_recipes').select('id',{head:true,count:'exact'}).eq('status','review'),
+   sb.from('fk_ingredients').select('id',{head:true,count:'exact'}),
+   sb.from('fk_steps').select('id',{head:true,count:'exact'}),
+   sb.from('fk_release_assets').select('asset_key',{head:true,count:'exact'}).eq('released',true),
+   sb.from('fk_paid_assets').select('asset_key',{head:true,count:'exact'}).eq('released',true)
+  ];
+  const data=await Promise.all(work);
+  const bad=data.find(x=>x.error);
+  if(bad)throw new Error(bad.error?.message||'Нет доступа к реестру');
+  const [recipes,review,ingredients,steps,current,legacy]=data.map(x=>Number(x.count||0));
+  const checks=[
+   'ТТК: '+recipes+' / 93',
+   'Требуют контрольной валидации: '+review,
+   'Строк рецептурного сырья: '+ingredients,
+   'Технологических шагов в базе: '+steps,
+   'Выпущено файлов текущей редакции: '+current+' / 38',
+   'Разрешено файлов старого архива: '+legacy+' / 4'
+  ];
+  el.textContent=checks.join('  ·  ')+(review||ingredients===0||steps===0?'  ⚠ Производственная валидация ещё не завершена.':'');
+ }catch(err){el.textContent='Не удалось получить текущую сводку: '+(err?.message||'проверьте вход в кабинет')}
+}
+$('fkReadinessRefresh').addEventListener('click',()=>loadReadiness());
+
 async function refresh(){
  const {data:{user:current},error}=await sb.auth.getUser();
  user=error?null:current;
@@ -478,7 +519,7 @@ async function refresh(){
  isAdmin=false;
  if(user){const {data,error:checkErr}=await sb.from('fk_admins').select('user_id').eq('user_id',user.id).maybeSingle();isAdmin=!!data&&!checkErr}
  setVisible('claimPanel',!!user&&!isAdmin);setVisible('adminPanel',!!user&&isAdmin);
- if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await Promise.all([loadFiles(),loadReleaseEdition(),loadBuyerRequests()]);status('Управляющий кабинет готов. Проверены также заявки покупателей.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
+ if(isAdmin){status('Владелец подтверждён. Проверяю материалы…');try{await Promise.all([loadFiles(),loadReleaseEdition(),loadBuyerRequests(),loadReadiness()]);status('Управляющий кабинет готов. Проверены также заявки покупателей.')}catch(e){status(e.message||'Ошибка чтения каталога файлов.',true)}}
  else if(user)status('Вход выполнен. Подтвердите право владельца ключом из закрытого центра.');
  else status('Войдите по почте, чтобы продолжить.');
 }
