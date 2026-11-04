@@ -2279,7 +2279,47 @@ async function telegramRequest(method,payload={}){
   return data.result;
 }
 
+
+const CHEF_AKA_GROUP_PATH=SHEF51_BASE+'telegram-chef-aka-group.json';
+let chefAkaGroupCache={chatId:'',checked:0};
+async function chefAkaGroupChatId(){
+  const fixed=String(process.env.CHEF_AKA_GROUP_CHAT_ID||'').trim();
+  if(/^-[0-9]{6,20}$/.test(fixed))return fixed;
+  if(chefAkaGroupCache.chatId)return chefAkaGroupCache.chatId;
+  if(Date.now()-chefAkaGroupCache.checked<60000)return '';
+  chefAkaGroupCache.checked=Date.now();
+  if(yandexToken()){
+    try{
+      const saved=await readYandexJson(CHEF_AKA_GROUP_PATH);
+      if(/^-[0-9]{6,20}$/.test(String(saved?.chatId||''))){
+        chefAkaGroupCache.chatId=String(saved.chatId);
+        return chefAkaGroupCache.chatId;
+      }
+    }catch{}
+  }
+  const updates=await telegramRequest('getUpdates',{limit:100,timeout:0});
+  const matches=(Array.isArray(updates)?updates:[])
+    .map(u=>u?.my_chat_member?.chat||u?.message?.chat||u?.edited_message?.chat)
+    .filter(chat=>chat&&['group','supergroup'].includes(chat.type)&&chat.id
+      &&/CHEF\s*AKA/i.test(String(chat.title||''))&&/ЗАЯВК/i.test(String(chat.title||'')));
+  const group=matches[matches.length-1];
+  if(!group)return '';
+  chefAkaGroupCache.chatId=String(group.id);
+  if(yandexToken()){
+    await writeYandexFile(CHEF_AKA_GROUP_PATH,JSON.stringify({
+      chatId:chefAkaGroupCache.chatId,title:String(group.title||'').slice(0,100),
+      savedAt:new Date().toISOString()
+    }),'application/json').catch(err=>console.warn('[chef-aka-group] cannot persist chat id:',err?.message||'unknown'));
+  }
+  return chefAkaGroupCache.chatId;
+}
+
 async function telegramChatId(){
+  // Use a designated group if registered; preserve working private chat until then.
+  const groupId=await chefAkaGroupChatId().catch(err=>{
+    console.warn('[chef-aka-group] auto-discovery unavailable:',err?.message||'unknown');return '';
+  });
+  if(groupId)return groupId;
   const envId=String(process.env.TELEGRAM_CHAT_ID||'').trim();
   if(envId)return envId;
 
@@ -2399,6 +2439,59 @@ app.post('/api/telegram/booking',async(req,res)=>{
   res.status(502).json({ok:false,error:'Не удалось сохранить заявку. Попробуйте ещё раз чуть позже.',detail:lastError});
 });
 
+
+
+/* FARUKH KITCHEN: protected webhook called only AFTER Supabase stored the request.
+   Telegram secret remains on the existing SHEF51 backend; do not expose it in a webpage. */
+const fkNotified=new Map();
+app.post('/api/farukh-kitchen/request-alert',async(req,res)=>{
+  const expected=String(process.env.FK_REQUEST_WEBHOOK_KEY||'');
+  const received=String(req.get('x-fk-webhook-key')||'');
+  const first=Buffer.from(expected),second=Buffer.from(received);
+  if(!expected||!received||first.length!==second.length||!crypto.timingSafeEqual(first,second)){
+    return res.status(401).json({ok:false,error:'unauthorized'});
+  }
+  const payload=req.body||{};
+  if(payload.type!=='INSERT'||payload.schema!=='public'||payload.table!=='fk_access_requests'){
+    return res.status(400).json({ok:false,error:'invalid_event'});
+  }
+  const row=payload.record||{};
+  const id=String(row.id||'');
+  if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(id)||!['start','pro','premium'].includes(row.package_code)){
+    return res.status(400).json({ok:false,error:'invalid_record'});
+  }
+  if(fkNotified.has(id))return res.json({ok:true,duplicate:true});
+  if(fkNotified.size>500){
+    for(const old of [...fkNotified.keys()].slice(0,100))fkNotified.delete(old);
+  }
+  const clean=(v,max=100)=>String(v||'').replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,max);
+  const pack=row.package_code.toUpperCase();
+  const price={start:'49 900',pro:'79 900',premium:'199 900'}[row.package_code];
+  const contactType=row.contact_type==='telegram'?'Telegram':'Телефон';
+  const notification=[
+    '🔔 FARUKH KITCHEN — НОВАЯ ЗАЯВКА',
+    '',
+    '📦 Тариф: SHEF '+pack,
+    '💰 Стоимость: '+price+' ₽',
+    '👤 Клиент: '+clean(row.customer_name,80),
+    '📱 '+contactType+': '+clean(row.contact_value,100),
+    '🕓 Время: '+new Date().toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}),
+    '',
+    'Открыть: https://farukh-kitchen-v02.onrender.com/owner-library.html'
+  ].join('\n');
+  try{
+    const chatId=await telegramChatId();
+    if(!chatId)return res.status(503).json({ok:false,error:'chat_not_ready'});
+    await telegramRequest('sendMessage',{
+      chat_id:chatId,text:notification,disable_web_page_preview:true
+    });
+    fkNotified.set(id,Date.now());
+    res.json({ok:true,delivered:true,toGroup:String(chatId).startsWith('-')});
+  }catch(err){
+    console.error('[farukh-kitchen] Telegram delivery error',err?.message||'unknown');
+    res.status(502).json({ok:false,error:'telegram_send_failed'});
+  }
+});
 
 // ---- Sushi Beri procurement PWA (Yandex Disk-backed, isolated from SHEF51 data) ----
 const PROCUREMENT_PATH='/FARRUKH_AI_STORAGE/SUSHI_BERI_PROCUREMENT/orders.json';
