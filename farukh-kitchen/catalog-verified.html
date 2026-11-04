@@ -376,6 +376,46 @@
   }
 }
 
+
+/* 2026-11-04 — real-device fix: the floating product must NEVER clip at its top.
+   Image is inset into its own visible area; halo, labels and swipe remain intact. */
+.fk-showcase-stage{height:452px}
+.fk-spot{top:5px;height:435px}
+.fk-spot img{
+  top:25px;
+  height:63%;
+  width:100%;
+  object-fit:contain;
+  object-position:center center;
+  transform:translateX(-50%) scale(1.035);
+}
+.fk-spot.center img{
+  animation:fk-float-safe 4.4s ease-in-out infinite;
+}
+.fk-spot::before{top:67%}
+.fk-spot-info{bottom:6px}
+@keyframes fk-float-safe{
+  0%,100%{transform:translateX(-50%) translateY(2px) scale(1.035)}
+  50%{transform:translateX(-50%) translateY(-5px) scale(1.035)}
+}
+@media(max-width:620px){
+  .fk-showcase-stage{height:391px}
+  .fk-spot{top:4px;height:370px}
+  .fk-spot img{
+    top:24px;
+    height:63%;
+    width:100%;
+    transform:translateX(-50%) scale(1.035);
+  }
+  .fk-spot.center img{animation:fk-float-safe 4.4s ease-in-out infinite}
+  .fk-spot::before{top:68%}
+  .fk-spot-info{bottom:4px}
+  .fk-carousel-arrow{top:40%}
+}
+@media(prefers-reduced-motion:reduce){
+  .fk-spot.center img{animation:none!important}
+}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
