@@ -70,8 +70,8 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <label for="contact" id="contactLabel">Ваш Telegram</label>
 <input id="contact" type="text" maxlength="100" autocomplete="off" placeholder="@username" required>
 <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="website">Не заполнять</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
-<p class="hint">Контакт увидит только владелец FARUKH KITCHEN. Ваш номер или Telegram не появится в открытом каталоге.</p>
-<label for="consent" style="display:flex;align-items:start;gap:10px;font-size:13px;font-weight:500;cursor:pointer"><input id="consent" type="checkbox" style="width:20px;min-width:20px;margin:2px 0" required> Согласен(на), чтобы владелец FARUKH KITCHEN сохранил мой контакт и связался со мной исключительно по этой заявке. Заявку можно отозвать, связавшись с владельцем после его ответа.</label>
+<p class="hint">Контакт получит только владелец и участники закрытой рабочей Telegram-группы уведомлений. Он не появится в открытом каталоге.</p>
+<label for="consent" style="display:flex;align-items:start;gap:10px;font-size:13px;font-weight:500;cursor:pointer"><input id="consent" type="checkbox" style="width:20px;min-width:20px;margin:2px 0" required> Согласен(на) на обработку имени, контакта и выбранного пакета для ответа на заявку, в том числе на отправку уведомления в закрытую Telegram-группу проекта. Ознакомлен(а) с <a href="privacy.html" target="_blank" rel="noopener noreferrer">условиями обработки данных</a>. Согласие можно отозвать при обращении к владельцу после его ответа.</label>
 <button id="submit" type="submit">Отправить заявку шефу →</button>
 <div id="feedback" role="status" aria-live="polite"></div>
 <div id="success" class="hide" role="status"><strong>✅ Заявка получена!</strong><p>Шеф увидит её в управляющем кабинете и свяжется с вами по указанному контакту. Для PREMIUM отдельно согласуются договор, программа и даты выезда. Оплата и выдача цифрового доступа — только после личного подтверждения.</p><p><a href="catalog-verified.html">Вернуться к каталогу →</a></p></div>
@@ -87,7 +87,7 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <p class="hint">Полные ТТК доступны только при действующем тарифе. До производственного применения рецептур необходимо проверить фактические выходы, аллергены и условия хранения. Заявка не является оплатой.</p>
 </aside>
 </div>
-<p class="legal">FARUKH KITCHEN · Chef Aka. Мы используем контакт только для ответа по заявке. Данные карты или пароль в заявке не запрашиваются. Перед производственным применением ТТК требуется проверить выходы, аллергены и условия хранения.</p>
+<p class="legal">FARUKH KITCHEN · Chef Aka. Мы используем контакт только для ответа по заявке. Данные карты или пароль в заявке не запрашиваются. До оплаты обязательно изучите <a href="terms.html">условия заказа</a> и <a href="privacy.html">обработку персональных данных</a>. Перед производственным применением ТТК требуется проверить выходы, аллергены и условия хранения.</p>
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
