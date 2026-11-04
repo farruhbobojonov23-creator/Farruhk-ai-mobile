@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0b2832"><meta name="description" content="Оставьте заявку на SHEF START или SHEF PRO в FARUKH KITCHEN — шеф свяжется с вами сам.">
+<meta name="theme-color" content="#0b2832"><meta name="description" content="Заявка на SHEF START, SHEF PRO или SHEF PREMIUM: личный выезд бренд-шефа на три дня, обучение персонала и организация японской кухни.">
 <title>Получить доступ · FARUKH KITCHEN</title>
 <style>
 :root{--bg:#0b202a;--card:#12323c;--ink:#f6f9f9;--muted:#c7d5da;--line:#345562;--gold:#ebc78f}
@@ -21,7 +21,7 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 .hide{display:none!important}.legal{font-size:13px;color:#bdd1d6;margin:25px 0}
 @media(max-width:670px){.shell{grid-template-columns:1fr}.wrap{padding:15px}.header{padding:15px}h1{margin:10px 0}.panel{padding:20px}}
 </style>
-<link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104">
+<link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104-4">
 <style>
 .fk-request .header{max-width:none;margin:0;padding:0}
 .fk-request .wrap{max-width:1050px;padding:50px 18px 65px}
@@ -34,6 +34,9 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 .fk-request #submit{min-height:52px}
 .fk-request #submit:focus-visible{outline:3px solid #86d8ee;outline-offset:3px}
 .fk-request .step{border-bottom:1px solid #345561}
+.fk-request .fk-premium-summary{margin:12px 0 18px;padding:14px 15px;border:1px solid #8b714a;border-radius:12px;background:#1d3e48;color:#f1dbae}
+.fk-request .fk-premium-summary strong{display:block;font-size:14px;margin-bottom:5px}
+.fk-request .fk-premium-summary p{margin:4px 0 0;font-size:12px;line-height:1.6;color:#e7dcbf}
 .fk-request .fk-selected-price{padding:15px 17px;background:linear-gradient(135deg,#123e4d,#18384b);border:1px solid #6b806f;border-radius:13px;margin:16px 0 9px;display:flex;align-items:baseline;justify-content:space-between;gap:14px}
 .fk-request .fk-selected-price strong{color:#f3d59d;font-size:clamp(27px,4vw,36px);font-weight:900;white-space:nowrap}
 .fk-request .fk-selected-price span{font-size:12px;color:#b7d0d7;font-weight:700}
@@ -56,9 +59,10 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <div class="fk-eyebrow">ШАГ 01 / ВЫБОР ПАКЕТА</div><h2 style="margin-top:10px">Оставить заявку</h2>
 <form id="requestForm" novalidate>
 <label for="plan">Какой пакет интересует?</label>
-<select id="plan" required><option value="start">SHEF START — 49 900 ₽ · 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 79 900 ₽ · 59 ТТК + 34 ПФ + 59 инструкций</option></select>
+<select id="plan" required><option value="start">SHEF START — 49 900 ₽ · 44 ТТК + 34 ПФ</option><option value="pro">SHEF PRO — 79 900 ₽ · 59 ТТК + 34 ПФ + 59 инструкций</option><option value="premium">SHEF PREMIUM — 199 900 ₽ · личный выезд на 3 дня + PRO</option></select>
 <div class="fk-selected-price" aria-live="polite"><span>Стоимость выбранного пакета</span><strong id="fkPlanPrice">49 900 ₽</strong></div>
 <p class="hint">Оплата после согласования с владельцем. Заявка не является оплатой.</p>
+<div id="fkPremiumSummary" class="fk-premium-summary hide"><strong>Личное внедрение японской кухни · 3 рабочих дня</strong><p>Включены материалы SHEF PRO, предварительная подготовка, обучение до 5 сотрудников и 14 дней дистанционных консультаций. 50% при подписании договора, 50% — не позднее чем за 7 дней до выезда. Билеты туда-обратно из Мурманска, гостиница, трансфер и согласованные расходы на питание — за счёт заказчика отдельно.</p><p>Даты, техническая готовность кухни и программа согласовываются перед заключением договора.</p></div>
 <label for="name">Ваше имя</label>
 <input id="name" type="text" minlength="2" maxlength="80" autocomplete="name" placeholder="Как к вам обращаться?" required>
 <label for="contactType">Куда вам ответить?</label>
@@ -70,15 +74,15 @@ button:disabled{opacity:.65;cursor:wait}.hint{font-size:13px;color:var(--muted);
 <label for="consent" style="display:flex;align-items:start;gap:10px;font-size:13px;font-weight:500;cursor:pointer"><input id="consent" type="checkbox" style="width:20px;min-width:20px;margin:2px 0" required> Согласен(на), чтобы владелец FARUKH KITCHEN сохранил мой контакт и связался со мной исключительно по этой заявке. Заявку можно отозвать, связавшись с владельцем после его ответа.</label>
 <button id="submit" type="submit">Отправить заявку шефу →</button>
 <div id="feedback" role="status" aria-live="polite"></div>
-<div id="success" class="hide" role="status"><strong>✅ Заявка получена!</strong><p>Шеф увидит её в управляющем кабинете и свяжется с вами по указанному контакту. Оплата и выдача логина — только после личного подтверждения.</p><p><a href="catalog-verified.html">Вернуться к каталогу →</a></p></div>
+<div id="success" class="hide" role="status"><strong>✅ Заявка получена!</strong><p>Шеф увидит её в управляющем кабинете и свяжется с вами по указанному контакту. Для PREMIUM отдельно согласуются договор, программа и даты выезда. Оплата и выдача цифрового доступа — только после личного подтверждения.</p><p><a href="catalog-verified.html">Вернуться к каталогу →</a></p></div>
 </form>
 </section>
 <aside class="panel">
 <div class="eyebrow">КАК ВСЁ ПРОИСХОДИТ</div>
-<div class="step"><strong>01 /</strong> Выберите START или PRO и оставьте контакт.</div>
+<div class="step"><strong>01 /</strong> Выберите START, PRO или PREMIUM и оставьте контакт.</div>
 <div class="step"><strong>02 /</strong> Шеф получит заявку в закрытом кабинете.</div>
-<div class="step"><strong>03 /</strong> Подтвердите стоимость выбранного комплекта (START — 49 900 ₽, PRO — 79 900 ₽) и условия с владельцем.</div>
-<div class="step"><strong>04 /</strong> Владелец создаст личный логин и пароль и передаст вам.</div>
+<div class="step"><strong>03 /</strong> Согласуйте стоимость и условия: для PREMIUM — программу, даты, командировочные расходы и договор.</div>
+<div class="step"><strong>04 /</strong> После подтверждения оплаты владелец выдаст логин и пароль; для PREMIUM также согласуется выезд бренд-шефа.</div>
 <div class="step"><strong>05 /</strong> Войдите в личный кабинет после получения логина и подтверждения доступа.</div>
 <p class="hint">Полные ТТК доступны только при действующем тарифе. До производственного применения рецептур необходимо проверить фактические выходы, аллергены и условия хранения. Заявка не является оплатой.</p>
 </aside>
@@ -90,8 +94,12 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const $=id=>document.getElementById(id);
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:false,autoRefreshToken:false}});
 const params=new URLSearchParams(location.search);
-if(params.get('plan')==='pro')$('plan').value='pro';
-function updatePlanPrice(){$('fkPlanPrice').textContent=$('plan').value==='pro'?'79 900 ₽':'49 900 ₽'}
+if(['start','pro','premium'].includes(params.get('plan')))$('plan').value=params.get('plan');
+function updatePlanPrice(){
+ const code=$('plan').value;
+ $('fkPlanPrice').textContent=code==='premium'?'199 900 ₽':code==='pro'?'79 900 ₽':'49 900 ₽';
+ $('fkPremiumSummary').classList.toggle('hide',code!=='premium');
+}
 $('plan').addEventListener('change',updatePlanPrice);
 updatePlanPrice();
 $('contactType').addEventListener('change',()=>{
@@ -109,7 +117,7 @@ $('requestForm').addEventListener('submit',async e=>{
  feedback.classList.remove('error');
  if($('website').value)return;
  if(!$('consent').checked){feedback.textContent='Чтобы отправить заявку, нужно согласие на обратную связь.';feedback.classList.add('error');return}
- if(name.length<2||name.length>80||!['start','pro'].includes(plan)){feedback.textContent='Проверьте имя и пакет.';feedback.classList.add('error');return}
+ if(name.length<2||name.length>80||!['start','pro','premium'].includes(plan)){feedback.textContent='Проверьте имя и пакет.';feedback.classList.add('error');return}
  if(type==='telegram'){
   if(!contact.startsWith('@'))contact='@'+contact;
   if(!/^@[a-zA-Z0-9_]{5,32}$/.test(contact)){feedback.textContent='Telegram должен быть в формате @username (от 5 символов).';feedback.classList.add('error');return}
