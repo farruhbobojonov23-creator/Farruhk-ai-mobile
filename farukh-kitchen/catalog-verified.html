@@ -416,6 +416,56 @@
   .fk-spot.center img{animation:none!important}
 }
 
+
+/* 2026-11-04: Keep START + PRO labels in document flow so they can never
+   overlap long Russian product names on narrow mobile viewports. */
+.fk-catalog-grid .fk-item-top{
+  position:static;
+  inset:auto;
+  top:auto;
+  right:auto;
+  bottom:auto;
+  left:auto;
+  z-index:auto;
+  display:flex;
+  flex:0 0 auto;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  max-width:100%;
+  min-height:20px;
+  margin:0 0 4px;
+  pointer-events:none;
+}
+.fk-catalog-grid .fk-item-top>span:first-child{display:none}
+.fk-catalog-grid .fk-item-tag{
+  position:static;
+  display:inline-block;
+  max-width:100%;
+  margin:0 auto;
+  padding:4px 9px;
+  white-space:nowrap;
+  text-align:center;
+  font-size:10px;
+  line-height:1.2;
+}
+.fk-catalog-grid .fk-item-content h3{
+  position:relative;
+  z-index:1;
+  margin:0;
+  overflow-wrap:anywhere;
+}
+@media(max-width:620px){
+  .fk-catalog-grid .fk-item-top{
+    position:static;
+    inset:auto;
+    min-height:19px;
+    margin:0 0 5px;
+  }
+  .fk-catalog-grid .fk-item-tag{font-size:9px;padding:3px 7px}
+  .fk-catalog-grid .fk-item-content h3{min-height:3em;line-height:1.23}
+}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
