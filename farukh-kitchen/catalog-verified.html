@@ -244,6 +244,138 @@
   .fk-spot.center img,.fk-spot.center::before{animation:none!important}
 }
 
+
+/* 2026-11-04 | Mobile gallery layout fix after real-device screenshots.
+   Preserve frameless Black Ice appearance while keeping each photo entirely
+   inside its own reserved area. Names, yield and buttons must not be obscured. */
+.fk-catalog-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px 13px;
+  align-items:stretch;
+}
+.fk-catalog-grid .fk-item,
+.fk-catalog-grid .fk-item:hover{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  transform:none;
+}
+.fk-catalog-grid .fk-item-photo,
+.fk-catalog-grid .fk-item-photo.is-prep{
+  box-sizing:border-box;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:auto;
+  min-height:0;
+  aspect-ratio:1 / 1.08;
+  overflow:hidden;
+  padding:9px 4px 4px;
+  background:none;
+  isolation:isolate;
+}
+.fk-catalog-grid .fk-item-photo img.fk-product-photo{
+  box-sizing:border-box;
+  display:block;
+  position:relative;
+  flex:none;
+  z-index:1;
+  width:94%;
+  height:92%;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:center;
+  transform:none;
+  filter:drop-shadow(0 9px 14px rgba(0,0,0,.52));
+}
+.fk-catalog-grid .fk-item-photo::before{
+  bottom:8%;
+  width:57%;
+  height:8%;
+  opacity:.45;
+}
+.fk-catalog-grid .fk-item-content{
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  position:relative;
+  z-index:2;
+  box-sizing:border-box;
+  min-width:0;
+  gap:7px;
+  padding:9px 6px 13px;
+  text-align:center;
+  background:transparent;
+}
+.fk-catalog-grid .fk-item-content h3{
+  position:static;
+  display:block;
+  width:100%;
+  min-height:2.6em;
+  margin:0;
+  line-height:1.24;
+  overflow-wrap:anywhere;
+  color:#f1f6fa;
+  text-shadow:none;
+}
+.fk-catalog-grid .fk-item-info{
+  margin-top:auto;
+  position:relative;
+  z-index:2;
+}
+.fk-catalog-grid .fk-item-foot{
+  position:relative;
+  z-index:2;
+  margin-top:2px;
+  padding-top:0;
+}
+.fk-catalog-grid .fk-item-foot button{
+  width:100%;
+  min-width:0;
+}
+@media(max-width:620px){
+  .fk-catalog-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:10px;
+    row-gap:17px;
+  }
+  .fk-catalog-grid .fk-item-photo,
+  .fk-catalog-grid .fk-item-photo.is-prep{
+    aspect-ratio:1 / 1.10;
+    padding:7px 3px 3px;
+    overflow:hidden;
+  }
+  .fk-catalog-grid .fk-item-photo img.fk-product-photo{
+    width:94%;
+    height:91%;
+    transform:none;
+  }
+  .fk-catalog-grid .fk-item-content{
+    gap:6px;
+    padding:6px 3px 10px;
+  }
+  .fk-catalog-grid .fk-item-content h3{
+    font-size:13px;
+    min-height:3.05em;
+    line-height:1.22;
+  }
+  .fk-catalog-grid .fk-item-info{font-size:11px}
+  .fk-catalog-grid .fk-item-foot button{
+    font-size:12px;
+    min-height:36px;
+    padding:8px 5px;
+  }
+}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
