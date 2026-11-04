@@ -62,12 +62,12 @@ a{color:#4f65ae}
  <div class="kicker" style="color:#287b71">НОВЫЙ СПОСОБ ВЫДАЧИ · БЕЗ ПОЧТЫ И SMTP</div>
  <h2>Заявки от покупателей</h2>
  <p>Покупателю больше не нужно искать ваш телефон или Telegram. На <a href="request-access.html" target="_blank" rel="noopener noreferrer">странице заявки</a> он указывает <b>свой Telegram или телефон</b>. Вы видите запрос здесь и связываетесь с ним самостоятельно.</p>
- <p class="muted"><small>Сначала согласуйте оплату лично. Только после проверки оплаты создайте логин и пароль. Доступ к ТТК выдаётся по активному оплаченному тарифу. До использования рецептур в производстве необходима фактическая проверка выходов и безопасности.</small></p>
+ <p class="muted"><small>Сначала согласуйте оплату лично. Для SHEF PREMIUM отдельно согласуйте договор, даты выезда и командировочные расходы; только после полной оплаты 199 900 ₽ выдавайте цифровой доступ PRO. Три рабочих дня обучения оформляются как услуга вне кабинета. Доступ к ТТК выдаётся по активному оплаченному тарифу. До использования рецептур в производстве необходима фактическая проверка выходов и безопасности.</small></p>
  <div class="row">
   <button id="fkRequestsRefresh" class="subtle" type="button">Обновить заявки</button>
   <div><label for="fkNewAccountExpiry">Срок доступа до (необязательно)</label><input type="date" id="fkNewAccountExpiry" aria-label="Срок доступа до"></div>
  </div>
- <p class="muted"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:750"><input type="checkbox" id="fkPaidConfirmed" style="width:auto;min-width:auto"> Подтверждаю: оплату получил(а) и лично проверил(а)</label></p>
+ <p class="muted"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:750"><input type="checkbox" id="fkPaidConfirmed" style="width:auto;min-width:auto"> Подтверждаю: полную оплату получил(а) и лично проверил(а)</label></p>
  <div class="tablewrap"><table><thead><tr><th>Дата / имя</th><th>Пакет</th><th>Как связаться</th><th>Статус</th><th>Действие</th></tr></thead><tbody id="fkRequestsBody"><tr><td colspan="5">Проверяю заявки…</td></tr></tbody></table></div>
  <div id="fkCredentialsWrap" class="hidden" style="border:2px solid #70a59d;border-radius:12px;padding:17px;background:#e0faf3;margin-top:18px">
   <h3>Личные данные покупателя · покажем один раз</h3>
@@ -408,23 +408,28 @@ async function loadBuyerRequests(){
  for(const item of records){
   const tr=document.createElement('tr');
   tr.append(cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name));
-  tr.append(cell('SHEF '+item.package_code.toUpperCase()));
+  tr.append(cell('SHEF '+item.package_code.toUpperCase()+(item.package_code==='premium'?' · выезд + PRO':'')));
   const contactTd=document.createElement('td'),link=document.createElement('a');
   link.textContent=item.contact_value;
   link.href=item.contact_type==='telegram'?'https://t.me/'+item.contact_value.replace(/^@/,''):'tel:'+item.contact_value.replace(/[ ()-]/g,'');
   link.target='_blank';link.rel='noopener noreferrer';contactTd.append(link);tr.append(contactTd);
-  tr.append(cell(item.status==='completed'?'Аккаунт создан':item.status==='new'?'Новая':item.status));
+  tr.append(cell(item.status==='completed'?'Аккаунт создан':item.status==='new'?'Новая':item.status==='contacted'?'На согласовании':item.status));
   const actions=document.createElement('td'),button=document.createElement('button');
-  button.type='button';button.textContent='Создать логин';button.className='subtle';
+  button.type='button';button.textContent=item.package_code==='premium'?'Выдать PRO после полной оплаты':'Создать логин';button.className='subtle';
   if(item.status==='completed'||item.status==='dismissed')button.disabled=true;
   button.addEventListener('click',async()=>{
    if(!$('fkPaidConfirmed').checked){requestStatus('Сначала поставьте галочку «Оплату получил и проверил».',true);return}
-   if(!confirm('Подтверждаете, что получили оплату от этого покупателя? Создать персональный логин и пароль?'))return;
+   const approval=item.package_code==='premium'
+    ?'SHEF PREMIUM: подтверждаете получение полной оплаты 199 900 ₽, согласование договора, дат выезда и командировочных расходов? Сейчас будет создан логин SHEF PRO для входа в библиотеку. Выезд оформляется отдельно.'
+    :'Подтверждаете, что получили оплату от этого покупателя? Создать персональный логин и пароль?';
+   if(!confirm(approval))return;
    button.disabled=true;requestStatus('Создаю защищённый аккаунт без email…');
    try{
     const data=await invokeOwnerBuyer({action:'create',request_id:item.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
     credentialReveal(data.login,data.password,data.package_code);
-    requestStatus('Логин создан! Отправьте данные покупателю лично. При активном тарифе доступ к выданным документам открыт.');
+    requestStatus(item.package_code==='premium'
+     ?'PREMIUM: выдан цифровой доступ SHEF PRO. Личный выезд, программа и проживание согласуются и фиксируются в договоре отдельно.'
+     :'Логин создан! Отправьте данные покупателю лично. При активном тарифе доступ к выданным документам открыт.');
     $('fkPaidConfirmed').checked=false;
     await loadBuyerRequests();
    }catch(e){button.disabled=false;requestStatus('Не удалось создать логин: '+(e.message||'ошибка'),true)}
