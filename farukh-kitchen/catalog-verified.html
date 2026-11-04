@@ -205,6 +205,45 @@
 }
 @media(prefers-reduced-motion:reduce){.fk-spot.center img,.fk-spot.center::before{animation:none!important}}
 
+
+/* Chef Aka approved refinement 2026-11-04:
+   wider visible gold halo, ~8% smaller product, tight spacing after carousel.
+   Visual effect only — no mock 360-degree rotation of a single photograph. */
+.fk-showcase{padding-bottom:1px}
+.fk-showcase-stage{height:442px}
+.fk-spot.center img{animation:fk-float-refined 4.4s ease-in-out infinite}
+.fk-spot img{top:-8px;height:70%;transform:translateX(-50%) scale(1.085)}
+.fk-spot::before{
+  top:67%;width:88%;height:38px;
+  border:2px solid #ffda94;
+  background:radial-gradient(ellipse at center,rgba(255,206,112,.21),transparent 75%);
+  box-shadow:0 0 15px rgba(255,198,99,.65),0 0 28px rgba(241,167,70,.30),inset 0 0 13px rgba(255,224,170,.20);
+}
+.fk-spot.center::before{animation:fk-halo-refined 4.4s ease-in-out infinite}
+.fk-showcase-all{margin:11px auto 3px;min-height:44px;padding:10px 25px}
+.fk-catalog-callout{margin-top:17px}
+@keyframes fk-float-refined{
+  0%,100%{transform:translateX(-50%) translateY(2px) scale(1.085)}
+  50%{transform:translateX(-50%) translateY(-5px) scale(1.085)}
+}
+@keyframes fk-halo-refined{
+  0%,100%{opacity:.83;box-shadow:0 0 13px rgba(255,198,99,.56),0 0 25px rgba(241,167,70,.25)}
+  50%{opacity:1;box-shadow:0 0 21px rgba(255,198,99,.76),0 0 35px rgba(241,167,70,.34)}
+}
+@media(max-width:620px){
+  .fk-showcase{padding-bottom:0}
+  .fk-showcase-stage{height:378px}
+  .fk-spot{top:3px;height:355px}
+  .fk-spot img{top:-8px;height:70%;transform:translateX(-50%) scale(1.085)}
+  .fk-spot::before{top:68%;width:86%;height:33px}
+  .fk-spot-info{bottom:3px}
+  .fk-showcase-all{margin:9px auto 2px;min-height:43px}
+  .fk-catalog-callout{margin-top:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .fk-spot.center img,.fk-spot.center::before{animation:none!important}
+}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
