@@ -64,7 +64,7 @@ a{color:#4f65ae}
  <p class="muted"><small>Проверяем живые данные Supabase, а не описание каталога. Наличие PDF не подтверждает испытания рецептур на конкретном производстве.</small></p>
  <div id="fkReadinessStats" class="status" role="status" aria-live="polite">Проверка документов и выдачи…</div>
  <div class="status bad" style="border:1px solid #d18b76;background:#fff0e7;color:#7d3128;margin-top:11px">
- <strong>ВНИМАНИЕ · ТТК-ПФ-001 DUNKAN.</strong> В опубликованной редакции PDF «34 ПФ» обнаружено расхождение: готовый соевый соус DUNKAN ошибочно разбавляется водой и сахаром. До замены PDF на редакцию с готовым соусом Bag-in-Box 20 л не передавайте клиентам этот документ как окончательно проверенную технологию. Исправленная 34-страничная редакция подготовлена отдельно, но в приватное хранилище пока не загружена.
+ <strong>ИСПРАВЛЕНО · ТТК-ПФ-001 DUNKAN.</strong> Исправленный документ «34 ПФ» редакции 04.11.2026 загружен в приватное хранилище и назначен покупателям START/PRO. DUNKAN Bag-in-Box 20 л используется готовым, без воды и сахара. Остальные ТТК по-прежнему требуют фактической производственной проверки; этот статус не означает завершённую ХАССП-валидацию.
  </div>
  <div class="row">
    <button type="button" id="fkReadinessRefresh" class="subtle">Обновить проверку</button>
@@ -495,14 +495,20 @@ async function loadReadiness(){
    sb.from('fk_ingredients').select('id',{head:true,count:'exact'}),
    sb.from('fk_steps').select('id',{head:true,count:'exact'}),
    sb.from('fk_release_assets').select('asset_key',{head:true,count:'exact'}).eq('released',true),
-   sb.from('fk_paid_assets').select('asset_key',{head:true,count:'exact'}).eq('released',true)
+   sb.from('fk_paid_assets').select('asset_key',{head:true,count:'exact'}).eq('released',true),
+   sb.from('fk_document_audit').select('recipe_id',{head:true,count:'exact'}).eq('documentary_checked',true),
+   sb.from('fk_release_assets').select('filename,object_path,expected_size_bytes').eq('asset_key','common_preps_pdf').maybeSingle()
   ];
   const data=await Promise.all(work);
   const bad=data.find(x=>x.error);
   if(bad)throw new Error(bad.error?.message||'Нет доступа к реестру');
-  const [recipes,review,ingredients,steps,current,legacy]=data.map(x=>Number(x.count||0));
+  const [recipes,review,ingredients,steps,current,legacy,audited]=data.slice(0,7).map(x=>Number(x.count||0));
+  const currentPF=data[7]?.data?.object_path||'';
+  const correctedPF=currentPF.includes('2026-11-05/docs/PF_34_20261105_corrected.pdf');
   const checks=[
    'ТТК: '+recipes+' / 93',
+   'Документарно проверено: '+audited+' / 93',
+   'Исправленная PDF 34 ПФ: '+(correctedPF?'ЗАГРУЖЕНА':'ПРОВЕРИТЬ'),
    'Требуют контрольной валидации: '+review,
    'Строк рецептурного сырья: '+ingredients,
    'Технологических шагов в базе: '+steps,
