@@ -156,6 +156,55 @@
 }
 @media(prefers-reduced-motion:reduce){.fk-spot,.fk-item{transition:none!important}}
 
+
+/* Chef Aka design #5: frameless floating sushi, gentle golden halo, two-column gallery */
+.fk-showcase-stage{height:470px;overflow:hidden;background:radial-gradient(ellipse at 50% 43%,#19465224,transparent 62%)}
+.fk-spot{top:9px;width:min(68%,465px);height:430px;border:0;border-radius:0;overflow:visible;background:transparent;box-shadow:none;isolation:isolate}
+.fk-spot::before{content:"";position:absolute;left:50%;top:64%;width:69%;height:34px;z-index:1;pointer-events:none;transform:translate(-50%,-50%) rotateX(49deg);border:2px solid #f1ca8a;border-radius:50%;background:radial-gradient(ellipse,rgba(230,176,87,.15),transparent 75%);box-shadow:0 0 14px #e8b26180,0 0 26px #e0a05032}
+.fk-spot::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 35% 7% at 50% 68%,#b07d3f30,transparent)}
+.fk-spot img{position:absolute;inset:auto;left:50%;top:0;z-index:2;width:100%;height:71%;object-fit:contain;object-position:center;transform:translateX(-50%) scale(1.18);filter:drop-shadow(0 17px 23px #000b)}
+.fk-spot.center{z-index:3;transform:translateX(-50%) translateZ(36px);opacity:1;filter:none;box-shadow:none}
+.fk-spot.center img{animation:fk-float 4.2s ease-in-out infinite}
+.fk-spot.center::before{animation:fk-halo 4.2s ease-in-out infinite}
+.fk-spot.prev{transform:translateX(calc(-50% - min(43vw,430px))) rotateY(19deg) scale(.82);opacity:.41;filter:blur(3px);box-shadow:none}
+.fk-spot.next{transform:translateX(calc(-50% + min(43vw,430px))) rotateY(-19deg) scale(.82);opacity:.41;filter:blur(3px);box-shadow:none}
+.fk-spot.prev::before,.fk-spot.next::before,.fk-spot.prev .fk-spot-info,.fk-spot.next .fk-spot-info{display:none}
+.fk-spot-info{bottom:4px;left:3%;right:3%;text-align:center;z-index:3}
+.fk-spot-info h3{font-size:clamp(21px,2.4vw,28px);margin:0 0 11px}
+.fk-spot-info button{min-height:40px;padding:9px 21px;background:linear-gradient(110deg,#ffe0a1,#d8aa68)}
+.fk-carousel-arrow{top:43%;background:#071923d9;border-color:#d2b886a8}
+.fk-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fk-item,.fk-item:hover{display:flex;flex-direction:column;min-width:0;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;transform:none}
+.fk-item-photo,.fk-item-photo.is-prep{height:auto;min-height:0;aspect-ratio:1/1;overflow:visible;background:transparent;isolation:isolate}
+.fk-item-photo::before{content:"";position:absolute;left:50%;bottom:12%;z-index:0;width:62%;height:9%;border:1px solid #e5b87891;border-radius:50%;transform:translateX(-50%) rotateX(54deg);box-shadow:0 0 12px #d9a75c43;pointer-events:none}
+.fk-item-photo img.fk-product-photo{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;transform:scale(1.12);filter:drop-shadow(0 13px 18px #000b)}
+.fk-item-content{padding:4px 8px 15px;text-align:center}
+.fk-item h3{min-height:2.3em}
+.fk-item-foot button{box-shadow:0 3px 11px #0005}
+@keyframes fk-float{0%,100%{transform:translateX(-50%) translateY(2px) scale(1.18)}50%{transform:translateX(-50%) translateY(-7px) scale(1.18)}}
+@keyframes fk-halo{0%,100%{opacity:.78;box-shadow:0 0 11px #e8b26171,0 0 23px #e0a05025}50%{opacity:1;box-shadow:0 0 18px #e8b261a5,0 0 33px #e0a05042}}
+@media(max-width:620px){
+ .fk-showcase-stage{height:400px}
+ .fk-spot{top:3px;width:89%;height:374px}
+ .fk-spot.center{transform:translateX(-50%) translateZ(28px)}
+ .fk-spot.prev{transform:translateX(calc(-50% - 66vw)) rotateY(15deg) scale(.82)}
+ .fk-spot.next{transform:translateX(calc(-50% + 66vw)) rotateY(-15deg) scale(.82)}
+ .fk-spot img{height:71%;transform:translateX(-50%) scale(1.18)}
+ .fk-spot::before{top:62%;width:70%;height:31px}
+ .fk-spot-info{bottom:6px;left:4%;right:4%}
+ .fk-spot-info h3{font-size:20px;margin-bottom:10px}
+ .fk-spot-info button{font-size:13px;min-height:40px}
+ .fk-carousel-arrow{width:35px;height:35px;top:43%}
+ .fk-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+ .fk-item,.fk-item:hover{display:flex;flex-direction:column;border:0;border-radius:0;background:transparent}
+ .fk-item-photo,.fk-item-photo.is-prep{height:auto;min-height:0;aspect-ratio:1/1}
+ .fk-item-photo img.fk-product-photo{width:100%;height:100%;transform:scale(1.11)}
+ .fk-item-content{padding:3px 2px 13px}
+ .fk-item h3{font-size:13px;min-height:3em}
+ .fk-item-top{right:1px;top:2px}
+}
+@media(prefers-reduced-motion:reduce){.fk-spot.center img,.fk-spot.center::before{animation:none!important}}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
