@@ -66,6 +66,96 @@
 
 .fk-item-photo img.fk-product-photo{object-fit:contain;object-position:center;width:94%;height:92%;max-width:100%;filter:drop-shadow(0 10px 18px rgba(0,0,0,.44))}
 @media(max-width:620px){.fk-item-photo img.fk-product-photo{width:95%;height:84%;object-fit:contain}.fk-unknown-mark{width:56px;height:56px;font-size:27px}.fk-unknown-text{font-size:10px}}
+
+/* FARUKH KITCHEN | Black Ice Carousel + 2-column photo grid */
+[hidden]{display:none!important}
+.fk-catalog-top{padding:22px 0 10px;background:radial-gradient(ellipse at 90% 0,#143d4b,#071620 65%)}
+.fk-catalog-top h1{font-size:clamp(27px,4.7vw,44px);margin:8px 0 13px}
+.fk-catalog-lead,.fk-catalog-steps{display:none}
+.fk-catalog-controls{padding:15px;margin-top:10px;border-radius:16px;background:#0a2633bb}
+.fk-catalog-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:10px;gap:7px}
+.fk-catalog-tabs button{padding:9px 5px;min-height:40px;font-size:11px}
+.fk-catalog-meta{margin:11px 0;font-size:12px}
+.fk-catalog-cats{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;padding:7px 0 13px;scrollbar-width:thin}
+.fk-catalog-cats button{background:#09232f;border:1px solid #496875;border-radius:99px;color:#dfedf2;font-weight:800;padding:9px 14px;min-height:40px;flex:none;cursor:pointer}
+.fk-catalog-cats button[aria-pressed=true]{background:#eccb95;border-color:#efcf95;color:#0b2835}
+.fk-showcase{padding:5px 0 23px}
+.fk-showcase-title{text-align:center;color:#f1d09c;font-size:11px;letter-spacing:.17em;font-weight:850;margin:5px 0 0}
+.fk-showcase-title h2{font-size:clamp(21px,3vw,32px);letter-spacing:0;color:#fff;margin:6px 0}
+.fk-showcase-stage{height:444px;position:relative;isolation:isolate;perspective:1000px;overflow:hidden;touch-action:pan-y;outline-offset:4px}
+.fk-showcase-stack{position:absolute;inset:0;pointer-events:none}
+.fk-spot{position:absolute;top:27px;left:50%;width:min(56%,400px);height:375px;overflow:hidden;border:1px solid #c09a67;border-radius:22px;background:radial-gradient(ellipse at 50% 35%,#255363,#0a2331 75%);box-shadow:0 20px 43px #000a;transition:transform .42s cubic-bezier(.22,.7,.2,1),opacity .42s,filter .42s;pointer-events:auto;cursor:pointer}
+.fk-spot::after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,#0415221f 57%,#03101cf2 98%)}
+.fk-spot.center{z-index:3;transform:translateX(-50%) translateZ(50px) scale(1.025);opacity:1;filter:none;cursor:default;box-shadow:0 24px 48px #000b,0 0 0 1px #f4c78380}
+.fk-spot.prev{z-index:1;transform:translateX(calc(-50% - min(34vw,370px))) rotateY(21deg) scale(.83);opacity:.55;filter:blur(2px)}
+.fk-spot.next{z-index:1;transform:translateX(calc(-50% + min(34vw,370px))) rotateY(-21deg) scale(.83);opacity:.55;filter:blur(2px)}
+.fk-spot img{width:100%;height:84%;object-fit:contain;position:absolute;inset:0;transform:scale(1.06);filter:drop-shadow(0 15px 20px #0009)}
+.fk-spot-info{position:absolute;bottom:16px;left:16px;right:16px;z-index:1}
+.fk-spot-tag{display:inline-block;color:#f1d298;border:1px solid #d9af74b8;background:#0b2637ad;font-size:10px;font-weight:850;border-radius:50px;padding:4px 9px;margin-bottom:8px}
+.fk-spot-info h3{font-size:clamp(17px,2vw,23px);line-height:1.17;margin:0 0 9px;text-shadow:0 2px 8px #0009}
+.fk-spot-info button{border:0;border-radius:50px;background:#edca8e;color:#0b2630;font-weight:900;padding:8px 17px;min-height:35px;cursor:pointer}
+.fk-carousel-arrow{position:absolute;z-index:5;top:47%;transform:translateY(-50%);border:1px solid #b6c6c9;background:#061923d9;color:white;border-radius:50%;width:43px;height:43px;font-size:25px;cursor:pointer}
+.fk-carousel-arrow.prev{left:8px}.fk-carousel-arrow.next{right:8px}
+.fk-showcase-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.fk-showcase-counter{color:#b9d1d9;font-size:12px}
+.fk-showcase-dots{display:flex;gap:6px;align-items:center}
+.fk-dot{width:8px;height:8px;border:0;border-radius:50%;background:#6a8390;padding:0;cursor:pointer}
+.fk-dot.current{width:21px;border-radius:7px;background:#eac68e}
+.fk-showcase-all{display:block;margin:18px auto 5px;background:linear-gradient(100deg,#f1d399,#dcb171);border:1px solid #ffdcaa;color:#082330;padding:12px 25px;border-radius:50px;font-weight:900;cursor:pointer}
+.fk-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.fk-item{display:flex;flex-direction:column;min-width:0;position:relative;border-radius:18px;background:radial-gradient(ellipse at 50% 30%,#1e4858,#092330 80%);border:1px solid #547181;overflow:hidden}
+.fk-item:hover{border-color:#efc98d;box-shadow:0 4px 23px #ffdb9940}
+.fk-item-photo,.fk-item-photo.is-prep{height:auto;min-height:0;aspect-ratio:1/.93;background:transparent}
+.fk-item-photo img.fk-product-photo{width:100%;height:100%;object-fit:contain;transform:scale(1.05);filter:drop-shadow(0 15px 18px #0008)}
+.fk-item-photo .fk-photo-caption{display:none}
+.fk-item-content{padding:4px 14px 14px;gap:5px}
+.fk-item-top{position:absolute;right:10px;top:9px;z-index:1}
+.fk-item-top>span:first-child{display:none}
+.fk-item-tag{background:#071a26da;color:#f1ce96;border:1px solid #dcba849a;border-radius:15px;font-size:9px;padding:4px 7px}
+.fk-item h3{font-size:clamp(15px,2vw,20px);margin:1px 0;min-height:2.3em;line-height:1.18}
+.fk-item-info{font-size:12px;display:block}
+.fk-item-info span:first-child{display:none}
+.fk-item-info span:last-child{display:block}
+.fk-item-foot{padding-top:7px}
+.fk-item-foot button{background:linear-gradient(115deg,#f4d59d,#dfb678);border-radius:40px;min-height:40px;font-size:13px}
+.fk-item-foot a{display:none}
+@media(max-width:920px){.fk-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){
+ .fk-catalog-top{padding-top:14px}
+ .fk-catalog-top h1{font-size:28px}
+ .fk-catalog-controls{padding:11px}
+ .fk-catalog-tabs button{padding:8px 3px;font-size:10px;min-height:36px}
+ .fk-catalog-inputs{grid-template-columns:1fr 1fr;gap:7px}
+ .fk-catalog-inputs label:first-child{grid-column:1/-1}
+ .fk-catalog-inputs input,.fk-catalog-inputs select{min-height:41px;font-size:12px}
+ .fk-catalog-cats button{font-size:11px;padding:8px 11px;min-height:36px}
+ .fk-showcase-stage{height:362px}
+ .fk-spot{top:24px;width:66%;height:308px;border-radius:18px}
+ .fk-spot.center{transform:translateX(-50%) translateZ(35px) scale(1.04)}
+ .fk-spot.prev{transform:translateX(calc(-50% - 53vw)) rotateY(17deg) scale(.86)}
+ .fk-spot.next{transform:translateX(calc(-50% + 53vw)) rotateY(-17deg) scale(.86)}
+ .fk-spot img{height:80%}
+ .fk-spot-info{bottom:12px;left:10px;right:10px}
+ .fk-spot-info h3{font-size:16px}
+ .fk-spot-tag{font-size:8px;padding:4px 7px}
+ .fk-spot-info button{font-size:12px;min-height:33px;padding:6px 11px}
+ .fk-carousel-arrow{width:35px;height:35px;font-size:21px}
+ .fk-carousel-arrow.prev{left:2px}.fk-carousel-arrow.next{right:2px}
+ .fk-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .fk-item{display:flex;flex-direction:column;border-radius:13px}
+ .fk-item-photo,.fk-item-photo.is-prep{min-height:0;height:auto;aspect-ratio:1/1}
+ .fk-item-photo img.fk-product-photo{width:100%;height:100%}
+ .fk-item-content{padding:4px 9px 10px;gap:5px}
+ .fk-item-top{top:7px;right:5px}
+ .fk-item-tag{font-size:8px;padding:3px 5px}
+ .fk-item h3{font-size:13px;line-height:1.18;min-height:3em;overflow-wrap:anywhere}
+ .fk-item-info{font-size:11px}
+ .fk-item-foot{padding-top:3px}
+ .fk-item-foot button{font-size:11px;min-height:34px;padding:7px 4px}
+ .fk-mobile-purchase{display:flex}
+}
+@media(prefers-reduced-motion:reduce){.fk-spot,.fk-item{transition:none!important}}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
@@ -73,10 +163,10 @@
 </div></header>
 <main class="fk-shell">
 <section class="fk-catalog-top">
-<div class="fk-eyebrow">БИБЛИОТЕКА РЕЦЕПТУР · CHEF AKA</div><h1>Технологии,<br><em>собранные по делу.</em></h1><p class="fk-catalog-lead">59 технологических карт готовых блюд и 34 полуфабриката. Найдите нужные позиции и посмотрите, какие входят в SHEF START и SHEF PRO.</p>
+<div class="fk-eyebrow">FARUKH KITCHEN · CHEF AKA</div><h1>Каталог <em>ТТК</em></h1><p class="fk-catalog-lead">59 технологических карт готовых блюд и 34 полуфабриката. Найдите нужные позиции и посмотрите, какие входят в SHEF START и SHEF PRO.</p>
 <div class="fk-catalog-steps"><span>01 · Выберите пакет</span><span>02 · Изучите каталог</span><span>03 · Получите личный доступ</span></div>
 <div class="fk-catalog-controls">
-<div class="fk-catalog-tabs" id="tabs" role="group" aria-label="Тариф"><button type="button" data-plan="start" aria-pressed="true">SHEF START · 78 карт · 49 900 ₽</button><button type="button" data-plan="pro" aria-pressed="false">SHEF PRO · 93 карты · 79 900 ₽</button><button type="button" data-plan="all" aria-pressed="false">Вся коллекция · 93</button></div>
+<div class="fk-catalog-tabs" id="tabs" role="group" aria-label="Тариф"><button type="button" data-plan="start" aria-pressed="true" title="SHEF START — 78 карт, 49 900 ₽">SHEF START</button><button type="button" data-plan="pro" aria-pressed="false" title="SHEF PRO — 93 карты, 79 900 ₽">SHEF PRO</button><button type="button" data-plan="all" aria-pressed="false" title="Вся коллекция — 93 карты">ВСЕ ТТК</button></div>
 <div class="fk-catalog-inputs">
 <label>ПОИСК ТТК<input id="search" type="search" autocomplete="off" placeholder="Филадельфия, креветка, FK-A4-001…" aria-label="Поиск по каталогу"></label>
 <label>ТИП ТТК<select id="kind"><option value="all">Все виды</option><option value="dish">Готовые блюда</option><option value="prep">Полуфабрикаты</option></select></label>
@@ -84,9 +174,33 @@
 </div></div>
 <div class="fk-catalog-meta"><strong id="itemCount" aria-live="polite">Загрузка…</strong><span id="showing"></span></div>
 </section>
+
+<div class="fk-catalog-cats" id="quickCategories" role="group" aria-label="Категории">
+<button type="button" data-cat-choice="all" aria-pressed="true">Все</button>
+<button type="button" data-cat-choice="Холодные роллы" aria-pressed="false">Роллы</button>
+<button type="button" data-cat-choice="Запечённые роллы" aria-pressed="false">Запечённые</button>
+<button type="button" data-cat-choice="Темпура" aria-pressed="false">Темпура</button>
+<button type="button" data-cat-choice="Маки" aria-pressed="false">Маки</button>
+<button type="button" data-cat-choice="Суши" aria-pressed="false">Суши</button>
+<button type="button" data-cat-choice="Гунканы" aria-pressed="false">Гунканы</button>
+<button type="button" data-cat-choice="WOK" aria-pressed="false">WOK</button>
+<button type="button" data-cat-choice="prep" aria-pressed="false">Полуфабрикаты</button>
+</div>
+<section class="fk-showcase" id="showcase" aria-label="3D-карусель">
+<div class="fk-showcase-title">BLACK ICE · CHEF AKA<h2>Коллекция блюд</h2></div>
+<div class="fk-showcase-stage" id="showcaseStage" tabindex="0" aria-label="Листайте блюда свайпом или стрелками">
+<div class="fk-showcase-stack" id="showcaseCards"></div>
+<button class="fk-carousel-arrow prev" id="showcasePrev" type="button" aria-label="Предыдущее блюдо">‹</button>
+<button class="fk-carousel-arrow next" id="showcaseNext" type="button" aria-label="Следующее блюдо">›</button>
+</div>
+<div class="fk-showcase-actions"><span id="showcaseCounter" class="fk-showcase-counter" aria-live="polite"></span><div class="fk-showcase-dots" id="showcaseDots"></div></div>
+<button type="button" class="fk-showcase-all" id="viewAll" aria-controls="catalogList" aria-expanded="false">Показать все товары ↓</button>
+</section>
+<section id="catalogList" hidden aria-label="Полный каталог ТТК">
 <section id="grid" class="fk-catalog-grid" aria-label="Каталог технологических карт"></section>
 <div id="empty" class="fk-empty"><strong>По вашему запросу ничего не найдено.</strong><p>Попробуйте другой поиск или категорию.</p></div>
 <button id="more" type="button" class="fk-catalog-more" hidden>Показать ещё 18 позиций ↓</button>
+</section>
 <div class="fk-catalog-callout"><div><div class="fk-eyebrow">ВАША ЛИЧНАЯ БИБЛИОТЕКА</div><h2>Нашли нужную технологию?</h2><p>Оставьте заявку — владелец свяжется с вами, подтвердит оплату и выдаст персональный логин.</p><p style="margin-top:7px;font-weight:800;color:#f2d29c" id="catalogPlanPrice">SHEF START — 49 900 ₽</p></div><a class="fk-btn fk-btn-primary" id="apply" href="request-access.html?plan=start">Получить доступ ↗</a></div>
 <div style="margin:16px 0 20px;padding:19px 22px;border:1px solid #846b48;background:linear-gradient(145deg,#153647,#102a37);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap">
 <div><strong style="display:block;color:#f3cd93;font-size:18px">SHEF PREMIUM — 199 900 ₽</strong><span style="display:block;color:#bcd2db;font-size:13px;max-width:610px">Тот же комплект PRO + 3 рабочих дня личного выезда Chef Aka: организация кухни, обучение до 5 поваров и 14 дней поддержки. Билеты, гостиница и трансфер — отдельно.</span></div>
@@ -164,6 +278,79 @@ function card(r){
  const open=document.createElement('a');open.href='cabinet.html?recipe='+encodeURIComponent(r.id);open.textContent='↗';open.title='Войти и открыть ТТК';open.setAttribute('aria-label','Войти и открыть ТТК '+r.n);
  foot.append(details,open);content.append(top,h,info,foot);el.append(pic,content);return el;
 }
+
+/* Interactive Black Ice carousel. No paid recipe data is exposed. */
+let showAll=Boolean(search.value.trim()||selectedKind==='prep');
+let spotlight=[],spotIndex=0;
+function paintShowcase(){
+ const stack=$('showcaseCards'),dots=$('showcaseDots');stack.replaceChildren();dots.replaceChildren();
+ const total=spotlight.length;if(!total){$('showcaseCounter').textContent='';return}
+ for(const step of [-1,0,1]){
+  if(total===1&&step!==0)continue;
+  const row=spotlight[(spotIndex+step+total)%total];
+  const card=document.createElement('article');card.className='fk-spot '+(step===0?'center':step<0?'prev':'next');
+  card.dataset.step=String(step);card.setAttribute('aria-hidden',String(step!==0));
+  const img=document.createElement('img');img.src=PRODUCT_PHOTOS[row.id];img.alt=step===0?'Фото: '+row.n:'';
+  img.loading=step===0?'eager':'lazy';img.decoding='async';img.onerror=()=>img.remove();
+  const info=document.createElement('div');info.className='fk-spot-info';
+  const tag=document.createElement('span');tag.className='fk-spot-tag';tag.textContent=row.start?'START + PRO':'ТОЛЬКО PRO';
+  const title=document.createElement('h3');title.textContent=row.n;info.append(tag,title);
+  if(step===0){const b=document.createElement('button');b.type='button';b.dataset.openId=row.id;b.textContent='Подробнее →';info.append(b)}
+  card.append(img,info);stack.append(card);
+ }
+ $('showcaseCounter').textContent=(spotIndex+1)+' / '+total;
+ for(const n of [-2,-1,0,1,2]){if(total<3&&n!==0)continue;
+  const d=document.createElement('button');d.type='button';d.className='fk-dot'+(n===0?' current':'');
+  d.dataset.step=String(n);d.setAttribute('aria-label',n===0?'Текущий товар':'Перелистнуть карусель');dots.append(d);
+ }
+}
+function moveSpot(n){if(spotlight.length<2)return;spotIndex=(spotIndex+n%spotlight.length+spotlight.length)%spotlight.length;paintShowcase()}
+function renderShowcase(rows){
+ const current=spotlight[spotIndex]?.id;
+ spotlight=rows.filter(r=>r.t==='dish'&&PRODUCT_PHOTOS[r.id]);
+ spotIndex=Math.max(0,spotlight.findIndex(r=>r.id===current));
+ $('showcase').hidden=spotlight.length===0;
+ if(!spotlight.length)showAll=true;
+ $('catalogList').hidden=!showAll;
+ $('viewAll').setAttribute('aria-expanded',String(showAll));
+ $('viewAll').textContent=showAll?'Свернуть каталог ↑':'Показать все товары ↓';
+ document.querySelectorAll('[data-cat-choice]').forEach(b=>{
+  const choice=b.dataset.catChoice;
+  const active=choice==='prep'?selectedKind==='prep':choice==='all'?(selectedCat==='all'&&selectedKind!=='prep'):(selectedCat===choice&&selectedKind!=='prep');
+  b.setAttribute('aria-pressed',String(active));
+ });
+ paintShowcase();
+}
+$('showcasePrev').addEventListener('click',()=>moveSpot(-1));
+$('showcaseNext').addEventListener('click',()=>moveSpot(1));
+$('showcaseCards').addEventListener('click',e=>{
+ const b=e.target.closest('button[data-open-id]');if(b){openDetailsById(b.dataset.openId);return}
+ const c=e.target.closest('.fk-spot.prev,.fk-spot.next');if(c)moveSpot(Number(c.dataset.step));
+});
+$('showcaseDots').addEventListener('click',e=>{const b=e.target.closest('[data-step]');if(b)moveSpot(Number(b.dataset.step))});
+$('showcaseStage').addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();moveSpot(e.key==='ArrowLeft'?-1:1)}});
+let swipeOrigin=null;
+$('showcaseStage').addEventListener('touchstart',e=>{
+ if(e.touches.length===1)swipeOrigin={x:e.touches[0].clientX,y:e.touches[0].clientY};
+},{passive:true});
+$('showcaseStage').addEventListener('touchend',e=>{
+ if(!swipeOrigin||e.changedTouches.length!==1)return;
+ const dx=e.changedTouches[0].clientX-swipeOrigin.x,dy=e.changedTouches[0].clientY-swipeOrigin.y;swipeOrigin=null;
+ if(Math.abs(dx)>42&&Math.abs(dx)>1.25*Math.abs(dy))moveSpot(dx<0?1:-1);
+},{passive:true});
+$('viewAll').addEventListener('click',()=>{
+ showAll=!showAll;limit=showAll?DATA.length:18;render();
+ if(showAll)$('catalogList').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+});
+$('quickCategories').addEventListener('click',e=>{
+ const b=e.target.closest('button[data-cat-choice]');if(!b)return;
+ const v=b.dataset.catChoice;
+ if(v==='prep'){selectedKind='prep';selectedCat='all'}
+ else if(v==='all'){selectedKind='all';selectedCat='all'}
+ else{selectedKind='dish';selectedCat=v}
+ kind.value=selectedKind;group='';categories();showAll=v==='prep';limit=showAll?DATA.length:18;render();
+});
+
 function updateURL(){const u=new URL(location.href);u.searchParams.set('plan',plan);
  if(selectedKind!=='all')u.searchParams.set('kind',selectedKind);else u.searchParams.delete('kind');
  if(selectedCat!=='all')u.searchParams.set('cat',selectedCat);else u.searchParams.delete('cat');
@@ -171,27 +358,29 @@ function updateURL(){const u=new URL(location.href);u.searchParams.set('plan',pl
  if(search.value.trim())u.searchParams.set('search',search.value.trim());else u.searchParams.delete('search');
  history.replaceState(null,'',u)
 }
-function render(){const rows=matching();$('itemCount').textContent='Найдено '+rows.length+' позиций · '+(plan==='start'?'SHEF START':plan==='pro'?'SHEF PRO':'вся база');$('showing').textContent='Показано '+Math.min(rows.length,limit)+' из '+rows.length;
+function render(){const rows=matching();$('itemCount').textContent='Найдено '+rows.length+' позиций · '+(plan==='start'?'SHEF START':plan==='pro'?'SHEF PRO':'вся база');$('showing').textContent=showAll?'Показано '+Math.min(rows.length,limit)+' из '+rows.length:'Листайте карточки ← →';
  grid.replaceChildren(...rows.slice(0,limit).map(card));$('empty').style.display=rows.length?'none':'block';$('more').hidden=rows.length<=limit;
  document.querySelectorAll('[data-plan]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.plan===plan)));
  $('apply').href='request-access.html?plan='+(plan==='pro'||plan==='all'?'pro':'start');$('mobileApply').href=$('apply').href;
  $('catalogPlanPrice').textContent=plan==='pro'?'SHEF PRO — 79 900 ₽':plan==='start'?'SHEF START — 49 900 ₽':'SHEF START — 49 900 ₽ · SHEF PRO — 79 900 ₽';
+ renderShowcase(rows);
  updateURL();
 }
-$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(!b)return;plan=b.dataset.plan;limit=18;categories();render()});
-kind.addEventListener('change',()=>{selectedKind=kind.value;selectedCat='all';group='';limit=18;categories();render()});
-cat.addEventListener('change',()=>{selectedCat=cat.value;group='';limit=18;render()});
-search.addEventListener('input',()=>{limit=18;render()});
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(!b)return;plan=b.dataset.plan;showAll=false;limit=18;categories();render()});
+kind.addEventListener('change',()=>{selectedKind=kind.value;selectedCat='all';group='';showAll=selectedKind==='prep';limit=showAll?DATA.length:18;categories();render()});
+cat.addEventListener('change',()=>{selectedCat=cat.value;group='';showAll=false;limit=18;render()});
+search.addEventListener('input',()=>{showAll=Boolean(search.value.trim());limit=showAll?DATA.length:18;render()});
 $('more').addEventListener('click',()=>{limit+=18;render()});
-grid.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(!b)return;
- const r=DATA.find(x=>x.id===b.dataset.id);if(!r)return;
+function openDetailsById(id){
+ const r=DATA.find(x=>x.id===id);if(!r)return;
  $('dialogTitle').textContent=r.n;$('dialogNumber').textContent=r.id;
  $('dialogCategory').textContent=r.c;$('dialogPlan').textContent=r.start?'SHEF START / PRO':'SHEF PRO';
  $('dialogMass').textContent=r.w==null?'В документе':r.w+' г (расчётно)';
  $('dialogAction').href='request-access.html?plan='+(r.start?'start':'pro');
  $('dialogCabinet').href='cabinet.html?recipe='+encodeURIComponent(r.id);
  const dialog=$('itemDialog');if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
-});
+}
+grid.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)openDetailsById(b.dataset.id)});
 $('dialogClose').addEventListener('click',()=>$('itemDialog').close());
 $('itemDialog').addEventListener('click',e=>{if(e.target===$('itemDialog'))$('itemDialog').close()});
 $('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),n=$('fkMenuLinks');let on=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(on));n.classList.toggle('is-open',on);b.textContent=on?'✕':'☰'});
