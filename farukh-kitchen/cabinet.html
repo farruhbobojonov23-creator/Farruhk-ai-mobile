@@ -10,7 +10,7 @@
 #feedback{margin:15px 0;min-height:24px;font-size:13px;font-weight:650}.old{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:#fff}.old summary{cursor:pointer;font-weight:750;color:var(--ink)}.old .release{gap:11px}.footer{color:#728695;font-size:12px;padding:28px 0;border-top:1px solid var(--line);margin-top:35px}
 @media(max-width:950px){.recipes{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.wrap{padding:25px 14px 60px}.nav{padding:14px}.brand{font-size:17px}.back{padding:7px 9px;font-size:11px}.grid,.recipes{grid-template-columns:1fr}.panel{padding:18px}.row,.actions{flex-direction:column;align-items:stretch}.row>*,.actions>*{width:100%;flex:initial}.release{flex-wrap:wrap}.release .buttons{width:100%}.release .buttons button{flex:1}.package-card{padding:17px}.recipe{min-height:120px}}
-</style><link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104-3"></head><body class="fk-buyer">
+</style><link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104-3"><link rel="stylesheet" href="assets/cabinet-v8.css?v=20261105-1"></head><body class="fk-buyer">
 <header class="top"><div class="nav"><a href="index.html" class="brand">FARUKH <em>KITCHEN</em></a><a href="index.html" class="back">← Вернуться на сайт</a></div></header>
 <main class="wrap"><div class="eyebrow">CHEF AKA · ЗАЩИЩЁННАЯ БИБЛИОТЕКА</div><h1>Мои технологические карты</h1><p class="lead">Состав пакета, отдельные технологические карты, просмотр PDF и скачивание — только после подтверждённой владельцем выдачи доступа. Оплата на сайте пока отключена.</p>
 <section id="loginPanel" class="panel">
@@ -60,17 +60,35 @@
 </div>
 <div class="grid"><article class="package-card"><div class="eyebrow">БАЗОВЫЙ КОМПЛЕКТ</div><h3>SHEF START</h3><div class="numbers">44 ТТК готовых блюд · 34 полуфабриката</div><div id="startFiles"></div></article>
 <article class="package-card"><div class="eyebrow">ПОЛНЫЙ КОМПЛЕКТ</div><h3>SHEF PRO</h3><div class="numbers">59 ТТК готовых блюд · 34 ПФ · 59 инструкций</div><div id="proFiles"></div></article></div>
-<section class="panel" id="recipesPanel"><div class="eyebrow">КАРТЫ ПОШТУЧНО</div><h2>Мой каталог ТТК</h2><p class="muted small">Кнопка «Открыть» ведёт на соответствующую страницу защищённого PDF. Если просмотр PDF не поддерживается телефоном, скачайте полный комплект.</p>
+<section class="panel" id="recipesPanel"><div class="eyebrow">КАРТЫ ПОШТУЧНО</div><h2>Мой каталог ТТК</h2><p class="muted small">«Открыть ТТК» показывает одну страницу документа прямо в этом экране. «PDF» скачивает только выбранную карту. «Скачать фото» сохраняет исходное изображение с прозрачным фоном в PNG.</p>
 <div class="fk-quick-cats" id="fkQuickCategories" role="group" aria-label="Быстрые категории"></div>
 <div class="actions"><input type="search" id="recipeSearch" placeholder="Поиск по названию или номеру" aria-label="Поиск ТТК"><select id="recipeKind" aria-label="Вид"><option value="all">Все ТТК</option><option value="dish">Готовые блюда</option><option value="prep">Полуфабрикаты</option></select><select id="recipeCategory" aria-label="Категория"><option value="all">Все категории</option></select></div>
 <div class="fk-recipe-tools"><span id="recipeCount" class="muted small" aria-live="polite"></span>
 <button id="fkFavoritesToggle" type="button" class="btn tiny alt" aria-pressed="false">☆ Только избранное</button></div>
 <div id="recipeCards" class="recipes"></div><button id="fkShowMore" type="button" class="btn alt hidden">Показать ещё ↓</button>
-<p class="fk-footnote">Избранное хранится только в этом браузере. Отдельные PDF создаются из разрешённого комплекта на вашем устройстве.</p></section>
+<p class="fk-footnote">Избранное хранится на этом устройстве. Отдельная ТТК формируется из вашего защищённого комплекта. PNG скачивается только для фотографий, у которых действительно есть прозрачность.</p></section>
 <details id="archivePanel" class="old"><summary>Архивные документы · редакция 30.10.2026</summary><p>Предыдущая редакция может содержать устаревшие данные. Не используйте её для производства без проверки.</p><div id="oldFiles"></div></details>
 </section>
 <footer class="footer">FARUKH KITCHEN · Chef Aka · Доступ контролируется на сервере через Supabase RLS. Копии файлов, уже сохранённые покупателем, не могут быть отозваны дистанционно.</footer>
 </main>
+<dialog id="fkV8Sheet" class="fk-v8-sheet" aria-labelledby="fkV8SheetTitle">
+ <div class="fk-v8-sheet-grip" aria-hidden="true"></div>
+ <header class="fk-v8-sheet-head"><div class="fk-v8-sheet-name">
+  <span class="fk-v8-sheet-kicker" id="fkV8SheetCode">ТЕХНОЛОГИЧЕСКАЯ КАРТА · A4</span>
+  <h3 id="fkV8SheetTitle">Просмотр ТТК</h3></div>
+  <button class="fk-v8-sheet-close" id="fkV8Close" type="button" aria-label="Закрыть просмотр">×</button>
+ </header>
+ <div class="fk-v8-sheet-body" id="fkV8SheetBody">
+  <p class="fk-v8-progress" id="fkV8Progress" role="status">Подготавливаем технологическую карту…</p>
+  <div class="fk-v8-canvas-viewport hidden" id="fkV8Viewport"><canvas id="fkV8Canvas" aria-label="Первая страница технологической карты"></canvas></div>
+  <div class="fk-v8-pdf-error hidden" id="fkV8Error" role="alert"></div>
+ </div>
+ <footer class="fk-v8-sheet-foot">
+  <button class="btn fk-v8-zoom" id="fkV8Zoom" type="button" title="Увеличить документ">＋</button>
+  <button class="btn fk-v8-foot-primary" id="fkV8SheetPDF" type="button">↓ PDF · 1 лист</button>
+  <button class="btn fk-v8-foot-neutral" id="fkV8SheetPhoto" type="button">↓ Фото PNG</button>
+ </footer>
+</dialog>
 <script src="assets/product-photo-map-20261104.js?v=3"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
@@ -80,7 +98,7 @@ const START_ORDER=[1,2,3,4,10,11,12,13,14,15,16,17,18,19,21,22,23,25,27,28,31,32
 const $=id=>document.getElementById(id);let assets=new Map(),archive=[],grants=new Set(),activePlan=null,refreshCount=0,isOwnerPreview=false;
 let visibleLimit=12,favoritesOnly=false,deepLinkedOnce=false;const FAVORITES_KEY='fk_kitchen_favorites_v2';
 let favorites=new Set();try{const a=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');if(Array.isArray(a))favorites=new Set(a.filter(id=>typeof id==='string'&&DATA.some(r=>r.id===id)))}catch{}
-const CHEF_ITEM_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
+let CHEF_ITEM_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
 // Exact visual overrides for PF-014 and PF-015 (light vs. dark trout cuts).
 // The private original TTK PDF access is unchanged.
 const PF_DISPLAY_PHOTOS=Object.freeze({
