@@ -54,11 +54,10 @@
 <div class="card"><form id="photoForm"><label>ТТК / продукт<select id="photoRecipe"></select></label><label>Файл изображения<input id="photoFile" type="file" accept="image/webp,image/png,image/jpeg" required></label><div class="actions"><button class="btn primary" id="uploadPhoto" type="submit">Опубликовать фотографию →</button></div></form>
 <div id="photoPreview" class="photo-preview"></div></div>
 <div class="card" style="border-color:#b99866;background:linear-gradient(140deg,#1e403f,#122e37)">
-<h2>Готовые изображения полуфабрикатов</h2>
-<p>В защищённой библиотеке уже хранятся 34 фотографии ТТК-ПФ. Сейчас они не видны в публичном каталоге, потому что хранятся отдельно от изображений сайта.</p>
-<p class="tiny" style="color:#efd4a0">После публикации фотографии станут доступны посетителям каталога. Рецептуры и платные PDF останутся в закрытом хранилище. Уже загруженные вручную фотографии не будут заменены.</p>
-<button id="publishPrepPreviews" type="button" class="btn primary">Опубликовать фото 34 полуфабрикатов →</button>
-<p class="tiny" id="publishPrepState" role="status" aria-live="polite">Изображения будут перенесены из закрытой библиотеки только после вашего нажатия.</p>
+<h2>34 фотографии полуфабрикатов подключены</h2>
+<p>Утверждённые фотографии ТТК-ПФ теперь отображаются в публичном каталоге автоматически, по мере прокрутки. Переносить или загружать их вручную не требуется.</p>
+<p class="tiny" style="color:#efd4a0">Доступ для посетителей открыт только к 34 изображениям. Технологические карты, рецептуры и платные PDF остаются защищёнными.</p>
+<a class="btn primary" href="../catalog-verified.html?kind=prep&plan=all" target="_blank" rel="noopener noreferrer">Проверить фотографии в каталоге ↗</a>
 </div></section>
 <section data-view="pricing" class="view hidden"><div class="kicker">КОММЕРЧЕСКИЕ ПРОГРАММЫ</div><h1>Цены тарифов</h1><p class="muted">Новые цены будут показаны на главной странице, на странице заявки и в программе PREMIUM.</p>
 <form class="card" id="pricingForm"><div class="grid3"><label>SHEF START, ₽<input id="priceStart" type="number" min="0" max="10000000" required step="100"></label><label>SHEF PRO, ₽<input id="pricePro" type="number" min="0" max="10000000" required step="100"></label><label>SHEF PREMIUM, ₽<input id="pricePremium" type="number" min="0" max="10000000" required step="100"></label></div>
