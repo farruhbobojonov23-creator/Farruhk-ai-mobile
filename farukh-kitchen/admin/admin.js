@@ -35,7 +35,7 @@ $('loginForm').addEventListener('submit',async ev=>{
 $('otpBtn').addEventListener('click',async()=>{
  const email=$('email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){toast('Сначала укажи почту владельца.',true);return}
  $('otpBtn').disabled=true;
- try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/admin/'}});if(error)throw error;toast('Проверь почту. Если ссылка не открывается, используй переход по скопированной ссылке.')}
+ try{const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/admin/',shouldCreateUser:false}});if(error)throw error;toast('Проверь почту. Если ссылка не открывается, используй переход по скопированной ссылке.')}
  catch(e){err(e,'Письмо не отправлено')}finally{$('otpBtn').disabled=false}
 });
 function recipeCode(r){return (plain(r.notes).match(/(?:FK-A4|ТТК-ПФ)-\d{3}/)||[])[0]||''}
