@@ -535,7 +535,7 @@ let selectedKind=['all','dish','prep'].includes(params.get('kind'))?params.get('
 let selectedCat=params.get('cat')||'all';
 let group=params.get('group')||'';
 let limit=18;
-const PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
+let PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};
 const PHOTO_MISSING_TAGS={
  'FK-A4-019':'КУРИЦА','FK-A4-022':'КРАБ',
  'FK-A4-049':'КРАБ','FK-A4-051':'КУРИЦА'
@@ -694,5 +694,5 @@ grid.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if
 $('dialogClose').addEventListener('click',()=>$('itemDialog').close());
 $('itemDialog').addEventListener('click',e=>{if(e.target===$('itemDialog'))$('itemDialog').close()});
 $('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),n=$('fkMenuLinks');let on=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(on));n.classList.toggle('is-open',on);b.textContent=on?'✕':'☰'});
-window.addEventListener('fk:photos-changed',()=>render());categories();render();</script>
+window.addEventListener('fk:photos-changed',()=>{PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};render()});categories();render();</script>
 <script type="module" src="site-live.js"></script></body></html>
