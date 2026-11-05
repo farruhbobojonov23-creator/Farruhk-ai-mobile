@@ -189,6 +189,53 @@ $('photoForm').addEventListener('submit',async ev=>{
   toast('Фотография опубликована! Обнови открытый каталог для проверки.');
  }catch(e){err(e,'Не удалось опубликовать фото')}finally{btn.disabled=false}
 });
+// Owner-controlled release of product preview images only (not recipes or PDFs).
+// Source photo files remain private; copied preview files become public only on this explicit button click.
+$('publishPrepPreviews').addEventListener('click',async()=>{
+ if(!currentUser){toast('Сначала войди как владелец.',true);return}
+ const btn=$('publishPrepPreviews'),state=$('publishPrepState');btn.disabled=true;
+ const update=(text)=>{state.textContent=text};
+ update('Проверяю 34 фото ПФ в закрытой библиотеке…');
+ try{
+  const {data:assets,error:listError}=await sb.from('fk_release_assets')
+   .select('asset_key,object_path,asset_kind,released,filename')
+   .eq('asset_kind','image').eq('released',true).order('asset_key');
+  if(listError)throw listError;
+  const photos=(assets||[]).filter(a=>/^pf_photo_\d{3}$/.test(a.asset_key)
+   &&/^release\/\d{4}-\d{2}-\d{2}\/photos\/TTK-PF-\d{3}_photo\.webp$/.test(a.object_path));
+  if(!photos.length)throw Error('Подтверждённые исходные фото ПФ не найдены.');
+  if(photos.length!==34){update('Доступно '+photos.length+' фотографий ПФ. Публикую подтверждённые изображения.')}
+  let done=0,skipped=0,failed=0,index=0;const errors=[];
+  const workers=Array.from({length:3},async()=>{
+   while(index<photos.length){
+    const asset=photos[index++];
+    const code='ТТК-ПФ-'+asset.asset_key.slice(-3);
+    if(photoMap.has(code)){skipped++;continue}
+    const dest='products/'+code+'/approved_20261103.webp';
+    try{
+     // Every download is checked against the owner's Supabase session/RLS.
+     const {data:file,error:downloadError}=await sb.storage.from('fk-paid-ttk').download(asset.object_path);
+     if(downloadError||!file)throw downloadError||Error('Не удалось получить фото');
+     const {error:uploadError}=await sb.storage.from('fk-site-photos').upload(dest,file,{contentType:'image/webp',upsert:true,cacheControl:'3600'});
+     if(uploadError)throw uploadError;
+     const {error:linkError}=await sb.from('fk_site_photos').upsert({
+      recipe_code:code,object_path:dest,updated_at:new Date().toISOString()
+     },{onConflict:'recipe_code'});
+     if(linkError)throw linkError;
+     photoMap.set(code,dest);done++;
+    }catch(e){failed++;errors.push(code+': '+(e?.message||'ошибка'))}
+    update('Опубликовано '+done+' из '+photos.length+' · уже были '+skipped+' · ошибки '+failed);
+   }
+  });
+  await Promise.all(workers);
+  update('Готово: опубликовано '+done+' фото, пропущено '+skipped+' ранее добавленных'+(failed?', ошибок: '+failed:'')+'. Каталог отображает изображения после обновления страницы.');
+  if(failed)toast('Не удалось опубликовать '+failed+' фото ПФ. Проверь статус ниже.',true);
+  else toast('Фотографии ПФ опубликованы. Открой публичный каталог и обнови страницу.');
+  if(errors.length)console.warn('CHEF AKA prep photo publish errors:',errors.slice(0,10));
+  await loadPhotoPreview();
+ }catch(e){update('Не удалось завершить публикацию: '+(e?.message||'ошибка'));err(e,'Не удалось опубликовать фотографии')}
+ finally{btn.disabled=false}
+});
 async function loadRequests(){
  if(!currentUser)return;
  const {data,error}=await sb.from('fk_access_requests').select('id,customer_name,contact_type,contact_value,package_code,status,owner_note,created_at').order('created_at',{ascending:false}).limit(80);
