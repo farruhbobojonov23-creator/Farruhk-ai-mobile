@@ -478,17 +478,18 @@
     transform:none;
   }
   .fk-showcase-stage .fk-spot img{
-    width:90%;
-    height:61%;
-    transform:translateX(-50%) scale(1);
+    width:75%;
+    height:55%;
+    top:43px;
+    transform:translateX(-50%) scale(.96);
   }
   .fk-showcase-stage .fk-spot.center img{
     animation:fk-desktop-small-float 4.4s ease-in-out infinite;
   }
 }
 @keyframes fk-desktop-small-float{
-  0%,100%{transform:translateX(-50%) translateY(2px) scale(1)}
-  50%{transform:translateX(-50%) translateY(-5px) scale(1)}
+  0%,100%{transform:translateX(-50%) translateY(2px) scale(.96)}
+  50%{transform:translateX(-50%) translateY(-5px) scale(.96)}
 }
 @media (min-width:921px) and (prefers-reduced-motion:reduce){
   .fk-showcase-stage .fk-spot.center img{animation:none!important}
