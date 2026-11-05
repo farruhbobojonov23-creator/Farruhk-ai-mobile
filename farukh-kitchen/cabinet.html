@@ -207,8 +207,9 @@ function renderCards(){
   p.textContent=favoritesOnly?'Избранных карт пока нет. Нажмите ☆ на понравившейся ТТК.':'Нет ТТК по этому запросу.';
   root.append(p);return;
  }
- for(const r of list.slice(0,visibleLimit)){
-  const el=document.createElement('article');el.className='recipe';
+ for(const [index,r] of list.slice(0,visibleLimit).entries()){
+  const el=document.createElement('article');el.className='recipe fk-v8-card';
+  el.style.setProperty('--v8-delay',Math.min(index,8)*45+'ms');el.style.setProperty('--v8-float-delay','-'+(index%6)+'.3s');
   const header=document.createElement('div');header.className='fk-recipe-card-head';
   const code=document.createElement('div');code.className='code';code.textContent=r.id;
   const fav=document.createElement('button');fav.type='button';fav.className='fk-fav-btn';
@@ -217,50 +218,54 @@ function renderCards(){
   fav.addEventListener('click',()=>{favorites.has(r.id)?favorites.delete(r.id):favorites.add(r.id);saveFavorites();renderCards()});
   header.append(code,fav);
   const media=document.createElement('div');media.className='fk-recipe-media';
-  const src=r.t==='dish'?CHEF_ITEM_PHOTOS[r.id]:(PF_DISPLAY_PHOTOS[r.id]||null);
+  // Owner-uploaded photos take priority over approved originals; protected PF thumbnails are fallbacks.
+  const src=CHEF_ITEM_PHOTOS[r.id]||PF_DISPLAY_PHOTOS[r.id]||null;
+  const privatePhoto=r.t==='prep'?editionAsset('pf_photo_'+r.id.slice(-3)):null;
   if(src){
    const img=document.createElement('img');img.src=src;img.className='fk-exact-photo';
-   img.loading='lazy';img.decoding='async';img.alt='Фото блюда '+r.n;
-   img.onerror=()=>photoUnavailable(media,r);
+   img.loading='lazy';img.decoding='async';img.alt='Фото: '+r.n;
+   img.onerror=()=>{if(privatePhoto)loadPrivatePhoto();else photoUnavailable(media,r)};
    media.append(img);
   }else photoUnavailable(media,r);
   const title=document.createElement('h4');title.textContent=r.n;
-  const note=document.createElement('div');note.className='muted small';note.style.marginBottom='12px';
+  const note=document.createElement('div');note.className='muted small fk-v8-note';
   note.textContent=r.c+(r.w==null?'':' · выход '+r.w+' г (расч.)');
   const actions=document.createElement('div');actions.className='act';
   const asset=assetFor(r);
-  const view=document.createElement('button');view.className='btn tiny';
-  view.textContent=asset?'Открыть 1 ТТК':'Пока закрыто';view.title='Открыть только эту технологическую карту, один лист PDF';view.disabled=!asset;
+  const view=document.createElement('button');view.type='button';view.className='btn tiny fk-v8-open';
+  view.textContent=asset?'▤ Открыть ТТК':'Пока закрыто';view.title='Открыть выбранную ТТК прямо на этой странице';view.disabled=!asset;
   view.addEventListener('click',()=>{if(asset)openSingleTTK(r,view)});
-  const one=document.createElement('button');one.className='btn tiny alt';one.textContent='↓ 1 ТТК';
-  one.title='Скачать только эту технологическую карту А4';one.disabled=!asset;
+  const one=document.createElement('button');one.type='button';one.className='btn tiny alt fk-v8-secondary';
+  one.textContent='↓ PDF';one.title='Скачать выбранную ТТК в PDF, один лист';one.disabled=!asset;
   one.addEventListener('click',()=>downloadSingleTTK(r,one));
-  actions.append(view,one);
+  const photo=document.createElement('button');photo.type='button';photo.className='btn tiny alt fk-v8-secondary';
+  photo.textContent='↓ Скачать фото';photo.title='Скачать исходное фото с прозрачностью в PNG';photo.disabled=!src&&!privatePhoto;
+  photo.addEventListener('click',()=>downloadPhotoPNG(r,photo,src,privatePhoto));
+  actions.append(view,one,photo);
   el.append(header,media,title,note,actions);
-  if(r.t==='prep'&&!PF_DISPLAY_PHOTOS[r.id]&&assetReady('pf_photo_'+r.id.slice(-3))){
-   const photoKey='pf_photo_'+r.id.slice(-3);
-   const pv=document.createElement('button');pv.className='btn tiny alt';pv.textContent='Показать фото ПФ';pv.style.marginTop='11px';
-   pv.addEventListener('click',async()=>{
-    pv.disabled=true;try{
-     const pic=await fileBlob(editionAsset(photoKey));const url=URL.createObjectURL(pic);
-     photoBlobUrls.set(photoKey,url);const img=document.createElement('img');
-     img.loading='lazy';img.src=url;img.alt='Фото полуфабриката '+r.n;
-     media.replaceChildren(img);pv.remove();
-    }catch{pv.disabled=false;msg('Не удалось открыть фото. Попробуйте позже.',true)}
-   });el.append(pv);
-   // Protected PF thumbnails: load the individually approved asset only
-   // after the authenticated user scrolls this card into view.
+  root.append(el);
+  async function loadPrivatePhoto(){
+   if(!privatePhoto||!activePlan||!media.isConnected||media.dataset.loading)return;
+   media.dataset.loading='yes';
+   try{
+    const key=privatePhoto.asset_key,previous=photoBlobUrls.get(key);
+    const url=previous||URL.createObjectURL(await fileBlob(privatePhoto));
+    if(!previous)photoBlobUrls.set(key,url);
+    if(!media.isConnected)return;
+    const img=document.createElement('img');img.className='fk-exact-photo';img.src=url;img.alt='Фото полуфабриката '+r.n;
+    img.loading='lazy';img.decoding='async';img.onerror=()=>photoUnavailable(media,r);
+    media.replaceChildren(img);media.dataset.loaded='yes';
+   }catch(e){if(media.isConnected)photoUnavailable(media,r)}
+   finally{delete media.dataset.loading}
+  }
+  if(!src&&privatePhoto){
+   // Private PF image loaded only when signed in and card nears viewport.
    if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
-     if(entries.some(entry=>entry.isIntersecting)){
-      observer.disconnect();
-      if(pv.isConnected&&!pv.disabled)pv.click();
-     }
-    },{rootMargin:'250px'});
-    observer.observe(media);
-   }
+     if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();loadPrivatePhoto()}
+    },{rootMargin:'200px'});observer.observe(el);
+   }else loadPrivatePhoto();
   }
-  root.append(el);
  }
 }
 let pdfLibraryLoader=null;
