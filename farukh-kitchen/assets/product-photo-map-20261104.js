@@ -68,6 +68,9 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-059": "assets/user-photos/snack-mussels-spicy-43696.webp",
   "ТТК-ПФ-013": "assets/photos/trout_slices_category_v4.webp",
   "ТТК-ПФ-014": "assets/photos/trout_pf014_light_v4.webp",
-  "ТТК-ПФ-015": "assets/photos/trout_pf015_dark_v4.webp"
+  "ТТК-ПФ-015": "assets/photos/trout_pf015_dark_v4.webp",
+  "ТТК-ПФ-004": "assets/photos/chefaka-pf004-approved-20261105.webp",
+  "ТТК-ПФ-016": "assets/photos/chefaka-pf016-approved-20261105.webp",
+  "ТТК-ПФ-030": "assets/photos/chefaka-pf030-approved-20261105.webp"
 });
 window.FK_CATEGORY_GUNKAN_PHOTO='assets/photos/gunkan_pair_20261104.webp';
