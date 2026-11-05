@@ -736,4 +736,4 @@ $('dialogClose').addEventListener('click',()=>$('itemDialog').close());
 $('itemDialog').addEventListener('click',e=>{if(e.target===$('itemDialog'))$('itemDialog').close()});
 $('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),n=$('fkMenuLinks');let on=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(on));n.classList.toggle('is-open',on);b.textContent=on?'✕':'☰'});
 window.addEventListener('fk:photos-changed',()=>{PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};render()});window.addEventListener('fk:prep-photo-loader-ready',()=>render());categories();render();</script>
-<script type="module" src="site-live.js"></script></body></html>
+<script type="module" src="site-live.js"></script><script defer src="assets/photo-quality-originals-v1.js?v=20261105-1"></script></body></html>
