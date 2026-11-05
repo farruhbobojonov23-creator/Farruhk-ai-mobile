@@ -48,8 +48,8 @@ a{color:var(--accent);font-weight:700}.fine{font-size:13px;color:var(--muted)}.h
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const $=id=>document.getElementById(id);
-const owner=new URLSearchParams(location.search).get('next')==='owner';
-const destination=owner?'owner-library.html':'cabinet.html';
+const next=new URLSearchParams(location.search).get('next');
+const destination=next==='admin'?'admin/':next==='owner'?'owner-library.html':'cabinet.html';
 $('back').href=destination;$('alreadyGo').href=destination;
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const status=(txt,err=false)=>{const e=$('status');e.textContent=txt;e.classList.toggle('bad',err)};
