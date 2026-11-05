@@ -63,4 +63,27 @@ async function applySiteConfig(){
  }
  window.dispatchEvent(new Event('fk:photos-changed'));
 }
+// Public previews of the 34 previously released PF product photographs.
+// This loader is restricted by a Storage RLS policy to these 34 WebP images;
+// recipes and paid PDFs are never available to an anonymous visitor.
+const PREP_PHOTO_URLS=new Map();
+window.FK_PUBLIC_PREP_PHOTO_LOADER=function(code){
+ if(!/^ТТК-ПФ-0(0[1-9]|[12][0-9]|3[0-4])$/.test(code))return Promise.resolve(null);
+ if(PREP_PHOTO_URLS.has(code))return PREP_PHOTO_URLS.get(code);
+ const ascii='TTK-PF-'+code.slice(-3);
+ const path='release/2026-11-03/photos/'+ascii+'_photo.webp';
+ const promise=sb.storage.from('fk-paid-ttk').download(path).then(({data,error})=>{
+  if(error||!data||!data.type.startsWith('image/'))return null;
+  return URL.createObjectURL(data);
+ }).catch(()=>null);
+ PREP_PHOTO_URLS.set(code,promise);
+ return promise;
+};
+window.dispatchEvent(new Event('fk:prep-photo-loader-ready'));
+window.addEventListener('pagehide',async()=>{
+ for(const value of PREP_PHOTO_URLS.values()){
+  const url=await value.catch(()=>null);
+  if(url)URL.revokeObjectURL(url);
+ }
+});
 applySiteConfig().catch(()=>console.warn('CHEF AKA: public site config offline, existing design preserved'));
