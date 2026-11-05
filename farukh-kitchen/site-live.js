@@ -13,7 +13,7 @@ async function applySiteConfig(){
  const prices={start:Number(s.price_start)||49900,pro:Number(s.price_pro)||79900,premium:Number(s.price_premium)||199900};
  window.FK_SITE_PRICES=prices;
  const hero=document.querySelector('.fk-hero-copy h1');
- if(hero&&s.hero_title)hero.textContent=s.hero_title;
+ if(hero&&s.hero_title&&s.hero_title!=='Японская кухня. Технология в деталях.')hero.textContent=s.hero_title;
  const subtitle=document.querySelector('.fk-hero-copy .fk-hero-sub');
  if(subtitle&&s.hero_subtitle)subtitle.textContent=s.hero_subtitle;
  const amountMap=new Map([['49 900',prices.start],['79 900',prices.pro],['199 900',prices.premium],['99 950',prices.premium/2]]);
