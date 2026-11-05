@@ -466,6 +466,34 @@
   .fk-catalog-grid .fk-item-content h3{min-height:3em;line-height:1.23}
 }
 
+
+/* 2026-11-05 · Desktop only: scale down product pictures ~12–15%.
+   No changes to layout, fonts, cards, colors, or mobile appearance. */
+@media (min-width:921px){
+  .fk-catalog-grid .fk-item-photo img.fk-product-photo{
+    width:84%;
+    height:82%;
+    max-width:100%;
+    max-height:100%;
+    transform:none;
+  }
+  .fk-showcase-stage .fk-spot img{
+    width:90%;
+    height:61%;
+    transform:translateX(-50%) scale(1);
+  }
+  .fk-showcase-stage .fk-spot.center img{
+    animation:fk-desktop-small-float 4.4s ease-in-out infinite;
+  }
+}
+@keyframes fk-desktop-small-float{
+  0%,100%{transform:translateX(-50%) translateY(2px) scale(1)}
+  50%{transform:translateX(-50%) translateY(-5px) scale(1)}
+}
+@media (min-width:921px) and (prefers-reduced-motion:reduce){
+  .fk-showcase-stage .fk-spot.center img{animation:none!important}
+}
+
 </style></head><body class="fk-site">
 <header class="fk-nav"><div class="fk-shell fk-nav-in"><a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
 <button type="button" class="fk-menu" id="fkMenu" aria-controls="fkMenuLinks" aria-expanded="false" aria-label="Открыть меню">☰</button>
