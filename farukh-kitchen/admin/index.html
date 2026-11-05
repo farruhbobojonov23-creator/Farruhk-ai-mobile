@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071e28"><meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Закрытая панель владельца CHEF AKA"><title>Владелец · CHEF AKA</title>
+<link rel="stylesheet" href="./admin.css"></head>
+<body><header class="top"><div class="topwrap">
+<a class="brand" href="../index.html"><span class="brandmark">A</span> CHEF <em>AKA</em><small>OWNER PANEL</small></a>
+<div class="topright"><span class="badge">🔒 Закрытый доступ</span><span id="ownerIdentity" class="identity"></span><button id="logout" class="btn ghost hidden" type="button">Выйти</button></div>
+</div></header>
+<main class="shell">
+<section id="loginBox" class="login-card"><div class="kicker">ПАНЕЛЬ ВЛАДЕЛЬЦА · CHEF AKA</div><h1>Всё управление<br><span>в одном месте.</span></h1>
+<p class="muted">Войди с помощью почты и пароля владельца Supabase. Покупатели не могут открыть эту панель.</p>
+<form id="loginForm"><label>Почта владельца<input id="email" type="email" autocomplete="username" required placeholder="you@example.com"></label>
+<label>Пароль<input id="password" type="password" autocomplete="current-password" required placeholder="Ваш пароль Supabase"></label>
+<button class="btn primary" type="submit" id="loginBtn">Войти в управление →</button></form>
+<details class="minor"><summary>Нет пароля Supabase? Вход по ссылке на почту</summary>
+<div class="inline"><button id="otpBtn" type="button" class="btn ghost">Отправить ссылку</button></div>
+<p class="tiny">Ссылка отправляется только на существующую учётную запись. Если перенаправление письма не настроено, используйте страницу <a href="../enter-from-email.html?next=owner">входа по скопированной ссылке</a>.</p>
+</details><p class="muted tiny">Если у тебя есть только логин и пароль старого отдельного центра, они не являются паролем Supabase. Для нового кабинета сначала войди в Supabase и установи пароль.</p>
+</section>
+<section id="denyBox" class="card hidden"><div class="kicker danger">ДОСТУП ОГРАНИЧЕН</div><h2>Эта учётная запись не является владельцем</h2><p class="muted">Для доступа нужен аккаунт, добавленный в закрытый список владельцев. Операции защищены политиками базы данных.</p><button class="btn ghost" id="denyLogout">Сменить аккаунт</button></section>
+<div id="app" class="layout hidden">
+<nav id="side" class="side" aria-label="Разделы владельца">
+<div class="sidehead">УПРАВЛЕНИЕ</div>
+<button data-panel="overview" class="nav active">◈ Обзор</button>
+<button data-panel="recipes" class="nav">▤ Технологические карты</button>
+<button data-panel="photos" class="nav">▧ Фотографии</button>
+<button data-panel="pricing" class="nav">₽ Тарифы и цены</button>
+<button data-panel="content" class="nav">✎ Главная страница</button>
+<button data-panel="requests" class="nav">✉ Заявки покупателей <span id="requestsBadge"></span></button>
+<button data-panel="access" class="nav">⚿ Доступы и PDF</button>
+<button data-panel="settings" class="nav">⚙ Настройки аккаунта</button>
+<div class="sideend"><a href="../index.html" target="_blank" rel="noopener noreferrer">↗ Посмотреть сайт</a><a href="../owner-library.html">↗ Расширенная библиотека</a></div>
+</nav>
+<div class="work">
+<section data-view="overview" class="view"><div class="kicker">CHEF AKA · БИЗНЕС-ПАНЕЛЬ</div><h1>Панель владельца</h1><p class="muted">Один защищённый вход для управления данными, тарифами, фотографиями и заявками.</p>
+<div class="stats"><div class="stat"><strong id="metricRecipes">—</strong><span>Технологических карт</span></div><div class="stat"><strong id="metricPreps">—</strong><span>Полуфабрикатов</span></div><div class="stat"><strong id="metricRequests">—</strong><span>Заявок</span></div><div class="stat"><strong id="metricReview">—</strong><span>Требуют проработки</span></div></div>
+<div class="card feature"><h2>Управляй без программирования</h2><p>Меняй названия и параметры ТТК, цены, фотографии в каталоге, заголовок главной страницы и статусы обращений. Изменения сайта отображаются после обновления страницы.</p>
+<div class="actions"><button class="btn primary" data-go="recipes">Редактировать ТТК</button><button class="btn ghost" data-go="pricing">Изменить тарифы</button><button class="btn ghost" data-go="photos">Заменить фото</button></div></div>
+<div class="notice">⚠ Документарная проверка рецептур — не производственная валидация. Не переводите ТТК в статус «готово» без контрольной проработки, проверки аллергенов и сроков.</div>
+</section>
+<section data-view="recipes" class="view hidden"><div class="kicker">ТЕХНОЛОГИЧЕСКАЯ БАЗА</div><h1>Редактор ТТК</h1><p class="muted">Редактирование электронной базы. Опубликованные PDF автоматически не изменяются — после правок нужно отдельно обновить выпуск PDF.</p>
+<div class="card"><div class="row"><label class="grow">Поиск ТТК<input id="recipeSearch" type="search" placeholder="Филадельфия, спайси, ПФ…"></label><label class="grow">Выберите карту<select id="recipeSelect"><option>Загружаю…</option></select></label></div>
+<form id="recipeForm" class="hidden"><div class="grid2"><label>Название<input id="recipeTitle" required maxlength="130"></label><label>Категория<input id="recipeCategory" required maxlength="100"></label>
+<label>Выход, граммы<input id="recipeYield" type="number" min="0" max="200000" step="0.001" placeholder="Без подтверждения оставить пустым"></label><label>Срок хранения, минуты<input id="recipeLife" type="number" min="1" max="525600" step="1" placeholder="Не утверждён"></label>
+</div><label>Условия хранения<textarea id="recipeStorage" maxlength="1300" rows="3"></textarea></label>
+<label>Технологические примечания<textarea id="recipeNotes" maxlength="3000" rows="3"></textarea></label>
+<p class="tiny">Статус производственного подтверждения меняется только после фактической проверки. Здесь он намеренно не меняется.</p>
+<div class="actions"><button type="submit" class="btn primary" id="saveRecipe">Сохранить основные поля</button></div></form></div>
+<div id="linesBox" class="card hidden"><h2>Рецептура · брутто / нетто</h2><p class="muted tiny">Сохраняйте значения только по проверенным исходным данным. Для нори и объёмных продуктов оставляйте единицы измерения в текстовых полях.</p><div id="ingredientsList"></div></div>
+<div id="stepsBox" class="card hidden"><h2>Технология приготовления</h2><div id="stepsList"></div></div>
+</section>
+<section data-view="photos" class="view hidden"><div class="kicker">ИЗОБРАЖЕНИЯ ПРОДУКЦИИ</div><h1>Фотографии</h1><p class="muted">Заменяй изображения в открытом каталоге. Поддерживаются PNG, JPG и WebP до 5 МБ. Фотографии будут доступны всем посетителям сайта.</p>
+<div class="card"><form id="photoForm"><label>ТТК / продукт<select id="photoRecipe"></select></label><label>Файл изображения<input id="photoFile" type="file" accept="image/webp,image/png,image/jpeg" required></label><div class="actions"><button class="btn primary" id="uploadPhoto" type="submit">Опубликовать фотографию →</button></div></form>
+<div id="photoPreview" class="photo-preview"></div></div></section>
+<section data-view="pricing" class="view hidden"><div class="kicker">КОММЕРЧЕСКИЕ ПРОГРАММЫ</div><h1>Цены тарифов</h1><p class="muted">Новые цены будут показаны на главной странице, на странице заявки и в программе PREMIUM.</p>
+<form class="card" id="pricingForm"><div class="grid3"><label>SHEF START, ₽<input id="priceStart" type="number" min="0" max="10000000" required step="100"></label><label>SHEF PRO, ₽<input id="pricePro" type="number" min="0" max="10000000" required step="100"></label><label>SHEF PREMIUM, ₽<input id="pricePremium" type="number" min="0" max="10000000" required step="100"></label></div>
+<div class="actions"><button type="submit" class="btn primary" id="savePrices">Сохранить новые цены</button></div><p class="tiny">Изменение цены не меняет действующие индивидуальные договоры с покупателями.</p></form></section>
+<section data-view="content" class="view hidden"><div class="kicker">ОФОРМЛЕНИЕ И МАРКЕТИНГ</div><h1>Главная страница</h1><p class="muted">Меняй главный заголовок и текст первого экрана, не редактируя код сайта.</p>
+<form id="contentForm" class="card"><label>Крупный заголовок<input id="heroTitle" maxlength="160" required></label><label>Краткое описание<textarea id="heroSubtitle" maxlength="500" rows="5" required></textarea></label>
+<div class="actions"><button class="btn primary" type="submit" id="saveContent">Опубликовать изменения</button><a class="btn ghost" href="../index.html" target="_blank" rel="noopener noreferrer">Просмотр ↗</a></div></form></section>
+<section data-view="requests" class="view hidden"><div class="kicker">НОВЫЕ ПОКУПАТЕЛИ</div><h1>Заявки</h1><p class="muted">Контакты покупателей видны только владельцу. После подтверждения оплаты выдавайте доступ через защищённую библиотеку.</p>
+<div class="actions"><button class="btn ghost" id="reloadRequests">Обновить заявки</button><a class="btn primary" href="../owner-library.html#fkRequestsBox">Выдать логин после оплаты ↗</a></div><div id="requestsList"></div></section>
+<section data-view="access" class="view hidden"><div class="kicker">ЗАЩИЩЁННЫЕ МАТЕРИАЛЫ</div><h1>Доступы и PDF</h1><div class="card"><h2>Продажи и выдача материалов</h2><p>Выдавайте новые логины только после проверки оплаты, отзывайте доступы, заменяйте PDF и проверяйте контрольные суммы в существующей защищённой библиотеке. Она использует <strong>ту же сессию Supabase</strong> — повторный вход на этом сайте не нужен.</p><a class="btn primary" href="../owner-library.html">Открыть управление доступами и PDF →</a></div>
+<div class="card"><h2>Старый управляющий центр</h2><p class="muted">Отдельный ранее созданный центр пока работает со своей авторизацией. Он сохранён для совместимости, но не входит в единый вход.</p><a class="btn ghost" href="https://farukh-kitchen-owner.onrender.com" target="_blank" rel="noopener noreferrer">Открыть прежний центр ↗</a></div></section>
+<section data-view="settings" class="view hidden"><div class="kicker">БЕЗОПАСНОСТЬ</div><h1>Аккаунт владельца</h1><div class="card"><h2>Изменить пароль Supabase</h2><p class="muted tiny">Этот пароль используется в новой панели и в библиотеке ТТК.</p><form id="passwordForm"><label>Новый пароль (12–72 символа)<input id="newPassword" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></label><label>Повтор пароля<input id="newPasswordRepeat" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></label><button class="btn primary" type="submit">Сохранить пароль</button></form></div><div class="notice">Для максимальной защиты используй уникальный длинный пароль и не отправляй его в Telegram или общий чат.</div></section>
+</div></div>
+<p id="toast" role="status" aria-live="polite" class="toast hidden"></p>
+</main><script type="module" src="./admin.js"></script></body></html>
