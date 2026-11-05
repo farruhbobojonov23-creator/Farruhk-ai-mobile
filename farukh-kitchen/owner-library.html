@@ -392,7 +392,7 @@ const requestStatus=(txt,bad=false)=>{
 };
 function credentialReveal(login,password,packageCode){
  const node=$('fkCredentials');
- node.value='FARUKH KITCHEN — вход в личный кабинет\n\nСайт: https://farukh-kitchen-v02.onrender.com/cabinet.html\nЛогин: '+login+'\nПароль: '+password+'\nПакет: SHEF '+packageCode.toUpperCase()+'\n\nНе передавайте пароль другим. Доступ к файлам будет включён после официального выпуска.';
+ node.value='FARUKH KITCHEN — вход в личный кабинет\n\nСайт: https://chefaka.onrender.com/cabinet.html\nЛогин: '+login+'\nПароль: '+password+'\nПакет: SHEF '+packageCode.toUpperCase()+'\n\nНе передавайте пароль другим. Доступ к файлам будет включён после официального выпуска.';
  $('fkCredentialsWrap').classList.remove('hidden');
  $('fkCredentialsWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
