@@ -288,35 +288,133 @@ async function createSingleTTKBlob(row){
  return new Blob([bytes],{type:'application/pdf'});
 }
 function singleTTKFileName(row){return row.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf'}
-async function openSingleTTK(row,btn){
- // Create the tab synchronously on tap, before asynchronous PDF extraction,
- // to avoid mobile pop-up blocking. Never show the full 44/59-page source.
- const tab=window.open('about:blank','_blank');
- if(tab){
-  try{
-   tab.document.title='FARUKH KITCHEN · '+row.id;
-   tab.document.body.style.cssText='font:16px system-ui;background:#eef4f7;color:#1b3c4b;padding:25px';
-   tab.document.body.textContent='Открываю отдельную ТТК '+row.n+' (1 страница)…';
-  }catch{}
+let v8PdfLoader=null,v8CurrentPDF=null,v8CurrentRow=null,v8ZoomLevel=1,v8Token=0;
+function loadPdfViewer(){
+ if(!v8PdfLoader){
+  v8PdfLoader=import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs')
+   .then(pdf=>{
+    pdf.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+    return pdf;
+   }).catch(e=>{v8PdfLoader=null;throw e});
  }
- btn.disabled=true;msg('Открываю одну ТТК: '+row.n+'…');
+ return v8PdfLoader;
+}
+function v8ViewerState(loading,message=''){
+ show('fkV8Progress',loading);$('fkV8Progress').textContent=message||'Подготавливаем документ…';
+ show('fkV8Viewport',!loading&&!message);
+ show('fkV8Error',false);
+}
+function v8ViewerError(message){
+ show('fkV8Progress',false);show('fkV8Viewport',false);
+ const target=$('fkV8Error');target.textContent=message;show('fkV8Error',true);
+}
+async function v8RenderPage(token){
+ if(token!==v8Token||!v8CurrentPDF||!$('fkV8Sheet').open)return;
+ v8ViewerState(true,'Отображаю страницу технологической карты…');
  try{
-  const single=await createSingleTTKBlob(row);
-  const url=URL.createObjectURL(single);
-  if(tab&&!tab.closed){
-   tab.location.replace(url+'#page=1');
-  }else{
-   // Some mobile browsers do not open PDF tabs. Download only this one page.
-   const a=document.createElement('a');a.href=url;a.download=singleTTKFileName(row);
-   document.body.append(a);a.click();a.remove();
-   msg('Ваш браузер скачал одну ТТК (1 страница).');
-  }
-  setTimeout(()=>URL.revokeObjectURL(url),600000);
-  if(tab)msg('Открыта только выбранная ТТК: '+row.n+'.');
+  const page=await v8CurrentPDF.getPage(1);
+  if(token!==v8Token)return;
+  const base=page.getViewport({scale:1});
+  const area=$('fkV8SheetBody');
+  const room=Math.max(240,(area.clientWidth||window.innerWidth)-35);
+  const scale=Math.min(1.4,room/base.width)*v8ZoomLevel;
+  const viewport=page.getViewport({scale});
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const canvas=$('fkV8Canvas');
+  canvas.width=Math.floor(viewport.width*dpr);
+  canvas.height=Math.floor(viewport.height*dpr);
+  canvas.style.width=Math.round(viewport.width)+'px';
+  canvas.style.height=Math.round(viewport.height)+'px';
+  const render=page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport,transform:[dpr,0,0,dpr,0,0]});
+  await render.promise;
+  if(token!==v8Token)return;
+  show('fkV8Progress',false);show('fkV8Viewport',true);show('fkV8Error',false);
+  $('fkV8Viewport').scrollLeft=0;
  }catch(e){
-  if(tab&&!tab.closed)tab.close();
-  msg('Не удалось открыть отдельную ТТК. Проверьте интернет и повторите. '+(e?.message||''),true);
+  if(token===v8Token)v8ViewerError('Не удалось показать PDF на устройстве. Нажмите «PDF», чтобы скачать выбранную ТТК. '+(e?.message||''));
+ }
+}
+async function openSingleTTK(row,btn){
+ if(!assetFor(row)){msg('Нет доступа к этой технологической карте.',true);return}
+ const modal=$('fkV8Sheet'),token=++v8Token;
+ v8CurrentRow=row;v8CurrentPDF=null;v8ZoomLevel=1;
+ $('fkV8SheetCode').textContent='ТЕХНОЛОГИЧЕСКАЯ КАРТА · '+row.id;
+ $('fkV8SheetTitle').textContent=row.n;
+ $('fkV8Zoom').textContent='＋';
+ $('fkV8SheetPhoto').disabled=!(CHEF_ITEM_PHOTOS[row.id]||PF_DISPLAY_PHOTOS[row.id]||(row.t==='prep'&&editionAsset('pf_photo_'+row.id.slice(-3))));
+ v8ViewerState(true,'Загружаю закрытую ТТК: '+row.n+'…');
+ try{if(!modal.open)modal.showModal()}catch(e){msg('Не удалось открыть просмотр. '+e.message,true);return}
+ btn.disabled=true;
+ try{
+  // Make a one-page copy, never reveal the original 44/59-page PDF to the browser's viewer.
+  const [single,pdf]=await Promise.all([createSingleTTKBlob(row),loadPdfViewer()]);
+  if(token!==v8Token||!modal.open)return;
+  const doc=await pdf.getDocument({data:new Uint8Array(await single.arrayBuffer()),useSystemFonts:true}).promise;
+  if(token!==v8Token||!modal.open){await doc.destroy();return}
+  v8CurrentPDF=doc;await v8RenderPage(token);
+ }catch(e){
+  if(token===v8Token)v8ViewerError('Не удалось показать ТТК. PDF можно скачать отдельной кнопкой. '+(e?.message||''));
  }finally{btn.disabled=false}
+}
+$('fkV8Close').addEventListener('click',()=>$('fkV8Sheet').close());
+$('fkV8Sheet').addEventListener('close',()=>{
+ ++v8Token;
+ const old=v8CurrentPDF;v8CurrentPDF=null;v8CurrentRow=null;
+ if(old)old.destroy().catch(()=>{});
+ $('fkV8Canvas').width=0;$('fkV8Canvas').height=0;
+});
+$('fkV8Zoom').addEventListener('click',()=>{
+ if(!v8CurrentPDF)return;
+ v8ZoomLevel=v8ZoomLevel===1?1.7:1;
+ $('fkV8Zoom').textContent=v8ZoomLevel>1?'−':'＋';
+ v8RenderPage(v8Token);
+});
+$('fkV8SheetPDF').addEventListener('click',()=>{
+ if(v8CurrentRow)downloadSingleTTK(v8CurrentRow,$('fkV8SheetPDF'));
+});
+$('fkV8SheetPhoto').addEventListener('click',()=>{
+ const r=v8CurrentRow;if(!r)return;
+ const src=CHEF_ITEM_PHOTOS[r.id]||PF_DISPLAY_PHOTOS[r.id]||null;
+ const privatePhoto=r.t==='prep'?editionAsset('pf_photo_'+r.id.slice(-3)):null;
+ downloadPhotoPNG(r,$('fkV8SheetPhoto'),src,privatePhoto);
+});
+async function downloadPhotoPNG(row,btn,src,privateAsset){
+ if(!activePlan){msg('Для скачивания фото требуется активный доступ.',true);return}
+ btn.disabled=true;msg('Подготавливаю прозрачное PNG для '+row.n+'…');
+ try{
+  let blob;
+  if(src){
+   const response=await fetch(src,{mode:'cors',credentials:'omit'});
+   if(!response.ok)throw Error('Фотография недоступна.');
+   blob=await response.blob();
+  }else if(privateAsset){blob=await fileBlob(privateAsset)}
+  else throw Error('Для этой позиции пока не загружена фотография.');
+  if(!blob.type.startsWith('image/'))throw Error('Файл не является изображением.');
+  let bitmap;
+  try{bitmap=await createImageBitmap(blob)}
+  catch{throw Error('Телефон не смог прочитать исходное фото.')}
+  const long=Math.max(bitmap.width,bitmap.height),scale=Math.min(1,4096/long);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  bitmap.close?.();
+  // Never claim that an opaque square has a transparent background.
+  const probe=document.createElement('canvas');probe.width=48;probe.height=48;
+  const scan=probe.getContext('2d',{willReadFrequently:true});scan.drawImage(canvas,0,0,48,48);
+  const rgba=scan.getImageData(0,0,48,48).data;
+  let hasTransparency=false;
+  for(let i=3;i<rgba.length;i+=4)if(rgba[i]<245){hasTransparency=true;break}
+  if(!hasTransparency)throw Error('У исходного фото нет прозрачного фона. Загрузите PNG/WebP без фона через кабинет владельца — удалять фон автоматически при скачивании было бы неверно.');
+  const png=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Не удалось преобразовать фото в PNG.')),'image/png'));
+  const url=URL.createObjectURL(png),a=document.createElement('a');
+  a.href=url;a.download=row.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'_CHEF_AKA.png';
+  document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  msg('Прозрачное фото PNG передано на скачивание: '+row.n+'.');
+ }catch(e){msg('Не удалось скачать фото: '+(e?.message||'ошибка'),true)}
+ finally{btn.disabled=false}
 }
 async function downloadSingleTTK(row,btn){
  btn.disabled=true;msg('Готовлю один лист PDF: '+row.n+'…');
