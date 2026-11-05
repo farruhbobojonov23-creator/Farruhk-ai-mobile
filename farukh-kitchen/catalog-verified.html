@@ -566,7 +566,7 @@ function matching(){const q=search.value.trim().toLocaleLowerCase('ru');
  return available().filter(x=>(selectedCat==='all'||x.c===selectedCat)&&matchesGroup(x)&&(!q||(x.n+' '+x.id+' '+x.c).toLocaleLowerCase('ru').includes(q))).sort(sortByID)}
 function card(r){
  const el=document.createElement('article');el.className='fk-item';
- const isPrep=r.t==='prep';const photoSrc=isPrep?'':PRODUCT_PHOTOS[r.id];
+ const isPrep=r.t==='prep';const photoSrc=PRODUCT_PHOTOS[r.id]||'';
  const pic=document.createElement('div');pic.className='fk-item-photo'+(isPrep?' is-prep':'');
  if(photoSrc){
   const image=document.createElement('img');image.className='fk-product-photo';image.src=photoSrc;
@@ -694,5 +694,5 @@ grid.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if
 $('dialogClose').addEventListener('click',()=>$('itemDialog').close());
 $('itemDialog').addEventListener('click',e=>{if(e.target===$('itemDialog'))$('itemDialog').close()});
 $('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),n=$('fkMenuLinks');let on=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(on));n.classList.toggle('is-open',on);b.textContent=on?'✕':'☰'});
-categories();render();</script>
-</body></html>
+window.addEventListener('fk:photos-changed',()=>render());categories();render();</script>
+<script type="module" src="site-live.js"></script></body></html>
