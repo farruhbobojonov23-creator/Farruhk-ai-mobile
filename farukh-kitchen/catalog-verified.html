@@ -573,7 +573,34 @@ function card(r){
   image.loading='lazy';image.decoding='async';image.alt='Фото блюда: '+r.n;
   image.onerror=()=>photoPlaceholder(pic,r);pic.append(image);
   const badge=document.createElement('span');badge.className='fk-photo-caption';badge.textContent='Фото Chef Aka';pic.append(badge);
- }else photoPlaceholder(pic,r);
+ }else{
+  photoPlaceholder(pic,r);
+  if(isPrep){
+   // Load only the individually released PF preview as the image comes into view.
+   const attach=()=>{
+    const loader=window.FK_PUBLIC_PREP_PHOTO_LOADER;
+    if(!loader||!pic.isConnected)return;
+    const load=async()=>{
+     if(pic.dataset.fkPreviewLoaded)return;
+     pic.dataset.fkPreviewLoaded='pending';
+     const url=await loader(r.id);
+     if(!pic.isConnected||!url){delete pic.dataset.fkPreviewLoaded;return}
+     const image=document.createElement('img');image.className='fk-product-photo';
+     image.loading='lazy';image.decoding='async';image.src=url;image.alt='Фото полуфабриката: '+r.n;
+     image.onerror=()=>photoPlaceholder(pic,r);
+     const badge=document.createElement('span');badge.className='fk-photo-caption';badge.textContent='Фото Chef Aka';
+     pic.replaceChildren(image,badge);pic.dataset.fkPreviewLoaded='yes';
+    };
+    if('IntersectionObserver' in window){
+     const watcher=new IntersectionObserver(entries=>{
+      if(entries.some(e=>e.isIntersecting)){watcher.disconnect();load()}
+     },{rootMargin:'260px'});
+     watcher.observe(pic);
+    }else load();
+   };
+   requestAnimationFrame(attach);
+  }
+ }
  const content=document.createElement('div');content.className='fk-item-content';
  const top=document.createElement('div');top.className='fk-item-top';
  const id=document.createElement('span');id.textContent=r.id;
@@ -694,5 +721,5 @@ grid.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if
 $('dialogClose').addEventListener('click',()=>$('itemDialog').close());
 $('itemDialog').addEventListener('click',e=>{if(e.target===$('itemDialog'))$('itemDialog').close()});
 $('fkMenu').addEventListener('click',()=>{const b=$('fkMenu'),n=$('fkMenuLinks');let on=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(on));n.classList.toggle('is-open',on);b.textContent=on?'✕':'☰'});
-window.addEventListener('fk:photos-changed',()=>{PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};render()});categories();render();</script>
+window.addEventListener('fk:photos-changed',()=>{PRODUCT_PHOTOS=window.FK_APPROVED_PRODUCT_PHOTOS||{};render()});window.addEventListener('fk:prep-photo-loader-ready',()=>render());categories();render();</script>
 <script type="module" src="site-live.js"></script></body></html>
