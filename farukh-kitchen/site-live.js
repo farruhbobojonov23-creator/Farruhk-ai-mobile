@@ -10,7 +10,8 @@ async function applySiteConfig(){
  if(e1)console.warn('CHEF AKA: настройки сайта пока недоступны');
  if(e2)console.warn('CHEF AKA: фотографии сайта пока недоступны');
  const s=Object.fromEntries((rows||[]).map(x=>[x.key,x.value]));
- const prices={start:Number(s.price_start)||49900,pro:Number(s.price_pro)||79900,premium:Number(s.price_premium)||199900};
+ const readPrice=(key,fallback)=>s[key]!=null&&s[key]!==''&&Number.isFinite(Number(s[key]))?Number(s[key]):fallback;
+ const prices={start:readPrice('price_start',49900),pro:readPrice('price_pro',79900),premium:readPrice('price_premium',199900)};
  window.FK_SITE_PRICES=prices;
  const hero=document.querySelector('.fk-hero-copy h1');
  if(hero&&s.hero_title&&s.hero_title!=='Японская кухня. Технология в деталях.')hero.textContent=s.hero_title;
@@ -50,6 +51,7 @@ async function applySiteConfig(){
    if(prices[option.value]!=null)option.textContent=option.textContent.replace(/\d[\d\s\u00a0\u202f]*₽/,fmt(prices[option.value])+' ₽');
   }
   choose.dispatchEvent(new Event('change',{bubbles:true}));
+  const planPrice=document.getElementById('fkPlanPrice');if(planPrice)planPrice.textContent=fmt(prices[choose.value]??prices.start)+' ₽';
  }
  const pictureMap=window.FK_APPROVED_PRODUCT_PHOTOS||(window.FK_APPROVED_PRODUCT_PHOTOS={});
  for(const x of photos||[]){
