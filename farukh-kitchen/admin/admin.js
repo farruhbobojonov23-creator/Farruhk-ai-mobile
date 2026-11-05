@@ -151,8 +151,13 @@ $('pricingForm').addEventListener('submit',async ev=>{
  const prices={price_start:Number($('priceStart').value),price_pro:Number($('pricePro').value),price_premium:Number($('pricePremium').value)};
  try{
   if(Object.values(prices).some(x=>!Number.isInteger(x)||x<0||x>10000000))throw Error('Проверь цены');
+  const [start,pro]=await Promise.all([
+   sb.from('fk_packages').update({price_rub:prices.price_start}).eq('title','SHEF START'),
+   sb.from('fk_packages').update({price_rub:prices.price_pro}).eq('title','SHEF PRO')
+  ]);
+  if(start.error||pro.error)throw start.error||pro.error;
   await saveSettings(prices);
-  toast('Цены сохранены для публичных страниц. Проверь отображение на сайте перед новой продажей.');
+  toast('Цены обновлены на сайте и в пакетах START/PRO. Проверь публичные страницы перед продажей.');
  }catch(e){err(e,'Не удалось сохранить тарифы')}finally{btn.disabled=false}
 });
 async function loadPhotoPreview(){
