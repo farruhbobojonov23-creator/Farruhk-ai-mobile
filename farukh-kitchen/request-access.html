@@ -97,7 +97,7 @@ const params=new URLSearchParams(location.search);
 if(['start','pro','premium'].includes(params.get('plan')))$('plan').value=params.get('plan');
 function updatePlanPrice(){
  const code=$('plan').value;
- const p=window.FK_SITE_PRICES||{start:49900,pro:79900,premium:199900};$('fkPlanPrice').textContent=new Intl.NumberFormat('ru-RU').format(p[code]||p.start)+' ₽';
+ const p=window.FK_SITE_PRICES||{start:49900,pro:79900,premium:199900};$('fkPlanPrice').textContent=new Intl.NumberFormat('ru-RU').format(p[code]??p.start)+' ₽';
  $('fkPremiumSummary').classList.toggle('hide',code!=='premium');
 }
 $('plan').addEventListener('change',updatePlanPrice);
