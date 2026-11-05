@@ -53,7 +53,8 @@ async function applySiteConfig(){
   choose.dispatchEvent(new Event('change',{bubbles:true}));
   const planPrice=document.getElementById('fkPlanPrice');if(planPrice)planPrice.textContent=fmt(prices[choose.value]??prices.start)+' ₽';
  }
- const pictureMap=window.FK_APPROVED_PRODUCT_PHOTOS||(window.FK_APPROVED_PRODUCT_PHOTOS={});
+ const pictureMap={...(window.FK_APPROVED_PRODUCT_PHOTOS||{})};
+ window.FK_APPROVED_PRODUCT_PHOTOS=pictureMap;
  for(const x of photos||[]){
   if(!/^(FK-A4|TTK-PF)-\d{3}$/.test(x.recipe_code)&&!/^(ТТК-ПФ)-\d{3}$/.test(x.recipe_code))continue;
   if(!x.object_path.startsWith('products/'))continue;
