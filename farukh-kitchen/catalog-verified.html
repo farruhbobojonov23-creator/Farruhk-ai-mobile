@@ -467,32 +467,17 @@
 }
 
 
-/* 2026-11-05 · Desktop only: scale down product pictures ~12–15%.
-   No changes to layout, fonts, cards, colors, or mobile appearance. */
+/* Desktop only: reduce images in the expanded ALL PRODUCTS grid.
+   The rotating showcase ABOVE the button "Показать все товары" is unchanged. */
 @media (min-width:921px){
   .fk-catalog-grid .fk-item-photo img.fk-product-photo{
-    width:84%;
-    height:82%;
+    width:76%;
+    height:76%;
     max-width:100%;
     max-height:100%;
+    object-fit:contain;
     transform:none;
   }
-  .fk-showcase-stage .fk-spot img{
-    width:75%;
-    height:55%;
-    top:43px;
-    transform:translateX(-50%) scale(.96);
-  }
-  .fk-showcase-stage .fk-spot.center img{
-    animation:fk-desktop-small-float 4.4s ease-in-out infinite;
-  }
-}
-@keyframes fk-desktop-small-float{
-  0%,100%{transform:translateX(-50%) translateY(2px) scale(.96)}
-  50%{transform:translateX(-50%) translateY(-5px) scale(.96)}
-}
-@media (min-width:921px) and (prefers-reduced-motion:reduce){
-  .fk-showcase-stage .fk-spot.center img{animation:none!important}
 }
 
 </style></head><body class="fk-site">
