@@ -65,6 +65,9 @@ window.FK_APPROVED_PRODUCT_PHOTOS=Object.freeze({
   "FK-A4-056": "assets/user-photos/snack-cheese-sticks-43700.webp",
   "FK-A4-057": "assets/user-photos/snack-shrimp-tempura-43702.webp",
   "FK-A4-058": "assets/user-photos/snack-mussels-cheese-43697.webp",
-  "FK-A4-059": "assets/user-photos/snack-mussels-spicy-43696.webp"
+  "FK-A4-059": "assets/user-photos/snack-mussels-spicy-43696.webp",
+  "ТТК-ПФ-013": "assets/photos/trout_slices_category_v4.webp",
+  "ТТК-ПФ-014": "assets/photos/trout_pf014_light_v4.webp",
+  "ТТК-ПФ-015": "assets/photos/trout_pf015_dark_v4.webp"
 });
 window.FK_CATEGORY_GUNKAN_PHOTO='assets/photos/gunkan_pair_20261104.webp';
