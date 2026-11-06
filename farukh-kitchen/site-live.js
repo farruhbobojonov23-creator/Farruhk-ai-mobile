@@ -13,6 +13,9 @@ async function applySiteConfig(){
  const readPrice=(key,fallback)=>s[key]!=null&&s[key]!==''&&Number.isFinite(Number(s[key]))?Number(s[key]):fallback;
  const prices={start:readPrice('price_start',49900),pro:readPrice('price_pro',79900),premium:readPrice('price_premium',199900)};
  window.FK_SITE_PRICES=prices;
+ for(const node of document.querySelectorAll('[data-premium]')){
+  const value=s['premium_'+node.dataset.premium];if(value)node.textContent=value;
+ }
  const hero=document.querySelector('.fk-hero-copy h1');
  if(hero&&s.hero_title&&s.hero_title!=='Японская кухня. Технология в деталях.')hero.textContent=s.hero_title;
  const subtitle=document.querySelector('.fk-hero-copy .fk-hero-sub');

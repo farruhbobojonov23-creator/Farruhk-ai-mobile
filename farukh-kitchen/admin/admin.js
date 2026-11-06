@@ -10,10 +10,10 @@ let toastTimer;
 function toast(message,bad=false){const el=$('toast');el.textContent=message;el.classList.toggle('error',bad);el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),7000)}
 function err(e,defaultMsg){toast((defaultMsg?defaultMsg+': ':'')+(e?.message||String(e||'неизвестная ошибка')),true)}
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function changeView(name){document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));document.querySelectorAll('[data-panel]').forEach(e=>e.classList.toggle('active',e.dataset.panel===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='requests')loadRequests();if(name==='buyers')loadBuyers();}
+function changeView(name){document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));document.querySelectorAll('[data-panel]').forEach(e=>e.classList.toggle('active',e.dataset.panel===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='requests')loadRequests();if(name==='documents')loadRecipes();if(name!=='requests')clearCredentials();if(name==='buyers')loadBuyers();}
 document.querySelectorAll('[data-panel]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.panel)));
 document.querySelectorAll('[data-go]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.go)));
-async function signout(){await sb.auth.signOut();currentUser=null;show('app',false);show('denyBox',false);show('loginBox',true);$('ownerIdentity').textContent='';show('logout',false);}
+async function signout(){clearCredentials();await sb.auth.signOut();currentUser=null;show('app',false);show('denyBox',false);show('loginBox',true);$('ownerIdentity').textContent='';show('logout',false);}
 $('logout').addEventListener('click',signout);$('denyLogout').addEventListener('click',signout);
 async function boot(){
  const {data:{user},error}=await sb.auth.getUser();
@@ -23,8 +23,9 @@ async function boot(){
  currentUser=user;
  $('ownerIdentity').textContent=user.email||'Владелец';
  show('loginBox',false);show('denyBox',false);show('app',true);show('logout',true);
- try{await Promise.all([loadRecipes(),loadSettings(),loadRequests(),loadStats()]);}
+ try{await Promise.all([loadRecipes(),loadSettings(),loadRequests(),loadBuyers(),loadStats()]);}
  catch(e){err(e,'Не удалось загрузить данные панели')}
+ applyRoute();
 }
 $('loginForm').addEventListener('submit',async ev=>{
  ev.preventDefault();const btn=$('loginBtn');btn.disabled=true;
@@ -40,7 +41,7 @@ $('otpBtn').addEventListener('click',async()=>{
 });
 function recipeCode(r){return (plain(r.notes).match(/(?:FK-A4|ТТК-ПФ)-\d{3}/)||[])[0]||''}
 async function loadRecipes(){
- const {data,error}=await sb.from('fk_recipes').select('id,kind,title,category,status,yield_g,storage_conditions,shelf_life_minutes,notes').order('title',{ascending:true}).limit(150);
+ const {data,error}=await sb.from('fk_recipes').select('id,kind,title,category,status,yield_g,storage_conditions,shelf_life_minutes,notes,pdf_pending_since,pdf_published_at').order('title',{ascending:true}).limit(150);
  if(error)throw error;
  recipes=data||[];
  const opts=recipes.map(r=>({id:r.id,label:(recipeCode(r)||r.kind)+' · '+r.title}));
@@ -50,7 +51,7 @@ async function loadRecipes(){
  if(recipes.length){list.value=selectedRecipe&&recipes.some(r=>r.id===selectedRecipe.id)?selectedRecipe.id:recipes[0].id;await selectRecipe(list.value);await loadPhotoPreview()}
  $('metricRecipes').textContent=recipes.length;
  $('metricPreps').textContent=recipes.filter(r=>r.kind==='prep').length;
- $('metricReview').textContent=recipes.filter(r=>r.status==='review').length;
+ $('metricReview').textContent=recipes.filter(r=>r.status==='review').length;renderPending();
 }
 $('recipeSearch').addEventListener('input',()=>{
  const q=$('recipeSearch').value.toLocaleLowerCase('ru').trim();
@@ -60,7 +61,7 @@ $('recipeSearch').addEventListener('input',()=>{
 });
 $('recipeSelect').addEventListener('change',ev=>selectRecipe(ev.target.value));
 async function selectRecipe(id){
- const r=recipes.find(x=>x.id===id);selectedRecipe=r;if(!r)return;
+ const r=recipes.find(x=>x.id===id);selectedRecipe=r;if(!r)return;showPdfStatus(r);
  $('recipeTitle').value=r.title;$('recipeCategory').value=r.category;
  $('recipeYield').value=plain(r.yield_g);$('recipeLife').value=plain(r.shelf_life_minutes);
  $('recipeStorage').value=plain(r.storage_conditions);$('recipeNotes').value=plain(r.notes);
@@ -80,7 +81,7 @@ $('recipeForm').addEventListener('submit',async ev=>{
  const payload={title,category,yield_g:n($('recipeYield').value),shelf_life_minutes:n($('recipeLife').value),
   storage_conditions:$('recipeStorage').value.trim()||null,notes:$('recipeNotes').value.trim()};
  try{const {error}=await sb.from('fk_recipes').update(payload).eq('id',selectedRecipe.id);if(error)throw error;
- Object.assign(selectedRecipe,payload);
+ await refreshPdfState(selectedRecipe.id);Object.assign(selectedRecipe,payload);
  const selected=$('recipeSelect').selectedOptions[0];if(selected)selected.textContent=(recipeCode(selectedRecipe)||selectedRecipe.kind)+' · '+title;
  toast('ТТК сохранена в базе. Для обновления PDF потребуется отдельно выпустить новый файл.');}
  catch(e){err(e,'Ошибка сохранения ТТК')}finally{button.disabled=false}
@@ -103,7 +104,7 @@ function renderIngredients(items){
    btn.disabled=true;
    try{const payload={ingredient_name:a.value.trim(),gross_g:n(g.value),net_g:n(nt.value)};
     if(!payload.ingredient_name||([payload.gross_g,payload.net_g].some(v=>v!==null&&v<0)))throw Error('Проверь значения');
-    const {error}=await sb.from('fk_ingredients').update(payload).eq('id',i.id).eq('recipe_id',selectedRecipe.id);if(error)throw error;toast('Ингредиент сохранён')}
+    const {error}=await sb.from('fk_ingredients').update(payload).eq('id',i.id).eq('recipe_id',selectedRecipe.id);if(error)throw error;await refreshPdfState(selectedRecipe.id);toast('Ингредиент сохранён')}
    catch(e){err(e,'Не удалось сохранить ингредиент')}finally{btn.disabled=false}
   });
   row.append(name,gross,net,btn,units);root.append(row);
@@ -119,7 +120,7 @@ function renderSteps(items){
   const btn=document.createElement('button');btn.type='button';btn.className='btn ghost';btn.textContent='Сохранить этап';
   btn.addEventListener('click',async()=>{
    btn.disabled=true;
-   try{const {error}=await sb.from('fk_steps').update({instruction:area.value.trim()}).eq('id',x.id).eq('recipe_id',selectedRecipe.id);if(error)throw error;toast('Технологический этап обновлён')}
+   try{const {error}=await sb.from('fk_steps').update({instruction:area.value.trim()}).eq('id',x.id).eq('recipe_id',selectedRecipe.id);if(error)throw error;await refreshPdfState(selectedRecipe.id);toast('Технологический этап обновлён')}
    catch(e){err(e,'Ошибка изменения этапа')}finally{btn.disabled=false}
   });row.append(label,btn);root.append(row)
  }
@@ -133,6 +134,8 @@ async function loadSettings(){
  $('priceStart').value=settings.price_start||49900;
  $('pricePro').value=settings.price_pro||79900;
  $('pricePremium').value=settings.price_premium||199900;
+ $('premiumMaterials').value=settings.premium_materials||'59 ТТК готовых блюд, 34 ТТК полуфабрикатов и 59 инструкций по приготовлению. Цифровой доступ к приобретённой редакции после подтверждения оплаты.';
+ $('premiumServices').value=settings.premium_services||'До пяти поваров, три рабочих дня до восьми часов каждый. Практика по заранее согласованному меню и последовательности обучения.';
  const {data:photos,error:photErr}=await sb.from('fk_site_photos').select('recipe_code,object_path');if(photErr)throw photErr;
  photoMap=new Map((photos||[]).map(x=>[x.recipe_code,x.object_path]));
 }
@@ -191,9 +194,17 @@ $('photoForm').addEventListener('submit',async ev=>{
 });
 async function loadRequests(){
  if(!currentUser)return;
- const {data,error}=await sb.from('fk_access_requests').select('id,customer_name,contact_type,contact_value,package_code,service_type,business_city,business_name,business_problem,service_format,project_city,project_business,project_goal,status,owner_note,created_at').order('created_at',{ascending:false}).limit(80);
- if(error){err(error,'Заявки недоступны');return}
- requests=data||[];
+ const [rows,paid,accounts]=await Promise.all([
+  sb.from('fk_access_requests').select('id,buyer_user_id,customer_name,contact_type,contact_value,package_code,service_type,business_city,business_name,business_problem,service_format,project_city,project_business,project_goal,status,owner_note,created_at').order('created_at',{ascending:false}),
+  sb.from('fk_confirmed_sales').select('request_id'),
+  sb.from('fk_owner_customer_overview').select('user_id,request_id')
+ ]);
+ if(rows.error||paid.error||accounts.error){err(rows.error||paid.error||accounts.error,'Заявки недоступны');return}
+ const ids=new Set(paid.data.map(x=>x.request_id));
+ const linked=new Map(accounts.data.map(a=>[a.request_id,a.user_id]));
+ requests=rows.data.map(r=>({...r,buyer_user_id:r.buyer_user_id||linked.get(r.id),paid:ids.has(r.id)}));
+ $('newCount').textContent=requests.filter(r=>r.status==='new').length;
+ $('paidCount').textContent=requests.filter(pendingSale).length;
  $('metricRequests').textContent=requests.length;
  const newCount=requests.filter(x=>x.status==='new').length;
  $('requestsBadge').textContent=newCount?' · '+newCount:'';
@@ -203,8 +214,11 @@ $('reloadRequests').addEventListener('click',loadRequests);
 function renderRequests(){
  const root=$('requestsList');root.replaceChildren();
  if(!requests.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='Заявок пока нет.';root.append(empty);return}
- for(const r of requests){
-  const item=document.createElement('div');item.className='request';
+ const scope=$('requestScope').value;
+ const visible=requests.filter(r=>scope==='paid'?pendingSale(r):scope==='new'?r.status==='new':true);
+ if(!visible.length)root.append(crmText('p','muted','По этому фильтру заявок нет.'));
+ for(const r of visible){
+  const item=document.createElement('div');item.className='request';item.id='request-'+r.id;
   const head=document.createElement('div');head.className='request-head';
   const title=document.createElement('strong');title.textContent=r.customer_name+' · '+(r.package_code==='consulting'?'CHEF AKA / ШЕФ НА ВЫЕЗД':'SHEF '+r.package_code.toUpperCase());
   const created=document.createElement('small');created.textContent=date(r.created_at);
@@ -223,16 +237,21 @@ function renderRequests(){
   const controls=document.createElement('div');controls.className='row';
   const statusL=document.createElement('label');statusL.textContent='Статус';const sel=document.createElement('select');
   for(const [key,label] of [['new','Новая'],['contacted','Связались'],['completed','Завершена'],['dismissed','Закрыта']])sel.add(new Option(label,key));
-  sel.value=r.status;statusL.append(sel);
+  if(r.package_code!=='consulting'){
+   const completed=Array.from(sel.options).find(o=>o.value==='completed');
+   if(r.status==='completed')completed.textContent=r.buyer_user_id?'Доступ выдан':'Завершена';else completed.remove();
+  }
+  if(r.buyer_user_id&&r.status!=='completed')sel.add(new Option('Доступ выдан','issued'));
+  sel.value=r.buyer_user_id&&r.status!=='completed'?'issued':r.status;sel.disabled=Boolean(r.buyer_user_id)||r.paid;statusL.append(sel);
   const noteL=document.createElement('label');noteL.textContent='Заметка владельца';const note=document.createElement('input');note.value=r.owner_note||'';note.maxLength=500;noteL.append(note);controls.append(statusL,noteL);
   const btn=document.createElement('button');btn.type='button';btn.className='btn ghost';btn.textContent='Сохранить заявку';btn.addEventListener('click',async()=>{
    btn.disabled=true;try{
-    const {error}=await sb.from('fk_access_requests').update({status:sel.value,owner_note:note.value.trim(),updated_at:new Date().toISOString()}).eq('id',r.id);
-    if(error)throw error;Object.assign(r,{status:sel.value,owner_note:note.value.trim()});toast('Заявка обновлена');
+    const {error}=await sb.from('fk_access_requests').update({status:sel.disabled?r.status:sel.value,owner_note:note.value.trim(),updated_at:new Date().toISOString()}).eq('id',r.id).eq('status',r.status).select('id').single();
+    if(error)throw error;toast('Заявка обновлена');await loadRequests();
     $('requestsBadge').textContent=(requests.filter(x=>x.status==='new').length||'')?' · '+requests.filter(x=>x.status==='new').length:'';
    }catch(e){err(e,'Не удалось изменить заявку')}finally{btn.disabled=false}
   });
-  item.append(head,contact,controls,btn);root.append(item);
+  item.append(head,contact,controls,btn);appendSaleActions(item,r);root.append(item);
  }
 }
 async function loadStats(){const {count,error}=await sb.from('fk_recipes').select('id',{head:true,count:'exact'});if(error)throw error;$('metricRecipes').textContent=fmt(count)}
@@ -243,7 +262,7 @@ $('passwordForm').addEventListener('submit',async ev=>{
  $('passwordForm').reset();toast('Пароль Supabase изменён. Сохрани его в надёжном менеджере паролей.');}
  catch(e){err(e,'Пароль не изменён')}
 });
-boot().catch(e=>err(e,'Ошибка инициализации'));
+
 
 let crmBuyers=[],crmProfiles=new Map();
 function crmDate(v){if(!v)return 'Не указана';const d=new Date(v);return Number.isNaN(d.getTime())?'Не указана':d.toLocaleDateString('ru-RU')}
@@ -254,10 +273,10 @@ function renderBuyers(){
  const query=$('buyerSearch').value.trim().toLocaleLowerCase('ru-RU'),filter=$('buyerFilter').value;
  for(const r of crmBuyers){
   const p=crmProfiles.get(r.user_id)||{},state=crmState(r),name=p.customer_name||r.buyer_name||r.login,company=p.company_name||r.company_name||'Не указана';
-  if(filter!=='all'&&filter!==state)continue;
+  if(filter==='expiring'?!expiring(r):filter!=='all'&&filter!==state)continue;
   if(![name,company,p.contact,r.contact_value,r.login,r.package_code].join(' ').toLocaleLowerCase('ru-RU').includes(query))continue;
   shown++;
-  const card=crmText('article','crm-card','');
+  const card=crmText('article','crm-card','');card.id='buyer-'+r.user_id;
   const head=crmText('div','crm-head','');head.append(crmText('h3','',name),crmText('span','crm-status '+state,{active:'Активен',expired:'Истёк',revoked:'Заблокирован',missing:'Нет доступа'}[state]));card.append(head);
   const grid=crmText('div','crm-grid','');
   for(const [label,value] of [['Компания',company],['Логин',r.login],['Пакет','SHEF '+String(r.package_code||'—').toUpperCase()],['Контакт',p.contact||r.contact_value||'Не указан'],['Дата покупки',crmDate(p.purchase_date||r.purchased_at)],['Доступ до',r.expires_at?crmDate(r.expires_at):(state==='active'?'Бессрочно':'Не указан')],['Создан',crmDate(r.account_created_at)],['Сумма',p.sale_amount_rub==null?'Не указана':Number(p.sale_amount_rub).toLocaleString('ru-RU')+' ₽']]){
@@ -289,8 +308,118 @@ async function loadBuyers(){
  $('buyerSummary').textContent='Загружаю покупателей…';
  const [a,b]=await Promise.all([sb.from('fk_owner_customer_overview').select('login,user_id,package_code,account_created_at,buyer_name,company_name,contact_value,access_status,purchased_at,expires_at').order('account_created_at',{ascending:false}).limit(300),sb.from('fk_buyer_profiles').select('user_id,customer_name,company_name,contact,purchase_date,sale_amount_rub,owner_note').limit(300)]);
  if(a.error||b.error){err(a.error||b.error,'Покупатели недоступны');$('buyerSummary').textContent='Ошибка загрузки';return}
- crmBuyers=a.data||[];crmProfiles=new Map((b.data||[]).map(p=>[p.user_id,p]));renderBuyers();
+ crmBuyers=a.data||[];$('expiryCount').textContent=crmBuyers.filter(expiring).length;crmProfiles=new Map((b.data||[]).map(p=>[p.user_id,p]));renderBuyers();
 }
 $('buyerSearch').addEventListener('input',renderBuyers);
 $('buyerFilter').addEventListener('change',renderBuyers);
 $('buyerRefresh').addEventListener('click',loadBuyers);
+
+function showPdfStatus(recipe){
+ const state=$('recipePdfState');
+ state.textContent=recipe.pdf_pending_since?'PDF требует обновления':recipe.pdf_published_at?'PDF подтверждён '+date(recipe.pdf_published_at):'';
+ state.hidden=!state.textContent;
+}
+async function refreshPdfState(id){
+ const {data,error}=await sb.from('fk_recipes').select('pdf_pending_since,pdf_published_at').eq('id',id).single();
+ if(error)throw error;
+ const recipe=recipes.find(r=>r.id===id);
+ if(recipe){Object.assign(recipe,data);if(selectedRecipe?.id===id)showPdfStatus(recipe)}
+ renderPending();
+}
+function renderPending(){
+ const list=$('pendingList');list.replaceChildren();
+ const pending=recipes.filter(r=>r.pdf_pending_since);
+ if(!pending.length)list.append(crmText('p','muted','Все изменения учтены.'));
+ for(const r of pending){
+  const row=crmText('div','request','');
+  row.append(crmText('strong','',r.title),crmText('p','muted','PDF требует обновления · '+date(r.pdf_pending_since)));
+  const revision=r.pdf_pending_since;
+  row.append(action('Подтвердить обновление PDF',async()=>{
+   if(!confirm('Вы заменили PDF текущего выпуска и сверили карту «'+r.title+'» в опубликованном файле?'))return;
+   const {error}=await sb.from('fk_recipes').update({pdf_pending_since:null,pdf_published_at:new Date().toISOString()})
+    .eq('id',r.id).eq('pdf_pending_since',revision).select('id').single();
+   if(error)throw Error('Карта изменилась или недоступна. Обновите список и проверьте выпуск ещё раз.');
+   await refreshPdfState(r.id);
+  }));list.append(row);
+ }
+ const latest=recipes.filter(r=>r.pdf_published_at).map(r=>r.pdf_published_at).sort().at(-1);
+ if(latest)list.prepend(crmText('p','muted','Последнее подтверждение выпуска: '+date(latest)));
+}
+$('premiumForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=e.submitter;btn.disabled=true;
+ try{await saveSettings({premium_materials:$('premiumMaterials').value.trim(),premium_services:$('premiumServices').value.trim()});toast('Состав PREMIUM опубликован.')}
+ catch(e){err(e,'Не удалось сохранить PREMIUM')}finally{btn.disabled=false}
+});
+function action(label,run){
+ const btn=crmText('button','btn ghost',label);btn.type='button';
+ btn.addEventListener('click',async()=>{btn.disabled=true;try{await run()}catch(e){err(e,label)}finally{btn.disabled=false}});
+ return btn;
+}
+function pendingSale(r){return r.paid&&!r.buyer_user_id&&['new','contacted'].includes(r.status)}
+function expiring(r){
+ const left=Date.parse(r.expires_at)-Date.now();
+ return r.access_status==='active'&&left>=0&&left<=7*86400000;
+}
+function clearCredentials(){$('issueCredentials').value='';show('issueResult',false)}
+$('hideCredentials').addEventListener('click',clearCredentials);
+$('requestScope').addEventListener('change',renderRequests);
+function appendSaleActions(item,r){
+ const box=crmText('div','actions','');
+ const sale=['start','pro','premium'].includes(r.package_code);
+ if(r.buyer_user_id){
+  box.append(action('Открыть покупателя',()=>openBuyer(r.buyer_user_id)));
+ }else if(sale&&['new','contacted'].includes(r.status)){
+  if(!r.paid){
+   box.append(action('Подтвердить оплату',async()=>{
+    if(!confirm('Полная оплата от '+r.customer_name+' за SHEF '+r.package_code.toUpperCase()+' получена и проверена?'))return;
+    const {error}=await sb.from('fk_confirmed_sales').insert({request_id:r.id});
+    if(error&&error.code!=='23505')throw error;
+    await loadRequests();
+   }));
+  }else{
+   box.append(crmText('strong','','Оплата подтверждена'));
+   const expiry=document.createElement('input');expiry.type='date';
+   const label=crmText('label','','Доступ до (необязательно)');label.append(expiry);box.append(label);
+   box.append(action('Выдать доступ',async()=>{
+    if(expiry.value&&expiry.value<new Date().toLocaleDateString('sv-SE'))throw Error('Срок доступа уже истёк');
+    const {data,error}=await sb.functions.invoke('fk-owner-create-buyer',{body:{action:'create',request_id:r.id,confirmed_paid:true,expires_on:expiry.value||null}});
+    if(error||!data?.ok){await loadRequests();throw Error(data?.error||error?.message||'Не удалось выдать доступ')}
+    $('issueCredentials').value=['Сайт: '+location.origin+'/cabinet.html','Логин: '+data.login,'Пароль: '+data.password].join('\n');
+    show('issueResult',true);$('issueResult').scrollIntoView({block:'center'});
+    await loadRequests();await loadBuyers();
+   }));
+  }
+ }else if(r.package_code==='consulting')box.append(crmText('p','muted','Консультация · доступ к ТТК не требуется'));
+ if(!r.paid&&!r.buyer_user_id&&(r.status!=='completed'||r.package_code==='consulting')){
+  const menu=document.createElement('details');menu.append(crmText('summary','','Действия'));
+  menu.append(action('Удалить тестовую заявку',async()=>{
+   if(!confirm('Удалить тестовую заявку «'+r.customer_name+'» без восстановления?'))return;
+   const {error}=await sb.from('fk_access_requests').delete().eq('id',r.id).eq('status',r.status).is('buyer_user_id',null).select('id').single();
+   if(error)throw Error('Заявка изменилась, оплачена или недоступна. Обновите список.');
+   await loadRequests();toast('Тестовая заявка удалена');
+  }));box.append(menu);
+ }
+ item.append(box);
+}
+async function openBuyer(id){
+ changeView('buyers');$('buyerFilter').value='all';$('buyerSearch').value='';
+ await loadBuyers();const card=$('buyer-'+id);
+ if(card){card.scrollIntoView({block:'center'});card.tabIndex=-1;card.focus({preventScroll:true})}
+ else toast('Карточка покупателя недоступна. Обновите список.',true);
+}
+async function applyRoute(){
+ const route=location.hash.slice(1);
+ if(['paid','new'].includes(route)){changeView('requests');$('requestScope').value=route;renderRequests()}
+ else if(route==='expiring'){changeView('buyers');$('buyerFilter').value='expiring';renderBuyers()}
+ else if(route==='documents'){changeView('documents')}
+ else if(route.startsWith('buyer/'))await openBuyer(route.slice(6));
+ else if(route.startsWith('request/')){
+  changeView('requests');$('requestScope').value='all';await loadRequests();
+  const row=$('request-'+route.slice(8));if(row)row.scrollIntoView({block:'center'});
+ }
+}
+document.querySelectorAll('[data-queue]').forEach(btn=>btn.addEventListener('click',()=>{
+ const key=btn.dataset.queue;if(location.hash==='#'+key)applyRoute();else location.hash=key;
+}));
+window.addEventListener('hashchange',()=>{if(currentUser)applyRoute()});
+boot().catch(e=>err(e,'Ошибка инициализации'));

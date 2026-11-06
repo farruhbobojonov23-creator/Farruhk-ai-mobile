@@ -189,11 +189,8 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
 <a href="admin/" style="display:inline-block;margin-right:18px">← Единая панель владельца</a><a href="./">На сайт ↗</a><h1>Центр управления</h1>
 <p class="owner-intro">Управление заявками, персональными доступами и технологической библиотекой. Все коммерческие документы остаются в закрытом хранилище.</p>
 <section class="panel" id="loginPanel">
-<div class="kicker">ШАГ 1 · ВХОД</div><h2>Подтвердите почту</h2>
-<div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Ваш email" aria-label="Ваш email"><button id="sendLink">Отправить ссылку</button></div>
-<p class="muted"><small>Если у вас уже есть отдельный пароль Supabase из облачного раздела управляющего центра, войдите им напрямую:</small></p>
-<div class="row"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Пароль Supabase (не от сайта OWNER)"><button id="loginWithPassword" type="button" class="subtle">Войти по паролю</button></div>
-<p class="muted" style="padding:12px;border:1px solid #b6cce0;border-radius:12px;background:#f2f8ff"><small><strong>Ошибка localhost:3000 после письма?</strong> Используйте <a href="enter-from-email.html?next=owner">вход по скопированной ссылке из письма →</a>. Он не зависит от перенаправления Supabase. Обычный переход по ссылке заработает после настройки Redirect URLs проекта.</small></p>
+<h2>Вход владельца</h2><div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Почта владельца" aria-label="Почта владельца"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Пароль" aria-label="Пароль"><button id="loginWithPassword">Войти</button></div>
+<details><summary>Не получается войти?</summary><p>Укажите почту выше, чтобы получить ссылку для входа.</p><button id="sendLink">Отправить ссылку</button> <a href="enter-from-email.html?next=owner">Открыть скопированную ссылку</a></details>
 </section>
 <section class="panel hidden" id="userPanel">
 <div class="row"><strong id="userEmail">—</strong><button id="logout" type="button" class="subtle">Выйти</button></div>
@@ -215,32 +212,9 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
  <button type="button" data-owner-tab="requests">✉ <span>Заявки</span><b class="owner-nav-badge" id="ownerRequestsBadge" hidden>0</b></button>
  <button type="button" data-owner-tab="buyers">♙ <span>Покупатели</span></button>
  <button type="button" data-owner-tab="documents">▤ <span>Документы</span></button>
- <button type="button" data-owner-tab="archive">⚙ <span>Архив</span></button>
-</nav>
-<div class="owner-view" data-owner-view="overview" >
 
-<section class="owner-hero" aria-labelledby="ownerDashboardTitle">
- <div class="owner-hero-top"><span class="owner-hero-kicker">CHEF AKA / OWNER CONSOLE</span><span class="owner-hero-badge">ЗАЩИЩЁННЫЙ ДОСТУП</span></div>
- <h2 id="ownerDashboardTitle">Всё важное — <em>под контролем.</em></h2>
- <p>Заявки клиентов, доступы покупателей и текущая библиотека ТТК в одном рабочем кабинете.</p>
- <div class="owner-metrics">
-  <div class="owner-metric"><small>ТЕХНОЛОГИЧЕСКИЕ КАРТЫ</small><strong id="ownerMetricTtk">—</strong><span>59 блюд + 34 полуфабриката</span></div>
-  <div class="owner-metric"><small>ФАЙЛЫ ТЕКУЩЕГО ВЫПУСКА</small><strong id="ownerMetricFiles">—</strong><span>PDF и фотографии</span></div>
-  <div class="owner-metric"><small>НОВЫЕ ЗАЯВКИ</small><strong id="ownerMetricRequests">—</strong><span>ТТК и шеф на выезд</span></div>
-  <div class="owner-metric"><small>ЛОГИНОВ ПОКУПАТЕЛЕЙ</small><strong id="ownerMetricBuyers">—</strong><span>Персональные доступы</span></div>
- </div>
- <div class="owner-quick"><button type="button" data-owner-go="requests">Открыть заявки ↗</button><button type="button" data-owner-go="documents">Проверить документы ↗</button></div>
-</section>
-<section class="panel owner-review" id="fkReadinessPanel">
- <div class="owner-panel-head"><div><div class="kicker">СВОДКА ПО БИБЛИОТЕКЕ</div><h2>Готовность документов</h2><p class="muted">Показатели обновляются из Supabase. Проверка документов и производственная валидация — разные этапы.</p></div><span class="owner-mini-mark">93 ТТК</span></div>
- <div id="fkReadinessStats" class="owner-readiness" role="status" aria-live="polite">Проверяю данные…</div>
- <p class="owner-check-note"><strong>Важно:</strong> производственная валидация рецептур не завершена. Перед практическим применением необходимо подтвердить выходы, аллергены и режимы хранения.</p>
- <div class="owner-panel-actions"><button type="button" id="fkReadinessRefresh" class="subtle">↻ Обновить показатели</button><a href="terms.html" target="_blank" rel="noopener noreferrer">Условия работы ↗</a><a href="privacy.html" target="_blank" rel="noopener noreferrer">Персональные данные ↗</a></div>
-</section>
-<section class="owner-help-strip">
- <span class="owner-help-icon">✓</span><div><strong>Актуальная редакция подключена</strong><p>Исправленный документ ТТК-ПФ-001 DUNKAN находится в текущем PDF полуфабрикатов; соус DUNKAN 20 л используется готовым. Старые версии сохраняются только в архиве.</p></div>
-</section>
-</div>
+</nav>
+<div class="owner-view" data-owner-view="overview"><section class="panel"><h2>Работа с клиентами</h2><div class="owner-quick"><a href="admin/#new">Новые заявки →</a><a href="admin/#paid">Оплачено · выдать доступ →</a><a href="admin/#expiring">Истекает доступ →</a></div></section></div>
 <div class="owner-view" data-owner-view="requests" hidden>
 <section class="panel owner-main-panel" id="fkRequestsBox">
  <div class="kicker">РАБОТА С КЛИЕНТАМИ</div><h2>Заявки клиентов</h2>
@@ -251,9 +225,7 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
  <p class="owner-check-note"><strong>Услуга шефа:</strong> заявка на консультацию не требует создания логина. Детали сотрудничества, цена и даты согласовываются отдельно.</p>
  <div class="row">
   <button id="fkRequestsRefresh" class="subtle" type="button">Обновить заявки</button>
-  <div><label for="fkNewAccountExpiry">Срок доступа до (необязательно)</label><input type="date" id="fkNewAccountExpiry" aria-label="Срок доступа до"></div>
  </div>
- <p class="muted"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:750"><input type="checkbox" id="fkPaidConfirmed" style="width:auto;min-width:auto"> Подтверждаю: полную оплату получил(а) и лично проверил(а)</label></p>
  <div class="tablewrap"><table><thead><tr><th>Дата / имя</th><th>Пакет</th><th>Как связаться</th><th>Статус</th><th>Действие</th></tr></thead><tbody id="fkRequestsBody"><tr><td colspan="5">Проверяю заявки…</td></tr></tbody></table></div>
  <div id="fkCredentialsWrap" class="hidden" style="border:2px solid #70a59d;border-radius:12px;padding:17px;background:#e0faf3;margin-top:18px">
   <h3>Личные данные покупателя · покажем один раз</h3>
@@ -275,6 +247,7 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
 </section>
 </div>
 <div class="owner-view" data-owner-view="documents" hidden>
+<p><button data-owner-go="archive" class="subtle">Архив выпусков</button> <a href="admin/#documents">Карты после редактирования →</a> · <a href="premium.html">Предпросмотр PREMIUM →</a></p>
 <section class="panel owner-main-panel" id="release20261103">
  <div class="kicker">ДЕЙСТВУЮЩАЯ БИБЛИОТЕКА</div><h2>ТТК, PDF и фотографии</h2>
  <p class="muted">Текущий выпуск: <strong>4 PDF и 34 фотографии</strong> в защищённом хранилище. Исправленный PDF полуфабрикатов от 05.11.2026 включён. Для новых публикаций используется отдельная контрольная проверка.</p>
@@ -309,6 +282,15 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
  </details>
 </section>
 
+<div class="owner-metrics"><div class="owner-metric"><small>ТЕХНОЛОГИЧЕСКИЕ КАРТЫ</small><strong id="ownerMetricTtk">—</strong><span>59 блюд + 34 полуфабриката</span></div><div class="owner-metric"><small>ФАЙЛЫ ТЕКУЩЕГО ВЫПУСКА</small><strong id="ownerMetricFiles">—</strong><span>PDF и фотографии</span></div><div class="owner-metric"><small>НОВЫЕ ЗАЯВКИ</small><strong id="ownerMetricRequests">—</strong><span>ТТК и шеф на выезд</span></div><div class="owner-metric"><small>ЛОГИНОВ ПОКУПАТЕЛЕЙ</small><strong id="ownerMetricBuyers">—</strong><span>Персональные доступы</span></div></div><section class="panel owner-review" id="fkReadinessPanel">
+ <div class="owner-panel-head"><div><div class="kicker">СВОДКА ПО БИБЛИОТЕКЕ</div><h2>Готовность документов</h2><p class="muted">Показатели обновляются из Supabase. Проверка документов и производственная валидация — разные этапы.</p></div><span class="owner-mini-mark">93 ТТК</span></div>
+ <div id="fkReadinessStats" class="owner-readiness" role="status" aria-live="polite">Проверяю данные…</div>
+ <p class="owner-check-note"><strong>Важно:</strong> производственная валидация рецептур не завершена. Перед практическим применением необходимо подтвердить выходы, аллергены и режимы хранения.</p>
+ <div class="owner-panel-actions"><button type="button" id="fkReadinessRefresh" class="subtle">↻ Обновить показатели</button><a href="terms.html" target="_blank" rel="noopener noreferrer">Условия работы ↗</a><a href="privacy.html" target="_blank" rel="noopener noreferrer">Персональные данные ↗</a></div>
+</section>
+<section class="owner-help-strip">
+ <span class="owner-help-icon">✓</span><div><strong>Актуальная редакция подключена</strong><p>Исправленный документ ТТК-ПФ-001 DUNKAN находится в текущем PDF полуфабрикатов; соус DUNKAN 20 л используется готовым. Старые версии сохраняются только в архиве.</p></div>
+</section>
 </div>
 <div class="owner-view" data-owner-view="archive" hidden>
 <section class="panel owner-archive-head"><div class="kicker">ИСТОРИЯ И СЛУЖЕБНЫЕ ИНСТРУМЕНТЫ</div>
@@ -357,7 +339,7 @@ function ownerSelectView(view){
  const selected=OWNER_VIEWS.has(view)?view:'overview';
  document.querySelectorAll('[data-owner-view]').forEach(node=>{node.hidden=node.getAttribute('data-owner-view')!==selected});
  document.querySelectorAll('[data-owner-tab]').forEach(button=>{
-  const active=button.getAttribute('data-owner-tab')===selected;
+  const active=button.getAttribute('data-owner-tab')===(selected==='archive'?'documents':selected);
   if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
  });
  try{sessionStorage.setItem('fk_owner_current_view',selected)}catch{}
@@ -368,7 +350,8 @@ document.querySelectorAll('[data-owner-tab]').forEach(button=>button.addEventLis
 document.querySelectorAll('[data-owner-go]').forEach(button=>button.addEventListener('click',()=>ownerSelectView(button.getAttribute('data-owner-go'))));
 let rememberedOwnerView='overview';
 try{rememberedOwnerView=sessionStorage.getItem('fk_owner_current_view')||'overview'}catch{}
-ownerSelectView(rememberedOwnerView);
+const openLibraryTab=()=>{const view=location.hash.slice(1);ownerSelectView(OWNER_VIEWS.has(view)?view:view==='fkRequestsBox'?'requests':rememberedOwnerView)};
+openLibraryTab();window.addEventListener('hashchange',openLibraryTab);
 
 function status(t,error=false){const el=$('feedback');el.textContent=t;el.classList.toggle('bad',error)}
 function setVisible(id,on){$(id).classList.toggle('hidden',!on)}
@@ -787,7 +770,7 @@ function fkRenderBuyers(rows,profiles){
 async function loadBuyerRequests(){
  if(!isAdmin)return;
  const [reqRes,accountsRes,profilesRes]=await Promise.all([
-  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at,service_format,project_city,project_business,project_goal,service_type,business_city,business_name,business_problem').order('created_at',{ascending:false}).limit(200),
+  sb.from('fk_access_requests').select('id,buyer_user_id,customer_name,package_code,contact_type,contact_value,status,created_at,service_format,project_city,project_business,project_goal,service_type,business_city,business_name,business_problem').order('created_at',{ascending:false}).limit(200),
   sb.from('fk_owner_customer_overview').select('login,user_id,request_id,package_code,account_created_at,buyer_name,company_name,city,contact_type,contact_value,access_status,purchased_at,expires_at,days_left').order('account_created_at',{ascending:false}).limit(200),
   sb.from('fk_buyer_profiles').select('user_id,customer_name,company_name,contact,purchase_date,sale_amount_rub,owner_note').limit(200)
  ]);
@@ -816,51 +799,12 @@ async function loadBuyerRequests(){
   else if(row.contact_type==='phone')link.href='tel:'+String(row.contact_value||'').replace(/[^\d+]/g,'');
   else link.removeAttribute('href');
   link.target='_blank';link.rel='noopener noreferrer';td.append(link);tr.append(td);
-  tr.append(cell(({new:'Новая',contacted:'В работе',completed:'Аккаунт создан',dismissed:'Закрыта'})[row.status]||row.status));
+  const account=accounts.find(a=>a.request_id===row.id||a.user_id===row.buyer_user_id);
+  const label=account?'Доступ выдан':({new:'Новая',contacted:'В работе',completed:'Завершена',dismissed:'Закрыта'})[row.status]||row.status;
+  tr.append(cell(label));
   const actions=document.createElement('td');
-  if(row.status==='new')actions.append(fkButton('Взять в работу','subtle',async()=>{
-   try{await fkUpdateRequest(row.id,'contacted');requestStatus('Заявка взята в работу. Свяжитесь с клиентом.')}catch(e){requestStatus('Ошибка: '+e.message,true)}
-  }));
-  if(row.status==='dismissed')actions.append(fkButton('Вернуть в новые','subtle',async()=>{
-   try{await fkUpdateRequest(row.id,'new')}catch(e){requestStatus('Ошибка: '+e.message,true)}
-  }));
-  if((row.status==='new'||row.status==='contacted') && row.package_code!=='consulting'){
-   actions.append(fkButton('Создать логин после оплаты','subtle',async()=>{
-    if(!$('fkPaidConfirmed').checked){requestStatus('Сначала подтвердите получение полной оплаты галочкой над таблицей.',true);return}
-    if(!confirm('Подтверждаете оплату и выдачу доступа для '+row.customer_name+'?'))return;
-    try{
-     requestStatus('Создаю личный логин…');
-     const out=await invokeOwnerBuyer({action:'create',request_id:row.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
-     credentialReveal(out.login,out.password,out.package_code);
-     $('fkPaidConfirmed').checked=false;await loadBuyerRequests();
-     requestStatus('Аккаунт создан. Отправьте логин и новый пароль покупателю лично.');
-    }catch(e){requestStatus('Ошибка создания: '+(e.message||'неизвестная ошибка'),true)}
-   }));
-  }
-  if(row.package_code==='consulting' && row.status==='contacted')actions.append(fkButton('Согласование завершено','subtle',async()=>{
-   try{await fkUpdateRequest(row.id,'completed')}catch(e){requestStatus('Ошибка: '+e.message,true)}
-  }));
-  if(row.status==='new'||row.status==='contacted')actions.append(fkButton('Закрыть без продажи','warn',async()=>{
-   if(!confirm('Закрыть эту заявку без создания доступа?'))return;
-   try{await fkUpdateRequest(row.id,'dismissed')}catch(e){requestStatus('Ошибка: '+e.message,true)}
-  }));
-  // Удаление только заявок, не связанных с покупателем или продажей.
-  if(row.status!=='completed'&&!row.buyer_user_id){
-   actions.append(fkButton('Удалить заявку','warn',async()=>{
-    const expected=String(row.customer_name||'').trim();
-    const entered=prompt('Удалить заявку навсегда? Введите имя заявителя точно как в карточке:\\n'+expected);
-    if(entered===null)return;
-    if(entered.trim()!==expected){requestStatus('Имя не совпадает. Удаление отменено.',true);return}
-    if(!confirm('Заявка «'+expected+'» будет удалена без восстановления. Это точно тестовая или ненужная заявка без продажи?'))return;
-    try{
-     const {data,error}=await sb.from('fk_access_requests').delete().eq('id',row.id).is('buyer_user_id',null).neq('status','completed').select('id');
-     if(error)throw error;
-     if(!data?.length)throw Error('Заявка уже связана с покупателем, завершена или недоступна для удаления. Обновите список.');
-     await loadBuyerRequests();
-     requestStatus('Заявка удалена. Покупатели и их доступы не изменены.');
-    }catch(e){requestStatus('Не удалось удалить заявку: '+(e.message||'ошибка'),true)}
-   }));
-  }
+  const open=document.createElement('a');open.href=account?'admin/#buyer/'+account.user_id:'admin/#request/'+row.id;
+  open.textContent=account?'Открыть покупателя':'Открыть заявку';actions.append(open);
   tr.append(actions);root.append(tr);
  }
  if(!rows.length){const td=cell('Заявок пока нет');td.colSpan=5;const tr=document.createElement('tr');tr.append(td);root.append(tr)}
