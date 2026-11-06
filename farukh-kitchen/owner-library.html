@@ -310,7 +310,7 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
 </section></div>
 </section>
 <div id="feedback" role="status" aria-live="polite" class="status">Войдите, чтобы продолжить.</div>
-<footer class="muted"><small>FARUKH KITCHEN · Chef Aka · Черновые технологические замечания и контроль ХАССП остаются в работе. Не публикуйте коммерческие PDF/ZIP в открытых папках сайта.</small></footer>
+<footer class="muted"><small>© 2026 FARUKH KITCHEN · Chef Aka. Материалы доступны только по разрешённым тарифам. Производственную валидацию ТТК завершайте до их внедрения. Коммерческие PDF и ZIP не размещайте в открытом доступе.</small></footer>
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
@@ -318,6 +318,25 @@ import JSZip from 'https://esm.sh/jszip@3.10.1';
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=x=>document.getElementById(x);
 let user=null, isAdmin=false, assetList=[];
+// Owner-only tabs; preserve authentication redirects and secret URL fragments.
+const OWNER_VIEWS=new Set(['overview','requests','buyers','documents','archive']);
+function ownerSelectView(view){
+ const selected=OWNER_VIEWS.has(view)?view:'overview';
+ document.querySelectorAll('[data-owner-view]').forEach(node=>{node.hidden=node.getAttribute('data-owner-view')!==selected});
+ document.querySelectorAll('[data-owner-tab]').forEach(button=>{
+  const active=button.getAttribute('data-owner-tab')===selected;
+  if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+ });
+ try{sessionStorage.setItem('fk_owner_current_view',selected)}catch{}
+ const nav=document.querySelector('.owner-nav');
+ if(nav&&window.innerWidth<621){window.scrollTo({top:Math.max(0,nav.getBoundingClientRect().top+window.scrollY-6),behavior:'instant'})}
+}
+document.querySelectorAll('[data-owner-tab]').forEach(button=>button.addEventListener('click',()=>ownerSelectView(button.getAttribute('data-owner-tab'))));
+document.querySelectorAll('[data-owner-go]').forEach(button=>button.addEventListener('click',()=>ownerSelectView(button.getAttribute('data-owner-go'))));
+let rememberedOwnerView='overview';
+try{rememberedOwnerView=sessionStorage.getItem('fk_owner_current_view')||'overview'}catch{}
+ownerSelectView(rememberedOwnerView);
+
 function status(t,error=false){const el=$('feedback');el.textContent=t;el.classList.toggle('bad',error)}
 function setVisible(id,on){$(id).classList.toggle('hidden',!on)}
 async function sha256(file){const digest=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('')}
@@ -376,14 +395,17 @@ async function loadReleaseEdition(){
  const {data,error}=await sb.from('fk_release_assets').select('*').eq('edition','2026-11-03').order('asset_key');
  if(error)throw error;
  releaseEditionAssets=data||[];
- const [docs,images]=await Promise.all([
-   sb.storage.from('fk-paid-ttk').list('release/2026-11-03/docs',{limit:100}),
-   sb.storage.from('fk-paid-ttk').list('release/2026-11-03/photos',{limit:100})
- ]);
- const present=new Set([...(docs.data||[]).map(x=>'release/2026-11-03/docs/'+x.name),...(images.data||[]).map(x=>'release/2026-11-03/photos/'+x.name)]);
+ // The corrected PF PDF is stored in the 05.11 folder while the other
+ // assets stay in the 03.11 folders. List real object paths, not two hard-coded folders.
+ const folders=[...new Set(releaseEditionAssets.map(a=>a.object_path.slice(0,a.object_path.lastIndexOf('/'))))];
+ const listings=await Promise.all(folders.map(folder=>sb.storage.from('fk-paid-ttk').list(folder,{limit:100})));
+ const listingError=listings.find(x=>x.error)?.error;
+ if(listingError)throw listingError;
+ const present=new Set();
+ folders.forEach((folder,i)=>(listings[i].data||[]).forEach(file=>present.add(folder+'/'+file.name)));
  const complete=releaseEditionAssets.filter(a=>present.has(a.object_path)).length;
  const approved=releaseEditionAssets.filter(a=>a.released).length;
- $('releaseStats').textContent='Запланировано: '+releaseEditionAssets.length+' файлов · в хранилище: '+complete+' · разрешено к выдаче: '+approved+'.';
+ $('releaseStats').textContent='Текущая редакция: '+releaseEditionAssets.length+' файла(ов) · найдено в хранилище: '+complete+' · доступно по оплаченным тарифам: '+approved+'.';
  const root=$('releaseRows');root.replaceChildren();
  for(const asset of releaseEditionAssets){
   const line=document.createElement('div');line.className='file';
@@ -577,6 +599,10 @@ async function loadBuyerRequests(){
  if(reqRes.error||logRes.error){requestStatus('Не удалось загрузить заявки: '+(reqRes.error?.message||logRes.error?.message),true);return}
  const requestBody=$('fkRequestsBody');requestBody.replaceChildren();
  const records=reqRes.data||[];
+ const newCount=records.filter(x=>x.status==='new').length;
+ $('ownerMetricRequests').textContent=String(newCount);
+ $('ownerMetricBuyers').textContent=String((logRes.data||[]).length);
+ const badge=$('ownerRequestsBadge');badge.hidden=newCount===0;badge.textContent=String(newCount);
  const cell=(textValue)=>{
   const td=document.createElement('td');td.textContent=String(textValue??'');return td;
  };
@@ -673,17 +699,28 @@ async function loadReadiness(){
   const [recipes,review,ingredients,steps,current,legacy,audited]=data.slice(0,7).map(x=>Number(x.count||0));
   const currentPF=data[7]?.data?.object_path||'';
   const correctedPF=currentPF.includes('2026-11-05/docs/PF_34_20261105_corrected.pdf');
+  // Document-only audit; do not claim that these recipes have passed HACCP testing.
   const checks=[
-   'ТТК: '+recipes+' / 93',
-   'Документарно проверено: '+audited+' / 93',
-   'Исправленная PDF 34 ПФ: '+(correctedPF?'ЗАГРУЖЕНА':'ПРОВЕРИТЬ'),
-   'Требуют контрольной валидации: '+review,
-   'Строк рецептурного сырья: '+ingredients,
-   'Технологических шагов в базе: '+steps,
-   'Выпущено файлов текущей редакции: '+current+' / 38',
-   'Разрешено файлов старого архива: '+legacy+' / 4'
+   ['Технологических карт',recipes+' из 93',false],
+   ['Документально проверено',audited+' из 93',false],
+   ['Выпуск: PDF и фото',current+' из 38',current!==38],
+   ['Исправление ПФ DUNKAN',correctedPF?'В актуальной версии':'Требует проверки',!correctedPF],
+   ['Сырьевых строк',String(ingredients),false],
+   ['Шагов приготовления',String(steps),false],
+   ['На производственную проверку',review+' ТТК',review>0],
+   ['Старый архив, доступно',legacy+' из 4',false]
   ];
-  el.textContent=checks.join('  ·  ')+(review||ingredients===0||steps===0?'  ⚠ Производственная валидация ещё не завершена.':'');
+  el.replaceChildren();
+  const grid=document.createElement('div');grid.className='owner-readiness-grid';
+  for(const [label,value,warning] of checks){
+   const box=document.createElement('div');box.className='owner-readiness-item'+(warning?' warn':'');
+   const lbl=document.createElement('small');lbl.textContent=label;
+   const val=document.createElement('strong');val.textContent=value;
+   box.append(lbl,val);grid.append(box);
+  }
+  el.append(grid);
+  $('ownerMetricTtk').textContent=String(recipes);
+  $('ownerMetricFiles').textContent=current+' / 38';
  }catch(err){el.textContent='Не удалось получить текущую сводку: '+(err?.message||'проверьте вход в кабинет')}
 }
 $('fkReadinessRefresh').addEventListener('click',()=>loadReadiness());
