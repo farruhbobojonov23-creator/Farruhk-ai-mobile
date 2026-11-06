@@ -2444,6 +2444,14 @@ app.post('/api/telegram/booking',async(req,res)=>{
 /* FARUKH KITCHEN: protected webhook called only AFTER Supabase stored the request.
    Telegram secret remains on the existing SHEF51 backend; do not expose it in a webpage. */
 const fkNotified=new Map();
+app.get('/api/farukh-kitchen/alert-status',async(req,res)=>{
+  try{
+    const groupId=await chefAkaGroupChatId();
+    res.setHeader('Cache-Control','no-store');
+    res.json({service:'CHEF AKA',botConfigured:Boolean(telegramToken()),groupReady:Boolean(groupId)});
+  }catch(err){res.status(502).json({service:'CHEF AKA',groupReady:false,error:'group_lookup_failed'});}
+});
+
 app.post('/api/farukh-kitchen/request-alert',async(req,res)=>{
   const expected=String(process.env.FK_REQUEST_WEBHOOK_KEY||'');
   const received=String(req.get('x-fk-webhook-key')||'');
@@ -2497,7 +2505,7 @@ app.post('/api/farukh-kitchen/request-alert',async(req,res)=>{
     'Открыть: https://farukh-kitchen-v02.onrender.com/owner-library.html'
   ]).join('\n');
   try{
-    const chatId=await telegramChatId();
+    const chatId=consulting ? await chefAkaGroupChatId() : await telegramChatId();
     if(!chatId)return res.status(503).json({ok:false,error:'chat_not_ready'});
     await telegramRequest('sendMessage',{
       chat_id:chatId,text:notification,disable_web_page_preview:true
