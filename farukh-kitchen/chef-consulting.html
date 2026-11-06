@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06131f">
+<meta name="description" content="CHEF AKA — выездной аудит японской кухни, обучение поваров, улучшение ТТК, оптимизация действующей доставки и запуск суши-доставки с нуля.">
+<title>Шеф на выезд · Аудит кухни и обучение · CHEF AKA</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/black-ice-premium-v2.css?v=20261104-4">
+<link rel="stylesheet" href="assets/chef-consulting.css?v=20261106-1">
+</head>
+<body class="fk-site fk-consulting-form-page">
+<header class="fk-nav"><div class="fk-shell fk-nav-in">
+ <a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></a>
+ <button id="fkMenu" type="button" class="fk-menu" aria-label="Открыть меню" aria-controls="fkMenuLinks" aria-expanded="false">☰</button>
+ <nav id="fkMenuLinks" class="fk-nav-links" aria-label="Навигация"><a href="index.html">Главная</a><a href="index.html#plans">Тарифы</a><a href="catalog-verified.html">Каталог</a><a href="cabinet.html">Личный кабинет</a><a href="request-access.html" class="fk-nav-cta">Получить ТТК ↗</a></nav>
+</div></header>
+<main class="fk-consulting-form-main"><div class="fk-shell">
+ <div class="fk-consulting-form-head"><div class="fk-consulting-label"><span class="fk-consulting-index">04</span><span class="fk-eyebrow">CHEF AKA · ПЕРСОНАЛЬНАЯ РАБОТА С ВАШЕЙ КУХНЕЙ</span></div>
+  <h1>Шеф на выезд.<br><em>Результат начинается с системы.</em></h1>
+  <p>Если суши-доставка уже работает, но качество, скорость и дисциплина кухни нестабильны, я помогу разобраться в причинах и настроить процессы. Если вы только планируете открытие — можем начать с проекта запуска.</p>
+ </div>
+ <div class="fk-consulting-form-layout">
+  <section class="fk-consulting-form-panel" id="request"><div class="fk-eyebrow">ОБРАТНАЯ СВЯЗЬ</div><h2>Расскажите о вашей кухне</h2>
+   <form id="consultingForm" novalidate>
+    <label for="serviceFormat">Какая помощь нужна?</label>
+    <select id="serviceFormat" required>
+     <option value="online">Онлайн-разбор · дистанционная консультация</option>
+     <option value="audit">Шеф-аудит · выезд и диагностика кухни</option>
+     <option value="mentoring">Шеф-сопровождение · обучение и внедрение</option>
+     <option value="launch">Запуск доставки суши с нуля</option>
+    </select>
+    <div class="fk-consulting-form-row">
+     <label for="city">Город <span aria-hidden="true">*</span><input id="city" maxlength="100" placeholder="Например, Мурманск" required></label>
+     <label for="business">Название заведения (необязательно)<input id="business" maxlength="120" placeholder="Ваша доставка или ресторан"></label>
+    </div>
+    <label for="goal">Опишите задачу <span aria-hidden="true">*</span><textarea id="goal" minlength="20" maxlength="1200" required placeholder="Что не получается? Какие проблемы с качеством, персоналом, организацией кухни, ТТК или открытием?"></textarea></label>
+    <div class="fk-consulting-form-row">
+     <label for="customerName">Как к вам обращаться?<input id="customerName" minlength="2" maxlength="80" autocomplete="name" required placeholder="Ваше имя"></label>
+     <label for="contactType">Как с вами связаться?<select id="contactType"><option value="telegram">Telegram</option><option value="phone">Телефон</option></select></label>
+    </div>
+    <label for="contact" id="contactLabel">Ваш Telegram<input id="contact" maxlength="100" autocomplete="off" placeholder="@username" required></label>
+    <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="website">Не заполнять<input id="website" name="website" autocomplete="off" tabindex="-1"></label></div>
+    <label class="fk-consulting-form-consent" for="consent"><input id="consent" type="checkbox" required><span>Согласен(на) на обработку имени, города, данных о заведении, описания задачи и контакта для ответа на обращение, включая уведомление в закрытой рабочей Telegram-группе проекта. Ознакомлен(а) с <a href="privacy.html" target="_blank" rel="noopener noreferrer">порядком обработки данных</a>.</span></label>
+    <button type="submit" id="submit" class="fk-btn fk-btn-primary fk-consulting-form-submit">Отправить заявку Chef Aka →</button>
+    <p id="feedback" class="fk-consulting-message" role="status" aria-live="polite"></p>
+    <div id="success" class="fk-consulting-success fk-hidden" role="status">
+     <strong>✓ Заявка отправлена!</strong>
+     <p>Шеф рассмотрит задачу и свяжется с вами по указанному контакту. Условия работы, стоимость, даты и поездка согласовываются индивидуально.</p>
+     <a href="index.html#chef-consulting">Вернуться на сайт ↗</a>
+    </div>
+   </form>
+  </section>
+  <aside class="fk-consulting-info-panel" id="formats">
+   <div class="fk-eyebrow">ФОРМАТЫ СОТРУДНИЧЕСТВА</div><h2>Подбираем решение под вашу задачу</h2>
+   <div class="item"><strong>01 · Онлайн-разбор</strong><p>Консультация, анализ процессов и ТТК, рекомендации с приоритетами изменений.</p></div>
+   <div class="item"><strong>02 · Шеф-аудит</strong><p>Выезд на объект, оценка рабочих мест и процессов, санитарных практик, хранения, маркировки и качества.</p></div>
+   <div class="item"><strong>03 · Шеф-сопровождение</strong><p>План улучшений, обучение сотрудников, контрольная проработка и внедрение стандартов.</p></div>
+   <div class="item"><strong>04 · Запуск доставки с нуля</strong><p>Помощь с меню, ТТК, организацией производства, обучением команды и подготовкой к старту.</p></div>
+   <p class="fk-consulting-small">Работа с санитарными требованиями — консультационная и практическая помощь, не государственная проверка и не гарантия соответствия объекта. План, объём, результат и расходы на выезд фиксируются до начала работ. Стоимость — после оценки задачи.</p>
+   <a class="fk-btn fk-btn-outline" href="index.html#plans" style="width:100%;margin-top:17px">Сравнить программы ТТК ↗</a>
+  </aside>
+ </div>
+</div></main>
+<footer class="fk-footer"><div class="fk-shell"><div class="fk-footer-grid">
+ <a class="fk-logo" href="index.html"><span class="fk-logo-mark">A</span><span>FARUKH <em>KITCHEN</em></span></a>
+ <div class="fk-footer-links"><a href="index.html">Главная</a><a href="catalog-verified.html">Каталог</a><a href="request-access.html">ТТК</a><a href="terms.html">Условия</a><a href="privacy.html">Данные</a></div>
+ </div><p class="fk-warning">CHEF AKA · Консультации, аудит и внедрение стандартов для японской кухни. Подача заявки не является договором и не требует оплаты.</p></div></footer>
+<script type="module">
+import{createClient}from'https://esm.sh/@supabase/supabase-js@2.118.0';
+const $=id=>document.getElementById(id);
+const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:false,autoRefreshToken:false}});
+const params=new URLSearchParams(location.search);
+if(['online','audit','mentoring','launch'].includes(params.get('format')))$('serviceFormat').value=params.get('format');
+$('fkMenu').addEventListener('click',()=>{let button=$('fkMenu'),nav=$('fkMenuLinks'),on=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(on));nav.classList.toggle('is-open',on);button.textContent=on?'✕':'☰'});
+$('contactType').addEventListener('change',()=>{
+ const telegram=$('contactType').value==='telegram';
+ $('contactLabel').firstChild.textContent=telegram?'Ваш Telegram':'Ваш телефон';
+ $('contact').placeholder=telegram?'@username':'+7 999 123 45 67';
+ $('contact').value='';
+});
+$('consultingForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const feedback=$('feedback'),button=$('submit');
+ feedback.classList.remove('error');feedback.textContent='';
+ if($('website').value)return;
+ if(!$('consent').checked){feedback.textContent='Подтвердите согласие на обработку заявки.';feedback.classList.add('error');return}
+ const name=$('customerName').value.trim(),city=$('city').value.trim(),
+       business=$('business').value.trim(),goal=$('goal').value.trim(),
+       format=$('serviceFormat').value,type=$('contactType').value;
+ let contact=$('contact').value.trim();
+ if(name.length<2||name.length>80||city.length<2||city.length>100||business.length>120||goal.length<20||goal.length>1200||!['online','audit','mentoring','launch'].includes(format)){
+  feedback.textContent='Проверьте имя, город и описание задачи (не менее 20 символов).';feedback.classList.add('error');return
+ }
+ if(type==='telegram'){
+  if(!contact.startsWith('@'))contact='@'+contact;
+  if(!/^@[a-zA-Z0-9_]{5,32}$/.test(contact)){feedback.textContent='Укажите Telegram в формате @username.';feedback.classList.add('error');return}
+ }else if(type==='phone'){
+  if(!/^\+?[0-9 ()-]{8,25}$/.test(contact)){feedback.textContent='Укажите номер телефона с кодом страны.';feedback.classList.add('error');return}
+ }else{feedback.textContent='Укажите способ связи.';feedback.classList.add('error');return}
+ button.disabled=true;feedback.textContent='Отправляю заявку в кабинет владельца…';
+ try{
+  const {error}=await sb.from('fk_access_requests').insert({
+   customer_name:name,package_code:'consulting',contact_type:type,contact_value:contact,
+   service_format:format,project_city:city,project_business:business,project_goal:goal
+  });
+  if(error)throw error;
+  $('consultingForm').querySelectorAll('input:not(#website),select,textarea').forEach(el=>el.disabled=true);
+  button.classList.add('fk-hidden');feedback.textContent='';$('success').classList.remove('fk-hidden');
+ }catch(error){
+  console.error('CHEF AKA consulting request error:',error?.code||'unknown');
+  feedback.textContent='Не удалось отправить заявку. Проверьте соединение и попробуйте ещё раз.';feedback.classList.add('error');
+ }finally{button.disabled=false}
+});
+</script>
+</body></html>
