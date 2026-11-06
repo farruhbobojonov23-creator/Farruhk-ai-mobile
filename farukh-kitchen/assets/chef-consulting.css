@@ -1,0 +1,57 @@
+/* CHEF AKA · fourth service / owner consulting, isolated styles. */
+.fk-consulting{position:relative;overflow:hidden;padding:78px 0 86px;background:radial-gradient(ellipse 60% 70% at 90% 5%,rgba(29,96,123,.33),transparent 78%),radial-gradient(ellipse 55% 80% at 8% 95%,rgba(191,130,56,.13),transparent 70%),linear-gradient(138deg,#071722 0%,#0a2634 48%,#06131f 100%);border-top:1px solid rgba(233,196,134,.27);border-bottom:1px solid rgba(233,196,134,.18)}
+.fk-consulting:before{position:absolute;content:"";pointer-events:none;inset:0;background:linear-gradient(117deg,transparent 45%,rgba(235,195,133,.043) 47%,transparent 51%);background-size:300px 300px}
+.fk-consulting .fk-shell{position:relative}
+.fk-consulting-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:45px;align-items:center}
+.fk-consulting-label{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.fk-consulting-index{display:grid;place-items:center;height:44px;width:50px;border:1px solid rgba(229,194,139,.8);border-radius:13px;font:italic 30px Georgia,serif;color:#f4dcae}
+.fk-consulting h2{font-size:clamp(34px,4.9vw,64px);line-height:1.07;letter-spacing:-.052em;max-width:740px;margin:19px 0}
+.fk-consulting h2 em{font-style:normal;color:var(--fk-gold)}
+.fk-consulting-lead{max-width:670px;font-size:17px;line-height:1.75;color:#c0d4df;margin:0 0 27px}
+.fk-consulting-pills{display:flex;flex-wrap:wrap;gap:9px;margin:26px 0 30px}
+.fk-consulting-pills span{padding:9px 12px;border:1px solid rgba(185,217,230,.29);color:#e0edf1;border-radius:100px;font-size:12px;background:#15334477}
+.fk-consulting-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.fk-consulting-caption{font-size:12px;color:#9bb6c2;margin-top:16px}
+.fk-consulting-side{position:relative;border:1px solid rgba(237,196,130,.51);background:linear-gradient(150deg,rgba(28,61,72,.85),rgba(11,34,46,.96));border-radius:26px;padding:24px;box-shadow:0 22px 80px #0005}
+.fk-consulting-side:before{content:"";position:absolute;top:-1px;left:12%;width:76%;height:1px;background:linear-gradient(90deg,transparent,#f5d59f,transparent)}
+.fk-consulting-side-kicker{font-size:11px;color:var(--fk-gold);font-weight:900;letter-spacing:.16em;margin-bottom:17px}
+.fk-consulting-feature{display:grid;grid-template-columns:45px minmax(0,1fr);gap:12px;align-items:start;padding:17px 0;border-bottom:1px solid rgba(173,214,231,.16)}
+.fk-consulting-feature:last-child{border-bottom:0}
+.fk-consulting-icon{display:grid;place-items:center;border:1px solid rgba(236,200,142,.4);background:#08233280;border-radius:12px;height:40px;width:40px;color:#f0d1a4;font-size:17px;font-weight:900}
+.fk-consulting-feature strong{font-size:15px;color:#fff;display:block;line-height:1.3;margin:2px 0 5px}
+.fk-consulting-feature p{margin:0;color:#aac3ce;font-size:12px;line-height:1.6}
+.fk-consulting-launch{display:flex;align-items:center;justify-content:space-between;gap:11px;flex-wrap:wrap;margin-top:21px;padding:14px 16px;border-radius:13px;background:rgba(218,171,103,.11);border:1px solid rgba(227,188,129,.36);color:#ffe1b1;font-size:13px}
+.fk-consulting-launch strong{font-weight:900}.fk-consulting-launch a{color:#ffe9c9;text-decoration:underline;text-underline-offset:3px}
+.fk-consulting-form-page{min-height:100vh;background:radial-gradient(ellipse at 85% 8%,#154350 0%,transparent 46%),#06131f}
+.fk-consulting-form-main{padding:53px 0 88px}
+.fk-consulting-form-head{max-width:820px;margin:0 0 33px}
+.fk-consulting-form-head h1{font-size:clamp(35px,5.3vw,60px);letter-spacing:-.052em;line-height:1.09;margin:10px 0 18px}
+.fk-consulting-form-head h1 em{color:var(--fk-gold);font-style:normal}
+.fk-consulting-form-head p{color:#b9d0db;line-height:1.72;max-width:770px;margin:0}
+.fk-consulting-form-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(270px,.72fr);gap:24px;align-items:start}
+.fk-consulting-form-panel,.fk-consulting-info-panel{background:linear-gradient(142deg,#153846,#0a2433);border:1px solid rgba(175,209,221,.35);border-radius:24px;padding:28px;box-shadow:0 17px 55px #0005}
+.fk-consulting-form-panel{border-color:rgba(232,194,133,.49)}
+.fk-consulting-form-panel h2,.fk-consulting-info-panel h2{font-size:23px;line-height:1.23;margin:4px 0 19px}
+.fk-consulting-form-page label{display:block;font-weight:700;color:#d6e9f0;font-size:12px;margin:17px 0 0}
+.fk-consulting-form-page input:not([type=checkbox]),.fk-consulting-form-page select,.fk-consulting-form-page textarea{width:100%;min-height:48px;margin-top:8px;background:#081e2a;border:1px solid #557481;color:#f6fbfb;border-radius:12px;padding:12px 14px;font:inherit;font-size:14px;outline-offset:3px}
+.fk-consulting-form-page textarea{resize:vertical;min-height:125px;line-height:1.5}
+.fk-consulting-form-page input::placeholder,.fk-consulting-form-page textarea::placeholder{color:#8caebc}
+.fk-consulting-form-row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.fk-consulting-form-page .fk-consulting-form-consent{display:flex;align-items:start;gap:12px;font-weight:500;font-size:12px;line-height:1.6;color:#bdcfd8;margin-top:23px}
+.fk-consulting-form-consent input{width:20px;height:20px;flex:0 0 20px;accent-color:#d8b578;margin:2px 0}
+.fk-consulting-form-consent a{color:#f1d2a0;text-decoration:underline}
+.fk-consulting-form-submit{width:100%;margin-top:21px;min-height:52px}
+.fk-consulting-form-submit:disabled{opacity:.57;cursor:wait}
+.fk-consulting-message{font-size:13px;margin:14px 0 0;color:#f6d79a;min-height:20px}
+.fk-consulting-message.error{color:#ffbaa9}
+.fk-consulting-success{background:#163a3a;border:1px solid #63a49e;border-radius:16px;padding:22px;margin-top:22px;color:#e4f7ef}
+.fk-consulting-info-panel p{font-size:13px;line-height:1.7;color:#bad0d9}
+.fk-consulting-info-panel .item{padding:15px 0;border-bottom:1px solid #31525e}
+.fk-consulting-info-panel .item:last-child{border-bottom:0}
+.fk-consulting-info-panel .item strong{display:block;color:#f4d3a0;font-size:13px;margin-bottom:7px}
+.fk-consulting-info-panel .item p{margin:0}
+.fk-consulting-small{color:#9bb9c2;font-size:12px;line-height:1.6}
+.fk-hidden{display:none!important}
+@media(max-width:940px){.fk-consulting-layout,.fk-consulting-form-layout{grid-template-columns:1fr}.fk-consulting-side{max-width:none}.fk-consulting{padding:56px 0 65px}}
+@media(max-width:620px){.fk-consulting{padding:45px 0 51px}.fk-consulting h2{font-size:36px}.fk-consulting-lead{font-size:15px}.fk-consulting-side,.fk-consulting-form-panel,.fk-consulting-info-panel{padding:19px;border-radius:19px}.fk-consulting-form-main{padding:34px 0 56px}.fk-consulting-form-row{grid-template-columns:1fr}.fk-consulting-feature{padding:13px 0}.fk-consulting-actions .fk-btn{width:100%}.fk-consulting-label{gap:7px}.fk-consulting-pills{gap:6px}.fk-consulting-pills span{font-size:11px;padding:8px 10px}}
+@media(prefers-reduced-motion:reduce){.fk-consulting *{transition:none!important}}
