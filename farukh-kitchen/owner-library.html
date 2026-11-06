@@ -411,7 +411,7 @@ async function invokeOwnerBuyer(payload){
 async function loadBuyerRequests(){
  if(!isAdmin)return;
  const [reqRes,logRes]=await Promise.all([
-  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at').order('created_at',{ascending:false}).limit(100),
+  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at,service_format,project_city,project_business,project_goal,service_type,business_city,business_name,business_problem').order('created_at',{ascending:false}).limit(100),
   sb.from('fk_username_accounts').select('login,package_code,created_at').order('created_at',{ascending:false}).limit(100),
  ]);
  if(reqRes.error||logRes.error){requestStatus('Не удалось загрузить заявки: '+(reqRes.error?.message||logRes.error?.message),true);return}
@@ -422,15 +422,23 @@ async function loadBuyerRequests(){
  };
  for(const item of records){
   const tr=document.createElement('tr');
-  tr.append(cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name));
-  tr.append(cell('SHEF '+item.package_code.toUpperCase()+(item.package_code==='premium'?' · выезд + PRO':'')));
+  if(item.package_code==='consulting'){
+   const td=cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name);
+   const details=document.createElement('div');details.style.whiteSpace='pre-wrap';details.style.overflowWrap='anywhere';details.style.fontSize='12px';details.style.marginTop='7px';
+   const formats={online:'Онлайн-консультация',audit:'Шеф-аудит',mentoring:'Шеф-сопровождение',launch:'Запуск доставки с нуля',training:'Обучение команды',ttk:'Разработка ТТК',optimization:'Оптимизация'};
+   const format=item.service_format||item.service_type;
+   details.textContent=(formats[format]||'Консультация')+' · '+(item.project_city||item.business_city||'—')+(item.project_business||item.business_name?' · '+(item.project_business||item.business_name):'')+'\n'+(item.project_goal||item.business_problem||'');
+   td.append(details);tr.append(td);
+  }else tr.append(cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name));
+  tr.append(cell(item.package_code==='consulting'?'CHEF AKA · ШЕФ НА ВЫЕЗД':'SHEF '+item.package_code.toUpperCase()+(item.package_code==='premium'?' · выезд + PRO':'')));
   const contactTd=document.createElement('td'),link=document.createElement('a');
   link.textContent=item.contact_value;
   link.href=item.contact_type==='telegram'?'https://t.me/'+item.contact_value.replace(/^@/,''):'tel:'+item.contact_value.replace(/[ ()-]/g,'');
   link.target='_blank';link.rel='noopener noreferrer';contactTd.append(link);tr.append(contactTd);
-  tr.append(cell(item.status==='completed'?'Аккаунт создан':item.status==='new'?'Новая':item.status==='contacted'?'На согласовании':item.status));
+  tr.append(cell(item.status==='completed'?(item.package_code==='consulting'?'Завершено':'Аккаунт создан'):item.status==='new'?'Новая':item.status==='contacted'?'На согласовании':item.status));
   const actions=document.createElement('td'),button=document.createElement('button');
   button.type='button';button.textContent=item.package_code==='premium'?'Выдать PRO после полной оплаты':'Создать логин';button.className='subtle';
+  if(item.package_code==='consulting'){button.textContent='Согласование без логина';button.title='Для консультации доступ к ТТК не создаётся';button.disabled=true;}
   if(item.status==='completed'||item.status==='dismissed')button.disabled=true;
   button.addEventListener('click',async()=>{
    if(!$('fkPaidConfirmed').checked){requestStatus('Сначала поставьте галочку «Оплату получил и проверил».',true);return}
