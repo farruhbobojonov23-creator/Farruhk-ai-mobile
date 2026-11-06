@@ -28,6 +28,8 @@
 <button data-panel="pricing" class="nav">₽ Тарифы и цены</button>
 <button data-panel="content" class="nav">✎ Главная страница</button>
 <button data-panel="requests" class="nav">✉ Заявки и консультации <span id="requestsBadge"></span></button>
+<button data-panel="buyers" class="nav">♙ Покупатели</button>
+<button data-panel="documents" class="nav">▣ Документы</button>
 <button data-panel="access" class="nav">⚿ Доступы и PDF</button>
 <button data-panel="settings" class="nav">⚙ Настройки аккаунта</button>
 <div class="sideend"><a href="../index.html" target="_blank" rel="noopener noreferrer">↗ Посмотреть сайт</a><a href="../owner-library.html">↗ Расширенная библиотека</a></div>
@@ -39,6 +41,10 @@
 <div class="actions"><button class="btn primary" data-go="recipes">Редактировать ТТК</button><button class="btn ghost" data-go="pricing">Изменить тарифы</button><button class="btn ghost" data-go="photos">Заменить фото</button></div></div>
 <div class="notice">⚠ Документарная проверка рецептур — не производственная валидация. Не переводите ТТК в статус «готово» без контрольной проработки, проверки аллергенов и сроков.</div>
 </section>
+<section data-view="buyers" class="view hidden"><div class="kicker">FARUKH KITCHEN · КЛИЕНТСКАЯ БАЗА</div><h1>Покупатели</h1><p class="muted">Компании, логины, тарифы, покупки, сроки и управление доступом в одной панели. Старые пароли не отображаются — доступен безопасный сброс.</p>
+<div class="card"><div class="row"><label class="grow">Поиск<input id="buyerSearch" type="search" placeholder="Имя, компания, логин, контакт"></label><label>Статус<select id="buyerFilter"><option value="all">Все</option><option value="active">Активные</option><option value="expired">Истёк срок</option><option value="revoked">Заблокированные</option><option value="missing">Без доступа</option></select></label><button type="button" id="buyerRefresh" class="btn ghost">Обновить</button></div><p id="buyerSummary" class="muted tiny"></p><div id="buyerList" class="crm-list"></div></div>
+<div class="notice">Доступы защищены. Пароль покупателя не хранится в открытом виде. Для сброса, блокировки и продления используйте кнопку «Управление доступом» в карточке — откроется защищённая библиотека владельца.</div></section>
+<section data-view="documents" class="view hidden"><div class="kicker">ЗАКРЫТАЯ БИБЛИОТЕКА</div><h1>Документы и PDF</h1><div class="card"><h2>Управление выпуском документов</h2><p class="muted">Закрытые ТТК, PDF, фотографии полуфабрикатов и контроль публикации.</p><a class="btn primary" href="../owner-library.html#documents" target="_blank" rel="noopener noreferrer">Открыть документы ↗</a></div></section>
 <section data-view="recipes" class="view hidden"><div class="kicker">ТЕХНОЛОГИЧЕСКАЯ БАЗА</div><h1>Редактор ТТК</h1><p class="muted">Редактирование электронной базы. Опубликованные PDF автоматически не изменяются — после правок нужно отдельно обновить выпуск PDF.</p>
 <div class="card"><div class="row"><label class="grow">Поиск ТТК<input id="recipeSearch" type="search" placeholder="Филадельфия, спайси, ПФ…"></label><label class="grow">Выберите карту<select id="recipeSelect"><option>Загружаю…</option></select></label></div>
 <form id="recipeForm" class="hidden"><div class="grid2"><label>Название<input id="recipeTitle" required maxlength="130"></label><label>Категория<input id="recipeCategory" required maxlength="100"></label>
