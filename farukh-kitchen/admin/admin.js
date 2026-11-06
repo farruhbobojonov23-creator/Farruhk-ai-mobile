@@ -10,7 +10,7 @@ let toastTimer;
 function toast(message,bad=false){const el=$('toast');el.textContent=message;el.classList.toggle('error',bad);el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),7000)}
 function err(e,defaultMsg){toast((defaultMsg?defaultMsg+': ':'')+(e?.message||String(e||'неизвестная ошибка')),true)}
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function changeView(name){document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));document.querySelectorAll('[data-panel]').forEach(e=>e.classList.toggle('active',e.dataset.panel===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='requests')loadRequests();}
+function changeView(name){document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));document.querySelectorAll('[data-panel]').forEach(e=>e.classList.toggle('active',e.dataset.panel===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='requests')loadRequests();if(name==='buyers')loadBuyers();}
 document.querySelectorAll('[data-panel]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.panel)));
 document.querySelectorAll('[data-go]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.go)));
 async function signout(){await sb.auth.signOut();currentUser=null;show('app',false);show('denyBox',false);show('loginBox',true);$('ownerIdentity').textContent='';show('logout',false);}
@@ -244,3 +244,53 @@ $('passwordForm').addEventListener('submit',async ev=>{
  catch(e){err(e,'Пароль не изменён')}
 });
 boot().catch(e=>err(e,'Ошибка инициализации'));
+
+let crmBuyers=[],crmProfiles=new Map();
+function crmDate(v){if(!v)return 'Не указана';const d=new Date(v);return Number.isNaN(d.getTime())?'Не указана':d.toLocaleDateString('ru-RU')}
+function crmText(tag,cls,value){const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=String(value??'');return el}
+function crmState(r){if(['revoked','blocked'].includes(r.access_status))return 'revoked';if(r.expires_at&&new Date(r.expires_at)<new Date())return 'expired';return r.access_status==='active'?'active':'missing'}
+function renderBuyers(){
+ const root=$('buyerList');root.replaceChildren();let shown=0;
+ const query=$('buyerSearch').value.trim().toLocaleLowerCase('ru-RU'),filter=$('buyerFilter').value;
+ for(const r of crmBuyers){
+  const p=crmProfiles.get(r.user_id)||{},state=crmState(r),name=p.customer_name||r.buyer_name||r.login,company=p.company_name||r.company_name||'Не указана';
+  if(filter!=='all'&&filter!==state)continue;
+  if(![name,company,p.contact,r.contact_value,r.login,r.package_code].join(' ').toLocaleLowerCase('ru-RU').includes(query))continue;
+  shown++;
+  const card=crmText('article','crm-card','');
+  const head=crmText('div','crm-head','');head.append(crmText('h3','',name),crmText('span','crm-status '+state,{active:'Активен',expired:'Истёк',revoked:'Заблокирован',missing:'Нет доступа'}[state]));card.append(head);
+  const grid=crmText('div','crm-grid','');
+  for(const [label,value] of [['Компания',company],['Логин',r.login],['Пакет','SHEF '+String(r.package_code||'—').toUpperCase()],['Контакт',p.contact||r.contact_value||'Не указан'],['Дата покупки',crmDate(p.purchase_date||r.purchased_at)],['Доступ до',r.expires_at?crmDate(r.expires_at):(state==='active'?'Бессрочно':'Не указан')],['Создан',crmDate(r.account_created_at)],['Сумма',p.sale_amount_rub==null?'Не указана':Number(p.sale_amount_rub).toLocaleString('ru-RU')+' ₽']]){
+   const cell=crmText('div','crm-field','');cell.append(crmText('small','',label),crmText('strong','',value));grid.append(cell);
+  }
+  card.append(grid);
+  const actions=crmText('div','actions','');
+  const edit=crmText('button','btn ghost','Изменить данные');edit.type='button';
+  const form=document.createElement('form');form.className='crm-form hidden';
+  const fields=[['customer_name','Имя покупателя',p.customer_name||r.buyer_name||''],['company_name','Компания',p.company_name||r.company_name||''],['contact','Контакт',p.contact||r.contact_value||''],['purchase_date','Дата покупки',p.purchase_date||''],['sale_amount_rub','Сумма покупки, ₽',p.sale_amount_rub??''],['owner_note','Заметка',p.owner_note||'']];
+  for(const [key,label,value] of fields){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.name=key;input.type=key==='purchase_date'?'date':key==='sale_amount_rub'?'number':'text';input.value=String(value);if(key==='sale_amount_rub'){input.min='0';input.max='100000000';input.step='0.01'}l.append(input);form.append(l)}
+  const save=crmText('button','btn primary','Сохранить');save.type='submit';form.append(save);
+  form.addEventListener('submit',async e=>{
+   e.preventDefault();save.disabled=true;
+   const get=k=>form.elements.namedItem(k).value.trim();
+   const data={user_id:r.user_id,customer_name:get('customer_name')||null,company_name:get('company_name')||null,contact:get('contact')||null,purchase_date:get('purchase_date')||null,sale_amount_rub:get('sale_amount_rub')===''?null:Number(get('sale_amount_rub')),owner_note:get('owner_note')||null,updated_at:new Date().toISOString()};
+   try{const {error}=await sb.from('fk_buyer_profiles').upsert(data,{onConflict:'user_id'});if(error)throw error;toast('Карточка сохранена');await loadBuyers()}
+   catch(e){err(e,'Не удалось сохранить покупателя')}finally{save.disabled=false}
+  });
+  edit.addEventListener('click',()=>form.classList.toggle('hidden'));actions.append(edit);
+  const access=document.createElement('a');access.className='btn ghost';access.href='../owner-library.html#buyers';access.target='_blank';access.rel='noopener noreferrer';access.textContent='Управление доступом ↗';actions.append(access);
+  card.append(actions,form);root.append(card);
+ }
+ $('buyerSummary').textContent='Показано: '+shown+' из '+crmBuyers.length;
+ if(!shown)root.append(crmText('p','muted',crmBuyers.length?'По фильтру ничего не найдено.':'Покупателей пока нет.'));
+}
+async function loadBuyers(){
+ if(!currentUser)return;
+ $('buyerSummary').textContent='Загружаю покупателей…';
+ const [a,b]=await Promise.all([sb.from('fk_owner_customer_overview').select('login,user_id,package_code,account_created_at,buyer_name,company_name,contact_value,access_status,purchased_at,expires_at').order('account_created_at',{ascending:false}).limit(300),sb.from('fk_buyer_profiles').select('user_id,customer_name,company_name,contact,purchase_date,sale_amount_rub,owner_note').limit(300)]);
+ if(a.error||b.error){err(a.error||b.error,'Покупатели недоступны');$('buyerSummary').textContent='Ошибка загрузки';return}
+ crmBuyers=a.data||[];crmProfiles=new Map((b.data||[]).map(p=>[p.user_id,p]));renderBuyers();
+}
+$('buyerSearch').addEventListener('input',renderBuyers);
+$('buyerFilter').addEventListener('change',renderBuyers);
+$('buyerRefresh').addEventListener('click',loadBuyers);
