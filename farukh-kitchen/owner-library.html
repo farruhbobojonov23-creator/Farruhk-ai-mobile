@@ -155,6 +155,33 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
 }
 @media(prefers-reduced-motion:reduce){.owner-nav *{transition:none}}
 
+
+/* Покупатели и заявки · обновление 06.11.2026 */
+.fk-filters{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px;margin:16px 0}
+.fk-filters input,.fk-filters select{margin:0;min-height:45px}
+.fk-steps{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
+.fk-steps span{background:#eef4f6;border:1px solid #d5e5e8;border-radius:9px;color:#295266;font-size:12px;padding:8px 10px;font-weight:800}
+.fk-buyers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px;margin:16px 0}
+.fk-buyer{border:1px solid #d4e2e7;border-radius:18px;background:linear-gradient(145deg,#fff,#f6fafb);padding:18px;box-shadow:0 9px 21px #203e5310;min-width:0}
+.fk-buyer-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:13px}
+.fk-buyer-head h3{font-size:19px;color:#183748;margin:1px 0 4px;overflow-wrap:anywhere}
+.fk-buyer-sub{font-size:12px;color:#677f89;overflow-wrap:anywhere}
+.fk-state{flex:0 0 auto;border-radius:999px;background:#e9eff3;color:#456272;font-weight:800;font-size:11px;padding:5px 9px;white-space:nowrap}
+.fk-state.active{background:#ddf5e9;color:#176f4c}.fk-state.expired,.fk-state.revoked{background:#ffedeb;color:#a4493f}
+.fk-buyer-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:13px 0}
+.fk-info{background:#f1f6f8;border-radius:11px;padding:10px;min-width:0;overflow-wrap:anywhere}
+.fk-info small{display:block;color:#6b8290;font-size:11px;font-weight:800;margin-bottom:4px}
+.fk-info strong{font-size:13px;color:#203c4c;line-height:1.4}
+.fk-buyer-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+.fk-buyer-actions button{flex:1 1 130px;padding:9px 10px;font-size:12px}
+.fk-profile-editor{margin-top:14px;border-top:1px solid #d3e2e6;padding-top:13px}
+.fk-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fk-profile-fields label{min-width:0;margin:0}.fk-profile-fields label.full{grid-column:1/-1}
+.fk-profile-fields input,.fk-profile-fields textarea{font-weight:400;width:100%;margin-top:6px}
+.fk-profile-fields textarea{resize:vertical;min-height:75px}
+.fk-profile-hint{font-size:11px;color:#657e89;margin:10px 0}
+#fkBuyerSummary{font-size:12px;margin:2px 0}
+@media(max-width:620px){.fk-filters,.fk-profile-fields{grid-template-columns:1fr}.fk-buyer{padding:14px}.fk-buyer-info{gap:7px}.fk-buyer-head h3{font-size:17px}}
 </style>
 </head>
 <body><main>
@@ -216,7 +243,10 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
 </div>
 <div class="owner-view" data-owner-view="requests" hidden>
 <section class="panel owner-main-panel" id="fkRequestsBox">
- <div class="kicker">РАБОТА С КЛИЕНТАМИ</div><h2>Новые заявки</h2>
+ <div class="kicker">РАБОТА С КЛИЕНТАМИ</div><h2>Заявки клиентов</h2>
+ <p class="muted">Порядок: новая заявка → связаться → подтвердить оплату → выдать доступ. Для услуг шефа доступ к ТТК не создаётся.</p>
+ <div class="fk-steps"><span>1 · Новая заявка</span><span>2 · В работе</span><span>3 · Оплата проверена</span><span>4 · Аккаунт выдан</span></div>
+ <div class="fk-filters"><input id="fkRequestSearch" type="search" placeholder="Найти по имени, компании или контакту" aria-label="Поиск заявок"><select id="fkRequestFilter" aria-label="Статус заявки"><option value="all">Все заявки</option><option value="new">Новые</option><option value="contacted">В работе</option><option value="completed">Выполненные</option><option value="dismissed">Закрытые</option></select></div>
  <p class="muted">Здесь появляются запросы на START, PRO, PREMIUM и «Шеф на выезд». Свяжитесь с клиентом по указанному контакту. Для платных ТТК создавайте логин только после подтверждения оплаты.</p>
  <p class="owner-check-note"><strong>Услуга шефа:</strong> заявка на консультацию не требует создания логина. Детали сотрудничества, цена и даты согласовываются отдельно.</p>
  <div class="row">
@@ -231,14 +261,17 @@ footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
   <textarea id="fkCredentials" readonly aria-label="Логин и пароль покупателя" rows="7" style="width:100%;padding:12px;border:1px solid #90bdb4;border-radius:9px;font:inherit;resize:vertical"></textarea>
   <button type="button" class="subtle" id="fkCopyCredentials" style="margin-top:10px">Скопировать данные для отправки</button>
  </div>
- <p id="fkRequestsStatus" class="status" role="status" aria-live="polite">Ожидаю заявок.</p>
+ <p id="fkRequestsShown" class="muted" aria-live="polite"></p><p id="fkRequestsStatus" class="status" role="status" aria-live="polite">Ожидаю заявок.</p>
 </section>
 </div>
 <div class="owner-view" data-owner-view="buyers" hidden>
 <section class="panel" id="fkManagedAccounts">
- <h2>Логины покупателей</h2>
- <p class="muted"><small>Здесь можно сбросить пароль покупателя или отозвать его доступ. Пароли не сохраняются в таблице.</small></p>
- <div class="tablewrap"><table><thead><tr><th>Логин</th><th>Пакет</th><th>Создан</th><th>Управление</th></tr></thead><tbody id="fkAccountsBody"><tr><td colspan="4">Нет созданных логинов.</td></tr></tbody></table></div>
+ <div class="kicker">КЛИЕНТСКАЯ БАЗА · ТОЛЬКО ВЛАДЕЛЬЦУ</div>
+ <h2>Покупатели и доступы</h2>
+ <p class="muted">Имя, компания, контакт, тариф, дата покупки и срок доступа — в одной карточке. Недостающие сведения можно сохранить вручную. Старые пароли не отображаются: новый пароль создаётся при сбросе и показывается один раз.</p>
+ <div class="fk-filters"><input id="fkBuyerSearch" type="search" placeholder="Поиск по покупателю, компании или логину" aria-label="Поиск покупателей"><select id="fkBuyerStatus" aria-label="Фильтр покупателей"><option value="all">Все покупатели</option><option value="active">Активные</option><option value="expired">Срок истёк</option><option value="revoked">Заблокированные</option><option value="missing">Без доступа</option></select></div>
+ <p id="fkBuyerSummary" class="muted" aria-live="polite"></p>
+ <div id="fkAccountsBody" class="fk-buyers" aria-live="polite"><p>Загружаю покупателей…</p></div>
 </section>
 </div>
 <div class="owner-view" data-owner-view="documents" hidden>
@@ -590,90 +623,226 @@ async function invokeOwnerBuyer(payload){
  if(!res.ok||!json.ok)throw Error(json.error||'Ошибка создания аккаунта');
  return json;
 }
+
+let fkBuyerList=[];
+const fkDate=(v)=>{
+ if(!v)return 'Не указано';
+ const d=String(v).slice(0,10);
+ return /^\d{4}-\d{2}-\d{2}$/.test(d)?d.slice(8,10)+'.'+d.slice(5,7)+'.'+d.slice(0,4):'Не указано';
+};
+const fkText=(tag,className,value)=>{
+ const el=document.createElement(tag);if(className)el.className=className;el.textContent=String(value??'');return el;
+};
+const fkButton=(textValue,cls,handler)=>{
+ const el=document.createElement('button');el.type='button';el.textContent=textValue;if(cls)el.className=cls;el.addEventListener('click',handler);return el;
+};
+const fkEmpty=v=>v==null||String(v).trim()===''?'Не указано':String(v);
+function fkAccessState(row){
+ const status=String(row.access_status||'').toLowerCase();
+ if(status==='revoked'||status==='blocked')return ['revoked','Заблокирован'];
+ if(row.expires_at && new Date(row.expires_at).getTime()<Date.now())return ['expired','Срок истёк'];
+ if(status==='active')return ['active','Активен'];
+ return ['missing','Нет активного доступа'];
+}
+function fkFilterRequests(){
+ const term=$('fkRequestSearch').value.trim().toLowerCase(),status=$('fkRequestFilter').value;
+ let shown=0;
+ document.querySelectorAll('#fkRequestsBody tr[data-request-status]').forEach(row=>{
+  const show=(status==='all'||row.dataset.requestStatus===status)&&row.textContent.toLowerCase().includes(term);
+  row.classList.toggle('hidden',!show);if(show)shown++;
+ });
+ const summary=$('fkRequestsShown');if(summary)summary.textContent='Показано заявок: '+shown;
+}
+function fkFilterBuyers(){
+ const term=$('fkBuyerSearch').value.trim().toLowerCase(),status=$('fkBuyerStatus').value;
+ let shown=0;
+ document.querySelectorAll('#fkAccountsBody .fk-buyer').forEach(card=>{
+  const show=(status==='all'||card.dataset.state===status)&&card.dataset.search.includes(term);
+  card.classList.toggle('hidden',!show);if(show)shown++;
+ });
+ $('fkBuyerSummary').textContent='Показано: '+shown+' из '+fkBuyerList.length+'. Доступы и сведения обновляются из закрытой базы.';
+}
+async function fkUpdateRequest(id,newStatus){
+ if(!isAdmin)return;
+ const {error}=await sb.from('fk_access_requests').update({status:newStatus,updated_at:new Date().toISOString()}).eq('id',id);
+ if(error)throw error;
+ await loadBuyerRequests();
+}
+async function fkSaveBuyerProfile(row,profile,form,saveButton){
+ if(!isAdmin||!row.user_id)return;
+ const val=name=>form.querySelector('[name="'+name+'"]').value.trim();
+ const amount=val('amount');
+ if(amount && (!Number.isFinite(Number(amount))||Number(amount)<0))throw Error('Укажите корректную сумму покупки');
+ const record={user_id:row.user_id,customer_name:val('name')||null,company_name:val('company')||null,contact:val('contact')||null,purchase_date:val('purchase')||null,sale_amount_rub:amount?Number(amount):null,owner_note:val('note')||null,updated_at:new Date().toISOString()};
+ saveButton.disabled=true;
+ try{
+  const {error}=await sb.from('fk_buyer_profiles').upsert(record,{onConflict:'user_id'});
+  if(error)throw error;
+  status('Данные покупателя сохранены в защищённой базе.');
+  await loadBuyerRequests();
+ }finally{saveButton.disabled=false}
+}
+async function fkExtendBuyer(row){
+ if(!isAdmin||!row.user_id)return;
+ const suggested=row.expires_at?String(row.expires_at).slice(0,10):'';
+ const date=prompt('Укажите новую дату окончания доступа (ГГГГ-ММ-ДД). Для бессрочного доступа оставьте поле пустым.',suggested);
+ if(date===null)return;
+ if(date && (!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date)))){status('Неверная дата доступа',true);return}
+ if(!confirm('Изменить срок доступа для '+row.login+'?'))return;
+ try{
+  const {data:recent,error:findError}=await sb.from('fk_paid_access').select('id,status,created_at').eq('user_id',row.user_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(findError)throw findError;
+  if(!recent||recent.status!=='active')throw Error('Доступ неактивен. Продление невозможно до восстановления доступа.');
+  const expiry=date?new Date(date+'T23:59:59+03:00').toISOString():null;
+  const {error}=await sb.from('fk_paid_access').update({expires_at:expiry,updated_at:new Date().toISOString()}).eq('id',recent.id).eq('status','active');
+  if(error)throw error;
+  status('Срок действия покупателя обновлён.');await loadBuyerRequests();
+ }catch(e){status('Ошибка продления: '+(e.message||'неизвестная ошибка'),true)}
+}
+function fkBuyerEditor(row,profile,card){
+ const form=document.createElement('form');form.className='fk-profile-editor hidden';
+ form.setAttribute('aria-label','Редактирование покупателя '+row.login);
+ const grid=fkText('div','fk-profile-fields','');
+ const field=(key,label,value,type='text',full=false)=>{
+  const holder=document.createElement('label');holder.textContent=label;if(full)holder.className='full';
+  const input=type==='textarea'?document.createElement('textarea'):document.createElement('input');
+  if(type!=='textarea')input.type=type;input.name=key;input.value=String(value??'');if(type==='textarea')input.rows=3;
+  holder.append(input);grid.append(holder);return input;
+ };
+ field('name','Имя покупателя',profile?.customer_name||row.buyer_name||'');
+ field('company','Компания / заведение',profile?.company_name||row.company_name||'');
+ field('contact','Телефон или Telegram',profile?.contact||row.contact_value||'');
+ field('purchase','Дата покупки',profile?.purchase_date||String(row.purchased_at||'').slice(0,10),'date');
+ field('amount','Сумма покупки, ₽',profile?.sale_amount_rub??'','number');
+ field('note','Заметка владельца',profile?.owner_note||'','textarea',true);
+ form.append(grid,fkText('p','fk-profile-hint','Изменения сохраняются только в закрытую базу. Логин и права доступа останутся прежними.'));
+ const save=fkButton('Сохранить покупателя','subtle',()=>{});
+ save.type='submit';form.append(save);
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();try{await fkSaveBuyerProfile(row,profile,form,save)}catch(e){status('Ошибка сохранения: '+(e.message||'неизвестная ошибка'),true)}
+ });
+ card.append(form);return form;
+}
+function fkRenderBuyers(rows,profiles){
+ fkBuyerList=rows;
+ const box=$('fkAccountsBody');box.replaceChildren();
+ if(!rows.length){box.append(fkText('p','muted','Пока нет покупателей. После подтверждения оплаты и создания логина карточка появится здесь.'));fkFilterBuyers();return}
+ for(const row of rows){
+  const profile=profiles.get(row.user_id),name=profile?.customer_name||row.buyer_name||row.login;
+  const company=profile?.company_name||row.company_name;
+  const contact=profile?.contact||row.contact_value;
+  const purchase=profile?.purchase_date||row.purchased_at;
+  const [state,label]=fkAccessState(row);
+  const card=fkText('article','fk-buyer','');card.dataset.state=state;
+  card.dataset.search=[name,company,contact,row.login,row.package_code,row.city].join(' ').toLowerCase();
+  const head=fkText('div','fk-buyer-head',''),primary=document.createElement('div');
+  primary.append(fkText('h3','',name),fkText('div','fk-buyer-sub',company?'Компания: '+company:'Компания не указана'));
+  const badge=fkText('span','fk-state '+state,label);head.append(primary,badge);card.append(head);
+  const details=fkText('div','fk-buyer-info','');
+  const item=(title,value)=>{const part=fkText('div','fk-info','');part.append(fkText('small','',title),fkText('strong','',fkEmpty(value)));details.append(part)};
+  item('Логин',row.login);
+  item('Тариф','SHEF '+String(row.package_code||'—').toUpperCase());
+  item('Телефон / Telegram',contact);
+  item('Создан',fkDate(row.account_created_at));
+  item('Покупка / подтверждение оплаты',fkDate(purchase));
+  item('Доступ до',row.expires_at?fkDate(row.expires_at):(state==='active'?'Бессрочно':'Не указан'));
+  if(row.expires_at && state==='active')item('Осталось дней',row.days_left??'—');
+  if(profile?.sale_amount_rub!=null)item('Стоимость, ₽',Number(profile.sale_amount_rub).toLocaleString('ru-RU'));
+  card.append(details);
+  const actions=fkText('div','fk-buyer-actions','');
+  const editor=fkBuyerEditor(row,profile,card);
+  actions.append(fkButton('Подробнее / изменить','subtle',()=>{editor.classList.toggle('hidden');if(!editor.classList.contains('hidden'))editor.scrollIntoView({behavior:'smooth',block:'nearest'})}));
+  actions.append(fkButton('Новый пароль','subtle',async()=>{
+   if(!confirm('Создать новый пароль для '+row.login+'? Старый перестанет работать.'))return;
+   try{
+    const result=await invokeOwnerBuyer({action:'reset',login:row.login});
+    credentialReveal(result.login,result.password,row.package_code);
+    ownerSelectView('requests');
+    requestStatus('Новый пароль создан. Он показывается только сейчас — скопируйте его и отправьте покупателю лично.');
+   }catch(e){status('Ошибка сброса пароля: '+(e.message||'неизвестная ошибка'),true)}
+  }));
+  if(state==='active')actions.append(fkButton('Продлить доступ','subtle',()=>fkExtendBuyer(row)));
+  if(state==='active'||state==='expired'){
+   actions.append(fkButton('Блокировать','warn',async()=>{
+    if(!confirm('Заблокировать '+row.login+' и закрыть доступ к ТТК?'))return;
+    try{await invokeOwnerBuyer({action:'revoke',login:row.login});status('Доступ покупателя заблокирован');await loadBuyerRequests()}catch(e){status('Ошибка блокировки: '+(e.message||'неизвестная ошибка'),true)}
+   }));
+  }
+  card.insertBefore(actions,editor);box.append(card);
+ }
+ fkFilterBuyers();
+}
 async function loadBuyerRequests(){
  if(!isAdmin)return;
- const [reqRes,logRes]=await Promise.all([
-  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at,service_format,project_city,project_business,project_goal,service_type,business_city,business_name,business_problem').order('created_at',{ascending:false}).limit(100),
-  sb.from('fk_username_accounts').select('login,package_code,created_at').order('created_at',{ascending:false}).limit(100),
+ const [reqRes,accountsRes,profilesRes]=await Promise.all([
+  sb.from('fk_access_requests').select('id,customer_name,package_code,contact_type,contact_value,status,created_at,service_format,project_city,project_business,project_goal,service_type,business_city,business_name,business_problem').order('created_at',{ascending:false}).limit(200),
+  sb.from('fk_owner_customer_overview').select('login,user_id,request_id,package_code,account_created_at,buyer_name,company_name,city,contact_type,contact_value,access_status,purchased_at,expires_at,days_left').order('account_created_at',{ascending:false}).limit(200),
+  sb.from('fk_buyer_profiles').select('user_id,customer_name,company_name,contact,purchase_date,sale_amount_rub,owner_note').limit(200)
  ]);
- if(reqRes.error||logRes.error){requestStatus('Не удалось загрузить заявки: '+(reqRes.error?.message||logRes.error?.message),true);return}
- const requestBody=$('fkRequestsBody');requestBody.replaceChildren();
- const records=reqRes.data||[];
- const newCount=records.filter(x=>x.status==='new').length;
- $('ownerMetricRequests').textContent=String(newCount);
- $('ownerMetricBuyers').textContent=String((logRes.data||[]).length);
- const badge=$('ownerRequestsBadge');badge.hidden=newCount===0;badge.textContent=String(newCount);
- const cell=(textValue)=>{
-  const td=document.createElement('td');td.textContent=String(textValue??'');return td;
- };
- for(const item of records){
-  const tr=document.createElement('tr');
-  if(item.package_code==='consulting'){
-   const td=cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name);
-   const details=document.createElement('div');details.style.whiteSpace='pre-wrap';details.style.overflowWrap='anywhere';details.style.fontSize='12px';details.style.marginTop='7px';
-   const formats={online:'Онлайн-консультация',audit:'Шеф-аудит',mentoring:'Шеф-сопровождение',launch:'Запуск доставки с нуля',training:'Обучение команды',ttk:'Разработка ТТК',optimization:'Оптимизация'};
-   const format=item.service_format||item.service_type;
-   details.textContent=(formats[format]||'Консультация')+' · '+(item.project_city||item.business_city||'—')+(item.project_business||item.business_name?' · '+(item.project_business||item.business_name):'')+'\n'+(item.project_goal||item.business_problem||'');
-   td.append(details);tr.append(td);
-  }else tr.append(cell(new Date(item.created_at).toLocaleDateString('ru-RU')+' · '+item.customer_name));
-  tr.append(cell(item.package_code==='consulting'?'CHEF AKA · ШЕФ НА ВЫЕЗД':'SHEF '+item.package_code.toUpperCase()+(item.package_code==='premium'?' · выезд + PRO':'')));
-  const contactTd=document.createElement('td'),link=document.createElement('a');
-  link.textContent=item.contact_value;
-  link.href=item.contact_type==='telegram'?'https://t.me/'+item.contact_value.replace(/^@/,''):'tel:'+item.contact_value.replace(/[ ()-]/g,'');
-  link.target='_blank';link.rel='noopener noreferrer';contactTd.append(link);tr.append(contactTd);
-  tr.append(cell(item.status==='completed'?(item.package_code==='consulting'?'Завершено':'Аккаунт создан'):item.status==='new'?'Новая':item.status==='contacted'?'На согласовании':item.status));
-  const actions=document.createElement('td'),button=document.createElement('button');
-  button.type='button';button.textContent=item.package_code==='premium'?'Выдать PRO после полной оплаты':'Создать логин';button.className='subtle';
-  if(item.package_code==='consulting'){button.textContent='Согласование без логина';button.title='Для консультации доступ к ТТК не создаётся';button.disabled=true;}
-  if(item.status==='completed'||item.status==='dismissed')button.disabled=true;
-  button.addEventListener('click',async()=>{
-   if(!$('fkPaidConfirmed').checked){requestStatus('Сначала поставьте галочку «Оплату получил и проверил».',true);return}
-   const approval=item.package_code==='premium'
-    ?'SHEF PREMIUM: подтверждаете получение полной оплаты 199 900 ₽, согласование договора, дат выезда и командировочных расходов? Сейчас будет создан логин SHEF PRO для входа в библиотеку. Выезд оформляется отдельно.'
-    :'Подтверждаете, что получили оплату от этого покупателя? Создать персональный логин и пароль?';
-   if(!confirm(approval))return;
-   button.disabled=true;requestStatus('Создаю защищённый аккаунт без email…');
-   try{
-    const data=await invokeOwnerBuyer({action:'create',request_id:item.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
-    credentialReveal(data.login,data.password,data.package_code);
-    requestStatus(item.package_code==='premium'
-     ?'PREMIUM: выдан цифровой доступ SHEF PRO. Личный выезд, программа и проживание согласуются и фиксируются в договоре отдельно.'
-     :'Логин создан! Отправьте данные покупателю лично. При активном тарифе доступ к выданным документам открыт.');
-    $('fkPaidConfirmed').checked=false;
-    await loadBuyerRequests();
-   }catch(e){button.disabled=false;requestStatus('Не удалось создать логин: '+(e.message||'ошибка'),true)}
-  });
-  actions.append(button);tr.append(actions);requestBody.append(tr);
+ if(reqRes.error||accountsRes.error||profilesRes.error){
+  requestStatus('Не удалось загрузить клиентскую базу: '+(reqRes.error?.message||accountsRes.error?.message||profilesRes.error?.message),true);return;
  }
- if(!records.length){const tr=document.createElement('tr'),td=cell('Заявок пока нет. Гостям достаточно отправить заявку на сайте.');td.colSpan=5;tr.append(td);requestBody.append(tr)}
- const accountBody=$('fkAccountsBody');accountBody.replaceChildren();
- for(const item of logRes.data||[]){
-  const tr=document.createElement('tr');tr.append(cell(item.login),cell(item.package_code.toUpperCase()),cell(new Date(item.created_at).toLocaleDateString('ru-RU')));
-  const td=document.createElement('td');
-  const reset=document.createElement('button');reset.className='subtle';reset.type='button';reset.textContent='Новый пароль';
-  reset.addEventListener('click',async()=>{
-   if(!confirm('Сбросить пароль для '+item.login+'? Старый пароль перестанет работать.'))return;
-   reset.disabled=true;
-   try{
-    const out=await invokeOwnerBuyer({action:'reset',login:item.login});
-    credentialReveal(out.login,out.password,item.package_code);
-    requestStatus('Новый пароль установлен. Отправьте его покупателю лично.');
-   }catch(e){requestStatus('Не удалось сбросить пароль: '+(e.message||'ошибка'),true)}
-   finally{reset.disabled=false}
-  });
-  const revoke=document.createElement('button');revoke.className='warn';revoke.type='button';revoke.textContent='Блокировать';revoke.style.marginLeft='6px';
-  revoke.addEventListener('click',async()=>{
-   if(!confirm('Заблокировать доступ '+item.login+' ко всем ТТК?'))return;
-   revoke.disabled=true;
-   try{await invokeOwnerBuyer({action:'revoke',login:item.login});requestStatus('Доступ '+item.login+' отозван.');}
-   catch(e){requestStatus('Ошибка отзыва доступа: '+(e.message||'ошибка'),true);revoke.disabled=false}
-  });
-  td.append(reset,revoke);tr.append(td);accountBody.append(tr);
+ const rows=reqRes.data||[],accounts=accountsRes.data||[],profiles=new Map((profilesRes.data||[]).map(x=>[x.user_id,x]));
+ $('ownerMetricRequests').textContent=String(rows.filter(x=>x.status==='new').length);
+ $('ownerMetricBuyers').textContent=String(accounts.length);
+ const badge=$('ownerRequestsBadge'),newCount=rows.filter(x=>x.status==='new').length;
+ badge.hidden=newCount===0;badge.textContent=String(newCount);
+ fkRenderBuyers(accounts,profiles);
+ const root=$('fkRequestsBody');root.replaceChildren();
+ const cell=value=>fkText('td','',value);
+ for(const row of rows){
+  const tr=document.createElement('tr');tr.dataset.requestStatus=row.status||'new';
+  const who=cell(fkDate(row.created_at)+' · '+(row.customer_name||'Без имени'));
+  const business=row.business_name||row.project_business,city=row.business_city||row.project_city;
+  const description=[business?'Компания: '+business:'',city?'Город: '+city:'',row.project_goal||row.business_problem||''].filter(Boolean).join('\n');
+  if(description){const el=fkText('small','muted',description);el.style.display='block';el.style.whiteSpace='pre-wrap';who.append(el)}
+  tr.append(who);
+  tr.append(cell(row.package_code==='consulting'?'Шеф / консультация':'SHEF '+String(row.package_code||'—').toUpperCase()));
+  const td=document.createElement('td'),link=document.createElement('a');
+  link.textContent=row.contact_value||'Не указано';
+  if(row.contact_type==='telegram' && /^@[a-z0-9_]{5,32}$/i.test(row.contact_value||''))link.href='https://t.me/'+row.contact_value.slice(1);
+  else if(row.contact_type==='phone')link.href='tel:'+String(row.contact_value||'').replace(/[^\d+]/g,'');
+  else link.removeAttribute('href');
+  link.target='_blank';link.rel='noopener noreferrer';td.append(link);tr.append(td);
+  tr.append(cell(({new:'Новая',contacted:'В работе',completed:'Аккаунт создан',dismissed:'Закрыта'})[row.status]||row.status));
+  const actions=document.createElement('td');
+  if(row.status==='new')actions.append(fkButton('Взять в работу','subtle',async()=>{
+   try{await fkUpdateRequest(row.id,'contacted');requestStatus('Заявка взята в работу. Свяжитесь с клиентом.')}catch(e){requestStatus('Ошибка: '+e.message,true)}
+  }));
+  if(row.status==='dismissed')actions.append(fkButton('Вернуть в новые','subtle',async()=>{
+   try{await fkUpdateRequest(row.id,'new')}catch(e){requestStatus('Ошибка: '+e.message,true)}
+  }));
+  if((row.status==='new'||row.status==='contacted') && row.package_code!=='consulting'){
+   actions.append(fkButton('Создать логин после оплаты','subtle',async()=>{
+    if(!$('fkPaidConfirmed').checked){requestStatus('Сначала подтвердите получение полной оплаты галочкой над таблицей.',true);return}
+    if(!confirm('Подтверждаете оплату и выдачу доступа для '+row.customer_name+'?'))return;
+    try{
+     requestStatus('Создаю личный логин…');
+     const out=await invokeOwnerBuyer({action:'create',request_id:row.id,confirmed_paid:true,expires_on:$('fkNewAccountExpiry').value||null});
+     credentialReveal(out.login,out.password,out.package_code);
+     $('fkPaidConfirmed').checked=false;await loadBuyerRequests();
+     requestStatus('Аккаунт создан. Отправьте логин и новый пароль покупателю лично.');
+    }catch(e){requestStatus('Ошибка создания: '+(e.message||'неизвестная ошибка'),true)}
+   }));
+  }
+  if(row.package_code==='consulting' && row.status==='contacted')actions.append(fkButton('Согласование завершено','subtle',async()=>{
+   try{await fkUpdateRequest(row.id,'completed')}catch(e){requestStatus('Ошибка: '+e.message,true)}
+  }));
+  if(row.status==='new'||row.status==='contacted')actions.append(fkButton('Закрыть без продажи','warn',async()=>{
+   if(!confirm('Закрыть эту заявку без создания доступа?'))return;
+   try{await fkUpdateRequest(row.id,'dismissed')}catch(e){requestStatus('Ошибка: '+e.message,true)}
+  }));
+  tr.append(actions);root.append(tr);
  }
- if(!(logRes.data||[]).length){const tr=document.createElement('tr'),td=cell('Логинов ещё нет.');td.colSpan=4;tr.append(td);accountBody.append(tr)}
- requestStatus('Получено заявок: '+records.length+'. Логинов создано: '+(logRes.data||[]).length+'.');
+ if(!rows.length){const td=cell('Заявок пока нет');td.colSpan=5;const tr=document.createElement('tr');tr.append(td);root.append(tr)}
+ fkFilterRequests();
+ requestStatus('Всего заявок: '+rows.length+' · новых: '+newCount+' · покупателей: '+accounts.length+'.');
 }
 $('fkRequestsRefresh').addEventListener('click',()=>loadBuyerRequests());
+$('fkRequestSearch').addEventListener('input',fkFilterRequests);
+$('fkRequestFilter').addEventListener('change',fkFilterRequests);
+$('fkBuyerSearch').addEventListener('input',fkFilterBuyers);
+$('fkBuyerStatus').addEventListener('change',fkFilterBuyers);
 $('fkCopyCredentials').addEventListener('click',async()=>{
  const val=$('fkCredentials').value;
  try{await navigator.clipboard.writeText(val);requestStatus('Данные скопированы. Отправьте их покупателю лично.')}
