@@ -1,3 +1,4 @@
+import {createLibrary} from './library.js';
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const sb=createClient('https://rwvljbgsqnabvzmoaxgg.supabase.co','sb_publishable_VD-jbYP5drGWQneUwaGytA_u-OWJclT',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
@@ -10,10 +11,36 @@ let toastTimer;
 function toast(message,bad=false){const el=$('toast');el.textContent=message;el.classList.toggle('error',bad);el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),7000)}
 function err(e,defaultMsg){toast((defaultMsg?defaultMsg+': ':'')+(e?.message||String(e||'неизвестная ошибка')),true)}
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function changeView(name){document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));document.querySelectorAll('[data-panel]').forEach(e=>e.classList.toggle('active',e.dataset.panel===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='requests')loadRequests();if(name==='documents')loadRecipes();if(name!=='requests')clearCredentials();if(name==='buyers')loadBuyers();}
-document.querySelectorAll('[data-panel]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.panel)));
-document.querySelectorAll('[data-go]').forEach(btn=>btn.addEventListener('click',()=>changeView(btn.dataset.go)));
-async function signout(){clearCredentials();await sb.auth.signOut();currentUser=null;show('app',false);show('denyBox',false);show('loginBox',true);$('ownerIdentity').textContent='';show('logout',false);}
+let library=null,libraryTab='current';
+function changeView(name){
+ document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('hidden',e.dataset.view!==name));
+ document.querySelectorAll('[data-panel]').forEach(e=>{e.classList.toggle('active',e.dataset.panel===name);if(e.dataset.panel===name)e.setAttribute('aria-current','page');else e.removeAttribute('aria-current')});
+ $('side').classList.remove('expanded');$('mobileMenu').setAttribute('aria-expanded','false');
+ window.scrollTo({top:0,behavior:'instant'});
+ if(name==='requests')loadRequests();if(name==='buyers')loadBuyers();
+ if(name==='documents'){loadRecipes();openLibrary(libraryTab)}
+ if(name!=='requests')clearCredentials();if(name!=='buyers')clearBuyerPassword();
+}
+function navigate(name){if(location.hash==='#'+name)applyRoute();else location.hash=name}
+document.querySelectorAll('[data-panel],[data-go]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.panel||btn.dataset.go)));
+$('mobileMenu').addEventListener('click',()=>{const open=$('side').classList.toggle('expanded');$('mobileMenu').setAttribute('aria-expanded',String(open))});
+function openLibrary(tab){
+ libraryTab=tab;
+ document.querySelectorAll('[data-library-page]').forEach(e=>e.hidden=e.dataset.libraryPage!==tab);
+ document.querySelectorAll('[data-library]').forEach(e=>e.setAttribute('aria-pressed',String(e.dataset.library===tab)));
+ if(!library&&currentUser)library=createLibrary(sb,currentUser,toast);
+ if(library&&tab!=='changes')(tab==='archive'?library.loadArchive():library.loadCurrent()).catch(e=>err(e,'Не удалось загрузить библиотеку'));
+}
+document.querySelectorAll('[data-library]').forEach(btn=>btn.addEventListener('click',()=>navigate({current:'documents',changes:'changes',archive:'archive'}[btn.dataset.library])));
+function clearBuyerPassword(){$('newBuyerCredentials').value='';show('buyerPasswordPanel',false)}
+$('hideBuyerPassword').addEventListener('click',clearBuyerPassword);
+async function signout(){clearCredentials();clearBuyerPassword();const {error}=await sb.auth.signOut();if(error){err(error,'Ошибка выхода');return}location.reload();currentUser=null;show('app',false);show('denyBox',false);show('loginBox',true);$('ownerIdentity').textContent='';show('logout',false);}
+$('claimOwner').addEventListener('click',async()=>{
+ const key=$('claimToken').value.trim();if(!key)return;
+ $('claimOwner').disabled=true;
+ try{const {data,error}=await sb.rpc('fk_claim_first_owner',{p_token:key});if(error||!data)throw Error('Право владельца не подтверждено');$('claimToken').value='';await boot()}
+ catch(e){err(e,'Настройка владельца')}finally{$('claimOwner').disabled=false}
+});
 $('logout').addEventListener('click',signout);$('denyLogout').addEventListener('click',signout);
 async function boot(){
  const {data:{user},error}=await sb.auth.getUser();
@@ -297,7 +324,7 @@ function renderBuyers(){
    catch(e){err(e,'Не удалось сохранить покупателя')}finally{save.disabled=false}
   });
   edit.addEventListener('click',()=>form.classList.toggle('hidden'));actions.append(edit);
-  const access=document.createElement('a');access.className='btn ghost';access.href='../owner-library.html#buyers';access.target='_blank';access.rel='noopener noreferrer';access.textContent='Управление доступом ↗';actions.append(access);
+  actions.append(buyerAccessMenu(r,state));
   card.append(actions,form);root.append(card);
  }
  $('buyerSummary').textContent='Показано: '+shown+' из '+crmBuyers.length;
@@ -411,7 +438,8 @@ async function applyRoute(){
  const route=location.hash.slice(1);
  if(['paid','new'].includes(route)){changeView('requests');$('requestScope').value=route;renderRequests()}
  else if(route==='expiring'){changeView('buyers');$('buyerFilter').value='expiring';renderBuyers()}
- else if(route==='documents'){changeView('documents')}
+ else if(['documents','changes','archive'].includes(route)){libraryTab=route==='documents'?'current':route;changeView('documents')}
+ else if(!route||Array.from(document.querySelectorAll('[data-panel]')).some(b=>b.dataset.panel===route))changeView(route||'overview');
  else if(route.startsWith('buyer/'))await openBuyer(route.slice(6));
  else if(route.startsWith('request/')){
   changeView('requests');$('requestScope').value='all';await loadRequests();
@@ -423,3 +451,51 @@ document.querySelectorAll('[data-queue]').forEach(btn=>btn.addEventListener('cli
 }));
 window.addEventListener('hashchange',()=>{if(currentUser)applyRoute()});
 boot().catch(e=>err(e,'Ошибка инициализации'));
+async function fkExtendBuyer(row){
+ if(!currentUser||!row.user_id)return;
+ const suggested=row.expires_at?String(row.expires_at).slice(0,10):'';
+ const date=prompt('Укажите новую дату окончания доступа (ГГГГ-ММ-ДД). Для бессрочного доступа оставьте поле пустым.',suggested);
+ if(date===null)return;
+ if(date && (!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date)))){toast('Неверная дата доступа',true);return}
+ if(!confirm('Изменить срок доступа для '+row.login+'?'))return;
+ try{
+  const {data:recent,error:findError}=await sb.from('fk_paid_access').select('id,status,created_at').eq('user_id',row.user_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(findError)throw findError;
+  if(!recent||recent.status!=='active')throw Error('Доступ неактивен. Продление невозможно до восстановления доступа.');
+  const expiry=date?new Date(date+'T23:59:59+03:00').toISOString():null;
+  const {error}=await sb.from('fk_paid_access').update({expires_at:expiry,updated_at:new Date().toISOString()}).eq('id',recent.id).eq('status','active');
+  if(error)throw error;
+  toast('Срок действия покупателя обновлён.');await loadBuyers();
+ }catch(e){toast('Ошибка продления: '+(e.message||'неизвестная ошибка'),true)}
+}
+
+function buyerAccessMenu(row,state){
+ const menu=document.createElement('details');menu.className='buyer-tools';
+ menu.append(crmText('summary','','Управление доступом'));
+ const invoke=async(actionName,extra={})=>{
+  const {data,error}=await sb.functions.invoke('fk-owner-create-buyer',{body:{action:actionName,login:row.login,...extra}});
+  if(error||!data?.ok)throw Error(data?.error||error?.message||'Операция не выполнена');
+  return data;
+ };
+ menu.append(action('Новый пароль',async()=>{
+  if(!confirm('Создать новый пароль для '+row.login+'?'))return;
+  const data=await invoke('reset');
+  $('newBuyerCredentials').value=[location.origin+'/cabinet.html','Логин: '+row.login,'Пароль: '+data.password].join('\n');
+  show('buyerPasswordPanel',true);$('buyerPasswordPanel').scrollIntoView({block:'center'});
+ }));
+ if(state==='active')menu.append(action('Продлить доступ',()=>fkExtendBuyer(row)));
+ if(['active','expired'].includes(state))menu.append(action('Блокировать',async()=>{
+  if(!confirm('Закрыть доступ для '+row.login+'?'))return;
+  await invoke('revoke');await loadBuyers();toast('Доступ заблокирован');
+ }));
+ menu.append(action('Удалить тестовый аккаунт',async()=>{
+  const typed=prompt('Введите логин тестового покупателя для удаления: '+row.login);
+  if(typed===null)return;
+  if(typed.trim().toLowerCase()!==row.login.toLowerCase())throw Error('Логин не совпадает');
+  if(!confirm('Это тестовый аккаунт без реальной оплаты? Удаление окончательное.'))return;
+  const result=await invoke('delete_test',{confirm_login:typed.trim(),confirm_test:true});
+  if(!result.deleted)throw Error('Сервер не подтвердил удаление');
+  clearBuyerPassword();await Promise.all([loadBuyers(),loadRequests()]);toast('Тестовый аккаунт удалён');
+ }));
+ return menu;
+}
