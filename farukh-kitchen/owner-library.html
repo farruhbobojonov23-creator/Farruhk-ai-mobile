@@ -30,12 +30,137 @@ button.warn{background:#f5eaf0;color:#ad4263}
 code{font-size:12px;background:#edf1f9;padding:4px;border-radius:5px;word-break:break-all}
 small{font-size:12px}
 a{color:#4f65ae}
+
+/* CHEF AKA · Owner dashboard 2026-11-06 · Non-destructive navigation */
+:root{--ink:#203247;--muted:#63748a;--line:#dde5eb;--accent:#c59a56}
+body{background:linear-gradient(180deg,#071b28 0,#0b2734 280px,#eef3f6 280px,#f3f6f9 100%);color:var(--ink);min-height:100vh}
+main{max-width:1160px;padding:22px clamp(14px,3vw,28px) 70px}
+.owner-topbar{border:1px solid #416172;background:rgba(13,39,53,.9);padding:17px 23px;border-radius:21px;box-shadow:0 12px 35px #0002;align-items:center;margin-bottom:18px}
+.owner-topbar .brand{display:flex;align-items:center;gap:12px;color:#fff;font-size:18px}
+.owner-topbar .brand em{color:#e7c188}
+.owner-topbar .brand small{display:block;font-size:9px;letter-spacing:.22em;color:#b1cad6}
+.owner-top-caption{font-size:11px;letter-spacing:.12em;font-weight:750;color:#bfd2dc;text-align:right}
+.owner-mark{width:42px;height:42px;flex:0 0 42px;border:1px solid #cda66c;border-radius:12px;display:grid;place-items:center;font:900 26px Georgia,serif;color:#e8c68e}
+main>h1,main> a[href="admin/"] + a + h1{color:#fff;font-size:clamp(29px,4vw,38px);letter-spacing:-.045em;margin:14px 0 7px}
+main>a[href="admin/"],main>a[href="./"]{display:inline-block;color:#dfc59b;font-weight:650;font-size:13px;margin:2px 0 0;text-decoration:none}
+.owner-intro{color:#c6d7e0;max-width:820px;margin:9px 0 23px;font-size:14px;line-height:1.7}
+.panel{border:1px solid #dce5eb;border-radius:20px;box-shadow:0 10px 26px #1b374210;background:#fff;padding:clamp(17px,3vw,25px);margin:17px 0}
+.panel h2{font-size:clamp(20px,3vw,25px);letter-spacing:-.024em;color:#203448}
+.kicker{color:#8b6d3f}
+button{background:linear-gradient(125deg,#183b50,#22546b);border-radius:11px;min-height:43px}
+button.subtle{background:#e9f0f3;color:#244c61}
+button.warn{background:#fbe9e9;color:#a03d43}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #d9aa58;outline-offset:3px}
+a{color:#346077}
+.owner-nav{display:flex;align-items:center;gap:9px;padding:10px;border-radius:17px;background:#132f3c;box-shadow:0 14px 32px #0b1c2740;margin:18px 0 19px;overflow-x:auto;scrollbar-width:thin}
+.owner-nav button{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;color:#cbdfe5;background:transparent;border:1px solid transparent;box-shadow:none;font-size:14px;font-weight:800;min-height:47px;padding:11px 14px;white-space:nowrap}
+.owner-nav button[aria-current="page"]{background:#e7c188;color:#1b3440;box-shadow:0 4px 15px #0002}
+.owner-nav-badge{background:#d68d58;color:#182e3b;border-radius:99px;min-width:22px;padding:2px 7px;font-size:11px}
+.owner-nav-badge[hidden]{display:none!important}
+.owner-view[hidden]{display:none!important}
+.owner-hero{overflow:hidden;padding:clamp(22px,4vw,42px);border-radius:25px;border:1px solid #597184;background:radial-gradient(ellipse at 100% 0%,#26617c90,transparent 50%),linear-gradient(135deg,#0a2230,#153646);color:#edf5f7;box-shadow:0 21px 50px #09243425}
+.owner-hero-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.owner-hero-kicker{font-size:11px;letter-spacing:.19em;color:#eac993;font-weight:900}
+.owner-hero-badge{font-size:10px;letter-spacing:.08em;font-weight:700;color:#bad6df;padding:7px 10px;border-radius:999px;border:1px solid #578090}
+.owner-hero h2{color:#f7fcfc;font-size:clamp(30px,4.4vw,54px);letter-spacing:-.055em;line-height:1.08;margin:20px 0 12px}
+.owner-hero h2 em{font-style:normal;color:#eac993}
+.owner-hero>p{max-width:650px;color:#bad4df;line-height:1.65;font-size:15px;margin:0}
+.owner-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:28px 0 20px}
+.owner-metric{background:#f2f7f9f7;color:#173446;border-radius:15px;padding:19px 16px;min-width:0}
+.owner-metric small{display:block;font-size:10px;letter-spacing:.07em;font-weight:850;color:#657987;min-height:31px}
+.owner-metric strong{display:block;font-weight:900;font-size:clamp(27px,3.4vw,41px);line-height:1.1;margin:7px 0;color:#193b51}
+.owner-metric span{font-size:11px;color:#6e8290}
+.owner-quick{display:flex;gap:11px;flex-wrap:wrap}
+.owner-quick button{background:#e7c188;color:#183241;padding:11px 17px}
+.owner-quick button+button{background:#174459;color:#e8f2f5;border:1px solid #5d8a9a}
+.owner-panel-head{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.owner-panel-head .muted{max-width:660px}
+.owner-mini-mark{display:inline-flex;white-space:nowrap;border:1px solid #d9c49d;border-radius:999px;padding:7px 13px;background:#fcf6ea;font-size:12px;font-weight:900;color:#8d6b34}
+.owner-readiness{background:#eef4f6;border:1px solid #d7e4e9;border-radius:14px;margin:15px 0;padding:12px}
+.owner-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.owner-readiness-item{padding:11px 12px;background:white;border-radius:11px;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.owner-readiness-item small{font-weight:700;color:#617487}
+.owner-readiness-item strong{color:#183b50;text-align:right;font-size:13px}
+.owner-readiness-item.warn strong{color:#a06d26}
+.owner-check-note{background:#fff8ed;border-left:3px solid #d3a25c;padding:12px 15px;border-radius:7px;line-height:1.65;color:#735c3d;font-size:12px;margin:16px 0}
+.owner-panel-actions{display:flex;gap:15px;align-items:center;flex-wrap:wrap}
+.owner-panel-actions>a{font-weight:700;font-size:13px}
+.owner-help-strip{display:flex;align-items:flex-start;gap:14px;background:#e8f6f3;border:1px solid #bee0d9;border-radius:17px;padding:18px 20px;margin:15px 0;color:#205449}
+.owner-help-icon{display:grid;place-items:center;width:33px;height:33px;flex:0 0 33px;border-radius:50%;background:#c8e8d9;font-weight:900}
+.owner-help-strip strong{display:block}
+.owner-help-strip p{font-size:12px;line-height:1.65;margin:5px 0 0}
+.owner-main-panel>p.muted{max-width:900px;font-size:14px;line-height:1.75}
+.owner-view[data-owner-view="requests"] #fkRequestsBox{border-top:4px solid #c9a064}
+.owner-view[data-owner-view="buyers"] #fkManagedAccounts{border-top:4px solid #6d9d9d}
+.owner-view[data-owner-view="documents"] #release20261103{border-top:4px solid #c9a064}
+.owner-view .status{background:#eef4f7;color:#285068;font-size:13px}
+.owner-view .bad{background:#fff2f1;color:#8f4b46}
+.owner-view .row>*{min-width:125px}
+.owner-view .tablewrap{border:1px solid #e4eaef;border-radius:13px;margin-top:15px}
+.owner-view table{min-width:640px}
+.owner-view th{background:#f5f8fa;color:#627787}
+.owner-view td{font-size:13px;color:#20384c;overflow-wrap:anywhere}
+.owner-view td button{font-size:12px;padding:9px 11px;margin-bottom:4px}
+.owner-advanced{border-radius:15px;border:1px solid #dae5ea;background:#f7fafb;padding:15px 17px;margin:18px 0}
+.owner-advanced>summary{font-weight:850;color:#234b60;cursor:pointer;line-height:1.55}
+.owner-advanced[open]>summary{margin-bottom:13px}
+.owner-archive-head .owner-advanced>.panel{background:#fff;margin:13px 0}
+#fkManagedAccounts .tablewrap{max-width:100%}
+#fkRequestsBody td:nth-child(1){min-width:175px}
+#fkAccountsBody td:nth-child(1){font-weight:800}
+#fkCredentials{max-width:100%}
+#feedback{margin-top:22px;background:#dce9ed;color:#30546a}
+footer.muted{font-size:12px;line-height:1.7;color:#637a86;margin-top:25px}
+@media(max-width:890px){.owner-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-nav button{flex:0 0 auto}.owner-hero{padding:25px}}
+@media(max-width:620px){
+ main{padding:12px 12px 44px}
+ .owner-topbar{padding:13px 15px;border-radius:16px}
+ .owner-top-caption{display:none}
+ .owner-nav{position:sticky;top:0;z-index:12;margin:12px -1px 15px;border-radius:12px;padding:7px;gap:4px}
+ .owner-nav button{padding:10px 12px;font-size:12px;min-height:44px}
+ .owner-hero{padding:20px;border-radius:18px}
+ .owner-metrics{gap:8px;margin:23px 0 16px}
+ .owner-metric{padding:13px 11px;border-radius:12px}
+ .owner-metric small{font-size:9px;min-height:41px}
+ .owner-metric strong{font-size:30px}
+ .owner-metric span{font-size:10px}
+ .owner-quick button{width:100%}
+ .panel{padding:17px;border-radius:16px;margin:12px 0}
+ .owner-readiness-grid{grid-template-columns:1fr}
+ .owner-panel-actions button{width:100%}
+ .owner-view .row>*{min-width:unset}
+ #fkRequestsBox .tablewrap,#fkManagedAccounts .tablewrap{border:0;overflow:visible}
+ #fkRequestsBox table,#fkManagedAccounts table{display:block;min-width:0;width:100%}
+ #fkRequestsBox thead,#fkManagedAccounts thead{display:none}
+ #fkRequestsBody,#fkAccountsBody{display:block}
+ #fkRequestsBody tr,#fkAccountsBody tr{display:block;background:#f6f9fa;border:1px solid #dce7eb;border-radius:14px;margin:11px 0;padding:11px}
+ #fkRequestsBody td,#fkAccountsBody td{display:block;border-bottom:1px solid #e3eaf0;padding:10px 5px;font-size:13px;overflow-wrap:anywhere;min-width:0}
+ #fkRequestsBody td:last-child,#fkAccountsBody td:last-child{border-bottom:0}
+ #fkRequestsBody td:not(:first-child)::before,#fkAccountsBody td:not(:first-child)::before{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:#688093;margin-bottom:5px}
+ #fkRequestsBody td:nth-child(2)::before{content:'ПАКЕТ / УСЛУГА'}
+ #fkRequestsBody td:nth-child(3)::before{content:'КОНТАКТ'}
+ #fkRequestsBody td:nth-child(4)::before{content:'СТАТУС'}
+ #fkRequestsBody td:nth-child(5)::before{content:'ДЕЙСТВИЕ'}
+ #fkAccountsBody td:nth-child(2)::before{content:'ТАРИФ'}
+ #fkAccountsBody td:nth-child(3)::before{content:'ДАТА СОЗДАНИЯ'}
+ #fkAccountsBody td:nth-child(4)::before{content:'УПРАВЛЕНИЕ'}
+ #fkAccountsBody td button{margin:5px 8px 3px 0;white-space:normal}
+ #fkAccountsBody td button.warn{margin-left:0!important}
+ .owner-advanced{padding:11px}
+ .owner-view .tablewrap:not(#fkRequestsBox .tablewrap):not(#fkManagedAccounts .tablewrap){max-width:100%;overflow-x:auto}
+ .owner-advanced .panel{padding:13px}
+ .owner-advanced input[type=file]{max-width:100%}
+ .owner-advanced .row{display:flex;flex-direction:column;align-items:stretch}
+ .owner-advanced .row>*{width:100%;max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){.owner-nav *{transition:none}}
+
 </style>
 </head>
 <body><main>
-<header><div class="brand">FARUKH <em>KITCHEN</em></div><div class="kicker">УПРАВЛЕНИЕ КОММЕРЧЕСКОЙ БИБЛИОТЕКОЙ</div></header>
-<a href="admin/" style="display:inline-block;margin-right:18px">← Единая панель владельца</a><a href="./">На сайт ↗</a><h1>Защищённая выдача ТТК</h1>
-<p class="muted">Только подтверждённый владелец может загружать материалы и назначать доступ. Покупательские PDF редакции 03.11.2026 находятся в защищённом хранилище. Оплата и выдача доступа — только после личного согласования; производственная проверка документов ещё продолжается.</p>
+<header class="owner-topbar"><div class="brand"><span class="owner-mark">A</span><span>FARUKH <em>KITCHEN</em><small>BY CHEF AKA</small></span></div><div class="owner-top-caption">КАБИНЕТ ВЛАДЕЛЬЦА · PRIVATE ACCESS</div></header>
+<a href="admin/" style="display:inline-block;margin-right:18px">← Единая панель владельца</a><a href="./">На сайт ↗</a><h1>Центр управления</h1>
+<p class="owner-intro">Управление заявками, персональными доступами и технологической библиотекой. Все коммерческие документы остаются в закрытом хранилище.</p>
 <section class="panel" id="loginPanel">
 <div class="kicker">ШАГ 1 · ВХОД</div><h2>Подтвердите почту</h2>
 <div class="row"><input id="loginEmail" type="email" autocomplete="email" placeholder="Ваш email" aria-label="Ваш email"><button id="sendLink">Отправить ссылку</button></div>
@@ -58,26 +183,42 @@ a{color:#4f65ae}
 <p class="muted"><small>Эта операция однократная: после первого успешного подтверждения новых администраторов автоматически не создаём.</small></p>
 </section>
 <section id="adminPanel" class="hidden">
-<section class="panel" id="fkReadinessPanel" style="border:2px solid #b48f58;background:#fffaf0">
- <div class="kicker" style="color:#8b642e">КОНТРОЛЬ ГОТОВНОСТИ К ПРОДАЖАМ</div>
- <h2>Аудит пакетов FARUKH KITCHEN</h2>
- <p class="muted"><small>Проверяем живые данные Supabase, а не описание каталога. Наличие PDF не подтверждает испытания рецептур на конкретном производстве.</small></p>
- <div id="fkReadinessStats" class="status" role="status" aria-live="polite">Проверка документов и выдачи…</div>
- <div class="status bad" style="border:1px solid #d18b76;background:#fff0e7;color:#7d3128;margin-top:11px">
- <strong>ИСПРАВЛЕНО · ТТК-ПФ-001 DUNKAN.</strong> Исправленный документ «34 ПФ» редакции 04.11.2026 загружен в приватное хранилище и назначен покупателям START/PRO. DUNKAN Bag-in-Box 20 л используется готовым, без воды и сахара. Остальные ТТК по-прежнему требуют фактической производственной проверки; этот статус не означает завершённую ХАССП-валидацию.
+<nav class="owner-nav" aria-label="Разделы кабинета владельца">
+ <button type="button" data-owner-tab="overview" aria-current="page">◈ <span>Главная</span></button>
+ <button type="button" data-owner-tab="requests">✉ <span>Заявки</span><b class="owner-nav-badge" id="ownerRequestsBadge" hidden>0</b></button>
+ <button type="button" data-owner-tab="buyers">♙ <span>Покупатели</span></button>
+ <button type="button" data-owner-tab="documents">▤ <span>Документы</span></button>
+ <button type="button" data-owner-tab="archive">⚙ <span>Архив</span></button>
+</nav>
+<div class="owner-view" data-owner-view="overview" >
+
+<section class="owner-hero" aria-labelledby="ownerDashboardTitle">
+ <div class="owner-hero-top"><span class="owner-hero-kicker">CHEF AKA / OWNER CONSOLE</span><span class="owner-hero-badge">ЗАЩИЩЁННЫЙ ДОСТУП</span></div>
+ <h2 id="ownerDashboardTitle">Всё важное — <em>под контролем.</em></h2>
+ <p>Заявки клиентов, доступы покупателей и текущая библиотека ТТК в одном рабочем кабинете.</p>
+ <div class="owner-metrics">
+  <div class="owner-metric"><small>ТЕХНОЛОГИЧЕСКИЕ КАРТЫ</small><strong id="ownerMetricTtk">—</strong><span>59 блюд + 34 полуфабриката</span></div>
+  <div class="owner-metric"><small>ФАЙЛЫ ТЕКУЩЕГО ВЫПУСКА</small><strong id="ownerMetricFiles">—</strong><span>PDF и фотографии</span></div>
+  <div class="owner-metric"><small>НОВЫЕ ЗАЯВКИ</small><strong id="ownerMetricRequests">—</strong><span>ТТК и шеф на выезд</span></div>
+  <div class="owner-metric"><small>ЛОГИНОВ ПОКУПАТЕЛЕЙ</small><strong id="ownerMetricBuyers">—</strong><span>Персональные доступы</span></div>
  </div>
- <div class="row">
-   <button type="button" id="fkReadinessRefresh" class="subtle">Обновить проверку</button>
-   <a href="terms.html" target="_blank" rel="noopener noreferrer">Условия заказа ↗</a>
-   <a href="privacy.html" target="_blank" rel="noopener noreferrer">Обработка данных ↗</a>
- </div>
- <p class="muted small"><b>До начала масштабных продаж:</b> заполнить проверенные рецептуры, технологические шаги и индивидуальные режимы хранения; провести производственный контроль; утвердить юридические реквизиты продавца и условия оплаты.</p>
+ <div class="owner-quick"><button type="button" data-owner-go="requests">Открыть заявки ↗</button><button type="button" data-owner-go="documents">Проверить документы ↗</button></div>
 </section>
-<section class="panel" id="fkRequestsBox" style="border:2px solid #6da7a4;background:#f1fcfa">
- <div class="kicker" style="color:#287b71">НОВЫЙ СПОСОБ ВЫДАЧИ · БЕЗ ПОЧТЫ И SMTP</div>
- <h2>Заявки от покупателей</h2>
- <p>Покупателю больше не нужно искать ваш телефон или Telegram. На <a href="request-access.html" target="_blank" rel="noopener noreferrer">странице заявки</a> он указывает <b>свой Telegram или телефон</b>. Вы видите запрос здесь и связываетесь с ним самостоятельно.</p>
- <p class="muted"><small>Сначала согласуйте оплату лично. Для SHEF PREMIUM отдельно согласуйте договор, даты выезда и командировочные расходы; только после полной оплаты 199 900 ₽ выдавайте цифровой доступ PRO. Три рабочих дня обучения оформляются как услуга вне кабинета. Доступ к ТТК выдаётся по активному оплаченному тарифу. До использования рецептур в производстве необходима фактическая проверка выходов и безопасности.</small></p>
+<section class="panel owner-review" id="fkReadinessPanel">
+ <div class="owner-panel-head"><div><div class="kicker">СВОДКА ПО БИБЛИОТЕКЕ</div><h2>Готовность документов</h2><p class="muted">Показатели обновляются из Supabase. Проверка документов и производственная валидация — разные этапы.</p></div><span class="owner-mini-mark">93 ТТК</span></div>
+ <div id="fkReadinessStats" class="owner-readiness" role="status" aria-live="polite">Проверяю данные…</div>
+ <p class="owner-check-note"><strong>Важно:</strong> производственная валидация рецептур не завершена. Перед практическим применением необходимо подтвердить выходы, аллергены и режимы хранения.</p>
+ <div class="owner-panel-actions"><button type="button" id="fkReadinessRefresh" class="subtle">↻ Обновить показатели</button><a href="terms.html" target="_blank" rel="noopener noreferrer">Условия работы ↗</a><a href="privacy.html" target="_blank" rel="noopener noreferrer">Персональные данные ↗</a></div>
+</section>
+<section class="owner-help-strip">
+ <span class="owner-help-icon">✓</span><div><strong>Актуальная редакция подключена</strong><p>Исправленный документ ТТК-ПФ-001 DUNKAN находится в текущем PDF полуфабрикатов; соус DUNKAN 20 л используется готовым. Старые версии сохраняются только в архиве.</p></div>
+</section>
+</div>
+<div class="owner-view" data-owner-view="requests" hidden>
+<section class="panel owner-main-panel" id="fkRequestsBox">
+ <div class="kicker">РАБОТА С КЛИЕНТАМИ</div><h2>Новые заявки</h2>
+ <p class="muted">Здесь появляются запросы на START, PRO, PREMIUM и «Шеф на выезд». Свяжитесь с клиентом по указанному контакту. Для платных ТТК создавайте логин только после подтверждения оплаты.</p>
+ <p class="owner-check-note"><strong>Услуга шефа:</strong> заявка на консультацию не требует создания логина. Детали сотрудничества, цена и даты согласовываются отдельно.</p>
  <div class="row">
   <button id="fkRequestsRefresh" class="subtle" type="button">Обновить заявки</button>
   <div><label for="fkNewAccountExpiry">Срок доступа до (необязательно)</label><input type="date" id="fkNewAccountExpiry" aria-label="Срок доступа до"></div>
@@ -92,33 +233,22 @@ a{color:#4f65ae}
  </div>
  <p id="fkRequestsStatus" class="status" role="status" aria-live="polite">Ожидаю заявок.</p>
 </section>
+</div>
+<div class="owner-view" data-owner-view="buyers" hidden>
 <section class="panel" id="fkManagedAccounts">
  <h2>Логины покупателей</h2>
  <p class="muted"><small>Здесь можно сбросить пароль покупателя или отозвать его доступ. Пароли не сохраняются в таблице.</small></p>
  <div class="tablewrap"><table><thead><tr><th>Логин</th><th>Пакет</th><th>Создан</th><th>Управление</th></tr></thead><tbody id="fkAccountsBody"><tr><td colspan="4">Нет созданных логинов.</td></tr></tbody></table></div>
 </section>
-<section class="panel" style="border:2px solid #99b7d4;background:#f4faff">
-<div class="kicker">РЕДАКЦИЯ СОГЛАСОВАНА · 03.11.2026</div>
-<h2>Исправленные ТТК SHEF START / PRO</h2>
-<p class="muted">Подготовлены новые PDF: 44 карты START и 59 карт PRO с отдельным учётом расчётных разниц масс и аллергенов. <b>Остальные 36 файлов уже загружены — их заменять не требуется.</b> Выдача по активным тарифам включена по решению владельца. Документы требуют контрольной производственной проверки перед практическим применением.</p>
-<p><a href="correction-2-pdf-20261103.html" style="display:inline-block;background:#254b7b;color:white;text-decoration:none;border-radius:10px;padding:12px 16px;font-weight:800">Обновить только 2 исправленных PDF →</a></p>
-</section>
-<section class="panel" id="release20261103"><div class="kicker">НОВАЯ РЕДАКЦИЯ · 03.11.2026</div><h2>Обновление PDF и 34 фотографий</h2>
-<p class="muted">Новая редакция готова к загрузке в <b>приватное хранилище</b>: четыре PDF и 34 WebP. Новые файлы отделены от предыдущего выпуска 30.10.2026. Файлы проверены и выдаются только клиентам с действующим тарифом. Дополнительная производственная валидация пока не завершена.</p>
-<div style="border:2px solid #aec5e4;border-radius:14px;background:#eff5ff;padding:17px;margin:15px 0 20px">
- <h3 style="color:#274c79">Загрузить все 38 файлов за один раз</h3>
- <p class="muted small">Выберите единый архив с 38 материалами. Проверим все контрольные суммы, загрузим PDF и фотографии в закрытое хранилище и повторно сверим файлы после передачи.</p>
- <div class="row"><input id="releaseAllZip" type="file" accept=".zip,application/zip" aria-label="Единый ZIP с 38 файлами"><button type="button" id="releaseUploadAll38">Проверить и загрузить все 38</button></div>
- <p class="muted small">Архив: <a href="https://drive.google.com/file/d/1MBVm2hi2JNpYlouHHoSXlBgUkC0CXZNr/view" target="_blank" rel="noopener noreferrer">FARUKH KITCHEN · 38 файлов · 03.11.2026</a>. Доступен только владельцу Google Drive.</p>
 </div>
-<div class="grid">
-  <div><label for="releaseZipDocs">4 PDF · START / PRO / ПФ / инструкции</label><input id="releaseZipDocs" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadDocs" style="margin-top:9px">Загрузить 4 PDF</button></div>
-  <div><label for="releaseZipPhotos">34 фотографии полуфабрикатов · WebP</label><input id="releaseZipPhotos" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadPhotos" style="margin-top:9px">Загрузить 34 фото</button></div>
-</div>
-<div id="releaseStats" class="status" role="status" aria-live="polite">Проверка закрытого хранилища…</div>
+<div class="owner-view" data-owner-view="documents" hidden>
+<section class="panel owner-main-panel" id="release20261103">
+ <div class="kicker">ДЕЙСТВУЮЩАЯ БИБЛИОТЕКА</div><h2>ТТК, PDF и фотографии</h2>
+ <p class="muted">Текущий выпуск: <strong>4 PDF и 34 фотографии</strong> в защищённом хранилище. Исправленный PDF полуфабрикатов от 05.11.2026 включён. Для новых публикаций используется отдельная контрольная проверка.</p>
+ <div id="releaseStats" class="status" role="status" aria-live="polite">Проверка закрытого хранилища…</div>
 <div style="border:1px solid #aacdd1;border-radius:13px;padding:15px;margin:14px 0;background:#f2f9f8">
- <div class="kicker" style="color:#2a7e74">ШАГ 12 · КОНТРОЛЬ ДОСТУПА И ФАЙЛОВ</div>
- <h3>Проверка файлов владельцем</h3>
+ <div class="kicker" style="color:#2a7e74">ПРОВЕРКА ЦЕЛОСТНОСТИ</div>
+ <h3>Проверить текущие PDF и фотографии</h3>
  <p class="muted small">Вы можете проверить скачивание оригинальных файлов от имени владельца. Права покупателей при проверке не меняются; действующие тарифы START и PRO имеют доступ к своей редакции. Контроль размера, формата и SHA-256 выполняется непосредственно по данным из Supabase.</p>
  <div class="row">
   <button id="fkTestPdf" type="button" class="subtle">Проверить 4 PDF</button>
@@ -129,9 +259,36 @@ a{color:#4f65ae}
  <div id="fkTestResult" class="status" aria-live="polite" role="status">Проверка по запросу владельца. Выдача активна только для подтверждённых тарифов START/PRO; без доступа файлы закрыты.</div>
 </div>
 <details><summary style="cursor:pointer;font-weight:750;color:#465c90">Список новой редакции и проверка файлов</summary><div id="releaseRows" class="tablewrap" style="margin-top:12px"></div></details>
-<p class="muted"><small>Файлы проверяются по SHA-256 дважды: перед загрузкой и после скачивания из Supabase. После загрузки они остаются закрытыми, пока владелец отдельно не разрешит выдачу. Цена и автоматическая оплата не подключены.</small></p>
+<p class="muted"><small>Контроль проводится по фактическому содержимому закрытого хранилища. Наличие файлов не заменяет контрольную проработку ТТК.</small></p>
+<details class="owner-advanced"><summary>Служебные загрузки текущего выпуска · открывать только при замене файлов</summary>
+ <p class="muted"><small>Файлы уже выпущены. Повторная загрузка штатно не нужна: старые архивы от 03.11 могут не совпадать с исправленным PDF полуфабрикатов от 05.11. Не выполняйте перезапись без проверенного нового выпуска.</small></p>
+ <div style="border:2px solid #aec5e4;border-radius:14px;background:#eff5ff;padding:17px;margin:15px 0 20px">
+ <h3 style="color:#274c79">Загрузить все 38 файлов за один раз</h3>
+ <p class="muted small">Выберите единый архив с 38 материалами. Проверим все контрольные суммы, загрузим PDF и фотографии в закрытое хранилище и повторно сверим файлы после передачи.</p>
+ <div class="row"><input id="releaseAllZip" type="file" accept=".zip,application/zip" aria-label="Единый ZIP с 38 файлами"><button type="button" id="releaseUploadAll38">Проверить и загрузить все 38</button></div>
+ <p class="muted small">Архив: <a href="https://drive.google.com/file/d/1MBVm2hi2JNpYlouHHoSXlBgUkC0CXZNr/view" target="_blank" rel="noopener noreferrer">FARUKH KITCHEN · 38 файлов · 03.11.2026</a>. Доступен только владельцу Google Drive.</p>
+</div>
+<div class="grid">
+  <div><label for="releaseZipDocs">4 PDF · START / PRO / ПФ / инструкции</label><input id="releaseZipDocs" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadDocs" style="margin-top:9px">Загрузить 4 PDF</button></div>
+  <div><label for="releaseZipPhotos">34 фотографии полуфабрикатов · WebP</label><input id="releaseZipPhotos" type="file" accept=".zip,application/zip"><button type="button" id="releaseUploadPhotos" style="margin-top:9px">Загрузить 34 фото</button></div>
+</div>
+
+ </details>
 </section>
 
+</div>
+<div class="owner-view" data-owner-view="archive" hidden>
+<section class="panel owner-archive-head"><div class="kicker">ИСТОРИЯ И СЛУЖЕБНЫЕ ИНСТРУМЕНТЫ</div>
+<h2>Технический архив</h2>
+<p class="muted">Здесь сохранены старые версии и операции на случай восстановления. <strong>В повседневной работе эти разделы не нужны.</strong> Текущие документы находятся во вкладке «Документы».</p>
+<details class="owner-advanced"><summary>Показать устаревшие загрузки и ручные операции</summary>
+<p class="owner-check-note"><strong>Осторожно:</strong> старые файлы не должны заменять текущий выпуск. Операции изменения доступа выполняйте только после проверки покупателя.</p>
+<section class="panel" style="border:2px solid #99b7d4;background:#f4faff">
+<div class="kicker">РЕДАКЦИЯ СОГЛАСОВАНА · 03.11.2026</div>
+<h2>История исправлений START / PRO</h2>
+<p class="muted">В архиве сохранена предыдущая операция корректировки PDF. Актуальные файлы уже зарегистрированы. Ранее были подготовлены PDF: 44 карты START и 59 карт PRO с отдельным учётом расчётных разниц масс и аллергенов. <b>Остальные 36 файлов уже загружены — их заменять не требуется.</b> Выдача по активным тарифам включена по решению владельца. Документы требуют контрольной производственной проверки перед практическим применением.</p>
+<p><a href="correction-2-pdf-20261103.html" style="display:inline-block;background:#254b7b;color:white;text-decoration:none;border-radius:10px;padding:12px 16px;font-weight:800">Открыть старую операцию обновления ↗</a></p>
+</section>
 <section class="panel"><div class="kicker">ШАГ 3 · ЗАГРУЗКА</div><h2>Архив прошлой редакции — 4 файла</h2>
 <p class="muted">Это архив предыдущей редакции. Он оставлен с пометкой «не выпущен» и не должен выдаваться вместо актуальных файлов 03.11.2026 без отдельного решения владельца. Перед загрузкой автоматически сравним размер и SHA-256 с эталоном. Файлы никогда не попадут в публичную папку сайта.</p>
 <div class="panel" style="margin:12px 0;background:#f4f6ff"><h3>Загрузка всех четырёх файлов одним архивом</h3><p class="muted">Выберите новый архив «FARUKH_KITCHEN_ПУБЛИКАЦИЯ_ФОТО_ГУНКАНОВ_4_ФАЙЛА.zip». В нём четыре финальных файла: START 44 ТТК, PRO 59 ТТК, на всех четырёх гунканах одно утверждённое фото. Мы сверим каждую контрольную сумму перед выгрузкой.</p><div class="row"><input id="releaseBundle" type="file" accept=".zip,application/zip" aria-label="Архив с четырьмя коммерческими файлами"><button id="uploadReleaseBundle" type="button">Проверить и загрузить 4 файла</button></div><small class="muted">Ниже остаётся возможность загрузки отдельных файлов. После проверки всех 4 файлов доступ автоматически откроется только для покупателей, назначенных владельцем.</small></div>
@@ -148,6 +305,9 @@ a{color:#4f65ae}
 <div class="row" style="margin-top:15px"><button id="grantBuyer">Выдать после проверки оплаты</button><button class="warn" id="revokeBuyer">Отозвать доступ</button></div>
 <p class="muted"><small>Выдача действует сразу после активации, если нужные файлы уже выпущены. Отзыв закрывает новые скачивания, но не удаляет ранее загруженные файлы у покупателя.</small></p>
 </section>
+
+</details>
+</section></div>
 </section>
 <div id="feedback" role="status" aria-live="polite" class="status">Войдите, чтобы продолжить.</div>
 <footer class="muted"><small>FARUKH KITCHEN · Chef Aka · Черновые технологические замечания и контроль ХАССП остаются в работе. Не публикуйте коммерческие PDF/ZIP в открытых папках сайта.</small></footer>
