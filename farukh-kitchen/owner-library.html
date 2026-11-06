@@ -844,6 +844,23 @@ async function loadBuyerRequests(){
    if(!confirm('Закрыть эту заявку без создания доступа?'))return;
    try{await fkUpdateRequest(row.id,'dismissed')}catch(e){requestStatus('Ошибка: '+e.message,true)}
   }));
+  // Удаление только заявок, не связанных с покупателем или продажей.
+  if(row.status!=='completed'&&!row.buyer_user_id){
+   actions.append(fkButton('Удалить заявку','warn',async()=>{
+    const expected=String(row.customer_name||'').trim();
+    const entered=prompt('Удалить заявку навсегда? Введите имя заявителя точно как в карточке:\\n'+expected);
+    if(entered===null)return;
+    if(entered.trim()!==expected){requestStatus('Имя не совпадает. Удаление отменено.',true);return}
+    if(!confirm('Заявка «'+expected+'» будет удалена без восстановления. Это точно тестовая или ненужная заявка без продажи?'))return;
+    try{
+     const {data,error}=await sb.from('fk_access_requests').delete().eq('id',row.id).is('buyer_user_id',null).neq('status','completed').select('id');
+     if(error)throw error;
+     if(!data?.length)throw Error('Заявка уже связана с покупателем, завершена или недоступна для удаления. Обновите список.');
+     await loadBuyerRequests();
+     requestStatus('Заявка удалена. Покупатели и их доступы не изменены.');
+    }catch(e){requestStatus('Не удалось удалить заявку: '+(e.message||'ошибка'),true)}
+   }));
+  }
   tr.append(actions);root.append(tr);
  }
  if(!rows.length){const td=cell('Заявок пока нет');td.colSpan=5;const tr=document.createElement('tr');tr.append(td);root.append(tr)}
