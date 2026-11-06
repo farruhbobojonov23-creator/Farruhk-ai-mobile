@@ -2457,7 +2457,7 @@ app.post('/api/farukh-kitchen/request-alert',async(req,res)=>{
   }
   const row=payload.record||{};
   const id=String(row.id||'');
-  if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(id)||!['start','pro','premium'].includes(row.package_code)){
+  if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(id)||!['start','pro','premium','consulting'].includes(row.package_code)){
     return res.status(400).json({ok:false,error:'invalid_record'});
   }
   if(fkNotified.has(id))return res.json({ok:true,duplicate:true});
@@ -2465,20 +2465,37 @@ app.post('/api/farukh-kitchen/request-alert',async(req,res)=>{
     for(const old of [...fkNotified.keys()].slice(0,100))fkNotified.delete(old);
   }
   const clean=(v,max=100)=>String(v||'').replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,max);
+  const consulting=row.package_code==='consulting';
   const pack=row.package_code.toUpperCase();
-  const price={start:'49 900',pro:'79 900',premium:'199 900'}[row.package_code];
+  const prices={start:'49 900',pro:'79 900',premium:'199 900'};
   const contactType=row.contact_type==='telegram'?'Telegram':'Телефон';
-  const notification=[
+  const serviceNames={online:'Онлайн-разбор',audit:'Шеф-аудит кухни',mentoring:'Обучение и сопровождение',launch:'Запуск доставки с нуля',training:'Обучение команды',ttk:'ТТК и технология',optimization:'Оптимизация кухни'};
+  const serviceCode=clean(row.service_format||row.service_type,35);
+  const time=new Date().toLocaleString('ru-RU',{timeZone:'Europe/Moscow'});
+  const notification=(consulting?[
+    '🔔 CHEF AKA — НОВАЯ ЗАЯВКА',
+    '👨‍🍳 Услуга: ШЕФ НА ВЫЕЗД',
+    '🧭 Формат: '+(serviceNames[serviceCode]||'Персональная консультация'),
+    '🌍 Город: '+clean(row.project_city||row.business_city,100),
+    ...(row.project_business||row.business_name?['🏢 Заведение: '+clean(row.project_business||row.business_name,120)]:[]),
+    '📝 Задача: '+clean(row.project_goal||row.business_problem,1000),
+    '👤 Клиент: '+clean(row.customer_name,80),
+    '📱 '+contactType+': '+clean(row.contact_value,100),
+    '💰 Стоимость: индивидуально',
+    '🕓 Время: '+time,
+    '',
+    'Заявки: https://chefaka.onrender.com/admin/'
+  ]:[
     '🔔 FARUKH KITCHEN — НОВАЯ ЗАЯВКА',
     '',
     '📦 Тариф: SHEF '+pack,
-    '💰 Стоимость: '+price+' ₽',
+    '💰 Стоимость: '+prices[row.package_code]+' ₽',
     '👤 Клиент: '+clean(row.customer_name,80),
     '📱 '+contactType+': '+clean(row.contact_value,100),
-    '🕓 Время: '+new Date().toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}),
+    '🕓 Время: '+time,
     '',
     'Открыть: https://farukh-kitchen-v02.onrender.com/owner-library.html'
-  ].join('\n');
+  ]).join('\n');
   try{
     const chatId=await telegramChatId();
     if(!chatId)return res.status(503).json({ok:false,error:'chat_not_ready'});
