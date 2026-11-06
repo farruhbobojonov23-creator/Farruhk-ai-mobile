@@ -101,7 +101,8 @@ $('consultingForm').addEventListener('submit',async e=>{
  try{
   const {error}=await sb.from('fk_access_requests').insert({
    customer_name:name,package_code:'consulting',contact_type:type,contact_value:contact,
-   service_format:format,project_city:city,project_business:business,project_goal:goal
+   service_format:format,project_city:city,project_business:business,project_goal:goal,
+   service_type:format,business_city:city,business_name:business||null,business_problem:goal
   });
   if(error)throw error;
   $('consultingForm').querySelectorAll('input:not(#website),select,textarea').forEach(el=>el.disabled=true);
