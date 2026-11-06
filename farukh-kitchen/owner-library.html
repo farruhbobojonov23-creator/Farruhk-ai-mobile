@@ -768,6 +768,18 @@ function fkRenderBuyers(rows,profiles){
     try{await invokeOwnerBuyer({action:'revoke',login:row.login});status('Доступ покупателя заблокирован');await loadBuyerRequests()}catch(e){status('Ошибка блокировки: '+(e.message||'неизвестная ошибка'),true)}
    }));
   }
+  actions.append(fkButton('Удалить тестовый аккаунт','warn',async()=>{
+    const typed=prompt('Удаление без возможности восстановления. Введите логин '+row.login+' для подтверждения. Заявка останется в истории.');
+    if(typed===null)return;
+    if(typed.trim().toLowerCase()!==String(row.login).toLowerCase()){status('Логин не совпадает. Удаление отменено.',true);return}
+    if(!confirm('Подтверждаете, что это ТЕСТОВЫЙ покупатель без реальной оплаты? Аккаунт, пароль и доступ будут удалены навсегда.'))return;
+    try{
+      const result=await invokeOwnerBuyer({action:'delete_test',login:row.login,confirm_login:typed,confirm_test:true});
+      if(!result.deleted)throw Error('Сервер не подтвердил удаление');
+      status('Тестовый аккаунт '+row.login+' удалён. Заявка сохранена в истории.');
+      await loadBuyerRequests();
+    }catch(e){status('Удаление не выполнено: '+(e.message||'ошибка'),true)}
+  }));
   card.insertBefore(actions,editor);box.append(card);
  }
  fkFilterBuyers();
