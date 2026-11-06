@@ -27,7 +27,7 @@
 <button data-panel="photos" class="nav">▧ Фотографии</button>
 <button data-panel="pricing" class="nav">₽ Тарифы и цены</button>
 <button data-panel="content" class="nav">✎ Главная страница</button>
-<button data-panel="requests" class="nav">✉ Заявки покупателей <span id="requestsBadge"></span></button>
+<button data-panel="requests" class="nav">✉ Заявки и консультации <span id="requestsBadge"></span></button>
 <button data-panel="access" class="nav">⚿ Доступы и PDF</button>
 <button data-panel="settings" class="nav">⚙ Настройки аккаунта</button>
 <div class="sideend"><a href="../index.html" target="_blank" rel="noopener noreferrer">↗ Посмотреть сайт</a><a href="../owner-library.html">↗ Расширенная библиотека</a></div>
@@ -65,7 +65,7 @@
 <section data-view="content" class="view hidden"><div class="kicker">ОФОРМЛЕНИЕ И МАРКЕТИНГ</div><h1>Главная страница</h1><p class="muted">Меняй главный заголовок и текст первого экрана, не редактируя код сайта.</p>
 <form id="contentForm" class="card"><label>Крупный заголовок<input id="heroTitle" maxlength="160" required></label><label>Краткое описание<textarea id="heroSubtitle" maxlength="500" rows="5" required></textarea></label>
 <div class="actions"><button class="btn primary" type="submit" id="saveContent">Опубликовать изменения</button><a class="btn ghost" href="../index.html" target="_blank" rel="noopener noreferrer">Просмотр ↗</a></div></form></section>
-<section data-view="requests" class="view hidden"><div class="kicker">НОВЫЕ ПОКУПАТЕЛИ</div><h1>Заявки</h1><p class="muted">Контакты покупателей видны только владельцу. После подтверждения оплаты выдавайте доступ через защищённую библиотеку.</p>
+<section data-view="requests" class="view hidden"><div class="kicker">ЗАЯВКИ ПОКУПАТЕЛЕЙ И БИЗНЕСА</div><h1>Заявки</h1><p class="muted">Контакты и задачи клиентов видны только владельцу. Для консультаций обсудите программу и условия индивидуально; цифровой доступ выдаётся только покупателям ТТК после оплаты.</p>
 <div class="actions"><button class="btn ghost" id="reloadRequests">Обновить заявки</button><a class="btn primary" href="../owner-library.html#fkRequestsBox">Выдать логин после оплаты ↗</a></div><div id="requestsList"></div></section>
 <section data-view="access" class="view hidden"><div class="kicker">ЗАЩИЩЁННЫЕ МАТЕРИАЛЫ</div><h1>Доступы и PDF</h1><div class="card"><h2>Продажи и выдача материалов</h2><p>Выдавайте новые логины только после проверки оплаты, отзывайте доступы, заменяйте PDF и проверяйте контрольные суммы в существующей защищённой библиотеке. Она использует <strong>ту же сессию Supabase</strong> — повторный вход на этом сайте не нужен.</p><a class="btn primary" href="../owner-library.html">Открыть управление доступами и PDF →</a></div>
 <div class="card"><h2>Старый управляющий центр</h2><p class="muted">Отдельный ранее созданный центр пока работает со своей авторизацией. Он сохранён для совместимости, но не входит в единый вход.</p><a class="btn ghost" href="https://farukh-kitchen-owner.onrender.com" target="_blank" rel="noopener noreferrer">Открыть прежний центр ↗</a></div></section>
