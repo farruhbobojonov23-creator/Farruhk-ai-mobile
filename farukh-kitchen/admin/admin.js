@@ -191,7 +191,7 @@ $('photoForm').addEventListener('submit',async ev=>{
 });
 async function loadRequests(){
  if(!currentUser)return;
- const {data,error}=await sb.from('fk_access_requests').select('id,customer_name,contact_type,contact_value,package_code,service_type,business_city,business_name,business_problem,status,owner_note,created_at').order('created_at',{ascending:false}).limit(80);
+ const {data,error}=await sb.from('fk_access_requests').select('id,customer_name,contact_type,contact_value,package_code,service_type,business_city,business_name,business_problem,service_format,project_city,project_business,project_goal,status,owner_note,created_at').order('created_at',{ascending:false}).limit(80);
  if(error){err(error,'Заявки недоступны');return}
  requests=data||[];
  $('metricRequests').textContent=requests.length;
@@ -211,9 +211,13 @@ function renderRequests(){
   head.append(title,created);
   const contact=document.createElement('p');contact.textContent=(r.contact_type==='telegram'?'Telegram: ':'Телефон: ')+r.contact_value;
   if(r.package_code==='consulting'){
-   const serviceNames={audit:'Аудит кухни',training:'Обучение персонала',ttk:'Улучшение ТТК',optimization:'Оптимизация кухни',launch:'Запуск доставки с нуля'};
+   const serviceNames={online:'Онлайн-разбор',audit:'Аудит кухни',mentoring:'Обучение и сопровождение',launch:'Запуск доставки с нуля',training:'Обучение персонала',ttk:'Улучшение ТТК',optimization:'Оптимизация кухни'};
    const details=document.createElement('p');details.style.whiteSpace='pre-wrap';details.style.overflowWrap='anywhere';
-   details.textContent='Услуга: '+(serviceNames[r.service_type]||'Консультация')+' · Город: '+(r.business_city||'—')+(r.business_name?' · Заведение: '+r.business_name:'')+'\nЗадача: '+(r.business_problem||'—');
+   const format=r.service_format||r.service_type;
+   const city=r.project_city||r.business_city||'—';
+   const business=r.project_business||r.business_name||'';
+   const goal=r.project_goal||r.business_problem||'—';
+   details.textContent='Услуга: '+(serviceNames[format]||'Консультация')+' · Город: '+city+(business?' · Заведение: '+business:'')+'\nЗадача: '+goal;
    item.append(details);
   }
   const controls=document.createElement('div');controls.className='row';
