@@ -192,7 +192,7 @@
  </div>
  <div class="row">
  <div class="field"><label for="ingAllergenStatus">Источник данных об аллергенах</label><select id="ingAllergenStatus">
- <option value="typical">Типовой состав (ещё не подтверждён)</option><option value="pending">Состав не определён</option><option value="verified">Подтверждено этикеткой / спецификацией</option>
+ <option value="typical">Типовой состав (ещё не подтверждён)</option><option value="pending" selected>Состав не определён</option><option value="verified">Подтверждено этикеткой / спецификацией</option>
  </select></div>
  <div class="field wide"><label for="ingAllergenNotes">Служебные сведения об аллергенах (в каталоге не показываются)</label>
  <textarea id="ingAllergenNotes" rows="2" placeholder="Откуда взяты данные, что проверить, информация производителя"></textarea></div>
@@ -362,7 +362,7 @@ function createAllergenChips(){
    const t=btn.dataset.allergen;
    let list=$('ingAllergens').value.split(/[,;]+/).map(x=>x.trim().toLocaleLowerCase('ru')).filter(Boolean);
    list=list.includes(t)?list.filter(x=>x!==t):[...list,t];
-   $('ingAllergens').value=allergensAvailable.filter(a=>list.includes(a)).concat(list.filter(x=>!allergensAvailable.includes(x))).join(', ');
+   $('ingAllergens').value=allergensAvailable.filter(a=>list.includes(a)).concat(list.filter(x=>!allergensAvailable.includes(x))).join(', ');if($('ingAllergenStatus').value==='pending'&&list.length)$('ingAllergenStatus').value='typical';
  });
  for(const button of document.querySelectorAll('[data-storage]'))button.addEventListener('click',()=>{
    $('ingStorage').value=button.dataset.storage;
@@ -373,7 +373,7 @@ function createAllergenChips(){
 createAllergenChips();
 function resetIngredientForm(){
  editingIngredientId=null;
- for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingStorage','ingShelfLife','ingNotes','ingAllergenNotes'])$(id).value='';$('ingAllergenStatus').value='typical';$('ingShelfPreset').value='';
+ for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingStorage','ingShelfLife','ingNotes','ingAllergenNotes'])$(id).value='';$('ingAllergenStatus').value='pending';$('ingShelfPreset').value='';
  $('ingUnit').value='г';$('ingCategory').value='Рыба и морепродукты';
  $('ingFormTitle').textContent='➕ Новый ингредиент';
  $('ingSaveBtn').textContent='➕ Добавить ингредиент';
@@ -406,6 +406,7 @@ async function saveIngredient(){
  const rawPrice=$('ingPrice').value,rawLife=$('ingShelfLife').value;
  const price=rawPrice===''?null:Number(rawPrice),life=rawLife===''?null:Number(rawLife);
  if((price!=null&&(!Number.isFinite(price)||price<0))||(life!=null&&(!Number.isFinite(life)||life<0))){msg('ingMsg','Цена и срок хранения не могут быть отрицательными.');return}
+ if($('ingAllergenStatus').value==='verified'&&!$('ingAllergenNotes').value.trim()){msg('ingMsg','Укажите в служебных сведениях источник подтверждения: этикетка или спецификация производителя.');return}
  const data={name,category:$('ingCategory').value,unit:$('ingUnit').value,allergens:$('ingAllergens').value.trim(),
  manufacturer:$('ingManufacturer').value.trim(),purchase_price_rub_per_kg:price,
  storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim(),allergen_notes:$('ingAllergenNotes').value.trim(),allergen_status:$('ingAllergenStatus').value};
