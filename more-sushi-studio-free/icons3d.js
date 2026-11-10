@@ -45,7 +45,7 @@ function source(item,type){
  if(raw&&PHOTO_RE.test(raw))return raw;
  const key=type==='ingredient'?item?.icon_emoji:item?.ttk_fields?.ultra?.icon_emoji;
  const match=photoForKey(key)||(!key?predicted(item):null);
- return match?.image_data&&(PHOTO_RE.test(match.image_data)||localPhotoUrl(match.image_data))?(localPhotoUrl(match.image_data)?match.image_data+'?v=clean-edge-v2':match.image_data):null;
+ return match?.image_data&&(PHOTO_RE.test(match.image_data)||localPhotoUrl(match.image_data))?(localPhotoUrl(match.image_data)?match.image_data+'?v=real-products-v5':match.image_data):null;
 }
 
 /*
@@ -159,7 +159,7 @@ async function refresh(){
  try{
   const [dynamic,staticList]=await Promise.all([
    http('/rest/v1/food_photo_library?select=id,name,category,keywords,image_data&order=name.asc&limit=500').catch(e=>{console.warn('Фотобиблиотека пользователя:',e.message);return []}),
-   fetch('./photo-index.json?v=20261111-clean2',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[])
+   fetch('./photo-index.json?v=20261111-real-products-v5',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[])
   ]);
   const local=Array.isArray(staticList)?staticList.filter(p=>Number(p.id)<0&&localPhotoUrl(p.image_data)):[];
   const user=Array.isArray(dynamic)?dynamic:[];
@@ -271,7 +271,7 @@ function paintPicker(){
  const filtered=photos.filter(p=>(!cat||p.category===cat)&&(!search||norms(p.name+' '+p.keywords).includes(search)));
  const grid=q('msIconGrid');
  grid.innerHTML=filtered.length?filtered.map(p=>
-  '<article class="msBankItem"><div class="msBankImage"><img src="'+(localPhotoUrl(p.image_data)?p.image_data+'?v=clean-edge-v2':p.image_data)+'" alt="'+esc(p.name)+'"></div>'+
+  '<article class="msBankItem"><div class="msBankImage"><img src="'+(localPhotoUrl(p.image_data)?p.image_data+'?v=real-products-v5':p.image_data)+'" alt="'+esc(p.name)+'"></div>'+
   '<b title="'+esc(p.name)+'">'+esc(p.name)+'</b><small>'+esc(p.category)+'</small>'+
   '<div class="msBankButtons"><button type="button" data-pick="'+Number(p.id)+'">Выбрать</button>'+(p.local?'':'<button type="button" class="msPhotoRemove" data-delete="'+Number(p.id)+'" title="Удалить">✕</button>')+'</div></article>'
  ).join(''):'<div class="msBankEmpty">'+(ready?'Фотографий пока нет. Добавь изображения по одному, несколько сразу или импортируй готовый набор.':'Загрузка фотобиблиотеки…')+'</div>';
