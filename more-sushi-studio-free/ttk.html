@@ -279,8 +279,8 @@ function calculateYield(){
 }
 
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function get(k){const el=$('[data-key="'+k+'"]');return el?(el.hasAttribute('contenteditable')?el.innerText.trim():el.value):''}
-function set(k,x){const el=$('[data-key="'+k+'"]');if(el){if(el.hasAttribute('contenteditable'))el.textContent=String(x??'');else el.value=String(x??'')}}
+function get(k){const el=$('[data-key="'+k+'"]');return el?(el.matches('input,select,textarea')?el.value:el.innerText.trim()):''}
+function set(k,x){const el=$('[data-key="'+k+'"]');if(el){if(el.matches('input,select,textarea'))el.value=String(x??'');else el.textContent=String(x??'')}}
 function msg(text,level=''){const e=$('#feedback');e.textContent=text;e.className=level}
 function msgFail(e){msg(e.message||String(e),'error')}
 async function api(path,opts={}){const headers={apikey:KEY,'Content-Type':'application/json',...opts.headers};if(session)headers.Authorization='Bearer '+session.access_token;const r=await fetch(SB+path,{...opts,headers});const t=await r.text();let d;try{d=JSON.parse(t)}catch{d=t}if(!r.ok)throw Error(d.message||d.error_description||d.error||'HTTP '+r.status);return d}
