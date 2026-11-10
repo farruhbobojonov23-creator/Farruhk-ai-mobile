@@ -49,7 +49,6 @@ function setup(){
   add.after(node('div',
    '<label>Технологические потери, г <input type="number" id="ultraLoss" value="0" min="0" step=".01"></label>'+
    '<span id="ultraMassNote" class="ultraCalcResult">—</span><span id="ultraMassWarning" class="ultraWarning"></span>','ultraLossBar'));
-  el('ultraLoss').after();
   const mass=el('ultraLoss').closest('.ultraLossBar');
   mass.after(node('section',
    '<div class="ultraDemoScaleHeader"><strong>⚖️ Производственная партия</strong><div class="ultraScaleControls">'+
@@ -297,7 +296,7 @@ function related(){
 async function history(id){
  if(!id){el('ultraHistoryBody').textContent='Версий пока нет.';return}
  try{
-  U.history=await http('/rest/v1/recipe_versions?select=id,version,created_at,snapshot&recipe_id=eq.'+Number(id)+'&order=version.desc&limit=30');
+  U.history=await http('/rest/v1/recipe_versions?select=id,version,saved_at,snapshot&recipe_id=eq.'+Number(id)+'&order=version.desc&limit=30');
   el('ultraHistoryBody').innerHTML=U.history.length?U.history.map(v=>
    '<div class="ultraHistoryLine"><span>Версия '+Number(v.version)+'</span><button type="button" class="secondary" data-restore="'+Number(v.id)+'">Восстановить как черновик</button></div>'
   ).join(''):'Истории изменений пока нет.';
