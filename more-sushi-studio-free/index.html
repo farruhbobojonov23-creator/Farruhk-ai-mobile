@@ -102,6 +102,45 @@
 #ingredientsPage .ingNoResults{padding:38px;text-align:center;color:#7590a3;border:1px dashed #bad8e9;border-radius:13px}
 #ingredientsPage .ingLegend{font-size:12px;color:#637d91;line-height:1.4;margin-top:17px}
 @media(max-width:760px){#ingredientsPage .ingGroupSummary{padding:10px 12px}#ingredientsPage .ingGroupTitle{font-size:14px;gap:7px}#ingredientsPage .ingGroup .scroll{padding:0 3px}#ingredientsPage .ingQuick{font-size:11px}}
+
+/* Ingredient standards, usage modal and shelf-life shortcuts */
+#ingredientsPage .ingSuggestionChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+#ingredientsPage .ingChip{font-size:11px;font-weight:600;padding:5px 8px;border:1px solid #b5d2e4;background:#eaf5fc;color:#15557a;border-radius:16px}
+#ingredientsPage .ingChip:hover{background:#cbe8fc}
+#ingredientsPage .ingShelfControls{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+#ingredientsPage .ingShelfControls input{min-width:95px;width:100px;flex:0 1 100px}
+#ingredientsPage .ingShelfControls select{flex:1;min-width:130px;max-width:220px}
+#ingredientsPage .ingUsesRow .ingUsesActions,#ingredientsPage .ingRowActions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#ingredientsPage .ingUseLink{color:#13557e;border:1px solid #bdd9ea;border-radius:20px;background:#e9f5fd;font-size:11px;font-weight:700;padding:7px 9px;white-space:nowrap}
+#ingredientsPage .ingUsageNone{font-size:11px;font-weight:400;color:#648197}
+#ingredientsPage .ingUsesSection{padding:5px 0 10px;border-bottom:1px solid #d8e9f5}
+#ingredientsPage .ingUsesSection h3{color:#10517e;font-size:15px;margin:12px 0 8px}
+#ingredientsPage .ingUsesRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid #eef3f8}
+#ingredientsPage .ingUsesRow small{font-size:11px;color:#6c8498;display:block;margin-top:4px}
+#ingredientsPage .ingUsesRow button,#ingredientsPage .ingUsesRow .ingTtkLink{font-size:11px;padding:8px 11px;border-radius:8px;white-space:nowrap}
+#ingredientsPage .ingUsesRow .ingTtkLink{background:#0f6598;color:white;text-decoration:none;font-weight:bold}
+#ingredientsPage .ingUsesActions{display:flex;align-items:center;gap:7px}
+#ingredientsPage .ingUsageIntro{color:#607c91;font-size:12px}
+#ingredientUsesDialog{width:min(720px,calc(100vw - 20px));max-height:85vh;padding:20px;border:1px solid #bcd6e8;border-radius:16px;color:#1a3856;box-shadow:0 15px 60px #0a2d5070}
+#ingredientUsesDialog::backdrop{background:#071d35a8}
+#ingredientUsesDialog .ingUsesHeader{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#ingredientUsesDialog h2{font-size:20px;margin:0 0 8px}
+#ingredientUsesDialog .ingUsesActions{display:flex;align-items:center;gap:6px}
+#ingredientUsesDialog .ingUsesRow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;border-top:1px solid #e1edf6}
+#ingredientUsesDialog .ingUsesRow small{display:block;margin-top:4px;color:#70889c;font-size:11px}
+#ingredientUsesDialog .ingUsesSection h3{margin:20px 0 9px;color:#0e567e;font-size:15px}
+#ingredientUsesDialog .ingUsesSection{border-bottom:1px solid #e4eef5}
+#ingredientUsesDialog .ingTtkLink{background:#0b6296;color:white;border-radius:7px;padding:8px 10px;text-decoration:none;font-size:12px;font-weight:700}
+#ingredientUsesDialog .ingUsesActions button{padding:8px 11px;font-size:12px}
+#ingredientUsesDialog .ingUsageIntro,#ingredientUsesDialog .ingNoUses{font-size:13px;color:#5d778d}
+#ingredientsPage .ingTable{min-width:960px}
+#ingredientsPage .ingTable th:nth-child(1){width:31%}
+#ingredientsPage .ingTable th:nth-child(2){width:12%}
+#ingredientsPage .ingTable th:nth-child(3){width:12%}
+#ingredientsPage .ingTable th:nth-child(4){width:10%}
+#ingredientsPage .ingTable th:nth-child(5){width:17%}
+#ingredientsPage .ingTable th:nth-child(6){width:18%}
+@media(max-width:650px){#ingredientUsesDialog .ingUsesRow{display:block}#ingredientUsesDialog .ingUsesActions{margin-top:7px}}
 </style></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
 <h2 id="authTitle">Вход в платформу</h2>
@@ -129,21 +168,37 @@
   <div class="field"><label for="ingUnit">Единица измерения</label><select id="ingUnit"><option>г</option><option>кг</option><option>мл</option><option>л</option><option>шт</option></select></div>
  </div>
  <div class="row">
-  <div class="field"><label for="ingAllergens">Аллергены (по этикетке/спецификации)</label><input id="ingAllergens" placeholder="Например, рыба; соя"></div>
+  <div class="field"><label for="ingAllergens">Аллергены · коротко</label><input id="ingAllergens" placeholder="Например: рыба, соя" autocomplete="off"><div id="ingAllergenChips" class="ingSuggestionChips" aria-label="Добавить типовой аллерген"></div></div>
   <div class="field"><label for="ingManufacturer">Производитель / бренд</label><input id="ingManufacturer" placeholder="При необходимости"></div>
   <div class="field"><label for="ingPrice">Закупочная цена, ₽/кг (не в ТТК)</label><input id="ingPrice" type="number" min="0" step=".01" placeholder="Необязательно"></div>
  </div>
  <div class="row">
-  <div class="field"><label for="ingStorage">Условия хранения (из документов поставщика)</label><input id="ingStorage" placeholder="Например, +2…+6 °C"></div>
-  <div class="field"><label for="ingShelfLife">Срок хранения, часов</label><input id="ingShelfLife" type="number" min="0" step=".1" placeholder="Только подтверждённый"></div>
+  <div class="field"><label for="ingStorage">Условия хранения</label><input id="ingStorage" list="storageHints" autocomplete="off" placeholder="Выбери или впиши своё">
+<datalist id="storageHints"><option value="+2…+6 °C"></option><option value="+2…+4 °C"></option><option value="0…+4 °C"></option><option value="-18 °C и ниже"></option><option value="0…+6 °C"></option><option value="Сухое прохладное место"></option><option value="+5…+25 °C, сухое место"></option><option value="После вскрытия +2…+6 °C"></option></datalist>
+<div class="ingSuggestionChips">
+ <button type="button" class="ingChip" data-storage="+2…+6 °C">+2…+6 °C</button>
+ <button type="button" class="ingChip" data-storage="0…+4 °C">0…+4 °C</button>
+ <button type="button" class="ingChip" data-storage="-18 °C и ниже">−18 °C</button>
+ <button type="button" class="ingChip" data-storage="Сухое прохладное место">Сухое место</button>
+</div></div>
+  <div class="field"><label for="ingShelfLife">Срок хранения</label>
+<div class="ingShelfControls"><input id="ingShelfLife" type="number" min="0" step=".1" placeholder="Часы">
+<select id="ingShelfPreset" aria-label="Готовые сроки хранения"><option value="">Выбрать срок…</option><option value="4">4 часа</option><option value="6">6 часов</option><option value="12">12 часов</option><option value="24">24 часа</option><option value="36">36 часов</option><option value="48">48 часов</option><option value="72">72 часа</option><option value="96">4 суток</option><option value="168">7 суток</option><option value="336">14 суток</option><option value="720">30 суток</option><option value="2160">90 суток</option></select></div></div>
   <div class="field"><label for="ingNotes">Примечания</label><input id="ingNotes" placeholder="Артикул, упаковка, особенности"></div>
  </div>
  <div class="actions" style="margin-top:14px">
   <button id="ingSaveBtn" type="button" onclick="saveIngredient()">➕ Добавить ингредиент</button>
   <button id="ingCancelBtn" class="secondary hidden" type="button" onclick="resetIngredientForm()">Отмена редактирования</button>
  </div>
- <div id="ingMsg" aria-live="polite" style="margin-top:9px;font-size:13px"></div>
- <p class="muted" style="margin:8px 0 0">Пустые сведения об аллергенах, хранении и сроках не означают, что они проверены. Данные для ТТК уточняйте по упаковке или документации поставщика.</p>
+ <div class="row">
+ <div class="field"><label for="ingAllergenStatus">Источник данных об аллергенах</label><select id="ingAllergenStatus">
+ <option value="typical">Типовой состав (ещё не подтверждён)</option><option value="pending">Состав не определён</option><option value="verified">Подтверждено этикеткой / спецификацией</option>
+ </select></div>
+ <div class="field wide"><label for="ingAllergenNotes">Служебные сведения об аллергенах (в каталоге не показываются)</label>
+ <textarea id="ingAllergenNotes" rows="2" placeholder="Откуда взяты данные, что проверить, информация производителя"></textarea></div>
+</div>
+<div id="ingMsg" aria-live="polite" style="margin-top:9px;font-size:13px"></div>
+ <p class="muted" style="margin:8px 0 0">Пустые сведения об аллергенах, хранении и сроках не означают, что они проверены. Данные для ТТК подтверждайте по упаковке или документации поставщика. Подсказки температуры и срока — варианты ввода, а не готовые нормативы для продукта.</p>
 </div>
 <div class="panel">
  <div class="row between ingredientListHead"><h2 style="margin:0">📦 База ингредиентов <span class="pill" id="ingCount">0</span></h2>
@@ -152,6 +207,11 @@
  </div>
  <div id="ingQuickCats" class="ingQuickCats" aria-label="Категории сырья"></div>
 <div id="ingGroups" class="ingGroups" aria-live="polite"></div>
+<dialog id="ingredientUsesDialog" aria-labelledby="usesTitle">
+ <div class="ingUsesHeader"><h2 id="usesTitle">Где используется ингредиент</h2><button type="button" class="secondary" onclick="closeIngredientUses()" aria-label="Закрыть окно">✕</button></div>
+ <div id="usesContents"></div>
+ <div class="ingUsesActions"><button type="button" class="secondary" onclick="closeIngredientUses()">Закрыть</button></div>
+</dialog>
 <p class="ingLegend">ℹ️ «Типовые аллергены не выявлены» не исключает перекрёстный контакт. Для сложных покупных продуктов обязательна проверка маркировки и спецификаций.</p>
 </div></div>
 <div id="catalogPage" class="screen-only hidden"><div class="panel"><div class="row between"><h2 id="catalogTitle">Полуфабрикаты</h2><button onclick="newRecipe()">+ Создать</button></div><div class="scroll"><table><thead><tr><th>Код</th><th>Наименование</th><th>Выход</th><th>Статус</th><th></th></tr></thead><tbody id="recipeRows"></tbody></table></div></div></div>
@@ -181,7 +241,7 @@
 <script>
 const SB='https://mhsmmssipligbmvfzkce.supabase.co';
 const KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
-let session=null,register=false,ingredients=[],recipes=[],currentKind='prefab',editing=null,components=[],photoData=null;
+let session=null,register=false,ingredients=[],recipes=[],recipeLines=[],usageLoaded=false,currentKind='prefab',editing=null,components=[],photoData=null;
 const $=id=>document.getElementById(id);const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function msg(id,text,error=true){$(id).innerHTML='<span class="'+(error?'err':'ok')+'">'+safe(text)+'</span>'}
 async function http(path,options={}){const headers={apikey:KEY,'Content-Type':'application/json',...options.headers};if(session)headers.Authorization='Bearer '+session.access_token;const r=await fetch(SB+path,{...options,headers});const t=await r.text();let data;try{data=JSON.parse(t)}catch{data=t}if(!r.ok)throw Error(data.msg||data.message||data.error_description||data.error||'Ошибка '+r.status);return data}
@@ -189,7 +249,7 @@ function toggleAuth(){register=!register;$('authTitle').textContent=register?'Р
 async function authAction(){try{const email=$('email').value.trim(),password=$('password').value;if(!email||password.length<8)throw Error('Введите email и пароль от 8 символов');const data=await http(register?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(register&&!data.access_token){msg('loginMsg','Проверьте почту и подтвердите адрес. После подтверждения войдите.',false);return}session=data;localStorage.setItem('ms_session',JSON.stringify(session));await enter()}catch(e){msg('loginMsg',e.message)}}
 async function enter(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');$('userBadge').textContent=session.user?.email||'';await reload();switchPage('home')}
 async function logout(){try{await http('/auth/v1/logout',{method:'POST'})}catch{}session=null;localStorage.removeItem('ms_session');$('app').classList.add('hidden');$('auth').classList.remove('hidden')}
-async function reload(){ingredients=await http('/rest/v1/ingredients?select=*&order=name.asc');recipes=await http('/rest/v1/recipes?select=*&order=updated_at.desc');$('nIng').textContent=ingredients.length;$('nPf').textContent=recipes.filter(r=>r.kind==='prefab').length;$('nPr').textContent=recipes.filter(r=>r.kind==='product').length;renderIngredients()}
+async function reload(){const results=await Promise.all([http('/rest/v1/ingredients?select=*&order=name.asc'),http('/rest/v1/recipes?select=*&order=updated_at.desc'),http('/rest/v1/recipe_lines?select=recipe_id,ingredient_id,prefab_id&limit=5000').then(rows=>({rows,loaded:true})).catch(()=>({rows:[],loaded:false}))]);[ingredients,recipes]=results;recipeLines=results[2].rows;usageLoaded=results[2].loaded;$('nIng').textContent=ingredients.length;$('nPf').textContent=recipes.filter(r=>r.kind==='prefab').length;$('nPr').textContent=recipes.filter(r=>r.kind==='product').length;renderIngredients()}
 function switchPage(page){if(['prefab','product'].includes(page))currentKind=page;for(const id of ['homePage','ingredientsPage','catalogPage','editorPage'])$(id).classList.add('hidden');const target=page==='home'?'homePage':page==='ingredients'?'ingredientsPage':page==='editor'?'editorPage':'catalogPage';$(target).classList.remove('hidden');$('pageTitle').textContent=({home:'Главная',ingredients:'Ингредиенты',prefab:'Полуфабрикаты',product:'Товары и меню',editor:'Редактор ТТК'})[page];document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(['prefab','product'].includes(page))renderRecipes()}
 let editingIngredientId=null;
 const ingredientCategories=['Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Декор и панировка','Соусы и специи','Мясо и яйца','Основы суши','Напитки и вода','Прочее'];
@@ -218,25 +278,21 @@ function renderIngredients(){
    ordered.map(k=>'<button type="button" data-ing-cat="'+safe(k)+'" class="ingQuick'+(selected===k?' on':'')+'">'+(ingredientGroupIcons[k]||'📦')+' '+safe(k)+' <b>'+allCounts.get(k)+'</b></button>').join('');
  const groups=ordered.map(k=>[k,filtered.filter(i=>(i.category||'Прочее')===k)]).filter(pair=>pair[1].length);
  if(!groups.length){$('ingGroups').innerHTML='<div class="ingNoResults">🔎 Ничего не найдено. Измените запрос или категорию.</div>';return}
- const prepAllergens=(raw)=>{
-  const val=String(raw||'').trim();
-  if(!val)return '<span class="ingWarn">⚠ Аллергены не заполнены</span>';
-  if(/^типовые аллергены не выявлены/i.test(val))return '<span class="ingNeutral">— Типовые не выявлены*</span><small class="ingSub">Следы — по маркировке</small>';
-  if(/^(?:Аллергены не подтверждены|Аллергены — по маркировке)/i.test(val))return '<span class="ingWarn">⚠ Уточнить у поставщика</span>';
-  return '<span class="ingAllergen">'+safe(val)+'</span>';
- };
+ const prepAllergens=raw=>{const val=String(raw||'').trim();return val?'<span class="ingAllergen">'+safe(val)+'</span>':'<span class="ingNeutral">—</span>';};
  $('ingGroups').innerHTML=groups.map(([category,items])=>{
   const rows=items.map(i=>{
    const price=i.purchase_price_rub_per_kg??'—';
    return '<tr><td><b>'+safe(i.name)+'</b><small class="ingMeta">'+safe(i.unit||'г')+(i.notes?' · '+safe(i.notes):'')+'</small></td>'+
-    '<td>'+prepAllergens(i.allergens)+'</td><td>'+safe(i.manufacturer||'—')+'</td><td class="ingPrice">'+safe(price)+'</td>'+
-    '<td><div class="ingRowActions"><button class="secondary ingAction" type="button" onclick="editIngredient('+Number(i.id)+')">✏️ Изменить</button>'+
+    '<td title="'+safe(i.allergen_status==='verified'?'Подтверждено документом':i.allergen_status==='pending'?'Состав не установлен':'Типовой состав, не подтверждено')+'">'+prepAllergens(i.allergens)+'</td><td>'+safe(i.manufacturer||'—')+'</td><td class="ingPrice">'+safe(price)+'</td>'+
+    '<td><button type="button" class="ingUseLink" onclick="openIngredientUses('+Number(i.id)+')" title="Открыть связанные ПФ, товары и ТТК">'+
+ ingredientUsageBadge(Number(i.id))+'</button></td>'+
+ '<td><div class="ingRowActions"><button class="secondary ingAction" type="button" onclick="editIngredient('+Number(i.id)+')">✏️ Изменить</button>'+
     '<button class="danger ingAction" type="button" onclick="deleteIngredient('+Number(i.id)+')">🗑 Удалить</button></div></td></tr>';
   }).join('');
   return '<details class="ingGroup" open><summary class="ingGroupSummary">'+
     '<span class="ingGroupTitle"><span class="ingIcon">'+(ingredientGroupIcons[category]||'📦')+'</span>'+safe(category)+'</span>'+
     '<span class="ingGroupRight"><span class="ingGroupCount">'+items.length+' поз.</span><span class="ingArrow">▾</span></span></summary>'+
-    '<div class="scroll"><table class="ingTable"><thead><tr><th>Наименование</th><th>Аллергены</th><th>Производитель</th><th>Цена ₽/кг</th><th>Действия</th></tr></thead>'+
+    '<div class="scroll"><table class="ingTable"><thead><tr><th>Наименование</th><th>Аллергены</th><th>Производитель</th><th>Цена ₽/кг</th><th>Использование</th><th>Действия</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div></details>';
  }).join('');
 }
@@ -245,9 +301,79 @@ $('ingQuickCats').addEventListener('click',e=>{
  $('ingCatFilter').value=btn.dataset.ingCat;
  renderIngredients();
 });
+
+const allergensAvailable=['рыба','молоко','яйцо','соя','пшеница','ракообразные','моллюски','кунжут','горчица','орехи','арахис','сельдерей','люпин','сульфиты'];
+function ingredientUsageDetails(ingredientId){
+ const recipeMap=new Map(recipes.map(r=>[Number(r.id),r]));
+ const parents=new Map(),seenPaths=new Map();
+ for(const l of recipeLines)if(l.prefab_id!=null){
+   const child=Number(l.prefab_id);if(!parents.has(child))parents.set(child,[]);
+   parents.get(child).push(Number(l.recipe_id));
+ }
+ function walk(id,path,visited){
+   if(visited.has(id))return;
+   const r=recipeMap.get(id);if(!r)return;
+   const prior=seenPaths.get(id);if(!prior||path.length<prior.length)seenPaths.set(id,path);
+   const next=new Set(visited);next.add(id);
+   for(const higher of parents.get(id)||[])walk(higher,[...path,higher],next);
+ }
+ for(const l of recipeLines)if(Number(l.ingredient_id)===Number(ingredientId)){
+   const id=Number(l.recipe_id);walk(id,[id],new Set());
+ }
+ return [...seenPaths].map(([id,path])=>({recipe:recipeMap.get(id),path:path.map(pid=>recipeMap.get(pid)).filter(Boolean)}))
+  .filter(x=>x.recipe).sort((a,b)=>(a.recipe.kind===b.recipe.kind?0:a.recipe.kind==='prefab'?-1:1)||String(a.recipe.code||'').localeCompare(String(b.recipe.code||''),'ru'));
+}
+function ingredientUsageBadge(id){
+ if(!usageLoaded)return '<span class="ingUsageNone">—</span>';
+ const usage=ingredientUsageDetails(id),pf=usage.filter(x=>x.recipe.kind==='prefab').length,products=usage.filter(x=>x.recipe.kind==='product').length;
+ if(!usage.length)return '<span class="ingUsageNone">Не используется</span>';
+ return '<span class="ingUsageBadge">ПФ: '+pf+' · Товары: '+products+'</span>';
+}
+function closeIngredientUses(){const d=$('ingredientUsesDialog');if(d.open)d.close();else d.hidden=true}
+function openIngredientUses(id){
+ const item=ingredients.find(x=>Number(x.id)===Number(id));if(!item)return;
+ $('usesTitle').textContent=item.name+' · используется в';
+ const container=$('usesContents');
+ if(!usageLoaded){container.innerHTML='<p class="ingWarn">Не удалось загрузить связи рецептур. Обновите страницу и повторите.</p>'}
+ else {
+   const usages=ingredientUsageDetails(id);
+   if(!usages.length)container.innerHTML='<p class="ingNoUses">Пока не используется в существующих полуфабрикатах и товарах.</p>';
+   else {
+     const section=(kind,title)=>{const matches=usages.filter(x=>x.recipe.kind===kind);
+       if(!matches.length)return '<section class="ingUsesSection"><h3>'+title+' · 0</h3><p>Нет связанных карточек.</p></section>';
+       return '<section class="ingUsesSection"><h3>'+title+' · '+matches.length+'</h3>'+
+         matches.map(x=>'<div class="ingUsesRow"><div><b>'+safe(x.recipe.code||'—')+' · '+safe(x.recipe.name)+'</b>'+
+          '<small>'+safe(x.path.length===1?'Прямое использование':'Через '+x.path.slice(0,-1).map(r=>(r.code||'—')+' '+r.name).join(' → '))+'</small></div>'+
+          '<div class="ingUsesActions"><button type="button" class="secondary" onclick="openUsedRecipe('+Number(x.recipe.id)+')">Открыть</button>'+
+          '<a class="ingTtkLink" href="./ttk.html?id='+Number(x.recipe.id)+'" target="_blank" rel="noopener">ТТК А4</a></div></div>').join('')+'</section>';
+     };
+     container.innerHTML='<p class="ingUsageIntro">Найдены прямые и вложенные связи сырья с рецептурами. Кнопка «ТТК А4» открывает документ соответствующей карточки.</p>'+
+       section('prefab','Полуфабрикаты')+section('product','Товары и роллы');
+   }
+ }
+ const dialog=$('ingredientUsesDialog');
+ if(typeof dialog.showModal==='function')dialog.showModal();else dialog.hidden=false;
+}
+async function openUsedRecipe(id){closeIngredientUses();await openRecipe(id)}
+function createAllergenChips(){
+ $('ingAllergenChips').innerHTML=allergensAvailable.map(tag=>'<button type="button" class="ingChip" data-allergen="'+safe(tag)+'">'+safe(tag)+'</button>').join('');
+ $('ingAllergenChips').addEventListener('click',e=>{
+   const btn=e.target.closest('[data-allergen]');if(!btn)return;
+   const t=btn.dataset.allergen;
+   let list=$('ingAllergens').value.split(/[,;]+/).map(x=>x.trim().toLocaleLowerCase('ru')).filter(Boolean);
+   list=list.includes(t)?list.filter(x=>x!==t):[...list,t];
+   $('ingAllergens').value=allergensAvailable.filter(a=>list.includes(a)).concat(list.filter(x=>!allergensAvailable.includes(x))).join(', ');
+ });
+ for(const button of document.querySelectorAll('[data-storage]'))button.addEventListener('click',()=>{
+   $('ingStorage').value=button.dataset.storage;
+ });
+ $('ingShelfPreset').addEventListener('change',()=>{$('ingShelfLife').value=$('ingShelfPreset').value;});
+ $('ingShelfLife').addEventListener('input',()=>{$('ingShelfPreset').value=[...$('ingShelfPreset').options].some(o=>o.value===$('ingShelfLife').value)?$('ingShelfLife').value:'';});
+}
+createAllergenChips();
 function resetIngredientForm(){
  editingIngredientId=null;
- for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingStorage','ingShelfLife','ingNotes'])$(id).value='';
+ for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingStorage','ingShelfLife','ingNotes','ingAllergenNotes'])$(id).value='';$('ingAllergenStatus').value='typical';$('ingShelfPreset').value='';
  $('ingUnit').value='г';$('ingCategory').value='Рыба и морепродукты';
  $('ingFormTitle').textContent='➕ Новый ингредиент';
  $('ingSaveBtn').textContent='➕ Добавить ингредиент';
@@ -262,8 +388,9 @@ function editIngredient(id){
  editingIngredientId=Number(ing.id);
  const fields={ingName:ing.name,ingCategory:ing.category||'Прочее',ingUnit:ing.unit||'г',ingAllergens:ing.allergens||'',
  ingManufacturer:ing.manufacturer||'',ingPrice:ing.purchase_price_rub_per_kg??'',ingStorage:ing.storage_conditions||'',
- ingShelfLife:ing.shelf_life_hours??'',ingNotes:ing.notes||''};
+ ingShelfLife:ing.shelf_life_hours??'',ingNotes:ing.notes||'',ingAllergenNotes:ing.allergen_notes||'',ingAllergenStatus:ing.allergen_status||'typical'};
  for(const [id,value] of Object.entries(fields))$(id).value=value;
+ $('ingShelfPreset').value=[...$('ingShelfPreset').options].some(o=>o.value===String(ing.shelf_life_hours??''))?String(ing.shelf_life_hours):'';
  $('ingFormTitle').textContent='✏️ Изменить ингредиент';
  $('ingSaveBtn').textContent='💾 Сохранить изменения';
  $('ingCancelBtn').classList.remove('hidden');$('ingEditStatus').classList.remove('hidden');
@@ -281,7 +408,7 @@ async function saveIngredient(){
  if((price!=null&&(!Number.isFinite(price)||price<0))||(life!=null&&(!Number.isFinite(life)||life<0))){msg('ingMsg','Цена и срок хранения не могут быть отрицательными.');return}
  const data={name,category:$('ingCategory').value,unit:$('ingUnit').value,allergens:$('ingAllergens').value.trim(),
  manufacturer:$('ingManufacturer').value.trim(),purchase_price_rub_per_kg:price,
- storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim()};
+ storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim(),allergen_notes:$('ingAllergenNotes').value.trim(),allergen_status:$('ingAllergenStatus').value};
  const id=editingIngredientId;const btn=$('ingSaveBtn');btn.disabled=true;
  try{
   const res=await http(id==null?'/rest/v1/ingredients':'/rest/v1/ingredients?id=eq.'+id,
