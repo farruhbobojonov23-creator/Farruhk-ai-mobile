@@ -1,2 +1,29 @@
 [
+  {
+    "slug": "still_drinking_water",
+    "name": "Вода питьевая",
+    "category": "Напитки и вода",
+    "keywords": "вода питьевая,вода без газа",
+    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/e4718f84-6ec0-4546-aa6f-da51482414f7/8de34ddf-afdf-48a0-a944-3941b86fe9b2.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTVhZWUwNmI1MTY5ZTgzNiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0MjQ3NX0.fGvgBQddENvmF5n97F2-UDgCf3KbKxnEqJTBgGp1F5E",
+    "replace": true,
+    "expected_alpha": true
+  },
+  {
+    "slug": "rice_vinegar",
+    "name": "Уксус рисовый",
+    "category": "Соусы и специи",
+    "keywords": "уксус рисовый DUNKAN,рисовый уксус",
+    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/00cfc46d-6e39-418f-874d-7c90d67ec45c/aaae3e13-07a7-4c23-9f0b-22eac95106c8.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzhjMWE0YzVhOGVmNjM4ZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ5MDk0OX0.9DxxYtCU8wNv7oimEbkdhquuiEMPruezWCE94VUhIH0",
+    "replace": true,
+    "expected_alpha": true
+  },
+  {
+    "slug": "unagi_sauce",
+    "name": "Соус унаги",
+    "category": "Соусы и специи",
+    "keywords": "соус унаги,унаги соус",
+    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/db293ea2-c270-4e93-8b08-1365cdf386fc/667a9427-b498-4e51-b375-0225d08eef51.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTU0YWJhZGM1YjcwZWRiMiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0NTY2MH0.5agnNaBfhdx3SFlGVJQJpRP0uh6UK_XG9h4SJirXlwI",
+    "replace": true,
+    "expected_alpha": true
+  }
 ]
