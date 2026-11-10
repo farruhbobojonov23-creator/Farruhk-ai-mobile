@@ -348,7 +348,7 @@ async function init(){
    await signin();
    [recipes,ingredients]=await Promise.all([api('/rest/v1/recipes?select=*&order=name.asc'),api('/rest/v1/ingredients?select=*&order=name.asc')]);
    suggestions();
-   const cards=recipes.filter(r=>r.kind==='product');$('#recipePick').innerHTML=(cards.length?cards:recipes).map(r=>'<option value="'+r.id+'">'+safe(r.code+' — '+r.name)+'</option>').join('');
+   const cards=recipes.filter(r=>r.kind==='product');const prefabs=recipes.filter(r=>r.kind==='prefab');$('#recipePick').innerHTML='<optgroup label="Готовые товары">'+cards.map(r=>'<option value="'+r.id+'">'+safe(r.code+' — '+r.name)+'</option>').join('')+'</optgroup><optgroup label="Полуфабрикаты">'+prefabs.map(r=>'<option value="'+r.id+'">'+safe(r.code+' — '+r.name)+'</option>').join('')+'</optgroup>';
    const id=Number(new URLSearchParams(location.search).get('id'))||(cards[0]||recipes[0])?.id;
    if(!id)throw Error('В базе нет ТТК. Сначала создайте товар в меню.');
    await loadRecipe(id);scaled();
