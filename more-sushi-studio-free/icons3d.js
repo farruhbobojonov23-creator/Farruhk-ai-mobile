@@ -176,6 +176,7 @@ async function batchAdd(items){
  let success=0,skipped=0,errors=[];
  const existing=new Set(photos.map(p=>norms(p.name)));
  for(const it of items){
+  notify('Добавляю фото: '+(success+skipped+errors.length+1)+' из '+items.length+'…');
   const name=String(it.name||'').trim().slice(0,160),data=it.image_data;
   if(!name||!PHOTO_RE.test(data||'')||data.length>950000){errors.push(name||'Неверное фото');continue}
   if(existing.has(norms(name))){skipped++;continue}
@@ -210,5 +211,5 @@ function showIconPicker(onSelect,selected='',searchDefault=''){
  if(!ready)refresh().then(paintPicker);
 }
 setupIngredient();
-window.MSIcons={render,asPhoto,showIconPicker,refresh,setupIngredient,setIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientKey,auto:predicted};
+window.MSIcons={render,asPhoto,showIconPicker,refresh,setupIngredient,setIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientKey,auto:predicted,clear:()=>{photos=[];ready=false;ingredientPhoto=null;ingredientKey='';if(picker?.open)picker.close()}};
 })();
