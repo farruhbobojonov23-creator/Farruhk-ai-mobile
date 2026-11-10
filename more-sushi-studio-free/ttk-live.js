@@ -111,13 +111,15 @@ function scheduleFit(){clearTimeout(fitTimer);fitTimer=setTimeout(fit,100)}
 function fit(){
  const sheet=g('printSheet'),area=g('ttkFit');if(!sheet||!area)return;
  const allowed=1123-area.offsetTop-26;let f=1;
- for(let i=0;i<40;i++){
+ for(let i=0;i<45;i++){
   area.style.width=100/f+'%';area.style.transform='scale('+f+')';
   if(area.scrollHeight*f<=allowed+1)break;
+  if(f<=.50)break;
   f*=.95;
  }
- if(area.scrollHeight*f>allowed+1)notice('Слишком много текста: для одного А4 сократите длинные разделы.');
- else if(f<.65)notice('Все данные на одном А4, но шрифт слишком мелкий ('+Math.round(f*100)+'%).');
+ if(area.scrollHeight*f>allowed+1){notice('Текст не помещается на один А4 без обрезки. Сократите формулировки.');return false;}
+ if(f<.65)notice('Внимание: мелкий текст ('+Math.round(f*100)+'%). Проверьте читаемость.');
+ return true;
 }
 function toolbarInit(){
  if(toolbar)return;
@@ -126,9 +128,10 @@ function toolbarInit(){
  document.body.appendChild(toolbar);
  g('ttkSave').addEventListener('click',async()=>{await saveRecipe();render();notice(g('saveInfo')?.innerText||'Сохранение завершено')});
  g('ttkAdd').addEventListener('click',()=>{components.push({source_type:'ingredient',source_id:ingredients[0]?.id||0,gross_g:0,net_g:0});render();notice('Строка добавлена. Сохраните.')});
- g('ttkPrint').addEventListener('click',()=>{fit();window.print()});
+ g('ttkPrint').addEventListener('click',()=>{if(fit())window.print();else alert('Чтобы ТТК была строго на одном листе А4 без обрезки, сократите слишком длинный текст.');});
  g('ttkBack').addEventListener('click',()=>{mode=false;document.body.classList.remove('ttk-live');toolbar.remove();toolbar=null;style?.remove();style=null;switchPage(currentKind)});
 }
+g('photoFile')?.addEventListener('change',async()=>{if(!mode)return;try{await uploadPhoto();render();notice('Фотография обновлена. Нажмите «Сохранить».')}catch(e){notice('Ошибка фото: '+e.message)}});
 window.openTTK=function(){
  if(!editing){alert('Сначала сохраните новую карточку товара.');return}
  mode=true;addStyle();document.body.classList.add('ttk-live');toolbarInit();render();
