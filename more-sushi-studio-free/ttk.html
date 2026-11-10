@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Море Суши — интерактивная ТТК A4</title>
+<style>
+:root{--navy:#082a4b;--blue:#0c5790;--red:#e72339;--light:#dbeefb;color-scheme:light;font-family:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#e8eef5;color:#153454}
+button,input,select{font:inherit}button{cursor:pointer}
+#toolbar{position:sticky;top:0;z-index:300;display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:10px 17px;background:#0d355b;color:white;box-shadow:0 4px 15px #18345240}
+#toolbar strong{font-size:17px;margin-right:auto}#toolbar button,#toolbar select{padding:9px 12px;border-radius:8px;border:1px solid #9ebcd4;background:#e7f3fd;color:#0a3e68;font-size:13px}
+#toolbar button.primary{background:#1786cc;border-color:#1786cc;color:white;font-weight:bold}#toolbar button:disabled{opacity:.55}
+#toolbar select{max-width:300px}
+#feedback{max-width:1040px;margin:12px auto;background:#dbeefb;border-left:5px solid #1a88be;color:#114e7a;padding:11px 14px;border-radius:5px;font-size:13px}
+#feedback.error{background:#fee7e3;border-color:#c83041;color:#8e2430}
+#feedback.warning{background:#fff1d4;border-color:#d6a038;color:#745018}
+#pageWrap{width:794px;height:1123px;position:relative;margin:15px auto 26px;transform-origin:top center}
+#page{width:794px;height:1123px;overflow:hidden;position:relative;background:white;color:#152c45;box-shadow:0 6px 24px #20486640}
+#topArtwork{position:absolute;left:0;top:0;width:794px;height:303px;pointer-events:none}
+#brand{position:absolute;left:12px;top:12px;width:159px;text-align:center;color:white;z-index:10}
+#brand img{display:block;width:126px;height:126px;object-fit:cover;margin:0 auto 3px;border-radius:50%;border:2px solid #e4f2fa;background:#13395c}
+#brand .brandname{font-size:24px;font-weight:900;color:white;line-height:1.05}
+#brand .brandname em{font-style:normal;color:#f82d41}
+#brand .brandsub{font-size:10px;letter-spacing:1.7px;margin-top:7px}
+#pageTitle{position:absolute;left:218px;right:16px;top:18px;line-height:1.04;color:#092d52;font-size:27.8px;font-weight:900;letter-spacing:-.7px}
+#titleDash{position:absolute;left:219px;top:64px;background:#e92839;width:180px;height:3px}
+#nameStrip{position:absolute;left:216px;top:75px;width:559px;height:37px;background:linear-gradient(96deg,#c4e0f6,#e9f5fe);border-radius:6px;display:flex;align-items:center;gap:8px;padding:4px 10px 4px 17px;color:#112f51;font-size:15.7px;font-weight:800}
+#nameStrip:before{content:"";position:absolute;left:-8px;top:0;width:14px;height:100%;background:#e01f38;transform:skewX(-19deg)}
+#nameStrip .namecode{width:105px;flex-shrink:0}
+#nameStrip .namedish{flex:1;min-width:0}
+#nameStrip .separator{opacity:.7}
+#photoBox{position:absolute;left:215px;top:125px;width:288px;height:176px;display:flex;justify-content:center;align-items:center;overflow:hidden;border:2px dashed #f0f6fcab;background:linear-gradient(138deg,#afc0cd,#d0dce5 43%,#f1f7fc 77%);border-radius:6px;cursor:pointer;z-index:2}
+#photoBox img{width:100%;height:100%;object-fit:cover;display:none}
+#photoBox .uploadEmpty{color:#667687;text-align:center;font-size:16px;font-weight:800;display:flex;flex-direction:column;gap:7px;align-items:center}
+#photoBox .uploadEmpty svg{width:73px;height:73px;opacity:.6}
+#photoBox .uploadEmpty small{font-size:11px;font-weight:400}
+#photoBox:hover .photoTip{display:block}
+#photoBox .photoTip{position:absolute;bottom:0;left:0;right:0;background:#073c6dcf;color:#fff;text-align:center;padding:4px;font-size:11px;display:none}
+#factBox{position:absolute;left:507px;top:136px;width:270px;display:flex;flex-direction:column;gap:10px}
+.fact{height:37px;display:grid;grid-template-columns:114px 1fr;background:linear-gradient(100deg,#dfedf7,#eff7fc);border-radius:5px;overflow:hidden;align-items:stretch}
+.fact b{display:flex;align-items:center;padding:8px;background:linear-gradient(100deg,#075485,#0b3d6d);color:white;font-size:13px}
+.fact .value{padding:6px 8px;display:flex;align-items:center;font-size:12.5px;min-width:0}
+.fact .value input,.fact .value select{min-width:0;width:100%;background:transparent;border:0;color:#173c5e;font-size:12px}
+.card{position:absolute;border:1px solid #b5cadd;border-radius:4px;background:#fff}
+.cardHead{height:27px;display:flex;align-items:center;padding:4px 7px 4px 23px;background:linear-gradient(95deg,#0a3d68,#0a538a);border-radius:4px 4px 2px 2px;position:relative;font-weight:900;color:#fff;font-size:12px;line-height:1.08}
+.cardHead:before{content:"";position:absolute;left:5px;top:0;height:100%;width:11px;background:#e42338;transform:skewX(-16deg)}
+.body{padding:7px 9px;line-height:1.27;font-size:10.5px;overflow:hidden}
+.edit{outline:none;white-space:pre-wrap;overflow-wrap:anywhere;border-bottom:1px dashed transparent;cursor:text}
+.edit:hover{border-bottom-color:#95b8d1}
+.edit:focus{background:#fff6dd;border-bottom-color:#d38b2c}
+.edit:empty:before{content:attr(data-ph);font-style:italic;color:#8293a6}
+.card1{left:38px;top:302px;width:334px;height:92px}
+.card2{left:382px;top:302px;width:395px;height:92px}
+.card1 .body,.card2 .body{height:64px}
+.card3{left:38px;top:406px;width:395px;height:238px}
+.card4{left:443px;top:406px;width:334px;height:238px}
+.card5{left:38px;top:654px;width:739px;height:148px}
+.card6{left:38px;top:812px;width:406px;height:160px}
+.card7{left:454px;top:812px;width:323px;height:160px}
+.card3 .body{padding:3px 5px 5px}
+.card4 .body{height:210px;font-size:10px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+#recipeTable th,#recipeTable td{border:1px solid #97b7cb;padding:0 3px;height:16px;line-height:1.08;font-size:9px;vertical-align:middle}
+#recipeTable thead th{height:31px;background:#0b4579;color:#fff;text-align:center}
+#recipeTable th:nth-child(1){width:24px}#recipeTable th:nth-child(2){width:auto}#recipeTable th:nth-child(3){width:60px}#recipeTable th:nth-child(4){width:60px}#recipeTable th:nth-child(5){width:52px}
+#recipeTable td:nth-child(1){text-align:center}
+#recipeTable td:nth-child(3),#recipeTable td:nth-child(4),#recipeTable td:nth-child(5){text-align:right}
+#recipeTable tr.total td{background:#d0e8f7;font-weight:bold;height:22px}
+#recipeTable input{min-width:0;width:100%;height:15px;padding:0 1px;border:0;background:transparent;color:#183953;font-size:9px}
+#recipeTable .number{width:100%;text-align:right}
+#recipeTable .itemInput{font-size:9px}
+#recipeTable .remove{display:none;position:absolute;right:0;color:#ca203c}
+#recipeTable tr:hover .remove{display:inline}
+table tr{position:relative}
+.smalltools{display:flex;align-items:center;gap:8px;position:absolute;top:207px;right:5px;z-index:3;font-size:9px;color:#68829a}
+.smalltools button{border:0;background:#dceefb;color:#0d5b97;border-radius:4px;font-size:9px;padding:2px 5px}
+#process{height:195px;font-size:10.4px;line-height:1.28}
+#f5{display:grid;grid-template-columns:2.05fr .95fr;gap:8px;height:119px;padding:7px 8px}
+#f5 .four{display:grid;grid-template-columns:110px 1fr;grid-template-rows:repeat(4,minmax(0,1fr));gap:3px 3px;align-items:center}
+#f5 .four label{font-size:10.1px;font-weight:bold;white-space:nowrap}
+#f5 .four .edit{font-size:10px}
+#allergy{border:1px solid #c4d8e7;background:#f4f9fe;border-radius:4px;overflow:hidden}
+#allergy h3{margin:0;background:linear-gradient(90deg,#e9344d,#f5e5eb);color:#fff;padding:4px 8px;font-size:12px}
+#allergy .edit{height:86px;padding:6px;font-size:9.7px}
+#qualityTable td{border:1px solid #b8cad8;height:22px;padding:0 3px;font-size:10px}
+#qualityTable td:first-child{width:109px;font-weight:700;background:#deedf9}
+#qualityTable .edit{max-height:40px;line-height:1.08}
+#nutritionHead{font-size:11.2px;font-weight:700;margin:9px 0}
+#nutritionTable th,#nutritionTable td{border:1px solid #adc2d2;text-align:center;padding:5px 3px;font-size:10px}
+#nutritionTable th{background:#d8e9f6;font-weight:700;height:34px}
+#nutritionTable td{height:29px;font-size:12px}
+#foot{position:absolute;left:40px;right:17px;top:988px;height:80px;display:grid;grid-template-columns:1fr 1fr 1.25fr 1.25fr;gap:12px;align-items:start}
+.sign{padding-top:5px;font-size:11px}
+.sign label{font-weight:700}
+.sign .edit{display:inline-block;vertical-align:bottom;min-width:28px;min-height:17px;border-bottom:1px solid #667e92}
+.sign small{display:block;font-size:9px;margin-top:2px;color:#647b91;text-align:right}
+#bottomWave{position:absolute;bottom:0;left:0;width:794px;height:73px;pointer-events:none}
+#photoInput{display:none}
+#nutritionHint{font-size:9.5px;color:#7a5a36;margin-top:5px}
+input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
+#overflowInfo{display:none}
+@media print{
+ @page{size:A4 portrait;margin:0}
+ *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ html,body{width:210mm!important;height:297mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important}
+ #toolbar,#feedback,#overflowInfo,.smalltools,.photoTip{display:none!important}
+ #pageWrap{position:static!important;margin:0!important;transform:none!important;width:210mm!important;height:297mm!important}
+ #page{width:794px;height:1123px;box-shadow:none!important;overflow:hidden!important}
+ #recipeTable .remove{display:none!important}
+ .edit:hover,.edit:focus{background:none!important;border:none!important}
+ .edit:empty:before{content:""!important}
+ input,select{border:0!important;outline:0!important;appearance:none!important;background:transparent!important;color:inherit!important}
+}
+</style></head><body>
+<header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
+<select id="recipePick" aria-label="Выбор рецептуры"></select>
+<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button id="back">← Меню</button></header>
+<div id="feedback">Редактируйте прямо на цветном шаблоне. Изменения сохраняются в выбранную карточку.</div>
+<div id="pageWrap"><main id="page">
+<svg id="topArtwork" viewBox="0 0 794 303" preserveAspectRatio="none"><defs>
+ <linearGradient id="ocean" x1="0" y1="0" x2=".9" y2=".9"><stop stop-color="#06223f"/><stop offset=".66" stop-color="#0b4a78"/><stop offset="1" stop-color="#14426b"/></linearGradient>
+ <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c0cfd9"/><stop offset=".38" stop-color="#e4edf3"/><stop offset="1" stop-color="#fff"/></linearGradient>
+ </defs>
+ <path d="M0 0H199 C193 42 184 98 180 140 C168 203 134 259 0 292Z" fill="url(#ocean)"/>
+ <path d="M199 0 C190 45 183 94 175 141 C164 202 129 257 0 303" fill="none" stroke="#e72940" stroke-width="7"/>
+ <path d="M179 149 C311 125 468 146 526 202 C569 244 503 289 375 301 L0 301 C120 277 153 218 179 149Z" fill="url(#plate)" opacity=".74"/>
+ </svg>
+<div id="brand"><img id="logo" src="data:image/jpeg;base64,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" alt="Море суши"><div class="brandname">Море <em>суши</em></div><div class="brandsub">— ДОСТАВКА СУШИ —</div></div>
+<div id="pageTitle">Технико-технологическая карта</div><div id="titleDash"></div>
+<div id="nameStrip"><span class="namecode edit" data-key="code" contenteditable="true" data-ph="Код ТТК"></span><span class="separator">·</span><span class="namedish edit" data-key="name" contenteditable="true" data-ph="Название блюда"></span></div>
+<div id="photoBox" title="Нажмите, чтобы выбрать фотографию"><img id="dishPhoto"><span class="uploadEmpty" id="photoPlaceholder">
+<svg viewBox="0 0 90 90"><rect x="13" y="12" width="63" height="65" rx="4" fill="none" stroke="#738599" stroke-width="5"/><circle cx="61" cy="31" r="8" fill="#738599"/><path d="M15 74L36 46L47 56L58 44L77 69" fill="#738599"/></svg>ФОТО БЛЮДА<small>(вставьте изображение)</small></span><span class="photoTip">Нажмите, чтобы заменить фото</span></div>
+<input type="file" accept="image/jpeg,image/png,image/webp" id="photoInput">
+<div id="factBox">
+<div class="fact"><b>Категория:</b><div class="value"><span class="edit" data-key="category" contenteditable="true" data-ph="Заполнить"></span></div></div>
+<div class="fact"><b>Статус:</b><div class="value"><select data-key="status"><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select></div></div>
+<div class="fact"><b>Выход:</b><div class="value"><input type="number" step="0.1" min="0" data-key="yield_g" placeholder="Заполнить"> г</div></div>
+</div>
+<section class="card card1"><div class="cardHead">1. ОБЛАСТЬ ПРИМЕНЕНИЯ</div><div class="body edit" contenteditable="true" data-key="scope" data-ph="Введите текст"></div></section>
+<section class="card card2"><div class="cardHead">2. ТРЕБОВАНИЯ К СЫРЬЮ</div><div class="body edit" contenteditable="true" data-key="raw_requirements" data-ph="Введите текст"></div></section>
+<section class="card card3"><div class="cardHead">3. РЕЦЕПТУРА</div><div class="body">
+<table id="recipeTable"><thead><tr><th>№</th><th>Наименование ингредиента / полуфабриката</th><th>Брутто, г</th><th>Нетто, г</th><th>Выход, г</th></tr></thead><tbody id="recipeLines"></tbody>
+<tfoot><tr class="total"><td colspan="4">Выход готового блюда:</td><td id="totalYield">—</td></tr></tfoot>
+</table>
+<div class="smalltools"><button id="addLine" type="button">+ строка</button> <span id="massStatus"></span></div></div></section>
+<section class="card card4"><div class="cardHead">4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС</div><div class="body edit" id="process" contenteditable="true" data-key="process" data-ph="Введите технологический процесс"></div></section>
+<section class="card card5"><div class="cardHead">5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ</div><div id="f5">
+<div class="four">
+<label>Оформление:</label><div class="edit" contenteditable="true" data-key="serving_design" data-ph="Введите текст"></div>
+<label>Реализация:</label><div class="edit" contenteditable="true" data-key="serving_sale" data-ph="Введите текст"></div>
+<label>Условия хранения:</label><div class="edit" contenteditable="true" data-key="storage" data-ph="Введите текст"></div>
+<label>Транспортирование:</label><div class="edit" contenteditable="true" data-key="serving_transport" data-ph="Введите текст"></div>
+</div><div id="allergy"><h3>АЛЛЕРГЕНЫ</h3><div class="edit" contenteditable="true" data-key="allergens" data-ph="Введите список аллергенов"></div></div>
+</div></section>
+<section class="card card6"><div class="cardHead">6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ</div><div class="body" style="padding:1px 1px"><table id="qualityTable">
+<tbody><tr><td>Внешний вид</td><td class="edit" contenteditable="true" data-key="quality_appearance"></td></tr>
+<tr><td>Консистенция</td><td class="edit" contenteditable="true" data-key="quality_consistency"></td></tr>
+<tr><td>Вкус и запах</td><td class="edit" contenteditable="true" data-key="quality_taste"></td></tr>
+<tr><td>Цвет</td><td class="edit" contenteditable="true" data-key="quality_color"></td></tr>
+<tr><td>Безопасность</td><td class="edit" contenteditable="true" data-key="quality_safety"></td></tr></tbody></table></div></section>
+<section class="card card7"><div class="cardHead">7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ</div>
+<div class="body"><div id="nutritionHead">На 1 порцию (<span class="edit" data-key="yield_label" contenteditable="true">—</span> г):</div>
+<table id="nutritionTable"><thead><tr><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Энергетическая ценность, ккал</th></tr></thead><tbody><tr><td class="edit" data-key="protein" contenteditable="true" data-ph="—"></td><td class="edit" data-key="fat" contenteditable="true" data-ph="—"></td><td class="edit" data-key="carbs" contenteditable="true" data-ph="—"></td><td class="edit" data-key="kcal" contenteditable="true" data-ph="—"></td></tr></tbody></table>
+<div id="nutritionHint">Показатели требуют расчёта и проверки.</div></div></section>
+<footer id="foot">
+<div class="sign"><label>Версия:</label> <span id="version">—</span></div>
+<div class="sign"><label>Дата введения:</label> <span class="edit" contenteditable="true" data-key="approved_at" data-ph="гггг-мм-дд"></span></div>
+<div class="sign"><label>Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small>(Ф.И.О., подпись)</small></div>
+<div class="sign"><label>Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small>(Ф.И.О., подпись)</small></div>
+</footer>
+<svg id="bottomWave" viewBox="0 0 794 73" preserveAspectRatio="none"><defs>
+<linearGradient id="seaFoot" x1="0" x2="1" y1="1" y2="0"><stop stop-color="#08436d"/><stop offset=".55" stop-color="#0ca6da"/><stop offset="1" stop-color="#e5f5ff"/></linearGradient></defs>
+<path d="M0 0 Q64 10 118 41 Q161 63 214 73H0Z" fill="#083b65"/>
+<path d="M0 24 Q75 20 129 52 Q171 71 214 73H0Z" fill="url(#seaFoot)"/>
+<path d="M0 44 Q76 34 150 73H0Z" fill="#6ecce9" opacity=".8"/>
+</svg>
+</main></div>
+<script>
+'use strict';
+const SB='https://mhsmmssipligbmvfzkce.supabase.co';
+const KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+let session=null,ingredients=[],recipes=[],current=null,lines=[],image=null,dirty=false,tooLong=false,saving=false;
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function get(k){const el=$('[data-key="'+k+'"]');return el?(el.hasAttribute('contenteditable')?el.innerText.trim():el.value):''}
+function set(k,x){const el=$('[data-key="'+k+'"]');if(el){if(el.hasAttribute('contenteditable'))el.textContent=String(x??'');else el.value=String(x??'')}}
+function msg(text,level=''){const e=$('#feedback');e.textContent=text;e.className=level}
+function msgFail(e){msg(e.message||String(e),'error')}
+async function api(path,opts={}){const headers={apikey:KEY,'Content-Type':'application/json',...opts.headers};if(session)headers.Authorization='Bearer '+session.access_token;const r=await fetch(SB+path,{...opts,headers});const t=await r.text();let d;try{d=JSON.parse(t)}catch{d=t}if(!r.ok)throw Error(d.message||d.error_description||d.error||'HTTP '+r.status);return d}
+async function signin(){const stored=localStorage.getItem('ms_session');if(!stored)throw Error('Войдите в систему через главную страницу «Море Суши».');session=JSON.parse(stored);if(!session.access_token)throw Error('Требуется повторный вход.');if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+90){session=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});localStorage.setItem('ms_session',JSON.stringify(session))}}
+function splitLabels(text,names){
+ const parts={};const all=String(text||'').split(/\n+/);
+ for(const line of all){
+  let found=false;
+  for(const [name,labels] of Object.entries(names)){
+   for(const lb of labels){if(line.toLowerCase().startsWith(lb.toLowerCase()+':')){parts[name]=(parts[name]?parts[name]+' ':'')+line.slice(lb.length+1).trim();found=true;break}}if(found)break
+  }
+ }
+ if(!Object.keys(parts).length&&all.length)parts[Object.keys(names)[0]]=all.join(' ');
+ return parts;
+}
+function nutrit(n){
+ const t=(n&&n.text)||'';
+ const pick=(pattern)=>{const m=t.match(pattern);return m?m[1]:''};
+ return {protein:n?.protein??pick(/белки\s*[—–:-]\s*([\d,.]+)/i),fat:n?.fat??pick(/жиры\s*[—–:-]\s*([\d,.]+)/i),carbs:n?.carbs??pick(/углеводы\s*[—–:-]\s*([\d,.]+)/i),kcal:n?.kcal??pick(/(?:энергетическая ценность|ккал)\s*[—–:-]?\s*(?:около\s*)?([\d,.]+)/i)};
+}
+function nameFor(l){if(l.ingredient_id)return ingredients.find(i=>i.id===l.ingredient_id)?.name||'Неизвестный ингредиент';if(l.prefab_id)return 'ПФ: '+(recipes.find(r=>r.id===l.prefab_id)?.name||'Неизвестный ПФ');return ''}
+function suggestions(){const el=document.createElement('datalist');el.id='srcHints';el.innerHTML=ingredients.map(i=>'<option value="'+safe(i.name)+'"></option>').join('')+recipes.filter(r=>r.kind==='prefab').map(r=>'<option value="'+safe('ПФ: '+r.name)+'"></option>').join('');document.body.append(el)}
+function lineDraw(){
+ const tbody=$('#recipeLines');const count=Math.max(10,lines.length);
+ tbody.innerHTML=Array.from({length:count},(_,i)=>{
+  const l=lines[i]||{label:'',gross_g:'',net_g:''};
+  return '<tr data-index="'+i+'"><td>'+(i+1)+'</td><td><input class="itemInput" list="srcHints" value="'+safe(l.label||'')+'" placeholder="Ингредиент" aria-label="Ингредиент '+(i+1)+'"></td>'+
+  '<td><input class="number" type="number" min="0" step=".1" value="'+safe(l.gross_g)+'" aria-label="Брутто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.net_g)+'" aria-label="Нетто"></td><td>—</td></tr>';
+ }).join('');
+}
+function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
+function labelPhoto(s){image=s;if(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s)){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
+function loadQuality(text){const v=splitLabels(text,{quality_appearance:['Внешний вид'],quality_consistency:['Консистенция'],quality_taste:['Вкус и запах'],quality_color:['Цвет'],quality_safety:['Безопасность']});for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])set(k,v[k]||'')}
+async function loadRecipe(id){
+ if(dirty&&!confirm('Есть несохранённые изменения. Перейти к другой ТТК?')){if(current)$('#recipePick').value=current.id;return}
+ const r=recipes.find(x=>x.id===Number(id));if(!r)return;
+ const saved=await api('/rest/v1/recipe_lines?select=*&recipe_id=eq.'+r.id+'&order=seq.asc');
+ current=r;for(const k of ['code','name','category','status','yield_g','scope','raw_requirements','process','storage','allergens','developed_by','approved_by','approved_at'])set(k,r[k]);
+ $('#version').textContent=r.version||1;set('yield_label',r.yield_g||'—');$('#totalYield').textContent=r.yield_g||'—';
+ const s=splitLabels(r.serving,{serving_design:['Оформление'],serving_sale:['Реализация'],serving_transport:['Транспортирование']});
+ for(const k of ['serving_design','serving_sale','serving_transport'])set(k,s[k]||'');
+ loadQuality(r.quality);
+ const n=nutrit(r.nutrition||{});for(const k of Object.keys(n))set(k,n[k]);
+ labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g)}));lineDraw();
+ $('#recipePick').value=r.id;dirty=false;msg('ТТК загружена. Нажимайте на поля прямо на листе, чтобы редактировать.');fitAll();
+}
+function buildServing(){return 'Оформление: '+get('serving_design')+'\nРеализация: '+get('serving_sale')+'\nТранспортирование: '+get('serving_transport')}
+function buildQuality(){return [['Внешний вид','quality_appearance'],['Консистенция','quality_consistency'],['Вкус и запах','quality_taste'],['Цвет','quality_color'],['Безопасность','quality_safety']].map(([n,k])=>n+': '+get(k)).join('\n')}
+function findRef(label){const t=label.trim().toLowerCase();if(t.startsWith('пф:')){const name=t.slice(3).trim();return recipes.find(r=>r.kind==='prefab'&&r.name.toLowerCase()===name)?{prefab_id:recipes.find(r=>r.kind==='prefab'&&r.name.toLowerCase()===name).id}:null}const i=ingredients.find(x=>x.name.toLowerCase()===t);return i?{ingredient_id:i.id}:null}
+async function save(){
+ if(saving)return;
+ if(!current){msg('Не выбрана ТТК','error');return}
+ collectLines();const yieldValue=Number(String(get('yield_g')).replace(',','.'))||0;
+ if(!get('code')||!get('name')){msg('Укажите код и название блюда.','error');return}
+ if(!['Черновик','Тест','Утверждено','Архив'].includes(get('status'))){msg('Укажите допустимый статус.','error');return}
+ const unknown=lines.filter(l=>!findRef(l.label));if(unknown.length){msg('Добавьте ингредиенты в раздел «Ингредиенты», либо выберите существующие: '+unknown.map(x=>x.label).join(', '),'error');return}
+ if(get('status')==='Утверждено'){
+   const required=['scope','raw_requirements','process','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','approved_at'];
+   if(required.some(k=>!get(k))){msg('Для утверждения нужно заполнить все обязательные разделы и подписи.','error');return}
+   if(!Number.isFinite(yieldValue)||yieldValue<=0){msg('Для утверждения укажите фактический выход.','error');return}
+   const sum=lines.reduce((a,l)=>a+Number(l.net_g||0),0);if(Math.abs(sum-yieldValue)>40){msg('Проверьте сумму нетто, потери и выход до утверждения.','error');return}
+ }
+ const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
+ const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:get('process'),serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('approved_at'))?get('approved_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
+ saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
+ try{
+   await api('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:current.id,version:current.version,snapshot:current})});
+   await api('/rest/v1/recipes?id=eq.'+current.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)});
+   await api('/rest/v1/recipe_lines?recipe_id=eq.'+current.id,{method:'DELETE'});
+   if(lines.length){const data=lines.map((l,i)=>({recipe_id:current.id,seq:i,gross_g:Number(l.gross_g)||0,net_g:Number(l.net_g)||0,...findRef(l.label)}));await api('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)})}
+   recipes=await api('/rest/v1/recipes?select=*&order=name.asc');current=recipes.find(x=>x.id===current.id);$('#version').textContent=current.version;dirty=false;msg('Сохранено в базе · версия '+current.version+'. Можно печатать.');
+ }catch(e){msg('Не удалось сохранить: '+e.message+'. Проверьте карточку и строки рецептуры.','error')}
+ finally{saving=false;$('#save').disabled=false}
+}
+function fitField(el,min=9.4){
+ const base=el.classList.contains('body')?10.5:el.id==='process'?10.4:10;
+ let font=base;
+ el.style.fontSize=font+'px';
+ while(el.scrollHeight>el.clientHeight+1&&font>min){font-=.25;el.style.fontSize=font+'px'}
+ return el.scrollHeight<=el.clientHeight+1
+}
+function fitAll(){
+ let problem=false;
+ for(const el of $$('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
+  // root fields have fixed dimensions; no content should be hidden
+  if(!fitField(el,9.2))problem=true
+ }
+ tooLong=problem;
+ if(problem)msg('Внимание: текст не помещается полностью на один А4. Сократите перегруженные разделы перед печатью.','warning')
+}
+function printDoc(){
+ collectLines();fitAll();
+ if(tooLong){alert('Текст выходит за границы шаблона. Для одного листа А4 без обрезки сократите перегруженные разделы.');return}
+ window.print()
+}
+function scaled(){
+ const factor=Math.min(1,(window.innerWidth-20)/794);
+ $('#pageWrap').style.transform='scale('+factor+')';
+ $('#pageWrap').style.height=(1123*factor)+'px';
+}
+function toPhoto(file){
+ if(!file||!file.type.startsWith('image/'))return;
+ const obj=URL.createObjectURL(file);const img=new Image();
+ img.onload=()=>{
+  const cv=document.createElement('canvas');const sc=Math.min(1,1150/img.width,850/img.height);
+  cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+  URL.revokeObjectURL(obj);labelPhoto(cv.toDataURL('image/webp',.82));dirty=true;msg('Фото добавлено. Нажмите «Сохранить».');
+ };img.onerror=()=>msg('Не удалось открыть фотографию.','error');img.src=obj
+}
+async function init(){
+ try{
+   await signin();
+   [recipes,ingredients]=await Promise.all([api('/rest/v1/recipes?select=*&order=name.asc'),api('/rest/v1/ingredients?select=*&order=name.asc')]);
+   suggestions();
+   const cards=recipes.filter(r=>r.kind==='product');$('#recipePick').innerHTML=(cards.length?cards:recipes).map(r=>'<option value="'+r.id+'">'+safe(r.code+' — '+r.name)+'</option>').join('');
+   const id=Number(new URLSearchParams(location.search).get('id'))||(cards[0]||recipes[0])?.id;
+   if(!id)throw Error('В базе нет ТТК. Сначала создайте товар в меню.');
+   await loadRecipe(id);scaled();
+ }catch(e){msg(e.message||String(e),'error')}
+}
+document.addEventListener('input',e=>{
+ if(e.target.matches('.edit')||e.target.matches('#recipeTable input')||e.target.matches('.fact input')){
+   dirty=true;if(e.target.dataset.key==='yield_g'){set('yield_label',get('yield_g'));$('#totalYield').textContent=get('yield_g')}fitAll();
+ }
+});
+$('#recipePick').addEventListener('change',e=>loadRecipe(e.target.value));
+$('#save').addEventListener('click',save);
+$('#print').addEventListener('click',printDoc);
+$('#back').addEventListener('click',()=>location.href='./');
+$('#photoBox').addEventListener('click',()=>$('#photoInput').click());
+$('#photoInput').addEventListener('change',e=>toPhoto(e.target.files[0]));
+$('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:''});lineDraw();dirty=true});
+window.addEventListener('resize',scaled);
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+init();
+</script></body></html>
