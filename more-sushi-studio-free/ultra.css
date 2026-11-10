@@ -129,3 +129,15 @@
 #editorPage.ultraEditorMode>.panel>.row:has(#rCode) .field select{font-size:13px;padding:9px}
 #editorPage.ultraEditorMode>.panel>h3:first-of-type{display:none}
 #editorPage.ultraEditorMode .ultraTtkDetails>h3{display:none}
+
+/* Product photo on the working recipe */
+#editorPage:not(.ultraEditorMode) .ultraPhotoPanel{display:none!important}
+.ultraPhotoPanel{margin:1px 18px 14px;border:1px solid #d4e7f2;background:linear-gradient(105deg,#eff7fc,#ffffff);display:flex;align-items:center;gap:17px;padding:13px;border-radius:13px}
+.ultraPhotoBox{height:120px;width:185px;flex:0 0 185px;display:flex;justify-content:center;align-items:center;border-radius:10px;background:radial-gradient(ellipse at 50% 80%,#c2e5f6,#e9f7fe 65%,#f9fdff);overflow:hidden}
+.ultraPhotoBox img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 8px #154b6740)}
+.ultraPhotoPlaceholder{font-size:60px;opacity:.75}
+.ultraPhotoSide{flex:1;min-width:0}
+.ultraPhotoSide b{display:block;font-size:14px;color:#134770}
+.ultraPhotoSide p{font-size:12px;color:#7592a7;line-height:1.5}
+.ultraPhotoSide button{font-size:12px;padding:9px 13px}
+@media(max-width:600px){.ultraPhotoPanel{margin-left:10px;margin-right:10px}.ultraPhotoBox{height:95px;width:110px;flex-basis:110px}.ultraPhotoPlaceholder{font-size:43px}.ultraPhotoSide p{font-size:11px}}
