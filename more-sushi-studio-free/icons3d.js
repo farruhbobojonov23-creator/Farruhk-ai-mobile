@@ -74,6 +74,10 @@ function cleanLibraryPhoto(img){
     for(let x=3;x<w-3;x++){
      const z=(y*w+x)*4,alpha=origin[z+3];
      if(alpha<12)continue;
+     // Fast interior guard: almost all opaque image pixels never need retouching.
+     if(alpha>=245 && a(x-3,y)>=245 && a(x+3,y)>=245 && a(x,y-3)>=245 &&
+        a(x,y+3)>=245 && a(x-3,y-3)>=245 && a(x+3,y-3)>=245 &&
+        a(x-3,y+3)>=245 && a(x+3,y+3)>=245)continue;
      let border1=false,border2=false,border3=false;
      for(let dy=-3;dy<=3;dy++){
       for(let dx=-3;dx<=3;dx++){
