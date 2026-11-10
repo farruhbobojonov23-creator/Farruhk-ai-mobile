@@ -58,12 +58,12 @@ button,input,select{font:inherit}button{cursor:pointer}
 .card3 .body{padding:3px 5px 5px}
 .card4 .body{height:210px;font-size:10px}
 table{width:100%;border-collapse:collapse;table-layout:fixed}
-#recipeTable th,#recipeTable td{border:1px solid #97b7cb;padding:0 3px;height:16px;line-height:1.08;font-size:9px;vertical-align:middle}
-#recipeTable thead th{height:31px;background:#0b4579;color:#fff;text-align:center}
+#recipeTable th,#recipeTable td{border:1px solid #97b7cb;padding:0 3px;height:14px;line-height:1.08;font-size:9px;vertical-align:middle}
+#recipeTable thead th{height:27px;background:#0b4579;color:#fff;text-align:center}
 #recipeTable th:nth-child(1){width:24px}#recipeTable th:nth-child(2){width:auto}#recipeTable th:nth-child(3){width:60px}#recipeTable th:nth-child(4){width:60px}#recipeTable th:nth-child(5){width:52px}
 #recipeTable td:nth-child(1){text-align:center}
 #recipeTable td:nth-child(3),#recipeTable td:nth-child(4),#recipeTable td:nth-child(5){text-align:right}
-#recipeTable tr.total td{background:#d0e8f7;font-weight:bold;height:22px}
+#recipeTable tr.total td{background:#d0e8f7;font-weight:bold;height:18px}
 #recipeTable input{min-width:0;width:100%;height:15px;padding:0 1px;border:0;background:transparent;color:#183953;font-size:9px}
 #recipeTable .number{width:100%;text-align:right}
 #recipeTable .itemInput{font-size:9px}
@@ -103,7 +103,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
  html,body{width:210mm!important;height:297mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important}
  #toolbar,#feedback,#overflowInfo,.smalltools,.photoTip{display:none!important}
  #pageWrap{position:static!important;margin:0!important;transform:none!important;width:210mm!important;height:297mm!important}
- #page{width:794px;height:1123px;box-shadow:none!important;overflow:hidden!important}
+ #page{width:210mm!important;height:297mm!important;box-shadow:none!important;overflow:hidden!important}
  #recipeTable .remove{display:none!important}
  .edit:hover,.edit:focus{background:none!important;border:none!important}
  .edit:empty:before{content:""!important}
@@ -269,6 +269,7 @@ function fitAll(){
   // root fields have fixed dimensions; no content should be hidden
   if(!fitField(el,9.2))problem=true
  }
+ for(const card of $('.card')){if(card.scrollHeight>card.clientHeight+1)problem=true}
  tooLong=problem;
  if(problem)msg('Внимание: текст не помещается полностью на один А4. Сократите перегруженные разделы перед печатью.','warning')
 }
