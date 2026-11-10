@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Рис для суши",
+    "slug": "sushi_rice_dry",
+    "category": "Основы суши",
+    "keywords": "рис для суши, рис, рис сухой",
+    "url": "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-lite-image/images/7af6ae7d-1ca7-456c-8fc3-f6b621174038/73c9b857-f25d-4d7f-849d-3f9e55916da7/One_professional_ultra_photorealistic_ecommerce_studio_produ.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTFhN2M3NTQ1Mzc4NmRhMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQzNTU0MH0.y53E57Gj2m9uGUIj2hgrxyrbwibADRgEzekvhBPz7h4"
+  },
+  {
+    "name": "Форель радужная",
+    "slug": "fresh_trout_fillet",
+    "category": "Рыба и морепродукты",
+    "keywords": "форель,форель радужная,лосось,филе рыбы,Trim C",
+    "url": "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-lite-image/images/32e82d66-1805-4914-b116-f808b3d64aae/0c80f0cd-67c1-4598-a20b-b7aac02f4a68/One_professional_ultra_photorealistic_ecommerce_studio_produ.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMTVjNDQyOGY4YWY5NzJjZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ5ODgzMX0.MEXoa-btwnGbu4WQ_Qla-BV_GhUXe1WJ3ZDbtx5IC4k"
+  },
+  {
+    "name": "Угорь копчёный",
+    "slug": "smoked_eel",
+    "category": "Рыба и морепродукты",
+    "keywords": "угорь,копченый угорь,унаги,филе угря",
+    "url": "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-lite-image/images/49a5ada5-fe81-46ab-87ec-4822e8d09708/35f33b6c-5e3a-4160-b19a-0c773396f76a/One_professional_ultra_photorealistic_ecommerce_studio_produ.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZmY2MjVmNGRiZjA2Yjg3ZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDUwMjYwNX0.v9K-QgVG-PCA-AZd74Tj89rD3j1oIkaWJus2w1YMpXo"
+  },
+  {
+    "name": "Креветка сырая очищенная",
+    "slug": "raw_peeled_shrimp",
+    "category": "Рыба и морепродукты",
+    "keywords": "креветка сырая,очищенная сырая креветка",
+    "url": "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-lite-image/images/ca36c422-ba8e-4033-b7ca-e79450878e2a/1ef8bf39-5b42-437b-88a5-ae5e9be4e281/One_professional_ultra_photorealistic_ecommerce_studio_produ.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOThkNGZmNjE2Yzc5NjVkYyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0NDY0MX0.vEj_gjwKPH2e-Lx83z78n-tx1Y-b6zF6qcxeMB8aBs4"
+  }
+]
