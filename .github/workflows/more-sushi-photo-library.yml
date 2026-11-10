@@ -1,0 +1,45 @@
+name: More Sushi realistic food photo library
+
+on:
+  push:
+    branches:
+      - more-sushi-studio-free
+    paths:
+      - 'more-sushi-studio-free/photo-download-manifest.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: more-sushi-photo-library
+  cancel-in-progress: false
+
+jobs:
+  import-photos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout photo library
+        uses: actions/checkout@v4
+        with:
+          ref: more-sushi-studio-free
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image processing
+        run: python -m pip install --quiet pillow numpy scipy requests
+      - name: Fetch and prepare transparent photo cutouts
+        run: python more-sushi-studio-free/prepare_photos.py
+      - name: Publish images to this branch
+        run: |
+          git config user.name "more-sushi-photo-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add more-sushi-studio-free/photos/ more-sushi-studio-free/photo-index.json
+          if git diff --cached --quiet; then
+            echo "No new photos"
+          else
+            git commit -m "Publish realistic More Sushi food cutouts"
+            git push
+          fi
