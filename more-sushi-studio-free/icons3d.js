@@ -21,9 +21,14 @@ const photoForKey=k=>{
  return photos.find(x=>Number(x.id)===Number(k.split(':')[1]))||null;
 };
 function predicted(item){
- const label=norms(item?.name),mapped=synonyms.find(([pattern])=>pattern.test(label))?.[1]||label;
- const strict=photos.find(p=>norms(p.name)===label);if(strict)return strict;
- return photos.find(p=>(String(p.keywords||'').split(/[,;]+/).some(k=>norms(k)===mapped&&mapped.length>2)));
+ const label=norms(item?.name);
+ if(!label)return null;
+ const exact=photos.find(p=>norms(p.name)===label);
+ if(exact)return exact;
+ const keywordExact=photos.find(p=>String(p.keywords||'').split(/[,;]+/).some(k=>norms(k)===label));
+ if(keywordExact)return keywordExact;
+ const mapped=synonyms.find(([pattern])=>pattern.test(label))?.[1]||label;
+ return photos.find(p=>String(p.keywords||'').split(/[,;]+/).some(k=>norms(k)===mapped&&mapped.length>2))||null;
 }
 function source(item,type){
  const raw=type==='ingredient'?item?.photo_data:item?.photo_path;
