@@ -14,10 +14,10 @@
     "slug": "sparkling_water",
     "name": "Вода газированная",
     "category": "Напитки и вода",
-    "keywords": "вода минеральная сильногазированная,вода питьевая,вода",
+    "keywords": "вода минеральная сильногазированная,вода газированная",
     "image_data": "./photos/sparkling_water.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10045,
