@@ -54,6 +54,7 @@ function setup(){
    '<div class="ultraDemoScaleHeader"><strong>⚖️ Производственная партия</strong><div class="ultraScaleControls">'+
    '<button type="button" data-scale="1" class="selected">×1</button><button type="button" data-scale="2">×2</button><button type="button" data-scale="5">×5</button>'+
    '<button type="button" id="ultraCopyBatch">Скопировать план</button></div></div><div class="ultraScaleRows" id="ultraScaleRows"></div>','ultraDemoScale'));
+  mass.nextElementSibling.id='ultraDemoScale';
   mass.nextElementSibling.after(node('div',
    '<section class="ultraInfo"><h4>🧬 Аллергены и КБЖУ</h4><label style="font-size:12px"><input type="checkbox" id="ultraAutoAllergens" checked> Автоматически собирать аллергены</label><label class="ultraReviewCheck"><input type="checkbox" id="ultraReviewed"> Сведения об аллергенах сверены с документами поставщиков перед утверждением</label>'+
    '<p id="ultraAllergenDetail"></p><p id="ultraNutritionDetail"></p></section>'+
