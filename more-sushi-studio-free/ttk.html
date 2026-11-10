@@ -69,10 +69,17 @@ table{width:100%;border-collapse:collapse;table-layout:fixed}
 #recipeTable .itemInput{font-size:9px}
 #recipeTable .remove{display:none;position:absolute;right:0;color:#ca203c}
 #recipeTable tr:hover .remove{display:inline}
+#recipeTable td:nth-child(5) input{width:100%;height:15px;font-size:9px;padding:0;text-align:right;border:0;background:transparent}
+#recipeTable td:nth-child(5) input:focus{outline:1px solid #5c9cc6}
 table tr{position:relative}
 .smalltools{display:flex;align-items:center;gap:8px;position:absolute;top:207px;right:5px;z-index:3;font-size:9px;color:#68829a}
 .smalltools button{border:0;background:#dceefb;color:#0d5b97;border-radius:4px;font-size:9px;padding:2px 5px}
-#process{height:195px;font-size:10.4px;line-height:1.28}
+#process{height:210px;font-size:10.4px;line-height:1.28}
+.processSteps{height:100%;display:grid;grid-template-rows:repeat(4,1fr);gap:2px}
+.processSteps .step{display:grid;grid-template-columns:19px minmax(0,1fr);gap:3px;min-height:0;border-bottom:1px solid #d1dfea;padding:3px 2px}
+.processSteps .step:last-child{border-bottom:0}
+.processSteps .step b{font-size:12px;color:#18395a;padding-top:1px}
+.processSteps .step .edit{font-size:10.1px;line-height:1.18;min-height:0;max-height:100%;overflow:hidden}
 #f5{display:grid;grid-template-columns:2.05fr .95fr;gap:8px;height:119px;padding:7px 8px}
 #f5 .four{display:grid;grid-template-columns:110px 1fr;grid-template-rows:repeat(4,minmax(0,1fr));gap:3px 3px;align-items:center}
 #f5 .four label{font-size:10.1px;font-weight:bold;white-space:nowrap}
@@ -141,7 +148,12 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 <tfoot><tr class="total"><td colspan="4">Выход готового блюда:</td><td id="totalYield">—</td></tr></tfoot>
 </table>
 <div class="smalltools"><button id="addLine" type="button">+ строка</button> <span id="massStatus"></span></div></div></section>
-<section class="card card4"><div class="cardHead">4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС</div><div class="body edit" id="process" contenteditable="true" data-key="process" data-ph="Введите технологический процесс"></div></section>
+<section class="card card4"><div class="cardHead">4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС</div><div class="body" id="process"><div class="processSteps">
+<div class="step"><b>1.</b><div class="edit" data-key="step1" contenteditable="true" data-ph="Введите текст"></div></div>
+<div class="step"><b>2.</b><div class="edit" data-key="step2" contenteditable="true" data-ph="Введите текст"></div></div>
+<div class="step"><b>3.</b><div class="edit" data-key="step3" contenteditable="true" data-ph="Введите текст"></div></div>
+<div class="step"><b>4.</b><div class="edit" data-key="step4" contenteditable="true" data-ph="Введите текст"></div></div>
+</div></div></section>
 <section class="card card5"><div class="cardHead">5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ</div><div id="f5">
 <div class="four">
 <label>Оформление:</label><div class="edit" contenteditable="true" data-key="serving_design" data-ph="Введите текст"></div>
@@ -162,7 +174,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 <div id="nutritionHint">Показатели требуют расчёта и проверки.</div></div></section>
 <footer id="foot">
 <div class="sign"><label>Версия:</label> <span id="version">—</span></div>
-<div class="sign"><label>Дата введения:</label> <span class="edit" contenteditable="true" data-key="approved_at" data-ph="гггг-мм-дд"></span></div>
+<div class="sign"><label>Дата введения:</label> <span class="edit" contenteditable="true" data-key="introduced_at" data-ph="гггг-мм-дд"></span></div>
 <div class="sign"><label>Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small>(Ф.И.О., подпись)</small></div>
 <div class="sign"><label>Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small>(Ф.И.О., подпись)</small></div>
 </footer>
@@ -202,30 +214,41 @@ function nutrit(n){
  const pick=(pattern)=>{const m=t.match(pattern);return m?m[1]:''};
  return {protein:n?.protein??pick(/белки\s*[—–:-]\s*([\d,.]+)/i),fat:n?.fat??pick(/жиры\s*[—–:-]\s*([\d,.]+)/i),carbs:n?.carbs??pick(/углеводы\s*[—–:-]\s*([\d,.]+)/i),kcal:n?.kcal??pick(/(?:энергетическая ценность|ккал)\s*[—–:-]?\s*(?:около\s*)?([\d,.]+)/i)};
 }
+function splitSteps(text){
+ const source=String(text||'').trim();
+ if(!source)return ['','','',''];
+ const blocks=source.split(/\n(?=\s*[1-4][.)]\s)/).map(x=>x.trim().replace(/^\d+[.)]\s*/,''));
+ return blocks.length>1?[0,1,2,3].map(i=>blocks[i]||''):[source.replace(/^1[.)]\s*/,''),'','',''];
+}
+function stepsText(){return [1,2,3,4].map(i=>get('step'+i)).filter(x=>x.trim()).map((x,i)=>(i+1)+'. '+x).join('\n')}
 function nameFor(l){if(l.ingredient_id)return ingredients.find(i=>i.id===l.ingredient_id)?.name||'Неизвестный ингредиент';if(l.prefab_id)return 'ПФ: '+(recipes.find(r=>r.id===l.prefab_id)?.name||'Неизвестный ПФ');return ''}
 function suggestions(){const el=document.createElement('datalist');el.id='srcHints';el.innerHTML=ingredients.map(i=>'<option value="'+safe(i.name)+'"></option>').join('')+recipes.filter(r=>r.kind==='prefab').map(r=>'<option value="'+safe('ПФ: '+r.name)+'"></option>').join('');document.body.append(el)}
 function lineDraw(){
  const tbody=$('#recipeLines');const count=Math.max(10,lines.length);
  tbody.innerHTML=Array.from({length:count},(_,i)=>{
-  const l=lines[i]||{label:'',gross_g:'',net_g:''};
+  const l=lines[i]||{label:'',gross_g:'',net_g:'',line_yield_g:''};
   return '<tr data-index="'+i+'"><td>'+(i+1)+'</td><td><input class="itemInput" list="srcHints" value="'+safe(l.label||'')+'" placeholder="Ингредиент" aria-label="Ингредиент '+(i+1)+'"></td>'+
-  '<td><input class="number" type="number" min="0" step=".1" value="'+safe(l.gross_g)+'" aria-label="Брутто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.net_g)+'" aria-label="Нетто"></td><td>—</td></tr>';
+  '<td><input class="number" type="number" min="0" step=".1" value="'+safe(l.gross_g)+'" aria-label="Брутто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.net_g)+'" aria-label="Нетто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.line_yield_g??'')+'" aria-label="Выход ингредиента"></td></tr>';
  }).join('');
 }
-function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
+function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value,line_yield_g:ins[3].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
 function labelPhoto(s){image=s;if(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s)){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
 function loadQuality(text){const v=splitLabels(text,{quality_appearance:['Внешний вид'],quality_consistency:['Консистенция'],quality_taste:['Вкус и запах'],quality_color:['Цвет'],quality_safety:['Безопасность']});for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])set(k,v[k]||'')}
 async function loadRecipe(id){
  if(dirty&&!confirm('Есть несохранённые изменения. Перейти к другой ТТК?')){if(current)$('#recipePick').value=current.id;return}
  const r=recipes.find(x=>x.id===Number(id));if(!r)return;
  const saved=await api('/rest/v1/recipe_lines?select=*&recipe_id=eq.'+r.id+'&order=seq.asc');
- current=r;for(const k of ['code','name','category','status','yield_g','scope','raw_requirements','process','storage','allergens','developed_by','approved_by','approved_at'])set(k,r[k]);
+ current=r;for(const k of ['code','name','category','status','yield_g','scope','raw_requirements','storage','allergens','developed_by','approved_by'])set(k,r[k]);
+ const tf=r.ttk_fields||{};
+ const st=Array.isArray(tf.steps)?tf.steps:splitSteps(r.process);for(let i=1;i<=4;i++)set('step'+i,st[i-1]||'');
+ set('introduced_at',tf.introduced_at||r.approved_at||'');
  $('#version').textContent=r.version||1;set('yield_label',r.yield_g||'—');$('#totalYield').textContent=r.yield_g||'—';
  const s=splitLabels(r.serving,{serving_design:['Оформление'],serving_sale:['Реализация'],serving_transport:['Транспортирование']});
- for(const k of ['serving_design','serving_sale','serving_transport'])set(k,s[k]||'');
+ for(const k of ['serving_design','serving_sale','serving_transport'])set(k,tf[k]??s[k]??'');
  loadQuality(r.quality);
+ for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])if(tf[k]!==undefined)set(k,tf[k]);
  const n=nutrit(r.nutrition||{});for(const k of Object.keys(n))set(k,n[k]);
- labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g)}));lineDraw();
+ labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();
  $('#recipePick').value=r.id;dirty=false;msg('ТТК загружена. Нажимайте на поля прямо на листе, чтобы редактировать.');fitAll();
 }
 function buildServing(){return 'Оформление: '+get('serving_design')+'\nРеализация: '+get('serving_sale')+'\nТранспортирование: '+get('serving_transport')}
@@ -239,27 +262,28 @@ async function save(){
  if(!['Черновик','Тест','Утверждено','Архив'].includes(get('status'))){msg('Укажите допустимый статус.','error');return}
  const unknown=lines.filter(l=>!findRef(l.label));if(unknown.length){msg('Добавьте ингредиенты в раздел «Ингредиенты», либо выберите существующие: '+unknown.map(x=>x.label).join(', '),'error');return}
  if(get('status')==='Утверждено'){
-   const pending=[get('scope'),get('process'),get('storage'),get('nutritionHead')].join(' ');
+   const pending=[get('scope'),stepsText(),get('storage')].join(' ');
    if(/не утвержден|не подтвержден|не установ|требует провер|требуют провер|требуют корректиров|по образцу|в разработке|в макете/i.test(pending)){msg('Нельзя утверждать карту с непроверенными сроками, выходом или рецептурой. Оставьте статус «Черновик» до проработки.','error');return}
-   const required=['scope','raw_requirements','process','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','approved_at'];
+   const required=['scope','raw_requirements','step1','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','approved_at'];
    if(required.some(k=>!get(k))){msg('Для утверждения нужно заполнить все обязательные разделы и подписи.','error');return}
    if(!Number.isFinite(yieldValue)||yieldValue<=0){msg('Для утверждения укажите фактический выход.','error');return}
    const sum=lines.reduce((a,l)=>a+Number(l.net_g||0),0);if(Math.abs(sum-yieldValue)>40){msg('Проверьте сумму нетто, потери и выход до утверждения.','error');return}
  }
  const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
- const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:get('process'),serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('approved_at'))?get('approved_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
+ const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
+ const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:stepsText(),ttk_fields,serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('introduced_at'))?get('introduced_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
  saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
  try{
    await api('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:current.id,version:current.version,snapshot:current})});
    await api('/rest/v1/recipes?id=eq.'+current.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)});
    await api('/rest/v1/recipe_lines?recipe_id=eq.'+current.id,{method:'DELETE'});
-   if(lines.length){const data=lines.map((l,i)=>({recipe_id:current.id,seq:i,gross_g:Number(l.gross_g)||0,net_g:Number(l.net_g)||0,...findRef(l.label)}));await api('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)})}
+   if(lines.length){const data=lines.map((l,i)=>({recipe_id:current.id,seq:i,gross_g:Number(l.gross_g)||0,net_g:Number(l.net_g)||0,line_yield_g:l.line_yield_g===''?null:Number(l.line_yield_g),...findRef(l.label)}));await api('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)})}
    recipes=await api('/rest/v1/recipes?select=*&order=name.asc');current=recipes.find(x=>x.id===current.id);$('#version').textContent=current.version;dirty=false;msg('Сохранено в базе · версия '+current.version+'. Можно печатать.');
  }catch(e){msg('Не удалось сохранить: '+e.message+'. Проверьте карточку и строки рецептуры.','error')}
  finally{saving=false;$('#save').disabled=false}
 }
 function fitField(el,min=9.4){
- const base=el.classList.contains('body')?10.5:el.id==='process'?10.4:10;
+ const base=el.classList.contains('body')?10.5:el.closest('.processSteps')?10.1:10;
  let font=base;
  el.style.fontSize=font+'px';
  while(el.scrollHeight>el.clientHeight+1&&font>min){font-=.25;el.style.fontSize=font+'px'}
@@ -317,7 +341,7 @@ $('#print').addEventListener('click',printDoc);
 $('#back').addEventListener('click',()=>location.href='./');
 $('#photoBox').addEventListener('click',()=>$('#photoInput').click());
 $('#photoInput').addEventListener('change',e=>toPhoto(e.target.files[0]));
-$('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:''});lineDraw();dirty=true});
+$('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:'',line_yield_g:''});lineDraw();dirty=true});
 window.addEventListener('resize',scaled);
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 init();
