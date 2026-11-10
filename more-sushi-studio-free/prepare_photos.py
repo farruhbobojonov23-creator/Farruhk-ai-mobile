@@ -28,7 +28,7 @@ for i,item in enumerate(entries,1):
     url=item['url']
     assert url.startswith('https://dnznrvs05pmza.cloudfront.net/') and '_jwt=' in url
     target=OUT/(slug+'.webp')
-    if target.exists() and target.stat().st_size>4000:
+    if target.exists() and target.stat().st_size>4000 and not item.get('replace',False):
         print(i,slug,'exists; skipping')
     else:
         data=None
@@ -43,22 +43,29 @@ for i,item in enumerate(entries,1):
             except Exception as e:
                 if retry==2:raise
                 print('Retry download',slug,str(e)[:100],flush=True);time.sleep(3*(retry+1))
-        img=Image.open(BytesIO(data)).convert('RGB')
+        img=Image.open(BytesIO(data))
+        transparent=('A' in img.getbands() and img.getchannel('A').getextrema()[0]<245)
+        img=img.convert('RGBA' if transparent else 'RGB')
         img.thumbnail((1024,1024),Image.Resampling.LANCZOS)
         arr=np.asarray(img,dtype=np.uint8)
-        light=np.max(arr,axis=2)
-        # Segmentation: everything above near-black, fill holes inside the food subject.
-        foreground=light>38
-        foreground=binary_closing(foreground,structure=np.ones((5,5)),iterations=2)
-        lbl,components=label(foreground)
-        if components:
-            counts=np.bincount(lbl.ravel());counts[0]=0
-            fg=lbl==counts.argmax()
-        else: fg=foreground
-        fg=binary_fill_holes(fg)
-        smooth=gaussian_filter(fg.astype('float32'),sigma=1.1)
-        alpha=np.uint8(np.clip(smooth*255,0,255))
-        rgba=Image.fromarray(np.dstack([arr,alpha]),'RGBA')
+        if transparent:
+            rgba=img
+        else:
+            light=np.max(arr,axis=2)
+        # When Runway supplied true alpha: retain subject transparency unmodified.
+        # Legacy JPEGs on black must be isolated from their matte.
+        if not transparent:
+            foreground=light>38
+            foreground=binary_closing(foreground,structure=np.ones((5,5)),iterations=2)
+            lbl,components=label(foreground)
+            if components:
+                counts=np.bincount(lbl.ravel());counts[0]=0
+                fg=lbl==counts.argmax()
+            else: fg=foreground
+            fg=binary_fill_holes(fg)
+            smooth=gaussian_filter(fg.astype('float32'),sigma=1.1)
+            alpha=np.uint8(np.clip(smooth*255,0,255))
+            rgba=Image.fromarray(np.dstack([arr,alpha]),'RGBA')
         bbox=rgba.getbbox()
         if not bbox:raise ValueError('Empty foreground '+slug)
         rgba=rgba.crop(bbox)
@@ -67,7 +74,9 @@ for i,item in enumerate(entries,1):
         if sz!=rgba.size:rgba=rgba.resize(sz,Image.Resampling.LANCZOS)
         canvas=Image.new('RGBA',(640,640),(0,0,0,0))
         canvas.alpha_composite(rgba,((640-rgba.width)//2,(640-rgba.height)//2))
-        canvas.save(target,'WEBP',quality=82,method=5)
+        canvas.save(target,'WEBP',quality=93,method=6)
+        if transparent:
+            item['quality']='true-alpha-v3'
         print(i,slug,'saved',target.stat().st_size,'bytes',flush=True)
     by_slug[slug]={
         'id':-10000-len(by_slug) if slug not in by_slug else by_slug[slug]['id'],
@@ -77,6 +86,7 @@ for i,item in enumerate(entries,1):
         'keywords':item.get('keywords',item['name']),
         'image_data':'./photos/'+slug+'.webp',
         'local':True,
+        'quality':item.get('quality',by_slug.get(slug,{}).get('quality','edge-clean-v2')),
     }
 
 # Retouch legacy black-backed cutouts. Old thresholded silhouettes retain black
