@@ -257,3 +257,58 @@
   padding:0!important;border:0!important;
  }
 }
+
+/* TTK PRINT-FINISH 2026-11-10
+   Let each approved A4 variation use the printable page height.
+   Keep signature and approval fields on the same single sheet. */
+#toolbar .workflowStatus{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+#toolbar .workflowStatus select{max-width:120px;padding:8px 6px}
+#page[data-template] #factBox{gap:12px}
+#page[data-template] .yieldInline{display:inline-flex;align-items:center;justify-content:flex-start;gap:2px;white-space:nowrap;max-width:100%}
+#page[data-template] #autoYield{width:7.2ch;min-width:0;max-width:90px;flex:0 0 auto!important;padding:0!important;margin:0!important;border:0!important;appearance:textfield;-moz-appearance:textfield;font-size:13px!important;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+#page[data-template] #autoYield::-webkit-outer-spin-button,#page[data-template] #autoYield::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+#page[data-template] .unitG{display:inline-block;flex:0 0 auto;font-size:13px;font-weight:800;line-height:1.2}
+#page[data-template] #f5{height:calc(100% - 27px);min-height:0}
+#page[data-template] #allergy .edit{height:calc(100% - 22px);overflow:hidden}
+#page[data-template] .card6 .body{height:calc(100% - 27px);min-height:0}
+#page[data-template] #qualityTable{height:100%}
+#page[data-template] #qualityTable td{height:auto;line-height:1.17}
+#page[data-template] .card7 .body{height:calc(100% - 27px);display:flex;flex-direction:column;justify-content:center}
+#page[data-template] #nutritionTable th{height:39px}
+#page[data-template] #nutritionTable td{height:35px}
+#page[data-template] #nutritionHead{margin:4px 0 10px}
+#page[data-template] #recipeTable tbody tr{height:16px}
+#page[data-template] #recipeTable tbody td{height:16px;max-height:16px}
+#page[data-template] #recipeTable .itemInput{height:14px;line-height:14px}
+#page[data-template] #foot{
+ top:1041px;height:67px;
+ display:grid;grid-template-columns:1fr 1fr;grid-template-rows:23px 38px;
+ column-gap:23px;row-gap:6px;align-items:start;z-index:5;
+}
+#page[data-template] #foot .sign{display:flex;align-items:baseline;gap:7px;min-width:0;padding-top:0;font-size:12px;white-space:nowrap}
+#page[data-template] #foot .sign:first-of-type{grid-column:1 / -1}
+#page[data-template] #foot .sign label{flex:0 0 auto;font-weight:800}
+#page[data-template] #foot .sign .edit{display:inline-block;min-height:25px;min-width:135px;flex:1 1 auto;padding:1px 2px 3px;border-bottom:1px solid #4b6e88;outline:0}
+#page[data-template] #foot .sign:first-of-type .edit{flex:0 0 240px;min-width:210px}
+#page[data-template] #bottomWave{height:31px;opacity:.34;z-index:0}
+#page[data-template="a4-01"] .card1,#page[data-template="a4-01"] .card2{height:100px}
+#page[data-template="a4-01"] .card3,#page[data-template="a4-01"] .card4{top:413px;height:250px}
+#page[data-template="a4-01"] .card5{top:674px;height:159px}
+#page[data-template="a4-01"] .card6,#page[data-template="a4-01"] .card7{top:845px;height:187px}
+#page[data-template="a4-02"] .card1,#page[data-template="a4-02"] .card2{height:99px}
+#page[data-template="a4-02"] .card3,#page[data-template="a4-02"] .card4{top:417px;height:249px}
+#page[data-template="a4-02"] .card5{top:677px;height:159px}
+#page[data-template="a4-02"] .card6,#page[data-template="a4-02"] .card7{top:848px;height:184px}
+#page[data-template="a4-04"] .card1,#page[data-template="a4-04"] .card2{height:96px}
+#page[data-template="a4-04"] .card3,#page[data-template="a4-04"] .card4{top:430px;height:238px}
+#page[data-template="a4-04"] .card5{top:679px;height:157px}
+#page[data-template="a4-04"] .card6,#page[data-template="a4-04"] .card7{top:848px;height:184px}
+#page[data-template="a4-05"] .card1,#page[data-template="a4-05"] .card2{height:99px}
+#page[data-template="a4-05"] .card3,#page[data-template="a4-05"] .card4{top:419px;height:247px}
+#page[data-template="a4-05"] .card5{top:677px;height:158px}
+#page[data-template="a4-05"] .card6,#page[data-template="a4-05"] .card7{top:847px;height:185px}
+@media print{
+ #page[data-template] #foot .sign .edit{background:transparent!important}
+ #toolbar .workflowStatus{display:none!important}
+ #page[data-template] #bottomWave{opacity:.25!important}
+}
