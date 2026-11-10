@@ -236,6 +236,48 @@ const SB='https://mhsmmssipligbmvfzkce.supabase.co';
 const KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 let session=null,ingredients=[],recipes=[],current=null,lines=[],image=null,dirty=false,tooLong=false,saving=false;
+const defaultLogo=$('#logo').getAttribute('src');
+const defaultTheme={navy:'#082a4b',blue:'#0c5790',red:'#e72339',paper:'#ffffff',logoSize:126,fontPercent:100};
+const defaultsText=Object.fromEntries($('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
+let currentTheme={...defaultTheme},currentLogo=defaultLogo;
+function round2(v){return Math.round((v+Number.EPSILON)*100)/100}
+function num(v){const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)?n:0}
+function formatted(v){return Number(v).toLocaleString('ru-RU',{maximumFractionDigits:2,minimumFractionDigits:1})}
+function collectLayout(){const result={};for(const el of $('[data-layout]'))result[el.dataset.layout]=el.innerText.trim();return result}
+function applyLayout(saved){const values=saved||{};for(const el of $('[data-layout]')){const key=el.dataset.layout;el.textContent=String(values[key]??defaultsText[key]??'')}}
+function applyTheme(theme){
+ const t={...defaultTheme,...(theme||{})};
+ for(const k of ['navy','blue','red','paper'])if(!/^#[0-9a-fA-F]{6}$/.test(t[k]))t[k]=defaultTheme[k];
+ t.logoSize=Math.max(72,Math.min(145,Number(t.logoSize)||126));
+ t.fontPercent=Math.max(85,Math.min(112,Number(t.fontPercent)||100));
+ currentTheme=t;
+ const page=$('#page');
+ for(const k of ['navy','blue','red','paper'])page.style.setProperty('--ttk-'+k,t[k]);
+ page.style.setProperty('--ttk-font-factor',t.fontPercent/100);
+ const logo=$('#logo');logo.style.width=t.logoSize+'px';logo.style.height=t.logoSize+'px';
+ const ocean=$('#topArtwork #ocean stop');if(ocean.length>2){ocean[0].setAttribute('stop-color',t.navy);ocean[1].setAttribute('stop-color',t.blue);ocean[2].setAttribute('stop-color',t.navy)}
+ $('#topArtwork path[stroke]').forEach(p=>p.setAttribute('stroke',t.red));
+ const foot=$('#bottomWave #seaFoot stop');if(foot[0])foot[0].setAttribute('stop-color',t.navy);if(foot[1])foot[1].setAttribute('stop-color',t.blue);
+ for(const input of $('[data-theme]'))if(t[input.dataset.theme]!==undefined)input.value=t[input.dataset.theme];
+ fitAll();
+}
+function calculateYield(){
+ const rows=$('#recipeLines tr');let sum=0,net=0,parts=0;
+ for(const row of rows){
+   const inputs=row.querySelectorAll('input');if(inputs.length<4)continue;
+   const hasData=inputs[0].value.trim()||inputs[1].value||inputs[2].value||inputs[3].value;
+   if(!hasData)continue;
+   const n=num(inputs[2].value),out=inputs[3].value.trim();net+=n;
+   sum+=out===''?n:num(out);parts++;
+ }
+ const loss=Math.max(0,num($('#lossG')?.value));const total=round2(Math.max(0,sum-loss));
+ set('yield_g',total.toFixed(2));set('yield_label',formatted(total));
+ $('#totalYield').textContent=formatted(total);
+ $('#massStatus').textContent='Нетто '+formatted(net)+' · сумма выходов '+formatted(sum)+' · итог '+formatted(total)+' г';
+ if(loss>sum&&parts)msg('Указанные потери превышают массу компонентов. Исправьте перед сохранением.','warning');
+ return {net:round2(net),sum:round2(sum),loss,total,parts};
+}
+
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function get(k){const el=$('[data-key="'+k+'"]');return el?(el.hasAttribute('contenteditable')?el.innerText.trim():el.value):''}
 function set(k,x){const el=$('[data-key="'+k+'"]');if(el){if(el.hasAttribute('contenteditable'))el.textContent=String(x??'');else el.value=String(x??'')}}
@@ -275,6 +317,7 @@ function lineDraw(){
   return '<tr data-index="'+i+'"><td>'+(i+1)+'</td><td><input class="itemInput" list="srcHints" value="'+safe(l.label||'')+'" placeholder="Ингредиент" aria-label="Ингредиент '+(i+1)+'"></td>'+
   '<td><input class="number" type="number" min="0" step=".1" value="'+safe(l.gross_g)+'" aria-label="Брутто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.net_g)+'" aria-label="Нетто"></td><td><input class="number" type="number" min="0" step=".1" value="'+safe(l.line_yield_g??'')+'" aria-label="Выход ингредиента"></td></tr>';
  }).join('');
+ calculateYield();
 }
 function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value,line_yield_g:ins[3].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
 function labelPhoto(s){image=s;if(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s)){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
@@ -287,13 +330,18 @@ async function loadRecipe(id){
  const tf=r.ttk_fields||{};
  const st=Array.isArray(tf.steps)?tf.steps:splitSteps(r.process);for(let i=1;i<=4;i++)set('step'+i,st[i-1]||'');
  set('introduced_at',tf.introduced_at||r.approved_at||'');
- $('#version').textContent=r.version||1;set('yield_label',r.yield_g||'—');$('#totalYield').textContent=r.yield_g||'—';
+ $('#version').textContent=r.version||1;
+ applyLayout(tf.custom_texts||{});
+ applyTheme(tf.theme||{});
+ currentLogo=(typeof tf.logo_data_url==='string'&&/^data:image\/(webp|png|jpeg);base64,/.test(tf.logo_data_url))?tf.logo_data_url:defaultLogo;
+ $('#logo').src=currentLogo;
+ $('#lossG').value=num(tf.loss_g||0).toFixed(1);
  const s=splitLabels(r.serving,{serving_design:['Оформление'],serving_sale:['Реализация'],serving_transport:['Транспортирование']});
  for(const k of ['serving_design','serving_sale','serving_transport'])set(k,tf[k]??s[k]??'');
  loadQuality(r.quality);
  for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])if(tf[k]!==undefined)set(k,tf[k]);
  const n=nutrit(r.nutrition||{});for(const k of Object.keys(n))set(k,n[k]);
- labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();
+ labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();calculateYield();
  $('#recipePick').value=r.id;dirty=false;msg('ТТК загружена. Нажимайте на поля прямо на листе, чтобы редактировать.');fitAll();
 }
 function buildServing(){return 'Оформление: '+get('serving_design')+'\nРеализация: '+get('serving_sale')+'\nТранспортирование: '+get('serving_transport')}
@@ -302,7 +350,8 @@ function findRef(label){const t=label.trim().toLowerCase();if(t.startsWith('пф
 async function save(){
  if(saving)return;
  if(!current){msg('Не выбрана ТТК','error');return}
- collectLines();const yieldValue=Number(String(get('yield_g')).replace(',','.'))||0;
+ collectLines();const calc=calculateYield(),yieldValue=calc.total;
+ if(calc.loss>calc.sum){msg('Потери превышают массу компонентов','error');return}
  if(!get('code')||!get('name')){msg('Укажите код и название блюда.','error');return}
  if(!['Черновик','Тест','Утверждено','Архив'].includes(get('status'))){msg('Укажите допустимый статус.','error');return}
  const unknown=lines.filter(l=>!findRef(l.label));
@@ -314,10 +363,11 @@ async function save(){
    const required=['scope','raw_requirements','step1','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','introduced_at'];
    if(required.some(k=>!get(k))){msg('Для утверждения нужно заполнить все обязательные разделы и подписи.','error');return}
    if(!Number.isFinite(yieldValue)||yieldValue<=0){msg('Для утверждения укажите фактический выход.','error');return}
-   const sum=lines.reduce((a,l)=>a+Number(l.net_g||0),0);if(Math.abs(sum-yieldValue)>40){msg('Проверьте сумму нетто, потери и выход до утверждения.','error');return}
+   if(calc.parts===0){msg('Для утверждения добавьте компоненты','error');return}
  }
  const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
- const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
+ const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),
+ loss_g:calc.loss,theme:{...currentTheme},logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
  const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:stepsText(),ttk_fields,serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('introduced_at'))?get('introduced_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
  saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
  try{
@@ -337,7 +387,7 @@ async function save(){
  finally{saving=false;$('#save').disabled=false}
 }
 function fitField(el,min=9.4){
- const base=el.classList.contains('body')?10.5:el.closest('.processSteps')?10.1:10;
+ const scale=(currentTheme.fontPercent||100)/100;const base=(el.classList.contains('body')?10.5:el.closest('.processSteps')?10.1:10)*scale;
  let font=base;
  el.style.fontSize=font+'px';
  while(el.scrollHeight>el.clientHeight+1&&font>min){font-=.25;el.style.fontSize=font+'px'}
@@ -345,9 +395,9 @@ function fitField(el,min=9.4){
 }
 function fitAll(){
  let problem=false;
- for(const el of $$('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
+ for(const el of $('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
   // root fields have fixed dimensions; no content should be hidden
-  if(!fitField(el,9.2))problem=true
+  if(!fitField(el,9.2*(currentTheme.fontPercent||100)/100))problem=true
  }
  for(const card of $('.card')){if(card.scrollHeight>card.clientHeight+1)problem=true}
  tooLong=problem;
@@ -383,10 +433,13 @@ async function init(){
    await loadRecipe(id);scaled();
  }catch(e){msg(e.message||String(e),'error')}
 }
-document.addEventListener('change',e=>{if(e.target.matches('#page input,#page select'))dirty=true});
+document.addEventListener('change',e=>{
+ if(e.target.matches('#page input,#page select'))dirty=true;
+ if(e.target.matches('#recipeTable input'))calculateYield();
+});
 document.addEventListener('input',e=>{
- if(e.target.matches('.edit')||e.target.matches('#recipeTable input')||e.target.matches('.fact input')){
-   dirty=true;if(e.target.dataset.key==='yield_g'){set('yield_label',get('yield_g'));$('#totalYield').textContent=get('yield_g')}fitAll();
+ if(e.target.matches('.edit,.editableLayout,#recipeTable input,.fact input,#lossG')){
+   dirty=true;if(e.target.matches('#recipeTable input,#lossG'))calculateYield();fitAll();
  }
 });
 $('#recipePick').addEventListener('change',e=>loadRecipe(e.target.value));
@@ -395,7 +448,7 @@ $('#print').addEventListener('click',printDoc);
 $('#back').addEventListener('click',()=>location.href='./');
 $('#photoBox').addEventListener('click',()=>$('#photoInput').click());
 $('#photoInput').addEventListener('change',e=>toPhoto(e.target.files[0]));
-$('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:'',line_yield_g:''});lineDraw();dirty=true});
+$('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:'',line_yield_g:''});lineDraw();calculateYield();dirty=true});
 window.addEventListener('resize',scaled);
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 init();
