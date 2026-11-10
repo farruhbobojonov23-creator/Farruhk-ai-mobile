@@ -180,10 +180,24 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 #designPanel input[type=file]{color:#0d5784}
 #photoBgColor{cursor:pointer}
 @media print{#photoBox img{filter:var(--print-img-filter,none)}}
-</style></head><body>
+</style><link rel="stylesheet" href="./ttk-templates.css?v=20261110b"></head><body>
 <header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
 <select id="recipePick" aria-label="Выбор рецептуры"></select>
-<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button id="designBtn">🎨 Оформление</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
+<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button type="button" id="templateOpen">▦ Дизайн ТТК</button><select id="templatePicker" title="Шаблон A4"><option value="a4-01">№1 · Фирменный A4</option><option value="a4-02">№2 · Ледяной PRO</option><option value="a4-04">№4 · Северное сияние</option><option value="a4-05">№5 · Морской флагман</option></select><button id="designBtn">🎨 Оформление</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
+
+<section id="templateGallery" role="dialog" aria-modal="true" aria-label="Дизайн ТТК" hidden>
+ <div class="galleryInner">
+  <div class="galleryHeader"><h2>Дизайн ТТК · Море Суши</h2><button id="galleryClose" class="closeGallery" type="button" aria-label="Закрыть галерею">Закрыть ×</button></div>
+  <p>Выберите один из утверждённых вариантов №1, №2, №4 и №5. Рецептура, фото, КБЖУ и аллергены не изменяются при переключении оформления. Каждый шаблон рассчитан на <strong>один лист А4</strong>.</p>
+  <div class="templates">
+   <button type="button" class="templateTile" data-template-choice="a4-01" aria-pressed="false"><span class="miniPage m1"><i class="mBrand"></i><i class="mName"></i><i class="mDish"></i><i class="mInfo"></i><i class="mCards"></i></span><b>№1 · Фирменный А4</b><small>Тёмно-синий бренд-блок, красная дуга и классические разделы</small></button>
+   <button type="button" class="templateTile" data-template-choice="a4-02" aria-pressed="false"><span class="miniPage m2"><i class="mBrand"></i><i class="mName"></i><i class="mDish"></i><i class="mInfo"></i><i class="mCards"></i></span><b>№2 · Ледяной PRO</b><small>Горизонтальная шапка, увеличенное фото и светлые карточки</small></button>
+   <button type="button" class="templateTile" data-template-choice="a4-04" aria-pressed="false"><span class="miniPage m4"><i class="mBrand"></i><i class="mName"></i><i class="mDish"></i><i class="mInfo"></i><i class="mCards"></i></span><b>№4 · Северное сияние</b><small>Арктическая шапка, воздушный ледяной фон и голубые панели</small></button>
+   <button type="button" class="templateTile" data-template-choice="a4-05" aria-pressed="false"><span class="miniPage m5"><i class="mBrand"></i><i class="mName"></i><i class="mDish"></i><i class="mInfo"></i><i class="mCards"></i></span><b>№5 · Морской флагман</b><small>Вертикальная морская лента, чёткие таблицы и строгий navy</small></button>
+  </div>
+  <div class="galleryFoot"><button type="button" id="gallerySave">Сохранить выбранный дизайн</button><span id="galleryHint">Пример оформления меняется сразу на основном листе.</span></div>
+ </div>
+</section>
 <aside id="designPanel" hidden><h3>Оформление листа A4</h3><p>Цвета и логотип изменяются только у выбранной ТТК и сохраняются вместе с документом.</p><label>Тёмно-синий <input type="color" data-theme="navy" value="#082a4b"></label><label>Синий <input type="color" data-theme="blue" value="#0c5790"></label><label>Красный <input type="color" data-theme="red" value="#e72339"></label><label>Фон страницы <input type="color" data-theme="paper" value="#ffffff"></label><label>Размер логотипа <input type="range" min="72" max="145" step="1" data-theme="logoSize" value="126"></label><label>Размер текста <input type="range" min="85" max="112" step="1" data-theme="fontPercent" value="100"></label><hr style="border:0;border-top:1px solid #dce7ee;margin:14px 0"><h4 style="margin:8px 0">Фото товара без фона (PNG/WebP)</h4>
 <label>Стиль фона <select id="photoScene"><option value="stone">Камень / премиум</option><option value="ice">Ледяной голубой</option><option value="white">Белый студийный</option><option value="navy">Морской тёмный</option><option value="silver">Серебристый</option><option value="custom">Мой цвет</option></select></label>
 <label>Цвет фона <input type="color" id="photoBgColor" value="#d8e6f0"></label>
@@ -275,6 +289,18 @@ const defaultLogo=$('#logo').getAttribute('src');
 const defaultTheme={navy:'#082a4b',blue:'#0c5790',red:'#e72339',paper:'#ffffff',logoSize:126,fontPercent:100};
 const defaultsText=Object.fromEntries($$('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
 let currentTheme={...defaultTheme},currentLogo=defaultLogo;
+const templateIds=['a4-01','a4-02','a4-04','a4-05'];
+let currentDesign='a4-01';
+function applyDesign(template,markDirty=true){
+ const id=templateIds.includes(template)?template:'a4-01';
+ const previous=currentDesign;currentDesign=id;
+ $('#page').setAttribute('data-template',id);
+ $('#templatePicker').value=id;
+ for(const button of $$('[data-template-choice]'))button.setAttribute('aria-pressed',String(button.dataset.templateChoice===id));
+ if(markDirty&&previous!==id){dirty=true;msg('Шаблон изменён. Нажмите «Сохранить», чтобы закрепить выбранный дизайн за этой ТТК.');}
+ fitAll();
+}
+
 const defaultPhotoStyle={scene:'stone',color:'#d8e6f0',fit:'contain',scale:100,x:0,y:0,shadow:true,backdrop:null};
 let photoStyle={...defaultPhotoStyle},isAutoAllergens=true,ingredientConnections=[];
 function applyPhotoStyle(p){
@@ -391,6 +417,7 @@ async function loadRecipe(id){
  const saved=await api('/rest/v1/recipe_lines?select=*&recipe_id=eq.'+r.id+'&order=seq.asc');
  current=r;for(const k of ['code','name','category','status','yield_g','scope','raw_requirements','storage','allergens','developed_by','approved_by'])set(k,r[k]);
  const tf=r.ttk_fields||{};
+ applyDesign(tf.design_id||'a4-01',false);
  const st=Array.isArray(tf.steps)?tf.steps:splitSteps(r.process);for(let i=1;i<=4;i++)set('step'+i,st[i-1]||'');
  set('introduced_at',tf.introduced_at||r.approved_at||'');
  $('#version').textContent=r.version||1;
@@ -524,7 +551,7 @@ async function save(){
  const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
  if(isAutoAllergens)updateAutoAllergens(false);
  const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),
- loss_g:calc.loss,theme:{...currentTheme},photo_style:{...photoStyle},auto_allergens:isAutoAllergens,logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
+ loss_g:calc.loss,design_id:currentDesign,theme:{...currentTheme},photo_style:{...photoStyle},auto_allergens:isAutoAllergens,logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
  const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:stepsText(),ttk_fields,serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('introduced_at'))?get('introduced_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
  saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
  try{
@@ -675,6 +702,15 @@ $('#recalcAllergens').addEventListener('click',()=>{
 $('#lossG').addEventListener('input',()=>{
  dirty=true;calculateYield();fitAll();
 });
+
+
+$('#templateOpen').addEventListener('click',()=>{$('#templateGallery').hidden=false;for(const b of $$('[data-template-choice]'))b.setAttribute('aria-pressed',String(b.dataset.templateChoice===currentDesign));});
+$('#galleryClose').addEventListener('click',()=>{$('#templateGallery').hidden=true});
+$('#gallerySave').addEventListener('click',async()=>{$('#templateGallery').hidden=true;await save()});
+$('#templateGallery').addEventListener('click',e=>{if(e.target.id==='templateGallery')$('#templateGallery').hidden=true});
+$('#templatePicker').addEventListener('change',e=>applyDesign(e.target.value));
+for(const b of $$('[data-template-choice]'))b.addEventListener('click',()=>applyDesign(b.dataset.templateChoice));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#templateGallery').hidden)$('#templateGallery').hidden=true});
 
 $('#recipePick').addEventListener('change',e=>loadRecipe(e.target.value));
 $('#save').addEventListener('click',save);
