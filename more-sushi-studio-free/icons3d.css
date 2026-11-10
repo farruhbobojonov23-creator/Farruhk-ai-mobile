@@ -87,3 +87,37 @@
 #ultraPhotoBox .msPhotoPlaceholder{height:92px;width:120px}
 #ultraPhotoBox .msVisual img{object-fit:contain}
 @media(max-width:600px){.msBankTools{flex-direction:column}.msBankTools select{width:100%}.msBankGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.msBankImage{height:95px}}
+
+
+/* 2026-11-11 PHOTO QUALITY FIX: no cut-off tops, controlled previews on phones */
+#msIconDialog .msBankGrid{align-items:stretch}
+#msIconDialog .msBankItem{
+  display:flex;flex-direction:column;min-width:0;overflow:hidden;
+  min-height:0;align-items:stretch;box-sizing:border-box;
+}
+#msIconDialog .msBankImage{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:100%;height:148px;min-height:148px;max-height:148px;
+  box-sizing:border-box;overflow:hidden;padding:6px;
+  background:radial-gradient(circle at 50% 65%,#f2f9fe 0%,#ffffff 74%);
+}
+#msIconDialog .msBankImage img{
+  position:static!important;display:block!important;flex:none;
+  width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
+  min-width:0!important;min-height:0!important;object-fit:contain!important;object-position:center!important;
+  box-sizing:border-box;
+  filter:drop-shadow(0 5px 7px rgba(34,64,83,.12))!important;
+}
+#msIconDialog .msBankItem b{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+#msIconDialog .msBankButtons{margin-top:auto;padding-top:8px}
+#msIconDialog .msBankButtons button{min-height:36px}
+#ingredientsPage .ingProductLine img,
+#catalogPage .ultraCardPhoto img{object-fit:contain!important;object-position:center!important}
+@media(max-width:650px){
+ #msIconDialog{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;padding:12px!important}
+ #msIconDialog .msBankGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+ #msIconDialog .msBankImage{height:125px!important;min-height:125px!important;max-height:125px!important;padding:5px}
+ #msIconDialog .msBankItem{padding:7px}
+ #msIconDialog .msBankItem b{font-size:11px}
+ #msIconDialog .msBankButtons button{font-size:11px;min-height:36px}
+}
