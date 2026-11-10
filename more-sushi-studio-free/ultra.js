@@ -40,7 +40,7 @@ function setup(){
  '<div class="ultraMetric"><small>Аллергены</small><strong id="ultraMetricAllergens">—</strong><span id="ultraAllergenNote">Из выбранных компонентов</span></div>'+
  '<div class="ultraMetric"><small>КБЖУ на 100 г</small><strong id="ultraMetricNutrition">—</strong><span id="ultraNutritionNote">При наличии данных сырья</span></div>',
  'ultraMetrics');header.after(metrics);
- metrics.after(node('section','<div id="ultraPhotoBox" class="ultraPhotoBox"></div><div class="ultraPhotoSide"><b>📸 Фото и 3D-значок полуфабриката</b><p>Фотография появится в каталоге и ТТК, значок — если фото отсутствует.</p><div class="msVisualButtons"><button type="button" id="ultraPhotoChoose" class="secondary">＋ Загрузить фото</button><button type="button" id="ultraIconChoose" class="secondary">Выбрать 3D</button><button type="button" id="ultraPhotoRemove" class="msPhotoRemove">Удалить фото</button></div></div>','ultraPhotoPanel'));
+ metrics.after(node('section','<div id="ultraPhotoBox" class="ultraPhotoBox"></div><div class="ultraPhotoSide"><b>📸 Реалистичное фото полуфабриката</b><p>Фотография без фона появится в каталоге и ТТК. Её можно выбрать из общей библиотеки.</p><div class="msVisualButtons"><button type="button" id="ultraPhotoChoose" class="secondary">＋ Загрузить фото</button><button type="button" id="ultraIconChoose" class="secondary">Выбрать из библиотеки</button><button type="button" id="ultraPhotoRemove" class="msPhotoRemove">Удалить фото</button></div></div>','ultraPhotoPanel'));
  const comp=el('components');
  const h3=[...editor.children].find(x=>x.tagName==='H3'&&x.textContent.includes('Сырьё'));
  if(h3)h3.before(node('div','<h3>🥣 Рецептура и компоненты</h3><small>Брутто, нетто и вложенные ПФ</small>','ultraComposerHeader'));
@@ -88,17 +88,17 @@ function setup(){
  el('ultraCopyBatch').addEventListener('click',copyBatch);
  el('ultraPhotoChoose').addEventListener('click',()=>el('photoFile').click());
  el('ultraIconChoose').addEventListener('click',()=>{
-  if(!window.MSIcons)return alert('Иконки не загружены.');
-  MSIcons.showIconPicker(icon=>{U.icon=icon;photoPreview();},U.icon);
+  if(!window.MSIcons)return alert('Фотобиблиотека не загружена.');
+  MSIcons.showIconPicker(key=>{U.icon=key;photoData=null;el('photoFile').value='';el('photoPreview').classList.add('hidden');photoPreview();},U.icon,el('rName').value);
  });
  el('ultraPhotoRemove').addEventListener('click',()=>{
-  photoData=null;el('photoFile').value='';el('photoPreview').src='';el('photoPreview').classList.add('hidden');photoPreview();
+  photoData=null;U.icon='none';el('photoFile').value='';el('photoPreview').src='';el('photoPreview').classList.add('hidden');photoPreview();
  });
  el('ultraImportFile').addEventListener('change',importJson);
  el('photoFile').addEventListener('change',e=>{
   const file=e.target.files?.[0];
-  if(!file||file.size>2*1024*1024||!/^image\/(jpeg|png|webp)$/.test(file.type))return;
-  const reader=new FileReader();reader.onload=()=>{const img=el('ultraPhotoBox');if(img)img.innerHTML='<img alt="Предпросмотр полуфабриката" src="'+esc(reader.result)+'">';};reader.readAsDataURL(file);
+  if(!file||file.size>10*1024*1024||!/^image\/(jpeg|png|webp)$/.test(file.type))return;
+  U.icon='none';const reader=new FileReader();reader.onload=()=>{const img=el('ultraPhotoBox');if(img)img.innerHTML='<img alt="Предпросмотр полуфабриката" src="'+esc(reader.result)+'">';};reader.readAsDataURL(file);
  });
  comp.addEventListener('input',e=>{
   const input=e.target.closest('[data-u-index][data-u-field]');if(!input)return;
@@ -493,5 +493,6 @@ window.switchPage=function(page){
 };
 window.renderRecipes=renderList;window.newRecipe=fresh;window.openRecipe=open;
 window.renderComponents=componentsHtml;window.addComponent=add;window.saveRecipe=save;
-setup();el('rName').addEventListener('input',calc);
+setup();el('rName').addEventListener('input',()=>{calc();photoPreview()});
+ window.MSPhotosUpdated=()=>{renderList();photoPreview()};
 })();
