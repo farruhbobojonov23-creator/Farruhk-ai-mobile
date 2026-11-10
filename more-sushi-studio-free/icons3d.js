@@ -31,7 +31,7 @@ function auto(item,type){
  if(/морепродукт/i.test(t))return '🐟';
  if(/сыр|молоч/i.test(t))return '🧀';
  if(/соус/i.test(t))return '🥣';
- return '🍱';
+ return '🍣';
 }
 function selected(item,type){
  return type==='ingredient'?item?.icon_emoji||auto(item,type):
@@ -41,7 +41,7 @@ function render(item,type='ingredient',size='medium'){
  const chosen=selected(item,type);
  const photo=type==='ingredient'?item?.photo_data:item?.photo_path;
  const cls='msVisual msVisual--'+size;
- const img=photo&&/^data:image\/(?:webp|png|jpeg);base64,/i.test(photo)?photo:emojiUrl(chosen);
+ const img=photo&&/^data:image\/(?:webp|png|jpeg);base64,/i.test(photo)?photo:(window.MS3D_DATA?.[chosen]||emojiUrl(chosen));
  const alt=esc(item?.name||'3D-значок');
  return '<span class="'+cls+'" aria-label="'+alt+'" title="'+alt+'">'+
   '<span class="msVisualFallback" aria-hidden="true">'+esc(chosen)+'</span>'+
