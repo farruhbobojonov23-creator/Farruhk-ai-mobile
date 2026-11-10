@@ -194,17 +194,17 @@
 #ingredientsPage .ingLegend{margin:10px 0 0;font-size:11px}
 @media(max-width:800px){#ingredientsPage .ingredientListHead{align-items:stretch;flex-direction:column}#ingredientsPage .ingredientListHead>.row{flex-wrap:wrap}#ingredientsPage .ingCategoryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#ingredientsPage .ingCategoryCard{min-height:116px;padding:12px;column-gap:7px}#ingredientsPage .ingCategoryIcon{width:35px;height:35px;font-size:21px}}
 @media(max-width:470px){#ingredientsPage .ingCategoryGrid{grid-template-columns:1fr 1fr;gap:8px}#ingredientsPage .ingCategoryName{font-size:11px}#ingredientsPage .ingCategoryCard{min-height:108px;padding:9px}#ingredientsPage .ingCategoryIcon{display:none}#ingredientsPage .ingCategoryName,#ingredientsPage .ingCategoryCount,#ingredientsPage .ingCategoryGo{grid-column:1/3}#ingredientsPage .ingPageNav{flex-direction:column;align-items:flex-start}#ingredientFormPanel{padding:12px}}
-</style><link rel="stylesheet" href="./ultra.css?v=20261110d"></head><body>
+</style><link rel="stylesheet" href="./ultra.css?v=20261110-layout2"></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
 <h2 id="authTitle">Вход в платформу</h2>
 <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="name@example.com"></div><br>
 <div class="field"><label>Пароль</label><input id="password" type="password" autocomplete="current-password" placeholder="Не менее 8 символов"></div><br>
 <button id="authBtn" onclick="authAction()">Войти</button> <button class="secondary" onclick="toggleAuth()" id="authToggle">Создать аккаунт</button>
 <div id="loginMsg"></div><p class="muted">Данные каждого пользователя доступны только его аккаунту. Пароль не хранится в браузере.</p></div></div>
-<div id="app" class="wrap hidden"><aside class="side"><div class="logo">🌊 МОРЕ <span>СУШИ</span></div><small>STUDIO PRO · БЕТА</small><nav id="nav">
+<div id="app" class="wrap hidden"><aside class="side"><div class="logo">🌊 МОРЕ <span>СУШИ</span></div><small>STUDIO ULTRA PRO · РЕЦЕПТУРЫ</small><nav id="nav">
 <button data-page="home" class="active" onclick="switchPage('home')">◈ Главная</button>
 <button data-page="ingredients" onclick="switchPage('ingredients')">▧ Ингредиенты</button>
-<button data-page="prefab" onclick="switchPage('prefab')">♧ Полуфабрикаты</button>
+<button data-page="prefab" onclick="switchPage('prefab')">♧ Полуфабрикаты PRO</button>
 <button data-page="product" onclick="switchPage('product')">▤ Товары и меню</button><button onclick="location.href='./ttk.html'">▣ ТТК — цветной А4</button>
 <button onclick="location.href='./ttk.html?design=choose'">▦ Дизайн ТТК · 4 варианта</button>
 </nav><p style="margin-top:40px"><button class="secondary" onclick="logout()">Выйти</button></p></aside>
@@ -620,4 +620,4 @@ function printRecipe() {
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
 (async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script><script src="./ttk-live.js"></script><script src="./ultra.js?v=20261110e"></script></body></html>
+</script><script src="./ttk-live.js"></script><script src="./ultra.js?v=20261110-layout2"></script></body></html>
