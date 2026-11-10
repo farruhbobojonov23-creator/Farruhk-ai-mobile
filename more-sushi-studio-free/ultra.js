@@ -285,7 +285,7 @@ function calc(){
  el('ultraMetricYield').textContent=nice(m.yield)+' г';
  el('ultraMassNote').textContent='Нетто '+nice(m.net)+' г − потери '+nice(U.loss)+' г = '+nice(m.yield)+' г';
  el('ultraMassWarning').textContent=U.loss>m.net?'Потери больше нетто':'';
- el('ultraMetricCost').textContent=!components.length?'—':a.costComplete?nice(a.cost)+' ₽':'Нет всех цен';
+ el('ultraMetricCost').textContent=!components.length?'—':a.costComplete?nice(a.cost)+' ₽':'—';
  el('ultraCostNote').textContent=a.costComplete?'Себестоимость всей партии':'Заполните закупочные цены';
  const tags=[...a.allergens].sort((x,y)=>x.localeCompare(y,'ru'));
  el('ultraMetricAllergens').textContent=tags.length?tags.slice(0,2).join(', ')+(tags.length>2?'…':''):'—';
@@ -293,7 +293,7 @@ function calc(){
  if(el('ultraAutoAllergens').checked)el('rAllergens').value=tags.join(', ');
  el('ultraAllergenDetail').textContent=(tags.length?'Группы: '+tags.join(', ')+'. ':'Группы не установлены. ')+(a.unverified.length?'Не подтверждены: '+a.unverified.slice(0,5).join(', ')+'.':'');
  const ready=a.foodComplete&&components.length&&m.yield>0;
- el('ultraMetricNutrition').textContent=ready?nice(a.food.kcal*100/m.yield)+' ккал':'Нет данных';
+ el('ultraMetricNutrition').textContent=ready?nice(a.food.kcal*100/m.yield)+' ккал':'—';
  el('ultraNutritionNote').textContent=ready?'На 100 г готового ПФ':'Не все ингредиенты имеют КБЖУ';
  el('ultraNutritionDetail').textContent=ready?'На 100 г: Б '+nice(a.food.protein*100/m.yield)+' · Ж '+nice(a.food.fat*100/m.yield)+' · У '+nice(a.food.carbs*100/m.yield)+' · '+nice(a.food.kcal*100/m.yield)+' ккал':
  'Не хватает данных по: '+(a.missingFood.slice(0,6).join(', ')||'составу')+'.';
