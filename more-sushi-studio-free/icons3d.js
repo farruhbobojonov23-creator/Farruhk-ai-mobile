@@ -57,6 +57,8 @@ function source(item,type){
 const cleanedPhotos=new Map();
 function cleanLibraryPhoto(img){
  const src=img.getAttribute('src')||'';
+ const part=/\.\/photos\/([a-z0-9_-]+)\.webp/.exec(src);
+ if(part&&photos.some(x=>x.slug===part[1]&&x.quality==='true-alpha-v3'))return;
  if(!/^\.\/photos\/[a-z0-9_-]+\.webp(?:\?[^#]*)?$/i.test(src))return;
  if(!img.naturalWidth||!img.naturalHeight)return;
  if(!cleanedPhotos.has(src)){
