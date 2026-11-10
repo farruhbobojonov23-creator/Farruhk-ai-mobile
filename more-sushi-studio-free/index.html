@@ -95,7 +95,7 @@
 <div class="divider"></div>
 <div class="field"><label>Фотография товара (изображение, до 2 МБ)</label><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
 <p><img id="photoPreview" class="thumb hidden"></p>
-<div class="row"><button onclick="saveRecipe()">Сохранить карточку</button><button class="secondary" onclick="printRecipe()">Печать ТТК A4</button><span class="status" id="saveInfo"></span></div></div></div>
+<div class="row"><button onclick="saveRecipe()">Сохранить карточку</button><button class="secondary" onclick="openTTK()" style="background:#103f6b;color:white">✎ Редактировать на цветном листе A4</button><button class="secondary" onclick="printRecipe()">Быстрая печать</button><span class="status" id="saveInfo"></span></div></div></div>
 <div id="printSheet" class="print-only"></div>
 </main></div>
 <script>
@@ -167,4 +167,4 @@ function printRecipe() {
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
 (async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script></body></html>
+</script><script src="./ttk-live.js"></script></body></html>
