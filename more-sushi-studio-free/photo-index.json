@@ -57,7 +57,7 @@
     "keywords": "креветка Frescomar Green 16/20 в панцире,креветка в панцире",
     "image_data": "./photos/whole_shrimp.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10003,
@@ -167,7 +167,7 @@
     "keywords": "масло кунжутное,кунжутное масло",
     "image_data": "./photos/sesame_oil.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10026,
@@ -237,7 +237,7 @@
     "keywords": "сыр Parmesan Primo тёртый,пармезан,сыр пармезан",
     "image_data": "./photos/grated_parmesan.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10019,
@@ -447,7 +447,7 @@
     "keywords": "чеснок сушёный,сухой чеснок",
     "image_data": "./photos/dried_garlic.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10038,
