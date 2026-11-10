@@ -58,6 +58,13 @@
   #printSheet .pfooterwave{display:none}
   #printSheet .warnnote{margin:1mm 0 0;font-size:6.5pt;color:#925d10}
 }
+
+/* Ingredients manager */
+#ingredientsPage .ingredientListHead{gap:12px}
+#ingSearch,#ingCatFilter{padding:10px 12px;border:1px solid #bcd3e4;border-radius:9px;background:#fff;color:#143a5b;max-width:250px}
+.ingTable{min-width:870px;font-size:13px}.ingTable tr:hover td{background:#f5fbff}.ingTable th:last-child,.ingTable td:last-child{min-width:198px}
+.ingAction{font-size:11px;padding:7px 9px;white-space:nowrap}.ingMeta{display:block;color:#748aa1;margin-top:4px;font-size:11px}.ingUnknown{color:#ac6a12;font-size:12px}
+#ingredientFormPanel{scroll-margin-top:75px}
 </style></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
 <h2 id="authTitle">Вход в платформу</h2>
@@ -74,7 +81,40 @@
 </nav><p style="margin-top:40px"><button class="secondary" onclick="logout()">Выйти</button></p></aside>
 <main class="main"><header class="top screen-only"><div><h1 id="pageTitle">Главная</h1><p class="muted">Море Суши · Разработка продукции от сырья до ТТК</p></div><div class="status" id="userBadge"></div></header>
 <div id="homePage" class="screen-only"><div class="cards"><div class="stat"><b id="nIng">0</b><p>Ингредиентов</p></div><div class="stat"><b id="nPf">0</b><p>Полуфабрикатов</p></div><div class="stat"><b id="nPr">0</b><p>Товаров</p></div></div><div class="panel"><h2>Последовательность работы</h2><p>1. Добавьте ингредиенты → 2. Создайте полуфабрикаты → 3. Соберите товары → 4. Заполните разделы ТТК → 5. Распечатайте выбранный цветной А4.</p><div class="note">Печатная ТТК не содержит себестоимости. Перед утверждением необходимо проверить рецептуру, выход, безопасность, КБЖУ и режимы.</div></div></div>
-<div id="ingredientsPage" class="screen-only hidden"><div class="panel"><h2>Добавить ингредиент</h2><div class="row"><div class="field"><label>Название</label><input id="ingName"></div><div class="field"><label>Аллергены</label><input id="ingAllergens"></div><div class="field"><label>Закупочная цена, ₽/кг (не в ТТК)</label><input id="ingPrice" type="number" min="0" step=".01"></div></div><p><button onclick="addIngredient()">Сохранить ингредиент</button></p></div><div class="panel scroll"><h2>База ингредиентов</h2><table><thead><tr><th>Название</th><th>Аллергены</th><th>₽/кг</th></tr></thead><tbody id="ingRows"></tbody></table></div></div>
+<div id="ingredientsPage" class="screen-only hidden">
+<div class="panel" id="ingredientFormPanel">
+ <div class="row between"><h2 id="ingFormTitle">➕ Новый ингредиент</h2><span id="ingEditStatus" class="pill hidden">Режим редактирования</span></div>
+ <div class="row">
+  <div class="field"><label for="ingName">Наименование *</label><input id="ingName" maxlength="180" placeholder="Например, лосось охлаждённый" autocomplete="off"></div>
+  <div class="field"><label for="ingCategory">Категория</label><select id="ingCategory">
+   <option>Рыба и морепродукты</option><option>Овощи и фрукты</option><option>Сыры и молочные продукты</option><option>Декор и панировка</option><option>Соусы и специи</option><option>Мясо и яйца</option><option>Прочее</option>
+  </select></div>
+  <div class="field"><label for="ingUnit">Единица измерения</label><select id="ingUnit"><option>г</option><option>кг</option><option>мл</option><option>л</option><option>шт</option></select></div>
+ </div>
+ <div class="row">
+  <div class="field"><label for="ingAllergens">Аллергены (по этикетке/спецификации)</label><input id="ingAllergens" placeholder="Например, рыба; соя"></div>
+  <div class="field"><label for="ingManufacturer">Производитель / бренд</label><input id="ingManufacturer" placeholder="При необходимости"></div>
+  <div class="field"><label for="ingPrice">Закупочная цена, ₽/кг (не в ТТК)</label><input id="ingPrice" type="number" min="0" step=".01" placeholder="Необязательно"></div>
+ </div>
+ <div class="row">
+  <div class="field"><label for="ingStorage">Условия хранения (из документов поставщика)</label><input id="ingStorage" placeholder="Например, +2…+6 °C"></div>
+  <div class="field"><label for="ingShelfLife">Срок хранения, часов</label><input id="ingShelfLife" type="number" min="0" step=".1" placeholder="Только подтверждённый"></div>
+  <div class="field"><label for="ingNotes">Примечания</label><input id="ingNotes" placeholder="Артикул, упаковка, особенности"></div>
+ </div>
+ <div class="actions" style="margin-top:14px">
+  <button id="ingSaveBtn" type="button" onclick="saveIngredient()">➕ Добавить ингредиент</button>
+  <button id="ingCancelBtn" class="secondary hidden" type="button" onclick="resetIngredientForm()">Отмена редактирования</button>
+ </div>
+ <div id="ingMsg" aria-live="polite" style="margin-top:9px;font-size:13px"></div>
+ <p class="muted" style="margin:8px 0 0">Пустые сведения об аллергенах, хранении и сроках не означают, что они проверены. Данные для ТТК уточняйте по упаковке или документации поставщика.</p>
+</div>
+<div class="panel">
+ <div class="row between ingredientListHead"><h2 style="margin:0">📦 База ингредиентов <span class="pill" id="ingCount">0</span></h2>
+  <div class="row"><input type="search" id="ingSearch" oninput="renderIngredients()" placeholder="🔎 Найти ингредиент..." aria-label="Поиск ингредиента">
+   <select id="ingCatFilter" onchange="renderIngredients()" aria-label="Фильтр категории"><option value="">Все категории</option></select></div>
+ </div>
+ <div class="scroll" style="margin-top:14px"><table class="ingTable"><thead><tr><th>Наименование</th><th>Категория</th><th>Аллергены</th><th>Производитель</th><th>Цена ₽/кг</th><th>Действия</th></tr></thead><tbody id="ingRows"></tbody></table></div>
+</div></div>
 <div id="catalogPage" class="screen-only hidden"><div class="panel"><div class="row between"><h2 id="catalogTitle">Полуфабрикаты</h2><button onclick="newRecipe()">+ Создать</button></div><div class="scroll"><table><thead><tr><th>Код</th><th>Наименование</th><th>Выход</th><th>Статус</th><th></th></tr></thead><tbody id="recipeRows"></tbody></table></div></div></div>
 <div id="editorPage" class="screen-only hidden"><div class="panel"><div class="row between"><h2 id="editorTitle">Новая рецептура</h2><button class="secondary" onclick="switchPage(currentKind)">Назад</button></div><div class="row">
 <div class="field"><label>Код</label><input id="rCode" placeholder="ПФ-001"></div>
@@ -112,8 +152,94 @@ async function enter(){$('auth').classList.add('hidden');$('app').classList.remo
 async function logout(){try{await http('/auth/v1/logout',{method:'POST'})}catch{}session=null;localStorage.removeItem('ms_session');$('app').classList.add('hidden');$('auth').classList.remove('hidden')}
 async function reload(){ingredients=await http('/rest/v1/ingredients?select=*&order=name.asc');recipes=await http('/rest/v1/recipes?select=*&order=updated_at.desc');$('nIng').textContent=ingredients.length;$('nPf').textContent=recipes.filter(r=>r.kind==='prefab').length;$('nPr').textContent=recipes.filter(r=>r.kind==='product').length;renderIngredients()}
 function switchPage(page){if(['prefab','product'].includes(page))currentKind=page;for(const id of ['homePage','ingredientsPage','catalogPage','editorPage'])$(id).classList.add('hidden');const target=page==='home'?'homePage':page==='ingredients'?'ingredientsPage':page==='editor'?'editorPage':'catalogPage';$(target).classList.remove('hidden');$('pageTitle').textContent=({home:'Главная',ingredients:'Ингредиенты',prefab:'Полуфабрикаты',product:'Товары и меню',editor:'Редактор ТТК'})[page];document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(['prefab','product'].includes(page))renderRecipes()}
-function renderIngredients(){$('ingRows').innerHTML=ingredients.map(i=>'<tr><td>'+safe(i.name)+'</td><td>'+safe(i.allergens)+'</td><td>'+safe(i.purchase_price_rub_per_kg??'—')+'</td></tr>').join('')}
-async function addIngredient(){try{const name=$('ingName').value.trim();if(!name)throw Error('Укажите название');await http('/rest/v1/ingredients',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({name,allergens:$('ingAllergens').value,purchase_price_rub_per_kg:$('ingPrice').value?Number($('ingPrice').value):null})});$('ingName').value='';$('ingAllergens').value='';$('ingPrice').value='';await reload()}catch(e){alert(e.message)}}
+let editingIngredientId=null;
+const ingredientCategories=['Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Декор и панировка','Соусы и специи','Мясо и яйца','Прочее'];
+function ingredientCategoryOptions(){
+ const selected=$('ingCatFilter').value;
+ const cats=[...new Set([...ingredientCategories,...ingredients.map(i=>i.category||'Прочее')])].sort((a,b)=>a.localeCompare(b,'ru'));
+ $('ingCatFilter').innerHTML='<option value="">Все категории</option>'+cats.map(c=>'<option value="'+safe(c)+'">'+safe(c)+'</option>').join('');
+ $('ingCatFilter').value=cats.includes(selected)?selected:'';
+}
+function renderIngredients(){
+ ingredientCategoryOptions();
+ const q=$('ingSearch').value.trim().toLocaleLowerCase('ru');
+ const cat=$('ingCatFilter').value;
+ const filtered=ingredients.filter(i=>(!cat||(i.category||'Прочее')===cat)&&(!q||[i.name,i.category,i.allergens,i.manufacturer,i.notes].some(t=>String(t||'').toLocaleLowerCase('ru').includes(q))));
+ $('ingCount').textContent=filtered.length===ingredients.length?String(ingredients.length):(filtered.length+' / '+ingredients.length);
+ $('ingRows').innerHTML=filtered.length?filtered.map(i=>{
+  const manufacturer=safe(i.manufacturer||'—'),cat=safe(i.category||'Прочее'),price=i.purchase_price_rub_per_kg??'—';
+  const warn=String(i.allergens||'').trim()?safe(i.allergens):'<span class="ingUnknown">Не указаны · проверить</span>';
+  return '<tr><td><b>'+safe(i.name)+'</b><small class="ingMeta">'+safe(i.unit||'г')+(i.storage_conditions?' · '+safe(i.storage_conditions):'')+'</small></td>'+
+    '<td>'+cat+'</td><td>'+warn+'</td><td>'+manufacturer+'</td><td>'+safe(price)+'</td>'+
+    '<td><div class="actions"><button class="secondary ingAction" type="button" onclick="editIngredient('+Number(i.id)+')">✏️ Изменить</button>'+
+    '<button class="danger ingAction" type="button" onclick="deleteIngredient('+Number(i.id)+')">🗑 Удалить</button></div></td></tr>';
+ }).join(''):'<tr><td colspan="6" class="muted">Ничего не найдено. Измени поисковый запрос или категорию.</td></tr>';
+}
+function resetIngredientForm(){
+ editingIngredientId=null;
+ for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingStorage','ingShelfLife','ingNotes'])$(id).value='';
+ $('ingUnit').value='г';$('ingCategory').value='Рыба и морепродукты';
+ $('ingFormTitle').textContent='➕ Новый ингредиент';
+ $('ingSaveBtn').textContent='➕ Добавить ингредиент';
+ $('ingCancelBtn').classList.add('hidden');
+ $('ingEditStatus').classList.add('hidden');
+ $('ingSaveBtn').disabled=false;
+ $('ingMsg').textContent='';
+}
+function editIngredient(id){
+ const ing=ingredients.find(x=>Number(x.id)===Number(id));
+ if(!ing){alert('Ингредиент не найден. Обновите страницу.');return}
+ editingIngredientId=Number(ing.id);
+ const fields={ingName:ing.name,ingCategory:ing.category||'Прочее',ingUnit:ing.unit||'г',ingAllergens:ing.allergens||'',
+ ingManufacturer:ing.manufacturer||'',ingPrice:ing.purchase_price_rub_per_kg??'',ingStorage:ing.storage_conditions||'',
+ ingShelfLife:ing.shelf_life_hours??'',ingNotes:ing.notes||''};
+ for(const [id,value] of Object.entries(fields))$(id).value=value;
+ $('ingFormTitle').textContent='✏️ Изменить ингредиент';
+ $('ingSaveBtn').textContent='💾 Сохранить изменения';
+ $('ingCancelBtn').classList.remove('hidden');$('ingEditStatus').classList.remove('hidden');
+ $('ingMsg').textContent='';
+ $('ingredientFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function saveIngredient(){
+ if($('ingSaveBtn').disabled)return;
+ const name=$('ingName').value.trim().replace(/\s+/g,' ');
+ if(!name){msg('ingMsg','Укажите наименование ингредиента');$('ingName').focus();return}
+ const dupe=ingredients.find(i=>i.name.trim().toLocaleLowerCase('ru')===name.toLocaleLowerCase('ru')&&Number(i.id)!==editingIngredientId);
+ if(dupe){msg('ingMsg','Такой ингредиент уже существует. Нажмите «Изменить» в списке вместо создания копии.');return}
+ const rawPrice=$('ingPrice').value,rawLife=$('ingShelfLife').value;
+ const price=rawPrice===''?null:Number(rawPrice),life=rawLife===''?null:Number(rawLife);
+ if((price!=null&&(!Number.isFinite(price)||price<0))||(life!=null&&(!Number.isFinite(life)||life<0))){msg('ingMsg','Цена и срок хранения не могут быть отрицательными.');return}
+ const data={name,category:$('ingCategory').value,unit:$('ingUnit').value,allergens:$('ingAllergens').value.trim(),
+ manufacturer:$('ingManufacturer').value.trim(),purchase_price_rub_per_kg:price,
+ storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim()};
+ const id=editingIngredientId;const btn=$('ingSaveBtn');btn.disabled=true;
+ try{
+  const res=await http(id==null?'/rest/v1/ingredients':'/rest/v1/ingredients?id=eq.'+id,
+    {method:id==null?'POST':'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(data)});
+  if(!Array.isArray(res)||res.length!==1)throw Error('Сервер не подтвердил сохранение. Проверьте доступ и обновите список.');
+  await reload();resetIngredientForm();
+  msg('ingMsg',id==null?'✅ Ингредиент добавлен в базу.':'✅ Изменения сохранены.',false);
+ }catch(e){msg('ingMsg','Не удалось сохранить: '+e.message)}
+ finally{btn.disabled=false}
+}
+async function deleteIngredient(id){
+ const ing=ingredients.find(x=>Number(x.id)===Number(id));if(!ing)return;
+ try{
+  const used=await http('/rest/v1/recipe_lines?select=id&ingredient_id=eq.'+Number(id)+'&limit=1');
+  if(Array.isArray(used)&&used.length){alert('«'+ing.name+'» уже используется в ТТК или полуфабрикатах. Удаление заблокировано, чтобы не повредить рецепты. Откройте связанные рецепты и сначала замените ингредиент.');return}
+  if(!confirm('Удалить ингредиент «'+ing.name+'» из базы «Море Суши»?\nЭто действие нельзя отменить.'))return;
+  const result=await http('/rest/v1/ingredients?id=eq.'+Number(id),
+    {method:'DELETE',headers:{Prefer:'return=representation'}});
+  if(!Array.isArray(result)||result.length!==1)throw Error('Запись не была удалена. Возможно, ингредиент используется в ТТК.');
+  if(editingIngredientId===Number(id))resetIngredientForm();
+  await reload();msg('ingMsg','🗑 Ингредиент удалён: '+ing.name,false);
+ }catch(e){
+  const text=/foreign key|23503|violates foreign key/i.test(e.message||'')?
+    'Этот ингредиент используется в ТТК. Сначала замените его в рецептуре.':
+    'Не удалось удалить: '+e.message;
+  msg('ingMsg',text);alert(text);
+ }
+}
 function renderRecipes(){$('catalogTitle').textContent=currentKind==='prefab'?'Полуфабрикаты':'Товары и меню';$('recipeRows').innerHTML=recipes.filter(r=>r.kind===currentKind).map(r=>'<tr><td>'+safe(r.code)+'</td><td>'+safe(r.name)+'</td><td>'+safe(r.yield_g)+' г</td><td><span class="pill">'+safe(r.status)+'</span></td><td><button class="secondary" onclick="openRecipe('+r.id+')">Открыть</button></td></tr>').join('')}
 const fmap={rCode:'code',rName:'name',rCategory:'category',rYield:'yield_g',rStatus:'status',rScope:'scope',rRaw:'raw_requirements',rProcess:'process',rServing:'serving',rQuality:'quality',rStorage:'storage',rAllergens:'allergens',rNutrition:'nutrition',rDeveloped:'developed_by',rApproved:'approved_by',rApprovedDate:'approved_at'};
 function newRecipe(){editing=null;photoData=null;components=[];for(const id in fmap)$(id).value='';$('rStatus').value='Черновик';$('rCode').value=currentKind==='prefab'?'ПФ-':'ТТК-';$('photoPreview').classList.add('hidden');$('editorTitle').textContent='Новая карточка';$('saveInfo').textContent='';renderComponents();switchPage('editor')}
