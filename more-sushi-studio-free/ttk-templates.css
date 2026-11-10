@@ -59,6 +59,17 @@
 #templateGallery .galleryFoot button{border-radius:8px;background:#0d5889;color:white;padding:10px 14px;font-weight:700}
 #templateGallery .galleryFoot span{font-size:12px;color:#597991}
 #templatePicker{white-space:nowrap}
+/* In-sheet extra ingredients & loss controls stay out of document geometry. */
+#toolbar #compositionTools{position:static!important;display:none;align-items:center;flex-wrap:wrap;
+ gap:6px;background:#eef7fc;border-radius:8px;padding:5px 9px;color:#0d456c;
+ font-size:11px;max-width:450px;box-shadow:inset 0 0 0 1px #a8c7d9}
+#toolbar #compositionTools.tool-open{display:flex!important}
+#toolbar #compositionTools #addLine{border:1px solid #9bbfd7;padding:6px;background:#d4ebfb;border-radius:5px;font-size:11px}
+#toolbar #compositionTools label{display:flex;align-items:center;gap:5px}
+#toolbar #compositionTools #massStatus{max-width:200px;font-size:10px;line-height:1.15}
+#toolbar #compositionTools input{width:58px!important;padding:3px;border-radius:4px;font-size:12px}
+@media print{#toolbar #compositionTools{display:none!important}}
+
 
 /* Templates use the same editable section nodes. */
 #page{transition:background-color .14s}
@@ -99,7 +110,7 @@
 }
 #page[data-template="a4-02"] #topArtwork{display:none}
 #page[data-template="a4-02"] #brand{left:22px;top:7px;width:230px;height:62px;display:flex;align-items:center;gap:11px;text-align:left}
-#page[data-template="a4-02"] #brand img{width:60px!important;height:60px!important;flex:0 0 auto;border-width:1px;margin:0}
+ #page[data-template="a4-02"] #brand img{flex:0 0 auto;border-width:1px;margin:0}
 #page[data-template="a4-02"] #brand .brandname{font-size:17px;line-height:1.05;margin-top:-10px;white-space:nowrap}
 #page[data-template="a4-02"] #brand .brandsub{position:absolute;left:71px;top:38px;font-size:7.6px;letter-spacing:1px;white-space:nowrap}
 #page[data-template="a4-02"] #pageTitle{left:260px;top:21px;right:20px;color:#fff;font-size:24.5px;line-height:1.1}
@@ -141,7 +152,7 @@
  linear-gradient(8deg,#c3eafa 0%,transparent 65%);
 }
 #page[data-template="a4-04"] #brand{left:12px;top:8px;width:179px}
-#page[data-template="a4-04"] #brand img{width:91px!important;height:91px!important}
+#page[data-template="a4-04"] #brand img{object-fit:contain}
 #page[data-template="a4-04"] #brand .brandname{font-size:22px}
 #page[data-template="a4-04"] #brand .brandsub{font-size:8px;margin-top:4px}
 #page[data-template="a4-04"] #pageTitle{left:212px;top:26px;right:18px;font-size:29px;color:white}
@@ -174,7 +185,7 @@
 }
 #page[data-template="a4-05"] #topArtwork{display:none}
 #page[data-template="a4-05"] #brand{left:50px;top:16px;width:150px}
-#page[data-template="a4-05"] #brand img{width:95px!important;height:95px!important}
+#page[data-template="a4-05"] #brand img{object-fit:contain}
 #page[data-template="a4-05"] #brand .brandname{font-size:22px;color:var(--ttk-navy)}
 #page[data-template="a4-05"] #brand .brandsub{color:#1d5f90;font-size:8px}
 #page[data-template="a4-05"] #pageTitle{left:218px;top:23px;right:20px;font-size:27px}
