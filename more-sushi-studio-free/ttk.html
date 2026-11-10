@@ -276,7 +276,9 @@ async function save(){
  collectLines();const yieldValue=Number(String(get('yield_g')).replace(',','.'))||0;
  if(!get('code')||!get('name')){msg('Укажите код и название блюда.','error');return}
  if(!['Черновик','Тест','Утверждено','Архив'].includes(get('status'))){msg('Укажите допустимый статус.','error');return}
- const unknown=lines.filter(l=>!findRef(l.label));if(unknown.length){msg('Добавьте ингредиенты в раздел «Ингредиенты», либо выберите существующие: '+unknown.map(x=>x.label).join(', '),'error');return}
+ const unknown=lines.filter(l=>!findRef(l.label));
+ if(unknown.some(l=>l.label.toLowerCase().startsWith('пф:'))){msg('Неизвестный полуфабрикат: '+unknown.filter(l=>l.label.toLowerCase().startsWith('пф:')).map(l=>l.label).join(', ')+'. Сначала создайте ПФ в базе.','error');return}
+ // New raw ingredients may be entered directly in the A4 table and created in the common ingredient base.
  if(get('status')==='Утверждено'){
    const pending=[get('scope'),stepsText(),get('storage')].join(' ');
    if(/не утвержден|не подтвержден|не установ|требует провер|требуют провер|требуют корректиров|по образцу|в разработке|в макете/i.test(pending)){msg('Нельзя утверждать карту с непроверенными сроками, выходом или рецептурой. Оставьте статус «Черновик» до проработки.','error');return}
@@ -290,10 +292,17 @@ async function save(){
  const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:stepsText(),ttk_fields,serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('introduced_at'))?get('introduced_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
  saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
  try{
-   await api('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:current.id,version:current.version,snapshot:current})});
-   await api('/rest/v1/recipes?id=eq.'+current.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)});
-   await api('/rest/v1/recipe_lines?recipe_id=eq.'+current.id,{method:'DELETE'});
-   if(lines.length){const data=lines.map((l,i)=>({recipe_id:current.id,seq:i,gross_g:Number(l.gross_g)||0,net_g:Number(l.net_g)||0,line_yield_g:l.line_yield_g===''?null:Number(l.line_yield_g),...findRef(l.label)}));await api('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)})}
+   if(unknown.length){
+     for(const l of unknown){
+       if(!l.label.trim())continue;
+       await api('/rest/v1/ingredients',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({name:l.label.trim(),unit:'г',allergens:''})});
+     }
+     ingredients=await api('/rest/v1/ingredients?select=*&order=name.asc');
+     suggestions();
+   }
+   const data=lines.map((l,i)=>({seq:i,gross_g:Number(l.gross_g)||0,net_g:Number(l.net_g)||0,line_yield_g:l.line_yield_g===''?null:Number(l.line_yield_g),...findRef(l.label)}));
+   const saved=await api('/rest/v1/rpc/save_ttk_document',{method:'POST',body:JSON.stringify({p_recipe_id:current.id,p_expected_version:current.version,p_patch:payload,p_lines:data})});
+
    recipes=await api('/rest/v1/recipes?select=*&order=name.asc');current=recipes.find(x=>x.id===current.id);$('#version').textContent=current.version;dirty=false;msg('Сохранено в базе · версия '+current.version+'. Можно печатать.');
  }catch(e){msg('Не удалось сохранить: '+e.message+'. Проверьте карточку и строки рецептуры.','error')}
  finally{saving=false;$('#save').disabled=false}
