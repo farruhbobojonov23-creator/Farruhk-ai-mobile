@@ -183,7 +183,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 </style><link rel="stylesheet" href="./ttk-templates.css?v=20261110b"></head><body>
 <header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
 <select id="recipePick" aria-label="Выбор рецептуры"></select>
-<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button type="button" id="templateOpen">▦ Дизайн ТТК</button><select id="templatePicker" title="Шаблон A4"><option value="a4-01">№1 · Фирменный A4</option><option value="a4-02">№2 · Ледяной PRO</option><option value="a4-04">№4 · Северное сияние</option><option value="a4-05">№5 · Морской флагман</option></select><button id="designBtn">🎨 Оформление</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
+<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button type="button" id="templateOpen">▦ Дизайн ТТК</button><select id="templatePicker" title="Шаблон A4"><option value="a4-01">№1 · Фирменный A4</option><option value="a4-02">№2 · Ледяной PRO</option><option value="a4-04">№4 · Северное сияние</option><option value="a4-05">№5 · Морской флагман</option></select><button id="designBtn">🎨 Оформление</button><button id="ingredientToolsBtn" title="Добавить ингредиент и указать потери">⊕ Состав / потери</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
 
 <section id="templateGallery" role="dialog" aria-modal="true" aria-label="Дизайн ТТК" hidden>
  <div class="galleryInner">
@@ -296,6 +296,7 @@ function applyDesign(template,markDirty=true){
  const previous=currentDesign;currentDesign=id;
  $('#page').setAttribute('data-template',id);
  $('#templatePicker').value=id;
+ applyTheme(currentTheme);
  for(const button of $$('[data-template-choice]'))button.setAttribute('aria-pressed',String(button.dataset.templateChoice===id));
  if(markDirty&&previous!==id){dirty=true;msg('Шаблон изменён. Нажмите «Сохранить», чтобы закрепить выбранный дизайн за этой ТТК.');}
  fitAll();
@@ -343,7 +344,7 @@ function applyTheme(theme){
  const page=$('#page');
  for(const k of ['navy','blue','red','paper'])page.style.setProperty('--ttk-'+k,t[k]);
  page.style.setProperty('--ttk-font-factor',t.fontPercent/100);
- const logo=$('#logo');logo.style.width=t.logoSize+'px';logo.style.height=t.logoSize+'px';
+ const logo=$('#logo');const logoFactor=({'a4-01':1,'a4-02':.48,'a4-04':.72,'a4-05':.75}[currentDesign]||1);logo.style.width=Math.round(t.logoSize*logoFactor)+'px';logo.style.height=Math.round(t.logoSize*logoFactor)+'px';
  const ocean=$$('#topArtwork #ocean stop');if(ocean.length>2){ocean[0].setAttribute('stop-color',t.navy);ocean[1].setAttribute('stop-color',t.blue);ocean[2].setAttribute('stop-color',t.navy)}
  $$('#topArtwork path[stroke]').forEach(p=>p.setAttribute('stroke',t.red));
  const foot=$$('#bottomWave #seaFoot stop');if(foot[0])foot[0].setAttribute('stop-color',t.navy);if(foot[1])foot[1].setAttribute('stop-color',t.blue);
@@ -704,6 +705,9 @@ $('#lossG').addEventListener('input',()=>{
 });
 
 
+const compositionTools=$('.smalltools');
+if(compositionTools){compositionTools.id='compositionTools';$('#toolbar').append(compositionTools);}
+$('#ingredientToolsBtn').addEventListener('click',()=>{if(compositionTools){compositionTools.classList.toggle('tool-open');$('#ingredientToolsBtn').setAttribute('aria-expanded',String(compositionTools.classList.contains('tool-open')))}});
 $('#templateOpen').addEventListener('click',()=>{$('#templateGallery').hidden=false;for(const b of $$('[data-template-choice]'))b.setAttribute('aria-pressed',String(b.dataset.templateChoice===currentDesign));});
 $('#galleryClose').addEventListener('click',()=>{$('#templateGallery').hidden=true});
 $('#gallerySave').addEventListener('click',async()=>{$('#templateGallery').hidden=true;await save()});
