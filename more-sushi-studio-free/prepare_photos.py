@@ -5,6 +5,7 @@ Only reads the explicit generation manifest. Publishes normalized images and a p
 from pathlib import Path
 from io import BytesIO
 import json, time
+from urllib.parse import urlparse
 import requests
 import numpy as np
 from PIL import Image
@@ -26,7 +27,13 @@ for i,item in enumerate(entries,1):
     slug=item['slug']
     assert slug and all(c.isascii() and (c.islower() or c.isdigit() or c in '-_') for c in slug)
     url=item['url']
-    assert url.startswith('https://dnznrvs05pmza.cloudfront.net/') and '_jwt=' in url
+    u=urlparse(url)
+    assert u.scheme=='https' and u.hostname in {
+        'dnznrvs05pmza.cloudfront.net',
+        'd2jqrm6oza8nb6.cloudfront.net',
+        'd2rtf0g0qbljcb.cloudfront.net',
+        'd2jqrm6oza8nb6.cloudfront.net'
+    } and '_jwt=' in url
     target=OUT/(slug+'.webp')
     if target.exists() and target.stat().st_size>4000 and not item.get('replace',False):
         print(i,slug,'exists; skipping')
@@ -45,6 +52,8 @@ for i,item in enumerate(entries,1):
                 print('Retry download',slug,str(e)[:100],flush=True);time.sleep(3*(retry+1))
         img=Image.open(BytesIO(data))
         transparent=('A' in img.getbands() and img.getchannel('A').getextrema()[0]<245)
+        if item.get('expected_alpha') and not transparent:
+            raise ValueError('Transparent PNG needed, not a white-background photograph: '+slug)
         img=img.convert('RGBA' if transparent else 'RGB')
         img.thumbnail((1024,1024),Image.Resampling.LANCZOS)
         arr=np.asarray(img,dtype=np.uint8)
@@ -99,7 +108,7 @@ import numpy as np
 RETOUCH_VERSION='edge-clean-v2'
 for photo_slug,record in by_slug.items():
     photo_file=OUT/(photo_slug+'.webp')
-    if not photo_file.is_file() or record.get('quality')==RETOUCH_VERSION:
+    if not photo_file.is_file() or record.get('quality') in (RETOUCH_VERSION,'true-alpha-v3'):
         continue
     im=Image.open(photo_file).convert('RGBA')
     pixels=np.asarray(im,dtype=np.uint8).copy()
