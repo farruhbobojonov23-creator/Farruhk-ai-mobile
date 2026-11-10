@@ -1,129 +1,214 @@
-/* More Sushi: editable 3D product icon gallery, per-item photo overrides */
+/* Море Суши · фотобиблиотека продуктов без фоновых эмодзи */
 (function(){
 'use strict';
-const ROOT='https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/';
-const available=[
- ['🍚','Рис'],['🍣','Роллы'],['🥣','Соус'],['🍤','Креветка'],['🐟','Рыба'],['🦀','Краб'],
- ['🦑','Кальмар'],['🦪','Мидии'],['🍥','Нори / обсыпка'],['🥒','Огурец'],['🥑','Авокадо'],
- ['🥕','Морковь'],['🫑','Перец'],['🥬','Овощи'],['🍋','Лимон'],['🍅','Томаты'],
- ['🧀','Сыр'],['🥛','Сливки'],['🥚','Яйцо'],['🍳','Омлет'],['🥖','Панировка'],
- ['🌾','Крупы'],['🧂','Соль'],['🫙','Соусы'],['🍜','Лапша'],['🍗','Курица'],
- ['🧄','Чеснок'],['🧅','Лук'],['🍯','Сироп'],['💧','Вода']
-];
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const emojiUrl=e=>ROOT+[...e].map(c=>c.codePointAt(0).toString(16)).join('-')+'_3d.png';
-function auto(item,type){
- const t=(String(item?.name||'')+' '+String(item?.category||'')).toLowerCase();
- const rules=[
- [/кревет|лангуст|темпур.*кревет/,'🍤'],[/мид/,'🦪'],[/кальмар|осьминог/,'🦑'],
- [/краб|сурими/,'🦀'],[/икра|масаго|тобико/,'🍥'],[/рыб|лосос|форел|тунц|угор|филе.*мор/,'🐟'],
- [/огур/,'🥒'],[/авокад/,'🥑'],[/морков/,'🥕'],[/перец болгар/,'🫑'],[/капуст|айсберг|салат|дайкон|такуан/,'🥬'],
- [/лимон|лайм/,'🍋'],[/томат|черри/,'🍅'],[/зел[её]н.*лук|лук/,'🧅'],[/чеснок/,'🧄'],
- [/сливк|молоко/,'🥛'],[/сыр|пармезан|моцарелл|чеддер/,'🧀'],[/яйц|меланж/,'🥚'],
- [/омлет|тамаго/,'🍳'],[/сухар|панк|кляр|темпур.*смесь/,'🥖'],[/рис/,'🍚'],
- [/нори|кунжут|обсыпк|стружк/,'🍥'],[/лапш|удон/,'🍜'],[/куриц|грудк|мясо/,'🍗'],
- [/соль|спец|шичими|сахар/,'🧂'],[/вода|напиток/,'💧'],
- [/соус|спайси|майонез|терияки|унаги|кимчи|шрирача|сушидз|мирин|уксус|масл|заправ/,'🥣']
- ];
- for(const [pattern,icon] of rules)if(pattern.test(t))return icon;
- if(type==='recipe')return '🍣';
- if(/овощ|фрукт/i.test(t))return '🥬';
- if(/морепродукт/i.test(t))return '🐟';
- if(/сыр|молоч/i.test(t))return '🧀';
- if(/соус/i.test(t))return '🥣';
- return '🍣';
+const q=id=>document.getElementById(id);
+const PHOTO_RE=/^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/;
+let photos=[],ready=false,ingredientPhoto=null,ingredientKey='',picker=null,whenSelected=null;
+const norms=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[«»"()\/–—-]/g,' ').replace(/\s+/g,' ').trim();
+const synonyms=[
+ [/кунжут/,'кунжут'],[/томат|черри/,'черри'],[/мидии/,'мидии'],
+ [/сладк.*чили/,'сладкий чили'],[/кревет.*вар|кревет.*очищ/,'креветка вареная'],
+ [/кревет/,'креветка'],[/лосос|форел/,'форель'],[/угор/,'угорь'],[/краб/,'краб'],
+ [/огур/,'огурец'],[/рис/,'рис'],[/соус спайси|спайси.*база/,'спайси'],
+ [/лук.*фри/,'лук фри'],[/пармез/,'пармезан'],[/сыр.*творож/,'крем чиз'],
+ [/сыр/,'сыр'],[/лимон/,'лимон'],[/морков/,'морковь'],[/нори/,'нори'],
+ [/панко/,'панко'],[/шичими/,'шичими'],[/масаг/,'масаго']
+];
+const photoForKey=k=>{
+ if(!/^gallery:[0-9]+$/.test(String(k||'')))return null;
+ return photos.find(x=>Number(x.id)===Number(k.split(':')[1]))||null;
+};
+function predicted(item){
+ const label=norms(item?.name),mapped=synonyms.find(([pattern])=>pattern.test(label))?.[1]||label;
+ const strict=photos.find(p=>norms(p.name)===label);if(strict)return strict;
+ return photos.find(p=>(String(p.keywords||'').split(/[,;]+/).some(k=>norms(k)===mapped&&mapped.length>2)));
 }
-function selected(item,type){
- return type==='ingredient'?item?.icon_emoji||auto(item,type):
-   item?.ttk_fields?.ultra?.icon_emoji||auto(item,type);
+function source(item,type){
+ const raw=type==='ingredient'?item?.photo_data:item?.photo_path;
+ if(raw&&PHOTO_RE.test(raw))return raw;
+ const key=type==='ingredient'?item?.icon_emoji:item?.ttk_fields?.ultra?.icon_emoji;
+ const match=photoForKey(key)||(!key?predicted(item):null);
+ return match?.image_data&&PHOTO_RE.test(match.image_data)?match.image_data:null;
 }
 function render(item,type='ingredient',size='medium'){
- const chosen=selected(item,type);
- const photo=type==='ingredient'?item?.photo_data:item?.photo_path;
- const cls='msVisual msVisual--'+size;
- const img=photo&&/^data:image\/(?:webp|png|jpeg);base64,/i.test(photo)?photo:(window.MS3D_DATA?.[chosen]||emojiUrl(chosen));
- const alt=esc(item?.name||'3D-значок');
- return '<span class="'+cls+'" aria-label="'+alt+'" title="'+alt+'">'+
-  '<span class="msVisualFallback" aria-hidden="true">'+esc(chosen)+'</span>'+
-  '<img loading="lazy" decoding="async" src="'+esc(img)+'" alt="" onerror="this.style.display=\'none\'" onload="this.style.display=\'block\'"></span>';
+ const img=source(item,type),alt=esc(item?.name||'Фото продукта');
+ return '<span class="msVisual msVisual--'+esc(size)+'" title="'+alt+'">'+
+ (img?'<img loading="lazy" decoding="async" src="'+img+'" alt="'+alt+'">':
+ '<span class="msPhotoPlaceholder" aria-label="Фотография пока не выбрана">'+
+ '<svg viewBox="0 0 32 32" aria-hidden="true" fill="none"><rect x="3.5" y="5" width="25" height="22" rx="4" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="12" r="2.7" stroke="currentColor" stroke-width="1.5"/><path d="m6 23 7-7 5 5 4-4 4 5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>')+
+ '</span>';
 }
 async function asPhoto(file){
- if(!file||!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('Выберите JPG, PNG или WEBP.');
- if(file.size>8*1024*1024)throw Error('Максимальный размер исходного фото — 8 МБ.');
- const src=await new Promise((resolve,reject)=>{
-  const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Не удалось прочитать фото'));r.readAsDataURL(file);
+ if(!file||!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('Формат фото: PNG, JPG или WEBP.');
+ if(file.size>10*1024*1024)throw Error('Слишком большой файл: максимум 10 МБ.');
+ const original=await new Promise((resolve,reject)=>{
+  const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=()=>reject(new Error('Не удалось прочитать фотографию'));rd.readAsDataURL(file);
  });
- const img=await new Promise((resolve,reject)=>{
-  const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('Не удалось открыть изображение'));i.src=src;
+ const image=await new Promise((resolve,reject)=>{
+  const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Не удалось открыть фото'));img.src=original;
  });
- const dim=Math.max(img.naturalWidth,img.naturalHeight);
- const factor=Math.min(1,640/dim),canvas=document.createElement('canvas');
- canvas.width=Math.max(1,Math.round(img.naturalWidth*factor));canvas.height=Math.max(1,Math.round(img.naturalHeight*factor));
- const ctx=canvas.getContext('2d');if(!ctx)throw Error('Не удалось обработать изображение');
- ctx.drawImage(img,0,0,canvas.width,canvas.height);
- const result=canvas.toDataURL('image/webp',.82);
- if(result.length>900000)throw Error('Фото слишком объёмное. Используйте изображение с меньшей детализацией.');
- return result;
+ const ratio=Math.min(1,640/Math.max(image.width,image.height)),canvas=document.createElement('canvas');
+ canvas.width=Math.max(1,Math.round(image.width*ratio));canvas.height=Math.max(1,Math.round(image.height*ratio));
+ const ctx=canvas.getContext('2d');if(!ctx)throw Error('Обработка фото недоступна');
+ ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
+ const uri=canvas.toDataURL('image/webp',.82);
+ if(uri.length>950000)throw Error('Не удалось уменьшить фото. Выберите изображение с меньшей детализацией.');
+ return uri;
 }
-let ingredientPhoto=null,ingredientIcon='';
-let iconDialog=null;
-function paletteMarkup(selectedIcon){
- return available.map(([emoji,title])=>'<button type="button" class="msIconChoice '+(selectedIcon===emoji?'msIconChoice--active':'')+'" data-icon="'+esc(emoji)+'" title="'+esc(title)+'" aria-label="'+esc(title)+'">'+render({name:title,icon_emoji:emoji},'ingredient','small')+'</button>').join('');
+async function refresh(){
+ try{
+  const list=await http('/rest/v1/food_photo_library?select=id,name,category,keywords,image_data&order=name.asc&limit=500');
+  photos=Array.isArray(list)?list:[];ready=true;
+  if(typeof renderIngredients==='function')renderIngredients();
+  if(typeof renderRecipes==='function'&&typeof currentKind!=='undefined'&&currentKind==='prefab')renderRecipes();
+  if(typeof syncIngredient==='function')syncIngredient();
+ }catch(e){ready=false;console.warn('Не удалось открыть фотобиблиотеку:',e.message)}
+ return photos;
 }
 function syncIngredient(){
- const preview=document.getElementById('msIngredientPreview');if(!preview)return;
- const name=document.getElementById('ingName')?.value||'Ингредиент';
- preview.innerHTML=render({name,photo_data:ingredientPhoto,icon_emoji:ingredientIcon||auto({name},'ingredient')},'ingredient','large');
- const label=document.getElementById('msPhotoStatus');if(label)label.textContent=ingredientPhoto?'Своя фотография':'3D-значок · можно заменить';
+ const dest=q('msIngredientPreview');if(!dest)return;
+ const item={name:q('ingName')?.value||'Ингредиент',photo_data:ingredientPhoto,icon_emoji:ingredientKey};
+ dest.innerHTML=render(item,'ingredient','large');
+ const label=q('msPhotoStatus');
+ if(label)label.textContent=ingredientPhoto?'Личная фотография':photoForKey(ingredientKey)?'Выбранное фото из библиотеки':predicted(item)?'Фото подобрано по названию':'Фото пока не выбрано';
 }
 function setIngredient(item){
- ingredientPhoto=item?.photo_data||null;ingredientIcon=item?.icon_emoji||'';
+ ingredientPhoto=item?.photo_data||null;ingredientKey=item?.icon_emoji||'';
  syncIngredient();
 }
 function setupIngredient(){
- const container=document.getElementById('ingredientFormPanel');if(!container)return;
- const header=container.firstElementChild;
+ const panel=q('ingredientFormPanel');if(!panel)return;
  const section=document.createElement('div');section.className='msIngredientVisualEditor';
  section.innerHTML='<div id="msIngredientPreview" class="msIngredientPreview"></div>'+
- '<div class="msIngredientVisualActions"><b>📸 Фото и 3D-значок ингредиента</b><span id="msPhotoStatus">3D-значок</span>'+
+ '<div class="msIngredientVisualActions"><b>📷 Реалистичная фотография продукта</b><span id="msPhotoStatus"></span>'+
  '<div class="msVisualButtons"><button type="button" class="secondary" id="msIngredientUpload">Загрузить фото</button>'+
- '<button type="button" class="secondary" id="msIngredientIcon">Выбрать 3D-значок</button>'+
- '<button type="button" class="msPhotoRemove" id="msIngredientRemove">Удалить фото</button></div>'+
- '<input type="file" hidden accept="image/png,image/jpeg,image/webp" id="msIngredientFile"></div>';
- header.after(section);
- const picker=document.getElementById('msIngredientFile');
- document.getElementById('msIngredientUpload').addEventListener('click',()=>picker.click());
- picker.addEventListener('change',async e=>{
-  try{if(e.target.files?.[0]){ingredientPhoto=await asPhoto(e.target.files[0]);syncIngredient()}}
-  catch(err){alert(err.message)}finally{picker.value=''}
+ '<button type="button" class="secondary" id="msIngredientIcon">Выбрать из фотобиблиотеки</button>'+
+ '<button type="button" class="msPhotoRemove" id="msIngredientRemove">Убрать фото</button></div>'+
+ '<input id="msIngredientFile" type="file" hidden accept="image/jpeg,image/png,image/webp"></div>';
+ panel.firstElementChild.after(section);
+ const input=q('msIngredientFile');
+ q('msIngredientUpload').addEventListener('click',()=>input.click());
+ input.addEventListener('change',async()=>{
+  try{if(input.files?.[0]){ingredientPhoto=await asPhoto(input.files[0]);ingredientKey='';syncIngredient()}}
+  catch(e){alert(e.message)}finally{input.value=''}
  });
- document.getElementById('msIngredientRemove').addEventListener('click',()=>{ingredientPhoto=null;syncIngredient()});
- document.getElementById('msIngredientIcon').addEventListener('click',()=>showIconPicker(icon=>{
-  ingredientIcon=icon;syncIngredient();
- },ingredientIcon));
- document.getElementById('ingName').addEventListener('input',()=>{if(!ingredientIcon)syncIngredient()});
- const originalEdit=window.editIngredient,originalReset=window.resetIngredientForm;
- window.editIngredient=function(id){originalEdit(id);setIngredient(ingredients.find(i=>Number(i.id)===Number(id)))};
- window.resetIngredientForm=function(){originalReset();setIngredient(null)};
+ q('msIngredientIcon').addEventListener('click',()=>showIconPicker(key=>{
+  ingredientKey=key;ingredientPhoto=null;syncIngredient();
+ },ingredientKey,q('ingName').value));
+ q('msIngredientRemove').addEventListener('click',()=>{ingredientPhoto=null;ingredientKey='';syncIngredient()});
+ q('ingName').addEventListener('input',syncIngredient);
+ const oldEdit=window.editIngredient,oldReset=window.resetIngredientForm;
+ window.editIngredient=function(id){oldEdit(id);setIngredient(ingredients.find(i=>Number(i.id)===Number(id)))};
+ window.resetIngredientForm=function(){oldReset();setIngredient(null)};
  setIngredient(null);
 }
-function showIconPicker(onSelect,selectedIcon=''){
- if(!iconDialog){
-  iconDialog=document.createElement('dialog');iconDialog.id='msIconDialog';
-  iconDialog.innerHTML='<div class="msIconDialogHeading"><h3>Выбери объёмный 3D-значок</h3><button type="button" id="msIconClose" class="secondary">Закрыть ✕</button></div><p>Для каждого продукта можно выбрать свой значок. Собственная фотография имеет приоритет.</p><div class="msIconGrid" id="msIconGrid"></div><small>3D-значки Fluent Emoji © Microsoft, MIT License</small>';
-  document.body.append(iconDialog);
-  iconDialog.querySelector('#msIconClose').addEventListener('click',()=>iconDialog.close());
-  iconDialog.addEventListener('click',e=>{if(e.target===iconDialog)iconDialog.close()});
+function setupPicker(){
+ if(picker)return;
+ picker=document.createElement('dialog');picker.id='msIconDialog';
+ picker.innerHTML=
+ '<div class="msIconDialogHeading"><div><small>МОРЕ СУШИ · ФОТОБИБЛИОТЕКА</small><h3>Реалистичные фото без фона</h3></div><button type="button" class="secondary" id="msIconClose">Закрыть ✕</button></div>'+
+ '<p>Выбери подходящее фото или загрузи своё. Можно добавлять сразу несколько изображений, а затем использовать их в любых рецептах.</p>'+
+ '<div class="msBankTools"><input id="msBankSearch" type="search" placeholder="🔎 Найти фото продукта"><select id="msBankCat"><option value="">Все категории</option></select></div>'+
+ '<div class="msBankActions"><button type="button" id="msBankAdd">＋ Добавить фотографии</button><button type="button" class="secondary" id="msBankPack">Импортировать набор .json</button>'+
+ '<button type="button" class="secondary" id="msBankReset">Автоподбор по названию</button></div>'+
+ '<input hidden type="file" id="msBankFiles" accept="image/png,image/webp,image/jpeg" multiple>'+
+ '<input hidden type="file" id="msBankJson" accept=".json,application/json">'+
+ '<div id="msBankMessage" aria-live="polite"></div><div class="msBankGrid" id="msIconGrid"></div>';
+ document.body.append(picker);
+ picker.querySelector('#msIconClose').onclick=()=>picker.close();
+ picker.addEventListener('click',e=>{if(e.target===picker)picker.close()});
+ q('msBankSearch').addEventListener('input',paintPicker);
+ q('msBankCat').addEventListener('change',paintPicker);
+ q('msBankAdd').onclick=()=>q('msBankFiles').click();
+ q('msBankPack').onclick=()=>q('msBankJson').click();
+ q('msBankReset').onclick=()=>{whenSelected?.('');picker.close()};
+ q('msBankFiles').addEventListener('change',async()=>{
+  const files=[...q('msBankFiles').files];q('msBankFiles').value='';
+  if(!files.length)return;
+  if(files.length>100){notify('В одной загрузке не более 100 фотографий.');return}
+  await addUploads(files);
+ });
+ q('msBankJson').addEventListener('change',async()=>{
+  const file=q('msBankJson').files?.[0];q('msBankJson').value='';if(!file)return;
+  try{
+   if(file.size>25*1024*1024)throw Error('Набор больше 25 МБ');
+   const doc=JSON.parse(await file.text());
+   if(doc.format!=='more-sushi-photo-pack-v1'||!Array.isArray(doc.assets)||doc.assets.length>100)throw Error('Неправильный формат набора');
+   await batchAdd(doc.assets);
+  }catch(e){notify('Ошибка импорта: '+e.message)}
+ });
+ q('msIconGrid').addEventListener('click',async e=>{
+  const button=e.target.closest('[data-pick],[data-delete]');if(!button)return;
+  const id=Number(button.dataset.pick||button.dataset.delete);
+  if(button.dataset.pick){
+   whenSelected?.('gallery:'+id);picker.close();
+  }else{
+   const p=photos.find(x=>Number(x.id)===id);if(!p)return;
+   if(!confirm('Удалить фотографию «'+p.name+'» из библиотеки? Если она используется в продуктах, изображение может исчезнуть.'))return;
+   try{await http('/rest/v1/food_photo_library?id=eq.'+id,{method:'DELETE'});
+     photos=photos.filter(x=>Number(x.id)!==id);paintPicker();redraw();
+   }catch(err){notify('Ошибка удаления: '+err.message)}
+  }
+ });
+}
+function notify(message){const box=q('msBankMessage');if(box)box.textContent=message;}
+function redraw(){
+ if(typeof renderIngredients==='function')renderIngredients();
+ if(typeof renderRecipes==='function'&&typeof currentKind!=='undefined'&&currentKind==='prefab')renderRecipes();
+ syncIngredient();
+ if(typeof window.MSPhotosUpdated==='function')window.MSPhotosUpdated();
+}
+function paintPicker(){
+ const search=norms(q('msBankSearch').value),cat=q('msBankCat').value;
+ const categories=[...new Set(photos.map(p=>p.category||'Прочее'))].sort((a,b)=>a.localeCompare(b,'ru'));
+ q('msBankCat').innerHTML='<option value="">Все категории</option>'+categories.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+ q('msBankCat').value=categories.includes(cat)?cat:'';
+ const filtered=photos.filter(p=>(!cat||p.category===cat)&&(!search||norms(p.name+' '+p.keywords).includes(search)));
+ const grid=q('msIconGrid');
+ grid.innerHTML=filtered.length?filtered.map(p=>
+  '<article class="msBankItem"><div class="msBankImage"><img src="'+p.image_data+'" alt="'+esc(p.name)+'"></div>'+
+  '<b title="'+esc(p.name)+'">'+esc(p.name)+'</b><small>'+esc(p.category)+'</small>'+
+  '<div class="msBankButtons"><button type="button" data-pick="'+Number(p.id)+'">Выбрать</button><button type="button" class="msPhotoRemove" data-delete="'+Number(p.id)+'" title="Удалить">✕</button></div></article>'
+ ).join(''):'<div class="msBankEmpty">'+(ready?'Фотографий пока нет. Добавь изображения по одному, несколько сразу или импортируй готовый набор.':'Загрузка фотобиблиотеки…')+'</div>';
+}
+async function batchAdd(items){
+ let success=0,skipped=0,errors=[];
+ const existing=new Set(photos.map(p=>norms(p.name)));
+ for(const it of items){
+  const name=String(it.name||'').trim().slice(0,160),data=it.image_data;
+  if(!name||!PHOTO_RE.test(data||'')||data.length>950000){errors.push(name||'Неверное фото');continue}
+  if(existing.has(norms(name))){skipped++;continue}
+  try{
+   const rows=await http('/rest/v1/food_photo_library?select=id,name,category,keywords,image_data',{
+    method:'POST',headers:{Prefer:'return=representation'},
+    body:JSON.stringify({name,category:String(it.category||'Прочее').slice(0,100),keywords:String(it.keywords||name).slice(0,450),image_data:data})
+   });
+   if(!rows?.[0]?.id)throw Error('Фотография не записалась');
+   photos.push(rows[0]);existing.add(norms(name));success++;
+  }catch(e){errors.push(name+': '+e.message)}
  }
- const grid=iconDialog.querySelector('#msIconGrid');
- grid.innerHTML=paletteMarkup(selectedIcon);
- grid.onclick=e=>{
-  const b=e.target.closest('[data-icon]');if(!b)return;
-  onSelect(b.dataset.icon);iconDialog.close();
- };
- iconDialog.showModal();
+ notify('Добавлено: '+success+'. Уже были: '+skipped+'. Ошибки: '+errors.length+(errors.length?' ('+errors.slice(0,2).join('; ')+')':''));
+ paintPicker();redraw();
+}
+async function addUploads(files){
+ const items=[];
+ for(const f of files){
+  try{
+   const name=f.name.replace(/\.(png|jpeg|jpg|webp)$/i,'').replace(/[_-]/g,' ').trim();
+   items.push({name,category:'Прочее',keywords:name,image_data:await asPhoto(f)});
+  }catch(e){notify('Не удалось обработать '+f.name+': '+e.message)}
+ }
+ await batchAdd(items);
+}
+function showIconPicker(onSelect,selected='',searchDefault=''){
+ whenSelected=onSelect;setupPicker();
+ q('msBankSearch').value=searchDefault||'';
+ q('msBankCat').value='';
+ paintPicker();
+ picker.showModal();
+ if(!ready)refresh().then(paintPicker);
 }
 setupIngredient();
-window.MSIcons={render,auto,selected,asPhoto,showIconPicker,setupIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientIcon,
- setIngredient,iconUrl:emojiUrl};
+window.MSIcons={render,asPhoto,showIconPicker,refresh,setupIngredient,setIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientKey,auto:predicted};
 })();
