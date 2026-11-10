@@ -1,64 +1,10 @@
 [
   {
-    "slug": "still_drinking_water",
-    "name": "Вода питьевая",
+    "slug": "sparkling_water",
+    "name": "Вода газированная",
     "category": "Напитки и вода",
-    "keywords": "вода питьевая,вода без газа",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/e4718f84-6ec0-4546-aa6f-da51482414f7/8de34ddf-afdf-48a0-a944-3941b86fe9b2.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTVhZWUwNmI1MTY5ZTgzNiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0MjQ3NX0.fGvgBQddENvmF5n97F2-UDgCf3KbKxnEqJTBgGp1F5E",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "rice_vinegar",
-    "name": "Уксус рисовый",
-    "category": "Соусы и специи",
-    "keywords": "уксус рисовый DUNKAN,рисовый уксус",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/00cfc46d-6e39-418f-874d-7c90d67ec45c/aaae3e13-07a7-4c23-9f0b-22eac95106c8.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzhjMWE0YzVhOGVmNjM4ZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ5MDk0OX0.9DxxYtCU8wNv7oimEbkdhquuiEMPruezWCE94VUhIH0",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "unagi_sauce",
-    "name": "Соус унаги",
-    "category": "Соусы и специи",
-    "keywords": "соус унаги,унаги соус",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/db293ea2-c270-4e93-8b08-1365cdf386fc/667a9427-b498-4e51-b375-0225d08eef51.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTU0YWJhZGM1YjcwZWRiMiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0NTY2MH0.5agnNaBfhdx3SFlGVJQJpRP0uh6UK_XG9h4SJirXlwI",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "dried_garlic",
-    "name": "Чеснок сушёный",
-    "category": "Соусы и специи",
-    "keywords": "чеснок сушёный,сухой чеснок",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/2e109fc5-dcd5-4128-a574-0bcea3cd6a52/f12b6c45-7c59-4e5c-97f8-1c2d8a8f17fa.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzUyODFkMTI3OTgzNjQxZSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ0NDQzNH0.BDQcjVRScxK970SWcDGKUtjI6GhyCII31ZMZ9e4vSeA",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "whole_shrimp",
-    "name": "Креветка в панцире",
-    "category": "Рыба и морепродукты",
-    "keywords": "креветка Frescomar Green 16/20 в панцире,креветка в панцире",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/d5102a36-f8cf-40a5-a84e-14ab5a402d43/506001f6-3fec-4a9f-b321-ad56f93c2376.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWQ1ZGM4MGZkZTc0OTRhNSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ3NDEyN30.GXHA_L39gOHurVFWK0zofKNIIoFn_zkcv6HuxVVtSWU",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "grated_parmesan",
-    "name": "Пармезан тёртый",
-    "category": "Сыры и молочные продукты",
-    "keywords": "сыр Parmesan Primo тёртый,пармезан,сыр пармезан",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/a60efce4-4f02-48d4-a8de-e651baa814e7/1f70462a-e565-4e60-8d51-e35c58385ab7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmViNTMyNGFjODhlNThiNiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDUwOTEzMH0.eRAhyfJRJsNEWl8v1C4XNaz9B3zviDpblYXAEenLPa4",
-    "replace": true,
-    "expected_alpha": true
-  },
-  {
-    "slug": "sesame_oil",
-    "name": "Масло кунжутное",
-    "category": "Соусы и специи",
-    "keywords": "масло кунжутное,кунжутное масло",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/49ca905b-6164-46fc-9c69-c284f4bb877c/7e658830-997b-4095-9d1b-b6d3a7ca1de8.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMjYwZjhlYTY4ODY2OTdjMiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDQ5OTM2Nn0.TU3ZCyPLLPnb1AOjFcwZmyxWy3iIHmam7VHpTRxteGQ",
+    "keywords": "вода минеральная сильногазированная,вода газированная",
+    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/fbae50b9-be9e-4bee-ad6a-03dfcdef22c4/1a0755e4-ce97-4eaf-867c-cf453a5a86d7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMTljOGU5ZmYyNGZjODdhZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDUyMDcwM30.jMDGhf4lp3BbMvR0-FAjfILWUVF8DwXDx2JkQeD7DmA",
     "replace": true,
     "expected_alpha": true
   }
