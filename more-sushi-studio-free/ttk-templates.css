@@ -231,3 +231,29 @@
  #templateGallery h2{font-size:18px}
 }
 @media(max-width:430px){#templateGallery .templates{grid-template-columns:1fr 1fr;gap:8px}}
+
+
+/* No visual frame around product photo: true transparent PNG/WebP appears on page. */
+#page #photoBox, #page[data-template] #photoBox{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ border-radius:0!important;isolation:isolate;overflow:hidden;
+}
+#page #photoBox::before, #page #photoBox::after,
+#page[data-template] #photoBox::before, #page[data-template] #photoBox::after{
+ display:none!important;content:none!important;
+}
+#page #dishPhoto, #page[data-template] #dishPhoto{
+ display:none;object-fit:contain;padding:0!important;
+ border:0!important;outline:0!important;background:transparent!important;
+}
+#page #photoBox.photo-has-image .photoTip{
+ display:none!important;
+}
+@media print{
+ #page #photoBox,#page[data-template] #photoBox{
+  border:0!important;box-shadow:none!important;background-clip:border-box;
+ }
+ #page #dishPhoto,#page[data-template] #dishPhoto{
+  padding:0!important;border:0!important;
+ }
+}
