@@ -295,7 +295,10 @@
 <div class="field wide"><label>7. Пищевая и энергетическая ценность (подтверждённые значения)</label><textarea id="rNutrition" placeholder="На 100 г: Б — ...; Ж — ...; У — ...; ккал — ..."></textarea></div>
 <div class="field"><label>Разработал</label><input id="rDeveloped"></div><div class="field"><label>Утвердил</label><input id="rApproved"></div><div class="field"><label>Дата утверждения</label><input id="rApprovedDate" type="date"></div></div>
 <div class="divider"></div>
-<div class="field"><label>Фотография товара (изображение, до 2 МБ)</label><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
+<div class="field"><label>Фотография товара · JPG, PNG или WEBP</label><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
+<div class="actions" id="productPhotoActions"><button type="button" class="secondary" onclick="document.getElementById('photoFile').click()">📸 Заменить фото</button>
+<button type="button" class="msPhotoRemove" onclick="removeRecipePhoto()">🗑 Удалить фото</button>
+<button type="button" class="danger" onclick="deleteProductSafely()">Удалить товар</button></div>
 <p><img id="photoPreview" class="thumb hidden"></p>
 <div class="row"><button onclick="saveRecipe()">Сохранить карточку</button><button class="secondary" onclick="location.href='./ttk.html?id='+(editing?.id||'')" style="background:#103f6b;color:white">✎ Открыть цветную ТТК А4 — редактировать</button><button class="secondary" onclick="location.href='./ttk.html?id='+(editing?.id||'')">Печать / PDF А4</button><span class="status" id="saveInfo"></span></div></div></div>
 <div id="printSheet" class="print-only"></div>
@@ -349,7 +352,7 @@ function renderIngredients(){
  if(!selected&&!q){
   nav.innerHTML='';
   container.innerHTML='<div class="ingCategoryGrid">'+categories.map(c=>
-   '<button type="button" class="ingCategoryCard" data-ing-cat="'+safe(c)+'"><span class="ingCategoryIcon">'+(ingredientGroupIcons[c]||'📦')+'</span>'+
+   '<button type="button" class="ingCategoryCard" data-ing-cat="'+safe(c)+'"><span class="ingCategoryIcon">'+(window.MSIcons?MSIcons.render({name:'',category:c},'ingredient','small'):(ingredientGroupIcons[c]||'📦'))+'</span>'+
    '<span class="ingCategoryName">'+safe(c)+'</span><span class="ingCategoryCount">'+counts.get(c)+' позиций</span><span class="ingCategoryGo">Открыть →</span></button>'
   ).join('')+'</div>';
   return;
@@ -578,7 +581,26 @@ async function openRecipe(id){try{editing=recipes.find(r=>r.id===id);if(!editing
 function addComponent(){components.push({source_type:'ingredient',source_id:ingredients[0]?.id||'',gross_g:0,net_g:0});renderComponents()}
 function componentChange(i,k,v){components[i][k]=['gross_g','net_g'].includes(k)?Number(v):k==='source_id'?Number(v):v;if(k==='source_type'){components[i].source_id=k==='source_type'?(v==='ingredient'?ingredients[0]?.id:recipes.find(r=>r.kind==='prefab'&&r.id!==editing?.id)?.id):null;renderComponents()}}
 function renderComponents(){const pre=recipes.filter(r=>r.kind==='prefab'&&r.id!==editing?.id);$('components').innerHTML=components.map((x,i)=>'<div class="row" style="margin-bottom:9px"><select onchange="componentChange('+i+',\'source_type\',this.value)"><option value="ingredient" '+(x.source_type==='ingredient'?'selected':'')+'>Ингредиент</option><option value="prefab" '+(x.source_type==='prefab'?'selected':'')+'>Полуфабрикат</option></select><select style="flex:1;min-width:150px" onchange="componentChange('+i+',\'source_id\',this.value)">'+(x.source_type==='ingredient'?ingredients:pre).map(s=>'<option value="'+s.id+'" '+(Number(x.source_id)===s.id?'selected':'')+'>'+safe(s.name)+'</option>').join('')+'</select><label>Брутто <input style="width:85px" type="number" min="0" step=".001" value="'+safe(x.gross_g)+'" onchange="componentChange('+i+',\'gross_g\',this.value)"></label><label>Нетто <input style="width:85px" type="number" min="0" step=".001" value="'+safe(x.net_g)+'" onchange="componentChange('+i+',\'net_g\',this.value)"></label><button class="danger" onclick="components.splice('+i+',1);renderComponents()">×</button></div>').join('')}
-async function uploadPhoto(){const f=$('photoFile').files[0];if(!f)return;if(f.size>2*1024*1024)throw Error('Фото максимум 2 МБ');photoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)})}
+async function uploadPhoto(){
+ const f=$('photoFile').files[0];if(!f)return;
+ photoData=window.MSIcons?await MSIcons.asPhoto(f):
+  await new Promise((resolve,reject)=>{if(f.size>2*1024*1024)return reject(new Error('Фото максимум 2 МБ'));const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});
+}
+function removeRecipePhoto(){
+ photoData=null;$('photoFile').value='';$('photoPreview').removeAttribute('src');$('photoPreview').classList.add('hidden');
+}
+async function deleteProductSafely(){
+ if(!editing||editing.kind!=='product')return;
+ if(!confirm('Удалить товар «'+editing.name+'» и его ТТК? Действие нельзя отменить.'))return;
+ try{
+  const id=Number(editing.id);
+  const links=await http('/rest/v1/recipe_lines?select=recipe_id&prefab_id=eq.'+id+'&limit=1');
+  if(links.length)throw Error('Товар используется в рецептуре другого блюда.');
+  const deleted=await http('/rest/v1/recipes?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=representation'}});
+  if(!Array.isArray(deleted)||deleted.length!==1)throw Error('Сервер не подтвердил удаление');
+  editing=null;components=[];photoData=null;await reload();switchPage('product');
+ }catch(e){alert('Не удалось удалить товар: '+e.message)}
+}
 async function saveRecipe(){try{if(!$('rName').value.trim()||!$('rCode').value.trim())throw Error('Введите название и код');await uploadPhoto();const data={kind:currentKind,photo_path:photoData,version:editing?(editing.version+1):1,updated_at:new Date().toISOString()};for(const el in fmap)data[fmap[el]]=$(el).value;if(!data.approved_at)data.approved_at=null;if(!data.nutrition)data.nutrition={};else data.nutrition={text:data.nutrition};data.yield_g=Number(data.yield_g||0);if(data.status==='Утверждено'&&(!data.process||!data.quality||!data.scope||!data.raw_requirements||!data.serving||!data.approved_by))throw Error('Для утверждения заполните все разделы, включая утверждение');let id;if(editing){await http('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:editing.id,version:editing.version,snapshot:editing})});await http('/rest/v1/recipes?id=eq.'+editing.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)});id=editing.id;await http('/rest/v1/recipe_lines?recipe_id=eq.'+id,{method:'DELETE'})}else{const res=await http('/rest/v1/recipes?select=id',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(data)});id=res[0].id}if(components.length){const lines=components.map((x,i)=>({recipe_id:id,seq:i,ingredient_id:x.source_type==='ingredient'?Number(x.source_id):null,prefab_id:x.source_type==='prefab'?Number(x.source_id):null,gross_g:Number(x.gross_g||0),net_g:Number(x.net_g||0)}));if(lines.some(x=>!(x.ingredient_id||x.prefab_id)))throw Error('Выберите компонент в каждой строке');await http('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(lines)})}await reload();await openRecipe(id);msg('saveInfo','Сохранено в базе',false)}catch(e){msg('saveInfo',e.message)}}
 
 
