@@ -442,6 +442,44 @@ document.addEventListener('input',e=>{
    dirty=true;if(e.target.matches('#recipeTable input,#lossG'))calculateYield();fitAll();
  }
 });
+
+function uploadBrandLogo(file){
+ if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)){msg('Выберите логотип в формате PNG, JPG или WebP.','error');return}
+ if(file.size>8*1024*1024){msg('Изображение больше 8 МБ. Выберите файл поменьше.','error');return}
+ const src=URL.createObjectURL(file),im=new Image();
+ im.onload=()=>{
+   const cv=document.createElement('canvas');
+   const scale=Math.min(1,600/im.naturalWidth,600/im.naturalHeight);
+   cv.width=Math.max(1,Math.round(im.naturalWidth*scale));
+   cv.height=Math.max(1,Math.round(im.naturalHeight*scale));
+   cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+   URL.revokeObjectURL(src);
+   const data=cv.toDataURL('image/webp',0.89);
+   if(data.length>350000){msg('Логотип слишком большой после сжатия. Используйте меньшую картинку.','error');return}
+   currentLogo=data;$('#logo').src=data;dirty=true;msg('Логотип изменён. Нажмите «Сохранить», чтобы закрепить его в этой ТТК.');
+ };
+ im.onerror=()=>{URL.revokeObjectURL(src);msg('Не удалось прочитать изображение логотипа','error')};
+ im.src=src;
+}
+$('#logo').addEventListener('click',()=>$('#logoInput').click());
+$('#logoBtn').addEventListener('click',()=>$('#logoInput').click());
+$('#logoInput').addEventListener('change',e=>{uploadBrandLogo(e.target.files[0]);e.target.value=''});
+$('#designBtn').addEventListener('click',()=>{$('#designPanel').hidden=!$('#designPanel').hidden});
+$('#closeDesign').addEventListener('click',()=>{$('#designPanel').hidden=true});
+$('#resetDesign').addEventListener('click',()=>{applyTheme(defaultTheme);dirty=true;msg('Фирменные цвета восстановлены. Нажмите «Сохранить».')});
+for(const input of $('[data-theme]')){
+ input.addEventListener('input',()=>{
+   let v=input.value;
+   if(input.dataset.theme==='logoSize'||input.dataset.theme==='fontPercent')v=Number(v);
+   applyTheme({...currentTheme,[input.dataset.theme]:v});dirty=true;
+   msg('Оформление изменено. Нажмите «Сохранить».');
+ });
+}
+$('#lossG').addEventListener('input',()=>{
+ dirty=true;calculateYield();fitAll();
+});
+
 $('#recipePick').addEventListener('change',e=>loadRecipe(e.target.value));
 $('#save').addEventListener('click',save);
 $('#print').addEventListener('click',printDoc);
