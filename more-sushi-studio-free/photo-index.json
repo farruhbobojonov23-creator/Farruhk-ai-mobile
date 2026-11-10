@@ -180,12 +180,30 @@
     "local": true
   },
   {
+    "id": -10041,
+    "slug": "shredded_mozzarella",
+    "name": "Моцарелла тёртая",
+    "category": "Сыры и молочные продукты",
+    "keywords": "сыр моцарелла Курское молоко,моцарелла",
+    "image_data": "./photos/shredded_mozzarella.webp",
+    "local": true
+  },
+  {
     "id": -10007,
     "slug": "tempura_flour",
     "name": "Мука темпурная",
     "category": "Декор и панировка",
     "keywords": "мука темпурная,мука темпурная сухая готовая смесь,кляр сухой",
     "image_data": "./photos/tempura_flour.webp",
+    "local": true
+  },
+  {
+    "id": -10040,
+    "slug": "grated_parmesan",
+    "name": "Пармезан тёртый",
+    "category": "Сыры и молочные продукты",
+    "keywords": "сыр Parmesan Primo тёртый,пармезан,сыр пармезан",
+    "image_data": "./photos/grated_parmesan.webp",
     "local": true
   },
   {
@@ -222,6 +240,15 @@
     "category": "Соусы и специи",
     "keywords": "сахар-песок,сахар",
     "image_data": "./photos/white_sugar.webp",
+    "local": true
+  },
+  {
+    "id": -10039,
+    "slug": "heavy_cream",
+    "name": "Сливки 22%",
+    "category": "Сыры и молочные продукты",
+    "keywords": "сливки Petmol 22%,сливки,жирные сливки",
+    "image_data": "./photos/heavy_cream.webp",
     "local": true
   },
   {
@@ -297,6 +324,24 @@
     "local": true
   },
   {
+    "id": -10042,
+    "slug": "processed_cheese",
+    "name": "Сыр плавленый",
+    "category": "Сыры и молочные продукты",
+    "keywords": "сыр плавленый Hochland Professional,сыр плавленый",
+    "image_data": "./photos/processed_cheese.webp",
+    "local": true
+  },
+  {
+    "id": -10043,
+    "slug": "cheddar_slices",
+    "name": "Сыр чеддер",
+    "category": "Сыры и молочные продукты",
+    "keywords": "сыр чеддер,чеддер",
+    "image_data": "./photos/cheddar_slices.webp",
+    "local": true
+  },
+  {
     "id": -10018,
     "slug": "pickled_takuan",
     "name": "Такуан маринованный",
@@ -339,6 +384,15 @@
     "category": "Соусы и специи",
     "keywords": "чеснок сушёный,сухой чеснок",
     "image_data": "./photos/dried_garlic.webp",
+    "local": true
+  },
+  {
+    "id": -10038,
+    "slug": "shichimi_spice",
+    "name": "Шичими",
+    "category": "Соусы и специи",
+    "keywords": "шичими,семь специй японских",
+    "image_data": "./photos/shichimi_spice.webp",
     "local": true
   }
 ]
