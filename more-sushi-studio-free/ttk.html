@@ -107,6 +107,9 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 
 #designPanel{position:fixed;top:65px;right:16px;width:min(338px,calc(100vw - 32px));z-index:350;background:white;border:1px solid #bcd4e7;box-shadow:0 12px 30px #17385a42;border-radius:12px;padding:18px;color:#173c5c;font-size:13px;max-height:calc(100vh - 75px);overflow:auto}
 #designPanel[hidden]{display:none}
+#photoPlaceholder .editableLayout{display:block;min-width:50px}
+#photoPlaceholder .editableLayout:focus{color:#18446b}
+#foot small.editableLayout{display:block}
 #designPanel h3{margin:0 0 8px;font-size:17px}#designPanel p{font-size:12px;color:#66829b;line-height:1.3}
 #designPanel label{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4edf5}
 #designPanel input[type=color]{width:76px;height:28px;border:0;background:transparent;cursor:pointer}
@@ -179,7 +182,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 <div id="pageTitle" class="editableLayout" contenteditable="true" data-layout="document_title">Технико-технологическая карта</div><div id="titleDash"></div>
 <div id="nameStrip"><span class="labelN editableLayout" contenteditable="true" data-layout="code_label">Код ТТК:</span><span class="namecode edit" data-key="code" contenteditable="true" data-ph="Заполнить"></span><span class="separator">•</span><span class="labelN editableLayout" contenteditable="true" data-layout="name_label">Название блюда:</span><span class="namedish edit" data-key="name" contenteditable="true" data-ph="Заполнить"></span></div>
 <div id="photoBox" title="Нажмите, чтобы выбрать фотографию"><img id="dishPhoto"><span class="uploadEmpty" id="photoPlaceholder">
-<svg viewBox="0 0 90 90"><rect x="13" y="12" width="63" height="65" rx="4" fill="none" stroke="#738599" stroke-width="5"/><circle cx="61" cy="31" r="8" fill="#738599"/><path d="M15 74L36 46L47 56L58 44L77 69" fill="#738599"/></svg>ФОТО БЛЮДА<small>(вставьте изображение)</small></span><span class="photoTip">Нажмите, чтобы заменить фото</span></div>
+<svg viewBox="0 0 90 90"><rect x="13" y="12" width="63" height="65" rx="4" fill="none" stroke="#738599" stroke-width="5"/><circle cx="61" cy="31" r="8" fill="#738599"/><path d="M15 74L36 46L47 56L58 44L77 69" fill="#738599"/></svg><span class="editableLayout" contenteditable="true" data-layout="photo_title">ФОТО БЛЮДА</span><small class="editableLayout" contenteditable="true" data-layout="photo_subtitle">(вставьте изображение)</small></span><span class="photoTip">Нажмите, чтобы заменить фото</span></div>
 <input type="file" accept="image/jpeg,image/png,image/webp" id="photoInput">
 <div id="factBox">
 <div class="fact"><b class="editableLayout" data-layout="category_label" contenteditable="true">Категория:</b><div class="value"><span class="edit" data-key="category" contenteditable="true" data-ph="Заполнить"></span></div></div>
@@ -220,8 +223,8 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 <footer id="foot">
 <div class="sign"><label data-layout="footer_version" class="editableLayout" contenteditable="true">Версия:</label> <span id="version">—</span></div>
 <div class="sign"><label data-layout="footer_date" class="editableLayout" contenteditable="true">Дата введения:</label> <span class="edit" contenteditable="true" data-key="introduced_at" data-ph="гггг-мм-дд"></span></div>
-<div class="sign"><label data-layout="footer_developed" class="editableLayout" contenteditable="true">Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small>(Ф.И.О., подпись)</small></div>
-<div class="sign"><label data-layout="footer_approved" class="editableLayout" contenteditable="true">Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small>(Ф.И.О., подпись)</small></div>
+<div class="sign"><label data-layout="footer_developed" class="editableLayout" contenteditable="true">Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small class="editableLayout" contenteditable="true" data-layout="developed_hint">(Ф.И.О., подпись)</small></div>
+<div class="sign"><label data-layout="footer_approved" class="editableLayout" contenteditable="true">Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small class="editableLayout" contenteditable="true" data-layout="approved_hint">(Ф.И.О., подпись)</small></div>
 </footer>
 <svg id="bottomWave" viewBox="0 0 794 73" preserveAspectRatio="none"><defs>
 <linearGradient id="seaFoot" x1="0" x2="1" y1="1" y2="0"><stop stop-color="#08436d"/><stop offset=".55" stop-color="#0ca6da"/><stop offset="1" stop-color="#e5f5ff"/></linearGradient></defs>
@@ -484,7 +487,7 @@ $('#recipePick').addEventListener('change',e=>loadRecipe(e.target.value));
 $('#save').addEventListener('click',save);
 $('#print').addEventListener('click',printDoc);
 $('#back').addEventListener('click',()=>location.href='./');
-$('#photoBox').addEventListener('click',()=>$('#photoInput').click());
+$('#photoBox').addEventListener('click',e=>{if(e.target.closest('.editableLayout'))return;$('#photoInput').click()});
 $('#photoInput').addEventListener('change',e=>toPhoto(e.target.files[0]));
 $('#addLine').addEventListener('click',()=>{collectLines();lines.push({label:'',gross_g:'',net_g:'',line_yield_g:''});lineDraw();calculateYield();dirty=true});
 window.addEventListener('resize',scaled);
