@@ -47,6 +47,83 @@ function source(item,type){
  const match=photoForKey(key)||(!key?predicted(item):null);
  return match?.image_data&&(PHOTO_RE.test(match.image_data)||localPhotoUrl(match.image_data))?(localPhotoUrl(match.image_data)?match.image_data+'?v=clean-edge-v2':match.image_data):null;
 }
+
+/*
+ * Client-side clean-edge fallback while the original assets are being updated.
+ * Never touch customers' uploaded images: only ./photos/*.webp in our own library.
+ * Pixels next to the transparent border are decontaminated with nearest interior
+ * food colors, then antialiased so no black matte remains on white cards.
+ */
+const cleanedPhotos=new Map();
+function cleanLibraryPhoto(img){
+ const src=img.getAttribute('src')||'';
+ if(!/^\.\/photos\/[a-z0-9_-]+\.webp(?:\?[^#]*)?$/i.test(src))return;
+ if(!img.naturalWidth||!img.naturalHeight)return;
+ if(!cleanedPhotos.has(src)){
+  const task=(async()=>{
+   const w=img.naturalWidth,h=img.naturalHeight;
+   const canvas=document.createElement('canvas');
+   canvas.width=w;canvas.height=h;
+   const cx=canvas.getContext('2d',{willReadFrequently:true});
+   if(!cx)return null;
+   cx.clearRect(0,0,w,h);cx.drawImage(img,0,0,w,h);
+   const frame=cx.getImageData(0,0,w,h);
+   const origin=frame.data,dst=new Uint8ClampedArray(origin);
+   const a=(x,y)=>origin[(y*w+x)*4+3];
+   for(let y=3;y<h-3;y++){
+    for(let x=3;x<w-3;x++){
+     const z=(y*w+x)*4,alpha=origin[z+3];
+     if(alpha<12)continue;
+     let border1=false,border2=false,border3=false;
+     for(let dy=-3;dy<=3;dy++){
+      for(let dx=-3;dx<=3;dx++){
+       const d=Math.max(Math.abs(dx),Math.abs(dy));
+       if(d===0)continue;
+       if(a(x+dx,y+dy)<35){
+        if(d===1)border1=true;
+        if(d<=2)border2=true;
+        border3=true;
+       }
+      }
+     }
+     if(!border3 && alpha>=245)continue;
+     // Choose the nearest *opaque* interior texel, not the original black matte.
+     let best=1000,closest=-1;
+     for(let dy=-5;dy<=5;dy++){
+      for(let dx=-5;dx<=5;dx++){
+       if(!dx&&!dy)continue;
+       const xx=x+dx,yy=y+dy;
+       if(xx<1||yy<1||xx>=w-1||yy>=h-1)continue;
+       const j=(yy*w+xx)*4;
+       if(origin[j+3]<248)continue;
+       const dist=dx*dx+dy*dy;
+       const lum=origin[j]+origin[j+1]+origin[j+2];
+       // Avoid sampling almost-black pixels created from an old black background.
+       if(lum<70)continue;
+       if(dist<best){best=dist;closest=j}
+      }
+     }
+     if(closest>=0){
+      const strength=border1?.96:border2?.85:border3?.65:(alpha<245?.4:0);
+      if(strength)for(let k=0;k<3;k++)dst[z+k]=origin[z+k]*(1-strength)+origin[closest+k]*strength;
+     }
+     if(border1)dst[z+3]=Math.min(alpha,45);
+     else if(border2)dst[z+3]=Math.min(alpha,198);
+     else if(alpha<245)dst[z+3]=Math.min(alpha,240);
+    }
+   }
+   frame.data.set(dst);cx.putImageData(frame,0,0);
+   return canvas.toDataURL('image/webp',.9);
+  })().catch(e=>{console.warn('Photo edge cleanup:',e);return null});
+  cleanedPhotos.set(src,task);
+ }
+ cleanedPhotos.get(src).then(clean=>{if(clean&&img.isConnected&&img.getAttribute('src')===src)img.setAttribute('src',clean)});
+}
+document.addEventListener('load',event=>{
+ const target=event.target;
+ if(target&&target.tagName==='IMG')cleanLibraryPhoto(target);
+},true);
+
 function render(item,type='ingredient',size='medium'){
  const img=source(item,type),alt=esc(item?.name||'Фото продукта');
  return '<span class="msVisual msVisual--'+esc(size)+'" title="'+alt+'">'+
@@ -232,5 +309,5 @@ function showIconPicker(onSelect,selected='',searchDefault=''){
  if(!ready)refresh().then(paintPicker);
 }
 setupIngredient();
-window.MSIcons={render,asPhoto,showIconPicker,refresh,setupIngredient,setIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientKey,auto:predicted,clear:()=>{photos=[];ready=false;ingredientPhoto=null;ingredientKey='';if(picker?.open)picker.close()}};
+window.MSIcons={cleanLibraryPhoto,render,asPhoto,showIconPicker,refresh,setupIngredient,setIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientKey,auto:predicted,clear:()=>{photos=[];ready=false;ingredientPhoto=null;ingredientKey='';if(picker?.open)picker.close()}};
 })();
