@@ -1,5 +1,14 @@
 [
   {
+    "id": -10015,
+    "slug": "sparkling_water",
+    "name": "Вода газированная",
+    "category": "Напитки и вода",
+    "keywords": "вода минеральная сильногазированная,вода питьевая,вода",
+    "image_data": "./photos/sparkling_water.webp",
+    "local": true
+  },
+  {
     "id": -10005,
     "slug": "surimi_sticks",
     "name": "Крабовые палочки",
@@ -27,6 +36,51 @@
     "local": true
   },
   {
+    "id": -10014,
+    "slug": "smoked_chicken",
+    "name": "Курица варёно-копчёная",
+    "category": "Мясо и яйца",
+    "keywords": "филе грудки варёно-копчёное Окраина,курица копчёная,филе курицы",
+    "image_data": "./photos/smoked_chicken.webp",
+    "local": true
+  },
+  {
+    "id": -10010,
+    "slug": "fried_onion",
+    "name": "Лук фри",
+    "category": "Декор и панировка",
+    "keywords": "лук фри Premium покупной,лук фри",
+    "image_data": "./photos/fried_onion.webp",
+    "local": true
+  },
+  {
+    "id": -10008,
+    "slug": "masago_red",
+    "name": "Масаго красная",
+    "category": "Декор и панировка",
+    "keywords": "масаго красная,икра масаго красная",
+    "image_data": "./photos/masago_red.webp",
+    "local": true
+  },
+  {
+    "id": -10009,
+    "slug": "masago_orange",
+    "name": "Масаго оранжевая",
+    "category": "Декор и панировка",
+    "keywords": "масаго оранжевая,икра масаго оранжевая",
+    "image_data": "./photos/masago_orange.webp",
+    "local": true
+  },
+  {
+    "id": -10013,
+    "slug": "pasteurized_melange",
+    "name": "Меланж пастеризованный",
+    "category": "Мясо и яйца",
+    "keywords": "меланж пастеризованный Роскар,меланж",
+    "image_data": "./photos/pasteurized_melange.webp",
+    "local": true
+  },
+  {
     "id": -10007,
     "slug": "tempura_flour",
     "name": "Мука темпурная",
@@ -42,6 +96,24 @@
     "category": "Основы суши",
     "keywords": "рис для суши, рис, рис сухой",
     "image_data": "./photos/sushi_rice_dry.webp",
+    "local": true
+  },
+  {
+    "id": -10012,
+    "slug": "crispy_rice_pearls",
+    "name": "Рисовые шарики хрустящие",
+    "category": "Декор и панировка",
+    "keywords": "рисовые шарики хрустящие покупные,воздушные рисовые шарики",
+    "image_data": "./photos/crispy_rice_pearls.webp",
+    "local": true
+  },
+  {
+    "id": -10011,
+    "slug": "bonito_flakes",
+    "name": "Стружка тунца",
+    "category": "Декор и панировка",
+    "keywords": "стружка тунца бонито,бонито",
+    "image_data": "./photos/bonito_flakes.webp",
     "local": true
   },
   {
