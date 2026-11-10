@@ -7,7 +7,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const n=x=>Number(x||0), round=x=>Math.round((x+Number.EPSILON)*100)/100;
 const nice=x=>n(x).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const old={nav:window.switchPage,list:window.renderRecipes,make:window.newRecipe,open:window.openRecipe,rows:window.renderComponents,save:window.saveRecipe};
-const U={search:'',cat:'',status:'',loss:0,scale:1,saving:false,history:[]};
+const U={search:'',cat:'',status:'',loss:0,scale:1,saving:false,history:[],studioMounted:false,editorParent:null,editorNext:null};
 function node(tag,html,cls){
  const d=document.createElement(tag);if(cls)d.className=cls;d.innerHTML=html;return d;
 }
@@ -19,14 +19,14 @@ function setup(){
  '<div class="ultraControls"><input type="search" id="ultraSearch" placeholder="🔎 Поиск по названию или коду"><select id="ultraStatusFilter"><option value="">Все статусы</option><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select><select id="ultraCategoryFilter"><option value="">Все категории</option></select></div>'+
  '<div id="ultraCategories" class="ultraFilters"></div><div id="ultraCards" class="ultraGrid"></div>','ultraCatalog');
  wrap.id='ultraCatalog';catalog.insertBefore(wrap,catalog.firstChild);
- el('ultraSearch').addEventListener('input',e=>{U.search=e.target.value;catalogRender()});
- el('ultraStatusFilter').addEventListener('change',e=>{U.status=e.target.value;catalogRender()});
- el('ultraCategoryFilter').addEventListener('change',e=>{U.cat=e.target.value;catalogRender()});
+ el('ultraSearch').addEventListener('input',e=>{U.search=e.target.value;renderList()});
+ el('ultraStatusFilter').addEventListener('change',e=>{U.status=e.target.value;renderList()});
+ el('ultraCategoryFilter').addEventListener('change',e=>{U.cat=e.target.value;renderList()});
  wrap.addEventListener('click',e=>{
  const b=e.target.closest('[data-action],[data-id],[data-category]');if(!b)return;
  if(b.dataset.action==='create')newRecipe();
  else if(b.dataset.id){if(b.dataset.action==='ttk')location.href='./ttk.html?id='+Number(b.dataset.id);else openRecipe(Number(b.dataset.id))}
- else if(b.hasAttribute('data-category')){U.cat=b.dataset.category;catalogRender()}
+ else if(b.hasAttribute('data-category')){U.cat=b.dataset.category;renderList()}
  });
  const editor=el('editorPage').querySelector('.panel'),heading=editor.firstElementChild;
  const header=node('div',
@@ -84,6 +84,7 @@ function setup(){
   else if(e.target.id==='rName')calc();
  });
  el('ultraAutoAllergens').addEventListener('change',calc);
+ setupStudioLayout();
  el('ultraCopyBatch').addEventListener('click',copyBatch);
  el('ultraPhotoChoose').addEventListener('click',()=>el('photoFile').click());
  el('ultraImportFile').addEventListener('change',importJson);
@@ -110,6 +111,48 @@ function setup(){
   components.splice(Number(b.dataset.remove),1);renderComponents();
  });
 }
+
+function setupStudioLayout(){
+ if(U.studioMounted)return;
+ const catalogPage=el('catalogPage'),panel=catalogPage.querySelector('.panel');
+ const editorPage=el('editorPage');
+ U.editorParent=editorPage.parentNode;U.editorNext=editorPage.nextSibling;
+ const studioTop=node('div',
+  '<div><small>🌊 MORE SUSHI · STUDIO ULTRA PRO</small><h2>Разработка полуфабрикатов</h2><p>Создание рецептур, вложенные ПФ, автоматические расчёты и технологические карты</p></div>'+
+  '<span class="ultraLiveLabel">● РАБОЧЕЕ ПРОСТРАНСТВО</span>', 'ultraStudioTop');
+ const layout=node('div','<section class="ultraStudioLeft" id="ultraStudioLeft"></section>'+
+ '<section class="ultraStudioCenter" id="ultraStudioCenter"></section>'+
+ '<aside class="ultraStudioAside" id="ultraStudioAside"></aside>','ultraStudioLayout');
+ panel.prepend(layout);panel.prepend(studioTop);
+ el('ultraStudioLeft').append(el('ultraCatalog'));
+ el('ultraStudioCenter').append(editorPage);
+ const rail=el('ultraStudioAside');
+ rail.append(node('div','<span class="ultraRailEyebrow">КОНТРОЛЬ РЕЦЕПТУРЫ</span><h3>Расчёты и безопасность</h3><p>Данные обновляются при изменении состава.</p>','ultraRailHeader'));
+ rail.append(el('ultraMetrics'));
+ rail.append(el('ultraFootPanels'));
+ U.studioMounted=true;
+}
+function restoreProductEditor(){
+ if(!U.studioMounted)return;
+ const editor=el('editorPage');
+ if(editor.parentNode!==U.editorParent){
+  if(U.editorNext&&U.editorNext.parentNode===U.editorParent)U.editorParent.insertBefore(editor,U.editorNext);
+  else U.editorParent.append(editor);
+ }
+ el('app').querySelector('.main').classList.remove('ultraWorkspaceActive');
+}
+function showStudio(){
+ if(!U.studioMounted)setupStudioLayout();
+ const editor=el('editorPage');
+ if(editor.parentNode!==el('ultraStudioCenter'))el('ultraStudioCenter').append(editor);
+ el('catalogPage').classList.remove('hidden');
+ editor.classList.remove('hidden');
+ el('catalogPage').classList.add('ultraCatalogMode');
+ editor.classList.add('ultraEditorMode');
+ el('app').querySelector('.main').classList.add('ultraWorkspaceActive');
+ el('pageTitle').textContent='Полуфабрикаты · ULTRA PRO';
+}
+
 function mode(page){
  const pf=currentKind==='prefab';
  el('catalogPage').classList.toggle('ultraCatalogMode',pf);
@@ -133,7 +176,7 @@ function renderList(){
   const img=r.photo_path&&/^data:image\/(png|jpeg|webp);base64,/.test(r.photo_path)?
    '<img loading="lazy" src="'+esc(r.photo_path)+'" alt="'+esc(r.name)+'">':'<span class="ultraCardNoPhoto">'+icon(r.category)+'</span>';
   const state=r.status==='Утверждено'?'approved':r.status==='Тест'?'test':'';
-  return '<article class="ultraCard"><div class="ultraCardPhoto">'+img+'<span class="ultraCardTag">'+esc(r.code)+'</span></div>'+
+  return '<article class="ultraCard '+(editing&&Number(editing.id)===Number(r.id)?'is-current':'')+'"><div class="ultraCardPhoto">'+img+'<span class="ultraCardTag">'+esc(r.code)+'</span></div>'+
   '<div class="ultraCardMain"><div class="ultraCardCat">'+esc(r.category||'Полуфабрикат')+'</div>'+
   '<h3 class="ultraCardTitle">'+esc(r.name)+'</h3><div class="ultraCardMetrics"><span class="ultraCardYield">'+nice(r.yield_g)+' г</span>'+
   '<span class="ultraStatus '+state+'">'+esc(r.status)+'</span></div>'+
@@ -155,7 +198,7 @@ function fresh(){
  old.make();el('photoFile').value='';if(currentKind!=='prefab')return;
  el('rCode').value=nextCode();el('rCategory').value='Соусы';U.loss=0;U.scale=1;el('ultraLoss').value='0';
  el('ultraAutoAllergens').checked=true;el('ultraReviewed').checked=false;el('ultraItemLabel').textContent='Новый полуфабрикат';
- renderComponents();photoPreview();el('ultraRelated').textContent='После сохранения будут показаны связанные товары.';
+ renderComponents();photoPreview();renderList();el('ultraRelated').textContent='После сохранения будут показаны связанные товары.';
  el('ultraHistoryBody').textContent='История появится после изменения карточки.';
 }
 async function open(id){
@@ -167,7 +210,7 @@ async function open(id){
  el('ultraAutoAllergens').checked=editing.ttk_fields?.ultra?.auto_allergens!==false;
  el('ultraReviewed').checked=!!editing.ttk_fields?.ultra?.allergens_reviewed_by_chef;
  renderComponents();el('ultraItemLabel').textContent=editing.name;
- related();history(id);
+ renderList();related();history(id);
 }
 function wouldCycle(p){
  if(!editing||!p)return false;
@@ -422,7 +465,23 @@ async function save(){
  }catch(e){msg('saveInfo','Ошибка: '+e.message)}
  finally{U.saving=false}
 }
-window.switchPage=function(page){old.nav(page);mode(page)};
+window.switchPage=function(page){
+ if(page==='product')restoreProductEditor();
+ if(page==='prefab'){
+   old.nav(page);showStudio();mode(page);
+   const selected=editing&&editing.kind==='prefab'?editing:null;
+   const first=selected||pfList()[0];
+   if(first&&(!editing||Number(editing.id)!==Number(first.id)||el('ultraItemLabel').textContent==='Новый полуфабрикат')){
+     openRecipe(Number(first.id));
+   }else if(!first)newRecipe();
+   else{renderList();calc()}
+   return;
+ }
+ old.nav(page);
+ if(page==='editor'&&currentKind==='prefab'){showStudio();renderList()}
+ else if(page!=='editor')el('app').querySelector('.main').classList.remove('ultraWorkspaceActive');
+ mode(page);
+};
 window.renderRecipes=renderList;window.newRecipe=fresh;window.openRecipe=open;
 window.renderComponents=componentsHtml;window.addComponent=add;window.saveRecipe=save;
 setup();el('rName').addEventListener('input',calc);
