@@ -1,0 +1,38 @@
+[
+  {
+    "id": -10003,
+    "slug": "raw_peeled_shrimp",
+    "name": "Креветка сырая очищенная",
+    "category": "Рыба и морепродукты",
+    "keywords": "креветка сырая,очищенная сырая креветка",
+    "image_data": "./photos/raw_peeled_shrimp.webp",
+    "local": true
+  },
+  {
+    "id": -10000,
+    "slug": "sushi_rice_dry",
+    "name": "Рис для суши",
+    "category": "Основы суши",
+    "keywords": "рис для суши, рис, рис сухой",
+    "image_data": "./photos/sushi_rice_dry.webp",
+    "local": true
+  },
+  {
+    "id": -10002,
+    "slug": "smoked_eel",
+    "name": "Угорь копчёный",
+    "category": "Рыба и морепродукты",
+    "keywords": "угорь,копченый угорь,унаги,филе угря",
+    "image_data": "./photos/smoked_eel.webp",
+    "local": true
+  },
+  {
+    "id": -10001,
+    "slug": "fresh_trout_fillet",
+    "name": "Форель радужная",
+    "category": "Рыба и морепродукты",
+    "keywords": "форель,форель радужная,лосось,филе рыбы,Trim C",
+    "image_data": "./photos/fresh_trout_fillet.webp",
+    "local": true
+  }
+]
