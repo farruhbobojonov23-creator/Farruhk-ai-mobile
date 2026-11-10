@@ -199,7 +199,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
  </div>
 </section>
 <aside id="designPanel" hidden><h3>Оформление листа A4</h3><p>Цвета и логотип изменяются только у выбранной ТТК и сохраняются вместе с документом.</p><label>Тёмно-синий <input type="color" data-theme="navy" value="#082a4b"></label><label>Синий <input type="color" data-theme="blue" value="#0c5790"></label><label>Красный <input type="color" data-theme="red" value="#e72339"></label><label>Фон страницы <input type="color" data-theme="paper" value="#ffffff"></label><label>Размер логотипа <input type="range" min="72" max="145" step="1" data-theme="logoSize" value="126"></label><label>Размер текста <input type="range" min="85" max="112" step="1" data-theme="fontPercent" value="100"></label><hr style="border:0;border-top:1px solid #dce7ee;margin:14px 0"><h4 style="margin:8px 0">Фото товара без фона (PNG/WebP)</h4>
-<label>Стиль фона <select id="photoScene"><option value="stone">Камень / премиум</option><option value="ice">Ледяной голубой</option><option value="white">Белый студийный</option><option value="navy">Морской тёмный</option><option value="silver">Серебристый</option><option value="custom">Мой цвет</option></select></label>
+<label>Стиль фона <select id="photoScene"><option value="transparent">Без фона (PNG)</option><option value="stone">Камень / премиум</option><option value="ice">Ледяной голубой</option><option value="white">Белый студийный</option><option value="navy">Морской тёмный</option><option value="silver">Серебристый</option><option value="custom">Мой цвет</option></select></label>
 <label>Цвет фона <input type="color" id="photoBgColor" value="#d8e6f0"></label>
 <label>Как показать фото <select id="photoFit"><option value="contain">Полностью без обрезки</option><option value="cover">Заполнить рамку</option></select></label>
 <label>Размер товара <input type="range" id="photoScale" min="50" max="175" step="5" value="100"></label>
@@ -302,11 +302,11 @@ function applyDesign(template,markDirty=true){
  fitAll();
 }
 
-const defaultPhotoStyle={scene:'stone',color:'#d8e6f0',fit:'contain',scale:100,x:0,y:0,shadow:true,backdrop:null};
+const defaultPhotoStyle={scene:'transparent',color:'#d8e6f0',fit:'contain',scale:100,x:0,y:0,shadow:true,backdrop:null,frameless:true};
 let photoStyle={...defaultPhotoStyle},isAutoAllergens=true,ingredientConnections=[];
 function applyPhotoStyle(p){
  const s={...defaultPhotoStyle,...p};
- if(!['stone','ice','white','navy','silver','custom'].includes(s.scene))s.scene='stone';
+ if(!['transparent','stone','ice','white','navy','silver','custom'].includes(s.scene))s.scene='transparent';
  if(!['contain','cover'].includes(s.fit))s.fit='contain';
  if(!/^#[0-9a-fA-F]{6}$/.test(s.color))s.color=defaultPhotoStyle.color;
  for(const [name,min,max] of [['scale',50,175],['x',-100,100],['y',-100,100]])s[name]=Math.max(min,Math.min(max,Number(s[name])||0));
@@ -315,6 +315,7 @@ function applyPhotoStyle(p){
  photoStyle=s;
  const holder=$('#photoBox'),img=$('#dishPhoto');
  const presets={
+ transparent:'transparent',
  stone:'radial-gradient(ellipse at 60% 86%, #c8d3dc 0%, #e7f1f8 40%, #91adc0 100%)',
  ice:'radial-gradient(ellipse at 50% 85%, #edfdff 0%, #bfe2f7 50%, #75b9e5 100%)',
  white:'radial-gradient(ellipse at 40% 60%, #fff 0%, #f3f7f9 70%, #d5e3ed 100%)',
@@ -322,7 +323,8 @@ function applyPhotoStyle(p){
  silver:'linear-gradient(135deg,#b6c4cc 0%,#eff5f9 45%,#a4b7c4 100%)',
  custom:s.color
  };
- holder.style.background=s.backdrop?('center / cover no-repeat url("'+s.backdrop+'")'):presets[s.scene];
+ holder.style.background=s.scene==='transparent'?'transparent':(s.backdrop?('center / cover no-repeat url("'+s.backdrop+'")'):presets[s.scene]);
+ holder.classList.toggle('photo-has-image',!!(image&&/^data:image\/(png|jpeg|webp);base64,/.test(image)));
  img.style.objectFit=s.fit;
  img.style.transform='translate('+s.x+'px,'+s.y+'px) scale('+(s.scale/100)+')';
  img.style.filter=s.shadow?'drop-shadow(0 10px 9px rgba(8,25,41,.32))':'none';
@@ -410,7 +412,7 @@ function lineDraw(){
  calculateYield();
 }
 function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value,line_yield_g:ins[3].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
-function labelPhoto(s){image=s;if(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s)){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
+function labelPhoto(s){image=s;const valid=!!(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s));$('#photoBox').classList.toggle('photo-has-image',valid);if(valid){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
 function loadQuality(text){const v=splitLabels(text,{quality_appearance:['Внешний вид'],quality_consistency:['Консистенция'],quality_taste:['Вкус и запах'],quality_color:['Цвет'],quality_safety:['Безопасность']});for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])set(k,v[k]||'')}
 async function loadRecipe(id){
  if(dirty&&!confirm('Есть несохранённые изменения. Перейти к другой ТТК?')){if(current)$('#recipePick').value=current.id;return}
@@ -424,7 +426,10 @@ async function loadRecipe(id){
  $('#version').textContent=r.version||1;
  applyLayout(tf.custom_texts||{});
  applyTheme(tf.theme||{});
- applyPhotoStyle(tf.photo_style||{});
+ const photoSettings={...(tf.photo_style||{})};
+ // Older framed designs open frameless by default; explicit new selections remain saved.
+ if(photoSettings.frameless!==true){photoSettings.scene='transparent';photoSettings.backdrop=null;photoSettings.frameless=true;}
+ applyPhotoStyle(photoSettings);
  isAutoAllergens=tf.auto_allergens!==false;$('#autoAllergens').checked=isAutoAllergens;
  currentLogo=(typeof tf.logo_data_url==='string'&&/^data:image\/(webp|png|jpeg);base64,/.test(tf.logo_data_url))?tf.logo_data_url:defaultLogo;
  $('#logo').src=currentLogo;
@@ -583,11 +588,11 @@ function fitField(el,min=9.4){
 }
 function fitAll(){
  let problem=false;
- for(const el of $('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
+ for(const el of $$('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
    if(!fitField(el,9.1*(currentTheme.fontPercent||100)/100))problem=true;
  }
  // Borders and antialiasing can cause 1-3px false overflow in Chromium.
- for(const card of $('.card'))if(card.clientHeight>0&&card.scrollHeight>card.clientHeight+5)problem=true;
+ for(const card of $$('.card'))if(card.clientHeight>0&&card.scrollHeight>card.clientHeight+5)problem=true;
  tooLong=problem;
  if(problem)msg('Есть перегруженные текстовые блоки. Печать доступна, но перед утверждением ТТК проверьте, что вся информация читается на одном листе А4.','warning');
  return !problem;
