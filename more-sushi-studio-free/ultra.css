@@ -110,3 +110,22 @@
 @media(max-width:980px){.ultraMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ultraFootPanels{grid-template-columns:1fr}.ultraComponentRow{grid-template-columns:88px minmax(135px,1fr) 85px 85px 34px;gap:5px}}
 @media(max-width:600px){.ultraHero{padding:17px;align-items:start;flex-direction:column}.ultraHero h2{font-size:21px}.ultraSummary{padding:12px;gap:7px}.ultraSummary .ultraKpi{padding:9px}.ultraGrid{padding:4px 12px 18px;grid-template-columns:repeat(auto-fill,minmax(195px,1fr))}.ultraControls,.ultraFilters{padding-left:12px;padding-right:12px}.ultraComponentRow{grid-template-columns:1fr 1fr;gap:7px}.ultraComponentRow .ultraComponentName{grid-column:1/3}.ultraComponentRow .ultraComponentDelete{grid-column:2;grid-row:1;justify-self:end}.ultraEditorBar{padding:12px}.ultraMetrics{padding:10px;gap:6px}.ultraMetric{padding:9px}.ultraMetric strong{font-size:16px}.ultraFootPanels{margin-left:10px;margin-right:10px}.ultraEditorActions button{padding:7px 9px;font-size:11px}}
 @media print{.ultraHero,.ultraEditorBar,.ultraFootPanels,.ultraMetric,.ultraComposerHeader,.ultraLossBar,.ultraDemoScale,.ultraHistory,.ultraTtkDetails{display:none!important}}
+
+/* Show ULTRA screens only in their intended modes; products retain their original view. */
+#catalogPage:not(.ultraCatalogMode) .ultraCatalog{display:none!important}
+#catalogPage.ultraCatalogMode .ultraCatalog{display:block}
+#catalogPage.ultraCatalogMode>.panel>.row{display:none!important}
+#editorPage:not(.ultraEditorMode) .ultraEditorBar,
+#editorPage:not(.ultraEditorMode) .ultraMetrics,
+#editorPage:not(.ultraEditorMode) .ultraComposerHeader,
+#editorPage:not(.ultraEditorMode) .ultraLossBar,
+#editorPage:not(.ultraEditorMode) .ultraDemoScale,
+#editorPage:not(.ultraEditorMode) .ultraFootPanels,
+#editorPage:not(.ultraEditorMode) .ultraHistory,
+#editorPage:not(.ultraEditorMode) .ultraWarnBox{display:none!important}
+#editorPage.ultraEditorMode>.panel>.row:has(#rCode){margin:0;padding:14px 18px;background:#f5faff;gap:9px;align-items:end}
+#editorPage.ultraEditorMode>.panel>.row:has(#rCode) .field{min-width:130px}
+#editorPage.ultraEditorMode>.panel>.row:has(#rCode) .field input,
+#editorPage.ultraEditorMode>.panel>.row:has(#rCode) .field select{font-size:13px;padding:9px}
+#editorPage.ultraEditorMode>.panel>h3:first-of-type{display:none}
+#editorPage.ultraEditorMode .ultraTtkDetails>h3{display:none}
