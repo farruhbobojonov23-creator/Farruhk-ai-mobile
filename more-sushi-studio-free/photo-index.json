@@ -27,7 +27,7 @@
     "keywords": "вода питьевая,вода без газа",
     "image_data": "./photos/still_drinking_water.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10023,
@@ -347,7 +347,7 @@
     "keywords": "соус унаги,унаги соус",
     "image_data": "./photos/unagi_sauce.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10035,
@@ -427,7 +427,7 @@
     "keywords": "уксус рисовый DUNKAN,рисовый уксус",
     "image_data": "./photos/rice_vinegar.webp",
     "local": true,
-    "quality": "edge-clean-v2"
+    "quality": "true-alpha-v3"
   },
   {
     "id": -10001,
