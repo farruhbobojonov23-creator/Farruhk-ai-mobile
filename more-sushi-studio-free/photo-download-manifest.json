@@ -1,11 +1,1 @@
-[
-  {
-    "slug": "sparkling_water",
-    "name": "Вода газированная",
-    "category": "Напитки и вода",
-    "keywords": "вода минеральная сильногазированная,вода газированная",
-    "url": "https://dnznrvs05pmza.cloudfront.net/sam3_image_segmentation/fbae50b9-be9e-4bee-ad6a-03dfcdef22c4/1a0755e4-ce97-4eaf-867c-cf453a5a86d7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMTljOGU5ZmYyNGZjODdhZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NDUyMDcwM30.jMDGhf4lp3BbMvR0-FAjfILWUVF8DwXDx2JkQeD7DmA",
-    "replace": true,
-    "expected_alpha": true
-  }
-]
+[]
