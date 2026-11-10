@@ -87,7 +87,7 @@
  <div class="row">
   <div class="field"><label for="ingName">Наименование *</label><input id="ingName" maxlength="180" placeholder="Например, лосось охлаждённый" autocomplete="off"></div>
   <div class="field"><label for="ingCategory">Категория</label><select id="ingCategory">
-   <option>Рыба и морепродукты</option><option>Овощи и фрукты</option><option>Сыры и молочные продукты</option><option>Декор и панировка</option><option>Соусы и специи</option><option>Мясо и яйца</option><option>Прочее</option>
+   <option>Рыба и морепродукты</option><option>Овощи и фрукты</option><option>Сыры и молочные продукты</option><option>Декор и панировка</option><option>Соусы и специи</option><option>Мясо и яйца</option><option>Основы суши</option><option>Прочее</option>
   </select></div>
   <div class="field"><label for="ingUnit">Единица измерения</label><select id="ingUnit"><option>г</option><option>кг</option><option>мл</option><option>л</option><option>шт</option></select></div>
  </div>
@@ -153,7 +153,7 @@ async function logout(){try{await http('/auth/v1/logout',{method:'POST'})}catch{
 async function reload(){ingredients=await http('/rest/v1/ingredients?select=*&order=name.asc');recipes=await http('/rest/v1/recipes?select=*&order=updated_at.desc');$('nIng').textContent=ingredients.length;$('nPf').textContent=recipes.filter(r=>r.kind==='prefab').length;$('nPr').textContent=recipes.filter(r=>r.kind==='product').length;renderIngredients()}
 function switchPage(page){if(['prefab','product'].includes(page))currentKind=page;for(const id of ['homePage','ingredientsPage','catalogPage','editorPage'])$(id).classList.add('hidden');const target=page==='home'?'homePage':page==='ingredients'?'ingredientsPage':page==='editor'?'editorPage':'catalogPage';$(target).classList.remove('hidden');$('pageTitle').textContent=({home:'Главная',ingredients:'Ингредиенты',prefab:'Полуфабрикаты',product:'Товары и меню',editor:'Редактор ТТК'})[page];document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(['prefab','product'].includes(page))renderRecipes()}
 let editingIngredientId=null;
-const ingredientCategories=['Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Декор и панировка','Соусы и специи','Мясо и яйца','Прочее'];
+const ingredientCategories=['Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Декор и панировка','Соусы и специи','Мясо и яйца','Основы суши','Прочее'];
 function ingredientCategoryOptions(){
  const selected=$('ingCatFilter').value;
  const cats=[...new Set([...ingredientCategories,...ingredients.map(i=>i.category||'Прочее')])].sort((a,b)=>a.localeCompare(b,'ru'));
