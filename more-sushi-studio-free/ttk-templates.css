@@ -78,11 +78,16 @@
 #page[data-template] .cardHead::before{background:var(--ttk-red)}
 #page[data-template] #photoBox{border:1px solid #bdd6e5;box-shadow:0 4px 13px #0b34512c}
 #page[data-template] #recipeTable .itemInput{font-size:9px!important}
-#page[data-template] #recipeTable tbody tr{height:16px}
-#page[data-template] #recipeTable tbody td{height:16px;max-height:16px}
+#page[data-template] #recipeTable tbody tr{height:15px}
+#page[data-template] #recipeTable tbody td{height:15px;max-height:15px}
 #page[data-template] #recipeTable tr.total td{height:18px}
 #page[data-template] .smalltools{top:208px;right:6px;padding:1px 2px;background:#f7fbfdea;border-radius:3px}
 #page[data-template] .card3 .body{padding:3px 5px 3px}
+#page[data-template] .card1 .body,#page[data-template] .card2 .body{height:calc(100% - 27px)}
+#page[data-template] .card4 #process{height:calc(100% - 27px);padding:5px 7px}
+#page[data-template] .processSteps .step{padding:2px 1px;gap:2px}
+#page[data-template] .processSteps .edit{font-size:10px}
+
 #page[data-template] #recipeTable .itemInput:focus{position:relative;z-index:10;background:#fffef3}
 #page[data-template] .fact .value{line-height:1.1}
 #page[data-template] #brand img{object-fit:contain}
