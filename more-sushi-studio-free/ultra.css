@@ -141,3 +141,8 @@
 .ultraPhotoSide p{font-size:12px;color:#7592a7;line-height:1.5}
 .ultraPhotoSide button{font-size:12px;padding:9px 13px}
 @media(max-width:600px){.ultraPhotoPanel{margin-left:10px;margin-right:10px}.ultraPhotoBox{height:95px;width:110px;flex-basis:110px}.ultraPhotoPlaceholder{font-size:43px}.ultraPhotoSide p{font-size:11px}}
+
+/* Compact confirmation, never present inferred allergens as verified */
+#editorPage.ultraEditorMode .ultraReviewCheck{display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.4;color:#7f5a1b;background:#fff5e2;border:1px solid #f1dbb8;border-radius:8px;padding:9px;margin-top:10px}
+#editorPage.ultraEditorMode .ultraReviewCheck input{accent-color:#1c7fb4;margin-top:2px;flex:0 0 auto}
+#editorPage.ultraEditorMode #ultraImportFile{display:none!important}
