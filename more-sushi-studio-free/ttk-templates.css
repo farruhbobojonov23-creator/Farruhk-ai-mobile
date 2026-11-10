@@ -108,7 +108,7 @@
 #page[data-template="a4-01"] #bottomWave{opacity:.92}
 
 /* 2 · Ледяной А4 PRO — horizontal brand masthead, larger food shot. */
-#page[data-template="a4-02"]{background:linear-gradient(#fff 0,#fff 78%,#e7f5fc 100%)!important}
+#page[data-template="a4-02"]{background:linear-gradient(var(--ttk-paper) 0,var(--ttk-paper) 78%,#e7f5fc 100%)!important}
 #page[data-template="a4-02"]::before{
  top:0;left:0;right:0;bottom:auto;width:100%;height:79px;
  background:linear-gradient(108deg,var(--ttk-navy),var(--ttk-blue) 77%,#207ca9)
@@ -140,7 +140,7 @@
 
 /* 4 · Северное сияние — arctic upper and lower ocean silhouettes. */
 #page[data-template="a4-04"]{
- background:linear-gradient(180deg,#eefaff 0%,#fff 27%,#fff 88%,#e0f5fd 100%)!important
+ background:linear-gradient(180deg,#eefaff 0%,var(--ttk-paper) 27%,var(--ttk-paper) 88%,#e0f5fd 100%)!important
 }
 #page[data-template="a4-04"]::before{
  content:"";top:0;bottom:auto;left:0;right:0;width:100%;height:145px;
@@ -181,7 +181,7 @@
 #page[data-template="a4-04"] #allergy{background:#f3fcff}
 
 /* 5 · Морской флагман — strong navy vertical ribbon and polished geometric panels. */
-#page[data-template="a4-05"]{background:linear-gradient(90deg,#f2f8fc 0%,#fff 18%,#fff 100%)!important}
+#page[data-template="a4-05"]{background:linear-gradient(90deg,#f2f8fc 0%,var(--ttk-paper) 18%,var(--ttk-paper) 100%)!important}
 #page[data-template="a4-05"]::before{
  top:0;left:0;bottom:0;width:46px;
  background:
