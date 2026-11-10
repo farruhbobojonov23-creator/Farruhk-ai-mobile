@@ -7,7 +7,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const n=x=>Number(x||0), round=x=>Math.round((x+Number.EPSILON)*100)/100;
 const nice=x=>n(x).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const old={nav:window.switchPage,list:window.renderRecipes,make:window.newRecipe,open:window.openRecipe,rows:window.renderComponents,save:window.saveRecipe};
-const U={search:'',cat:'',status:'',loss:0,scale:1,saving:false,history:[],studioMounted:false,editorParent:null,editorNext:null};
+const U={search:'',cat:'',status:'',loss:0,scale:1,saving:false,history:[],icon:'',studioMounted:false,editorParent:null,editorNext:null};
 function node(tag,html,cls){
  const d=document.createElement(tag);if(cls)d.className=cls;d.innerHTML=html;return d;
 }
@@ -40,7 +40,7 @@ function setup(){
  '<div class="ultraMetric"><small>Аллергены</small><strong id="ultraMetricAllergens">—</strong><span id="ultraAllergenNote">Из выбранных компонентов</span></div>'+
  '<div class="ultraMetric"><small>КБЖУ на 100 г</small><strong id="ultraMetricNutrition">—</strong><span id="ultraNutritionNote">При наличии данных сырья</span></div>',
  'ultraMetrics');header.after(metrics);
- metrics.after(node('section','<div id="ultraPhotoBox" class="ultraPhotoBox"></div><div class="ultraPhotoSide"><b>📸 Фотография полуфабриката</b><p>PNG без фона или обычная фотография. Изображение появится в каталоге и цветной ТТК.</p><button type="button" id="ultraPhotoChoose" class="secondary">＋ Загрузить фото</button></div>','ultraPhotoPanel'));
+ metrics.after(node('section','<div id="ultraPhotoBox" class="ultraPhotoBox"></div><div class="ultraPhotoSide"><b>📸 Фото и 3D-значок полуфабриката</b><p>Фотография появится в каталоге и ТТК, значок — если фото отсутствует.</p><div class="msVisualButtons"><button type="button" id="ultraPhotoChoose" class="secondary">＋ Загрузить фото</button><button type="button" id="ultraIconChoose" class="secondary">Выбрать 3D</button><button type="button" id="ultraPhotoRemove" class="msPhotoRemove">Удалить фото</button></div></div>','ultraPhotoPanel'));
  const comp=el('components');
  const h3=[...editor.children].find(x=>x.tagName==='H3'&&x.textContent.includes('Сырьё'));
  if(h3)h3.before(node('div','<h3>🥣 Рецептура и компоненты</h3><small>Брутто, нетто и вложенные ПФ</small>','ultraComposerHeader'));
@@ -87,6 +87,13 @@ function setup(){
  setupStudioLayout();
  el('ultraCopyBatch').addEventListener('click',copyBatch);
  el('ultraPhotoChoose').addEventListener('click',()=>el('photoFile').click());
+ el('ultraIconChoose').addEventListener('click',()=>{
+  if(!window.MSIcons)return alert('Иконки не загружены.');
+  MSIcons.showIconPicker(icon=>{U.icon=icon;photoPreview();},U.icon);
+ });
+ el('ultraPhotoRemove').addEventListener('click',()=>{
+  photoData=null;el('photoFile').value='';el('photoPreview').src='';el('photoPreview').classList.add('hidden');photoPreview();
+ });
  el('ultraImportFile').addEventListener('change',importJson);
  el('photoFile').addEventListener('change',e=>{
   const file=e.target.files?.[0];
@@ -173,8 +180,9 @@ function renderList(){
  const q=U.search.toLowerCase().trim();
  const list=all.filter(r=>(!U.status||r.status===U.status)&&(!U.cat||(r.category||'Без категории')===U.cat)&&(!q||[r.name,r.code,r.category].some(v=>String(v||'').toLowerCase().includes(q))));
  el('ultraCards').innerHTML=list.length?list.map(r=>{
-  const img=r.photo_path&&/^data:image\/(png|jpeg|webp);base64,/.test(r.photo_path)?
-   '<img loading="lazy" src="'+esc(r.photo_path)+'" alt="'+esc(r.name)+'">':'<span class="ultraCardNoPhoto">'+icon(r.category)+'</span>';
+  const img=window.MSIcons?MSIcons.render(r,'recipe','large'):
+  (r.photo_path&&/^data:image\/(png|jpeg|webp);base64,/.test(r.photo_path)?
+   '<img loading="lazy" src="'+esc(r.photo_path)+'" alt="'+esc(r.name)+'">':'<span class="ultraCardNoPhoto">'+icon(r.category)+'</span>');
   const state=r.status==='Утверждено'?'approved':r.status==='Тест'?'test':'';
   return '<article class="ultraCard '+(editing&&Number(editing.id)===Number(r.id)?'is-current':'')+'"><div class="ultraCardPhoto">'+img+'<span class="ultraCardTag">'+esc(r.code)+'</span></div>'+
   '<div class="ultraCardMain"><div class="ultraCardCat">'+esc(r.category||'Полуфабрикат')+'</div>'+
@@ -188,7 +196,8 @@ function photoPreview(){
  const host=el('ultraPhotoBox');if(!host)return;
  host.innerHTML=photoData&&/^data:image\/(jpeg|png|webp);base64,/.test(photoData)?
   '<img alt="Фото полуфабриката" src="'+esc(photoData)+'">':
-  '<span class="ultraPhotoPlaceholder">🍣</span>';
+  (window.MSIcons?MSIcons.render({name:el('rName').value||editing?.name||'Полуфабрикат',category:el('rCategory').value,
+     ttk_fields:{ultra:{icon_emoji:U.icon}}},'recipe','large'):'<span class="ultraPhotoPlaceholder">🍣</span>');
 }
 function nextCode(){
  const exists=new Set(pfList().map(r=>r.code));let k=1;while(exists.has('МС-ПФ-'+String(k).padStart(3,'0')))k++;
@@ -196,7 +205,7 @@ function nextCode(){
 }
 function fresh(){
  old.make();el('photoFile').value='';if(currentKind!=='prefab')return;
- el('rCode').value=nextCode();el('rCategory').value='Соусы';U.loss=0;U.scale=1;el('ultraLoss').value='0';
+ el('rCode').value=nextCode();el('rCategory').value='Соусы';U.icon='';U.loss=0;U.scale=1;el('ultraLoss').value='0';
  el('ultraAutoAllergens').checked=true;el('ultraReviewed').checked=false;el('ultraItemLabel').textContent='Новый полуфабрикат';
  renderComponents();photoPreview();renderList();el('ultraRelated').textContent='После сохранения будут показаны связанные товары.';
  el('ultraHistoryBody').textContent='История появится после изменения карточки.';
@@ -206,7 +215,7 @@ async function open(id){
  el('photoFile').value='';photoPreview();
  const rows=await http('/rest/v1/recipe_lines?select=*&recipe_id=eq.'+Number(id)+'&order=seq.asc');
  components=rows.map(r=>({source_type:r.ingredient_id?'ingredient':'prefab',source_id:Number(r.ingredient_id||r.prefab_id),gross_g:n(r.gross_g),net_g:n(r.net_g),line_yield_g:r.line_yield_g==null?null:n(r.line_yield_g)}));
- U.loss=n(editing.ttk_fields?.loss_g);U.scale=1;el('ultraLoss').value=U.loss;
+ U.loss=n(editing.ttk_fields?.loss_g);U.icon=editing.ttk_fields?.ultra?.icon_emoji||'';U.scale=1;el('ultraLoss').value=U.loss;
  el('ultraAutoAllergens').checked=editing.ttk_fields?.ultra?.auto_allergens!==false;
  el('ultraReviewed').checked=!!editing.ttk_fields?.ultra?.allergens_reviewed_by_chef;
  renderComponents();el('ultraItemLabel').textContent=editing.name;
@@ -356,19 +365,19 @@ function restore(id){
  photoData=snapshot.recipe.photo_path||null;
  if(photoData){el('photoPreview').src=photoData;el('photoPreview').classList.remove('hidden')}
  components=snapshot.lines.map(l=>({source_type:l.ingredient_id?'ingredient':'prefab',source_id:Number(l.ingredient_id||l.prefab_id),gross_g:n(l.gross_g),net_g:n(l.net_g)}));
- U.loss=n(snapshot.recipe.ttk_fields?.loss_g);el('ultraLoss').value=U.loss;renderComponents();photoPreview();
+ U.loss=n(snapshot.recipe.ttk_fields?.loss_g);U.icon=snapshot.recipe.ttk_fields?.ultra?.icon_emoji||'';el('ultraLoss').value=U.loss;renderComponents();photoPreview();
  msg('saveInfo','Версия загружена в редактор. Нажмите «Сохранить карточку» для записи.',false);
 }
 function clone(){
  if(!editing||currentKind!=='prefab')return;
  if(!confirm('Создать копию этого ПФ отдельной карточкой?'))return;
  const fields=Object.fromEntries(Object.keys(fmap).map(k=>[k,el(k).value]));
- const parts=components.map(x=>({...x})),picture=photoData,loss=U.loss;
+ const parts=components.map(x=>({...x})),picture=photoData,loss=U.loss,oldIcon=U.icon;
  fresh();for(const [k,v] of Object.entries(fields))el(k).value=v;
  el('rCode').value=nextCode();el('rName').value=fields.rName+' — копия';
  el('rStatus').value='Черновик';el('rApproved').value='';el('rApprovedDate').value='';el('ultraReviewed').checked=false;
  photoData=picture;if(picture){el('photoPreview').src=picture;el('photoPreview').classList.remove('hidden')}
- components=parts;U.loss=loss;el('ultraLoss').value=loss;renderComponents();photoPreview();
+ components=parts;U.icon=oldIcon;U.loss=loss;el('ultraLoss').value=loss;renderComponents();photoPreview();
  msg('saveInfo','Копия подготовлена — нажмите «Сохранить карточку».',false);
 }
 async function remove(){
@@ -446,7 +455,7 @@ async function save(){
    storage:el('rStorage').value,allergens:el('ultraAutoAllergens').checked?[...analysis.allergens].sort().join(', '):el('rAllergens').value,
    nutrition:food,developed_by:el('rDeveloped').value||null,approved_by:el('rApproved').value||null,
    approved_at:el('rApprovedDate').value||null,photo_path:photoData,
-   ttk_fields:{...(editing?.ttk_fields||{}),loss_g:U.loss,ultra:{auto_allergens:el('ultraAutoAllergens').checked,allergens_reviewed_by_chef:el('ultraReviewed').checked&&status==='Утверждено',reviewed_at:el('ultraReviewed').checked&&status==='Утверждено'?new Date().toISOString():null}}};
+   ttk_fields:{...(editing?.ttk_fields||{}),loss_g:U.loss,ultra:{icon_emoji:U.icon||null,auto_allergens:el('ultraAutoAllergens').checked,allergens_reviewed_by_chef:el('ultraReviewed').checked&&status==='Утверждено',reviewed_at:el('ultraReviewed').checked&&status==='Утверждено'?new Date().toISOString():null}}};
   const lines=components.map((c,i)=>({seq:i,ingredient_id:c.source_type==='ingredient'?Number(c.source_id):null,
    prefab_id:c.source_type==='prefab'?Number(c.source_id):null,gross_g:n(c.gross_g),net_g:n(c.net_g),line_yield_g:c.line_yield_g??null}));
   let id;
