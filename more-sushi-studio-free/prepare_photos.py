@@ -78,5 +78,51 @@ for i,item in enumerate(entries,1):
         'image_data':'./photos/'+slug+'.webp',
         'local':True,
     }
+
+# Retouch legacy black-backed cutouts. Old thresholded silhouettes retain black
+# matte pixels at their contours, producing a dark outline on light cards.
+# Correct only a narrow 4 px boundary and keep opaque food texture untouched.
+# "edge-clean-v2" in the index avoids accidentally reprocessing them repeatedly.
+from scipy.ndimage import distance_transform_edt, gaussian_filter
+import numpy as np
+
+RETOUCH_VERSION='edge-clean-v2'
+for photo_slug,record in by_slug.items():
+    photo_file=OUT/(photo_slug+'.webp')
+    if not photo_file.is_file() or record.get('quality')==RETOUCH_VERSION:
+        continue
+    im=Image.open(photo_file).convert('RGBA')
+    pixels=np.asarray(im,dtype=np.uint8).copy()
+    original_alpha=pixels[:,:,3].astype(np.float32)
+    active=original_alpha>35
+    if not active.any():
+        continue
+    inside_dist=distance_transform_edt(active)
+    # Find color two or more pixels INSIDE the original edge so the black
+    # background is not sampled as foreground color.
+    good=(original_alpha>245)&(inside_dist>=4.0)
+    if not good.any():
+        good=(original_alpha>220)&(inside_dist>=2.0)
+    if not good.any():
+        continue
+    nearest=distance_transform_edt(~good,return_distances=False,return_indices=True)
+    near_rgb=pixels[nearest[0],nearest[1],:3].astype(np.float32)
+    edge=active&(inside_dist<=4.5)
+    # Replace contaminated edge RGB with close interior food colors.
+    # Preserve internal details (e.g. nori, salmon marbling, sesame seeds).
+    original_rgb=pixels[:,:,:3].astype(np.float32)
+    weight=np.clip((5.2-inside_dist)/3.6,0,1)
+    weight=np.where(edge,weight,0)[:,:,None]
+    restored=original_rgb*(1-weight)+near_rgb*weight
+    pixels[:,:,:3]=np.uint8(np.clip(restored,0,255))
+    # Recede matte by 1–2 pixels, then antialias over a very narrow feather.
+    edge_alpha=np.clip((inside_dist-1.2)*155,0,255)
+    new_alpha=np.minimum(original_alpha,edge_alpha)
+    new_alpha=gaussian_filter(new_alpha,sigma=.55)
+    pixels[:,:,3]=np.uint8(np.clip(new_alpha,0,255))
+    Image.fromarray(pixels,'RGBA').save(photo_file,'WEBP',quality=90,method=6)
+    record['quality']=RETOUCH_VERSION
+    print('Cleaned dark edge:',photo_slug,flush=True)
+
 INDEX.write_text(json.dumps(sorted(by_slug.values(),key=lambda v:v['name']),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print('Total photo index:',len(by_slug),flush=True)
