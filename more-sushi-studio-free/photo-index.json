@@ -1,5 +1,23 @@
 [
   {
+    "id": -10005,
+    "slug": "surimi_sticks",
+    "name": "Крабовые палочки",
+    "category": "Рыба и морепродукты",
+    "keywords": "крабовые палочки Santa Bremor,сурими,крабовые палочки",
+    "image_data": "./photos/surimi_sticks.webp",
+    "local": true
+  },
+  {
+    "id": -10004,
+    "slug": "whole_shrimp",
+    "name": "Креветка в панцире",
+    "category": "Рыба и морепродукты",
+    "keywords": "креветка Frescomar Green 16/20 в панцире,креветка в панцире",
+    "image_data": "./photos/whole_shrimp.webp",
+    "local": true
+  },
+  {
     "id": -10003,
     "slug": "raw_peeled_shrimp",
     "name": "Креветка сырая очищенная",
@@ -9,12 +27,30 @@
     "local": true
   },
   {
+    "id": -10007,
+    "slug": "tempura_flour",
+    "name": "Мука темпурная",
+    "category": "Декор и панировка",
+    "keywords": "мука темпурная,мука темпурная сухая готовая смесь,кляр сухой",
+    "image_data": "./photos/tempura_flour.webp",
+    "local": true
+  },
+  {
     "id": -10000,
     "slug": "sushi_rice_dry",
     "name": "Рис для суши",
     "category": "Основы суши",
     "keywords": "рис для суши, рис, рис сухой",
     "image_data": "./photos/sushi_rice_dry.webp",
+    "local": true
+  },
+  {
+    "id": -10006,
+    "slug": "panko_breadcrumbs",
+    "name": "Сухари панко",
+    "category": "Декор и панировка",
+    "keywords": "панировочные сухари панко,сухари панко Tamaki Panko Gold,панко",
+    "image_data": "./photos/panko_breadcrumbs.webp",
     "local": true
   },
   {
