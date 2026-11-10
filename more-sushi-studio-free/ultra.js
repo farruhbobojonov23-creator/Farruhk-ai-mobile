@@ -31,7 +31,7 @@ function setup(){
  const editor=el('editorPage').querySelector('.panel'),heading=editor.firstElementChild;
  const header=node('div',
  '<div><small>ТЕХНОЛОГИЧЕСКИЙ КОНСТРУКТОР</small><h3 id="ultraItemLabel">Новый полуфабрикат</h3></div>'+
- '<div class="ultraEditorActions"><button type="button" class="secondary" data-action="clone">⧉ Копировать</button><button type="button" class="secondary" data-action="export">⇩ JSON</button><button type="button" class="secondary" data-action="ttk">▤ ТТК А4</button><button type="button" class="danger" data-action="delete">🗑</button></div>',
+ '<div class="ultraEditorActions"><button type="button" class="secondary" data-action="clone">⧉ Копировать</button><button type="button" class="secondary" data-action="import">⇧ Импорт</button><input type="file" accept="application/json,.json" id="ultraImportFile" hidden><button type="button" class="secondary" data-action="export">⇩ JSON</button><button type="button" class="secondary" data-action="ttk">▤ ТТК А4</button><button type="button" class="danger" data-action="delete">🗑</button></div>',
  'ultraEditorBar');
  heading.after(header);
  const metrics=node('section',
@@ -75,6 +75,7 @@ function setup(){
   if(b.hasAttribute('data-scale')){U.scale=Number(b.dataset.scale);scaleView();return}
   if(b.dataset.action==='clone')clone();
   if(b.dataset.action==='delete')remove();
+  if(b.dataset.action==='import')el('ultraImportFile').click();
   if(b.dataset.action==='export')exportJson();
   if(b.dataset.action==='ttk'){if(editing)location.href='./ttk.html?id='+Number(editing.id);else alert('Сначала сохраните ПФ')}
  });
@@ -85,6 +86,7 @@ function setup(){
  el('ultraAutoAllergens').addEventListener('change',calc);
  el('ultraCopyBatch').addEventListener('click',copyBatch);
  el('ultraPhotoChoose').addEventListener('click',()=>el('photoFile').click());
+ el('ultraImportFile').addEventListener('change',importJson);
  el('photoFile').addEventListener('change',e=>{
   const file=e.target.files?.[0];
   if(!file||file.size>2*1024*1024||!/^image\/(jpeg|png|webp)$/.test(file.type))return;
@@ -337,10 +339,35 @@ async function remove(){
   editing=null;components=[];await reload();switchPage('prefab');
  }catch(e){alert('Не удалось удалить: '+e.message)}
 }
+async function importJson(e){
+ const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ if(file.size>2*1024*1024){alert('JSON-файл слишком большой (не более 2 МБ).');return}
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.schema!=='more-sushi-v1'||!Array.isArray(data.components)||data.components.length>70)throw Error('Неизвестный формат рецептуры');
+  if(!data.components.length)throw Error('В файле нет ингредиентов или ПФ');
+  const mapped=data.components.map(c=>{
+   const source=c.type==='ingredient'?ingredients:c.type==='prefab'?pfList():[];
+   const found=source.filter(r=>r.name===c.name);
+   if(found.length!==1||!Number.isFinite(Number(c.gross_g))||!Number.isFinite(Number(c.net_g))||Number(c.gross_g)<0||Number(c.net_g)<0)throw Error('Не найден компонент или некорректный вес: '+String(c.name||''));
+   return {source_type:c.type,source_id:found[0].id,gross_g:Number(c.gross_g),net_g:Number(c.net_g)};
+  });
+  if(!confirm('Загрузить рецепт «'+String(data.name||'Без имени')+'» как новую черновую карточку?'))return;
+  currentKind='prefab';fresh();
+  el('rName').value=String(data.name||'Импортированный ПФ').slice(0,180);
+  el('rCategory').value=String(data.category||'Прочее').slice(0,100);
+  for(const [key,id] of Object.entries({scope:'rScope',raw_requirements:'rRaw',process:'rProcess',serving:'rServing',quality:'rQuality',storage:'rStorage'}))
+   if(typeof data[key]==='string')el(id).value=data[key];
+  components=mapped;U.loss=n(data.loss_g);el('ultraLoss').value=U.loss;renderComponents();
+  msg('saveInfo','Файл загружен как новый черновик. Нажмите «Сохранить карточку».',false);
+ }catch(err){alert('Не удалось импортировать: '+(err.message||err))}
+}
 function exportJson(){
  if(!editing){alert('Сначала сохраните полуфабрикат.');return}
  const data={schema:'more-sushi-v1',code:el('rCode').value,name:el('rName').value,category:el('rCategory').value,
- yield_g:mass().yield,loss_g:U.loss,components:components.map(c=>({type:c.source_type,
+ yield_g:mass().yield,loss_g:U.loss,scope:el('rScope').value,raw_requirements:el('rRaw').value,
+ process:el('rProcess').value,serving:el('rServing').value,quality:el('rQuality').value,storage:el('rStorage').value,
+ components:components.map(c=>({type:c.source_type,
  name:(c.source_type==='ingredient'?ingredients:recipes).find(i=>Number(i.id)===Number(c.source_id))?.name,
  gross_g:n(c.gross_g),net_g:n(c.net_g)}))};
  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
