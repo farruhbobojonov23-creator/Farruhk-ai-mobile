@@ -1,0 +1,34 @@
+name: More Sushi photo quality repair
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/more-sushi-retouch.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  clean-food-photography:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout independent More Sushi Studio branch
+        uses: actions/checkout@v4
+        with:
+          ref: more-sushi-studio-free
+          persist-credentials: true
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image tools
+        run: pip install --quiet pillow numpy scipy requests
+      - name: Restore true transparency and remove dark matte
+        run: python more-sushi-studio-free/prepare_photos.py
+      - name: Commit cleaned food photography to Studio branch
+        run: |
+          git config user.name "more-sushi-photo-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add more-sushi-studio-free/photos/ more-sushi-studio-free/photo-index.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Repair dark borders and transparent backgrounds for food images"
+            git push origin HEAD:more-sushi-studio-free
+          fi
