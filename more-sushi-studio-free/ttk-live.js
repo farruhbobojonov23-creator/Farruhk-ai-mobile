@@ -98,7 +98,7 @@ function edit(){
  wrap(secs[4]?.querySelector('p'),'rStorage','<b>Условия и срок хранения:</b> ');
  wrap(secs[5]?.querySelector('.pnote'),'rAllergens','<b>Аллергены:</b> ');
  const signs=sh.querySelectorAll('.psign');
- wrap(signs[0],'rDeveloped','Разработал: ');wrap(signs[1],'rApproved','Утвердил: ');
+ for(const [el,id,title] of [[signs[0],'rDeveloped','Разработал:'],[signs[1],'rApproved','Утвердил:']]){if(!el)continue;el.innerHTML='<b>'+title+'</b> <span class="ttk-data"></span><div class="psign__line"></div><small>Ф.И.О., подпись</small>';const sp=el.querySelector('span');sp.textContent=g(id)?.value||'';link(sp,id)}
  const ver=sh.querySelector('.pversion');
  if(ver){ver.innerHTML='Версия '+esc(editing?.version||1)+'<br>Дата: <span id="ttkDate"></span>';g('ttkDate').textContent=g('rApprovedDate')?.value||'';link(g('ttkDate'),'rApprovedDate')}
  const pic=sh.querySelector('.pimage');
