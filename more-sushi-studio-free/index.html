@@ -12,7 +12,7 @@
  #printSheet{display:block!important;position:relative;box-sizing:border-box;width:210mm;min-height:297mm;padding:8.5mm 8.5mm 9mm 28.5mm;background:white;color:#142d45;font:8.3pt/1.26 Arial,Helvetica,sans-serif;overflow:visible}
  #printSheet:before{content:"";position:absolute;left:0;top:0;bottom:0;width:22.5mm;background:linear-gradient(166deg,#0a2748 0%,#0d4675 58%,#112d54 100%);border-right:1.5mm solid #e82437}
  #printSheet .pbrand{position:absolute;top:9mm;left:1.8mm;width:18mm;text-align:center;color:#fff}
- #printSheet .pbrand__icon{font-size:25pt;line-height:1}
+ #printSheet .pbrand__icon{width:18mm;height:17mm;object-fit:contain;background:white;border-radius:50%;display:block;margin:0 auto 2mm;border:0.8mm solid #9bbdd3}
  #printSheet .pbrand__text{font-size:10pt;font-weight:900;line-height:1.05}
  #printSheet .pbrand__text em{color:#fa4451;font-style:normal}
  #printSheet .pbrand__sub{font-size:6pt;letter-spacing:.6px;margin-top:3mm}
@@ -126,7 +126,7 @@ function printRecipe(){
   const yieldText=(Number(fields.yield_g)>0 ? safe(fields.yield_g)+' г':'не подтверждён');
   const photo=photoData?'<img src="'+safe(photoData)+'" alt="Фото готового блюда">':'ФОТО БЛЮДА НЕ ЗАГРУЖЕНО';
   $('printSheet').innerHTML=
-   '<aside class="pbrand"><div class="pbrand__icon">🌊</div><div class="pbrand__text">МОРЕ<br><em>СУШИ</em></div><div class="pbrand__sub">STUDIO PRO</div><div class="pbrand__wave"></div></aside>'+
+   '<aside class="pbrand"><img class="pbrand__icon" src="./whale-logo.svg" alt="Море суши"><div class="pbrand__text">МОРЕ<br><em>СУШИ</em></div><div class="pbrand__sub">STUDIO PRO</div><div class="pbrand__wave"></div></aside>'+
    '<header class="pheader"><div><div class="pheader__eyebrow">МОРЕ СУШИ · ТЕХНОЛОГИЧЕСКАЯ ДОКУМЕНТАЦИЯ</div><div class="pheader__title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</div></div><div class="pheader__badge"><b>'+safe(fields.code||'ТТК')+'</b><br>Версия '+safe(editing?.version||1)+'</div></header>'+
    '<h1>'+safe(n)+'</h1>'+
    '<div class="phero"><div class="pimage">'+photo+'</div><div class="pfacts">'+
