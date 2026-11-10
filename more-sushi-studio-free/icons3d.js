@@ -123,6 +123,7 @@ function showIconPicker(onSelect,selectedIcon=''){
  };
  iconDialog.showModal();
 }
+setupIngredient();
 window.MSIcons={render,auto,selected,asPhoto,showIconPicker,setupIngredient,getIngredientPhoto:()=>ingredientPhoto,getIngredientIcon:()=>ingredientIcon,
  setIngredient,iconUrl:emojiUrl};
 })();
