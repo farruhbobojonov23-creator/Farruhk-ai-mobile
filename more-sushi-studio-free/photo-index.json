@@ -18,6 +18,15 @@
     "local": true
   },
   {
+    "id": -10045,
+    "slug": "still_drinking_water",
+    "name": "Вода питьевая",
+    "category": "Напитки и вода",
+    "keywords": "вода питьевая,вода без газа",
+    "image_data": "./photos/still_drinking_water.webp",
+    "local": true
+  },
+  {
     "id": -10023,
     "slug": "chinese_cabbage",
     "name": "Капуста пекинская",
@@ -276,6 +285,15 @@
     "category": "Соусы и специи",
     "keywords": "соус кимчи,соус кимчи Tamaki",
     "image_data": "./photos/kimchi_sauce.webp",
+    "local": true
+  },
+  {
+    "id": -10044,
+    "slug": "spicy_mayo_base",
+    "name": "Соус спайси — база",
+    "category": "Соусы и специи",
+    "keywords": "соус спайси база,соус спайси,спайси соус",
+    "image_data": "./photos/spicy_mayo_base.webp",
     "local": true
   },
   {
