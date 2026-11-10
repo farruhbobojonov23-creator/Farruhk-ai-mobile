@@ -634,6 +634,44 @@ for(const input of $$('[data-theme]')){
    msg('Оформление изменено. Нажмите «Сохранить».');
  });
 }
+
+function alterPhotoSetting(name,value){
+ applyPhotoStyle({...photoStyle,[name]:value});
+ dirty=true;msg('Оформление фотографии изменено. Нажмите «Сохранить».');
+}
+for(const [id,key] of [['photoScene','scene'],['photoBgColor','color'],['photoFit','fit'],['photoScale','scale'],['photoX','x'],['photoY','y']]){
+ const el=$('#'+id);
+ if(el)el.addEventListener('input',e=>alterPhotoSetting(key,e.target.value));
+}
+$('#photoShadow').addEventListener('change',e=>alterPhotoSetting('shadow',e.target.checked));
+$('#clearBackdrop').addEventListener('click',()=>{alterPhotoSetting('backdrop',null);$('#photoBackdrop').value=''});
+$('#photoBackdrop').addEventListener('change',e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>8*1024*1024){msg('Фон должен быть PNG, JPG или WebP до 8 МБ.','error');return}
+ const obj=URL.createObjectURL(file),im=new Image();
+ im.onload=()=>{
+  const cv=document.createElement('canvas'),sc=Math.min(1,1000/im.width,700/im.height);
+  cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+  URL.revokeObjectURL(obj);
+  const uri=cv.toDataURL('image/webp',.76);
+  if(uri.length>500000){msg('Фон слишком большой. Уменьшите разрешение.','error');return}
+  alterPhotoSetting('backdrop',uri);
+ };
+ im.onerror=()=>{URL.revokeObjectURL(obj);msg('Не удалось прочитать файл фона.','error')};
+ im.src=obj;
+});
+$('#autoAllergens').addEventListener('change',e=>{
+ isAutoAllergens=e.target.checked;
+ dirty=true;
+ if(isAutoAllergens)updateAutoAllergens();
+ else $('#allergenWarnings').textContent='Ручной режим: аллергены можно изменять на листе.';
+});
+$('#recalcAllergens').addEventListener('click',()=>{
+ isAutoAllergens=true;$('#autoAllergens').checked=true;updateAutoAllergens();
+ dirty=true;
+ msg('Аллергены собраны по сведениям в ингредиентах и ПФ. Проверьте позиции с неполными данными.');
+});
 $('#lossG').addEventListener('input',()=>{
  dirty=true;calculateYield();fitAll();
 });
