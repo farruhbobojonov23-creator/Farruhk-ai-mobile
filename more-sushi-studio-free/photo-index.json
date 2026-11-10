@@ -99,6 +99,15 @@
     "local": true
   },
   {
+    "id": -10024,
+    "slug": "mayonnaise",
+    "name": "Майонез",
+    "category": "Соусы и специи",
+    "keywords": "майонез,майонез Pechagin Professional 78%",
+    "image_data": "./photos/mayonnaise.webp",
+    "local": true
+  },
+  {
     "id": -10008,
     "slug": "masago_red",
     "name": "Масаго красная",
@@ -117,12 +126,48 @@
     "local": true
   },
   {
+    "id": -10027,
+    "slug": "buttery_spread",
+    "name": "Масло Altero Gold",
+    "category": "Соусы и специи",
+    "keywords": "масло Altero Gold,спред растительный Altero Gold",
+    "image_data": "./photos/buttery_spread.webp",
+    "local": true
+  },
+  {
+    "id": -10025,
+    "slug": "sesame_oil",
+    "name": "Масло кунжутное",
+    "category": "Соусы и специи",
+    "keywords": "масло кунжутное,кунжутное масло",
+    "image_data": "./photos/sesame_oil.webp",
+    "local": true
+  },
+  {
+    "id": -10026,
+    "slug": "vegetable_oil",
+    "name": "Масло растительное",
+    "category": "Соусы и специи",
+    "keywords": "масло растительное рафинированное,масло рафинированное",
+    "image_data": "./photos/vegetable_oil.webp",
+    "local": true
+  },
+  {
     "id": -10013,
     "slug": "pasteurized_melange",
     "name": "Меланж пастеризованный",
     "category": "Мясо и яйца",
     "keywords": "меланж пастеризованный Роскар,меланж",
     "image_data": "./photos/pasteurized_melange.webp",
+    "local": true
+  },
+  {
+    "id": -10028,
+    "slug": "mirin_fu",
+    "name": "Мирин-фу",
+    "category": "Соусы и специи",
+    "keywords": "мирин-фу DUNKAN,мирин,мирин фу",
+    "image_data": "./photos/mirin_fu.webp",
     "local": true
   },
   {
@@ -168,6 +213,33 @@
     "category": "Декор и панировка",
     "keywords": "рисовые шарики хрустящие покупные,воздушные рисовые шарики",
     "image_data": "./photos/crispy_rice_pearls.webp",
+    "local": true
+  },
+  {
+    "id": -10029,
+    "slug": "white_sugar",
+    "name": "Сахар-песок",
+    "category": "Соусы и специи",
+    "keywords": "сахар-песок,сахар",
+    "image_data": "./photos/white_sugar.webp",
+    "local": true
+  },
+  {
+    "id": -10030,
+    "slug": "soy_sauce",
+    "name": "Соевый соус",
+    "category": "Соусы и специи",
+    "keywords": "соевый соус DUNKAN готовый Bag-in-Box,соевый соус покупной,соевый соус",
+    "image_data": "./photos/soy_sauce.webp",
+    "local": true
+  },
+  {
+    "id": -10031,
+    "slug": "fine_salt",
+    "name": "Соль пищевая",
+    "category": "Соусы и специи",
+    "keywords": "соль пищевая,соль",
+    "image_data": "./photos/fine_salt.webp",
     "local": true
   },
   {
