@@ -243,6 +243,42 @@
     "local": true
   },
   {
+    "id": -10032,
+    "slug": "kimchi_sauce",
+    "name": "Соус кимчи",
+    "category": "Соусы и специи",
+    "keywords": "соус кимчи,соус кимчи Tamaki",
+    "image_data": "./photos/kimchi_sauce.webp",
+    "local": true
+  },
+  {
+    "id": -10033,
+    "slug": "teriyaki_sauce",
+    "name": "Соус терияки",
+    "category": "Соусы и специи",
+    "keywords": "соус терияки покупной,терияки",
+    "image_data": "./photos/teriyaki_sauce.webp",
+    "local": true
+  },
+  {
+    "id": -10034,
+    "slug": "unagi_sauce",
+    "name": "Соус унаги",
+    "category": "Соусы и специи",
+    "keywords": "соус унаги,унаги соус",
+    "image_data": "./photos/unagi_sauce.webp",
+    "local": true
+  },
+  {
+    "id": -10035,
+    "slug": "sriracha_sauce",
+    "name": "Соус шрирача",
+    "category": "Соусы и специи",
+    "keywords": "соус шрирача,шрирача",
+    "image_data": "./photos/sriracha_sauce.webp",
+    "local": true
+  },
+  {
     "id": -10011,
     "slug": "bonito_flakes",
     "name": "Стружка тунца",
@@ -279,12 +315,30 @@
     "local": true
   },
   {
+    "id": -10036,
+    "slug": "rice_vinegar",
+    "name": "Уксус рисовый",
+    "category": "Соусы и специи",
+    "keywords": "уксус рисовый DUNKAN,рисовый уксус",
+    "image_data": "./photos/rice_vinegar.webp",
+    "local": true
+  },
+  {
     "id": -10001,
     "slug": "fresh_trout_fillet",
     "name": "Форель радужная",
     "category": "Рыба и морепродукты",
     "keywords": "форель,форель радужная,лосось,филе рыбы,Trim C",
     "image_data": "./photos/fresh_trout_fillet.webp",
+    "local": true
+  },
+  {
+    "id": -10037,
+    "slug": "dried_garlic",
+    "name": "Чеснок сушёный",
+    "category": "Соусы и специи",
+    "keywords": "чеснок сушёный,сухой чеснок",
+    "image_data": "./photos/dried_garlic.webp",
     "local": true
   }
 ]
