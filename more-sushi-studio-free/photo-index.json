@@ -6,7 +6,8 @@
     "category": "Соусы и специи",
     "keywords": "бульон куриный сухой,куриный порошковый бульон",
     "image_data": "./photos/chicken_stock_powder.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10015,
@@ -15,7 +16,8 @@
     "category": "Напитки и вода",
     "keywords": "вода минеральная сильногазированная,вода питьевая,вода",
     "image_data": "./photos/sparkling_water.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10045,
@@ -24,7 +26,8 @@
     "category": "Напитки и вода",
     "keywords": "вода питьевая,вода без газа",
     "image_data": "./photos/still_drinking_water.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10023,
@@ -33,7 +36,8 @@
     "category": "Овощи и фрукты",
     "keywords": "капуста пекинская свежая,пекинская капуста",
     "image_data": "./photos/chinese_cabbage.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10005,
@@ -42,7 +46,8 @@
     "category": "Рыба и морепродукты",
     "keywords": "крабовые палочки Santa Bremor,сурими,крабовые палочки",
     "image_data": "./photos/surimi_sticks.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10004,
@@ -51,7 +56,8 @@
     "category": "Рыба и морепродукты",
     "keywords": "креветка Frescomar Green 16/20 в панцире,креветка в панцире",
     "image_data": "./photos/whole_shrimp.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10003,
@@ -60,7 +66,8 @@
     "category": "Рыба и морепродукты",
     "keywords": "креветка сырая,очищенная сырая креветка",
     "image_data": "./photos/raw_peeled_shrimp.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10014,
@@ -69,7 +76,8 @@
     "category": "Мясо и яйца",
     "keywords": "филе грудки варёно-копчёное Окраина,курица копчёная,филе курицы",
     "image_data": "./photos/smoked_chicken.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10017,
@@ -78,7 +86,8 @@
     "category": "Основы суши",
     "keywords": "лапша удон сухая пшеничная,удон сухой",
     "image_data": "./photos/udon_dry_noodles.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10022,
@@ -87,7 +96,8 @@
     "category": "Овощи и фрукты",
     "keywords": "лимон свежий,лимон,лимонные дольки",
     "image_data": "./photos/fresh_lemon.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10021,
@@ -96,7 +106,8 @@
     "category": "Овощи и фрукты",
     "keywords": "лук зелёный,зелёный лук,перо лука",
     "image_data": "./photos/scallions.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10010,
@@ -105,7 +116,8 @@
     "category": "Декор и панировка",
     "keywords": "лук фри Premium покупной,лук фри",
     "image_data": "./photos/fried_onion.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10024,
@@ -114,7 +126,8 @@
     "category": "Соусы и специи",
     "keywords": "майонез,майонез Pechagin Professional 78%",
     "image_data": "./photos/mayonnaise.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10008,
@@ -123,7 +136,8 @@
     "category": "Декор и панировка",
     "keywords": "масаго красная,икра масаго красная",
     "image_data": "./photos/masago_red.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10009,
@@ -132,7 +146,8 @@
     "category": "Декор и панировка",
     "keywords": "масаго оранжевая,икра масаго оранжевая",
     "image_data": "./photos/masago_orange.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10027,
@@ -141,7 +156,8 @@
     "category": "Соусы и специи",
     "keywords": "масло Altero Gold,спред растительный Altero Gold",
     "image_data": "./photos/buttery_spread.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10025,
@@ -150,7 +166,8 @@
     "category": "Соусы и специи",
     "keywords": "масло кунжутное,кунжутное масло",
     "image_data": "./photos/sesame_oil.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10026,
@@ -159,7 +176,8 @@
     "category": "Соусы и специи",
     "keywords": "масло растительное рафинированное,масло рафинированное",
     "image_data": "./photos/vegetable_oil.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10013,
@@ -168,7 +186,8 @@
     "category": "Мясо и яйца",
     "keywords": "меланж пастеризованный Роскар,меланж",
     "image_data": "./photos/pasteurized_melange.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10028,
@@ -177,7 +196,8 @@
     "category": "Соусы и специи",
     "keywords": "мирин-фу DUNKAN,мирин,мирин фу",
     "image_data": "./photos/mirin_fu.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10020,
@@ -186,7 +206,8 @@
     "category": "Овощи и фрукты",
     "keywords": "морковь свежая,морковь",
     "image_data": "./photos/carrots.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10041,
@@ -195,7 +216,8 @@
     "category": "Сыры и молочные продукты",
     "keywords": "сыр моцарелла Курское молоко,моцарелла",
     "image_data": "./photos/shredded_mozzarella.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10007,
@@ -204,7 +226,8 @@
     "category": "Декор и панировка",
     "keywords": "мука темпурная,мука темпурная сухая готовая смесь,кляр сухой",
     "image_data": "./photos/tempura_flour.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10040,
@@ -213,7 +236,8 @@
     "category": "Сыры и молочные продукты",
     "keywords": "сыр Parmesan Primo тёртый,пармезан,сыр пармезан",
     "image_data": "./photos/grated_parmesan.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10019,
@@ -222,7 +246,8 @@
     "category": "Овощи и фрукты",
     "keywords": "перец болгарский красный,сладкий красный перец",
     "image_data": "./photos/red_bell_pepper.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10000,
@@ -231,7 +256,8 @@
     "category": "Основы суши",
     "keywords": "рис для суши, рис, рис сухой",
     "image_data": "./photos/sushi_rice_dry.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10012,
@@ -240,7 +266,8 @@
     "category": "Декор и панировка",
     "keywords": "рисовые шарики хрустящие покупные,воздушные рисовые шарики",
     "image_data": "./photos/crispy_rice_pearls.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10029,
@@ -249,7 +276,8 @@
     "category": "Соусы и специи",
     "keywords": "сахар-песок,сахар",
     "image_data": "./photos/white_sugar.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10039,
@@ -258,7 +286,8 @@
     "category": "Сыры и молочные продукты",
     "keywords": "сливки Petmol 22%,сливки,жирные сливки",
     "image_data": "./photos/heavy_cream.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10030,
@@ -267,7 +296,8 @@
     "category": "Соусы и специи",
     "keywords": "соевый соус DUNKAN готовый Bag-in-Box,соевый соус покупной,соевый соус",
     "image_data": "./photos/soy_sauce.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10031,
@@ -276,7 +306,8 @@
     "category": "Соусы и специи",
     "keywords": "соль пищевая,соль",
     "image_data": "./photos/fine_salt.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10032,
@@ -285,7 +316,8 @@
     "category": "Соусы и специи",
     "keywords": "соус кимчи,соус кимчи Tamaki",
     "image_data": "./photos/kimchi_sauce.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10044,
@@ -294,7 +326,8 @@
     "category": "Соусы и специи",
     "keywords": "соус спайси база,соус спайси,спайси соус",
     "image_data": "./photos/spicy_mayo_base.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10033,
@@ -303,7 +336,8 @@
     "category": "Соусы и специи",
     "keywords": "соус терияки покупной,терияки",
     "image_data": "./photos/teriyaki_sauce.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10034,
@@ -312,7 +346,8 @@
     "category": "Соусы и специи",
     "keywords": "соус унаги,унаги соус",
     "image_data": "./photos/unagi_sauce.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10035,
@@ -321,7 +356,8 @@
     "category": "Соусы и специи",
     "keywords": "соус шрирача,шрирача",
     "image_data": "./photos/sriracha_sauce.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10011,
@@ -330,7 +366,8 @@
     "category": "Декор и панировка",
     "keywords": "стружка тунца бонито,бонито",
     "image_data": "./photos/bonito_flakes.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10006,
@@ -339,7 +376,8 @@
     "category": "Декор и панировка",
     "keywords": "панировочные сухари панко,сухари панко Tamaki Panko Gold,панко",
     "image_data": "./photos/panko_breadcrumbs.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10042,
@@ -348,7 +386,8 @@
     "category": "Сыры и молочные продукты",
     "keywords": "сыр плавленый Hochland Professional,сыр плавленый",
     "image_data": "./photos/processed_cheese.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10043,
@@ -357,7 +396,8 @@
     "category": "Сыры и молочные продукты",
     "keywords": "сыр чеддер,чеддер",
     "image_data": "./photos/cheddar_slices.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10018,
@@ -366,7 +406,8 @@
     "category": "Овощи и фрукты",
     "keywords": "такуан маринованный MANESK,такуан,японский маринованный дайкон",
     "image_data": "./photos/pickled_takuan.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10002,
@@ -375,7 +416,8 @@
     "category": "Рыба и морепродукты",
     "keywords": "угорь,копченый угорь,унаги,филе угря",
     "image_data": "./photos/smoked_eel.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10036,
@@ -384,7 +426,8 @@
     "category": "Соусы и специи",
     "keywords": "уксус рисовый DUNKAN,рисовый уксус",
     "image_data": "./photos/rice_vinegar.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10001,
@@ -393,7 +436,8 @@
     "category": "Рыба и морепродукты",
     "keywords": "форель,форель радужная,лосось,филе рыбы,Trim C",
     "image_data": "./photos/fresh_trout_fillet.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10037,
@@ -402,7 +446,8 @@
     "category": "Соусы и специи",
     "keywords": "чеснок сушёный,сухой чеснок",
     "image_data": "./photos/dried_garlic.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   },
   {
     "id": -10038,
@@ -411,6 +456,7 @@
     "category": "Соусы и специи",
     "keywords": "шичими,семь специй японских",
     "image_data": "./photos/shichimi_spice.webp",
-    "local": true
+    "local": true,
+    "quality": "edge-clean-v2"
   }
 ]
