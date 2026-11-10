@@ -67,6 +67,15 @@ function edit(){
  const sh=g('printSheet');if(!sh)return;
  const secs=Array.from(sh.querySelectorAll('.psection'));
  [['rScope',0],['rRaw',1],['rProcess',3],['rServing',4],['rQuality',5],['rNutrition',6]].forEach(([id,i])=>link(secs[i]?.querySelector('.ptext'),id));
+ const nrow=secs[6]?.querySelectorAll('table.nutrition tbody tr td');
+ if(nrow&&nrow.length===4){
+  const putNutrition=()=>{
+   const v=Array.from(nrow).map(x=>x.innerText.trim());
+   g('rNutrition').value='По образцу, не проверено. На порцию: белки — '+v[0]+' г; жиры — '+v[1]+' г; углеводы — '+v[2]+' г; энергетическая ценность — '+v[3]+' ккал.';
+   notice('КБЖУ изменено. Сохраните.');
+  };
+  nrow.forEach(cell=>{cell.contentEditable='true';cell.spellcheck=false;cell.addEventListener('input',()=>{putNutrition();scheduleFit()})});
+ }
  const h=sh.querySelector('h1');
  if(h){
   h.innerHTML='<span id="ttkCode"></span> · <span id="ttkName"></span>';
