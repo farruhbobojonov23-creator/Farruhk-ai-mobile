@@ -1,0 +1,44 @@
+/* More Sushi Studio: Fluent 3D icons & user photography */
+.msVisual{display:inline-flex;position:relative;align-items:center;justify-content:center;flex-shrink:0;width:49px;height:49px;border-radius:13px;background:radial-gradient(ellipse at 35% 25%,#fff,#dfeefa 72%,#c9e2f2);border:1px solid #d1e7f6;box-shadow:inset 0 1px 1px #ffffffd0,0 3px 8px #12395718;overflow:hidden;isolation:isolate}
+.msVisual--small{height:37px;width:37px;border-radius:9px}
+.msVisual--medium{height:60px;width:60px;border-radius:12px}
+.msVisual--large{height:110px;width:135px;border-radius:14px}
+.msVisual img{position:absolute;inset:0;margin:auto;display:none;width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 3px 4px #1b41502c)}
+.msVisualFallback{font-size:27px;line-height:1;opacity:.85}
+.msVisual--small .msVisualFallback{font-size:23px}
+.msVisual--medium .msVisualFallback{font-size:36px}
+.msVisual--large .msVisualFallback{font-size:66px}
+.ingProductLine{display:flex;align-items:center;gap:10px;min-width:0;max-width:400px}
+.ingProductText{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ingProductText b{font-size:12px;line-height:1.35;color:#123c60}
+#ingredientsPage .ingProductLine .ingMeta,.ingProductText .ingMeta{display:block!important;margin:0!important;color:#7390a6;font-size:10px!important}
+.msIngredientVisualEditor{display:flex;gap:16px;align-items:center;padding:12px 14px;margin:5px 0 15px;border:1px solid #c9e1f0;border-radius:12px;background:linear-gradient(110deg,#eaf7ff,#ffffff 73%)}
+.msIngredientPreview{width:138px;flex:0 0 138px;display:flex;align-items:center;justify-content:center}
+.msIngredientVisualActions{display:flex;flex-direction:column;gap:6px;flex:1}
+.msIngredientVisualActions b{font-size:14px;color:#143e64}
+.msIngredientVisualActions>span{font-size:11px;color:#6084a3}
+.msVisualButtons{display:flex;gap:8px;flex-wrap:wrap;margin-top:3px}
+.msVisualButtons button{font-size:11px;padding:8px 11px}
+.msPhotoRemove{background:#fff2f2;color:#a32d3a;border:1px solid #ebc6c9}
+.msPhotoRemove:hover{background:#ffe2e5}
+#msIconDialog{max-width:610px;width:calc(100% - 26px);max-height:86vh;border:1px solid #b9d7eb;border-radius:17px;padding:18px 19px;background:#f8fcff;color:#143b62;box-shadow:0 15px 60px #0a294967}
+#msIconDialog::backdrop{background:#082441a8}
+.msIconDialogHeading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.msIconDialogHeading h3{font-size:19px;margin:0}
+.msIconDialogHeading button{font-size:11px;padding:7px 11px}
+#msIconDialog>p{font-size:12px;color:#7090a7;margin:9px 0 13px}
+#msIconDialog>small{font-size:10px;color:#8a9db2;display:block;margin-top:12px}
+.msIconGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.msIconChoice{display:flex;align-items:center;justify-content:center;border:1px solid #d2e5f1;background:#fff;border-radius:11px;padding:5px;min-height:63px}
+.msIconChoice--active{border:2px solid #167ab6;background:#e5f7ff}
+.msIconChoice:hover{border-color:#3c9fd3}
+#catalogPage .ultraCardPhoto .msVisual{width:90%;height:88%;border:0;background:transparent;box-shadow:none}
+#catalogPage .ultraCardPhoto .msVisual img{width:95%;height:95%;filter:drop-shadow(0 7px 6px #16406636)}
+#catalogPage .ultraCardPhoto .msVisualFallback{font-size:42px}
+#ultraPhotoBox .msVisual{width:100%;height:100%;box-shadow:none;background:transparent;border:0}
+#ultraPhotoBox .msVisual img{width:98%;height:98%}
+#editorPage .ultraPhotoSide .msVisualButtons{margin-top:8px}
+#editorPage .ultraPhotoSide .msVisualButtons button{font-size:10px;padding:7px 9px}
+#catalogPage #recipeRows .ingProductLine .msVisual{height:43px;width:43px}
+#ingredientsPage .ingCategoryGrid .msVisual{width:44px;height:44px}
+@media(max-width:650px){.msIngredientVisualEditor{gap:9px;padding:9px}.msIngredientPreview{width:95px;flex-basis:95px}.msIngredientPreview .msVisual{width:91px;height:91px}.msIngredientVisualActions b{font-size:12px}.msVisualButtons button{font-size:10px;padding:7px 9px}.msIconGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
