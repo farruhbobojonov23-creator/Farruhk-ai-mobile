@@ -104,6 +104,33 @@ table tr{position:relative}
 #nutritionHint{font-size:9.5px;color:#7a5a36;margin-top:5px}
 input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 #overflowInfo{display:none}
+
+#designPanel{position:fixed;top:65px;right:16px;width:min(338px,calc(100vw - 32px));z-index:350;background:white;border:1px solid #bcd4e7;box-shadow:0 12px 30px #17385a42;border-radius:12px;padding:18px;color:#173c5c;font-size:13px;max-height:calc(100vh - 75px);overflow:auto}
+#designPanel[hidden]{display:none}
+#designPanel h3{margin:0 0 8px;font-size:17px}#designPanel p{font-size:12px;color:#66829b;line-height:1.3}
+#designPanel label{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4edf5}
+#designPanel input[type=color]{width:76px;height:28px;border:0;background:transparent;cursor:pointer}
+#designPanel input[type=range]{max-width:115px}
+#designPanel button{padding:7px 11px;background:#dcecf8;border:0;border-radius:7px;color:#144f7b;margin:9px 5px 0 0}
+#brand img{cursor:pointer}
+#page{--ttk-navy:#082a4b;--ttk-blue:#0c5790;--ttk-red:#e72339;--ttk-paper:#ffffff;--ttk-font-percent:100%;background:var(--ttk-paper)}
+#brand .brandname em{color:var(--ttk-red)}
+#titleDash{background:var(--ttk-red)}
+#nameStrip:before,.cardHead:before{background:var(--ttk-red)}
+.cardHead,.fact b{background:linear-gradient(95deg,var(--ttk-navy),var(--ttk-blue))}
+#allergy h3{background:linear-gradient(90deg,var(--ttk-red),#f5e5eb)}
+#logo{transition:width .15s,height .15s}
+.editableLayout{outline:none;cursor:text}
+.editableLayout:hover{box-shadow:inset 0 -1px 0 #71acd9}
+.editableLayout:focus{background:#fff2c0!important;color:#113c63;box-shadow:inset 0 -1px 0 #dca134}
+#autoYield{font-weight:bold;background:transparent!important}
+#massStatus{white-space:normal;max-width:150px;line-height:1.05;color:#0f649f}
+#lossG{font-variant-numeric:tabular-nums}
+@media print{
+ #designPanel{display:none!important}
+ .editableLayout:hover,.editableLayout:focus{box-shadow:none!important;background:transparent!important}
+ #logo{cursor:default}
+}
 @media print{
  @page{size:A4 portrait;margin:0}
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
@@ -135,7 +162,9 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 </style></head><body>
 <header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
 <select id="recipePick" aria-label="Выбор рецептуры"></select>
-<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button id="back">← Меню</button></header>
+<button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button id="designBtn">🎨 Оформление</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
+<aside id="designPanel" hidden><h3>Оформление листа A4</h3><p>Цвета и логотип изменяются только у выбранной ТТК и сохраняются вместе с документом.</p><label>Тёмно-синий <input type="color" data-theme="navy" value="#082a4b"></label><label>Синий <input type="color" data-theme="blue" value="#0c5790"></label><label>Красный <input type="color" data-theme="red" value="#e72339"></label><label>Фон страницы <input type="color" data-theme="paper" value="#ffffff"></label><label>Размер логотипа <input type="range" min="72" max="145" step="1" data-theme="logoSize" value="126"></label><label>Размер текста <input type="range" min="85" max="112" step="1" data-theme="fontPercent" value="100"></label><button type="button" id="resetDesign">Вернуть фирменные цвета</button><button type="button" id="closeDesign">Закрыть</button></aside>
+<input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp" hidden>
 <div id="feedback">Редактируйте прямо на цветном шаблоне. Изменения сохраняются в выбранную карточку.</div>
 <div id="pageWrap"><main id="page">
 <svg id="topArtwork" viewBox="0 0 794 303" preserveAspectRatio="none"><defs>
@@ -146,53 +175,53 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
  <path d="M199 0 C190 45 183 94 175 141 C164 202 129 257 0 303" fill="none" stroke="#e72940" stroke-width="7"/>
  <path d="M179 149 C311 125 468 146 526 202 C569 244 503 289 375 301 L0 301 C120 277 153 218 179 149Z" fill="url(#plate)" opacity=".74"/>
  </svg>
-<div id="brand"><img id="logo" src="data:image/jpeg;base64,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" alt="Море суши"><div class="brandname">Море <em>суши</em></div><div class="brandsub">— ДОСТАВКА СУШИ —</div></div>
-<div id="pageTitle">Технико-технологическая карта</div><div id="titleDash"></div>
-<div id="nameStrip"><span class="labelN">Код ТТК:</span><span class="namecode edit" data-key="code" contenteditable="true" data-ph="Заполнить"></span><span class="separator">•</span><span class="labelN">Название блюда:</span><span class="namedish edit" data-key="name" contenteditable="true" data-ph="Заполнить"></span></div>
+<div id="brand"><img id="logo" title="Нажмите для замены логотипа" src="data:image/jpeg;base64,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" alt="Море суши"><div class="brandname"><span data-layout="brand_first" class="editableLayout" contenteditable="true">Море</span> <em><span data-layout="brand_accent" class="editableLayout" contenteditable="true">суши</span></em></div><div class="brandsub editableLayout" data-layout="brand_subtitle" contenteditable="true">— ДОСТАВКА СУШИ —</div></div>
+<div id="pageTitle" class="editableLayout" contenteditable="true" data-layout="document_title">Технико-технологическая карта</div><div id="titleDash"></div>
+<div id="nameStrip"><span class="labelN editableLayout" contenteditable="true" data-layout="code_label">Код ТТК:</span><span class="namecode edit" data-key="code" contenteditable="true" data-ph="Заполнить"></span><span class="separator">•</span><span class="labelN editableLayout" contenteditable="true" data-layout="name_label">Название блюда:</span><span class="namedish edit" data-key="name" contenteditable="true" data-ph="Заполнить"></span></div>
 <div id="photoBox" title="Нажмите, чтобы выбрать фотографию"><img id="dishPhoto"><span class="uploadEmpty" id="photoPlaceholder">
 <svg viewBox="0 0 90 90"><rect x="13" y="12" width="63" height="65" rx="4" fill="none" stroke="#738599" stroke-width="5"/><circle cx="61" cy="31" r="8" fill="#738599"/><path d="M15 74L36 46L47 56L58 44L77 69" fill="#738599"/></svg>ФОТО БЛЮДА<small>(вставьте изображение)</small></span><span class="photoTip">Нажмите, чтобы заменить фото</span></div>
 <input type="file" accept="image/jpeg,image/png,image/webp" id="photoInput">
 <div id="factBox">
-<div class="fact"><b>Категория:</b><div class="value"><span class="edit" data-key="category" contenteditable="true" data-ph="Заполнить"></span></div></div>
-<div class="fact"><b>Статус:</b><div class="value"><select data-key="status"><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select></div></div>
-<div class="fact"><b>Выход:</b><div class="value"><input type="number" step="0.1" min="0" data-key="yield_g" placeholder="Заполнить"> г</div></div>
+<div class="fact"><b class="editableLayout" data-layout="category_label" contenteditable="true">Категория:</b><div class="value"><span class="edit" data-key="category" contenteditable="true" data-ph="Заполнить"></span></div></div>
+<div class="fact"><b class="editableLayout" data-layout="status_label" contenteditable="true">Статус:</b><div class="value"><select data-key="status"><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select></div></div>
+<div class="fact"><b class="editableLayout" data-layout="yield_label_text" contenteditable="true">Выход:</b><div class="value"><input id="autoYield" type="number" step="0.01" min="0" data-key="yield_g" title="Автоматический расчёт по массе компонентов и потерям" readonly> г</div></div>
 </div>
-<section class="card card1"><div class="cardHead">1. ОБЛАСТЬ ПРИМЕНЕНИЯ</div><div class="body edit" contenteditable="true" data-key="scope" data-ph="Введите текст"></div></section>
-<section class="card card2"><div class="cardHead">2. ТРЕБОВАНИЯ К СЫРЬЮ</div><div class="body edit" contenteditable="true" data-key="raw_requirements" data-ph="Введите текст"></div></section>
-<section class="card card3"><div class="cardHead">3. РЕЦЕПТУРА</div><div class="body">
-<table id="recipeTable"><thead><tr><th>№</th><th>Наименование ингредиента / полуфабриката</th><th>Брутто, г</th><th>Нетто, г</th><th>Выход, г</th></tr></thead><tbody id="recipeLines"></tbody>
-<tfoot><tr class="total"><td colspan="4">Выход готового блюда:</td><td id="totalYield">—</td></tr></tfoot>
+<section class="card card1"><div class="cardHead editableLayout" data-layout="section1" contenteditable="true">1. ОБЛАСТЬ ПРИМЕНЕНИЯ</div><div class="body edit" contenteditable="true" data-key="scope" data-ph="Введите текст"></div></section>
+<section class="card card2"><div class="cardHead editableLayout" data-layout="section2" contenteditable="true">2. ТРЕБОВАНИЯ К СЫРЬЮ</div><div class="body edit" contenteditable="true" data-key="raw_requirements" data-ph="Введите текст"></div></section>
+<section class="card card3"><div class="cardHead editableLayout" data-layout="section3" contenteditable="true">3. РЕЦЕПТУРА</div><div class="body">
+<table id="recipeTable"><thead><tr><th class="editableLayout" contenteditable="true" data-layout="th1">№</th><th class="editableLayout" contenteditable="true" data-layout="th2">Наименование ингредиента / полуфабриката</th><th class="editableLayout" contenteditable="true" data-layout="th3">Брутто, г</th><th class="editableLayout" contenteditable="true" data-layout="th4">Нетто, г</th><th class="editableLayout" contenteditable="true" data-layout="th5">Выход, г</th></tr></thead><tbody id="recipeLines"></tbody>
+<tfoot><tr class="total"><td colspan="4" class="editableLayout" contenteditable="true" data-layout="total_label">Выход готового блюда:</td><td id="totalYield">—</td></tr></tfoot>
 </table>
-<div class="smalltools"><button id="addLine" type="button">+ строка</button> <span id="massStatus"></span></div></div></section>
-<section class="card card4"><div class="cardHead">4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС</div><div class="body" id="process"><div class="processSteps">
+<div class="smalltools"><button id="addLine" type="button">+ строка</button><label>Потери, г <input id="lossG" type="number" min="0" step="0.1" value="0" style="width:51px;border:1px solid #a9c5d7;border-radius:3px;font-size:9px;text-align:right"></label><span id="massStatus"></span></div></div></section>
+<section class="card card4"><div class="cardHead editableLayout" data-layout="section4" contenteditable="true">4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС</div><div class="body" id="process"><div class="processSteps">
 <div class="step"><b>1.</b><div class="edit" data-key="step1" contenteditable="true" data-ph="Введите текст"></div></div>
 <div class="step"><b>2.</b><div class="edit" data-key="step2" contenteditable="true" data-ph="Введите текст"></div></div>
 <div class="step"><b>3.</b><div class="edit" data-key="step3" contenteditable="true" data-ph="Введите текст"></div></div>
 <div class="step"><b>4.</b><div class="edit" data-key="step4" contenteditable="true" data-ph="Введите текст"></div></div>
 </div></div></section>
-<section class="card card5"><div class="cardHead">5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ</div><div id="f5">
+<section class="card card5"><div class="cardHead editableLayout" data-layout="section5" contenteditable="true">5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ</div><div id="f5">
 <div class="four">
 <label>Оформление:</label><div class="edit" contenteditable="true" data-key="serving_design" data-ph="Введите текст"></div>
 <label>Реализация:</label><div class="edit" contenteditable="true" data-key="serving_sale" data-ph="Введите текст"></div>
 <label>Условия хранения:</label><div class="edit" contenteditable="true" data-key="storage" data-ph="Введите текст"></div>
 <label>Транспортирование:</label><div class="edit" contenteditable="true" data-key="serving_transport" data-ph="Введите текст"></div>
-</div><div id="allergy"><h3>АЛЛЕРГЕНЫ</h3><div class="edit" contenteditable="true" data-key="allergens" data-ph="Введите список аллергенов"></div></div>
+</div><div id="allergy"><h3 data-layout="allergens_label" class="editableLayout" contenteditable="true">АЛЛЕРГЕНЫ</h3><div class="edit" contenteditable="true" data-key="allergens" data-ph="Введите список аллергенов"></div></div>
 </div></section>
-<section class="card card6"><div class="cardHead">6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ</div><div class="body" style="padding:1px 1px"><table id="qualityTable">
-<tbody><tr><td>Внешний вид</td><td class="edit" contenteditable="true" data-key="quality_appearance"></td></tr>
-<tr><td>Консистенция</td><td class="edit" contenteditable="true" data-key="quality_consistency"></td></tr>
-<tr><td>Вкус и запах</td><td class="edit" contenteditable="true" data-key="quality_taste"></td></tr>
-<tr><td>Цвет</td><td class="edit" contenteditable="true" data-key="quality_color"></td></tr>
-<tr><td>Безопасность</td><td class="edit" contenteditable="true" data-key="quality_safety"></td></tr></tbody></table></div></section>
-<section class="card card7"><div class="cardHead">7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ</div>
-<div class="body"><div id="nutritionHead">На 1 порцию (<span class="edit" data-key="yield_label" contenteditable="true">—</span> г):</div>
-<table id="nutritionTable"><thead><tr><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Энергетическая ценность, ккал</th></tr></thead><tbody><tr><td class="edit" data-key="protein" contenteditable="true" data-ph="—"></td><td class="edit" data-key="fat" contenteditable="true" data-ph="—"></td><td class="edit" data-key="carbs" contenteditable="true" data-ph="—"></td><td class="edit" data-key="kcal" contenteditable="true" data-ph="—"></td></tr></tbody></table>
-<div id="nutritionHint">Показатели требуют расчёта и проверки.</div></div></section>
+<section class="card card6"><div class="cardHead editableLayout" data-layout="section6" contenteditable="true">6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ</div><div class="body" style="padding:1px 1px"><table id="qualityTable">
+<tbody><tr><td class="editableLayout" data-layout="qualityLabel1" contenteditable="true">Внешний вид</td><td class="edit" contenteditable="true" data-key="quality_appearance"></td></tr>
+<tr><td class="editableLayout" data-layout="qualityLabel2" contenteditable="true">Консистенция</td><td class="edit" contenteditable="true" data-key="quality_consistency"></td></tr>
+<tr><td class="editableLayout" data-layout="qualityLabel3" contenteditable="true">Вкус и запах</td><td class="edit" contenteditable="true" data-key="quality_taste"></td></tr>
+<tr><td class="editableLayout" data-layout="qualityLabel4" contenteditable="true">Цвет</td><td class="edit" contenteditable="true" data-key="quality_color"></td></tr>
+<tr><td class="editableLayout" data-layout="qualityLabel5" contenteditable="true">Безопасность</td><td class="edit" contenteditable="true" data-key="quality_safety"></td></tr></tbody></table></div></section>
+<section class="card card7"><div class="cardHead editableLayout" data-layout="section7" contenteditable="true">7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ</div>
+<div class="body"><div id="nutritionHead"><span data-layout="nutrition_prefix" class="editableLayout" contenteditable="true">На 1 порцию (</span><span class="edit" data-key="yield_label">—</span><span data-layout="nutrition_suffix" class="editableLayout" contenteditable="true"> г):</span></div>
+<table id="nutritionTable"><thead><tr><th class="editableLayout" data-layout="nutHead1" contenteditable="true">Белки, г</th><th class="editableLayout" data-layout="nutHead2" contenteditable="true">Жиры, г</th><th class="editableLayout" data-layout="nutHead3" contenteditable="true">Углеводы, г</th><th class="editableLayout" data-layout="nutHead4" contenteditable="true">Энергетическая ценность, ккал</th></tr></thead><tbody><tr><td class="edit" data-key="protein" contenteditable="true" data-ph="—"></td><td class="edit" data-key="fat" contenteditable="true" data-ph="—"></td><td class="edit" data-key="carbs" contenteditable="true" data-ph="—"></td><td class="edit" data-key="kcal" contenteditable="true" data-ph="—"></td></tr></tbody></table>
+<div id="nutritionHint" data-layout="nutrition_hint" class="editableLayout" contenteditable="true">Показатели требуют расчёта и проверки.</div></div></section>
 <footer id="foot">
-<div class="sign"><label>Версия:</label> <span id="version">—</span></div>
-<div class="sign"><label>Дата введения:</label> <span class="edit" contenteditable="true" data-key="introduced_at" data-ph="гггг-мм-дд"></span></div>
-<div class="sign"><label>Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small>(Ф.И.О., подпись)</small></div>
-<div class="sign"><label>Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small>(Ф.И.О., подпись)</small></div>
+<div class="sign"><label data-layout="footer_version" class="editableLayout" contenteditable="true">Версия:</label> <span id="version">—</span></div>
+<div class="sign"><label data-layout="footer_date" class="editableLayout" contenteditable="true">Дата введения:</label> <span class="edit" contenteditable="true" data-key="introduced_at" data-ph="гггг-мм-дд"></span></div>
+<div class="sign"><label data-layout="footer_developed" class="editableLayout" contenteditable="true">Разработал:</label> <span class="edit" contenteditable="true" data-key="developed_by"></span><small>(Ф.И.О., подпись)</small></div>
+<div class="sign"><label data-layout="footer_approved" class="editableLayout" contenteditable="true">Утвердил:</label> <span class="edit" contenteditable="true" data-key="approved_by"></span><small>(Ф.И.О., подпись)</small></div>
 </footer>
 <svg id="bottomWave" viewBox="0 0 794 73" preserveAspectRatio="none"><defs>
 <linearGradient id="seaFoot" x1="0" x2="1" y1="1" y2="0"><stop stop-color="#08436d"/><stop offset=".55" stop-color="#0ca6da"/><stop offset="1" stop-color="#e5f5ff"/></linearGradient></defs>
