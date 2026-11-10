@@ -1,11 +1,29 @@
 [
   {
+    "id": -10016,
+    "slug": "chicken_stock_powder",
+    "name": "Бульон куриный сухой",
+    "category": "Соусы и специи",
+    "keywords": "бульон куриный сухой,куриный порошковый бульон",
+    "image_data": "./photos/chicken_stock_powder.webp",
+    "local": true
+  },
+  {
     "id": -10015,
     "slug": "sparkling_water",
     "name": "Вода газированная",
     "category": "Напитки и вода",
     "keywords": "вода минеральная сильногазированная,вода питьевая,вода",
     "image_data": "./photos/sparkling_water.webp",
+    "local": true
+  },
+  {
+    "id": -10023,
+    "slug": "chinese_cabbage",
+    "name": "Капуста пекинская",
+    "category": "Овощи и фрукты",
+    "keywords": "капуста пекинская свежая,пекинская капуста",
+    "image_data": "./photos/chinese_cabbage.webp",
     "local": true
   },
   {
@@ -45,6 +63,33 @@
     "local": true
   },
   {
+    "id": -10017,
+    "slug": "udon_dry_noodles",
+    "name": "Лапша удон сухая",
+    "category": "Основы суши",
+    "keywords": "лапша удон сухая пшеничная,удон сухой",
+    "image_data": "./photos/udon_dry_noodles.webp",
+    "local": true
+  },
+  {
+    "id": -10022,
+    "slug": "fresh_lemon",
+    "name": "Лимон свежий",
+    "category": "Овощи и фрукты",
+    "keywords": "лимон свежий,лимон,лимонные дольки",
+    "image_data": "./photos/fresh_lemon.webp",
+    "local": true
+  },
+  {
+    "id": -10021,
+    "slug": "scallions",
+    "name": "Лук зелёный",
+    "category": "Овощи и фрукты",
+    "keywords": "лук зелёный,зелёный лук,перо лука",
+    "image_data": "./photos/scallions.webp",
+    "local": true
+  },
+  {
     "id": -10010,
     "slug": "fried_onion",
     "name": "Лук фри",
@@ -81,12 +126,30 @@
     "local": true
   },
   {
+    "id": -10020,
+    "slug": "carrots",
+    "name": "Морковь свежая",
+    "category": "Овощи и фрукты",
+    "keywords": "морковь свежая,морковь",
+    "image_data": "./photos/carrots.webp",
+    "local": true
+  },
+  {
     "id": -10007,
     "slug": "tempura_flour",
     "name": "Мука темпурная",
     "category": "Декор и панировка",
     "keywords": "мука темпурная,мука темпурная сухая готовая смесь,кляр сухой",
     "image_data": "./photos/tempura_flour.webp",
+    "local": true
+  },
+  {
+    "id": -10019,
+    "slug": "red_bell_pepper",
+    "name": "Перец болгарский красный",
+    "category": "Овощи и фрукты",
+    "keywords": "перец болгарский красный,сладкий красный перец",
+    "image_data": "./photos/red_bell_pepper.webp",
     "local": true
   },
   {
@@ -123,6 +186,15 @@
     "category": "Декор и панировка",
     "keywords": "панировочные сухари панко,сухари панко Tamaki Panko Gold,панко",
     "image_data": "./photos/panko_breadcrumbs.webp",
+    "local": true
+  },
+  {
+    "id": -10018,
+    "slug": "pickled_takuan",
+    "name": "Такуан маринованный",
+    "category": "Овощи и фрукты",
+    "keywords": "такуан маринованный MANESK,такуан,японский маринованный дайкон",
+    "image_data": "./photos/pickled_takuan.webp",
     "local": true
   },
   {
