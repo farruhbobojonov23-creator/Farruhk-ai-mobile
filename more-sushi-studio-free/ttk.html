@@ -238,13 +238,13 @@ const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll
 let session=null,ingredients=[],recipes=[],current=null,lines=[],image=null,dirty=false,tooLong=false,saving=false;
 const defaultLogo=$('#logo').getAttribute('src');
 const defaultTheme={navy:'#082a4b',blue:'#0c5790',red:'#e72339',paper:'#ffffff',logoSize:126,fontPercent:100};
-const defaultsText=Object.fromEntries($('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
+const defaultsText=Object.fromEntries($$('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
 let currentTheme={...defaultTheme},currentLogo=defaultLogo;
 function round2(v){return Math.round((v+Number.EPSILON)*100)/100}
 function num(v){const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)?n:0}
 function formatted(v){return Number(v).toLocaleString('ru-RU',{maximumFractionDigits:2,minimumFractionDigits:1})}
-function collectLayout(){const result={};for(const el of $('[data-layout]'))result[el.dataset.layout]=el.innerText.trim();return result}
-function applyLayout(saved){const values=saved||{};for(const el of $('[data-layout]')){const key=el.dataset.layout;el.textContent=String(values[key]??defaultsText[key]??'')}}
+function collectLayout(){const result={};for(const el of $$('[data-layout]'))result[el.dataset.layout]=el.innerText.trim();return result}
+function applyLayout(saved){const values=saved||{};for(const el of $$('[data-layout]')){const key=el.dataset.layout;el.textContent=String(values[key]??defaultsText[key]??'')}}
 function applyTheme(theme){
  const t={...defaultTheme,...(theme||{})};
  for(const k of ['navy','blue','red','paper'])if(!/^#[0-9a-fA-F]{6}$/.test(t[k]))t[k]=defaultTheme[k];
@@ -255,14 +255,14 @@ function applyTheme(theme){
  for(const k of ['navy','blue','red','paper'])page.style.setProperty('--ttk-'+k,t[k]);
  page.style.setProperty('--ttk-font-factor',t.fontPercent/100);
  const logo=$('#logo');logo.style.width=t.logoSize+'px';logo.style.height=t.logoSize+'px';
- const ocean=$('#topArtwork #ocean stop');if(ocean.length>2){ocean[0].setAttribute('stop-color',t.navy);ocean[1].setAttribute('stop-color',t.blue);ocean[2].setAttribute('stop-color',t.navy)}
- $('#topArtwork path[stroke]').forEach(p=>p.setAttribute('stroke',t.red));
- const foot=$('#bottomWave #seaFoot stop');if(foot[0])foot[0].setAttribute('stop-color',t.navy);if(foot[1])foot[1].setAttribute('stop-color',t.blue);
- for(const input of $('[data-theme]'))if(t[input.dataset.theme]!==undefined)input.value=t[input.dataset.theme];
+ const ocean=$$('#topArtwork #ocean stop');if(ocean.length>2){ocean[0].setAttribute('stop-color',t.navy);ocean[1].setAttribute('stop-color',t.blue);ocean[2].setAttribute('stop-color',t.navy)}
+ $$('#topArtwork path[stroke]').forEach(p=>p.setAttribute('stroke',t.red));
+ const foot=$$('#bottomWave #seaFoot stop');if(foot[0])foot[0].setAttribute('stop-color',t.navy);if(foot[1])foot[1].setAttribute('stop-color',t.blue);
+ for(const input of $$('[data-theme]'))if(t[input.dataset.theme]!==undefined)input.value=t[input.dataset.theme];
  fitAll();
 }
 function calculateYield(){
- const rows=$('#recipeLines tr');let sum=0,net=0,parts=0;
+ const rows=$$('#recipeLines tr');let sum=0,net=0,parts=0;
  for(const row of rows){
    const inputs=row.querySelectorAll('input');if(inputs.length<4)continue;
    const hasData=inputs[0].value.trim()||inputs[1].value||inputs[2].value||inputs[3].value;
@@ -319,7 +319,7 @@ function lineDraw(){
  }).join('');
  calculateYield();
 }
-function collectLines(){lines=$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value,line_yield_g:ins[3].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
+function collectLines(){lines=$$$('#recipeLines tr').map(row=>{const ins=row.querySelectorAll('input');return {label:ins[0].value.trim(),gross_g:ins[1].value,net_g:ins[2].value,line_yield_g:ins[3].value}}).filter(l=>l.label||l.gross_g||l.net_g)}
 function labelPhoto(s){image=s;if(s&&/^data:image\/(jpeg|webp|png);base64,/.test(s)){$('#dishPhoto').src=s;$('#dishPhoto').style.display='block';$('#photoPlaceholder').style.display='none'}else{$('#dishPhoto').style.display='none';$('#photoPlaceholder').style.display='flex'}}
 function loadQuality(text){const v=splitLabels(text,{quality_appearance:['Внешний вид'],quality_consistency:['Консистенция'],quality_taste:['Вкус и запах'],quality_color:['Цвет'],quality_safety:['Безопасность']});for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])set(k,v[k]||'')}
 async function loadRecipe(id){
@@ -395,11 +395,11 @@ function fitField(el,min=9.4){
 }
 function fitAll(){
  let problem=false;
- for(const el of $('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
+ for(const el of $$('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
   // root fields have fixed dimensions; no content should be hidden
   if(!fitField(el,9.2*(currentTheme.fontPercent||100)/100))problem=true
  }
- for(const card of $('.card')){if(card.scrollHeight>card.clientHeight+1)problem=true}
+ for(const card of $$('.card')){if(card.scrollHeight>card.clientHeight+1)problem=true}
  tooLong=problem;
  if(problem)msg('Внимание: текст не помещается полностью на один А4. Сократите перегруженные разделы перед печатью.','warning')
 }
@@ -468,7 +468,7 @@ $('#logoInput').addEventListener('change',e=>{uploadBrandLogo(e.target.files[0])
 $('#designBtn').addEventListener('click',()=>{$('#designPanel').hidden=!$('#designPanel').hidden});
 $('#closeDesign').addEventListener('click',()=>{$('#designPanel').hidden=true});
 $('#resetDesign').addEventListener('click',()=>{applyTheme(defaultTheme);dirty=true;msg('Фирменные цвета восстановлены. Нажмите «Сохранить».')});
-for(const input of $('[data-theme]')){
+for(const input of $$('[data-theme]')){
  input.addEventListener('input',()=>{
    let v=input.value;
    if(input.dataset.theme==='logoSize'||input.dataset.theme==='fontPercent')v=Number(v);
