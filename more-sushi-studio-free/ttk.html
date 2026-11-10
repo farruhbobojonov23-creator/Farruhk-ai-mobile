@@ -572,26 +572,34 @@ async function save(){
  finally{saving=false;$('#save').disabled=false}
 }
 function fitField(el,min=9.4){
- const scale=(currentTheme.fontPercent||100)/100;const base=(el.classList.contains('body')?10.5:el.closest('.processSteps')?10.1:10)*scale;
+ // Hidden/empty editable fields sometimes report zero clientHeight in Chrome.
+ if(!el || el.clientHeight < 2)return true;
+ const scale=(currentTheme.fontPercent||100)/100;
+ const base=(el.classList.contains('body')?10.5:el.closest('.processSteps')?10.1:10)*scale;
  let font=base;
  el.style.fontSize=font+'px';
- while(el.scrollHeight>el.clientHeight+1&&font>min){font-=.25;el.style.fontSize=font+'px'}
- return el.scrollHeight<=el.clientHeight+1
+ while(el.scrollHeight>el.clientHeight+3&&font>min+.02){font=Math.max(min,font-.25);el.style.fontSize=font+'px'}
+ return el.scrollHeight<=el.clientHeight+3
 }
 function fitAll(){
  let problem=false;
- for(const el of $$('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
-  // root fields have fixed dimensions; no content should be hidden
-  if(!fitField(el,9.2*(currentTheme.fontPercent||100)/100))problem=true
+ for(const el of $('.card .edit, #f5 .edit, #allergy .edit, #qualityTable .edit')){
+   if(!fitField(el,9.1*(currentTheme.fontPercent||100)/100))problem=true;
  }
- for(const card of $$('.card')){if(card.scrollHeight>card.clientHeight+1)problem=true}
+ // Borders and antialiasing can cause 1-3px false overflow in Chromium.
+ for(const card of $('.card'))if(card.clientHeight>0&&card.scrollHeight>card.clientHeight+5)problem=true;
  tooLong=problem;
- if(problem)msg('Внимание: текст не помещается полностью на один А4. Сократите перегруженные разделы перед печатью.','warning')
+ if(problem)msg('Есть перегруженные текстовые блоки. Печать доступна, но перед утверждением ТТК проверьте, что вся информация читается на одном листе А4.','warning');
+ return !problem;
 }
 function printDoc(){
- collectLines();fitAll();
- if(tooLong){alert('Текст выходит за границы шаблона. Для одного листа А4 без обрезки сократите перегруженные разделы.');return}
- window.print()
+ // Always open the browser's native print/PDF dialog from the user's click.
+ // Previously a false-positive overflow warning returned before window.print().
+ if(document.activeElement&&typeof document.activeElement.blur==='function')document.activeElement.blur();
+ collectLines();calculateYield();
+ fitAll();
+ if(typeof window.print!=='function'){msg('В этом браузере нет функции печати. Откройте ТТК в Chrome и нажмите Ctrl+P.','error');return}
+ try{window.print()}catch(e){msg('Не удалось вызвать окно печати: '+(e.message||e)+'. Попробуйте Ctrl+P.','error')}
 }
 function scaled(){
  const factor=Math.min(1,(window.innerWidth-20)/794);
