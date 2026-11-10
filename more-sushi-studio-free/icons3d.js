@@ -96,7 +96,7 @@ function setupIngredient(){
  q('msIngredientIcon').addEventListener('click',()=>showIconPicker(key=>{
   ingredientKey=key;ingredientPhoto=null;syncIngredient();
  },ingredientKey,q('ingName').value));
- q('msIngredientRemove').addEventListener('click',()=>{ingredientPhoto=null;ingredientKey='';syncIngredient()});
+ q('msIngredientRemove').addEventListener('click',()=>{ingredientPhoto=null;ingredientKey='none';syncIngredient()});
  q('ingName').addEventListener('input',syncIngredient);
  const oldEdit=window.editIngredient,oldReset=window.resetIngredientForm;
  window.editIngredient=function(id){oldEdit(id);setIngredient(ingredients.find(i=>Number(i.id)===Number(id)))};
@@ -203,7 +203,7 @@ async function addUploads(files){
 }
 function showIconPicker(onSelect,selected='',searchDefault=''){
  whenSelected=onSelect;setupPicker();
- q('msBankSearch').value=searchDefault||'';
+ q('msBankSearch').value=searchDefault&&photos.some(p=>norms(p.name+' '+p.keywords).includes(norms(searchDefault)))?searchDefault:'';
  q('msBankCat').value='';
  paintPicker();
  picker.showModal();
