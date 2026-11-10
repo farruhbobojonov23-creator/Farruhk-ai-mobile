@@ -466,12 +466,12 @@ async function save(){
  finally{U.saving=false}
 }
 window.switchPage=function(page){
- if(page==='product')restoreProductEditor();
+ if(page==='product'||page==='editor'&&currentKind!=='prefab')restoreProductEditor();
  if(page==='prefab'){
    old.nav(page);showStudio();mode(page);
    const selected=editing&&editing.kind==='prefab'?editing:null;
    const first=selected||pfList()[0];
-   if(first&&(!editing||Number(editing.id)!==Number(first.id)||el('ultraItemLabel').textContent==='Новый полуфабрикат')){
+   if(first&&(!editing||Number(editing.id)!==Number(first.id)||editing.kind!=='prefab'||el('ultraItemLabel').textContent==='Новый полуфабрикат')){
      openRecipe(Number(first.id));
    }else if(!first)newRecipe();
    else{renderList();calc()}
