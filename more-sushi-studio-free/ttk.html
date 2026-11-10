@@ -116,6 +116,22 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
  .edit:empty:before{content:""!important}
  input,select{border:0!important;outline:0!important;appearance:none!important;background:transparent!important;color:inherit!important}
 }
+
+/* Alignment with the approved 1087×1536 reference A4 layout */
+#photoBox{left:215px;top:131px;width:247px;height:146px;border:2px dashed #f7fbff;border-radius:7px;box-shadow:0 2px 12px #2a526428}
+#photoBox .uploadEmpty{font-size:17px;color:#6a7686}
+#photoBox .uploadEmpty svg{width:78px;height:78px}
+#factBox{top:134px;gap:10px}
+#recipeTable tr:not(.total) td{background:#fff}
+#recipeTable tr:nth-child(even) td{background:#f4f9fd}
+#recipeTable td .number:focus,#recipeTable td .itemInput:focus{background:#fff4d0!important}
+#f5 .four .edit{border-bottom:1px solid #a7bbcc;line-height:1.15}
+#allergy .edit{white-space:pre-wrap;line-height:1.24}
+#allergy .edit:empty:before{content:"• Заполнить\A • Заполнить\A • Заполнить\A • Заполнить\A • Заполнить";white-space:pre-line}
+#qualityTable td:first-child{font-weight:800}
+#foot .sign:nth-child(3),#foot .sign:nth-child(4){font-weight:500}
+#nutritionTable tr td{font-variant-numeric:tabular-nums}
+@media print{#photoBox{box-shadow:none!important}}
 </style></head><body>
 <header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
 <select id="recipePick" aria-label="Выбор рецептуры"></select>
