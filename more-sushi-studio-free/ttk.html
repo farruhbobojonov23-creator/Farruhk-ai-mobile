@@ -439,7 +439,18 @@ async function loadRecipe(id){
  loadQuality(r.quality);
  for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])if(tf[k]!==undefined)set(k,tf[k]);
  const n=nutrit(r.nutrition||{});for(const k of Object.keys(n))set(k,n[k]);
- labelPhoto(r.photo_path||'');lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();calculateYield();if(isAutoAllergens)updateAutoAllergens(false);
+ let photo=r.photo_path||'';
+ if(!/^data:image\/(jpeg|webp|png);base64,/.test(photo)){
+  const ref=r.ttk_fields?.ultra?.icon_emoji||'';
+  if(/^gallery:[0-9]+$/.test(ref)){
+   try{
+    const id=Number(ref.split(':')[1]);
+    const stored=await api('/rest/v1/food_photo_library?select=image_data&id=eq.'+id+'&limit=1');
+    photo=stored[0]?.image_data||'';
+   }catch(e){console.warn('Не удалось загрузить фото ПФ из библиотеки:',e.message)}
+  }
+ }
+ labelPhoto(photo);lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();calculateYield();if(isAutoAllergens)updateAutoAllergens(false);
  $('#recipePick').value=r.id;dirty=false;msg('ТТК загружена. Нажимайте на поля прямо на листе, чтобы редактировать.');fitAll();
 }
 function buildServing(){return 'Оформление: '+get('serving_design')+'\nРеализация: '+get('serving_sale')+'\nТранспортирование: '+get('serving_transport')}
