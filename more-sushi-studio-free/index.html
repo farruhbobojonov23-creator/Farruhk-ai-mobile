@@ -647,4 +647,4 @@ function printRecipe() {
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
 (async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-clean2"></script><script src="./ultra.js?v=20261110-real2"></script></body></html>
+</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-edge3"></script><script src="./ultra.js?v=20261110-real2"></script></body></html>
