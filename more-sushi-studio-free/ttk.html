@@ -238,7 +238,7 @@ function splitSteps(text){
 }
 function stepsText(){return [1,2,3,4].map(i=>get('step'+i)).filter(x=>x.trim()).map((x,i)=>(i+1)+'. '+x).join('\n')}
 function nameFor(l){if(l.ingredient_id)return ingredients.find(i=>i.id===l.ingredient_id)?.name||'Неизвестный ингредиент';if(l.prefab_id)return 'ПФ: '+(recipes.find(r=>r.id===l.prefab_id)?.name||'Неизвестный ПФ');return ''}
-function suggestions(){const el=document.createElement('datalist');el.id='srcHints';el.innerHTML=ingredients.map(i=>'<option value="'+safe(i.name)+'"></option>').join('')+recipes.filter(r=>r.kind==='prefab').map(r=>'<option value="'+safe('ПФ: '+r.name)+'"></option>').join('');document.body.append(el)}
+function suggestions(){const el=document.querySelector('#srcHints')||document.createElement('datalist');el.id='srcHints';el.innerHTML=ingredients.map(i=>'<option value="'+safe(i.name)+'"></option>').join('')+recipes.filter(r=>r.kind==='prefab').map(r=>'<option value="'+safe('ПФ: '+r.name)+'"></option>').join('');if(!el.parentNode)document.body.append(el)}
 function lineDraw(){
  const tbody=$('#recipeLines');const count=Math.max(10,lines.length);
  tbody.innerHTML=Array.from({length:count},(_,i)=>{
@@ -282,7 +282,7 @@ async function save(){
  if(get('status')==='Утверждено'){
    const pending=[get('scope'),stepsText(),get('storage')].join(' ');
    if(/не утвержден|не подтвержден|не установ|требует провер|требуют провер|требуют корректиров|по образцу|в разработке|в макете/i.test(pending)){msg('Нельзя утверждать карту с непроверенными сроками, выходом или рецептурой. Оставьте статус «Черновик» до проработки.','error');return}
-   const required=['scope','raw_requirements','step1','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','approved_at'];
+   const required=['scope','raw_requirements','step1','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','introduced_at'];
    if(required.some(k=>!get(k))){msg('Для утверждения нужно заполнить все обязательные разделы и подписи.','error');return}
    if(!Number.isFinite(yieldValue)||yieldValue<=0){msg('Для утверждения укажите фактический выход.','error');return}
    const sum=lines.reduce((a,l)=>a+Number(l.net_g||0),0);if(Math.abs(sum-yieldValue)>40){msg('Проверьте сумму нетто, потери и выход до утверждения.','error');return}
