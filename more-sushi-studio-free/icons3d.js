@@ -4,6 +4,7 @@
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const q=id=>document.getElementById(id);
 const PHOTO_RE=/^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/;
+const localPhotoUrl=v=>/^\.\/photos\/[a-z0-9_-]+\.webp$/.test(String(v||''));
 let photos=[],ready=false,ingredientPhoto=null,ingredientKey='',picker=null,whenSelected=null;
 const norms=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[«»"()\/–—-]/g,' ').replace(/\s+/g,' ').trim();
 const synonyms=[
@@ -16,7 +17,7 @@ const synonyms=[
  [/панко/,'панко'],[/шичими/,'шичими'],[/масаг/,'масаго']
 ];
 const photoForKey=k=>{
- if(!/^gallery:[0-9]+$/.test(String(k||'')))return null;
+ if(!/^gallery:-?[0-9]+$/.test(String(k||'')))return null;
  return photos.find(x=>Number(x.id)===Number(k.split(':')[1]))||null;
 };
 function predicted(item){
@@ -29,7 +30,7 @@ function source(item,type){
  if(raw&&PHOTO_RE.test(raw))return raw;
  const key=type==='ingredient'?item?.icon_emoji:item?.ttk_fields?.ultra?.icon_emoji;
  const match=photoForKey(key)||(!key?predicted(item):null);
- return match?.image_data&&PHOTO_RE.test(match.image_data)?match.image_data:null;
+ return match?.image_data&&(PHOTO_RE.test(match.image_data)||localPhotoUrl(match.image_data))?match.image_data:null;
 }
 function render(item,type='ingredient',size='medium'){
  const img=source(item,type),alt=esc(item?.name||'Фото продукта');
@@ -58,8 +59,13 @@ async function asPhoto(file){
 }
 async function refresh(){
  try{
-  const list=await http('/rest/v1/food_photo_library?select=id,name,category,keywords,image_data&order=name.asc&limit=500');
-  photos=Array.isArray(list)?list:[];ready=true;
+  const [dynamic,staticList]=await Promise.all([
+   http('/rest/v1/food_photo_library?select=id,name,category,keywords,image_data&order=name.asc&limit=500').catch(e=>{console.warn('Фотобиблиотека пользователя:',e.message);return []}),
+   fetch('./photo-index.json?v=20261111a',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[])
+  ]);
+  const local=Array.isArray(staticList)?staticList.filter(p=>Number(p.id)<0&&localPhotoUrl(p.image_data)):[];
+  const user=Array.isArray(dynamic)?dynamic:[];
+  photos=[...user,...local];ready=true;
   if(typeof renderIngredients==='function')renderIngredients();
   if(typeof renderRecipes==='function'&&typeof currentKind!=='undefined'&&currentKind==='prefab')renderRecipes();
   if(typeof syncIngredient==='function')syncIngredient();
@@ -169,7 +175,7 @@ function paintPicker(){
  grid.innerHTML=filtered.length?filtered.map(p=>
   '<article class="msBankItem"><div class="msBankImage"><img src="'+p.image_data+'" alt="'+esc(p.name)+'"></div>'+
   '<b title="'+esc(p.name)+'">'+esc(p.name)+'</b><small>'+esc(p.category)+'</small>'+
-  '<div class="msBankButtons"><button type="button" data-pick="'+Number(p.id)+'">Выбрать</button><button type="button" class="msPhotoRemove" data-delete="'+Number(p.id)+'" title="Удалить">✕</button></div></article>'
+  '<div class="msBankButtons"><button type="button" data-pick="'+Number(p.id)+'">Выбрать</button>'+(p.local?'':'<button type="button" class="msPhotoRemove" data-delete="'+Number(p.id)+'" title="Удалить">✕</button>')+'</div></article>'
  ).join(''):'<div class="msBankEmpty">'+(ready?'Фотографий пока нет. Добавь изображения по одному, несколько сразу или импортируй готовый набор.':'Загрузка фотобиблиотеки…')+'</div>';
 }
 async function batchAdd(items){
