@@ -146,3 +146,135 @@
 #editorPage.ultraEditorMode .ultraReviewCheck{display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.4;color:#7f5a1b;background:#fff5e2;border:1px solid #f1dbb8;border-radius:8px;padding:9px;margin-top:10px}
 #editorPage.ultraEditorMode .ultraReviewCheck input{accent-color:#1c7fb4;margin-top:2px;flex:0 0 auto}
 #editorPage.ultraEditorMode #ultraImportFile{display:none!important}
+
+
+/* ULTRA PRO DESIGN V2 — approved reference: left photo catalogue, center recipe editor, right quality panel. */
+#app .main.ultraWorkspaceActive{max-width:none!important;width:calc(100% - 0px);padding:17px 17px 26px;margin:0;align-self:flex-start}
+.main.ultraWorkspaceActive>.top{margin:0 0 12px}
+.main.ultraWorkspaceActive>.top #pageTitle{font-size:15px;font-weight:800;color:#244c6c}
+.main.ultraWorkspaceActive>.top p{display:none}
+#catalogPage.ultraCatalogMode>.panel{background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;overflow:visible!important}
+#catalogPage.ultraCatalogMode>.panel>.row,#catalogPage.ultraCatalogMode>.panel>.scroll{display:none!important}
+#catalogPage:not(.ultraCatalogMode) .ultraStudioTop,
+#catalogPage:not(.ultraCatalogMode) .ultraStudioLayout{display:none!important}
+.ultraStudioTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 13px;padding:14px 20px;border-radius:15px;background:linear-gradient(112deg,#092d50 10%,#0d507f 75%,#137ab1 100%);color:white;box-shadow:0 5px 20px #0a325227;overflow:hidden}
+.ultraStudioTop small{font-size:10px;letter-spacing:1.7px;color:#9be4fc;font-weight:800}
+.ultraStudioTop h2{color:white;font-size:22px;margin:4px 0 2px;font-weight:850;line-height:1.2}
+.ultraStudioTop p{font-size:11px;margin:3px 0;color:#c7e6f9;line-height:1.45}
+.ultraLiveLabel{color:#c4ebf6;border:1px solid #a3dcf660;border-radius:24px;padding:7px 12px;font-weight:800;font-size:10px;letter-spacing:.35px;white-space:nowrap}
+.ultraStudioLayout{display:grid;grid-template-columns:minmax(205px,240px) minmax(350px,1fr) minmax(230px,270px);gap:12px;align-items:start;min-width:0}
+.ultraStudioLeft,.ultraStudioCenter,.ultraStudioAside{min-width:0}
+.ultraStudioLeft,.ultraStudioAside{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#a7c7da transparent}
+.ultraStudioLeft{border:1px solid #c8dce9;border-radius:15px;overflow-x:hidden;background:#fff;box-shadow:0 4px 17px #16426310}
+.ultraStudioAside{border:1px solid #d0e2ed;border-radius:15px;background:#fff;padding:14px;box-shadow:0 4px 17px #16426310}
+.ultraRailHeader{padding:2px 3px 12px;border-bottom:1px solid #e1edf3}
+.ultraRailEyebrow{font-size:10px;letter-spacing:1.4px;font-weight:900;color:#2294c0}
+.ultraRailHeader h3{color:#103e60;font-size:16px;margin:5px 0;line-height:1.25}
+.ultraRailHeader p{font-size:11px;color:#7290a7;line-height:1.45;margin:4px 0 0}
+#catalogPage.ultraCatalogMode .ultraCatalog{display:block!important}
+#catalogPage.ultraCatalogMode .ultraHero{padding:16px 14px 13px;display:block;border-radius:0;background:linear-gradient(121deg,#06335a,#13639a)}
+#catalogPage.ultraCatalogMode .ultraHero h2{font-size:19px;margin:5px 0;letter-spacing:-.3px}
+#catalogPage.ultraCatalogMode .ultraHero p{font-size:11px;line-height:1.45;margin:3px 0 10px}
+#catalogPage.ultraCatalogMode .ultraHero button{padding:9px 11px;width:100%;font-size:12px}
+#catalogPage.ultraCatalogMode .ultraHero .ultraEyebrow{font-size:9px;letter-spacing:1.2px;color:#a8e7ff}
+#catalogPage.ultraCatalogMode .ultraSummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:12px 10px 4px}
+#catalogPage.ultraCatalogMode .ultraSummary .ultraKpi{padding:9px 4px;text-align:center;border-radius:9px}
+#catalogPage.ultraCatalogMode .ultraKpi b{font-size:19px;line-height:1}
+#catalogPage.ultraCatalogMode .ultraKpi small{font-size:9px;line-height:1.2;margin-top:5px}
+#catalogPage.ultraCatalogMode .ultraControls{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:10px 10px 6px}
+#catalogPage.ultraCatalogMode .ultraControls input{grid-column:1/-1;width:100%;min-width:0}
+#catalogPage.ultraCatalogMode .ultraControls select{width:100%;min-width:0;font-size:11px;padding:8px 6px}
+#catalogPage.ultraCatalogMode .ultraControls input{font-size:12px;padding:9px 10px}
+#catalogPage.ultraCatalogMode .ultraFilters{display:flex;overflow-x:auto;flex-wrap:nowrap;gap:5px;padding:4px 10px 9px;scrollbar-width:thin}
+#catalogPage.ultraCatalogMode .ultraFilters button{flex:0 0 auto;white-space:nowrap;font-size:10px;padding:6px 9px}
+#catalogPage.ultraCatalogMode .ultraGrid{display:flex;flex-direction:column;gap:8px;padding:0 10px 13px}
+#catalogPage.ultraCatalogMode .ultraCard{display:grid;grid-template-columns:72px minmax(0,1fr);min-width:0;border-radius:11px;position:relative;box-shadow:none;transition:background .15s}
+#catalogPage.ultraCatalogMode .ultraCard:hover{transform:none;background:#f5fbff}
+#catalogPage.ultraCatalogMode .ultraCard.is-current{border:1.5px solid #1f91c4;background:#ebf8ff;box-shadow:0 0 0 2px #d4f0ff}
+#catalogPage.ultraCatalogMode .ultraCardPhoto{height:100%;min-height:119px;border-radius:0;background:radial-gradient(ellipse at 60% 75%,#c1eafa,#eaf7ff)}
+#catalogPage.ultraCatalogMode .ultraCardPhoto img{width:90%;height:86%;object-fit:contain}
+#catalogPage.ultraCatalogMode .ultraCardNoPhoto{font-size:31px}
+#catalogPage.ultraCatalogMode .ultraCardTag{font-size:8px;left:5px;top:5px;padding:4px 5px;letter-spacing:0}
+#catalogPage.ultraCatalogMode .ultraCardMain{padding:10px 8px;min-width:0}
+#catalogPage.ultraCatalogMode .ultraCardTitle{font-size:12px;min-height:0;line-height:1.3;margin:4px 0 6px;overflow-wrap:anywhere}
+#catalogPage.ultraCatalogMode .ultraCardCat{font-size:10px}
+#catalogPage.ultraCatalogMode .ultraCardMetrics{margin:6px 0;padding:6px 0 0;gap:5px;flex-wrap:wrap}
+#catalogPage.ultraCatalogMode .ultraCardYield{font-size:14px}
+#catalogPage.ultraCatalogMode .ultraStatus{font-size:9px;padding:4px 6px}
+#catalogPage.ultraCatalogMode .ultraCardActions{gap:4px}
+#catalogPage.ultraCatalogMode .ultraCardActions button{padding:7px 4px;font-size:10px;border-radius:6px}
+#catalogPage.ultraCatalogMode .ultraEmpty{font-size:12px;padding:12px}
+#catalogPage.ultraCatalogMode .ultraStudioCenter #editorPage{width:100%;display:block!important;min-width:0}
+#catalogPage.ultraCatalogMode .ultraStudioCenter #editorPage>.panel{background:#fff;border-radius:15px;margin:0;border:1px solid #ccdfea;box-shadow:0 4px 17px #16426310;overflow:hidden;padding:0}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:first-child{display:none!important}
+#catalogPage.ultraCatalogMode #editorPage .ultraEditorBar{padding:15px 16px 13px;background:linear-gradient(105deg,#e2f3ff,#fafdff);border-bottom:1px solid #cfe3ef}
+#catalogPage.ultraCatalogMode #editorPage .ultraEditorBar small{color:#217ca8}
+#catalogPage.ultraCatalogMode #editorPage .ultraEditorBar h3{font-size:17px;line-height:1.2}
+#catalogPage.ultraCatalogMode #editorPage .ultraEditorActions{gap:5px;margin-top:6px}
+#catalogPage.ultraCatalogMode #editorPage .ultraEditorActions button{font-size:11px;padding:7px 9px}
+#catalogPage.ultraCatalogMode #editorPage .ultraPhotoPanel{margin:12px 16px;padding:10px;gap:10px;min-width:0}
+#catalogPage.ultraCatalogMode #editorPage .ultraPhotoBox{flex:0 0 130px;width:130px;height:92px}
+#catalogPage.ultraCatalogMode #editorPage .ultraPhotoSide b{font-size:12px}
+#catalogPage.ultraCatalogMode #editorPage .ultraPhotoSide p{font-size:10px;margin:4px 0}
+#catalogPage.ultraCatalogMode #editorPage .ultraPhotoSide button{font-size:10px;padding:7px 10px}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,.9fr);gap:8px;padding:9px 16px}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) .field{min-width:0}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) .field:nth-child(2){grid-column:span 2}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) label{font-size:11px}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) input,
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) select{padding:9px 8px;font-size:12px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComposerHeader{padding:5px 16px 10px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComposerHeader h3{font-size:15px}
+#catalogPage.ultraCatalogMode #editorPage #components{padding:0 12px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComponentRow{grid-template-columns:83px minmax(115px,1fr) 71px 71px 27px;gap:5px;padding:7px 6px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComponentRow select,
+#catalogPage.ultraCatalogMode #editorPage .ultraComponentRow input{font-size:11px;padding:7px 5px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComponentRow label{font-size:9px}
+#catalogPage.ultraCatalogMode #editorPage .ultraComponentRow button{width:26px;min-width:26px;padding:6px;font-size:12px}
+#catalogPage.ultraCatalogMode #editorPage button[onclick="addComponent()"]{margin:12px 16px}
+#catalogPage.ultraCatalogMode #editorPage .ultraLossBar{padding:12px 16px}
+#catalogPage.ultraCatalogMode #editorPage .ultraDemoScale{margin:7px 16px 12px}
+#catalogPage.ultraCatalogMode #editorPage .ultraTtkDetails{margin:10px 16px}
+#catalogPage.ultraCatalogMode #editorPage .ultraHistory{margin:10px 16px}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.field:has(#photoFile),
+#catalogPage.ultraCatalogMode #editorPage>.panel>p:has(#photoPreview){display:none}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#saveInfo){padding:11px 16px 20px;border-top:1px solid #e2edf4}
+#catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#saveInfo) button{font-size:11px;padding:10px 9px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetrics{display:grid!important;grid-template-columns:1fr;gap:7px;padding:12px 0 8px;margin:0}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetric{padding:12px 13px;border-radius:10px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetric small{font-size:10px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetric strong{font-size:19px;overflow-wrap:anywhere}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraFootPanels{display:flex!important;flex-direction:column;gap:10px;margin:2px 0 0}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraInfo{padding:12px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraInfo h4{font-size:13px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraInfo p{font-size:11px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraReviewCheck{font-size:10px}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraRelatedItem{align-items:start}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraRelatedItem button{flex-shrink:0}
+@media(max-width:1190px){
+ .ultraStudioLayout{grid-template-columns:minmax(195px,240px) minmax(0,1fr);gap:11px}
+ .ultraStudioAside{grid-column:1/-1;position:static;max-height:none;display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
+ .ultraRailHeader{grid-column:1/-1}
+ #catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #catalogPage.ultraCatalogMode .ultraStudioAside .ultraFootPanels{margin-top:10px}
+}
+@media(max-width:810px){
+ .ultraStudioLayout{display:flex;flex-direction:column}
+ .ultraStudioLeft,.ultraStudioCenter,.ultraStudioAside{position:static;max-height:none;width:100%;overflow:visible}
+ #catalogPage.ultraCatalogMode .ultraGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+ #catalogPage.ultraCatalogMode .ultraStudioAside{display:block}
+ #catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #app .main.ultraWorkspaceActive{padding:10px}
+ .ultraStudioTop{padding:12px;align-items:flex-start}
+ .ultraStudioTop h2{font-size:17px}
+ .ultraLiveLabel{display:none}
+}
+@media(max-width:470px){
+ #catalogPage.ultraCatalogMode .ultraGrid{grid-template-columns:1fr}
+ #catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetrics{grid-template-columns:1fr 1fr}
+ #catalogPage.ultraCatalogMode #editorPage .ultraComponentRow{grid-template-columns:1fr 1fr}
+ #catalogPage.ultraCatalogMode #editorPage .ultraComponentRow .ultraComponentName{grid-column:1/-1}
+ #catalogPage.ultraCatalogMode #editorPage .ultraComponentRow .ultraComponentDelete{grid-column:2;grid-row:1;justify-self:end}
+ #catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode){grid-template-columns:1fr 1fr}
+ #catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) .field:nth-child(2){grid-column:span 1}
+}
