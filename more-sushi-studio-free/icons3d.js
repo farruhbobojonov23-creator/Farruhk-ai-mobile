@@ -16,12 +16,22 @@ const synonyms=[
  [/сыр/,'сыр'],[/лимон/,'лимон'],[/морков/,'морковь'],[/нори/,'нори'],
  [/панко/,'панко'],[/шичими/,'шичими'],[/масаг/,'масаго']
 ];
+const categoryReps={
+ 'Основы суши':'Рис для суши',
+ 'Рыба и морепродукты':'Креветка варёная очищенная',
+ 'Овощи и фрукты':'Томаты черри',
+ 'Мясо и яйца':'Курица варёно-копчёная',
+ 'Напитки и вода':'Вода питьевая',
+ 'Соусы и специи':'Соус сладкий чили',
+ 'Декор и панировка':'Кунжут белый',
+ 'Сыры и молочные продукты':'Сыр сливочный'
+};
 const photoForKey=k=>{
  if(!/^gallery:-?[0-9]+$/.test(String(k||'')))return null;
  return photos.find(x=>Number(x.id)===Number(k.split(':')[1]))||null;
 };
 function predicted(item){
- const label=norms(item?.name);
+ const label=norms(item?.name||categoryReps[item?.category]||'');
  if(!label)return null;
  const exact=photos.find(p=>norms(p.name)===label);
  if(exact)return exact;
