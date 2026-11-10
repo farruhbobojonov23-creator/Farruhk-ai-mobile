@@ -4,50 +4,59 @@
 <style>
 :root{font-family:Inter,Arial,sans-serif;color:#142b46;background:#edf3f9}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;background:#0875c7;color:white;border-radius:10px;padding:11px 17px;font-weight:700}button.secondary{background:#e3eef9;color:#124677}button.danger{background:#a72137}button:disabled{opacity:.5;cursor:not-allowed}.wrap{display:flex;min-height:100vh}.side{width:246px;background:#102f52;color:white;padding:25px 18px;flex-shrink:0}.logo{font-size:25px;font-weight:900;color:#f8fdff;line-height:1.15}.logo span{color:#ef5965}.muted{color:#7186a0;font-size:13px}.side small{color:#91b4d6}.side button{width:100%;text-align:left;background:transparent;color:#d6e7f8;margin:3px 0;font-weight:500}.side button.active{background:#1d527f;color:white}.main{flex:1;min-width:0;padding:28px;max-width:1450px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.panel{border:1px solid #d9e6f2;background:white;border-radius:17px;padding:22px;margin:17px 0;box-shadow:0 5px 18px #123b6510}.row{display:flex;gap:11px;flex-wrap:wrap;align-items:center}.between{justify-content:space-between}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px}.stat{background:white;border:1px solid #dfecf5;padding:20px;border-radius:16px}.stat b{font-size:30px;color:#0d4d87}.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px;font-size:13px;font-weight:700;color:#365370}.field input,.field select,.field textarea{width:100%;border:1px solid #c8d9e6;border-radius:9px;padding:10px;background:white;color:#142b46}.field textarea{min-height:80px}.field.wide{min-width:100%;flex-basis:100%}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:11px 8px;border-bottom:1px solid #e1eaf2;text-align:left}th{background:#eaf3fb;color:#0b4e89}.scroll{overflow:auto}.pill{display:inline-block;padding:4px 8px;border-radius:8px;background:#d8edfc;font-size:12px;color:#0b5a96}.hidden{display:none!important}#auth{min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(130deg,#0c2c4c,#0a5685)}#auth .panel{width:min(440px,100%);padding:34px}h1{font-size:24px;margin:0}h2{margin:6px 0 16px;font-size:21px}h3{margin:15px 0}label{cursor:pointer}.err{color:#b82032;font-size:14px}.ok{color:#118263;font-size:14px}.divider{height:1px;background:#d8e5ef;margin:20px 0}.thumb{width:115px;height:86px;object-fit:cover;border-radius:10px;border:1px solid #d5e5ef}.print-only{display:none}.status{color:#647b96;font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}a{color:#0a69b5}.note{background:#e8f5fc;border-left:3px solid #1581c2;padding:12px;border-radius:8px}#loginMsg{margin-top:10px} @media(max-width:760px){.wrap{display:block}.side{width:100%;padding:14px}.side nav{display:flex;overflow:auto}.side button{min-width:max-content}.main{padding:15px}.panel{padding:15px}.top{align-items:flex-start}.scroll{max-width:100%}}
 
+
 @media print {
- @page {size:A4 portrait; margin:0}
- html,body{width:210mm;margin:0!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- #auth,.side,.top,.screen-only{display:none!important}
- .wrap,.main{display:block!important;width:auto!important;max-width:none!important;margin:0!important;padding:0!important;background:white!important}
- #printSheet{display:block!important;position:relative;box-sizing:border-box;width:210mm;min-height:297mm;padding:8.5mm 8.5mm 9mm 28.5mm;background:white;color:#142d45;font:8.3pt/1.26 Arial,Helvetica,sans-serif;overflow:visible}
- #printSheet:before{content:"";position:absolute;left:0;top:0;bottom:0;width:22.5mm;background:linear-gradient(166deg,#0a2748 0%,#0d4675 58%,#112d54 100%);border-right:1.5mm solid #e82437}
- #printSheet .pbrand{position:absolute;top:9mm;left:1.8mm;width:18mm;text-align:center;color:#fff}
- #printSheet .pbrand__icon{width:18mm;height:17mm;object-fit:contain;background:white;border-radius:50%;display:block;margin:0 auto 2mm;border:0.8mm solid #9bbdd3}
- #printSheet .pbrand__text{font-size:10pt;font-weight:900;line-height:1.05}
- #printSheet .pbrand__text em{color:#fa4451;font-style:normal}
- #printSheet .pbrand__sub{font-size:6pt;letter-spacing:.6px;margin-top:3mm}
- #printSheet .pbrand__wave{height:1.6mm;background:#34a8ec;border-radius:8px;margin-top:9mm;box-shadow:0 3mm 0 #195c8e,0 6mm 0 #2a89b8}
- #printSheet h1{font-size:16pt;line-height:1.12;color:#102f50;margin:3mm 0 2mm;font-weight:800}
- #printSheet h2{font-size:9.8pt;line-height:1.1;color:white;background:linear-gradient(90deg,#153e68,#075790);padding:1.5mm 2.1mm 1.4mm 5mm;margin:0 0 1.7mm;position:relative;break-after:avoid;border-radius:1mm}
- #printSheet h2:before{content:"";position:absolute;width:2.8mm;left:1mm;top:0;bottom:0;background:#eb2b3a;transform:skewX(-18deg)}
- #printSheet .pheader{display:flex;align-items:flex-start;justify-content:space-between;gap:2mm;border-bottom:1.4pt solid #0b5b91;padding:0 0 2.5mm;margin-bottom:3mm}
- #printSheet .pheader__eyebrow{color:#e53140;font-weight:800;letter-spacing:1px;font-size:7.2pt;text-transform:uppercase}
- #printSheet .pheader__title{font-weight:900;font-size:17pt;line-height:1;color:#092d51;max-width:128mm}
- #printSheet .pheader__badge{white-space:nowrap;border-radius:2mm;background:#e7f2f9;color:#0c4674;padding:2mm 3mm;font-size:7pt}
- #printSheet .phero{display:grid;grid-template-columns: 76mm 1fr;gap:3.5mm;margin-bottom:3mm}
- #printSheet .pimage{height:37mm;border-radius:2.5mm;overflow:hidden;background:#edf4fa;border:1px solid #cbdce9;display:flex;align-items:center;justify-content:center;color:#6c8298;font-size:8pt}
- #printSheet .pimage img{width:100%;height:100%;object-fit:cover;display:block}
- #printSheet .pfacts{display:flex;flex-direction:column;justify-content:space-around;gap:1mm}
- #printSheet .pfact{display:grid;grid-template-columns:42% 1fr;gap:1.5mm;background:#eaf4fd;border-left:2mm solid #114f81;border-radius:1.6mm;padding:1.9mm 2mm;font-size:8.4pt}
- #printSheet .pfact b{color:#103c65}
- #printSheet .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:2.7mm 3.2mm;align-items:start}
- #printSheet .psection{border:1px solid #b9cddc;background:#fff;border-radius:2mm;overflow:hidden;break-inside:avoid}
- #printSheet .psection__body{padding:1.3mm 2mm 1.7mm;font-size:8.1pt;line-height:1.23;white-space:normal}
- #printSheet .psection--wide{grid-column:1/-1}
- #printSheet .psection__body--light{background:#f8fbfe}
- #printSheet table{width:100%;border-collapse:collapse;font-size:7.75pt;table-layout:fixed}
- #printSheet td,#printSheet th{border:0.4pt solid #b6cadb;padding:1.1mm 1.2mm;text-align:left;overflow-wrap:break-word;vertical-align:top}
- #printSheet th{background:#e2effa;color:#103c65}
- #printSheet td:nth-child(n+2),#printSheet th:nth-child(n+2){text-align:right}
- #printSheet .ptext{white-space:pre-wrap;overflow-wrap:break-word}
- #printSheet .ptext + .ptext{margin-top:1mm}
- #printSheet .pnote{background:#e7f3fc;padding:1.5mm 2mm;border-radius:1mm}
- #printSheet .pstatus{font-size:8pt;display:inline-block;color:#a62233;font-weight:700}
- #printSheet .papproval{display:grid;grid-template-columns:1fr 1fr 30mm;gap:2.5mm;margin-top:3mm;align-items:end;border-top:1.1pt solid #b7cad9;padding-top:2mm;font-size:8pt}
- #printSheet .psign__line{height:5mm;border-bottom:0.6pt solid #3c617c}
- #printSheet .psign small{font-size:6.7pt;color:#607a91}
- #printSheet .pversion{color:#355c7c;text-align:right;font-size:7.3pt}
- #printSheet .pfooterwave{height:2mm;margin-top:4mm;background:linear-gradient(90deg,#11395f 0%,#21a3dd 60%,#db273c 100%);border-radius:3mm}
+  @page { size:A4 portrait; margin:0; }
+  :root{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html,body{width:210mm;background:#fff!important;margin:0!important}
+  #auth,.side,.top,.screen-only{display:none!important}
+  .wrap,.main{display:block!important;width:auto!important;margin:0!important;padding:0!important;max-width:unset!important}
+  #printSheet{display:block!important;box-sizing:border-box;position:relative;width:210mm;min-height:297mm;padding:5mm 9mm 8mm 10mm;background:#fff;color:#192b3a;font:8.2pt/1.22 Arial,Helvetica,sans-serif;}
+  #printSheet::before{content:"";position:absolute;top:0;left:0;z-index:0;background:linear-gradient(143deg,#073054 0%,#0d517d 57%,#102b4b 100%);width:50mm;height:85mm;clip-path:polygon(0 0,100% 0,78% 36%,16% 90%,0 100%);border-right:0}
+  #printSheet::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:10mm;background:linear-gradient(165deg,transparent 20%,#d3f1fa 20%,#148fca 31%,#103d67 40%,#fff 48%);z-index:0}
+  #printSheet>*{position:relative;z-index:1}
+  #printSheet .pbrand{position:absolute;top:5mm;left:2.1mm;width:39mm;height:47mm;z-index:3;text-align:center;color:white}
+  #printSheet .pbrand__icon{display:block;width:28mm;height:28mm;object-fit:contain;margin:0 auto 2mm;border:1.5pt solid #a7d2eb;border-radius:50%;background:transparent}
+  #printSheet .pbrand__text{font:bold 13pt/1.02 Arial,sans-serif;color:white;text-transform:none;}
+  #printSheet .pbrand__text em{font-style:normal;color:#ff364a}
+  #printSheet .pbrand__sub{font-size:6.6pt;letter-spacing:1px;margin-top:1.4mm}
+  #printSheet .pbrand__wave{display:none}
+  #printSheet .pheader{margin-left:49mm;min-height:16mm;padding:0 0 2mm;border-bottom:1.5pt solid #e82c40;display:flex;align-items:flex-start;justify-content:flex-start;gap:2mm}
+  #printSheet .pheader__eyebrow{display:none}
+  #printSheet .pheader__title{font-size:18pt;font-weight:850;color:#0d3154;line-height:1.03;letter-spacing:-.4px;max-width:none}
+  #printSheet .pheader__badge{display:none}
+  #printSheet > h1{margin:3mm 0 1.7mm 45mm;min-height:10mm;max-width:145mm;background:linear-gradient(90deg,#bcd9ed,#e6f3fb);border-left:4mm solid #d6293e;color:#103253;padding:1.7mm 3mm;font-size:13.4pt;font-weight:800;line-height:1.08;transform:skewX(-4deg);}
+  #printSheet .phero{margin-left:34mm;display:grid;grid-template-columns:95mm 1fr;gap:3mm;height:45mm;margin-bottom:4mm;align-items:stretch}
+  #printSheet .pimage{height:45mm;background:linear-gradient(135deg,#dfeef7,#f5fbff);border:0;border-radius:1.5mm;display:flex;align-items:center;justify-content:center;text-align:center;color:#52718c;font-size:8pt;overflow:hidden}
+  #printSheet .pimage img{width:100%;height:100%;object-fit:cover}
+  #printSheet .pfacts{display:flex;flex-direction:column;justify-content:center;gap:2.6mm}
+  #printSheet .pfact{display:grid;grid-template-columns:42% 58%;background:#eaf3fa;min-height:10mm;align-items:center;padding:0;border-radius:1.4mm;font-size:8.4pt;line-height:1.1;overflow:hidden}
+  #printSheet .pfact b{background:linear-gradient(115deg,#044a81,#143d65);color:#fff;padding:2.6mm 1.5mm;height:100%;display:flex;align-items:center}
+  #printSheet .pfact span{padding:1.5mm 1.7mm;}
+  #printSheet .pgrid{display:grid;grid-template-columns: 1fr 1fr;gap:3.2mm 3.2mm;align-items:stretch}
+  #printSheet .psection{border:0.7pt solid #b9d0df;border-radius:1.7mm;background:#fff;break-inside:avoid;overflow:visible}
+  #printSheet .psection--wide{grid-column:1/-1}
+  #printSheet h2{position:relative;background:linear-gradient(90deg,#083a69 0%,#0a5891 100%);color:#fff;padding:1.7mm 2.5mm 1.5mm 8.3mm;margin:0;font-size:9.7pt;line-height:1.08;min-height:6.2mm;display:flex;align-items:center;border-radius:1.1mm}
+  #printSheet h2:before{position:absolute;content:"";left:1.8mm;top:0;width:4.7mm;height:100%;background:#e51d32;transform:skewX(-18deg)}
+  #printSheet .psection__body{padding:2mm 2.3mm 2.2mm;font-size:7.7pt;line-height:1.23;white-space:normal;overflow-wrap:break-word}
+  #printSheet .ptext{white-space:pre-wrap;line-height:1.24;overflow-wrap:break-word}
+  #printSheet table{table-layout:fixed;border-collapse:collapse;width:100%;font-size:7.1pt;line-height:1.04}
+  #printSheet td,#printSheet th{padding:1.05mm 1mm;border:.45pt solid #9fb8cb;vertical-align:top;overflow-wrap:break-word}
+  #printSheet th{background:#dceef9;color:#173a5f}
+  #printSheet td{text-align:right}
+  #printSheet td:nth-child(2){text-align:left}
+  #printSheet .sample-output{background:#d9edfa;font-weight:800;color:#0e456f}
+  #printSheet .pflex{display:grid;grid-template-columns:65% 35%;gap:2mm}
+  #printSheet .pallergen{background:#eef6fc;border:1px solid #cadeed;border-radius:1mm;padding:1.5mm 1.8mm;font-size:7.5pt}
+  #printSheet .pallergen b{color:#c8233c}
+  #printSheet .nutrition{font-size:7.1pt;text-align:center}
+  #printSheet .nutrition td,#printSheet .nutrition th{text-align:center!important}
+  #printSheet .papproval{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;margin-top:3mm;padding-top:1.5mm;border-top:1pt solid #cbdbe8;font-size:7.6pt}
+  #printSheet .psign__line{height:5mm;border-bottom:0.7pt solid #51677d}
+  #printSheet .psign small{font-size:7pt}
+  #printSheet .pversion{text-align:right;color:#486b8a;font-size:7pt}
+  #printSheet .pfooterwave{display:none}
+  #printSheet .warnnote{margin:1mm 0 0;font-size:6.5pt;color:#925d10}
 }
 </style></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
@@ -114,36 +123,46 @@ function renderComponents(){const pre=recipes.filter(r=>r.kind==='prefab'&&r.id!
 async function uploadPhoto(){const f=$('photoFile').files[0];if(!f)return;if(f.size>2*1024*1024)throw Error('Фото максимум 2 МБ');photoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)})}
 async function saveRecipe(){try{if(!$('rName').value.trim()||!$('rCode').value.trim())throw Error('Введите название и код');await uploadPhoto();const data={kind:currentKind,photo_path:photoData,version:editing?(editing.version+1):1,updated_at:new Date().toISOString()};for(const el in fmap)data[fmap[el]]=$(el).value;if(!data.approved_at)data.approved_at=null;if(!data.nutrition)data.nutrition={};else data.nutrition={text:data.nutrition};data.yield_g=Number(data.yield_g||0);if(data.status==='Утверждено'&&(!data.process||!data.quality||!data.scope||!data.raw_requirements||!data.serving||!data.approved_by))throw Error('Для утверждения заполните все разделы, включая утверждение');let id;if(editing){await http('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:editing.id,version:editing.version,snapshot:editing})});await http('/rest/v1/recipes?id=eq.'+editing.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)});id=editing.id;await http('/rest/v1/recipe_lines?recipe_id=eq.'+id,{method:'DELETE'})}else{const res=await http('/rest/v1/recipes?select=id',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(data)});id=res[0].id}if(components.length){const lines=components.map((x,i)=>({recipe_id:id,seq:i,ingredient_id:x.source_type==='ingredient'?Number(x.source_id):null,prefab_id:x.source_type==='prefab'?Number(x.source_id):null,gross_g:Number(x.gross_g||0),net_g:Number(x.net_g||0)}));if(lines.some(x=>!(x.ingredient_id||x.prefab_id)))throw Error('Выберите компонент в каждой строке');await http('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(lines)})}await reload();await openRecipe(id);msg('saveInfo','Сохранено в базе',false)}catch(e){msg('saveInfo',e.message)}}
 
-function printRecipe(){
-  const fields={}; for(const id in fmap) fields[fmap[id]]=$(id).value;
-  const n=fields.name||'Без названия', t=x=>safe(x||'Не заполнено').replace(/\n/g,'<br>');
-  const srcName=x=>x.source_type==='ingredient'
-   ?ingredients.find(i=>i.id===Number(x.source_id))?.name
-   :recipes.find(r=>r.id===Number(x.source_id))?.name;
-  const rows=components.map((x,i)=>'<tr><td style="width:7%">'+(i+1)+'</td><td style="width:61%;text-align:left">'+safe(srcName(x)||'Не указан')+'</td><td style="width:16%">'+safe(x.gross_g)+'</td><td style="width:16%">'+safe(x.net_g)+'</td></tr>').join('');
-  const section=(heading,body,extra='')=>'<section class="psection '+extra+'"><h2>'+heading+'</h2><div class="psection__body">'+body+'</div></section>';
-  const status=fields.status==='Утверждено'?'Утверждено':'ЧЕРНОВИК · НЕ УТВЕРЖДЕНО';
-  const yieldText=(Number(fields.yield_g)>0 ? safe(fields.yield_g)+' г':'не подтверждён');
-  const photo=photoData?'<img src="'+safe(photoData)+'" alt="Фото готового блюда">':'ФОТО БЛЮДА НЕ ЗАГРУЖЕНО';
-  $('printSheet').innerHTML=
-   '<aside class="pbrand"><img class="pbrand__icon" src="data:image/jpeg;base64,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" alt="Море суши"><div class="pbrand__text">МОРЕ<br><em>СУШИ</em></div><div class="pbrand__sub">STUDIO PRO</div><div class="pbrand__wave"></div></aside>'+
-   '<header class="pheader"><div><div class="pheader__eyebrow">МОРЕ СУШИ · ТЕХНОЛОГИЧЕСКАЯ ДОКУМЕНТАЦИЯ</div><div class="pheader__title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</div></div><div class="pheader__badge"><b>'+safe(fields.code||'ТТК')+'</b><br>Версия '+safe(editing?.version||1)+'</div></header>'+
-   '<h1>'+safe(n)+'</h1>'+
-   '<div class="phero"><div class="pimage">'+photo+'</div><div class="pfacts">'+
-    '<div class="pfact"><b>Категория</b><span>'+safe(fields.category||'—')+'</span></div>'+
-    '<div class="pfact"><b>Статус</b><span class="pstatus">'+safe(status)+'</span></div>'+
-    '<div class="pfact"><b>Выход</b><span>'+yieldText+'</span></div>'+
-   '</div></div>'+
-   '<div class="pgrid">'+
-    section('1. ОБЛАСТЬ ПРИМЕНЕНИЯ','<div class="ptext">'+t(fields.scope)+'</div>')+
-    section('2. ТРЕБОВАНИЯ К СЫРЬЮ','<div class="ptext">'+t(fields.raw_requirements)+'</div>')+
-    section('3. РЕЦЕПТУРА','<table><thead><tr><th style="width:7%">№</th><th style="width:61%;text-align:left">Ингредиент / полуфабрикат</th><th style="width:16%">Брутто, г</th><th style="width:16%">Нетто, г</th></tr></thead><tbody>'+rows+'</tbody></table>')+
-    section('4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС','<div class="ptext">'+t(fields.process)+'</div>')+
-    section('5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ И ХРАНЕНИЕ','<div class="ptext">'+t(fields.serving)+'</div><p><b>Условия хранения:</b> '+t(fields.storage)+'</p>','psection--wide')+
-    section('6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ','<div class="ptext">'+t(fields.quality)+'</div><div class="pnote"><b>Аллергены:</b> '+t(fields.allergens)+'</div>')+
-    section('7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ','<div class="ptext">'+t(fields.nutrition)+'</div>')+
-   '</div>'+
-   '<div class="papproval"><div class="psign">Разработал: '+safe(fields.developed_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись</small></div><div class="psign">Утвердил: '+safe(fields.approved_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись</small></div><div class="pversion">Дата: '+safe(fields.approved_at||'—')+'<br>Версия '+safe(editing?.version||1)+'</div></div><div class="pfooterwave"></div>';
+
+function printRecipe() {
+  const f={};for(const id in fmap)f[fmap[id]]=$(id).value;
+  const txt=(v)=>safe(v||'Не заполнено').replace(/\n/g,'<br>');
+  const name=f.name||'Без названия';
+  const isSample=editing&&editing.code==='МС-ТТК-001';
+  const srcName=x=>x.source_type==='ingredient'?ingredients.find(i=>i.id===Number(x.source_id))?.name:recipes.find(r=>r.id===Number(x.source_id))?.name;
+  const shortName=n=>n==='Нори 1/2 листа'?'Нори':n==='Омлет японский (готовый ПФ)'?'Омлет японский (тамаго)':n==='Соус спайси — база'?'Соус спайси':n==='Креветка варёная очищенная'?'Креветка (очищенная)':n;
+  const lineHtml=components.map((x,i)=>'<tr><td style="width:6%">'+(i+1)+'</td><td style="width:47%">'+safe(shortName(srcName(x)||'—'))+'</td><td style="width:16%">'+Number(x.gross_g||0).toFixed(1).replace('.',',')+'</td><td style="width:16%">'+Number(x.net_g||0).toFixed(1).replace('.',',')+'</td><td style="width:15%">—</td></tr>').join('');
+  const section=(h,body,extra='')=>'<section class="psection '+extra+'"><h2>'+h+'</h2><div class="psection__body">'+body+'</div></section>';
+  const isApproved=f.status==='Утверждено';
+  const brand='<aside class="pbrand"><img class="pbrand__icon" src="data:image/jpeg;base64,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" alt="Логотип Море Суши"><div class="pbrand__text">Море <em>суши</em></div><div class="pbrand__sub">ДОСТАВКА СУШИ</div></aside>';
+  const photoSrc=photoData||null;
+  const photo=photoSrc?'<img src="'+safe(photoSrc)+'" alt="Фото готового блюда">':'Фото готового блюда не загружено';
+  const cats='<div class="phero"><div class="pimage">'+photo+'</div><div class="pfacts">'+
+    '<div class="pfact"><b>Категория:</b><span>'+safe(f.category||'—')+'</span></div>'+
+    '<div class="pfact"><b>Статус:</b><span>'+(isApproved?'Утверждено':'Черновик')+'</span></div>'+
+    '<div class="pfact"><b>Выход:</b><span>1 порция (8 кусочков)<br>'+safe(f.yield_g||'—')+' г '+(!isApproved?'(не подтверждён)':'')+'</span></div></div></div>';
+  const sumNet=components.reduce((a,x)=>a+Number(x.net_g||0),0);
+  const receipt='<table><thead><tr><th style="width:6%">№</th><th style="width:47%;text-align:left">Наименование ингредиента / полуфабриката</th><th style="width:16%">Брутто, г</th><th style="width:16%">Нетто, г</th><th style="width:15%">Выход, г</th></tr></thead><tbody>'+lineHtml+
+     '<tr class="sample-output"><td colspan="4">Выход готового блюда: '+(!isApproved?'указан по образцу, не подтверждён':'')+'</td><td>'+safe(f.yield_g||'—')+'</td></tr></tbody></table>'+
+     (!isApproved&&Math.abs(sumNet-Number(f.yield_g||0))>1?'<div class="warnnote">Сумма нетто компонентов: '+sumNet.toFixed(1).replace('.',',')+' г; потери и выход требуют проверки.</div>':'');
+  const nutr=isSample?'<div><b>На 1 порцию (~260 г), значения по образцу, не проверены:</b><br><table class="nutrition"><thead><tr><th>Белки, г</th><th>Жиры, г</th><th>Углеводы, г</th><th>Ккал</th></tr></thead><tbody><tr><td>16,9</td><td>25,7</td><td>58,8</td><td>≈545</td></tr></tbody></table></div>'
+    :'<div class="ptext">'+txt(f.nutrition)+'</div>';
+  const f5='<div class="pflex"><div><div class="ptext">'+txt(f.serving)+'</div><p><b>Условия и сроки хранения:</b><br>'+txt(f.storage)+'</p></div><div class="pallergen"><b>АЛЛЕРГЕНЫ</b><br>'+txt(f.allergens)+'</div></div>';
+  $('printSheet').innerHTML=brand+
+    '<header class="pheader"><div class="pheader__title">Технико-технологическая карта</div></header>'+
+    '<h1>'+safe(f.code)+' · '+safe(name)+'</h1>'+cats+
+    '<div class="pgrid">'+
+      section('1. ОБЛАСТЬ ПРИМЕНЕНИЯ','<div class="ptext">'+txt(f.scope)+'</div>')+
+      section('2. ТРЕБОВАНИЯ К СЫРЬЮ','<div class="ptext">'+txt(f.raw_requirements)+'</div>')+
+      section('3. РЕЦЕПТУРА',receipt)+
+      section('4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС','<div class="ptext">'+txt(f.process)+'</div>')+
+      section('5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ',f5,'psection--wide')+
+      section('6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ','<div class="ptext">'+txt(f.quality)+'</div>')+
+      section('7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ',nutr)+
+    '</div>'+
+    '<div class="papproval"><div class="pversion">Версия '+safe(editing?.version||1)+'<br>'+(!isApproved?'Рабочий образец':'Документ утверждён')+'</div>'+
+    '<div class="psign">Разработал: '+safe(f.developed_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись</small></div>'+
+    '<div class="psign">Утвердил: '+safe(f.approved_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись · '+safe(f.approved_at||'дата не установлена')+'</small></div></div>';
   window.print();
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
