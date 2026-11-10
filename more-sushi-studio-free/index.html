@@ -130,7 +130,7 @@ function printRecipe() {
   const name=f.name||'Без названия';
   const isSample=editing&&editing.code==='МС-ТТК-001';
   const srcName=x=>x.source_type==='ingredient'?ingredients.find(i=>i.id===Number(x.source_id))?.name:recipes.find(r=>r.id===Number(x.source_id))?.name;
-  const shortName=n=>n==='Нори 1/2 листа'?'Нори':n==='Омлет японский (готовый ПФ)'?'Омлет японский (тамаго)':n==='Соус спайси — база'?'Соус спайси':n==='Креветка варёная очищенная'?'Креветка (очищенная)':n;
+  const shortName=n=>n==='Нори 1/2 листа'?'Нори':n==='Сыр сливочный'?'Сыр творожный (крем-чиз)':n==='Омлет японский (готовый ПФ)'?'Омлет японский (тамаго)':n==='Соус спайси — база'?'Соус спайси':n==='Креветка варёная очищенная'?'Креветка (очищенная, готовая)':n==='Тобико красная'?'Икра тобико (красная)':n;
   const lineHtml=components.map((x,i)=>'<tr><td style="width:6%">'+(i+1)+'</td><td style="width:47%">'+safe(shortName(srcName(x)||'—'))+'</td><td style="width:16%">'+Number(x.gross_g||0).toFixed(1).replace('.',',')+'</td><td style="width:16%">'+Number(x.net_g||0).toFixed(1).replace('.',',')+'</td><td style="width:15%">—</td></tr>').join('');
   const section=(h,body,extra='')=>'<section class="psection '+extra+'"><h2>'+h+'</h2><div class="psection__body">'+body+'</div></section>';
   const isApproved=f.status==='Утверждено';
