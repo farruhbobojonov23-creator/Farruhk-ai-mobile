@@ -170,11 +170,35 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 #recipeTable .itemInput:focus{overflow:visible;background:#fff!important;text-overflow:clip}
 #recipeTable tbody input:empty{background:transparent}
 @media print{#recipeTable input{font-size:8.7px!important}#recipeTable .itemInput{overflow:hidden!important;text-overflow:ellipsis!important}}
+
+#photoBox{isolation:isolate;background:radial-gradient(ellipse at 60% 86%, #c8d3dc,#e7f1f8 40%,#91adc0);border:0}
+#photoBox img{width:100%;height:100%;display:none;object-fit:contain;padding:5px;position:relative;z-index:2;transition:transform .15s,filter .15s;will-change:transform}
+#photoBox .uploadEmpty{z-index:3}
+#designPanel select{border:1px solid #b9d1e2;padding:6px 8px;border-radius:6px;width:150px;max-width:160px;background:white;color:#184b70}
+#designPanel label{gap:12px}
+#designPanel input[type=checkbox]{width:18px;height:18px;accent-color:#0c70ae}
+#designPanel input[type=file]{color:#0d5784}
+#photoBgColor{cursor:pointer}
+@media print{#photoBox img{filter:var(--print-img-filter,none)}}
 </style></head><body>
 <header id="toolbar"><strong>🌊 Море Суши · ТТК А4</strong>
 <select id="recipePick" aria-label="Выбор рецептуры"></select>
 <button id="save" class="primary">Сохранить</button><button id="print">Печать / PDF A4</button><button id="designBtn">🎨 Оформление</button><button id="logoBtn">Сменить логотип</button><button id="back">← Меню</button></header>
-<aside id="designPanel" hidden><h3>Оформление листа A4</h3><p>Цвета и логотип изменяются только у выбранной ТТК и сохраняются вместе с документом.</p><label>Тёмно-синий <input type="color" data-theme="navy" value="#082a4b"></label><label>Синий <input type="color" data-theme="blue" value="#0c5790"></label><label>Красный <input type="color" data-theme="red" value="#e72339"></label><label>Фон страницы <input type="color" data-theme="paper" value="#ffffff"></label><label>Размер логотипа <input type="range" min="72" max="145" step="1" data-theme="logoSize" value="126"></label><label>Размер текста <input type="range" min="85" max="112" step="1" data-theme="fontPercent" value="100"></label><button type="button" id="resetDesign">Вернуть фирменные цвета</button><button type="button" id="closeDesign">Закрыть</button></aside>
+<aside id="designPanel" hidden><h3>Оформление листа A4</h3><p>Цвета и логотип изменяются только у выбранной ТТК и сохраняются вместе с документом.</p><label>Тёмно-синий <input type="color" data-theme="navy" value="#082a4b"></label><label>Синий <input type="color" data-theme="blue" value="#0c5790"></label><label>Красный <input type="color" data-theme="red" value="#e72339"></label><label>Фон страницы <input type="color" data-theme="paper" value="#ffffff"></label><label>Размер логотипа <input type="range" min="72" max="145" step="1" data-theme="logoSize" value="126"></label><label>Размер текста <input type="range" min="85" max="112" step="1" data-theme="fontPercent" value="100"></label><hr style="border:0;border-top:1px solid #dce7ee;margin:14px 0"><h4 style="margin:8px 0">Фото товара без фона (PNG/WebP)</h4>
+<label>Стиль фона <select id="photoScene"><option value="stone">Камень / премиум</option><option value="ice">Ледяной голубой</option><option value="white">Белый студийный</option><option value="navy">Морской тёмный</option><option value="silver">Серебристый</option><option value="custom">Мой цвет</option></select></label>
+<label>Цвет фона <input type="color" id="photoBgColor" value="#d8e6f0"></label>
+<label>Как показать фото <select id="photoFit"><option value="contain">Полностью без обрезки</option><option value="cover">Заполнить рамку</option></select></label>
+<label>Размер товара <input type="range" id="photoScale" min="50" max="175" step="5" value="100"></label>
+<label>Сдвиг ↔ <input type="range" id="photoX" min="-100" max="100" step="2" value="0"></label>
+<label>Сдвиг ↕ <input type="range" id="photoY" min="-100" max="100" step="2" value="0"></label>
+<label>Тень под товаром <input type="checkbox" id="photoShadow" checked></label>
+<label>Свой фоновый рисунок <input type="file" id="photoBackdrop" accept="image/png,image/jpeg,image/webp" style="max-width:135px;font-size:10px"></label>
+<button type="button" id="clearBackdrop">Убрать свой фон</button>
+<hr style="border:0;border-top:1px solid #dce7ee;margin:14px 0"><h4 style="margin:8px 0">Автоматическое заполнение</h4>
+<label>Собирать аллергены из состава <input type="checkbox" id="autoAllergens" checked></label>
+<button type="button" id="recalcAllergens">↻ Проверить аллергены</button>
+<p id="allergenWarnings" style="font-size:11px;color:#9d621a"></p>
+<button type="button" id="resetDesign">Вернуть фирменные цвета</button><button type="button" id="closeDesign">Закрыть</button></aside>
 <input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp" hidden>
 <div id="feedback">Редактируйте прямо на цветном шаблоне. Изменения сохраняются в выбранную карточку.</div>
 <div id="pageWrap"><main id="page">
@@ -251,6 +275,34 @@ const defaultLogo=$('#logo').getAttribute('src');
 const defaultTheme={navy:'#082a4b',blue:'#0c5790',red:'#e72339',paper:'#ffffff',logoSize:126,fontPercent:100};
 const defaultsText=Object.fromEntries($$('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
 let currentTheme={...defaultTheme},currentLogo=defaultLogo;
+const defaultPhotoStyle={scene:'stone',color:'#d8e6f0',fit:'contain',scale:100,x:0,y:0,shadow:true,backdrop:null};
+let photoStyle={...defaultPhotoStyle},isAutoAllergens=true,ingredientConnections=[];
+function applyPhotoStyle(p){
+ const s={...defaultPhotoStyle,...p};
+ if(!['stone','ice','white','navy','silver','custom'].includes(s.scene))s.scene='stone';
+ if(!['contain','cover'].includes(s.fit))s.fit='contain';
+ if(!/^#[0-9a-fA-F]{6}$/.test(s.color))s.color=defaultPhotoStyle.color;
+ for(const [name,min,max] of [['scale',50,175],['x',-100,100],['y',-100,100]])s[name]=Math.max(min,Math.min(max,Number(s[name])||0));
+ s.shadow=Boolean(s.shadow);
+ if(!/^data:image\/(png|jpeg|webp);base64,/.test(s.backdrop||''))s.backdrop=null;
+ photoStyle=s;
+ const holder=$('#photoBox'),img=$('#dishPhoto');
+ const presets={
+ stone:'radial-gradient(ellipse at 60% 86%, #c8d3dc 0%, #e7f1f8 40%, #91adc0 100%)',
+ ice:'radial-gradient(ellipse at 50% 85%, #edfdff 0%, #bfe2f7 50%, #75b9e5 100%)',
+ white:'radial-gradient(ellipse at 40% 60%, #fff 0%, #f3f7f9 70%, #d5e3ed 100%)',
+ navy:'radial-gradient(ellipse at 50% 76%, #4b839e 0%, #124a70 54%, #071f3e 100%)',
+ silver:'linear-gradient(135deg,#b6c4cc 0%,#eff5f9 45%,#a4b7c4 100%)',
+ custom:s.color
+ };
+ holder.style.background=s.backdrop?('center / cover no-repeat url("'+s.backdrop+'")'):presets[s.scene];
+ img.style.objectFit=s.fit;
+ img.style.transform='translate('+s.x+'px,'+s.y+'px) scale('+(s.scale/100)+')';
+ img.style.filter=s.shadow?'drop-shadow(0 10px 9px rgba(8,25,41,.32))':'none';
+ for(const [id,value] of [['photoScene',s.scene],['photoBgColor',s.color],['photoFit',s.fit],['photoScale',s.scale],['photoX',s.x],['photoY',s.y]]){const el=$('#'+id);if(el)el.value=value}
+ if($('#photoShadow'))$('#photoShadow').checked=s.shadow;
+}
+
 function round2(v){return Math.round((v+Number.EPSILON)*100)/100}
 function num(v){const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)?n:0}
 function formatted(v){return Number(v).toLocaleString('ru-RU',{maximumFractionDigits:2,minimumFractionDigits:1})}
@@ -344,6 +396,8 @@ async function loadRecipe(id){
  $('#version').textContent=r.version||1;
  applyLayout(tf.custom_texts||{});
  applyTheme(tf.theme||{});
+ applyPhotoStyle(tf.photo_style||{});
+ isAutoAllergens=tf.auto_allergens!==false;$('#autoAllergens').checked=isAutoAllergens;
  currentLogo=(typeof tf.logo_data_url==='string'&&/^data:image\/(webp|png|jpeg);base64,/.test(tf.logo_data_url))?tf.logo_data_url:defaultLogo;
  $('#logo').src=currentLogo;
  $('#lossG').value=num(tf.loss_g||0).toFixed(1);
@@ -378,7 +432,7 @@ async function save(){
  }
  const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
  const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),
- loss_g:calc.loss,theme:{...currentTheme},logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
+ loss_g:calc.loss,theme:{...currentTheme},photo_style:{...photoStyle},auto_allergens:isAutoAllergens,logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
  const payload={code:get('code'),name:get('name'),category:get('category'),status:get('status'),yield_g:yieldValue,scope:get('scope'),raw_requirements:get('raw_requirements'),process:stepsText(),ttk_fields,serving:buildServing(),storage:get('storage'),quality:buildQuality(),allergens:get('allergens'),nutrition:n,developed_by:get('developed_by'),approved_by:get('approved_by')||null,approved_at:/^\d{4}-\d{2}-\d{2}$/.test(get('introduced_at'))?get('introduced_at'):null,photo_path:image,version:(current.version||1)+1,updated_at:new Date().toISOString()};
  saving=true;$('#save').disabled=true;msg('Сохраняю изменения…');
  try{
