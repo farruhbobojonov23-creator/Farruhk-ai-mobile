@@ -649,7 +649,8 @@ function renderPreview(){
  q('#recipeTable th:last-child').textContent='';q('#recipeTable th:last-child').classList.add('sheet-screen-only');
  q('#recipeTable tfoot td').colSpan=3;q('#totalYield').textContent=fmt(draft.yield_g)+' г';
  q('.smalltools').innerHTML='<button type="button" data-command="sheetAddLine">＋ Строка</button><span>Брутто: <b id="sheetTotalGross">'+fmt(rows.reduce((s,l)=>s+(Number(l.gross_g)||0),0))+' г</b> · Нетто: <b id="sheetTotalNet">'+fmt(rows.reduce((s,l)=>s+(Number(l.net_g)||0),0))+' г</b></span>';
- $('previewStatus').textContent=draft.status||'Черновик';refreshSheetToolbar();fitPaper();requestAnimationFrame(detectOverflow);renderReview();
+ window.FARUKH_A4_EDITOR?.apply();
+ $('previewStatus').textContent=draft.status||'Черновик';refreshSheetToolbar();fitPaper();requestAnimationFrame(()=>{window.FARUKH_A4_EDITOR?.fit();detectOverflow()});renderReview();
 }
 
 /* One-sheet, WYSIWYG editing. Existing validated data model remains the source of truth. */
@@ -725,7 +726,7 @@ function sheetInputHandler(event){
  sheetMassSummary();
  // Don't replace the live paper while the caret is inside an editable field.
  cancelAnimationFrame(sheetOverflowRequest);
- sheetOverflowRequest=requestAnimationFrame(()=>detectOverflow());
+ sheetOverflowRequest=requestAnimationFrame(()=>{window.FARUKH_A4_EDITOR?.fit();detectOverflow()});
 }
 function directSheetMove(index,direction){
  collectSheetValues();
@@ -818,7 +819,8 @@ function detectOverflow(){
  const pageOverflow=paper.scrollHeight>1126||paper.scrollWidth>797;
  const childOverflow=[...main.querySelectorAll('.sheet-section,.sheet-dish-header,.sheet-recipe-section,.sheet-signatures,.card .body,.card .edit,#f5 .edit,#nameStrip .edit,#foot .edit' )]
   .some(el=>el.scrollHeight>el.clientHeight+4||el.scrollWidth>el.clientWidth+4);
- const overflow=bodyOverflow||pageOverflow||childOverflow;
+ const designerOverflow=window.FARUKH_A4_EDITOR?.hasOverflow()||false;
+  const overflow=bodyOverflow||pageOverflow||childOverflow||designerOverflow;
  let hint=$('paperOverflow');
  if(!hint){
   hint=document.createElement('div');
@@ -960,7 +962,13 @@ function init(){
  $('sheetStatus').addEventListener('change',sheetSelectStatus);
  $('sheetVerified').addEventListener('change',sheetCheckVerified);
 
- if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
+ window.FARUKH_A4_EDITOR?.init({
+   getDraft:()=>draft,
+   markDirty:()=>{dirty=true;renderReview()},
+   checkOverflow:()=>{if(currentView==='editor')detectOverflow()},
+   rerender:()=>{if(draft)renderPreview()}
+  });
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
  // Reuse the existing user login so this replacement starts empty without requiring new account setup.
  session=storedSession();
