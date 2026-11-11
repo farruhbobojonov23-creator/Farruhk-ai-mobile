@@ -194,7 +194,7 @@
 #ingredientsPage .ingLegend{margin:10px 0 0;font-size:11px}
 @media(max-width:800px){#ingredientsPage .ingredientListHead{align-items:stretch;flex-direction:column}#ingredientsPage .ingredientListHead>.row{flex-wrap:wrap}#ingredientsPage .ingCategoryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#ingredientsPage .ingCategoryCard{min-height:116px;padding:12px;column-gap:7px}#ingredientsPage .ingCategoryIcon{width:35px;height:35px;font-size:21px}}
 @media(max-width:470px){#ingredientsPage .ingCategoryGrid{grid-template-columns:1fr 1fr;gap:8px}#ingredientsPage .ingCategoryName{font-size:11px}#ingredientsPage .ingCategoryCard{min-height:108px;padding:9px}#ingredientsPage .ingCategoryIcon{display:none}#ingredientsPage .ingCategoryName,#ingredientsPage .ingCategoryCount,#ingredientsPage .ingCategoryGo{grid-column:1/3}#ingredientsPage .ingPageNav{flex-direction:column;align-items:flex-start}#ingredientFormPanel{padding:12px}}
-</style><link rel="stylesheet" href="./ultra.css?v=20261110-layout2"><link rel="stylesheet" href="./icons3d.css?v=20261111-real-products-v5"><link rel="stylesheet" href="./ingredient-card.css?v=20261111-label2"></head><body>
+</style><link rel="stylesheet" href="./ultra.css?v=20261111-pf-safety-pro1"><link rel="stylesheet" href="./icons3d.css?v=20261111-real-products-v5"><link rel="stylesheet" href="./ingredient-card.css?v=20261111-label2"></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
 <h2 id="authTitle">Вход в платформу</h2>
 <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="name@example.com"></div><br>
@@ -650,4 +650,4 @@ function printRecipe() {
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
 (async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-real-products-v5"></script><script src="./ultra.js?v=20261110-real2"></script><script src="./ingredient-card.js?v=20261111-label5-hires-ocr"></script></body></html>
+</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-real-products-v5"></script><script src="./ultra.js?v=20261111-pf-safety-pro1"></script><script src="./ingredient-card.js?v=20261111-label5-hires-ocr"></script></body></html>
