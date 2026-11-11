@@ -56,7 +56,7 @@ function parseLabel(raw) {
   let tail=line.slice(m.index+m[0].length);
   // Common manufacturer labels: Белки, г: 7,1; Proteins (g) 7.1
   tail=tail.replace(/^[\s:—–\-.,|/()\[\]гg]{0,18}/i,'');
-  const v=tail.match(/^(\d{1,3}(?:[.,]\d{1,3})?)(?:\s|$|г\b|g\b|[;,|])/i);
+  const v=tail.match(/^(\d{1,3}(?:[.,]\d{1,3})?)(?:\s|$|г(?=\s|$|[;,./])|g\b|[;,|])/i);
   if(!v)return null;
   const n=number(v[1]);
   return Number.isFinite(n)&&n>=0&&n<=100?n:null;
@@ -116,7 +116,8 @@ function parseLabel(raw) {
  let hours=null;
  if(life)hours=number(life[1])*(/^(?:час|ч\b|hour)/i.test(life[2])?1:24);
  if(hours!==null&&(!Number.isFinite(hours)||hours<=0))hours=null;
- const warning=lines.filter(s=>/(?:аллерген|содержит|may contain|contains|следы)/i.test(s)&&!/не содержит/i.test(s)).join(' ');
+ const warning=lines.filter(s=>/(?:аллерген|содержит|contains)/i.test(s)&&!/не содержит|может содержать|may contain|следы/i.test(s)).join(' ');
+ const tracesText=lines.filter(s=>/может содержать|may contain|следы/i.test(s)).join(' ');
  let composition=lines.filter(s=>/(?:^|\s)состав\s*[:—-]|ingredients\s*:/i.test(s)).join(' ');
  if(composition.length<20)composition='';
  const source=warning+' '+composition;
@@ -128,12 +129,20 @@ function parseLabel(raw) {
   'горчица':/горчиц|mustard/i,'орехи':/орех|nuts?\b/i,'арахис':/арахис|peanut/i,
   'сельдерей':/сельдерей|celery/i,'люпин':/люпин|lupin/i,'сульфиты':/сульфит|sulphite/i
  };
- return {macros:values,manufacturer,storage,hours,allergens:Object.entries(allergens).filter(([_,re])=>re.test(source)).map(([k])=>k),
+ const allergenNames=Object.entries(allergens).filter(([_,re])=>re.test(source)).map(([k])=>k);
+ const traces=Object.entries(allergens).filter(([_,re])=>re.test(tracesText)).map(([k])=>k);
+ const basis=/(?:на|в)\s*100\s*г|per\s*100\s*g/i.test(t)?'100g':/на\s*(?:одну\s*)?порци|per\s*serving/i.test(t)?'serving':'unspecified';
+ return {macros:values,manufacturer,storage,hours,allergens:allergenNames,traces,basis,
    nutritionCount:Object.values(values).filter(v=>v!==null).length};
 }
 function applyText() {
  const d=parseLabel(e('msLabelText').value);
  const changed=[];
+ if(d.basis==='serving'){
+  // Values for a portion cannot safely be stored as 100 g.
+  banner('⚠ На этикетке указана пищевая ценность на порцию, а не на 100 г. Пересчитайте по подтверждённой массе порции.',true);
+  e('msLabelDetails').open=true;return d;
+ }
  if(d.manufacturer){e('ingManufacturer').value=d.manufacturer;changed.push('производитель')}
  if(d.storage){e('ingStorage').value=d.storage;changed.push('хранение')}
  else if(/^[«"' ]*условия хранени[^\n]{0,130}stor[ae]?\s*$/i.test(e('ingStorage').value))e('ingStorage').value='';
@@ -152,7 +161,7 @@ function applyText() {
  if(d.nutritionCount<4){
   const missing=Object.keys(d.macros).filter(k=>d.macros[k]===null).map(k=>({protein:'белки',fat:'жиры',carbs:'углеводы',kcal:'ккал'}[k]));
   banner('Распознано '+d.nutritionCount+' из 4 значений КБЖУ. Не найдены: '+missing.join(', ')+'. Сфотографируйте этикетку крупнее или дополните вручную.',true);
- }else banner('✅ Все 4 показателя КБЖУ распознаны и внесены. Сверьте с этикеткой и подтвердите.');
+ }else banner('✅ Все 4 показателя КБЖУ распознаны. Сверьте с этикеткой и подтвердите.'+(d.traces?.length?' Возможные следы аллергенов: '+d.traces.join(', ')+'.':''));
  return d;
 }
 async function enhancePicture(uri) {
