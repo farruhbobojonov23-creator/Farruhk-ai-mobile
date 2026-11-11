@@ -32,6 +32,7 @@ function current(){
  const id=d.template||'atelier';
  const cfg=root[id]||(root[id]={font:100,accent:'',blocks:{}});
  cfg.blocks=cfg.blocks&&typeof cfg.blocks==='object'?cfg.blocks:{};
+ cfg.labels=cfg.labels&&typeof cfg.labels==='object'?cfg.labels:{};
  return cfg;
 }
 function blockFor(key){const b=BLOCKS.find(v=>v.key===key);return b&&paper()?.querySelector(b.selector)}
@@ -106,6 +107,11 @@ function fitText(root){
 function apply(){
  const root=paper(),cfg=current();if(!root||!cfg)return;
  root.classList.toggle('a4-layout-active',layoutMode);
+ for(const label of root.querySelectorAll('[data-layout]')){
+  const key=label.dataset.layout;
+  if(Object.prototype.hasOwnProperty.call(cfg.labels,key))label.textContent=cfg.labels[key];
+  label.contentEditable=layoutMode?'false':'true';label.spellcheck=false;
+ }
  root.style.removeProperty('--a4-own-accent');
  if(/^#[0-9a-fA-F]{6}$/.test(cfg.accent||'')){
   root.style.setProperty('--ttk-red',cfg.accent);
@@ -266,7 +272,14 @@ function setup(){
  for(const input of ui.querySelectorAll('[data-a4-coord]'))input.addEventListener('change',onCoord);
  $('paper').addEventListener('click',e=>{
   if(layoutMode&&e.target.closest('[data-a4-block]')){e.preventDefault();e.stopImmediatePropagation()}
+  else if(e.target.closest('[data-layout]')&&!layoutMode){e.stopImmediatePropagation()}
  },true);
+ $('paper').addEventListener('input',e=>{
+  const label=e.target.closest('[data-layout]');if(!label||layoutMode)return;
+  const cfg=current();if(!cfg)return;
+  cfg.labels[label.dataset.layout]=(label.innerText||'').trim().slice(0,300);
+  mark();requestAnimationFrame(()=>{fitText(paper());bridge?.checkOverflow()});
+ });
  $('paper').addEventListener('pointerdown',onDown);
  $('paper').addEventListener('pointermove',onMove);
  $('paper').addEventListener('pointerup',onUp);
