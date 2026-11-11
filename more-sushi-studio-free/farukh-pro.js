@@ -284,7 +284,7 @@ function nextTtkCode(projectId){
 }
 function blankDoc(projectId,template='atelier'){
  return {id:null,project_id:projectId||'',title:'',code:projectId?nextTtkCode(projectId):'',category:'Блюда',status:'Черновик',
-  yield_g:null,photo_data:null,lines:[],fields:{scope:'',raw:'',process:'',serving:'',storage:'',
+  yield_g:null,photo_data:null,lines:[{name:'',gross_g:null,net_g:null}],fields:{scope:'',raw:'',process:'',serving:'',storage:'',
    quality:'',allergens:'',nutrition:'',developed:prefs.chef_name||'',approved:'',date:'',verified:'no'},
   template,version:1};
 }
