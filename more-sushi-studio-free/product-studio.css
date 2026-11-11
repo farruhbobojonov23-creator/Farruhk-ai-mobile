@@ -1,0 +1,20 @@
+
+/* MORE SUSHI — finished product menu */
+#msProductMenu{margin:12px 0 14px;border:1px solid #c8e2f2;border-radius:14px;padding:15px;background:linear-gradient(115deg,#edf8ff,#fdfefe);box-shadow:0 5px 20px #16496d10}
+#msProductMenu[hidden],#msProductEditorNote[hidden]{display:none!important}
+.msProductHero{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.msProductHero h2{font-size:20px;line-height:1.15;color:#103f65;margin:6px 0 4px}
+.msProductHero small{font-size:10px;color:#1486b8;letter-spacing:1.1px;font-weight:900}
+.msProductHero p{margin:0;color:#557b91;font-size:12px;line-height:1.35}
+.msProductHero strong{background:#d7ebfb;color:#155f91;border-radius:12px;padding:10px 12px;font-size:23px;white-space:nowrap}
+.msProductFilters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:13px}
+.msProductFilters input,.msProductFilters select{box-sizing:border-box;width:100%;min-width:0;background:white;border:1px solid #bcd6e7;border-radius:9px;padding:10px 9px;color:#204e69;font-size:12px}
+.msProductAlert{background:#fff9ea;border-radius:10px;padding:10px 12px;color:#895b22;font-size:11px;line-height:1.45;margin-top:11px}
+.msProductTags{display:block;font-size:10px;color:#718da2;margin-top:5px}
+.msProductTtk{display:inline-block;background:#115b8b;color:#fff!important;border-radius:7px;padding:8px 10px;font-size:11px;text-decoration:none;margin:5px 0 0 5px;white-space:nowrap}
+#msProductEditorNote{border:1px solid #c4dded;background:#f3fbff;border-radius:10px;padding:13px;margin:10px 0 15px;color:#32617d}
+#msProductEditorNote strong{display:block;color:#164665;font-size:15px}
+#msProductEditorNote p{font-size:12px;line-height:1.45;margin:6px 0}
+#msProductEditorNote small{color:#64849a;font-size:11px}
+@media(max-width:780px){.msProductFilters{grid-template-columns:1fr 1fr}.msProductFilters input{grid-column:1/-1}}
+@media(max-width:470px){#msProductMenu{padding:12px}.msProductHero h2{font-size:17px}.msProductHero strong{font-size:18px}.msProductFilters select{font-size:11px}.msProductTtk{margin:4px 0 0}}
