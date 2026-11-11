@@ -650,6 +650,7 @@ function renderPreview(){
  q('#recipeTable tfoot td').colSpan=3;q('#totalYield').textContent=fmt(draft.yield_g)+' г';
  q('.smalltools').innerHTML='<button type="button" data-command="sheetAddLine">＋ Строка</button><span>Брутто: <b id="sheetTotalGross">'+fmt(rows.reduce((s,l)=>s+(Number(l.gross_g)||0),0))+' г</b> · Нетто: <b id="sheetTotalNet">'+fmt(rows.reduce((s,l)=>s+(Number(l.net_g)||0),0))+' г</b></span>';
  window.FARUKH_A4_EDITOR?.apply();
+ window.FARUKH_TTK_SETTINGS?.apply();
  $('previewStatus').textContent=draft.status||'Черновик';refreshSheetToolbar();fitPaper();requestAnimationFrame(()=>{window.FARUKH_A4_EDITOR?.fit();detectOverflow()});renderReview();
 }
 
@@ -968,6 +969,7 @@ function init(){
    checkOverflow:()=>{if(currentView==='editor')detectOverflow()},
    rerender:()=>{if(draft)renderPreview()}
   });
+ window.FARUKH_TTK_SETTINGS?.init();
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
  // Reuse the existing user login so this replacement starts empty without requiring new account setup.
