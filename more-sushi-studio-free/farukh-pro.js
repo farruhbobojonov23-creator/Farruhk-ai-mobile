@@ -636,7 +636,7 @@ function renderPreview(){
  q('#nutritionHead').textContent='На 100 г готового продукта:';
  if(f.nutrition&&!groups.nutrition.some(k=>parts[k])){const legacy=document.createElement('div');legacy.className='archive-nutrition-legacy edit';legacy.dataset.sheetField='fNutrition';legacy.contentEditable='true';legacy.textContent=f.nutrition;q('.card7 .body').append(legacy)}
  q('#brand').dataset.command='sheetProjectEdit';q('#brand').title='Изменить логотип бренда';
- q('.brandname').textContent=p?.name||'Ваш бренд';q('.brandsub').textContent='';
+ if(!/море|more/i.test(p?.name||'')){q('.brandname').textContent=p?.name||'Ваш бренд';q('.brandsub').textContent=''}
  const logo=q('#logo');if(p&&validImg(p.logo_data))logo.src=p.logo_data;else if(!/море|more/i.test(p?.name||'')){logo.remove();q('.brandname').style.marginTop='35px'}
  q('#photoInput')?.remove();q('#photoBox').dataset.command='sheetPhoto';q('#photoBox').setAttribute('role','button');q('#photoBox').tabIndex=0;
  if(validImg(draft.photo_data)){q('#dishPhoto').src=draft.photo_data;q('#dishPhoto').style.display='block';q('#photoPlaceholder').style.display='none'}
