@@ -278,3 +278,44 @@
  #catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode){grid-template-columns:1fr 1fr}
  #catalogPage.ultraCatalogMode #editorPage>.panel>.row:has(#rCode) .field:nth-child(2){grid-column:span 1}
 }
+
+/* Professional prefab controls · MORE SUSHI */
+.ultraPfSafety{margin:12px 16px 15px;padding:16px;border-radius:15px;border:1px solid #c5dfeb;background:linear-gradient(155deg,#f7fcff,#eaf6fd 96%);color:#144668;box-shadow:0 8px 21px #124f6d0b}
+.ultraPfHeading{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}
+.ultraPfHeading small{display:block;font-size:10px;font-weight:900;letter-spacing:1.1px;color:#1684b5}
+.ultraPfHeading h3{margin:5px 0 0;font-size:17px;color:#103b5a;line-height:1.25}
+.ultraPfHeading>span{font-size:10px;color:#4a84a5;border:1px solid #bdd9e9;border-radius:18px;padding:6px 9px;white-space:nowrap}
+.ultraPfFields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ultraPfFields label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;line-height:1.3;color:#375c79;min-width:0}
+.ultraPfFields input{width:100%;box-sizing:border-box;min-width:0;border:1px solid #c5dae5;border-radius:9px;background:#fff;padding:11px 10px;font:inherit;font-size:13px;color:#143c56;outline-offset:2px}
+.ultraPfFields input:focus{border-color:#2794c3;box-shadow:0 0 0 3px #61b8e02b}
+.ultraPfHint{font-size:11px;line-height:1.4;margin:11px 0 8px;color:#81613c}
+.ultraPfStorage{border:1px dashed #b6d2e2;border-radius:9px;background:#fff;color:#345d75;padding:11px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ultraPfCheckTitle{display:flex;justify-content:space-between;align-items:center;margin:15px 0 9px}
+.ultraPfCheckTitle h4{margin:0;font-size:14px;color:#123b57}
+.ultraPfCheckTitle span{background:#e0edf5;color:#165b80;border-radius:18px;padding:5px 10px;font-weight:800;font-size:12px}
+.ultraPfChecklist{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ultraPfCheck{display:flex;align-items:center;gap:7px;font-size:11px;line-height:1.35;border:1px solid #d4e4ee;background:#fff;border-radius:9px;padding:8px 9px;color:#66788b}
+.ultraPfCheck span{flex:0 0 18px;height:18px;display:grid;place-items:center;border-radius:100%;background:#f8e8d6;color:#ae6b23;font-weight:800}
+.ultraPfCheck.ok{color:#216a53;background:#f3fdf9;border-color:#bee7d6}
+.ultraPfCheck.ok span{background:#d8f3e5;color:#168058}
+.ultraPfQuick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ultraPfQuick button{font-size:11px!important;padding:10px 11px!important;border-radius:9px!important}
+.ultraPfQuick button:disabled{opacity:.45;cursor:not-allowed}
+.ultraStarter{padding:10px 12px;border-bottom:1px solid #e3eff5;background:#f3faff}
+.ultraStarter button{background:#e5f2fb;color:#114d72;border:1px solid #b4d2e4;border-radius:9px;padding:8px 10px;font-weight:800;font-size:11px;cursor:pointer;width:100%}
+.ultraStarter button:hover{background:#d7eeff}
+.ultraStarter small{font-size:10px;line-height:1.35;display:block;color:#66859b;margin-top:6px}
+@media(max-width:810px){
+ .ultraPfSafety{margin:10px 12px;padding:13px}
+ .ultraPfHeading>span{display:none}
+ .ultraPfFields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ultraPfChecklist{grid-template-columns:1fr 1fr}
+}
+@media(max-width:540px){
+ .ultraPfFields,.ultraPfChecklist{grid-template-columns:1fr}
+ .ultraPfFields input{font-size:16px}
+ .ultraPfHeading h3{font-size:16px}
+ .ultraPfCheck{font-size:12px}
+ .ultraPfQuick button{width:100%}
+}
