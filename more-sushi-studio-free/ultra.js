@@ -61,6 +61,19 @@ function setup(){
    '<section class="ultraInfo"><h4>🔗 Где используется</h4><div id="ultraRelated">Нет связей</div></section>','ultraFootPanels'));
   mass.nextElementSibling.nextElementSibling.after(node('div','', 'ultraWarnBox'));
   editor.querySelector('.ultraWarnBox').id='ultraReviewWarning';el('ultraReviewWarning').hidden=true;
+  const pfQuality=node('section',
+   '<div class="ultraPfHeading"><div><small>КОНТРОЛЬ ПОЛУФАБРИКАТА</small><h3>🧊 Хранение и безопасность</h3></div><span>Отдельно от сырья</span></div>'+
+   '<div class="ultraPfFields"><label>Температура готового ПФ<input id="pfTemp" placeholder="Например, +2…+6 °C"></label>'+
+   '<label>Срок готового ПФ, часов<input id="pfHours" type="number" min="0.1" step=".1" inputmode="decimal" placeholder="Укажите срок"></label>'+
+   '<label>Основание для срока и режима<input id="pfSource" placeholder="Документ / утверждённая технология"></label>'+
+   '<label>Особые условия хранения<input id="pfStorageNote" placeholder="При необходимости"></label></div>'+
+   '<p class="ultraPfHint">⚠️ Срок и температуру готового полуфабриката необходимо подтвердить: они не копируются из сырья.</p>'+
+   '<div id="pfStoragePreview" class="ultraPfStorage">Параметры хранения пока не указаны.</div>'+
+   '<div class="ultraPfCheckTitle"><h4>Готовность карточки ПФ</h4><span id="pfReadyCount">0 / 7</span></div>'+
+   '<div class="ultraPfChecklist" id="pfReadiness"></div>'+
+   '<div class="ultraPfQuick"><button type="button" id="pfOpenProcess" class="secondary">✎ Технология и утверждение</button><button type="button" id="pfFillNutrition" class="secondary">↳ Перенести КБЖУ в ТТК</button></div>','ultraPfSafety');
+  pfQuality.id='ultraPfSafety';
+  el('ultraDemoScale').after(pfQuality);
  }
  const title=[...editor.children].find(x=>x.tagName==='H3'&&x.textContent.includes('ТТК'));
  if(title){
@@ -84,6 +97,14 @@ function setup(){
   else if(e.target.id==='rName')calc();
  });
  el('ultraAutoAllergens').addEventListener('change',calc);
+ el('ultraReviewed').addEventListener('change',readiness);
+ for(const id of ['pfTemp','pfHours','pfSource','pfStorageNote'])el(id).addEventListener('input',updateStorage);
+ el('pfOpenProcess').addEventListener('click',()=>{
+  el('ultraTtkDetails').open=true;el('rProcess').scrollIntoView({behavior:'smooth',block:'center'});el('rProcess').focus();
+ });
+ el('pfFillNutrition').addEventListener('click',copyCalculatedNutrition);
+ for(const id of ['rCode','rCategory','rName','rScope','rRaw','rProcess','rServing','rQuality','rStorage','rNutrition','rDeveloped','rApproved','rApprovedDate','rStatus'])
+   el(id).addEventListener('input',()=>readiness());
  setupStudioLayout();
  el('ultraCopyBatch').addEventListener('click',copyBatch);
  el('ultraPhotoChoose').addEventListener('click',()=>el('photoFile').click());
@@ -199,6 +220,51 @@ function photoPreview(){
   (window.MSIcons?MSIcons.render({name:el('rName').value||editing?.name||'Полуфабрикат',category:el('rCategory').value,
      ttk_fields:{ultra:{icon_emoji:U.icon}}},'recipe','large'):'<span class="ultraPhotoPlaceholder">🍣</span>');
 }
+function getPfSafety(){
+ return {temperature:el('pfTemp')?.value.trim()||'',hours:el('pfHours')?.value.trim()||'',
+  source:el('pfSource')?.value.trim()||'',note:el('pfStorageNote')?.value.trim()||''};
+}
+function setPfSafety(v){
+ for(const [key,id] of Object.entries({temperature:'pfTemp',hours:'pfHours',source:'pfSource',note:'pfStorageNote'}))
+  el(id).value=v?.[key]??'';
+ el('pfStoragePreview').textContent=el('rStorage').value||'Параметры хранения пока не указаны.';
+ readiness();
+}
+function updateStorage(){
+ const d=getPfSafety(),parts=[];
+ if(d.temperature)parts.push('Температура хранения готового ПФ: '+d.temperature);
+ if(d.hours!==''&&Number(d.hours)>0)parts.push('Срок хранения готового ПФ: '+d.hours+' ч');
+ if(d.note)parts.push('Особые условия: '+d.note);
+ if(parts.length)el('rStorage').value=parts.join('. ')+'.';
+ el('pfStoragePreview').textContent=el('rStorage').value||'Параметры хранения пока не указаны.';
+ readiness();
+}
+function readiness(result){
+ if(currentKind!=='prefab'||!el('pfReadiness'))return [];
+ const a=result||analyze(components),m=mass(),d=getPfSafety();
+ const masses=components.length>0&&components.every(c=>c.source_id&&Number(c.gross_g)>0&&Number(c.net_g)>0&&Number(c.net_g)<=Number(c.gross_g));
+ const checks=[
+  {label:'Код, название и категория',ok:!!(el('rCode').value.trim()&&el('rName').value.trim()&&el('rCategory').value.trim())},
+  {label:'Компоненты, брутто, нетто и выход',ok:!!(masses&&m.yield>0&&!a.error.length&&Number.isFinite(U.loss)&&U.loss>=0&&U.loss<m.net)},
+  {label:'Технология, сырьё и контроль качества',ok:!!(['rScope','rRaw','rProcess','rServing','rQuality'].every(id=>el(id).value.trim()))},
+  {label:'Срок, температура и основание хранения',ok:!!(d.temperature&&Number(d.hours)>0&&Number.isFinite(Number(d.hours))&&d.source&&el('rStorage').value.trim())},
+  {label:'Аллергены ингредиентов проверены',ok:!!(components.length&&!a.unverified.length&&el('ultraReviewed').checked)},
+  {label:'КБЖУ всех ингредиентов подтверждено',ok:!!(components.length&&a.foodComplete&&!a.unverifiedNutrition.length&&m.yield>0&&el('rNutrition').value.trim())},
+  {label:'Разработал, утвердил и дата',ok:!!(el('rDeveloped').value.trim()&&el('rApproved').value.trim()&&el('rApprovedDate').value)}
+ ];
+ el('pfReadyCount').textContent=checks.filter(x=>x.ok).length+' / '+checks.length;
+ el('pfReadiness').innerHTML=checks.map(c=>'<div class="ultraPfCheck '+(c.ok?'ok':'pending')+'"><span>'+(c.ok?'✓':'!')+'</span>'+esc(c.label)+'</div>').join('');
+ el('pfFillNutrition').disabled=!(components.length&&a.foodComplete&&m.yield>0);
+ return checks;
+}
+function copyCalculatedNutrition(){
+ const a=analyze(components),m=mass();
+ if(!components.length||!a.foodComplete||m.yield<=0){alert('Нет данных КБЖУ по всем ингредиентам.');return}
+ const f=x=>nice(round(x));
+ el('rNutrition').value='На 100 г: белки '+f(a.food.protein*100/m.yield)+' г; жиры '+f(a.food.fat*100/m.yield)+' г; углеводы '+f(a.food.carbs*100/m.yield)+' г; '+f(a.food.kcal*100/m.yield)+' ккал. На партию ('+f(m.yield)+' г): белки '+f(a.food.protein)+' г; жиры '+f(a.food.fat)+' г; углеводы '+f(a.food.carbs)+' г; '+f(a.food.kcal)+' ккал.';
+ el('ultraTtkDetails').open=true;readiness(a);
+ msg('saveInfo',a.unverifiedNutrition.length?'КБЖУ перенесено как расчётное — требуется сверка данных сырья: '+a.unverifiedNutrition.join(', '):'КБЖУ перенесено из карточек сырья. Проверьте перед утверждением.',false);
+}
 function nextCode(){
  const exists=new Set(pfList().map(r=>r.code));let k=1;while(exists.has('МС-ПФ-'+String(k).padStart(3,'0')))k++;
  return 'МС-ПФ-'+String(k).padStart(3,'0');
@@ -207,6 +273,7 @@ function fresh(){
  old.make();el('photoFile').value='';if(currentKind!=='prefab')return;
  el('rCode').value=nextCode();el('rCategory').value='Соусы';U.icon='';U.loss=0;U.scale=1;el('ultraLoss').value='0';
  el('ultraAutoAllergens').checked=true;el('ultraReviewed').checked=false;el('ultraItemLabel').textContent='Новый полуфабрикат';
+ setPfSafety({});
  renderComponents();photoPreview();renderList();el('ultraRelated').textContent='После сохранения будут показаны связанные товары.';
  el('ultraHistoryBody').textContent='История появится после изменения карточки.';
 }
@@ -218,6 +285,7 @@ async function open(id){
  U.loss=n(editing.ttk_fields?.loss_g);U.icon=editing.ttk_fields?.ultra?.icon_emoji||'';U.scale=1;el('ultraLoss').value=U.loss;
  el('ultraAutoAllergens').checked=editing.ttk_fields?.ultra?.auto_allergens!==false;
  el('ultraReviewed').checked=!!editing.ttk_fields?.ultra?.allergens_reviewed_by_chef;
+ setPfSafety(editing.ttk_fields?.ultra?.pf_storage||{});
  renderComponents();el('ultraItemLabel').textContent=editing.name;
  renderList();related();history(id);
 }
@@ -362,6 +430,7 @@ function restore(id){
  if(!confirm('Загрузить прежнюю версию в редактор? Сохранять придётся отдельно.'))return;
  for(const field in fmap)el(field).value=field==='rNutrition'?(snapshot.recipe.nutrition?.text||''):(snapshot.recipe[fmap[field]]??'');
  el('rStatus').value='Черновик';el('rApproved').value='';el('rApprovedDate').value='';el('ultraReviewed').checked=false;
+ setPfSafety(snapshot.recipe.ttk_fields?.ultra?.pf_storage||{});
  photoData=snapshot.recipe.photo_path||null;
  if(photoData){el('photoPreview').src=photoData;el('photoPreview').classList.remove('hidden')}
  components=snapshot.lines.map(l=>({source_type:l.ingredient_id?'ingredient':'prefab',source_id:Number(l.ingredient_id||l.prefab_id),gross_g:n(l.gross_g),net_g:n(l.net_g)}));
@@ -372,11 +441,11 @@ function clone(){
  if(!editing||currentKind!=='prefab')return;
  if(!confirm('Создать копию этого ПФ отдельной карточкой?'))return;
  const fields=Object.fromEntries(Object.keys(fmap).map(k=>[k,el(k).value]));
- const parts=components.map(x=>({...x})),picture=photoData,loss=U.loss,oldIcon=U.icon;
+ const parts=components.map(x=>({...x})),picture=photoData,loss=U.loss,oldIcon=U.icon,oldSafety=getPfSafety();
  fresh();for(const [k,v] of Object.entries(fields))el(k).value=v;
  el('rCode').value=nextCode();el('rName').value=fields.rName+' — копия';
  el('rStatus').value='Черновик';el('rApproved').value='';el('rApprovedDate').value='';el('ultraReviewed').checked=false;
- photoData=picture;if(picture){el('photoPreview').src=picture;el('photoPreview').classList.remove('hidden')}
+ setPfSafety(oldSafety);photoData=picture;if(picture){el('photoPreview').src=picture;el('photoPreview').classList.remove('hidden')}
  components=parts;U.icon=oldIcon;U.loss=loss;el('ultraLoss').value=loss;renderComponents();photoPreview();
  msg('saveInfo','Копия подготовлена — нажмите «Сохранить карточку».',false);
 }
@@ -410,14 +479,14 @@ async function importJson(e){
   el('rCategory').value=String(data.category||'Прочее').slice(0,100);
   for(const [key,id] of Object.entries({scope:'rScope',raw_requirements:'rRaw',process:'rProcess',serving:'rServing',quality:'rQuality',storage:'rStorage'}))
    if(typeof data[key]==='string')el(id).value=data[key];
-  components=mapped;U.loss=n(data.loss_g);el('ultraLoss').value=U.loss;renderComponents();
+  components=mapped;U.loss=n(data.loss_g);el('ultraLoss').value=U.loss;setPfSafety(data.pf_storage||{});renderComponents();
   msg('saveInfo','Файл загружен как новый черновик. Нажмите «Сохранить карточку».',false);
  }catch(err){alert('Не удалось импортировать: '+(err.message||err))}
 }
 function exportJson(){
  if(!editing){alert('Сначала сохраните полуфабрикат.');return}
  const data={schema:'more-sushi-v1',code:el('rCode').value,name:el('rName').value,category:el('rCategory').value,
- yield_g:mass().yield,loss_g:U.loss,scope:el('rScope').value,raw_requirements:el('rRaw').value,
+ yield_g:mass().yield,loss_g:U.loss,pf_storage:getPfSafety(),scope:el('rScope').value,raw_requirements:el('rRaw').value,
  process:el('rProcess').value,serving:el('rServing').value,quality:el('rQuality').value,storage:el('rStorage').value,
  components:components.map(c=>({type:c.source_type,
  name:(c.source_type==='ingredient'?ingredients:recipes).find(i=>Number(i.id)===Number(c.source_id))?.name,
