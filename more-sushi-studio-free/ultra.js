@@ -315,7 +315,7 @@ function componentsHtml(){
 function add(){components.push({source_type:'ingredient',source_id:null,gross_g:0,net_g:0});renderComponents()}
 function mass(){const net=components.reduce((a,c)=>a+n(c.net_g),0);return {net:round(net),yield:round(Math.max(0,net-U.loss))}}
 function analyze(entries,visited=new Set()){
- const out={cost:0,costComplete:true,food:{protein:0,fat:0,carbs:0,kcal:0},foodComplete:true,missingFood:[],allergens:new Set(),unverified:[],error:[]};
+ const out={cost:0,costComplete:true,food:{protein:0,fat:0,carbs:0,kcal:0},foodComplete:true,missingFood:[],unverifiedNutrition:[],allergens:new Set(),unverified:[],error:[]};
  for(const c of entries){
   const qty=n(c.net_g);
   if(!Number.isFinite(qty)||qty<0){out.error.push('Неверная масса');out.costComplete=false;out.foodComplete=false;continue}
@@ -327,6 +327,7 @@ function analyze(entries,visited=new Set()){
    if(['protein','fat','carbs','kcal'].every(k=>nutr[k]!=null&&nutr[k]!==''&&Number.isFinite(Number(nutr[k])))){
     for(const k of ['protein','fat','carbs','kcal'])out.food[k]+=Number(nutr[k])*qty/100;
    }else{out.foodComplete=false;out.missingFood.push(ing.name)}
+    if(ing.nutrition_review_status!=='verified')out.unverifiedNutrition.push(ing.name);
    String(ing.allergens||'').split(/[,;]+/).map(t=>t.trim()).filter(Boolean).forEach(t=>out.allergens.add(t));
    if(ing.allergen_status!=='verified')out.unverified.push(ing.name);
   }else{
@@ -339,12 +340,12 @@ function analyze(entries,visited=new Set()){
     source_type:l.ingredient_id?'ingredient':'prefab',source_id:Number(l.ingredient_id||l.prefab_id),net_g:n(l.net_g)})),trail);
    if(!inner.costComplete)out.costComplete=false;else out.cost+=inner.cost*qty/n(recipe.yield_g);
    if(!inner.foodComplete)out.foodComplete=false;else for(const k of ['protein','fat','carbs','kcal'])out.food[k]+=inner.food[k]*qty/n(recipe.yield_g);
-   out.missingFood.push(...inner.missingFood);out.unverified.push(...inner.unverified);out.error.push(...inner.error);
+   out.missingFood.push(...inner.missingFood);out.unverifiedNutrition.push(...inner.unverifiedNutrition);out.unverified.push(...inner.unverified);out.error.push(...inner.error);
    inner.allergens.forEach(t=>out.allergens.add(t));
   }
  }
  out.cost=round(out.cost);for(const k of ['protein','fat','carbs','kcal'])out.food[k]=round(out.food[k]);
- out.unverified=[...new Set(out.unverified)];out.missingFood=[...new Set(out.missingFood)];return out;
+ out.unverified=[...new Set(out.unverified)];out.missingFood=[...new Set(out.missingFood)];out.unverifiedNutrition=[...new Set(out.unverifiedNutrition)];return out;
 }
 function calc(){
  if(currentKind!=='prefab'||el('editorPage').classList.contains('hidden'))return;
@@ -362,16 +363,18 @@ function calc(){
  el('ultraAllergenDetail').textContent=(tags.length?'Группы: '+tags.join(', ')+'. ':'Группы не установлены. ')+(a.unverified.length?'Не подтверждены: '+a.unverified.slice(0,5).join(', ')+'.':'');
  const ready=a.foodComplete&&components.length&&m.yield>0;
  el('ultraMetricNutrition').textContent=ready?nice(a.food.kcal*100/m.yield)+' ккал':'—';
- el('ultraNutritionNote').textContent=ready?'На 100 г готового ПФ':'Не все ингредиенты имеют КБЖУ';
+ el('ultraNutritionNote').textContent=ready?(a.unverifiedNutrition.length?'Расчётное КБЖУ · требует сверки':'На 100 г готового ПФ · проверено'):'Не все ингредиенты имеют КБЖУ';
  el('ultraNutritionDetail').textContent=ready?'На 100 г: Б '+nice(a.food.protein*100/m.yield)+' · Ж '+nice(a.food.fat*100/m.yield)+' · У '+nice(a.food.carbs*100/m.yield)+' · '+nice(a.food.kcal*100/m.yield)+' ккал':
  'Не хватает данных по: '+(a.missingFood.slice(0,6).join(', ')||'составу')+'.';
  el('ultraItemLabel').textContent=el('rName').value||'Новый полуфабрикат';
  const warnings=[];
  if(a.unverified.length)warnings.push('Аллергены требуют сверки с этикетками.');
+ if(a.unverifiedNutrition.length)warnings.push('КБЖУ требует сверки: '+a.unverifiedNutrition.slice(0,3).join(', ')+'.');
  if(!ready)warnings.push('Авто-КБЖУ неполное: необходимы исходные показатели сырья.');
  if(a.error.length)warnings.push('Некорректны некоторые компоненты.');
  if(U.loss>m.net)warnings.push('Потери больше массы нетто.');
  el('ultraReviewWarning').hidden=!warnings.length;el('ultraReviewWarning').textContent=warnings.join(' ');
+ readiness(a);
  scaleView();
 }
 function scaleView(){
@@ -508,7 +511,12 @@ async function save(){
  }
  const m=mass();if(U.loss<0||m.yield<=0||U.loss>=m.net){msg('saveInfo','Потери должны быть меньше массы нетто; выход — больше нуля');return}
  const status=el('rStatus').value,analysis=analyze(components);
+ const checks=readiness(analysis);
+ if(components.some(c=>Number(c.gross_g)<=0||Number(c.net_g)<=0||Number(c.net_g)>Number(c.gross_g))){
+  msg('saveInfo','Масса брутто/нетто должна быть больше нуля, нетто не может превышать брутто.');return;
+ }
  if(status==='Утверждено'){
+  if(!checks.every(c=>c.ok)){msg('saveInfo','Для утверждения заполните: '+checks.filter(c=>!c.ok).map(c=>c.label).join('; '));return}
   if(['rScope','rRaw','rProcess','rServing','rQuality','rApproved'].some(k=>!el(k).value.trim())){msg('saveInfo','Для утверждения заполните обязательные разделы и утверждающего');return}
   if(analysis.error.length||analysis.unverified.length&&!el('ultraReviewed').checked){msg('saveInfo','Для утверждения проверьте источники и подтвердите проверку аллергенов галочкой в блоке «Аллергены и КБЖУ».');return}
   if(!el('rApprovedDate').value){msg('saveInfo','Укажите дату утверждения ТТК.');return}
@@ -524,7 +532,7 @@ async function save(){
    storage:el('rStorage').value,allergens:el('ultraAutoAllergens').checked?[...analysis.allergens].sort().join(', '):el('rAllergens').value,
    nutrition:food,developed_by:el('rDeveloped').value||null,approved_by:el('rApproved').value||null,
    approved_at:el('rApprovedDate').value||null,photo_path:photoData,
-   ttk_fields:{...(editing?.ttk_fields||{}),loss_g:U.loss,ultra:{icon_emoji:U.icon||null,auto_allergens:el('ultraAutoAllergens').checked,allergens_reviewed_by_chef:el('ultraReviewed').checked&&status==='Утверждено',reviewed_at:el('ultraReviewed').checked&&status==='Утверждено'?new Date().toISOString():null}}};
+   ttk_fields:{...(editing?.ttk_fields||{}),loss_g:U.loss,ultra:{...(editing?.ttk_fields?.ultra||{}),pf_storage:getPfSafety(),icon_emoji:U.icon||null,auto_allergens:el('ultraAutoAllergens').checked,allergens_reviewed_by_chef:el('ultraReviewed').checked&&status==='Утверждено',reviewed_at:el('ultraReviewed').checked&&status==='Утверждено'?new Date().toISOString():null}}};
   const lines=components.map((c,i)=>({seq:i,ingredient_id:c.source_type==='ingredient'?Number(c.source_id):null,
    prefab_id:c.source_type==='prefab'?Number(c.source_id):null,gross_g:n(c.gross_g),net_g:n(c.net_g),line_yield_g:c.line_yield_g??null}));
   let id;
