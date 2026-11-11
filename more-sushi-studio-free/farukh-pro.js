@@ -12,9 +12,9 @@ const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2
 let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
- {id:'atelier',name:'Море Суши · лёд',sub:'Ледяной голубой · исходная композиция',desc:'Логотип слева, крупное фото блюда, синяя таблица и ледяной узор по краям.'},
- {id:'classic',name:'Море Суши · красный',sub:'Чёрный · красные мазки',desc:'Чёрный лист с красными акцентами, крупным фото блюда и контрастными разделами.'},
- {id:'arctic',name:'Море Суши · золото',sub:'Чёрный · золотой бамбук',desc:'Чёрно-золотое оформление, декоративный бамбук и светлые блоки рецептуры.'}
+{id:'atelier',name:'Море Суши · фирменный',sub:'Архив · вариант 1',desc:'Исходный фирменный лист с синими полосами и красными акцентами.'},
+{id:'classic',name:'Море Суши · А4 PRO',sub:'Архив · вариант 2',desc:'Исходный горизонтальный фирменный блок и крупное фото.'},
+{id:'arctic',name:'Море Суши · северный',sub:'Архив · вариант 4',desc:'Исходное северное оформление из проекта Море Суши.'}
 ];
 const iconPaths={
  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -623,63 +623,28 @@ function buildSheetRow(line,i){
 }
 function renderPreview(){
  if(!draft)return;
- const p=byProject(draft.project_id);
- const safeAccent=p?.accent&&/^#[0-9a-fA-F]{6}$/.test(p.accent)?p.accent:'#0F6479';
- const logo=p&&validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="Логотип проекта">':
- '<span class="sheet-logo-initial">'+esc((p?.name||'F').slice(0,1).toLocaleUpperCase('ru'))+'</span>';
- const photo=validImg(draft.photo_data)?'<img src="'+draft.photo_data+'" alt="Фото готового блюда">':
- '<span class="sheet-photo-placeholder"><span class="sheet-photo-glyph">◈</span><span>НАЖМИТЕ, ЧТОБЫ<br>ДОБАВИТЬ ФОТО</span></span>';
- const rows=Array.isArray(draft.lines)?draft.lines:[];
- const f=draft.fields||{};
- const approved=draft.status==='Утверждено';
- const paper=$('paper');
- paper.className='sheet-document theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
- paper.style.setProperty('--sheet-brand-accent',safeAccent);
- paper.innerHTML=
- '<img class="sheet-art" src="./sheet-original-'+({atelier:'ice',classic:'red',arctic:'gold'}[draft.template]||'ice')+'.svg" alt="" aria-hidden="true">'+
- '<div class="sheet-masthead"><div class="original-brand"><button type="button" class="sheet-project-logo sheet-screen-only-button" data-command="sheetProjectEdit" title="Изменить логотип проекта">'+logo+'</button><div class="sheet-brand-name">'+esc(p?.name||'Ваш бренд')+'</div></div>'+
- '<div class="original-heading"><div class="original-document-title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ<br>КАРТА (ТТК)</div><div class="sheet-eyebrow">Код ТТК: '+editablePaper('eCode',draft.code,'Код ТТК','line')+'</div><div class="original-dish-title">Название блюда: '+editablePaper('eTitle',draft.title,'Введите название блюда','line')+'</div></div></div>'+
- '<div class="sheet-main">'+
- '<div class="sheet-dish-header"><div class="sheet-photo-wrap"><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button>'+
- (validImg(draft.photo_data)?'<button type="button" class="sheet-remove-photo sheet-screen-only" data-command="sheetRemovePhoto" title="Удалить фото" aria-label="Удалить фото">×</button>':'')+
- '</div><div class="original-info"><div><span class="original-info-icon">◈</span><span>Категория<strong>'+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</strong></span></div><div><span class="original-info-icon">✓</span><span>Статус<strong>'+esc(draft.status||'Черновик')+'</strong></span></div><div><span class="original-info-icon">⊞</span><span>Выход<strong>'+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' г</strong></span></div></div></div>'+
- '<div class="sheet-2col">'+
- sheetParagraph('fScope','01','Область применения',f.scope,'Наименование блюда и предприятий, которым разрешены изготовление и реализация','sheet-compact')+
- sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Требования к сырью и документам, подтверждающим качество и безопасность','sheet-compact')+
- '</div>'+
- '<div class="original-recipe-layout"><section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура · на указанный выход блюда / ПФ</h3></div>'+
- '<table class="sheet-ingredient-table"><thead><tr><th>№</th><th>Наименование сырья или полуфабриката</th><th>БРУТТО, Г</th><th>НЕТТО, Г</th><th class="sheet-screen-only">УПРАВЛЕНИЕ</th></tr></thead>'+
- '<tbody id="sheetIngredients">'+(rows.length?rows.map(buildSheetRow).join(''):'<tr><td colspan="5" class="sheet-recipe-empty">Нет ингредиентов — нажмите «Добавить строку»</td></tr>')+'</tbody></table>'+
- '<div class="sheet-recipe-bottom"><div class="sheet-recipe-total">'+
- '<div>ВСЕГО БРУТТО <strong id="sheetTotalGross">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.gross_g)||0),0))+' г</strong></div>'+
- '<div>ВСЕГО НЕТТО <strong id="sheetTotalNet">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.net_g)||0),0))+' г</strong></div></div>'+
- '<div class="sheet-add-actions sheet-screen-only"><button type="button" data-command="sheetAddLine">＋ Добавить строку</button>'+
- (lastRemovedLine?'<button type="button" data-command="sheetUndoLine">↶ Вернуть</button>':'')+'</div></div></section>'+
- '<div class="original-process-column">'+
- sheetParagraph('fProcess','04','Технологический процесс',f.process,'Подготовка, последовательность операций, режимы обработки, время, оборудование и контроль','sheet-process')+
- sheetParagraph('fNutrition','07','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
- '</div></div>'+
- '<div class="sheet-2col">'+
- sheetParagraph('fServing','05','Оформление, подача и реализация',f.serving,'Оформление, порционирование, температура подачи, упаковка и порядок реализации','sheet-small')+
- sheetParagraph('fStorage','05а','Хранение и транспортирование',f.storage,'Подтверждённые срок годности, температура и условия хранения; условия доставки при необходимости','sheet-small')+
- '</div><div class="sheet-2col">'+
- sheetParagraph('fQuality','06','Качество и безопасность',f.quality,'Внешний вид, консистенция, вкус, запах; требования к микробиологическим и иным показателям безопасности','sheet-small')+
- sheetParagraph('fAllergens','+','Аллергены',f.allergens,'Только подтверждённые аллергены','sheet-small')+
- '</div>'+
-
- '<div class="sheet-signatures">'+
- '<div class="sheet-sign"><span>РАЗРАБОТАЛ</span>'+editablePaper('fDeveloped',f.developed,'Имя, должность','line')+'<i></i></div>'+
- '<div class="sheet-sign"><span>УТВЕРДИЛ</span>'+editablePaper('fApproved',f.approved,'Имя, должность','line')+'<i></i></div>'+
- '<div class="sheet-sign"><span>ДАТА</span>'+editablePaper('fDate',f.date,'Дата утверждения','date')+'<i></i></div></div>'+
- '</div>'+
- '<div class="sheet-footer"><span>FARUKH TTK PRO</span>'+
- '<span class="sheet-state">'+(approved?'УТВЕРЖДЕНО':esc(draft.status||'Черновик').toLocaleUpperCase('ru'))+'</span>'+
- '<span>ЛИСТ 01 / 01</span></div>';
- $('previewStatus').textContent=draft.status||'Черновик';
- refreshSheetToolbar();
- fitPaper();
- requestAnimationFrame(detectOverflow);
- renderReview();
+ const paper=$('paper'),p=byProject(draft.project_id),f=draft.fields||{};
+ paper.className='sheet-document archive-sheet';
+ paper.innerHTML='<div class="sheet-main archive-sheet-content" data-template="'+({atelier:'a4-01',classic:'a4-02',arctic:'a4-04'}[draft.template]||'a4-01')+'">'+window.FARUKH_ARCHIVE_HTML+'</div>';
+ const q=s=>paper.querySelector(s);
+ paper.querySelectorAll('[data-layout]').forEach(el=>el.removeAttribute('contenteditable'));
+ const mapping={code:['eCode',draft.code],name:['eTitle',draft.title],category:['eCategory',draft.category],yield_g:['eYield',draft.yield_g],scope:['fScope',f.scope],raw_requirements:['fRaw',f.raw],storage:['fStorage',f.storage],allergens:['fAllergens',f.allergens],introduced_at:['fDate',f.date],developed_by:['fDeveloped',f.developed],approved_by:['fApproved',f.approved]};
+ Object.entries(mapping).forEach(([key,[id,value]])=>{const el=q('[data-key="'+key+'"]');if(!el)return;el.dataset.sheetField=id;if(el.matches('input')){el.value=value??'';el.readOnly=false}else el.textContent=value||'';el.setAttribute('aria-label',key)});
+ const parts=f.archive_parts||{};
+ const groups={process:['step1','step2','step3','step4'],serving:['serving_design','serving_sale','serving_transport'],quality:['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'],nutrition:['protein','fat','carbs','kcal']};
+ Object.entries(groups).forEach(([group,keys])=>keys.forEach((key,i)=>{const el=q('[data-key="'+key+'"]');el.dataset.archiveField=key;el.dataset.archiveGroup=group;el.textContent=parts[key]??(i===0&&group!=='nutrition'?(f[group]||''):'');el.setAttribute('aria-label',key)}));
+ q('#nutritionHead').textContent='На 100 г готового продукта:';
+ if(f.nutrition&&!groups.nutrition.some(k=>parts[k])){const legacy=document.createElement('div');legacy.className='archive-nutrition-legacy edit';legacy.dataset.sheetField='fNutrition';legacy.contentEditable='true';legacy.textContent=f.nutrition;q('.card7 .body').append(legacy)}
+ q('#brand').dataset.command='sheetProjectEdit';q('#brand').title='Изменить логотип бренда';
+ q('.brandname').textContent=p?.name||'Ваш бренд';q('.brandsub').textContent='';
+ const logo=q('#logo');if(p&&validImg(p.logo_data))logo.src=p.logo_data;else if(!/море|more/i.test(p?.name||'')){logo.remove();q('.brandname').style.marginTop='35px'}
+ q('#photoInput')?.remove();q('#photoBox').dataset.command='sheetPhoto';q('#photoBox').setAttribute('role','button');q('#photoBox').tabIndex=0;
+ if(validImg(draft.photo_data)){q('#dishPhoto').src=draft.photo_data;q('#dishPhoto').style.display='block';q('#photoPlaceholder').style.display='none'}
+ const rows=draft.lines||[];q('#recipeLines').id='sheetIngredients';q('#sheetIngredients').innerHTML=rows.map(buildSheetRow).join('');
+ q('#recipeTable th:last-child').textContent='';q('#recipeTable th:last-child').classList.add('sheet-screen-only');
+ q('#recipeTable tfoot td').colSpan=3;q('#totalYield').textContent=fmt(draft.yield_g)+' г';
+ q('.smalltools').innerHTML='<button type="button" data-command="sheetAddLine">＋ Строка</button><span>Брутто: <b id="sheetTotalGross">'+fmt(rows.reduce((s,l)=>s+(Number(l.gross_g)||0),0))+' г</b> · Нетто: <b id="sheetTotalNet">'+fmt(rows.reduce((s,l)=>s+(Number(l.net_g)||0),0))+' г</b></span>';
+ $('previewStatus').textContent=draft.status||'Черновик';refreshSheetToolbar();fitPaper();requestAnimationFrame(detectOverflow);renderReview();
 }
 
 /* One-sheet, WYSIWYG editing. Existing validated data model remains the source of truth. */
@@ -719,6 +684,13 @@ function collectSheetValues(){
   if(id==='eCategory')val=val.slice(0,90);
   hidden.value=val;
  }
+ const archive=[...paper.querySelectorAll('[data-archive-field]')];
+ if(archive.length){
+  draft.fields=draft.fields||{};const parts=draft.fields.archive_parts||{};
+  archive.forEach(el=>parts[el.dataset.archiveField]=(el.innerText||'').trim());draft.fields.archive_parts=parts;
+  const ids={process:'fProcess',serving:'fServing',quality:'fQuality',nutrition:'fNutrition'};
+  Object.entries(ids).forEach(([group,id])=>{const cells=archive.filter(el=>el.dataset.archiveGroup===group);const labels={protein:'Белки, г',fat:'Жиры, г',carbs:'Углеводы, г',kcal:'Энергия, ккал',quality_appearance:'Внешний вид',quality_consistency:'Консистенция',quality_taste:'Вкус и запах',quality_color:'Цвет',quality_safety:'Безопасность'};const text=cells.filter(el=>parts[el.dataset.archiveField]).map(el=>(labels[el.dataset.archiveField]?labels[el.dataset.archiveField]+': ':'')+parts[el.dataset.archiveField]).join('\n');if(group!=='nutrition'||text)$(id).value=text});
+ }
  const rows=[...paper.querySelectorAll('tr[data-sheet-line]')];
  draft.lines=rows.map(tr=>{
   const name=tr.querySelector('[data-sheet-line-field="name"]');
@@ -735,12 +707,13 @@ function sheetMassSummary(){
  if(!draft)return;
  const gross=draft.lines.reduce((acc,l)=>acc+(Number(l.gross_g)||0),0);
  const net=draft.lines.reduce((acc,l)=>acc+(Number(l.net_g)||0),0);
+ if($('totalYield'))$('totalYield').textContent=fmt(draft.yield_g)+' г';
  if($('sheetTotalGross'))$('sheetTotalGross').textContent=fmt(gross)+' г';
  if($('sheetTotalNet'))$('sheetTotalNet').textContent=fmt(net)+' г';
  sumLines();
 }
 function sheetInputHandler(event){
- if(!draft||!event.target.closest('[data-sheet-field],[data-sheet-line]'))return;
+ if(!draft||!event.target.closest('[data-sheet-field],[data-sheet-line],[data-archive-field]'))return;
  collectSheetValues();
  syncDraft({noPaperRender:true});
  sheetMassSummary();
@@ -837,7 +810,7 @@ function detectOverflow(){
  // Full A4: never silently clip content or shrink typography to hide overflows.
  const bodyOverflow=main.scrollHeight>main.clientHeight+3||main.scrollWidth>main.clientWidth+3;
  const pageOverflow=paper.scrollHeight>1126||paper.scrollWidth>797;
- const childOverflow=[...main.querySelectorAll('.sheet-section,.sheet-dish-header,.sheet-recipe-section,.sheet-signatures')]
+ const childOverflow=[...main.querySelectorAll('.sheet-section,.sheet-dish-header,.sheet-recipe-section,.sheet-signatures,.card .body,.card .edit,#f5 .edit' )]
   .some(el=>el.scrollHeight>el.clientHeight+4||el.scrollWidth>el.clientWidth+4);
  const overflow=bodyOverflow||pageOverflow||childOverflow;
  let hint=$('paperOverflow');
