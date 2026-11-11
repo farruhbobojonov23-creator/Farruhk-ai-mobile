@@ -6,52 +6,145 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const previous={render:window.renderRecipes,save:window.saveRecipe,open:window.openRecipe,create:window.newRecipe};
 let search='',cat='',filterStatus='';
 const panel=e('catalogPage').querySelector('.panel');
-const control=document.createElement('div');control.id='msProductMenu';
-control.innerHTML='<div class="msProductHero"><div><small>МОРЕ СУШИ · STUDIO PRO</small><h2>🍣 Меню и ТТК</h2><p>10 холодных + 10 запечённых. Рецептуры доступны для редактирования.</p></div><strong id="msProductCount">—</strong></div>'+
-'<div class="msProductFilters"><input type="search" id="msProductSearch" placeholder="Найти ролл или код">'+
-'<select id="msProductCategory"><option value="">Все категории</option><option>Холодные роллы</option><option>Запечённые роллы</option></select>'+
-'<select id="msProductStatus"><option value="">Все статусы</option><option>Черновик</option><option>Тест</option><option>Утверждено</option></select></div>'+
-'<div class="msProductAlert">⚠ Это технологические черновики: нужны реальные фото, проверка выхода, КБЖУ, аллергенов и срока хранения перед утверждением.</div>';
+const control=document.createElement('section');control.id='msProductMenu';
+control.innerHTML=
+ '<div class="msCatalogHero"><div class="msCatalogIntro">'+
+ '<small>МОРЕ СУШИ · МЕНЮ / КОНСТРУКТОР</small>'+
+ '<h2>Коллекция роллов</h2>'+
+ '<p>Управляйте готовыми блюдами, рецептурами и технологическими картами в одной рабочей области.</p></div>'+
+ '<div class="msCatalogHeroActions"><button type="button" id="msCreateRoll">＋ Новый ролл</button>'+
+ '<a href="./ttk.html" class="msCatalogHeroLink">▤ Конструктор ТТК</a></div></div>'+
+ '<div class="msCatalogStatistics" id="msProductStats" aria-live="polite"></div>'+
+ '<div class="msCatalogTools">'+
+ '<label class="msCatalogSearch"><span aria-hidden="true">⌕</span><input type="search" id="msProductSearch" placeholder="Поиск по названию и коду" aria-label="Найти ролл"></label>'+
+ '<select id="msProductStatus" aria-label="Статус документа"><option value="">Все статусы</option><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select>'+
+ '<select id="msProductSort" aria-label="Сортировка"><option value="recent">Сначала новые</option><option value="name">По названию</option><option value="code">По коду</option><option value="weight">По массе</option></select></div>'+
+ '<div class="msCatalogToolbar"><div class="msCatalogSegments" id="msCatalogSegments">'+
+ '<button type="button" data-category="" class="selected" aria-pressed="true">Все <span id="msCategoryAll">0</span></button>'+
+ '<button type="button" data-category="Холодные роллы" aria-pressed="false">Холодные <span id="msCategoryCold">0</span></button>'+
+ '<button type="button" data-category="Запечённые роллы" aria-pressed="false">Запечённые <span id="msCategoryBaked">0</span></button>'+
+ '</div><div class="msCatalogDisplay"><span id="msProductCount" aria-live="polite">—</span>'+
+ '<div class="msCatalogView"><button type="button" id="msGridView" class="selected" aria-label="Показать карточки" aria-pressed="true">▦</button>'+
+ '<button type="button" id="msTableView" aria-label="Показать таблицу" aria-pressed="false">☷</button></div></div></div>'+
+ '<div id="msProductGrid" class="msProductGrid" aria-live="polite"></div>'+
+ '<div class="msCatalogCaution"><span class="msCautionIcon">!</span><div><strong>Технологические черновики</strong>'+
+ '<p>Рецептуры готовы к проработке. До подтверждения КБЖУ, аллергенов, безопасности и фактических выходов они не считаются утверждёнными.</p></div></div>';
 panel.querySelector('.row.between').after(control);
-e('msProductSearch').oninput=ev=>{search=ev.target.value.toLocaleLowerCase('ru').trim();filter()};
-e('msProductCategory').onchange=ev=>{cat=ev.target.value;filter()};
-e('msProductStatus').onchange=ev=>{filterStatus=ev.target.value;filter()};
+let query='',group='',status='',sort='recent',view='grid';
+get('msProductSearch').addEventListener('input',e=>{query=e.target.value.toLocaleLowerCase('ru').trim();filter()});
+get('msProductStatus').addEventListener('change',e=>{status=e.target.value;filter()});
+get('msProductSort').addEventListener('change',e=>{sort=e.target.value;filter()});
+get('msCatalogSegments').addEventListener('click',e=>{
+ const btn=e.target.closest('button[data-category]');if(!btn)return;
+ group=btn.dataset.category;filter();
+});
+get('msCreateRoll').addEventListener('click',()=>window.newRecipe());
+get('msGridView').addEventListener('click',()=>{view='grid';filter()});
+get('msTableView').addEventListener('click',()=>{view='table';filter()});
+get('msProductGrid').addEventListener('click',e=>{
+ const button=e.target.closest('button[data-roll-open],button[data-clear-filter]');
+ if(!button)return;
+ if(button.dataset.clearFilter!==undefined){
+  query='';group='';status='';sort='recent';
+  get('msProductSearch').value='';get('msProductStatus').value='';get('msProductSort').value='recent';
+  filter();return;
+ }
+ const id=Number(button.dataset.rollOpen);
+ if(Number.isSafeInteger(id)&&id>0)window.openRecipe(id);
+});
 const editor=e('editorPage').querySelector('.panel');
 const note=document.createElement('section');note.id='msProductEditorNote';
 note.innerHTML='<strong>📄 Карточка ролла — ТТК А4</strong><p>Новые рецептуры остаются черновиками. Фактический выход и температурный режим должны быть подтверждены.</p><small id="msProductEditorMass">—</small>';
 editor.firstElementChild.after(note);
+function stateBadge(state){
+ const cls=state==='Утверждено'?'ready':state==='Тест'?'test':state==='Архив'?'archived':'draft';
+ return '<span class="msRecipeState '+cls+'"><i></i>'+esc(state||'Черновик')+'</span>';
+}
+function photoForCard(r,frame){
+ if(typeof r.photo_path==='string'&&/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(r.photo_path)&&r.photo_path.length<16000000){
+   const img=document.createElement('img');
+   img.alt='Фото: '+r.name;img.loading='lazy';img.decoding='async';img.src=r.photo_path;
+   frame.append(img);frame.classList.add('msHasPhoto');return;
+ }
+ const empty=document.createElement('div');empty.className='msPhotoEmpty';
+ empty.innerHTML='<span class="msPhotoDisc"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.65" aria-hidden="true">'+
+ '<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="15"/><circle cx="32" cy="32" r="5"/>'+
+ '<path d="M7 32h10M47 32h10M32 7v10M32 47v10"/></svg></span>'+
+ '<span class="msPhotoEmptyText">Добавить фото ролла</span>';
+ frame.append(empty);
+}
+function cardFor(r){
+ const card=document.createElement('article');card.className='msRollCard';
+ const photo=document.createElement('div');photo.className='msRollPhoto';
+ photoForCard(r,photo);
+ const type=document.createElement('span');type.className='msRollType';
+ type.textContent=r.category==='Холодные роллы'?'ХОЛОДНЫЙ':r.category==='Запечённые роллы'?'ЗАПЕЧЁННЫЙ':'ГОТОВОЕ БЛЮДО';photo.append(type);
+ const main=document.createElement('div');main.className='msRollBody';
+ main.innerHTML='<div class="msRollCode">'+esc(r.code||'Без кода')+'</div>'+
+ '<h3>'+esc(r.name||'Без названия')+'</h3>'+
+ '<div class="msRollMeta">'+stateBadge(r.status)+
+ '<div class="msRollWeight"><b>'+Number(r.yield_g||0).toLocaleString('ru-RU',{maximumFractionDigits:1})+'</b> г <span>· расчётная масса</span></div></div>';
+ const footer=document.createElement('div');footer.className='msRollFooter';
+ const edit=document.createElement('button');edit.type='button';edit.className='msRollEdit';edit.dataset.rollOpen=String(r.id);
+ edit.textContent='Редактировать';
+ const ttk=document.createElement('a');ttk.className='msRollTtk';ttk.href='./ttk.html?id='+Number(r.id);ttk.target='_blank';ttk.rel='noopener';
+ ttk.textContent='ТТК А4 ↗';
+ footer.append(edit,ttk);card.append(photo,main,footer);
+ return card;
+}
 function filter(){
  if(currentKind!=='product')return;
- const list=recipes.filter(r=>r.kind==='product');
- const rows=Array.from(e('recipeRows').children);let count=0;
- list.forEach((r,i)=>{
-  const show=(!cat||r.category===cat)&&(!filterStatus||r.status===filterStatus)&&
-   (!search||[r.code,r.name,r.category].some(x=>String(x||'').toLocaleLowerCase('ru').includes(search)));
-  if(rows[i])rows[i].style.display=show?'':'none';
-  if(show)count++;
+ const all=recipes.filter(r=>r.kind==='product');
+ const cold=all.filter(r=>r.category==='Холодные роллы').length;
+ const baked=all.filter(r=>r.category==='Запечённые роллы').length;
+ get('msCategoryAll').textContent=all.length;
+ get('msCategoryCold').textContent=cold;
+ get('msCategoryBaked').textContent=baked;
+ const approved=all.filter(r=>r.status==='Утверждено').length;
+ const tested=all.filter(r=>r.status==='Тест').length;
+ const draft=all.filter(r=>r.status==='Черновик').length;
+ get('msProductStats').innerHTML=
+ '<div class="msCatalogStat"><span>Всего товаров</span><strong>'+all.length+'</strong><small>Карточки блюд</small></div>'+
+ '<div class="msCatalogStat"><span>В разработке</span><strong>'+draft+'</strong><small>Черновики</small></div>'+
+ '<div class="msCatalogStat"><span>На испытании</span><strong>'+tested+'</strong><small>Тестовые рецептуры</small></div>'+
+ '<div class="msCatalogStat"><span>Утверждено</span><strong>'+approved+'</strong><small>Готовые ТТК</small></div>';
+ Array.from(get('msCatalogSegments').querySelectorAll('button')).forEach(b=>{
+  const active=b.dataset.category===group;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));
  });
- e('msProductCount').textContent=count+'/'+list.length;
+ const filtered=all.filter(r=>(!group||r.category===group)&&(!status||r.status===status)&&
+    (!query||[r.code,r.name,r.category].some(v=>String(v||'').toLocaleLowerCase('ru').includes(query))));
+ const sorted=[...filtered].sort((a,b)=>{
+  if(sort==='code')return String(a.code||'').localeCompare(String(b.code||''),'ru');
+  if(sort==='name')return String(a.name||'').localeCompare(String(b.name||''),'ru');
+  if(sort==='weight')return Number(b.yield_g||0)-Number(a.yield_g||0);
+  return new Date(b.updated_at||0)-new Date(a.updated_at||0);
+ });
+ const grid=get('msProductGrid');grid.replaceChildren();
+ if(sorted.length){const frag=document.createDocumentFragment();sorted.forEach(r=>frag.append(cardFor(r)));grid.append(frag)}
+ else{const empty=document.createElement('div');empty.className='msCatalogEmpty';
+ empty.innerHTML='<div class="msEmptyIcon">⌕</div><strong>Ничего не найдено</strong>'+
+ '<p>Попробуйте другой запрос или очистите фильтры.</p><button type="button" data-clear-filter>Сбросить фильтры</button>';
+ grid.append(empty)}
+ const count=get('msProductCount');count.textContent='Показано '+filtered.length+' из '+all.length;
+ const showGrid=view==='grid';panel.classList.toggle('msCatalogGridMode',showGrid);
+ panel.classList.toggle('msCatalogTableMode',!showGrid);
+ get('msGridView').classList.toggle('selected',showGrid);
+ get('msTableView').classList.toggle('selected',!showGrid);
+ get('msGridView').setAttribute('aria-pressed',String(showGrid));
+ get('msTableView').setAttribute('aria-pressed',String(!showGrid));
+ const rowElements=[...get('recipeRows').children];
+ const visibleIds=new Set(filtered.map(r=>Number(r.id)));
+ const ordered=all;
+ ordered.forEach((r,i)=>{if(rowElements[i])rowElements[i].hidden=!visibleIds.has(Number(r.id))});
 }
 function render(){
  previous.render();
- control.hidden=currentKind!=='product';
- if(control.hidden)return;
- const list=recipes.filter(r=>r.kind==='product'),rows=Array.from(e('recipeRows').children);
- list.forEach((r,i)=>{
-  const row=rows[i];if(!row)return;
-  const name=row.querySelector('.ingProductText');
-  if(name){
-   const lab=document.createElement('div');lab.className='msProductTags';
-   lab.textContent=(r.status==='Утверждено'?'✅ Утверждено':'⚠ Требует утверждения')+
-    (r.photo_path?' · Фото есть':' · 📷 Фото готового ролла отсутствует');
-   name.append(lab);
-  }
-  const last=row.lastElementChild;
-  if(last){
-   const a=document.createElement('a');a.className='msProductTtk';
-   a.href='./ttk.html?id='+Number(r.id);a.target='_blank';a.rel='noopener';a.textContent='ТТК А4';last.append(a);
-  }
- });
+ const active=currentKind==='product';
+ control.hidden=!active;
+ panel.classList.toggle('msCatalogPro',active);
+ if(!active){
+  panel.classList.remove('msCatalogGridMode','msCatalogTableMode');return;
+ }
  filter();
 }
 function showNote(){
