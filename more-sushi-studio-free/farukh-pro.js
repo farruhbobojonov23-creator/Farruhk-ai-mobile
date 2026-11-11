@@ -276,8 +276,14 @@ const fieldMap={
  fQuality:'quality',fAllergens:'allergens',fNutrition:'nutrition',fDeveloped:'developed',
  fApproved:'approved',fDate:'date',fVerified:'verified'
 };
+function nextTtkCode(projectId){
+ const nums=docs.filter(d=>d.project_id===projectId).map(d=>
+  String(d.code||'').match(/^(?:ТТК|TTK)-(\d+)$/i)).filter(Boolean).map(m=>Number(m[1]));
+ const next=Math.max(0,...nums)+1;
+ return 'ТТК-'+String(next).padStart(3,'0');
+}
 function blankDoc(projectId,template='atelier'){
- return {id:null,project_id:projectId||'',title:'',code:'',category:'Блюда',status:'Черновик',
+ return {id:null,project_id:projectId||'',title:'',code:projectId?nextTtkCode(projectId):'',category:'Блюда',status:'Черновик',
   yield_g:null,photo_data:null,lines:[],fields:{scope:'',raw:'',process:'',serving:'',storage:'',
    quality:'',allergens:'',nutrition:'',developed:prefs.chef_name||'',approved:'',date:'',verified:'no'},
   template,version:1};
@@ -708,6 +714,7 @@ function init(){
  document.addEventListener('click',clickHandler);
  $('loginForm').addEventListener('submit',signIn);
  $('logout').addEventListener('click',signOut);
+ $('logoutMobile').addEventListener('click',signOut);
  $('projectForm').addEventListener('submit',saveProject);
  $('copyForm').addEventListener('submit',copyDocument);
  $('settingsForm').addEventListener('submit',saveSettings);
@@ -716,7 +723,15 @@ function init(){
  for(const id of ['projectSearch','projectStatus'])$(id).addEventListener('input',renderProjects);
  for(const id of ['docSearch','docProject','docStatus'])$(id).addEventListener('input',renderLibrary);
  const editorIds=['eProject','eTitle','eCode','eCategory','eYield','eStatus',...Object.keys(fieldMap)];
- editorIds.forEach(id=>$(id).addEventListener('input',()=>{if(draft)syncDraft()}));
+ editorIds.forEach(id=>$(id).addEventListener('input',()=>{
+  if(!draft)return;
+  if(id==='eProject'&&!draft.id){
+   const previous=nextTtkCode(draft.project_id);
+   const current=$('eCode').value.trim();
+   if(!current||current===previous)$('eCode').value=nextTtkCode($('eProject').value);
+  }
+  syncDraft();
+ }));
  $('editorLines').addEventListener('input',()=>{if(draft)syncDraft()});
  $('ePhotoInput').addEventListener('change',photoSelected);
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
