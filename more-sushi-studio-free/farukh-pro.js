@@ -134,6 +134,7 @@ function renderAll(){
 }
 /* Projects: client brands live inside this single closed chef workspace. */
 let pendingTemplate='atelier';
+let lastRemovedLine=null;
 function renderDash(){
  $('statProjects').textContent=projects.filter(p=>!p.is_archived).length;
  $('statDocuments').textContent=docs.filter(d=>d.status!=='Архив').length;
@@ -308,6 +309,7 @@ function openDocument(id){
 }
 function fillEditor(){
  if(!draft)return;
+ lastRemovedLine=null;
  const sel=$('eProject');
  sel.innerHTML='<option value="">Выберите проект</option>'+
  projects.filter(p=>!p.is_archived||p.id===draft.project_id).map(p=>
@@ -318,7 +320,7 @@ function fillEditor(){
  Object.entries(fieldMap).forEach(([id,key])=>{$(id).value=draft.fields?.[key]|| (key==='verified'?'no':'')});
  $('ePhotoInput').value='';renderPhotoZone();renderLineRows();setTab(editorTab);
  $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
- $('editorDuplicate').hidden=!draft.id;renderEditorDesigns();renderPreview();
+ $('editorDuplicate').hidden=!draft.id;renderEditorDesigns();renderPreview();renderReview();
 }
 function renderPhotoZone(){
  const z=$('photoZone');if(!z)return;
@@ -333,16 +335,32 @@ function renderPhotoZone(){
 function renderLineRows(){
  const rows=Array.isArray(draft?.lines)?draft.lines:[];
  $('editorLines').innerHTML=rows.map((line,i)=>
- '<tr data-line="'+i+'"><td><input class="control" maxlength="180" data-line-field="name" aria-label="Ингредиент '+(i+1)+'" placeholder="Название" value="'+esc(line.name||'')+'"></td>'+
- '<td><input class="control" data-line-field="gross_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Брутто '+(i+1)+'" value="'+esc(line.gross_g??'')+'"></td>'+
- '<td><input class="control" data-line-field="net_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Нетто '+(i+1)+'" value="'+esc(line.net_g??'')+'"></td>'+
- '<td><button type="button" class="remove-line" data-remove-line="'+i+'" aria-label="Убрать ингредиент '+(i+1)+'">'+icon('trash')+'</button></td></tr>').join('');
+ '<tr data-line="'+i+'"><td><input class="control" maxlength="180" data-line-field="name" aria-label="Ингредиент '+(i+1)+'" placeholder="Название сырья или ПФ" value="'+esc(line.name||'')+'"></td>'+
+ '<td><input class="control" data-line-field="gross_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Брутто '+(i+1)+'" placeholder="0" value="'+esc(line.gross_g??'')+'"></td>'+
+ '<td><input class="control" data-line-field="net_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Нетто '+(i+1)+'" placeholder="0" value="'+esc(line.net_g??'')+'"></td>'+
+ '<td><div class="line-actions">'+
+ '<button type="button" title="Переместить выше" data-move-line="'+i+'" data-direction="-1" aria-label="Выше: '+(i+1)+'" '+(i===0?'disabled':'')+'>'+icon('left')+'</button>'+
+ '<button type="button" title="Переместить ниже" data-move-line="'+i+'" data-direction="1" aria-label="Ниже: '+(i+1)+'" '+(i===rows.length-1?'disabled':'')+'>'+icon('left')+'</button>'+
+ '<button type="button" title="Дублировать строку" data-duplicate-line="'+i+'" aria-label="Дублировать: '+(i+1)+'">'+icon('copy')+'</button>'+
+ '<button type="button" class="remove-line" title="Удалить строку" data-remove-line="'+i+'" aria-label="Удалить: '+(i+1)+'">'+icon('trash')+'</button>'+
+ '</div></td></tr>').join('');
+ $('undoLineBtn').hidden=!lastRemovedLine;
  sumLines();
 }
 function sumLines(){
  let gross=0,net=0;
- for(const l of draft?.lines||[]){gross+=Math.max(0,Number(l.gross_g)||0);net+=Math.max(0,Number(l.net_g)||0)}
+ for(const l of draft?.lines||[]){
+  gross+=Math.max(0,Number(l.gross_g)||0);
+  net+=Math.max(0,Number(l.net_g)||0);
+ }
  $('sumNet').textContent=fmt(net)+' г';$('sumGross').textContent=fmt(gross)+' г';
+ const y=draft?.yield_g;
+ const info=$('yieldCompare');
+ if(!info)return;
+ if(y==null||Number(y)<=0){info.textContent='Укажи выход блюда на вкладке «Основное», чтобы сравнить массу.';info.className='line-yield-compare';return}
+ const delta=Number(y)-net;
+ info.textContent='Заявленный выход: '+fmt(y)+' г · сумма нетто: '+fmt(net)+' г · разница: '+fmt(delta)+' г. Расхождение требует технологической проверки.';
+ info.className='line-yield-compare'+(Math.abs(delta)<.001?' matched':' discrepancy');
 }
 function getLineInputs(){
  draft.lines=[...$('editorLines').querySelectorAll('tr[data-line]')].map(tr=>({
@@ -360,10 +378,45 @@ function syncDraft(){
  Object.entries(fieldMap).forEach(([id,key])=>draft.fields[key]=$(id).value.trim());
  getLineInputs();dirty=true;
  $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
- renderPreview();
+ sumLines();renderPreview();renderReview();
+}
+function lineRemove(index){
+ if(!draft)return;syncDraft();
+ if(index<0||index>=draft.lines.length)return;
+ lastRemovedLine={index,line:clone(draft.lines[index])};
+ draft.lines.splice(index,1);dirty=true;renderLineRows();renderPreview();renderReview();
+ tell('Строка удалена. Можно вернуть её кнопкой «Вернуть строку».');
+}
+function lineUndo(){
+ if(!draft||!lastRemovedLine)return;
+ syncDraft();
+ draft.lines.splice(Math.min(lastRemovedLine.index,draft.lines.length),0,lastRemovedLine.line);
+ lastRemovedLine=null;dirty=true;renderLineRows();renderPreview();renderReview();
+}
+function lineMove(index,direction){
+ if(!draft)return;syncDraft();
+ const other=index+direction;
+ if(index<0||other<0||index>=draft.lines.length||other>=draft.lines.length)return;
+ [draft.lines[index],draft.lines[other]]=[draft.lines[other],draft.lines[index]];
+ dirty=true;renderLineRows();renderPreview();renderReview();
+}
+function lineDuplicate(index){
+ if(!draft)return;syncDraft();
+ if(index<0||index>=draft.lines.length)return;
+ if(draft.lines.length>=100){tell('Допустимо не более 100 строк на документ.',true);return}
+ draft.lines.splice(index+1,0,clone(draft.lines[index]));
+ dirty=true;renderLineRows();renderPreview();renderReview();
+}
+function clearEmptyLines(){
+ if(!draft)return;syncDraft();
+ const before=draft.lines.length;
+ draft.lines=draft.lines.filter(l=>String(l.name||'').trim()||l.gross_g!=null||l.net_g!=null);
+ if(before===draft.lines.length){tell('Пустых строк нет.');return}
+ lastRemovedLine=null;dirty=true;renderLineRows();renderPreview();renderReview();
+ tell('Удалено пустых строк: '+(before-draft.lines.length));
 }
 function setTab(tab){
- editorTab=['main','lines','tech','design'].includes(tab)?tab:'main';
+ editorTab=['main','lines','tech','design','review'].includes(tab)?tab:'main';
  document.querySelectorAll('[data-tab]').forEach(b=>{
   const on=b.dataset.tab===editorTab;b.classList.toggle('active',on);
   b.setAttribute('aria-selected',on?'true':'false');
@@ -429,7 +482,7 @@ async function saveDocument(){
    if(!rows?.[0]?.id)throw Error('Сервер не подтвердил создание ТТК.');
   }
   const saved=rows[0];workingId=saved.id;draft=clone(saved);dirty=false;
-  docs=docs.filter(d=>d.id!==saved.id);docs.unshift(saved);
+  docs=docs.filter(d=>d.id!==saved.id);docs.unshift(saved);lastRemovedLine=null;
   $('editorDuplicate').hidden=false;renderAll();fillEditor();
   tell('ТТК сохранена в проекте «'+projectName(saved.project_id)+'» · версия '+saved.version);
  }catch(e){tell('Не удалось сохранить ТТК: '+errText(e),true)}
