@@ -161,7 +161,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 #qualityTable td:first-child{font-weight:800}
 #foot .sign:nth-child(3),#foot .sign:nth-child(4){font-weight:500}
 #nutritionTable tr td{font-variant-numeric:tabular-nums}
-@media print{#photoBox{box-shadow:none!important}}
+@media print{#photoBox{box-shadow:none!important}#msTtkAutoBanner{display:none!important}}
 #recipeTable td:nth-child(2){overflow:hidden;white-space:nowrap}
 #recipeTable .itemInput{box-sizing:border-box;display:block;max-width:100%;width:100%;height:12px;line-height:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8.7px;padding:0 2px}
 #recipeTable tbody tr{height:15px}
@@ -214,7 +214,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 <p id="allergenWarnings" style="font-size:11px;color:#9d621a"></p>
 <button type="button" id="resetDesign">Вернуть фирменные цвета</button><button type="button" id="closeDesign">Закрыть</button></aside>
 <input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp" hidden>
-<div id="feedback">Редактируйте прямо на цветном шаблоне. Изменения сохраняются в выбранную карточку.</div>
+<div id="feedback">Редактируйте прямо на цветном шаблоне. Изменения сохраняются в выбранную карточку.</div><div id="msTtkAutoBanner" style="margin:8px auto 12px;max-width:1100px;border:1px solid #bbd7e8;border-radius:11px;padding:10px 13px;background:#eff8fd;color:#214968;font-size:12px;display:none"></div>
 <div id="pageWrap"><main id="page">
 <svg id="topArtwork" viewBox="0 0 794 303" preserveAspectRatio="none"><defs>
  <linearGradient id="ocean" x1="0" y1="0" x2=".9" y2=".9"><stop stop-color="#06223f"/><stop offset=".66" stop-color="#0b4a78"/><stop offset="1" stop-color="#14426b"/></linearGradient>
@@ -284,7 +284,7 @@ input:focus,select:focus{outline:1px solid #3d91ca;background:#fff9e7!important}
 const SB='https://mhsmmssipligbmvfzkce.supabase.co';
 const KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
-let session=null,ingredients=[],recipes=[],current=null,lines=[],image=null,dirty=false,tooLong=false,saving=false;
+let session=null,ingredients=[],recipes=[],current=null,lines=[],image=null,dirty=false,tooLong=false,saving=false,ttkAutoSummary=null;
 const defaultLogo=$('#logo').getAttribute('src');
 const defaultTheme={navy:'#082a4b',blue:'#0c5790',red:'#e72339',paper:'#ffffff',logoSize:126,fontPercent:100};
 const defaultsText=Object.fromEntries($$('[data-layout]').map(el=>[el.dataset.layout,el.innerText.trim()]));
@@ -388,6 +388,17 @@ function splitLabels(text,names){
  if(!Object.keys(parts).length&&all.length)parts[Object.keys(names)[0]]=all.join(' ');
  return parts;
 }
+async function loadVerifiedRecipeTotals(id){
+ try{const arr=await api('/rest/v1/ms_recipe_auto_summary?select=*&recipe_id=eq.'+Number(id)+'&limit=1');return arr?.[0]||null}catch(e){console.warn('КБЖУ из базы:',e.message);return null}
+}
+function showVerifiedRecipeTotals(){
+ const b=$('#msTtkAutoBanner'),a=ttkAutoSummary;
+ if(!b)return;b.style.display='block';
+ if(!a){b.textContent='⚠ Авторасчёты недоступны. Сохранённые данные можно редактировать вручную.';return}
+ const n=a.nutrition_verified?'✅ КБЖУ подтверждено по карточкам сырья':a.nutrition_complete?'⚠ КБЖУ рассчитано, но не подтверждено':'⚠ Не хватает КБЖУ: '+(a.missing_nutrition_ingredients||'нет данных сырья');
+ const al=a.allergens_verified?'✅ Аллергены проверены':'⚠ Аллергены требуют подтверждения';
+ b.textContent=n+' | '+al+'. Условия хранения готового блюда задаются отдельно. Значения на листе можно редактировать.';
+}
 function nutrit(n){
  const t=(n&&n.text)||'';
  const pick=(pattern)=>{const m=t.match(pattern);return m?m[1]:''};
@@ -439,6 +450,7 @@ async function loadRecipe(id){
  loadQuality(r.quality);
  for(const k of ['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'])if(tf[k]!==undefined)set(k,tf[k]);
  const n=nutrit(r.nutrition||{});for(const k of Object.keys(n))set(k,n[k]);
+ ttkAutoSummary=await loadVerifiedRecipeTotals(r.id);
  let photo=r.photo_path||'';
  if(!/^data:image\/(jpeg|webp|png);base64,/.test(photo)){
   const ref=r.ttk_fields?.ultra?.icon_emoji||'';
@@ -451,6 +463,9 @@ async function loadRecipe(id){
   }
  }
  labelPhoto(photo);lines=saved.map(l=>({label:nameFor(l),gross_g:Number(l.gross_g),net_g:Number(l.net_g),line_yield_g:l.line_yield_g==null?'':Number(l.line_yield_g)}));lineDraw();calculateYield();if(isAutoAllergens)updateAutoAllergens(false);
+ if(ttkAutoSummary?.nutrition_verified){for(const [k,col] of Object.entries({protein:'protein_per_portion',fat:'fat_per_portion',carbs:'carbs_per_portion',kcal:'kcal_per_portion'}))set(k,formatted(ttkAutoSummary[col]));}
+ if(ttkAutoSummary?.allergens_verified&&isAutoAllergens)set('allergens',ttkAutoSummary.calculated_allergens||'Аллергены не заявлены по проверенным сведениям сырья');
+ showVerifiedRecipeTotals();
  $('#recipePick').value=r.id;dirty=false;msg('ТТК загружена. Нажимайте на поля прямо на листе, чтобы редактировать.');fitAll();
 }
 function buildServing(){return 'Оформление: '+get('serving_design')+'\nРеализация: '+get('serving_sale')+'\nТранспортирование: '+get('serving_transport')}
@@ -565,7 +580,7 @@ async function save(){
    if(!Number.isFinite(yieldValue)||yieldValue<=0){msg('Для утверждения укажите фактический выход.','error');return}
    if(calc.parts===0){msg('Для утверждения добавьте компоненты','error');return}
  }
- const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:'Проверить расчётом и проработкой'};
+ const n={protein:get('protein'),fat:get('fat'),carbs:get('carbs'),kcal:get('kcal'),note:ttkAutoSummary?.nutrition_verified?'КБЖУ рассчитано по подтверждённым карточкам сырья':'Проверить расчётом и проработкой'};
  if(isAutoAllergens)updateAutoAllergens(false);
  const ttk_fields={...(current.ttk_fields||{}),steps:[1,2,3,4].map(i=>get('step'+i)),introduced_at:get('introduced_at'),
  loss_g:calc.loss,design_id:currentDesign,theme:{...currentTheme},photo_style:{...photoStyle},auto_allergens:isAutoAllergens,logo_data_url:currentLogo===defaultLogo?null:currentLogo,custom_texts:collectLayout(),serving_design:get('serving_design'),serving_sale:get('serving_sale'),serving_transport:get('serving_transport'),quality_appearance:get('quality_appearance'),quality_consistency:get('quality_consistency'),quality_taste:get('quality_taste'),quality_color:get('quality_color'),quality_safety:get('quality_safety')};
