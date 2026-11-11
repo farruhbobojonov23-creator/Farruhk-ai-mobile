@@ -484,4 +484,145 @@ async function copyDocument(ev){
  }catch(e){tell('Не удалось скопировать: '+errText(e),true)}finally{setBusy(false)}
 }
 
+/* Premium A4 preview; all variable content is escaped before interpolation. */
+function paperText(x,fallback='Не указано — требуется проверка'){
+ const value=String(x||'').trim();
+ return value?esc(value).replace(/\n/g,'<br>'):'<span style="color:#9babb1">'+esc(fallback)+'</span>';
+}
+function paperBlock(label,content){
+ return '<section class="paper-section"><h4>'+esc(label)+'</h4><div class="inside">'+paperText(content)+'</div></section>';
+}
+function renderPreview(){
+ if(!draft)return;
+ const p=byProject(draft.project_id);
+ const accent=p?.accent&&/^#[0-9a-fA-F]{6}$/.test(p.accent)?p.accent:'#0F6479';
+ const logo=p&&validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':esc((p?.name||'F').slice(0,1).toUpperCase());
+ const photo=validImg(draft.photo_data)?'<img class="paper-photo" src="'+draft.photo_data+'" alt="Фото блюда">':
+ '<div class="paper-photo" style="display:grid;place-items:center;font-size:11px;color:#92a4ab">Фото не добавлено</div>';
+ const rows=(Array.isArray(draft.lines)?draft.lines:[]).filter(l=>l.name||l.gross_g!=null||l.net_g!=null);
+ const table=rows.length?rows.map((l,i)=>
+ '<tr><td>'+esc(l.name||'—')+'</td><td>'+esc(l.gross_g==null?'—':fmt(l.gross_g))+'</td><td>'+esc(l.net_g==null?'—':fmt(l.net_g))+'</td></tr>').join(''):
+ '<tr><td colspan="3" style="color:#91a4ad;padding:12px">Рецептура пока не заполнена</td></tr>';
+ const f=draft.fields||{};
+ const paper=$('paper');paper.className='theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
+ paper.innerHTML=
+ '<header class="paper-head"><div><div class="paper-brand">'+esc((p?.name||'FARUKH TTK PRO').toUpperCase())+
+ '<small>ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА · А4</small></div></div>'+
+ '<div class="paper-logo" style="background:'+esc(accent)+'">'+logo+'</div></header>'+
+ '<div class="paper-body"><div class="paper-intro"><div style="min-width:0;flex:1">'+
+ '<div class="paper-code">'+esc(draft.code||'Код ТТК не указан')+' &nbsp; / &nbsp; '+esc(draft.category||'Блюда')+'</div>'+
+ '<div class="paper-title">'+esc(draft.title||'Название блюда')+'</div>'+
+ '<div class="paper-subline"><span>Выход: <b>'+esc(draft.yield_g==null?'—':fmt(draft.yield_g)+' г')+'</b></span><span>·</span><span>'+esc(draft.status||'Черновик')+'</span></div>'+
+ '<div class="paper-note">Документ для внутреннего контроля и утверждения ответственным лицом.</div>'+
+ '</div>'+photo+'</div>'+
+ '<div class="paper-split">'+paperBlock('1. Область применения',f.scope)+paperBlock('2. Требования к сырью',f.raw)+'</div>'+
+ '<section class="paper-section"><h4>3. Рецептура на одну порцию / партию</h4>'+
+ '<table class="paper-table"><thead><tr><th>Наименование сырья и ПФ</th><th>Брутто, г</th><th>Нетто, г</th></tr></thead><tbody>'+
+ table+'</tbody></table></section>'+
+ paperBlock('4. Технологический процесс',f.process)+
+ '<div class="paper-split">'+paperBlock('5. Подача и реализация',f.serving)+paperBlock('Срок и условия хранения',f.storage)+'</div>'+
+ '<div class="paper-split">'+paperBlock('6. Показатели качества и безопасности',f.quality)+paperBlock('Аллергены',f.allergens)+'</div>'+
+ paperBlock('7. Пищевая и энергетическая ценность',f.nutrition)+
+ (f.verified!=='yes'?'<div class="paper-warning">Сведения о КБЖУ, аллергенах и хранении требуют проверки по документации поставщиков.</div>':'')+
+ '<div class="paper-signatures"><div><strong>Разработал</strong>'+paperText(f.developed,'—')+'<i></i></div>'+
+ '<div><strong>Утвердил</strong>'+paperText(f.approved,'—')+'<i></i></div>'+
+ '<div><strong>Дата утверждения</strong>'+paperText(f.date,'—')+'<i></i></div></div></div>'+
+ '<footer class="paper-foot"><span>FARUKH TTK PRO · '+esc((prefs.studio_name||'PRIVATE CHEF ATELIER').toUpperCase())+'</span>'+
+ '<span>Статус: '+esc(draft.status||'Черновик')+'</span></footer>';
+ $('previewStatus').textContent=draft.status||'Черновик';
+ fitPaper();requestAnimationFrame(detectOverflow);
+}
+function fitPaper(){
+ const stage=$('paperStage'),holder=$('paperHolder'),paper=$('paper');
+ if(!stage||!holder||!paper||stage.clientWidth<50)return;
+ const maxWidth=Math.max(260,stage.clientWidth-26);
+ const scale=Math.min(1,maxWidth/794);
+ holder.style.width=Math.round(794*scale)+'px';holder.style.height=Math.round(1123*scale)+'px';
+ paper.style.transform='scale('+scale+')';
+}
+function detectOverflow(){
+ const content=$('paper')?.querySelector('.paper-body'),pane=$('paperStage');
+ if(!content||!pane)return false;
+ const overflow=content.scrollHeight>content.clientHeight+3 || $('paper').scrollHeight>1125;
+ let hint=$('paperOverflow');
+ if(!hint){hint=document.createElement('div');hint.id='paperOverflow';hint.className='notice';hint.style.marginTop='10px';pane.after(hint)}
+ hint.hidden=!overflow;
+ hint.textContent=overflow?'⚠️ Содержимое не помещается на один лист А4. Сократите текст, количество строк либо создайте отдельную карту. Печать заблокирована до исправления.':'';
+ return overflow;
+}
+function printDocument(){
+ if(!draft){tell('Сначала создайте или откройте ТТК',true);return}
+ syncDraft();
+ if(draft.status==='Утверждено'){
+  const issues=approvedIssues(draft);if(issues.length){tell('Нельзя печатать как утверждённую ТТК: '+issues.slice(0,3).join(', '),true);return}
+ }
+ if(detectOverflow()){tell('Печать заблокирована: документ выходит за границы одного листа А4.',true);return}
+ window.print();
+}
+/* Main actions and keyboard-safe event wiring. */
+function onCommand(name){
+ if(name==='newDoc')return startNewDoc();
+ if(name==='newProject')return openProjectDialog();
+ if(name==='closeProject'){pendingCreate=false;$('projectDialog').close();return}
+ if(name==='closeCopy'){$('copyDialog').close();return}
+ if(name==='saveDoc')return saveDocument();
+ if(name==='library'||name==='projects'||name==='templates'||name==='dashboard'||name==='settings')return navigate(name);
+ if(name==='addLine'){
+  if(!draft)return;
+  syncDraft();draft.lines.push({name:'',gross_g:null,net_g:null});
+  renderLineRows();renderPreview();return;
+ }
+ if(name==='removePhoto'){if(draft){draft.photo_data=null;dirty=true;renderPhotoZone();renderPreview()}return}
+ if(name==='print')return printDocument();
+ if(name==='duplicate'){if(draft?.id)return openCopy(draft.id);tell('Сначала сохраните ТТК для копирования.',true);return}
+}
+function clickHandler(ev){
+ const t=ev.target;
+ const btn=t.closest('[data-nav],[data-link],[data-command],[data-project-open],[data-project-edit],[data-project-archive],[data-project-remove],[data-doc-open],[data-doc-copy],[data-doc-archive],[data-doc-delete],[data-template-create],[data-editor-template],[data-tab],[data-remove-line]');
+ if(!btn)return;
+ if(btn.matches('a'))ev.preventDefault();
+ if(btn.dataset.nav!==undefined){if(btn.dataset.nav==='editor'){if(draft)navigate('editor');else startNewDoc()}else navigate(btn.dataset.nav);return}
+ if(btn.dataset.link!==undefined){navigate(btn.dataset.link);return}
+ if(btn.dataset.command!==undefined){onCommand(btn.dataset.command);return}
+ if(btn.dataset.projectOpen!==undefined){listForProject(btn.dataset.projectOpen);return}
+ if(btn.dataset.projectEdit!==undefined){openProjectDialog(btn.dataset.projectEdit);return}
+ if(btn.dataset.projectArchive!==undefined){toggleProjectArchive(btn.dataset.projectArchive);return}
+ if(btn.dataset.projectRemove!==undefined){removeProject(btn.dataset.projectRemove);return}
+ if(btn.dataset.docOpen!==undefined){openDocument(btn.dataset.docOpen);return}
+ if(btn.dataset.docCopy!==undefined){openCopy(btn.dataset.docCopy);return}
+ if(btn.dataset.docArchive!==undefined){archiveDocument(btn.dataset.docArchive);return}
+ if(btn.dataset.docDelete!==undefined){deleteDocument(btn.dataset.docDelete);return}
+ if(btn.dataset.templateCreate!==undefined){pendingTemplate=btn.dataset.templateCreate;startNewDoc(null,pendingTemplate);return}
+ if(btn.dataset.editorTemplate!==undefined){if(draft){syncDraft();draft.template=btn.dataset.editorTemplate;dirty=true;renderEditorDesigns();renderPreview()}return}
+ if(btn.dataset.tab!==undefined){setTab(btn.dataset.tab);return}
+ if(btn.dataset.removeLine!==undefined&&draft){syncDraft();draft.lines.splice(Number(btn.dataset.removeLine),1);dirty=true;renderLineRows();renderPreview();return}
+}
+function init(){
+ paintIcons();
+ document.addEventListener('click',clickHandler);
+ $('loginForm').addEventListener('submit',signIn);
+ $('logout').addEventListener('click',signOut);
+ $('projectForm').addEventListener('submit',saveProject);
+ $('copyForm').addEventListener('submit',copyDocument);
+ $('settingsForm').addEventListener('submit',saveSettings);
+ $('pLogo').addEventListener('change',logoSelected);
+ $('pRemoveLogo').addEventListener('click',()=>{modalLogo=null;$('pLogoStatus').textContent='Логотип удалён из формы проекта'});
+ for(const id of ['projectSearch','projectStatus'])$(id).addEventListener('input',renderProjects);
+ for(const id of ['docSearch','docProject','docStatus'])$(id).addEventListener('input',renderLibrary);
+ const editorIds=['eProject','eTitle','eCode','eCategory','eYield','eStatus',...Object.keys(fieldMap)];
+ editorIds.forEach(id=>$(id).addEventListener('input',()=>{if(draft)syncDraft()}));
+ $('editorLines').addEventListener('input',()=>{if(draft)syncDraft()});
+ $('ePhotoInput').addEventListener('change',photoSelected);
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
+ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+ // Reuse the existing user login so this replacement starts empty without requiring new account setup.
+ session=storedSession();
+ if(!session){$('auth').hidden=false;return}
+ (async()=>{if(await freshSession())await enter();else{
+   session=null;persist();$('shell').hidden=true;$('auth').hidden=false;
+ }})().catch(e=>{session=null;persist();$('shell').hidden=true;$('auth').hidden=false;
+  $('authError').textContent='Войдите снова: '+errText(e)});
+}
+init();
+
 })();
