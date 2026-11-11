@@ -44,7 +44,9 @@ function source(item,type){
  const raw=type==='ingredient'?item?.photo_data:item?.photo_path;
  if(raw&&PHOTO_RE.test(raw))return raw;
  const key=type==='ingredient'?item?.icon_emoji:item?.ttk_fields?.ultra?.icon_emoji;
- const match=photoForKey(key)||(!key?predicted(item):null);
+ // Never depict an ingredient photo as a finished sushi roll or a prepared PF.
+ // For recipe cards, only an explicitly selected library image is permitted.
+ const match=photoForKey(key)||(type==='ingredient'&&!key?predicted(item):null);
  return match?.image_data&&(PHOTO_RE.test(match.image_data)||localPhotoUrl(match.image_data))?(localPhotoUrl(match.image_data)?match.image_data+'?v=real-products-v5':match.image_data):null;
 }
 
