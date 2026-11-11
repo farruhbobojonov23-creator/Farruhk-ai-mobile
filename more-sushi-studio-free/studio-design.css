@@ -1,0 +1,269 @@
+/* MORE SUSHI STUDIO • NORTH PEARL DESIGN • interface only, never affects A4 print */
+@media screen {
+:root{
+ --ms-ink:#142b43;--ms-ink-2:#314e67;--ms-muted:#70869c;--ms-primary:#0a4266;
+ --ms-deep:#091c30;--ms-navy:#0d2b45;--ms-blue:#176f9d;
+ --ms-line:#dce7ef;--ms-line-strong:#cbdbe6;
+ --ms-canvas:#f1f6f9;--ms-snow:#fff;--ms-ice:#edf6fa;
+ --ms-red:#e53c52;--ms-green:#166a5a;--ms-amber:#8a5b1a;
+ --ms-shadow:0 12px 32px rgba(16,47,73,.05);
+ font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+ color:var(--ms-ink);background:var(--ms-canvas);
+ font-synthesis:none;
+}
+body{background:var(--ms-canvas)}
+button,select,input,textarea{font-family:inherit}
+button{transition:background .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease;background:var(--ms-primary);border-radius:10px;font-size:13px;line-height:1.25;padding:11px 15px;min-height:39px}
+button:not(:disabled):active{transform:scale(.985)}
+button:not(:disabled):hover{background:#15658b}
+button.secondary{background:#e8f2f8;color:#164b6c}
+button.secondary:hover{background:#d7eaf5;color:#0e4267}
+button.danger{background:#a93145}
+button.danger:hover{background:#89243b}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #3eafdb!important;outline-offset:3px}
+input,select,textarea{accent-color:var(--ms-blue)}
+input::placeholder,textarea::placeholder{color:#9aaaba}
+.wrap{align-items:stretch;min-height:100vh;min-width:0}
+.side{
+ width:262px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;
+ background:linear-gradient(163deg,#081e33 0%,#0e304a 61%,#103d58 100%);color:#e3f2f8;
+ padding:27px 17px 19px;border-right:1px solid #ffffff1a;isolation:isolate;
+ box-shadow:5px 0 28px #122d4610;
+ scrollbar-width:thin;scrollbar-color:#355b70 transparent
+}
+.side::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+ width:235px;height:235px;top:-90px;right:-130px;border-radius:50%;border:1px solid #ffffff12;box-shadow:0 0 0 35px #ffffff04,0 0 0 80px #ffffff03}
+.side>.logo{font-size:22px;font-weight:900;letter-spacing:.25px;padding:0 9px;line-height:1.18}
+.side>.logo span{color:#ff596c}
+.side>small{display:block;font-size:9px;font-weight:800;letter-spacing:1.45px;padding:9px 9px 27px;color:#9ab7c8;line-height:1.55}
+.side nav{display:flex;flex-direction:column;gap:5px}
+.side nav button{
+ width:100%;display:flex;align-items:center;min-height:46px;line-height:1.3;
+ border:1px solid transparent;border-radius:11px;padding:12px 13px;margin:0;
+ background:transparent;text-align:left;font-weight:650;font-size:12.5px;color:#c3d6e5;
+ box-shadow:none;position:relative;white-space:normal
+}
+.side nav button:hover{background:#ffffff13;color:#fff}
+.side nav button.active,.side nav button.active:hover{
+ background:linear-gradient(95deg,#1b5677,#205c7c);color:#fff;
+ border-color:#ffffff25;box-shadow:0 6px 18px #020f2020;
+}
+.side nav button.active::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;background:#f2576b;border-radius:0 4px 4px 0}
+.side>p{margin-top:35px!important;border-top:1px solid #ffffff15;padding-top:15px}
+.side>p>button.secondary{background:#ffffff12;color:#d9e9f3;border:1px solid #ffffff22}
+.side>p>button.secondary:hover{background:#ffffff22;color:#fff}
+.main{max-width:1600px;width:100%;padding:32px clamp(18px,3.2vw,46px) 65px;margin:0 auto}
+.top{
+ position:relative;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ padding:0 0 18px;gap:8px 20px;border-bottom:1px solid #e0eaf0;margin-bottom:24px
+}
+.top h1{font-size:27px;font-weight:870;line-height:1.16;letter-spacing:-.75px;color:#122d43}
+.top .muted{font-size:12px;color:#7c91a3;margin:5px 0}
+#userBadge{padding:9px 13px;border:1px solid #d7e5ec;color:#43667f;background:#fff;border-radius:50px;
+ box-shadow:0 5px 18px #12355408;font-size:11px;max-width:100%;overflow-wrap:anywhere}
+.panel{border:1px solid var(--ms-line);background:#fff;border-radius:18px;
+ box-shadow:var(--ms-shadow);padding:22px;margin:15px 0}
+.panel h2{letter-spacing:-.4px;color:#14374f}
+.panel h3{color:#143c57}
+.muted,.status{color:var(--ms-muted)}
+.cards{gap:12px}
+.stat{background:#fff;border:1px solid #d9e6ee;padding:19px 20px;border-radius:17px;box-shadow:0 7px 23px #123a5908;min-height:110px;
+ position:relative;overflow:hidden}
+.stat:after{content:"";position:absolute;width:95px;height:95px;border-radius:50%;right:-42px;top:-35px;background:#e8f2fa}
+.stat:nth-child(1):after{background:#e6f6fb}
+.stat:nth-child(2):after{background:#f1f1fb}
+.stat:nth-child(3):after{background:#fff0f2}
+.stat b{position:relative;z-index:1;display:block;font-size:34px;letter-spacing:-1.3px;color:#124f79;font-variant-numeric:tabular-nums}
+.stat p{position:relative;z-index:1;margin:5px 0 0;font-size:12px;font-weight:750;color:#607c92}
+#homePage>.cards{margin-top:16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.msHomeHero{
+ overflow:hidden;position:relative;isolation:isolate;border-radius:23px;padding:clamp(24px,3vw,38px);
+ background:radial-gradient(circle at 86% 15%,#21627f 0%,transparent 42%),linear-gradient(110deg,#09263c 0%,#0b3c59 70%,#14536d 100%);
+ min-height:215px;display:flex;align-items:center;justify-content:space-between;gap:22px;color:#fff
+}
+.msHomeHero:before{content:"";position:absolute;z-index:-1;width:345px;height:345px;border:1px solid #ffffff22;border-radius:50%;
+ right:-66px;top:-182px;box-shadow:0 0 0 40px #ffffff09,0 0 0 87px #ffffff06,0 0 0 140px #ffffff04}
+.msHomeHero:after{content:"";position:absolute;width:240px;height:240px;right:20px;bottom:-190px;border-radius:50%;
+ background:#93daef14;filter:blur(3px);pointer-events:none}
+.msHomeHero .msHomeCopy{position:relative;z-index:1;max-width:670px;min-width:0}
+.msHomeEyebrow{font-size:10px;letter-spacing:2.3px;font-weight:850;color:#9ed3e9}
+.msHomeHero h2{font-size:clamp(25px,3vw,37px);line-height:1.11;letter-spacing:-1.1px;font-weight:880;margin:11px 0}
+.msHomeHero p{color:#d0e4ed;font-size:13px;line-height:1.6;max-width:520px;margin:0}
+.msHomeCtas{display:flex;gap:9px;flex-wrap:wrap;margin-top:21px}
+.msHomeCtas button{background:#fff;color:#0f4362;font-size:12px;padding:11px 15px;border-radius:10px;box-shadow:0 6px 18px #031a2c23}
+.msHomeCtas button:hover{background:#eaf6fc;color:#0c4666}
+.msHomeCtas .msHomeGhost{background:transparent;color:#fff;border:1px solid #a3ccd788;box-shadow:none}
+.msHomeCtas .msHomeGhost:hover{background:#ffffff20;color:#fff}
+.msHomeSymbol{flex:0 0 170px;height:170px;position:relative;display:grid;place-items:center;font-size:76px;
+ border-radius:38px;border:1px solid #ffffff38;background:linear-gradient(135deg,#ffffff25,#ffffff05);
+ transform:rotate(-7deg);box-shadow:inset 0 0 55px #ffffff08,0 24px 38px #00152433}
+.msHomeSymbol span{transform:rotate(7deg);filter:drop-shadow(0 10px 13px #05243a85)}
+.msSectionHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 20px;flex-wrap:wrap;margin:27px 2px 13px}
+.msSectionHead h2{font-size:19px;color:#18374c;line-height:1.2;margin:0;letter-spacing:-.4px}
+.msSectionHead p{font-size:12px;color:#72879a;margin:4px 0 0}
+.msStepCount{padding:7px 10px;background:#e7f1f6;color:#427b99;border-radius:35px;font-size:11px;font-weight:800}
+.msHomeSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.msStep{min-width:0;background:#fff;border:1px solid #dce7ee;border-radius:16px;padding:17px;box-shadow:0 5px 20px #123d5906;
+ display:flex;flex-direction:column;gap:0;transition:border-color .14s,transform .14s}
+.msStep:hover{border-color:#b2d1e4;transform:translateY(-2px)}
+.msStepTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.msStepIcon{display:grid;place-items:center;width:45px;height:45px;background:#ecf5fa;color:#0f688e;border-radius:12px;font-size:23px}
+.msStepNum{color:#b8ccd9;font-weight:900;font-size:24px;letter-spacing:-.8px}
+.msStep h3{font-size:14px;color:#123950;margin:14px 0 6px;font-weight:850;letter-spacing:-.15px}
+.msStep p{font-size:11px;color:#6e8295;line-height:1.5;margin:0 0 15px;flex:1}
+.msStep button,.msStep a{display:inline-flex;align-items:center;justify-content:center;padding:9px 10px;min-height:37px;
+ background:#eef6fa;border:1px solid #d9e8f0;color:#155577;text-decoration:none;border-radius:9px;font-weight:800;font-size:11px;line-height:1.2;text-align:center}
+.msStep button:hover,.msStep a:hover{background:#d8eaf3;color:#0e486a}
+.msStep:nth-child(4) .msStepIcon{background:#fff0f1;color:#ce3d52}
+.msStep:nth-child(4) a{background:#123f60;border-color:#123f60;color:#fff}
+.msStep:nth-child(4) a:hover{background:#185d82}
+.msReviewPanel{background:#fff;border:1px solid #dae6ed;border-radius:18px;padding:22px;margin-top:20px;box-shadow:var(--ms-shadow)}
+.msReviewPanel h2{font-size:18px;margin:0 0 5px;color:#123b53}
+.msReviewPanel>p{font-size:12px;line-height:1.55;color:#647e91;margin:0 0 15px}
+.msReviewGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.msReviewItem{background:#f5f9fb;border:1px solid #e3ebf0;border-radius:12px;padding:13px}
+.msReviewItemTop{display:flex;align-items:baseline;justify-content:space-between;gap:6px;color:#395b73;font-size:12px;font-weight:750}
+.msReviewItemTop strong{color:#124e72;font-size:17px;font-variant-numeric:tabular-nums}
+.msReviewTrack{height:7px;background:#e2eaf1;border-radius:20px;overflow:hidden;margin:11px 0 0}
+.msReviewTrack span{display:block;height:100%;width:0%;background:linear-gradient(90deg,#338b9e,#16a6a2);border-radius:20px;transition:width .22s}
+.msReviewFoot{font-size:11px;color:#8a6b47;background:#fff8eb;padding:12px;border-radius:10px;border:1px solid #f1e4cf;line-height:1.45;margin-top:13px}
+.msReviewFooter{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:13px}
+.msReviewFooter a{text-decoration:none;font-size:12px;font-weight:800;color:#0c6288}
+#homePage>.panel{display:none}
+#ingredientsPage>.panel,#catalogPage>.panel,#editorPage>.panel{box-shadow:var(--ms-shadow)}
+#ingredientFormPanel{border-top:3px solid #0f688f;background:linear-gradient(180deg,#fff 0%,#fff 83%,#fcfeff 100%)}
+#ingredientFormPanel h2{color:#173f57;font-weight:870}
+#ingredientsPage .ingCategoryCard{border:1px solid #d4e3ed;background:linear-gradient(145deg,#fff,#f5faff);
+ box-shadow:0 7px 20px #123e5509;border-radius:13px}
+#ingredientsPage .ingCategoryCard:hover{border-color:#68a2c3;box-shadow:0 10px 26px #103c6119}
+#ingredientsPage .ingCategoryGo{color:#0c668c}
+#ingredientsPage .ingGroup{border-radius:13px;box-shadow:0 6px 18px #15496b07}
+#ingredientsPage .ingGroupSummary{background:linear-gradient(95deg,#0b3b57,#176282 78%,#276d86)}
+#ingredientsPage .ingQuick{background:#f5f9fc;border-color:#d1e3ec;color:#286080}
+#ingredientsPage .ingQuick.on{background:#0f5477;border-color:#0f5477;color:#fff}
+#ingredientsPage .ingTable th{background:#f0f7fb;color:#234d65}
+#ingredientsPage .ingTable tr:hover td{background:#f6fbfe}
+#ingredientsPage .ingRowActions .ingAction{border-radius:8px}
+.field{color:#35556a}
+.field input,.field select,.field textarea{border:1px solid #d0dfe8;border-radius:10px;background:#fff;color:#203b50;
+ transition:border-color .15s,box-shadow .15s}
+.field input:hover,.field select:hover,.field textarea:hover{border-color:#a9c8da}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#2b95bd;outline:none;box-shadow:0 0 0 3px #caeaf78c}
+.field textarea{line-height:1.55;min-height:90px}
+input[type="number"]{font-variant-numeric:tabular-nums}
+#catalogPage:not(.ultraCatalogMode)>.panel{background:#fff;border-top:3px solid #115e86}
+#catalogPage:not(.ultraCatalogMode) .scroll{border-radius:12px;border:1px solid #e2ebf1}
+#catalogPage:not(.ultraCatalogMode) th{background:#f1f7fb;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#68839b;padding:13px 12px}
+#catalogPage:not(.ultraCatalogMode) td{padding:13px 12px}
+#catalogPage:not(.ultraCatalogMode) tr:hover td{background:#f8fbfd}
+#catalogPage:not(.ultraCatalogMode) .pill{background:#fff6e6;border:1px solid #f1dfc2;color:#906324}
+#catalogPage:not(.ultraCatalogMode) .ingProductText>b{font-size:13px;color:#153b52}
+#msProductMenu{background:linear-gradient(105deg,#edf7fb,#fafcfe);border-color:#d3e5ee;box-shadow:none}
+#msProductMenu h2{font-size:21px;color:#123f59}
+.msProductTtk{background:#164d70!important}
+#catalogPage.ultraCatalogMode>.panel{border:1px solid #d4e2ec;background:#fff;box-shadow:none}
+#catalogPage.ultraCatalogMode .ultraHero{background:linear-gradient(117deg,#0a2a43,#0f5576 80%,#197394)}
+#catalogPage.ultraCatalogMode .ultraHero h2{font-weight:870;letter-spacing:-.5px}
+#catalogPage.ultraCatalogMode .ultraCard{border:1px solid #dce8ef;background:#fff;border-radius:12px}
+#catalogPage.ultraCatalogMode .ultraCard.is-current{border-color:#2291a8;background:#f1f9fd;box-shadow:0 0 0 2px #e0f5f8}
+#catalogPage.ultraCatalogMode .ultraCardPhoto{background:radial-gradient(ellipse at 55% 60%,#d2e9f2,#f1f8fc)}
+#catalogPage.ultraCatalogMode .ultraKpi{border-color:#d7e7ee;background:#f6fafc}
+#catalogPage.ultraCatalogMode .ultraStatus.approved{background:#e1f6ec;color:#15694e}
+#catalogPage.ultraCatalogMode .ultraStatus.test{background:#fff4dd;color:#93611e}
+#catalogPage.ultraCatalogMode .ultraEditorBar{background:linear-gradient(104deg,#e8f5fa,#fdfefe)}
+#catalogPage.ultraCatalogMode .ultraStudioAside .ultraMetric{background:#f4fafc}
+#catalogPage.ultraCatalogMode .ultraPfSafety{background:linear-gradient(145deg,#fbfeff,#f0f8fb);border-color:#d0e4ed}
+#catalogPage.ultraCatalogMode .ultraPfCheck.ok{background:#f0fcf8}
+#editorPage:not(.ultraEditorMode)>.panel{border-top:3px solid #0f668b}
+#editorPage:not(.ultraEditorMode)>.panel>.row:first-child{border-bottom:1px solid #e7eff4;padding-bottom:13px;margin-bottom:16px}
+#editorPage:not(.ultraEditorMode) #editorTitle{font-size:21px;color:#143d56}
+#editorPage:not(.ultraEditorMode) #components>.row{padding:10px 12px;background:#f7fafc;border:1px solid #e2eaf0;border-radius:11px;margin-bottom:8px!important}
+#editorPage:not(.ultraEditorMode) .divider{background:#e4eef5}
+#msProductEditorNote{border-left:3px solid #2089aa;background:#f4fbfe}
+#auth{background:radial-gradient(circle at 90% 0%,#2e71894b,transparent 44%),linear-gradient(145deg,#091e33,#134968)}
+#auth>.panel{position:relative;overflow:hidden;border:1px solid #ffffff70;border-radius:23px;padding:35px;
+ box-shadow:0 26px 60px #041a306e;max-width:450px}
+#auth>.panel:before{content:"";position:absolute;top:0;left:0;width:100%;height:5px;background:linear-gradient(90deg,#0c547e 0 70%,#e54057 70% 100%)}
+#auth .logo{font-size:24px;font-weight:950;letter-spacing:-.25px}
+#auth h2{font-size:24px;letter-spacing:-.5px;color:#123b58}
+#auth .field input{min-height:46px}
+#auth #authBtn{background:#104d72}
+#auth #authToggle{background:#eaf4fa}
+#auth .muted{line-height:1.5}
+dialog{color:var(--ms-ink)}
+#msIconDialog{border-color:#d2e5ef;border-radius:19px;box-shadow:0 27px 70px #0e2e4860}
+#msIconDialog .msIconDialogHeading{background:#f3faff}
+#ingredientsPage #ingNutritionPanel{border-color:#d6e7ef!important;background:#f8fcff!important}
+#ingredientUsesDialog{border-radius:18px;border-color:#cedfe9}
+#ingredientUsesDialog::backdrop{background:#071d35a2}
+}
+@media screen and (max-width:1180px){
+ .side{width:224px;padding:22px 11px}
+ .main{padding:24px 18px 48px}
+ .side nav button{font-size:11.5px;padding:10px 11px}
+ .msHomeSteps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media screen and (max-width:760px){
+ .wrap{display:block;min-height:100vh}
+ .side{position:sticky;top:0;z-index:80;height:auto;width:100%;padding:9px 12px 10px;overflow:visible;
+  background:linear-gradient(115deg,#09263a,#135471);border-right:0;border-bottom:1px solid #ffffff22;box-shadow:0 7px 19px #0926381b}
+ .side>.logo{display:inline-block;padding:1px 0 7px 4px;font-size:17px;letter-spacing:-.3px}
+ .side>small{display:none}
+ .side nav{display:flex;flex-direction:row;gap:5px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;padding:0 0 1px}
+ .side nav::-webkit-scrollbar{display:none}
+ .side nav button{font-size:11px;min-height:40px;min-width:max-content;white-space:nowrap;flex-shrink:0;
+  border:1px solid #ffffff15;padding:10px 12px;background:#ffffff0a;border-radius:9px}
+ .side nav button.active{background:#fff;color:#0c3b58;box-shadow:0 4px 12px #0013231a;border-color:#fff}
+ .side nav button.active:hover{background:#fff;color:#0c3b58}
+ .side nav button.active::before{width:auto;height:3px;left:10px;right:10px;top:auto;bottom:-1px;background:#e94058;border-radius:3px 3px 0 0}
+ .side>p{position:absolute;right:12px;top:3px;margin:0!important;padding:0!important;border:0}
+ .side>p>button.secondary{width:auto;padding:5px 8px;min-height:30px;font-size:10px;border:1px solid #ffffff45}
+ .main{padding:15px 12px 45px}
+ .top{padding:0 0 12px;margin-bottom:15px;align-items:center}
+ .top h1{font-size:22px}
+ .top .muted{font-size:11px;margin:4px 0}
+ #userBadge{display:none}
+ .panel{padding:15px;border-radius:14px;margin:12px 0}
+ .msHomeHero{padding:22px 18px;min-height:198px;border-radius:18px}
+ .msHomeHero h2{font-size:26px;letter-spacing:-.8px}
+ .msHomeHero p{font-size:12px}
+ .msHomeSymbol{width:82px;height:82px;flex-basis:82px;font-size:42px;border-radius:20px}
+ #homePage>.cards{gap:8px}
+ .stat{padding:13px 12px;min-height:82px}
+ .stat b{font-size:26px}
+ .stat p{font-size:10.5px}
+ .msReviewPanel{padding:17px}
+ #catalogPage:not(.ultraCatalogMode) .scroll{overflow-x:auto}
+ #catalogPage:not(.ultraCatalogMode) table{min-width:700px}
+}
+@media screen and (max-width:460px){
+ .side>.logo{font-size:16px}
+ .main{padding:13px 10px 38px}
+ .top h1{font-size:20px}
+ .msHomeHero{padding:20px 16px;display:block}
+ .msHomeHero h2{font-size:24px}
+ .msHomeHero p{font-size:12px}
+ .msHomeSymbol{display:none}
+ .msHomeCtas{gap:7px}
+ .msHomeCtas button{font-size:11px;flex:1 1 120px}
+ #homePage>.cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .stat{padding:12px 8px;min-height:83px}
+ .stat b{font-size:25px}
+ .stat p{font-size:10px;line-height:1.25}
+ .msHomeSteps{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .msStep{padding:12px;border-radius:13px}
+ .msStepIcon{width:37px;height:37px;font-size:20px}
+ .msStepNum{font-size:19px}
+ .msStep h3{font-size:12px;margin:11px 0 5px}
+ .msStep p{font-size:10.5px;margin-bottom:11px}
+ .msStep button,.msStep a{font-size:10.5px;min-height:37px;padding:7px 6px}
+ .msReviewGrid{grid-template-columns:1fr}
+ .msSectionHead h2{font-size:17px}
+ #msProductMenu{border-radius:13px}
+ #ingredientFormPanel{padding:12px}
+ #catalogPage.ultraCatalogMode .ultraHero{border-radius:10px 10px 0 0}
+ #editorPage:not(.ultraEditorMode) #components>.row{padding:8px}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
