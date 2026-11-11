@@ -1,0 +1,30 @@
+/* MORE SUSHI STUDIO · label cards and live nutrition */
+#msLabelCard{margin:14px 0 12px;padding:16px;border:1px solid #cbdfe9;border-radius:15px;background:linear-gradient(125deg,#f8fcff,#edf7fc);box-shadow:0 5px 20px #133c6310}
+#msLabelCard .msLabelTop{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px;color:#133d60;margin-bottom:12px}
+#msVerifiedBadge{font-size:11px;color:#a06416;background:#fff5da;border:1px solid #f1d797;border-radius:100px;padding:6px 9px}
+#msLabelCard .msLabelBody{display:grid;grid-template-columns:minmax(155px,210px) 1fr;gap:15px}
+#msLabelCard .msLabelPhoto{border:1.5px dashed #9ac3d9;background:white;border-radius:11px;min-height:135px;display:flex;flex-direction:column;gap:9px;align-items:center;justify-content:center;padding:13px;cursor:pointer;color:#165d88;font-size:12px;font-weight:750}
+#msLabelCard .msLabelPhoto input{max-width:100%;min-height:unset;font-size:11px;padding:5px;background:#ecf7ff}
+#msLabelPreview{max-width:100%;max-height:165px;object-fit:contain;border-radius:8px}
+#msLabelPreview[hidden]{display:none}
+#msLabelCard .msLabelControls{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#msLabelCard .msLabelControls button{white-space:normal;font-size:12px;padding:9px 12px;border-color:#b7d6e8;background:#eaf4fc;color:#164c75}
+#msLabelCard small{font-size:11px;line-height:1.55;color:#698194}
+#msLabelMessage{font-size:12px;line-height:1.4}
+#msLabelDetails{margin-top:12px;border-top:1px solid #d1e2ec;padding-top:10px}
+#msLabelDetails summary{font-size:12px;cursor:pointer;color:#0e537d;font-weight:750}
+#msLabelDetails textarea{width:100%;min-height:100px;resize:vertical;font-size:12px;margin-top:10px}
+#msLabelDetails input{width:100%;font-size:12px;margin-top:8px}
+.msLabelVerify{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.msLabelVerify label{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #cee2ed;border-radius:9px;padding:10px;font-size:12px;line-height:1.35;color:#20536c}
+.msLabelVerify input{width:auto!important;min-height:0!important;accent-color:#0078b9}
+#msLabelCard .msLabelNote{font-size:11px;color:#7b6374;margin:11px 0 0;line-height:1.55}
+#msRecipeAuto{padding:15px 16px;margin:12px 0 17px;background:linear-gradient(130deg,#f8fcff,#eaf5fc);border:1px solid #bcd8e9;border-radius:13px;color:#214a67}
+#msRecipeAuto[hidden]{display:none}
+#msRecipeAuto h3{font-size:15px;margin:0 0 9px}
+#msRecipeAuto .msAutoStatus{font-weight:800;font-size:12px;color:#9c6618}
+#msRecipeAuto p{font-size:12px;line-height:1.6;margin:9px 0}
+#msRecipeAuto small{display:block;color:#607d90;line-height:1.5;margin:7px 0}
+#msApplyAutoTtk{font-size:12px;margin-top:9px;background:#0d6598;color:white;border-radius:9px;padding:9px 12px}
+#msApplyAutoTtk:disabled{background:#b6cbd8;color:#eff8fc;cursor:not-allowed}
+@media(max-width:620px){#msLabelCard{padding:12px}#msLabelCard .msLabelTop{font-size:13px;align-items:flex-start}#msLabelCard .msLabelBody{grid-template-columns:1fr}#msLabelCard .msLabelPhoto{min-height:100px}#msLabelCard .msLabelControls button{width:100%}.msLabelVerify{grid-template-columns:1fr}}
