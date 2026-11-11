@@ -264,6 +264,9 @@ function setup(){
   selectedKey=null;bridge?.rerender();mark();
  });
  for(const input of ui.querySelectorAll('[data-a4-coord]'))input.addEventListener('change',onCoord);
+ $('paper').addEventListener('click',e=>{
+  if(layoutMode&&e.target.closest('[data-a4-block]')){e.preventDefault();e.stopImmediatePropagation()}
+ },true);
  $('paper').addEventListener('pointerdown',onDown);
  $('paper').addEventListener('pointermove',onMove);
  $('paper').addEventListener('pointerup',onUp);
