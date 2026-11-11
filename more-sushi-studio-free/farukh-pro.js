@@ -864,13 +864,17 @@ function detectOverflow(){
  }
  return overflow;
 }
-function printDocument(){
+async function printDocument(){
  if(!draft){tell('Сначала создайте или откройте ТТК',true);return}
  collectSheetValues();
  syncDraft();
  if(draft.status==='Утверждено'){
   const issues=approvedIssues(draft);if(issues.length){tell('Нельзя печатать как утверждённую ТТК: '+issues.slice(0,3).join(', '),true);return}
  }
+ try{
+  await Promise.all([...$('paper').querySelectorAll('img')].map(img=>img.decode()));
+  if(document.fonts?.ready)await document.fonts.ready;
+ }catch{tell('Фото или фон ещё не загружены. Проверьте соединение и повторите печать.',true);return}
  if(detectOverflow()){tell('Печать заблокирована: документ выходит за границы одного листа А4.',true);return}
  window.print();
 }
