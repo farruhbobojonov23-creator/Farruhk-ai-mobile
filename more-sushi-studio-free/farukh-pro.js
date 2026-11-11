@@ -973,3 +973,5 @@ function init(){
 init();
 
 })();
+
+{const s=document.createElement("style");s.textContent="#paper.archive-sheet .archive-sheet-content[data-template][data-template=\"a4-02\"] #recipeTable th{background:#dcecf5;color:#173b50}";document.head.append(s);}
