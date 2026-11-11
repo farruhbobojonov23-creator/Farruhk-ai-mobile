@@ -88,3 +88,7 @@
  #paper .sheet-ingredient-table th:nth-child(5){display:none!important}
  #paper .sheet-ingredient-table th:nth-child(2){width:auto!important}
 }
+#paper.sheet-document.theme-atelier{--sheet-primary:#092e55;--sheet-accent:#0876ad;--sheet-muted:#355973}
+#paper.sheet-document.theme-classic .sheet-eyebrow,#paper.sheet-document.theme-arctic .sheet-eyebrow{color:var(--sheet-primary)}
+#paper.sheet-document .sheet-ingredient-table td:first-child{white-space:nowrap;font:10px Arial,sans-serif;padding:4px 2px}
+#paper.sheet-document .sheet-ingredient-table th:first-child{width:28px}
