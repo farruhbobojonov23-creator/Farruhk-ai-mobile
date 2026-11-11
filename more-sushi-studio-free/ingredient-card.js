@@ -4,23 +4,24 @@
 const e=id=>document.getElementById(id);
 const number=v=>Number(String(v??'').replace(',','.'));
 const fmt=v=>Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1});
-const state={photo:null,text:'',original:null};
+const state={photo:null,ocrImage:null,text:'',original:null,busy:false,lastOcrFilled:[]};
 const nutritionFields={protein:'ingNProtein',fat:'ingNFat',carbs:'ingNCarbs',kcal:'ingNKcal'};
 let summary=new Map();
 function banner(text,error=false){e('msLabelMessage').textContent=text;e('msLabelMessage').style.color=error?'#bd3647':'#146583'}
 function markPending(){e('msAllergenVerified').checked=false;e('msNutritionVerified').checked=false;badge()}
 function badge(){e('msVerifiedBadge').textContent=e('msAllergenVerified').checked&&e('msNutritionVerified').checked?'✅ Сверено': '⚠ Требует проверки'}
 function preview(data){const image=e('msLabelPreview');image.hidden=!data;if(data)image.src=data;else image.removeAttribute('src')}
-async function scaledImage(file){
+async function scaledImage(file,maxEdge=1600){
  if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>9e6)throw Error('Нужен JPG/PNG/WEBP до 9 МБ');
  const raw=await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=bad;r.readAsDataURL(file)});
  const img=await new Promise((ok,bad)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=bad;i.src=raw});
- const rate=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');
+ const rate=Math.min(1,maxEdge/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');
  c.width=Math.round(img.naturalWidth*rate);c.height=Math.round(img.naturalHeight*rate);
  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
  return c.toDataURL('image/webp',0.86);
 }
 async function imageToRecognize(){
+ if(state.ocrImage)return state.ocrImage;
  if(state.photo)return state.photo;
  const source=window.MSIcons?.getIngredientPhoto?.()||state.original?.photo_data;
  if(!source)return null;
@@ -41,57 +42,173 @@ async function getOcr(){
  }).catch(ex=>{ocrLoader=null;throw ex});
  return ocrLoader;
 }
-function parseLabel(raw){
- const t=String(raw||'').replace(/[ \t]+/g,' '),lines=t.split(/\r?\n/);
- const find=(patterns)=>{
- for(const p of patterns){const m=t.match(new RegExp('(?:'+p+')\\s*(?:г(?:рамм)?)?\\s*[:—–-]?\\s*(\\d{1,4}(?:[.,]\\d{1,3})?)','i'));if(m)return number(m[1])}
- return null;
+function parseLabel(raw) {
+ const t=String(raw||'').normalize('NFKC').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/：/g,':');
+ const lines=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+ const tokens={
+  protein:[/\bprotein(?:s)?\b/i,/белк(?:и|ов|а)?/i],
+  fat:[/\bfats?\b/i,/жир(?:ы|ов|а)?/i],
+  carbs:[/\bcarbohydrates?\b/i,/углевод(?:ы|ов|а)?/i]
  };
- const macros={
- protein:find(['белк(?:и|ов)?','protein']),
- fat:find(['жир(?:ы|ов)?','fat']),
- carbs:find(['углевод(?:ы|ов)?','carbohydrates?']),
- kcal:find(['ккал','калори[а-я]*'])
+ const values={protein:null,fat:null,carbs:null,kcal:null};
+ function directValue(line,label) {
+  const m=line.match(label);if(!m)return null;
+  let tail=line.slice(m.index+m[0].length);
+  // Common manufacturer labels: Белки, г: 7,1; Proteins (g) 7.1
+  tail=tail.replace(/^[\s:—–\-.,|/()\[\]гg]{0,18}/i,'');
+  const v=tail.match(/^(\d{1,3}(?:[.,]\d{1,3})?)(?:\s|$|г\b|g\b|[;,|])/i);
+  if(!v)return null;
+  const n=number(v[1]);
+  return Number.isFinite(n)&&n>=0&&n<=100?n:null;
+ }
+ for(const [k,patterns] of Object.entries(tokens)) {
+  for(const line of lines) {
+   for(const pattern of patterns) {
+    const v=directValue(line,pattern);
+    if(v!==null) { values[k]=v;break }
+   }
+   if(values[k]!==null)break;
+  }
+ }
+ // kJ is NOT kcal. Search for the number attached explicitly to kcal.
+ for(const line of lines) {
+  let matches=[...line.matchAll(/(\d{1,4}(?:[.,]\d+)?)\s*(?:ккал|kcal)\b/gi)];
+  if(matches.length) {values.kcal=number(matches[matches.length-1][1]);break}
+  const forward=line.match(/(?:ккал|kcal)\s*[:=—–-]?\s*(\d{1,4}(?:[.,]\d+)?)/i);
+  if(forward){values.kcal=number(forward[1]);break}
+  if(/(?:калорийность|энергетическая ценность)/i.test(line) && !/(?:кДж|kj)/i.test(line)) {
+   const m=line.match(/(?:калорийность|энергетическая ценность)\s*[:=—–-]?\s*(\d{1,4}(?:[.,]\d+)?)/i);
+   if(m){values.kcal=number(m[1]);break}
+  }
+ }
+ if(values.kcal!==null && (!Number.isFinite(values.kcal)||values.kcal<0||values.kcal>950))values.kcal=null;
+ // Typical nutrition table: a heading line followed by values in the same order.
+ if(Object.values(values).filter(v=>v!==null).length<=1) {
+  for(let j=0;j<lines.length-1;j++){
+   if(/белк|protein/i.test(lines[j])&&/жир|fat/i.test(lines[j])&&/углевод|carb/i.test(lines[j])) {
+    const chunks=(lines[j+1]||'').match(/\d{1,4}(?:[.,]\d{1,3})?/g)||[];
+    if(chunks.length>=4) {
+     const nums=chunks.slice(0,4).map(number);
+     if(nums.slice(0,3).every(v=>v>=0&&v<=100)&&nums[3]>=0&&nums[3]<=950)
+       ['protein','fat','carbs','kcal'].forEach((k,z)=>{if(values[k]===null)values[k]=nums[z]});
+    }
+   }
+  }
+ }
+ const companyKeys=/^(?:изготовител[ьи]|производител[ьи]|произведено|организация[- ]изготовитель|manufacturer|produced by)\b\s*[:—-]?/i;
+ let manufacturer='';
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i],m=line.match(companyKeys);
+  if(!m)continue;
+  const value=(line.slice(m[0].length).trim()||lines[i+1]||'').slice(0,180);
+  if(value.length>=3&&!/^(?:белки|жиры|ккал|состав|storage)/i.test(value))manufacturer=value;
+  break;
+ }
+ let storage='';
+ const validStorage=s=> /[-+]?\d{1,2}\s*(?:°|градус|[CcСс]\b)|(?:от\s*[-+]?\d{1,2}\s*до\s*\+?\d{1,2})|(?:сухом|прохладном|темном|тёмном)\s+месте|(?:store|keep)\s+(?:refrigerated|frozen|at\s+[-+]?\d)/i.test(s);
+ for(let i=0;i<lines.length;i++){
+  if(!/условия хранени|хранить при|температура хранени|режим хранени|store at|keep refrigerated/i.test(lines[i]))continue;
+  const candidate=(lines[i]+(i+1<lines.length?' '+lines[i+1]:'')).slice(0,200);
+  if(validStorage(candidate))storage=candidate;
+  break;
+ }
+ const life=t.match(/(?:срок (?:годности|хранения)|shelf life)\s*[:—-]?\s*(\d+(?:[.,]\d+)?)\s*(час(?:ов|а)?|ч\b|сут(?:ок|ки)?|дн(?:ей|я|ь)|days?|hours?)\b/i);
+ let hours=null;
+ if(life)hours=number(life[1])*(/^(?:час|ч\b|hour)/i.test(life[2])?1:24);
+ if(hours!==null&&(!Number.isFinite(hours)||hours<=0))hours=null;
+ const warning=lines.filter(s=>/(?:аллерген|содержит|may contain|contains|следы)/i.test(s)&&!/не содержит/i.test(s)).join(' ');
+ let composition=lines.filter(s=>/(?:^|\s)состав\s*[:—-]|ingredients\s*:/i.test(s)).join(' ');
+ if(composition.length<20)composition='';
+ const source=warning+' '+composition;
+ const allergens={
+  'рыба':/рыб|лосос|форел|тунец|salmon|fish/i,'молоко':/молок|лактоз|сливк|milk|lactose/i,
+  'яйцо':/яйц|яичн|egg/i,'соя':/соев|соя|soy/i,
+  'пшеница':/пшениц|глютен|wheat|gluten/i,'ракообразные':/кревет|ракообраз|shrimp|crustacean/i,
+  'моллюски':/моллюск|mollusc/i,'кунжут':/кунжут|sesame/i,
+  'горчица':/горчиц|mustard/i,'орехи':/орех|nuts?\b/i,'арахис':/арахис|peanut/i,
+  'сельдерей':/сельдерей|celery/i,'люпин':/люпин|lupin/i,'сульфиты':/сульфит|sulphite/i
  };
- if(macros.kcal==null){const m=t.match(/(\d{2,4}(?:[.,]\d+)?)\s*(?:ккал|kcal)/i);if(m)macros.kcal=number(m[1])}
- const manufacturerLine=lines.find(l=>/^(?:изготовитель|производитель|произведено|организация-изготовитель)\s*[:—-]/i.test(l));
- const storageLine=lines.find(l=>/условия хранения|хранить при|температура хранения/i.test(l));
- const life=t.match(/срок (?:годности|хранения)\s*[:—-]?\s*(\d+(?:[.,]\d+)?)\s*(час(?:а|ов)?|сут(?:ок|ки)?|дн(?:ей|я|ь))/i);
- const alerts=lines.filter(l=>/содержит|аллерген|может содержать|следы/i.test(l)).join(' ');
- const groups={рыба:/рыб|лосос|форел/i,молоко:/молок|лактоз/i,яйцо:/яйц/i,соя:/соев|соя/i,пшеница:/пшениц|глютен/i,ракообразные:/кревет|ракообраз/i,моллюски:/моллюск/i,кунжут:/кунжут/i,горчица:/горчиц/i,орехи:/орех/i,арахис:/арахис/i,сельдерей:/сельдерей/i,люпин:/люпин/i,сульфиты:/сульфит/i};
- return {macros,manufacturer:manufacturerLine?.replace(/^[^:—-]+[:—-]\s*/,'').trim()||'',storage:storageLine?.trim()||'',hours:life?number(life[1])*(life[2].startsWith('час')?1:24):null,allergens:Object.keys(groups).filter(k=>groups[k].test(alerts))};
+ return {macros:values,manufacturer,storage,hours,allergens:Object.entries(allergens).filter(([_,re])=>re.test(source)).map(([k])=>k),
+   nutritionCount:Object.values(values).filter(v=>v!==null).length};
 }
-function applyText(){
+function applyText() {
  const d=parseLabel(e('msLabelText').value);
- if(d.manufacturer)e('ingManufacturer').value=d.manufacturer.slice(0,160);
- if(d.storage)e('ingStorage').value=d.storage.slice(0,160);
- if(d.hours!=null)e('ingShelfLife').value=String(d.hours);
- if(d.allergens.length)e('ingAllergens').value=d.allergens.join(', ');
- for(const k of Object.keys(nutritionFields))if(d.macros[k]!=null&&d.macros[k]>=0)e(nutritionFields[k]).value=String(d.macros[k]);
- if(Object.values(d.macros).every(v=>v!=null)&&!e('ingNSource').value)e('ingNSource').value='Этикетка производителя — после сверки';
+ const changed=[];
+ if(d.manufacturer){e('ingManufacturer').value=d.manufacturer;changed.push('производитель')}
+ if(d.storage){e('ingStorage').value=d.storage;changed.push('хранение')}
+ if(d.hours!==null){e('ingShelfLife').value=String(d.hours);changed.push('срок')}
+ if(d.allergens.length){e('ingAllergens').value=d.allergens.join(', ');changed.push('аллергены')}
+ // Do not mix nutrition numbers from different OCR passes with existing fields.
+ for(const k of Object.keys(nutritionFields)){
+  const id=nutritionFields[k];
+  if(d.macros[k]!==null){e(id).value=String(d.macros[k]);changed.push(k)}
+  else if(state.lastOcrFilled?.includes(k)){e(id).value=''}
+ }
+ state.lastOcrFilled=Object.keys(d.macros).filter(k=>d.macros[k]!==null);
+ if(d.nutritionCount===4)e('ingNSource').value='Фото этикетки производителя — требуется сверка';
+ else if(e('ingNSource').value.startsWith('Фото этикетки производителя'))e('ingNSource').value='';
  e('ingNutritionPanel').open=true;markPending();
- banner('Предварительные данные перенесены в карточку. Проверьте цифры по этикетке.');
+ if(d.nutritionCount<4){
+  const missing=Object.keys(d.macros).filter(k=>d.macros[k]===null).map(k=>({protein:'белки',fat:'жиры',carbs:'углеводы',kcal:'ккал'}[k]));
+  banner('Распознано '+d.nutritionCount+' из 4 значений КБЖУ. Не найдены: '+missing.join(', ')+'. Сфотографируйте этикетку крупнее или дополните вручную.',true);
+ }else banner('✅ Все 4 показателя КБЖУ распознаны и внесены. Сверьте с этикеткой и подтвердите.');
+ return d;
 }
-async function recognize(){
- const btn=e('msReadLabel');btn.disabled=true;let worker;
- try{
- const picture=await imageToRecognize();if(!picture)throw Error('Добавьте фото этикетки либо общий снимок продукта с этикеткой справа');
- banner('Распознавание русского текста…');
- const engine=await getOcr();
- worker=await engine.createWorker('rus+eng',1,{logger:p=>{if(p.status==='recognizing text')banner('Распознавание '+Math.round((p.progress||0)*100)+'%')}});
- const result=await worker.recognize(picture),text=String(result?.data?.text||'').trim();
- if(text.length<12)throw Error('Этикетка слишком мелкая. Добавьте отдельное крупное фото.');
- state.text=text.slice(0,20000);e('msLabelText').value=state.text;e('msLabelDetails').open=true;applyText();
- banner('Текст распознан. Ничего не подтверждено автоматически: проверьте данные.');
- }catch(ex){banner(ex.message||'Ошибка OCR',true)}finally{if(worker)try{await worker.terminate()}catch{}btn.disabled=false}
+async function enhancePicture(uri) {
+ const img=await new Promise((ok,bad)=>{const x=new Image();x.onload=()=>ok(x);x.onerror=bad;x.src=uri});
+ const scale=Math.min(2.2,3300/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');
+ c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);
+ const ctx=c.getContext('2d',{willReadFrequently:true});
+ ctx.drawImage(img,0,0,c.width,c.height);
+ const data=ctx.getImageData(0,0,c.width,c.height);
+ for(let i=0;i<data.data.length;i+=4){
+  const lum=0.299*data.data[i]+0.587*data.data[i+1]+0.114*data.data[i+2];
+  const v=Math.max(0,Math.min(255,(lum-128)*1.45+148));
+  data.data[i]=data.data[i+1]=data.data[i+2]=v;
+ }
+ ctx.putImageData(data,0,0);
+ return c.toDataURL('image/png');
+}
+async function recognize() {
+ if(state.busy)return;
+ const btn=e('msReadLabel');btn.disabled=true;state.busy=true;
+ let worker;
+ try {
+  const picture=await imageToRecognize();
+  if(!picture)throw Error('Сначала выберите фото продукта с этикеткой справа или крупное фото этикетки.');
+  banner('Распознаю этикетку…');
+  const engine=await getOcr();
+  worker=await engine.createWorker('rus+eng',1,{logger:p=>{
+   if(p.status==='recognizing text')banner('Читаю этикетку: '+Math.round((p.progress||0)*100)+'%');
+  }});
+  const first=await worker.recognize(picture);
+  let chosen=String(first?.data?.text||'').trim();
+  const firstScore=parseLabel(chosen);
+  if(firstScore.nutritionCount<4){
+   banner('Проверяю мелкий текст вторым способом…');
+   try {
+    const next=await worker.recognize(await enhancePicture(picture));
+    const alternative=String(next?.data?.text||'').trim();
+    const a=parseLabel(alternative);
+    const score=x=>x.nutritionCount*5+Number(Boolean(x.manufacturer))+Number(Boolean(x.storage))+Number(x.allergens.length>0);
+    if(score(a)>score(firstScore))chosen=alternative;
+   }catch(error){console.warn('Повторное распознавание:',error.message)}
+  }
+  if(chosen.length<10)throw Error('Этикетка нечитаемая. Сделайте отдельное фото этикетки крупным планом.');
+  state.text=chosen.slice(0,20000);
+  e('msLabelText').value=state.text;
+  e('msLabelDetails').open=true;
+  applyText();
+ }catch(error){banner('⚠ '+(error?.message||'Не удалось распознать текст'),true)}
+ finally{if(worker)try{await worker.terminate()}catch{}btn.disabled=false;state.busy=false}
 }
 function reset(){
- state.photo=null;state.text='';state.original=null;
+ state.photo=null;state.ocrImage=null;state.text='';state.original=null;state.lastOcrFilled=[];
  e('msLabelFile').value='';e('msLabelText').value='';e('msLabelSource').value='';
  preview(null);markPending();banner('');
 }
 function edit(item){
- state.original=item;state.photo=item.label_photo_data||null;state.text=String(item.label_extraction_draft?.text||'');
+ state.original=item;state.photo=item.label_photo_data||null;state.ocrImage=null;state.lastOcrFilled=[];state.text=String(item.label_extraction_draft?.text||'');
  e('msLabelText').value=state.text;e('msLabelSource').value=item.label_source_notes||'';
  e('msAllergenVerified').checked=item.allergen_status==='verified';
  e('msNutritionVerified').checked=item.nutrition_review_status==='verified';
@@ -130,15 +247,17 @@ function start(){
  panel.innerHTML=[
  '<div class="msLabelTop"><strong>🏷️ Карточка товара · данные по этикетке</strong><span id="msVerifiedBadge">⚠ Требует проверки</span></div>',
  '<div class="msLabelBody"><label class="msLabelPhoto">📷 Фото этикетки<input type="file" id="msLabelFile" accept="image/jpeg,image/png,image/webp"><img id="msLabelPreview" alt="Этикетка" hidden></label>',
- '<div class="msLabelControls"><button class="secondary" type="button" id="msReadLabel">✨ Распознать с фотографии</button><button class="secondary" type="button" id="msApplyLabel">↳ Заполнить поля из текста</button><small>Можно использовать уже загруженное фото: этикетка должна быть справа по нашему эталону.</small><span id="msLabelMessage" aria-live="polite"></span></div></div>',
+ '<div class="msLabelControls"><button class="secondary" type="button" id="msReadLabel">✨ Распознать с фотографии</button><button class="secondary" type="button" id="msApplyLabel">↳ Заполнить поля из текста</button><small>При выборе отдельного фото распознавание запускается само. Для общего фото этикетка должна быть справа.</small><span id="msLabelMessage" aria-live="polite"></span></div></div>',
  '<details id="msLabelDetails"><summary>Текст этикетки — посмотреть и исправить</summary><textarea id="msLabelText" rows="5" placeholder="Распознанный текст или текст с этикетки вручную"></textarea><input id="msLabelSource" placeholder="Артикул или ссылка на спецификацию"></details>',
  '<div class="msLabelVerify"><label><input id="msAllergenVerified" type="checkbox"> Аллергены сверены с упаковкой</label><label><input id="msNutritionVerified" type="checkbox"> КБЖУ на 100 г сверено с упаковкой</label></div>',
  '<p class="msLabelNote">OCR может ошибаться. Подтверждение — только после проверки. Срок готового ПФ и готового ролла устанавливается отдельно.</p>'
  ].join('');
  const visual=document.querySelector('#ingredientFormPanel .msIngredientVisualEditor');
  if(visual)visual.after(panel);else e('ingNutritionPanel').before(panel);
+ const ingActions=e('ingSaveBtn')?.closest('.actions');
+ if(ingActions)e('ingNutritionPanel').after(ingActions);
  const box=document.createElement('div');box.id='msRecipeAuto';box.className='msRecipeAuto';box.hidden=true;e('components').after(box);
- e('msLabelFile').onchange=async ev=>{try{state.photo=await scaledImage(ev.target.files[0]);preview(state.photo);markPending();banner('Фото добавлено')}catch(ex){banner(ex.message,true)}};
+ e('msLabelFile').onchange=async ev=>{try{const file=ev.target.files?.[0];if(!file)return;state.photo=await scaledImage(file);state.ocrImage=await scaledImage(file,2600);preview(state.photo);markPending();await recognize()}catch(ex){banner(ex.message,true)}};
  e('msReadLabel').onclick=recognize;e('msApplyLabel').onclick=()=>{state.text=e('msLabelText').value.slice(0,20000);applyText()};
  e('msLabelText').oninput=()=>{state.text=e('msLabelText').value.slice(0,20000);markPending()};
  e('msAllergenVerified').onchange=badge;e('msNutritionVerified').onchange=badge;
