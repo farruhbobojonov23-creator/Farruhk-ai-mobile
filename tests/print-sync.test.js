@@ -93,6 +93,27 @@ test('FARUKH PRINT cloud sync: owner auth, atomic revisions, device pairing and 
  assert.equal(denied.code,403);
 });
 
+test('FARUKH PRINT accepts 100 active devices, excludes revoked devices, and blocks device 101',async()=>{
+ const {req,cloud}=makeApi(),owner={cookie:'fai_owner=ok'};
+ const now=new Date().toISOString();
+ cloud.set('farukh-print-devices.json',[
+  ...Array.from({length:99},(_,i)=>({id:'device-'+i,hash:'hash-'+i,name:'Устройство '+i,createdAt:now,revoked:false})),
+  {id:'revoked-device',hash:'revoked-hash',name:'Старый телефон',createdAt:now,revoked:true}
+ ]);
+ const firstCode=await req('post','/api/farukh-print/admin/pair',owner);
+ assert.equal(firstCode.code,200);
+ const hundredth=await req('post','/api/farukh-print/device/pair',{body:{code:firstCode.payload.code,name:'Устройство 100'}});
+ assert.equal(hundredth.code,200);
+ const firstDevices=(await req('get','/api/farukh-print/admin/devices',owner)).payload.devices;
+ assert.equal(firstDevices.filter(d=>!d.revoked).length,100);
+ const nextCode=await req('post','/api/farukh-print/admin/pair',owner);
+ const overLimit=await req('post','/api/farukh-print/device/pair',{body:{code:nextCode.payload.code,name:'Устройство 101'}});
+ assert.equal(overLimit.code,429);
+ assert.match(overLimit.payload.error,/100 подключённых устройств/);
+ const finalDevices=(await req('get','/api/farukh-print/admin/devices',owner)).payload.devices;
+ assert.equal(finalDevices.filter(d=>!d.revoked).length,100);
+});
+
 test('FARUKH PRINT cloud disabled without durable storage or owner auth',async()=>{
  const routes=new Map();
  const app={get:(name,...handlers)=>routes.set(name,handlers),post(){},put(){},patch(){},delete(){}};
