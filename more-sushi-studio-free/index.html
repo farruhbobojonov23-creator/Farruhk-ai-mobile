@@ -4,7 +4,7 @@
 <title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
 <link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v2">
 <link rel="stylesheet" href="./studio-themes.css?v=20261112-shef51-v1">
-<script src="./studio-themes.js?v=20261112-shef51-v1"></script></head>
+<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./sheet-premium.css?v=20261112-sea-v1"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -99,9 +99,9 @@
      <section class="sheet-stylebar" aria-label="Выбор дизайна и размера листа">
        <div class="sheet-styleleft"><span class="sheet-style-caption">СТИЛЬ ДОКУМЕНТА</span>
          <div id="sheetThemes" class="sheet-themes" role="group" aria-label="Премиальные шаблоны">
-           <button type="button" data-sheet-theme="atelier" class="sheet-theme-btn active"><i class="sheet-theme-dot noir"></i> NOIR & GOLD</button>
-           <button type="button" data-sheet-theme="classic" class="sheet-theme-btn"><i class="sheet-theme-dot pearl"></i> OCEAN PEARL</button>
-           <button type="button" data-sheet-theme="arctic" class="sheet-theme-btn"><i class="sheet-theme-dot burgundy"></i> BURGUNDY MAISON</button>
+           <button type="button" data-sheet-theme="atelier" class="sheet-theme-btn active"><i class="sheet-theme-dot noir"></i> МОРСКОЙ САПФИР</button>
+           <button type="button" data-sheet-theme="classic" class="sheet-theme-btn"><i class="sheet-theme-dot pearl"></i> СЕВЕРНЫЙ ЖЕМЧУГ</button>
+           <button type="button" data-sheet-theme="arctic" class="sheet-theme-btn"><i class="sheet-theme-dot burgundy"></i> НОЧНОЙ ОКЕАН</button>
          </div>
        </div>
        <div class="sheet-zoom" role="group" aria-label="Масштаб листа">
@@ -131,7 +131,7 @@
          <label class="field"><span class="label">Статус</span><select id="eStatus" class="control"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label>
         </div>
         <div class="edit-divider"></div>
-        <label class="label">Фото готового блюда</label><label class="upload-zone" for="ePhotoInput" id="photoZone"><span class="icon" data-icon="upload"></span><strong>Загрузить фотографию</strong><span>PNG / JPG / WEBP · будет отображаться в ТТК</span></label>
+        <label class="label">Фото готового блюда</label><label class="upload-zone" for="ePhotoInput" id="photoZone"><span class="icon" data-icon="upload"></span><strong>Загрузить фотографию</strong><span>PNG / WEBP с прозрачным фоном · фото без рамки; JPG сохраняет свой фон</span></label>
         <input id="ePhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
         <div class="row" style="margin-top:10px"><button id="removePhoto" type="button" class="btn btn-light btn-sm" data-command="removePhoto">Убрать фото</button></div>
        </div>
@@ -169,12 +169,12 @@
       </section>
       <aside class="preview-pane"><div class="preview-top"><div><h3>Один лист А4 · прямое редактирование</h3><span>Кликни по тексту или цифрам. Строки состава можно добавлять и удалять здесь же.</span></div><span class="pill" id="previewStatus">Черновик</span></div>
        <div class="paper-stage" id="paperStage"><div class="paper-holder" id="paperHolder"><div id="paper" class="theme-atelier"></div></div></div>
-       <p class="field-hint" style="text-align:center">В печать и PDF уходит только чистый лист А4 — кнопки редактирования и подсказки скрываются. Переполнение листа блокирует печать.</p>
+       <p class="field-hint" style="text-align:center">В PDF и печать уходит один цветной лист А4. Фото PNG / WEBP с прозрачностью — без рамки и подложки. При переполнении печать блокируется. Для точной передачи цветов включите «Фоновая графика» в окне печати.</p>
       </aside>
      </div>
    </section>
    <section id="viewTemplates" class="page" data-view="templates" hidden>
-     <div class="page-head"><div><div class="mini-label">DOCUMENT DESIGN SYSTEM</div><h2>Профессиональные шаблоны А4</h2><p>Три варианта оформления, созданные для ресторанов и авторских проектов.</p></div></div>
+     <div class="page-head"><div><div class="mini-label">DOCUMENT DESIGN SYSTEM</div><h2>Профессиональные шаблоны А4</h2><p>Три цветных фотолиста А4 с морскими орнаментами и фото блюда без рамки.</p></div></div>
      <div class="template-grid" id="templateGrid"></div>
      <div class="notice" style="margin-top:20px"><strong>Фирменный стиль каждого проекта</strong>Название и логотип подставляются в документ из карточки проекта. Формат печати — лист А4.</div>
    </section>
@@ -207,5 +207,5 @@
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="./farukh-pro.js?v=20261111-sheet-v2" defer></script>
+<script src="./farukh-pro.js?v=20261112-sea-v1" defer></script>
 </body></html>

@@ -12,9 +12,9 @@ const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2
 let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
- {id:'atelier',name:'Noir & Gold',sub:'Чёрный мрамор · золото',desc:'Люксовый чёрно-золотой стиль с архитектурной типографикой и ресторанным характером.'},
- {id:'classic',name:'Ocean Pearl',sub:'Морской синий · жемчуг',desc:'Светлый премиальный дизайн: графит, морская глубина и элегантные серебристые детали.'},
- {id:'arctic',name:'Burgundy Maison',sub:'Бордо · шампань',desc:'Благородный оттенок бордо, кремовая бумага и тёплая металлическая отделка.'}
+ {id:'atelier',name:'Морской сапфир',sub:'Синий · волны · золото',desc:'Цветной голубой лист, морские волны, тёмно-синяя полоса и крупное фото блюда без рамки.'},
+ {id:'classic',name:'Северный жемчуг',sub:'Мята · перламутр · шампань',desc:'Мятно-жемчужный лист с плавными волнами, тонкими золотыми линиями и фото без подложки.'},
+ {id:'arctic',name:'Ночной океан',sub:'Глубокий синий · серебро · золото',desc:'Полностью тёмно-синий лист, золотой орнамент и светло-голубые блоки для читаемого текста.'}
 ];
 const iconPaths={
  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -632,18 +632,19 @@ function renderPreview(){
  paper.className='sheet-document theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
  paper.style.setProperty('--sheet-brand-accent',safeAccent);
  paper.innerHTML=
+ '<img class="sheet-art" src="./sheet-'+({atelier:'sapphire',classic:'pearl',arctic:'night'}[draft.template]||'sapphire')+'.svg" alt="" aria-hidden="true">'+
  '<div class="sheet-masthead">'+
  '<div class="sheet-header-inner"><div class="sheet-logo-title">'+
- '<div class="sheet-header-kicker">FARUKH · TECHNICAL RECIPE ATELIER</div>'+
+ '<div class="sheet-header-kicker">АВТОРСКАЯ КОЛЛЕКЦИЯ РЕЦЕПТУР</div>'+
  '<div class="sheet-brand-name">'+esc((p?.name||'НОВЫЙ ПРОЕКТ').toLocaleUpperCase('ru'))+'</div>'+
  '<div class="sheet-brand-sub">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА / А4</div>'+
  '</div><button type="button" class="sheet-project-logo sheet-screen-only-button" data-command="sheetProjectEdit" title="Изменить логотип проекта">'+logo+'</button></div>'+
- '<div class="sheet-header-footer"><div class="sheet-header-mark">CHEF’S PROFESSIONAL DOCUMENT</div>'+
- '<div class="sheet-header-count">DOCUMENT / '+esc(draft.version||1)+'</div></div>'+
+ '<div class="sheet-header-footer"><div class="sheet-header-mark">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</div>'+
+ '<div class="sheet-header-count">А4 · '+esc(draft.code||'ТТК')+'</div></div>'+
  '</div>'+
  '<div class="sheet-main">'+
  '<div class="sheet-dish-header"><div class="sheet-dish-main">'+
- '<div class="sheet-eyebrow">ТЕХНОЛОГИЧЕСКАЯ КАРТА · <span class="sheet-doc-code">'+editablePaper('eCode',draft.code,'Код ТТК','line')+'</span></div>'+
+ '<div class="sheet-eyebrow">ТТК · <span class="sheet-doc-code">'+editablePaper('eCode',draft.code,'Код ТТК','line')+'</span></div>'+
  '<h1 class="sheet-dish-name">'+editablePaper('eTitle',draft.title,'Нажмите и введите название блюда','line')+'</h1>'+
  '<div class="sheet-dish-meta"><span>КАТЕГОРИЯ: '+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</span>'+
  '<span>ВЫХОД: '+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' <b>г</b></span></div>'+
@@ -651,10 +652,10 @@ function renderPreview(){
  (validImg(draft.photo_data)?'<button type="button" class="sheet-remove-photo sheet-screen-only" data-command="sheetRemovePhoto" title="Удалить фото" aria-label="Удалить фото">×</button>':'')+
  '</div></div>'+
  '<div class="sheet-2col">'+
- sheetParagraph('fScope','01','Область применения',f.scope,'Где и для чего применяется карта','sheet-compact')+
- sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Качество сырья, документы, условия','sheet-compact')+
+ sheetParagraph('fScope','01','Область применения',f.scope,'Наименование блюда и предприятий, которым разрешены изготовление и реализация','sheet-compact')+
+ sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Требования к сырью и документам, подтверждающим качество и безопасность','sheet-compact')+
  '</div>'+
- '<section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура блюда / полуфабриката</h3></div>'+
+ '<section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура · на указанный выход блюда / ПФ</h3></div>'+
  '<table class="sheet-ingredient-table"><thead><tr><th>№</th><th>Наименование сырья или полуфабриката</th><th>БРУТТО, Г</th><th>НЕТТО, Г</th><th class="sheet-screen-only">УПРАВЛЕНИЕ</th></tr></thead>'+
  '<tbody id="sheetIngredients">'+(rows.length?rows.map(buildSheetRow).join(''):'<tr><td colspan="5" class="sheet-recipe-empty">Нет ингредиентов — нажмите «Добавить строку»</td></tr>')+'</tbody></table>'+
  '<div class="sheet-recipe-bottom"><div class="sheet-recipe-total">'+
@@ -662,18 +663,18 @@ function renderPreview(){
  '<div>ВСЕГО НЕТТО <strong id="sheetTotalNet">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.net_g)||0),0))+' г</strong></div></div>'+
  '<div class="sheet-add-actions sheet-screen-only"><button type="button" data-command="sheetAddLine">＋ Добавить строку</button>'+
  (lastRemovedLine?'<button type="button" data-command="sheetUndoLine">↶ Вернуть</button>':'')+'</div></div></section>'+
- sheetParagraph('fProcess','04','Технологический процесс',f.process,'Этапы приготовления, температуры, время и контроль','sheet-process')+
+ sheetParagraph('fProcess','04','Технологический процесс',f.process,'Подготовка, последовательность операций, режимы обработки, время, оборудование и контроль','sheet-process')+
  '<div class="sheet-2col">'+
- sheetParagraph('fServing','05','Оформление, подача и реализация',f.serving,'Как подаётся и реализуется блюдо','sheet-small')+
- sheetParagraph('fStorage','06','Сроки и условия хранения',f.storage,'Только документально подтверждённые сроки','sheet-small')+
+ sheetParagraph('fServing','05','Оформление, подача и реализация',f.serving,'Оформление, порционирование, температура подачи, упаковка и порядок реализации','sheet-small')+
+ sheetParagraph('fStorage','05а','Хранение и транспортирование',f.storage,'Подтверждённые срок годности, температура и условия хранения; условия доставки при необходимости','sheet-small')+
  '</div><div class="sheet-2col">'+
- sheetParagraph('fQuality','07','Показатели качества и безопасности',f.quality,'Внешний вид, вкус, запах и безопасность','sheet-small')+
- sheetParagraph('fAllergens','08','Аллергены',f.allergens,'Только подтверждённые аллергены','sheet-small')+
+ sheetParagraph('fQuality','06','Качество и безопасность',f.quality,'Внешний вид, консистенция, вкус, запах; требования к микробиологическим и иным показателям безопасности','sheet-small')+
+ sheetParagraph('fAllergens','+','Аллергены',f.allergens,'Только подтверждённые аллергены','sheet-small')+
  '</div>'+
- sheetParagraph('fNutrition','09','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
+ sheetParagraph('fNutrition','07','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
  '<div class="sheet-signatures">'+
- '<div class="sheet-sign"><span>РАЗРАБОТАЛ</span>'+editablePaper('fDeveloped',f.developed,'Ф.И.О., должность','line')+'<i></i></div>'+
- '<div class="sheet-sign"><span>УТВЕРДИЛ</span>'+editablePaper('fApproved',f.approved,'Ф.И.О., должность','line')+'<i></i></div>'+
+ '<div class="sheet-sign"><span>РАЗРАБОТАЛ</span>'+editablePaper('fDeveloped',f.developed,'Имя, должность','line')+'<i></i></div>'+
+ '<div class="sheet-sign"><span>УТВЕРДИЛ</span>'+editablePaper('fApproved',f.approved,'Имя, должность','line')+'<i></i></div>'+
  '<div class="sheet-sign"><span>ДАТА</span>'+editablePaper('fDate',f.date,'Дата утверждения','date')+'<i></i></div></div>'+
  '</div>'+
  '<div class="sheet-footer"><span>FARUKH TTK PRO</span>'+
@@ -852,7 +853,7 @@ function detectOverflow(){
  }
  hint.hidden=!overflow;
  hint.textContent=overflow?
-  '⚠️ Материалы не помещаются на 1 лист А4. Сократите текст, уменьшите число строк или создайте вторую ТТК. Печать временно заблокирована.':'';
+  '⚠️ Материалы не помещаются на 1 лист А4. Сократите формулировки без удаления обязательных сведений. Печать заблокирована, чтобы не обрезать документ.':'';
  if($('editorPrint')){
   $('editorPrint').disabled=overflow;
   $('editorPrint').title=overflow?'Переполнение листа А4. Сначала исправьте документ.':'Печать / сохранение в PDF';

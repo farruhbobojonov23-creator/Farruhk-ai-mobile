@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="794" height="1123" viewBox="0 0 794 1123">
+<defs><linearGradient id="n" x2="1" y2="1"><stop stop-color="#0b243d"/><stop offset=".5" stop-color="#163e57"/><stop offset="1" stop-color="#081e33"/></linearGradient><radialGradient id="glow"><stop stop-color="#5083a0" stop-opacity=".5"/><stop offset="1" stop-color="#5083a0" stop-opacity="0"/></radialGradient><pattern id="dots" width="25" height="25" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r=".8" fill="#bcd8e6" fill-opacity=".15"/></pattern></defs>
+<rect width="794" height="1123" fill="url(#n)"/><ellipse cx="700" cy="170" rx="370" ry="310" fill="url(#glow)"/><rect width="794" height="1123" fill="url(#dots)"/>
+<rect x="18" y="18" width="758" height="1087" rx="2" fill="none" stroke="#c7aa70" stroke-opacity=".7"/>
+<path d="M0 186C162 244 338 90 504 139S665 211 794 160M0 195C162 253 338 99 504 148S665 220 794 169" fill="none" stroke="#c5a96f" stroke-opacity=".5"/>
+<path d="M0 1012C188 946 280 1061 487 1019S677 971 794 1000M0 1025C188 959 280 1074 487 1032S677 984 794 1013M0 1038C188 972 280 1087 487 1045S677 997 794 1026" fill="none" stroke="#a4c5d6" stroke-opacity=".22"/>
+<path d="M0 1090C221 1010 400 1170 794 1060" fill="none" stroke="#d8bb7d" stroke-width="2"/>
+<circle cx="721" cy="76" r="32" fill="none" stroke="#d4b777" stroke-opacity=".5"/><circle cx="721" cy="76" r="38" fill="none" stroke="#d4b777" stroke-opacity=".2"/>
+</svg>
