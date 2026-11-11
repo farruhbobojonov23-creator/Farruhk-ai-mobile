@@ -12,9 +12,9 @@ const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2
 let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
- {id:'atelier',name:'Atelier Signature',sub:'Графит · шампань',desc:'Фирменная классика с мягкими золотистыми акцентами.'},
- {id:'classic',name:'Chef Executive',sub:'Синий · красный',desc:'Строгая ресторанная техкарта с акцентом на структуру.'},
- {id:'arctic',name:'Arctic Minimal',sub:'Тиффани · лёд',desc:'Светлый современный стиль и деликатные оттенки моря.'}
+ {id:'atelier',name:'Noir & Gold',sub:'Чёрный мрамор · золото',desc:'Люксовый чёрно-золотой стиль с архитектурной типографикой и ресторанным характером.'},
+ {id:'classic',name:'Ocean Pearl',sub:'Морской синий · жемчуг',desc:'Светлый премиальный дизайн: графит, морская глубина и элегантные серебристые детали.'},
+ {id:'arctic',name:'Burgundy Maison',sub:'Бордо · шампань',desc:'Благородный оттенок бордо, кремовая бумага и тёплая металлическая отделка.'}
 ];
 const iconPaths={
  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -590,52 +590,94 @@ function renderReview(){
 }
 
 /* Premium A4 preview; all variable content is escaped before interpolation. */
-function paperText(x,fallback='Не указано — требуется проверка'){
- const value=String(x||'').trim();
- return value?esc(value).replace(/\n/g,'<br>'):'<span style="color:#9babb1">'+esc(fallback)+'</span>';
+
+function editablePaper(id,val,hint,kind='multi'){
+ const label=String(hint||id);
+ if(kind==='date')return '<input type="date" class="sheet-edit sheet-date" data-sheet-field="'+id+'" value="'+esc(val||'')+'" aria-label="'+esc(label)+'">';
+ if(kind==='number')return '<input type="number" min="0.001" step="0.001" inputmode="decimal" class="sheet-edit sheet-number" data-sheet-field="'+id+'" value="'+esc(val??'')+'" placeholder="0" aria-label="'+esc(label)+'">';
+ return '<span class="sheet-edit '+(kind==='line'?'sheet-single':'sheet-text')+'" contenteditable="true" spellcheck="false" data-sheet-field="'+id+'" role="textbox" aria-label="'+esc(label)+'" data-placeholder="'+esc(label)+'">'+esc(String(val||'')).replace(/\n/g,'<br>')+'</span>';
 }
-function paperBlock(label,content){
- return '<section class="paper-section"><h4>'+esc(label)+'</h4><div class="inside">'+paperText(content)+'</div></section>';
+function sheetParagraph(id,number,label,val,hint,sectionClass=''){
+ return '<section class="sheet-section '+sectionClass+'"><div class="sheet-section-head"><span>'+esc(number)+'</span><h3>'+esc(label)+'</h3></div>'+
+ '<div class="sheet-section-content">'+editablePaper(id,val,hint)+'</div></section>';
+}
+function buildSheetRow(line,i){
+ return '<tr data-sheet-line="'+i+'">'+
+ '<td class="sheet-seq">'+String(i+1).padStart(2,'0')+'</td>'+
+ '<td class="sheet-item-name"><span class="sheet-edit sheet-single" contenteditable="true" spellcheck="false" data-sheet-line-field="name" data-placeholder="Название сырья / ПФ" role="textbox" aria-label="Название ингредиента '+(i+1)+'">'+esc(line.name||'')+'</span></td>'+
+ '<td><input class="sheet-edit sheet-weight" type="number" min="0" step="0.001" inputmode="decimal" data-sheet-line-field="gross_g" value="'+esc(line.gross_g??'')+'" placeholder="0" aria-label="Брутто, строка '+(i+1)+'"></td>'+
+ '<td><input class="sheet-edit sheet-weight" type="number" min="0" step="0.001" inputmode="decimal" data-sheet-line-field="net_g" value="'+esc(line.net_g??'')+'" placeholder="0" aria-label="Нетто, строка '+(i+1)+'"></td>'+
+ '<td class="sheet-row-actions sheet-screen-only">'+
+ '<button type="button" data-sheet-move="'+i+'" data-sheet-move-dir="-1" aria-label="Строка выше" title="Выше">↑</button>'+
+ '<button type="button" data-sheet-move="'+i+'" data-sheet-move-dir="1" aria-label="Строка ниже" title="Ниже">↓</button>'+
+ '<button type="button" data-sheet-remove="'+i+'" aria-label="Убрать ингредиент" title="Удалить строку">×</button></td>'+
+ '</tr>';
 }
 function renderPreview(){
  if(!draft)return;
  const p=byProject(draft.project_id);
- const accent=p?.accent&&/^#[0-9a-fA-F]{6}$/.test(p.accent)?p.accent:'#0F6479';
- const logo=p&&validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':esc((p?.name||'F').slice(0,1).toUpperCase());
- const photo=validImg(draft.photo_data)?'<img class="paper-photo" src="'+draft.photo_data+'" alt="Фото блюда">':
- '<div class="paper-photo" style="display:grid;place-items:center;font-size:11px;color:#92a4ab">Фото не добавлено</div>';
- const rows=(Array.isArray(draft.lines)?draft.lines:[]).filter(l=>l.name||l.gross_g!=null||l.net_g!=null);
- const table=rows.length?rows.map((l,i)=>
- '<tr><td>'+esc(l.name||'—')+'</td><td>'+esc(l.gross_g==null?'—':fmt(l.gross_g))+'</td><td>'+esc(l.net_g==null?'—':fmt(l.net_g))+'</td></tr>').join(''):
- '<tr><td colspan="3" style="color:#91a4ad;padding:12px">Рецептура пока не заполнена</td></tr>';
+ const safeAccent=p?.accent&&/^#[0-9a-fA-F]{6}$/.test(p.accent)?p.accent:'#0F6479';
+ const logo=p&&validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="Логотип проекта">':
+ '<span class="sheet-logo-initial">'+esc((p?.name||'F').slice(0,1).toLocaleUpperCase('ru'))+'</span>';
+ const photo=validImg(draft.photo_data)?'<img src="'+draft.photo_data+'" alt="Фото готового блюда">':
+ '<span class="sheet-photo-placeholder"><span class="sheet-photo-glyph">◈</span><span>НАЖМИТЕ, ЧТОБЫ<br>ДОБАВИТЬ ФОТО</span></span>';
+ const rows=Array.isArray(draft.lines)?draft.lines:[];
  const f=draft.fields||{};
- const paper=$('paper');paper.className='theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
+ const approved=draft.status==='Утверждено';
+ const paper=$('paper');
+ paper.className='sheet-document theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
+ paper.style.setProperty('--sheet-brand-accent',safeAccent);
  paper.innerHTML=
- '<header class="paper-head"><div><div class="paper-brand">'+esc((p?.name||'FARUKH TTK PRO').toUpperCase())+
- '<small>ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА · А4</small></div></div>'+
- '<div class="paper-logo" style="background:'+esc(accent)+'">'+logo+'</div></header>'+
- '<div class="paper-body"><div class="paper-intro"><div style="min-width:0;flex:1">'+
- '<div class="paper-code">'+esc(draft.code||'Код ТТК не указан')+' &nbsp; / &nbsp; '+esc(draft.category||'Блюда')+'</div>'+
- '<div class="paper-title">'+esc(draft.title||'Название блюда')+'</div>'+
- '<div class="paper-subline"><span>Выход: <b>'+esc(draft.yield_g==null?'—':fmt(draft.yield_g)+' г')+'</b></span><span>·</span><span>'+esc(draft.status||'Черновик')+'</span></div>'+
- '<div class="paper-note">Документ для внутреннего контроля и утверждения ответственным лицом.</div>'+
- '</div>'+photo+'</div>'+
- '<div class="paper-split">'+paperBlock('1. Область применения',f.scope)+paperBlock('2. Требования к сырью',f.raw)+'</div>'+
- '<section class="paper-section"><h4>3. Рецептура на одну порцию / партию</h4>'+
- '<table class="paper-table"><thead><tr><th>Наименование сырья и ПФ</th><th>Брутто, г</th><th>Нетто, г</th></tr></thead><tbody>'+
- table+'</tbody></table></section>'+
- paperBlock('4. Технологический процесс',f.process)+
- '<div class="paper-split">'+paperBlock('5. Подача и реализация',f.serving)+paperBlock('Срок и условия хранения',f.storage)+'</div>'+
- '<div class="paper-split">'+paperBlock('6. Показатели качества и безопасности',f.quality)+paperBlock('Аллергены',f.allergens)+'</div>'+
- paperBlock('7. Пищевая и энергетическая ценность',f.nutrition)+
- (f.verified!=='yes'?'<div class="paper-warning">Сведения о КБЖУ, аллергенах и хранении требуют проверки по документации поставщиков.</div>':'')+
- '<div class="paper-signatures"><div><strong>Разработал</strong>'+paperText(f.developed,'—')+'<i></i></div>'+
- '<div><strong>Утвердил</strong>'+paperText(f.approved,'—')+'<i></i></div>'+
- '<div><strong>Дата утверждения</strong>'+paperText(f.date,'—')+'<i></i></div></div></div>'+
- '<footer class="paper-foot"><span>FARUKH TTK PRO · '+esc((prefs.studio_name||'PRIVATE CHEF ATELIER').toUpperCase())+'</span>'+
- '<span>Статус: '+esc(draft.status||'Черновик')+'</span></footer>';
+ '<div class="sheet-masthead">'+
+ '<div class="sheet-header-inner"><div class="sheet-logo-title">'+
+ '<div class="sheet-header-kicker">FARUKH · TECHNICAL RECIPE ATELIER</div>'+
+ '<div class="sheet-brand-name">'+esc((p?.name||'НОВЫЙ ПРОЕКТ').toLocaleUpperCase('ru'))+'</div>'+
+ '<div class="sheet-brand-sub">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА / А4</div>'+
+ '</div><button type="button" class="sheet-project-logo sheet-screen-only-button" data-command="sheetProjectEdit" title="Изменить логотип проекта">'+logo+'</button></div>'+
+ '<div class="sheet-header-footer"><div class="sheet-header-mark">CHEF’S PROFESSIONAL DOCUMENT</div>'+
+ '<div class="sheet-header-count">DOCUMENT / '+esc(draft.version||1)+'</div></div>'+
+ '</div>'+
+ '<div class="sheet-main">'+
+ '<div class="sheet-dish-header"><div class="sheet-dish-main">'+
+ '<div class="sheet-eyebrow">ТЕХНОЛОГИЧЕСКАЯ КАРТА · <span class="sheet-doc-code">'+editablePaper('eCode',draft.code,'Код ТТК','line')+'</span></div>'+
+ '<h1 class="sheet-dish-name">'+editablePaper('eTitle',draft.title,'Нажмите и введите название блюда','line')+'</h1>'+
+ '<div class="sheet-dish-meta"><span>КАТЕГОРИЯ: '+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</span>'+
+ '<span>ВЫХОД: '+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' <b>г</b></span></div>'+
+ '</div><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button></div>'+
+ '<div class="sheet-2col">'+
+ sheetParagraph('fScope','01','Область применения',f.scope,'Где и для чего применяется карта','sheet-compact')+
+ sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Качество сырья, документы, условия','sheet-compact')+
+ '</div>'+
+ '<section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура блюда / полуфабриката</h3></div>'+
+ '<table class="sheet-ingredient-table"><thead><tr><th>№</th><th>Наименование сырья или полуфабриката</th><th>БРУТТО, Г</th><th>НЕТТО, Г</th><th class="sheet-screen-only">УПРАВЛЕНИЕ</th></tr></thead>'+
+ '<tbody id="sheetIngredients">'+(rows.length?rows.map(buildSheetRow).join(''):'<tr><td colspan="5" class="sheet-recipe-empty">Нет ингредиентов — нажмите «Добавить строку»</td></tr>')+'</tbody></table>'+
+ '<div class="sheet-recipe-bottom"><div class="sheet-recipe-total">'+
+ '<div>ВСЕГО БРУТТО <strong id="sheetTotalGross">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.gross_g)||0),0))+' г</strong></div>'+
+ '<div>ВСЕГО НЕТТО <strong id="sheetTotalNet">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.net_g)||0),0))+' г</strong></div></div>'+
+ '<div class="sheet-add-actions sheet-screen-only"><button type="button" data-command="sheetAddLine">＋ Добавить строку</button>'+
+ (lastRemovedLine?'<button type="button" data-command="sheetUndoLine">↶ Вернуть</button>':'')+'</div></div></section>'+
+ sheetParagraph('fProcess','04','Технологический процесс',f.process,'Этапы приготовления, температуры, время и контроль','sheet-process')+
+ '<div class="sheet-2col">'+
+ sheetParagraph('fServing','05','Оформление, подача и реализация',f.serving,'Как подаётся и реализуется блюдо','sheet-small')+
+ sheetParagraph('fStorage','06','Сроки и условия хранения',f.storage,'Только документально подтверждённые сроки','sheet-small')+
+ '</div><div class="sheet-2col">'+
+ sheetParagraph('fQuality','07','Показатели качества и безопасности',f.quality,'Внешний вид, вкус, запах и безопасность','sheet-small')+
+ sheetParagraph('fAllergens','08','Аллергены',f.allergens,'Только подтверждённые аллергены','sheet-small')+
+ '</div>'+
+ sheetParagraph('fNutrition','09','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
+ '<div class="sheet-signatures">'+
+ '<div class="sheet-sign"><span>РАЗРАБОТАЛ</span>'+editablePaper('fDeveloped',f.developed,'Ф.И.О., должность','line')+'<i></i></div>'+
+ '<div class="sheet-sign"><span>УТВЕРДИЛ</span>'+editablePaper('fApproved',f.approved,'Ф.И.О., должность','line')+'<i></i></div>'+
+ '<div class="sheet-sign"><span>ДАТА</span>'+editablePaper('fDate',f.date,'Дата утверждения','date')+'<i></i></div></div>'+
+ '</div>'+
+ '<div class="sheet-footer"><span>FARUKH TTK PRO</span>'+
+ '<span class="sheet-state">'+(approved?'УТВЕРЖДЕНО':esc(draft.status||'Черновик').toLocaleUpperCase('ru'))+'</span>'+
+ '<span>ЛИСТ 01 / 01</span></div>';
  $('previewStatus').textContent=draft.status||'Черновик';
- fitPaper();requestAnimationFrame(detectOverflow);renderReview();
+ refreshSheetToolbar();
+ fitPaper();
+ requestAnimationFrame(detectOverflow);
+ renderReview();
 }
 function fitPaper(){
  const stage=$('paperStage'),holder=$('paperHolder'),paper=$('paper');
