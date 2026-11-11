@@ -114,6 +114,10 @@ function apply(){
  for(const b of BLOCKS){
   const el=root.querySelector(b.selector);if(!el)continue;
   el.dataset.a4Block=b.key;el.dataset.a4Name=b.name;
+  if(layoutMode&&!el.querySelector(':scope > .a4-resize-handle')){
+   const grip=document.createElement('i');grip.className='a4-resize-handle';grip.setAttribute('aria-hidden','true');el.appendChild(grip);
+  }
+  if(!layoutMode)el.querySelector(':scope > .a4-resize-handle')?.remove();
   if(cfg.blocks[b.key])setPosition(el,cfg.blocks[b.key]);
   if(selectedKey===b.key&&layoutMode)el.classList.add('a4-selected');
   else el.classList.remove('a4-selected');
