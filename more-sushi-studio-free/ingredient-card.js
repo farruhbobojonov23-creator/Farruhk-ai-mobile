@@ -72,7 +72,7 @@ function parseLabel(raw) {
  }
  // kJ is NOT kcal. Search for the number attached explicitly to kcal.
  for(const line of lines) {
-  let matches=[...line.matchAll(/(\d{1,4}(?:[.,]\d+)?)\s*(?:ккал|kcal)\b/gi)];
+  let matches=[...line.matchAll(/(\d{1,4}(?:[.,]\d+)?)\s*(?:ккал|kcal)(?=\s|[.,;)]|$)/gi)];
   if(matches.length) {values.kcal=number(matches[matches.length-1][1]);break}
   const forward=line.match(/(?:ккал|kcal)\s*[:=—–-]?\s*(\d{1,4}(?:[.,]\d+)?)/i);
   if(forward){values.kcal=number(forward[1]);break}
@@ -108,11 +108,11 @@ function parseLabel(raw) {
  const validStorage=s=> /[-+]?\d{1,2}\s*(?:°|градус|[CcСс]\b)|(?:от\s*[-+]?\d{1,2}\s*до\s*\+?\d{1,2})|(?:сухом|прохладном|темном|тёмном)\s+месте|(?:store|keep)\s+(?:refrigerated|frozen|at\s+[-+]?\d)/i.test(s);
  for(let i=0;i<lines.length;i++){
   if(!/условия хранени|хранить при|температура хранени|режим хранени|store at|keep refrigerated/i.test(lines[i]))continue;
-  const candidate=(lines[i]+(i+1<lines.length?' '+lines[i+1]:'')).slice(0,200);
+  const candidate=(validStorage(lines[i])?lines[i]:lines[i]+' '+(lines[i+1]||'')).split(/(?:срок (?:годности|хранения)|manufacturer|изготовитель|производитель)\s*[:—-]?/i)[0].slice(0,200).trim();
   if(validStorage(candidate))storage=candidate;
   break;
  }
- const life=t.match(/(?:срок (?:годности|хранения)|shelf life)\s*[:—-]?\s*(\d+(?:[.,]\d+)?)\s*(час(?:ов|а)?|ч\b|сут(?:ок|ки)?|дн(?:ей|я|ь)|days?|hours?)\b/i);
+ const life=t.match(/(?:срок (?:годности|хранения)|shelf life)\s*[:—-]?\s*(\d+(?:[.,]\d+)?)\s*(час(?:ов|а)?|ч|сут(?:ок|ки)?|дн(?:ей|я|ь)|days?|hours?)(?=\s|[,.;]|$)/i);
  let hours=null;
  if(life)hours=number(life[1])*(/^(?:час|ч\b|hour)/i.test(life[2])?1:24);
  if(hours!==null&&(!Number.isFinite(hours)||hours<=0))hours=null;
