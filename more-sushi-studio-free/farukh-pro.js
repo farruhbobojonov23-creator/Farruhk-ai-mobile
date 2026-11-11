@@ -375,7 +375,7 @@ function getLineInputs(){
   net_g:n(tr.querySelector('[data-line-field="net_g"]')?.value)
  }));
 }
-function syncDraft(){
+function syncDraft(options={}){
  if(!draft)return;
  draft.project_id=$('eProject').value;draft.title=$('eTitle').value.trim();
  draft.code=$('eCode').value.trim();draft.category=$('eCategory').value.trim()||'Блюда';
@@ -384,7 +384,9 @@ function syncDraft(){
  Object.entries(fieldMap).forEach(([id,key])=>draft.fields[key]=$(id).value.trim());
  getLineInputs();dirty=true;
  $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
- sumLines();renderPreview();renderReview();
+ sumLines();
+ if(options.noPaperRender){renderReview()}
+ else renderPreview();
 }
 function lineRemove(index){
  if(!draft)return;syncDraft();
@@ -679,13 +681,155 @@ function renderPreview(){
  requestAnimationFrame(detectOverflow);
  renderReview();
 }
+
+/* One-sheet, WYSIWYG editing. Existing validated data model remains the source of truth. */
+let sheetManualZoom=null, sheetOverflowRequest=0;
+function refreshSheetToolbar(){
+ const project=$('sheetProject'),status=$('sheetStatus'),verified=$('sheetVerified');
+ if(!project||!status||!verified||!draft)return;
+ const options=projects.filter(p=>!p.is_archived||p.id===draft.project_id);
+ const now=project.value;
+ const currentOptions=options.map(p=>p.id).join('|');
+ if(project.dataset.optionIds!==currentOptions){
+  project.innerHTML='<option value="">Выберите проект</option>'+options.map(p=>
+   '<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+  project.dataset.optionIds=currentOptions;
+ }
+ project.value=draft.project_id||'';
+ status.value=draft.status||'Черновик';
+ verified.checked=draft.fields?.verified==='yes';
+ document.querySelectorAll('[data-sheet-theme]').forEach(btn=>{
+  const active=btn.dataset.sheetTheme===draft.template;
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
+}
+function collectSheetValues(){
+ if(!draft)return;
+ const paper=$('paper');
+ if(!paper||!paper.classList.contains('sheet-document'))return;
+ for(const field of paper.querySelectorAll('[data-sheet-field]')){
+  const id=field.dataset.sheetField,hidden=$(id);
+  if(!hidden)continue;
+  const isNative=field.matches('input,select,textarea');
+  let val=isNative?field.value:field.innerText;
+  val=String(val||'').replace(/\u00a0/g,' ').replace(/\r/g,'').trim();
+  if(id==='eTitle')val=val.slice(0,180);
+  if(id==='eCode')val=val.slice(0,40);
+  if(id==='eCategory')val=val.slice(0,90);
+  hidden.value=val;
+ }
+ const rows=[...paper.querySelectorAll('tr[data-sheet-line]')];
+ draft.lines=rows.map(tr=>{
+  const name=tr.querySelector('[data-sheet-line-field="name"]');
+  const gross=tr.querySelector('[data-sheet-line-field="gross_g"]');
+  const net=tr.querySelector('[data-sheet-line-field="net_g"]');
+  return {
+   name:(name?.innerText||'').replace(/\u00a0/g,' ').trim().slice(0,180),
+   gross_g:n(gross?.value??''),net_g:n(net?.value??'')
+  };
+ });
+ renderLineRows(); // synchronize the hidden legacy form for shared save/validation functions
+}
+function sheetMassSummary(){
+ if(!draft)return;
+ const gross=draft.lines.reduce((acc,l)=>acc+(Number(l.gross_g)||0),0);
+ const net=draft.lines.reduce((acc,l)=>acc+(Number(l.net_g)||0),0);
+ if($('sheetTotalGross'))$('sheetTotalGross').textContent=fmt(gross)+' г';
+ if($('sheetTotalNet'))$('sheetTotalNet').textContent=fmt(net)+' г';
+ sumLines();
+}
+function sheetInputHandler(event){
+ if(!draft||!event.target.closest('[data-sheet-field],[data-sheet-line]'))return;
+ collectSheetValues();
+ syncDraft({noPaperRender:true});
+ sheetMassSummary();
+ // Don't replace the live paper while the caret is inside an editable field.
+ cancelAnimationFrame(sheetOverflowRequest);
+ sheetOverflowRequest=requestAnimationFrame(()=>detectOverflow());
+}
+function directSheetMove(index,direction){
+ collectSheetValues();
+ lineMove(index,direction);
+}
+function directSheetRemove(index){
+ collectSheetValues();
+ lineRemove(index);
+}
+function plainSheetPaste(event){
+ const edit=event.target.closest('[contenteditable="true"]');
+ if(!edit)return;
+ event.preventDefault();
+ const text=event.clipboardData?.getData('text/plain')||'';
+ const max=edit.dataset.sheetField==='eTitle'?180:edit.dataset.sheetField==='eCode'?40:
+  edit.dataset.sheetField==='eCategory'?90:edit.hasAttribute('data-sheet-line-field')?180:2400;
+ const selection=window.getSelection();
+ if(!selection||!selection.rangeCount)return;
+ const range=selection.getRangeAt(0);
+ const used=(edit.innerText||'').length-selection.toString().length;
+ const chunk=text.replace(/\r/g,'').slice(0,Math.max(0,max-used));
+ range.deleteContents();
+ const node=document.createTextNode(chunk);
+ range.insertNode(node);
+ range.setStartAfter(node);range.collapse(true);
+ selection.removeAllRanges();selection.addRange(range);
+ edit.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function sheetZoomBy(amount){
+ const stage=$('paperStage');
+ if(!stage)return;
+ const natural=Math.min(1,Math.max(.35,(stage.clientWidth-28)/794));
+ sheetManualZoom=Math.max(.4,Math.min(1.6,Math.round(((sheetManualZoom??natural)+amount)*100)/100));
+ fitPaper();
+}
+function sheetSelectProject(){
+ if(!draft)return;
+ collectSheetValues();
+ const id=$('sheetProject').value;
+ if(!byProject(id)){tell('Выберите проект для ТТК',true);return}
+ const prior=draft.project_id;
+ $('eProject').value=id;
+ if(!draft.id&&$('eCode').value===nextTtkCode(prior))$('eCode').value=nextTtkCode(id);
+ syncDraft();
+}
+function sheetSelectStatus(){
+ if(!draft)return;
+ collectSheetValues();
+ const value=$('sheetStatus').value;
+ if(value==='Утверждено'){
+  $('eStatus').value=value;
+  syncDraft({noPaperRender:true});
+  const issues=approvedIssues(draft);
+  if(issues.length){
+   $('eStatus').value='На проверке';
+   draft.status='На проверке';
+   $('sheetStatus').value='На проверке';
+   tell('Пока нельзя утвердить ТТК: '+issues.slice(0,3).join(', ')+'. Сохраняй как черновик или «На проверке».',true);
+  }
+ }else $('eStatus').value=value;
+ syncDraft();
+}
+function sheetCheckVerified(){
+ if(!draft)return;
+ const checked=$('sheetVerified').checked;
+ if(checked&&!confirm('Подтверждаете, что сведения о сырье, аллергенах, КБЖУ и хранении проверены по документам и проработке?')){
+  $('sheetVerified').checked=false;return;
+ }
+ collectSheetValues();
+ $('fVerified').value=checked?'yes':'no';
+ if(!checked&&$('eStatus').value==='Утверждено')$('eStatus').value='На проверке';
+ syncDraft();
+}
+
 function fitPaper(){
  const stage=$('paperStage'),holder=$('paperHolder'),paper=$('paper');
  if(!stage||!holder||!paper||stage.clientWidth<50)return;
- const maxWidth=Math.max(260,stage.clientWidth-26);
- const scale=Math.min(1,maxWidth/794);
- holder.style.width=Math.round(794*scale)+'px';holder.style.height=Math.round(1123*scale)+'px';
+ const auto=Math.min(1,Math.max(.35,(stage.clientWidth-28)/794));
+ const scale=sheetManualZoom??auto;
+ holder.style.width=Math.round(794*scale)+'px';
+ holder.style.height=Math.round(1123*scale)+'px';
  paper.style.transform='scale('+scale+')';
+ if($('sheetZoomValue'))$('sheetZoomValue').textContent=Math.round(scale*100)+'%';
 }
 function detectOverflow(){
  const content=$('paper')?.querySelector('.paper-body'),pane=$('paperStage');
