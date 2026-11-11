@@ -266,4 +266,222 @@ async function listForProject(id){
  $('docProject').value=id;navigate('library',true);renderLibrary();
 }
 
+/* Document studio: a separate card belongs to one selected restaurant project. */
+const fieldMap={
+ fScope:'scope',fRaw:'raw',fProcess:'process',fServing:'serving',fStorage:'storage',
+ fQuality:'quality',fAllergens:'allergens',fNutrition:'nutrition',fDeveloped:'developed',
+ fApproved:'approved',fDate:'date',fVerified:'verified'
+};
+function blankDoc(projectId,template='atelier'){
+ return {id:null,project_id:projectId||'',title:'',code:'',category:'Блюда',status:'Черновик',
+  yield_g:null,photo_data:null,lines:[],fields:{scope:'',raw:'',process:'',serving:'',storage:'',
+   quality:'',allergens:'',nutrition:'',developed:prefs.chef_name||'',approved:'',date:'',verified:'no'},
+  template,version:1};
+}
+function confirmNew(){
+ if(dirty&&!confirm('Создать новую ТТК? Несохранённые изменения текущей карты будут потеряны.'))return false;
+ return true;
+}
+function startNewDoc(projectId=null,template=pendingTemplate){
+ if(!confirmNew())return;
+ const suitable=projects.filter(p=>!p.is_archived);
+ if(!suitable.length){
+  pendingCreate=true;pendingTemplate=template||'atelier';
+  tell('Сначала создайте проект для будущих ТТК.');
+  openProjectDialog();return;
+ }
+ const chosen=suitable.find(p=>p.id===projectId)?.id||suitable[0].id;
+ draft=blankDoc(chosen,template||'atelier');workingId=null;dirty=false;editorTab='main';
+ fillEditor();navigate('editor',true);
+}
+function openDocument(id){
+ const item=docs.find(d=>d.id===id);
+ if(!item){tell('ТТК не найдена в библиотеке',true);return}
+ if(currentView==='editor'&&dirty&&!confirm('Открыть другую ТТК без сохранения текущих изменений?'))return;
+ draft=clone(item);draft.fields={...blankDoc().fields,...(draft.fields||{})};
+ draft.lines=Array.isArray(draft.lines)?draft.lines:[];
+ workingId=id;dirty=false;editorTab='main';
+ fillEditor();navigate('editor',true);
+}
+function fillEditor(){
+ if(!draft)return;
+ const sel=$('eProject');
+ sel.innerHTML='<option value="">Выберите проект</option>'+
+ projects.filter(p=>!p.is_archived||p.id===draft.project_id).map(p=>
+ '<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+ $('eProject').value=draft.project_id||'';
+ $('eTitle').value=draft.title||'';$('eCode').value=draft.code||'';$('eCategory').value=draft.category||'Блюда';
+ $('eYield').value=draft.yield_g??'';$('eStatus').value=draft.status||'Черновик';
+ Object.entries(fieldMap).forEach(([id,key])=>{$(id).value=draft.fields?.[key]|| (key==='verified'?'no':'')});
+ $('ePhotoInput').value='';renderPhotoZone();renderLineRows();setTab(editorTab);
+ $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
+ $('editorDuplicate').hidden=!draft.id;renderEditorDesigns();renderPreview();
+}
+function renderPhotoZone(){
+ const z=$('photoZone');if(!z)return;
+ if(validImg(draft?.photo_data)){
+  z.innerHTML='<img src="'+draft.photo_data+'" alt="Фото блюда"><strong>Нажмите, чтобы заменить фото</strong><span>Изображение добавлено</span>';
+  $('removePhoto').disabled=false;
+ }else{
+  z.innerHTML=icon('upload')+'<strong>Загрузить фотографию</strong><span>PNG / JPG / WEBP · будет отображаться в ТТК</span>';
+  $('removePhoto').disabled=true;
+ }
+}
+function renderLineRows(){
+ const rows=Array.isArray(draft?.lines)?draft.lines:[];
+ $('editorLines').innerHTML=rows.map((line,i)=>
+ '<tr data-line="'+i+'"><td><input class="control" maxlength="180" data-line-field="name" aria-label="Ингредиент '+(i+1)+'" placeholder="Название" value="'+esc(line.name||'')+'"></td>'+
+ '<td><input class="control" data-line-field="gross_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Брутто '+(i+1)+'" value="'+esc(line.gross_g??'')+'"></td>'+
+ '<td><input class="control" data-line-field="net_g" type="number" min="0" step=".001" inputmode="decimal" aria-label="Нетто '+(i+1)+'" value="'+esc(line.net_g??'')+'"></td>'+
+ '<td><button type="button" class="remove-line" data-remove-line="'+i+'" aria-label="Убрать ингредиент '+(i+1)+'">'+icon('trash')+'</button></td></tr>').join('');
+ sumLines();
+}
+function sumLines(){
+ let gross=0,net=0;
+ for(const l of draft?.lines||[]){gross+=Math.max(0,Number(l.gross_g)||0);net+=Math.max(0,Number(l.net_g)||0)}
+ $('sumNet').textContent=fmt(net)+' г';$('sumGross').textContent=fmt(gross)+' г';
+}
+function getLineInputs(){
+ draft.lines=[...$('editorLines').querySelectorAll('tr[data-line]')].map(tr=>({
+  name:tr.querySelector('[data-line-field="name"]')?.value.trim()||'',
+  gross_g:n(tr.querySelector('[data-line-field="gross_g"]')?.value),
+  net_g:n(tr.querySelector('[data-line-field="net_g"]')?.value)
+ }));
+}
+function syncDraft(){
+ if(!draft)return;
+ draft.project_id=$('eProject').value;draft.title=$('eTitle').value.trim();
+ draft.code=$('eCode').value.trim();draft.category=$('eCategory').value.trim()||'Блюда';
+ draft.yield_g=n($('eYield').value);draft.status=$('eStatus').value;
+ draft.fields=draft.fields||{};
+ Object.entries(fieldMap).forEach(([id,key])=>draft.fields[key]=$(id).value.trim());
+ getLineInputs();dirty=true;
+ $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
+ renderPreview();
+}
+function setTab(tab){
+ editorTab=['main','lines','tech','design'].includes(tab)?tab:'main';
+ document.querySelectorAll('[data-tab]').forEach(b=>{
+  const on=b.dataset.tab===editorTab;b.classList.toggle('active',on);
+  b.setAttribute('aria-selected',on?'true':'false');
+ });
+ document.querySelectorAll('[data-tab-panel]').forEach(p=>p.hidden=p.dataset.tabPanel!==editorTab);
+}
+function renderEditorDesigns(){
+ if(!$('editorDesigns'))return;
+ $('editorDesigns').innerHTML=templates.map(t=>
+ '<button type="button" class="design-tile '+(draft?.template===t.id?'active':'')+'" data-editor-template="'+t.id+'">'+
+ '<div class="design-mini '+t.id+'"><i></i><i></i><i></i><i></i><i></i></div><strong>'+esc(t.name)+'</strong><small>'+esc(t.sub)+'</small></button>').join('');
+}
+async function photoSelected(){
+ if(!draft)return;
+ const file=$('ePhotoInput').files?.[0];if(!file)return;
+ try{draft.photo_data=await imageData(file,950);dirty=true;renderPhotoZone();renderPreview();tell('Фото блюда загружено в редактор. Сохраните ТТК, чтобы закрепить его.')}
+ catch(e){tell(errText(e),true)}finally{$('ePhotoInput').value=''}
+}
+function approvedIssues(d){
+ const f=d.fields||{},issues=[];
+ if(!d.project_id||!byProject(d.project_id))issues.push('проект');
+ if(!d.title.trim())issues.push('название блюда');
+ if(!Number.isFinite(Number(d.yield_g))||Number(d.yield_g)<=0)issues.push('выход блюда');
+ if(!Array.isArray(d.lines)||!d.lines.length||d.lines.some(l=>!l.name||n(l.gross_g)==null||n(l.net_g)==null))issues.push('полная рецептура брутто/нетто');
+ for(const [key,label] of [['scope','область применения'],['raw','требования к сырью'],['process','технологический процесс'],['serving','подача и реализация'],['storage','условия хранения'],['quality','показатели качества'],['allergens','аллергены'],['nutrition','КБЖУ'],['developed','разработал'],['approved','утвердил'],['date','дата утверждения']]){
+  if(!String(f[key]||'').trim())issues.push(label);
+ }
+ if(f.verified!=='yes')issues.push('ручное подтверждение документов');
+ return issues;
+}
+function validateDoc(d){
+ if(!d||!d.project_id||!byProject(d.project_id))throw Error('Сначала выберите проект.');
+ if(!d.title.trim())throw Error('Введите название блюда.');
+ if(d.title.length>180)throw Error('Название длиннее 180 символов.');
+ if(d.yield_g!=null&&(!Number.isFinite(Number(d.yield_g))||Number(d.yield_g)<=0))throw Error('Выход блюда должен быть больше нуля.');
+ if(!Array.isArray(d.lines)||d.lines.length>100)throw Error('В ТТК должно быть не более 100 ингредиентов.');
+ for(const l of d.lines){
+  if(n(l.gross_g)!=null&&n(l.gross_g)<0||n(l.net_g)!=null&&n(l.net_g)<0)throw Error('Масса ингредиента не может быть отрицательной.');
+ }
+ if(d.status==='Утверждено'){
+  const issues=approvedIssues(d);
+  if(issues.length)throw Error('Для утверждения проверьте: '+issues.slice(0,5).join(', ')+(issues.length>5?' и другие обязательные поля':''));
+ }
+}
+async function saveDocument(){
+ if(!draft||busy)return;
+ syncDraft();
+ try{validateDoc(draft)}catch(e){tell(errText(e),true);return}
+ setBusy(true);
+ const payload={project_id:draft.project_id,title:draft.title,code:draft.code||'',category:draft.category||'Блюда',
+  status:draft.status,yield_g:draft.yield_g,photo_data:draft.photo_data||null,
+  lines:draft.lines,fields:draft.fields,template:draft.template,updated_at:new Date().toISOString()};
+ try{
+  let rows;
+  if(workingId){
+   const version=draft.version||1;
+   rows=await api('/rest/v1/ttk_documents?id=eq.'+workingId+'&version=eq.'+version+'&select=*',{
+    method:'PATCH',headers:{Prefer:'return=representation'},body:{...payload,version:version+1}});
+   if(!rows?.[0])throw Error('Карточка изменилась в другом окне. Обновите её из библиотеки перед сохранением.');
+  }else{
+   rows=await api('/rest/v1/ttk_documents?select=*',{method:'POST',
+     headers:{Prefer:'return=representation'},body:payload});
+   if(!rows?.[0]?.id)throw Error('Сервер не подтвердил создание ТТК.');
+  }
+  const saved=rows[0];workingId=saved.id;draft=clone(saved);dirty=false;
+  docs=docs.filter(d=>d.id!==saved.id);docs.unshift(saved);
+  $('editorDuplicate').hidden=false;renderAll();fillEditor();
+  tell('ТТК сохранена в проекте «'+projectName(saved.project_id)+'» · версия '+saved.version);
+ }catch(e){tell('Не удалось сохранить ТТК: '+errText(e),true)}
+ finally{setBusy(false)}
+}
+async function archiveDocument(id){
+ const d=docs.find(x=>x.id===id);if(!d)return;
+ const next=d.status==='Архив'?'Черновик':'Архив';
+ if(next==='Архив'&&!confirm('Отправить «'+d.title+'» в архив? Документ сохранится.'))return;
+ try{
+  const rows=await api('/rest/v1/ttk_documents?id=eq.'+id+'&version=eq.'+d.version+'&select=*',{
+   method:'PATCH',headers:{Prefer:'return=representation'},body:{status:next,version:d.version+1,updated_at:new Date().toISOString()}});
+  if(!rows?.[0])throw Error('Изменения не подтверждены. Обновите страницу.');
+  docs=docs.map(x=>x.id===id?rows[0]:x);
+  if(workingId===id&&draft){draft.status=rows[0].status;draft.version=rows[0].version;$('eStatus').value=draft.status;renderPreview()}
+  renderAll();tell(next==='Архив'?'ТТК перенесена в архив':'ТТК восстановлена как черновик');
+ }catch(e){tell(errText(e),true)}
+}
+async function deleteDocument(id){
+ const d=docs.find(x=>x.id===id);if(!d)return;
+ if(!confirm('Удалить ТТК «'+d.title+'» безвозвратно? Это действие нельзя отменить.'))return;
+ try{
+  const rows=await api('/rest/v1/ttk_documents?id=eq.'+id+'&select=id',{
+   method:'DELETE',headers:{Prefer:'return=representation'}});
+  if(!rows?.[0])throw Error('Сервер не подтвердил удаление');
+  docs=docs.filter(x=>x.id!==id);
+  if(workingId===id){workingId=null;draft=null;dirty=false;navigate('library',true)}
+  renderAll();tell('ТТК удалена из библиотеки');
+ }catch(e){tell('Не удалось удалить: '+errText(e),true)}
+}
+function openCopy(id){
+ const d=docs.find(x=>x.id===id)|| (draft?.id===id?draft:null);if(!d)return;
+ if(!projects.some(p=>!p.is_archived)){tell('Создайте активный проект для копии.',true);return}
+ copySourceId=id;
+ $('copyProject').innerHTML=projects.filter(p=>!p.is_archived).map(p=>
+ '<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+ $('copyProject').value=projects.some(p=>p.id===d.project_id&&!p.is_archived)?d.project_id:projects.find(p=>!p.is_archived).id;
+ $('copyDialog').showModal();
+}
+async function copyDocument(ev){
+ ev.preventDefault();if(busy)return;
+ const source=docs.find(x=>x.id===copySourceId)|| (draft?.id===copySourceId?draft:null);
+ if(!source){tell('Оригинальная ТТК не найдена',true);return}
+ const dest=byProject($('copyProject').value);
+ if(!dest||dest.is_archived){tell('Выберите действующий проект',true);return}
+ const fields={...clone(source.fields||{}),verified:'no',approved:'',date:''};
+ const payload={project_id:dest.id,title:source.title+' — копия',code:source.code?source.code+'-COPY':'',
+  category:source.category,status:'Черновик',yield_g:source.yield_g,photo_data:source.photo_data,
+  lines:clone(source.lines||[]),fields,template:source.template||'atelier',version:1};
+ setBusy(true);try{
+  const rows=await api('/rest/v1/ttk_documents?select=*',{method:'POST',headers:{Prefer:'return=representation'},body:payload});
+  if(!rows?.[0])throw Error('Сервер не подтвердил создание копии');
+  docs.unshift(rows[0]);$('copyDialog').close();renderAll();openDocument(rows[0].id);
+  tell('Независимая копия сохранена в «'+dest.name+'»');
+ }catch(e){tell('Не удалось скопировать: '+errText(e),true)}finally{setBusy(false)}
+}
+
 })();
