@@ -244,6 +244,50 @@ dialog::backdrop{background:#061923a3;backdrop-filter:blur(4px)}
  .modal-head{padding:21px 18px 15px}.modal-body{padding:18px}.modal-foot{padding:14px 18px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* TTK PRO 2 • editing quality, professional controls and document readiness */
+.editor-save-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;border-radius:30px;padding:5px 10px;margin-top:10px;background:#fff7e8;color:#966d32}
+.editor-save-badge.saved{background:#e6f6ef;color:#227b5e}
+.editor-save-badge.unsaved{background:#fff2e2;color:#b0792c}
+.ttk-checkline{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f5faf9;border-bottom:1px solid #e1edef;padding:13px 20px}
+.ttk-checkline>div:first-child{flex:1 1 180px;min-width:0}
+.ttk-checkline strong{display:block;color:#265662;font-size:11px;font-weight:900;margin-bottom:4px}
+.ttk-checkline span:not(.ttkCheckCount){display:block;color:#789198;font-size:10px;line-height:1.4}
+.ttkCheckCount{font-size:11px;background:#e2f0ef;color:#20666c;font-weight:900;padding:7px 10px;border-radius:8px;white-space:nowrap}
+.ttkCheckTrack{width:100%;order:8;height:5px;overflow:hidden;border-radius:6px;background:#dfebea}
+.ttkCheckTrack i{display:block;height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,#1d8f88,#44b6ae);transition:width .16s}
+.ttkCheckShow{background:#fff;border:1px solid #d8e7e7;color:#2d7380;border-radius:9px;padding:8px 12px;min-height:34px;font-size:10px;font-weight:900}
+.ttkCheckShow:hover{background:#e7f6f4}
+.lines-table{min-width:625px}
+.lines-table th:nth-child(1){width:35%}
+.lines-table th:nth-child(2),.lines-table th:nth-child(3){width:18%}
+.lines-table th:nth-child(4){width:29%}
+.lines-table .control{width:100%}
+.line-actions{display:flex;gap:4px;align-items:center;justify-content:flex-end}
+.line-actions button{display:grid;place-items:center;width:31px;height:35px;min-height:35px;min-width:31px;padding:5px;border-radius:8px;border:1px solid #e1eaea;background:#f5f9f8;color:#456c76;transition:background .15s,color .15s}
+.line-actions button .icon{width:15px;height:15px}
+.line-actions button[data-move-line] .icon{transform:rotate(90deg)}
+.line-actions button[data-direction="1"] .icon{transform:rotate(-90deg)}
+.line-actions button:hover:not(:disabled){background:#e0f1ef;color:#166b76}
+.line-actions button.remove-line{border-color:#f0dddd;background:#fff1ee;color:#b45b53}
+.line-actions button.remove-line:hover{background:#ffe0da}
+.line-actions button:disabled{opacity:.35;cursor:not-allowed}
+.line-yield-compare{font-size:11px;line-height:1.5;color:#748c95;padding:12px 14px;background:#f4f8f9;border:1px solid #e5eded;border-radius:10px;margin:12px 0}
+.line-yield-compare.matched{border-color:#cdeade;background:#f0fbf6;color:#267957}
+.line-yield-compare.discrepancy{border-color:#e9ddbe;background:#fffbf2;color:#936c3e}
+.reviewChecklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:16px 0}
+.review-item{display:flex;gap:9px;align-items:center;min-width:0;text-align:left;min-height:54px;border:1px solid #e3eded;border-radius:11px;background:#fff;padding:11px;color:#40606b}
+.review-item:hover{background:#f7fbfa;border-color:#afcfd1}
+.review-item.complete{background:#f4fbf7;border-color:#d5eadd}
+.review-number{display:grid;place-items:center;width:27px;height:27px;flex:0 0 27px;border-radius:8px;background:#fff1dd;color:#9d713b;font-weight:900;font-size:11px}
+.review-item.complete .review-number{background:#def3e8;color:#258569}
+.review-number .icon{width:16px;height:16px}
+.review-item-text{flex:1;min-width:0;font-size:11px;line-height:1.3;font-weight:800}
+.review-item>strong{font-size:9px;color:#a17c43;white-space:nowrap}
+.review-item.complete>strong{color:#25856b}
+@media(max-width:680px){.ttk-checkline{padding:11px 14px}.ttkCheckShow{order:2}.reviewChecklist{grid-template-columns:1fr}.lines-table{min-width:600px}.line-actions button{height:35px}}
+@media print{.ttk-checkline,.editor-save-badge,.reviewChecklist{display:none!important}}
+
 /* Print an actual one-page document. All app furniture is absent. */
 @media print{
  @page{size:A4 portrait;margin:0}
