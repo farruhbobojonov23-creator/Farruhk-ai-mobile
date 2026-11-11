@@ -832,13 +832,27 @@ function fitPaper(){
  if($('sheetZoomValue'))$('sheetZoomValue').textContent=Math.round(scale*100)+'%';
 }
 function detectOverflow(){
- const content=$('paper')?.querySelector('.paper-body'),pane=$('paperStage');
- if(!content||!pane)return false;
- const overflow=content.scrollHeight>content.clientHeight+3 || $('paper').scrollHeight>1125;
+ const paper=$('paper'),stage=$('paperStage'),main=paper?.querySelector('.sheet-main');
+ if(!paper||!stage||!main)return false;
+ // Full A4: never silently clip content or shrink typography to hide overflows.
+ const bodyOverflow=main.scrollHeight>main.clientHeight+3||main.scrollWidth>main.clientWidth+3;
+ const pageOverflow=paper.scrollHeight>1126||paper.scrollWidth>797;
+ const childOverflow=[...main.querySelectorAll('.sheet-section,.sheet-dish-header,.sheet-recipe-section,.sheet-signatures')]
+  .some(el=>el.scrollHeight>el.clientHeight+4||el.scrollWidth>el.clientWidth+4);
+ const overflow=bodyOverflow||pageOverflow||childOverflow;
  let hint=$('paperOverflow');
- if(!hint){hint=document.createElement('div');hint.id='paperOverflow';hint.className='notice';hint.style.marginTop='10px';pane.after(hint)}
+ if(!hint){
+  hint=document.createElement('div');
+  hint.id='paperOverflow';hint.className='notice sheet-overflow-notice';
+  hint.style.marginTop='10px';stage.after(hint);
+ }
  hint.hidden=!overflow;
- hint.textContent=overflow?'⚠️ Содержимое не помещается на один лист А4. Сократите текст, количество строк либо создайте отдельную карту. Печать заблокирована до исправления.':'';
+ hint.textContent=overflow?
+  '⚠️ Материалы не помещаются на 1 лист А4. Сократите текст, уменьшите число строк или создайте вторую ТТК. Печать временно заблокирована.':'';
+ if($('editorPrint')){
+  $('editorPrint').disabled=overflow;
+  $('editorPrint').title=overflow?'Переполнение листа А4. Сначала исправьте документ.':'Печать / сохранение в PDF';
+ }
  return overflow;
 }
 function printDocument(){
