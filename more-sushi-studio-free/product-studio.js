@@ -132,10 +132,19 @@ function filter(){
  get('msTableView').classList.toggle('selected',!showGrid);
  get('msGridView').setAttribute('aria-pressed',String(showGrid));
  get('msTableView').setAttribute('aria-pressed',String(!showGrid));
- const rowElements=[...get('recipeRows').children];
+ const body=get('recipeRows');
+ const rowElements=[...body.children];
+ // IDs are assigned on each fresh render from the original recipe order.
+ // Afterwards they remain stable while the user sorts or filters.
+ rowElements.forEach((row,i)=>{if(!row.dataset.recipeId&&all[i])row.dataset.recipeId=String(all[i].id)});
+ const byId=new Map(rowElements.map(row=>[Number(row.dataset.recipeId),row]));
  const visibleIds=new Set(filtered.map(r=>Number(r.id)));
- const ordered=all;
- ordered.forEach((r,i)=>{if(rowElements[i])rowElements[i].hidden=!visibleIds.has(Number(r.id))});
+ rowElements.forEach(row=>{row.hidden=!visibleIds.has(Number(row.dataset.recipeId))});
+ // Keep table ordering consistent with card ordering for every sort option.
+ const fragment=document.createDocumentFragment();
+ sorted.forEach(r=>{const row=byId.get(Number(r.id));if(row)fragment.append(row)});
+ rowElements.filter(row=>row.hidden).forEach(row=>fragment.append(row));
+ body.append(fragment);
 }
 function render(){
  previous.render();
