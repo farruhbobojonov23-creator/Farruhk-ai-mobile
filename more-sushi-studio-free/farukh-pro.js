@@ -154,7 +154,10 @@ function projectCard(p){
  '<div class="row between"><div class="proj-mark">'+logo+'</div><span class="pill '+(p.is_archived?'archive':'approved')+'">'+(p.is_archived?'Архив':'Активный')+'</span></div>'+
  '<div><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||'Частная коллекция ТТК')+'</p><p style="margin-top:6px">'+count+' документов</p></div>'+
  '<div class="proj-actions"><button type="button" class="btn btn-primary btn-sm" data-project-open="'+p.id+'">Открыть ТТК →</button>'+
- '<button type="button" class="btn btn-light btn-sm" data-project-edit="'+p.id+'" aria-label="Настроить проект">Изменить</button></div></article>';
+ '<button type="button" class="btn btn-light btn-sm" data-project-edit="'+p.id+'" aria-label="Настроить проект">Изменить</button>'+
+ '<button type="button" class="btn btn-light btn-sm" data-project-archive="'+p.id+'">'+(p.is_archived?'Вернуть':'В архив')+'</button>'+
+ (p.is_archived&&count===0?'<button type="button" class="btn btn-danger btn-sm" data-project-remove="'+p.id+'">Удалить</button>':'')+
+ '</div></article>';
 }
 function renderProjects(){
  const q=$('projectSearch').value.trim().toLocaleLowerCase('ru'),status=$('projectStatus').value;
