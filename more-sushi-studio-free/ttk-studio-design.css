@@ -1,0 +1,49 @@
+/* MORE SUSHI | NORTH PEARL | TTK screen-only toolbar refinement.
+   Never modify the approved 794 × 1123 A4 document or any print output. */
+@media screen {
+ html{background:#eff5f8}
+ body{font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:
+  radial-gradient(circle at 86% -100px,#d9eaf2 0,transparent 38%),#eef4f8;color:#183a52}
+ #toolbar{top:0;gap:8px;padding:11px clamp(12px,2vw,23px);
+  border-bottom:1px solid #ffffff18;
+  background:linear-gradient(110deg,#081e32 0%,#0d334c 74%,#14506b);
+  box-shadow:0 9px 30px #0d2b4223;backdrop-filter:blur(12px)}
+ #toolbar strong{font-size:16px;font-weight:850;letter-spacing:-.3px;white-space:nowrap;color:#eefaff}
+ #toolbar button,#toolbar select{font:650 12px/1.2 Inter,"Segoe UI",system-ui,Arial,sans-serif;
+  min-height:38px;border-radius:9px;background:#eff7fa;border:1px solid #c6dbe5;
+  color:#155071;padding:9px 11px;transition:background .16s,color .16s,border-color .16s}
+ #toolbar button:hover{background:#daebf3;color:#0b425e}
+ #toolbar button.primary,#toolbar #save{color:#fff;background:#167b9b;border:1px solid #2594b2;box-shadow:0 6px 17px #0827382d}
+ #toolbar button.primary:hover,#toolbar #save:hover{background:#218daa}
+ #toolbar #print{background:#fff;color:#124d6c;border:1px solid #fff;font-weight:850}
+ #toolbar #print:hover{background:#edf7fb}
+ #toolbar button:focus-visible,#toolbar select:focus-visible{outline:3px solid #5cc2ed;outline-offset:2px}
+ #toolbar .workflowStatus{display:flex;align-items:center;gap:7px;white-space:nowrap;
+  font-size:11px;font-weight:750;color:#bcd7e5}
+ #toolbar .workflowStatus select{max-width:150px}
+ #toolbar #recipePick{max-width:min(320px,33vw);text-overflow:ellipsis}
+ #feedback{border:1px solid #d1e4ee;border-left:4px solid #188db4;border-radius:11px;
+  background:#f4fbff;color:#315b75;box-shadow:0 5px 20px #173b5208;font:12px/1.5 Inter,"Segoe UI",system-ui,Arial,sans-serif;margin:14px auto;max-width:1010px}
+ #feedback.error{background:#fff0ef;color:#9b3442;border-color:#f0c8ce;border-left-color:#d34555}
+ #feedback.warning{background:#fff8e9;color:#8e662d;border-color:#f0debb;border-left-color:#d4a03e}
+ #pageWrap{margin-top:18px}
+ #page{box-shadow:0 18px 50px #12364e24}
+ #designPanel{border:1px solid #cadfe9;border-radius:16px;box-shadow:0 20px 55px #08263c45}
+ #templateGallery{backdrop-filter:blur(5px)}
+ #templateGallery .galleryInner{border-radius:18px}
+ #templateGallery .templateTile{transition:box-shadow .17s,transform .17s}
+ #templateGallery .templateTile:hover{transform:translateY(-2px)}
+}
+@media screen and (max-width:800px){
+ #toolbar{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:thin;scrollbar-color:#6793a8 transparent;gap:7px;padding:8px 10px;min-height:56px}
+ #toolbar strong{font-size:12px;flex:0 0 auto;margin-right:2px}
+ #toolbar button,#toolbar select{flex:0 0 auto;white-space:nowrap;min-height:39px}
+ #toolbar #recipePick{min-width:180px;max-width:230px}
+ #toolbar .workflowStatus{flex:0 0 auto;font-size:10px}
+ #feedback{margin:8px 10px;max-width:calc(100% - 20px);font-size:11px}
+ #pageWrap{margin-top:13px}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ #toolbar *,#templateGallery .templateTile{transition:none!important}
+}
