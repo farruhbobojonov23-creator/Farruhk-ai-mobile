@@ -645,7 +645,9 @@ function renderPreview(){
  '<h1 class="sheet-dish-name">'+editablePaper('eTitle',draft.title,'Нажмите и введите название блюда','line')+'</h1>'+
  '<div class="sheet-dish-meta"><span>КАТЕГОРИЯ: '+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</span>'+
  '<span>ВЫХОД: '+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' <b>г</b></span></div>'+
- '</div><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button></div>'+
+ '</div><div class="sheet-photo-wrap"><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button>'+
+ (validImg(draft.photo_data)?'<button type="button" class="sheet-remove-photo sheet-screen-only" data-command="sheetRemovePhoto" title="Удалить фото" aria-label="Удалить фото">×</button>':'')+
+ '</div></div>'+
  '<div class="sheet-2col">'+
  sheetParagraph('fScope','01','Область применения',f.scope,'Где и для чего применяется карта','sheet-compact')+
  sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Качество сырья, документы, условия','sheet-compact')+
