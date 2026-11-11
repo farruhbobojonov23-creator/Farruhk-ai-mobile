@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b222d"><meta name="description" content="FARUKH TTK PRO — закрытая профессиональная студия технологических карт">
+<title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
+<link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v2">
+<link rel="stylesheet" href="./studio-themes.css?v=20261112-shef51-v1">
+<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./archive-sheet.css?v=archive-2"></head>
+<body>
+<section id="auth" class="auth">
+ <div class="auth-showcase">
+  <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 25V7h17M8 15h14M12 27c7-5 12-5 17-1"/></svg></span><span><span class="brand-name">FARUKH <span>TTK</span> PRO</span><span class="brand-sub">PRIVATE CHEF ATELIER</span></span></div>
+  <div><div class="mini-label">THE ART OF PROFESSIONAL RECIPES</div><h1>Каждый рецепт<br>заслуживает<br><em>идеального документа.</em></h1><p>Личная студия создания технико-технологических карт. Чистая архитектура, точность рецептур, фирменные документы и безупречное оформление А4.</p>
+   <div class="demo-document" aria-hidden="true"><div class="d-head">FARUKH / PROFESSIONAL TTK</div><h3>Технологическая карта</h3><span class="demo-chip">A4 · PROFESSIONAL STANDARD</span><div class="demo-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  </div>
+  <div><div class="auth-line"></div><div class="auth-points"><span>◈ Частная библиотека</span><span>◈ Профессиональный A4</span><span>◈ От сырья до документа</span></div></div>
+ </div>
+ <div class="auth-panel"><form id="loginForm" class="auth-card" autocomplete="on">
+  <div class="overline">ВАШЕ РАБОЧЕЕ ПРОСТРАНСТВО</div><h2>С возвращением.</h2><p>Войдите в закрытую студию FARUKH TTK PRO.</p>
+  <div class="field"><label class="label" for="loginEmail">Электронная почта</label><input class="control" id="loginEmail" name="email" type="email" autocomplete="username" placeholder="your@email.com" required></div>
+  <div class="field"><label class="label" for="loginPassword">Пароль</label><input class="control" id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required minlength="8"></div>
+  <button id="loginButton" class="btn btn-primary" type="submit"><span data-icon="lock" class="icon"></span> Войти в студию</button>
+  <div id="authError" role="alert" aria-live="polite"></div><div class="auth-footer">Закрытый доступ • Без регистрации клиентов</div>
+ </form></div>
+</section>
+<div id="shell" class="shell" hidden>
+ <aside class="sidebar" aria-label="Навигация студии">
+  <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 25V7h17M8 15h14M12 27c7-5 12-5 17-1"/></svg></span><span><span class="brand-name">FARUKH <span>TTK</span> PRO</span><span class="brand-sub">PRIVATE CHEF ATELIER</span></span></div>
+  <div class="side-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+  <nav class="side-nav" id="sideNav">
+   <button type="button" class="nav-btn active" data-nav="dashboard"><span class="icon" data-icon="grid"></span> Обзор</button>
+   <button type="button" class="nav-btn" data-nav="projects"><span class="icon" data-icon="folder"></span> Мои проекты</button>
+   <button type="button" class="nav-btn" data-nav="library"><span class="icon" data-icon="book"></span> Библиотека ТТК</button>
+   <button type="button" class="nav-btn" data-nav="editor"><span class="icon" data-icon="edit"></span> Конструктор ТТК</button>
+   <div class="nav-sep"></div>
+   <button type="button" class="nav-btn" data-nav="templates"><span class="icon" data-icon="layers"></span> Шаблоны А4</button>
+   <button type="button" class="nav-btn" data-nav="settings"><span class="icon" data-icon="settings"></span> Настройки студии</button>
+  </nav>
+  <div class="side-bottom"><div class="side-user"><b>Личный рабочий кабинет</b><span id="sideEmail">—</span></div><button type="button" id="logout" class="side-logout">↗ &nbsp; Выйти из системы</button></div>
+ </aside>
+ <div class="workspace">
+  <header class="topbar"><div><div class="breadcrumb">FARUKH TTK PRO / PRIVATE WORKSPACE</div><h1 id="topTitle">Обзор студии</h1></div><div class="top-actions"><button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" id="logoutMobile" class="btn btn-light mobile-logout" aria-label="Выйти из студии"><span class="icon" data-icon="lock"></span> Выйти</button><span class="top-avatar" aria-label="Шеф">F</span></div></header>
+  <main class="content" id="content">
+   <section id="viewDashboard" class="page" data-view="dashboard">
+    <div class="hero"><div class="hero-copy"><div class="mini-label">ATELIER / FARUKH TTK PRO</div><h2>Твоя профессиональная<br><em>студия рецептур.</em></h2><p>Разрабатывай ТТК для своих заведений и заказчиков. Все проекты, технологии и документы — в одной закрытой библиотеке.</p>
+     <div class="row"><button type="button" class="btn btn-light" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" class="btn btn-ghost" data-command="newProject"><span class="icon" data-icon="folder"></span> Новый проект</button></div></div>
+     <div class="hero-decor" aria-hidden="true"><div class="hero-lines"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="stats">
+      <div class="surface stat"><small>Всего проектов</small><b id="statProjects">0</b><span class="stat-note">Наши бренды и клиенты</span></div>
+      <div class="surface stat"><small>ТТК в библиотеке</small><b id="statDocuments">0</b><span class="stat-note">Все документы</span></div>
+      <div class="surface stat"><small>В работе</small><b id="statDrafts">0</b><span class="stat-note">Черновики и проверка</span></div>
+      <div class="surface stat"><small>Утверждено</small><b id="statApproved">0</b><span class="stat-note">Проверенные документы</span></div>
+    </div>
+    <div class="dash-columns">
+     <section class="surface block"><div class="section-head"><h3>Последние ТТК</h3><a href="#" data-link="library">Вся библиотека →</a></div><div id="dashDocs"></div></section>
+     <section class="surface block"><div class="section-head"><h3>Быстрый старт</h3><span class="muted">3 действия</span></div>
+      <div class="quick-stack">
+       <button type="button" class="quick-link" data-command="newProject"><span class="badge"><span class="icon" data-icon="folder"></span></span><span class="quick-copy">Создать проект<small>Новый ресторан, бренд или заказчик</small></span><span>→</span></button>
+       <button type="button" class="quick-link" data-command="newDoc"><span class="badge"><span class="icon" data-icon="edit"></span></span><span class="quick-copy">Новая ТТК<small>Рецептура, технология и оформление</small></span><span>→</span></button>
+       <button type="button" class="quick-link" data-command="templates"><span class="badge"><span class="icon" data-icon="layers"></span></span><span class="quick-copy">Выбрать шаблон<small>Фирменные документы формата А4</small></span><span>→</span></button>
+      </div>
+      <div class="notice" style="margin-top:15px"><strong>Внимание к качеству</strong>Система не подставляет неподтверждённые КБЖУ, аллергены и сроки хранения.</div>
+     </section>
+    </div>
+    <div class="section-head" style="margin-top:27px"><h3>Ваши проекты</h3><a href="#" data-link="projects">Все проекты →</a></div><div class="project-grid" id="dashProjects"></div>
+   </section>
+   <section id="viewProjects" class="page" data-view="projects" hidden>
+     <div class="page-head"><div><div class="mini-label">PROJECT ARCHIVE</div><h2>Мои проекты</h2><p>Каждому заведению — собственная коллекция технологических карт.</p></div>
+      <button type="button" class="btn btn-primary" data-command="newProject"><span class="icon" data-icon="plus"></span> Новый проект</button></div>
+     <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input class="control" id="projectSearch" type="search" placeholder="Поиск по проектам" aria-label="Поиск проекта"></label>
+      <select class="control" id="projectStatus" aria-label="Статус проекта"><option value="active">Активные проекты</option><option value="archive">Архивные проекты</option><option value="all">Все проекты</option></select></div>
+     <div id="projectGrid" class="project-grid" aria-live="polite"></div>
+   </section>
+   <section id="viewLibrary" class="page" data-view="library" hidden>
+     <div class="page-head"><div><div class="mini-label">TTK DOCUMENT LIBRARY</div><h2>Библиотека ТТК</h2><p>Каждая карта привязана к проекту, но остаётся доступной в общей библиотеке.</p></div>
+      <button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button></div>
+     <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input class="control" id="docSearch" type="search" placeholder="Поиск по названию или коду" aria-label="Поиск документа"></label>
+      <select class="control" id="docProject" aria-label="Фильтр проектов"></select><select class="control" id="docStatus" aria-label="Статус документа"><option value="active">Все активные</option><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option><option value="all">Все статусы</option></select></div>
+     <div class="library-list" id="libraryDocs" aria-live="polite"></div><p id="libraryCount" class="line-note"></p>
+   </section>
+   <section id="viewEditor" class="page" data-view="editor" hidden>
+     <div class="editor-head"><div><button class="back" type="button" data-command="library"><span class="icon" data-icon="left"></span> В библиотеку</button><h2 id="editorHeading">Новая ТТК</h2><span id="editorSaveBadge" class="editor-save-badge" role="status">Новый документ · не сохранён</span></div>
+      <div class="row"><button class="btn btn-light" id="editorDuplicate" type="button" data-command="duplicate" hidden><span class="icon" data-icon="copy"></span> Копировать</button>
+       <button type="button" class="btn btn-light" id="editorPrint" data-command="print"><span class="icon" data-icon="print"></span> Печать / PDF</button>
+       <button type="button" class="btn btn-primary" data-command="saveDoc" id="saveDoc"><span class="icon" data-icon="save"></span> Сохранить ТТК</button></div>
+     </div>
+     <section class="sheet-workbench" aria-label="Редактор ТТК непосредственно на листе А4">
+       <div class="sheet-workbench-main">
+         <div class="sheet-mode-icon" aria-hidden="true">✦</div>
+         <div><div class="sheet-workbench-eyebrow">FARUKH · DOCUMENT ATELIER</div>
+         <strong>Редактируй прямо на листе</strong>
+         <p>Нажми на любой текст, название, граммовку или строку рецептуры — изменения останутся в документе.</p></div>
+       </div>
+       <div class="sheet-workbench-controls">
+         <label class="sheet-control"><span>БРЕНД / ПРОЕКТ</span><select id="sheetProject" aria-label="Выбор проекта для ТТК"></select></label>
+         <button type="button" class="btn btn-light btn-sm" data-command="sheetProjectEdit">Логотип бренда</button><button type="button" class="btn btn-light btn-sm" data-command="newProject">＋ Новый бренд</button><label class="sheet-control"><span>СТАТУС</span><select id="sheetStatus" aria-label="Статус ТТК"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label><label class="sheet-verified" title="Отметь только после фактической проверки источников КБЖУ, аллергенов и хранения"><input type="checkbox" id="sheetVerified"> <span>Данные проверены</span></label>
+       </div>
+     </section>
+     <section class="sheet-stylebar" aria-label="Выбор дизайна и размера листа">
+       <div class="sheet-styleleft"><span class="sheet-style-caption">СТИЛЬ ДОКУМЕНТА</span>
+         <div id="sheetThemes" class="sheet-themes" role="group" aria-label="Премиальные шаблоны">
+           <button type="button" data-sheet-theme="atelier" class="sheet-theme-btn active"><i class="sheet-theme-dot noir"></i> ФИРМЕННЫЙ</button>
+           <button type="button" data-sheet-theme="classic" class="sheet-theme-btn"><i class="sheet-theme-dot pearl"></i> А4 PRO</button>
+           <button type="button" data-sheet-theme="arctic" class="sheet-theme-btn"><i class="sheet-theme-dot burgundy"></i> СЕВЕРНЫЙ</button>
+         </div>
+       </div>
+       <div class="sheet-zoom" role="group" aria-label="Масштаб листа">
+         <button type="button" data-command="sheetZoomOut" aria-label="Уменьшить лист">−</button>
+         <span id="sheetZoomValue">По ширине</span>
+         <button type="button" data-command="sheetZoomIn" aria-label="Увеличить лист">+</button>
+         <button type="button" data-command="sheetZoomFit" class="sheet-zoom-fit">Вписать</button>
+       </div>
+     </section>
+     <div class="editor-grid sheet-editor-grid">
+      <section class="editor-panel" aria-label="Редактор технико-технологической карты">
+       <div class="editor-tabs" role="tablist" aria-label="Этапы создания документа">
+        <button type="button" class="editor-tab active" role="tab" aria-selected="true" data-tab="main"><span class="icon" data-icon="edit"></span> Основное</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="lines"><span class="icon" data-icon="list"></span> Рецептура</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="tech"><span class="icon" data-icon="book"></span> Технология</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="design"><span class="icon" data-icon="layers"></span> Оформление</button><button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="review"><span class="icon" data-icon="check"></span> Проверка</button>
+       </div>
+       <section class="ttk-checkline" id="ttkCheckline" aria-label="Готовность ТТК"><div><strong id="ttkCheckTitle">Готовность документа</strong><span id="ttkCheckHint">Заполни обязательные поля</span></div><span id="ttkCheckCount" class="ttkCheckCount">0 / 12</span><div class="ttkCheckTrack"><i id="ttkCheckBar"></i></div><button type="button" class="ttkCheckShow" data-command="showReview">Проверить →</button></section>
+       <div class="edit-section" data-tab-panel="main">
+        <h3>Основные сведения</h3><p class="lead">Карточка блюда и принадлежность к проекту.</p>
+        <div class="form-grid">
+         <label class="field span-2"><span class="label">Проект *</span><select id="eProject" class="control" required></select></label>
+         <label class="field span-2"><span class="label">Наименование блюда *</span><input id="eTitle" class="control" maxlength="180" placeholder="Например, Филадельфия классическая"></label>
+         <label class="field"><span class="label">Код ТТК</span><input id="eCode" class="control" maxlength="40" placeholder="Автоматически: ТТК-001"></label>
+         <label class="field"><span class="label">Категория</span><input id="eCategory" class="control" maxlength="90" placeholder="Роллы, соусы, десерты"></label>
+         <label class="field"><span class="label">Выход блюда, г *</span><input id="eYield" class="control" type="number" min="0.001" step=".001" inputmode="decimal" placeholder="250"></label>
+         <label class="field"><span class="label">Статус</span><select id="eStatus" class="control"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label>
+        </div>
+        <div class="edit-divider"></div>
+        <label class="label">Фото готового блюда</label><label class="upload-zone" for="ePhotoInput" id="photoZone"><span class="icon" data-icon="upload"></span><strong>Загрузить фотографию</strong><span>PNG / WEBP с прозрачным фоном · фото без рамки; JPG сохраняет свой фон</span></label>
+        <input id="ePhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="row" style="margin-top:10px"><button id="removePhoto" type="button" class="btn btn-light btn-sm" data-command="removePhoto">Убрать фото</button></div>
+       </div>
+       <div class="edit-section" data-tab-panel="lines" hidden>
+        <h3>Рецептура и граммовки</h3><p class="lead">Указывай фактические значения. Масса автоматически суммируется для контроля выхода.</p>
+        <div style="overflow-x:auto"><table class="lines-table"><thead><tr><th>Ингредиент / ПФ</th><th>Брутто, г</th><th>Нетто, г</th><th>Действия</th></tr></thead><tbody id="editorLines"></tbody></table></div>
+        <div class="row"><button type="button" class="btn btn-light" data-command="addLine"><span class="icon" data-icon="plus"></span> Добавить ингредиент</button><button type="button" class="btn btn-light" id="undoLineBtn" data-command="undoLine" hidden>↶ Вернуть строку</button><button type="button" class="btn btn-light" data-command="clearEmptyLines">Очистить пустые</button></div>
+        <div class="line-summary"><div><strong id="sumNet">0 г</strong><div><small>Сумма нетто</small></div></div><div><strong id="sumGross">0 г</strong><div><small>Сумма брутто</small></div></div></div>
+        <p id="yieldCompare" class="line-yield-compare" aria-live="polite"></p><p class="field-hint">Сумма нетто не обязательно равна выходу после технологической обработки. Проверьте потери и выход при проработке.</p>
+       </div>
+       <div class="edit-section" data-tab-panel="tech" hidden>
+        <h3>Технологическая часть</h3><p class="lead">Профессиональные поля ТТК. Неподтверждённые данные оставляйте пустыми.</p>
+        <div class="form-grid">
+         <label class="field span-2"><span class="label">1. Область применения</span><textarea id="fScope" class="control" placeholder="Для каких предприятий и блюд применяется карта"></textarea></label>
+         <label class="field span-2"><span class="label">2. Требования к сырью</span><textarea id="fRaw" class="control" placeholder="Наименование, качество, сопроводительные документы"></textarea></label>
+         <label class="field span-2"><span class="label">4. Технологический процесс</span><textarea id="fProcess" class="control" placeholder="Пошаговое приготовление с параметрами и контролем"></textarea></label>
+         <label class="field span-2"><span class="label">5. Оформление, подача и реализация</span><textarea id="fServing" class="control" placeholder="Подача, упаковка, реализация, транспортировка"></textarea></label>
+         <label class="field span-2"><span class="label">Срок и условия хранения</span><textarea id="fStorage" class="control" placeholder="Только подтверждённые условия и сроки"></textarea></label>
+         <label class="field span-2"><span class="label">6. Показатели качества и безопасности</span><textarea id="fQuality" class="control" placeholder="Органолептические показатели и требования"></textarea></label>
+         <label class="field span-2"><span class="label">Аллергены</span><textarea id="fAllergens" class="control" placeholder="Сведения по подтверждённому составу"></textarea></label>
+         <label class="field span-2"><span class="label">7. Пищевая и энергетическая ценность</span><textarea id="fNutrition" class="control" placeholder="На 100 г: белки, жиры, углеводы, ккал (по проверенным данным)"></textarea></label>
+         <label class="field"><span class="label">Разработал</span><input id="fDeveloped" class="control" placeholder="Ф.И.О., должность"></label>
+         <label class="field"><span class="label">Утвердил</span><input id="fApproved" class="control" placeholder="Ф.И.О., должность"></label>
+         <label class="field"><span class="label">Дата утверждения</span><input id="fDate" type="date" class="control"></label>
+         <label class="field"><span class="label">Документальные сведения проверены</span><select id="fVerified" class="control"><option value="no">Нет, требуется проверка</option><option value="yes">Да, подтверждены ответственным</option></select></label>
+        </div><p class="notice" style="margin-top:18px">Программа не устанавливает нормативные сроки и не подтверждает безопасность автоматически. Статус «Утверждено» доступен только после заполнения и ручного подтверждения обязательных сведений.</p>
+       </div>
+       <div class="edit-section" data-tab-panel="review" hidden><h3>Проверка готовности ТТК</h3><p class="lead">Контроль полей перед утверждением. Проверка заполнения не заменяет лабораторных испытаний и оценку шеф-повара.</p><div id="reviewChecklist" class="reviewChecklist" aria-live="polite"></div><div class="notice">🛡️ Статус «Утверждено» доступен только после заполнения обязательных сведений и ручного подтверждения. При отсутствии подтверждённых данных оставляй карту в статусе «Черновик».</div><div class="row" style="margin-top:15px"><button type="button" class="btn btn-light" data-command="goTech">Заполнить технологию</button><button type="button" class="btn btn-primary" data-command="saveDoc">Сохранить</button></div></div>
+       <div class="edit-section" data-tab-panel="design" hidden>
+        <h3>Оформление документа А4</h3><p class="lead">Выбирай фирменный шаблон. Логотип берётся из настроек проекта.</p>
+        <div id="editorDesigns" class="design-tiles"></div>
+        <div class="edit-divider"></div>
+        <p class="muted">Предварительный просмотр справа обновляется автоматически. Для печати выбери «Печать / PDF» в верхней панели.</p>
+       </div>
+      </section>
+      <aside class="preview-pane"><div class="preview-top"><div><h3>Один лист А4 · прямое редактирование</h3><span>Кликни по тексту или цифрам. Строки состава можно добавлять и удалять здесь же.</span></div><span class="pill" id="previewStatus">Черновик</span></div>
+       <div class="paper-stage" id="paperStage"><div class="paper-holder" id="paperHolder"><div id="paper" class="theme-atelier"></div></div></div>
+       <p class="field-hint" style="text-align:center">В PDF и печать уходит один цветной лист А4. Фото PNG / WEBP с прозрачностью — без рамки и подложки. При переполнении печать блокируется. Для точной передачи цветов включите «Фоновая графика» в окне печати.</p>
+      </aside>
+     </div>
+   </section>
+   <section id="viewTemplates" class="page" data-view="templates" hidden>
+     <div class="page-head"><div><div class="mini-label">DOCUMENT DESIGN SYSTEM</div><h2>Профессиональные шаблоны А4</h2><p>Три цветных фотолиста А4 с морскими орнаментами и фото блюда без рамки.</p></div></div>
+     <div class="template-grid" id="templateGrid"></div>
+     <div class="notice" style="margin-top:20px"><strong>Фирменный стиль каждого проекта</strong>Название и логотип подставляются в документ из карточки проекта. Формат печати — лист А4.</div>
+   </section>
+   <section id="viewSettings" class="page" data-view="settings" hidden>
+     <div class="page-head"><div><div class="mini-label">PERSONAL ATELIER</div><h2>Настройки студии</h2><p>Параметры вашей закрытой системы и подписи автора.</p></div></div>
+     <form class="settings-box surface" id="settingsForm"><h3>Фирменные настройки</h3><p>Эти значения сохраняются в вашем кабинете и используются при создании новых документов.</p>
+      <div class="form-grid"><label class="field span-2"><span class="label">Название студии</span><input class="control" id="prefStudio" maxlength="100"></label>
+       <label class="field span-2"><span class="label">Подзаголовок</span><input class="control" id="prefTitle" maxlength="180"></label>
+       <label class="field span-2"><span class="label">Разработал — по умолчанию</span><input class="control" id="prefChef" maxlength="160" placeholder="Фаррух Ака, шеф-повар"></label></div>
+      <div class="row" style="margin-top:21px"><button type="submit" class="btn btn-primary"><span class="icon" data-icon="save"></span> Сохранить настройки</button></div>
+     </form>
+     <div class="notice" style="max-width:740px;margin-top:17px"><strong>Приватность</strong>Кабинет закрыт авторизацией. Данные создаваемых проектов и ТТК доступны только владельцу соответствующего аккаунта. Регистрация других пользователей через этот интерфейс отсутствует.</div>
+   </section>
+  </main>
+ </div>
+</div>
+<dialog id="projectDialog" aria-labelledby="projectDialogTitle"><form id="projectForm">
+  <div class="modal-head"><div><h2 id="projectDialogTitle">Новый проект</h2><p>Проект — это отдельный ресторан, бренд или клиентский заказ.</p></div><button type="button" class="modal-close" data-command="closeProject" aria-label="Закрыть">×</button></div>
+  <div class="modal-body"><label class="field"><span class="label">Название проекта *</span><input id="pName" class="control" maxlength="120" required placeholder="Например, Суши Бери"></label>
+   <label class="field" style="margin-top:17px"><span class="label">Описание</span><textarea id="pDesc" class="control" placeholder="Тип заведения, назначение проекта"></textarea></label>
+   <div class="form-grid" style="margin-top:17px"><div class="field"><span class="label">Фирменный цвет</span><label class="color-picker"><input type="color" id="pColor" value="#0F6479"> <small class="muted">Для ТТК и карточки</small></label></div>
+   <label class="field"><span class="label">Загрузить логотип бренда</span><input class="control" style="padding:9px;font-size:10px" id="pLogo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+   <div id="pLogoPreview" class="brand-logo-preview"></div><p class="muted">PNG / WEBP с прозрачным фоном — лучший результат. Логотип сохраняется отдельно для этого бренда и появляется на его ТТК. JPG сохраняет фон изображения.</p><div class="row" style="margin-top:13px"><span id="pLogoStatus" class="muted">Файл не выбран</span><button id="pRemoveLogo" class="btn btn-light btn-sm" type="button">Убрать логотип</button></div>
+  </div>
+  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeProject">Отмена</button><button type="submit" class="btn btn-primary" id="projectSaveButton">Сохранить проект</button></div>
+ </form></dialog>
+<dialog id="copyDialog" aria-labelledby="copyDialogTitle"><form id="copyForm">
+ <div class="modal-head"><div><h2 id="copyDialogTitle">Копировать ТТК</h2><p>Создаётся независимый документ, оригинал не меняется.</p></div><button type="button" class="modal-close" data-command="closeCopy">×</button></div>
+ <div class="modal-body"><label class="field"><span class="label">В какой проект скопировать?</span><select id="copyProject" class="control" required></select></label></div>
+ <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
+ </form></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="./archive-sheet.js?v=archive-2"></script>
+<script src="./farukh-lux-v1.js" defer></script>
+</body></html>
