@@ -44,6 +44,12 @@ if(form&&list){
  '<button type="button" id="msAddIngredient">＋ Добавить ингредиент</button>'+
  '<button type="button" class="secondary" id="msIngredientClearSearch">Сбросить поиск</button></div>';
  ingPage.insertBefore(tools,list);
+ // Keep the live ingredient count, but avoid two competing section headings.
+ const oldHeading=list.querySelector('.ingredientListHead h2');
+ if(oldHeading){
+  const count=el('ingCount'),newHeading=tools.querySelector('h2');
+  if(count&&newHeading){newHeading.append(' ',count);oldHeading.remove()}
+ }
  list.after(form);
  form.hidden=true;
  const formHeader=form.querySelector(':scope > .row.between');
@@ -79,6 +85,20 @@ if(form&&list){
  window.editIngredient=function(id){reveal(true);return baseEdit(id)};
  const baseReset=window.resetIngredientForm;
  window.resetIngredientForm=function(){const result=baseReset();reveal(false);return result};
+}
+// A saved ingredient closes the editor automatically; keep confirmation visible.
+const resultText=el('ingMsg');
+if(resultText){
+ const toast=document.createElement('div');toast.className='msStudioToast';
+ toast.setAttribute('role','status');toast.hidden=true;document.body.append(toast);
+ let timeout;
+ const obs=new MutationObserver(()=>{
+  const v=(resultText.textContent||'').trim();
+  if(!v.startsWith('✅'))return;
+  toast.textContent=v;toast.hidden=false;
+  clearTimeout(timeout);timeout=setTimeout(()=>{toast.hidden=true},4600);
+ });
+ obs.observe(resultText,{childList:true,subtree:true,characterData:true});
 }
 const navButtons=[...nav.querySelectorAll('button[data-page]')];
 const titleMap={home:'Обзор',ingredients:'Ингредиенты',prefab:'Полуфабрикаты',product:'Товары и меню',editor:'Редактор ТТК'};
