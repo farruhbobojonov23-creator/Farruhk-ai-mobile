@@ -12,9 +12,9 @@ const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2
 let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
- {id:'atelier',name:'Морской сапфир',sub:'Синий · волны · золото',desc:'Цветной голубой лист, морские волны, тёмно-синяя полоса и крупное фото блюда без рамки.'},
- {id:'classic',name:'Северный жемчуг',sub:'Мята · перламутр · шампань',desc:'Мятно-жемчужный лист с плавными волнами, тонкими золотыми линиями и фото без подложки.'},
- {id:'arctic',name:'Ночной океан',sub:'Глубокий синий · серебро · золото',desc:'Полностью тёмно-синий лист, золотой орнамент и светло-голубые блоки для читаемого текста.'}
+ {id:'atelier',name:'Морской сапфир',sub:'Фотография волн · лазурь · золото',desc:'Настоящая фотография моря, пенящиеся волны и небо. Светлые блоки и фото блюда без рамки.'},
+ {id:'classic',name:'Северный жемчуг',sub:'Море и небо · перламутр',desc:'Светлый фотолист с морем, облаками и жемчужными блоками. Логотип выбранного бренда.'},
+ {id:'arctic',name:'Ночной океан',sub:'Морское фото · глубокий синий',desc:'Фотография океана в глубокой синей тонировке, золотые акценты и светлые блоки для читаемого текста.'}
 ];
 const iconPaths={
  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -211,17 +211,21 @@ async function saveSettings(ev){ev.preventDefault();if(busy)return;
  prefs=rows[0];tell('Настройки студии сохранены');
  }catch(e){tell('Ошибка сохранения настроек: '+errText(e),true)}finally{setBusy(false)}
 }
+function renderLogoPreview(){
+ const preview=$('pLogoPreview');
+ preview.innerHTML=validImg(modalLogo)?'<img src="'+modalLogo+'" alt="Предпросмотр логотипа бренда">':'<span>Логотип бренда</span>';
+}
 function openProjectDialog(id=null){
  const p=id?byProject(id):null;
  modalProjectId=p?.id||null;modalLogo=p?.logo_data||null;
  $('projectDialogTitle').textContent=p?'Редактировать проект':'Новый проект';
  $('pName').value=p?.name||'';$('pDesc').value=p?.description||'';$('pColor').value=p?.accent||'#0F6479';
  $('pLogo').value='';$('pLogoStatus').textContent=modalLogo?'Логотип уже загружен':'Логотип пока не выбран';
- $('projectDialog').showModal();$('pName').focus();
+ renderLogoPreview();$('projectDialog').showModal();$('pName').focus();
 }
 async function logoSelected(){
  const file=$('pLogo').files?.[0];if(!file)return;
- try{modalLogo=await imageData(file,500);$('pLogoStatus').textContent='Логотип подготовлен · '+Math.round(modalLogo.length/1024)+' КБ'}
+ try{modalLogo=await imageData(file,1000);renderLogoPreview();$('pLogoStatus').textContent='Логотип подготовлен · '+Math.round(modalLogo.length/1024)+' КБ'}
  catch(e){tell(errText(e),true)}
  finally{$('pLogo').value=''}
 }
@@ -632,7 +636,7 @@ function renderPreview(){
  paper.className='sheet-document theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
  paper.style.setProperty('--sheet-brand-accent',safeAccent);
  paper.innerHTML=
- '<img class="sheet-art" src="./sheet-'+({atelier:'sapphire',classic:'pearl',arctic:'night'}[draft.template]||'sapphire')+'.svg" alt="" aria-hidden="true">'+
+ '<img class="sheet-art sheet-ocean-photo" src="./'+(draft.template==='classic'?'ocean-sky.jpg':'ocean-wave.jpg')+'" alt="" aria-hidden="true"><div class="sheet-photo-veil" aria-hidden="true"></div><img class="sheet-seascape" src="./'+(draft.template==='classic'?'ocean-sky.jpg':'ocean-wave.jpg')+'" alt="" aria-hidden="true">'+
  '<div class="sheet-masthead">'+
  '<div class="sheet-header-inner"><div class="sheet-logo-title">'+
  '<div class="sheet-header-kicker">АВТОРСКАЯ КОЛЛЕКЦИЯ РЕЦЕПТУР</div>'+
@@ -960,7 +964,7 @@ function init(){
  $('copyForm').addEventListener('submit',copyDocument);
  $('settingsForm').addEventListener('submit',saveSettings);
  $('pLogo').addEventListener('change',logoSelected);
- $('pRemoveLogo').addEventListener('click',()=>{modalLogo=null;$('pLogoStatus').textContent='Логотип удалён из формы проекта'});
+ $('pRemoveLogo').addEventListener('click',()=>{modalLogo=null;renderLogoPreview();$('pLogoStatus').textContent='Логотип удалён из формы проекта'});
  for(const id of ['projectSearch','projectStatus'])$(id).addEventListener('input',renderProjects);
  for(const id of ['docSearch','docProject','docStatus'])$(id).addEventListener('input',renderLibrary);
  const editorIds=['eProject','eTitle','eCode','eCategory','eYield','eStatus',...Object.keys(fieldMap)];

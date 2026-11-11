@@ -4,7 +4,7 @@
 <title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
 <link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v2">
 <link rel="stylesheet" href="./studio-themes.css?v=20261112-shef51-v1">
-<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./sheet-premium.css?v=20261112-sea-v1"></head>
+<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./sheet-premium.css?v=20261112-photo-v2"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -92,8 +92,8 @@
          <p>Нажми на любой текст, название, граммовку или строку рецептуры — изменения останутся в документе.</p></div>
        </div>
        <div class="sheet-workbench-controls">
-         <label class="sheet-control"><span>ПРОЕКТ</span><select id="sheetProject" aria-label="Выбор проекта для ТТК"></select></label>
-         <label class="sheet-control"><span>СТАТУС</span><select id="sheetStatus" aria-label="Статус ТТК"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label><label class="sheet-verified" title="Отметь только после фактической проверки источников КБЖУ, аллергенов и хранения"><input type="checkbox" id="sheetVerified"> <span>Данные проверены</span></label>
+         <label class="sheet-control"><span>БРЕНД / ПРОЕКТ</span><select id="sheetProject" aria-label="Выбор проекта для ТТК"></select></label>
+         <button type="button" class="btn btn-light btn-sm" data-command="sheetProjectEdit">Логотип бренда</button><button type="button" class="btn btn-light btn-sm" data-command="newProject">＋ Новый бренд</button><label class="sheet-control"><span>СТАТУС</span><select id="sheetStatus" aria-label="Статус ТТК"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label><label class="sheet-verified" title="Отметь только после фактической проверки источников КБЖУ, аллергенов и хранения"><input type="checkbox" id="sheetVerified"> <span>Данные проверены</span></label>
        </div>
      </section>
      <section class="sheet-stylebar" aria-label="Выбор дизайна и размера листа">
@@ -196,8 +196,8 @@
   <div class="modal-body"><label class="field"><span class="label">Название проекта *</span><input id="pName" class="control" maxlength="120" required placeholder="Например, Суши Бери"></label>
    <label class="field" style="margin-top:17px"><span class="label">Описание</span><textarea id="pDesc" class="control" placeholder="Тип заведения, назначение проекта"></textarea></label>
    <div class="form-grid" style="margin-top:17px"><div class="field"><span class="label">Фирменный цвет</span><label class="color-picker"><input type="color" id="pColor" value="#0F6479"> <small class="muted">Для ТТК и карточки</small></label></div>
-   <label class="field"><span class="label">Логотип проекта</span><input class="control" style="padding:9px;font-size:10px" id="pLogo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
-   <div class="row" style="margin-top:13px"><span id="pLogoStatus" class="muted">Файл не выбран</span><button id="pRemoveLogo" class="btn btn-light btn-sm" type="button">Убрать логотип</button></div>
+   <label class="field"><span class="label">Загрузить логотип бренда</span><input class="control" style="padding:9px;font-size:10px" id="pLogo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+   <div id="pLogoPreview" class="brand-logo-preview"></div><p class="muted">PNG / WEBP с прозрачным фоном — лучший результат. Логотип сохраняется отдельно для этого бренда и появляется на его ТТК. JPG сохраняет фон изображения.</p><div class="row" style="margin-top:13px"><span id="pLogoStatus" class="muted">Файл не выбран</span><button id="pRemoveLogo" class="btn btn-light btn-sm" type="button">Убрать логотип</button></div>
   </div>
   <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeProject">Отмена</button><button type="submit" class="btn btn-primary" id="projectSaveButton">Сохранить проект</button></div>
  </form></dialog>
@@ -207,5 +207,5 @@
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="./farukh-pro.js?v=20261112-sea-v1" defer></script>
+<script src="./farukh-pro.js?v=20261112-photo-v2" defer></script>
 </body></html>
