@@ -15,6 +15,7 @@ import * as supplementalPhotos from './public/farukh-print/supplemental-photos.j
 const FILE_CATALOG='farukh-print-catalog.json';
 const FILE_DEVICES='farukh-print-devices.json';
 const MAX_PRODUCTS=1000;
+const MAX_CONNECTED_DEVICES=100;
 // 93+ catalogue items with owner photos can exceed the old 1 MiB body cap.
 // Keep per-photo validation (45 KiB) and the independent product count limit.
 const MAX_JSON=5*1024*1024;
@@ -228,7 +229,7 @@ export function installPrintSyncApi(app,{store,auth,readyCatalogImport,catalogPh
     try{
       await store.transaction(async()=>{
         const list=await readDevices();
-        if(list.filter(x=>!x.revoked).length>=30)throw error(429,'Превышено количество подключённых устройств.');
+        if(list.filter(x=>!x.revoked).length>=MAX_CONNECTED_DEVICES)throw error(429,'Превышен лимит в '+MAX_CONNECTED_DEVICES+' подключённых устройств. Отключи неиспользуемое устройство в управляющем центре.');
         list.push(device);await store.write(FILE_DEVICES,list);
       });
     }catch(e){pending.set(key,ticket);throw e}
