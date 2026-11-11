@@ -1,0 +1,90 @@
+/* Original MORE SUSHI reference: brand / document title, large cutout food,
+   side information card, recipe table + process, compact numbered sections. */
+#paper.sheet-document{isolation:isolate;background:#e8f4fb;--sheet-primary:#092e55;--sheet-accent:#0876ad;--sheet-muted:#355973;--sheet-edge:#90b7ce;--sheet-subtle:#e2eef5;color:var(--sheet-primary);font-family:Arial,sans-serif}
+#paper.sheet-document.theme-classic{background:#080b0c;--sheet-primary:#fff;--sheet-accent:#e31d36;--sheet-muted:#d0d4d6;--sheet-edge:#702832;--sheet-subtle:#f0ecee}
+#paper.sheet-document.theme-arctic{background:#0b0c09;--sheet-primary:#fff6db;--sheet-accent:#bd963a;--sheet-muted:#e5d7b5;--sheet-edge:#887340;--sheet-subtle:#eee9da}
+#paper .sheet-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:-1;pointer-events:none}
+#paper.sheet-document .sheet-masthead{height:135px;min-height:135px;max-height:135px;flex:0 0 135px;display:grid;grid-template-columns:190px 1fr;gap:28px;padding:20px 30px 9px;background:transparent!important;color:var(--sheet-primary)!important;overflow:visible;border:0}
+#paper.sheet-document .sheet-masthead:before,#paper.sheet-document .sheet-masthead:after{display:none}
+#paper .original-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-width:0}
+#paper.sheet-document .sheet-project-logo{border:0;background:transparent;border-radius:0;padding:0;width:142px;height:69px;flex:0 0 69px;max-width:142px;color:var(--sheet-primary)}
+#paper.sheet-document .sheet-project-logo img{width:100%;height:100%;object-fit:contain;border-radius:0}
+#paper.sheet-document .sheet-logo-initial{font-size:42px;color:var(--sheet-primary)}
+#paper.sheet-document .sheet-brand-name{font:700 22px/1.12 Arial,sans-serif;letter-spacing:0;margin:6px 0 0;max-width:190px;color:var(--sheet-primary)}
+#paper .original-heading{min-width:0;padding-top:5px}
+#paper .original-document-title{font:800 19px/1.25 Arial,sans-serif;margin-bottom:15px;letter-spacing:-.3px}
+#paper.sheet-document .sheet-eyebrow{font-size:11px;letter-spacing:0;color:var(--sheet-primary);font-weight:600}
+#paper .original-dish-title{font-size:11px;line-height:1.4;margin-top:6px}
+#paper.sheet-document .sheet-main{padding:0 29px 12px;gap:9px;display:flex;flex-direction:column;justify-content:space-between;min-height:0}
+#paper.sheet-document .sheet-dish-header{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);height:218px;min-height:218px;flex:0 0 218px;border:0;padding:0;gap:16px;align-items:center}
+#paper.sheet-document .sheet-photo-wrap{width:100%;height:218px;flex-basis:auto;min-width:0}
+#paper.sheet-document .sheet-dish-photo{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border:0!important;outline:none;border-radius:0;background:transparent!important;box-shadow:none!important;overflow:visible}
+#paper.sheet-document .sheet-dish-photo img{width:100%;height:100%;object-fit:contain;border:0;border-radius:0;background:transparent;filter:drop-shadow(0 8px 5px #071e3026)}
+#paper.sheet-document .sheet-photo-placeholder{font-size:11px;color:var(--sheet-muted)}
+#paper.sheet-document .sheet-photo-glyph{font-size:40px;color:var(--sheet-accent)}
+#paper .original-info{border:1px solid var(--sheet-edge);border-radius:7px;background:#f6fbffdb;padding:5px 14px;color:#123552}
+#paper .original-info>div{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--sheet-edge);font-size:11px}
+#paper .original-info>div:last-child{border-bottom:0}
+#paper .original-info strong{display:block;font-size:13px;line-height:1.3;font-weight:600;margin-top:3px}
+#paper .original-info-icon{font-size:24px;font-weight:400;color:var(--sheet-accent);width:27px;text-align:center}
+#paper.sheet-document.theme-classic .original-info,#paper.sheet-document.theme-arctic .original-info{background:#080b0ccc;color:var(--sheet-primary)}
+#paper.sheet-document .sheet-2col{gap:12px}
+#paper.sheet-document .sheet-section{border:1px solid var(--sheet-edge);background:#f6f9fbeF;border-radius:5px;overflow:hidden;min-width:0;color:#14212c}
+#paper.sheet-document .sheet-section-head{min-height:28px;padding:4px 8px;border:0;border-radius:0;background:linear-gradient(100deg,#062e52,#087db0);display:flex;gap:6px;align-items:center}
+#paper.sheet-document.theme-classic .sheet-section-head{background:linear-gradient(100deg,#e51b36 0 27px,#111 27px)}
+#paper.sheet-document.theme-arctic .sheet-section-head{background:linear-gradient(100deg,#d9b45d 0 27px,#10110e 27px)}
+#paper.sheet-document .sheet-section-head>span{font:bold 11px/1 Arial,sans-serif;color:white;min-width:16px}
+#paper.sheet-document.theme-arctic .sheet-section-head>span{color:#17160d}
+#paper.sheet-document .sheet-section-head h3{font:bold 10px/1.15 Arial,sans-serif;color:#fff;text-transform:uppercase;letter-spacing:0}
+#paper.sheet-document .sheet-section-content{font:10px/1.4 Arial,sans-serif;padding:7px 9px;color:#182734;min-height:44px}
+#paper.sheet-document .sheet-compact .sheet-section-content,#paper.sheet-document .sheet-small .sheet-section-content{min-height:43px}
+#paper .original-recipe-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;align-items:stretch;min-height:235px}
+#paper .original-process-column{display:flex;flex-direction:column;gap:10px;min-width:0}
+#paper .original-process-column .sheet-process{flex:1}
+#paper.sheet-document .sheet-process .sheet-section-content{min-height:92px}
+#paper.sheet-document .sheet-nutrition .sheet-section-content{min-height:52px}
+#paper.sheet-document .sheet-recipe-section{min-height:235px;display:flex;flex-direction:column}
+#paper.sheet-document .sheet-ingredient-table{font-size:10px;table-layout:fixed;width:100%}
+#paper.sheet-document .sheet-ingredient-table th{background:#e5edf4;color:#173553;padding:5px 3px;font-size:8px;white-space:normal;letter-spacing:0;line-height:1.3}
+#paper.sheet-document .sheet-ingredient-table th:first-child{width:24px}
+#paper.sheet-document .sheet-ingredient-table th:nth-child(2){width:auto}
+#paper.sheet-document .sheet-ingredient-table th:nth-child(3),#paper.sheet-document .sheet-ingredient-table th:nth-child(4){width:57px}
+#paper.sheet-document .sheet-ingredient-table th:nth-child(5){width:58px;font-size:6px}
+#paper.sheet-document .sheet-ingredient-table td{padding:4px 3px;border-color:#c5ced5;color:#1a2934;font-size:10px}
+#paper.sheet-document .sheet-ingredient-table input{width:100%;min-width:0;font-size:10px}
+#paper.sheet-document .sheet-ingredient-table tbody tr:nth-child(even){background:#e8eef3}
+#paper.sheet-document .sheet-ingredient-table td:last-child button{width:16px;height:19px;padding:0;font-size:10px}
+#paper.sheet-document .sheet-recipe-bottom{margin-top:auto;padding:7px 6px;background:#deeaf2;display:flex;flex-wrap:wrap;gap:6px;border-radius:0}
+#paper.sheet-document .sheet-recipe-total{gap:8px;color:#213e50;font-size:7px}
+#paper.sheet-document .sheet-recipe-total strong{font-size:10px;color:#173345}
+#paper.sheet-document .sheet-recipe-bottom button{font-size:9px;padding:4px}
+#paper.sheet-document .sheet-signatures{background:transparent;gap:20px;padding-top:9px;border-top:0}
+#paper.sheet-document .sheet-sign{gap:4px}
+#paper.sheet-document .sheet-sign>span:first-child{color:var(--sheet-muted);font-size:8px}
+#paper.sheet-document .sheet-sign>i{margin-top:11px;background:var(--sheet-muted)}
+#paper.sheet-document .sheet-footer{height:24px;min-height:24px;flex:0 0 24px;padding:0 30px;background:transparent;border:0;color:var(--sheet-muted);font-size:7px}
+#paper.sheet-document .sheet-footer .sheet-state{color:inherit}
+#paper.sheet-document .sheet-edit[contenteditable=true]:empty:before{color:var(--sheet-muted);opacity:.8}
+#paper.sheet-document .sheet-section .sheet-edit[contenteditable=true]:empty:before{color:#687984}
+#paper.sheet-document .sheet-edit:focus{color:#12314b;background:#edf7ff}
+#paper.sheet-document .sheet-section .sheet-edit:hover{background:#e7f1f8}
+.brand-logo-preview{margin-top:16px;min-height:105px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line,#ccc);border-radius:12px;background:repeating-conic-gradient(#d9e0e4 0% 25%,#f5f7f8 0% 50%) 0/18px 18px;color:#365261}
+.brand-logo-preview img{max-width:240px;max-height:110px;object-fit:contain;padding:12px}
+.sheet-workbench-controls{flex-wrap:wrap}
+.sheet-theme-dot.noir{background:linear-gradient(135deg,#eefaff 50%,#006696 50%)}
+.sheet-theme-dot.pearl{background:linear-gradient(135deg,#090b0c 50%,#db1832 50%)}
+.sheet-theme-dot.burgundy{background:linear-gradient(135deg,#090b0c 50%,#c0a256 50%)}
+.template-card .design-mini,.design-tile .design-mini{background:#edf6fc url('./sheet-original-ice.svg') center/100% 100%!important;border-radius:0;padding-top:26%!important}
+.template-card .design-mini.classic,.design-tile .design-mini.classic{background-image:url('./sheet-original-red.svg')!important}
+.template-card .design-mini.arctic,.design-tile .design-mini.arctic{background-image:url('./sheet-original-gold.svg')!important}
+.template-card .design-mini:before,.design-tile .design-mini:before{display:none!important}
+.design-mini i{background:#e5eef5;border-top:5px solid #07638e;opacity:.95}
+.design-mini.classic i{border-color:#c21a32}.design-mini.arctic i{border-color:#aa8d45}
+@media print{
+ #paper.sheet-document,#paper.sheet-document *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ #paper .sheet-art{display:block!important;position:absolute!important;inset:0!important;width:210mm!important;height:297mm!important;z-index:-1!important}
+ #paper.sheet-document .sheet-dish-photo,#paper.sheet-document .sheet-project-logo{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+ #paper .sheet-photo-placeholder{display:none!important}
+ #paper .sheet-ingredient-table th:nth-child(5){display:none!important}
+ #paper .sheet-ingredient-table th:nth-child(2){width:auto!important}
+}
