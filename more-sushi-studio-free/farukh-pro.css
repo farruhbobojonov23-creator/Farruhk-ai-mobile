@@ -303,6 +303,9 @@ dialog::backdrop{background:#061923a3;backdrop-filter:blur(4px)}
 }
 
 
+.brand-name,.brand-sub{display:block}
+.brand-lockup>span:last-child{min-width:0}
+/* Render brand name and subtitle as separate premium typography lines. */
 /* -------------------------------------------------------------------
    FARUKH TTK PRO · DOCUMENT ATELIER V3
    Pure on-paper editing: exactly one A4, 3 luxury signature designs.
