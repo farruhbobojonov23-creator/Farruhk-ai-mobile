@@ -245,6 +245,9 @@ dialog::backdrop{background:#061923a3;backdrop-filter:blur(4px)}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
+.mobile-logout{display:none}
+@media(max-width:910px){.mobile-logout{display:inline-flex;min-height:35px;padding:7px 10px;font-size:10px}}
+@media(max-width:450px){.mobile-logout{padding:7px 9px;font-size:0}.mobile-logout .icon{width:19px;height:19px}}
 /* TTK PRO 2 • editing quality, professional controls and document readiness */
 .editor-save-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;border-radius:30px;padding:5px 10px;margin-top:10px;background:#fff7e8;color:#966d32}
 .editor-save-badge.saved{background:#e6f6ef;color:#227b5e}
