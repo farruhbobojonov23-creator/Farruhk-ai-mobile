@@ -51,7 +51,7 @@ function parseLabel(raw){
  protein:find(['белк(?:и|ов)?','protein']),
  fat:find(['жир(?:ы|ов)?','fat']),
  carbs:find(['углевод(?:ы|ов)?','carbohydrates?']),
- kcal:find(['ккал','калори[а-я]*','энергетическ[а-я]* ценност[а-я]*'])
+ kcal:find(['ккал','калори[а-я]*'])
  };
  if(macros.kcal==null){const m=t.match(/(\d{2,4}(?:[.,]\d+)?)\s*(?:ккал|kcal)/i);if(m)macros.kcal=number(m[1])}
  const manufacturerLine=lines.find(l=>/^(?:изготовитель|производитель|произведено|организация-изготовитель)\s*[:—-]/i.test(l));
@@ -135,13 +135,15 @@ function start(){
  '<div class="msLabelVerify"><label><input id="msAllergenVerified" type="checkbox"> Аллергены сверены с упаковкой</label><label><input id="msNutritionVerified" type="checkbox"> КБЖУ на 100 г сверено с упаковкой</label></div>',
  '<p class="msLabelNote">OCR может ошибаться. Подтверждение — только после проверки. Срок готового ПФ и готового ролла устанавливается отдельно.</p>'
  ].join('');
- e('ingNutritionPanel').before(panel);
+ const visual=document.querySelector('#ingredientFormPanel .msIngredientVisualEditor');
+ if(visual)visual.after(panel);else e('ingNutritionPanel').before(panel);
  const box=document.createElement('div');box.id='msRecipeAuto';box.className='msRecipeAuto';box.hidden=true;e('components').after(box);
  e('msLabelFile').onchange=async ev=>{try{state.photo=await scaledImage(ev.target.files[0]);preview(state.photo);markPending();banner('Фото добавлено')}catch(ex){banner(ex.message,true)}};
  e('msReadLabel').onclick=recognize;e('msApplyLabel').onclick=()=>{state.text=e('msLabelText').value.slice(0,20000);applyText()};
  e('msLabelText').oninput=()=>{state.text=e('msLabelText').value.slice(0,20000);markPending()};
  e('msAllergenVerified').onchange=badge;e('msNutritionVerified').onchange=badge;
  e('ingAllergens').addEventListener('input',()=>{e('msAllergenVerified').checked=false;badge()});
+ e('ingAllergenChips')?.addEventListener('click',()=>{e('msAllergenVerified').checked=false;badge()});
  Object.values(nutritionFields).forEach(id=>e(id).addEventListener('input',()=>{e('msNutritionVerified').checked=false;badge()}));
  const oldReload=window.reload;
  window.reload=async function(...args){
