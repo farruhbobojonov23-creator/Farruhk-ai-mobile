@@ -118,7 +118,17 @@ function parseLabel(raw) {
  if(hours!==null&&(!Number.isFinite(hours)||hours<=0))hours=null;
  const warning=lines.filter(s=>/(?:аллерген|содержит|contains)/i.test(s)&&!/не содержит|может содержать|may contain|следы/i.test(s)).join(' ');
  const tracesText=lines.filter(s=>/может содержать|may contain|следы/i.test(s)).join(' ');
- let composition=lines.filter(s=>/(?:^|\s)состав\s*[:—-]|ingredients\s*:/i.test(s)).join(' ');
+ let composition='';
+ for(let i=0;i<lines.length;i++){
+  if(!/(?:^|\s)состав\s*[:—-]|ingredients\s*:/i.test(lines[i]))continue;
+  const segment=[lines[i]];
+  for(let j=i+1;j<Math.min(lines.length,i+6);j++){
+   if(/^(?:пищевая|энергетическая|ккал|условия|изготовитель|производитель|срок|масса|может содержать|may contain|nutrition|store)/i.test(lines[j]))break;
+   segment.push(lines[j]);
+   if(segment.join(' ').length>340)break;
+  }
+  composition+=' '+segment.join(' ');
+ }
  if(composition.length<20)composition='';
  const source=warning+' '+composition;
  const allergens={
@@ -279,9 +289,13 @@ function start(){
  const productFile=e('msIngredientFile');
  if(productFile)productFile.addEventListener('change',async ev=>{
   if(!ev.target.files?.[0]||state.photo||state.busy)return;
-  // Let the existing photo uploader finish updating its preview before OCR.
-  await new Promise(ok=>setTimeout(ok,450));
-  if(window.MSIcons?.getIngredientPhoto?.())await recognize();
+  const prior=window.MSIcons?.getIngredientPhoto?.()||null;
+  // Existing uploader is asynchronous; wait for the NEW processed photo, not a stale one.
+  for(let attempt=0;attempt<20;attempt++){
+   await new Promise(ok=>setTimeout(ok,200));
+   const fresh=window.MSIcons?.getIngredientPhoto?.()||null;
+   if(fresh&&fresh!==prior){await recognize();break}
+  }
  });
  const oldReload=window.reload;
  window.reload=async function(...args){
