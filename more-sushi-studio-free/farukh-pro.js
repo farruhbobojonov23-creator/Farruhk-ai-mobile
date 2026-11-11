@@ -157,7 +157,7 @@ function projectCard(p){
  '<div class="proj-actions"><button type="button" class="btn btn-primary btn-sm" data-project-open="'+p.id+'">Открыть ТТК →</button>'+
  '<button type="button" class="btn btn-light btn-sm" data-project-edit="'+p.id+'" aria-label="Настроить проект">Изменить</button>'+
  '<button type="button" class="btn btn-light btn-sm" data-project-archive="'+p.id+'">'+(p.is_archived?'Вернуть':'В архив')+'</button>'+
- (p.is_archived&&count===0?'<button type="button" class="btn btn-danger btn-sm" data-project-remove="'+p.id+'">Удалить</button>':'')+
+ (docs.every(d=>d.project_id!==p.id)?'<button type="button" class="btn btn-danger btn-sm" data-project-remove="'+p.id+'">Удалить</button>':'')+
  '</div></article>';
 }
 function renderProjects(){
@@ -582,11 +582,11 @@ function renderReview(){
   '<strong>'+(ok?'Заполнено':'Заполнить')+'</strong></button>').join('');
  const badge=$('editorSaveBadge');
  if(badge){
-  badge.textContent=dirty?(workingId?'● Есть несохранённые изменения':'● Новый документ · не сохранён'):
-    '✓ Сохранено в библиотеке · версия '+(draft.version||1);
-  badge.className='editor-save-badge'+(dirty?' unsaved':' saved');
+  badge.textContent=!draft.id?'● Новый документ · не сохранён':
+    dirty?'● Есть несохранённые изменения':'✓ Сохранено в библиотеке · версия '+(draft.version||1);
+  badge.className='editor-save-badge'+(!draft.id||dirty?' unsaved':' saved');
  }
- const save=$('saveDoc');if(save)save.textContent=dirty?'Сохранить изменения':'Сохранить ТТК';
+ const save=$('saveDoc');if(save)save.textContent=dirty&&!!draft.id?'Сохранить изменения':'Сохранить ТТК';
 }
 
 /* Premium A4 preview; all variable content is escaped before interpolation. */
