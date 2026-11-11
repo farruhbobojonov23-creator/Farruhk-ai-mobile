@@ -132,4 +132,138 @@ function docStatus(doc){const c=doc.status==='Утверждено'?'approved':d
 function renderAll(){
  renderDash();renderProjects();renderLibrary();renderTemplates();renderSettings();
 }
+/* Projects: client brands live inside this single closed chef workspace. */
+let pendingTemplate='atelier';
+function renderDash(){
+ $('statProjects').textContent=projects.filter(p=>!p.is_archived).length;
+ $('statDocuments').textContent=docs.filter(d=>d.status!=='Архив').length;
+ $('statDrafts').textContent=docs.filter(d=>d.status==='Черновик'||d.status==='На проверке').length;
+ $('statApproved').textContent=docs.filter(d=>d.status==='Утверждено').length;
+ const recent=docs.filter(d=>d.status!=='Архив').slice(0,4);
+ $('dashDocs').innerHTML=recent.length?'<div class="list">'+recent.map(d=>rowHtml(d,true)).join('')+'</div>':
+ emptyView('Начни с первой ТТК','Создай проект, а затем добавь первую технологическую карту.','Создать ТТК','newDoc');
+ const active=projects.filter(p=>!p.is_archived).slice(0,2);
+ $('dashProjects').innerHTML=active.map(projectCard).join('')+
+ '<button type="button" class="project-card surface project-add" data-command="newProject"><span class="plus">+</span><strong>Новый проект</strong><small>Ресторан · бренд · заказчик</small></button>';
+}
+function projectCard(p){
+ const count=docs.filter(d=>d.project_id===p.id&&d.status!=='Архив').length;
+ const initial=esc((p.name||'P').trim().slice(0,1).toLocaleUpperCase('ru'));
+ const logo=validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':initial;
+ return '<article class="surface project-card" style="--project-color:'+esc(p.accent||'#0F6479')+'">'+
+ '<div class="row between"><div class="proj-mark">'+logo+'</div><span class="pill '+(p.is_archived?'archive':'approved')+'">'+(p.is_archived?'Архив':'Активный')+'</span></div>'+
+ '<div><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||'Частная коллекция ТТК')+'</p><p style="margin-top:6px">'+count+' документов</p></div>'+
+ '<div class="proj-actions"><button type="button" class="btn btn-primary btn-sm" data-project-open="'+p.id+'">Открыть ТТК →</button>'+
+ '<button type="button" class="btn btn-light btn-sm" data-project-edit="'+p.id+'" aria-label="Настроить проект">Изменить</button></div></article>';
+}
+function renderProjects(){
+ const q=$('projectSearch').value.trim().toLocaleLowerCase('ru'),status=$('projectStatus').value;
+ const filtered=projects.filter(p=>(status==='all'||(status==='active'?!p.is_archived:p.is_archived))&&
+ (!q||[p.name,p.description].some(t=>String(t||'').toLocaleLowerCase('ru').includes(q))));
+ $('projectGrid').innerHTML=filtered.map(projectCard).join('')+
+ (status!=='archive'?'<button type="button" class="project-card surface project-add" data-command="newProject"><span class="plus">+</span><strong>Создать новый проект</strong><small>Открой следующую коллекцию</small></button>':'')||
+ emptyView('Пока нет проектов','Создай первое заведение для своей коллекции ТТК.','Новый проект','newProject');
+}
+function rowHtml(d,compact=false){
+ const meta=esc(d.code||'Без кода')+' · '+dateRu(d.updated_at);
+ return '<article class="doc-row"><div class="doc-main"><div class="doc-label">'+esc(d.title)+'</div><div class="doc-meta">'+meta+'</div></div>'+
+ '<span class="doc-project">'+esc(projectName(d.project_id))+'</span>'+docStatus(d)+
+ '<div class="action-menu"><button class="btn btn-primary btn-sm" type="button" data-doc-open="'+d.id+'">Открыть</button>'+
+ (compact?'': '<button class="btn btn-light btn-sm" type="button" data-doc-copy="'+d.id+'" aria-label="Копировать">Копия</button>'+
+ '<button class="btn btn-light btn-sm" type="button" data-doc-archive="'+d.id+'">'+(d.status==='Архив'?'Вернуть':'В архив')+'</button>'+
+ '<button class="btn btn-danger btn-sm" type="button" data-doc-delete="'+d.id+'" aria-label="Удалить документ">×</button>')+
+ '</div></article>';
+}
+function renderLibrary(){
+ const old=$('docProject').value;
+ $('docProject').innerHTML='<option value="">Все проекты</option>'+projects.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+ if(projects.some(p=>p.id===old))$('docProject').value=old;
+ const p=$('docProject').value,s=$('docStatus').value,q=$('docSearch').value.trim().toLocaleLowerCase('ru');
+ const filtered=docs.filter(d=>(!p||d.project_id===p)&&
+ (s==='all'||s==='active'&&d.status!=='Архив'||d.status===s)&&
+ (!q||[d.title,d.code,d.category,projectName(d.project_id)].some(x=>String(x||'').toLocaleLowerCase('ru').includes(q))));
+ $('libraryDocs').innerHTML=filtered.length?filtered.map(d=>rowHtml(d)).join(''):
+ emptyView('Документов пока нет','Создайте первую ТТК. Здесь появятся карточки всех заведений.','Создать ТТК','newDoc');
+ $('libraryCount').textContent='Показано: '+filtered.length+' из '+docs.length+' документов';
+}
+function renderTemplates(){
+ $('templateGrid').innerHTML=templates.map(t=>
+ '<article class="surface template-card"><div class="design-mini '+esc(t.id)+'"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+ '<div class="mini-label">'+esc(t.sub)+'</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.desc)+'</p>'+
+ '<button type="button" class="btn btn-primary" data-template-create="'+esc(t.id)+'">'+icon('plus')+' Создать ТТК в этом стиле</button></article>').join('');
+}
+function renderSettings(){
+ $('prefStudio').value=prefs.studio_name||'FARUKH TTK PRO';
+ $('prefTitle').value=prefs.title||'Студия технико-технологических карт';
+ $('prefChef').value=prefs.chef_name||'';
+}
+async function saveSettings(ev){ev.preventDefault();if(busy)return;
+ const data={owner_id:session?.user?.id,studio_name:$('prefStudio').value.trim().slice(0,100)||'FARUKH TTK PRO',
+ title:$('prefTitle').value.trim().slice(0,180),chef_name:$('prefChef').value.trim().slice(0,160),updated_at:new Date().toISOString()};
+ setBusy(true);try{
+ const rows=await api('/rest/v1/ttk_preferences?on_conflict=owner_id&select=*',{
+  method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:data});
+ if(!rows?.[0])throw Error('Настройки не подтверждены сервером');
+ prefs=rows[0];tell('Настройки студии сохранены');
+ }catch(e){tell('Ошибка сохранения настроек: '+errText(e),true)}finally{setBusy(false)}
+}
+function openProjectDialog(id=null){
+ const p=id?byProject(id):null;
+ modalProjectId=p?.id||null;modalLogo=p?.logo_data||null;
+ $('projectDialogTitle').textContent=p?'Редактировать проект':'Новый проект';
+ $('pName').value=p?.name||'';$('pDesc').value=p?.description||'';$('pColor').value=p?.accent||'#0F6479';
+ $('pLogo').value='';$('pLogoStatus').textContent=modalLogo?'Логотип уже загружен':'Логотип пока не выбран';
+ $('projectDialog').showModal();$('pName').focus();
+}
+async function logoSelected(){
+ const file=$('pLogo').files?.[0];if(!file)return;
+ try{modalLogo=await imageData(file,500);$('pLogoStatus').textContent='Логотип подготовлен · '+Math.round(modalLogo.length/1024)+' КБ'}
+ catch(e){tell(errText(e),true)}
+ finally{$('pLogo').value=''}
+}
+async function saveProject(ev){
+ ev.preventDefault();if(busy)return;
+ const name=$('pName').value.trim().replace(/\s+/g,' ');
+ if(!name){tell('Введите название проекта.',true);return}
+ const patch={name,description:$('pDesc').value.trim().slice(0,500),accent:$('pColor').value,logo_data:modalLogo,updated_at:new Date().toISOString()};
+ setBusy(true);
+ try{
+  const rows=modalProjectId?await api('/rest/v1/ttk_projects?id=eq.'+modalProjectId+'&select=*',{
+    method:'PATCH',headers:{Prefer:'return=representation'},body:patch}):
+   await api('/rest/v1/ttk_projects?select=*',{
+    method:'POST',headers:{Prefer:'return=representation'},body:patch});
+  if(!rows?.[0]?.id)throw Error('Сервер не подтвердил сохранение проекта');
+  const saved=rows[0];
+  if(modalProjectId){projects=projects.map(p=>p.id===saved.id?saved:p)}
+  else projects.unshift(saved);
+  $('projectDialog').close();renderAll();tell(modalProjectId?'Проект обновлён':'Новый проект создан');
+  if(pendingCreate){pendingCreate=false;startNewDoc(saved.id,pendingTemplate)}
+ }catch(e){tell('Не удалось сохранить проект: '+errText(e),true)}
+ finally{setBusy(false)}
+}
+async function toggleProjectArchive(id){
+ const p=byProject(id);if(!p)return;
+ const next=!p.is_archived;
+ if(next&&!confirm('Переместить проект «'+p.name+'» в архив? ТТК сохранятся.'))return;
+ try{
+  const rows=await api('/rest/v1/ttk_projects?id=eq.'+id+'&select=*',{
+   method:'PATCH',headers:{Prefer:'return=representation'},body:{is_archived:next,updated_at:new Date().toISOString()}});
+  if(!rows?.[0])throw Error('Изменения не подтверждены сервером');
+  projects=projects.map(x=>x.id===id?rows[0]:x);renderAll();tell(next?'Проект отправлен в архив':'Проект восстановлен');
+ }catch(e){tell(errText(e),true)}
+}
+async function removeProject(id){
+ const p=byProject(id);if(!p)return;
+ if(docs.some(d=>d.project_id===id)){tell('В проекте есть ТТК. Сначала перенесите или удалите документы.',true);return}
+ if(!confirm('Безвозвратно удалить пустой проект «'+p.name+'»?'))return;
+ try{
+  const rows=await api('/rest/v1/ttk_projects?id=eq.'+id+'&select=id',{method:'DELETE',headers:{Prefer:'return=representation'}});
+  if(!rows?.[0])throw Error('Удаление не подтверждено');
+  projects=projects.filter(x=>x.id!==id);renderAll();tell('Пустой проект удалён');
+ }catch(e){tell(errText(e),true)}
+}
+async function listForProject(id){
+ $('docProject').value=id;navigate('library',true);renderLibrary();
+}
+
 })();
