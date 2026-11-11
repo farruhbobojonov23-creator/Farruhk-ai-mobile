@@ -48,7 +48,7 @@
  #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #brand img{flex:0 0 auto;border-width:1px;margin:0}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #brand .brandname{font-size:17px;line-height:1.05;margin-top:-10px;white-space:nowrap}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #brand .brandsub{position:absolute;left:71px;top:38px;font-size:7.6px;letter-spacing:1px;white-space:nowrap}
-#paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #paper.archive-sheet .archive-sheet-content #pageTitle{left:260px;top:21px;right:20px;color:#fff;font-size:24.5px;line-height:1.1}
+#paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #pageTitle{left:260px;top:21px;right:20px;color:#fff;font-size:24.5px;line-height:1.1}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #titleDash{left:258px;top:56px;width:160px;height:3px}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #nameStrip{left:24px;top:91px;width:746px;height:39px;background:linear-gradient(95deg,#cfecfc,#f3faff);box-shadow:inset 0 0 0 1px #c5ddec}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #photoBox{left:24px;top:142px;width:439px;height:154px;border-radius:9px}
@@ -90,7 +90,7 @@
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #brand img{object-fit:contain}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #brand .brandname{font-size:22px}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #brand .brandsub{font-size:8px;margin-top:4px}
-#paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #paper.archive-sheet .archive-sheet-content #pageTitle{left:212px;top:26px;right:18px;font-size:29px;color:white}
+#paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #pageTitle{left:212px;top:26px;right:18px;font-size:29px;color:white}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #titleDash{left:211px;top:72px;width:220px;background:#ec273e}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #nameStrip{left:210px;top:88px;width:564px;height:38px;background:linear-gradient(97deg,#d1f2ff,#f4fbff);box-shadow:0 2px 9px #0c456033}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #photoBox{left:31px;top:158px;width:422px;height:150px;border-radius:11px}
@@ -123,7 +123,7 @@
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #brand img{object-fit:contain}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #brand .brandname{font-size:22px;color:var(--ttk-navy)}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #brand .brandsub{color:#1d5f90;font-size:8px}
-#paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #paper.archive-sheet .archive-sheet-content #pageTitle{left:218px;top:23px;right:20px;font-size:27px}
+#paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #pageTitle{left:218px;top:23px;right:20px;font-size:27px}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #titleDash{left:220px;top:65px;width:180px}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #nameStrip{left:217px;top:84px;width:554px;height:38px;background:linear-gradient(99deg,#bedcf2,#f3f9fd)}
 #paper.archive-sheet .archive-sheet-content[data-template="a4-05"] #photoBox{left:202px;top:139px;width:354px;height:156px;border-radius:10px}
@@ -263,3 +263,6 @@
 #paper.archive-sheet .card3 .body{height:calc(100% - 27px)}
 #paper.archive-sheet #recipeTable .sheet-item-name>.sheet-edit{min-height:14px}
 @media print{#paper.archive-sheet .edit:empty:before{content:""!important}}
+
+#paper.archive-sheet .archive-sheet-content[data-template="a4-02"] #brand img{width:58px;height:58px}
+#paper.archive-sheet .archive-sheet-content[data-template="a4-04"] #brand img{width:96px;height:96px}
