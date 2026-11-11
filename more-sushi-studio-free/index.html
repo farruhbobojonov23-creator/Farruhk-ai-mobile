@@ -1,652 +1,180 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Море Суши — Studio PRO</title>
-<style>
-:root{font-family:Inter,Arial,sans-serif;color:#142b46;background:#edf3f9}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;background:#0875c7;color:white;border-radius:10px;padding:11px 17px;font-weight:700}button.secondary{background:#e3eef9;color:#124677}button.danger{background:#a72137}button:disabled{opacity:.5;cursor:not-allowed}.wrap{display:flex;min-height:100vh}.side{width:246px;background:#102f52;color:white;padding:25px 18px;flex-shrink:0}.logo{font-size:25px;font-weight:900;color:#f8fdff;line-height:1.15}.logo span{color:#ef5965}.muted{color:#7186a0;font-size:13px}.side small{color:#91b4d6}.side button{width:100%;text-align:left;background:transparent;color:#d6e7f8;margin:3px 0;font-weight:500}.side button.active{background:#1d527f;color:white}.main{flex:1;min-width:0;padding:28px;max-width:1450px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.panel{border:1px solid #d9e6f2;background:white;border-radius:17px;padding:22px;margin:17px 0;box-shadow:0 5px 18px #123b6510}.row{display:flex;gap:11px;flex-wrap:wrap;align-items:center}.between{justify-content:space-between}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px}.stat{background:white;border:1px solid #dfecf5;padding:20px;border-radius:16px}.stat b{font-size:30px;color:#0d4d87}.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px;font-size:13px;font-weight:700;color:#365370}.field input,.field select,.field textarea{width:100%;border:1px solid #c8d9e6;border-radius:9px;padding:10px;background:white;color:#142b46}.field textarea{min-height:80px}.field.wide{min-width:100%;flex-basis:100%}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:11px 8px;border-bottom:1px solid #e1eaf2;text-align:left}th{background:#eaf3fb;color:#0b4e89}.scroll{overflow:auto}.pill{display:inline-block;padding:4px 8px;border-radius:8px;background:#d8edfc;font-size:12px;color:#0b5a96}.hidden{display:none!important}#auth{min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(130deg,#0c2c4c,#0a5685)}#auth .panel{width:min(440px,100%);padding:34px}h1{font-size:24px;margin:0}h2{margin:6px 0 16px;font-size:21px}h3{margin:15px 0}label{cursor:pointer}.err{color:#b82032;font-size:14px}.ok{color:#118263;font-size:14px}.divider{height:1px;background:#d8e5ef;margin:20px 0}.thumb{width:115px;height:86px;object-fit:cover;border-radius:10px;border:1px solid #d5e5ef}.print-only{display:none}.status{color:#647b96;font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}a{color:#0a69b5}.note{background:#e8f5fc;border-left:3px solid #1581c2;padding:12px;border-radius:8px}#loginMsg{margin-top:10px} @media(max-width:760px){.wrap{display:block}.side{width:100%;padding:14px}.side nav{display:flex;overflow:auto}.side button{min-width:max-content}.main{padding:15px}.panel{padding:15px}.top{align-items:flex-start}.scroll{max-width:100%}}
-
-
-@media print {
-  @page { size:A4 portrait; margin:0; }
-  :root{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  html,body{width:210mm;background:#fff!important;margin:0!important}
-  #auth,.side,.top,.screen-only{display:none!important}
-  .wrap,.main{display:block!important;width:auto!important;margin:0!important;padding:0!important;max-width:unset!important}
-  #printSheet{display:block!important;box-sizing:border-box;position:relative;width:210mm;min-height:297mm;padding:5mm 9mm 8mm 10mm;background:#fff;color:#192b3a;font:8.2pt/1.22 Arial,Helvetica,sans-serif;}
-  #printSheet::before{content:"";position:absolute;top:0;left:0;z-index:0;background:linear-gradient(143deg,#073054 0%,#0d517d 57%,#102b4b 100%);width:50mm;height:85mm;clip-path:polygon(0 0,100% 0,78% 36%,16% 90%,0 100%);border-right:0}
-  #printSheet::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:10mm;background:linear-gradient(165deg,transparent 20%,#d3f1fa 20%,#148fca 31%,#103d67 40%,#fff 48%);z-index:0}
-  #printSheet>*{position:relative;z-index:1}
-  #printSheet .pbrand{position:absolute;top:5mm;left:2.1mm;width:39mm;height:47mm;z-index:3;text-align:center;color:white}
-  #printSheet .pbrand__icon{display:block;width:28mm;height:28mm;object-fit:contain;margin:0 auto 2mm;border:1.5pt solid #a7d2eb;border-radius:50%;background:transparent}
-  #printSheet .pbrand__text{font:bold 13pt/1.02 Arial,sans-serif;color:white;text-transform:none;}
-  #printSheet .pbrand__text em{font-style:normal;color:#ff364a}
-  #printSheet .pbrand__sub{font-size:6.6pt;letter-spacing:1px;margin-top:1.4mm}
-  #printSheet .pbrand__wave{display:none}
-  #printSheet .pheader{margin-left:49mm;min-height:16mm;padding:0 0 2mm;border-bottom:1.5pt solid #e82c40;display:flex;align-items:flex-start;justify-content:flex-start;gap:2mm}
-  #printSheet .pheader__eyebrow{display:none}
-  #printSheet .pheader__title{font-size:18pt;font-weight:850;color:#0d3154;line-height:1.03;letter-spacing:-.4px;max-width:none}
-  #printSheet .pheader__badge{display:none}
-  #printSheet > h1{margin:3mm 0 1.7mm 45mm;min-height:10mm;max-width:145mm;background:linear-gradient(90deg,#bcd9ed,#e6f3fb);border-left:4mm solid #d6293e;color:#103253;padding:1.7mm 3mm;font-size:13.4pt;font-weight:800;line-height:1.08;transform:skewX(-4deg);}
-  #printSheet .phero{margin-left:34mm;display:grid;grid-template-columns:95mm 1fr;gap:3mm;height:45mm;margin-bottom:4mm;align-items:stretch}
-  #printSheet .pimage{height:45mm;background:linear-gradient(135deg,#dfeef7,#f5fbff);border:0;border-radius:1.5mm;display:flex;align-items:center;justify-content:center;text-align:center;color:#52718c;font-size:8pt;overflow:hidden}
-  #printSheet .pimage img{width:100%;height:100%;object-fit:cover}
-  #printSheet .pfacts{display:flex;flex-direction:column;justify-content:center;gap:2.6mm}
-  #printSheet .pfact{display:grid;grid-template-columns:42% 58%;background:#eaf3fa;min-height:10mm;align-items:center;padding:0;border-radius:1.4mm;font-size:8.4pt;line-height:1.1;overflow:hidden}
-  #printSheet .pfact b{background:linear-gradient(115deg,#044a81,#143d65);color:#fff;padding:2.6mm 1.5mm;height:100%;display:flex;align-items:center}
-  #printSheet .pfact span{padding:1.5mm 1.7mm;}
-  #printSheet .pgrid{display:grid;grid-template-columns: 1fr 1fr;gap:3.2mm 3.2mm;align-items:stretch}
-  #printSheet .psection{border:0.7pt solid #b9d0df;border-radius:1.7mm;background:#fff;break-inside:avoid;overflow:visible}
-  #printSheet .psection--wide{grid-column:1/-1}
-  #printSheet h2{position:relative;background:linear-gradient(90deg,#083a69 0%,#0a5891 100%);color:#fff;padding:1.7mm 2.5mm 1.5mm 8.3mm;margin:0;font-size:9.7pt;line-height:1.08;min-height:6.2mm;display:flex;align-items:center;border-radius:1.1mm}
-  #printSheet h2:before{position:absolute;content:"";left:1.8mm;top:0;width:4.7mm;height:100%;background:#e51d32;transform:skewX(-18deg)}
-  #printSheet .psection__body{padding:2mm 2.3mm 2.2mm;font-size:7.7pt;line-height:1.23;white-space:normal;overflow-wrap:break-word}
-  #printSheet .ptext{white-space:pre-wrap;line-height:1.24;overflow-wrap:break-word}
-  #printSheet table{table-layout:fixed;border-collapse:collapse;width:100%;font-size:7.1pt;line-height:1.04}
-  #printSheet td,#printSheet th{padding:1.05mm 1mm;border:.45pt solid #9fb8cb;vertical-align:top;overflow-wrap:break-word}
-  #printSheet th{background:#dceef9;color:#173a5f}
-  #printSheet td{text-align:right}
-  #printSheet td:nth-child(2){text-align:left}
-  #printSheet .sample-output{background:#d9edfa;font-weight:800;color:#0e456f}
-  #printSheet .pflex{display:grid;grid-template-columns:65% 35%;gap:2mm}
-  #printSheet .pallergen{background:#eef6fc;border:1px solid #cadeed;border-radius:1mm;padding:1.5mm 1.8mm;font-size:7.5pt}
-  #printSheet .pallergen b{color:#c8233c}
-  #printSheet .nutrition{font-size:7.1pt;text-align:center}
-  #printSheet .nutrition td,#printSheet .nutrition th{text-align:center!important}
-  #printSheet .papproval{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;margin-top:3mm;padding-top:1.5mm;border-top:1pt solid #cbdbe8;font-size:7.6pt}
-  #printSheet .psign__line{height:5mm;border-bottom:0.7pt solid #51677d}
-  #printSheet .psign small{font-size:7pt}
-  #printSheet .pversion{text-align:right;color:#486b8a;font-size:7pt}
-  #printSheet .pfooterwave{display:none}
-  #printSheet .warnnote{margin:1mm 0 0;font-size:6.5pt;color:#925d10}
-}
-
-/* Ingredients manager */
-#ingredientsPage .ingredientListHead{gap:12px}
-#ingSearch,#ingCatFilter{padding:10px 12px;border:1px solid #bcd3e4;border-radius:9px;background:#fff;color:#143a5b;max-width:250px}
-.ingTable{min-width:870px;font-size:13px}.ingTable tr:hover td{background:#f5fbff}.ingTable th:last-child,.ingTable td:last-child{min-width:198px}
-.ingAction{font-size:11px;padding:7px 9px;white-space:nowrap}.ingMeta{display:block;color:#748aa1;margin-top:4px;font-size:11px}.ingUnknown{color:#ac6a12;font-size:12px}
-#ingredientFormPanel{scroll-margin-top:75px}
-
-/* Grouped ingredients · More Sushi signature blue */
-#ingredientsPage .ingGroups{display:flex;flex-direction:column;gap:14px;margin-top:16px}
-#ingredientsPage .ingQuickCats{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
-#ingredientsPage .ingQuick{border-radius:20px;border:1px solid #bcd5e6;background:#f1f8fe;color:#134d79;padding:8px 11px;font-size:12px;font-weight:650;box-shadow:none}
-#ingredientsPage .ingQuick.on{background:#123f6b;color:white;border-color:#123f6b}
-#ingredientsPage .ingQuick:hover{border-color:#1885bd}
-#ingredientsPage .ingQuick b{display:inline-flex;min-width:23px;justify-content:center;margin-left:4px;border-radius:20px;padding:2px 5px;background:#cce8f7;color:#133f65;font-size:11px}
-#ingredientsPage .ingGroup{border:1px solid #cbdfea;border-radius:13px;background:#fff;overflow:hidden;box-shadow:0 3px 13px #173a5b0a}
-#ingredientsPage .ingGroupSummary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(98deg,#0a3258,#145b8b 75%,#238ab6);color:white;padding:12px 17px;list-style:none}
-#ingredientsPage .ingGroupSummary::-webkit-details-marker{display:none}
-#ingredientsPage .ingGroupTitle{display:flex;align-items:center;gap:12px;font-size:17px;font-weight:800;line-height:1.2}
-#ingredientsPage .ingIcon{display:inline-grid;place-items:center;background:#ffffff26;border:1px solid #ffffff3a;border-radius:9px;width:37px;height:35px;font-size:22px}
-#ingredientsPage .ingGroupRight{display:flex;align-items:center;gap:15px}
-#ingredientsPage .ingGroupCount{font-size:12px;font-weight:750;background:#ffffff2c;padding:5px 10px;border-radius:15px;white-space:nowrap}
-#ingredientsPage .ingArrow{color:white;font-size:17px}
-#ingredientsPage .ingGroup:not([open]) .ingArrow{transform:rotate(-90deg)}
-#ingredientsPage .ingGroup .scroll{padding:0 14px}
-#ingredientsPage .ingTable{min-width:760px;font-size:13px}
-#ingredientsPage .ingTable th{background:#eaf5fd;font-size:12px;color:#125481;padding:12px 10px}
-#ingredientsPage .ingTable td{padding:11px 10px;vertical-align:top;line-height:1.35}
-#ingredientsPage .ingTable th:nth-child(1){width:32%}
-#ingredientsPage .ingTable th:nth-child(2){width:26%}
-#ingredientsPage .ingTable th:nth-child(3){width:12%}
-#ingredientsPage .ingTable th:nth-child(4){width:11%}
-#ingredientsPage .ingTable th:nth-child(5){width:19%}
-#ingredientsPage .ingTable th:last-child,#ingredientsPage .ingTable td:last-child{min-width:170px}
-#ingredientsPage .ingRowActions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-#ingredientsPage .ingAction{padding:7px 9px;font-size:11px}
-#ingredientsPage .ingMeta{max-width:360px;font-size:11px;color:#7590a3;line-height:1.25}
-#ingredientsPage .ingSub{display:block;font-size:10.5px;color:#7e97a9;margin-top:3px}
-#ingredientsPage .ingAllergen{color:#a13443;font-weight:700}
-#ingredientsPage .ingNeutral{color:#236d64;font-weight:650}
-#ingredientsPage .ingWarn{color:#ac670b;font-weight:750}
-#ingredientsPage .ingNoResults{padding:38px;text-align:center;color:#7590a3;border:1px dashed #bad8e9;border-radius:13px}
-#ingredientsPage .ingLegend{font-size:12px;color:#637d91;line-height:1.4;margin-top:17px}
-@media(max-width:760px){#ingredientsPage .ingGroupSummary{padding:10px 12px}#ingredientsPage .ingGroupTitle{font-size:14px;gap:7px}#ingredientsPage .ingGroup .scroll{padding:0 3px}#ingredientsPage .ingQuick{font-size:11px}}
-
-/* Ingredient standards, usage modal and shelf-life shortcuts */
-#ingredientsPage .ingSuggestionChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
-#ingredientsPage .ingChip{font-size:11px;font-weight:600;padding:5px 8px;border:1px solid #b5d2e4;background:#eaf5fc;color:#15557a;border-radius:16px}
-#ingredientsPage .ingChip:hover{background:#cbe8fc}
-#ingredientsPage .ingShelfControls{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-#ingredientsPage .ingShelfControls input{min-width:95px;width:100px;flex:0 1 100px}
-#ingredientsPage .ingShelfControls select{flex:1;min-width:130px;max-width:220px}
-#ingredientsPage .ingUsesRow .ingUsesActions,#ingredientsPage .ingRowActions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-#ingredientsPage .ingUseLink{color:#13557e;border:1px solid #bdd9ea;border-radius:20px;background:#e9f5fd;font-size:11px;font-weight:700;padding:7px 9px;white-space:nowrap}
-#ingredientsPage .ingUsageNone{font-size:11px;font-weight:400;color:#648197}
-#ingredientsPage .ingUsesSection{padding:5px 0 10px;border-bottom:1px solid #d8e9f5}
-#ingredientsPage .ingUsesSection h3{color:#10517e;font-size:15px;margin:12px 0 8px}
-#ingredientsPage .ingUsesRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid #eef3f8}
-#ingredientsPage .ingUsesRow small{font-size:11px;color:#6c8498;display:block;margin-top:4px}
-#ingredientsPage .ingUsesRow button,#ingredientsPage .ingUsesRow .ingTtkLink{font-size:11px;padding:8px 11px;border-radius:8px;white-space:nowrap}
-#ingredientsPage .ingUsesRow .ingTtkLink{background:#0f6598;color:white;text-decoration:none;font-weight:bold}
-#ingredientsPage .ingUsesActions{display:flex;align-items:center;gap:7px}
-#ingredientsPage .ingUsageIntro{color:#607c91;font-size:12px}
-#ingredientUsesDialog{width:min(720px,calc(100vw - 20px));max-height:85vh;padding:20px;border:1px solid #bcd6e8;border-radius:16px;color:#1a3856;box-shadow:0 15px 60px #0a2d5070}
-#ingredientUsesDialog::backdrop{background:#071d35a8}
-#ingredientUsesDialog .ingUsesHeader{display:flex;align-items:center;justify-content:space-between;gap:8px}
-#ingredientUsesDialog h2{font-size:20px;margin:0 0 8px}
-#ingredientUsesDialog .ingUsesActions{display:flex;align-items:center;gap:6px}
-#ingredientUsesDialog .ingUsesRow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;border-top:1px solid #e1edf6}
-#ingredientUsesDialog .ingUsesRow small{display:block;margin-top:4px;color:#70889c;font-size:11px}
-#ingredientUsesDialog .ingUsesSection h3{margin:20px 0 9px;color:#0e567e;font-size:15px}
-#ingredientUsesDialog .ingUsesSection{border-bottom:1px solid #e4eef5}
-#ingredientUsesDialog .ingTtkLink{background:#0b6296;color:white;border-radius:7px;padding:8px 10px;text-decoration:none;font-size:12px;font-weight:700}
-#ingredientUsesDialog .ingUsesActions button{padding:8px 11px;font-size:12px}
-#ingredientUsesDialog .ingUsageIntro,#ingredientUsesDialog .ingNoUses{font-size:13px;color:#5d778d}
-#ingredientsPage .ingTable{min-width:960px}
-#ingredientsPage .ingTable th:nth-child(1){width:31%}
-#ingredientsPage .ingTable th:nth-child(2){width:12%}
-#ingredientsPage .ingTable th:nth-child(3){width:12%}
-#ingredientsPage .ingTable th:nth-child(4){width:10%}
-#ingredientsPage .ingTable th:nth-child(5){width:17%}
-#ingredientsPage .ingTable th:nth-child(6){width:18%}
-@media(max-width:650px){#ingredientUsesDialog .ingUsesRow{display:block}#ingredientUsesDialog .ingUsesActions{margin-top:7px}}
-
-/* Ingredient catalog compact 2026-11-10 */
-#ingredientFormPanel{padding:16px 19px;margin-bottom:12px}
-#ingredientFormPanel h2{font-size:18px;margin:0 0 7px}
-#ingredientsPage .row{row-gap:8px}
-#ingredientsPage .field{min-width:175px}
-#ingredientsPage .field>label{font-size:12px;margin-bottom:4px;display:block;color:#234a6a;font-weight:650}
-#ingredientsPage .field input,#ingredientsPage .field select{font-size:13px;padding:9px 11px;min-height:39px}
-#ingredientsPage #ingNotes{min-width:0}
-#ingredientsPage .ingFieldPopover{position:relative}
-#ingredientsPage .ingAllergenOptions[hidden],#ingredientsPage #ingDirectPriceFields[hidden],#ingredientsPage #ingPackagePriceFields[hidden]{display:none!important}
-#ingredientsPage .ingAllergenOptions{z-index:90;position:absolute;top:calc(100% + 4px);left:0;width:min(440px,85vw);padding:12px;background:#fff;border:1px solid #aacde3;border-radius:12px;box-shadow:0 16px 36px #12395447}
-#ingredientsPage .ingOptionHeading{font-size:12px;font-weight:800;color:#0c4d7a;margin:2px 0 10px}
-#ingredientsPage .ingSuggestionChips{margin:0;display:flex;flex-wrap:wrap;gap:6px}
-#ingredientsPage .ingAllergenOptions .ingChip{font-size:12px;padding:7px 10px;background:#eaf4fa}
-#ingredientsPage .ingAllergenOptions .ingChip.is-selected{background:#115b8e;color:#fff;border-color:#115b8e}
-#ingredientsPage .ingClearAllergens{margin-top:10px;background:transparent;border:1px solid #bdd5e3;color:#2c6487;padding:6px 11px;font-size:11px}
-#ingredientsPage .ingPriceEditor{min-width:240px}
-#ingredientsPage .ingPriceEditor #ingPriceMode{width:100%;margin-bottom:5px}
-#ingredientsPage .ingPriceInputs{display:flex;gap:6px}
-#ingredientsPage .ingPriceInputs input{min-width:0;width:50%;padding:9px 7px}
-#ingredientsPage .ingCalculated{font-size:11px;font-weight:750;color:#116884;margin-top:5px;min-height:14px}
-#ingredientsPage .ingPriceError{color:#bf354b}
-#ingredientsPage .ingCategoryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px}
-#ingredientsPage .ingCategoryCard{min-height:123px;text-align:left;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;column-gap:11px;row-gap:0;align-items:center;align-content:center;padding:13px 16px;background:linear-gradient(135deg,#f6fbff,#e8f4fd);border:1px solid #bfd9e9;border-radius:13px;color:#133d60;box-shadow:0 2px 9px #1940630f}
-#ingredientsPage .ingCategoryCard:hover{border-color:#3684b5;box-shadow:0 5px 16px #164e8027;transform:translateY(-1px)}
-#ingredientsPage .ingCategoryIcon{grid-column:1;grid-row:1/4;display:grid;place-items:center;width:43px;height:43px;border-radius:12px;font-size:25px;background:#d5eefa}
-#ingredientsPage .ingCategoryName{grid-column:2;grid-row:1;font-size:13px;font-weight:800;line-height:1.3}
-#ingredientsPage .ingCategoryCount{grid-column:2;grid-row:2;font-size:11px;color:#607e99;font-weight:650;margin-top:2px}
-#ingredientsPage .ingCategoryGo{grid-column:2;grid-row:3;font-size:11px;color:#087bb1;margin-top:7px;font-weight:800}
-#ingredientsPage .ingGroups{scroll-margin-top:20px}
-#ingredientsPage .ingGroups .ingGroup{border-radius:12px}
-#ingredientsPage .ingGroups .ingGroupSummary{padding:9px 13px}
-#ingredientsPage .ingGroups .ingIcon{width:28px;height:28px;font-size:17px;border-radius:7px}
-#ingredientsPage .ingGroups .ingGroupTitle{font-size:14px}
-#ingredientsPage .ingTable{min-width:710px;font-size:12px}
-#ingredientsPage .ingTable th{padding:8px 7px;font-size:11px}
-#ingredientsPage .ingTable td{padding:7px;vertical-align:middle;line-height:1.2}
-#ingredientsPage .ingTable td:first-child b{font-size:12px}
-#ingredientsPage .ingTable .ingMeta{display:inline;color:#9aafbd;font-size:10px;margin-left:7px}
-#ingredientsPage .ingTable th:last-child,#ingredientsPage .ingTable td:last-child{min-width:65px;width:77px}
-#ingredientsPage .ingRowActions{display:flex;gap:4px;flex-wrap:nowrap}
-#ingredientsPage .ingRowActions .ingAction{font-size:12px;width:31px;height:30px;min-width:31px;padding:5px;border-radius:7px}
-#ingredientsPage .ingUseLink{padding:5px 6px;font-size:10px;white-space:nowrap}
-#ingredientsPage .ingPageNav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 3px;color:#56738b;font-size:12px}
-#ingredientsPage .ingPageNav div{display:flex;align-items:center;gap:8px}
-#ingredientsPage .ingPageNav button{font-size:11px;padding:7px 10px}
-#ingredientsPage .ingQuickCats:empty{display:none}
-#ingredientsPage .ingQuickCats:not(:empty){margin-top:11px}
-#ingredientsPage #ingGroups{margin-top:12px}
-#ingredientsPage .ingLegend{margin:10px 0 0;font-size:11px}
-@media(max-width:800px){#ingredientsPage .ingredientListHead{align-items:stretch;flex-direction:column}#ingredientsPage .ingredientListHead>.row{flex-wrap:wrap}#ingredientsPage .ingCategoryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#ingredientsPage .ingCategoryCard{min-height:116px;padding:12px;column-gap:7px}#ingredientsPage .ingCategoryIcon{width:35px;height:35px;font-size:21px}}
-@media(max-width:470px){#ingredientsPage .ingCategoryGrid{grid-template-columns:1fr 1fr;gap:8px}#ingredientsPage .ingCategoryName{font-size:11px}#ingredientsPage .ingCategoryCard{min-height:108px;padding:9px}#ingredientsPage .ingCategoryIcon{display:none}#ingredientsPage .ingCategoryName,#ingredientsPage .ingCategoryCount,#ingredientsPage .ingCategoryGo{grid-column:1/3}#ingredientsPage .ingPageNav{flex-direction:column;align-items:flex-start}#ingredientFormPanel{padding:12px}}
-</style><link rel="stylesheet" href="./ultra.css?v=20261111-pf-safety-pro1"><link rel="stylesheet" href="./icons3d.css?v=20261111-real-products-v5"><link rel="stylesheet" href="./ingredient-card.css?v=20261111-label2"><link rel="stylesheet" href="./product-studio.css?v=20261111-menu-pro1"><link rel="stylesheet" href="./studio-design.css?v=20261111-north-pearl1"><link rel="stylesheet" href="./studio-pro.css?v=20261111-studio-v3"></head><body>
-<div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
-<h2 id="authTitle">Вход в платформу</h2>
-<div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="name@example.com"></div><br>
-<div class="field"><label>Пароль</label><input id="password" type="password" autocomplete="current-password" placeholder="Не менее 8 символов"></div><br>
-<button id="authBtn" onclick="authAction()">Войти</button> <button class="secondary" onclick="toggleAuth()" id="authToggle">Создать аккаунт</button>
-<div id="loginMsg"></div><p class="muted">Данные каждого пользователя доступны только его аккаунту. Пароль не хранится в браузере.</p></div></div>
-<div id="app" class="wrap hidden"><aside class="side"><div class="logo">🌊 МОРЕ <span>СУШИ</span></div><small>STUDIO PRO · РЕЦЕПТУРЫ</small><nav id="nav">
-<button data-page="home" class="active" onclick="switchPage('home')">◈ Главная</button>
-<button data-page="ingredients" onclick="switchPage('ingredients')">▧ Ингредиенты</button>
-<button data-page="prefab" onclick="switchPage('prefab')">♧ Полуфабрикаты PRO</button>
-<button data-page="product" onclick="switchPage('product')">▤ Товары и меню</button><button onclick="location.href='./ttk.html'">▣ ТТК — цветной А4</button>
-
-</nav><p style="margin-top:40px"><button class="secondary" onclick="logout()">Выйти</button></p></aside>
-<main class="main"><header class="top screen-only"><div><h1 id="pageTitle">Главная</h1><p class="muted">Море Суши · Разработка продукции от сырья до ТТК</p></div><div class="status" id="userBadge"></div></header>
-<div id="homePage" class="screen-only"><div class="cards"><div class="stat"><b id="nIng">0</b><p>Ингредиентов</p></div><div class="stat"><b id="nPf">0</b><p>Полуфабрикатов</p></div><div class="stat"><b id="nPr">0</b><p>Товаров</p></div></div><div class="panel"><h2>Последовательность работы</h2><p>1. Добавьте ингредиенты → 2. Создайте полуфабрикаты → 3. Соберите товары → 4. Заполните разделы ТТК → 5. Распечатайте выбранный цветной А4.</p><div class="note">Печатная ТТК не содержит себестоимости. Перед утверждением необходимо проверить рецептуру, выход, безопасность, КБЖУ и режимы.</div></div></div>
-<div id="ingredientsPage" class="screen-only hidden">
-<div class="panel" id="ingredientFormPanel">
- <div class="row between"><h2 id="ingFormTitle">➕ Новый ингредиент</h2><span id="ingEditStatus" class="pill hidden">Режим редактирования</span></div>
- <div class="row">
-  <div class="field"><label for="ingName">Наименование *</label><input id="ingName" maxlength="180" placeholder="Например, лосось охлаждённый" autocomplete="off"></div>
-  <div class="field"><label for="ingCategory">Категория</label><select id="ingCategory">
-   <option>Рыба и морепродукты</option><option>Овощи и фрукты</option><option>Сыры и молочные продукты</option><option>Декор и панировка</option><option>Соусы и специи</option><option>Мясо и яйца</option><option>Основы суши</option><option>Напитки и вода</option><option>Прочее</option>
-  </select></div>
-  <div class="field"><label for="ingUnit">Единица измерения</label><select id="ingUnit"><option>г</option><option>кг</option><option>мл</option><option>л</option><option>шт</option></select></div>
+<meta name="theme-color" content="#0b222d"><meta name="description" content="FARUKH TTK PRO — закрытая профессиональная студия технологических карт">
+<title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
+<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v1"></head>
+<body>
+<section id="auth" class="auth">
+ <div class="auth-showcase">
+  <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 25V7h17M8 15h14M12 27c7-5 12-5 17-1"/></svg></span><span><span class="brand-name">FARUKH <span>TTK</span> PRO</span><span class="brand-sub">PRIVATE CHEF ATELIER</span></span></div>
+  <div><div class="mini-label">THE ART OF PROFESSIONAL RECIPES</div><h1>Каждый рецепт<br>заслуживает<br><em>идеального документа.</em></h1><p>Личная студия создания технико-технологических карт. Чистая архитектура, точность рецептур, фирменные документы и безупречное оформление А4.</p>
+   <div class="demo-document" aria-hidden="true"><div class="d-head">FARUKH / PROFESSIONAL TTK</div><h3>Технологическая карта</h3><span class="demo-chip">A4 · PROFESSIONAL STANDARD</span><div class="demo-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  </div>
+  <div><div class="auth-line"></div><div class="auth-points"><span>◈ Частная библиотека</span><span>◈ Профессиональный A4</span><span>◈ От сырья до документа</span></div></div>
  </div>
- <div class="row">
-  <div class="field"><label for="ingAllergens">Аллергены · коротко</label><div class="ingFieldPopover"><input id="ingAllergens" placeholder="Нажмите, чтобы выбрать…" autocomplete="off" aria-haspopup="true" aria-expanded="false">
-  <div id="ingAllergenOptions" class="ingAllergenOptions" hidden>
-   <div class="ingOptionHeading">Выберите аллергены</div>
-   <div id="ingAllergenChips" class="ingSuggestionChips" aria-label="Выберите аллергены"></div>
-   <button type="button" class="ingClearAllergens" id="ingClearAllergens">Очистить</button>
-  </div></div></div>
-  <div class="field"><label for="ingManufacturer">Производитель / бренд</label><input id="ingManufacturer" placeholder="При необходимости"></div>
-  <div class="field ingPriceEditor">
- <label for="ingPriceMode">Закупочная цена · не в ТТК</label>
- <select id="ingPriceMode"><option value="per_kg">₽ за 1 кг</option><option value="package_g">₽ за упаковку (граммы)</option></select>
- <div id="ingDirectPriceFields"><input id="ingPrice" type="number" min="0" step=".01" placeholder="₽ за килограмм" inputmode="decimal"></div>
- <div id="ingPackagePriceFields" hidden>
-  <div class="ingPriceInputs"><input id="ingPackPrice" type="number" min="0" step=".01" placeholder="Цена упаковки, ₽" inputmode="decimal"><input id="ingPackWeight" type="number" min="0.001" step=".001" placeholder="Вес, г" inputmode="decimal"></div>
+ <div class="auth-panel"><form id="loginForm" class="auth-card" autocomplete="on">
+  <div class="overline">ВАШЕ РАБОЧЕЕ ПРОСТРАНСТВО</div><h2>С возвращением.</h2><p>Войдите в закрытую студию FARUKH TTK PRO.</p>
+  <div class="field"><label class="label" for="loginEmail">Электронная почта</label><input class="control" id="loginEmail" name="email" type="email" autocomplete="username" placeholder="your@email.com" required></div>
+  <div class="field"><label class="label" for="loginPassword">Пароль</label><input class="control" id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required minlength="8"></div>
+  <button id="loginButton" class="btn btn-primary" type="submit"><span data-icon="lock" class="icon"></span> Войти в студию</button>
+  <div id="authError" role="alert" aria-live="polite"></div><div class="auth-footer">Закрытый доступ • Без регистрации клиентов</div>
+ </form></div>
+</section>
+<div id="shell" class="shell" hidden>
+ <aside class="sidebar" aria-label="Навигация студии">
+  <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 25V7h17M8 15h14M12 27c7-5 12-5 17-1"/></svg></span><span><span class="brand-name">FARUKH <span>TTK</span> PRO</span><span class="brand-sub">PRIVATE CHEF ATELIER</span></span></div>
+  <div class="side-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+  <nav class="side-nav" id="sideNav">
+   <button type="button" class="nav-btn active" data-nav="dashboard"><span class="icon" data-icon="grid"></span> Обзор</button>
+   <button type="button" class="nav-btn" data-nav="projects"><span class="icon" data-icon="folder"></span> Мои проекты</button>
+   <button type="button" class="nav-btn" data-nav="library"><span class="icon" data-icon="book"></span> Библиотека ТТК</button>
+   <button type="button" class="nav-btn" data-nav="editor"><span class="icon" data-icon="edit"></span> Конструктор ТТК</button>
+   <div class="nav-sep"></div>
+   <button type="button" class="nav-btn" data-nav="templates"><span class="icon" data-icon="layers"></span> Шаблоны А4</button>
+   <button type="button" class="nav-btn" data-nav="settings"><span class="icon" data-icon="settings"></span> Настройки студии</button>
+  </nav>
+  <div class="side-bottom"><div class="side-user"><b>Личный рабочий кабинет</b><span id="sideEmail">—</span></div><button type="button" id="logout" class="side-logout">↗ &nbsp; Выйти из системы</button></div>
+ </aside>
+ <div class="workspace">
+  <header class="topbar"><div><div class="breadcrumb">FARUKH TTK PRO / PRIVATE WORKSPACE</div><h1 id="topTitle">Обзор студии</h1></div><div class="top-actions"><button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><span class="top-avatar" aria-label="Шеф">F</span></div></header>
+  <main class="content" id="content">
+   <section id="viewDashboard" class="page" data-view="dashboard">
+    <div class="hero"><div class="hero-copy"><div class="mini-label">ATELIER / FARUKH TTK PRO</div><h2>Твоя профессиональная<br><em>студия рецептур.</em></h2><p>Разрабатывай ТТК для своих заведений и заказчиков. Все проекты, технологии и документы — в одной закрытой библиотеке.</p>
+     <div class="row"><button type="button" class="btn btn-light" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" class="btn btn-ghost" data-command="newProject"><span class="icon" data-icon="folder"></span> Новый проект</button></div></div>
+     <div class="hero-decor" aria-hidden="true"><div class="hero-lines"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="stats">
+      <div class="surface stat"><small>Всего проектов</small><b id="statProjects">0</b><span class="stat-note">Наши бренды и клиенты</span></div>
+      <div class="surface stat"><small>ТТК в библиотеке</small><b id="statDocuments">0</b><span class="stat-note">Все документы</span></div>
+      <div class="surface stat"><small>В работе</small><b id="statDrafts">0</b><span class="stat-note">Черновики и проверка</span></div>
+      <div class="surface stat"><small>Утверждено</small><b id="statApproved">0</b><span class="stat-note">Проверенные документы</span></div>
+    </div>
+    <div class="dash-columns">
+     <section class="surface block"><div class="section-head"><h3>Последние ТТК</h3><a href="#" data-link="library">Вся библиотека →</a></div><div id="dashDocs"></div></section>
+     <section class="surface block"><div class="section-head"><h3>Быстрый старт</h3><span class="muted">3 действия</span></div>
+      <div class="quick-stack">
+       <button type="button" class="quick-link" data-command="newProject"><span class="badge"><span class="icon" data-icon="folder"></span></span><span class="quick-copy">Создать проект<small>Новый ресторан, бренд или заказчик</small></span><span>→</span></button>
+       <button type="button" class="quick-link" data-command="newDoc"><span class="badge"><span class="icon" data-icon="edit"></span></span><span class="quick-copy">Новая ТТК<small>Рецептура, технология и оформление</small></span><span>→</span></button>
+       <button type="button" class="quick-link" data-command="templates"><span class="badge"><span class="icon" data-icon="layers"></span></span><span class="quick-copy">Выбрать шаблон<small>Фирменные документы формата А4</small></span><span>→</span></button>
+      </div>
+      <div class="notice" style="margin-top:15px"><strong>Внимание к качеству</strong>Система не подставляет неподтверждённые КБЖУ, аллергены и сроки хранения.</div>
+     </section>
+    </div>
+    <div class="section-head" style="margin-top:27px"><h3>Ваши проекты</h3><a href="#" data-link="projects">Все проекты →</a></div><div class="project-grid" id="dashProjects"></div>
+   </section>
+   <section id="viewProjects" class="page" data-view="projects" hidden>
+     <div class="page-head"><div><div class="mini-label">PROJECT ARCHIVE</div><h2>Мои проекты</h2><p>Каждому заведению — собственная коллекция технологических карт.</p></div>
+      <button type="button" class="btn btn-primary" data-command="newProject"><span class="icon" data-icon="plus"></span> Новый проект</button></div>
+     <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input class="control" id="projectSearch" type="search" placeholder="Поиск по проектам" aria-label="Поиск проекта"></label>
+      <select class="control" id="projectStatus" aria-label="Статус проекта"><option value="active">Активные проекты</option><option value="archive">Архивные проекты</option><option value="all">Все проекты</option></select></div>
+     <div id="projectGrid" class="project-grid" aria-live="polite"></div>
+   </section>
+   <section id="viewLibrary" class="page" data-view="library" hidden>
+     <div class="page-head"><div><div class="mini-label">TTK DOCUMENT LIBRARY</div><h2>Библиотека ТТК</h2><p>Каждая карта привязана к проекту, но остаётся доступной в общей библиотеке.</p></div>
+      <button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button></div>
+     <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input class="control" id="docSearch" type="search" placeholder="Поиск по названию или коду" aria-label="Поиск документа"></label>
+      <select class="control" id="docProject" aria-label="Фильтр проектов"></select><select class="control" id="docStatus" aria-label="Статус документа"><option value="active">Все активные</option><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option><option value="all">Все статусы</option></select></div>
+     <div class="library-list" id="libraryDocs" aria-live="polite"></div><p id="libraryCount" class="line-note"></p>
+   </section>
+   <section id="viewEditor" class="page" data-view="editor" hidden>
+     <div class="editor-head"><div><button class="back" type="button" data-command="library"><span class="icon" data-icon="left"></span> В библиотеку</button><h2 id="editorHeading">Новая ТТК</h2></div>
+      <div class="row"><button class="btn btn-light" id="editorDuplicate" type="button" data-command="duplicate" hidden><span class="icon" data-icon="copy"></span> Копировать</button>
+       <button type="button" class="btn btn-light" id="editorPrint" data-command="print"><span class="icon" data-icon="print"></span> Печать / PDF</button>
+       <button type="button" class="btn btn-primary" data-command="saveDoc" id="saveDoc"><span class="icon" data-icon="save"></span> Сохранить ТТК</button></div>
+     </div>
+     <div class="editor-grid">
+      <section class="editor-panel" aria-label="Редактор технико-технологической карты">
+       <div class="editor-tabs" role="tablist" aria-label="Этапы создания документа">
+        <button type="button" class="editor-tab active" role="tab" aria-selected="true" data-tab="main"><span class="icon" data-icon="edit"></span> Основное</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="lines"><span class="icon" data-icon="list"></span> Рецептура</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="tech"><span class="icon" data-icon="book"></span> Технология</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="design"><span class="icon" data-icon="layers"></span> Оформление</button>
+       </div>
+       <div class="edit-section" data-tab-panel="main">
+        <h3>Основные сведения</h3><p class="lead">Карточка блюда и принадлежность к проекту.</p>
+        <div class="form-grid">
+         <label class="field span-2"><span class="label">Проект *</span><select id="eProject" class="control" required></select></label>
+         <label class="field span-2"><span class="label">Наименование блюда *</span><input id="eTitle" class="control" maxlength="180" placeholder="Например, Филадельфия классическая"></label>
+         <label class="field"><span class="label">Код ТТК</span><input id="eCode" class="control" maxlength="40" placeholder="ТТК-001"></label>
+         <label class="field"><span class="label">Категория</span><input id="eCategory" class="control" maxlength="90" placeholder="Роллы, соусы, десерты"></label>
+         <label class="field"><span class="label">Выход блюда, г *</span><input id="eYield" class="control" type="number" min="0.001" step=".001" inputmode="decimal" placeholder="250"></label>
+         <label class="field"><span class="label">Статус</span><select id="eStatus" class="control"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label>
+        </div>
+        <div class="edit-divider"></div>
+        <label class="label">Фото готового блюда</label><label class="upload-zone" for="ePhotoInput" id="photoZone"><span class="icon" data-icon="upload"></span><strong>Загрузить фотографию</strong><span>PNG / JPG / WEBP · будет отображаться в ТТК</span></label>
+        <input id="ePhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="row" style="margin-top:10px"><button id="removePhoto" type="button" class="btn btn-light btn-sm" data-command="removePhoto">Убрать фото</button></div>
+       </div>
+       <div class="edit-section" data-tab-panel="lines" hidden>
+        <h3>Рецептура и граммовки</h3><p class="lead">Указывай фактические значения. Масса автоматически суммируется для контроля выхода.</p>
+        <div style="overflow-x:auto"><table class="lines-table"><thead><tr><th>Ингредиент / ПФ</th><th>Брутто, г</th><th>Нетто, г</th><th>Убрать</th></tr></thead><tbody id="editorLines"></tbody></table></div>
+        <button type="button" class="btn btn-light" data-command="addLine"><span class="icon" data-icon="plus"></span> Добавить ингредиент</button>
+        <div class="line-summary"><div><strong id="sumNet">0 г</strong><div><small>Сумма нетто</small></div></div><div><strong id="sumGross">0 г</strong><div><small>Сумма брутто</small></div></div></div>
+        <p class="field-hint">Сумма нетто не обязательно равна выходу после технологической обработки. Проверьте потери и выход при проработке.</p>
+       </div>
+       <div class="edit-section" data-tab-panel="tech" hidden>
+        <h3>Технологическая часть</h3><p class="lead">Профессиональные поля ТТК. Неподтверждённые данные оставляйте пустыми.</p>
+        <div class="form-grid">
+         <label class="field span-2"><span class="label">1. Область применения</span><textarea id="fScope" class="control" placeholder="Для каких предприятий и блюд применяется карта"></textarea></label>
+         <label class="field span-2"><span class="label">2. Требования к сырью</span><textarea id="fRaw" class="control" placeholder="Наименование, качество, сопроводительные документы"></textarea></label>
+         <label class="field span-2"><span class="label">4. Технологический процесс</span><textarea id="fProcess" class="control" placeholder="Пошаговое приготовление с параметрами и контролем"></textarea></label>
+         <label class="field span-2"><span class="label">5. Оформление, подача и реализация</span><textarea id="fServing" class="control" placeholder="Подача, упаковка, реализация, транспортировка"></textarea></label>
+         <label class="field span-2"><span class="label">Срок и условия хранения</span><textarea id="fStorage" class="control" placeholder="Только подтверждённые условия и сроки"></textarea></label>
+         <label class="field span-2"><span class="label">6. Показатели качества и безопасности</span><textarea id="fQuality" class="control" placeholder="Органолептические показатели и требования"></textarea></label>
+         <label class="field span-2"><span class="label">Аллергены</span><textarea id="fAllergens" class="control" placeholder="Сведения по подтверждённому составу"></textarea></label>
+         <label class="field span-2"><span class="label">7. Пищевая и энергетическая ценность</span><textarea id="fNutrition" class="control" placeholder="На 100 г: белки, жиры, углеводы, ккал (по проверенным данным)"></textarea></label>
+         <label class="field"><span class="label">Разработал</span><input id="fDeveloped" class="control" placeholder="Ф.И.О., должность"></label>
+         <label class="field"><span class="label">Утвердил</span><input id="fApproved" class="control" placeholder="Ф.И.О., должность"></label>
+         <label class="field"><span class="label">Дата утверждения</span><input id="fDate" type="date" class="control"></label>
+         <label class="field"><span class="label">Документальные сведения проверены</span><select id="fVerified" class="control"><option value="no">Нет, требуется проверка</option><option value="yes">Да, подтверждены ответственным</option></select></label>
+        </div><p class="notice" style="margin-top:18px">Программа не устанавливает нормативные сроки и не подтверждает безопасность автоматически. Статус «Утверждено» доступен только после заполнения и ручного подтверждения обязательных сведений.</p>
+       </div>
+       <div class="edit-section" data-tab-panel="design" hidden>
+        <h3>Оформление документа А4</h3><p class="lead">Выбирай фирменный шаблон. Логотип берётся из настроек проекта.</p>
+        <div id="editorDesigns" class="design-tiles"></div>
+        <div class="edit-divider"></div>
+        <p class="muted">Предварительный просмотр справа обновляется автоматически. Для печати выбери «Печать / PDF» в верхней панели.</p>
+       </div>
+      </section>
+      <aside class="preview-pane"><div class="preview-top"><div><h3>Живой просмотр документа</h3><span>Формат А4 · один лист</span></div><span class="pill" id="previewStatus">Черновик</span></div>
+       <div class="paper-stage" id="paperStage"><div class="paper-holder" id="paperHolder"><div id="paper" class="theme-atelier"></div></div></div>
+       <p class="field-hint" style="text-align:center">Если содержимого слишком много для одного листа, сократите текст или разделите документ. Переполнение нельзя автоматически скрывать.</p>
+      </aside>
+     </div>
+   </section>
+   <section id="viewTemplates" class="page" data-view="templates" hidden>
+     <div class="page-head"><div><div class="mini-label">DOCUMENT DESIGN SYSTEM</div><h2>Профессиональные шаблоны А4</h2><p>Три варианта оформления, созданные для ресторанов и авторских проектов.</p></div></div>
+     <div class="template-grid" id="templateGrid"></div>
+     <div class="notice" style="margin-top:20px"><strong>Фирменный стиль каждого проекта</strong>Название и логотип подставляются в документ из карточки проекта. Формат печати — лист А4.</div>
+   </section>
+   <section id="viewSettings" class="page" data-view="settings" hidden>
+     <div class="page-head"><div><div class="mini-label">PERSONAL ATELIER</div><h2>Настройки студии</h2><p>Параметры вашей закрытой системы и подписи автора.</p></div></div>
+     <form class="settings-box surface" id="settingsForm"><h3>Фирменные настройки</h3><p>Эти значения сохраняются в вашем кабинете и используются при создании новых документов.</p>
+      <div class="form-grid"><label class="field span-2"><span class="label">Название студии</span><input class="control" id="prefStudio" maxlength="100"></label>
+       <label class="field span-2"><span class="label">Подзаголовок</span><input class="control" id="prefTitle" maxlength="180"></label>
+       <label class="field span-2"><span class="label">Разработал — по умолчанию</span><input class="control" id="prefChef" maxlength="160" placeholder="Фаррух Ака, шеф-повар"></label></div>
+      <div class="row" style="margin-top:21px"><button type="submit" class="btn btn-primary"><span class="icon" data-icon="save"></span> Сохранить настройки</button></div>
+     </form>
+     <div class="notice" style="max-width:740px;margin-top:17px"><strong>Приватность</strong>Кабинет закрыт авторизацией. Данные создаваемых проектов и ТТК доступны только владельцу соответствующего аккаунта. Регистрация других пользователей через этот интерфейс отсутствует.</div>
+   </section>
+  </main>
  </div>
- <div id="ingPriceCalculated" class="ingCalculated" aria-live="polite">Цена за кг: —</div>
- </div>
- </div>
- <div class="row">
-  <div class="field"><label for="ingStorage">Условия хранения</label><input id="ingStorage" list="storageHints" autocomplete="off" placeholder="Выбери или впиши своё">
-<datalist id="storageHints"><option value="+2…+6 °C"></option><option value="+2…+4 °C"></option><option value="0…+4 °C"></option><option value="-18 °C и ниже"></option><option value="0…+6 °C"></option><option value="Сухое прохладное место"></option><option value="+5…+25 °C, сухое место"></option><option value="После вскрытия +2…+6 °C"></option></datalist>
 </div>
-  <div class="field"><label for="ingShelfLife">Срок хранения</label>
-<div class="ingShelfControls"><input id="ingShelfLife" type="number" min="0" step=".1" placeholder="Часы">
-<select id="ingShelfPreset" aria-label="Готовые сроки хранения"><option value="">Выбрать срок…</option><option value="4">4 часа</option><option value="6">6 часов</option><option value="12">12 часов</option><option value="24">24 часа</option><option value="36">36 часов</option><option value="48">48 часов</option><option value="72">72 часа</option><option value="96">4 суток</option><option value="168">7 суток</option><option value="336">14 суток</option><option value="720">30 суток</option><option value="2160">90 суток</option></select></div></div>
-  <div class="field"><label for="ingNotes">Примечания</label><input id="ingNotes" placeholder="Артикул, упаковка, особенности"></div>
- </div>
- <div class="actions" style="margin-top:14px">
-  <button id="ingSaveBtn" type="button" onclick="saveIngredient()">➕ Добавить ингредиент</button>
-  <button id="ingCancelBtn" class="secondary hidden" type="button" onclick="resetIngredientForm()">Отмена редактирования</button>
- </div>
-<details open id="ingNutritionPanel" style="margin:11px 0;border:1px solid #d8e7f1;border-radius:10px;padding:10px 13px;background:#f7fbfe"><summary style="cursor:pointer;color:#0f527f;font-size:13px;font-weight:700">🥗 КБЖУ сырья на 100 г · для автоматического расчёта ПФ</summary>
-<div class="row" style="margin-top:12px"><div class="field"><label for="ingNProtein">Белки, г</label><input id="ingNProtein" type="number" min="0" step=".01" placeholder="—"></div>
-<div class="field"><label for="ingNFat">Жиры, г</label><input id="ingNFat" type="number" min="0" step=".01" placeholder="—"></div>
-<div class="field"><label for="ingNCarbs">Углеводы, г</label><input id="ingNCarbs" type="number" min="0" step=".01" placeholder="—"></div>
-<div class="field"><label for="ingNKcal">Ккал</label><input id="ingNKcal" type="number" min="0" step=".01" placeholder="—"></div></div>
-<div class="field" style="margin-top:10px"><label for="ingNSource">Источник значений · упаковка / спецификация</label><input id="ingNSource" placeholder="Например, этикетка производителя"></div>
-<p class="muted" style="margin:8px 0 0">Если данных нет, оставьте поля пустыми. Платформа не будет выдумывать КБЖУ.</p></details>
-<div id="ingMsg" aria-live="polite" style="margin-top:9px;font-size:13px"></div>
- <p class="muted" style="margin:8px 0 0">Пустые сведения об аллергенах, хранении и сроках не означают, что они проверены. Данные для ТТК подтверждайте по упаковке или документации поставщика. Подсказки температуры и срока — варианты ввода, а не готовые нормативы для продукта.</p>
-</div>
-<div class="panel">
- <div class="row between ingredientListHead"><h2 style="margin:0">📦 База ингредиентов <span class="pill" id="ingCount">0</span></h2>
-  <div class="row"><input type="search" id="ingSearch" oninput="ingredientPage=1;renderIngredients()" placeholder="🔎 Найти ингредиент..." aria-label="Поиск ингредиента">
-   <select id="ingCatFilter" onchange="ingredientPage=1;renderIngredients()" aria-label="Фильтр категории"><option value="">Все категории</option></select></div>
- </div>
- <div id="ingQuickCats" class="ingQuickCats" aria-label="Категории сырья"></div>
-<div id="ingGroups" class="ingGroups" aria-live="polite"></div>
-<div id="ingPageNav" class="ingPageNav" aria-live="polite"></div>
-<dialog id="ingredientUsesDialog" aria-labelledby="usesTitle">
- <div class="ingUsesHeader"><h2 id="usesTitle">Где используется ингредиент</h2><button type="button" class="secondary" onclick="closeIngredientUses()" aria-label="Закрыть окно">✕</button></div>
- <div id="usesContents"></div>
- <div class="ingUsesActions"><button type="button" class="secondary" onclick="closeIngredientUses()">Закрыть</button></div>
-</dialog>
-<p class="ingLegend">ℹ️ Прочерк в аллергенах означает, что типовые группы не указаны или состав пока неизвестен, а не гарантированное отсутствие аллергенов.</p>
-</div></div>
-<div id="catalogPage" class="screen-only hidden"><div class="panel"><div class="row between"><h2 id="catalogTitle">Полуфабрикаты</h2><button onclick="newRecipe()">+ Создать</button></div><div class="scroll"><table><thead><tr><th>Код</th><th>Наименование</th><th>Выход</th><th>Статус</th><th></th></tr></thead><tbody id="recipeRows"></tbody></table></div></div></div>
-<div id="editorPage" class="screen-only hidden"><div class="panel"><div class="row between"><h2 id="editorTitle">Новая рецептура</h2><button class="secondary" onclick="switchPage(currentKind)">Назад</button></div><div class="row">
-<div class="field"><label>Код</label><input id="rCode" placeholder="ПФ-001"></div>
-<div class="field"><label>Название</label><input id="rName"></div>
-<div class="field"><label>Категория</label><input id="rCategory"></div>
-<div class="field"><label>Выход, г</label><input id="rYield" type="number" step=".001" min="0"></div>
-<div class="field"><label>Статус</label><select id="rStatus"><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select></div></div>
-<h3>Сырьё и полуфабрикаты</h3><p class="muted">Масса брутто/нетто на одну рецептуру.</p><div id="components"></div><button class="secondary" onclick="addComponent()">+ Добавить компонент</button>
-<div class="divider"></div><h3>ТТК — обязательные разделы</h3>
-<div class="row"><div class="field wide"><label>1. Область применения</label><textarea id="rScope"></textarea></div>
-<div class="field wide"><label>2. Требования к сырью</label><textarea id="rRaw"></textarea></div>
-<div class="field wide"><label>4. Технологический процесс</label><textarea id="rProcess"></textarea></div>
-<div class="field wide"><label>5. Оформление, реализация, хранение и транспортировка</label><textarea id="rServing"></textarea></div>
-<div class="field wide"><label>6. Показатели качества и безопасности</label><textarea id="rQuality"></textarea></div>
-<div class="field wide"><label>Сроки и условия хранения</label><textarea id="rStorage"></textarea></div>
-<div class="field wide"><label>Аллергены текстом</label><textarea id="rAllergens"></textarea></div>
-<div class="field wide"><label>7. Пищевая и энергетическая ценность (подтверждённые значения)</label><textarea id="rNutrition" placeholder="На 100 г: Б — ...; Ж — ...; У — ...; ккал — ..."></textarea></div>
-<div class="field"><label>Разработал</label><input id="rDeveloped"></div><div class="field"><label>Утвердил</label><input id="rApproved"></div><div class="field"><label>Дата утверждения</label><input id="rApprovedDate" type="date"></div></div>
-<div class="divider"></div>
-<div class="field"><label>Фотография товара · JPG, PNG или WEBP</label><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
-<div class="actions" id="productPhotoActions"><button type="button" class="secondary" onclick="document.getElementById('photoFile').click()">📸 Заменить фото</button>
-<button type="button" class="msPhotoRemove" onclick="removeRecipePhoto()">🗑 Удалить фото</button>
-<button type="button" class="danger" onclick="deleteProductSafely()">Удалить товар</button></div>
-<p><img id="photoPreview" class="thumb hidden"></p>
-<div class="row"><button onclick="saveRecipe()">Сохранить карточку</button><button class="secondary" onclick="location.href='./ttk.html?id='+(editing?.id||'')" style="background:#103f6b;color:white">✎ Открыть цветную ТТК А4 — редактировать</button><button class="secondary" onclick="location.href='./ttk.html?id='+(editing?.id||'')">Печать / PDF А4</button><span class="status" id="saveInfo"></span></div></div></div>
-<div id="printSheet" class="print-only"></div>
-</main></div>
-<script>
-const SB='https://mhsmmssipligbmvfzkce.supabase.co';
-const KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
-let session=null,register=false,ingredients=[],recipes=[],recipeLines=[],usageLoaded=false,currentKind='prefab',editing=null,components=[],photoData=null;
-const $=id=>document.getElementById(id);const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function msg(id,text,error=true){$(id).innerHTML='<span class="'+(error?'err':'ok')+'">'+safe(text)+'</span>'}
-async function http(path,options={}){const headers={apikey:KEY,'Content-Type':'application/json',...options.headers};if(session)headers.Authorization='Bearer '+session.access_token;const r=await fetch(SB+path,{...options,headers});const t=await r.text();let data;try{data=JSON.parse(t)}catch{data=t}if(!r.ok)throw Error(data.msg||data.message||data.error_description||data.error||'Ошибка '+r.status);return data}
-function toggleAuth(){register=!register;$('authTitle').textContent=register?'Регистрация':'Вход в платформу';$('authBtn').textContent=register?'Зарегистрироваться':'Войти';$('authToggle').textContent=register?'У меня есть аккаунт':'Создать аккаунт';$('loginMsg').textContent=''}
-async function authAction(){try{const email=$('email').value.trim(),password=$('password').value;if(!email||password.length<8)throw Error('Введите email и пароль от 8 символов');const data=await http(register?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(register&&!data.access_token){msg('loginMsg','Проверьте почту и подтвердите адрес. После подтверждения войдите.',false);return}session=data;localStorage.setItem('ms_session',JSON.stringify(session));await enter()}catch(e){msg('loginMsg',e.message)}}
-async function enter(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');$('userBadge').textContent=session.user?.email||'';await reload();if(window.MSIcons?.refresh)await MSIcons.refresh();switchPage('home')}
-async function logout(){try{await http('/auth/v1/logout',{method:'POST'})}catch{}if(window.MSIcons?.clear)MSIcons.clear();session=null;localStorage.removeItem('ms_session');$('app').classList.add('hidden');$('auth').classList.remove('hidden')}
-async function reload(){const results=await Promise.all([http('/rest/v1/ingredients?select=*&order=name.asc'),http('/rest/v1/recipes?select=*&order=updated_at.desc'),http('/rest/v1/recipe_lines?select=recipe_id,ingredient_id,prefab_id,gross_g,net_g,line_yield_g,seq&limit=5000').then(rows=>({rows,loaded:true})).catch(()=>({rows:[],loaded:false}))]);[ingredients,recipes]=results;recipeLines=results[2].rows;usageLoaded=results[2].loaded;$('nIng').textContent=ingredients.length;$('nPf').textContent=recipes.filter(r=>r.kind==='prefab').length;$('nPr').textContent=recipes.filter(r=>r.kind==='product').length;renderIngredients()}
-function switchPage(page){if(['prefab','product'].includes(page))currentKind=page;for(const id of ['homePage','ingredientsPage','catalogPage','editorPage'])$(id).classList.add('hidden');const target=page==='home'?'homePage':page==='ingredients'?'ingredientsPage':page==='editor'?'editorPage':'catalogPage';$(target).classList.remove('hidden');$('pageTitle').textContent=({home:'Главная',ingredients:'Ингредиенты',prefab:'Полуфабрикаты',product:'Товары и меню',editor:'Редактор ТТК'})[page];document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(['prefab','product'].includes(page))renderRecipes()}
-let editingIngredientId=null;
-const ingredientCategories=['Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Декор и панировка','Соусы и специи','Мясо и яйца','Основы суши','Напитки и вода','Прочее'];
-function ingredientCategoryOptions(){
- const selected=$('ingCatFilter').value;
- const cats=[...new Set([...ingredientCategories,...ingredients.map(i=>i.category||'Прочее')])].sort((a,b)=>a.localeCompare(b,'ru'));
- $('ingCatFilter').innerHTML='<option value="">Все категории</option>'+cats.map(c=>'<option value="'+safe(c)+'">'+safe(c)+'</option>').join('');
- $('ingCatFilter').value=cats.includes(selected)?selected:'';
-}
-const ingredientGroupIcons={
- 'Рыба и морепродукты':'🐟','Овощи и фрукты':'🥒','Сыры и молочные продукты':'🧀',
- 'Декор и панировка':'🍥','Соусы и специи':'🍶','Мясо и яйца':'🍗',
- 'Основы суши':'🍚','Напитки и вода':'💧','Прочее':'📦'
-};
-const ingredientGroupOrder=['Основы суши','Рыба и морепродукты','Овощи и фрукты','Сыры и молочные продукты','Мясо и яйца','Соусы и специи','Декор и панировка','Напитки и вода','Прочее'];
-
-let ingredientPage=1;
-const ING_PAGE_SIZE=12;
-function changeIngredientPage(delta){
- ingredientPage+=delta;renderIngredients();
- $('ingGroups').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function renderIngredients(){
- ingredientCategoryOptions();
- const q=$('ingSearch').value.trim().toLocaleLowerCase('ru');
- const selected=$('ingCatFilter').value;
- const counts=new Map();
- for(const i of ingredients){const c=i.category||'Прочее';counts.set(c,(counts.get(c)||0)+1);}
- const categories=[...new Set([...ingredientGroupOrder,...ingredients.map(i=>i.category||'Прочее')])].filter(c=>counts.has(c));
- const matches=ingredients.filter(i=>(!selected||(i.category||'Прочее')===selected)&&(!q||[i.name,i.category,i.allergens,i.manufacturer,i.notes].some(v=>String(v||'').toLocaleLowerCase('ru').includes(q))));
- $('ingCount').textContent=matches.length===ingredients.length?String(ingredients.length):matches.length+' / '+ingredients.length;
- const quick=$('ingQuickCats'),container=$('ingGroups'),nav=$('ingPageNav');
- const header='<button type="button" data-ing-cat="" class="ingQuick'+(!selected&&!q?' on':'')+'">🌊 Категории</button>';
- quick.innerHTML=(selected||q)?header+categories.map(c=>'<button type="button" data-ing-cat="'+safe(c)+'" class="ingQuick'+(selected===c?' on':'')+'">'+(ingredientGroupIcons[c]||'📦')+' '+safe(c)+' <b>'+counts.get(c)+'</b></button>').join(''):'';
- if(!selected&&!q){
-  nav.innerHTML='';
-  container.innerHTML='<div class="ingCategoryGrid">'+categories.map(c=>
-   '<button type="button" class="ingCategoryCard" data-ing-cat="'+safe(c)+'"><span class="ingCategoryIcon">'+(window.MSIcons?MSIcons.render({name:'',category:c},'ingredient','small'):(ingredientGroupIcons[c]||'📦'))+'</span>'+
-   '<span class="ingCategoryName">'+safe(c)+'</span><span class="ingCategoryCount">'+counts.get(c)+' позиций</span><span class="ingCategoryGo">Открыть →</span></button>'
-  ).join('')+'</div>';
-  return;
- }
- if(!matches.length){container.innerHTML='<div class="ingNoResults">🔎 Ничего не найдено. Измените запрос или категорию.</div>';nav.innerHTML='';return;}
- const pageCount=Math.ceil(matches.length/ING_PAGE_SIZE);
- ingredientPage=Math.max(1,Math.min(ingredientPage,pageCount));
- const shown=matches.slice((ingredientPage-1)*ING_PAGE_SIZE,ingredientPage*ING_PAGE_SIZE);
- const prepAllergens=raw=>{const v=String(raw||'').trim();return v?'<span class="ingAllergen">'+safe(v)+'</span>':'<span class="ingNeutral">—</span>';};
- const groups=categories.map(c=>[c,shown.filter(i=>(i.category||'Прочее')===c)]).filter(pair=>pair[1].length);
- container.innerHTML=groups.map(([category,items])=>{
-  const rows=items.map(i=>{
-   const price=i.purchase_price_rub_per_kg==null?'—':new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(Number(i.purchase_price_rub_per_kg));
-   return '<tr><td><div class="ingProductLine">'+(window.MSIcons?MSIcons.render(i,'ingredient','small'):'')+'<span class="ingProductText"><b>'+safe(i.name)+'</b><small class="ingMeta">'+safe(i.unit||'г')+'</small></span></div></td>'+
-    '<td title="'+safe(i.allergen_status==='verified'?'Подтверждено документом':i.allergen_status==='pending'?'Состав не установлен':'Типовой состав, не подтверждено')+'">'+prepAllergens(i.allergens)+'</td>'+
-    '<td>'+safe(i.manufacturer||'—')+'</td><td class="ingPrice">'+safe(price)+'</td>'+
-    '<td><button type="button" class="ingUseLink" onclick="openIngredientUses('+Number(i.id)+')" title="Связанные полуфабрикаты, товары и ТТК">'+ingredientUsageBadge(Number(i.id))+'</button></td>'+
-    '<td><div class="ingRowActions"><button class="secondary ingAction" type="button" title="Изменить" aria-label="Изменить '+safe(i.name)+'" onclick="editIngredient('+Number(i.id)+')">✏️</button>'+
-    '<button class="danger ingAction" type="button" title="Удалить" aria-label="Удалить '+safe(i.name)+'" onclick="deleteIngredient('+Number(i.id)+')">🗑</button></div></td></tr>';
-  }).join('');
-  return '<section class="ingGroup"><div class="ingGroupSummary"><span class="ingGroupTitle"><span class="ingIcon">'+(ingredientGroupIcons[category]||'📦')+'</span>'+safe(category)+'</span><span class="ingGroupRight"><span class="ingGroupCount">'+items.length+' на странице</span></span></div>'+
-   '<div class="scroll"><table class="ingTable"><thead><tr><th>Наименование</th><th>Аллергены</th><th>Производитель</th><th>Цена ₽/кг</th><th>ПФ / ТТК</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
- }).join('');
- nav.innerHTML=pageCount>1?'<span>Показано '+((ingredientPage-1)*ING_PAGE_SIZE+1)+'–'+Math.min(ingredientPage*ING_PAGE_SIZE,matches.length)+' из '+matches.length+'</span>'+
- '<div><button type="button" class="secondary" '+(ingredientPage===1?'disabled':'')+' onclick="changeIngredientPage(-1)">← Назад</button>'+
- '<b> '+ingredientPage+' / '+pageCount+' </b><button type="button" class="secondary" '+(ingredientPage===pageCount?'disabled':'')+' onclick="changeIngredientPage(1)">Далее →</button></div>':
- '<span>Найдено позиций: '+matches.length+'</span>';
-}
-$('ingQuickCats').addEventListener('click',e=>{
- const btn=e.target.closest('[data-ing-cat]');if(!btn)return;
- $('ingCatFilter').value=btn.dataset.ingCat;ingredientPage=1;renderIngredients();
-});
-$('ingGroups').addEventListener('click',e=>{
- const btn=e.target.closest('.ingCategoryCard');if(!btn)return;
- $('ingCatFilter').value=btn.dataset.ingCat;ingredientPage=1;renderIngredients();
-});
-const allergensAvailable=['рыба','молоко','яйцо','соя','пшеница','ракообразные','моллюски','кунжут','горчица','орехи','арахис','сельдерей','люпин','сульфиты'];
-function ingredientUsageDetails(ingredientId){
- const recipeMap=new Map(recipes.map(r=>[Number(r.id),r]));
- const parents=new Map(),seenPaths=new Map();
- for(const l of recipeLines)if(l.prefab_id!=null){
-   const child=Number(l.prefab_id);if(!parents.has(child))parents.set(child,[]);
-   parents.get(child).push(Number(l.recipe_id));
- }
- function walk(id,path,visited){
-   if(visited.has(id))return;
-   const r=recipeMap.get(id);if(!r)return;
-   const prior=seenPaths.get(id);if(!prior||path.length<prior.length)seenPaths.set(id,path);
-   const next=new Set(visited);next.add(id);
-   for(const higher of parents.get(id)||[])walk(higher,[...path,higher],next);
- }
- for(const l of recipeLines)if(Number(l.ingredient_id)===Number(ingredientId)){
-   const id=Number(l.recipe_id);walk(id,[id],new Set());
- }
- return [...seenPaths].map(([id,path])=>({recipe:recipeMap.get(id),path:path.map(pid=>recipeMap.get(pid)).filter(Boolean)}))
-  .filter(x=>x.recipe).sort((a,b)=>(a.recipe.kind===b.recipe.kind?0:a.recipe.kind==='prefab'?-1:1)||String(a.recipe.code||'').localeCompare(String(b.recipe.code||''),'ru'));
-}
-function ingredientUsageBadge(id){
- if(!usageLoaded)return '<span class="ingUsageNone">—</span>';
- const usage=ingredientUsageDetails(id),pf=usage.filter(x=>x.recipe.kind==='prefab').length,products=usage.filter(x=>x.recipe.kind==='product').length;
- if(!usage.length)return '<span class="ingUsageNone">—</span>';
- return '<span class="ingUsageBadge">ПФ '+pf+' · Т '+products+'</span>';
-}
-function closeIngredientUses(){const d=$('ingredientUsesDialog');if(d.open)d.close();else d.hidden=true}
-function openIngredientUses(id){
- const item=ingredients.find(x=>Number(x.id)===Number(id));if(!item)return;
- $('usesTitle').textContent=item.name+' · используется в';
- const container=$('usesContents');
- if(!usageLoaded){container.innerHTML='<p class="ingWarn">Не удалось загрузить связи рецептур. Обновите страницу и повторите.</p>'}
- else {
-   const usages=ingredientUsageDetails(id);
-   if(!usages.length)container.innerHTML='<p class="ingNoUses">Пока не используется в существующих полуфабрикатах и товарах.</p>';
-   else {
-     const section=(kind,title)=>{const matches=usages.filter(x=>x.recipe.kind===kind);
-       if(!matches.length)return '<section class="ingUsesSection"><h3>'+title+' · 0</h3><p>Нет связанных карточек.</p></section>';
-       return '<section class="ingUsesSection"><h3>'+title+' · '+matches.length+'</h3>'+
-         matches.map(x=>'<div class="ingUsesRow"><div><b>'+safe(x.recipe.code||'—')+' · '+safe(x.recipe.name)+'</b>'+
-          '<small>'+safe(x.path.length===1?'Прямое использование':'Через '+x.path.slice(0,-1).map(r=>(r.code||'—')+' '+r.name).join(' → '))+'</small></div>'+
-          '<div class="ingUsesActions"><button type="button" class="secondary" onclick="openUsedRecipe('+Number(x.recipe.id)+')">Открыть</button>'+
-          '<a class="ingTtkLink" href="./ttk.html?id='+Number(x.recipe.id)+'" target="_blank" rel="noopener">ТТК А4</a></div></div>').join('')+'</section>';
-     };
-     container.innerHTML='<p class="ingUsageIntro">Найдены прямые и вложенные связи сырья с рецептурами. Кнопка «ТТК А4» открывает документ соответствующей карточки.</p>'+
-       section('prefab','Полуфабрикаты')+section('product','Товары и роллы');
-   }
- }
- const dialog=$('ingredientUsesDialog');
- if(typeof dialog.showModal==='function')dialog.showModal();else dialog.hidden=false;
-}
-async function openUsedRecipe(id){closeIngredientUses();await openRecipe(id)}
-
-function setupIngredientFields(){
- const pop=$('ingAllergenOptions'),input=$('ingAllergens');
- const all=$('ingAllergenChips');
- all.innerHTML=allergensAvailable.map(a=>'<button type="button" class="ingChip" data-allergen="'+safe(a)+'">'+safe(a)+'</button>').join('');
- const chosen=()=>input.value.split(/[,;]+/).map(x=>x.trim().toLocaleLowerCase('ru')).filter(Boolean);
- const sync=()=>{const active=new Set(chosen());all.querySelectorAll('[data-allergen]').forEach(b=>b.classList.toggle('is-selected',active.has(b.dataset.allergen)))};
- const setOpen=open=>{pop.hidden=!open;input.setAttribute('aria-expanded',open?'true':'false');if(open)sync()};
- input.addEventListener('focus',()=>setOpen(true));
- input.addEventListener('click',()=>setOpen(true));
- input.addEventListener('input',sync);
- all.addEventListener('click',e=>{
-  const b=e.target.closest('[data-allergen]');if(!b)return;
-  let list=chosen();list=list.includes(b.dataset.allergen)?list.filter(a=>a!==b.dataset.allergen):[...list,b.dataset.allergen];
-  input.value=allergensAvailable.filter(a=>list.includes(a)).concat(list.filter(a=>!allergensAvailable.includes(a))).join(', ');
-  sync();setOpen(true);
- });
- $('ingClearAllergens').addEventListener('click',()=>{input.value='';sync();setOpen(true)});
- document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ingFieldPopover'))setOpen(false)});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
- $('ingPriceMode').addEventListener('change',updateIngredientPriceUI);
- for(const id of ['ingPrice','ingPackPrice','ingPackWeight'])$(id).addEventListener('input',updateIngredientPriceUI);
- $('ingShelfPreset').addEventListener('change',()=>{$('ingShelfLife').value=$('ingShelfPreset').value});
- $('ingShelfLife').addEventListener('input',()=>{$('ingShelfPreset').value=[...$('ingShelfPreset').options].some(o=>o.value===$('ingShelfLife').value)?$('ingShelfLife').value:'';});
- updateIngredientPriceUI();
-}
-function calculateIngredientPrice(){
- const mode=$('ingPriceMode').value;
- if(mode==='per_kg'){
-  const raw=$('ingPrice').value.trim();return raw===''?null:Number(raw);
- }
- const costRaw=$('ingPackPrice').value.trim(),weightRaw=$('ingPackWeight').value.trim();
- if(!costRaw&&!weightRaw)return null;
- const cost=Number(costRaw),weight=Number(weightRaw);
- if(!costRaw||!weightRaw||!Number.isFinite(cost)||!Number.isFinite(weight)||cost<0||weight<=0)return NaN;
- return Math.round((cost*1000/weight+Number.EPSILON)*100)/100;
-}
-function updateIngredientPriceUI(){
- const byPack=$('ingPriceMode').value==='package_g';
- $('ingDirectPriceFields').hidden=byPack;
- $('ingPackagePriceFields').hidden=!byPack;
- const value=calculateIngredientPrice();
- $('ingPriceCalculated').textContent=value===null?'Цена за кг: —':Number.isFinite(value)&&value>=0?
-  'Итого: '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(value)+' ₽/кг':'Введите цену и вес упаковки больше нуля';
- $('ingPriceCalculated').classList.toggle('ingPriceError',value!==null&&!Number.isFinite(value));
-}
-setupIngredientFields();
-function resetIngredientForm(){
- editingIngredientId=null;
- for(const id of ['ingName','ingAllergens','ingManufacturer','ingPrice','ingPackPrice','ingPackWeight','ingStorage','ingShelfLife','ingNotes','ingNProtein','ingNFat','ingNCarbs','ingNKcal','ingNSource'])$(id).value='';$('ingShelfPreset').value='';$('ingPriceMode').value='per_kg';$('ingAllergenOptions').hidden=true;$('ingAllergens').setAttribute('aria-expanded','false');updateIngredientPriceUI();
- $('ingUnit').value='г';$('ingCategory').value='Рыба и морепродукты';
- $('ingFormTitle').textContent='➕ Новый ингредиент';
- $('ingSaveBtn').textContent='➕ Добавить ингредиент';
- $('ingCancelBtn').classList.add('hidden');
- $('ingEditStatus').classList.add('hidden');
- $('ingSaveBtn').disabled=false;
- $('ingMsg').textContent='';
- window.MSIngredientCard?.reset();
-}
-function editIngredient(id){
- const ing=ingredients.find(x=>Number(x.id)===Number(id));
- if(!ing){alert('Ингредиент не найден. Обновите страницу.');return}
- editingIngredientId=Number(ing.id);
- const fields={ingName:ing.name,ingCategory:ing.category||'Прочее',ingUnit:ing.unit||'г',ingAllergens:ing.allergens||'',
- ingManufacturer:ing.manufacturer||'',ingPrice:ing.purchase_price_rub_per_kg??'',ingStorage:ing.storage_conditions||'',
- ingShelfLife:ing.shelf_life_hours??'',ingNotes:ing.notes||'',ingPackPrice:ing.purchase_pack_price_rub??'',ingPackWeight:ing.purchase_pack_weight_g??'',ingPriceMode:ing.purchase_price_mode||'per_kg',ingNProtein:ing.nutrition_100g?.protein??'',ingNFat:ing.nutrition_100g?.fat??'',ingNCarbs:ing.nutrition_100g?.carbs??'',ingNKcal:ing.nutrition_100g?.kcal??'',ingNSource:ing.nutrition_reference||''};
- for(const [id,value] of Object.entries(fields))$(id).value=value;
- $('ingShelfPreset').value=[...$('ingShelfPreset').options].some(o=>o.value===String(ing.shelf_life_hours??''))?String(ing.shelf_life_hours):'';
- updateIngredientPriceUI();$('ingAllergenOptions').hidden=true;$('ingAllergens').setAttribute('aria-expanded','false');
- $('ingFormTitle').textContent='✏️ Изменить ингредиент';
- $('ingSaveBtn').textContent='💾 Сохранить изменения';
- $('ingCancelBtn').classList.remove('hidden');$('ingEditStatus').classList.remove('hidden');
- $('ingMsg').textContent='';
- window.MSIngredientCard?.edit(ing);
- $('ingredientFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
-}
-async function saveIngredient(){
- if($('ingSaveBtn').disabled)return;
- const name=$('ingName').value.trim().replace(/\s+/g,' ');
- if(!name){msg('ingMsg','Укажите наименование ингредиента');$('ingName').focus();return}
- const dupe=ingredients.find(i=>i.name.trim().toLocaleLowerCase('ru')===name.toLocaleLowerCase('ru')&&Number(i.id)!==editingIngredientId);
- if(dupe){msg('ingMsg','Такой ингредиент уже существует. Нажмите «Изменить» в списке вместо создания копии.');return}
- const rawLife=$('ingShelfLife').value,life=rawLife===''?null:Number(rawLife);
- const price=calculateIngredientPrice(),packageMode=$('ingPriceMode').value==='package_g';
- if(packageMode&&$('ingUnit').value!=='г'&&$('ingUnit').value!=='кг'){msg('ingMsg','Пересчёт граммов в кг доступен для сырья с единицами «г» или «кг». Для других единиц выберите цену за кг или уточните единицу измерения.');return}
- if(Number.isNaN(price)||(price!=null&&(!Number.isFinite(price)||price<0))||(life!=null&&(!Number.isFinite(life)||life<0))){msg('ingMsg','Проверьте цену, вес упаковки и срок хранения. Вес упаковки должен быть больше нуля.');return}
- const normalized=$('ingAllergens').value.split(/[,;]+/).map(v=>v.trim().toLocaleLowerCase('ru')).filter(Boolean).join(', ');
- const previous=ingredients.find(i=>Number(i.id)===editingIngredientId);
- const unchangedAllergens=previous&&String(previous.allergens||'').trim()===normalized;
- const allergenStatus=unchangedAllergens?(previous.allergen_status||'pending'):(normalized?'typical':'pending');
- const nutritionInputs={protein:$('ingNProtein').value,fat:$('ingNFat').value,carbs:$('ingNCarbs').value,kcal:$('ingNKcal').value};
- const filled=Object.values(nutritionInputs).filter(x=>x.trim()!=='').length;
- if(filled!==0&&filled!==4){msg('ingMsg','Для автоматического КБЖУ заполните все четыре значения на 100 г или оставьте все поля пустыми.');return}
- if(filled===4&&(Object.values(nutritionInputs).some(x=>!Number.isFinite(Number(x))||Number(x)<0)||!$('ingNSource').value.trim())){msg('ingMsg','Проверьте КБЖУ и укажите источник значений с упаковки или спецификации.');return}
- const nutrition100=filled===4?Object.fromEntries(Object.entries(nutritionInputs).map(([k,v])=>[k,Number(v)])):{};
- const data={name,category:$('ingCategory').value,unit:$('ingUnit').value,allergens:normalized,allergen_status:allergenStatus,
- nutrition_100g:nutrition100,nutrition_reference:filled===4?$('ingNSource').value.trim():'',
- manufacturer:$('ingManufacturer').value.trim(),purchase_price_rub_per_kg:price,
- purchase_price_mode:$('ingPriceMode').value,purchase_pack_price_rub:packageMode&&$('ingPackPrice').value!==''?Number($('ingPackPrice').value):null,
- purchase_pack_weight_g:packageMode&&$('ingPackWeight').value!==''?Number($('ingPackWeight').value):null,
- storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim(),photo_data:window.MSIcons?MSIcons.getIngredientPhoto():null,icon_emoji:window.MSIcons?MSIcons.getIngredientIcon():null,
- ...(window.MSIngredientCard?window.MSIngredientCard.payload():{})};
- const id=editingIngredientId;const btn=$('ingSaveBtn');btn.disabled=true;
- try{
-  const res=await http(id==null?'/rest/v1/ingredients':'/rest/v1/ingredients?id=eq.'+id,
-    {method:id==null?'POST':'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(data)});
-  if(!Array.isArray(res)||res.length!==1)throw Error('Сервер не подтвердил сохранение. Проверьте доступ и обновите список.');
-  await reload();resetIngredientForm();
-  msg('ingMsg',id==null?'✅ Ингредиент добавлен в базу.':'✅ Изменения сохранены.',false);
- }catch(e){msg('ingMsg','Не удалось сохранить: '+e.message)}
- finally{btn.disabled=false}
-}
-async function deleteIngredient(id){
- const ing=ingredients.find(x=>Number(x.id)===Number(id));if(!ing)return;
- try{
-  const used=await http('/rest/v1/recipe_lines?select=id&ingredient_id=eq.'+Number(id)+'&limit=1');
-  if(Array.isArray(used)&&used.length){alert('«'+ing.name+'» уже используется в ТТК или полуфабрикатах. Удаление заблокировано, чтобы не повредить рецепты. Откройте связанные рецепты и сначала замените ингредиент.');return}
-  if(!confirm('Удалить ингредиент «'+ing.name+'» из базы «Море Суши»?\nЭто действие нельзя отменить.'))return;
-  const result=await http('/rest/v1/ingredients?id=eq.'+Number(id),
-    {method:'DELETE',headers:{Prefer:'return=representation'}});
-  if(!Array.isArray(result)||result.length!==1)throw Error('Запись не была удалена. Возможно, ингредиент используется в ТТК.');
-  if(editingIngredientId===Number(id))resetIngredientForm();
-  await reload();msg('ingMsg','🗑 Ингредиент удалён: '+ing.name,false);
- }catch(e){
-  const text=/foreign key|23503|violates foreign key/i.test(e.message||'')?
-    'Этот ингредиент используется в ТТК. Сначала замените его в рецептуре.':
-    'Не удалось удалить: '+e.message;
-  msg('ingMsg',text);alert(text);
- }
-}
-function renderRecipes(){
- $('catalogTitle').textContent=currentKind==='prefab'?'Полуфабрикаты':'Товары и меню';
- $('recipeRows').innerHTML=recipes.filter(r=>r.kind===currentKind).map(r=>
-  '<tr><td><b>'+safe(r.code)+'</b></td><td><div class="ingProductLine">'+(window.MSIcons?MSIcons.render(r,'recipe','small'):'')+'<span class="ingProductText"><b>'+safe(r.name)+'</b><small class="ingMeta">'+safe(r.category||'Готовый товар')+'</small></span></div></td>'+
-  '<td>'+safe(r.yield_g)+' г</td><td><span class="pill">'+safe(r.status)+'</span></td><td><button class="secondary" onclick="openRecipe('+Number(r.id)+')">✏️ Редактировать</button></td></tr>').join('');
-}
-const fmap={rCode:'code',rName:'name',rCategory:'category',rYield:'yield_g',rStatus:'status',rScope:'scope',rRaw:'raw_requirements',rProcess:'process',rServing:'serving',rQuality:'quality',rStorage:'storage',rAllergens:'allergens',rNutrition:'nutrition',rDeveloped:'developed_by',rApproved:'approved_by',rApprovedDate:'approved_at'};
-function newRecipe(){editing=null;photoData=null;components=[];for(const id in fmap)$(id).value='';$('rStatus').value='Черновик';$('rCode').value=currentKind==='prefab'?'ПФ-':'ТТК-';$('photoPreview').classList.add('hidden');$('editorTitle').textContent='Новая карточка';$('saveInfo').textContent='';renderComponents();switchPage('editor')}
-async function openRecipe(id){try{editing=recipes.find(r=>r.id===id);if(!editing)return;currentKind=editing.kind;const lines=await http('/rest/v1/recipe_lines?select=*&recipe_id=eq.'+id+'&order=seq.asc');components=lines.map(x=>({source_type:x.ingredient_id?'ingredient':'prefab',source_id:x.ingredient_id||x.prefab_id,gross_g:x.gross_g,net_g:x.net_g}));photoData=editing.photo_path||null;for(const el in fmap)$(el).value=(el==='rNutrition'?(editing.nutrition?.text||''):(editing[fmap[el]]??''));$('editorTitle').textContent=editing.name+' · версия '+editing.version;$('saveInfo').textContent='';if(photoData){$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}else $('photoPreview').classList.add('hidden');renderComponents();switchPage('editor')}catch(e){alert(e.message)}}
-function addComponent(){components.push({source_type:'ingredient',source_id:ingredients[0]?.id||'',gross_g:0,net_g:0});renderComponents()}
-function componentChange(i,k,v){components[i][k]=['gross_g','net_g'].includes(k)?Number(v):k==='source_id'?Number(v):v;if(k==='source_type'){components[i].source_id=k==='source_type'?(v==='ingredient'?ingredients[0]?.id:recipes.find(r=>r.kind==='prefab'&&r.id!==editing?.id)?.id):null;renderComponents()}}
-function renderComponents(){const pre=recipes.filter(r=>r.kind==='prefab'&&r.id!==editing?.id);$('components').innerHTML=components.map((x,i)=>'<div class="row" style="margin-bottom:9px"><select onchange="componentChange('+i+',\'source_type\',this.value)"><option value="ingredient" '+(x.source_type==='ingredient'?'selected':'')+'>Ингредиент</option><option value="prefab" '+(x.source_type==='prefab'?'selected':'')+'>Полуфабрикат</option></select><select style="flex:1;min-width:150px" onchange="componentChange('+i+',\'source_id\',this.value)">'+(x.source_type==='ingredient'?ingredients:pre).map(s=>'<option value="'+s.id+'" '+(Number(x.source_id)===s.id?'selected':'')+'>'+safe(s.name)+'</option>').join('')+'</select><label>Брутто <input style="width:85px" type="number" min="0" step=".001" value="'+safe(x.gross_g)+'" onchange="componentChange('+i+',\'gross_g\',this.value)"></label><label>Нетто <input style="width:85px" type="number" min="0" step=".001" value="'+safe(x.net_g)+'" onchange="componentChange('+i+',\'net_g\',this.value)"></label><button class="danger" onclick="components.splice('+i+',1);renderComponents()">×</button></div>').join('')}
-async function uploadPhoto(){
- const f=$('photoFile').files[0];if(!f)return;
- photoData=window.MSIcons?await MSIcons.asPhoto(f):
-  await new Promise((resolve,reject)=>{if(f.size>2*1024*1024)return reject(new Error('Фото максимум 2 МБ'));const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});
-}
-function removeRecipePhoto(){
- photoData=null;$('photoFile').value='';$('photoPreview').removeAttribute('src');$('photoPreview').classList.add('hidden');
-}
-async function deleteProductSafely(){
- if(!editing||editing.kind!=='product')return;
- if(!confirm('Удалить товар «'+editing.name+'» и его ТТК? Действие нельзя отменить.'))return;
- try{
-  const id=Number(editing.id);
-  const links=await http('/rest/v1/recipe_lines?select=recipe_id&prefab_id=eq.'+id+'&limit=1');
-  if(links.length)throw Error('Товар используется в рецептуре другого блюда.');
-  const deleted=await http('/rest/v1/recipes?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=representation'}});
-  if(!Array.isArray(deleted)||deleted.length!==1)throw Error('Сервер не подтвердил удаление');
-  editing=null;components=[];photoData=null;await reload();switchPage('product');
- }catch(e){alert('Не удалось удалить товар: '+e.message)}
-}
-async function saveRecipe(){try{if(!$('rName').value.trim()||!$('rCode').value.trim())throw Error('Введите название и код');await uploadPhoto();const data={kind:currentKind,photo_path:photoData,version:editing?(editing.version+1):1,updated_at:new Date().toISOString()};for(const el in fmap)data[fmap[el]]=$(el).value;if(!data.approved_at)data.approved_at=null;if(!data.nutrition)data.nutrition={};else data.nutrition={text:data.nutrition};data.yield_g=Number(data.yield_g||0);if(data.status==='Утверждено'&&(!data.process||!data.quality||!data.scope||!data.raw_requirements||!data.serving||!data.approved_by))throw Error('Для утверждения заполните все разделы, включая утверждение');let id;if(editing){await http('/rest/v1/recipe_versions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({recipe_id:editing.id,version:editing.version,snapshot:editing})});await http('/rest/v1/recipes?id=eq.'+editing.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(data)});id=editing.id;await http('/rest/v1/recipe_lines?recipe_id=eq.'+id,{method:'DELETE'})}else{const res=await http('/rest/v1/recipes?select=id',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(data)});id=res[0].id}if(components.length){const lines=components.map((x,i)=>({recipe_id:id,seq:i,ingredient_id:x.source_type==='ingredient'?Number(x.source_id):null,prefab_id:x.source_type==='prefab'?Number(x.source_id):null,gross_g:Number(x.gross_g||0),net_g:Number(x.net_g||0)}));if(lines.some(x=>!(x.ingredient_id||x.prefab_id)))throw Error('Выберите компонент в каждой строке');await http('/rest/v1/recipe_lines',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(lines)})}await reload();await openRecipe(id);msg('saveInfo','Сохранено в базе',false)}catch(e){msg('saveInfo',e.message)}}
-
-
-function printRecipe() {
-  const f={};for(const id in fmap)f[fmap[id]]=$(id).value;
-  const txt=(v)=>safe(v||'Не заполнено').replace(/\n/g,'<br>');
-  const name=f.name||'Без названия';
-  const isSample=editing&&editing.code==='МС-ТТК-001';
-  const srcName=x=>x.source_type==='ingredient'?ingredients.find(i=>i.id===Number(x.source_id))?.name:recipes.find(r=>r.id===Number(x.source_id))?.name;
-  const shortName=n=>n==='Нори 1/2 листа'?'Нори':n==='Сыр сливочный'?'Сыр творожный (крем-чиз)':n==='Омлет японский (готовый ПФ)'?'Омлет японский (тамаго)':n==='Соус спайси — база'?'Соус спайси':n==='Креветка варёная очищенная'?'Креветка (очищенная, готовая)':n==='Тобико красная'?'Икра тобико (красная)':n;
-  const lineHtml=components.map((x,i)=>'<tr><td style="width:6%">'+(i+1)+'</td><td style="width:47%">'+safe(shortName(srcName(x)||'—'))+'</td><td style="width:16%">'+Number(x.gross_g||0).toFixed(1).replace('.',',')+'</td><td style="width:16%">'+Number(x.net_g||0).toFixed(1).replace('.',',')+'</td><td style="width:15%">—</td></tr>').join('');
-  const section=(h,body,extra='')=>'<section class="psection '+extra+'"><h2>'+h+'</h2><div class="psection__body">'+body+'</div></section>';
-  const isApproved=f.status==='Утверждено';
-  const brand='<aside class="pbrand"><img class="pbrand__icon" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA4KCw0LCQ4NDA0QDw4RFiQXFhQUFiwgIRokNC43NjMuMjI6QVNGOj1OPjIySGJJTlZYXV5dOEVmbWVabFNbXVn/2wBDAQ8QEBYTFioXFypZOzI7WVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVn/wAARCABQAFADASIAAhEBAxEB/8QAGwAAAgIDAQAAAAAAAAAAAAAABQYDBAABAgf/xAA6EAACAQMCAgcGAwYHAAAAAAABAgMABBEFIRIxBhMiQVFhcTJCgZGhsRRS0RUjJDPB8TRDU2KCouH/xAAZAQADAQEBAAAAAAAAAAAAAAACAwQBBQD/xAAoEQACAgIBAwMDBQAAAAAAAAABAgADESESBDEyQVFxBRThIoGhwfH/2gAMAwEAAhEDEQA/APQa3W8VhIUZY4FbPTMYGTsKptqMHGUiPWsPy8vnVfXbqG3twJpCWf2Ik5tS/bWV/cnPEbeM+6hwfif7UapkZMWz4OBsxk/aJEvDL1US+LGppdQgVcxzwyHwDigcfR2MnL4ZvEjJ+ZqR+jNu45DPmorcJ7zA1nt/P4hqK8R4w8imMeJ3FWBhgCpBB5EUm3On3mndi1vFI/0HfIPwO4qbQtSlW4aE5Rxu8Dn6ihK+oMZseQxGvFZisRlkQOhyDWUM2bpe1nUHjPWrkop4UUe+1FNTldLNxF/MYcIpdsYpbm+PW5ZbRCyqfzkbUaKCdxdjEDXeXtN02SRzdXrdZcPzzyXyFHI4go2FKOgdKrdLRYL0FZFJyw3zk5o8nSHTGxi4+lOemzPbMSl1QGzj5hThqrqtw1ppdzPF/MSMlfI13b31rcnEM6OfDODXVxH1sbIRkEYI8amdSNHUrpdCwbuJ5nqWszXUaoW7CjZf6+vnRe1tJtQ0O3vA7C5jJCyd+3L18Klk6NWC3JLzIi59kuNqYVls7OwWKOWPAXhRUOaV09VitnE6f1HrOneoIn+fmcaBqEc9mOM8M4bglXwbx+NGDSTKxt7yC6jHDHeR9oDlnmDTbp9z+LsYpe8jB9RtVDrxM49bchuRzXKQzjrMHIxvQ/Q+1HcT98szn64FUek8zQtC655kVe0L/DSJ+WRvkdx961fEzHP6lixr2ifgrt7iEYgduIbbLnmp8PLxoXLBDJHmNwkg93NenPEHUqQCCMEEbGl3U+iVrdIzWv8ADTc14fZJ8x3fCrKupwMNJLelJPJTEaGa6huFETtxA7b8qeINfWa1BvJAI0UBnO3GfTvJpXaIWOnr14xPMSd+YQfrU+jaFPq5E9zIYbQHsgc29P1qizhxy0mAZjhdf3Jr3Xklk6uxsUJJ24xxMfgNh9aJaPoV9ekT6niCA79Ugwz+R8BR/TdMsdOQfhoUQj/Mc5PzNEAzSbIpP+7uqNr2xhZUlC5ywgbpDbgWcUgAAjkXAHcM4qfo2SLOaM+5MwFb1oNNa9XhlJkUBcZzvz2rehgRxyAkBpJGYCkN4iUr5k/Er65bCdFDcuIVXuZX0S2WZlkaNlAbgxnI27/LHyozfQiWJlPeKXr/AFFwqwXSlkPYbbPo3r/7Qo3Ft9ptqFkwO8mj6UpIAIbe4YFdi7AZbvHKp5tdD2TloZIXPZDnGB4/HFBGu4dMmCT2ts0JGUkZnPFXM+qWmp8KtGyIgIU9aQBnyxV61JkanKN1ozk4/aAb24N9fO52UYVR4dwr0m0tlht4lACwooUf29aXdJtLa3LTWVnxOBxG5uDhY/TP3q3ca/a28rrFLJdXSJwiT3A3ft3+tDeSxwI2p1UZhq5uIrRerHVyzb7OQNudKd30tv5pP4eMRR4xw88Gq11HNqV6LiZArkAFU8avLpyxRIrKC5zhR3n9KBaveIt67fGuXLLpGl6VjuoGJVe26j2T5Gj1mvBGFikVgG3LHJIpYsbVWuVWIAxoeIsPebx9Ka7ZAigAY2xU7EZ1OrWrYHLvJmXIoJqun9YONACw7j30fGGAIIIO4I76j/dy8QV1fhODg5waXHZi1dPYXGlCKSI8cftKea/qKC21vbBw1qFdx3Nlsf8AHn96bb3Skm7S9lvEUv3GhyxScax5x3rt9KbXayDHpEXdOtuz3lW/hmvEWOa+yF5RcPAg+H61rTtOjicdZ/1Io1Z35tF4Z7S4lA8gfvW5dSnuAVt7aeIH0X7Uz7gD0kbfT2bXPXxJFeKzUYijiGNnmJz8BzPyqCd4516uAs8sntsRuR/QeVQwaNPPL1kuVzzycmj9np0duoCr8aS1haVU9KlPbZkWn2SwRgY3okq4FdLHiuuGgzKsT//Z" alt="Логотип Море Суши"><div class="pbrand__text">Море <em>суши</em></div><div class="pbrand__sub">ДОСТАВКА СУШИ</div></aside>';
-  const photoSrc=photoData||null;
-  const photo=photoSrc?'<img src="'+safe(photoSrc)+'" alt="Фото готового блюда">':'Фото готового блюда не загружено';
-  const cats='<div class="phero"><div class="pimage">'+photo+'</div><div class="pfacts">'+
-    '<div class="pfact"><b>Категория:</b><span>'+safe(f.category||'—')+'</span></div>'+
-    '<div class="pfact"><b>Статус:</b><span>'+(isApproved?'Утверждено':'Черновик')+'</span></div>'+
-    '<div class="pfact"><b>Выход:</b><span>1 порция (8 кусочков)<br>'+safe(f.yield_g||'—')+' г '+(!isApproved?'(не подтверждён)':'')+'</span></div></div></div>';
-  const sumNet=components.reduce((a,x)=>a+Number(x.net_g||0),0);
-  const receipt='<table><thead><tr><th style="width:6%">№</th><th style="width:47%;text-align:left">Наименование ингредиента / полуфабриката</th><th style="width:16%">Брутто, г</th><th style="width:16%">Нетто, г</th><th style="width:15%">Выход, г</th></tr></thead><tbody>'+lineHtml+
-     '<tr class="sample-output"><td colspan="4">Выход готового блюда: '+(!isApproved?'указан по образцу, не подтверждён':'')+'</td><td>'+safe(f.yield_g||'—')+'</td></tr></tbody></table>'+
-     (!isApproved&&Math.abs(sumNet-Number(f.yield_g||0))>1?'<div class="warnnote">Сумма нетто компонентов: '+sumNet.toFixed(1).replace('.',',')+' г; потери и выход требуют проверки.</div>':'');
-  const nutr='<div class="ptext">'+(f.nutrition?txt(f.nutrition):'КБЖУ не подтверждено; заполнить после сверки сырья.')+'</div>';
-   const f5='<div class="pflex"><div><div class="ptext">'+txt(f.serving)+'</div><p><b>Условия и сроки хранения:</b><br>'+txt(f.storage)+'</p></div><div class="pallergen"><b>АЛЛЕРГЕНЫ</b><br>'+txt(f.allergens)+'</div></div>';
-  $('printSheet').innerHTML=brand+
-    '<header class="pheader"><div class="pheader__title">Технико-технологическая карта</div></header>'+
-    '<h1>'+safe(f.code)+' · '+safe(name)+'</h1>'+cats+
-    '<div class="pgrid">'+
-      section('1. ОБЛАСТЬ ПРИМЕНЕНИЯ','<div class="ptext">'+txt(f.scope)+'</div>')+
-      section('2. ТРЕБОВАНИЯ К СЫРЬЮ','<div class="ptext">'+txt(f.raw_requirements)+'</div>')+
-      section('3. РЕЦЕПТУРА',receipt)+
-      section('4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС','<div class="ptext">'+txt(f.process)+'</div>')+
-      section('5. ОФОРМЛЕНИЕ, РЕАЛИЗАЦИЯ, УСЛОВИЯ ХРАНЕНИЯ И ТРАНСПОРТИРОВАНИЯ',f5,'psection--wide')+
-      section('6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ','<div class="ptext">'+txt(f.quality)+'</div>')+
-      section('7. ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ',nutr)+
-    '</div>'+
-    '<div class="papproval"><div class="pversion">Версия '+safe(editing?.version||1)+'<br>'+(!isApproved?'Рабочий образец':'Документ утверждён')+'</div>'+
-    '<div class="psign">Разработал: '+safe(f.developed_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись</small></div>'+
-    '<div class="psign">Утвердил: '+safe(f.approved_by||'')+'<div class="psign__line"></div><small>Ф.И.О., подпись · '+safe(f.approved_at||'дата не установлена')+'</small></div></div>';
-  window.print();
-}
-$('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
-(async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-photo-guard-v6"></script><script src="./ultra.js?v=20261111-pf-safety-pro1"></script><script src="./ingredient-card.js?v=20261111-label5-hires-ocr"></script><script src="./product-studio.js?v=20261111-menu-pro2"></script><script src="./studio-design.js?v=20261111-north-pearl1"></script><script src="./studio-pro.js?v=20261111-studio-v3"></script></body></html>
+<dialog id="projectDialog" aria-labelledby="projectDialogTitle"><form id="projectForm">
+  <div class="modal-head"><div><h2 id="projectDialogTitle">Новый проект</h2><p>Проект — это отдельный ресторан, бренд или клиентский заказ.</p></div><button type="button" class="modal-close" data-command="closeProject" aria-label="Закрыть">×</button></div>
+  <div class="modal-body"><label class="field"><span class="label">Название проекта *</span><input id="pName" class="control" maxlength="120" required placeholder="Например, Суши Бери"></label>
+   <label class="field" style="margin-top:17px"><span class="label">Описание</span><textarea id="pDesc" class="control" placeholder="Тип заведения, назначение проекта"></textarea></label>
+   <div class="form-grid" style="margin-top:17px"><div class="field"><span class="label">Фирменный цвет</span><label class="color-picker"><input type="color" id="pColor" value="#0F6479"> <small class="muted">Для ТТК и карточки</small></label></div>
+   <label class="field"><span class="label">Логотип проекта</span><input class="control" style="padding:9px;font-size:10px" id="pLogo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+   <div class="row" style="margin-top:13px"><span id="pLogoStatus" class="muted">Файл не выбран</span><button id="pRemoveLogo" class="btn btn-light btn-sm" type="button">Убрать логотип</button></div>
+  </div>
+  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeProject">Отмена</button><button type="submit" class="btn btn-primary" id="projectSaveButton">Сохранить проект</button></div>
+ </form></dialog>
+<dialog id="copyDialog" aria-labelledby="copyDialogTitle"><form id="copyForm">
+ <div class="modal-head"><div><h2 id="copyDialogTitle">Копировать ТТК</h2><p>Создаётся независимый документ, оригинал не меняется.</p></div><button type="button" class="modal-close" data-command="closeCopy">×</button></div>
+ <div class="modal-body"><label class="field"><span class="label">В какой проект скопировать?</span><select id="copyProject" class="control" required></select></label></div>
+ <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
+ </form></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="./farukh-pro.js?v=20261111-v1" defer></script>
+</body></html>
