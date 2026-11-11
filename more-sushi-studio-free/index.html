@@ -2,7 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b222d"><meta name="description" content="FARUKH TTK PRO — закрытая профессиональная студия технологических карт">
 <title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
-<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v2"></head>
+<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v3"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -36,7 +36,7 @@
   <div class="side-bottom"><div class="side-user"><b>Личный рабочий кабинет</b><span id="sideEmail">—</span></div><button type="button" id="logout" class="side-logout">↗ &nbsp; Выйти из системы</button></div>
  </aside>
  <div class="workspace">
-  <header class="topbar"><div><div class="breadcrumb">FARUKH TTK PRO / PRIVATE WORKSPACE</div><h1 id="topTitle">Обзор студии</h1></div><div class="top-actions"><button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><span class="top-avatar" aria-label="Шеф">F</span></div></header>
+  <header class="topbar"><div><div class="breadcrumb">FARUKH TTK PRO / PRIVATE WORKSPACE</div><h1 id="topTitle">Обзор студии</h1></div><div class="top-actions"><button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" id="logoutMobile" class="btn btn-light mobile-logout" aria-label="Выйти из студии"><span class="icon" data-icon="lock"></span> Выйти</button><span class="top-avatar" aria-label="Шеф">F</span></div></header>
   <main class="content" id="content">
    <section id="viewDashboard" class="page" data-view="dashboard">
     <div class="hero"><div class="hero-copy"><div class="mini-label">ATELIER / FARUKH TTK PRO</div><h2>Твоя профессиональная<br><em>студия рецептур.</em></h2><p>Разрабатывай ТТК для своих заведений и заказчиков. Все проекты, технологии и документы — в одной закрытой библиотеке.</p>
@@ -96,7 +96,7 @@
         <div class="form-grid">
          <label class="field span-2"><span class="label">Проект *</span><select id="eProject" class="control" required></select></label>
          <label class="field span-2"><span class="label">Наименование блюда *</span><input id="eTitle" class="control" maxlength="180" placeholder="Например, Филадельфия классическая"></label>
-         <label class="field"><span class="label">Код ТТК</span><input id="eCode" class="control" maxlength="40" placeholder="ТТК-001"></label>
+         <label class="field"><span class="label">Код ТТК</span><input id="eCode" class="control" maxlength="40" placeholder="Автоматически: ТТК-001"></label>
          <label class="field"><span class="label">Категория</span><input id="eCategory" class="control" maxlength="90" placeholder="Роллы, соусы, десерты"></label>
          <label class="field"><span class="label">Выход блюда, г *</span><input id="eYield" class="control" type="number" min="0.001" step=".001" inputmode="decimal" placeholder="250"></label>
          <label class="field"><span class="label">Статус</span><select id="eStatus" class="control"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label>
@@ -178,5 +178,5 @@
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="./farukh-pro.js?v=20261111-v2" defer></script>
+<script src="./farukh-pro.js?v=20261111-v3" defer></script>
 </body></html>
