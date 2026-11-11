@@ -2,7 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b222d"><meta name="description" content="FARUKH TTK PRO — закрытая профессиональная студия технологических карт">
 <title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
-<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v3"></head>
+<link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v1"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -82,7 +82,34 @@
        <button type="button" class="btn btn-light" id="editorPrint" data-command="print"><span class="icon" data-icon="print"></span> Печать / PDF</button>
        <button type="button" class="btn btn-primary" data-command="saveDoc" id="saveDoc"><span class="icon" data-icon="save"></span> Сохранить ТТК</button></div>
      </div>
-     <div class="editor-grid">
+     <section class="sheet-workbench" aria-label="Редактор ТТК непосредственно на листе А4">
+       <div class="sheet-workbench-main">
+         <div class="sheet-mode-icon" aria-hidden="true">✦</div>
+         <div><div class="sheet-workbench-eyebrow">FARUKH · DOCUMENT ATELIER</div>
+         <strong>Редактируй прямо на листе</strong>
+         <p>Нажми на любой текст, название, граммовку или строку рецептуры — изменения останутся в документе.</p></div>
+       </div>
+       <div class="sheet-workbench-controls">
+         <label class="sheet-control"><span>ПРОЕКТ</span><select id="sheetProject" aria-label="Выбор проекта для ТТК"></select></label>
+         <label class="sheet-control"><span>СТАТУС</span><select id="sheetStatus" aria-label="Статус ТТК"><option>Черновик</option><option>На проверке</option><option>Утверждено</option><option>Архив</option></select></label>
+       </div>
+     </section>
+     <section class="sheet-stylebar" aria-label="Выбор дизайна и размера листа">
+       <div class="sheet-styleleft"><span class="sheet-style-caption">СТИЛЬ ДОКУМЕНТА</span>
+         <div id="sheetThemes" class="sheet-themes" role="group" aria-label="Премиальные шаблоны">
+           <button type="button" data-sheet-theme="atelier" class="sheet-theme-btn active"><i class="sheet-theme-dot noir"></i> NOIR & GOLD</button>
+           <button type="button" data-sheet-theme="classic" class="sheet-theme-btn"><i class="sheet-theme-dot pearl"></i> OCEAN PEARL</button>
+           <button type="button" data-sheet-theme="arctic" class="sheet-theme-btn"><i class="sheet-theme-dot burgundy"></i> BURGUNDY MAISON</button>
+         </div>
+       </div>
+       <div class="sheet-zoom" role="group" aria-label="Масштаб листа">
+         <button type="button" data-command="sheetZoomOut" aria-label="Уменьшить лист">−</button>
+         <span id="sheetZoomValue">По ширине</span>
+         <button type="button" data-command="sheetZoomIn" aria-label="Увеличить лист">+</button>
+         <button type="button" data-command="sheetZoomFit" class="sheet-zoom-fit">Вписать</button>
+       </div>
+     </section>
+     <div class="editor-grid sheet-editor-grid">
       <section class="editor-panel" aria-label="Редактор технико-технологической карты">
        <div class="editor-tabs" role="tablist" aria-label="Этапы создания документа">
         <button type="button" class="editor-tab active" role="tab" aria-selected="true" data-tab="main"><span class="icon" data-icon="edit"></span> Основное</button>
@@ -138,9 +165,9 @@
         <p class="muted">Предварительный просмотр справа обновляется автоматически. Для печати выбери «Печать / PDF» в верхней панели.</p>
        </div>
       </section>
-      <aside class="preview-pane"><div class="preview-top"><div><h3>Живой просмотр документа</h3><span>Формат А4 · один лист</span></div><span class="pill" id="previewStatus">Черновик</span></div>
+      <aside class="preview-pane"><div class="preview-top"><div><h3>Один лист А4 · прямое редактирование</h3><span>Кликни по тексту или цифрам. Строки состава можно добавлять и удалять здесь же.</span></div><span class="pill" id="previewStatus">Черновик</span></div>
        <div class="paper-stage" id="paperStage"><div class="paper-holder" id="paperHolder"><div id="paper" class="theme-atelier"></div></div></div>
-       <p class="field-hint" style="text-align:center">Если содержимого слишком много для одного листа, сократите текст или разделите документ. Переполнение нельзя автоматически скрывать.</p>
+       <p class="field-hint" style="text-align:center">В печать и PDF уходит только чистый лист А4 — кнопки редактирования и подсказки скрываются. Переполнение листа блокирует печать.</p>
       </aside>
      </div>
    </section>
@@ -178,5 +205,5 @@
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="./farukh-pro.js?v=20261111-v3" defer></script>
+<script src="./farukh-pro.js?v=20261111-sheet-v1" defer></script>
 </body></html>
