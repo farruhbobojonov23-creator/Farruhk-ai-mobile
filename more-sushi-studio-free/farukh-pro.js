@@ -240,7 +240,9 @@ async function saveProject(ev){
   const saved=rows[0];
   if(modalProjectId){projects=projects.map(p=>p.id===saved.id?saved:p)}
   else projects.unshift(saved);
-  $('projectDialog').close();renderAll();tell(modalProjectId?'Проект обновлён':'Новый проект создан');
+  $('projectDialog').close();renderAll();
+  if(draft&&draft.project_id===saved.id)renderPreview();
+  tell(modalProjectId?'Проект обновлён':'Новый проект создан');
   if(pendingCreate){pendingCreate=false;startNewDoc(saved.id,pendingTemplate)}
  }catch(e){tell('Не удалось сохранить проект: '+errText(e),true)}
  finally{setBusy(false)}
