@@ -129,7 +129,7 @@ input::placeholder,textarea::placeholder{color:#9aaaba}
 .msReviewFoot{font-size:11px;color:#8a6b47;background:#fff8eb;padding:12px;border-radius:10px;border:1px solid #f1e4cf;line-height:1.45;margin-top:13px}
 .msReviewFooter{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:13px}
 .msReviewFooter a{text-decoration:none;font-size:12px;font-weight:800;color:#0c6288}
-#homePage>.panel{display:none}
+.msDesignReady #homePage>.panel{display:none}
 #ingredientsPage>.panel,#catalogPage>.panel,#editorPage>.panel{box-shadow:var(--ms-shadow)}
 #ingredientFormPanel{border-top:3px solid #0f688f;background:linear-gradient(180deg,#fff 0%,#fff 83%,#fcfeff 100%)}
 #ingredientFormPanel h2{color:#173f57;font-weight:870}
@@ -161,6 +161,7 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 #msProductMenu{background:linear-gradient(105deg,#edf7fb,#fafcfe);border-color:#d3e5ee;box-shadow:none}
 #msProductMenu h2{font-size:21px;color:#123f59}
 .msProductTtk{background:#164d70!important}
+#catalogPage.ultraCatalogMode #msProductMenu{display:none!important}
 #catalogPage.ultraCatalogMode>.panel{border:1px solid #d4e2ec;background:#fff;box-shadow:none}
 #catalogPage.ultraCatalogMode .ultraHero{background:linear-gradient(117deg,#0a2a43,#0f5576 80%,#197394)}
 #catalogPage.ultraCatalogMode .ultraHero h2{font-weight:870;letter-spacing:-.5px}
