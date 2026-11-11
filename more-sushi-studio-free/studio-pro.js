@@ -46,11 +46,21 @@ if(form&&list){
  ingPage.insertBefore(tools,list);
  list.after(form);
  form.hidden=true;
+ const formHeader=form.querySelector(':scope > .row.between');
+ const closeButton=document.createElement('button');
+ closeButton.type='button';closeButton.className='secondary msFormCloseButton';
+ closeButton.textContent='✕ Закрыть форму';
+ if(formHeader)formHeader.append(closeButton);
  const reveal=(open=true)=>{
   form.hidden=!open;
   el('msAddIngredient').setAttribute('aria-expanded',String(open));
   if(open)requestAnimationFrame(()=>form.scrollIntoView({behavior:'smooth',block:'start'}));
  };
+ closeButton.addEventListener('click',()=>{
+  if(!el('ingEditStatus').classList.contains('hidden')&&
+     !confirm('Закрыть карточку ингредиента без сохранения изменений?'))return;
+  window.resetIngredientForm();reveal(false);
+ });
  el('msAddIngredient').setAttribute('aria-controls','ingredientFormPanel');
  el('msAddIngredient').setAttribute('aria-expanded','false');
  el('msAddIngredient').addEventListener('click',()=>{
