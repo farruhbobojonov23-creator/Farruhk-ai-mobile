@@ -194,7 +194,7 @@
 #ingredientsPage .ingLegend{margin:10px 0 0;font-size:11px}
 @media(max-width:800px){#ingredientsPage .ingredientListHead{align-items:stretch;flex-direction:column}#ingredientsPage .ingredientListHead>.row{flex-wrap:wrap}#ingredientsPage .ingCategoryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#ingredientsPage .ingCategoryCard{min-height:116px;padding:12px;column-gap:7px}#ingredientsPage .ingCategoryIcon{width:35px;height:35px;font-size:21px}}
 @media(max-width:470px){#ingredientsPage .ingCategoryGrid{grid-template-columns:1fr 1fr;gap:8px}#ingredientsPage .ingCategoryName{font-size:11px}#ingredientsPage .ingCategoryCard{min-height:108px;padding:9px}#ingredientsPage .ingCategoryIcon{display:none}#ingredientsPage .ingCategoryName,#ingredientsPage .ingCategoryCount,#ingredientsPage .ingCategoryGo{grid-column:1/3}#ingredientsPage .ingPageNav{flex-direction:column;align-items:flex-start}#ingredientFormPanel{padding:12px}}
-</style><link rel="stylesheet" href="./ultra.css?v=20261110-layout2"><link rel="stylesheet" href="./icons3d.css?v=20261111-real-products-v5"></head><body>
+</style><link rel="stylesheet" href="./ultra.css?v=20261110-layout2"><link rel="stylesheet" href="./icons3d.css?v=20261111-real-products-v5"><link rel="stylesheet" href="./ingredient-card.css?v=20261111-label1"></head><body>
 <div id="auth"><div class="panel"><div class="logo" style="color:#07528a">🌊 МОРЕ <span>СУШИ</span></div><p class="muted">STUDIO PRO · Закрытая база рецептур</p>
 <h2 id="authTitle">Вход в платформу</h2>
 <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="name@example.com"></div><br>
@@ -251,7 +251,7 @@
   <button id="ingSaveBtn" type="button" onclick="saveIngredient()">➕ Добавить ингредиент</button>
   <button id="ingCancelBtn" class="secondary hidden" type="button" onclick="resetIngredientForm()">Отмена редактирования</button>
  </div>
-<details id="ingNutritionPanel" style="margin:11px 0;border:1px solid #d8e7f1;border-radius:10px;padding:10px 13px;background:#f7fbfe"><summary style="cursor:pointer;color:#0f527f;font-size:13px;font-weight:700">🥗 КБЖУ сырья на 100 г · для автоматического расчёта ПФ</summary>
+<details open id="ingNutritionPanel" style="margin:11px 0;border:1px solid #d8e7f1;border-radius:10px;padding:10px 13px;background:#f7fbfe"><summary style="cursor:pointer;color:#0f527f;font-size:13px;font-weight:700">🥗 КБЖУ сырья на 100 г · для автоматического расчёта ПФ</summary>
 <div class="row" style="margin-top:12px"><div class="field"><label for="ingNProtein">Белки, г</label><input id="ingNProtein" type="number" min="0" step=".01" placeholder="—"></div>
 <div class="field"><label for="ingNFat">Жиры, г</label><input id="ingNFat" type="number" min="0" step=".01" placeholder="—"></div>
 <div class="field"><label for="ingNCarbs">Углеводы, г</label><input id="ingNCarbs" type="number" min="0" step=".01" placeholder="—"></div>
@@ -499,6 +499,7 @@ function resetIngredientForm(){
  $('ingEditStatus').classList.add('hidden');
  $('ingSaveBtn').disabled=false;
  $('ingMsg').textContent='';
+ window.MSIngredientCard?.reset();
 }
 function editIngredient(id){
  const ing=ingredients.find(x=>Number(x.id)===Number(id));
@@ -514,6 +515,7 @@ function editIngredient(id){
  $('ingSaveBtn').textContent='💾 Сохранить изменения';
  $('ingCancelBtn').classList.remove('hidden');$('ingEditStatus').classList.remove('hidden');
  $('ingMsg').textContent='';
+ window.MSIngredientCard?.edit(ing);
  $('ingredientFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function saveIngredient(){
@@ -540,7 +542,8 @@ async function saveIngredient(){
  manufacturer:$('ingManufacturer').value.trim(),purchase_price_rub_per_kg:price,
  purchase_price_mode:$('ingPriceMode').value,purchase_pack_price_rub:packageMode&&$('ingPackPrice').value!==''?Number($('ingPackPrice').value):null,
  purchase_pack_weight_g:packageMode&&$('ingPackWeight').value!==''?Number($('ingPackWeight').value):null,
- storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim(),photo_data:window.MSIcons?MSIcons.getIngredientPhoto():null,icon_emoji:window.MSIcons?MSIcons.getIngredientIcon():null};
+ storage_conditions:$('ingStorage').value.trim(),shelf_life_hours:life,notes:$('ingNotes').value.trim(),photo_data:window.MSIcons?MSIcons.getIngredientPhoto():null,icon_emoji:window.MSIcons?MSIcons.getIngredientIcon():null,
+ ...(window.MSIngredientCard?window.MSIngredientCard.payload():{})};
  const id=editingIngredientId;const btn=$('ingSaveBtn');btn.disabled=true;
  try{
   const res=await http(id==null?'/rest/v1/ingredients':'/rest/v1/ingredients?id=eq.'+id,
@@ -647,4 +650,4 @@ function printRecipe() {
 }
 $('photoFile').addEventListener('change',async()=>{try{await uploadPhoto();$('photoPreview').src=photoData;$('photoPreview').classList.remove('hidden')}catch(e){alert(e.message)}});
 (async()=>{try{const s=localStorage.getItem('ms_session');if(!s)return;session=JSON.parse(s);if(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+120){const p=await http('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session=p;localStorage.setItem('ms_session',JSON.stringify(session))}await enter()}catch(e){session=null;localStorage.removeItem('ms_session')}})();
-</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-real-products-v5"></script><script src="./ultra.js?v=20261110-real2"></script></body></html>
+</script><script src="./ttk-live.js"></script><script src="./icons3d.js?v=20261111-real-products-v5"></script><script src="./ultra.js?v=20261110-real2"></script><script src="./ingredient-card.js?v=20261111-label1"></script></body></html>
