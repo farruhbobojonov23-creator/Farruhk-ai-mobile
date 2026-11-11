@@ -2,7 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b222d"><meta name="description" content="FARUKH TTK PRO — закрытая профессиональная студия технологических карт">
 <title>FARUKH TTK PRO — Профессиональная студия ТТК</title>
-<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v1"></head>
+<link rel="stylesheet" href="./farukh-pro.css?v=20261111-v2"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -77,7 +77,7 @@
      <div class="library-list" id="libraryDocs" aria-live="polite"></div><p id="libraryCount" class="line-note"></p>
    </section>
    <section id="viewEditor" class="page" data-view="editor" hidden>
-     <div class="editor-head"><div><button class="back" type="button" data-command="library"><span class="icon" data-icon="left"></span> В библиотеку</button><h2 id="editorHeading">Новая ТТК</h2></div>
+     <div class="editor-head"><div><button class="back" type="button" data-command="library"><span class="icon" data-icon="left"></span> В библиотеку</button><h2 id="editorHeading">Новая ТТК</h2><span id="editorSaveBadge" class="editor-save-badge" role="status">Новый документ · не сохранён</span></div>
       <div class="row"><button class="btn btn-light" id="editorDuplicate" type="button" data-command="duplicate" hidden><span class="icon" data-icon="copy"></span> Копировать</button>
        <button type="button" class="btn btn-light" id="editorPrint" data-command="print"><span class="icon" data-icon="print"></span> Печать / PDF</button>
        <button type="button" class="btn btn-primary" data-command="saveDoc" id="saveDoc"><span class="icon" data-icon="save"></span> Сохранить ТТК</button></div>
@@ -88,8 +88,9 @@
         <button type="button" class="editor-tab active" role="tab" aria-selected="true" data-tab="main"><span class="icon" data-icon="edit"></span> Основное</button>
         <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="lines"><span class="icon" data-icon="list"></span> Рецептура</button>
         <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="tech"><span class="icon" data-icon="book"></span> Технология</button>
-        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="design"><span class="icon" data-icon="layers"></span> Оформление</button>
+        <button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="design"><span class="icon" data-icon="layers"></span> Оформление</button><button type="button" class="editor-tab" role="tab" aria-selected="false" data-tab="review"><span class="icon" data-icon="check"></span> Проверка</button>
        </div>
+       <section class="ttk-checkline" id="ttkCheckline" aria-label="Готовность ТТК"><div><strong id="ttkCheckTitle">Готовность документа</strong><span id="ttkCheckHint">Заполни обязательные поля</span></div><span id="ttkCheckCount" class="ttkCheckCount">0 / 12</span><div class="ttkCheckTrack"><i id="ttkCheckBar"></i></div><button type="button" class="ttkCheckShow" data-command="showReview">Проверить →</button></section>
        <div class="edit-section" data-tab-panel="main">
         <h3>Основные сведения</h3><p class="lead">Карточка блюда и принадлежность к проекту.</p>
         <div class="form-grid">
@@ -107,10 +108,10 @@
        </div>
        <div class="edit-section" data-tab-panel="lines" hidden>
         <h3>Рецептура и граммовки</h3><p class="lead">Указывай фактические значения. Масса автоматически суммируется для контроля выхода.</p>
-        <div style="overflow-x:auto"><table class="lines-table"><thead><tr><th>Ингредиент / ПФ</th><th>Брутто, г</th><th>Нетто, г</th><th>Убрать</th></tr></thead><tbody id="editorLines"></tbody></table></div>
-        <button type="button" class="btn btn-light" data-command="addLine"><span class="icon" data-icon="plus"></span> Добавить ингредиент</button>
+        <div style="overflow-x:auto"><table class="lines-table"><thead><tr><th>Ингредиент / ПФ</th><th>Брутто, г</th><th>Нетто, г</th><th>Действия</th></tr></thead><tbody id="editorLines"></tbody></table></div>
+        <div class="row"><button type="button" class="btn btn-light" data-command="addLine"><span class="icon" data-icon="plus"></span> Добавить ингредиент</button><button type="button" class="btn btn-light" id="undoLineBtn" data-command="undoLine" hidden>↶ Вернуть строку</button><button type="button" class="btn btn-light" data-command="clearEmptyLines">Очистить пустые</button></div>
         <div class="line-summary"><div><strong id="sumNet">0 г</strong><div><small>Сумма нетто</small></div></div><div><strong id="sumGross">0 г</strong><div><small>Сумма брутто</small></div></div></div>
-        <p class="field-hint">Сумма нетто не обязательно равна выходу после технологической обработки. Проверьте потери и выход при проработке.</p>
+        <p id="yieldCompare" class="line-yield-compare" aria-live="polite"></p><p class="field-hint">Сумма нетто не обязательно равна выходу после технологической обработки. Проверьте потери и выход при проработке.</p>
        </div>
        <div class="edit-section" data-tab-panel="tech" hidden>
         <h3>Технологическая часть</h3><p class="lead">Профессиональные поля ТТК. Неподтверждённые данные оставляйте пустыми.</p>
@@ -129,6 +130,7 @@
          <label class="field"><span class="label">Документальные сведения проверены</span><select id="fVerified" class="control"><option value="no">Нет, требуется проверка</option><option value="yes">Да, подтверждены ответственным</option></select></label>
         </div><p class="notice" style="margin-top:18px">Программа не устанавливает нормативные сроки и не подтверждает безопасность автоматически. Статус «Утверждено» доступен только после заполнения и ручного подтверждения обязательных сведений.</p>
        </div>
+       <div class="edit-section" data-tab-panel="review" hidden><h3>Проверка готовности ТТК</h3><p class="lead">Контроль полей перед утверждением. Проверка заполнения не заменяет лабораторных испытаний и оценку шеф-повара.</p><div id="reviewChecklist" class="reviewChecklist" aria-live="polite"></div><div class="notice">🛡️ Статус «Утверждено» доступен только после заполнения обязательных сведений и ручного подтверждения. При отсутствии подтверждённых данных оставляй карту в статусе «Черновик».</div><div class="row" style="margin-top:15px"><button type="button" class="btn btn-light" data-command="goTech">Заполнить технологию</button><button type="button" class="btn btn-primary" data-command="saveDoc">Сохранить</button></div></div>
        <div class="edit-section" data-tab-panel="design" hidden>
         <h3>Оформление документа А4</h3><p class="lead">Выбирай фирменный шаблон. Логотип берётся из настроек проекта.</p>
         <div id="editorDesigns" class="design-tiles"></div>
@@ -176,5 +178,5 @@
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="./farukh-pro.js?v=20261111-v1" defer></script>
+<script src="./farukh-pro.js?v=20261111-v2" defer></script>
 </body></html>
