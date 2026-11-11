@@ -95,7 +95,7 @@ function parseLabel(raw) {
    }
   }
  }
- const companyKeys=/^(?:изготовител[ьи]|производител[ьи]|произведено|организация[- ]изготовитель|manufacturer|produced by)\b\s*[:—-]?/i;
+ const companyKeys=/^(?:изготовител[ьи]|производител[ьи]|произведено|организация[- ]изготовитель|manufacturer|produced by)(?=\s|[:—-]|$)\s*[:—-]?/i;
  let manufacturer='';
  for(let i=0;i<lines.length;i++){
   const line=lines[i],m=line.match(companyKeys);
@@ -136,6 +136,7 @@ function applyText() {
  const changed=[];
  if(d.manufacturer){e('ingManufacturer').value=d.manufacturer;changed.push('производитель')}
  if(d.storage){e('ingStorage').value=d.storage;changed.push('хранение')}
+ else if(/^[«"' ]*условия хранени[^\n]{0,130}stor[ae]?\s*$/i.test(e('ingStorage').value))e('ingStorage').value='';
  if(d.hours!==null){e('ingShelfLife').value=String(d.hours);changed.push('срок')}
  if(d.allergens.length){e('ingAllergens').value=d.allergens.join(', ');changed.push('аллергены')}
  // Do not mix nutrition numbers from different OCR passes with existing fields.
@@ -264,6 +265,15 @@ function start(){
  e('ingAllergens').addEventListener('input',()=>{e('msAllergenVerified').checked=false;badge()});
  e('ingAllergenChips')?.addEventListener('click',()=>{e('msAllergenVerified').checked=false;badge()});
  Object.values(nutritionFields).forEach(id=>e(id).addEventListener('input',()=>{e('msNutritionVerified').checked=false;badge()}));
+
+ // A two-sided ingredient photo may contain the original manufacturer label on the right.
+ const productFile=e('msIngredientFile');
+ if(productFile)productFile.addEventListener('change',async ev=>{
+  if(!ev.target.files?.[0]||state.photo||state.busy)return;
+  // Let the existing photo uploader finish updating its preview before OCR.
+  await new Promise(ok=>setTimeout(ok,450));
+  if(window.MSIcons?.getIngredientPhoto?.())await recognize();
+ });
  const oldReload=window.reload;
  window.reload=async function(...args){
    const result=await oldReload.apply(this,args);
