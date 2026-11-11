@@ -440,7 +440,7 @@ function approvedIssues(d){
  if(!d.project_id||!byProject(d.project_id))issues.push('проект');
  if(!d.title.trim())issues.push('название блюда');
  if(!Number.isFinite(Number(d.yield_g))||Number(d.yield_g)<=0)issues.push('выход блюда');
- if(!Array.isArray(d.lines)||!d.lines.length||d.lines.some(l=>!l.name||n(l.gross_g)==null||n(l.net_g)==null))issues.push('полная рецептура брутто/нетто');
+ if(!Array.isArray(d.lines)||!d.lines.length||d.lines.some(l=>!String(l.name||'').trim()||n(l.gross_g)==null||n(l.net_g)==null||n(l.gross_g)<0||n(l.net_g)<0))issues.push('полная рецептура брутто/нетто');
  for(const [key,label] of [['scope','область применения'],['raw','требования к сырью'],['process','технологический процесс'],['serving','подача и реализация'],['storage','условия хранения'],['quality','показатели качества'],['allergens','аллергены'],['nutrition','КБЖУ'],['developed','разработал'],['approved','утвердил'],['date','дата утверждения']]){
   if(!String(f[key]||'').trim())issues.push(label);
  }
@@ -540,6 +540,49 @@ async function copyDocument(ev){
  }catch(e){tell('Не удалось скопировать: '+errText(e),true)}finally{setBusy(false)}
 }
 
+function renderReview(){
+ if(!draft)return;
+ const f=draft.fields||{},validLines=Array.isArray(draft.lines)&&draft.lines.length>0&&draft.lines.every(l=>
+  !!String(l.name||'').trim()&&n(l.gross_g)!=null&&n(l.net_g)!=null&&n(l.gross_g)>=0&&n(l.net_g)>=0);
+ const check=[
+  ['Выбран проект',!!byProject(draft.project_id),'main'],
+  ['Название блюда',!!draft.title?.trim(),'main'],
+  ['Выход блюда больше нуля',draft.yield_g!=null&&draft.yield_g>0,'main'],
+  ['Рецептура: названия и граммовки',validLines,'lines'],
+  ['Область применения',!!f.scope?.trim(),'tech'],
+  ['Требования к сырью',!!f.raw?.trim(),'tech'],
+  ['Технологический процесс',!!f.process?.trim(),'tech'],
+  ['Оформление и реализация',!!f.serving?.trim(),'tech'],
+  ['Сроки и условия хранения',!!f.storage?.trim(),'tech'],
+  ['Качество и безопасность',!!f.quality?.trim(),'tech'],
+  ['Аллергены (источник проверен вручную)',!!f.allergens?.trim(),'tech'],
+  ['КБЖУ (источник проверен вручную)',!!f.nutrition?.trim(),'tech'],
+  ['Разработал и утвердил',!!f.developed?.trim()&&!!f.approved?.trim(),'tech'],
+  ['Дата утверждения',!!f.date?.trim(),'tech'],
+  ['Ручное подтверждение сведений',f.verified==='yes','tech']
+ ];
+ const done=check.filter(v=>v[1]).length,total=check.length;
+ const pct=Math.round(done/total*100);
+ $('ttkCheckCount').textContent=done+' / '+total;
+ $('ttkCheckBar').style.width=pct+'%';
+ $('ttkCheckTitle').textContent=done===total?'Поля документа заполнены':'Проверка заполненности ТТК';
+ $('ttkCheckHint').textContent=done===total?
+  'Теперь ответственный должен подтвердить соответствие продукции требованиям.' :
+  'Не заполнено: '+(total-done)+' пунктов. До проверки сохраняй документ как черновик.';
+ $('reviewChecklist').innerHTML=check.map(([label,ok,tab],i)=>
+  '<button class="review-item '+(ok?'complete':'incomplete')+'" type="button" data-review-tab="'+tab+'">'+
+  '<span class="review-number">'+(ok?icon('check'):(i+1))+'</span>'+
+  '<span class="review-item-text">'+esc(label)+'</span>'+
+  '<strong>'+(ok?'Заполнено':'Заполнить')+'</strong></button>').join('');
+ const badge=$('editorSaveBadge');
+ if(badge){
+  badge.textContent=dirty?(workingId?'● Есть несохранённые изменения':'● Новый документ · не сохранён'):
+    '✓ Сохранено в библиотеке · версия '+(draft.version||1);
+  badge.className='editor-save-badge'+(dirty?' unsaved':' saved');
+ }
+ const save=$('saveDoc');if(save)save.textContent=dirty?'Сохранить изменения':'Сохранить ТТК';
+}
+
 /* Premium A4 preview; all variable content is escaped before interpolation. */
 function paperText(x,fallback='Не указано — требуется проверка'){
  const value=String(x||'').trim();
@@ -586,7 +629,7 @@ function renderPreview(){
  '<footer class="paper-foot"><span>FARUKH TTK PRO · '+esc((prefs.studio_name||'PRIVATE CHEF ATELIER').toUpperCase())+'</span>'+
  '<span>Статус: '+esc(draft.status||'Черновик')+'</span></footer>';
  $('previewStatus').textContent=draft.status||'Черновик';
- fitPaper();requestAnimationFrame(detectOverflow);
+ fitPaper();requestAnimationFrame(detectOverflow);renderReview();
 }
 function fitPaper(){
  const stage=$('paperStage'),holder=$('paperHolder'),paper=$('paper');
@@ -628,13 +671,17 @@ function onCommand(name){
   syncDraft();draft.lines.push({name:'',gross_g:null,net_g:null});
   renderLineRows();renderPreview();return;
  }
+ if(name==='undoLine')return lineUndo();
+ if(name==='clearEmptyLines')return clearEmptyLines();
+ if(name==='showReview'){setTab('review');renderReview();return}
+ if(name==='goTech'){setTab('tech');return}
  if(name==='removePhoto'){if(draft){draft.photo_data=null;dirty=true;renderPhotoZone();renderPreview()}return}
  if(name==='print')return printDocument();
  if(name==='duplicate'){if(draft?.id)return openCopy(draft.id);tell('Сначала сохраните ТТК для копирования.',true);return}
 }
 function clickHandler(ev){
  const t=ev.target;
- const btn=t.closest('[data-nav],[data-link],[data-command],[data-project-open],[data-project-edit],[data-project-archive],[data-project-remove],[data-doc-open],[data-doc-copy],[data-doc-archive],[data-doc-delete],[data-template-create],[data-editor-template],[data-tab],[data-remove-line]');
+ const btn=t.closest('[data-nav],[data-link],[data-command],[data-project-open],[data-project-edit],[data-project-archive],[data-project-remove],[data-doc-open],[data-doc-copy],[data-doc-archive],[data-doc-delete],[data-template-create],[data-editor-template],[data-tab],[data-remove-line],[data-move-line],[data-duplicate-line],[data-review-tab]');
  if(!btn)return;
  if(btn.matches('a'))ev.preventDefault();
  if(btn.dataset.nav!==undefined){if(btn.dataset.nav==='editor'){if(draft)navigate('editor');else startNewDoc()}else navigate(btn.dataset.nav);return}
@@ -651,7 +698,10 @@ function clickHandler(ev){
  if(btn.dataset.templateCreate!==undefined){pendingTemplate=btn.dataset.templateCreate;startNewDoc(null,pendingTemplate);return}
  if(btn.dataset.editorTemplate!==undefined){if(draft){syncDraft();draft.template=btn.dataset.editorTemplate;dirty=true;renderEditorDesigns();renderPreview()}return}
  if(btn.dataset.tab!==undefined){setTab(btn.dataset.tab);return}
- if(btn.dataset.removeLine!==undefined&&draft){syncDraft();draft.lines.splice(Number(btn.dataset.removeLine),1);dirty=true;renderLineRows();renderPreview();return}
+ if(btn.dataset.reviewTab!==undefined){setTab(btn.dataset.reviewTab);return}
+ if(btn.dataset.moveLine!==undefined){lineMove(Number(btn.dataset.moveLine),Number(btn.dataset.direction));return}
+ if(btn.dataset.duplicateLine!==undefined){lineDuplicate(Number(btn.dataset.duplicateLine));return}
+ if(btn.dataset.removeLine!==undefined){lineRemove(Number(btn.dataset.removeLine));return}
 }
 function init(){
  paintIcons();
