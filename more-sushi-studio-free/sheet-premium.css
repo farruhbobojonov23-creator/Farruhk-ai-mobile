@@ -107,3 +107,5 @@
 .brand-logo-preview img {max-width:240px;max-height:110px;object-fit:contain;padding:12px}
 .sheet-workbench-controls {flex-wrap:wrap}
 @media print {#paper .sheet-ocean-photo{object-fit:cover!important}#paper .sheet-photo-veil,#paper .sheet-seascape{display:block!important}#paper .sheet-seascape{height:40.48mm!important}}
+#paper.sheet-document.theme-arctic .sheet-masthead {height:153px;min-height:153px;max-height:153px;flex-basis:153px}
+@media print {#paper .sheet-ocean-photo{z-index:-3!important}#paper .sheet-photo-veil{z-index:-2!important}#paper .sheet-seascape{z-index:-1!important}}
