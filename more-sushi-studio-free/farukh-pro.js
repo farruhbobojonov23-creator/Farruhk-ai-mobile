@@ -843,6 +843,7 @@ function detectOverflow(){
 }
 function printDocument(){
  if(!draft){tell('Сначала создайте или откройте ТТК',true);return}
+ collectSheetValues();
  syncDraft();
  if(draft.status==='Утверждено'){
   const issues=approvedIssues(draft);if(issues.length){tell('Нельзя печатать как утверждённую ТТК: '+issues.slice(0,3).join(', '),true);return}
@@ -852,6 +853,30 @@ function printDocument(){
 }
 /* Main actions and keyboard-safe event wiring. */
 function onCommand(name){
+ if(name==='sheetAddLine'){
+  if(!draft)return;
+  collectSheetValues();
+  if(draft.lines.length>=100){tell('Не более 100 ингредиентов на ТТК.',true);return}
+  draft.lines.push({name:'',gross_g:null,net_g:null});
+  renderLineRows();dirty=true;renderPreview();
+  const row=$('paper')?.querySelector('tr[data-sheet-line]:last-child [data-sheet-line-field="name"]');
+  row?.focus();return;
+ }
+ if(name==='sheetUndoLine'){collectSheetValues();lineUndo();return}
+ if(name==='sheetPhoto'){$('ePhotoInput')?.click();return}
+ if(name==='sheetRemovePhoto'){
+  if(!draft)return;
+  collectSheetValues();
+  if(!confirm('Удалить фотографию из этой ТТК?'))return;
+  draft.photo_data=null;dirty=true;renderPhotoZone();renderPreview();return;
+ }
+ if(name==='sheetProjectEdit'){
+  if(draft?.project_id)return openProjectDialog(draft.project_id);
+  tell('Сначала выберите проект.',true);return;
+ }
+ if(name==='sheetZoomIn')return sheetZoomBy(.1);
+ if(name==='sheetZoomOut')return sheetZoomBy(-.1);
+ if(name==='sheetZoomFit'){sheetManualZoom=null;fitPaper();return}
  if(name==='newDoc')return startNewDoc();
  if(name==='newProject')return openProjectDialog();
  if(name==='closeProject'){pendingCreate=false;$('projectDialog').close();return}
@@ -873,7 +898,7 @@ function onCommand(name){
 }
 function clickHandler(ev){
  const t=ev.target;
- const btn=t.closest('[data-nav],[data-link],[data-command],[data-project-open],[data-project-edit],[data-project-archive],[data-project-remove],[data-doc-open],[data-doc-copy],[data-doc-archive],[data-doc-delete],[data-template-create],[data-editor-template],[data-tab],[data-remove-line],[data-move-line],[data-duplicate-line],[data-review-tab]');
+ const btn=t.closest('[data-nav],[data-link],[data-command],[data-project-open],[data-project-edit],[data-project-archive],[data-project-remove],[data-doc-open],[data-doc-copy],[data-doc-archive],[data-doc-delete],[data-template-create],[data-editor-template],[data-tab],[data-remove-line],[data-sheet-remove],[data-sheet-move],[data-sheet-theme],[data-move-line],[data-duplicate-line],[data-review-tab]');
  if(!btn)return;
  if(btn.matches('a'))ev.preventDefault();
  if(btn.dataset.nav!==undefined){if(btn.dataset.nav==='editor'){if(draft)navigate('editor');else startNewDoc()}else navigate(btn.dataset.nav);return}
@@ -889,6 +914,17 @@ function clickHandler(ev){
  if(btn.dataset.docDelete!==undefined){deleteDocument(btn.dataset.docDelete);return}
  if(btn.dataset.templateCreate!==undefined){pendingTemplate=btn.dataset.templateCreate;startNewDoc(null,pendingTemplate);return}
  if(btn.dataset.editorTemplate!==undefined){if(draft){syncDraft();draft.template=btn.dataset.editorTemplate;dirty=true;renderEditorDesigns();renderPreview()}return}
+ if(btn.dataset.sheetTheme!==undefined){
+  if(!draft)return;
+  collectSheetValues();
+  if(templates.some(t=>t.id===btn.dataset.sheetTheme)){
+   draft.template=btn.dataset.sheetTheme;dirty=true;renderPreview();
+  }return;
+ }
+ if(btn.dataset.sheetRemove!==undefined){directSheetRemove(Number(btn.dataset.sheetRemove));return}
+ if(btn.dataset.sheetMove!==undefined){
+  directSheetMove(Number(btn.dataset.sheetMove),Number(btn.dataset.sheetMoveDir));return;
+ }
  if(btn.dataset.tab!==undefined){setTab(btn.dataset.tab);return}
  if(btn.dataset.reviewTab!==undefined){setTab(btn.dataset.reviewTab);return}
  if(btn.dataset.moveLine!==undefined){lineMove(Number(btn.dataset.moveLine),Number(btn.dataset.direction));return}
@@ -920,6 +956,13 @@ function init(){
  }));
  $('editorLines').addEventListener('input',()=>{if(draft)syncDraft()});
  $('ePhotoInput').addEventListener('change',photoSelected);
+ $('paper').addEventListener('input',sheetInputHandler);
+ $('paper').addEventListener('change',sheetInputHandler);
+ $('paper').addEventListener('paste',plainSheetPaste);
+ $('sheetProject').addEventListener('change',sheetSelectProject);
+ $('sheetStatus').addEventListener('change',sheetSelectStatus);
+ $('sheetVerified').addEventListener('change',sheetCheckVerified);
+
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
  // Reuse the existing user login so this replacement starts empty without requiring new account setup.
