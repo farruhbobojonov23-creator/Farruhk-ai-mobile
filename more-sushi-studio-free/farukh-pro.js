@@ -12,9 +12,9 @@ const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2
 let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
- {id:'atelier',name:'Морской сапфир',sub:'Фотография волн · лазурь · золото',desc:'Настоящая фотография моря, пенящиеся волны и небо. Светлые блоки и фото блюда без рамки.'},
- {id:'classic',name:'Северный жемчуг',sub:'Море и небо · перламутр',desc:'Светлый фотолист с морем, облаками и жемчужными блоками. Логотип выбранного бренда.'},
- {id:'arctic',name:'Ночной океан',sub:'Морское фото · глубокий синий',desc:'Фотография океана в глубокой синей тонировке, золотые акценты и светлые блоки для читаемого текста.'}
+ {id:'atelier',name:'Море Суши · лёд',sub:'Ледяной голубой · исходная композиция',desc:'Логотип слева, крупное фото блюда, синяя таблица и ледяной узор по краям.'},
+ {id:'classic',name:'Море Суши · красный',sub:'Чёрный · красные мазки',desc:'Чёрный лист с красными акцентами, крупным фото блюда и контрастными разделами.'},
+ {id:'arctic',name:'Море Суши · золото',sub:'Чёрный · золотой бамбук',desc:'Чёрно-золотое оформление, декоративный бамбук и светлые блоки рецептуры.'}
 ];
 const iconPaths={
  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -636,30 +636,18 @@ function renderPreview(){
  paper.className='sheet-document theme-'+(templates.some(t=>t.id===draft.template)?draft.template:'atelier');
  paper.style.setProperty('--sheet-brand-accent',safeAccent);
  paper.innerHTML=
- '<img class="sheet-art sheet-ocean-photo" src="./'+(draft.template==='classic'?'ocean-sky.jpg':'ocean-wave.jpg')+'" alt="" aria-hidden="true"><div class="sheet-photo-veil" aria-hidden="true"></div><img class="sheet-seascape" src="./'+(draft.template==='classic'?'ocean-sky.jpg':'ocean-wave.jpg')+'" alt="" aria-hidden="true">'+
- '<div class="sheet-masthead">'+
- '<div class="sheet-header-inner"><div class="sheet-logo-title">'+
- '<div class="sheet-header-kicker">АВТОРСКАЯ КОЛЛЕКЦИЯ РЕЦЕПТУР</div>'+
- '<div class="sheet-brand-name">'+esc((p?.name||'НОВЫЙ ПРОЕКТ').toLocaleUpperCase('ru'))+'</div>'+
- '<div class="sheet-brand-sub">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА / А4</div>'+
- '</div><button type="button" class="sheet-project-logo sheet-screen-only-button" data-command="sheetProjectEdit" title="Изменить логотип проекта">'+logo+'</button></div>'+
- '<div class="sheet-header-footer"><div class="sheet-header-mark">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</div>'+
- '<div class="sheet-header-count">А4 · '+esc(draft.code||'ТТК')+'</div></div>'+
- '</div>'+
+ '<img class="sheet-art" src="./sheet-original-'+({atelier:'ice',classic:'red',arctic:'gold'}[draft.template]||'ice')+'.svg" alt="" aria-hidden="true">'+
+ '<div class="sheet-masthead"><div class="original-brand"><button type="button" class="sheet-project-logo sheet-screen-only-button" data-command="sheetProjectEdit" title="Изменить логотип проекта">'+logo+'</button><div class="sheet-brand-name">'+esc(p?.name||'Ваш бренд')+'</div></div>'+
+ '<div class="original-heading"><div class="original-document-title">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ<br>КАРТА (ТТК)</div><div class="sheet-eyebrow">Код ТТК: '+editablePaper('eCode',draft.code,'Код ТТК','line')+'</div><div class="original-dish-title">Название блюда: '+editablePaper('eTitle',draft.title,'Введите название блюда','line')+'</div></div></div>'+
  '<div class="sheet-main">'+
- '<div class="sheet-dish-header"><div class="sheet-dish-main">'+
- '<div class="sheet-eyebrow">ТТК · <span class="sheet-doc-code">'+editablePaper('eCode',draft.code,'Код ТТК','line')+'</span></div>'+
- '<h1 class="sheet-dish-name">'+editablePaper('eTitle',draft.title,'Нажмите и введите название блюда','line')+'</h1>'+
- '<div class="sheet-dish-meta"><span>КАТЕГОРИЯ: '+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</span>'+
- '<span>ВЫХОД: '+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' <b>г</b></span></div>'+
- '</div><div class="sheet-photo-wrap"><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button>'+
+ '<div class="sheet-dish-header"><div class="sheet-photo-wrap"><button type="button" class="sheet-dish-photo sheet-screen-only-button" data-command="sheetPhoto" title="Добавить или заменить фото блюда">'+photo+'</button>'+
  (validImg(draft.photo_data)?'<button type="button" class="sheet-remove-photo sheet-screen-only" data-command="sheetRemovePhoto" title="Удалить фото" aria-label="Удалить фото">×</button>':'')+
- '</div></div>'+
+ '</div><div class="original-info"><div><span class="original-info-icon">◈</span><span>Категория<strong>'+editablePaper('eCategory',draft.category||'Блюда','Категория','line')+'</strong></span></div><div><span class="original-info-icon">✓</span><span>Статус<strong>'+esc(draft.status||'Черновик')+'</strong></span></div><div><span class="original-info-icon">⊞</span><span>Выход<strong>'+editablePaper('eYield',draft.yield_g,'Выход блюда, г','number')+' г</strong></span></div></div></div>'+
  '<div class="sheet-2col">'+
  sheetParagraph('fScope','01','Область применения',f.scope,'Наименование блюда и предприятий, которым разрешены изготовление и реализация','sheet-compact')+
  sheetParagraph('fRaw','02','Требования к сырью',f.raw,'Требования к сырью и документам, подтверждающим качество и безопасность','sheet-compact')+
  '</div>'+
- '<section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура · на указанный выход блюда / ПФ</h3></div>'+
+ '<div class="original-recipe-layout"><section class="sheet-section sheet-recipe-section"><div class="sheet-section-head"><span>03</span><h3>Рецептура · на указанный выход блюда / ПФ</h3></div>'+
  '<table class="sheet-ingredient-table"><thead><tr><th>№</th><th>Наименование сырья или полуфабриката</th><th>БРУТТО, Г</th><th>НЕТТО, Г</th><th class="sheet-screen-only">УПРАВЛЕНИЕ</th></tr></thead>'+
  '<tbody id="sheetIngredients">'+(rows.length?rows.map(buildSheetRow).join(''):'<tr><td colspan="5" class="sheet-recipe-empty">Нет ингредиентов — нажмите «Добавить строку»</td></tr>')+'</tbody></table>'+
  '<div class="sheet-recipe-bottom"><div class="sheet-recipe-total">'+
@@ -667,7 +655,10 @@ function renderPreview(){
  '<div>ВСЕГО НЕТТО <strong id="sheetTotalNet">'+fmt(rows.reduce((sum,l)=>sum+(Number(l.net_g)||0),0))+' г</strong></div></div>'+
  '<div class="sheet-add-actions sheet-screen-only"><button type="button" data-command="sheetAddLine">＋ Добавить строку</button>'+
  (lastRemovedLine?'<button type="button" data-command="sheetUndoLine">↶ Вернуть</button>':'')+'</div></div></section>'+
+ '<div class="original-process-column">'+
  sheetParagraph('fProcess','04','Технологический процесс',f.process,'Подготовка, последовательность операций, режимы обработки, время, оборудование и контроль','sheet-process')+
+ sheetParagraph('fNutrition','07','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
+ '</div></div>'+
  '<div class="sheet-2col">'+
  sheetParagraph('fServing','05','Оформление, подача и реализация',f.serving,'Оформление, порционирование, температура подачи, упаковка и порядок реализации','sheet-small')+
  sheetParagraph('fStorage','05а','Хранение и транспортирование',f.storage,'Подтверждённые срок годности, температура и условия хранения; условия доставки при необходимости','sheet-small')+
@@ -675,7 +666,7 @@ function renderPreview(){
  sheetParagraph('fQuality','06','Качество и безопасность',f.quality,'Внешний вид, консистенция, вкус, запах; требования к микробиологическим и иным показателям безопасности','sheet-small')+
  sheetParagraph('fAllergens','+','Аллергены',f.allergens,'Только подтверждённые аллергены','sheet-small')+
  '</div>'+
- sheetParagraph('fNutrition','07','Пищевая и энергетическая ценность',f.nutrition,'Белки, жиры, углеводы, ккал на 100 г — по проверенным данным','sheet-nutrition')+
+
  '<div class="sheet-signatures">'+
  '<div class="sheet-sign"><span>РАЗРАБОТАЛ</span>'+editablePaper('fDeveloped',f.developed,'Имя, должность','line')+'<i></i></div>'+
  '<div class="sheet-sign"><span>УТВЕРДИЛ</span>'+editablePaper('fApproved',f.approved,'Имя, должность','line')+'<i></i></div>'+
