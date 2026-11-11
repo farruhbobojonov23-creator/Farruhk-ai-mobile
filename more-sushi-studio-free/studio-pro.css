@@ -156,6 +156,11 @@ body{background:#f1f5f8;color:var(--ms-pro-ink)}
 #editorPage:not(.ultraEditorMode)>.panel{padding:20px;border-radius:19px}
 #editorPage:not(.ultraEditorMode) #msProductEditorNote{border:1px solid #d7eaf2;border-left:4px solid #167b9f;background:#f5fafc}
 #editorPage:not(.ultraEditorMode) #components>.row{border:1px solid #dee8ef;border-radius:11px;background:#f9fbfd}
+.msStudioToast{position:fixed;z-index:1200;right:20px;bottom:20px;max-width:min(420px,calc(100% - 40px));background:#0a4b50;
+ color:#fff;font-size:13px;font-weight:750;line-height:1.45;padding:14px 18px;border-radius:13px;
+ box-shadow:0 15px 40px #07283e47;border:1px solid #ffffff24}
+.msStudioToast[hidden]{display:none!important}
+#ingredientsPage .msFormCloseButton{margin-left:auto;font-size:11px;min-height:36px}
 #ingredientsPage .msIngredientsToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 13px}
 #ingredientsPage .msIngredientsToolbar h2{font-size:20px;color:#193c53;letter-spacing:-.3px;margin:0}
 #ingredientsPage .msIngredientsToolbar p{font-size:11px;color:#7f93a2;margin:5px 0 0}
