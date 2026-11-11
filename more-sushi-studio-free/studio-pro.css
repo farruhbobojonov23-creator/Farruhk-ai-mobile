@@ -1,0 +1,218 @@
+/* МОРЕ СУШИ | STUDIO PRO 2.0 | professional workflows
+   Screen-only layer. The independent TTK A4 document is never changed by this file. */
+@media screen{
+:root{--ms-pro-ink:#163449;--ms-pro-navy:#0b2539;--ms-pro-deep:#071c2b;--ms-pro-ocean:#126483;--ms-pro-red:#e74760;--ms-pro-border:#dce7ed;--ms-pro-muted:#647d91}
+body{background:#f1f5f8;color:var(--ms-pro-ink)}
+.side{background:linear-gradient(175deg,#081b2a 0%,#0e2a3d 75%,#0b3548 100%)}
+.side>.logo{letter-spacing:-.4px}
+.side>.logo span{color:var(--ms-pro-red)}
+.side nav{gap:7px}
+.side nav button{font-size:13px;letter-spacing:-.08px;font-weight:640;min-height:48px;gap:12px}
+.side nav button.active{background:#ffffff18;box-shadow:inset 0 0 0 1px #ffffff23}
+.side nav .msNavIcon{width:33px;height:33px;flex:0 0 33px;display:grid;place-items:center;border-radius:10px;background:#ffffff0b;color:#a3ccdd}
+.side nav button.active .msNavIcon{background:#ffffff21;color:#fff}
+.side nav .msNavIcon svg{width:19px;height:19px;stroke-width:1.9}
+.side nav button[data-page="product"] .msNavIcon{color:#f9a3b0}
+.side nav button.active[data-page="product"] .msNavIcon{color:#fff}
+.side nav button.msTtkNav{margin-top:14px;border-top:1px solid #ffffff1a;border-radius:0;padding-top:17px}
+.msShellVersion{font-size:10px;color:#8ab2c2;font-weight:700;padding:15px 10px 0}
+.top h1{font-size:29px;font-weight:900;letter-spacing:-.8px}
+.top .muted{font-size:12px;color:#72889a}
+.msHomeHero h2{font-size:clamp(29px,3.3vw,43px);font-weight:900;letter-spacing:-1.3px}
+.msHomeHero{min-height:238px;border-radius:23px}
+.msHomeHero .msHomeSymbol{background:#ffffff0a}
+.msHomeHero .msHomeSymbol svg{width:108px;height:108px;display:block;transform:rotate(7deg);filter:drop-shadow(0 12px 20px #00152570)}
+.stat{padding:22px;min-height:120px}
+.stat b{font-size:38px}
+.msStep{border-radius:18px;padding:19px}
+.msStep h3{font-size:15px}
+.msStep p{font-size:12px}
+.msStep button,.msStep a{min-height:42px;font-size:12px}
+#msProductMenu{
+ display:block!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;
+ color:#173b50;min-width:0
+}
+#msProductMenu[hidden]{display:none!important}
+#catalogPage:not(.ultraCatalogMode)>.panel.msCatalogPro{
+ background:#f1f5f8;box-shadow:none;border:0;border-top:0;
+ padding:0!important;margin:0!important;border-radius:0;
+}
+#catalogPage>.panel.msCatalogPro>.row:first-child{display:none!important}
+#catalogPage>.panel.msCatalogPro.msCatalogGridMode>.scroll{display:none!important}
+#catalogPage>.panel.msCatalogPro.msCatalogTableMode>.scroll{display:block!important;margin-top:12px;background:#fff;border:1px solid #dce8ef;border-radius:14px;box-shadow:0 8px 22px #123c5009}
+#catalogPage>.panel.msCatalogPro.msCatalogTableMode #msProductGrid{display:none!important}
+#catalogPage>.panel.msCatalogPro.msCatalogTableMode .scroll tr[hidden]{display:none!important}
+.msCatalogHero{
+ display:flex;justify-content:space-between;align-items:center;gap:20px;
+ padding:clamp(24px,3vw,34px);border-radius:22px;
+ background:radial-gradient(circle at 82% 10%,#18637b 0,transparent 39%),
+ linear-gradient(115deg,#081e2f,#123c55 73%,#19506b);color:#fff;overflow:hidden;
+ position:relative;isolation:isolate;min-height:182px
+}
+.msCatalogHero::before{content:"";position:absolute;z-index:-1;right:-40px;top:-130px;width:300px;height:300px;border-radius:50%;
+ border:1px solid #ffffff28;box-shadow:0 0 0 35px #ffffff0a,0 0 0 81px #ffffff08}
+.msCatalogIntro{max-width:680px;min-width:0}
+.msCatalogIntro small{font-size:10px;font-weight:850;letter-spacing:2px;color:#a4cde0}
+.msCatalogIntro h2{font-size:clamp(28px,3vw,38px);font-weight:900;letter-spacing:-1.1px;margin:9px 0;color:#fff;line-height:1.1}
+.msCatalogIntro p{color:#c9e1ec;font-size:13px;line-height:1.55;margin:0}
+.msCatalogHeroActions{display:flex;flex-direction:column;gap:9px;flex:0 0 auto}
+.msCatalogHeroActions button,.msCatalogHeroLink{
+ width:100%;min-height:43px;padding:11px 16px;border-radius:10px;font-size:12px;font-weight:850;
+ display:inline-flex;align-items:center;justify-content:center;text-align:center;
+ text-decoration:none;border:1px solid #fff;white-space:nowrap}
+.msCatalogHeroActions button{background:#fff;color:#123f55;box-shadow:0 7px 22px #061b2b40}
+.msCatalogHeroActions button:hover{background:#e4f2f7;color:#12405a}
+.msCatalogHeroLink{color:#f4fdff;border-color:#ffffff6b;background:#ffffff10}
+.msCatalogHeroLink:hover{color:#fff;background:#ffffff22}
+.msCatalogStatistics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.msCatalogStat{
+ border:1px solid var(--ms-pro-border);border-radius:16px;background:#fff;
+ padding:15px 17px;min-width:0;min-height:100px;
+ box-shadow:0 6px 22px #0d34460a
+}
+.msCatalogStat>span{display:block;font-size:11px;color:#6f8799;font-weight:750;line-height:1.35}
+.msCatalogStat strong{display:block;font-weight:900;font-size:29px;letter-spacing:-.7px;margin:6px 0 2px;color:#114a69}
+.msCatalogStat small{font-size:10px;color:#8da2b1}
+.msCatalogStat:nth-child(2) strong{color:#a0702b}
+.msCatalogStat:nth-child(3) strong{color:#2c729a}
+.msCatalogStat:nth-child(4) strong{color:#197b61}
+.msCatalogTools{
+ display:grid;grid-template-columns:minmax(220px,1fr) minmax(155px,180px) minmax(160px,185px);
+ gap:10px;margin:22px 0 12px
+}
+.msCatalogSearch{display:flex;align-items:center;gap:9px;border:1px solid #d3e3ec;background:#fff;padding:0 14px;
+ border-radius:11px;min-width:0;transition:border-color .15s}
+.msCatalogSearch:focus-within{border-color:#268cb4;box-shadow:0 0 0 3px #b8e2f12b}
+.msCatalogSearch>span{font-size:23px;font-weight:600;color:#7794a7;line-height:1}
+.msCatalogSearch input{border:0;background:transparent;width:100%;font-size:13px;outline:none;min-height:46px;min-width:0;box-shadow:none!important;color:#123a52;padding:10px 0}
+.msCatalogTools select{border:1px solid #d3e3ec;background:#fff;border-radius:11px;min-height:46px;
+ min-width:0;width:100%;padding:10px 12px;color:#245771;font-size:12px;font-weight:750}
+.msCatalogToolbar{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;
+ margin:0 0 13px;padding:8px 0;flex-wrap:wrap}
+.msCatalogSegments{display:inline-flex;align-items:center;gap:5px;padding:4px;border-radius:12px;background:#e5edf3}
+.msCatalogSegments button{display:flex;align-items:center;gap:7px;min-height:37px;padding:8px 12px;border-radius:9px;
+ background:transparent;color:#496d85;font-size:12px;font-weight:800;white-space:nowrap}
+.msCatalogSegments button:hover{background:#d5e5ee;color:#214b67}
+.msCatalogSegments button.selected{background:#fff;color:#114c68;box-shadow:0 3px 10px #0c304518}
+.msCatalogSegments button span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 4px;
+ background:#d6e3eb;color:#43667e;border-radius:6px;font-size:10px}
+.msCatalogSegments button.selected span{background:#e0f1f8;color:#146384}
+.msCatalogDisplay{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+#msProductCount{font-size:11px;font-weight:750;color:#7890a2}
+.msCatalogView{display:flex;padding:3px;gap:3px;border:1px solid #e1eaf0;border-radius:9px;background:#fff}
+.msCatalogView button{height:33px;width:33px;min-height:33px;padding:0;display:grid;place-items:center;
+ border-radius:7px;background:transparent;color:#668397;font-size:18px}
+.msCatalogView button:hover{background:#edf4f8;color:#2d617e}
+.msCatalogView button.selected{background:#154e6d;color:#fff}
+.msProductGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;align-items:stretch}
+.msRollCard{min-width:0;background:#fff;border:1px solid #d8e6ed;border-radius:18px;overflow:hidden;
+ box-shadow:0 5px 20px #09334709;display:flex;flex-direction:column;
+ transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.msRollCard:hover{transform:translateY(-3px);border-color:#b5d4e2;box-shadow:0 13px 28px #0c334016}
+.msRollPhoto{aspect-ratio:1.7/1;min-height:156px;background:
+ radial-gradient(ellipse at center 85%,#e1edf3 0,transparent 58%),
+ repeating-linear-gradient(45deg,#f4f8fa,#f4f8fa 10px,#f7fafc 10px,#f7fafc 20px);
+ display:grid;place-items:center;position:relative;overflow:hidden}
+.msRollPhoto:after{content:"";pointer-events:none;position:absolute;left:0;right:0;bottom:0;height:1px;background:#dfe8ee}
+.msRollPhoto.msHasPhoto{background:radial-gradient(ellipse at 50% 65%,#e5f1f6,#f8fbfc 75%)}
+.msRollPhoto img{width:93%;height:93%;object-fit:contain;position:relative;z-index:1}
+.msRollType{position:absolute;top:13px;left:13px;z-index:2;background:#ffffffec;color:#345b70;border:1px solid #dde9ee;
+ font-size:9px;font-weight:900;letter-spacing:1.2px;border-radius:7px;padding:7px 9px}
+.msPhotoEmpty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#acc2ce}
+.msPhotoDisc{width:94px;height:94px;display:grid;place-items:center}
+.msPhotoDisc svg{width:78px;height:78px;opacity:.72}
+.msPhotoEmptyText{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:1.1px;color:#92aab9}
+.msRollBody{padding:17px 17px 11px;flex:1;min-width:0}
+.msRollCode{font-size:10px;font-weight:850;letter-spacing:.8px;color:#5e91ad}
+.msRollBody h3{color:#183a4e;font-size:16px;font-weight:870;line-height:1.3;margin:8px 0 13px;
+ letter-spacing:-.35px;overflow-wrap:anywhere;min-height:42px}
+.msRollMeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #edf2f5}
+.msRecipeState{display:inline-flex;gap:6px;align-items:center;border-radius:20px;font-size:10px;font-weight:800;padding:6px 8px;background:#fff5e7;color:#94672b}
+.msRecipeState i{width:6px;height:6px;display:block;border-radius:50%;background:currentColor}
+.msRecipeState.test{color:#44739d;background:#edf5fd}
+.msRecipeState.ready{color:#187656;background:#e8f7ef}
+.msRecipeState.archived{color:#758494;background:#edf1f4}
+.msRollWeight{font-size:11px;font-weight:750;color:#37566a;white-space:nowrap}
+.msRollWeight b{font-size:16px;color:#16465d}
+.msRollWeight span{display:block;text-align:right;font-size:9px;color:#93a6b2;font-weight:500;margin-top:2px}
+.msRollFooter{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 17px 16px;align-items:stretch}
+.msRollEdit,.msRollTtk{display:flex;align-items:center;justify-content:center;min-width:0;min-height:42px;border-radius:10px;
+ text-align:center;font-size:12px;font-weight:850;text-decoration:none;line-height:1.2;padding:10px 12px}
+.msRollEdit{background:#145372;color:#fff}
+.msRollEdit:hover{background:#0c3e60}
+.msRollTtk{background:#edf5fa;border:1px solid #d4e6ef;color:#155d7d}
+.msRollTtk:hover{background:#dcecf5;color:#104b6d}
+.msCatalogCaution{display:flex;gap:12px;align-items:flex-start;background:#fffbf2;border:1px solid #f1e3c5;
+ border-radius:13px;padding:14px 16px;margin-top:18px;color:#8f6f3c}
+.msCatalogCaution .msCautionIcon{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;
+ background:#f4deb2;color:#815c22;font-weight:900;font-size:13px}
+.msCatalogCaution strong{display:block;font-size:12px;color:#77552c;margin-bottom:3px}
+.msCatalogCaution p{font-size:11px;line-height:1.5;margin:0;color:#947b53}
+.msCatalogEmpty{grid-column:1/-1;text-align:center;padding:65px 20px;border:1px dashed #b9d3e1;border-radius:18px;background:#fff}
+.msCatalogEmpty .msEmptyIcon{color:#75a0b5;font-size:48px}
+.msCatalogEmpty strong{display:block;font-size:17px;color:#26556f;margin:4px 0}
+.msCatalogEmpty p{font-size:12px;color:#8096a6}
+.msCatalogEmpty button{margin-top:9px}
+#editorPage:not(.ultraEditorMode)>.panel{padding:20px;border-radius:19px}
+#editorPage:not(.ultraEditorMode) #msProductEditorNote{border:1px solid #d7eaf2;border-left:4px solid #167b9f;background:#f5fafc}
+#editorPage:not(.ultraEditorMode) #components>.row{border:1px solid #dee8ef;border-radius:11px;background:#f9fbfd}
+#ingredientsPage .msIngredientsToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 13px}
+#ingredientsPage .msIngredientsToolbar h2{font-size:20px;color:#193c53;letter-spacing:-.3px;margin:0}
+#ingredientsPage .msIngredientsToolbar p{font-size:11px;color:#7f93a2;margin:5px 0 0}
+#ingredientsPage .msIngredientTools{display:flex;gap:8px;flex-wrap:wrap}
+#ingredientsPage .msIngredientTools button{font-size:12px;font-weight:800;border-radius:9px;min-height:42px}
+#ingredientsPage #ingredientFormPanel[hidden]{display:none!important}
+#ingredientsPage #ingredientFormPanel{scroll-margin-top:105px;box-shadow:0 11px 26px #10394d0a;border-radius:16px;border:1px solid #d1e4ec;border-top:4px solid #1783a5}
+#ingredientsPage #ingredientFormPanel #ingFormTitle{font-weight:900}
+#ingredientsPage .ingCategoryCard{border-radius:15px;min-height:127px}
+#ingredientsPage .ingCategoryName{font-size:14px}
+#ingredientsPage .ingCategoryGo{font-weight:850}
+#ingredientsPage .ingGroupSummary{border-radius:0}
+#ingredientsPage>.panel.msIngredientListPanel{padding:24px}
+#ingredientsPage>.panel.msIngredientListPanel .ingredientListHead{padding-bottom:12px;border-bottom:1px solid #e3edf3}
+#ingredientsPage #ingSearch{min-height:42px}
+#ingredientsPage .ingCategoryGrid{margin-top:15px}
+#ingredientsPage .ingLegend{border-radius:9px;padding:10px 12px;background:#f3f9fc;border:1px solid #dfeaf2}
+#ingredientsPage .ingCategoryCard:focus-visible,.msRollEdit:focus-visible,.msRollTtk:focus-visible{outline:3px solid #52add4;outline-offset:2px}
+}
+@media screen and (max-width:1300px){.msProductGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:970px){.msCatalogStatistics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .msCatalogHero{align-items:flex-start;flex-wrap:wrap}
+ .msCatalogHeroActions{flex-direction:row;flex-wrap:wrap}}
+@media screen and (max-width:760px){.side nav button{font-size:12px;gap:7px}
+ .side nav .msNavIcon{width:27px;height:27px;flex-basis:27px;border-radius:8px}
+ .side nav .msNavIcon svg{width:17px;height:17px}
+ .side nav button.msTtkNav{margin:0;border-top:1px solid #ffffff22;padding:10px 12px;border-radius:9px}
+ .msCatalogHero{border-radius:17px;padding:22px}
+ .msCatalogTools{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .msCatalogTools .msCatalogSearch{grid-column:1/-1}
+ .msProductGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+ .msRollPhoto{min-height:120px}
+ .msRollBody{padding:13px 12px 6px}
+ .msRollBody h3{font-size:14px}
+ .msRollFooter{padding:7px 12px 13px}
+ .msRollEdit,.msRollTtk{font-size:11px;padding:9px 8px}
+ .msShellVersion{display:none}
+ #ingredientsPage>.panel.msIngredientListPanel{padding:16px}}
+@media screen and (max-width:570px){.msCatalogHero{display:block;padding:22px 18px;min-height:0}
+ .msCatalogHeroActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+ .msCatalogHeroActions button,.msCatalogHeroLink{white-space:normal;font-size:11px;padding:10px 7px}
+ .msCatalogIntro h2{font-size:27px}
+ .msCatalogIntro p{font-size:12px}
+ .msCatalogStat{padding:13px 11px;min-height:87px}
+ .msCatalogStat strong{font-size:25px}
+ .msCatalogTools{margin-top:18px}
+ .msCatalogToolbar{align-items:flex-start}
+ .msCatalogSegments{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .msCatalogSegments button{justify-content:center;min-width:0;font-size:10px;gap:4px;padding:8px 4px}
+ .msCatalogDisplay{width:100%;justify-content:space-between;padding:1px 3px}
+ .msProductGrid{grid-template-columns:1fr;gap:12px}
+ .msRollCard{border-radius:15px}
+ .msRollPhoto{aspect-ratio:1.85/1}
+ .msRollBody{padding:17px 16px 7px}
+ .msRollBody h3{font-size:17px;min-height:0;margin-bottom:15px}
+ .msRollFooter{padding:8px 16px 15px}
+ .msRollEdit,.msRollTtk{min-height:43px;font-size:12px}
+ #ingredientsPage .msIngredientsToolbar{flex-direction:column;align-items:stretch}
+ #ingredientsPage .msIngredientTools button{flex:1}}
+@media screen and (prefers-reduced-motion:reduce){.msRollCard{transition:none}}
