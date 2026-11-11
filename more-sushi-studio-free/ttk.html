@@ -573,6 +573,16 @@ async function save(){
  if(unknown.some(l=>l.label.toLowerCase().startsWith('пф:'))){msg('Неизвестный полуфабрикат: '+unknown.filter(l=>l.label.toLowerCase().startsWith('пф:')).map(l=>l.label).join(', ')+'. Сначала создайте ПФ в базе.','error');return}
  // New raw ingredients may be entered directly in the A4 table and created in the common ingredient base.
  if(get('status')==='Утверждено'){
+   if(!ttkAutoSummary?.nutrition_verified || !ttkAutoSummary?.allergens_verified){
+     msg('Нельзя утвердить ТТК: КБЖУ и аллергены должны быть проверены по исходным карточкам каждого ингредиента, включая вложенные полуфабрикаты.','error');return;
+   }
+   const unapprovedPf=lines.map(l=>findRef(l.label)).filter(ref=>ref?.prefab_id)
+     .map(ref=>recipes.find(r=>Number(r.id)===Number(ref.prefab_id)))
+     .filter(r=>!r||r.status!=='Утверждено');
+   if(unapprovedPf.length){msg('Нельзя утвердить ТТК: в рецептуре используются неутверждённые полуфабрикаты.','error');return}
+   if(current?.kind==='product'&&!image){
+     msg('Для утверждения готового ролла добавьте оригинальную фотографию блюда.','error');return;
+   }
    const pending=[get('scope'),stepsText(),get('storage')].join(' ');
    if(/не утвержден|не подтвержден|не установ|требует провер|требуют провер|требуют корректиров|по образцу|в разработке|в макете/i.test(pending)){msg('Нельзя утверждать карту с непроверенными сроками, выходом или рецептурой. Оставьте статус «Черновик» до проработки.','error');return}
    const required=['scope','raw_requirements','step1','quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety','serving_sale','approved_by','introduced_at'];
