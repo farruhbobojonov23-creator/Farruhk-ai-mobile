@@ -172,7 +172,7 @@ function designReset(){
  for(const key of ['navy','blue','red','paper','logoSize','photo'])delete c[key];
  c.accent='';
  c.font=100;
- notifyChanged();renderControls();
+ E()?.rerender?.();E()?.markDirty?.();renderControls();
 }
 async function fileBackdrop(event){
  const file=event.target.files?.[0];
@@ -260,6 +260,7 @@ function setup(){
  button.addEventListener('click',()=>setOpen(!opened));
  $('ttkClassicClose').addEventListener('click',()=>setOpen(false));
  overlay.addEventListener('click',()=>setOpen(false));
+ panel.addEventListener('click',e=>{if(e.target.closest('[data-command="sheetProjectEdit"]'))setOpen(false)});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened){e.preventDefault();setOpen(false)}});
  panel.addEventListener('input',e=>{if(e.target.matches('[data-ttk-setting]'))setInput(e)});
  panel.addEventListener('change',e=>{if(e.target.matches('[data-ttk-setting]'))setInput(e)});
