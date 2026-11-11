@@ -295,6 +295,11 @@ window.FARUKH_A4_EDITOR={
  apply,
  fit(){if(paper())fitText(paper())},
  hasOverflow(){return !!paper()&&overflowingBlock(paper()).length>0},
- isLayoutMode(){return layoutMode}
+ isLayoutMode(){return layoutMode},
+ getDraft:()=>doc(),
+ getConfig:()=>current(),
+ markDirty:()=>mark(),
+ checkOverflow:()=>bridge?.checkOverflow?.(),
+ rerender:()=>bridge?.rerender?.()
 };
 })();
