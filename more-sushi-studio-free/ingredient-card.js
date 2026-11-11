@@ -4,7 +4,7 @@
 const e=id=>document.getElementById(id);
 const number=v=>Number(String(v??'').replace(',','.'));
 const fmt=v=>Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1});
-const state={photo:null,ocrImage:null,text:'',original:null,busy:false,lastOcrFilled:[]};
+const state={photo:null,ocrImage:null,productOcrImage:null,text:'',original:null,busy:false,lastOcrFilled:[]};
 const nutritionFields={protein:'ingNProtein',fat:'ingNFat',carbs:'ingNCarbs',kcal:'ingNKcal'};
 let summary=new Map();
 function banner(text,error=false){e('msLabelMessage').textContent=text;e('msLabelMessage').style.color=error?'#bd3647':'#146583'}
@@ -12,7 +12,7 @@ function markPending(){e('msAllergenVerified').checked=false;e('msNutritionVerif
 function badge(){e('msVerifiedBadge').textContent=e('msAllergenVerified').checked&&e('msNutritionVerified').checked?'✅ Сверено': '⚠ Требует проверки'}
 function preview(data){const image=e('msLabelPreview');image.hidden=!data;if(data)image.src=data;else image.removeAttribute('src')}
 async function scaledImage(file,maxEdge=1600){
- if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>9e6)throw Error('Нужен JPG/PNG/WEBP до 9 МБ');
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>10*1024*1024)throw Error('Нужен JPG/PNG/WEBP до 9 МБ');
  const raw=await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=bad;r.readAsDataURL(file)});
  const img=await new Promise((ok,bad)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=bad;i.src=raw});
  const rate=Math.min(1,maxEdge/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');
@@ -21,15 +21,16 @@ async function scaledImage(file,maxEdge=1600){
  return c.toDataURL('image/webp',0.86);
 }
 async function imageToRecognize(){
- if(state.ocrImage)return state.ocrImage;
+ if(state.ocrImage)return state.ocrImage; // dedicated full-resolution label photo
  if(state.photo)return state.photo;
- const source=window.MSIcons?.getIngredientPhoto?.()||state.original?.photo_data;
+ // Product preview is downscaled to 640px; never OCR that version when the original upload exists.
+ const source=state.productOcrImage||window.MSIcons?.getIngredientPhoto?.()||state.original?.photo_data;
  if(!source)return null;
- const image=await new Promise((ok,bad)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=bad;i.src=source});
- // Our approved product image: front LEFT, reverse with label RIGHT.
- const c=document.createElement('canvas'),w=image.naturalWidth,h=image.naturalHeight;
- c.width=Math.round(w*.49);c.height=h;
- c.getContext('2d').drawImage(image,w*.51,0,w*.49,h,0,0,c.width,c.height);
+ const image=await new Promise((ok,bad)=>{const x=new Image();x.onload=()=>ok(x);x.onerror=bad;x.src=source});
+ const w=image.naturalWidth,h=image.naturalHeight,c=document.createElement('canvas');
+ const left=Math.round(w*.48),sw=w-left;
+ c.width=Math.min(2200,Math.max(sw,Math.round(sw*1.5)));c.height=Math.round(h*c.width/sw);
+ c.getContext('2d').drawImage(image,left,0,sw,h,0,0,c.width,c.height);
  return c.toDataURL('image/png');
 }
 let ocrLoader;
@@ -101,11 +102,11 @@ function parseLabel(raw) {
   const line=lines[i],m=line.match(companyKeys);
   if(!m)continue;
   const value=(line.slice(m[0].length).trim()||lines[i+1]||'').slice(0,180);
-  if(value.length>=3&&!/^(?:белки|жиры|ккал|состав|storage)/i.test(value))manufacturer=value;
+  if(value.length>=3&&value.length<=140&&!/^(?:белки|жиры|ккал|состав|storage)/i.test(value)&&!/(?:\b[A-Z]{8,}\b.*){2,}/.test(value)&&/[a-zа-яё]{3}/i.test(value))manufacturer=value;
   break;
  }
  let storage='';
- const validStorage=s=> /[-+]?\d{1,2}\s*(?:°|градус|[CcСс]\b)|(?:от\s*[-+]?\d{1,2}\s*до\s*\+?\d{1,2})|(?:сухом|прохладном|темном|тёмном)\s+месте|(?:store|keep)\s+(?:refrigerated|frozen|at\s+[-+]?\d)/i.test(s);
+ const validStorage=s=> /(?:[-+]?\d{1,2}\s*(?:°\s*[CcСс]|градус(?:ов)?\s*[CcСс])|(?:от\s*[-+]?\d{1,2}\s*до\s*\+?\d{1,2}\s*(?:°|градус))|(?:в\s+сухом|сухое\s+прохладное|в\s+прохладном|в\s+тёмном)\s+месте|(?:store|keep)\s+(?:refrigerated|frozen|at\s+[-+]?\d{1,2}\s*°?\s*[Cc]))/i.test(s);
  for(let i=0;i<lines.length;i++){
   if(!/условия хранени|хранить при|температура хранени|режим хранени|store at|keep refrigerated/i.test(lines[i]))continue;
   const candidate=(validStorage(lines[i])?lines[i]:lines[i]+' '+(lines[i+1]||'')).split(/(?:срок (?:годности|хранения)|manufacturer|изготовитель|производитель)\s*[:—-]?/i)[0].slice(0,200).trim();
@@ -145,9 +146,15 @@ function parseLabel(raw) {
  return {macros:values,manufacturer,storage,hours,allergens:allergenNames,traces,basis,
    nutritionCount:Object.values(values).filter(v=>v!==null).length};
 }
-function applyText() {
+function applyText(fromOcr=false) {
  const d=parseLabel(e('msLabelText').value);
  const changed=[];
+ // OCR of a tiny label can hallucinate arbitrary words and numbers.
+ if(fromOcr&&d.nutritionCount<3&&!d.storage&&!d.manufacturer&&!d.allergens.length&&d.hours===null){
+  e('msLabelDetails').open=true;
+  banner('⚠ Мелкий текст этикетки нечитаем. Загрузите отдельное крупное фото этикетки. Данные не переносились.',true);
+  return d;
+ }
  if(d.basis==='serving'){
   // Values for a portion cannot safely be stored as 100 g.
   banner('⚠ На этикетке указана пищевая ценность на порцию, а не на 100 г. Пересчитайте по подтверждённой массе порции.',true);
@@ -161,14 +168,17 @@ function applyText() {
  // Do not mix nutrition numbers from different OCR passes with existing fields.
  for(const k of Object.keys(nutritionFields)){
   const id=nutritionFields[k];
+  if(fromOcr&&d.basis!=='100g')continue;
   if(d.macros[k]!==null){e(id).value=String(d.macros[k]);changed.push(k)}
   else if(state.lastOcrFilled?.includes(k)){e(id).value=''}
  }
- state.lastOcrFilled=Object.keys(d.macros).filter(k=>d.macros[k]!==null);
- if(d.nutritionCount===4)e('ingNSource').value='Фото этикетки производителя — требуется сверка';
+ state.lastOcrFilled=fromOcr&&d.basis!=='100g'?[]:Object.keys(d.macros).filter(k=>d.macros[k]!==null);
+ if(d.nutritionCount===4&&(!fromOcr||d.basis==='100g'))e('ingNSource').value='Фото этикетки производителя — требуется сверка';
  else if(e('ingNSource').value.startsWith('Фото этикетки производителя'))e('ingNSource').value='';
  e('ingNutritionPanel').open=true;markPending();
- if(d.nutritionCount<4){
+ if(fromOcr&&d.nutritionCount>0&&d.basis!=='100g'){
+  banner('⚠ Не подтверждено, что КБЖУ указаны на 100 г. Поля КБЖУ не менялись. Загрузите крупное фото таблицы.',true);
+ }else if(d.nutritionCount<4){
   const missing=Object.keys(d.macros).filter(k=>d.macros[k]===null).map(k=>({protein:'белки',fat:'жиры',carbs:'углеводы',kcal:'ккал'}[k]));
   banner('Распознано '+d.nutritionCount+' из 4 значений КБЖУ. Не найдены: '+missing.join(', ')+'. Сфотографируйте этикетку крупнее или дополните вручную.',true);
  }else banner('✅ Все 4 показателя КБЖУ распознаны. Сверьте с этикеткой и подтвердите.'+(d.traces?.length?' Возможные следы аллергенов: '+d.traces.join(', ')+'.':''));
@@ -204,7 +214,7 @@ async function recognize() {
   const first=await worker.recognize(picture);
   let chosen=String(first?.data?.text||'').trim();
   const firstScore=parseLabel(chosen);
-  if(firstScore.nutritionCount<4){
+  if(firstScore.nutritionCount<4||(!firstScore.storage&&!firstScore.manufacturer)){
    banner('Проверяю мелкий текст вторым способом…');
    try {
     const next=await worker.recognize(await enhancePicture(picture));
@@ -218,17 +228,17 @@ async function recognize() {
   state.text=chosen.slice(0,20000);
   e('msLabelText').value=state.text;
   e('msLabelDetails').open=true;
-  applyText();
+  applyText(true);
  }catch(error){banner('⚠ '+(error?.message||'Не удалось распознать текст'),true)}
  finally{if(worker)try{await worker.terminate()}catch{}btn.disabled=false;state.busy=false}
 }
 function reset(){
- state.photo=null;state.ocrImage=null;state.text='';state.original=null;state.lastOcrFilled=[];
+ state.photo=null;state.ocrImage=null;state.productOcrImage=null;state.text='';state.original=null;state.lastOcrFilled=[];
  e('msLabelFile').value='';e('msLabelText').value='';e('msLabelSource').value='';
  preview(null);markPending();banner('');
 }
 function edit(item){
- state.original=item;state.photo=item.label_photo_data||null;state.ocrImage=null;state.lastOcrFilled=[];state.text=String(item.label_extraction_draft?.text||'');
+ state.original=item;state.photo=item.label_photo_data||null;state.ocrImage=null;state.productOcrImage=null;state.lastOcrFilled=[];state.text=String(item.label_extraction_draft?.text||'');
  e('msLabelText').value=state.text;e('msLabelSource').value=item.label_source_notes||'';
  e('msAllergenVerified').checked=item.allergen_status==='verified';
  e('msNutritionVerified').checked=item.nutrition_review_status==='verified';
@@ -267,7 +277,7 @@ function start(){
  panel.innerHTML=[
  '<div class="msLabelTop"><strong>🏷️ Карточка товара · данные по этикетке</strong><span id="msVerifiedBadge">⚠ Требует проверки</span></div>',
  '<div class="msLabelBody"><label class="msLabelPhoto">📷 Фото этикетки<input type="file" id="msLabelFile" accept="image/jpeg,image/png,image/webp"><img id="msLabelPreview" alt="Этикетка" hidden></label>',
- '<div class="msLabelControls"><button class="secondary" type="button" id="msReadLabel">✨ Распознать с фотографии</button><button class="secondary" type="button" id="msApplyLabel">↳ Заполнить поля из текста</button><small>При выборе отдельного фото распознавание запускается само. Для общего фото этикетка должна быть справа.</small><span id="msLabelMessage" aria-live="polite"></span></div></div>',
+ '<div class="msLabelControls"><button class="secondary" type="button" id="msReadLabel">✨ Распознать с фотографии</button><button class="secondary" type="button" id="msApplyLabel">↳ Заполнить поля из текста</button><small>При выборе отдельного фото распознавание запускается само. В общем фото этикетка должна быть справа. Используется исходное высокое разрешение; для мелкого текста загрузите отдельное крупное фото этикетки.</small><span id="msLabelMessage" aria-live="polite"></span></div></div>',
  '<details id="msLabelDetails"><summary>Текст этикетки — посмотреть и исправить</summary><textarea id="msLabelText" rows="5" placeholder="Распознанный текст или текст с этикетки вручную"></textarea><input id="msLabelSource" placeholder="Артикул или ссылка на спецификацию"></details>',
  '<div class="msLabelVerify"><label><input id="msAllergenVerified" type="checkbox"> Аллергены сверены с упаковкой</label><label><input id="msNutritionVerified" type="checkbox"> КБЖУ на 100 г сверено с упаковкой</label></div>',
  '<p class="msLabelNote">OCR может ошибаться. Подтверждение — только после проверки. Срок готового ПФ и готового ролла устанавливается отдельно.</p>'
@@ -277,7 +287,7 @@ function start(){
  const ingActions=e('ingSaveBtn')?.closest('.actions');
  if(ingActions)e('ingNutritionPanel').after(ingActions);
  const box=document.createElement('div');box.id='msRecipeAuto';box.className='msRecipeAuto';box.hidden=true;e('components').after(box);
- e('msLabelFile').onchange=async ev=>{try{const file=ev.target.files?.[0];if(!file)return;state.photo=await scaledImage(file);state.ocrImage=await scaledImage(file,2600);preview(state.photo);markPending();await recognize()}catch(ex){banner(ex.message,true)}};
+ e('msLabelFile').onchange=async ev=>{try{const file=ev.target.files?.[0];if(!file)return;state.photo=await scaledImage(file);state.ocrImage=await scaledImage(file,3200);preview(state.photo);markPending();await recognize()}catch(ex){banner(ex.message,true)}};
  e('msReadLabel').onclick=recognize;e('msApplyLabel').onclick=()=>{state.text=e('msLabelText').value.slice(0,20000);applyText()};
  e('msLabelText').oninput=()=>{state.text=e('msLabelText').value.slice(0,20000);markPending()};
  e('msAllergenVerified').onchange=badge;e('msNutritionVerified').onchange=badge;
@@ -288,15 +298,15 @@ function start(){
  // A two-sided ingredient photo may contain the original manufacturer label on the right.
  const productFile=e('msIngredientFile');
  if(productFile)productFile.addEventListener('change',async ev=>{
-  if(!ev.target.files?.[0]||state.photo||state.busy)return;
-  const prior=window.MSIcons?.getIngredientPhoto?.()||null;
-  // Existing uploader is asynchronous; wait for the NEW processed photo, not a stale one.
-  for(let attempt=0;attempt<20;attempt++){
-   await new Promise(ok=>setTimeout(ok,200));
-   const fresh=window.MSIcons?.getIngredientPhoto?.()||null;
-   if(fresh&&fresh!==prior){await recognize();break}
-  }
+  // Grab the original File before the display-photo handler clears input.value.
+  const file=ev.target.files?.[0];if(!file||state.busy)return;
+  try{
+   state.productOcrImage=await scaledImage(file,3400);
+   markPending();
+   if(!state.photo)await recognize();
+  }catch(ex){banner('⚠ '+ex.message,true)}
  });
+
  const oldReload=window.reload;
  window.reload=async function(...args){
    const result=await oldReload.apply(this,args);
