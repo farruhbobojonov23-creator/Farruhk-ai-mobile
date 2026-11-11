@@ -429,6 +429,11 @@ dialog::backdrop{background:#061923a3;backdrop-filter:blur(4px)}
 #paper.sheet-document .sheet-dish-meta{font-size:9px;letter-spacing:.6px;font-weight:850;
  display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--sheet-muted)}
 #paper.sheet-document .sheet-dish-meta span{display:inline-flex;align-items:center;gap:5px}
+#paper.sheet-document .sheet-photo-wrap{position:relative;width:146px;height:103px;flex:0 0 146px}
+#paper.sheet-document .sheet-remove-photo{position:absolute;top:-8px;right:-8px;z-index:4;width:24px;height:24px;
+ border:1px solid #eccac8;background:#fff2ee;color:#a6534b;font-size:17px;line-height:1;
+ border-radius:50%;display:grid;place-items:center;box-shadow:0 3px 9px #241f1f30}
+#paper.sheet-document .sheet-remove-photo:hover{background:#fcdcd6}
 #paper.sheet-document .sheet-dish-photo{width:146px;height:103px;flex:0 0 146px;padding:0;display:grid;place-items:center;
  border:1px solid var(--sheet-edge);border-radius:3px;background:var(--sheet-subtle);overflow:hidden;color:#a19b8e}
 #paper.sheet-document .sheet-dish-photo img{max-width:100%;max-height:100%;object-fit:contain}
