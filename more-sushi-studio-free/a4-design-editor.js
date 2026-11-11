@@ -262,7 +262,7 @@ function setup(){
  });
  $('a4MoveToggle').addEventListener('click',()=>switchMode());
  $('a4Font').addEventListener('input',e=>{const cfg=current();if(!cfg)return;cfg.font=Number(e.target.value);apply();mark();bridge?.checkOverflow()});
- $('a4Accent').addEventListener('input',e=>{const cfg=current();if(!cfg)return;cfg.accent=e.target.value;apply();mark()});
+ $('a4Accent').addEventListener('input',e=>{const cfg=current();if(!cfg)return;cfg.accent=e.target.value;cfg.red=e.target.value;apply();window.FARUKH_TTK_SETTINGS?.apply();mark()});
  $('a4FitButton').addEventListener('click',()=>{apply();bridge?.checkOverflow()});
  $('a4Reset').addEventListener('click',()=>{
   const cfg=current();if(!cfg||!confirm('Восстановить исходное расположение и размеры блоков для выбранного шаблона? Текст ТТК останется без изменений.'))return;
