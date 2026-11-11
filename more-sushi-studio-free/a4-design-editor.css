@@ -1,0 +1,40 @@
+/* FARUKH TTK PRO · premium one-page visual designer */
+.a4-designer-panel{margin-top:18px;padding:20px;border:1px solid #cbdde5;border-radius:18px;background:linear-gradient(155deg,#f7fcff,#fff 55%,#f2f8fc);box-shadow:0 10px 28px #133b4f0d;color:#15364e}
+.a4-designer-head{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+.a4-designer-head strong{font-size:17px;letter-spacing:-.3px}
+.a4-designer-head small{font-size:11px;color:#52809a;font-weight:700}
+.a4-designer-panel>p{font-size:12px;line-height:1.65;color:#506879;margin:7px 0 18px}
+.a4-control-grid{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:16px;align-items:end}
+.a4-control-grid label{font-size:11px;font-weight:800;color:#15364e;display:flex;flex-direction:column;gap:7px}
+.a4-control-grid label b{color:#236a87}
+.a4-control-grid input[type=range]{width:100%;accent-color:#0f749c;cursor:pointer}
+.a4-control-grid input[type=color]{appearance:none;width:78px;height:42px;border:1px solid #bdcfdb;padding:3px;background:#fff;border-radius:10px;cursor:pointer}
+.a4-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.a4-actions .btn{flex:1 1 auto;white-space:normal}
+.a4-fit-status{margin-top:15px;font-size:11px;line-height:1.55;color:#21745b;font-weight:750;background:#e6f8ee;border:1px solid #bce2cb;border-radius:9px;padding:10px 12px}
+.a4-fit-status.a4-error{color:#a4502c;background:#fff3eb;border-color:#f0c9b0}
+.a4-note{display:block;margin-top:12px;font-size:10px;line-height:1.6;color:#718493}
+.a4-inspector{margin-top:17px;background:#fff;padding:14px;border:1px solid #d5e2e8;border-radius:12px}
+.a4-inspector strong{font-size:13px;display:block;margin-bottom:12px}
+.a4-number-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.a4-number-grid label{display:flex;flex-direction:column;gap:5px;color:#597284;font-size:10px;font-weight:700}
+.a4-number-grid input{width:100%;min-width:0;padding:9px 6px;border:1px solid #bed2df;border-radius:7px;background:#f6fafc;font-size:12px;font-weight:800;color:#12415c}
+.a4-inspector small{display:block;line-height:1.6;margin-top:10px;color:#6d7f8a;font-size:10px}
+.a4-quick-toggle{margin-left:10px;border-radius:10px;padding:9px 13px;border:1px solid #96b7c9;background:#e9f5fb;color:#125575;cursor:pointer;font-size:12px;font-weight:850}
+.a4-quick-toggle:hover{background:#dcf1fb}
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block]{outline:2px dashed #198dc4!important;outline-offset:-2px;cursor:grab!important;touch-action:none;user-select:none}
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block]:hover{outline:2px solid #de8c38!important}
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block].a4-selected{outline:3px solid #f39c38!important;box-shadow:0 0 0 3px #fff9,0 4px 12px #06314530!important;z-index:70!important;cursor:move!important}
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block] [contenteditable],
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block] input,
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block] select,
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block] button{pointer-events:none!important}
+#paper.archive-sheet .archive-sheet-content .a4-resize-handle{display:none;position:absolute;right:0;bottom:0;width:17px;height:17px;border-radius:4px 0 0 0;border:1px solid #fff;background:linear-gradient(135deg,#fff 0 38%,#e99a27 38% 100%);cursor:nwse-resize!important;pointer-events:auto!important;z-index:100;touch-action:none}
+#paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block].a4-selected>.a4-resize-handle{display:block}
+@media(max-width:740px){.a4-control-grid{grid-template-columns:minmax(0,1fr) 90px}.a4-number-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.a4-quick-toggle{margin-left:0;margin-top:8px}}
+@media print{
+ .a4-designer-panel,.a4-quick-toggle,#a4Inspector{display:none!important}
+ #paper.archive-sheet .archive-sheet-content [data-a4-block],
+ #paper.archive-sheet .archive-sheet-content.a4-layout-active [data-a4-block]{outline:none!important;box-shadow:none!important;cursor:default!important}
+ #paper.archive-sheet .archive-sheet-content .a4-resize-handle{display:none!important}
+}
