@@ -218,9 +218,10 @@ function onKeyboard(e){
 function setup(){
  if(initialized)return;
  initialized=true;
- const panel=document.querySelector('[data-tab-panel="design"]');
+ const panel=document.querySelector('.sheet-stylebar');
  if(!panel)return;
  const ui=document.createElement('section');
+ ui.hidden=true;
  ui.className='a4-designer-panel';
  ui.innerHTML=
  '<div class="a4-designer-head"><strong>✦ Дизайнер листа А4</strong><small>Персональный макет для каждого из трёх шаблонов</small></div>'+
@@ -241,15 +242,17 @@ function setup(){
  '</div><small>Точная настройка положения выбранного блока. Стрелки — сдвиг на 1 px, Shift + стрелка — 10 px.</small></div>'+
  '<div id="a4FitStatus" class="a4-fit-status" role="status">Автоподгонка включена.</div>'+
  '<small class="a4-note">⚠ Если текста физически больше, чем вмещает читаемый А4, система предупредит и не обрежет сведения при печати. Изменения сохраняются кнопкой «Сохранить ТТК».</small>';
- panel.appendChild(ui);
+ panel.insertAdjacentElement('afterend',ui);
  const quick=document.createElement('button');
  quick.className='a4-quick-toggle';quick.type='button';quick.id='a4QuickToggle';
- quick.textContent='✦ Настроить макет А4';
+ quick.textContent='✦ Редактировать дизайн А4';
  document.querySelector('.sheet-stylebar .sheet-styleleft')?.appendChild(quick);
+ quick.setAttribute('aria-expanded','false');
  quick.addEventListener('click',()=>{
-  document.querySelector('[data-tab="design"]')?.click();
-  switchMode(true);
-  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  ui.hidden=!ui.hidden;
+  switchMode(!ui.hidden);
+  quick.setAttribute('aria-expanded',String(!ui.hidden));
+  if(!ui.hidden)ui.scrollIntoView({behavior:'smooth',block:'nearest'});
  });
  $('a4MoveToggle').addEventListener('click',()=>switchMode());
  $('a4Font').addEventListener('input',e=>{const cfg=current();if(!cfg)return;cfg.font=Number(e.target.value);apply();mark();bridge?.checkOverflow()});
