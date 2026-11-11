@@ -17,7 +17,7 @@ function setup(){
  '<div class="ultraHero"><div><small class="ultraEyebrow">🌊 МОРЕ СУШИ · STUDIO ULTRA PRO</small><h2>Полуфабрикаты</h2><p>Ингредиенты → ПФ → роллы → цветная ТТК</p></div><button type="button" data-action="create">＋ Создать полуфабрикат</button></div>'+
  '<div class="ultraSummary"><div class="ultraKpi"><b id="ultraTotal">0</b><small>Всего ПФ</small></div><div class="ultraKpi"><b id="ultraApproved">0</b><small>Утверждено</small></div><div class="ultraKpi"><b id="ultraDrafts">0</b><small>В разработке</small></div></div>'+
  '<div class="ultraControls"><input type="search" id="ultraSearch" placeholder="🔎 Поиск по названию или коду"><select id="ultraStatusFilter"><option value="">Все статусы</option><option>Черновик</option><option>Тест</option><option>Утверждено</option><option>Архив</option></select><select id="ultraCategoryFilter"><option value="">Все категории</option></select></div>'+
- '<div id="ultraCategories" class="ultraFilters"></div><div id="ultraCards" class="ultraGrid"></div>','ultraCatalog');
+ '<div class="ultraStarter"><button type="button" data-action="starter-spicy">🥣 Спайси · создать черновик</button><small>Рецептура заполнится из существующего сырья. Сохранение — только после проверки.</small></div><div id="ultraCategories" class="ultraFilters"></div><div id="ultraCards" class="ultraGrid"></div>','ultraCatalog');
  wrap.id='ultraCatalog';catalog.insertBefore(wrap,catalog.firstChild);
  el('ultraSearch').addEventListener('input',e=>{U.search=e.target.value;renderList()});
  el('ultraStatusFilter').addEventListener('change',e=>{U.status=e.target.value;renderList()});
@@ -25,6 +25,7 @@ function setup(){
  wrap.addEventListener('click',e=>{
  const b=e.target.closest('[data-action],[data-id],[data-category]');if(!b)return;
  if(b.dataset.action==='create')newRecipe();
+  else if(b.dataset.action==='starter-spicy')starterSpicy();
  else if(b.dataset.id){if(b.dataset.action==='ttk')location.href='./ttk.html?id='+Number(b.dataset.id);else openRecipe(Number(b.dataset.id))}
  else if(b.hasAttribute('data-category')){U.cat=b.dataset.category;renderList()}
  });
@@ -264,6 +265,27 @@ function copyCalculatedNutrition(){
  el('rNutrition').value='На 100 г: белки '+f(a.food.protein*100/m.yield)+' г; жиры '+f(a.food.fat*100/m.yield)+' г; углеводы '+f(a.food.carbs*100/m.yield)+' г; '+f(a.food.kcal*100/m.yield)+' ккал. На партию ('+f(m.yield)+' г): белки '+f(a.food.protein)+' г; жиры '+f(a.food.fat)+' г; углеводы '+f(a.food.carbs)+' г; '+f(a.food.kcal)+' ккал.';
  el('ultraTtkDetails').open=true;readiness(a);
  msg('saveInfo',a.unverifiedNutrition.length?'КБЖУ перенесено как расчётное — требуется сверка данных сырья: '+a.unverifiedNutrition.join(', '):'КБЖУ перенесено из карточек сырья. Проверьте перед утверждением.',false);
+}
+function starterSpicy(){
+ const formula=[
+  ['Майонез Pechagin Professional 78%',6000],
+  ['Соус кимчи',150],
+  ['Соус шрирача',150],
+  ['Шичими',20],
+  ['Масло кунжутное',20]
+ ];
+ const found=formula.map(([name,grams])=>{
+  const item=ingredients.find(i=>String(i.name).toLocaleLowerCase('ru')===name.toLocaleLowerCase('ru'));
+  return item?{source_type:'ingredient',source_id:Number(item.id),gross_g:grams,net_g:grams}:null;
+ });
+ if(found.some(x=>!x)){alert('В базе отсутствует часть ингредиентов для соуса спайси. Сначала добавьте сырьё.');return}
+ if(editing&&el('rName').value.trim()&&!confirm('Открыть новый черновик соуса спайси? Несохранённые изменения текущей карточки будут потеряны.'))return;
+ currentKind='prefab';fresh();
+ el('rName').value='Соус спайси — основной';el('rCategory').value='Соусы';components=found;
+ U.loss=0;el('ultraLoss').value='0';
+ el('rProcess').value='Проверить сырьё и отвесить ингредиенты по рецептуре. Соединить майонез, соус кимчи, соус шрирача, шичими и кунжутное масло. Перемешать до однородности. Переложить в чистую промаркированную ёмкость. Условия и сроки хранения установить по утверждённой технологии.';
+ el('rStatus').value='Черновик';renderComponents();photoPreview();
+ msg('saveInfo','Черновик спайси на 6 340 г подготовлен. Заполните режим хранения, проверьте поставщиков, при необходимости измените рецепт и сохраните.',false);
 }
 function nextCode(){
  const exists=new Set(pfList().map(r=>r.code));let k=1;while(exists.has('МС-ПФ-'+String(k).padStart(3,'0')))k++;
