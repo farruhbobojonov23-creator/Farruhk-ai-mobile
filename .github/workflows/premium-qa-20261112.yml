@@ -1,0 +1,42 @@
+name: FARRUH AI — Premium Full UI Audit
+on:
+  push:
+    branches:
+      - qa/full-application-browser-audit-20261112
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Install isolated test browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Check script syntax
+        run: node --check tests/premium-production-smoke.mjs
+      - name: Audit 8 sections on mobile and desktop
+        run: node tests/premium-production-smoke.mjs
+      - name: Save visual audit screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: farruh-ai-complete-mobile-desktop-audit
+          path: artifacts/premium-*.png
+          if-no-files-found: ignore
+      - name: Save structured audit result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: farruh-ai-audit-result
+          path: artifacts/premium-audit-results.json
+          if-no-files-found: ignore
