@@ -407,3 +407,40 @@ body[data-pf-theme] #pf-studio-dialog .pf-theme-btn[data-premium="true"] strong{
   color:#111!important;background:#fff!important;box-shadow:none!important;
  }
 }
+
+
+/* Startup and mobile performance • avoid flashing and rendering the discarded
+   Arctic scene while authenticated modules are still being evaluated. */
+html[data-pf-boot="premium"] body[data-view="home"] #home.arctic-home:not(.pf-upgraded){
+ background:#07121c!important;min-height:100dvh!important;
+}
+html[data-pf-boot="premium"] body[data-view="home"] #home.arctic-home:not(.pf-upgraded) > .arctic-shell{
+ display:none!important;
+}
+html[data-pf-boot="premium"] body[data-view="home"] #home.arctic-home:not(.pf-upgraded)::after{
+ content:"FARRUH AI  ·  Загрузка кабинета…";
+ display:grid!important;place-items:center!important;
+ position:fixed!important;inset:0!important;z-index:8!important;
+ background:radial-gradient(ellipse at 50% 30%,#173a51,#07121c 70%)!important;
+ color:#d9f4ff!important;font:750 clamp(15px,2.8vw,23px)/1.4 Inter,system-ui,sans-serif!important;
+ letter-spacing:.06em!important;text-align:center!important;
+ pointer-events:none!important;
+}
+body[data-pf-theme="crystal"] #home.arctic-home.pf-upgraded .pf-showcase{
+ background:linear-gradient(155deg,#e1f4ff,#f3faff 55%,#cfe9fe)!important;
+}
+@media(max-width:940px){
+ /* Blurred fixed bars and 30+ stacked SVG shadows were the main GPU cost
+    on low-memory Android devices. Their layered strokes remain 3D. */
+ body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]) .pf-showcase .pf-3d-icon{
+  filter:drop-shadow(0 2px 2px #0003)!important;
+ }
+ body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]) .pf-showcase-bottom{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  background:var(--pf-panel)!important;
+ }
+ .pf-showcase-tools,.pf-showcase-banner-bottom{
+  content-visibility:auto;contain-intrinsic-size:auto 650px;
+ }
+ .pf-showcase .pf-showcase-card{transition:none!important}
+}

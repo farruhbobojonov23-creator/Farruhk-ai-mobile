@@ -31,9 +31,9 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
     if(++bucket.count>10)throw httpError(429,'Повторите вход через 10 минут.');attempts.set(key,bucket);
     const token=auth.login(req.body?.password);attempts.delete(key);
     const secure=req.secure||req.headers['x-forwarded-proto']==='https';
-    res.setHeader('Set-Cookie',`fai_owner=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800${secure?'; Secure':''}`);res.json({ok:true});
+    res.setHeader('Set-Cookie',`fai_owner=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800${secure?'; Secure':''}`);res.json({ok:true});
   }));
-  app.post('/api/auth/logout',(req,res)=>{if(!trustedOrigin(req))return res.sendStatus(403);res.setHeader('Set-Cookie','fai_owner=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');res.json({ok:true})});
+  app.post('/api/auth/logout',(req,res)=>{if(!trustedOrigin(req))return res.sendStatus(403);res.setHeader('Set-Cookie','fai_owner=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');res.json({ok:true})});
   app.use((req,res,next)=>{
     const personal=/^\/api\/(?:state|backups|yandex|frontpad|analytics|chat|transcribe|voice|ai|recipes|status|documents|push)(?:\/|$)/.test(req.path);
     if(!personal)return next();

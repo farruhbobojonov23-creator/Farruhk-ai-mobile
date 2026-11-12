@@ -93,7 +93,7 @@ app.use((req,res,next)=>{
     if(!assistant.auth?.enabled){
       return res.status(503).send(`<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARRUH AI — доступ закрыт</title><body style="margin:0;background:#f4f7fb;font:16px Arial,sans-serif;color:#202b3b;display:grid;min-height:100vh;place-items:center"><main style="max-width:420px;padding:28px;background:white;border-radius:20px;box-shadow:0 12px 40px #14233a18"><h1 style="margin-top:0">FARRUH AI</h1><p>Панель управления закрыта: владелец должен настроить пароль и секрет сессии на сервере.</p></main></body></html>`);
     }
-    return res.status(401).send(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Вход владельца · FARRUH AI</title></head><body style="margin:0;background:#f2f6fb;font:16px Arial,sans-serif;color:#202b3b;display:grid;min-height:100vh;place-items:center"><main style="box-sizing:border-box;width:min(420px,calc(100% - 28px));padding:28px;background:white;border:1px solid #e1e8f0;border-radius:22px;box-shadow:0 16px 50px #14233a16"><div style="font-size:12px;letter-spacing:2px;color:#bc3045;font-weight:800">PRIVATE ACCESS</div><h1 style="margin:10px 0">FARRUH AI</h1><p style="color:#687589;line-height:1.5">Для входа в панель управления требуется пароль владельца.</p><form id="login"><label for="password">Пароль владельца</label><input id="password" type="password" autocomplete="current-password" required style="display:block;box-sizing:border-box;width:100%;margin:8px 0 14px;padding:13px;border:1px solid #d9e1eb;border-radius:10px;font:inherit"><button style="width:100%;padding:13px;border:0;border-radius:10px;background:#c92f43;color:white;font-weight:700;font:inherit">Войти</button><p id="message" role="status" style="color:#b42335;line-height:1.4"></p></form></main><script>document.getElementById('login').addEventListener('submit',async e=>{e.preventDefault();const message=document.getElementById('message');message.textContent='Проверка…';try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Вход не выполнен');location.replace('/')}catch(err){message.textContent=err.message||'Вход не выполнен'}});</script></body></html>`);
+    return res.status(401).send(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Вход владельца · FARRUH AI</title></head><body style="margin:0;background:#f2f6fb;font:16px Arial,sans-serif;color:#202b3b;display:grid;min-height:100vh;place-items:center"><main style="box-sizing:border-box;width:min(420px,calc(100% - 28px));padding:28px;background:white;border:1px solid #e1e8f0;border-radius:22px;box-shadow:0 16px 50px #14233a16"><div style="font-size:12px;letter-spacing:2px;color:#bc3045;font-weight:800">PRIVATE ACCESS</div><h1 style="margin:10px 0">FARRUH AI</h1><p style="color:#687589;line-height:1.5">Для входа в панель управления требуется пароль владельца.</p><form id="login"><label for="password">Пароль владельца</label><input id="password" type="password" autocomplete="current-password" required style="display:block;box-sizing:border-box;width:100%;margin:8px 0 14px;padding:13px;border:1px solid #d9e1eb;border-radius:10px;font:inherit"><button style="width:100%;padding:13px;border:0;border-radius:10px;background:#c92f43;color:white;font-weight:700;font:inherit">Войти</button><p id="message" role="status" style="color:#b42335;line-height:1.4"></p></form></main><script>document.getElementById('login').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector('button'),message=document.getElementById('message');button.disabled=true;button.textContent='Проверяем…';message.textContent='Устанавливаем защищённое соединение…';try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);let r;try{r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',signal:controller.signal,body:JSON.stringify({password:document.getElementById('password').value})})}finally{clearTimeout(timeout)}const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Вход не выполнен');message.textContent='Вход выполнен. Открываем кабинет…';location.replace('/'+location.hash)}catch(err){message.textContent=err.name==='AbortError'?'Сервер отвечает слишком долго. Проверь подключение и повтори.':(err.message||'Вход не выполнен');button.disabled=false;button.textContent='Войти'}});</script></body></html>`);
   }
   const sensitiveExport =
     req.path==='/api/backups/google-drive' ||
@@ -121,7 +121,10 @@ installJournalPdfApi(app,{requireSameOrigin});
 app.get(['/', '/index.html'], async (req,res,next)=>{
   try{
     const html=await fs.readFile(new URL('./public/index.html', import.meta.url),'utf8');
-    const injected=html;
+    // The server already verifies the signed session before serving this page.
+    // Pass a non-secret validation marker to avoid a second, occasionally slow
+    // /api/auth/session request and a duplicate login dialog on first load.
+    const injected=html.replace('</head>','<meta name="farruh-owner-validated" content="1"></head>');
     res.setHeader('Cache-Control','no-store, no-cache, must-revalidate');
     res.setHeader('Pragma','no-cache');
     res.type('html').send(injected);
@@ -143,7 +146,18 @@ app.get(['/farukh-print/staff','/farukh-print/staff/'],async(req,res,next)=>{
     res.type('html').send(employee);
   }catch(error){next(error)}
 });
-app.use(express.static('public'));
+// Cache only immutable visual resources for repeat visits. Versioned JS/CSS
+// remain revalidated frequently so the owner receives the newest designs.
+app.use(express.static('public',{
+  etag:true,
+  setHeaders(res,filePath){
+    if(/[/\\]assets[/\\].*\.(?:webp|png|jpe?g|svg|avif)$/i.test(filePath)){
+      res.setHeader('Cache-Control','public, max-age=86400');
+    }else if(/\.(?:css|js|mjs|svg)$/i.test(filePath)){
+      res.setHeader('Cache-Control','public, max-age=300, must-revalidate');
+    }
+  }
+}));
 
 // Gemini is enabled only when a server-side API key exists. Never expose keys to the browser.
 const geminiKey = String(process.env.GEMINI_API_KEY||'').trim();
