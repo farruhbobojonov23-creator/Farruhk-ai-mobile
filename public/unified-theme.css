@@ -326,3 +326,52 @@
    background:color-mix(in srgb,#fa6875 17%,var(--pf-panel))!important;
  }
 }
+
+
+/* Visual QA: prevent TTK heading from collapsing into vertical syllables. */
+@media screen and (max-width:700px){
+ body[data-pf-theme]:not([data-view="home"]) #recipes > .bar {
+   display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+   gap:9px!important;
+ }
+ body[data-pf-theme]:not([data-view="home"]) #recipes > .bar > h1 {
+   flex:1 1 100%!important;width:100%!important;min-width:100%!important;
+   margin:0!important;white-space:normal!important;
+   word-break:normal!important;overflow-wrap:normal!important;
+   line-height:1.2!important;
+ }
+ body[data-pf-theme]:not([data-view="home"]) #recipes > .bar > button {
+   flex:1 1 auto!important;min-width:0!important;
+ }
+}
+/* Remove a white outer field while retaining a dark inner search input. */
+@media screen{
+ body[data-pf-theme]:not([data-view="home"]) #recipes .catalog-search {
+   display:flex!important;align-items:center!important;gap:10px!important;
+   background:var(--pf-raised)!important;
+   border:1px solid var(--pf-line)!important;
+   border-radius:13px!important;padding:0 12px!important;
+   color:var(--pf-ink)!important;box-shadow:none!important;
+ }
+ body[data-pf-theme]:not([data-view="home"]) #recipes .catalog-search #recipe-search {
+   flex:1!important;min-width:0!important;width:100%!important;
+   background:transparent!important;border:0!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   box-shadow:none!important;
+ }
+ body[data-pf-theme]:not([data-view="home"]) #recipes .catalog-search span{
+   color:var(--pf-muted)!important;
+ }
+ /* Legacy settings and site-section details had an !important white background. */
+ body[data-pf-theme]:not([data-view="home"]) #site-settings details.pf-settings-group,
+ body[data-pf-theme]:not([data-view="home"]) #site-settings details.pf-settings-section{
+   background:var(--pf-card-grad)!important;color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   border-radius:var(--pf-radius)!important;
+   box-shadow:var(--pf-shadow)!important;
+ }
+ body[data-pf-theme]:not([data-view="home"]) #site-settings details.pf-settings-group > summary,
+ body[data-pf-theme]:not([data-view="home"]) #site-settings details.pf-settings-section > summary{
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+}
