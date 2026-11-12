@@ -236,3 +236,35 @@
   body[data-pf-theme] .aurora-top,
   body[data-pf-theme] #global-voice {display:none!important}
 }
+
+/* Floating AI launcher belongs to the same system as the navigation. */
+@media screen {
+  body[data-pf-theme]:not([data-view="home"]) #neural-launch {
+    background:var(--pf-card-grad)!important;
+    border:1px solid var(--pf-accent)!important;
+    color:var(--pf-accent)!important;
+    box-shadow:var(--pf-shadow)!important;
+    -webkit-text-fill-color:var(--pf-accent)!important;
+    z-index:50;
+  }
+  body[data-pf-theme] #neural-launch .ai-orb-shell{
+    background:radial-gradient(circle at 28% 22%,
+       color-mix(in srgb,var(--pf-accent) 35%,var(--pf-panel)),
+       var(--pf-raised) 48%,var(--pf-panel) 85%)!important;
+    border-color:var(--pf-accent)!important;
+  }
+  body[data-pf-theme] #neural-launch .ai-orb-label{
+    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+    text-shadow:none!important;
+  }
+  body[data-pf-theme] #neural-launch:focus-visible {
+    outline:3px solid var(--pf-accent)!important;outline-offset:4px;
+  }
+  @media(max-width:999px){
+    body[data-pf-theme]:not([data-view="home"]) #neural-launch{
+      right:18px!important;
+      bottom:calc(100px + env(safe-area-inset-bottom))!important;
+      width:48px!important;height:48px!important;
+    }
+  }
+}
