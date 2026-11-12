@@ -2,7 +2,7 @@ import {validateMyTemplates} from './my-recipe-templates.js?v=2';
 import {validateCategories} from './category-validation.js';
 import {emptyHaccp,validateHaccp,mergeHaccp} from './haccp-model.js';
 const blank=()=>({haccp:emptyHaccp(),tasks:[],memory:[],chat:[],recipes:[],preparations:[],inspections:[],tts:true,timeZone:'Europe/Moscow',revision:0,storage:'device'});
-export function validateDeviceState(value){
+export function validateDeviceState(value,{clone=true}={}){
  const state=value?.state??value;
  if(!state||typeof state!=='object'||Array.isArray(state))throw Error('Неверный формат резервной копии.');
  for(const key of ['tasks','memory','chat','recipes','inspections','preparations','releasedRecipes'])if(state[key]!==undefined&&(!Array.isArray(state[key])||state[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))))throw Error('Повреждён раздел: '+key);
@@ -11,7 +11,7 @@ export function validateDeviceState(value){
  if(state.preparations?.some(p=>typeof p.id!=='string'||typeof p.name!=='string'||!p.name.trim()||!Number.isFinite(Number(p.quantity))||Number(p.quantity)<=0||!Number.isFinite(Date.parse(p.preparedAt))||!Number.isFinite(Date.parse(p.useBy))||Date.parse(p.useBy)<=Date.parse(p.preparedAt)))throw Error('Повреждена запись заготовки.');
  validateMyTemplates(state.myRecipeTemplates);
  if(state.categories!==undefined)validateCategories(state.categories);
- return {...blank(),...structuredClone(state),haccp:validateHaccp(state.haccp),storage:'device'};
+ return {...blank(),...(clone?structuredClone(state):state),haccp:validateHaccp(state.haccp),storage:'device'};
 }
 export function mergeDeviceState(current,incoming){
  const next=validateDeviceState(current),source=validateDeviceState(incoming);
@@ -41,7 +41,7 @@ export class DeviceStore{
  async load(){
   const db=await this.open();return new Promise((resolve,reject)=>{
    const tx=db.transaction('records','readonly'),request=tx.objectStore('records').get('state');let result;
-   request.onsuccess=()=>{try{result=request.result===undefined?blank():validateDeviceState(request.result)}catch(e){reject(e)}};
+   request.onsuccess=()=>{try{result=request.result===undefined?blank():validateDeviceState(request.result,{clone:false})}catch(e){reject(e)}};
    tx.oncomplete=()=>resolve(result);tx.onerror=tx.onabort=()=>reject(Error('Не удалось прочитать данные устройства.'));
   });
  }
@@ -50,9 +50,9 @@ export class DeviceStore{
    const tx=db.transaction('records','readwrite'),records=tx.objectStore('records'),request=records.get('state');let next,failure;
    request.onsuccess=()=>{try{// IndexedDB already returned a separate JS object. Avoid cloning the entire local database
    // an extra time before every edit (especially costly with photos and HACCP history).
-   const current=request.result===undefined?blank():validateDeviceState(request.result);
+   const current=request.result===undefined?blank():validateDeviceState(request.result,{clone:false});
    const previousRevision=Number(current.revision)||0;
-   next=current;change(next);next=validateDeviceState(next);next.revision=previousRevision+1;next.updatedAt=new Date().toISOString();records.put(next,'state')}catch(e){failure=e;tx.abort()}};
+   next=current;change(next);next=validateDeviceState(next,{clone:false});next.revision=previousRevision+1;next.updatedAt=new Date().toISOString();records.put(next,'state')}catch(e){failure=e;tx.abort()}};
    tx.oncomplete=()=>resolve(next);tx.onerror=tx.onabort=()=>reject(failure||Error('Не удалось сохранить на устройстве. Проверь свободное место и разрешения браузера.'));
   });
  }
