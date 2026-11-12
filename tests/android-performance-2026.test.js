@@ -19,19 +19,19 @@ test('Chat starts with 60 messages and older turns remain available on demand',(
  assert.match(html,/const container=\$\('messages'\),step=60/);
  assert.match(html,/older\.onclick=/);
  assert.doesNotMatch(html,/state\.chat\.forEach\(m=>bubble/);
- assert.match(html,/showSavedChatHistory\(state\.chat\|\|\[\]\)/);
+ assert.match(html,/showSavedChatHistory\(state\?\.chat\|\|\[\]\)/);
 });
 test('Local indexedDB save keeps complete validated state and revision while avoiding extra clone',()=>{
  const js=get('public/device-store.js');
  assert.match(js,/const previousRevision=Number\(current\.revision\)\|\|0/);
- assert.match(js,/next=current;change\(next\);next=validateDeviceState\(next\)/);
+ assert.match(js,/next=current;change\(next\);next=validateDeviceState\(next,\{clone:false\}\)/);
  assert.match(js,/records\.put\(next,'state'\)/);
  assert.match(js,/tx\.oncomplete=\(\)=>resolve\(next\)/);
  assert.doesNotMatch(js,/next=structuredClone\(current\)/);
 });
 test('New Android PWA avoids 50 simultaneous precache requests while caching versioned static assets',()=>{
  const sw=get('public/sw.js');
- assert.match(sw,/farrukh-arctic-sapphire-v53/);
+ assert.match(sw,/farrukh-arctic-sapphire-v65/);
  assert.match(sw,/const CORE=\['\/','\/index\.html'/);
  assert.doesNotMatch(sw,/Promise\.allSettled\(SHELL\.map/);
  assert.match(sw,/const versioned=url\.searchParams\.has\('v'\)/);
@@ -43,6 +43,6 @@ test('Fast text and voice requests use bounded conversation history and task con
  assert.match(html,/state\.chat\.slice\(voice\?-6:-10\)/);
  assert.match(html,/String\(m\.text\|\|''\)\.slice\(0,1600\)/);
  assert.match(html,/state\.tasks\.filter\(t=>!t\.done\)\.slice\(0,30\)/);
- assert.match(html,/device-store\.js\?v=68/);
+ assert.match(html,/device-store\.js\?v=72/);
  assert.match(html,/recipe-google\.js\?v=2/);
 });
