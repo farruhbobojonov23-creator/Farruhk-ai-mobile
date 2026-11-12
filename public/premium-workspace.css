@@ -188,3 +188,210 @@ body[data-pf-theme] #chef-menu .pf-sidebar-design:hover{background:var(--pf-rais
  body[data-view="home"] #home.arctic-home.pf-upgraded .pf-bottom{position:fixed!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;border-radius:18px 18px 0 0!important}
  body[data-pf-theme] #chef-menu:not([hidden]){bottom:env(safe-area-inset-bottom,0px)!important;max-height:calc(100dvh - 70px)!important}
 }
+
+
+/* Visual QA • Nov 12 desktop screenshots. Keep data/print logic unchanged. */
+/* The older weather widget lives outside the hidden Arctic layout in some builds. */
+body[data-view="home"] #home.arctic-home.pf-upgraded .home-weather,
+body[data-view="home"] #home.arctic-home.pf-upgraded > .arctic-conditions,
+body[data-view="home"] #home.arctic-home.pf-upgraded > .arctic-date{
+ display:none!important;
+}
+@media(min-width:760px){
+ /* Desktop has full-size tiles and actions: no mobile-sized sticky dock. */
+ body[data-view="home"] #home.arctic-home.pf-upgraded .pf-bottom{display:none!important}
+ body[data-view="home"] #home.arctic-home.pf-upgraded #pf-workspace{padding-bottom:42px!important}
+ #pf-project-dialog{width:min(690px,calc(100vw - 32px))!important}
+}
+@media(max-width:759px){
+ body[data-view="home"] #home.arctic-home.pf-upgraded .pf-project-row{align-items:stretch}
+ body[data-view="home"] #home.arctic-home.pf-upgraded .pf-project-picker{min-width:0;flex:1}
+ body[data-view="home"] #home.arctic-home.pf-upgraded .pf-project-note{flex-basis:100%;max-width:none;line-height:1.35}
+}
+/* The Arctic overrides were forcing white fields and pale labels onto
+   dark user-selected themes. Scope contrast repair to application controls;
+   deliberately exclude any printable TTK / HACCP paper. */
+body[data-pf-theme]:not([data-view="home"]) :is(#site-settings,#chat,#tasks,#checks,#calc,#preparations,#recipes) label{
+ color:var(--pf-ink)!important;-webkit-text-fill-color:currentColor!important;
+}
+body[data-pf-theme]:not([data-view="home"]) :is(#site-settings,#chat,#tasks,#checks,#calc,#preparations,#recipes) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),textarea,select):not(.ttk-paper input):not(.ttk-paper textarea):not(.ttk-paper select){
+ background:var(--pf-raised)!important;
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ color-scheme:inherit!important;
+ box-shadow:inset 0 1px 2px #0001!important;
+}
+body[data-pf-theme]:not([data-view="home"]) :is(#site-settings,#chat,#tasks,#checks,#calc,#preparations,#recipes) :is(input,textarea)::placeholder{
+ color:var(--pf-muted)!important;opacity:1!important;
+ -webkit-text-fill-color:var(--pf-muted)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) :is(#site-settings,#chat) p,
+body[data-pf-theme]:not([data-view="home"]) :is(#site-settings,#chat) .small{
+ color:var(--pf-muted)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .settings-row{
+ background:var(--pf-card-grad)!important;
+ border:1px solid var(--pf-line)!important;
+ box-shadow:var(--pf-shadow)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-section{
+ margin:12px 0!important;padding:14px 16px!important;border-radius:var(--pf-radius)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-section > summary{
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+ cursor:pointer;
+ font-size:15px;
+ font-weight:750;
+ list-style:revert;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-section[open] > summary{
+ border-bottom:1px solid var(--pf-line);padding-bottom:12px;margin-bottom:14px;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-group{
+ margin:14px 0;border:1px solid var(--pf-line);border-radius:var(--pf-radius);
+ background:var(--pf-card-grad);padding:16px;box-shadow:var(--pf-shadow);
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-group > summary{
+ font-size:17px;font-weight:800;color:var(--pf-ink)!important;
+ cursor:pointer;list-style:revert;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-group[open] > summary{
+ padding-bottom:12px;border-bottom:1px solid var(--pf-line);
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-group .settings-row{
+ box-shadow:none!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings button{
+ background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ box-shadow:none!important;min-height:44px;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings button:hover{
+ border-color:var(--pf-accent)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #site-settings .pf-settings-launch{
+ background:linear-gradient(110deg,color-mix(in srgb,var(--pf-accent) 18%,var(--pf-panel)),var(--pf-raised))!important;
+ border:1px solid var(--pf-accent)!important;color:var(--pf-ink)!important;
+ font-size:15px;line-height:1.5;min-height:64px;
+}
+/* Assistant: compact, high-contrast composer rather than huge blank white box. */
+body[data-pf-theme]:not([data-view="home"]) #chat #chat-form{
+ display:flex!important;align-items:flex-end!important;gap:12px!important;
+ max-width:930px!important;margin:22px 0!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat #chat-form label{
+ flex:1!important;min-width:0!important;margin:0!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat #chat-form #message{
+ width:100%!important;min-height:62px!important;height:72px!important;
+ max-height:160px!important;resize:vertical!important;
+ border-radius:15px!important;font-size:15px!important;
+ padding:14px 16px!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat #chat-form button{
+ align-self:flex-end!important;min-width:58px!important;min-height:56px!important;
+ margin:0!important;border-radius:14px!important;
+ background:var(--pf-accent)!important;
+ color:var(--pf-on-accent)!important;
+ border:1px solid var(--pf-accent)!important;
+ -webkit-text-fill-color:var(--pf-on-accent)!important;
+ font-size:19px!important;font-weight:800!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat > button{
+ background:var(--pf-raised)!important;
+ color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat #messages:empty:before{
+ color:var(--pf-muted)!important;
+}
+body[data-pf-theme]:not([data-view="home"]) #chat .bubble{
+ color:var(--pf-ink)!important;border-color:var(--pf-line)!important;
+ background:var(--pf-raised)!important;
+}
+@media(max-width:600px){
+ body[data-pf-theme]:not([data-view="home"]) #chat #chat-form{gap:7px!important}
+ body[data-pf-theme]:not([data-view="home"]) #chat #chat-form button{min-width:48px!important;padding:8px 10px!important}
+}
+/* Real modal contrast. Native <dialog> is outside .view, yet old global
+   Arctic rules also target its buttons, labels, inputs and selects. */
+body[data-pf-theme] #pf-project-dialog,
+body[data-pf-theme] #pf-studio-dialog{
+ background:var(--pf-panel)!important;
+ color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ color-scheme:inherit!important;
+ -webkit-text-fill-color:initial!important;
+ box-shadow:0 30px 100px #000a!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) :is(.pf-modal-header,.pf-modal-body,.pf-modal-footer){
+ background:var(--pf-panel)!important;
+ color:var(--pf-ink)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) :is(h2,h3,strong,summary,label){
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) :is(p,small){
+ color:var(--pf-muted)!important;
+ -webkit-text-fill-color:var(--pf-muted)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) button{
+ background:var(--pf-raised)!important;
+ border:1px solid var(--pf-line)!important;
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+ box-shadow:none!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) button.pf-primary{
+ background:var(--pf-accent)!important;border-color:var(--pf-accent)!important;
+ color:var(--pf-on-accent)!important;-webkit-text-fill-color:var(--pf-on-accent)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) button:hover{
+ border-color:var(--pf-accent)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) :is(input:not([type="color"]),textarea,select){
+ background:var(--pf-raised)!important;
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ color-scheme:inherit!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) input::placeholder{
+ color:var(--pf-muted)!important;
+ -webkit-text-fill-color:var(--pf-muted)!important;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) .pf-project-item{
+ background:var(--pf-raised)!important;border-color:var(--pf-line)!important;
+ gap:12px;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) .pf-project-item > div:last-child{
+ display:flex;flex-wrap:wrap;justify-content:flex-end;
+}
+body[data-pf-theme] :is(#pf-project-dialog,#pf-studio-dialog) .pf-warning{
+ background:var(--pf-raised)!important;color:var(--pf-muted)!important;
+ border-color:var(--pf-line)!important;
+}
+body[data-pf-theme] #pf-studio-dialog .pf-theme-btn.selected{
+ border-color:var(--pf-accent)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--pf-accent) 18%,transparent)!important;
+}
+body[data-pf-theme] #pf-studio-dialog .pf-studio-nav button.active{
+ color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+ border-color:var(--pf-accent)!important;
+}
+@media(max-width:600px){
+ body[data-pf-theme] #pf-project-dialog,
+ body[data-pf-theme] #pf-studio-dialog{
+  width:calc(100vw - 20px)!important;max-height:90dvh!important;
+  border-radius:18px!important;
+ }
+ body[data-pf-theme] #pf-project-dialog .pf-project-item{
+  flex-direction:column;align-items:stretch;
+ }
+ body[data-pf-theme] #pf-project-dialog .pf-project-item > div:last-child{
+  justify-content:flex-start;
+ }
+}
