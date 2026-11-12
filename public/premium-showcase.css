@@ -446,11 +446,13 @@ body[data-pf-theme="crystal"] #home.arctic-home.pf-upgraded .pf-showcase{
 }
 
 
-/* The source sushi photo includes a black rectangular backdrop.
-   Screen blending makes black transparent on the two dark hero themes. */
-body[data-pf-theme="titanium"] .pf-banner-visual img,
-body[data-pf-theme="royal"] .pf-banner-visual img {
-  mix-blend-mode:screen;
+/* The source sushi photo is rectangular and has a black backdrop.
+   Feather the perimeter rather than letting it cover the premium hero.
+   This avoids blend modes that hid the whole photo on mobile Chrome. */
+.pf-banner-visual img {
+  mix-blend-mode:normal!important;
+  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 58% 50%,#000 0 83%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 50% 50% at 58% 50%,#000 0 83%,transparent 100%)!important;
 }
 /* Avoid default browser selection arrow plus a second decorative arrow. */
 .pf-showcase .pf-showcase-select select {
