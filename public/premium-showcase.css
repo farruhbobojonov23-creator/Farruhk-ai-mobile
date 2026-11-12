@@ -451,8 +451,9 @@ body[data-pf-theme="crystal"] #home.arctic-home.pf-upgraded .pf-showcase{
    This avoids blend modes that hid the whole photo on mobile Chrome. */
 .pf-banner-visual img {
   mix-blend-mode:normal!important;
-  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 58% 50%,#000 0 83%,transparent 100%)!important;
-  mask-image:radial-gradient(ellipse 50% 50% at 58% 50%,#000 0 83%,transparent 100%)!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  clip-path:ellipse(46% 48% at 58% 50%);
 }
 /* Avoid default browser selection arrow plus a second decorative arrow. */
 .pf-showcase .pf-showcase-select select {
