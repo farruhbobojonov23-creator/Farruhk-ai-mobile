@@ -2,7 +2,7 @@
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
-const defaults={theme:'arctic',accent:'',radius:20,density:'standard',scale:1,motion:true};
+const defaults={theme:'ice',accent:'',radius:20,density:'standard',scale:1,motion:true};
 const themeNames={arctic:'Arctic Sapphire',ice:'Black Ice',white:'Minimal White',gold:'Executive Gold',burgundy:'Burgundy PRO'};
 const themeColors={arctic:['#087bba','#e8f4ff'],ice:['#35c9ec','#08101d'],white:['#336fc4','#ffffff'],gold:['#d6ae64','#17191e'],burgundy:['#f1739d','#280f1d']};
 const deepCopy=o=>JSON.parse(JSON.stringify(o));
