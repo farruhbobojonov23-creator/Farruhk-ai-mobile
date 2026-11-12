@@ -86,8 +86,8 @@ async function loadAll(){
   api('/rest/v1/ttk_preferences?select=*&limit=1')
  ]);
  projects=Array.isArray(p)?p:[];docs=Array.isArray(d)?d:[];
- prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
- renderAll();
+ prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
+ renderAll();window.FARUKH_TTK_AUTO?.onReady();
 }
 async function enter(){
  $('auth').hidden=true;$('shell').hidden=false;
@@ -336,6 +336,7 @@ function fillEditor(){
  $('ePhotoInput').value='';renderPhotoZone();renderLineRows();setTab(editorTab);
  $('editorHeading').textContent=draft.title||'Новая технико-технологическая карта';
  $('editorDuplicate').hidden=!draft.id;renderEditorDesigns();renderPreview();renderReview();
+ window.FARUKH_TTK_AUTO?.onDraft();
 }
 function renderPhotoZone(){
  const z=$('photoZone');if(!z)return;
@@ -459,7 +460,7 @@ function approvedIssues(d){
  if(!Number.isFinite(Number(d.yield_g))||Number(d.yield_g)<=0)issues.push('выход блюда');
  if(!Array.isArray(d.lines)||!d.lines.length||d.lines.some(l=>!String(l.name||'').trim()||n(l.gross_g)==null||n(l.net_g)==null||n(l.gross_g)<0||n(l.net_g)<0))issues.push('полная рецептура брутто/нетто');
  for(const [key,label] of [['scope','область применения'],['raw','требования к сырью'],['process','технологический процесс'],['serving','подача и реализация'],['storage','условия хранения'],['quality','показатели качества'],['allergens','аллергены'],['nutrition','КБЖУ'],['developed','разработал'],['approved','утвердил'],['date','дата утверждения']]){
-  if(!String(f[key]||'').trim())issues.push(label);
+  if(!String(f[key]||'').trim()||window.FARUKH_TTK_AUTO?.isPending(f[key]))issues.push(label);
  }
  if(f.verified!=='yes')issues.push('ручное подтверждение документов');
  return issues;
@@ -566,14 +567,14 @@ function renderReview(){
   ['Название блюда',!!draft.title?.trim(),'main'],
   ['Выход блюда больше нуля',draft.yield_g!=null&&draft.yield_g>0,'main'],
   ['Рецептура: названия и граммовки',validLines,'lines'],
-  ['Область применения',!!f.scope?.trim(),'tech'],
-  ['Требования к сырью',!!f.raw?.trim(),'tech'],
-  ['Технологический процесс',!!f.process?.trim(),'tech'],
-  ['Оформление и реализация',!!f.serving?.trim(),'tech'],
-  ['Сроки и условия хранения',!!f.storage?.trim(),'tech'],
-  ['Качество и безопасность',!!f.quality?.trim(),'tech'],
-  ['Аллергены (источник проверен вручную)',!!f.allergens?.trim(),'tech'],
-  ['КБЖУ (источник проверен вручную)',!!f.nutrition?.trim(),'tech'],
+  ['Область применения',!!f.scope?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.scope),'tech'],
+  ['Требования к сырью',!!f.raw?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.raw),'tech'],
+  ['Технологический процесс',!!f.process?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.process),'tech'],
+  ['Оформление и реализация',!!f.serving?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.serving),'tech'],
+  ['Сроки и условия хранения',!!f.storage?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.storage),'tech'],
+  ['Качество и безопасность',!!f.quality?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.quality),'tech'],
+  ['Аллергены (источник проверен вручную)',!!f.allergens?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.allergens),'tech'],
+  ['КБЖУ (источник проверен вручную)',!!f.nutrition?.trim()&&!window.FARUKH_TTK_AUTO?.isPending(f.nutrition),'tech'],
   ['Разработал и утвердил',!!f.developed?.trim()&&!!f.approved?.trim(),'tech'],
   ['Дата утверждения',!!f.date?.trim(),'tech'],
   ['Ручное подтверждение сведений',f.verified==='yes','tech']
@@ -970,6 +971,21 @@ function init(){
    rerender:()=>{if(draft)renderPreview()}
   });
  window.FARUKH_TTK_SETTINGS?.init();
+ window.FARUKH_TTK_AUTO?.init({
+  getDraft:()=>draft,
+  getPreferences:()=>prefs,
+  setPreferences:x=>{prefs=x},
+  getSession:()=>session,
+  getDocs:()=>docs,
+  getProjects:()=>projects,
+  projectName:id=>byProject(id)?.name||'',
+  isDirty:()=>dirty,
+  api:(path,options)=>api(path,options),
+  markDirty:()=>{dirty=true;renderReview()},
+  sync:()=>{collectSheetValues();syncDraft({noPaperRender:true})},
+  hydrate:()=>fillEditor(),
+  reload:()=>loadAll()
+ });
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(currentView==='editor')fitPaper()}).observe($('paperStage'));
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
  // Reuse the existing user login so this replacement starts empty without requiring new account setup.
