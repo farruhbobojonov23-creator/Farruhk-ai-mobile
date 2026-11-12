@@ -112,3 +112,79 @@ body[data-pf-motion="off"] .pf-tile{transition:none!important}
 body[data-pf-theme]:not([data-view="home"]) .mobile-tools button{color:var(--pf-muted)!important}
 body[data-pf-theme]:not([data-view="home"]) .mobile-tools button.active{color:var(--pf-accent)!important;background:var(--pf-raised)!important}
 @media print{body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home){background:#fff!important;color:#111!important;border:0!important;box-shadow:none!important}#pf-workspace,.pf-modal{display:none!important}body[data-pf-theme] #editor,body[data-pf-theme] .ttk-paper{color:#111!important;background:white!important;box-shadow:none!important}}
+
+
+/* HOTFIX · Nov 12: older Arctic stylesheet has a more specific !important
+   display:grid on .arctic-shell. The earlier override never won the cascade.
+   The owner saw the old orb AND the new menu at the same time. */
+body[data-view="home"] #home.arctic-home.pf-upgraded{
+ background:var(--pf-bg)!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ height:100dvh!important;
+ min-height:100dvh!important;
+ display:block!important;
+}
+body[data-view="home"] #home.arctic-home.pf-upgraded:before,
+body[data-view="home"] #home.arctic-home.pf-upgraded:after{
+ content:none!important;
+ display:none!important;
+}
+body[data-view="home"] #home.arctic-home.pf-upgraded > .arctic-shell{
+ display:none!important;
+ visibility:hidden!important;
+}
+body[data-view="home"] #home.arctic-home.pf-upgraded > #pf-workspace{
+ display:flex!important;
+ visibility:visible!important;
+ position:relative!important;
+ z-index:2!important;
+ min-height:100dvh!important;
+ width:100%!important;
+ background:var(--pf-bg)!important;
+}
+/* Sidebar follows the same order as the upgraded home, regardless of
+   legacy settings reorder code. No feature has been removed. */
+body[data-pf-theme] #chef-menu .nav{
+ display:flex!important;
+ flex-direction:column!important;
+ gap:4px!important;
+}
+body[data-pf-theme] #chef-menu .nav > button[data-view="home"]{order:1!important}
+body[data-pf-theme] #chef-menu .nav > .pf-sidebar-project{order:2!important}
+body[data-pf-theme] #chef-menu .nav > button[data-view="recipes"]{order:3!important}
+body[data-pf-theme] #chef-menu .nav > button[data-view="lab"]{order:4!important}
+body[data-pf-theme] #chef-menu .nav > .pf-sidebar-journals{order:5!important}
+body[data-pf-theme] #chef-menu .nav > button[data-view="tasks"]{order:6!important}
+body[data-pf-theme] #chef-menu .nav > button[data-view="print-control"]{order:7!important}
+body[data-pf-theme] #chef-menu .nav > button[data-view="chat"]{order:8!important}
+body[data-pf-theme] #chef-menu .nav > .pf-sidebar-more{order:9!important}
+body[data-pf-theme] #chef-menu .nav > .pf-sidebar-design{order:10!important}
+body[data-pf-theme] #chef-menu .nav > #menu-settings{order:11!important}
+body[data-pf-theme] #chef-menu:not([hidden]){
+ background:var(--pf-panel)!important;
+ border-color:var(--pf-line)!important;
+ color:var(--pf-ink)!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+}
+body[data-pf-theme] #chef-menu .pf-sidebar-project,
+body[data-pf-theme] #chef-menu .pf-sidebar-journals,
+body[data-pf-theme] #chef-menu .pf-sidebar-design{
+ color:var(--pf-ink)!important;
+ background:transparent!important;
+ min-height:44px!important;
+}
+body[data-pf-theme] #chef-menu .pf-sidebar-project:hover,
+body[data-pf-theme] #chef-menu .pf-sidebar-journals:hover,
+body[data-pf-theme] #chef-menu .pf-sidebar-design:hover{background:var(--pf-raised)!important}
+#pf-workspace .pf-project-picker option{background:var(--pf-panel);color:var(--pf-ink)}
+#pf-workspace .pf-project-picker select:focus-visible,
+#pf-workspace button:focus-visible,
+.pf-modal button:focus-visible,
+.pf-modal input:focus-visible{outline:3px solid var(--pf-accent)!important;outline-offset:2px}
+@media(max-width:700px){
+ body[data-view="home"] #home.arctic-home.pf-upgraded #pf-workspace{padding-bottom:105px!important}
+ body[data-view="home"] #home.arctic-home.pf-upgraded .pf-bottom{position:fixed!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;border-radius:18px 18px 0 0!important}
+ body[data-pf-theme] #chef-menu:not([hidden]){bottom:env(safe-area-inset-bottom,0px)!important;max-height:calc(100dvh - 70px)!important}
+}
