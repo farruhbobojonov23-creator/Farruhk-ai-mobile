@@ -268,3 +268,44 @@
     }
   }
 }
+
+/* HACCP journal catalog used a high-specificity permanent white skin. */
+@media screen {
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card,
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-card:hover {
+   color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+   border-color:var(--pf-line)!important;
+   background:var(--pf-card-grad)!important;
+   box-shadow:var(--pf-shadow)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-icon,
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-count,
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-visual {
+   background:var(--pf-soft-accent)!important;
+   color:var(--pf-accent)!important;
+   -webkit-text-fill-color:var(--pf-accent)!important;
+   border-color:var(--pf-line)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-description,
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-group-count {
+   color:var(--pf-muted)!important;-webkit-text-fill-color:var(--pf-muted)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-journal-copy strong,
+ body[data-pf-theme][data-view="lab"] #lab[data-haccp-view="catalog"] .haccp-group-label {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab .haccp-month-table {
+   border-color:var(--pf-line)!important;
+   background:var(--pf-panel)!important;
+   color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab .haccp-month-table thead th {
+   background:var(--pf-raised)!important;
+   color:var(--pf-ink)!important;
+   border-color:var(--pf-line)!important;
+ }
+ body[data-pf-theme][data-view="lab"] #lab .haccp-month-table tbody td {
+   border-color:var(--pf-line)!important;
+ }
+}
