@@ -98,6 +98,9 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  document.addEventListener('pf:projects',syncProjects);
  root.addEventListener('click',event=>{
   const target=event.target.closest('button');if(!target)return;
+  // Buttons also live inside the legacy #pf-workspace click listener.
+  // Stop bubbling so each action runs once (especially navigation with dirty TTK).
+  event.stopPropagation();
   if(target.dataset.pfGo)goto(target.dataset.pfGo);
   if(target.dataset.pfAction==='studio')openStudio();
   if(target.dataset.pfAction==='projects')openProjects();
