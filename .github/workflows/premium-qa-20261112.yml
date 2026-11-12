@@ -2,7 +2,10 @@ name: FARRUH AI — Premium Full UI Audit
 on:
   push:
     branches:
+      - main
       - qa/full-application-browser-audit-20261112
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
