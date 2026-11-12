@@ -65,10 +65,10 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '</header>'+
  '<section class="pf-showcase-banner">'+
  '<div class="pf-banner-copy"><p class="pf-overline">FARRUH AI • КАБИНЕТ ШЕФА</p><h1>Управляй кухней.<br><span>Создавай лучшее.</span></h1><p>Техкарты, безопасность, заготовки и контроль в одной системе.</p><button type="button" class="pf-banner-cta" data-pf-go="recipes">Открыть ТТК <span aria-hidden="true">↗</span></button></div>'+
- '<div class="pf-banner-visual"><div class="pf-banner-aura"></div><img src="/assets/categories/cold.png" alt="" loading="lazy" decoding="async"></div>'+
+ '<div class="pf-banner-visual"><div class="pf-banner-aura"></div><img src="/assets/categories/cold.png" alt="" loading="eager" decoding="async"></div>'+
  '</section>'+
  '<div class="pf-showcase-controls">'+
- '<label class="pf-showcase-select">'+icon3d('projects',true)+'<span class="pf-actual-select"><small>Текущий проект</small><select aria-label="Рабочий проект" id="pf-showcase-project-select"></select></span><span aria-hidden="true">⌄</span></label>'+
+ '<label class="pf-showcase-select">'+icon3d('projects',true)+'<span class="pf-actual-select"><small>Текущий проект</small><select aria-label="Рабочий проект" id="pf-showcase-project-select"></select></span></label>'+
  '<button type="button" class="pf-add-project" data-pf-action="projects">＋ <span>Проекты</span></button>'+
  '<div class="pf-project-disclaimer" title="ТТК, ХАССП и журналы пока не разделены по проектам">Список проектов — без отдельной базы документов</div>'+
  '</div>'+
