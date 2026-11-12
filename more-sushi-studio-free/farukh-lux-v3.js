@@ -639,7 +639,7 @@ function renderPreview(){
  const parts=f.archive_parts||{};
  const groups={process:['step1','step2','step3','step4'],serving:['serving_design','serving_sale','serving_transport'],quality:['quality_appearance','quality_consistency','quality_taste','quality_color','quality_safety'],nutrition:['protein','fat','carbs','kcal']};
  Object.entries(groups).forEach(([group,keys])=>keys.forEach((key,i)=>{const el=q('[data-key="'+key+'"]');el.dataset.archiveField=key;el.dataset.archiveGroup=group;el.textContent=parts[key]??(i===0&&group!=='nutrition'?(f[group]||''):'');el.setAttribute('aria-label',key)}));
- q('#nutritionHead').textContent='На 100 г готового продукта:';
+ q('#nutritionHead').textContent=f.auto_meta?.nutrition_calculated&&f.verified!=='yes'?'Расчётно на 100 г · проверить:':'На 100 г готового продукта:';
  if(f.nutrition&&!groups.nutrition.some(k=>parts[k])){const legacy=document.createElement('div');legacy.className='archive-nutrition-legacy edit';legacy.dataset.sheetField='fNutrition';legacy.contentEditable='true';legacy.textContent=f.nutrition;q('.card7 .body').append(legacy)}
  q('#brand').dataset.command='sheetProjectEdit';q('#brand').title='Изменить логотип бренда';
  if(!/море|more/i.test(p?.name||'')){q('.brandname').textContent=p?.name||'Ваш бренд';q('.brandsub').textContent=''}
