@@ -61,6 +61,21 @@ async function run(theme,width,height){
    check(tag+' PRINT themed',print.hero.includes('gradient')&&print.stat.includes('gradient'),print);
    await page.screenshot({path:'artifacts/premium-'+tag+'-print.png',timeout:12000});
   }
+  if(theme==='titanium'&&mobile)await page.screenshot({path:'artifacts/premium-'+tag+'-'+target+'.png',timeout:12000});
+ }
+ if(theme==='titanium'&&mobile){
+  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]').click());
+  await page.evaluate(()=>document.querySelector('.pf-showcase-top-button[data-pf-action="studio"]').click());
+  await page.locator('#pf-studio-dialog').waitFor({state:'visible',timeout:5000});
+  const count=await page.locator('#pf-studio-dialog .pf-theme-btn').count();
+  check('All eight themes selectable',count===8,count);
+  await page.locator('#pf-studio-dialog .pf-theme-btn').filter({hasText:'Royal Gold 3D'}).click();
+  const changed=await page.evaluate(()=>document.body.dataset.pfTheme);
+  check('Live design switch applies Royal Gold',changed==='royal',changed);
+  await page.screenshot({path:'artifacts/premium-'+tag+'-design-studio.png',timeout:12000});
+  await page.locator('#pf-studio-dialog .pf-modal-footer button').filter({hasText:'Отменить'}).click();
+  const restored=await page.evaluate(()=>document.body.dataset.pfTheme);
+  check('Cancel theme preview restores original',restored==='titanium',restored);
  }
  results.push({label:tag+' page errors (non-blocking mocked optional APIs)',ok:true,context:errors.slice(0,8)});
  }catch(e){check(tag+' fatal',false,e.message)}
