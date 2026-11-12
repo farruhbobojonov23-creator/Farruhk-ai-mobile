@@ -468,7 +468,26 @@ const retryLoad=document.createElement('button');retryLoad.type='button';retryLo
 let loadingState=false;
 async function loadAssistantState(){
  if(loadingState)return;loadingState=true;retryLoad.hidden=true;
- try{notice('Загружаю сохранённые данные…');state=await deviceStore.load();render();googleSync.schedule();googleDriveBackup.render();googleDriveBackup.schedule();showSavedChatHistory(state.chat||[]);$('connection').textContent='Хранение на устройстве';notice('');navigator.storage?.persist?.().catch(()=>{})}
+ try{
+  notice('Загружаю сохранённые данные…');
+  state=await deviceStore.load();
+  render();
+  $('connection').textContent='Хранение на устройстве';
+  notice('');
+  // Show the dashboard first. Noncritical backup, cloud scheduling and chat
+  // history DOM work can be deferred until the browser has painted the UI.
+  const finishStartup=()=>{
+   try{
+    googleDriveBackup.render();
+    googleSync.schedule();
+    googleDriveBackup.schedule();
+    showSavedChatHistory(state?.chat||[]);
+    navigator.storage?.persist?.().catch(()=>{});
+   }catch(e){console.warn('Optional startup task failed:',e)}
+  };
+  if('requestIdleCallback' in window)requestIdleCallback(finishStartup,{timeout:2500});
+  else setTimeout(finishStartup,180);
+ }
  catch(e){$('connection').textContent='Не удалось открыть данные устройства';notice(e.message,true);retryLoad.hidden=false}
  finally{loadingState=false}
 }
