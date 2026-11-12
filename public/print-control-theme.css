@@ -1,0 +1,224 @@
+/* FARUKH PRINT manager · themed control surface for all 8 FARRUH AI styles.
+   Uses global Design Studio variables. Do not style PDF label previews,
+   thermal print templates, the staff print application or media=print. */
+@media screen {
+ body[data-pf-theme] #print-control {
+   color:var(--pf-ink)!important;
+   background:transparent!important;
+   font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+ }
+ body[data-pf-theme] #print-control-root{width:100%;min-width:0}
+ body[data-pf-theme] #print-control :is(
+   .pc-hero,.pc-stat,.pc-toolbar,.pc-row,.pc-empty,.pc-transfer,.pc-integration,.pc-log,.pc-readiness,
+   .pc-workspace-tabs,.pc-filters,.pc-pagination,.pc-photo-field,.pc-normative-notice,
+   .pc-guide-body,.pc-guide-current,.pc-guide-example,.pc-advice-intro,.pc-advice-section,
+   .pc-advice-card,.pc-advice-grid,.pc-premium-template:not(.pc-template-preview),
+   .pcloud,.pcloud-device,.pcloud-pairing,.pcloud-owner-login,.pcloud-connection-summary,
+   .pstaff,.pstaff-workspace,.pstaff-item,.pstaff-points,.pstaff-metric,.pstaff-report-card,
+   .pstaff-event,.pstaff-product-row,.pstaff-worker-row,.pstaff-alert-item,.pstaff-worker-report,
+   .pstaff-point-checks,.pstaff-point-option,.pstaff-create-details,.pstaff-worker-details,
+   .pstaff-tab-panel,.pstaff-history-filters,.pstaff-password-group,.pstaff-reset-box
+ ) {
+   background:var(--pf-card-grad)!important;
+   border:1px solid var(--pf-line)!important;
+   color:var(--pf-ink)!important;
+   box-shadow:var(--pf-shadow)!important;
+   border-radius:var(--pf-radius)!important;
+ }
+ body[data-pf-theme] #print-control .pc-hero {
+   background:linear-gradient(118deg,
+     color-mix(in srgb,var(--pf-accent) 13%,var(--pf-panel)),
+     var(--pf-panel) 64%,var(--pf-raised))!important;
+   padding:clamp(19px,3vw,32px)!important;
+ }
+ body[data-pf-theme] #print-control .pc-kicker {
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+   letter-spacing:.17em;
+ }
+ body[data-pf-theme] #print-control :is(h1,h2,h3,h4) {
+   color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-item strong,.pc-stat strong,.pcloud-device strong,.pstaff-metric strong,
+   .pstaff-item strong,.pstaff-report-values strong,.pstaff-report-card > strong,
+   .pc-log summary,.pc-form-title h2,.pc-readiness strong,.pstaff-worker-row strong,
+   .pstaff-point-row > strong,.pstaff-new-key > strong
+ ) {
+   color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-hero p,.pc-stat small,.pc-item small,.pc-log-item,.pc-log-item time,
+   .pc-readiness small,.pc-empty,.pc-row small,.pc-transfer p,.pc-integration p,
+   .pcloud > p,.pcloud-foot,.pcloud-device small,.pcloud-pairing small,.pstaff-info,
+   .pstaff-item small,.pstaff-metric small,.pstaff-report-note,.pstaff-report-card > small,
+   .pstaff-report-values small,.pstaff-product-row > span,.pstaff-worker-row small,
+   .pstaff-point-option span,.pc-guide-body p,.pc-advice-card p
+ ) {
+   color:var(--pf-muted)!important;
+   -webkit-text-fill-color:var(--pf-muted)!important;
+ }
+ body[data-pf-theme] #print-control .pc-stat {
+   gap:12px!important;
+   min-height:120px;
+   background:linear-gradient(150deg,var(--pf-panel),var(--pf-raised))!important;
+   padding:clamp(14px,2vw,20px)!important;
+ }
+ body[data-pf-theme] #print-control .pc-stat strong {
+   font-size:clamp(27px,3.6vw,38px)!important;
+   font-variant-numeric:tabular-nums!important;
+ }
+ body[data-pf-theme] #print-control .pc-stat:nth-child(3) strong {
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+ }
+ body[data-pf-theme] #print-control .pc-stat:nth-child(4) strong {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-workspace-tabs,.pc-tabs,.pc-toolbar-actions,.pstaff-tabbar
+ ) {
+   border-color:var(--pf-line)!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-tab,.pc-workspace-tab,.pc-secondary,.pc-edit,.pc-photo-btn,.pc-norms-btn,
+   .pcloud-btn,.pstaff-button,.pstaff-tab,.pstaff-controls button,
+   .pstaff-password-toggle,.pc-pager,.pc-template-preview-art button,
+   .pc-premium-template-button
+ ) {
+   background:var(--pf-raised)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   box-shadow:inset 0 1px #ffffff16!important;
+   border-radius:12px!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-tab.active,.pc-workspace-tab.active,.pc-workspace-tab[aria-selected="true"],.pstaff-tab.active,.pstaff-tab[aria-selected="true"]) {
+   background:var(--pf-accent)!important;
+   border-color:var(--pf-accent)!important;
+   color:var(--pf-on-accent)!important;-webkit-text-fill-color:var(--pf-on-accent)!important;
+   font-weight:850!important;
+   box-shadow:0 3px 15px color-mix(in srgb,var(--pf-accent) 26%,transparent)!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-primary,.pstaff-create,.pcloud-login-button,.pstaff-export) {
+   background:var(--pf-accent)!important;
+   border:1px solid var(--pf-accent)!important;
+   color:var(--pf-on-accent)!important;-webkit-text-fill-color:var(--pf-on-accent)!important;
+   border-radius:12px!important;
+   box-shadow:0 4px 15px color-mix(in srgb,var(--pf-accent) 20%,transparent)!important;
+ }
+ body[data-pf-theme] #print-control :is(button,a.pc-secondary):hover {
+   filter:brightness(1.065)!important;
+   border-color:var(--pf-accent)!important;
+ }
+ body[data-pf-theme] #print-control button:disabled {
+   opacity:.57!important;
+   cursor:not-allowed!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-search,.pc-field input,.pc-field textarea,.pc-field select,
+   .pstaff-search,.pstaff-select,.pstaff-field input,.pstaff-point-field input,
+   .pstaff-inline-edit input:not([type="checkbox"]),
+   .pstaff-password-input,.pcloud-owner-password,
+   .pc-category-filter,select,textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="color"])
+ ):not(.pc-template-preview *):not(.pc-prep-template *):not(.pc-template-preview-art *) {
+   background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   color-scheme:inherit!important;
+   border-radius:11px!important;
+   box-shadow:inset 0 1px 2px #0002!important;
+   max-width:100%;
+ }
+ body[data-pf-theme] #print-control :is(input,textarea)::placeholder {
+   color:var(--pf-muted)!important;-webkit-text-fill-color:var(--pf-muted)!important;
+   opacity:1;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-field,.pstaff-field,.pcloud-owner-label,.pc-category-label,
+   .pstaff-point-form label,.pstaff-password-hint
+ ) {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pc-log-body,.pc-log-item,.pstaff-point-rows,.pstaff-point-row,.pstaff-inline-edit,
+   .pstaff-metric,.pc-row,.pstaff-item,.pcloud-device,.pc-readiness-track,
+   .pstaff-mini-track,.pc-photo-controls
+ ) {
+   border-color:var(--pf-line)!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-approval,.pc-alert,.pstaff-message,.pcloud-status,.pc-roadmap) {
+   background:var(--pf-soft-accent)!important;
+   color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   border-radius:12px!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-alert.error,.pc-error,.pcloud-status[data-error="yes"],.pstaff-message[data-error="yes"]) {
+   background:color-mix(in srgb,#f05b67 14%,var(--pf-panel))!important;
+   border-color:color-mix(in srgb,#f05b67 55%,var(--pf-line))!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-badge,.pc-tag,.pc-wait,.pc-ok,.pstaff-role,.pstaff-status,.pstaff-status-on,.pstaff-status-off,.pstaff-new-key,.pc-normative-notice) {
+   background:var(--pf-soft-accent)!important;
+   border:1px solid var(--pf-line)!important;
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+   border-radius:12px!important;
+ }
+ body[data-pf-theme] #print-control :is(
+   .pstaff-point-checks,.pstaff-point-option,.pstaff-points,.pstaff-secret > div,
+   .pcloud-pairing,.pstaff-point-rows,.pc-photo-placeholder,.pc-readiness,
+   .pc-log,.pc-pagination,.pc-empty
+ ) {
+   background:var(--pf-card-grad)!important;color:var(--pf-ink)!important;
+   border-color:var(--pf-line)!important;
+ }
+ body[data-pf-theme] #print-control .pstaff-point-option:has(input:checked) {
+   background:var(--pf-soft-accent)!important;border-color:var(--pf-accent)!important;
+ }
+ body[data-pf-theme] #print-control input[type="checkbox"] {accent-color:var(--pf-accent)!important}
+ body[data-pf-theme] #print-control .pc-readiness-track {
+   background:var(--pf-raised)!important;
+ }
+ body[data-pf-theme] #print-control .pc-readiness-fill {
+   background:linear-gradient(90deg,var(--pf-accent),var(--pf-glow))!important;
+ }
+ body[data-pf-theme] #print-control :is(.pstaff-mini-bar,.pc-readiness-fill) {
+   background-color:var(--pf-accent)!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-guide-link,.pcloud-code) {
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+ }
+ body[data-pf-theme] #print-control :is(.pc-photo-field,.pc-row,.pstaff-item,.pcloud-device,.pc-stat,.pc-tab,.pcloud-btn,.pstaff-tab) {
+   transition:border-color .14s ease,background-color .14s ease;
+ }
+ body[data-pf-motion="off"] #print-control *{transition:none!important}
+ /* Owner-only edit and pairing dialogs render outside #print-control */
+ body[data-pf-theme] .pc-dialog {
+   background:var(--pf-panel)!important;color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;border-radius:var(--pf-radius)!important;
+ }
+ body[data-pf-theme] .pc-dialog :is(.pc-form,.pc-form-title) {color:var(--pf-ink)!important}
+ body[data-pf-theme] .pc-dialog :is(h1,h2,h3,label,strong) {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body[data-pf-theme] .pc-dialog :is(input:not([type="checkbox"]),textarea,select) {
+   background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;border:1px solid var(--pf-line)!important;
+ }
+ body[data-pf-theme] .pc-dialog :is(.pc-approval,.pc-error) {
+   background:var(--pf-soft-accent)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+ }
+ @media(max-width:700px){
+   body[data-pf-theme] #print-control .pc-hero {padding:20px!important}
+   body[data-pf-theme] #print-control .pc-stat {min-height:106px!important}
+   body[data-pf-theme] #print-control .pc-tab {flex:1 1 41%;padding:11px 8px!important}
+   body[data-pf-theme] #print-control :is(.pc-workspace-tabs,.pc-tabs) {gap:7px!important}
+   body[data-pf-theme] #print-control .pc-toolbar{padding-top:10px}
+   body[data-pf-theme] #print-control :is(.pcloud,.pstaff) {padding:16px!important}
+   body[data-pf-theme] #print-control :is(.pc-stats,.pstaff-metrics) {
+     grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   }
+ }
+}
