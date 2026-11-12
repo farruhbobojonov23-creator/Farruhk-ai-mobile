@@ -1,14 +1,15 @@
 /* FARRUH AI Design Studio · non-destructive interface layer.
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
+import {mountPremiumShowcase} from '/premium-showcase.js?v=1';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
-const defaults={theme:'ice',accent:'',radius:20,density:'standard',scale:1,motion:true};
-const themeNames={arctic:'Arctic Sapphire',ice:'Black Ice',white:'Minimal White',gold:'Executive Gold',burgundy:'Burgundy PRO'};
-const themeColors={arctic:['#087bba','#e8f4ff'],ice:['#35c9ec','#08101d'],white:['#336fc4','#ffffff'],gold:['#d6ae64','#17191e'],burgundy:['#f1739d','#280f1d']};
+const defaults={theme:'titanium',accent:'',radius:20,density:'standard',scale:1,motion:true};
+const themeNames={titanium:'Black Ice Titanium',crystal:'Arctic Crystal PRO',royal:'Royal Gold 3D',arctic:'Arctic Sapphire',ice:'Black Ice',white:'Minimal White',gold:'Executive Gold',burgundy:'Burgundy PRO'};
+const themeColors={titanium:['#52caff','#07121c'],crystal:['#1379ce','#e3f3ff'],royal:['#e2b05b','#090909'],arctic:['#087bba','#e8f4ff'],ice:['#35c9ec','#08101d'],white:['#336fc4','#ffffff'],gold:['#d6ae64','#17191e'],burgundy:['#f1739d','#280f1d']};
 const deepCopy=o=>JSON.parse(JSON.stringify(o));
 function getJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}}
 function setJson(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}
-function validDesign(raw){const c={...defaults,...(raw&&typeof raw==='object'?raw:{})};if(!themeNames[c.theme])c.theme='arctic';if(!/^#[0-9a-f]{6}$/i.test(c.accent||''))c.accent='';c.radius=Math.min(30,Math.max(8,Number(c.radius)||20));if(!['compact','standard','spacious'].includes(c.density))c.density='standard';c.scale=[.9,1,1.1,1.2].includes(Number(c.scale))?Number(c.scale):1;c.motion=c.motion!==false;return c}
+function validDesign(raw){const c={...defaults,...(raw&&typeof raw==='object'?raw:{})};if(!themeNames[c.theme])c.theme='titanium';if(!/^#[0-9a-f]{6}$/i.test(c.accent||''))c.accent='';c.radius=Math.min(30,Math.max(8,Number(c.radius)||20));if(!['compact','standard','spacious'].includes(c.density))c.density='standard';c.scale=[.9,1,1.1,1.2].includes(Number(c.scale))?Number(c.scale):1;c.motion=c.motion!==false;return c}
 function validProjects(raw){const projects=Array.isArray(raw?.projects)?raw.projects.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string').map(p=>({id:p.id.slice(0,70),name:p.name.trim().slice(0,60)})).filter(p=>p.name):[];if(!projects.length)projects.push({id:'more-sushi',name:'Море Суши'},{id:'sushi-beri',name:'Суши Бери'});const selected=projects.some(p=>p.id===raw?.selected)?raw.selected:projects[0].id;return {projects,selected}}
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
 function button(text,cls,fn){const b=node('button',cls,text);b.type='button';b.addEventListener('click',fn);return b}
@@ -30,7 +31,7 @@ export function mountPremiumWorkspace(){
   document.body.style.setProperty('--pf-scale',String(c.scale));
   if(c.accent)document.body.style.setProperty('--pf-accent',c.accent);else document.body.style.removeProperty('--pf-accent');
   const meta=document.querySelector('meta[name="theme-color"]');
-  if(meta)meta.content=['ice','gold','burgundy'].includes(c.theme)?themeColors[c.theme][1]:c.theme==='white'?'#f5f6f8':'#e8f4ff';
+  if(meta)meta.content=['titanium','royal','ice','gold','burgundy'].includes(c.theme)?themeColors[c.theme][1]:c.theme==='white'?'#f5f6f8':'#e8f4ff';
  }
  function goto(view){
   const target=nav.querySelector('button[data-view="'+view+'"]');
@@ -83,10 +84,10 @@ export function mountPremiumWorkspace(){
  shell.style.setProperty('display','flex','important');
  function updateProjectPicker(){
   const select=document.getElementById('pf-home-project-select');if(!select)return;
-  select.replaceChildren();for(const p of projects.projects)select.add(new Option('Проект: '+p.name,p.id));select.value=projects.selected;
+  select.replaceChildren();for(const p of projects.projects)select.add(new Option('Проект: '+p.name,p.id));select.value=projects.selected;document.dispatchEvent(new Event('pf:projects'));
  }
  shell.querySelector('#pf-home-project-select').addEventListener('change',e=>{
-  projects.selected=e.target.value;setJson(PROJECT_KEY,projects);
+  projects.selected=e.target.value;setJson(PROJECT_KEY,projects);document.dispatchEvent(new Event('pf:projects'));
  });
  function renderProjects(){
   projectModal.replaceChildren();
@@ -129,13 +130,13 @@ export function mountPremiumWorkspace(){
   const pane=node('div','pf-studio-pane');
   if(tab==='themes'){
    pane.append(node('h3','','Выбор дизайна'));
-   pane.append(node('p','','Пять готовых премиальных тем. Нажми на цвет — увидишь изменения сразу, а «Применить» сохранит выбор.'));
+   pane.append(node('p','','Три новые 3D-дизайн-системы для телефона и компьютера плюс пять классических тем. Выбери вариант — оформление изменится сразу. Нажми «Применить», чтобы сохранить.'));
    const themes=node('div','pf-themes');
    for(const [id,name] of Object.entries(themeNames)){
     const b=button('','pf-theme-btn'+(draft.theme===id?' selected':'') ,()=>{
       draft.theme=id;draft.accent='';applyDesign(draft);renderStudio();
-    });b.setAttribute('aria-pressed',String(draft.theme===id));
-    const sw=node('span','pf-theme-sw');sw.style.background='linear-gradient(135deg,'+themeColors[id][0]+','+themeColors[id][1]+')';b.append(sw,node('strong','',name),node('small','',id==='arctic'?'Ледяной голубой':id==='ice'?'Тёмный премиум':id==='white'?'Светлый':id==='gold'?'Графит и золото':'Бордовый'));themes.append(b);
+    });b.setAttribute('aria-pressed',String(draft.theme===id));if(['titanium','crystal','royal'].includes(id))b.dataset.premium='true';
+    const sw=node('span','pf-theme-sw');sw.style.background='linear-gradient(135deg,'+themeColors[id][0]+','+themeColors[id][1]+')';b.append(sw,node('strong','',name),node('small','',({titanium:'Титан • 3D • синий',crystal:'Лёд • 3D • светлый',royal:'Золото • 3D • чёрный',arctic:'Ледяной голубой',ice:'Тёмный премиум',white:'Светлый',gold:'Графит и золото',burgundy:'Бордовый'})[id]));themes.append(b);
    }pane.append(themes);
    const colorRow=node('label','pf-control');colorRow.append(node('span','','Свой акцентный цвет'));const color=node('input');color.type='color';color.value=draft.accent||themeColors[draft.theme][0];color.addEventListener('input',()=>{draft.accent=color.value;applyDesign(draft)});colorRow.append(color);pane.append(colorRow);
   }else if(tab==='layout'){
@@ -170,6 +171,8 @@ export function mountPremiumWorkspace(){
   target.prepend(b);
  }
  addSidebar();updateProjectPicker();applyDesign(config);
+ // Premium layouts are additive, and keep the original five designs intact.
+ mountPremiumShowcase({shell,goto,openStudio,openProjects});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){new MutationObserver(attachSettingsEntry).observe(settingsTarget,{childList:true});attachSettingsEntry()}
 }
