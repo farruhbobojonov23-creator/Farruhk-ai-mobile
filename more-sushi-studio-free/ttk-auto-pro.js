@@ -116,7 +116,7 @@ const categories=Object.fromEntries(config.map(x=>[x[0],{key:x[0],emoji:x[1],nam
 const FIELDS=['scope','raw','process','serving','storage','quality'];
 const IDS={scope:'fScope',raw:'fRaw',process:'fProcess',serving:'fServing',storage:'fStorage',quality:'fQuality',allergens:'fAllergens',nutrition:'fNutrition'};
 const META=[['scope','Область применения'],['raw','Требования к сырью'],['process','Технологический процесс'],['serving','Подача и реализация'],['storage','Хранение'],['quality','Качество']];
-let bridge=null,initialised=false,opened=false,active='cold',catalog=null,fetching=false,calculating=false;
+let bridge=null,initialised=false,opened=false,active='cold',catalog=null,fetching=false,calculating=false,catalogPromise=null;
 let lastReport={matched:0,total:0,missing:[],nutrition:false,allergens:false};
 function d(){return bridge?.getDraft?.()||null}
 function currentPreferences(){return bridge?.getPreferences?.()||{}}
@@ -277,9 +277,10 @@ async function resetPreset(){
  }catch(e){setNotice('Ошибка: '+(e.message||e),true)}
 }
 async function loadCatalog(force=false){
- if(fetching||(!force&&catalog))return;
+ if(fetching)return catalogPromise;
+ if(!force&&catalog)return catalog;
  fetching=true;$('autoCatalogBadge').textContent='⏳ Загрузка базы сырья…';
- try{
+ catalogPromise=(async()=>{try{
   const [ingredients,recipes,recipe_lines]=await Promise.all([
    bridge.api('/rest/v1/ingredients?select=id,name,allergens,allergen_status,nutrition_100g,nutrition_review_status,nutrition_reference&order=name.asc&limit=2000'),
    bridge.api('/rest/v1/recipes?select=id,name,kind,yield_g&limit=2000'),
@@ -290,6 +291,7 @@ async function loadCatalog(force=false){
   $('autoCatalogBadge').textContent='📚 Сырьё: '+catalog.ingredients.length+' · подтверждённое КБЖУ: '+verified;
  }catch(e){catalog=null;$('autoCatalogBadge').textContent='⚠ База сырья недоступна';setNotice('Не удалось загрузить базу ингредиентов: '+(e.message||e),true)}
  finally{fetching=false}
+ })();return catalogPromise;
 }
 function matcher(){
  const iByName=new Map(),rByName=new Map();
@@ -469,6 +471,28 @@ function setup(){
   '</div>'
  ].join('');
  document.body.append(overlay,drawer);
+ // Selecting a known category in the normal editor also prepares a fresh, empty TTK.
+ // Existing documents never receive silent template overwrites.
+ const categoryList=document.createElement('datalist');
+ categoryList.id='ttkAutoCategoryChoices';
+ categoryList.innerHTML=config.filter(x=>x[0]!=='other').map(x=>'<option value="'+esc(x[2])+'"></option>').join('');
+ document.body.appendChild(categoryList);
+ const normalCategory=$('eCategory');
+ if(normalCategory){
+  normalCategory.setAttribute('list','ttkAutoCategoryChoices');
+  const freshAutoFill=()=>{
+   const item=d();
+   if(!item||item.id||!item.fields)return;
+   const entry=Object.values(categories).find(x=>x.key!=='other'&&clean(x.name)===clean(normalCategory.value));
+   if(!entry||FIELDS.some(k=>String(item.fields[k]||'').trim()))return;
+   bridge.sync?.();
+   fillFields(item,entry.key,{replace:false});
+   bridge.markDirty?.();
+   refresh();
+  };
+  normalCategory.addEventListener('change',freshAutoFill);
+  $('paper')?.addEventListener('focusout',e=>{if(e.target?.dataset?.sheetField==='eCategory')freshAutoFill()});
+ }
  const css=document.createElement('link');css.rel='stylesheet';css.href='./ttk-auto-pro.css?v=20261112-1';document.head.append(css);
  open.addEventListener('click',()=>openedPanel(!opened));
  $('autoClose').addEventListener('click',()=>openedPanel(false));
