@@ -328,3 +328,82 @@ body[data-pf-motion="off"] .pf-showcase-card{transition:none!important}
 @media print{
  .pf-showcase{display:none!important}
 }
+
+
+/* Keep existing workspaces legible when any of the three premium palettes
+   is active. Printed sheets are excluded from this layer. */
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) .view:not([hidden]):not(#home){
+ background:var(--pf-panel)!important;
+ color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ box-shadow:var(--pf-shadow)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) .view:not([hidden]) :is(h1,h2,h3):not(.ttk-paper h1):not(.ttk-paper h2):not(.ttk-paper h3){
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(.panel,.tile,.task-card,.preparation-card,.point-card,.recipe-list-row,.category-card,.settings-row,.create-panel){
+ background:var(--pf-card-grad)!important;
+ color:var(--pf-ink)!important;
+ border-color:var(--pf-line)!important;
+ box-shadow:var(--pf-shadow)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(label,summary,strong):not(.ttk-paper label):not(.ttk-paper strong){
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(.small,.section-subtitle,.category-caption small,.settings-row p){
+ color:var(--pf-muted)!important;
+ -webkit-text-fill-color:var(--pf-muted)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(input:not([type=checkbox]):not([type=radio]):not([type=color]),textarea,select):not(.ttk-paper input):not(.ttk-paper textarea):not(.ttk-paper select){
+ background:var(--pf-raised)!important;
+ color:var(--pf-ink)!important;
+ -webkit-text-fill-color:var(--pf-ink)!important;
+ border:1px solid var(--pf-line)!important;
+ color-scheme:inherit!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) input::placeholder{
+ color:var(--pf-muted)!important;-webkit-text-fill-color:var(--pf-muted)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(button:not(.primary),.settings-actions button):not(.ttk-paper button){
+ background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+ border-color:var(--pf-line)!important;
+ box-shadow:inset 0 1px #ffffff1b!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) :is(#recipes,#preparations,#tasks,#checks,#chat,#site-settings) :is(button.primary,#newrecipe,.pf-settings-launch){
+ background:var(--pf-accent)!important;
+ color:var(--pf-on-accent)!important;
+ border-color:var(--pf-accent)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) #recipe-categories .category-card{
+ background:var(--pf-card-grad)!important;color:var(--pf-ink)!important;
+ border-color:var(--pf-line)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) .mobile-tools{
+ background:var(--pf-panel)!important;border-color:var(--pf-line)!important;color:var(--pf-ink)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) .mobile-tools button{
+ background:transparent!important;color:var(--pf-muted)!important;
+}
+body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]):not([data-view="home"]) .mobile-tools button.active{
+ background:var(--pf-raised)!important;color:var(--pf-accent)!important;
+}
+/* Modern showcase previews for all eight available themes. */
+body[data-pf-theme] #pf-studio-dialog .pf-themes{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+body[data-pf-theme] #pf-studio-dialog .pf-theme-btn[data-premium="true"]{
+ background:var(--pf-card-grad)!important;
+}
+body[data-pf-theme] #pf-studio-dialog .pf-theme-btn[data-premium="true"] strong{font-weight:850}
+@media(max-width:720px){
+ body[data-pf-theme] #pf-studio-dialog .pf-themes{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media print{
+ body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]) #editor,
+ body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]) .ttk-paper,
+ body:is([data-pf-theme="titanium"],[data-pf-theme="crystal"],[data-pf-theme="royal"]) .haccp-a4-paper{
+  color:#111!important;background:#fff!important;box-shadow:none!important;
+ }
+}
