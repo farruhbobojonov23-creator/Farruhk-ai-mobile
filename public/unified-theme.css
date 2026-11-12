@@ -1,0 +1,238 @@
+/* FARRUH AI · Unified Appearance v1
+   Scoped to on-screen owner dashboard. Paper output, HACCP print previews,
+   recipe A4 templates and separate FARUKH PRINT employee app are untouched.
+   All eight themes consume the same Design Studio --pf-* tokens. */
+@media screen {
+  body[data-pf-theme] {
+    --pf-field:var(--pf-raised);
+    --pf-on-panel:var(--pf-ink);
+    --pf-divider:var(--pf-line);
+    --pf-soft-accent:color-mix(in srgb,var(--pf-accent) 13%,var(--pf-panel));
+    --pf-ui-surface:linear-gradient(146deg,var(--pf-panel),var(--pf-raised));
+  }
+  body[data-pf-theme]:not([data-view="home"]) {
+    background:var(--pf-bg)!important;color:var(--pf-ink)!important;
+    color-scheme:normal;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .app,
+  body[data-pf-theme]:not([data-view="home"]) .app > main,
+  body[data-pf-theme]:not([data-view="home"]) .app > main > .glass {
+    background:transparent!important;color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) main > .bar {
+    color:var(--pf-ink)!important;border-color:var(--pf-line)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home) {
+    background:var(--pf-panel)!important;color:var(--pf-ink)!important;
+    border:1px solid var(--pf-line)!important;
+    box-shadow:var(--pf-shadow)!important;
+    border-radius:var(--pf-radius)!important;
+    max-width:100%!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home)
+  :is(h1,h2,h3,h4,strong,label,summary):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *):not(.pc-template-preview *) {
+    color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home)
+  :is(p,.small,.section-subtitle,small):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *):not(.pc-template-preview *) {
+    color:var(--pf-muted)!important;
+    -webkit-text-fill-color:var(--pf-muted)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home)
+  :is(a:not(.pc-primary),.catalog-search a):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *) {
+    color:var(--pf-accent)!important;
+  }
+  /* Forms and cards in recipes, tasks, checks, assistant, settings, HACCP */
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(.panel,.tile,.settings-row,.create-panel,.task-card,.point-card,.preparation-card,.recipe-list-row,.category-card,.catalog-card,.recipe-card,.haccp-metric,.haccp-journal-card,.haccp-period-panel,.haccp-form,.haccp-action-form,.haccp-cell-detail,.haccp-record,.haccp-banner,.haccp-catalog-more,.haccp-daily-overview,.haccp-plan-settings,.haccp-monthly,.haccp-controls,.haccp-single-record,.voice-panel):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *) {
+    background:var(--pf-card-grad)!important;
+    border:1px solid var(--pf-line)!important;
+    color:var(--pf-ink)!important;
+    border-radius:var(--pf-radius)!important;
+    box-shadow:var(--pf-shadow)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),textarea,select):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *) {
+    background:var(--pf-field)!important;
+    border:1px solid var(--pf-line)!important;
+    color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+    border-radius:12px!important;
+    box-shadow:inset 0 1px 2px #0001!important;
+    min-width:0;
+    max-width:100%;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(input,textarea)::placeholder {
+    color:var(--pf-muted)!important;
+    -webkit-text-fill-color:var(--pf-muted)!important;opacity:1!important;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(button,.button):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *):not(.haccp-month-table button) {
+    border-color:var(--pf-line)!important;
+    color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+    border-radius:12px!important;
+    background:var(--pf-raised)!important;
+    box-shadow:inset 0 1px #ffffff14!important;
+    font-weight:650;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(button.primary,#newrecipe,button[aria-pressed="true"],button.active):not(.ttk-paper *):not(.haccp-a4 *):not(.haccp-a4-paper *):not(.haccp-sheet *) {
+    background:var(--pf-accent)!important;
+    border-color:var(--pf-accent)!important;
+    color:var(--pf-on-accent)!important;
+    -webkit-text-fill-color:var(--pf-on-accent)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  :is(#recipes,#tasks,#checks,#preparations,#calc,#chat,#site-settings,#lab)
+  :is(.haccp-journal-card,.category-card,.tile):focus-visible {
+    outline:3px solid var(--pf-accent)!important;outline-offset:3px;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  #lab :is(.haccp-metric strong,.haccp-journal-copy strong,.haccp-group-label,.haccp-monthly h2,.haccp-catalog-more summary) {
+    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  #lab :is(.haccp-metric span,.haccp-journal-description,.haccp-journal-count,.haccp-record pre,.haccp-group-count) {
+    color:var(--pf-muted)!important;-webkit-text-fill-color:var(--pf-muted)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"])
+  #lab :is(.haccp-tabs button[aria-pressed="true"],.haccp-controls button[aria-pressed="true"]) {
+    background:var(--pf-soft-accent)!important;
+    border-color:var(--pf-accent)!important;
+    color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+  }
+  /* Compact high-contrast chrome across app, not printed output */
+  body[data-pf-theme] .aurora-top {
+    background:var(--pf-panel)!important;
+    border-bottom:1px solid var(--pf-line)!important;
+    color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme] .aurora-top .aurora-brand,
+  body[data-pf-theme] .aurora-top .aurora-brand small,
+  body[data-pf-theme] .aurora-top > button {
+    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme] .aurora-top .aurora-brand span {color:var(--pf-accent)!important}
+  body[data-pf-theme] .aurora-top > button {
+    background:var(--pf-raised)!important;border:1px solid var(--pf-line)!important;
+    border-radius:13px!important;box-shadow:none!important;
+  }
+  body[data-pf-theme] #chef-menu:not([hidden]) {
+    background:var(--pf-panel)!important;color:var(--pf-ink)!important;
+    border:1px solid var(--pf-line)!important;
+    box-shadow:0 20px 45px #0007!important;
+  }
+  body[data-pf-theme] #chef-menu .nav :is(button,a) {
+    border:1px solid transparent!important;
+    background:transparent!important;color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+    border-radius:12px!important;
+    line-height:1.4!important;
+  }
+  body[data-pf-theme] #chef-menu .nav :is(button,a):is(.active,:hover,:focus-visible) {
+    background:var(--pf-soft-accent)!important;
+    color:var(--pf-accent)!important;
+    -webkit-text-fill-color:var(--pf-accent)!important;
+    border-color:var(--pf-line)!important;
+  }
+  body[data-pf-theme] #chef-menu .pf-sidebar-more {
+    background:transparent!important;color:var(--pf-ink)!important;
+    border:1px solid var(--pf-line)!important;border-radius:13px!important;
+  }
+  body[data-pf-theme] #chef-menu .pf-sidebar-more summary {
+    color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+    background:var(--pf-raised)!important;
+    border-radius:12px!important;
+  }
+  body[data-pf-theme] #chef-menu .pf-sidebar-more :is(button,a) {
+    background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .mobile-tools {
+    border:1px solid var(--pf-line)!important;
+    background:var(--pf-panel)!important;
+    color:var(--pf-muted)!important;
+    box-shadow:var(--pf-shadow)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .mobile-tools button {
+    background:transparent!important;color:var(--pf-muted)!important;
+    -webkit-text-fill-color:var(--pf-muted)!important;
+  }
+  body[data-pf-theme]:not([data-view="home"]) .mobile-tools button.active {
+    background:var(--pf-soft-accent)!important;color:var(--pf-accent)!important;
+    -webkit-text-fill-color:var(--pf-accent)!important;
+    border-color:var(--pf-line)!important;
+  }
+  /* Non-document modal windows use the same design tokens. */
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog) {
+    color:var(--pf-ink)!important;background:var(--pf-panel)!important;
+    border:1px solid var(--pf-line)!important;border-radius:var(--pf-radius)!important;
+    box-shadow:0 28px 85px #0009!important;
+  }
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog) :is(h1,h2,h3,label,summary,strong) {
+    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+  }
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog)
+  :is(input:not([type="checkbox"]):not([type="color"]),textarea,select) {
+    background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;border:1px solid var(--pf-line)!important;
+  }
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog) button:not(.primary):not(.pc-primary) {
+    background:var(--pf-raised)!important;color:var(--pf-ink)!important;
+    -webkit-text-fill-color:var(--pf-ink)!important;border:1px solid var(--pf-line)!important;
+  }
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog) :is(button.primary,button.pc-primary) {
+    background:var(--pf-accent)!important;color:var(--pf-on-accent)!important;
+    -webkit-text-fill-color:var(--pf-on-accent)!important;border-color:var(--pf-accent)!important;
+  }
+  body[data-pf-theme] :is(.lunar-dialog,.weather-dialog,.category-dialog,.pc-dialog)::backdrop {
+    background:#05090bcc!important;
+  }
+  body[data-pf-theme] #global-voice {
+    background:var(--pf-panel)!important;color:var(--pf-ink)!important;
+    border-color:var(--pf-line)!important;
+  }
+  body[data-pf-theme] #global-voice button {
+    color:var(--pf-ink)!important;background:var(--pf-raised)!important;
+    border-color:var(--pf-line)!important;
+  }
+  @media (max-width:999px) {
+    body[data-pf-theme] #chef-menu:not([hidden]) {
+      width:min(350px,calc(100vw - 32px))!important;
+      max-width:calc(100vw - 32px)!important;
+      overflow-y:auto!important;
+      bottom:calc(90px + env(safe-area-inset-bottom))!important;
+      z-index:100!important;
+    }
+    body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]) {
+      padding-bottom:calc(85px + env(safe-area-inset-bottom))!important;
+    }
+    body[data-pf-theme]:not([data-view="home"]) .mobile-tools {
+      bottom:calc(8px + env(safe-area-inset-bottom))!important;
+      min-height:63px!important;
+      z-index:90!important;
+    }
+  }
+  @media (max-width:520px) {
+    body[data-pf-theme] #chef-menu:not([hidden]) {width:min(340px,calc(100vw - 24px))!important}
+    body[data-pf-theme]:not([data-view="home"]) .view:not([hidden]):not(#home) {
+      border-radius:18px!important;
+    }
+  }
+}
+/* Print output is controlled by existing paper templates. */
+@media print {
+  body[data-pf-theme] .mobile-tools,
+  body[data-pf-theme] #chef-menu,
+  body[data-pf-theme] .aurora-top,
+  body[data-pf-theme] #global-voice {display:none!important}
+}
