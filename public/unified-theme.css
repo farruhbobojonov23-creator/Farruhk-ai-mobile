@@ -309,3 +309,20 @@
    border-color:var(--pf-line)!important;
  }
 }
+
+
+/* Status notifications used a different blue-white palette even in Royal Gold. */
+@media screen{
+ body[data-pf-theme] #notice:not(:empty){
+   color:var(--pf-ink)!important;
+   -webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   background:var(--pf-panel)!important;
+   box-shadow:var(--pf-shadow)!important;
+ }
+ body[data-pf-theme] #notice.error:not(:empty){
+   color:var(--pf-ink)!important;
+   border-color:color-mix(in srgb,#fa6875 52%,var(--pf-line))!important;
+   background:color-mix(in srgb,#fa6875 17%,var(--pf-panel))!important;
+ }
+}
