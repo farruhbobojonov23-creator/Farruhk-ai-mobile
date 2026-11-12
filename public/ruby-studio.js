@@ -20,7 +20,20 @@ export function mountRubyHome({voice,panel,setMenu,settingsDialog,messagesDialog
  }
  const pauseEffects=()=>document.body.classList.toggle('fx-paused',document.hidden);
  document.addEventListener('visibilitychange',pauseEffects);pauseEffects();
- mountHomeWeather($('home'));
+ // Premium dashboards do not display the legacy weather pill.
+ // Avoid an otherwise needless 20-second weather request and timer at startup;
+ // restore the widget only when the owner selects a classic theme.
+ const premiumThemes=new Set(['titanium','crystal','royal']);
+ const selectedTheme=()=>{try{return JSON.parse(localStorage.getItem('farruh-ai-appearance-v1')||'null')?.theme||'titanium'}catch{return 'titanium'}};
+ let weatherMounted=false;
+ const ensureLegacyWeather=()=>{
+   if(weatherMounted)return;
+   const theme=document.body.dataset.pfTheme||selectedTheme();
+   if(premiumThemes.has(theme))return;
+   weatherMounted=true;mountHomeWeather($('home'));
+ };
+ ensureLegacyWeather();
+ new MutationObserver(ensureLegacyWeather).observe(document.body,{attributes:true,attributeFilter:['data-pf-theme']});
  const reminder=$('home-today');reminder.setAttribute('role','button');reminder.tabIndex=0;reminder.onclick=()=>{location.hash='tasks'};reminder.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();location.hash='tasks'}};
  const talk=$('ruby-talk'),label=$('ruby-talk-label'),status=$('ruby-status');
  function openChat(){messagesDialog.append($('chat-form'));if(!messagesDialog.open)messagesDialog.showModal();$('message').focus()}
