@@ -76,6 +76,11 @@ export function mountPremiumWorkspace(){
   if(action==='more')document.getElementById('ruby-menu')?.click();
  });
  home.append(shell);home.classList.add('pf-upgraded');
+ // Legacy home forces its grid display with !important. Use an inline override
+ // as a second safety net so Android WebView does not show both home screens.
+ const legacyShell=home.querySelector(':scope > .arctic-shell');
+ if(legacyShell)legacyShell.style.setProperty('display','none','important');
+ shell.style.setProperty('display','flex','important');
  function updateProjectPicker(){
   const select=document.getElementById('pf-home-project-select');if(!select)return;
   select.replaceChildren();for(const p of projects.projects)select.add(new Option('Проект: '+p.name,p.id));select.value=projects.selected;
