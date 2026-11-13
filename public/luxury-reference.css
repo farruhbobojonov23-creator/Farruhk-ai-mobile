@@ -758,3 +758,20 @@
    grid-column:span 3!important
  }
 }
+
+
+/* Premium category photography: the source PNG assets have generous empty
+   transparent margins, so enlarge only inside their designated square tile. */
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .recipe-categories .category-card:not(.lx-all-category) .category-photo-frame{
+   overflow:hidden!important;contain:paint;
+   border-radius:12px!important;background:transparent!important
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .recipe-categories .category-card:not(.lx-all-category) .category-photo-frame img{
+   transform:scale(1.55)!important;transform-origin:center center!important;
+   filter:drop-shadow(0 4px 4px #1f6b973d)!important;
+   background:transparent!important
+ }
+}
