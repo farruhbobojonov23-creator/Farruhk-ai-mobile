@@ -107,6 +107,17 @@ async function run(theme,width,height){
    await page.screenshot({path:'artifacts/premium-'+tag+'-settings-modal.png',timeout:12000});
    // The user's screenshot showed white cards in the LOWER half of this dialog;
    // inspect the scrolled content too, not only the visible voice section.
+   const syncTheme=await page.evaluate(()=>{
+     const node=document.getElementById('device-cloud-sync-settings');
+     node.open=true;
+     const rgb=el=>(getComputedStyle(el).backgroundColor.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+     const avg=el=>{const c=rgb(el);return c.length===3?c.reduce((a,b)=>a+b,0)/3:255};
+     return {panelBg:avg(node),barBg:avg(node.querySelector('.bar')),
+       summaryColor:getComputedStyle(node.querySelector('summary')).color,
+       buttonBg:avg(node.querySelector('[data-toggle-sync]'))};
+   });
+   check(tag+' expanded cross-device sync also uses dark neon cards',
+     syncTheme.panelBg<95&&syncTheme.barBg<95&&syncTheme.buttonBg<95,syncTheme);
    await page.evaluate(()=>{const d=document.querySelector('dialog.lunar-dialog:not(.lunar-history)');d.scrollTop=d.scrollHeight;});
    await page.screenshot({path:'artifacts/premium-'+tag+'-settings-sync.png',timeout:12000});
    await page.locator('dialog.lunar-dialog:not(.lunar-history) > .bar > button').click();
