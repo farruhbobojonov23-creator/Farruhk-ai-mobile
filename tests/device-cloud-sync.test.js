@@ -64,3 +64,12 @@ test('first merge preserves two divergent legacy recipes with the same ID',()=>{
  assert.equal(merged.recipes[0].name,'Филадельфия с планшета');
  assert.match(merged.recipes[1].name,/копия с другого устройства/);
 });
+
+test('legacy ID collision is idempotent when server accepted the upload but client has not recorded baseline',()=>{
+ const local=snapshot([recipe('legacy-id','Тест со старого телефона')]);
+ const cloud=snapshot([recipe('legacy-id','Филадельфия с планшета')]);
+ const first=reconcileSnapshots(null,local,cloud);
+ const again=reconcileSnapshots(null,local,first);
+ assert.equal(again.recipes.length,2);
+ assert.deepEqual(new Set(again.recipes.map(x=>x.id)).size,2);
+});
