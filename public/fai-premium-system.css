@@ -1,0 +1,308 @@
+/* FARUKH AI / Premium UI design system — isolated visual layer.
+ * No persistence, business logic, recipes, or print output modified.
+ * Important: success badges must be driven by actual application state. */
+@media screen{
+ :root{--fai-bg:#090f21;--fai-surface:#111c34;--fai-elevated:#1a2947;--fai-line:rgba(173,198,255,.18);--fai-ink:#f5f7ff;--fai-sub:#aebedb;--fai-violet:#9771ff;--fai-blue:#5d9dfb;--fai-green:#2bdba4;--fai-amber:#ffcc70;--fai-red:#ff7890;--fai-radius:18px}
+ body:not([data-view="home"]){background:radial-gradient(ellipse at 88% 0%,rgba(89,65,168,.24),transparent 44%),#090f21!important}
+ body:not([data-view="home"]) main>.glass{background:rgba(16,26,47,.9)!important;border:1px solid var(--fai-line)!important;border-radius:22px!important;box-shadow:0 24px 70px #05091766!important}
+ body:not([data-view="home"]) .view:not(#home){color:var(--fai-ink)}
+ body:not([data-view="home"]) .view:not(#home) :is(h1,h2,h3){color:var(--fai-ink);letter-spacing:-.025em}
+ body:not([data-view="home"]) .view:not(#home) :is(.small,.section-subtitle){color:var(--fai-sub)}
+ body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel){background:linear-gradient(145deg,#1a2945,#121d34)!important;border:1px solid var(--fai-line)!important;border-radius:var(--fai-radius)!important;box-shadow:0 12px 40px #070b1d55!important}
+ #chef-menu{background:linear-gradient(165deg,#151d3b,#0e172e)!important;border-color:#354468!important;box-shadow:18px 0 48px #05091855!important}
+ #chef-menu .nav :is(button,a){display:flex!important;align-items:center;gap:12px;min-height:46px;border-radius:13px!important;color:#dee8ff!important;-webkit-text-fill-color:#dee8ff!important;text-align:left;transition:transform .16s,background .16s,border-color .16s}
+ #chef-menu .nav :is(button,a):focus-visible{outline:2px solid #ae94ff!important;outline-offset:2px}
+ #chef-menu .nav :is(button,a):hover{background:#292c53!important;border-color:#7366be!important;transform:translateX(2px)}
+ #chef-menu .nav [data-view="recipes"]::before{content:"▤";color:#a7b2ff;font-size:20px}
+ #chef-menu .nav [data-view="preparations"]::before{content:"◈";color:#65c4ff;font-size:20px}
+ #chef-menu .nav [data-view="calc"]::before{content:"◫";color:#e3abff;font-size:20px}
+ #chef-menu .nav [data-view="chat"]::before{content:"✧";color:#84d7e7;font-size:20px}
+ #chef-menu .nav [data-view="print-control"]::before{content:"▣";color:#c3aaff;font-size:20px}
+ body:not([data-view="home"]) :is(button,.primary){transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+ body:not([data-view="home"]) :is(button,.primary):not(:disabled):active{transform:scale(.985)}
+ body:not([data-view="home"]) :is(button,.primary):disabled{opacity:.52;cursor:not-allowed;filter:saturate(.45)}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){background:linear-gradient(115deg,#8158ed,#577ef1)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #a994fb!important;border-radius:13px!important;min-height:44px;box-shadow:0 8px 22px #5d4dc74d!important}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary):not(:disabled):hover{filter:brightness(1.12)}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea){border-radius:12px;min-height:42px}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea):focus-visible{outline:2px solid #9c8afa!important;outline-offset:2px}
+ #recipes :is(.catalog-search,#catalog-all,#recipe-categories button){border:1px solid #344663!important;border-radius:15px!important;background:#1a2844!important;color:#eef4ff!important}
+ #recipes .catalog-search input{background:transparent!important;color:#fff!important}
+ #recipes .catalog-search input::placeholder{color:#b6c5df!important}
+ #recipes #recipe-categories button:hover,#recipes #catalog-all:hover{border-color:#8b80e9!important;box-shadow:0 7px 24px #5a51b23d!important}
+ #editor.ttk-studio-enabled:not([data-mode="paper"]){border-radius:22px!important;box-shadow:0 18px 50px #04091f55!important}
+ #editor.ttk-studio-enabled .ttk-toolbar{border-radius:16px!important;box-shadow:0 9px 30px #080e2021!important}
+ #editor.ttk-studio-enabled .ttk-design-card{border-radius:17px!important;transition:transform .17s,box-shadow .17s}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #6f82e577,0 12px 25px #123a6a23!important}
+ /* Status rules deliberately only style explicit state attributes, never invent success. */
+ [data-connection-status="connected"],[data-sync-status="success"],.fai-status-success{color:var(--fai-green)!important}
+ [data-connection-status="pending"],[data-sync-status="pending"],.fai-status-warning{color:var(--fai-amber)!important}
+ [data-connection-status="error"],[data-sync-status="error"],.fai-status-error{color:var(--fai-red)!important}
+ :is([data-connection-status="connected"],[data-sync-status="success"])::before{content:"✓";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#18b98433;border:1px solid #38dbac66;font-weight:900}
+ :is([data-connection-status="pending"],[data-sync-status="pending"])::before{content:"!";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#ffbd5833;border:1px solid #ffce7b66;font-weight:900}
+ :is([data-connection-status="error"],[data-sync-status="error"])::before{content:"×";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#f66b8433;border:1px solid #fb839766;font-weight:900}
+}
+@media screen and (max-width:720px){
+ body:not([data-view="home"]) main>.glass{border-radius:15px!important;box-shadow:none!important}
+ #chef-menu .nav :is(button,a){min-height:48px}
+ #recipes .catalog-search input{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){#chef-menu .nav :is(button,a),body:not([data-view="home"]) :is(button,.primary){transition:none!important}}
+
+/* Approved Black & Gold direction; complementary category colors stay distinct. */
+@media screen{
+ :root{--fai-violet:#e8b85d;--fai-blue:#64b2ff;--fai-gold:#e6b75d;--fai-gold-ink:#ffe0a0}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){
+  background:linear-gradient(116deg,#f6d38b 0%,#d09a3f 52%,#a97522 100%)!important;
+  color:#211704!important;-webkit-text-fill-color:#211704!important;
+  border:1px solid #f4d894!important;box-shadow:0 9px 25px #d8a24a35!important;
+  font-weight:800!important
+ }
+ #chef-menu .nav :is(button,a):hover{background:linear-gradient(100deg,#6a4b20a8,#3d2e28)!important;border-color:#d2a45b!important}
+ #chef-menu .nav button.active,#chef-menu .nav button[aria-current="page"]{
+  background:linear-gradient(110deg,#694718,#32291e)!important;
+  border:1px solid #b38a4c!important;color:#ffeac3!important;-webkit-text-fill-color:#ffeac3!important
+ }
+ #chef-menu .nav [data-view="recipes"]::before{color:#f0ca84}
+ #chef-menu .nav [data-view="preparations"]::before{color:#bb97f2}
+ #chef-menu .nav [data-view="calc"]::before{color:#7ed2ff}
+ #recipes #recipe-categories button:hover,#recipes #catalog-all:hover{border-color:#d4a959!important;box-shadow:0 7px 24px #c9953e33!important}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #d4ae6477,0 12px 25px #60441b23!important}
+}
+/* Preserve the separately controlled printable recipe styles. */
+@media print{body{background:transparent!important}}
+
+/* FARUKH AI PREMIUM — unified approved black/gold visual polish.
+   Scoped to screen: all persistence, recipes, Google integrations and print are untouched. */
+@media screen {
+ :root{
+  --fai-bg:#090a0e;--fai-surface:#14151c;--fai-elevated:#1d1d25;
+  --fai-line:rgba(228,180,95,.25);--fai-ink:#f9f5ec;--fai-sub:#b8ae9d;
+  --fai-gold:#e6b75d;--fai-gold-ink:#ffe7b1;
+ }
+ body:not([data-view="home"]){
+  background:radial-gradient(ellipse at 80% -10%,rgba(189,138,56,.14),transparent 50%),linear-gradient(155deg,#090a0e,#13131b 72%)!important;
+ }
+ .aurora-top{background:rgba(12,12,17,.96)!important;border-bottom:1px solid rgba(222,175,91,.25)!important}
+ .aurora-brand,.aurora-brand span{color:#f4d18a!important;-webkit-text-fill-color:#f4d18a!important}
+ #chef-menu,.app>.sidebar.glass{background:linear-gradient(175deg,#1d1b20,#0d0d13)!important;border-color:rgba(227,178,88,.3)!important}
+ #chef-menu .brand{color:#eac47c!important;-webkit-text-fill-color:#eac47c!important}
+ #chef-menu .nav :is(button,a){color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important}
+ #chef-menu .nav :is(button,a):focus-visible{outline-color:#f5cc7a!important}
+ body:not([data-view="home"]) main>.glass,
+ body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel){
+  background:linear-gradient(150deg,#201d21,#111219)!important;
+  border-color:rgba(230,183,93,.25)!important;
+  color:#f9f5ec!important;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(h1,h2,h3){color:#f7deb1!important}
+ body:not([data-view="home"]) .view:not(#home) :is(.small,.section-subtitle){color:#bdb2a1!important}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea){
+  background-color:#191920!important;border:1px solid rgba(225,182,107,.34)!important;
+  color:#f9f5ec!important;-webkit-text-fill-color:#f9f5ec!important;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea):focus-visible{
+  outline:2px solid #efc36f!important;outline-offset:2px;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(input,textarea)::placeholder{color:#a99e91!important}
+ #recipes :is(.catalog-search,#catalog-all,#recipe-categories button){
+  background:#201e24!important;border-color:rgba(228,180,95,.34)!important;color:#f8eddb!important;
+ }
+ #recipes .catalog-search input{background:transparent!important;color:#fff7e7!important;-webkit-text-fill-color:#fff7e7!important}
+ #editor.ttk-studio-enabled:not([data-mode="paper"]){box-shadow:0 20px 60px rgba(0,0,0,.34)!important}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #e6b75d,0 12px 25px rgba(133,95,37,.2)!important}
+}
+@media screen and (max-width:720px){
+ .aurora-top{backdrop-filter:blur(14px)}
+ #chef-menu .nav :is(button,a){min-height:48px}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){min-height:46px}
+}
+
+/* Premium home screen: cover the previously unthemed Arctic landing view.
+ * Decorative-only selectors; all controls keep their existing event handlers. */
+@media screen {
+ body[data-view="home"] {
+  background:radial-gradient(ellipse at 50% 20%,rgba(166,107,32,.15),transparent 55%),#0a0a0e!important;
+ }
+ body[data-view="home"] main>.glass {background:#101015!important;border:1px solid rgba(224,174,83,.19)!important;box-shadow:0 22px 65px #0008!important}
+ #home .arctic-shell {
+  background:radial-gradient(circle at 50% 27%,rgba(206,148,51,.11),transparent 39%),linear-gradient(155deg,#141319,#090a0e)!important;
+  border:1px solid rgba(235,187,96,.22)!important;border-radius:26px!important;
+  box-shadow:inset 0 1px 0 #fff1,0 20px 70px #0008!important;
+ }
+ #home .arctic-title strong, #home .ruby-greeting h1, #home .ruby-greeting h1 em {
+  color:#f4d394!important;-webkit-text-fill-color:#f4d394!important;
+  text-shadow:0 4px 26px rgba(170,114,38,.13)!important;
+ }
+ #home .arctic-title small,#home .ruby-greeting p,#home .arctic-date,
+ #home .arctic-date small,#home .ruby-greeting .eyebrow,#home .arctic-clock {
+  color:#d1c2a9!important;-webkit-text-fill-color:#d1c2a9!important;
+ }
+ #home .arctic-topline {border-color:rgba(234,187,103,.18)!important}
+ #home .arctic-top-actions button, #home .home-shortcuts button,
+ #home .home-print-control-quick {
+  background:linear-gradient(145deg,#272127,#151419)!important;
+  color:#f4dfba!important;-webkit-text-fill-color:#f4dfba!important;
+  border:1px solid rgba(236,188,99,.36)!important;
+  box-shadow:0 7px 22px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.06)!important;
+  border-radius:16px!important;
+ }
+ #home .home-shortcuts button svg, #home .arctic-top-actions button svg {
+  stroke:#e9bd6a!important;color:#e9bd6a!important;
+ }
+ #home .home-shortcuts button:hover,#home .home-shortcuts button:focus-visible,
+ #home .arctic-top-actions button:focus-visible,#home .home-print-control-quick:focus-visible {
+  border-color:#f4cb79!important;outline:2px solid rgba(244,203,121,.6)!important;outline-offset:2px;
+ }
+ #home .arctic-status-pill {
+  background:rgba(30,29,32,.91)!important;
+  border:1px solid rgba(230,186,101,.3)!important;color:#f1e5d2!important;
+ }
+ #home .ruby-talk {background:linear-gradient(140deg,#ffe2a2,#d09b48 65%,#94611f)!important;border:1px solid #fce1a6!important;box-shadow:0 10px 30px rgba(194,133,43,.35)!important}
+ #home .ruby-talk svg {stroke:#211807!important}
+ #home .arctic-orb-stage {filter:sepia(.28) saturate(.8) hue-rotate(336deg)}
+ #home .home-today {color:#f6e7ce!important}
+}
+@media screen and (max-width:720px) {
+ #home .arctic-shell {border-radius:19px!important;max-width:100%!important}
+ #home .home-shortcuts {gap:8px!important}
+ #home .home-shortcuts button {min-height:56px!important;min-width:0!important}
+ #home .home-print-control-quick {max-width:calc(100% - 24px)!important;white-space:normal!important}
+ #home .ruby-greeting h1 {overflow-wrap:break-word}
+}
+
+
+/* FARUKH AI PREMIUM — visual consistency pass, 2026-11-13.
+   Screen-only. Keeps the original document structure, controls, data and print layouts. */
+@media screen {
+  :root {
+    --fai-canvas:#09090d;
+    --fai-panel:#16151a;
+    --fai-panel-raised:#201c1d;
+    --fai-metal:#e7bb6d;
+    --fai-metal-light:#ffe3a5;
+    --fai-muted:#c3b8a8;
+    --fai-hairline:rgba(232,186,105,.24);
+    --fai-shadow:0 18px 48px rgba(0,0,0,.38);
+  }
+  body { color:var(--fai-ink); }
+  .aurora-top {
+    background:linear-gradient(90deg,rgba(15,14,18,.98),rgba(26,22,23,.98))!important;
+    border-bottom:1px solid var(--fai-hairline)!important;
+    box-shadow:0 8px 36px rgba(0,0,0,.23)!important;
+  }
+  .aurora-top :is(button,a):focus-visible,
+  #chef-menu :is(button,a):focus-visible,
+  #home :is(button,a):focus-visible {
+    outline:2px solid var(--fai-metal-light)!important;
+    outline-offset:3px!important;
+  }
+  #chef-menu {
+    background:linear-gradient(165deg,#1c191c 0%,#0c0c11 70%)!important;
+    border-right:1px solid var(--fai-hairline)!important;
+    box-shadow:18px 0 56px rgba(0,0,0,.34)!important;
+  }
+  #chef-menu .nav :is(button,a) {
+    background:transparent!important;
+    border:1px solid transparent!important;
+    border-radius:13px!important;
+    min-height:48px;
+    color:#f5ead7!important;
+    -webkit-text-fill-color:#f5ead7!important;
+    font-weight:650;
+    letter-spacing:.005em;
+    box-shadow:none!important;
+  }
+  #chef-menu .nav :is(button,a):hover {
+    background:linear-gradient(95deg,rgba(173,117,39,.24),rgba(39,29,25,.55))!important;
+    border-color:rgba(231,187,109,.48)!important;
+  }
+  #chef-menu .nav :is(button.active,button[aria-current="page"],a[aria-current="page"]) {
+    background:linear-gradient(105deg,#6b4b23,#2b221c)!important;
+    border:1px solid #c49b59!important;
+    color:#fff0cb!important;
+    -webkit-text-fill-color:#fff0cb!important;
+    box-shadow:inset 0 1px 0 rgba(255,235,190,.15),0 8px 25px rgba(0,0,0,.18)!important;
+  }
+  #home .arctic-shell {
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 16%,rgba(219,164,72,.16),transparent 48%),
+      linear-gradient(155deg,#1a171b 0%,#111016 52%,#090a0e 100%)!important;
+    border:1px solid rgba(236,194,120,.31)!important;
+    box-shadow:inset 0 1px 0 rgba(255,235,190,.12),0 30px 75px rgba(0,0,0,.45)!important;
+  }
+  #home .arctic-shell::before {
+    content:"";
+    position:absolute;
+    top:0;left:9%;right:9%;
+    height:1px;
+    pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,219,145,.67),transparent);
+  }
+  #home .arctic-title strong {
+    letter-spacing:.1em!important;
+    color:var(--fai-metal-light)!important;
+    -webkit-text-fill-color:var(--fai-metal-light)!important;
+  }
+  #home .ruby-greeting h1 {
+    line-height:1.09!important;
+    letter-spacing:-.045em!important;
+    text-wrap:balance;
+  }
+  #home .ruby-greeting h1 em {
+    font-style:normal;
+    background:linear-gradient(110deg,#fff0c7 0%,#f1c879 48%,#bb8439 100%)!important;
+    background-clip:text!important;
+    -webkit-background-clip:text!important;
+    color:transparent!important;
+    -webkit-text-fill-color:transparent!important;
+    text-shadow:none!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick) {
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+    background:linear-gradient(145deg,#292326,#171519)!important;
+    border:1px solid rgba(230,183,93,.4)!important;
+    box-shadow:inset 0 1px 0 rgba(255,234,188,.07),0 12px 27px rgba(0,0,0,.27)!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick):not(:disabled):hover {
+    transform:translateY(-2px);
+    border-color:#f2cb82!important;
+    box-shadow:0 14px 32px rgba(0,0,0,.35),0 0 0 1px rgba(233,184,95,.12)!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick):not(:disabled):active {
+    transform:translateY(0) scale(.985);
+  }
+  #home .arctic-status-pill {
+    border:1px solid rgba(232,186,105,.37)!important;
+    background:rgba(29,26,29,.91)!important;
+    color:#f4e8d4!important;
+    box-shadow:inset 0 1px 0 rgba(255,232,193,.06)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel) {
+    background:linear-gradient(145deg,#242025,#141318)!important;
+    border:1px solid var(--fai-hairline)!important;
+    box-shadow:var(--fai-shadow)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(button.primary,.primary) {
+    background:linear-gradient(110deg,#ffe2a2 0%,#e5b45e 51%,#b78131 100%)!important;
+    color:#221706!important;
+    -webkit-text-fill-color:#221706!important;
+    border:1px solid #ffdf99!important;
+    box-shadow:0 11px 25px rgba(176,118,44,.25)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(button.primary,.primary):focus-visible {
+    outline:2px solid #ffe9b7!important;
+    outline-offset:3px!important;
+  }
+}
+@media screen and (max-width:720px) {
+  #home .arctic-shell {border-radius:20px!important;}
+  #home .ruby-greeting h1 {font-size:clamp(2rem,8vw,3.25rem)!important;}
+  #home .home-shortcuts {min-width:0;max-width:100%;}
+  #home .home-shortcuts button {min-height:58px!important;}
+  #chef-menu .nav :is(button,a) {min-height:50px!important;}
+}
+@media screen and (prefers-reduced-motion:reduce) {
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick) {transition:none!important;}
+}
