@@ -1,5 +1,5 @@
 import {templateFor,recipeCategories} from './recipe-math.js?v=categories-13';
-import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from '/ttk-layouts.js?v=1';
+import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from './ttk-layouts.js?v=1';
 export const fields={preparation:'4. Подготовка',forming:'4. Приготовление',serving:'4. Нарезка и подача',storage:'5. Оформление, подача и хранение',shelfLife:'5. Срок годности',temperature:'5. Температура хранения',appearance:'6. Внешний вид',taste:'6. Вкус, запах и консистенция'};
 export function validateMyTemplates(list){
  if(list===undefined)return;
