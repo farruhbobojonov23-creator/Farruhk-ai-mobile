@@ -659,3 +659,84 @@
  body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
  button.lx-bottom-item:nth-child(7){order:6!important}
 }
+
+
+/* Repair verified phone defects reported from the published build:
+   the generic <details> frame was painting over recipe status,
+   and the translucent sticky header exposed scrolling content. */
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .aurora-top{
+  background:#f3faff!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  opacity:1!important;isolation:isolate;z-index:160!important;
+  box-shadow:0 4px 16px #2b7bad24!important
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card{
+  isolation:isolate;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card details.lx-card-more{
+  box-sizing:border-box!important;
+  width:27px!important;min-width:27px!important;max-width:27px!important;
+  height:34px!important;min-height:34px!important;max-height:34px!important;
+  padding:0!important;margin:0!important;
+  background:transparent!important;box-shadow:none!important;border:0!important;
+  border-radius:9px!important;
+  display:block!important;overflow:visible!important;
+  position:relative!important;z-index:4!important;
+  justify-self:end!important;align-self:start!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card details.lx-card-more>summary{
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;
+  width:27px!important;height:34px!important;min-height:34px!important;max-height:34px!important;
+  padding:0!important;margin:0!important;outline-offset:2px!important;
+  color:#205780!important;-webkit-text-fill-color:#205780!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  font-size:25px!important;line-height:1!important;list-style:none!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card details.lx-card-more>summary::marker{content:''}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card details.lx-card-more[open]>summary{
+  margin:0!important;border-bottom:0!important;background:#e4f2ff!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-menu{
+  min-width:182px!important;max-width:min(230px,calc(100vw - 70px))!important;
+  border-radius:12px!important;z-index:30!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-heading{
+  min-width:0;flex-wrap:wrap!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"] .mobile-tools.lx-ref-bottom{
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  grid-template-rows:1fr!important;
+  align-content:center!important;
+  align-items:stretch!important;
+  justify-items:stretch!important;
+  min-height:71px!important;max-height:85px!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"] .mobile-tools.lx-ref-bottom .lx-bottom-item{
+  min-width:0!important;width:100%!important;min-height:55px!important;max-height:68px!important;
+  display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;justify-content:center!important;align-items:center!important;
+  gap:3px!important;white-space:normal!important;
+  padding:6px 1px!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"] .mobile-tools.lx-ref-bottom .lx-bottom-item>span{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  height:auto!important;max-height:26px!important;
+  font-size:9px!important;line-height:1.1!important;
+  text-align:center!important;
+ }
+}
+@media screen and (max-width:560px) {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-heading{
+  flex-direction:column!important;align-items:flex-start!important;gap:5px!important
+ }
+ body.lx-pro[data-pf-theme="crystal"] .mobile-tools.lx-ref-bottom .lx-bottom-item>span{
+  font-size:8px!important;line-height:1.15!important;max-height:24px!important
+ }
+}
