@@ -30,6 +30,15 @@ export function mountPremiumWorkspace(){
   document.body.style.setProperty('--pf-radius',c.radius+'px');
   document.body.style.setProperty('--pf-scale',String(c.scale));
   if(c.accent)document.body.style.setProperty('--pf-accent',c.accent);else document.body.style.removeProperty('--pf-accent');
+  // Restore the original five home layouts when one is selected in Studio.
+  // Previously the legacy shell was unconditionally hidden at mount, leaving
+  // Classic, Arctic, White, Gold and Burgundy themes without a usable home.
+  const premium=['titanium','crystal','royal'].includes(c.theme);
+  home.classList.toggle('pf-upgraded',premium);
+  const legacy=home.querySelector(':scope > .arctic-shell');
+  if(legacy){if(premium)legacy.style.setProperty('display','none','important');else legacy.style.removeProperty('display')}
+  const workspace=home.querySelector('#pf-workspace');
+  if(workspace)workspace.style.setProperty('display',premium?'flex':'none','important');
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta)meta.content=['titanium','royal','ice','gold','burgundy'].includes(c.theme)?themeColors[c.theme][1]:c.theme==='white'?'#f5f6f8':'#e8f4ff';
  }
@@ -76,14 +85,10 @@ export function mountPremiumWorkspace(){
   if(action==='projects')openProjects();
   if(action==='more')document.getElementById('ruby-menu')?.click();
  });
- home.append(shell);home.classList.add('pf-upgraded');
- // Dismiss the early loading state only after the new dashboard is mounted.
+ home.append(shell);
+ // The selected design is applied at initialization and whenever Studio
+ // changes the theme. This keeps legacy and premium dashboards exclusive.
  document.documentElement.removeAttribute('data-pf-boot');
- // Legacy home forces its grid display with !important. Use an inline override
- // as a second safety net so Android WebView does not show both home screens.
- const legacyShell=home.querySelector(':scope > .arctic-shell');
- if(legacyShell)legacyShell.style.setProperty('display','none','important');
- shell.style.setProperty('display','flex','important');
  function updateProjectPicker(){
   const select=document.getElementById('pf-home-project-select');if(!select)return;
   select.replaceChildren();for(const p of projects.projects)select.add(new Option('Проект: '+p.name,p.id));select.value=projects.selected;document.dispatchEvent(new Event('pf:projects'));
