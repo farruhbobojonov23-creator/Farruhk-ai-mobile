@@ -248,13 +248,13 @@ function show(v){if(!document.getElementById('editor').hidden&&typeof editorDirt
 document.querySelectorAll('button[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));window.onhashchange=()=>{if(location.hash.slice(1)!==view)show(location.hash.slice(1))};show(location.hash.slice(1)||new URLSearchParams(location.search).get('open'));
 async function api(url,options={}){const r=await fetch(url,{...options,signal:AbortSignal.timeout(60000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');return d}
 async function save(change){if(busy)throw Error('Дождись завершения сохранения.');busy=true;notice('Сохраняю на устройстве…');try{state=await deviceStore.mutate(change);render();notice('Сохранено на этом устройстве.')}finally{busy=false;googleSync?.schedule();googleDriveBackup?.schedule()}}
-async function downloadRecipe(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');const r=await fetch('/api/recipes/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe}),signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('Не удалось подготовить PDF.');downloadFile(await r.blob(),'ТТК_'+recipe.name+'.pdf')}
+async function downloadRecipe(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');const r=await fetch('/api/recipes/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe}),signal:AbortSignal.timeout(30000)});if(!r.ok){const problem=await r.json().catch(()=>({}));throw Error(problem.error||'Не удалось подготовить PDF.')}downloadFile(await r.blob(),'ТТК_'+recipe.name+'.pdf')}
 async function openRecipePdf(recipe){
  const tab=window.open('','_blank');
  if(tab)tab.document.title='Просмотр ТТК — '+recipe.name;
  try{
   const response=await fetch('/api/recipes/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe}),signal:AbortSignal.timeout(30000)});
-  if(!response.ok)throw Error('Не удалось подготовить PDF техкарты.');
+  if(!response.ok){const problem=await response.json().catch(()=>({}));throw Error(problem.error||'Не удалось подготовить PDF техкарты.')}
   const blob=await response.blob();
   if(!tab){downloadFile(blob,'ТТК_'+recipe.name+'.pdf');return}
   const url=URL.createObjectURL(blob);
