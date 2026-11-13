@@ -821,3 +821,12 @@
    row-gap:8px!important;
  }
 }
+
+
+/* Assistant remains available from the main navigation. On the TTK catalog,
+   do not obscure photo/action cards with a second floating launcher. */
+@media screen and (max-width:560px) {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #neural-launch{
+   display:none!important;
+ }
+}
