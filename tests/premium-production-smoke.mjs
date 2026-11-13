@@ -160,6 +160,17 @@ async function run(theme,width,height){
    await page.locator('#home .pfv-action').first().click();
    await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
    check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
+   const editorTheme=await page.locator('#editor').evaluate(el=>{
+     const read=selector=>{
+       const e=el.querySelector(selector),s=e&&getComputedStyle(e),c=(s?.backgroundColor.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+       return {background:s?.backgroundColor||'missing',ink:s?.color||'missing',
+         brightness:c.length===3?c.reduce((a,b)=>a+b,0)/3:255};
+     };
+     return {toolbar:read('.ttk-toolbar'),intro:read('.ttk-studio-intro')};
+   });
+   check(tag+' TTK editor chrome uses the selected dark neon theme',
+     editorTheme.toolbar.brightness<95&&editorTheme.intro.brightness<95,editorTheme);
+
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor.png',timeout:12000});
    await page.locator('#closeeditor').click();
    await page.evaluate(()=>{location.hash='print-control'});
