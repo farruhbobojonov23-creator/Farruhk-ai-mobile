@@ -11,8 +11,8 @@ test('Ingredient photo fallbacks cover every added Japanese preparation, preserv
  assert.match(lib,/const entries=/);
  assert.match(lib,/Wikimedia Commons/);
  assert.equal([...lib.matchAll(/https:\/\/commons\.wikimedia\.org/g)].length,2);
- assert.match(app,/original\|\|fallback/);
- assert.match(app,/if\(!original&&fallback\)/);
+ assert.match(app,/const displayed=usingCustom\?original/); assert.match(app,/img\.src=displayed/);
+ assert.match(app,/const displayed=usingCustom\?original/); assert.match(app,/img\.src=displayed/);
  assert.match(app,/img\.onerror/);
  assert.match(owner,/displayPhoto\(p\)/);
  assert.match(owner,/window\.FarukhPrepPhotoLibrary\?\.find\(p\)/);
