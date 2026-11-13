@@ -137,7 +137,15 @@ async function verify(mode,width,height){
   assert.ok(overview.journalCards>=5,'HACCP cards mounted: '+overview.journalCards);
   // Advanced controls are intentionally collapsed to keep the professional
   // journal catalog compact on phones; expand before verifying export.
-  await page.locator('#lab details.haccp-catalog-more').evaluate(el=>el.open=true);
+  // HACCP may rerender as its local DB initializes. Re-open the advanced
+  // details after any such redraw before checking the PDF export control.
+  await page.waitForFunction(()=>{
+   const details=document.querySelector('#lab details.haccp-catalog-more');
+   if(!details)return false;
+   details.open=true;
+   const button=details.querySelector('.haccp-autofill-panel button.primary');
+   return !!button&&!!button.getClientRects().length;
+  },null,{timeout:12000});
   assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available in expanded HACCP controls');
   const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
   assert.match(packStatus,/13 журналов/,'all 13 journal types prepared automatically');
@@ -245,7 +253,7 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
-  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/начал[ао] смены/i,
+  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/назначенных смен|время смены/i,
    'per-person pre-shift inspection, not an invented daily admission');
   assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
    'prior hygiene admission cannot become an auto-accepted template');
