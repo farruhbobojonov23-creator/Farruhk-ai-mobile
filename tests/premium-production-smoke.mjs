@@ -77,6 +77,19 @@ async function run(theme,width,height){
    check(tag+' V2 layout does not overflow',premium.overflow<=22,premium);
    await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
    console.log('PREMIUM_ROYAL_PREVIEW_'+(mobile?'MOBILE':'DESKTOP')+'_JPEG='+ (await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+   const realProjects=page.locator('#home .pfv-projects .pfv-project:not(.pfv-project-create)');
+   if(await realProjects.count()>=2){
+    const expected=await page.evaluate(()=>document.getElementById('pf-home-project-select')?.options[1]?.value);
+    await realProjects.nth(1).click();
+    await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:9000});
+    const selected=await page.evaluate(()=>{
+     try{return JSON.parse(localStorage.getItem('farruh-ai-project-catalog-v1')||'{}').selected}catch{return null}
+    });
+    check(tag+' project tile opens real selected project',Boolean(expected)&&selected===expected,{expected,selected});
+    await page.evaluate(()=>{location.hash='home'});
+    await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:9000});
+    await page.locator('#home .pfv-showcase').waitFor({state:'visible',timeout:8000});
+   }
    await page.locator('#home .pfv-header-actions .pfv-icon-btn').first().click();
    await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
    check(tag+' settings remain functional',await page.locator('#site-settings').isVisible(),null);
