@@ -59,7 +59,7 @@ test('Royal Premium home is a functional workbench, not a fake screenshot',async
  const workspace=await get('public/premium-workspace.js');
  assert.match(js,/pfv-hub-tile/);
  for(const target of ["'recipes'","'lab'","'checks'","'projects'"])assert.match(js,new RegExp(target));
- assert.match(js,/data\.pfvRoute=route/);
+ assert.match(js,/\.dataset\.pfvRoute=route/);
  assert.match(js,/aria-current/);
  assert.match(js,/Поиск по ТТК/);
  assert.doesNotMatch(js,/Поиск по ТТК, ингредиентам, проектам/);
