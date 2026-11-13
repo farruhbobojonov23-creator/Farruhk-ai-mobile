@@ -2,7 +2,7 @@
    Real data only: no invented recipe counts, calories, dates or photography.
    Existing document generator and device storage remain authoritative. */
 import {categoryPhotos} from '/recipe-catalog.js?v=2';
-import {showProductPhoto,preparePhoto} from '/product-photo.js';
+import {showProductPhoto,preparePhoto} from '/product-photo.js?v=3';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const FILTER_KEY='farruh-ai-ttk-project-filter-v2';
 const svgPaths={
