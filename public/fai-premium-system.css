@@ -368,12 +368,12 @@
 
 /* Crystal TTK category cards: contrast on dark photo tiles. */
 @media screen {
- body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .recipe-categories
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
  .category-card:not(.lx-all-category) .category-caption strong {
   color:#f6f9ff!important;-webkit-text-fill-color:#f6f9ff!important;
   text-shadow:0 1px 3px rgba(0,0,0,.6)!important;
  }
- body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .recipe-categories
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
  .category-card:not(.lx-all-category) .category-caption small {
   color:#d2e3f2!important;-webkit-text-fill-color:#d2e3f2!important;
   text-shadow:0 1px 3px rgba(0,0,0,.6)!important;
