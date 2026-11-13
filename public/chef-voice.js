@@ -16,7 +16,7 @@ export function speechChunks(text){
 }
 export function createVoiceConversation({send}){
  const $=id=>document.getElementById(id),panel=$('voice-panel');
- let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false,browserMode=false,browserSession=null,neuralVoiceAvailable=false;
+ let active=false,generation=0,phase='idle',context=null,stream=null,recorder=null,source=null,input=null,controller=null,timer=null,frame=null,lastReply='',finishPlayback=null,playFrame=null,deviceVoiceUntil=0,deviceSpeaking=false,browserMode=false,browserSession=null,neuralVoiceAvailable=false,voiceConfigTask=null;
  function status(next,text){phase=next;panel.dataset.phase=next;$('voice-status').textContent=text;$('voice-start').hidden=active;$('voice-stop').hidden=!active;$('voice-send').hidden=next!=='listening'}
  function animateLevel(analyser){const data=new Float32Array(analyser.fftSize);let last=0;const tick=stamp=>{if(!active||document.hidden){playFrame=null;return}if(stamp-last>=100){last=stamp;analyser.getFloatTimeDomainData(data);let sum=0;for(const sample of data)sum+=sample*sample;panel.style?.setProperty('--voice-level',String(Math.min(1,Math.sqrt(sum/data.length)*8)))}playFrame=requestAnimationFrame(tick)};playFrame=requestAnimationFrame(tick)}
  function resetLevel(){cancelAnimationFrame(playFrame);playFrame=null;panel.style?.setProperty('--voice-level','0')}
@@ -38,8 +38,14 @@ export function createVoiceConversation({send}){
   try{await unlock();if(!active||token!==generation)return;controller=new AbortController();status('connecting','Проверяю голос устройства…');await speakDevice('Фаррух Ака, голос устройства работает. Я на связи.',token);if(token===generation)stop('Проверка завершена. Если слышишь голос, можно начать разговор.')}catch(e){fail(e,token)}
  }
  async function speak(text,token){
-  // The quick phone voice speaks immediately; neural WAV remains opt-in in settings.
-  if(($('voice-fast-mode')?.checked!==false)||!neuralVoiceAvailable||Date.now()<deviceVoiceUntil)return speakDevice(text,token);
+  // Fast device TTS is preferred when available. If this browser has no
+  // SpeechSynthesis API, use configured neural audio instead of failing.
+  const hasDevice=typeof window.speechSynthesis?.speak==='function'&&typeof window.SpeechSynthesisUtterance==='function';
+  if(!hasDevice&&!neuralVoiceAvailable&&voiceConfigTask)await voiceConfigTask;
+  if(hasDevice&&( $('voice-fast-mode')?.checked!==false||!neuralVoiceAvailable||Date.now()<deviceVoiceUntil))
+   return speakDevice(text,token);
+  if(!neuralVoiceAvailable)throw Error('Голос недоступен: браузер не поддерживает озвучивание, а серверный голос не настроен.');
+  if(Date.now()<deviceVoiceUntil)throw Error('Голосовой сервис временно недоступен после ограничения запросов.');
   status('thinking','Готовлю голосовой ответ…');
   const chunks=speechChunks(text);
   const requestAudio=async chunk=>{
@@ -175,7 +181,7 @@ export function createVoiceConversation({send}){
   }catch(e){fail(e,token)}
  }
  // Preload the server voice state for typed chats, without exposing API credentials.
- fetch('/api/voice/config',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(c=>{if(c)neuralVoiceAvailable=Boolean(c.configured)}).catch(()=>{});
+ voiceConfigTask=fetch('/api/voice/config',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(c=>{if(c)neuralVoiceAvailable=Boolean(c.configured)}).catch(()=>{});
  $('voice-start').onclick=start;$('voice-stop').onclick=()=>stop();$('voice-send').onclick=()=>{if(browserSession)browserSession.stop();else if(recorder?.state==='recording')recorder.stop()};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Разговор остановлен при сворачивании приложения.')});
  window.addEventListener('pagehide',()=>stop());
