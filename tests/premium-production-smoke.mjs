@@ -78,7 +78,7 @@ async function run(theme,width,height){
   hub:document.querySelectorAll('.lunar-dialog #pf-settings-hub').length
  }));
  check(tag+' sidebar only contains core sections',menuStructure.design===0&&menuStructure.extras===0&&menuStructure.hub===1,menuStructure);
- await page.evaluate(()=>document.getElementById('menu-settings').click());
+ await page.locator('.pf-showcase-top-actions [data-pf-action="settings"]').click();
  await page.locator('.lunar-dialog[aria-label="Настройки и данные"]').waitFor({state:'visible',timeout:8000});
  const expandedTools=await page.evaluate(()=>({
   design:!!document.getElementById('pf-settings-design-button'),
