@@ -78,7 +78,7 @@ async function run(theme,width,height){
    await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
    // Regression: the settings overlay opens while the home view is active.
    // Old Arctic CSS used to force white panels and white-on-white headings here.
-   await page.evaluate(()=>document.getElementById('lunar-settings').click());
+   await page.evaluate(()=>{const dialog=document.querySelector('dialog.lunar-dialog:not(.lunar-history)');if(!dialog.open)dialog.showModal();});
    await page.locator('dialog.lunar-dialog:not(.lunar-history)').waitFor({state:'visible',timeout:9000});
    const settingsOverlay=await page.evaluate(()=>{
      const read=selector=>{
