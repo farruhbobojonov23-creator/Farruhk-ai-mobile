@@ -1,0 +1,376 @@
+/* Farukh AI Royal V2 — approved concept fidelity.
+ * Photography is from existing product category assets; project names are live data.
+ * All declarations are SCREEN-ONLY; the established A4 and label print formats
+ * must remain independent of this layer. */
+@media screen {
+  body[data-pf-theme="royal"] .pfv-side {
+    background:
+      radial-gradient(ellipse 230px 200px at -20% 110%,rgba(209,144,30,.23),transparent 72%),
+      repeating-radial-gradient(ellipse at -30% 105%,transparent 0 14px,rgba(204,145,54,.048) 15px 16px,transparent 17px 31px),
+      linear-gradient(154deg,#070a0f 0%,#0b0f14 58%,#13100c 100%)!important;
+  }
+  body[data-pf-theme="royal"] .pfv-brand-icon {
+    filter:drop-shadow(0 2px 9px rgba(237,167,48,.39));
+    border-color:#e7b95b!important;box-shadow:0 0 0 1px rgba(245,199,104,.12),0 0 28px rgba(222,153,38,.28),inset 0 1px #fff3!important;
+  }
+  body[data-pf-theme="royal"] .pfv-premium{
+    box-shadow:0 0 0 1px #d69d4340,0 0 24px #ffbd3b44,inset 0 1px #ffe39a6b!important;
+    text-shadow:0 0 12px #ffd37d88;
+  }
+  body[data-pf-theme="royal"] .pfv-intro{
+    min-height:170px!important;overflow:hidden!important;
+    border:1px solid #a17c4496!important;
+    background:
+      radial-gradient(ellipse at 85% 85%,rgba(247,166,45,.3),transparent 37%),
+      repeating-linear-gradient(125deg,transparent 0 70px,rgba(222,163,63,.037) 71px 72px,transparent 73px 130px),
+      linear-gradient(108deg,#090d12,#090c0d 49%,#23130d 100%)!important;
+    box-shadow:inset 0 1px #e2af5d35,0 20px 36px #0008!important;
+  }
+  body[data-pf-theme="royal"] .pfv-intro::before{
+    content:"";z-index:0!important;position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 67% 62%,rgba(213,139,32,.18),transparent 38%)!important;
+  }
+  body[data-pf-theme="royal"] .pfv-intro-copy{max-width:72%;z-index:3}
+  .pfv-kicker{
+    display:block;margin:0 0 9px;font:750 10px/1.3 Inter,system-ui,sans-serif!important;
+    letter-spacing:.21em;color:#e9bc6e!important;
+  }
+  body[data-pf-theme="royal"] .pfv-intro h1{font-size:clamp(26px,2.45vw,37px)!important;text-shadow:0 5px 20px #0008}
+  body[data-pf-theme="royal"] .pfv-intro p{font-size:clamp(13px,1vw,15px)!important;max-width:520px}
+  body[data-pf-theme="royal"] .pfv-script{
+    position:absolute!important;z-index:2!important;
+    right:clamp(205px,20vw,275px);top:44px;
+    margin:0!important;padding:0!important;
+    white-space:nowrap;transform:rotate(-5deg);
+    font-family:"Brush Script MT","Segoe Script",Georgia,cursive!important;
+    font-size:clamp(25px,3.0vw,45px)!important;
+    color:#f8d78a!important;text-shadow:0 2px 21px #e2b45e66!important;
+  }
+  .pfv-hero-art{
+    position:absolute;inset:0 0 0 auto;width:min(44%,465px);
+    pointer-events:none;overflow:hidden;z-index:1;isolation:isolate;
+  }
+  .pfv-hero-glow{position:absolute;inset:13px 0 -18px 10%;border-radius:100%;
+    background:radial-gradient(ellipse,#d0852e3d 0%,#4b261b32 40%,transparent 73%);filter:blur(11px)}
+  .pfv-hero-roll{display:block;position:absolute;object-fit:contain;
+    filter:drop-shadow(0 18px 18px #000b) saturate(1.35) contrast(1.06);}
+  .pfv-hero-roll-main{width:215px;height:215px;right:5%;top:-8px;transform:rotate(-12deg)}
+  .pfv-hero-roll-side{width:128px;height:128px;right:40%;bottom:-30px;transform:rotate(9deg)}
+  .pfv-hero-petals{position:absolute;right:-3px;top:-2px;letter-spacing:-9px;font-size:77px;
+    color:#ba292b;opacity:.91;text-shadow:0 1px 8px #ff684364,0 15px 16px #000a;transform:rotate(-20deg)}
+  body[data-pf-theme="royal"] .pfv-kpi{
+    position:relative;overflow:hidden;
+    box-shadow:inset 0 1px #fff2,0 10px 27px #0008,0 0 0 1px rgba(232,189,114,.05)!important;
+    min-height:104px;
+  }
+  body[data-pf-theme="royal"] .pfv-kpi:after{
+    content:"";position:absolute;inset:auto 0 0;pointer-events:none;height:2px;
+    background:linear-gradient(90deg,transparent,currentColor,transparent);opacity:.45
+  }
+  body[data-pf-theme="royal"] .pfv-kpi:nth-child(1){color:#29ed99}
+  body[data-pf-theme="royal"] .pfv-kpi:nth-child(2){color:#44b9ff}
+  body[data-pf-theme="royal"] .pfv-kpi:nth-child(3){color:#c18dff}
+  body[data-pf-theme="royal"] .pfv-kpi:nth-child(4){color:#ffd47f}
+  body[data-pf-theme="royal"] .pfv-kpi strong{font-size:clamp(26px,2.55vw,35px)!important}
+  body[data-pf-theme="royal"] .pfv-section{border-color:#73603f!important;
+    box-shadow:inset 0 1px rgba(243,210,150,.075),0 13px 28px #0008!important}
+  body[data-pf-theme="royal"] .pfv-section-title h2{font-size:clamp(18px,1.5vw,21px)!important}
+  body[data-pf-theme="royal"] .pfv-projects{gap:10px}
+  body[data-pf-theme="royal"] .pfv-project{
+    isolation:isolate;position:relative;min-height:122px!important;
+    padding:12px 9px 12px 12px!important;align-items:center;overflow:hidden;
+    border-radius:17px!important;
+    box-shadow:inset 0 1px rgba(249,217,154,.12),0 13px 22px #0006!important;
+  }
+  body[data-pf-theme="royal"] .pfv-project::before{
+    content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 100% 100%,rgba(222,144,54,.27),transparent 70%);
+  }
+  body[data-pf-theme="royal"] .pfv-project-sea::before{background:radial-gradient(ellipse at 100% 110%,#218dda55,transparent 73%)}
+  body[data-pf-theme="royal"] .pfv-project-beri::before{background:radial-gradient(ellipse at 100% 110%,#e44a3c46,transparent 73%)}
+  body[data-pf-theme="royal"] .pfv-project-mark{
+    position:relative;z-index:2;flex:0 0 69px;width:69px!important;height:69px!important;
+    border-radius:13px!important;
+    background:radial-gradient(ellipse at 40% 20%,#3a2520,#0e1015 75%)!important;
+  }
+  body[data-pf-theme="royal"] .pfv-project-sea .pfv-project-mark{
+    background:radial-gradient(ellipse at 25% 20%,#0b4465,#09101a 75%)!important;
+    box-shadow:0 0 20px #18baff66,inset 0 1px #c3efff50!important;
+    color:#2fcaff!important;border-color:#219ee9!important;
+  }
+  .pfv-project-mark svg{width:59px;height:55px;stroke:currentColor;filter:drop-shadow(0 0 4px currentColor)}
+  .pfv-beri-stamp{
+    display:block;color:#fff;font-size:15px;font-weight:950;line-height:.92;letter-spacing:-.07em;
+    transform:rotate(-7deg);text-align:center;text-shadow:0 2px #520d0d;
+  }
+  .pfv-beri-stamp b{color:#ff5551;font-size:20px}
+  .pfv-farukh-mark{font:italic 900 43px/1 Georgia,serif;color:#ffe1a2;text-shadow:0 0 16px #f3bd5088}
+  body[data-pf-theme="royal"] .pfv-project-info{position:relative;z-index:2;max-width:57%;padding-right:0}
+  body[data-pf-theme="royal"] .pfv-project-info strong{font-size:15px!important;line-height:1.2!important;overflow-wrap:anywhere}
+  body[data-pf-theme="royal"] .pfv-project-info small{font-size:9px!important;letter-spacing:.04em;color:#d3c7ae!important}
+  .pfv-project-open{display:inline-block;margin-top:5px;padding:3px 9px;
+    background:#0c4430;border:1px solid #276a4c;border-radius:30px;
+    color:#8cf3bb;font-size:10px;font-weight:850}
+  .pfv-project-photo{
+    position:absolute;z-index:1;right:-8%;bottom:-20px;width:42%;height:123px;
+    object-fit:contain;filter:drop-shadow(0 12px 9px #0009) saturate(1.3);opacity:.98;
+  }
+  body[data-pf-theme="royal"] .pfv-project-create{
+    display:flex;align-items:center;justify-content:center;text-align:center;flex-wrap:wrap;
+    background:linear-gradient(125deg,#1e1d1d,#12161a)!important;
+    border:1px dashed #b08a4c!important;color:#eacc8d!important;
+    gap:10px;min-height:122px!important;
+  }
+  body[data-pf-theme="royal"] .pfv-project-create:before{display:none}
+  .pfv-project-add-icon{
+    width:45px;height:45px;display:grid;place-items:center;border:1px solid #cfa04e;
+    border-radius:50%;color:#f5d68e;font-size:31px;font-weight:300;
+    background:#61441d55;
+  }
+  body[data-pf-theme="royal"] .pfv-action{
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.08),0 9px 16px #0008!important;
+  }
+  body[data-pf-theme="royal"] .pfv-action:first-child{
+    background:linear-gradient(140deg,#3d2c1c,#141619)!important;
+    box-shadow:inset 0 0 18px #c17f313e,0 0 13px #e2ad5124!important;
+  }
+  .pfv-bottom-grid .pfv-section{
+    background:linear-gradient(135deg,#10151c,#0c0e11 66%,#161107)!important;
+  }
+  .pfv-bottom-grid .pfv-section:nth-child(2){position:relative;overflow:hidden}
+  .pfv-bottom-grid .pfv-section:nth-child(2)::before{
+    content:"";position:absolute;right:-18px;bottom:-37px;width:220px;height:104px;
+    pointer-events:none;background:radial-gradient(ellipse at 55% 100%,#ae7b2f55,transparent 70%);
+    opacity:.78;
+  }
+  .pfv-recipe-status{border:1px solid #278258;box-shadow:inset 0 1px #a1ffb21a}
+  body[data-pf-theme="royal"] .pfv-showcase .pfv-project:focus-visible,
+  body[data-pf-theme="royal"] .pfv-showcase .pfv-action:focus-visible {
+    outline:2px solid #ffe4ab!important;outline-offset:3px!important;
+  }
+}
+@media screen and (min-width:1121px){
+  body[data-pf-theme="royal"] .pfv-intro{min-height:168px!important}
+  body[data-pf-theme="royal"] .pfv-intro-copy{max-width:72%}
+}
+@media screen and (max-width:1120px){
+  body[data-pf-theme="royal"] .pfv-script{display:none!important}
+  body[data-pf-theme="royal"] .pfv-intro-copy{max-width:66%}
+  .pfv-hero-roll-main{right:-9%;top:-1px;width:205px;height:205px}
+  .pfv-hero-roll-side{right:35%;width:95px}
+  .pfv-hero-petals{font-size:55px}
+}
+@media screen and (max-width:720px){
+  body[data-pf-theme="royal"] .pfv-intro{min-height:173px!important;padding:19px!important}
+  body[data-pf-theme="royal"] .pfv-intro-copy{max-width:81%;z-index:3}
+  body[data-pf-theme="royal"] .pfv-intro h1{font-size:clamp(22px,5.4vw,27px)!important}
+  body[data-pf-theme="royal"] .pfv-intro p{max-width:70%;font-size:12px!important}
+  .pfv-kicker{font-size:9px;letter-spacing:.12em}
+  .pfv-hero-art{width:48%;opacity:.69}
+  .pfv-hero-roll-main{width:165px;height:165px;right:-38%;top:12px}
+  .pfv-hero-roll-side,.pfv-hero-petals{display:none}
+  body[data-pf-theme="royal"] .pfv-project-info{max-width:63%}
+  body[data-pf-theme="royal"] .pfv-project-photo{width:38%;right:-3%;height:115px;bottom:-17px}
+}
+@media screen and (max-width:390px){
+  body[data-pf-theme="royal"] .pfv-intro-copy{max-width:100%}
+  body[data-pf-theme="royal"] .pfv-intro p{max-width:76%}
+  .pfv-hero-art{opacity:.31}
+  body[data-pf-theme="royal"] .pfv-project-info{max-width:60%}
+}
+@media screen and (prefers-reduced-motion:reduce){
+  body[data-pf-theme="royal"] .pfv-showcase .pfv-project,
+  body[data-pf-theme="royal"] .pfv-showcase .pfv-action{transition:none!important}
+}
+
+/* Visual QA 2: prevent title/signature collision and give real TTK thumbnails. */
+@media screen and (min-width:1121px) {
+ body[data-pf-theme="royal"] .pfv-script{
+  top:100px!important;right:clamp(200px,17.5vw,252px)!important;
+  font-size:clamp(25px,2.35vw,35px)!important;transform:rotate(-6deg);
+ }
+}
+@media screen {
+ .pfv-hero-roll,.pfv-project-photo{transition:opacity .17s ease}
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-recipe{
+  display:flex!important;align-items:center;gap:10px;text-align:left;
+  min-height:60px;width:100%;padding:9px 2px!important;
+  color:#f6eee1!important;background:transparent!important;
+  border:0!important;border-top:1px solid #4a4132!important;
+  border-radius:0!important;cursor:pointer;
+ }
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-recipe:hover,
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-recipe:focus-visible {
+  background:linear-gradient(90deg,rgba(158,112,53,.15),transparent)!important;
+  outline-color:#f3c982!important;
+ }
+ .pfv-recipe-photo{display:block;width:43px;height:40px;object-fit:cover;border-radius:8px}
+}
+@media screen and (max-width:1120px){
+ body[data-pf-theme="royal"] .pfv-script{display:none!important}
+}
+
+/* Final photographic layering: remove visible dark photo rectangles without
+ * altering the original product photos or storing synthetic pictures. */
+@media screen {
+ body[data-pf-theme="royal"] :is(.pfv-project-photo,.pfv-hero-roll) {
+  mix-blend-mode:screen!important;
+  -webkit-mask-image:radial-gradient(ellipse 76% 76% at 50% 50%,#000 53%,rgba(0,0,0,.9) 69%,transparent 100%);
+  mask-image:radial-gradient(ellipse 76% 76% at 50% 50%,#000 53%,rgba(0,0,0,.9) 69%,transparent 100%);
+ }
+}
+@media screen and (min-width:1121px){
+ body[data-pf-theme="royal"] .pfv-script{
+  top:101px!important;right:clamp(280px,26vw,380px)!important;
+  font-size:30px!important;
+ }
+}
+
+@media screen {
+ body[data-pf-theme="royal"] .pfv-project-current{
+  box-shadow:inset 0 1px #fff2,0 0 0 1px rgba(247,202,115,.62),0 12px 26px #0007!important;
+ }
+ body[data-pf-theme="royal"] .pfv-project-current .pfv-project-open{
+  border-color:#479a73!important;background:#0c5134!important;color:#b9ffd2!important;
+ }
+}
+
+/* Confirmed-local-only visual emblem, not a claim that Google is connected. */
+@media screen{
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2){min-height:210px}
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2) .pfv-status-item{max-width:calc(100% - 126px)}
+ .pfv-status-emblem{
+  position:absolute;right:18px;bottom:18px;width:106px;height:106px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;border-radius:50%;border:2px solid #48f39c;
+  box-shadow:0 0 0 5px #16b77816,0 0 28px #12cf7640,inset 0 0 20px #05b85e30;
+  background:radial-gradient(circle,#0a442744,#081615 70%);color:#81ffb8;
+ }
+ .pfv-status-emblem:after{content:"";position:absolute;inset:-9px;border:1px dashed #28cc7977;border-radius:50%}
+ .pfv-status-emblem svg{width:49px;height:49px;stroke:#74ffb5;filter:drop-shadow(0 0 8px #0ae98e8c)}
+ .pfv-status-emblem small{font:750 9px/1 Inter,system-ui,sans-serif;letter-spacing:.08em;color:#a6ffce}
+}
+@media screen and (max-width:720px){
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2) .pfv-status-item{max-width:calc(100% - 99px)}
+ .pfv-status-emblem{width:82px;height:82px;right:12px;bottom:15px}
+ .pfv-status-emblem svg{width:35px;height:35px}
+ .pfv-status-emblem small{font-size:7px}
+}
+
+
+/* Royal Premium workspace hub (approved black/gold concept).
+   Intentionally screen-only and scoped to the Royal home: no printed A4,
+   editor-paper, PDF or alternate-theme rules are changed. */
+@media screen {
+ body[data-pf-theme="royal"] .pfv-intro.pfv-intro-clean {
+  min-height:206px!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;text-align:center!important;padding:28px 22px!important;
+  border:1px solid #a67d3e!important;border-radius:20px!important;
+  background:
+   radial-gradient(ellipse at 50% 100%,rgba(219,157,66,.15),transparent 55%),
+   repeating-radial-gradient(ellipse at 50% 130%,transparent 0 22px,rgba(223,169,80,.10) 23px 24px,transparent 25px 46px),
+   linear-gradient(145deg,#090b0e,#111111 60%,#16110b)!important;
+  box-shadow:inset 0 1px rgba(255,220,158,.22),0 12px 26px #0008!important;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean::before{background:none!important}
+ body[data-pf-theme="royal"] .pfv-intro-clean::after{display:none!important;content:none!important}
+ body[data-pf-theme="royal"] .pfv-intro-clean .pfv-intro-copy{
+  max-width:100%!important;margin:0 auto!important;z-index:2!important;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean .pfv-crest{
+  font:700 39px/1 Georgia,serif;color:#f4c967;text-shadow:0 3px 18px #e2a23b77;
+  margin:0 0 5px;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean .pfv-kicker{
+  color:#b99e73!important;font-size:10px!important;letter-spacing:.24em;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean h1{
+  font-size:clamp(30px,3.8vw,51px)!important;line-height:1.1!important;
+  color:#e9b755!important;-webkit-text-fill-color:#e9b755!important;
+  letter-spacing:-.045em;text-shadow:0 4px 16px #000!important;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean h1 span{
+  color:#fff4cf!important;-webkit-text-fill-color:#fff4cf!important;font-weight:500;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean p{
+  margin:0 auto!important;max-width:100%!important;
+  color:#d5c5a7!important;-webkit-text-fill-color:#d5c5a7!important;
+  letter-spacing:.07em;font-size:13px!important;
+ }
+ body[data-pf-theme="royal"] .pfv-hub{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;
+  margin:16px 0 19px;
+ }
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile{
+  min-width:0;min-height:142px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  padding:15px 9px;text-align:center;border:1px solid #8f6a35!important;
+  border-radius:18px!important;background:linear-gradient(145deg,#242019,#111315 75%)!important;
+  box-shadow:inset 0 1px #ffe2a31b,0 12px 22px #0007!important;
+  color:#f6e8ca!important;-webkit-text-fill-color:#f6e8ca!important;
+  transition:transform .16s ease,border-color .16s ease!important;
+ }
+ body[data-pf-theme="royal"] .pfv-hub-icon{
+  width:46px;height:46px;display:grid;place-items:center;
+  background:linear-gradient(140deg,#594018,#1a160f);border:1px solid #d6a651;
+  border-radius:13px;color:#ffe196;box-shadow:0 4px 14px #9e6b2e55;
+ }
+ body[data-pf-theme="royal"] .pfv-hub-icon svg{width:26px;height:26px;stroke:currentColor}
+ body[data-pf-theme="royal"] .pfv-hub-tile strong{
+  font-size:17px;line-height:1.15;color:#f8e8c7!important;
+ }
+ body[data-pf-theme="royal"] .pfv-hub-tile small{
+  font-size:11px;line-height:1.3;color:#bba989!important;
+ }
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile:is(:hover,:focus-visible){
+  border-color:#f0c775!important;box-shadow:0 0 0 1px #cc9d5e,0 15px 30px #0009!important;
+ }
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile:hover{transform:translateY(-2px)}
+ body[data-pf-theme="royal"] .pfv-metrics{
+  margin-top:12px;border:1px solid #65523b;border-radius:16px;
+  padding:11px 15px;background:#111317;color:#dbc9a7;
+ }
+ body[data-pf-theme="royal"] .pfv-metrics summary{
+  min-height:24px;cursor:pointer;list-style-position:inside;font-size:13px;
+  font-weight:720;color:#eccb91;letter-spacing:.015em;
+ }
+ body[data-pf-theme="royal"] .pfv-metrics summary:focus-visible{
+  outline:2px solid #f4d394;outline-offset:4px;
+ }
+ body[data-pf-theme="royal"] .pfv-metrics .pfv-kpis{margin:13px 0 4px}
+ body[data-pf-theme="royal"] .pfv-nav[aria-current="page"]{
+  color:#1c150b!important;-webkit-text-fill-color:#1c150b!important;
+  background:linear-gradient(110deg,#ffe8a6,#d19a3b)!important;
+  border-color:#f6d58d!important;
+  box-shadow:0 3px 18px #e7aa4640!important;
+ }
+ body[data-pf-theme="royal"] .pfv-nav[aria-current="page"] svg{stroke:#211609!important}
+ body[data-pf-theme="royal"] .pfv-phone-nav [aria-current="page"]{
+  border-radius:11px!important;background:#463215!important;
+  color:#ffe4a8!important;
+ }
+}
+@media screen and (max-width:900px){
+ body[data-pf-theme="royal"] .pfv-hub{gap:9px}
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile{min-height:125px;padding:11px 7px}
+}
+@media screen and (max-width:720px){
+ body[data-pf-theme="royal"] .pfv-intro.pfv-intro-clean{
+  min-height:166px!important;padding:20px 12px!important;border-radius:16px!important;
+ }
+ body[data-pf-theme="royal"] .pfv-intro-clean .pfv-crest{font-size:32px}
+ body[data-pf-theme="royal"] .pfv-intro-clean h1{font-size:clamp(26px,8vw,36px)!important}
+ body[data-pf-theme="royal"] .pfv-intro-clean .pfv-kicker{font-size:8px!important;letter-spacing:.14em}
+ body[data-pf-theme="royal"] .pfv-intro-clean p{font-size:10px!important;letter-spacing:.025em}
+ body[data-pf-theme="royal"] .pfv-hub{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile{min-height:112px;gap:6px;padding:11px 6px}
+ body[data-pf-theme="royal"] .pfv-hub-icon{height:35px;width:35px}
+ body[data-pf-theme="royal"] .pfv-hub-icon svg{height:21px;width:21px}
+ body[data-pf-theme="royal"] .pfv-hub-tile strong{font-size:14px}
+ body[data-pf-theme="royal"] .pfv-hub-tile small{font-size:10px}
+ body[data-pf-theme="royal"] .pfv-metrics{padding:12px}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body[data-pf-theme="royal"] .pfv-showcase .pfv-hub-tile{transition:none!important;transform:none!important}
+}

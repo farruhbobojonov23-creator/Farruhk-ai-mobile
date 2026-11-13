@@ -8,7 +8,7 @@ test('Entry page carries a bounded premium loading fallback and updated assets',
  const page=await get('public/index.html');
  assert.match(page,/document\.documentElement\.dataset\.pfBoot='premium'/);
  assert.match(page,/removeAttribute\('data-pf-boot'\)/);
- assert.match(page,/premium-workspace\.js\?v=12/);
+ assert.match(page,/premium-workspace\.js\?v=18/);
  assert.match(page,/premium-showcase\.css\?v=2/);
  assert.match(page,/requestIdleCallback\(finishStartup,\{timeout:2500\}\)/);
 });
@@ -51,4 +51,30 @@ test('3D CSS disables heavyweight mobile blurs and keeps PDF print untouched',as
  assert.match(css,/content-visibility:auto/);
  assert.match(css,/@media print/);
  assert.match(css,/\.pf-showcase\{display:none!important\}/);
+});
+
+test('Royal Premium home is a functional workbench, not a fake screenshot',async()=>{
+ const js=await get('public/premium-royal-v2.js');
+ const css=await get('public/premium-royal-fidelity.css');
+ const workspace=await get('public/premium-workspace.js');
+ assert.match(js,/pfv-hub-tile/);
+ for(const target of ["'recipes'","'lab'","'checks'","'projects'"])assert.match(js,new RegExp(target));
+ assert.match(js,/\.dataset\.pfvRoute=route/);
+ assert.match(js,/aria-current/);
+ assert.match(js,/Поиск по ТТК/);
+ assert.doesNotMatch(js,/Поиск по ТТК, ингредиентам, проектам/);
+ assert.doesNotMatch(js,/Ингредиенты','preparations'\],\['layers','Полуфабрикаты'/);
+ assert.match(js,/pfv-metrics/);
+ assert.match(css,/\.pfv-intro-clean/);
+ assert.match(css,/\.pfv-hub-tile/);
+ assert.match(css,/@media screen/);
+ assert.match(workspace,/const defaults=\{theme:'royal'/);
+});
+
+test('Royal Premium working-section skin stays out of printed A4 output',async()=>{
+ const css=await get('public/premium-royal-workspaces.css');
+ assert.match(css,/Premium Royal: consistent functional workspaces/);
+ for(const id of ['lab','tasks','checks','calc','chat'])assert.match(css,new RegExp('#'+id));
+ assert.match(css,/@media screen/);
+ assert.match(css,/printable HACCP\/TTK\/A4 papers remain untouched/);
 });

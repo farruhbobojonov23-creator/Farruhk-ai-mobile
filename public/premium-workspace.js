@@ -1,9 +1,10 @@
 /* FARRUH AI Design Studio · non-destructive interface layer.
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 import {mountPremiumShowcase} from '/premium-showcase.js?v=7';
+import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=7';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
-const defaults={theme:'crystal',accent:'',radius:20,density:'standard',scale:1,motion:true};
+const defaults={theme:'royal',accent:'',radius:20,density:'standard',scale:1,motion:true};
 const themeNames={titanium:'Black Ice Titanium',crystal:'Arctic Crystal PRO',royal:'Royal Gold 3D',arctic:'Arctic Sapphire',ice:'Black Ice',white:'Minimal White',gold:'Executive Gold',burgundy:'Burgundy PRO'};
 const themeColors={titanium:['#52caff','#07121c'],crystal:['#1379ce','#e3f3ff'],royal:['#e2b05b','#090909'],arctic:['#087bba','#e8f4ff'],ice:['#35c9ec','#08101d'],white:['#336fc4','#ffffff'],gold:['#d6ae64','#17191e'],burgundy:['#f1739d','#280f1d']};
 const deepCopy=o=>JSON.parse(JSON.stringify(o));
@@ -22,9 +23,9 @@ export function mountPremiumWorkspace(){
  // One-time opt-in from the owner: the approved Premium PRO (light sapphire)
  // replaces the previous default dark Titanium on existing devices.
  // Keep the previous preference structure and respect subsequent Studio changes.
- const PREMIUM_V3_KEY='farruh-ai-approved-premium-v3';
- if(!getJson(PREMIUM_V3_KEY,false)){
-  config={...config,theme:'crystal',accent:''};
+ const PREMIUM_V3_KEY='farruh-ai-approved-black-gold-v1';
+ if(location.hostname.startsWith('farukh-ai-premium-preview-')&&!getJson(PREMIUM_V3_KEY,false)){
+  config={...config,theme:'royal',accent:''};
   setJson(DESIGN_KEY,config);
   setJson(PREMIUM_V3_KEY,true);
  }
@@ -212,6 +213,7 @@ export function mountPremiumWorkspace(){
  addSidebar();updateProjectPicker();applyDesign(config);
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
+ mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
   new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});

@@ -44,6 +44,165 @@ async function run(theme,width,height){
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
+ if(theme==='royal'){
+   await page.locator('#home.pf-upgraded .pfv-showcase').waitFor({state:'visible',timeout:22000});
+   // The Royal workbench hero now renders without image-processing delays.
+   await page.locator('#home .pfv-hub-tile').first().waitFor({state:'visible',timeout:9000});
+   const art=await page.evaluate(()=>({
+    hub:[...document.querySelectorAll('#home .pfv-hub-tile')].map(x=>x.textContent.trim().slice(0,60)),
+    hero:document.querySelector('#home .pfv-intro-clean h1')?.textContent?.trim(),
+    projects:[...document.querySelectorAll('#home .pfv-projects .pfv-project')].map(x=>x.textContent.trim().slice(0,35)),
+    decorativeImages:document.querySelectorAll('#home .pfv-hero-roll').length
+   }));
+   check(tag+' Royal hub has four working entrypoints',art.hub.length===4&&art.hub.some(x=>x.includes('ТТК'))&&art.hub.some(x=>x.includes('ХАССП')),art);
+   check(tag+' Royal hero does not wait for decorative photographs',art.decorativeImages===0&&Boolean(art.hero),art);
+
+   const premium=await page.evaluate(()=>{
+    const root=document.querySelector('#home .pfv-showcase');
+    const cs=getComputedStyle(root);
+    const old=getComputedStyle(document.querySelector('#home .pf-showcase')).display;
+    return {theme:document.body.dataset.pfTheme,display:cs.display,background:cs.backgroundColor,
+      oldHidden:old==='none',overflow:document.documentElement.scrollWidth-innerWidth,
+      kpis:root.querySelectorAll('.pfv-kpi').length,
+      projectList:!!root.querySelector('.pfv-projects'),
+      quick:root.querySelectorAll('.pfv-action').length,
+      recipeList:!!root.querySelector('.pfv-bottom-grid .pfv-recipe-text'),
+      sidebar:!!root.querySelector('.pfv-side nav'),
+      falseStatus:/Все модули работают стабильно|Интеграции: активны/i.test(root.textContent)};
+   });
+   check(tag+' V2 selected',premium.theme==='royal'&&premium.display!=='none'&&premium.oldHidden,premium);
+   check(tag+' V2 structural dashboard',premium.kpis===4&&premium.quick>=5&&premium.projectList&&premium.sidebar,premium);
+   check(tag+' V2 no invented success',!premium.falseStatus,premium);
+   check(tag+' V2 layout does not overflow',premium.overflow<=22,premium);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+   // Regression: the settings overlay opens while the home view is active.
+   // Old Arctic CSS used to force white panels and white-on-white headings here.
+   await page.evaluate(()=>{const dialog=document.querySelector('dialog.lunar-dialog:not(.lunar-history)');if(!dialog.open)dialog.showModal();});
+   await page.locator('dialog.lunar-dialog:not(.lunar-history)').waitFor({state:'visible',timeout:9000});
+   const settingsOverlay=await page.evaluate(()=>{
+     const read=selector=>{
+       const el=document.querySelector(selector);if(!el)return null;
+       const s=getComputedStyle(el);
+       const avg=value=>{
+         const channels=(String(value).match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+         return channels.length===3?channels.reduce((a,b)=>a+b,0)/3:255;
+       };
+       return {background:s.backgroundColor,backgroundAvg:avg(s.backgroundColor),
+         ink:s.color,inkAvg:avg(s.color),backgroundImage:s.backgroundImage};
+     };
+     return {
+       dialog:read('dialog.lunar-dialog'),
+       header:read('dialog.lunar-dialog > .bar'),
+       card:read('dialog.lunar-dialog details'),
+       title:read('dialog.lunar-dialog > .bar h2'),
+       summary:read('dialog.lunar-dialog details > summary')
+     };
+   });
+   check(tag+' settings dialog follows dark neon theme',
+     Boolean(settingsOverlay.dialog&&settingsOverlay.header&&settingsOverlay.card)
+     &&[settingsOverlay.dialog,settingsOverlay.header,settingsOverlay.card].every(x=>x.backgroundAvg<95)
+     &&settingsOverlay.title?.inkAvg>150&&settingsOverlay.summary?.inkAvg>150,
+     settingsOverlay);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-settings-modal.png',timeout:12000});
+   // The user's screenshot showed white cards in the LOWER half of this dialog;
+   // inspect the scrolled content too, not only the visible voice section.
+   const syncTheme=await page.evaluate(()=>{
+     const node=document.getElementById('device-cloud-sync-settings');
+     node.open=true;
+     const rgb=el=>(getComputedStyle(el).backgroundColor.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+     const avg=el=>{const c=rgb(el);return c.length===3?c.reduce((a,b)=>a+b,0)/3:255};
+     return {panelBg:avg(node),barBg:avg(node.querySelector('.bar')),
+       summaryColor:getComputedStyle(node.querySelector('summary')).color,
+       buttonBg:avg(node.querySelector('[data-toggle-sync]'))};
+   });
+   check(tag+' expanded cross-device sync also uses dark neon cards',
+     syncTheme.panelBg<95&&syncTheme.barBg<95&&syncTheme.buttonBg<95,syncTheme);
+   await page.evaluate(()=>{const d=document.querySelector('dialog.lunar-dialog:not(.lunar-history)');d.scrollTop=d.scrollHeight;});
+   await page.screenshot({path:'artifacts/premium-'+tag+'-settings-sync.png',timeout:12000});
+   await page.locator('dialog.lunar-dialog:not(.lunar-history) > .bar > button').click();
+
+   console.log('PREMIUM_ROYAL_PREVIEW_'+(mobile?'MOBILE':'DESKTOP')+'_JPEG='+ (await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+   const realProjects=page.locator('#home .pfv-projects .pfv-project:not(.pfv-project-create)');
+   if(await realProjects.count()>=2){
+    const expected=await page.evaluate(()=>document.getElementById('pf-home-project-select')?.options[1]?.value);
+    await realProjects.nth(1).click();
+    await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:9000});
+    const selected=await page.evaluate(()=>{
+     try{return JSON.parse(localStorage.getItem('farruh-ai-project-catalog-v1')||'{}').selected}catch{return null}
+    });
+    check(tag+' project tile opens real selected project',Boolean(expected)&&selected===expected,{expected,selected});
+    await page.evaluate(()=>{location.hash='home'});
+    await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:9000});
+    await page.locator('#home .pfv-showcase').waitFor({state:'visible',timeout:8000});
+   }
+   await page.locator('#home .pfv-header-actions .pfv-icon-btn').first().click();
+   await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
+   check(tag+' settings remain functional',await page.locator('#site-settings').isVisible(),null);
+   await page.locator('#site-settings #pf-settings-hub').waitFor({state:'visible',timeout:8000});
+   const settingsStyle=await page.evaluate(()=>{const x=document.querySelector('#pf-settings-hub');return {background:getComputedStyle(x).backgroundColor,image:getComputedStyle(x).backgroundImage,ink:getComputedStyle(x).color}});
+   check(tag+' settings styled in Royal dark',!settingsStyle.background.includes('255, 255, 255')&&settingsStyle.image.includes('gradient'),settingsStyle);
+   if(!mobile)console.log('PREMIUM_ROYAL_SETTINGS_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+   await page.evaluate(()=>{location.hash='recipes'});
+   await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:8000});
+   await page.locator('#recipes .category-card[data-category]').first().waitFor({state:'visible',timeout:8000});
+   const categoryStyle=await page.locator('#recipes .category-card[data-category]').first().evaluate(el=>{const frame=el.querySelector('.category-photo-frame'),caption=el.querySelector('.category-caption');return {card:getComputedStyle(el).backgroundImage,frame:frame?getComputedStyle(frame).backgroundImage:'none',caption:caption?getComputedStyle(caption).backgroundImage:'none'}});
+   // The reference uses a photo frame and an opaque caption inside the card;
+   // the card root itself can remain transparent for layout and hit targets.
+   check(tag+' TTK categories carry dark premium surface',categoryStyle.frame.includes('gradient')&&categoryStyle.caption.includes('gradient'),categoryStyle);
+   const filterStyle=await page.locator('#recipes .lx-filter-menu>summary').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ink:getComputedStyle(el).color}));
+   check(tag+' TTK filter readable on Royal',filterStyle.bg.includes('gradient')&&!filterStyle.ink.includes('255, 255, 255, 0'),filterStyle);
+   const bottomNav=await page.evaluate(()=>[...document.querySelectorAll('.mobile-tools')].some(el=>el.getClientRects().length&&getComputedStyle(el).display!=='none'));
+   if(!mobile)check(tag+' wide screen hides duplicate mobile dock',!bottomNav,{bottomNav});
+   if(!mobile)console.log('PREMIUM_ROYAL_TTK_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+   await page.evaluate(()=>{location.hash='home'});
+   await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:8000});
+   await page.locator('#home .pfv-action').first().click();
+   await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
+   check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
+   const editorTheme=await page.locator('#editor').evaluate(el=>{
+     const read=selector=>{
+       const e=el.querySelector(selector),s=e&&getComputedStyle(e),c=(s?.backgroundColor.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+       return {background:s?.backgroundColor||'missing',ink:s?.color||'missing',
+         brightness:c.length===3?c.reduce((a,b)=>a+b,0)/3:255};
+     };
+     return {toolbar:read('.ttk-toolbar'),intro:read('.ttk-studio-intro')};
+   });
+   check(tag+' TTK editor chrome uses the selected dark neon theme',
+     editorTheme.toolbar.brightness<95&&editorTheme.intro.brightness<95,editorTheme);
+
+   await page.screenshot({path:'artifacts/premium-'+tag+'-editor.png',timeout:12000});
+   await page.locator('#closeeditor').click();
+   await page.evaluate(()=>{location.hash='print-control'});
+   await page.waitForFunction(()=>document.body.dataset.view==='print-control',null,{timeout:8000});
+   await page.locator('#print-control .pc-premium-template').first().waitFor({state:'visible',timeout:12000});
+   const printContrast=await page.locator('#print-control .pc-premium-template').first().evaluate(el=>{
+    const title=el.querySelector('h2'),desc=el.querySelector('p'),css=getComputedStyle(el);
+    return {bg:css.backgroundImage,title:title?getComputedStyle(title).color:'',desc:desc?getComputedStyle(desc).color:''};
+   });
+   check(tag+' FARUKH PRINT template panels use dark premium contrast',printContrast.bg.includes('gradient')&&printContrast.title!=='rgb(255, 255, 255)'&&printContrast.desc!=='rgb(116, 128, 139)',printContrast);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-print-control.png',timeout:12000});
+   if(!mobile)console.log('PREMIUM_ROYAL_PRINT_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+
+   // Visit EVERY remaining owner section in the selected Royal design,
+   // not merely Home. Save real Android/desktop screenshots for visual review.
+   for(const target of ['recipes','preparations','lab','tasks','checks','calc','chat','site-settings']){
+     await page.evaluate(v=>{location.hash=v},target);
+     await page.waitForFunction(v=>document.body.dataset.view===v,target,{timeout:10000});
+     const panel=page.locator('#'+target);
+     await panel.waitFor({state:'visible',timeout:10000});
+     const surface=await panel.evaluate(el=>{
+       const cs=getComputedStyle(el),arr=String(cs.color).match(/[0-9.]+/g)||[];
+       return {ink:cs.color,background:cs.backgroundColor,layer:cs.backgroundImage,
+         inkAverage:arr.slice(0,3).map(Number).reduce((a,b)=>a+b,0)/3,
+         horizontalOverflow:Math.max(0,document.documentElement.scrollWidth-innerWidth)};
+     });
+     check(tag+' '+target+' retains premium high-contrast workspace',
+       surface.inkAverage>145&&surface.horizontalOverflow<=24,surface);
+     await page.screenshot({path:'artifacts/premium-'+tag+'-'+target+'.png',timeout:12000});
+   }
+
+
+ }else{
  await page.locator('#home.pf-upgraded .pf-showcase').waitFor({state:'visible',timeout:22000});
  const initial=await page.evaluate(()=>({
   theme:document.body.dataset.pfTheme,old:getComputedStyle(document.querySelector('#home .arctic-shell')).display,
@@ -300,11 +459,12 @@ async function run(theme,width,height){
   const restored=await page.evaluate(()=>document.body.dataset.pfTheme);
   check('Cancel theme preview restores original',restored==='titanium',restored);
  }
+ }
  results.push({label:tag+' page errors (non-blocking mocked optional APIs)',ok:true,context:errors.slice(0,8)});
  }catch(e){check(tag+' fatal',false,e.message)}
  await ctx.close();
 }
-for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['titanium',1365,900]])await run(theme,w,h);
+for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['royal',1365,900],['titanium',1365,900]])await run(theme,w,h);
 await browser.close();await new Promise(r=>server.close(r));
 const output={passed:results.filter(x=>x.ok).length,total:results.length,failed:failures};
 await fs.writeFile('artifacts/premium-audit-results.json',JSON.stringify(output,null,2));

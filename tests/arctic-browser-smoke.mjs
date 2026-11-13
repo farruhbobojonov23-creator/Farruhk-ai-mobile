@@ -391,8 +391,10 @@ async function verify(mode,width,height){
   const renamed=page.locator('#lab .haccp-temperature-range').filter({hasText:'Морозильник QA · после переименования'});
   assert.deepEqual(await renamed.locator('input[type=number]').evaluateAll(els=>els.map(x=>x.value)),['-25','-18'],'edited limits persist');
   await page.locator(branchSelector).selectOption('point-2');
+  await page.waitForFunction(()=>![...document.querySelectorAll('#lab .haccp-temperature-range strong')].some(x=>x.textContent==='Морозильник QA · после переименования'),null,{timeout:12000});
   assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),0,'other point is separate');
   await page.locator(branchSelector).selectOption('point-1');
+  await page.waitForFunction(()=>[...document.querySelectorAll('#lab .haccp-temperature-range strong')].some(x=>x.textContent==='Морозильник QA · после переименования'),null,{timeout:12000});
   assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),1,'equipment name persists after changing point');
   await page.screenshot({path:'artifacts/arctic-haccp-temperature-sample-'+mode+'.png',fullPage:false,timeout:12000});
 
