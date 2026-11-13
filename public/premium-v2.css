@@ -275,3 +275,26 @@ body[data-pf-theme="royal"][data-view="recipes"] #recipes .lx-project-manage{
  body[data-pf-theme="royal"][data-view="recipes"] #recipes .lx-ref-stats .lx-stat-body strong{font-size:23px!important}
  body[data-pf-theme="royal"][data-view="recipes"] #recipes .lx-project-field{min-width:100%!important}
 }
+
+/* pfv-audit-category-surfaces: cards in the real TTK catalog must not inherit
+   light Arctic imagery tiles or have a transparent top-level card surface.
+   Keep the product photograph itself unchanged, while making the card shell
+   and caption part of the approved dark system. Screen only, no PDF changes. */
+@media screen {
+  body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card[data-category] {
+    background:linear-gradient(145deg,#24201b 0%,#111318 67%,#19130d 100%)!important;
+    border:1px solid rgba(228,178,92,.42)!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.42),inset 0 1px rgba(255,220,150,.08)!important;
+    color:#f5e9d3!important;
+  }
+  body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card[data-category] .category-caption {
+    background:linear-gradient(180deg,rgba(24,22,23,.96),#111215)!important;
+    color:#f8eddb!important;
+  }
+  body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card[data-category] .category-caption :is(strong,small) {
+    color:#f3ddae!important;-webkit-text-fill-color:#f3ddae!important;
+  }
+  body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card[data-category] .category-photo-frame {
+    background:radial-gradient(circle at 50% 45%,#3b2a194c,transparent 68%),linear-gradient(145deg,#1f1e22,#0f1217)!important;
+  }
+}
