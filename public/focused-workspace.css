@@ -1,0 +1,47 @@
+/* FARRUH AI — focused workspace navigation.
+   Owner-selected hidden categories: HACCP, Journals, Tasks.
+   This is presentation-only: local state, journals and compliance documents
+   remain stored and can be restored. Do not hide the underlying view sections. */
+@media screen{
+ /* Keep screens available for restored navigation / existing direct deep links,
+    but remove entry points from every default theme and footer. */
+ #chef-menu .nav button[data-view="lab"],
+ #chef-menu .nav button[data-view="tasks"],
+ #chef-menu .nav .pf-sidebar-journals,
+ #home button[data-view="lab"],
+ #home button[data-view="tasks"],
+ #home button[data-pf-go="lab"],
+ #home button[data-pf-go="tasks"],
+ #home .pf-showcase-side button[data-pf-go="lab"],
+ #home .pf-showcase-side button[data-pf-go="tasks"],
+ #home .pf-showcase-card[data-pf-go="lab"],
+ #home .pf-showcase-card[data-pf-go="tasks"],
+ #home .pf-showcase-quick button[data-pf-go="lab"],
+ #home .pf-showcase-quick button[data-pf-go="tasks"],
+ #home .pf-top button[data-pf-go="tasks"],
+ #home .pf-actions button[data-pf-go="tasks"],
+ #home .pf-tile[data-pf-go="lab"],
+ #home .pf-tile[data-pf-go="tasks"],
+ .right button[data-view="lab"],
+ .right button[data-view="tasks"],
+ .mobile-tools button[data-view="lab"],
+ .mobile-tools button[data-view="tasks"],
+ .pf-sidebar-journals,
+ .lx-header-bell{
+   display:none!important;
+ }
+ /* All theme instances share the same approved six-button core navigation. */
+ body.lx-pro .mobile-tools.lx-ref-bottom{
+   display:grid!important;
+   grid-template-columns:repeat(6,minmax(0,1fr))!important;
+   grid-auto-flow:column!important;
+   grid-template-rows:1fr!important;
+ }
+ body.lx-pro .mobile-tools.lx-ref-bottom button.lx-bottom-item{
+   min-width:0!important;max-width:100%!important;
+   flex-shrink:1!important;
+ }
+}
+@media print{
+ /* Dashboard visibility rules never affect printable A4 HACCP/TTK sheets. */
+}
