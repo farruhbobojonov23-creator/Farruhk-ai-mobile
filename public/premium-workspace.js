@@ -95,7 +95,7 @@ export function mountPremiumWorkspace(){
   const after=target.querySelector(':scope > .settings-actions');
   if(after)after.after(hub);else target.querySelector('h1')?.after(hub);
  }
- const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Заготовки','Ингредиенты и полуфабрикаты','preparations'],['printer','FARUKH PRINT','Этикетки и печать','print-control'],['chef','Контроль кухни','Проверки и точки','checks']];
+ const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Полуфабрикаты','Ингредиенты и заготовки','preparations'],['printer','FARUKH PRINT','Этикетки и маркировка','print-control'],['settings','Настройки','Оформление и инструменты','site-settings']];
  const shell=node('div','pf-workspace');shell.id='pf-workspace';
  shell.innerHTML=
   '<div class="pf-top"><div><div class="pf-brand">FARRUH <span>AI</span></div><div class="pf-caption">Профессиональный кабинет шефа</div></div><div class="pf-top-actions"><button class="pf-icon-btn" data-pf-action="settings" aria-label="Настройки" title="Настройки">◈</button><button class="pf-icon-btn" data-pf-go="tasks" aria-label="Открыть задачи" title="Задачи">♧</button></div></div>'+
@@ -106,8 +106,9 @@ export function mountPremiumWorkspace(){
   '<div class="pf-actions"><button data-pf-action="projects"><span>▱</span>Проекты</button><button data-pf-go="tasks"><span>☑</span>Задачи</button><button data-pf-go="calc"><span>▦</span>Калькулятор</button><button data-pf-action="studio"><span>⚙</span>Дизайн</button></div>'+
   '<nav class="pf-bottom" aria-label="Основное меню"><button aria-current="page"><span>⌂</span>Главная</button><button data-pf-action="projects"><span>▱</span>Проекты</button><button data-pf-go="recipes"><span>▤</span>ТТК</button><button data-pf-go="print-control"><span>▣</span>Печать</button><button data-pf-action="more"><span>•••</span>Ещё</button></nav>';
  shell.querySelectorAll('[data-pf-go="tasks"],[data-pf-go="lab"]').forEach(node=>node.remove());
- // The old quick-actions row duplicated the new Settings and Projects UI.
+ // The old quick-actions and AI banner duplicated Settings and working tools.
  shell.querySelector('.pf-actions')?.remove();
+ shell.querySelector('.pf-ai-button')?.remove();
  const grid=shell.querySelector('#pf-home-tiles');
  for(const [symbol,title,subtitle,view] of tiles){
   const tile=node('button','pf-tile');tile.type='button';tile.dataset.pfGo=view;
@@ -119,7 +120,7 @@ export function mountPremiumWorkspace(){
   const action=b.dataset.pfAction;
   if(action==='settings')document.getElementById('menu-settings')?.click();
   if(action==='projects')openProjects();
-  if(action==='more')document.getElementById('ruby-menu')?.click();
+  if(action==='more')document.getElementById('menu-toggle')?.click();
  });
  home.append(shell);
  // The selected design is applied at initialization and whenever Studio
@@ -137,7 +138,7 @@ export function mountPremiumWorkspace(){
   const head=node('div','pf-modal-header');head.append(node('h2','','Проекты FARRUH AI'),button('✕','',()=>projectModal.close()));projectModal.append(head);
   const body=node('div','pf-modal-body pf-projects-pane');
   body.append(node('h3','','Мои заказчики и проекты'));
-  const warning=node('p','pf-warning','Важное уточнение: здесь пока можно вести список проектов и выбирать рабочий проект на главной. Рецептуры, ХАССП и журналы ещё не разделяются по проектам — не используйте переключатель как отдельную базу данных.');
+  const warning=node('p','pf-warning','Техкарты можно привязать к проекту и фильтровать по нему. Старые ТТК без проекта доступны через «Все проекты» и «Без проекта». Прочие разделы пока используют общие данные.');
   body.append(warning);
   const list=node('div','pf-project-list');
   for(const p of projects.projects){
@@ -157,7 +158,7 @@ export function mountPremiumWorkspace(){
    if(projects.projects.length>=50){alert('Доступно не более 50 проектов.');return}
    projects.projects.push({id,name});projects.selected=id;setJson(PROJECT_KEY,projects);updateProjectPicker();renderProjects();
   });add.append(addButton);input.addEventListener('keydown',e=>{if(e.key==='Enter')addButton.click()});body.append(add);
-  body.append(node('p','','Следующий этап — отдельные ТТК, ХАССП, журналы и настройки для каждого проекта.'));
+  body.append(node('p','','ТТК группируются по проектам через поле «Проект ТТК» в редакторе. Другие данные пока общие.'));
   projectModal.append(body);
  }
  function openProjects(){renderProjects();if(!projectModal.open)projectModal.showModal()}
