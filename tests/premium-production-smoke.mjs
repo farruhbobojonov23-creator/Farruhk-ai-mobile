@@ -74,8 +74,8 @@ async function run(theme,width,height){
    if(!mobile)console.log('PREMIUM_ROYAL_SETTINGS_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.evaluate(()=>{location.hash='recipes'});
    await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:8000});
-   await page.locator('#recipes .category-card').first().waitFor({state:'visible',timeout:8000});
-   const categoryStyle=await page.locator('#recipes .category-card').first().evaluate(el=>({background:getComputedStyle(el).backgroundImage}));
+   await page.locator('#recipes .category-card:not(.lx-all-category)').first().waitFor({state:'visible',timeout:8000});
+   const categoryStyle=await page.locator('#recipes .category-card:not(.lx-all-category)').first().evaluate(el=>({background:getComputedStyle(el).backgroundImage}));
    check(tag+' TTK categories carry dark premium surface',categoryStyle.background.includes('gradient'),categoryStyle);
    if(!mobile)console.log('PREMIUM_ROYAL_TTK_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.evaluate(()=>{location.hash='home'});
