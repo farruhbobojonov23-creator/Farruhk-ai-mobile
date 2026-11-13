@@ -68,8 +68,8 @@ async function verify(mode,width,height){
 
   await page.locator('#ruby-menu').click();
   assert.equal(await visible(page,'#chef-menu'),true,'menu opens from home shortcut');
-  await page.locator('#ruby-menu').click();
-  assert.equal(await visible(page,'#chef-menu'),false,'menu closes on second tap');
+  await page.locator('#chef-menu-close').click();
+  assert.equal(await visible(page,'#chef-menu'),false,'drawer closes via accessible close button');
 
   // The new free Google Drive backup controls must appear under Device Data.
   const backupLocated=await page.evaluate(()=>document.getElementById('device-export')?.parentElement?.contains(document.querySelector('.google-backup-open')));
@@ -135,9 +135,12 @@ async function verify(mode,width,height){
   }));
   assert.ok(!overview.background.includes('32, 36, 39'),'HACCP daily card must not have legacy dark background: '+overview.background);
   assert.ok(overview.journalCards>=5,'HACCP cards mounted: '+overview.journalCards);
-  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available on HACCP dashboard');
+  // Advanced controls are intentionally collapsed to keep the professional
+  // journal catalog compact on phones; expand before verifying export.
+  await page.locator('#lab details.haccp-catalog-more').evaluate(el=>el.open=true);
+  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available in expanded HACCP controls');
   const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
-  assert.match(packStatus,/12 журналов/,'all 12 journals prepared automatically');
+  assert.match(packStatus,/13 журналов/,'all 13 journal types prepared automatically');
   assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
   assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/черновики/i,'auto-filled reports explicitly protect factual inspection data');
 
