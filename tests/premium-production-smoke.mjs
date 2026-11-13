@@ -88,6 +88,15 @@ async function run(theme,width,height){
    }).filter(n=>n.visible&&n.bottom>innerHeight-220));
    console.log('TTK_NAV_DEBUG='+JSON.stringify(navDebug));
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
+   await page.locator('#newrecipe').click();
+   const editorTools=await page.evaluate(()=>({
+    visible:!document.getElementById('editor').hidden,
+    photo:!!document.querySelector('#recipe-photo-file[accept*="image/png"]'),
+    project:!!document.querySelector('#recipe-project'),
+    a4:!!document.querySelector('#editor .ttk-paper')
+   }));
+   check(tag+' TTK photo upload and project editor',editorTools.visible&&editorTools.photo&&editorTools.project&&editorTools.a4,editorTools);
+   await page.locator('#closeeditor').click();
   }
   if(target==='lab'){
    await page.waitForTimeout(400);
