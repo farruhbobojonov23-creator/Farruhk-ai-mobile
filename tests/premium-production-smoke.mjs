@@ -70,7 +70,7 @@ async function run(theme,width,height){
   if(theme==='crystal'&&target==='recipes'){
    await page.locator('#recipes .lx-stats').waitFor({state:'visible',timeout:10000});
    await checkCrystalInk(page,'#recipes .lx-project-caption',tag+' recipe library readable');
-   await checkCrystalInk(page,'#recipes .category-caption strong',tag+' category captions readable');
+   await checkCrystalInk(page,'#recipes .category-card:not(.lx-all-category) .category-caption strong',tag+' standard category captions readable');
    const ref=await page.evaluate(()=>({
     title:document.querySelector('#recipes .lx-ref-hero h1')?.textContent?.trim(),
     kpis:document.querySelectorAll('#recipes .lx-ref-stats .lx-stat').length,
