@@ -70,6 +70,28 @@ async function run(theme,width,height){
   });
   check(tag+' HACCP, journals and tasks removed from home and menu',focused.noRemovedCards&&focused.visibleBad.length===0,focused);
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+ // The standalone Design/Extras menu entries are removed; both tools must
+ // remain reachable through the existing Settings and Data dialog.
+ const menuStructure=await page.evaluate(()=>({
+  design:document.querySelectorAll('#chef-menu .pf-sidebar-design').length,
+  extras:document.querySelectorAll('#chef-menu .pf-sidebar-more').length,
+  hub:document.querySelectorAll('.lunar-dialog #pf-settings-hub').length
+ }));
+ check(tag+' sidebar only contains core sections',menuStructure.design===0&&menuStructure.extras===0&&menuStructure.hub===1,menuStructure);
+ await page.evaluate(()=>document.getElementById('menu-settings').click());
+ await page.locator('.lunar-dialog[aria-label="Настройки и данные"]').waitFor({state:'visible',timeout:8000});
+ const expandedTools=await page.evaluate(()=>({
+  design:!!document.getElementById('pf-settings-design-button'),
+  collapsed:!document.getElementById('pf-settings-utilities')?.open,
+  labels:[...document.querySelectorAll('#pf-settings-utilities .pf-settings-utility-button')].map(el=>el.textContent.trim())
+ }));
+ check(tag+' settings keeps Design Studio and four utilities',
+   expandedTools.design&&expandedTools.collapsed&&expandedTools.labels.length===4,expandedTools);
+ await page.locator('#pf-settings-design-button').click();
+ check(tag+' design opens from Settings',await page.locator('#pf-studio-dialog').isVisible(),null);
+ await page.locator('#pf-studio-dialog button').filter({hasText:'Отменить'}).click();
+ check(tag+' design returns without data changes',!(await page.locator('#pf-studio-dialog').isVisible()),null);
+
  for(const target of ['recipes','lab','tasks','checks','chat','preparations','print-control','site-settings']){
   await page.evaluate(v=>{const b=document.querySelector('#chef-menu button[data-view="'+v+'"]');if(b)b.click();else location.hash=v},target);
   try{await page.waitForFunction(v=>document.body.dataset.view===v,target,{timeout:6000})}catch(e){check(tag+' '+target+' navigation',false,e.message);continue}
