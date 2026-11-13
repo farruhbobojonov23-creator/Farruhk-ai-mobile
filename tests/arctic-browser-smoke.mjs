@@ -40,6 +40,11 @@ const visible=async(page,selector)=>page.locator(selector).isVisible();
 async function verify(mode,width,height){
  const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1.5,isMobile:mode==='mobile',hasTouch:mode==='mobile',reducedMotion:'reduce',serviceWorkers:'block'});
  const page=await context.newPage();
+ // This suite intentionally exercises the legacy Arctic workspace. The owner
+ // defaults to premium Titanium, independently covered by premium QA.
+ await page.addInitScript(()=>localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({
+  theme:'arctic',density:'standard',radius:20,scale:1,motion:false
+ })));
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',async dialog=>{throw Error('Unexpected destructive-confirmation dialog: '+dialog.message())});
