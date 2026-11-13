@@ -48,8 +48,7 @@ export function mountLuxuryUI(opts={}){
   header.querySelector('.aurora-brand')?.before(logo);
   const brand=header.querySelector('.aurora-brand');
   if(brand){const line=el('span','lx-brand-headline');line.append(document.createTextNode('FARRUH '),el('strong','','AI'));brand.replaceChildren(line,el('small','','Профессиональная кухня'))}
-  const bell=btn('','lx-header-icon lx-header-bell',()=>opts.onNavigate?.('tasks'));bell.innerHTML=icon('bell');bell.title='Задачи и уведомления';bell.setAttribute('aria-label','Задачи и уведомления');
-  const person=btn('','lx-header-icon lx-header-user',()=>opts.onNavigate?.('site-settings'));person.innerHTML=icon('user');person.title='Профиль и настройки';person.setAttribute('aria-label','Профиль и настройки');header.append(bell,person);
+  const person=btn('','lx-header-icon lx-header-user',()=>opts.onNavigate?.('site-settings'));person.innerHTML=icon('user');person.title='Профиль и настройки';person.setAttribute('aria-label','Профиль и настройки');header.append(person);
  }
  const hero=root.querySelector(':scope > .bar');hero?.classList.add('lx-hero','lx-ref-hero');
  if(hero){
@@ -279,7 +278,7 @@ export function mountLuxuryUI(opts={}){
   bottom.replaceChildren();
   const navigationItems=[
    ['home','Кабинет шефа','home'],['stack','Проекты','projects'],['chef','Техкарты','recipes'],
-   ['box','Полуфабрикаты','preparations'],['bag','Товары','print-control'],['shield','ХАССП','lab'],['all','Ещё','more']
+   ['box','Полуфабрикаты','preparations'],['bag','Товары','print-control'],['all','Ещё','more']
   ];
   for(const [index,[key,label,target]] of navigationItems.entries()){
    const b=btn('','lx-bottom-item');b.innerHTML=icon(key)+'<span>'+label+'</span>';
