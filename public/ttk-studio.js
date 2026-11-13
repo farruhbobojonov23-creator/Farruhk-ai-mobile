@@ -117,7 +117,7 @@ export function mountTtkStudio(editor){
   const hasImage=Boolean(photo.querySelector('img')?.getAttribute('src'));
   photo.classList.toggle('ttk-studio-photo-filled',hasImage);
   photoButton.textContent=hasImage?'✎ Заменить фото':'＋ Добавить фото';
-  removePhoto.hidden=!hasImage;
+  if(removePhoto.hidden===hasImage)removePhoto.hidden=!hasImage;
  };
  new MutationObserver(refreshPhoto).observe(photo,{attributes:true,subtree:true,
   attributeFilter:['src','hidden']});
