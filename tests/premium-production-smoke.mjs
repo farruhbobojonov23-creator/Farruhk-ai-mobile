@@ -233,6 +233,22 @@ async function run(theme,width,height){
    await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
    check(tag+' selecting Royal changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
+   if(theme==='crystal'&&mobile){
+    const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
+    check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
+    await page.locator('#recipe-name').fill('Пробный ролл');
+    await page.locator('#ingredients .ingredient input[data-key="name"]').first().fill('Рис');
+    await page.locator('#ingredients .ingredient input[data-key="grams"]').first().fill('100');
+    await page.waitForFunction(()=>document.querySelector('#editor .ttk-pro-save-state')?.dataset.state==='dirty',null,{timeout:5000});
+    const pdfRequest=page.waitForRequest(req=>req.url().endsWith('/api/recipes/pdf')&&req.method()==='POST',{timeout:10000});
+    await page.locator('#editor .ttk-pro-tab.is-accent').click();
+    const req=await pdfRequest;
+    const draft=JSON.parse(req.postData()).recipe;
+    check(tag+' preview sends unsaved Royal A4 draft to actual PDF route',
+      draft.name==='Пробный ролл'&&draft.layoutTemplate==='royal-a4'&&
+      draft.ingredients?.some(x=>x.name==='Рис'&&Number(x.grams)===100),
+      {name:draft.name,layout:draft.layoutTemplate,ingredients:draft.ingredients?.length});
+   }
    await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
   }
