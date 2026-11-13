@@ -42,7 +42,8 @@ export function mountGoogleSync({getState,store,onState,notify}){
   let safeUrl=null;
   const selected=localStorage.getItem(PROJECT_FILTER_KEY)||'all';
   const chosen=selected==='all'?null:s.googleProjects?.[selected];
-  try{const u=new URL(chosen?.documentUrl||config?.documentUrl);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}
+  const fallback=selected==='all'||selected==='sushi-beri'?config?.documentUrl:null;
+  try{const u=new URL(chosen?.documentUrl||fallback);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}
   documentLink.hidden=!safeUrl;
   documentLink.textContent=chosen?'Открыть Google-документ этого проекта':'Открыть Google-документ';
   if(safeUrl)documentLink.href=safeUrl;
