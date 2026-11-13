@@ -733,8 +733,7 @@
    color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
  }
  body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled
- :is(select,input:not([type=checkbox]):not([type=radio]),textarea)
- :not(.ttk-paper *){
+ :is(select,input:not([type=checkbox]):not([type=radio]),textarea):not(.ttk-paper *){
    background:var(--pf-raised)!important;
    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
    border:1px solid var(--pf-line)!important;
