@@ -29,7 +29,7 @@ function projects(){try{const d=JSON.parse(localStorage.getItem('farruh-ai-proje
 function short(name){return String(name||'').trim().split(/\s+/).slice(0,2).map(s=>s.charAt(0).toUpperCase()).join('')||'A'}
 function setCount(node,n){node.textContent=Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—'}
 export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
- if(!shell||shell.querySelector('.pf-showcase'))return;
+ if(!shell||shell.querySelector('.pfv-showcase'))return;
  if(!document.querySelector('link[data-pfv]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/premium-v2.css?v=1';link.dataset.pfv='true';document.head.append(link)}
  const root=el('div','pfv-showcase');
  const side=el('aside','pfv-side');
