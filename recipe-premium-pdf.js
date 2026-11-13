@@ -73,7 +73,7 @@ export function premiumRecipePdf(input){
   const basis=wrap(regulatoryBasis,W,5.7*s);if(draw)text(basis,X,y,W,5.7*s,false,'#765647');y+=basis.length*7.125*s;
   return y;
  }
- let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}layout(s,true);
+ let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}doc.ttkLayoutScale=s;doc.ttkLayoutHeight=layout(s);layout(s,true);
  const missing=['scope','safety','chef','approver','cardNumber','cardDate','rawRequirements','preparation','forming','serving','storage','appearance','taste','netYieldGrams'].some(k=>!r[k])||['protein','fat','carbs','kcal'].some(k=>nutrition[k]==null);
  const estimated=(r.ingredients||[]).some(i=>i.nutritionOrigin==='reference');
  if(estimated)text(['ПРОЕКТ ТТК — КБЖУ справочные, необходимо сверить с этикетками сырья.'],X,807,W,6,false,'#765647');
