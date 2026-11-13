@@ -74,6 +74,13 @@ async function run(theme,width,height){
   check(tag+' focused dashboard has four core sections, no inactive shortcuts',
   focused.noRemovedCards&&focused.visibleBad.length===0&&focused.compact&&!focused.assistant&&!focused.check,focused);
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+ if(theme==='crystal'&&mobile){
+  await page.locator('#home .pf-showcase-quick [data-pf-action="newrecipe"]').click();
+  await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
+  check(tag+' quick Create TTK opens actual editor',await page.locator('#editor').isVisible(),null);
+  await page.locator('#closeeditor').click();
+  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]').click());
+ }
  // No standalone Design Studio or Extras menu. Both live under Settings.
  const menuStructure=await page.evaluate(()=>({
   design:document.querySelectorAll('#chef-menu .pf-sidebar-design').length,
