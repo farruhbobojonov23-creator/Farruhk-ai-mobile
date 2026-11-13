@@ -46,17 +46,16 @@ async function run(theme,width,height){
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
  if(theme==='royal'){
    await page.locator('#home.pf-upgraded .pfv-showcase').waitFor({state:'visible',timeout:22000});
-   // Do not capture a misleading blank banner while its product imagery is
-   // being processed for transparent backgrounds on slow Android devices.
-   await page.waitForFunction(()=>{
-    const imgs=[...document.querySelectorAll('#home .pfv-hero-roll')];
-    return imgs.length===2&&imgs.every(img=>img.complete&&img.naturalWidth>0&&getComputedStyle(img).opacity!=='0');
-   },null,{timeout:20000});
+   // The Royal workbench hero now renders without image-processing delays.
+   await page.locator('#home .pfv-hub-tile').first().waitFor({state:'visible',timeout:9000});
    const art=await page.evaluate(()=>({
-    bannerPhotos:[...document.querySelectorAll('#home .pfv-hero-roll')].map(x=>({w:x.naturalWidth,h:x.naturalHeight,src:x.currentSrc.slice(0,42)})),
-    projects:[...document.querySelectorAll('#home .pfv-projects .pfv-project')].map(x=>x.textContent.trim().slice(0,35))
+    hub:[...document.querySelectorAll('#home .pfv-hub-tile')].map(x=>x.textContent.trim().slice(0,60)),
+    hero:document.querySelector('#home .pfv-intro-clean h1')?.textContent?.trim(),
+    projects:[...document.querySelectorAll('#home .pfv-projects .pfv-project')].map(x=>x.textContent.trim().slice(0,35)),
+    decorativeImages:document.querySelectorAll('#home .pfv-hero-roll').length
    }));
-   check(tag+' approved Royal hero photographs load before screenshot',art.bannerPhotos.length===2&&art.bannerPhotos.every(x=>x.w>0&&x.h>0),art);
+   check(tag+' Royal hub has four working entrypoints',art.hub.length===4&&art.hub.some(x=>x.includes('ТТК'))&&art.hub.some(x=>x.includes('ХАССП')),art);
+   check(tag+' Royal hero does not wait for decorative photographs',art.decorativeImages===0&&Boolean(art.hero),art);
 
    const premium=await page.evaluate(()=>{
     const root=document.querySelector('#home .pfv-showcase');
