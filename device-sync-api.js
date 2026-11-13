@@ -60,6 +60,8 @@ export function installDeviceSyncApi(app,{store}){
     const current=await store.read(FILE,{revision:0,snapshot:null,updatedAt:null});
     if(current.revision!==expected)throw httpError(409,'Данные изменились на другом устройстве. Повторяем объединение.');
     const saved={revision:expected+1,snapshot,updatedAt:new Date().toISOString()};
+    // Keep the last confirmed cloud revision for emergency recovery.
+    if(current.snapshot&&current.revision>0)await store.write('device-sync-previous-v1.json',current);
     await store.write(FILE,saved);
     return saved;
    });
