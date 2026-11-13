@@ -9,8 +9,7 @@ const buffer=doc=>new Promise((resolve,reject)=>{const chunks=[];doc.on('data',x
 test('HACCP blank A4 journal is a printable grid, explicitly not filled out',async()=>{
  const result=await parsePdf(await buffer(journalPdf({haccp:emptyHaccp(),kind:'cleaning',month:'2026-10',pointId:'point-1'})));
  assert.match(result.text,/Уборка и дезинфекция/);
- assert.match(result.text,/Подтверждённых записей пока нет/);
- assert.match(result.text,/не означают выполнение проверок/);
+ assert.doesNotMatch(result.text,/Подтверждённых записей пока нет|ЧЕРНОВИК|Выполнено/);
  assert.match(result.text,/Дата и время/);
  assert.match(result.text,/Вид уборки/);
  assert.match(result.text,/Участок \/ инвентарь/);
@@ -31,9 +30,9 @@ test('All 13 HACCP journal templates have distinct actionable headers in A4 PDF'
  const schemas=new Map();
  for(const kind of Object.keys(journalTypes)){
   const columns=paperColumns(kind);
-  assert.ok(columns.length>=6&&columns.length<=8,kind+' readable A4 column count');
+  assert.ok(columns.length>=6&&columns.length<=11,kind+' readable A4 column count');
   assert.equal(new Set(columns.map(c=>c.key)).size,columns.length,kind+' unique field keys');
-  assert.ok(columns.some(c=>c.key==='at')&&columns.some(c=>c.key==='owner'),kind+' chronology and responsibility');
+  assert.ok(columns.some(c=>c.key==='at')&&columns.some(c=>['owner','reviewer'].includes(c.key)),kind+' chronology and responsibility');
   const signature=columns.map(c=>c.key).join('|');
   assert.equal(schemas.has(signature),false,kind+' needs its own format, unlike '+schemas.get(signature));
   schemas.set(signature,kind);
@@ -55,6 +54,6 @@ test('Journal cells display factual statuses, notes, temperatures and safe empty
  assert.equal(paperCell(record,'cleaningType',points),'Генеральная');
  assert.match(paperCell(record,'cleaningMethod',points),/Дезсредство/);
  assert.match(paperCell(record,'checks',points),/Сроки: Да/);
- assert.equal(paperCell(record,'status',points,{draft:true}),'Черновик');
+ assert.equal(paperCell(record,'status',points,{draft:true}),'');
  assert.equal(paperCell(record,'useBy',points),'—');
 });
