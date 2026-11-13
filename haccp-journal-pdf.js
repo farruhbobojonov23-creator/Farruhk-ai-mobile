@@ -55,8 +55,10 @@ export function journalPdf({haccp,kind,month,pointId=''}){
   let x=X;const headerTop=102,headerHeight=66;
   for(let i=0;i<columns.length;i++){
    const col=columns[i];rect(x,headerTop,widths[i],headerHeight,head);
-   const lines=safeLines(doc,col.label,widths[i]-8).slice(0,6);
-   lines.forEach((line,j)=>text(line,x+4,headerTop+5+j*9,widths[i]-8,{bold:true,size:7,color:'#244b6c'}));
+   // Let PDFKit wrap header text with its own bold-font metrics.
+   // Using regular-font widths previously clipped «границы» in receiving.
+   doc.font('bold').fontSize(6).fillColor('#244b6c')
+    .text(col.label,x+4,headerTop+6,{width:widths[i]-8,height:headerHeight-10,align:'center',lineGap:1});
    x+=widths[i];
   }
   y=headerTop+headerHeight;
