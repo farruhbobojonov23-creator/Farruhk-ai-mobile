@@ -22,7 +22,7 @@ test('All 17 new sushi prep products show studio or credited ingredient previews
  }
  const app=await source('public/farukh-print/print.js'),control=await source('public/print-control.js');
  assert.match(app,/const original=p\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(p\.photo\)\?p\.photo:''/);
- assert.match(app,/img\.src=original\|\|fallback\.url/);
+ assert.match(app,/const displayed=usingCustom\?original/); assert.match(app,/img\.src=displayed/);
  assert.match(app,/img\.onerror=/);
  assert.match(control,/chosenPhoto=v\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(v\.photo\)\?v\.photo:''/);
  assert.match(control,/return p\.kind==='prep'\?window\.FarukhPrepPhotoLibrary\?\.find\(p\)\?\.url\|\|'':''/);
