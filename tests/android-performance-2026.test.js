@@ -44,5 +44,5 @@ test('Fast text and voice requests use bounded conversation history and task con
  assert.match(html,/String\(m\.text\|\|''\)\.slice\(0,1600\)/);
  assert.match(html,/state\.tasks\.filter\(t=>!t\.done\)\.slice\(0,30\)/);
  assert.match(html,/device-store\.js\?v=72/);
- assert.match(html,/recipe-google\.js\?v=2/);
+ assert.match(html,/recipe-google\.js\?v=3/);
 });
