@@ -73,3 +73,12 @@ test('legacy ID collision is idempotent when server accepted the upload but clie
  assert.equal(again.recipes.length,2);
  assert.deepEqual(new Set(again.recipes.map(x=>x.id)).size,2);
 });
+
+test('implicit default categories are kept absent, rather than overwritten by an empty array',()=>{
+ const phone={recipes:[recipe('a','Филадельфия')]};
+ const cloud={recipes:[recipe('b','Калифорния')]};
+ const localSnapshot=pickSyncSnapshot(phone,{});
+ const cloudSnapshot=pickSyncSnapshot(cloud,{});
+ assert.equal(localSnapshot.categories,undefined);
+ assert.equal(reconcileSnapshots(null,localSnapshot,cloudSnapshot).categories,undefined);
+});
