@@ -76,7 +76,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '</div>'+
  '<div class="pf-showcase-info"><span>'+icon3d('ttk',true)+' ТТК и рецептуры</span><span>'+icon3d('box',true)+' Заготовки</span><span>'+icon3d('shield',true)+' Безопасность</span><span>'+icon3d('book',true)+' Журналы</span></div>'+
  '<section class="pf-showcase-tools"><div class="pf-showcase-tools-main"><div class="pf-showcase-section"><div><small>РАБОЧЕЕ ПРОСТРАНСТВО</small><h2>Инструменты кухни</h2></div><button type="button" class="pf-showcase-all" data-pf-action="studio">◈ Настроить вид</button></div><div class="pf-showcase-grid"></div></div>'+
- '<aside class="pf-showcase-quick"><h2>✦ Быстрые действия</h2><button type="button" data-pf-go="recipes">＋ Создать ТТК <span>↗</span></button><button type="button" data-pf-go="preparations">▣ Заготовки <span>↗</span></button><button type="button" data-pf-go="lab">▤ Заполнить журнал <span>↗</span></button><button type="button" data-pf-go="tasks">☑ Открыть задачи <span>↗</span></button><button type="button" data-pf-go="chat">✦ ИИ-помощник <span>↗</span></button><p>Все документы и функции сохранены в действующей системе.</p></aside></section>'+
+ '<aside class="pf-showcase-quick"><h2>✦ Быстрые действия</h2><button type="button" data-pf-action="newrecipe">＋ Создать ТТК <span>↗</span></button><button type="button" data-pf-go="preparations">▣ Заготовки <span>↗</span></button><button type="button" data-pf-go="lab">▤ Заполнить журнал <span>↗</span></button><button type="button" data-pf-go="tasks">☑ Открыть задачи <span>↗</span></button><button type="button" data-pf-go="chat">✦ ИИ-помощник <span>↗</span></button><p>Все документы и функции сохранены в действующей системе.</p></aside></section>'+
  '<div class="pf-showcase-banner-bottom"><span>FARRUH <b>AI</b></span> · Профессиональная кухня начинается с порядка</div>'+
  '<nav class="pf-showcase-bottom" aria-label="Быстрый переход"><button class="active" data-pf-go="home">'+icon3d('home',true)+'<span>Главная</span></button><button data-pf-action="projects">'+icon3d('projects',true)+'<span>Проекты</span></button><button data-pf-go="recipes">'+icon3d('ttk',true)+'<span>ТТК</span></button><button data-pf-go="print-control">'+icon3d('printer',true)+'<span>Печать</span></button><button data-pf-action="more">'+icon3d('settings',true)+'<span>Ещё</span></button></nav>';
  // Remove quick-entry buttons and informational chips for hidden modules.
@@ -112,6 +112,11 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   event.stopPropagation();
   if(target.dataset.pfGo)goto(target.dataset.pfGo);
   if(target.dataset.pfAction==='settings')document.getElementById('menu-settings')?.click();
+  if(target.dataset.pfAction==='newrecipe'){
+   goto('recipes');
+   // Real action: open the recipe editor, not just the recipe list.
+   requestAnimationFrame(()=>document.getElementById('newrecipe')?.click());
+  }
   if(target.dataset.pfAction==='projects')openProjects();
   if(target.dataset.pfAction==='more')document.getElementById('menu-toggle')?.click();
  });
