@@ -68,7 +68,7 @@ async function run(theme,width,height){
   check(tag+' '+target+' no horizontal overflow',info.overflow<=22,info);
   if(theme==='crystal'&&target==='recipes'){
    await page.locator('#recipes .lx-stats').waitFor({state:'visible',timeout:10000});
-   await checkCrystalInk(page,'#recipes .lx-workspace-info strong',tag+' recipe library readable');
+   await checkCrystalInk(page,'#recipes .lx-project-caption',tag+' recipe library readable');
    await checkCrystalInk(page,'#recipes .category-caption strong',tag+' category captions readable');
   }
   if(target==='lab'){
