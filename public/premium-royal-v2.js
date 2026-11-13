@@ -30,7 +30,7 @@ function short(name){return String(name||'').trim().split(/\s+/).slice(0,2).map(
 function setCount(node,n){node.textContent=Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—'}
 export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  if(!shell||shell.querySelector('.pfv-showcase'))return;
- if(!document.querySelector('link[data-pfv]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/premium-v2.css?v=1';link.dataset.pfv='true';document.head.append(link)}
+ if(!document.querySelector('link[data-pfv]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/premium-v2.css?v=1';link.dataset.pfv='true';document.head.append(link);const workspaceLink=document.createElement('link');workspaceLink.rel='stylesheet';workspaceLink.href='/premium-royal-workspaces.css?v=1';workspaceLink.dataset.pfv='workspaces';document.head.append(workspaceLink)}
  const root=el('div','pfv-showcase');
  const side=el('aside','pfv-side');
  const brand=el('div','pfv-brand');
