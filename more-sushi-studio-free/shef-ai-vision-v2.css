@@ -1,0 +1,532 @@
+/* SHEF AI PREMIUM — Vision V2.
+   Deliberately dimensional cyan glass, not a flat navy recolour.
+   Restricted to screen and this theme. Printed A4 output is untouched. */
+@media screen {
+:root[data-studio-theme="chef-glass"]{
+  --ui-bg:#05142c; --ui-panel:rgba(33,94,158,.46); --ui-raised:rgba(66,137,201,.42);
+  --ui-nav:rgba(7,31,66,.9); --ui-text:#efffff; --ui-muted:#b9daed;
+  --ui-line:rgba(172,245,255,.46); --ui-accent:#6beffd; --ui-accent-hover:#a5fbff;
+  --ui-soft:rgba(72,207,244,.19);--ui-highlight:#9ef9ff;
+  --ui-radius:24px; --ui-button-radius:16px;
+  --ui-shadow:0 21px 45px rgba(0,12,45,.36),inset 0 1.5px 0 rgba(239,255,255,.38);
+  color-scheme:dark;
+}
+:root[data-studio-theme="chef-glass"] body{
+  color:#f1ffff;
+  background:
+    radial-gradient(ellipse 95% 25% at 51% 0%,rgba(65,242,255,.63) 0%,rgba(11,150,224,.27) 38%,transparent 81%),
+    radial-gradient(ellipse 75% 35% at 101% 58%,rgba(37,156,237,.32),transparent 73%),
+    radial-gradient(ellipse 75% 50% at 1% 82%,rgba(42,109,205,.25),transparent 82%),
+    linear-gradient(175deg,#091e42 0%,#04132d 54%,#061533 100%);
+  background-attachment:fixed;
+}
+:root[data-studio-theme="chef-glass"] body::before{
+  content:"";position:fixed;inset:-8% -5% auto;height:460px;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(101deg,transparent 22%,rgba(150,247,255,.07) 31%,transparent 39%),
+    linear-gradient(77deg,transparent 58%,rgba(120,241,255,.055) 62%,transparent 70%);
+  filter:blur(8px);
+}
+:root[data-studio-theme="chef-glass"] .shell,
+:root[data-studio-theme="chef-glass"] .auth {position:relative;isolation:isolate}
+:root[data-studio-theme="chef-glass"] .workspace{background:transparent}
+:root[data-studio-theme="chef-glass"] .sidebar{
+  background:
+    radial-gradient(ellipse 115% 30% at 35% 0,rgba(45,229,252,.34),transparent 78%),
+    linear-gradient(166deg,rgba(16,68,117,.90),rgba(5,28,66,.92) 52%,rgba(6,20,52,.94));
+  border-right:1px solid rgba(169,250,255,.44);
+  box-shadow:inset -1px 0 rgba(255,255,255,.15),12px 0 40px rgba(0,11,43,.26);
+  backdrop-filter:blur(21px);
+}
+:root[data-studio-theme="chef-glass"] .sidebar:before{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(122deg,rgba(255,255,255,.15),transparent 20%,transparent 80%,rgba(71,239,255,.08));
+  z-index:0;height:auto;
+}
+:root[data-studio-theme="chef-glass"] .sidebar>*{position:relative;z-index:1}
+:root[data-studio-theme="chef-glass"] .brand-lockup{gap:14px}
+:root[data-studio-theme="chef-glass"] .brand-mark{
+  width:44px;height:44px;
+  background:
+    radial-gradient(circle at 32% 18%,rgba(255,255,255,.95),transparent 22%),
+    linear-gradient(140deg,#bdfdff 2%,#3ed9f4 39%,#2477db 76%,#6e8df4);
+  border:1.5px solid rgba(230,255,255,.92);border-radius:15px;
+  box-shadow:0 0 19px rgba(70,223,255,.48),0 7px 17px rgba(0,19,70,.28),
+    inset 2px 2px 6px rgba(250,255,255,.58),inset -2px -3px 7px rgba(12,72,172,.32);
+  transform:perspective(200px) rotateX(4deg);
+}
+:root[data-studio-theme="chef-glass"] .brand-mark svg{stroke:#0b4776}
+:root[data-studio-theme="chef-glass"] .brand-name{
+  font-family:Manrope,system-ui,sans-serif;
+  font-size:16px;line-height:1.17;font-weight:900;color:#fff;
+  letter-spacing:.7px;text-shadow:0 1px 14px rgba(122,249,255,.23);
+}
+:root[data-studio-theme="chef-glass"] .brand-name span{color:#aafaff}
+:root[data-studio-theme="chef-glass"] .brand-sub{color:#a8dbf4;letter-spacing:2px;font-size:8px}
+:root[data-studio-theme="chef-glass"] .side-caption{color:#93cde5}
+:root[data-studio-theme="chef-glass"] .nav-btn{
+  background:linear-gradient(155deg,rgba(70,171,234,.10),rgba(18,55,124,.08));
+  border:1px solid rgba(177,243,255,.14);
+  border-radius:17px;min-height:48px;position:relative;color:#cbeaf7;
+  box-shadow:inset 0 1px 0 rgba(238,255,255,.09);
+}
+:root[data-studio-theme="chef-glass"] .nav-btn:hover{
+  background:linear-gradient(115deg,rgba(87,201,252,.25),rgba(41,97,193,.25));
+  color:#fff;border-color:rgba(194,253,255,.50);
+}
+:root[data-studio-theme="chef-glass"] .nav-btn.active{
+  background:
+    linear-gradient(130deg,rgba(177,251,255,.39),rgba(51,171,241,.31) 39%,rgba(37,88,179,.39) 90%);
+  border:1px solid rgba(185,253,255,.78);color:#fff;
+  box-shadow:0 0 24px rgba(84,220,249,.26),inset 0 2px 0 rgba(244,255,255,.48),
+    inset 0 -3px 9px rgba(11,66,135,.25),0 7px 16px rgba(0,12,40,.24);
+}
+:root[data-studio-theme="chef-glass"] .nav-btn.active:before{
+  width:auto;height:2px;left:13px;right:13px;top:auto;bottom:0;
+  background:linear-gradient(90deg,transparent,#baffff,transparent);
+  box-shadow:0 0 13px 2px rgba(98,239,255,.75);
+}
+:root[data-studio-theme="chef-glass"] .nav-btn .icon{color:#a8ebfa}
+:root[data-studio-theme="chef-glass"] .topbar{
+  background:linear-gradient(135deg,rgba(16,60,114,.66),rgba(10,44,96,.54));
+  border-bottom:1px solid rgba(166,244,255,.40);
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 13px 26px rgba(0,17,45,.15);
+  backdrop-filter:blur(25px);
+}
+:root[data-studio-theme="chef-glass"] .topbar h1{
+  color:#f8ffff;font:850 clamp(20px,2.1vw,28px)/1.2 Manrope,system-ui,sans-serif;
+  text-shadow:0 2px 20px rgba(112,232,255,.20);
+}
+:root[data-studio-theme="chef-glass"] .breadcrumb{
+  color:#9fe3f7;font-size:9px;letter-spacing:1.55px;font-weight:900;
+}
+:root[data-studio-theme="chef-glass"] .content{position:relative;padding-top:27px}
+:root[data-studio-theme="chef-glass"] .surface,
+:root[data-studio-theme="chef-glass"] .editor-panel,
+:root[data-studio-theme="chef-glass"] .doc-row,
+:root[data-studio-theme="chef-glass"] .auth-card{
+  border:1px solid rgba(186,247,255,.51);
+  border-radius:25px;
+  background:
+    linear-gradient(158deg,rgba(188,251,255,.17) 0%,rgba(65,167,238,.20) 29%,rgba(25,76,162,.25) 74%,rgba(14,45,124,.32)),
+    rgba(21,74,132,.46);
+  box-shadow:
+    0 21px 45px rgba(0,12,45,.31),
+    inset 0 2px 0 rgba(249,255,255,.42),
+    inset 0 -2px 10px rgba(6,45,100,.19),
+    0 0 21px rgba(76,219,255,.085);
+  backdrop-filter:blur(18px) saturate(125%);
+}
+:root[data-studio-theme="chef-glass"] .surface:after{
+  content:"";position:absolute;inset:1px;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(155deg,rgba(255,255,255,.11),transparent 40%,transparent 65%,rgba(10,20,67,.08));
+  opacity:.75;
+}
+:root[data-studio-theme="chef-glass"] .surface>*{position:relative;z-index:1}
+:root[data-studio-theme="chef-glass"] .hero{
+  min-height:335px;padding:39px 39px;position:relative;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  color:#f8ffff;overflow:hidden;border-radius:34px;
+  border:1.5px solid rgba(210,253,255,.78);
+  background:
+    radial-gradient(circle at 78% 12%,rgba(170,255,255,.54),transparent 20%),
+    radial-gradient(ellipse 55% 50% at 81% 58%,rgba(60,216,255,.47),transparent 87%),
+    radial-gradient(ellipse 65% 75% at 2% 102%,rgba(30,92,214,.70),transparent 86%),
+    linear-gradient(117deg,rgba(17,96,177,.86),rgba(31,156,207,.82) 56%,rgba(13,80,160,.88));
+  box-shadow:
+    0 0 0 7px rgba(70,221,249,.065),
+    0 0 36px rgba(79,227,255,.32),
+    0 32px 68px rgba(0,8,42,.37),
+    inset 0 3px 2px rgba(255,255,255,.66),
+    inset 0 -6px 22px rgba(5,39,109,.33);
+}
+:root[data-studio-theme="chef-glass"] .hero:before{
+  content:"";position:absolute;inset:11px;z-index:0;border-radius:25px;
+  border:1px solid rgba(191,255,255,.25);
+  background:linear-gradient(126deg,rgba(255,255,255,.14),transparent 24%,transparent 68%,rgba(141,247,255,.11));
+  box-shadow:inset 0 1px rgba(255,255,255,.23);pointer-events:none;
+}
+:root[data-studio-theme="chef-glass"] .hero:after{
+  content:"";display:block;position:absolute;top:-47%;right:-14%;width:74%;height:137%;
+  background:radial-gradient(circle,rgba(172,251,255,.20),transparent 65%);
+  border-radius:50%;border:1px solid rgba(202,255,255,.22);
+  box-shadow:0 0 0 35px rgba(190,253,255,.03),0 0 0 77px rgba(154,234,255,.028);
+  pointer-events:none;
+}
+:root[data-studio-theme="chef-glass"] .hero-copy{
+  position:relative;z-index:3;max-width:min(640px,70%);
+}
+:root[data-studio-theme="chef-glass"] .hero .mini-label{
+  color:#cbffff;letter-spacing:2.4px;text-shadow:0 0 12px rgba(150,248,255,.4);
+}
+:root[data-studio-theme="chef-glass"] .hero h2{
+  font-family:Manrope,system-ui,sans-serif;font-weight:900;letter-spacing:-1.9px;
+  font-size:clamp(35px,3.6vw,53px);line-height:1.11;
+  color:#fff;text-shadow:0 3px 19px rgba(6,31,93,.31);
+}
+:root[data-studio-theme="chef-glass"] .hero h2 em{
+  font-style:normal;color:#b8ffff;text-shadow:0 0 29px rgba(188,255,255,.34);
+}
+:root[data-studio-theme="chef-glass"] .hero p{
+  color:#ebfbff;font-size:13px;line-height:1.65;
+  text-shadow:0 1px 4px rgba(0,32,88,.32);
+}
+:root[data-studio-theme="chef-glass"] .btn{
+  border-radius:16px;min-height:44px;
+  transition:transform .18s,box-shadow .18s,border-color .18s,background .18s;
+}
+:root[data-studio-theme="chef-glass"] .btn-primary,
+:root[data-studio-theme="chef-glass"] .btn-dark{
+  color:#0a3a66;font-weight:900;
+  background:
+    radial-gradient(ellipse at 30% 0,rgba(255,255,255,.95),transparent 55%),
+    linear-gradient(175deg,#c3ffff 0%,#83f5ff 45%,#4dd5f4 55%,#6caaff 100%);
+  border:1px solid rgba(245,255,255,.95);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -3px 7px rgba(19,102,191,.19),
+    0 0 21px rgba(87,244,255,.43),0 7px 15px rgba(0,30,100,.28);
+}
+:root[data-studio-theme="chef-glass"] .btn-primary:hover,
+:root[data-studio-theme="chef-glass"] .btn-dark:hover{
+  color:#093653;
+  box-shadow:inset 0 2px rgba(255,255,255,.95),inset 0 -3px 9px rgba(17,96,182,.2),
+    0 0 28px rgba(133,255,255,.60),0 10px 20px rgba(0,27,90,.3);
+}
+:root[data-studio-theme="chef-glass"] .btn-light,
+:root[data-studio-theme="chef-glass"] .btn-ghost,
+:root[data-studio-theme="chef-glass"] .sheet-theme-btn{
+  background:linear-gradient(150deg,rgba(205,255,255,.19),rgba(76,164,235,.20) 45%,rgba(24,88,179,.27));
+  border:1px solid rgba(194,253,255,.54);color:#f4ffff;font-weight:800;
+  box-shadow:inset 0 2px rgba(255,255,255,.29),inset 0 -3px 12px rgba(16,59,139,.15),
+    0 5px 12px rgba(1,23,69,.12);
+}
+:root[data-studio-theme="chef-glass"] .btn-light:hover,
+:root[data-studio-theme="chef-glass"] .btn-ghost:hover{
+  background:linear-gradient(150deg,rgba(220,255,255,.31),rgba(78,183,243,.42),rgba(45,124,213,.30));
+  border-color:#d5ffff;box-shadow:inset 0 2px rgba(255,255,255,.45),0 0 18px rgba(117,246,255,.25);
+}
+:root[data-studio-theme="chef-glass"] .hero .btn-light,
+:root[data-studio-theme="chef-glass"] .hero .btn-ghost{
+  background:linear-gradient(145deg,rgba(233,255,255,.29),rgba(75,162,244,.29) 64%,rgba(41,93,186,.34));
+  border:1px solid rgba(238,255,255,.64);
+}
+:root[data-studio-theme="chef-glass"] .stats{
+  gap:17px;margin-top:25px;margin-bottom:30px;
+}
+:root[data-studio-theme="chef-glass"] .stat{
+  min-height:138px;padding:23px 23px;overflow:hidden;
+  background:
+    radial-gradient(ellipse at 93% 0,rgba(178,251,255,.22),transparent 52%),
+    linear-gradient(148deg,rgba(108,210,252,.29),rgba(30,107,181,.31) 57%,rgba(24,59,141,.29));
+}
+:root[data-studio-theme="chef-glass"] .stat:before{
+  content:"";position:absolute;top:0;left:18px;right:18px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(224,255,255,.95),transparent);
+  box-shadow:0 0 16px 1px rgba(142,250,255,.54);
+}
+:root[data-studio-theme="chef-glass"] .stat b{
+  color:#f7ffff;font-size:36px;font-weight:900;line-height:1.16;
+  text-shadow:0 0 19px rgba(161,247,255,.33);letter-spacing:-1.5px;
+}
+:root[data-studio-theme="chef-glass"] .stat small{
+  color:#d5f4ff;font-size:12px;font-weight:750;
+}
+:root[data-studio-theme="chef-glass"] .stat .stat-note{
+  color:#a9d7ee;font-size:11px;
+}
+:root[data-studio-theme="chef-glass"] .block{padding:25px}
+:root[data-studio-theme="chef-glass"] .section-head h3{
+  color:#f3ffff;font-size:17px;font-weight:850;
+}
+:root[data-studio-theme="chef-glass"] .section-head a{color:#a3faff;font-weight:800}
+:root[data-studio-theme="chef-glass"] .quick-link,
+:root[data-studio-theme="chef-glass"] .project-add,
+:root[data-studio-theme="chef-glass"] .empty{
+  color:#f5ffff;
+  background:linear-gradient(156deg,rgba(164,255,255,.13),rgba(56,142,223,.17),rgba(20,67,151,.22));
+  border:1px solid rgba(188,250,255,.35);border-radius:18px;
+  box-shadow:inset 0 2px rgba(245,255,255,.20),0 5px 13px rgba(0,18,64,.17);
+}
+:root[data-studio-theme="chef-glass"] .quick-link:hover,
+:root[data-studio-theme="chef-glass"] .project-card:hover{
+  background:linear-gradient(156deg,rgba(180,255,255,.20),rgba(66,154,234,.28),rgba(38,86,177,.28));
+  border-color:rgba(225,255,255,.84);
+  box-shadow:0 0 24px rgba(114,234,255,.20),0 14px 28px rgba(0,18,62,.27),inset 0 2px rgba(255,255,255,.30);
+}
+:root[data-studio-theme="chef-glass"] .quick-link .badge{
+  background:radial-gradient(circle at 30% 20%,rgba(235,255,255,.48),transparent 33%),
+    linear-gradient(136deg,#68e9f6,#2f8ed1 59%,#395cc1);
+  border:1px solid rgba(233,255,255,.73);
+  box-shadow:0 0 15px rgba(128,239,255,.29),inset 0 2px rgba(247,255,255,.44);
+  color:#e7ffff;border-radius:13px;
+}
+:root[data-studio-theme="chef-glass"] .project-card{
+  min-height:215px;
+  background:radial-gradient(circle at 102% 0,rgba(147,254,255,.24),transparent 47%),
+    linear-gradient(158deg,rgba(71,173,238,.22),rgba(27,79,160,.32));
+}
+:root[data-studio-theme="chef-glass"] .project-card .proj-mark{
+  width:55px;height:55px;border-radius:17px;
+  background:linear-gradient(143deg,#b9faff,#38bfee 65%,#2d63bd);
+  border:1px solid rgba(254,255,255,.79);
+  box-shadow:0 0 18px rgba(133,253,255,.31),inset 0 2px rgba(255,255,255,.6),0 7px 17px rgba(0,20,77,.27);
+  color:#0c416a;font-weight:900;
+}
+:root[data-studio-theme="chef-glass"] .project-card h3{color:#fff;font-size:16px;font-weight:800}
+:root[data-studio-theme="chef-glass"] .project-card p{color:#bfe1f1}
+:root[data-studio-theme="chef-glass"] .pill{
+  background:linear-gradient(160deg,rgba(99,228,251,.18),rgba(29,105,160,.2));
+  color:#adfaff;border:1px solid rgba(171,247,255,.24);
+  box-shadow:inset 0 1px rgba(255,255,255,.10);
+}
+:root[data-studio-theme="chef-glass"] .pill.approved{
+  background:rgba(37,187,147,.26);color:#b4ffed;border-color:rgba(105,244,210,.32);
+}
+:root[data-studio-theme="chef-glass"] .catalog-item{
+  background:linear-gradient(150deg,rgba(126,236,255,.15),rgba(41,121,202,.27));
+  border-color:rgba(172,248,255,.43);box-shadow:inset 0 2px rgba(253,255,255,.27),0 13px 24px rgba(0,19,61,.20);
+}
+:root[data-studio-theme="chef-glass"] .catalog-item:hover{border-color:#ddffff}
+:root[data-studio-theme="chef-glass"] .auth-showcase{
+  background:
+  radial-gradient(circle at 69% 33%,rgba(172,255,255,.33),transparent 35%),
+  radial-gradient(circle at 7% 97%,rgba(73,138,255,.43),transparent 55%),
+  linear-gradient(140deg,#0b427a,#0c6caa 48%,#193c8a);
+}
+:root[data-studio-theme="chef-glass"] .auth-showcase:after{
+ content:"";display:block;position:absolute;width:390px;height:390px;right:-90px;bottom:-170px;
+ border:1px solid rgba(211,255,255,.25);border-radius:50%;
+ box-shadow:0 0 0 45px rgba(190,250,255,.045),0 0 0 110px rgba(205,255,255,.025);
+}
+:root[data-studio-theme="chef-glass"] .auth-panel{
+  background:radial-gradient(ellipse at 62% 32%,rgba(74,210,243,.23),transparent 55%),rgba(4,23,56,.62);
+}
+:root[data-studio-theme="chef-glass"] .auth-card{
+  background:linear-gradient(148deg,rgba(136,243,255,.16),rgba(38,107,189,.31) 55%,rgba(25,60,138,.39));
+  border:1px solid rgba(211,255,255,.56);box-shadow:0 28px 60px rgba(0,10,36,.36),inset 0 2px rgba(246,255,255,.44);
+}
+:root[data-studio-theme="chef-glass"] .auth-card h2{color:#fff}
+:root[data-studio-theme="chef-glass"] .auth-card .control{
+  background:rgba(9,43,96,.55);border:1px solid rgba(195,245,255,.44);
+}
+:root[data-studio-theme="chef-glass"] .control,
+:root[data-studio-theme="chef-glass"] .sheet-control select,
+:root[data-studio-theme="chef-glass"] .sheet-verified{
+  background:linear-gradient(145deg,rgba(24,65,127,.7),rgba(13,42,93,.63));
+  border-color:rgba(174,239,255,.35);color:#edfaff;box-shadow:inset 0 1px rgba(255,255,255,.10);
+}
+:root[data-studio-theme="chef-glass"] .control::placeholder{color:#a4cce1}
+:root[data-studio-theme="chef-glass"] .control:focus{border-color:#c5ffff;box-shadow:0 0 0 3px rgba(115,244,255,.19)}
+:root[data-studio-theme="chef-glass"] .editor-panel,
+:root[data-studio-theme="chef-glass"] .sheet-workbench,
+:root[data-studio-theme="chef-glass"] .sheet-stylebar{
+  background:linear-gradient(145deg,rgba(57,144,208,.33),rgba(19,61,134,.37));
+  border:1px solid rgba(187,250,255,.31);
+}
+:root[data-studio-theme="chef-glass"] .paper-stage{
+  background:radial-gradient(ellipse at top,rgba(113,210,238,.21),transparent 68%),#122f5c;
+}
+:root[data-studio-theme="chef-glass"] #paper {color-scheme:light}
+:root[data-studio-theme="chef-glass"] dialog{
+  background:radial-gradient(circle at 65% 0%,rgba(86,214,248,.19),transparent 55%),linear-gradient(145deg,#16477f,#0c2d60);
+  border:1px solid rgba(187,251,255,.50);
+  box-shadow:0 0 36px rgba(78,214,248,.24),0 25px 80px rgba(0,9,38,.7),inset 0 2px rgba(255,255,255,.26);
+}
+:root[data-studio-theme="chef-glass"] .appearance-option{
+  background:linear-gradient(150deg,rgba(155,242,255,.13),rgba(39,102,188,.21));
+  border:1px solid rgba(181,250,255,.24);border-radius:16px;
+}
+:root[data-studio-theme="chef-glass"] .appearance-option[aria-checked=true]{
+  border-color:#a9fdff;box-shadow:0 0 0 2px rgba(105,239,255,.27),0 0 24px rgba(92,213,255,.20);
+}
+:root[data-studio-theme="chef-glass"] .top-avatar{
+  background:linear-gradient(145deg,#e8ffff,#78eafa 47%,#3887df);color:#08436f;
+  border:1px solid rgba(255,255,255,.86);box-shadow:0 0 17px rgba(91,231,255,.35),inset 0 2px #fff;
+}
+/* Hero: actual dimensional visual architecture, not a decorative flat circle */
+:root[data-studio-theme="chef-glass"] .chef-portal-scene{
+  flex:0 0 min(38%,395px);height:258px;position:relative;z-index:2;
+  perspective:750px;transform-style:preserve-3d;pointer-events:none;
+}
+:root[data-studio-theme="chef-glass"] .chef-portal-halo{
+  position:absolute;inset:12px 6% 0 0;border-radius:50%;
+  background:radial-gradient(circle,rgba(178,255,255,.45),rgba(89,217,252,.14) 44%,transparent 72%);
+  filter:blur(22px);
+}
+:root[data-studio-theme="chef-glass"] .chef-portal-orb{
+  position:absolute;width:209px;height:209px;left:25%;top:10px;border-radius:50%;
+  background:
+    radial-gradient(circle at 28% 19%,rgba(254,255,255,.98) 0,rgba(255,255,255,.35) 8%,transparent 29%),
+    radial-gradient(circle at 31% 24%,rgba(196,253,255,.59),transparent 43%),
+    radial-gradient(circle at 78% 80%,rgba(17,64,173,.94),transparent 55%),
+    radial-gradient(circle at 50% 47%,rgba(84,239,250,.68),rgba(40,118,207,.80) 67%,rgba(11,65,146,.92));
+  border:1.7px solid rgba(235,255,255,.75);
+  box-shadow:inset 0 4px 6px rgba(255,255,255,.75),inset 0 -20px 40px rgba(12,53,124,.55),
+    inset -12px 0 25px rgba(82,246,255,.27),
+    0 0 30px rgba(159,255,255,.51),0 18px 34px rgba(2,34,100,.47);
+  transform:rotate(-9deg);
+}
+:root[data-studio-theme="chef-glass"] .chef-orb-ring{
+  position:absolute;inset:15px;border-radius:50%;border:1px solid rgba(220,255,255,.42);transform:rotateX(68deg) rotateZ(32deg);
+  box-shadow:0 0 17px rgba(180,255,255,.25);
+}
+:root[data-studio-theme="chef-glass"] .chef-orb-ring.ring-b{
+  inset:34px;border-color:rgba(173,250,255,.33);transform:rotateX(40deg) rotateY(57deg);
+}
+:root[data-studio-theme="chef-glass"] .chef-orb-core{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;color:#f0ffff;font:900 44px/1 Manrope,system-ui,sans-serif;
+  letter-spacing:-1.5px;text-shadow:0 3px 19px rgba(7,39,95,.53);
+}
+:root[data-studio-theme="chef-glass"] .chef-orb-core span{
+  margin-top:5px;font-size:12px;letter-spacing:6px;font-weight:800;color:#d0ffff;text-shadow:0 0 9px #61d7ff;
+}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass{
+  position:absolute;display:flex;flex-direction:column;gap:9px;padding:17px 15px;
+  width:117px;height:142px;border-radius:20px;border:1.5px solid rgba(237,255,255,.81);
+  background:linear-gradient(150deg,rgba(220,255,255,.43),rgba(82,194,254,.32) 50%,rgba(27,81,178,.37));
+  box-shadow:0 0 21px rgba(163,255,255,.31),0 18px 26px rgba(1,23,78,.35),
+    inset 2px 2px rgba(255,255,255,.75),inset -2px -3px 8px rgba(19,93,171,.27);
+  backdrop-filter:blur(11px);
+}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass span{
+  color:#e4ffff;font-size:13px;font-weight:900;letter-spacing:1.8px;text-shadow:0 1px 7px rgba(5,49,99,.3);
+}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass i{
+  display:block;height:5px;width:80%;border-radius:5px;background:linear-gradient(90deg,rgba(215,255,255,.85),rgba(126,238,255,.30));
+  box-shadow:0 1px 2px rgba(255,255,255,.25);
+}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass i:nth-child(3){width:59%}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass i:nth-child(4){width:69%}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-a{
+  left:2%;top:95px;transform:rotateY(18deg) rotate(-7deg);
+}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-b{
+  right:0;top:32px;width:112px;height:116px;transform:rotateY(-21deg) rotate(7deg);
+}
+:root[data-studio-theme="chef-glass"] .chef-portal-reflection{
+  position:absolute;left:10%;right:1%;bottom:0;height:28px;border-radius:100%;
+  background:radial-gradient(ellipse,rgba(159,253,255,.72),rgba(72,171,254,.16) 52%,transparent 75%);
+  filter:blur(9px);
+}
+}
+/* Responsive: compact the WORKSPACE rather than vertically stretching flat cards. */
+@media screen and (max-width:1330px){
+:root[data-studio-theme="chef-glass"] .hero-copy{max-width:65%}
+:root[data-studio-theme="chef-glass"] .chef-portal-scene{flex-basis:34%}
+:root[data-studio-theme="chef-glass"] .chef-portal-orb{left:10%}
+}
+@media screen and (max-width:910px){
+:root[data-studio-theme="chef-glass"] .sidebar{
+ border-right:none;border-bottom:1px solid rgba(182,251,255,.39);box-shadow:0 8px 29px rgba(1,22,61,.28);
+}
+:root[data-studio-theme="chef-glass"] .side-nav{
+ display:flex;gap:8px;overflow-x:auto;overscroll-behavior-inline:contain;
+ scroll-snap-type:x proximity;scrollbar-width:none;padding:7px 0 9px;
+}
+:root[data-studio-theme="chef-glass"] .side-nav::-webkit-scrollbar{display:none}
+:root[data-studio-theme="chef-glass"] .nav-btn{
+ min-width:max-content;scroll-snap-align:start;padding:10px 14px;font-size:11px;min-height:44px;
+}
+:root[data-studio-theme="chef-glass"] .hero{min-height:275px;padding:28px 27px}
+:root[data-studio-theme="chef-glass"] .hero-copy{max-width:65%}
+:root[data-studio-theme="chef-glass"] .hero h2{font-size:clamp(26px,4.5vw,38px)}
+:root[data-studio-theme="chef-glass"] .chef-portal-scene{height:200px;flex-basis:30%}
+:root[data-studio-theme="chef-glass"] .chef-portal-orb{width:149px;height:149px;left:0;top:26px}
+:root[data-studio-theme="chef-glass"] .chef-orb-core{font-size:32px}
+:root[data-studio-theme="chef-glass"] .chef-orb-core span{font-size:8px}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass{width:77px;height:95px;padding:9px}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-a{top:90px;left:-20px}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-b{top:3px;right:-20px;width:76px;height:90px}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass span{font-size:10px}
+}
+@media screen and (max-width:620px){
+:root[data-studio-theme="chef-glass"] body{
+ background:
+  radial-gradient(ellipse 116% 27% at 47% 0%,rgba(39,225,246,.42),transparent 75%),
+  radial-gradient(ellipse 100% 40% at 100% 56%,rgba(39,131,226,.23),transparent 74%),
+  linear-gradient(178deg,#071e40,#06132d 58%,#07162e);
+ background-attachment:fixed;
+}
+:root[data-studio-theme="chef-glass"] .sidebar{padding:12px 11px 7px}
+:root[data-studio-theme="chef-glass"] .brand-mark{width:42px;height:42px}
+:root[data-studio-theme="chef-glass"] .brand-name{font-size:14px}
+:root[data-studio-theme="chef-glass"] .brand-sub{font-size:7px;letter-spacing:1.7px}
+:root[data-studio-theme="chef-glass"] .side-nav{gap:7px;padding-top:8px;padding-bottom:4px}
+:root[data-studio-theme="chef-glass"] .nav-btn{font-size:10px;min-height:42px;padding:9px 13px;border-radius:14px}
+:root[data-studio-theme="chef-glass"] .topbar{
+ display:grid;grid-template-columns:1fr;align-items:start;row-gap:13px;
+ padding:17px 15px 13px;min-height:0;
+}
+:root[data-studio-theme="chef-glass"] .topbar h1{font-size:21px;margin:6px 0 0}
+:root[data-studio-theme="chef-glass"] .breadcrumb{font-size:8px;letter-spacing:1.2px}
+:root[data-studio-theme="chef-glass"] .top-actions{
+ display:flex;align-items:center;gap:8px;justify-content:space-between;width:100%;
+}
+:root[data-studio-theme="chef-glass"] .top-actions .btn{
+ min-height:42px;flex:1 1 auto;font-size:11px;padding:8px 12px;
+}
+:root[data-studio-theme="chef-glass"] .content{padding:16px 12px 45px}
+:root[data-studio-theme="chef-glass"] .hero{
+ border-radius:27px;min-height:308px;display:block;padding:25px 22px;
+ border:1.5px solid rgba(209,255,255,.88);
+ box-shadow:0 0 23px rgba(79,232,255,.25),0 24px 42px rgba(0,13,51,.31),
+  inset 0 3px rgba(255,255,255,.56),inset 0 -6px 17px rgba(0,38,99,.29);
+}
+:root[data-studio-theme="chef-glass"] .hero:before{inset:7px;border-radius:22px}
+:root[data-studio-theme="chef-glass"] .hero:after{right:-45%;top:-21%;width:105%;height:120%}
+:root[data-studio-theme="chef-glass"] .hero-copy{max-width:100%;z-index:5}
+:root[data-studio-theme="chef-glass"] .hero h2{
+ font-size:clamp(25px,6.5vw,33px);line-height:1.13;letter-spacing:-1px;
+ max-width:100%;margin:12px 0 13px;
+}
+:root[data-studio-theme="chef-glass"] .hero p{
+ color:#edfdff;max-width:92%;font-size:12px;line-height:1.62;
+ margin-bottom:20px;
+}
+:root[data-studio-theme="chef-glass"] .hero .mini-label{
+ font-size:9px;letter-spacing:1.5px;
+}
+:root[data-studio-theme="chef-glass"] .hero .row{
+ display:flex;flex-wrap:wrap;position:relative;z-index:6;gap:8px;
+}
+:root[data-studio-theme="chef-glass"] .hero .row .btn{
+ flex:1 1 125px;min-width:0;min-height:46px;font-size:11px;padding:9px 7px;
+}
+:root[data-studio-theme="chef-glass"] .chef-portal-scene{
+ position:absolute;z-index:1;right:-44px;top:12px;width:205px;height:220px;
+ opacity:.48;filter:saturate(120%);transform:rotate(8deg);
+}
+:root[data-studio-theme="chef-glass"] .chef-portal-orb{
+ width:178px;height:178px;left:28px;top:12px;
+}
+:root[data-studio-theme="chef-glass"] .chef-orb-core{font-size:37px}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-a{top:116px;left:0}
+:root[data-studio-theme="chef-glass"] .chef-floating-glass.glass-b{top:12px;right:0}
+:root[data-studio-theme="chef-glass"] .stats{
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:17px 0 23px;
+}
+:root[data-studio-theme="chef-glass"] .stat{
+ padding:16px 15px;min-height:114px;border-radius:20px;
+}
+:root[data-studio-theme="chef-glass"] .stat small{font-size:11px}
+:root[data-studio-theme="chef-glass"] .stat b{font-size:34px;margin:4px 0 3px}
+:root[data-studio-theme="chef-glass"] .stat .stat-note{font-size:10px;line-height:1.35}
+:root[data-studio-theme="chef-glass"] .block{padding:18px}
+:root[data-studio-theme="chef-glass"] .surface{border-radius:21px}
+:root[data-studio-theme="chef-glass"] .project-card{min-height:179px}
+:root[data-studio-theme="chef-glass"] .project-card .proj-mark{width:49px;height:49px}
+:root[data-studio-theme="chef-glass"] .catalog-item{border-radius:18px}
+:root[data-studio-theme="chef-glass"] .auth-showcase{
+ min-height:264px;padding:24px 20px;
+}
+:root[data-studio-theme="chef-glass"] .auth-showcase h1{
+ font-size:32px;line-height:1.12;max-width:400px;
+}
+:root[data-studio-theme="chef-glass"] .auth-card{border-radius:24px}
+}
+@media screen and (prefers-reduced-motion:reduce){
+:root[data-studio-theme="chef-glass"] .btn,
+:root[data-studio-theme="chef-glass"] .nav-btn{
+ transition:none!important;transform:none!important;
+}
+}
