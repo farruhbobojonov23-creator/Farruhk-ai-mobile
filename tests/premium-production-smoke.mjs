@@ -156,6 +156,25 @@ async function run(theme,width,height){
    check(tag+' FARUKH PRINT template panels use dark premium contrast',printContrast.bg.includes('gradient')&&printContrast.title!=='rgb(255, 255, 255)'&&printContrast.desc!=='rgb(116, 128, 139)',printContrast);
    if(!mobile)console.log('PREMIUM_ROYAL_PRINT_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
 
+   // Visit EVERY remaining owner section in the selected Royal design,
+   // not merely Home. Save real Android/desktop screenshots for visual review.
+   for(const target of ['preparations','lab','tasks','checks','calc','chat','site-settings']){
+     await page.evaluate(v=>{location.hash=v},target);
+     await page.waitForFunction(v=>document.body.dataset.view===v,target,{timeout:10000});
+     const panel=page.locator('#'+target);
+     await panel.waitFor({state:'visible',timeout:10000});
+     const surface=await panel.evaluate(el=>{
+       const cs=getComputedStyle(el),arr=String(cs.color).match(/[0-9.]+/g)||[];
+       return {ink:cs.color,background:cs.backgroundColor,layer:cs.backgroundImage,
+         inkAverage:arr.slice(0,3).map(Number).reduce((a,b)=>a+b,0)/3,
+         horizontalOverflow:Math.max(0,document.documentElement.scrollWidth-innerWidth)};
+     });
+     check(tag+' '+target+' retains premium high-contrast workspace',
+       surface.inkAverage>145&&surface.horizontalOverflow<=24,surface);
+     await page.screenshot({path:'artifacts/premium-'+tag+'-'+target+'.png',timeout:12000});
+   }
+
+
  }else{
  await page.locator('#home.pf-upgraded .pf-showcase').waitFor({state:'visible',timeout:22000});
  const initial=await page.evaluate(()=>({
