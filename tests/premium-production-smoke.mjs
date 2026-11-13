@@ -208,6 +208,20 @@ async function run(theme,width,height){
     a4:!!document.querySelector('#editor .ttk-paper')
    }));
    check(tag+' TTK photo upload and project editor',editorTools.visible&&editorTools.photo&&editorTools.project&&editorTools.a4,editorTools);
+   const pilot=await page.evaluate(()=>({
+    hero:!!document.querySelector('#editor .ttk-pro-head'),
+    preview:!!document.querySelector('#editor .ttk-pro-tab.is-accent'),
+    rail:!!document.querySelector('#editor .ttk-pro-rail'),
+    audit:document.querySelectorAll('#editor .ttk-pro-check').length,
+    progress:Number(document.querySelector('#editor .ttk-pro-gauge')?.getAttribute('aria-valuenow')),
+    note:document.querySelector('#editor .ttk-pro-audit-note')?.textContent,
+    overflow:document.documentElement.scrollWidth-innerWidth
+   }));
+   check(tag+' Premium PRO editor has working audit and PDF preview shortcut',
+     pilot.hero&&pilot.preview&&pilot.rail&&pilot.audit===13&&pilot.progress<100&&
+     pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
+   await page.locator('#editor .ttk-pro-head').scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
