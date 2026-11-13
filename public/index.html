@@ -120,7 +120,7 @@ import {mountMyRecipeTemplates} from '/my-recipe-templates.js?v=5';
 import {mountTtkDesignPicker} from '/ttk-layouts.js?v=1';
 import {mountTtkProWorkspace} from '/ttk-pro-workspace.js?v=2';
 import {mountTtkStudio} from '/ttk-studio.js?v=1';
-import {mountSiteSettings} from '/site-settings.js?v=7';
+import {mountSiteSettings} from '/site-settings.js?v=8';
 import {mountPremiumWorkspace} from '/premium-workspace.js?v=12';
 import {mountLuxuryUI} from '/luxury-ui.js?v=9';
 let siteSettings;
@@ -553,7 +553,10 @@ const syncQuickButton=document.createElement('button');syncQuickButton.type='but
 syncQuickButton.textContent='☁️ Синхронизация телефона и планшета';
 syncQuickButton.style.cssText='display:block;width:100%;max-width:440px;margin:12px 0 16px;padding:13px 18px;border:1px solid #add1e7;border-radius:15px;background:#e7f5ff;color:#11436b;font:inherit;font-weight:700;text-align:center;cursor:pointer';
 syncQuickButton.onclick=()=>deviceCloudSync.open();
-document.querySelector('#recipes .section-subtitle')?.after(syncQuickButton);
+// Luxury UI moves .section-subtitle into the hero. Mount as a direct
+// section child after the stats instead of inside the compact hero.
+const syncPlacement=document.querySelector('#recipes > .lx-ref-stats')||document.querySelector('#recipes > .lx-ref-hero')||document.querySelector('#recipes > .bar');
+syncPlacement?.after(syncQuickButton);
 const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();document.querySelector('.ttk-sync-summary button:last-of-type')?.click()};settingsDialog.append(connectionSettings);
 $('device-export').onclick=guard(async()=>{const saved=await deviceStore.load();downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:saved},null,2)],{type:'application/json'}),'FARRUH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json');notice('Резервная копия подготовлена для скачивания.')});
 async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));showSavedChatHistory(state.chat||[]);notice('Данные импортированы на устройство. Существующие записи сохранены.')}
