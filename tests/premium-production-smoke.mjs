@@ -66,9 +66,13 @@ async function run(theme,width,height){
    const visibleBad=[...document.querySelectorAll('#home button, #chef-menu .nav button')].filter(b=>
     ((['lab','tasks'].includes(b.dataset.view)||['lab','tasks'].includes(b.dataset.pfGo)||b.classList.contains('pf-sidebar-journals'))
     &&getComputedStyle(b).display!=='none'&&b.getClientRects().length>0)).map(b=>b.textContent.trim().slice(0,50));
-   return {grid,visibleBad,noRemovedCards:grid.every(n=>!hidden.includes(n))};
+   return {grid,visibleBad,noRemovedCards:grid.every(n=>!hidden.includes(n)),
+    compact:JSON.stringify(grid)===JSON.stringify(['ТТК','Полуфабрикаты','FARUKH PRINT','Настройки']),
+    assistant:!!document.querySelector('#home .pf-showcase-grid [data-pf-go="chat"]'),
+    check:!!document.querySelector('#home .pf-showcase-side [data-pf-go="checks"]')};
   });
-  check(tag+' HACCP, journals and tasks removed from home and menu',focused.noRemovedCards&&focused.visibleBad.length===0,focused);
+  check(tag+' focused dashboard has four core sections, no inactive shortcuts',
+  focused.noRemovedCards&&focused.visibleBad.length===0&&focused.compact&&!focused.assistant&&!focused.check,focused);
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
  // No standalone Design Studio or Extras menu. Both live under Settings.
  const menuStructure=await page.evaluate(()=>({
@@ -110,6 +114,12 @@ async function run(theme,width,height){
     bottom:document.querySelectorAll('.mobile-tools.lx-ref-bottom button').length
    }));
    check(tag+' approved reference controls',ref.title==='Техкарты (ТТК)'&&ref.kpis===4&&ref.project&&ref.search&&ref.statuses===5&&ref.categories>=6&&ref.bottom===6,ref);
+   if(mobile){
+    await page.locator('.mobile-tools #mobile-more').click();
+    check(tag+' More opens actual sidebar',await page.evaluate(()=>!document.getElementById('chef-menu').hidden),null);
+    await page.locator('#menu-toggle').click();
+    check(tag+' sidebar closes from menu button',await page.evaluate(()=>document.getElementById('chef-menu').hidden),null);
+   }
    const navDebug=await page.evaluate(()=>[...document.querySelectorAll('nav')].map(n=>{
     const rect=n.getBoundingClientRect(),style=getComputedStyle(n);
     return {className:n.className,id:n.id,visible:style.display!=='none'&&rect.height>0,
@@ -135,7 +145,7 @@ async function run(theme,width,height){
    console.log('TTK_NAV_EXTRA='+JSON.stringify(extraNavDebug));
 
    const navLabels=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
-   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','Ещё'];
+   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Маркировка','Ещё'];
    check(tag+' bottom navigation has no duplicated captions',
      navLabels.length===expectedLabels.length&&navLabels.every((s,i)=>s.trim()===expectedLabels[i]),navLabels);
    const refVisual=await page.evaluate(()=>{
