@@ -29,7 +29,7 @@ const shortcuts=[
  {icon:'ttk',label:'ТТК',description:'Технологические карты и рецептуры',route:'recipes'},
  {icon:'shield',label:'ХАССП',description:'Безопасность производства',route:'lab'},
  {icon:'book',label:'Журналы',description:'Учёт, контроль и печать',route:'lab'},
- {icon:'box',label:'Заготовки',description:'Полуфабрикаты и нормы',route:'preparations'},
+ {icon:'box',label:'Полуфабрикаты',description:'Заготовки и нормы',route:'preparations'},
  {icon:'printer',label:'FARUKH PRINT',description:'Этикетки и маркировка',route:'print-control'},
  {icon:'assistant',label:'Ассистент AI',description:'Рецепты, расчёты и идеи',route:'chat'},
  {icon:'tasks',label:'Задачи',description:'Поручения и контроль',route:'tasks'},
@@ -46,14 +46,14 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  const sideNav=aside.querySelector('.pf-side-links');
  const sideActions=[
   ['home','Главная','home'],['projects','Проекты','projects'],
-  ['ttk','ТТК','recipes'],['box','Заготовки','preparations'],
+  ['ttk','ТТК','recipes'],['box','Полуфабрикаты','preparations'],
   ['shield','ХАССП','lab'],['book','Журналы','lab'],
   ['printer','FARUKH PRINT','print-control'],['tasks','Задачи','tasks'],
   ['assistant','Ассистент AI','chat'],['analytics','Контроль кухни','checks'],
   ['settings','Настройки','site-settings']
  ];
  for(const [kind,title,route] of sideActions){
-  if(route==='lab'||route==='tasks')continue; // Hidden per owner request; stored data preserved.
+  if(['lab','tasks','chat','checks'].includes(route))continue; // Focused workspace: less-used routes remain in Settings/menu.
   const b=el('button','pf-side-link'+(route==='home'?' active':''),icon3d(kind,true)+'<span></span>');
   b.type='button';b.querySelector('span').textContent=title;
   if(route==='projects')b.dataset.pfAction='projects';else b.dataset.pfGo=route;
@@ -82,11 +82,12 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  // Remove quick-entry buttons and informational chips for hidden modules.
  main.querySelectorAll('[data-pf-go="lab"],[data-pf-go="tasks"]').forEach(node=>node.remove());
  const info=main.querySelector('.pf-showcase-info');
- if(info){while(info.children.length>2)info.lastElementChild.remove()}
+ if(info){while(info.children.length>2)info.lastElementChild.remove();info.append(el('span','',icon3d('printer',true)+' Маркировка'))}
  main.querySelector('.pf-showcase-all')?.remove();
+ main.querySelector('.pf-showcase-quick [data-pf-go="chat"]')?.remove();
  const grid=main.querySelector('.pf-showcase-grid');
  for(const item of shortcuts){
-  if(item.route==='lab'||item.route==='tasks')continue;
+  if(['lab','tasks','chat'].includes(item.route))continue;
   const b=el('button','pf-showcase-card',icon3d(item.icon)+'<span class="pf-card-title"></span><span class="pf-card-desc"></span><span class="pf-card-arrow" aria-hidden="true">↗</span>');
   b.type='button';b.dataset.pfGo=item.route;
   b.querySelector('.pf-card-title').textContent=item.label;b.querySelector('.pf-card-desc').textContent=item.description;
@@ -112,7 +113,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   if(target.dataset.pfGo)goto(target.dataset.pfGo);
   if(target.dataset.pfAction==='settings')document.getElementById('menu-settings')?.click();
   if(target.dataset.pfAction==='projects')openProjects();
-  if(target.dataset.pfAction==='more')document.getElementById('ruby-menu')?.click();
+  if(target.dataset.pfAction==='more')document.getElementById('menu-toggle')?.click();
  });
  root.append(aside,main);shell.prepend(root);syncProjects();
  const heroPhoto=root.querySelector('.pf-banner-visual img');
