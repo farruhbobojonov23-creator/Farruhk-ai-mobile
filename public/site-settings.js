@@ -76,7 +76,7 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
  }
  function input(parent,label,value,type='text'){const l=el('label',label),i=el(type==='textarea'?'textarea':'input');if(type!=='textarea')i.type=type;i.value=value;l.append(i);parent.append(l);return i}
  function render(force=false){if(!getState())return;const c=config(),serial=JSON.stringify(c),view=document.body.dataset.view;if(serial!==lastConfig){apply(c);lastConfig=serial}if(view!=='site-settings'){lastView=view;return}if(!force&&lastView===view&&draft)return;lastView=view;draft=structuredClone(c);root.replaceChildren(el('h1','Настройки'),el('p','Управляй разделами, главной страницей и данными. Изменения сохраняются на этом устройстве.'));
-  const top=el('div');top.className='settings-actions';root.append(top);button('Голос, Google и резервные копии',()=>settingsDialog.showModal(),top);button('Открыть управление точками и оборудованием',()=>show('lab'),top);
+  const top=el('div');top.className='settings-actions';root.append(top);button('Голос, Google и резервные копии',()=>settingsDialog.showModal(),top);
   const appearance=el('details');appearance.className='settings-row pf-settings-section';appearance.append(el('summary','Название, подписи и базовое оформление'));
   const brand=input(appearance,'Название в меню',draft.brand);brand.maxLength=40;
   const motion=el('label',' Анимация и эффекты '),check=el('input');check.type='checkbox';check.checked=draft.motion;check.style.width='auto';motion.prepend(check);appearance.append(motion);
