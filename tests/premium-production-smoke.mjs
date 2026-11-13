@@ -335,7 +335,7 @@ async function run(theme,width,height){
  }catch(e){check(tag+' fatal',false,e.message)}
  await ctx.close();
 }
-for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['titanium',1365,900]])await run(theme,w,h);
+for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['royal',1365,900],['titanium',1365,900]])await run(theme,w,h);
 await browser.close();await new Promise(r=>server.close(r));
 const output={passed:results.filter(x=>x.ok).length,total:results.length,failed:failures};
 await fs.writeFile('artifacts/premium-audit-results.json',JSON.stringify(output,null,2));
