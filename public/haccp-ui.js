@@ -87,7 +87,7 @@ export function mountHaccp(root,{getState,save,notify}){
   }catch(error){autoStats.textContent=error.message}
  };
  autoMonth.onchange=autoPoint.onchange=updateAutoStats;
- const exportAll=button('↓ Скачать все 12 автозаполненных журналов (PDF А4)',
+ const exportAll=button('↓ Скачать все 13 автозаполненных журналов (PDF А4)',
   safe(async()=>{
    exportAll.disabled=true;
    try{
@@ -101,8 +101,8 @@ export function mountHaccp(root,{getState,save,notify}){
      const data=await response.json().catch(()=>({}));
      throw Error(data.error||'Не удалось подготовить сборник журналов.');
     }
-    download(await response.blob(),'ХАССП_все_12_журналов_'+autoMonth.value+'.pdf');
-    say('Все 12 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
+    download(await response.blob(),'ХАССП_все_13_журналов_'+autoMonth.value+'.pdf');
+    say('Все 13 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
    }finally{exportAll.disabled=false}
   }),'primary');
  autoPanel.append(autoForm,autoStats,exportAll,
