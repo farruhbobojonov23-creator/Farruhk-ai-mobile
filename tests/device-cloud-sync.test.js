@@ -102,9 +102,24 @@ test('Premium TTK button is outside the hero and Settings exposes visible cloud 
  const settings=readFileSync(new URL('../public/site-settings.js',import.meta.url),'utf8');
  const luxury=readFileSync(new URL('../public/luxury-ui.js',import.meta.url),'utf8');
  assert.match(luxury,/hero\?\.append\(lead\)/,'Premium layout moves the subtitle into the hero');
- assert.match(html,/#recipes > \.lx-ref-stats/,'Place cloud button outside the hero');
+ assert.match(html,/projectManageButton\.before\(syncQuickButton\)/,'Place cloud sync next to project management tools');
  assert.doesNotMatch(html,/document\.querySelector\('#recipes \.section-subtitle'\)\?\.after\(syncQuickButton\)/);
  assert.match(settings,/button\('☁️ Синхронизация телефона и планшета'/);
  assert.match(settings,/#device-cloud-sync-settings/);
  assert.match(html,/site-settings\.js\?v=8/,'PWA must load the updated Settings component');
+});
+
+test('Compact sync chip never expands into a tall narrow tile on mobile',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../public/device-sync-compact.css',import.meta.url),'utf8');
+ assert.match(html,/device-sync-compact\.css\?v=1/);
+ assert.match(html,/class="sync-quick-label">Синхронизация<\/span>/);
+ assert.match(html,/projectManageButton\.before\(syncQuickButton\)/);
+ assert.doesNotMatch(html,/syncQuickButton\.style\.cssText=/);
+ assert.match(css,/width:max-content!important/);
+ assert.match(css,/height:38px!important/);
+ assert.match(css,/white-space:nowrap!important/);
+ assert.match(css,/flex:0 0 auto!important/);
+ assert.match(css,/@media \(max-width:560px\)/);
 });
