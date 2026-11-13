@@ -1,4 +1,4 @@
-import {showProductPhoto} from '/product-photo.js';
+import {showProductPhoto} from '/product-photo.js?v=3';
 /* FARRUH AI · premium desktop/mobile layouts.
    Presentation only: existing project, recipe, HACCP, journal and print storage stays untouched. */
 const PREMIUM=new Set(['titanium','crystal','royal']);
