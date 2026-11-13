@@ -18,14 +18,17 @@ async function withServer(fn){
  installDeviceSyncApi(app,{store,auth:{enabled:true,verify:token=>token==='test-only-session'}});
  const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
  const base='http://127.0.0.1:'+server.address().port;
- const req=async(method,body)=>{
-  const res=await fetch(base+'/api/device-sync',{method,headers:{'Content-Type':'application/json',Cookie:'fai_owner=test-only-session'},...(body?{body:JSON.stringify(body)}:{})});
+ const req=async(method,body,signed=true)=>{
+  const headers={'Content-Type':'application/json'};
+  if(signed)headers.Cookie='fai_owner=test-only-session';
+  const res=await fetch(base+'/api/device-sync',{method,headers,...(body?{body:JSON.stringify(body)}:{})});
   return {status:res.status,json:await res.json()};
  };
  try{await fn({req,store})}finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
 }
 test('sync API first saves to a separate workspace and enforces optimistic revisions',async()=>{
  await withServer(async({req,store})=>{
+  assert.equal((await req('GET',null,false)).status,401,'Owner-only cloud data must not be public');
   const initial=await req('GET');assert.equal(initial.status,200);assert.equal(initial.json.revision,0);
   assert.equal(initial.json.snapshot,null);
   let result=await req('PUT',{revision:0,snapshot:sample()});
