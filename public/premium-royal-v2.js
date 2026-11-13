@@ -49,14 +49,36 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  const content=el('main','pfv-content');
  const header=el('header','pfv-header');const search=el('label','pfv-search');search.innerHTML=icon('search');const searchInput=el('input');searchInput.type='search';searchInput.placeholder='Поиск по ТТК, ингредиентам, проектам…';searchInput.setAttribute('aria-label','Поиск по ТТК');search.append(searchInput);searchInput.addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();goto('recipes');requestAnimationFrame(()=>{const i=document.getElementById('recipe-search');if(i){i.value=searchInput.value;i.dispatchEvent(new Event('input',{bubbles:true}));i.focus()}})});header.append(search);
  const headerActions=el('div','pfv-header-actions');const settingButton=button('','pfv-icon-btn',()=>goto('site-settings'));settingButton.innerHTML=icon('settings');settingButton.setAttribute('aria-label','Настройки');const personButton=button('','pfv-icon-btn',()=>openProjects());personButton.innerHTML=icon('projects');personButton.setAttribute('aria-label','Мои проекты');headerActions.append(settingButton,personButton);header.append(headerActions);content.append(header);
- const intro=el('section','pfv-intro');intro.innerHTML='<div class="pfv-intro-copy"><h1>Добро пожаловать, Фаррух Ака! 👋</h1><p>Единая платформа для разработки ТТК, полуфабрикатов, меню и управления проектами</p></div><div class="pfv-script" aria-hidden="true">Chef Aka</div>';content.append(intro);
+ const intro=el('section','pfv-intro');intro.innerHTML='<div class="pfv-intro-copy"><div class="pfv-kicker">FARUKH AI · ПРЕМИАЛЬНЫЙ КАБИНЕТ ШЕФА</div><h1>Добро пожаловать, Фаррух Ака! <span aria-hidden="true">👋</span></h1><p>Единая платформа для разработки ТТК, полуфабрикатов, меню и управления проектами</p></div><div class="pfv-script" aria-hidden="true">Chef Aka</div><div class="pfv-hero-art" aria-hidden="true"><span class="pfv-hero-glow"></span><img class="pfv-hero-roll pfv-hero-roll-main" src="/assets/categories/baked.png" alt="" decoding="async"><img class="pfv-hero-roll pfv-hero-roll-side" src="/assets/categories/cold.png" alt="" decoding="async"><span class="pfv-hero-petals">✿ ✿</span></div>';content.append(intro);
  const kpis=el('div','pfv-kpis');const kpiItems=[
   ['ttk','ТТК','—','в базе'],['box','Ингредиенты','—','уникальных'],['layers','Полуфабрикаты','—','в базе'],['projects','Проекты','—','в списке']];
  const kpiNodes=[];
  for(const [symbol,label,num,unit] of kpiItems){const card=el('div','pfv-kpi');card.innerHTML='<span class="pfv-kpi-ico">'+icon(symbol)+'</span><span><span class="pfv-kpi-label"></span><strong>—</strong><small></small></span>';card.querySelector('.pfv-kpi-label').textContent=label;card.querySelector('small').textContent=unit;kpis.append(card);kpiNodes.push(card.querySelector('strong'))}content.append(kpis);
  const section=(label,symbol)=>{const s=el('section','pfv-section');const h=el('div','pfv-section-title');h.innerHTML='<h2>'+icon(symbol)+'</h2>';h.querySelector('h2').append(document.createTextNode(label));s.append(h);return {section:s,header:h}};
  const projectBlock=section('Мои проекты','layers');const allProj=button('Все проекты →','pfv-section-link',openProjects);projectBlock.header.append(allProj);const projGrid=el('div','pfv-projects');projectBlock.section.append(projGrid);content.append(projectBlock.section);
- function drawProjects(){projGrid.replaceChildren();const ps=projects();setCount(kpiNodes[3],ps.length);if(!ps.length){projGrid.append(el('p','pfv-muted','Список проектов пока пуст. Создай первый проект.'));return}for(const p of ps.slice(0,3)){const card=button('','pfv-project',openProjects);const mark=el('span','pfv-project-mark',short(p.name));const info=el('span','pfv-project-info');info.append(el('strong','',p.name),el('small','','Открыть настройки проекта'));card.append(mark,info);projGrid.append(card)}}
+ function drawProjects(){
+  projGrid.replaceChildren();const ps=projects();setCount(kpiNodes[3],ps.length);
+  if(!ps.length){
+    const blank=button('＋  Создать первый проект','pfv-project pfv-project-create',openProjects);projGrid.append(blank);return;
+  }
+  for(const p of ps.slice(0,3)){
+   const name=String(p.name||'').trim();
+   const kind=/море\s*суши|more\s*sushi/i.test(name)?'sea':/суши\s*бери|sushi\s*beri/i.test(name)?'beri':/farukh\s*kitchen|фарух\s*китчен/i.test(name)?'farukh':'default';
+   const card=button('','pfv-project pfv-project-'+kind,openProjects);
+   card.setAttribute('aria-label','Управление проектом '+name);
+   const mark=el('span','pfv-project-mark');mark.setAttribute('aria-hidden','true');
+   if(kind==='sea')mark.innerHTML='<svg viewBox="0 0 80 65" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 34c8 6 13 16 28 15 16-1 21-12 28-15M40 45C31 27 24 23 18 21c-4 16 3 22 22 24M40 45c9-18 16-22 22-24 4 16-3 22-22 24M8 53c17 8 46 8 64-1M20 60c14 4 27 4 40 0"/></svg>';
+   else if(kind==='beri')mark.innerHTML='<span class="pfv-beri-stamp">СУШИ<br><b>БЕРИ</b></span>';
+   else if(kind==='farukh')mark.innerHTML='<span class="pfv-farukh-mark">A</span>';
+   else mark.textContent=short(name);
+   const info=el('span','pfv-project-info');info.append(el('strong','',name));
+   info.append(el('small','',kind==='sea'?'MORE SUSHI · ПРОЕКТ':kind==='beri'?'СУШИ БЕРИ · ПРОЕКТ':kind==='farukh'?'FARUKH KITCHEN · ПРОЕКТ':'РАБОЧИЙ ПРОЕКТ'));
+   const hint=el('span','pfv-project-open','Открыть проект →');info.append(hint);
+   const photo=el('img','pfv-project-photo');photo.alt='';photo.decoding='async';photo.loading='lazy';photo.src=kind==='sea'?'/assets/categories/baked.png':kind==='beri'?'/assets/categories/cold.png':kind==='farukh'?'/assets/categories/tempura.png':'/assets/categories/sushi.png';
+   card.append(mark,info,photo);projGrid.append(card);
+  }
+  if(ps.length<3){const add=button('','pfv-project pfv-project-create',openProjects);add.append(el('span','pfv-project-add-icon','＋'),el('span','','Добавить проект'));projGrid.append(add)}
+ }
  drawProjects();document.addEventListener('pf:projects',drawProjects);
  const actionBlock=section('Быстрые действия','plus'),actions=el('div','pfv-actions');
  const acts=[['plus','Создать ТТК',()=>{goto('recipes');requestAnimationFrame(()=>document.getElementById('newrecipe')?.click())}],['ttk','Все ТТК',()=>goto('recipes')],['layers','Добавить ПФ',()=>goto('preparations')],['box','Ингредиенты',()=>goto('preparations')],['calc','Калькулятор',()=>goto('calc')],['printer','Печать',()=>goto('print-control')]];
