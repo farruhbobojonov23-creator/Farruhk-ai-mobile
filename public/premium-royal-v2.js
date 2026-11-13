@@ -25,7 +25,7 @@ menu:'<path d="M4 9h24M4 16h24M4 23h24"/>'
 function icon(k){return '<svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[k]||ICONS.box)+'</svg>'}
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
 function button(text,cls,fn){const b=el('button',cls,text);b.type='button';if(fn)b.addEventListener('click',fn);return b}
-function projects(){try{const d=JSON.parse(localStorage.getItem('farruh-ai-project-catalog-v1')||'{}');return Array.isArray(d.projects)?d.projects.filter(x=>x&&typeof x.name==='string'&&x.name.trim()).slice(0,12):[]}catch{return []}}
+function projects(){let saved=[];try{const d=JSON.parse(localStorage.getItem('farruh-ai-project-catalog-v1')||'{}');if(Array.isArray(d.projects))saved=d.projects.filter(x=>x&&typeof x.name==='string'&&x.name.trim()).slice(0,12)}catch{}if(saved.length)return saved;const picker=document.getElementById('pf-home-project-select');if(!picker)return [];return [...picker.options].filter(o=>o.value&&o.textContent.trim()).slice(0,12).map(o=>({id:o.value,name:o.textContent.replace(/^Проект:\s*/,'').trim()}))}
 function short(name){return String(name||'').trim().split(/\s+/).slice(0,2).map(s=>s.charAt(0).toUpperCase()).join('')||'A'}
 function setCount(node,n){node.textContent=Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—'}
 export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
