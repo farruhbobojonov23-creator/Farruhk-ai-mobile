@@ -69,37 +69,31 @@ export function mountPremiumWorkspace(){
   nav.querySelectorAll('button[data-view="calc"],button[data-view="checks"]').forEach(el=>el.remove());
  }
  function attachSettingsHub(){
-  const dialog=document.querySelector('.lunar-dialog[aria-label="Настройки и данные"]');
-  if(!dialog||dialog.querySelector('#pf-settings-hub'))return;
+  // The main Settings screen (site-settings), not the Voice/Data modal,
+  // is the canonical home for styling and infrequently used utilities.
+  const target=document.getElementById('site-settings');
+  if(!target||target.hidden||target.querySelector('#pf-settings-hub'))return;
   const hub=node('section','pf-settings-hub');hub.id='pf-settings-hub';
   const title=node('h3','pf-settings-hub-title','Оформление FARRUH AI');
-  const caption=node('p','pf-settings-hub-caption','Выбор темы, кнопок и размера элементов.');
-  const design=button('🎨  Дизайн и стиль','pf-settings-design-button',()=>{
-   dialog.close();
-   openStudio();
-  });
+  const caption=node('p','pf-settings-hub-caption','Темы, кнопки и размер элементов.');
+  const design=button('🎨  Дизайн и стиль','pf-settings-design-button',openStudio);
   design.id='pf-settings-design-button';
   hub.append(title,caption,design);
-  const tools=node('details','pf-settings-utilities');
-  tools.id='pf-settings-utilities';
+  const utilities=node('details','pf-settings-utilities');utilities.id='pf-settings-utilities';
   const summary=node('summary','','Редко используемые функции');
-  const toolList=node('div','pf-settings-utilities-list');
-  const openView=(name,view)=>button(name,'pf-settings-utility-button',()=>{
-   dialog.close();goto(view);
-  });
-  toolList.append(openView('Калькулятор','calc'),openView('Контроль точек','checks'));
+  const list=node('div','pf-settings-utilities-list');
+  const openView=(name,view)=>button(name,'pf-settings-utility-button',()=>goto(view));
+  list.append(openView('Калькулятор','calc'),openView('Контроль точек','checks'));
   for(const [name,href] of [
-   ['Этикетки ПФ · 30 × 20','/marking.html'],
-   ['Готовая продукция · 58 × 40','/finished-labels.html']
+    ['Этикетки ПФ · 30 × 20','/marking.html'],
+    ['Готовая продукция · 58 × 40','/finished-labels.html']
   ]){
-   const a=node('a','pf-settings-utility-button',name);
-   a.href=href;
-   toolList.append(a);
+    const a=node('a','pf-settings-utility-button',name);a.href=href;list.append(a);
   }
-  tools.append(summary,toolList);
-  hub.append(tools);
-  // Insert immediately after the settings title, before voice/device controls.
-  dialog.querySelector(':scope > .bar')?.after(hub);
+  utilities.append(summary,list);hub.append(utilities);
+  // Place above the editable content of Settings; reattach after rerenders.
+  const after=target.querySelector(':scope > .settings-actions');
+  if(after)after.after(hub);else target.querySelector('h1')?.after(hub);
  }
  const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Заготовки','Ингредиенты и полуфабрикаты','preparations'],['printer','FARUKH PRINT','Этикетки и печать','print-control'],['chef','Контроль кухни','Проверки и точки','checks']];
  const shell=node('div','pf-workspace');shell.id='pf-workspace';
@@ -214,14 +208,12 @@ export function mountPremiumWorkspace(){
  studio.addEventListener('cancel',e=>{e.preventDefault();cancelStudio()});
  projectModal.addEventListener('click',e=>{if(e.target===projectModal)projectModal.close()});
  studio.addEventListener('click',e=>{if(e.target===studio)cancelStudio()});
- function attachSettingsEntry(){
-  const target=document.getElementById('site-settings');if(!target||target.hidden||target.querySelector('.pf-settings-launch'))return;
-  const b=button('🎨 Открыть FARRUH AI DESIGN STUDIO · темы, карточки, шрифты','pf-settings-launch',openStudio);
-  target.prepend(b);
- }
- addSidebar();attachSettingsHub();updateProjectPicker();applyDesign(config);
+ addSidebar();updateProjectPicker();applyDesign(config);
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
  const settingsTarget=document.getElementById('site-settings');
- if(settingsTarget){new MutationObserver(attachSettingsEntry).observe(settingsTarget,{childList:true});attachSettingsEntry()}
+ if(settingsTarget){
+  new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});
+  attachSettingsHub();
+ }
 }
