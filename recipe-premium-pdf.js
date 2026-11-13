@@ -69,14 +69,46 @@ export function premiumRecipePdf(input){
   if(draw){section(4,X,y,half,s,true,lower);section(5,X+half+G,y,half,s,true,lower)}y+=lower+8*s;
   y+=section(7,X,y,W,s,draw)+8*s;
   y+=section(6,X,y,W,s,draw)+8*s;
-  const signature=wrap('Разработал (Шеф): '+value(r.chef)+'     Утверждаю (Руководитель): '+value(r.approver),W,7*s,true);if(draw)text(signature,X,y,W,7*s,true);y+=signature.length*8.75*s+6*s;
-  const basis=wrap(regulatoryBasis,W,5.7*s);if(draw)text(basis,X,y,W,5.7*s,false,'#765647');y+=basis.length*7.125*s;
+  // Full-width sign-off row with separate areas for names, signatures and dates.
+  // Do not invent a signer: missing values remain visible as blanks.
+  const signH=31*s,signGap=10*s,signW=(W-signGap)/2;
+  if(draw){
+   for(const [i,label,name] of [
+    [0,'Разработал (Шеф)',r.chef],[1,'Утверждаю (Руководитель)',r.approver]
+   ]){
+    const bx=X+i*(signW+signGap);
+    doc.roundedRect(bx,y,signW,signH,4*s)
+       .lineWidth(.55).fillAndStroke(C.cell,C.line);
+    text([label],bx+7*s,y+4*s,signW-14*s,7*s,true,C.band);
+    text([name?String(name):'____________________________'],bx+7*s,y+14*s,signW-14*s,7.8*s,false,C.ink);
+    text(['Подпись __________   Дата __________'],bx+7*s,y+23*s,signW-14*s,5.7*s,false,C.ink);
+   }
+  }
+  y+=signH+7*s;
+  const basis=wrap(regulatoryBasis,W,5.7*s);
+  if(draw)text(basis,X,y,W,5.7*s,false,layoutId==='royal-a4'?'#6C6C78':'#57758A');
+  y+=basis.length*7.125*s;
   return y;
  }
- let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}doc.ttkLayoutScale=s;doc.ttkLayoutHeight=layout(s);layout(s,true);
+ let s=1;if(layout(s)>795){let lo=.001,hi=1;for(let i=0;i<20;i++){const m=(lo+hi)/2;if(layout(m)<=795)lo=m;else hi=m}s=lo}
+ // Premium A4 must not reduce important table text to unreadable microscopic sizes.
+ // Older "classic" prints keep their legacy 1-page behavior for compatibility.
+ if(premium&&s<0.74)throw Object.assign(new Error('Весь текст не помещается на один читаемый лист А4. Сократи длинные описания или количество строк.'),{status:422,code:'TTK_A4_TOO_DENSE'});
+ doc.ttkLayoutScale=s;doc.ttkLayoutHeight=layout(s);layout(s,true);
  const missing=['scope','safety','chef','approver','cardNumber','cardDate','rawRequirements','preparation','forming','serving','storage','appearance','taste','netYieldGrams'].some(k=>!r[k])||['protein','fat','carbs','kcal'].some(k=>nutrition[k]==null);
  const estimated=(r.ingredients||[]).some(i=>i.nutritionOrigin==='reference');
- if(estimated)text(['ПРОЕКТ ТТК — КБЖУ справочные, необходимо сверить с этикетками сырья.'],X,807,W,6,false,'#765647');
- else if(r.status!=='ready'||missing)text(['ПРОЕКТ ТТК — незаполненные данные требуют проверки.'],X,807,W,6,false,'#765647');
+ const rawSum=(r.ingredients||[]).reduce((total,item)=>total+
+   (Number.isFinite(Number(item.grams))?Number(item.grams):0),0);
+ const reportedYield=Number(r.netYieldGrams);
+ const yieldWarning=Number.isFinite(reportedYield)&&reportedYield>0&&rawSum>0&&
+  Math.abs(reportedYield-rawSum)>Math.max(5,reportedYield*.02);
+ const foot=[];
+ if(estimated)foot.push('КБЖУ СПРАВОЧНЫЕ — нужна проверка по этикеткам.');
+ if(r.status!=='ready'||missing)foot.push('ПРОЕКТ ТТК — есть незаполненные сведения.');
+ if(yieldWarning)foot.push('ПРОВЕРЬ ВЫХОД: сумма нетто '+fmt(rawSum)+' г / указано '+fmt(reportedYield)+' г.');
+ // Footnotes are intentionally warnings, never silent corrections of the recipe.
+ doc.ttkWarnings=foot;
+ foot.slice(0,2).forEach((line,i)=>text([line],X,803+i*9,W,6.25,true,
+  layoutId==='royal-a4'?'#9B6D21':'#735335'));
  doc.moveTo(X,827).lineTo(X+W,827).lineWidth(layoutId==='royal-a4'?1.2:1).strokeColor(layoutId==='royal-a4'?'#C7A156':C.band).stroke();return doc;
 }
