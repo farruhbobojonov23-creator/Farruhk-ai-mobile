@@ -746,3 +746,34 @@
  /* The live A4 design preview and its miniature white pages are deliberately
     left untouched, so the printed approved TTK stays accurate. */
 }
+
+/* Royal editor polish: preserve readable white A4 thumbnails and remove the pale More wrapper. */
+@media screen {
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-toolbar details.ttk-studio-menu{
+   background:transparent!important;
+   background-color:transparent!important;
+   border:0!important;
+   box-shadow:none!important;
+   padding:0!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-design-thumb{
+   color:var(--ti,#173e67)!important;
+   -webkit-text-fill-color:currentColor!important;
+   background-color:#fff!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-design-thumb *,
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-paper *{
+   -webkit-text-fill-color:currentColor!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-paper{
+   color:#133957!important;
+   -webkit-text-fill-color:currentColor!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-pro-gauge{
+   background:conic-gradient(var(--pf-accent) var(--ttk-audit-pct,0%),var(--pf-raised) var(--ttk-audit-pct,0%))!important;
+   box-shadow:0 3px 14px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-pro-gauge::before{
+   background:var(--pf-panel)!important;
+ }
+}
