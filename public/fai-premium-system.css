@@ -1,0 +1,49 @@
+/* FARUKH AI / Premium UI design system — isolated visual layer.
+ * No persistence, business logic, recipes, or print output modified.
+ * Important: success badges must be driven by actual application state. */
+@media screen{
+ :root{--fai-bg:#090f21;--fai-surface:#111c34;--fai-elevated:#1a2947;--fai-line:rgba(173,198,255,.18);--fai-ink:#f5f7ff;--fai-sub:#aebedb;--fai-violet:#9771ff;--fai-blue:#5d9dfb;--fai-green:#2bdba4;--fai-amber:#ffcc70;--fai-red:#ff7890;--fai-radius:18px}
+ body:not([data-view="home"]){background:radial-gradient(ellipse at 88% 0%,rgba(89,65,168,.24),transparent 44%),#090f21!important}
+ body:not([data-view="home"]) main>.glass{background:rgba(16,26,47,.9)!important;border:1px solid var(--fai-line)!important;border-radius:22px!important;box-shadow:0 24px 70px #05091766!important}
+ body:not([data-view="home"]) .view:not(#home){color:var(--fai-ink)}
+ body:not([data-view="home"]) .view:not(#home) :is(h1,h2,h3){color:var(--fai-ink);letter-spacing:-.025em}
+ body:not([data-view="home"]) .view:not(#home) :is(.small,.section-subtitle){color:var(--fai-sub)}
+ body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel){background:linear-gradient(145deg,#1a2945,#121d34)!important;border:1px solid var(--fai-line)!important;border-radius:var(--fai-radius)!important;box-shadow:0 12px 40px #070b1d55!important}
+ #chef-menu{background:linear-gradient(165deg,#151d3b,#0e172e)!important;border-color:#354468!important;box-shadow:18px 0 48px #05091855!important}
+ #chef-menu .nav :is(button,a){display:flex!important;align-items:center;gap:12px;min-height:46px;border-radius:13px!important;color:#dee8ff!important;-webkit-text-fill-color:#dee8ff!important;text-align:left;transition:transform .16s,background .16s,border-color .16s}
+ #chef-menu .nav :is(button,a):focus-visible{outline:2px solid #ae94ff!important;outline-offset:2px}
+ #chef-menu .nav :is(button,a):hover{background:#292c53!important;border-color:#7366be!important;transform:translateX(2px)}
+ #chef-menu .nav [data-view="recipes"]::before{content:"▤";color:#a7b2ff;font-size:20px}
+ #chef-menu .nav [data-view="preparations"]::before{content:"◈";color:#65c4ff;font-size:20px}
+ #chef-menu .nav [data-view="calc"]::before{content:"◫";color:#e3abff;font-size:20px}
+ #chef-menu .nav [data-view="chat"]::before{content:"✧";color:#84d7e7;font-size:20px}
+ #chef-menu .nav [data-view="print-control"]::before{content:"▣";color:#c3aaff;font-size:20px}
+ body:not([data-view="home"]) :is(button,.primary){transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+ body:not([data-view="home"]) :is(button,.primary):not(:disabled):active{transform:scale(.985)}
+ body:not([data-view="home"]) :is(button,.primary):disabled{opacity:.52;cursor:not-allowed;filter:saturate(.45)}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){background:linear-gradient(115deg,#8158ed,#577ef1)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #a994fb!important;border-radius:13px!important;min-height:44px;box-shadow:0 8px 22px #5d4dc74d!important}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary):not(:disabled):hover{filter:brightness(1.12)}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea){border-radius:12px;min-height:42px}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea):focus-visible{outline:2px solid #9c8afa!important;outline-offset:2px}
+ #recipes :is(.catalog-search,#catalog-all,#recipe-categories button){border:1px solid #344663!important;border-radius:15px!important;background:#1a2844!important;color:#eef4ff!important}
+ #recipes .catalog-search input{background:transparent!important;color:#fff!important}
+ #recipes .catalog-search input::placeholder{color:#b6c5df!important}
+ #recipes #recipe-categories button:hover,#recipes #catalog-all:hover{border-color:#8b80e9!important;box-shadow:0 7px 24px #5a51b23d!important}
+ #editor.ttk-studio-enabled:not([data-mode="paper"]){border-radius:22px!important;box-shadow:0 18px 50px #04091f55!important}
+ #editor.ttk-studio-enabled .ttk-toolbar{border-radius:16px!important;box-shadow:0 9px 30px #080e2021!important}
+ #editor.ttk-studio-enabled .ttk-design-card{border-radius:17px!important;transition:transform .17s,box-shadow .17s}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #6f82e577,0 12px 25px #123a6a23!important}
+ /* Status rules deliberately only style explicit state attributes, never invent success. */
+ [data-connection-status="connected"],[data-sync-status="success"],.fai-status-success{color:var(--fai-green)!important}
+ [data-connection-status="pending"],[data-sync-status="pending"],.fai-status-warning{color:var(--fai-amber)!important}
+ [data-connection-status="error"],[data-sync-status="error"],.fai-status-error{color:var(--fai-red)!important}
+ :is([data-connection-status="connected"],[data-sync-status="success"])::before{content:"✓";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#18b98433;border:1px solid #38dbac66;font-weight:900}
+ :is([data-connection-status="pending"],[data-sync-status="pending"])::before{content:"!";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#ffbd5833;border:1px solid #ffce7b66;font-weight:900}
+ :is([data-connection-status="error"],[data-sync-status="error"])::before{content:"×";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:7px;border-radius:50%;background:#f66b8433;border:1px solid #fb839766;font-weight:900}
+}
+@media screen and (max-width:720px){
+ body:not([data-view="home"]) main>.glass{border-radius:15px!important;box-shadow:none!important}
+ #chef-menu .nav :is(button,a){min-height:48px}
+ #recipes .catalog-search input{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){#chef-menu .nav :is(button,a),body:not([data-view="home"]) :is(button,.primary){transition:none!important}}
