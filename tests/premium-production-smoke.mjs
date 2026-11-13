@@ -236,6 +236,15 @@ async function run(theme,width,height){
    check(tag+' selecting Royal changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
    if(theme==='crystal'&&mobile){
+    // Upload/delete use the same photo handlers as the original editor.
+    const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
+    await page.locator('#recipe-photo-file').setInputFiles({name:'dish.png',mimeType:'image/png',buffer:tinyPng});
+    await page.waitForFunction(()=>document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')?.startsWith('data:image/'),null,{timeout:6000});
+    check(tag+' dish photo uploads into the editable sheet',
+      await page.locator('#editor .ttk-studio-photo-remove').isVisible(),null);
+    await page.locator('#editor .ttk-studio-photo-remove').click();
+    check(tag+' photo removes from the editable sheet',
+      await page.evaluate(()=>!document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')),null);
     const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
     check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
     await page.locator('#recipe-name').fill('Пробный ролл');
