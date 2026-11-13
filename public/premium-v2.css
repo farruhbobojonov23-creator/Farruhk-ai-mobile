@@ -104,3 +104,65 @@ body[data-pf-theme="royal"] .pf-showcase .pfv-phone-nav button{min-width:0;min-h
 }
 @media screen and (max-width:360px){.pfv-header-actions .pfv-icon-btn:nth-child(1){display:none!important}.pfv-kpi{gap:6px}.pfv-kpi-ico{width:30px}}
 @media(prefers-reduced-motion:reduce){.pfv-action,.pfv-project{transition:none!important}}
+
+/* Secondary workspaces: undo old light surfaces and grey category captions. */
+@media screen {
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card {
+  background:linear-gradient(150deg,#27221a,#0f1114)!important;
+  border:1px solid #7d6033!important;border-radius:17px!important;
+  box-shadow:0 10px 22px #0007!important;overflow:hidden!important;
+}
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card .category-photo-frame {
+  background:radial-gradient(ellipse at center,#37322a 0%,#16191d 76%)!important;
+  border-bottom:1px solid #735932!important;
+}
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card .category-caption,
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card .category-caption strong,
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card .category-caption small {
+  background:linear-gradient(110deg,#211c17,#121417)!important;
+  color:#f4e5c7!important;-webkit-text-fill-color:#f4e5c7!important;
+}
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card .category-caption small {color:#cfb681!important;-webkit-text-fill-color:#cfb681!important}
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .catalog-search,
+body[data-pf-theme="royal"][data-view="recipes"] #recipes #catalog-all,
+body[data-pf-theme="royal"][data-view="recipes"] #recipes .catalog-filters button {
+  background:#201b17!important;color:#f8e7c9!important;border-color:#765e39!important;
+}
+body[data-pf-theme="royal"] #site-settings #pf-settings-hub,
+body[data-pf-theme="royal"] #site-settings .pf-settings-hub {
+  background:linear-gradient(145deg,#211c16,#111318)!important;
+  border:1px solid #8b6a37!important;border-radius:19px!important;
+  box-shadow:0 10px 30px #0007!important;color:#f3e7d2!important;
+}
+body[data-pf-theme="royal"] #site-settings #pf-settings-hub :is(h3,p,small,span,summary),
+body[data-pf-theme="royal"] #site-settings .pf-settings-utilities :is(summary,button,a){
+  color:#f3e7d2!important;-webkit-text-fill-color:#f3e7d2!important;
+}
+body[data-pf-theme="royal"] #site-settings .pf-settings-utilities {
+  background:#131419!important;border:1px solid #645336!important;border-radius:12px!important;
+}
+body[data-pf-theme="royal"] #site-settings .pf-settings-design-button {
+  background:linear-gradient(110deg,#b78335,#e8be72)!important;color:#171008!important;
+  -webkit-text-fill-color:#171008!important;border:1px solid #ffe1a4!important;
+}
+body[data-pf-theme="royal"] #site-settings .create-panel,
+body[data-pf-theme="royal"] #site-settings details:not(#pf-settings-utilities),
+body[data-pf-theme="royal"] #site-settings .panel {
+  background:linear-gradient(135deg,#241c16,#111317)!important;
+  border:1px solid #725935!important;color:#fff0d4!important;
+}
+body[data-pf-theme="royal"] #site-settings :is(input,select,textarea){
+  background:#161619!important;color:#fff1d5!important;-webkit-text-fill-color:#fff1d5!important;
+  border:1px solid #75603e!important;
+}
+body[data-pf-theme="royal"] #site-settings :is(h1,h2,h3,summary,label,p) {color:#f4e9d5!important}
+body[data-pf-theme="royal"] #site-settings .small {color:#cbb99c!important}
+}
+@media screen and (min-width:721px) {
+body[data-pf-theme="royal"] .pfv-intro::after {
+ content:"";position:absolute;pointer-events:none;right:2%;bottom:-23%;width:230px;height:230px;
+ background:url("/assets/categories/cold.png") center / contain no-repeat;
+ filter:drop-shadow(0 14px 19px #0009) saturate(1.2);opacity:.9;z-index:0;
+}
+body[data-pf-theme="royal"] .pfv-script{position:relative;z-index:1;margin-right:215px}
+}
