@@ -132,6 +132,7 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
   localStorage.setItem(ENABLED_KEY,'true');paint('Сохранили копию устройства. Подключаю синхронизацию…');schedule(100);
  };
  manual.onclick=()=>{schedule(0)};
+ document.addEventListener('farruh:projects-changed',()=>schedule(400));
  window.addEventListener('online',()=>schedule(400));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(300)});
  setInterval(()=>{if(!document.hidden)schedule(0)},60000);
