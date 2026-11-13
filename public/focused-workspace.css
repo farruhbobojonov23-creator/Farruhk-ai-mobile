@@ -31,12 +31,13 @@
    display:none!important;
  }
  /* All theme instances share the same approved six-button core navigation. */
- body.lx-pro .mobile-tools.lx-ref-bottom{
+ body.lx-pro:not([data-view="home"]) .mobile-tools.lx-ref-bottom{
    display:grid!important;
    grid-template-columns:repeat(6,minmax(0,1fr))!important;
    grid-auto-flow:column!important;
    grid-template-rows:1fr!important;
  }
+ body.lx-pro[data-view="home"] .mobile-tools.lx-ref-bottom{display:none!important}
  body.lx-pro .mobile-tools.lx-ref-bottom button.lx-bottom-item{
    min-width:0!important;max-width:100%!important;
    flex-shrink:1!important;
