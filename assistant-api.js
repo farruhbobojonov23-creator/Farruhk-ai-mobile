@@ -43,7 +43,7 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);
     next();
   });
-  installDeviceSyncApi(app,{store});
+  installDeviceSyncApi(app,{store,auth});
   app.get('/api/state',wrap(async(req,res)=>{await initialize();const snapshot=initialRead;initialRead=null;res.json({ok:true,state:snapshot&&Date.now()-snapshot.at<1000?snapshot.state:await store.state()})}));
   app.put('/api/state',wrap(async(req,res)=>{await initialize();initialRead=null;res.json({ok:true,state:await store.save(req.body||{})})}));
   app.get('/api/backups',wrap(async(req,res)=>res.json({ok:true,storage:store.storage,backups:await store.backups()})));
