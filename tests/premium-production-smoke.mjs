@@ -68,7 +68,7 @@ async function run(theme,width,height){
    await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
    check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
    await page.locator('#closeeditor').click();
-   await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="site-settings"]')?.click()||document.querySelector('#menu-settings')?.click());
+   await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="site-settings"]')?.click());
    // The Settings tab may be created asynchronously by mountSiteSettings.
    await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
    check(tag+' settings remain functional',await page.locator('#site-settings').isVisible(),null);
