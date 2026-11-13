@@ -1,6 +1,8 @@
 import {readyArchive,recipeDigest} from './recipe-release.js';
 export function mountGoogleSync({getState,store,onState,notify}){
- let running=false,timer,settingsOpen=false;const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);// Keep optional Google controls accessible without breaking the approved TTK
+ let running=false,timer,settingsOpen=false;const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
+ const retryButton=document.createElement('button');retryButton.type='button';retryButton.textContent='↻ Отправить сейчас';retryButton.hidden=true;retryButton.setAttribute('aria-label','Повторно отправить готовые техкарты в Google');
+ const syncDetail=document.createElement('p');syncDetail.className='small';syncDetail.hidden=true;syncDetail.setAttribute('role','status');syncDetail.style.margin='10px 0 0';syncDetail.style.overflowWrap='anywhere';summary.append(retryButton,syncDetail);// Keep optional Google controls accessible without breaking the approved TTK
  // header: the hero subtitle lives inside a strict CSS grid.
  const recipesView=document.querySelector('#recipes');
  const backupTools=document.createElement('details');backupTools.className='lx-sync-details';
@@ -19,16 +21,70 @@ export function mountGoogleSync({getState,store,onState,notify}){
  button.onclick=()=>{if(!getState())return;const config=getState().googleSync||{};form.elements.endpoint.value=config.endpoint||'';form.elements.key.value=config.key||'';form.elements.enabled.checked=config.enabled!==false;result.textContent='';settingsOpen=true;dialog.showModal()};
  form.onsubmit=async e=>{e.preventDefault();const submit=form.querySelector('[type=submit]');submit.disabled=true;result.textContent='Проверяю соединение с Google…';try{const config={endpoint:form.elements.endpoint.value.trim(),key:form.elements.key.value.trim(),enabled:form.elements.enabled.checked};if(/^https?:\/\//i.test(config.key)||config.key===config.endpoint)throw Error('В поле «Ключ подключения» вставлена ссылка Google Apps Script. Ссылка и ключ — разные данные. Скопируйте настоящий ключ из подключённого устройства или журнала выполнения initialize в Google Apps Script.');if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(config.key))throw Error('Вы вставили код программы Code.gs, а не ключ. В существующем проекте Google Apps Script выполните initialize и скопируйте из журнала только значение после «Ключ подключения:».');const checked=await post({...config,action:'check'});const old=getState().googleSync;await mutate(s=>{s.googleSync={...config,documentUrl:checked.documentUrl};if(old?.endpoint!==config.endpoint||old?.key!==config.key)s.googleDelivery={}});result.textContent='Google подключён. Готовые ТТК будут отправлены автоматически.';schedule()}catch(err){result.textContent=err.message}finally{submit.disabled=false}};
  dialog.querySelector('[data-disable]').onclick=async()=>{try{await mutate(s=>{if(s.googleSync)s.googleSync.enabled=false});result.textContent='Автоматическая отправка отключена. ТТК в Google сохранены.'}catch(e){result.textContent=e.message}};
- async function render(){const s=getState();if(!s)return;const recipes=readyArchive(s),count=recipes.length,config=s.googleSync;let safeUrl=null;try{const u=new URL(config?.documentUrl);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}documentLink.hidden=!safeUrl;if(safeUrl)documentLink.href=safeUrl;if(!config?.enabled){status.textContent='Готовых ТТК: '+count+' · Google не подключён';return}if(running){status.textContent='Отправляю готовые ТТК в Google…';return}status.textContent='Google: проверяю готовые версии…';try{const digests=await Promise.all(recipes.map(recipeDigest));if(getState()!==s||running)return;const deliveries=recipes.map(r=>s.googleDelivery?.[r.id]);const failed=deliveries.filter(d=>d?.error).length,confirmed=deliveries.filter((d,i)=>d?.digest===digests[i]&&d?.layoutVersion==='burgundy-1'&&!d.error).length;status.textContent=failed?'Google: есть неотправленные ТТК — повторю автоматически':'Google: подтверждено сохранение '+confirmed+' из '+count+' готовых ТТК'}catch{status.textContent='Google: не удалось проверить версии. Повторю автоматически.'}}
-
- async function flush(){
-  const config=getState()?.googleSync;if(running||!config?.enabled||!navigator.onLine)return;running=true;render();
-  try{for(const recipe of readyArchive(getState())){
-   if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint)break;
-   const digest=await recipeDigest(recipe);if(getState().googleDelivery?.[recipe.id]?.digest===digest&&getState().googleDelivery?.[recipe.id]?.layoutVersion==='burgundy-1')continue;
-   try{const response=await post({...config,action:'sync',recipe,digest});await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()}})}catch(e){await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;s.googleDelivery??={};s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],error:e.message}});break}
-  }}finally{running=false;render()}
+ async function render(){
+  const s=getState();if(!s)return;
+  const recipes=readyArchive(s),count=recipes.length,config=s.googleSync;
+  let safeUrl=null;
+  try{const u=new URL(config?.documentUrl);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}
+  documentLink.hidden=!safeUrl;if(safeUrl)documentLink.href=safeUrl;
+  retryButton.hidden=!config?.enabled||!count;
+  retryButton.disabled=running;
+  syncDetail.hidden=true;
+  if(!config?.enabled){status.textContent='Готовых ТТК: '+count+' · Google не подключён';return}
+  if(!navigator.onLine){status.textContent='Google: нет интернета. Готовые ТТК остаются на устройстве.';return}
+  if(running){status.textContent='Отправляю готовые ТТК в Google…';return}
+  status.textContent='Google: проверяю готовые версии…';
+  try{
+   const digests=await Promise.all(recipes.map(recipeDigest));
+   if(getState()!==s||running)return;
+   const deliveries=recipes.map(r=>s.googleDelivery?.[r.id]);
+   const confirmed=deliveries.filter((d,i)=>d?.digest===digests[i]&&d?.layoutVersion==='burgundy-1'&&!d.error).length;
+   const pending=count-confirmed;
+   const failed=deliveries.filter(d=>d?.error);
+   retryButton.hidden=!pending;
+   if(!pending){status.textContent='✅ Google: сохранено '+confirmed+' из '+count+' готовых ТТК';return}
+   status.textContent='Google: ожидают отправки '+pending+' из '+count+' готовых ТТК.';
+   if(failed.length){
+    const error=failed[failed.length-1];
+    const name=recipes.find(r=>s.googleDelivery?.[r.id]===error)?.name||'ТТК';
+    const safeError=String(error.error||'Неизвестная ошибка').split(config.key||'\u0000').join('[ключ скрыт]').split(config.endpoint||'\u0000').join('[адрес скрыт]');
+    syncDetail.textContent='Причина для «'+name+'»: '+safeError.slice(0,350)+'. Нажмите «Отправить сейчас» для повторной попытки.';
+    syncDetail.hidden=false;
+   }
+  }catch(e){status.textContent='Google: не удалось проверить готовые ТТК';syncDetail.textContent=String(e.message||e);syncDetail.hidden=false}
  }
+ async function flush(){
+  const config=getState()?.googleSync;
+  if(running||!config?.enabled||!navigator.onLine)return;
+  running=true;render();
+  let failures=0;
+  try{
+   for(const recipe of readyArchive(getState())){
+    if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint||getState().googleSync.key!==config.key)break;
+    const digest=await recipeDigest(recipe);
+    const previous=getState().googleDelivery?.[recipe.id];
+    if(previous?.digest===digest&&previous?.layoutVersion==='burgundy-1'&&!previous.error)continue;
+    try{
+     const response=await post({...config,action:'sync',recipe,digest});
+     await mutate(s=>{
+      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
+      s.googleDelivery??={};
+      s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
+     });
+    }catch(e){
+     failures++;
+     await mutate(s=>{
+      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
+      s.googleDelivery??={};
+      s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],error:String(e?.message||'Google не подтвердил сохранение.'),lastAttemptAt:new Date().toISOString()};
+     });
+     // A broken TTK must not block other ready TTKs. Avoid hammering an unavailable Google service.
+     if(failures>=4)break;
+    }
+   }
+  }finally{running=false;render()}
+ }
+ retryButton.onclick=()=>flush().catch(e=>notify('Google: '+e.message,true));
  function schedule(){
   const cfg=getState()?.googleSync;
   if(!cfg?.enabled||!cfg.endpoint)return; // No configured Google account: no background work.
@@ -38,6 +94,7 @@ export function mountGoogleSync({getState,store,onState,notify}){
   if(settingsOpen)render();
  }
  window.addEventListener('online',schedule);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
  // Immediate save after a change is still scheduled; periodic retry is deliberately sparse.
  setInterval(()=>{if(!document.hidden)flush().catch(()=>{})},5*60*1000);
  return {schedule,render};
