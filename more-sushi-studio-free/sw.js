@@ -1,7 +1,7 @@
 /* SHEF AI PREMIUM - public assets only. Never cache Supabase, authentication or private API responses. */
-const ASSET_CACHE='shef-ai-public-assets-spatial-20261114-v1';
+const ASSET_CACHE='shef-ai-public-assets-spatial-20261114-v2';
 const OFFLINE_PAGE='./offline.html';
-const SHELL_FILES=[OFFLINE_PAGE,'./manifest.webmanifest','./icons/shef-ai-192.svg','./icons/shef-ai-512.svg'];
+const SHELL_FILES=[OFFLINE_PAGE,'./manifest.webmanifest','./icons/shef-ai-192.svg','./icons/shef-ai-512.svg','./icons/shef-ai-192.png','./icons/shef-ai-512.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(ASSET_CACHE).then(cache=>cache.addAll(SHELL_FILES)));
 });
