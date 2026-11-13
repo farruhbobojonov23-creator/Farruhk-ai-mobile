@@ -1,0 +1,39 @@
+name: FARRUH AI - device sync isolated QA
+on:
+  push:
+    branches:
+      - feature/safe-cross-device-sync-2026-11-13
+  pull_request:
+    paths:
+      - device-sync-api.js
+      - assistant-api.js
+      - public/device-cloud-sync.js
+      - public/device-sync-merge.js
+      - public/device-store.js
+      - tests/device-cloud-sync.test.js
+      - tests/device-sync-api.test.js
+      - .github/workflows/device-cloud-sync-qa.yml
+jobs:
+  verify-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Syntax of sync modules
+        run: |
+          node --check device-sync-api.js
+          node --check assistant-api.js
+          node --check public/device-cloud-sync.js
+          node --check public/device-sync-merge.js
+          node --check public/premium-workspace.js
+      - name: Test merging and cloud contract
+        run: node --test tests/device-cloud-sync.test.js tests/device-sync-api.test.js
+      - name: Verify no production Yandex writes in tests
+        run: |
+          if [ -n "$YANDEX_DISK_TOKEN" ]; then echo 'Unexpected cloud credential in CI'; exit 1; fi
