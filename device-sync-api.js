@@ -38,7 +38,13 @@ function safeSnapshot(value){
  return result;
 }
 
-export function installDeviceSyncApi(app,{store}){
+export function installDeviceSyncApi(app,{store,auth}){
+ // Require a signed owner session even if a legacy passwordless flag is set.
+ app.use('/api/device-sync',(req,res,next)=>{
+  const token=String(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('fai_owner='))?.slice('fai_owner='.length)||'';
+  if(!auth?.enabled||!auth.verify(token))return res.status(401).json({ok:false,error:'Требуется вход владельца.'});
+  next();
+ });
  // A local Render directory without a configured persistent path is not safe
  // as the single source of truth across deployments.
  const durable=store.storage==='yandex'||(process.env.DEVICE_SYNC_ISOLATED_TEST==='true'&&Boolean(process.env.ASSISTANT_DATA_DIR));
