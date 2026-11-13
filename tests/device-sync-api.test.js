@@ -15,11 +15,11 @@ const sample=()=>({recipes:[recipe('a','Филадельфия')],tasks:[],memor
 async function withServer(fn){
  const app=express();app.use(express.json({limit:'20mb'}));
  const store=new TestStore();
- installDeviceSyncApi(app,{store});
+ installDeviceSyncApi(app,{store,auth:{enabled:true,verify:token=>token==='test-only-session'}});
  const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
  const base='http://127.0.0.1:'+server.address().port;
  const req=async(method,body)=>{
-  const res=await fetch(base+'/api/device-sync',{method,headers:{'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  const res=await fetch(base+'/api/device-sync',{method,headers:{'Content-Type':'application/json',Cookie:'fai_owner=test-only-session'},...(body?{body:JSON.stringify(body)}:{})});
   return {status:res.status,json:await res.json()};
  };
  try{await fn({req,store})}finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
