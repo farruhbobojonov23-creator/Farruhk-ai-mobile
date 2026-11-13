@@ -263,16 +263,40 @@ export function mountLuxuryUI(opts={}){
  if(bottom&&!bottom.classList.contains('lx-ref-bottom')){
   bottom.classList.add('lx-ref-bottom');
   bottom.replaceChildren();
-  for(const [key,label,target] of [
+  const navigationItems=[
    ['home','Кабинет шефа','home'],['stack','Проекты','projects'],['chef','Техкарты','recipes'],
    ['box','Полуфабрикаты','preparations'],['bag','Товары','print-control'],['shield','ХАССП','lab'],['all','Ещё','more']
-  ]){
+  ];
+  for(const [key,label,target] of navigationItems){
    const b=btn('','lx-bottom-item');b.innerHTML=icon(key)+'<span>'+label+'</span>';
    if(target==='more'){b.id='mobile-more'}
    else if(target==='projects'){b.addEventListener('click',()=>opts.onOpenProjects?.())}
    else b.dataset.view=target;
    bottom.append(b);
   }
+  // Legacy navigation modules sometimes append a second visible text node to
+  // each reused button. Keep exactly one icon and one label, without removing
+  // any route listeners or active-state classes.
+  let cleaning=false;
+  const normalizeNav=()=>{
+   if(cleaning)return;
+   cleaning=true;
+   try{
+    navigationItems.forEach(([key,label],index)=>{
+     const button=bottom.children[index];
+     if(!button||button.tagName!=='BUTTON')return;
+     const text=(button.textContent||'').replace(/\\s+/g,' ').trim();
+     if(text===label&&button.querySelectorAll('span').length===1)return;
+     const img=button.querySelector('svg')?.cloneNode(true);
+     const caption=el('span','',label);
+     button.replaceChildren(...(img?[img]:[]),caption);
+    });
+   }finally{cleaning=false}
+  };
+  const observer=new MutationObserver(()=>queueMicrotask(normalizeNav));
+  observer.observe(bottom,{childList:true,subtree:true,characterData:true});
+  normalizeNav();
+  setTimeout(normalizeNav,350);
  }
  return {updateStats,updateCategories,projectScoped,matchStatus,renderList,attachEditor,selectedProject:()=>project==='all'||project==='general'?'':project};
 }
