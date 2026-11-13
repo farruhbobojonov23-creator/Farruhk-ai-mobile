@@ -29,7 +29,7 @@ async function run(theme,width,height){
  const page=await ctx.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.dismiss());
- await page.addInitScript(t=>localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false})),theme);
+ await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
