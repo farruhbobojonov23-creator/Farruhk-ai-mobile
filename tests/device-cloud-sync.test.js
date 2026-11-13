@@ -102,9 +102,24 @@ test('Premium TTK button is outside the hero and Settings exposes visible cloud 
  const settings=readFileSync(new URL('../public/site-settings.js',import.meta.url),'utf8');
  const luxury=readFileSync(new URL('../public/luxury-ui.js',import.meta.url),'utf8');
  assert.match(luxury,/hero\?\.append\(lead\)/,'Premium layout moves the subtitle into the hero');
- assert.match(html,/#recipes > \.lx-ref-stats/,'Place cloud button outside the hero');
+ assert.match(html,/document\.querySelector\('#recipes > \.lx-ref-hero'\)/,'Place sync row after the hero, not inside its grid');
  assert.doesNotMatch(html,/document\.querySelector\('#recipes \.section-subtitle'\)\?\.after\(syncQuickButton\)/);
  assert.match(settings,/button\('☁️ Синхронизация телефона и планшета'/);
  assert.match(settings,/#device-cloud-sync-settings/);
  assert.match(html,/site-settings\.js\?v=8/,'PWA must load the updated Settings component');
+});
+
+test('compact premium sync shortcut fits narrow Android viewports without vertical word wraps',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../public/luxury-reference.css',import.meta.url),'utf8');
+ assert.match(html,/syncQuickRow\.className='lx-sync-shortcut-row'/);
+ assert.match(html,/syncQuickRow\.append\(syncQuickButton\)/);
+ assert.match(html,/>Синхронизация<\/span>/);
+ assert.doesNotMatch(html,/syncQuickButton\.style\.cssText=/);
+ assert.match(html,/luxury-reference\.css\?v=11/);
+ assert.match(css,/#recipes #sync-quick-access/);
+ assert.match(css,/white-space:nowrap!important/);
+ assert.match(css,/height:36px!important/);
+ assert.match(css,/\.lx-ref-hero > #sync-quick-access/);
 });
