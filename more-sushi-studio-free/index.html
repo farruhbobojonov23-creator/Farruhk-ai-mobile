@@ -4,7 +4,7 @@
 <title>ШЕФ AI PREMIUM — Профессиональная платформа шеф-повара</title>
 <link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v2">
 <link rel="stylesheet" href="./studio-themes.css?v=20261112-shef51-v1">
-<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./archive-sheet.css?v=archive-2"><link rel="stylesheet" href="./shef-ai-premium.css?v=glass-foundation-1"><link rel="stylesheet" href="./shef-ai-vision-v2.css?v=vision-v2-20261114"></head>
+<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./archive-sheet.css?v=archive-2"><link rel="stylesheet" href="./shef-ai-premium.css?v=glass-foundation-1"><link rel="stylesheet" href="./shef-ai-vision-v2.css?v=vision-v2-20261114"><link rel="stylesheet" href="./shef-ai-spatial.css?v=spatial-1"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -48,6 +48,14 @@
      <div class="row"><button type="button" class="btn btn-light" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" class="btn btn-ghost" data-command="newProject"><span class="icon" data-icon="folder"></span> Новый проект</button></div></div>
      <div class="chef-portal-scene" aria-hidden="true"><div class="chef-portal-halo"></div><div class="chef-portal-orb"><span class="chef-orb-ring ring-a"></span><span class="chef-orb-ring ring-b"></span><span class="chef-orb-core">AI<span>CHEF</span></span></div><div class="chef-floating-glass glass-a"><span>TTK</span><i></i><i></i><i></i></div><div class="chef-floating-glass glass-b"><span>PRO</span><i></i><i></i></div><div class="chef-portal-reflection"></div></div>
     </div>
+    <nav class="spatial-dock" aria-label="Быстрый переход к рабочим разделам">
+      <button type="button" class="spatial-dock-item" data-nav="projects"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 14h16l5 5h13v20H7z"/><path d="M7 14V9h15l5 5"/></svg></span><strong>Проекты</strong><small>Бренды и клиенты</small></button>
+      <button type="button" class="spatial-dock-item" data-nav="editor"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="10" y="7" width="28" height="34" rx="4"/><path d="M17 16h14M17 23h14M17 30h8"/></svg></span><strong>Конструктор ТТК</strong><small>Документы А4</small></button>
+      <button type="button" class="spatial-dock-item" data-nav="ingredients"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M13 35c-5-13 5-24 25-25-1 23-10 31-25 25Z"/><path d="M12 40c5-15 13-20 23-26"/></svg></span><strong>Ингредиенты</strong><small>Каталог и аллергены</small></button>
+      <button type="button" class="spatial-dock-item" data-nav="prefabs"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="m24 5 16 9-16 9-16-9 16-9Zm-16 18 16 9 16-9M8 31l16 9 16-9"/></svg></span><strong>Полуфабрикаты</strong><small>Рецептуры и выход</small></button>
+      <button type="button" class="spatial-dock-item" data-nav="products"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 33h32M11 33a13 13 0 0 1 26 0M22 16h4"/></svg></span><strong>Готовые блюда</strong><small>Состав и технология</small></button>
+      <button type="button" class="spatial-dock-item" data-nav="library"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M13 6h22v36H13a5 5 0 0 1-5-5V11a5 5 0 0 1 5-5ZM8 36c0-3 2-5 5-5h22M17 15h12M17 22h12"/></svg></span><strong>Библиотека ТТК</strong><small>Документы и архив</small></button>
+    </nav>
     <div class="stats">
       <div class="surface stat"><small>Всего проектов</small><b id="statProjects">0</b><span class="stat-note">Наши бренды и клиенты</span></div>
       <div class="surface stat"><small>ТТК в библиотеке</small><b id="statDocuments">0</b><span class="stat-note">Все документы</span></div>
@@ -232,4 +240,5 @@
 <script src="./ttk-auto-pro.js?v=20261112-auto2"></script>
 <script src="./farukh-lux-v3.js?v=20261112-auto2" defer></script>
 <script src="./shef-ai-catalog.js?v=chef-catalog-v1" defer></script>
+<script src="./shef-ai-spatial.js?v=spatial-1" defer></script>
 </body></html>
