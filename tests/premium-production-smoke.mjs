@@ -79,6 +79,10 @@ async function run(theme,width,height){
    // The reference uses a photo frame and an opaque caption inside the card;
    // the card root itself can remain transparent for layout and hit targets.
    check(tag+' TTK categories carry dark premium surface',categoryStyle.frame.includes('gradient')&&categoryStyle.caption.includes('gradient'),categoryStyle);
+   const filterStyle=await page.locator('#recipes .lx-filter-menu>summary').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ink:getComputedStyle(el).color}));
+   check(tag+' TTK filter readable on Royal',filterStyle.bg.includes('gradient')&&!filterStyle.ink.includes('255, 255, 255, 0'),filterStyle);
+   const bottomNav=await page.evaluate(()=>[...document.querySelectorAll('.mobile-tools')].some(el=>el.getClientRects().length&&getComputedStyle(el).display!=='none'));
+   if(!mobile)check(tag+' wide screen hides duplicate mobile dock',!bottomNav,{bottomNav});
    if(!mobile)console.log('PREMIUM_ROYAL_TTK_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.evaluate(()=>{location.hash='home'});
    await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:8000});
@@ -86,6 +90,16 @@ async function run(theme,width,height){
    await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
    check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
    await page.locator('#closeeditor').click();
+   await page.evaluate(()=>{location.hash='print-control'});
+   await page.waitForFunction(()=>document.body.dataset.view==='print-control',null,{timeout:8000});
+   await page.locator('#print-control .pc-premium-template').first().waitFor({state:'visible',timeout:12000});
+   const printContrast=await page.locator('#print-control .pc-premium-template').first().evaluate(el=>{
+    const title=el.querySelector('h2'),desc=el.querySelector('p'),css=getComputedStyle(el);
+    return {bg:css.backgroundImage,title:title?getComputedStyle(title).color:'',desc:desc?getComputedStyle(desc).color:''};
+   });
+   check(tag+' FARUKH PRINT template panels use dark premium contrast',printContrast.bg.includes('gradient')&&printContrast.title!=='rgb(255, 255, 255)'&&printContrast.desc!=='rgb(116, 128, 139)',printContrast);
+   if(!mobile)console.log('PREMIUM_ROYAL_PRINT_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+
  }else{
  await page.locator('#home.pf-upgraded .pf-showcase').waitFor({state:'visible',timeout:22000});
  const initial=await page.evaluate(()=>({
