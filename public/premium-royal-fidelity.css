@@ -235,3 +235,25 @@
   border-color:#479a73!important;background:#0c5134!important;color:#b9ffd2!important;
  }
 }
+
+/* Confirmed-local-only visual emblem, not a claim that Google is connected. */
+@media screen{
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2){min-height:210px}
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2) .pfv-status-item{max-width:calc(100% - 126px)}
+ .pfv-status-emblem{
+  position:absolute;right:18px;bottom:18px;width:106px;height:106px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;border-radius:50%;border:2px solid #48f39c;
+  box-shadow:0 0 0 5px #16b77816,0 0 28px #12cf7640,inset 0 0 20px #05b85e30;
+  background:radial-gradient(circle,#0a442744,#081615 70%);color:#81ffb8;
+ }
+ .pfv-status-emblem:after{content:"";position:absolute;inset:-9px;border:1px dashed #28cc7977;border-radius:50%}
+ .pfv-status-emblem svg{width:49px;height:49px;stroke:#74ffb5;filter:drop-shadow(0 0 8px #0ae98e8c)}
+ .pfv-status-emblem small{font:750 9px/1 Inter,system-ui,sans-serif;letter-spacing:.08em;color:#a6ffce}
+}
+@media screen and (max-width:720px){
+ body[data-pf-theme="royal"] .pfv-bottom-grid .pfv-section:nth-child(2) .pfv-status-item{max-width:calc(100% - 99px)}
+ .pfv-status-emblem{width:82px;height:82px;right:12px;bottom:15px}
+ .pfv-status-emblem svg{width:35px;height:35px}
+ .pfv-status-emblem small{font-size:7px}
+}
