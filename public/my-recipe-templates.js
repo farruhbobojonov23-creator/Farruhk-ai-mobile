@@ -1,4 +1,5 @@
 import {templateFor,recipeCategories} from './recipe-math.js?v=categories-13';
+import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from '/ttk-layouts.js?v=1';
 export const fields={preparation:'4. Подготовка',forming:'4. Приготовление',serving:'4. Нарезка и подача',storage:'5. Оформление, подача и хранение',shelfLife:'5. Срок годности',temperature:'5. Температура хранения',appearance:'6. Внешний вид',taste:'6. Вкус, запах и консистенция'};
 export function validateMyTemplates(list){
  if(list===undefined)return;
@@ -18,7 +19,23 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
  const run=fn=>async()=>{try{await fn();}catch(e){notify(e.message,true);}};
  function render(){
   list.replaceChildren();form.replaceChildren();draft=null;dirty=false;
-  list.append(el('p','Отдельные шаблоны для новых техкарт. Сохраняются на этом устройстве и входят в резервную копию.'));
+  const gallery=el('section');gallery.className='ttk-design-gallery';
+  gallery.append(el('h3','Шаблоны оформления ТТК · A4'),
+   el('p','Два готовых дизайна: 01 — Arctic Glass и 02 — Royal Blue. Фото блюда сохраняет оригинальный фон. Выбор меняет только оформление PDF, не рецептуру.'));
+  const designs=el('div');designs.className='ttk-design-grid';
+  const selected=ttkLayoutId(document.getElementById('editor')?.dataset.ttkLayout);
+  function chooseDesign(id){
+   dialog.close();
+   if(document.getElementById('editor')?.hidden){
+    document.getElementById('newrecipe')?.click();
+   }
+   document.dispatchEvent(new CustomEvent('ttk:choose-layout',{detail:{id}}));
+   document.getElementById('ttk-design-picker')?.scrollIntoView({block:'center',behavior:'smooth'});
+   notify('Шаблон оформления выбран. Сохрани техкарту, чтобы закрепить дизайн.');
+  }
+  designs.append(...TTK_LAYOUTS.map(item=>layoutCard(item,item.id===selected,chooseDesign)));
+  gallery.append(designs);list.append(gallery);
+  list.append(el('p','Ниже — пользовательские шаблоны состава и технологии. Они не изменяют выбранный стиль листа.'));
   list.append(button('＋ Создать свой шаблон',()=>edit()));
   for(const t of getState()?.myRecipeTemplates||[]){
    const row=el('div');row.className='panel';row.append(el('h3',t.name),el('p',t.category));
