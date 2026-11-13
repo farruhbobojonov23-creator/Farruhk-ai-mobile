@@ -1,0 +1,85 @@
+/* FARRUH AI TTK A4 Design Gallery · two approved visual options */
+@media screen{
+ .ttk-design-picker{
+  --ttk-select-blue:#0e71c8;box-sizing:border-box;margin:14px 0 18px;padding:16px;
+  border:1px solid #b4d5ec;border-radius:18px;
+  background:linear-gradient(145deg,#fcfeff,#e6f4ff);
+  box-shadow:0 7px 19px #1b659f16;
+ }
+ .ttk-design-picker h3{font-size:16px!important;font-weight:850!important;color:#123755!important;
+  -webkit-text-fill-color:#123755!important;margin:0 0 4px!important}
+ .ttk-design-help{color:#50728a!important;-webkit-text-fill-color:#50728a!important;
+  font-size:12px;line-height:1.45;margin:0 0 15px!important}
+ .ttk-design-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .ttk-design-card{appearance:none;display:flex;flex-direction:column;align-items:center;gap:7px;
+  border:2px solid #bad5e8!important;border-radius:17px!important;
+  background:linear-gradient(135deg,#fff,#edf7ff)!important;
+  box-shadow:0 4px 11px #1163a81e!important;padding:11px!important;text-align:left;
+  min-height:165px!important;cursor:pointer;transition:border-color .15s,transform .15s}
+ .ttk-design-card:hover{transform:translateY(-2px)}
+ .ttk-design-card[aria-pressed=true]{border-color:#0875cd!important;
+  box-shadow:0 5px 15px #0b75c04a,inset 0 0 0 1px #0b75c020!important}
+ .ttk-design-card:focus-visible{outline:3px solid #118be5;outline-offset:3px}
+ .ttk-design-info{display:flex;flex-direction:column;align-self:stretch;gap:2px}
+ .ttk-design-info strong{font-weight:800!important;font-size:13px!important;color:#103958!important;
+  -webkit-text-fill-color:#103958!important}
+ .ttk-design-info small{font-size:11px!important;color:#547890!important;-webkit-text-fill-color:#547890!important}
+ .ttk-design-info em{font-style:normal;font-size:11px!important;color:#0b6abd!important;
+  -webkit-text-fill-color:#0b6abd!important;font-weight:750!important;margin-top:4px}
+ .ttk-design-thumb{--tb:#0f77c7;--ts:#dff2ff;--ti:#1b4470;--tg:#86c5ea;
+  width:min(100%,176px);height:220px;box-sizing:border-box;flex:0 0 220px;
+  display:flex;flex-direction:column;gap:7px;padding:11px;border:1px solid #d6e6f4;border-radius:5px;
+  background:linear-gradient(145deg,#fff,#eef8ff 65%,#dcf1ff);
+  box-shadow:0 7px 15px #153b682c;
+  color:var(--ti);font:7px/1.3 Arial,sans-serif!important;overflow:hidden}
+ .ttk-design-royal{--tb:#072e62;--ts:#edf2f9;--ti:#16315a;--tg:#c49b49;
+  background:#fff;border-top:10px solid #0c386f;padding-top:4px}
+ .ttk-design-preview-top{display:flex;align-items:center;gap:4px;color:var(--ti)}
+ .ttk-design-preview-top b{font-size:15px;font-style:italic;color:var(--tb)}
+ .ttk-design-preview-top span{font-size:8px;font-weight:850}
+ .ttk-design-preview-top i{margin-left:auto;width:30px;height:3px;background:var(--tg)}
+ .ttk-design-preview-heading{font-weight:900;font-size:9px;color:var(--tb);border-bottom:1px solid var(--tg);padding-bottom:5px}
+ .ttk-design-preview-hero{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ .ttk-design-preview-fields{display:flex;flex-direction:column;gap:4px}
+ .ttk-design-preview-fields i{display:block;height:8px;background:var(--ts);border:1px solid #bfd8eb}
+ .ttk-design-preview-photo{height:53px;display:grid;place-items:center;background:#d2e7f7;border:1px solid var(--tg);font-size:25px;color:#3779ab}
+ .ttk-design-preview-line{height:5px;background:var(--tb)}
+ .ttk-design-preview-two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ .ttk-design-preview-two>div{display:flex;flex-direction:column;gap:4px}
+ .ttk-design-preview-two b{height:8px;background:var(--tb);display:block}
+ .ttk-design-preview-two i{height:6px;border-bottom:1px solid #b9d6e9;background:var(--ts);display:block}
+ .ttk-design-preview-two.lower{flex:1}
+ .ttk-design-preview-signatures{border-top:1px solid var(--tg);padding-top:5px;font-size:6px;color:var(--ti)}
+ /* Live editing paper mirrors the chosen palette, while leaving the real editable fields intact. */
+ #editor .ttk-paper[data-ttk-layout="arctic-a4"]{
+   background:#f6fbff!important;--ttk-line:#b8d8ec;--ttk-fill:#d9efff;
+   border-top:7px solid #1487db!important;border-radius:10px;color:#123b62!important}
+ #editor .ttk-paper[data-ttk-layout="royal-a4"]{
+   background:#fff!important;--ttk-line:#aebed5;--ttk-fill:#e8eff7;
+   border-top:8px solid #083765!important;border-radius:8px;color:#0c315d!important}
+ #editor .ttk-paper[data-ttk-layout="arctic-a4"] .ttk-document-title{
+   color:#0b5ba4!important;border-bottom:1px solid #a2d4f1!important}
+ #editor .ttk-paper[data-ttk-layout="royal-a4"] .ttk-document-title{
+   color:#0b3668!important;border-bottom:2px solid #cfa65d!important}
+ #editor .ttk-paper[data-ttk-layout="arctic-a4"] .ttk-section-title span{
+   background:linear-gradient(110deg,#0b78ca,#47afea)!important;color:#fff!important}
+ #editor .ttk-paper[data-ttk-layout="royal-a4"] .ttk-section-title span{
+   background:#073565!important;color:#fff!important;border-bottom:2px solid #d6b067!important}
+ #editor .ttk-paper[data-ttk-layout="arctic-a4"] :is(input,select,textarea){
+   background:#f1f9ff!important;color:#17466b!important}
+ #editor .ttk-paper[data-ttk-layout="royal-a4"] :is(input,select,textarea){
+   background:#f6f9ff!important;color:#123958!important}
+ .my-template-dialog .ttk-design-gallery{margin:0 0 20px;padding:15px;
+   border:1px solid #b4d8ed;border-radius:18px;background:#f8fcff}
+ .my-template-dialog .ttk-design-gallery h3{font-size:17px;color:#1d4567;margin:0 0 5px}
+ .my-template-dialog .ttk-design-gallery>p{font-size:12px;color:#496f88;margin:0 0 12px}
+ @media(max-width:430px){
+  .ttk-design-picker{padding:12px}
+  .ttk-design-grid{gap:8px}
+  .ttk-design-card{padding:8px!important}
+  .ttk-design-thumb{height:182px;flex-basis:182px;padding:9px}
+  .ttk-design-preview-photo{height:39px}
+  .ttk-design-info strong{font-size:11px!important}
+  .ttk-design-info small{font-size:10px!important}
+ }
+}
