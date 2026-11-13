@@ -548,6 +548,12 @@ settingsDialog.append(dataTools);
 const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice});
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog,importData:importDeviceData,downloadFile});
 deviceCloudSync=mountDeviceCloudSync({store:deviceStore,getState:()=>state,onState:next=>{state=next;render()},settingsDialog,notify:notice,downloadFile});
+// An obvious entry in the TTK catalogue for mobile, tablet and desktop.
+const syncQuickButton=document.createElement('button');syncQuickButton.type='button';syncQuickButton.id='sync-quick-access';
+syncQuickButton.textContent='☁️ Синхронизация телефона и планшета';
+syncQuickButton.style.cssText='display:block;width:100%;max-width:440px;margin:12px 0 16px;padding:13px 18px;border:1px solid #add1e7;border-radius:15px;background:#e7f5ff;color:#11436b;font:inherit;font-weight:700;text-align:center;cursor:pointer';
+syncQuickButton.onclick=()=>deviceCloudSync.open();
+document.querySelector('#recipes .section-subtitle')?.after(syncQuickButton);
 const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();document.querySelector('.ttk-sync-summary button:last-of-type')?.click()};settingsDialog.append(connectionSettings);
 $('device-export').onclick=guard(async()=>{const saved=await deviceStore.load();downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:saved},null,2)],{type:'application/json'}),'FARRUH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json');notice('Резервная копия подготовлена для скачивания.')});
 async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));showSavedChatHistory(state.chat||[]);notice('Данные импортированы на устройство. Существующие записи сохранены.')}
@@ -598,6 +604,8 @@ mountMyRecipeTemplates({getState:()=>state,save,notify:notice,createRecipe:async
 mountUnifiedWorkspace();
 siteSettings=mountSiteSettings({getState:()=>state,save,show,titles,settingsDialog,notify:notice});
 try{await requireOwner();try{mountPremiumWorkspace()}catch(e){console.error('Premium workspace unavailable',e);notice('Не удалось открыть новый дизайн: '+e.message,true)}printCloud=mountPrintCloudControl({root:$('print-control-root'),renderLocal:()=>printCenter.render()});mountPrintStaffControl({root:$('print-control-root')});await loadAssistantState();
+ // Direct safe link: opens the sync section, but never enables it automatically.
+ if(new URLSearchParams(location.search).get('sync')==='1')deviceCloudSync?.open();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
 }catch(e){notice(e.message,true)}
 </script></body></html>

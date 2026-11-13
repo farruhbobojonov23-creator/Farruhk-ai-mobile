@@ -82,3 +82,16 @@ test('implicit default categories are kept absent, rather than overwritten by an
  assert.equal(localSnapshot.categories,undefined);
  assert.equal(reconcileSnapshots(null,localSnapshot,cloudSnapshot).categories,undefined);
 });
+
+test('sync has visible entry, deep link opens panel without silently enabling writes',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+ const client=readFileSync(new URL('../public/device-cloud-sync.js',import.meta.url),'utf8');
+ assert.match(html,/sync-quick-access/);
+ assert.match(html,/deviceCloudSync\.open\(\)/);
+ assert.match(html,/new URLSearchParams\(location\.search\)\.get\('sync'\)==='1'/);
+ assert.match(client,/node\.id='device-cloud-sync-settings'/);
+ assert.match(client,/node\.open=true/);
+ assert.match(client,/return \{schedule,start:\(\)=>schedule\(600\),status:\(\)=>lastError,open\}/);
+ assert.doesNotMatch(client,/const open=[\s\S]*localStorage\.setItem\(ENABLED_KEY/);
+});
