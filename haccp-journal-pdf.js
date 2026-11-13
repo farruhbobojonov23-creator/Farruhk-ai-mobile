@@ -52,11 +52,11 @@ export function journalPdf({haccp,kind,month,pointId=''}){
   doc.font('bold').fontSize(14).fillColor('#19476c').text(journalTypes[kind],X+12,35,{width:W-22});
   text(period+'  ·  '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+12,63,W-24,{size:9});
   text('Дата и время: МСК',X,86,W,{size:8,color:'#57758c'});
-  let x=X;const headerTop=102,headerHeight=38;
+  let x=X;const headerTop=102,headerHeight=66;
   for(let i=0;i<columns.length;i++){
    const col=columns[i];rect(x,headerTop,widths[i],headerHeight,head);
-   const lines=safeLines(doc,col.label,widths[i]-8).slice(0,3);
-   lines.forEach((line,j)=>text(line,x+4,headerTop+7+j*10,widths[i]-8,{bold:true,size:7,color:'#244b6c'}));
+   const lines=safeLines(doc,col.label,widths[i]-8).slice(0,6);
+   lines.forEach((line,j)=>text(line,x+4,headerTop+5+j*9,widths[i]-8,{bold:true,size:7,color:'#244b6c'}));
    x+=widths[i];
   }
   y=headerTop+headerHeight;
