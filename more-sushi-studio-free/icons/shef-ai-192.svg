@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" role="img" aria-label="ШЕФ AI PREMIUM">
+<defs>
+<radialGradient id="bg" cx="30%" cy="20%" r="90%"><stop stop-color="#2775bb"/><stop offset=".43" stop-color="#112e65"/><stop offset="1" stop-color="#060d29"/></radialGradient>
+<linearGradient id="frame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0ffff"/><stop offset=".34" stop-color="#70ecff"/><stop offset=".70" stop-color="#308ad8"/><stop offset="1" stop-color="#7778dc"/></linearGradient>
+<radialGradient id="glass" cx="35%" cy="21%" r="85%"><stop stop-color="#e5feff" stop-opacity=".42"/><stop offset=".52" stop-color="#4fdefa" stop-opacity=".16"/><stop offset="1" stop-color="#2845a4" stop-opacity=".4"/></radialGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="11"/></filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<rect x="23" y="23" width="466" height="466" rx="99" fill="none" stroke="url(#frame)" stroke-width="13"/>
+<path d="M75 97C180 48 292 61 426 94" fill="none" stroke="#eaffff" opacity=".46" stroke-width="18" stroke-linecap="round"/>
+<circle cx="256" cy="259" r="170" fill="#66f6ff" opacity=".18" filter="url(#glow)"/>
+<circle cx="256" cy="259" r="165" fill="url(#glass)" stroke="#c5ffff" stroke-width="5"/>
+<path d="M163 347 235 171a22 22 0 0 1 42 0l72 176" fill="none" stroke="#e9ffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M197 278h119" stroke="#8cf6ff" stroke-width="25" stroke-linecap="round"/>
+<path d="M215 399h83" fill="none" stroke="#85e8fb" stroke-width="12" stroke-linecap="round"/>
+<circle cx="369" cy="165" r="19" fill="#a7faff"/>
+</svg>
