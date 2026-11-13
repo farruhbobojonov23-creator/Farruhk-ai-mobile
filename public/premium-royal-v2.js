@@ -125,7 +125,13 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
   recentRows.append(row)
  }
  statusRows.replaceChildren();addStatus('Локальное хранилище доступно',true);addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус в настройках');
- }catch(e){statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}
+ if(!status.section.querySelector('.pfv-status-emblem')){
+  const emblem=el('div','pfv-status-emblem');
+  emblem.setAttribute('aria-hidden','true');
+  emblem.innerHTML=icon('chef')+'<small>ЛОКАЛЬНО</small>';
+  status.section.append(emblem);
+ }
+ }catch(e){status.section.querySelector('.pfv-status-emblem')?.remove();statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}
  finally{dashboardLoading=false;lastDashboardRead=Date.now()}
  };
  const updateOnNavigation=()=>{
