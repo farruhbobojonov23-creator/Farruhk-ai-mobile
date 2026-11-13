@@ -245,7 +245,7 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
-  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/перед каждой сменой/i,
+  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/начал[ао] смены/i,
    'per-person pre-shift inspection, not an invented daily admission');
   assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
    'prior hygiene admission cannot become an auto-accepted template');
