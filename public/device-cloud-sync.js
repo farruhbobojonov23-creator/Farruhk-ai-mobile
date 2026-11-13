@@ -45,7 +45,7 @@ async function commitSync(store,expectedRevision,merged){
      tx.abort();return;
     }
     const patch={};
-    for(const key of LIST_FIELDS)patch[key]=merged[key];
+    for(const key of LIST_FIELDS){if(key==='categories'&&merged.categories===undefined)continue;patch[key]=merged[key]}
     if(merged.siteSettings!==undefined)patch.siteSettings=merged.siteSettings;
     const changed=Object.keys(patch).some(key=>!same(existing[key],patch[key]));
     newState=changed?validateDeviceState({...existing,...patch,revision:existing.revision+1,updatedAt:new Date().toISOString()},{clone:false}):existing;
