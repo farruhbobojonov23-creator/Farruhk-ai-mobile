@@ -541,3 +541,60 @@
  transition:none!important;animation:none!important;
 }
 }
+/* Brand cards use approved project identity, without inventing new product shots. */
+@media screen {
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more{
+ background:
+ radial-gradient(circle at 105% 28%,rgba(45,237,252,.34),transparent 52%),
+ radial-gradient(ellipse at 6% 90%,rgba(29,102,189,.24),transparent 61%),
+ linear-gradient(137deg,rgba(16,81,139,.77),rgba(5,41,99,.64));
+ border-color:rgba(145,238,255,.60);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more:before{
+ content:"";position:absolute;z-index:0;right:-34px;bottom:-28px;width:185px;height:111px;
+ background:radial-gradient(ellipse at 30% 63%,rgba(104,235,255,.33),transparent 65%);
+ border:1px solid rgba(120,223,255,.18);border-radius:50% 80% 40% 50%;
+ transform:rotate(-13deg);pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more .proj-mark{
+ background:linear-gradient(140deg,rgba(212,255,255,.33),rgba(51,143,208,.43));
+ border:1px solid rgba(235,255,255,.74);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more .proj-mark img{
+ width:86%;height:86%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(1,30,76,.33));
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi{
+ background:
+ radial-gradient(circle at 95% 15%,rgba(223,63,108,.22),transparent 57%),
+ linear-gradient(149deg,rgba(72,45,85,.72),rgba(26,36,81,.77));
+ border-color:rgba(239,161,186,.43);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi .proj-mark{
+ background:radial-gradient(circle at 24% 14%,#ffb5bb,#f34360 49%,#ba1d4a);
+ border-color:rgba(255,233,235,.83);
+ color:white;text-shadow:0 2px 3px #7b0029;
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi:hover{
+ border-color:rgba(255,206,219,.8);
+ box-shadow:0 0 24px rgba(249,64,129,.16),0 17px 31px rgba(0,10,42,.30);
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions{
+ display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn-primary{
+ flex:0 0 auto;
+}
+/* Keep ordinary dialogs and A4 print preview visually separate from dashboard 3D. */
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn:focus-visible,
+:root[data-studio-theme="spatial"] .spatial-dock-item:focus-visible{
+ outline:2px solid #e8ffff;outline-offset:3px;
+}
+}
+@media screen and (max-width:620px){
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions{
+ flex-direction:row;align-items:flex-start;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn{
+ flex:0 0 auto;
+}
+}
