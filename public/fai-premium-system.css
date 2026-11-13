@@ -587,3 +587,46 @@
    animation-duration:.01ms!important;transition-duration:.01ms!important;
  }
 }
+
+/* Premium final polish: form accents, voice diagnostic spacing and HACCP small cards. */
+@media screen {
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])
+ :is(dialog.lunar-dialog,dialog.google-backup-dialog,dialog.category-dialog,dialog.pc-dialog)
+ :is(input[type="checkbox"],input[type="radio"]){
+   accent-color:var(--pf-accent)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])
+ dialog.lunar-dialog .voice-diagnostics{
+   display:flex!important;flex-wrap:wrap!important;
+   align-items:center!important;column-gap:10px!important;row-gap:9px!important;
+   min-width:0!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])
+ dialog.lunar-dialog .voice-diagnostics> :is(strong,p){
+   flex:0 0 100%!important;min-width:0!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])
+ dialog.lunar-dialog .voice-diagnostics>button{
+   flex:1 1 180px!important;min-width:0!important;
+   padding:11px 13px!important;
+   margin:0!important;
+   text-align:center!important;
+   white-space:normal!important;
+   overflow-wrap:anywhere!important;
+ }
+}
+@media screen and (max-width:599px){
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])[data-view="lab"]
+ #lab[data-haccp-view="catalog"] .haccp-journal-card:not([data-journal="frying"]){
+   grid-template-columns:minmax(0,1fr) 52px!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])[data-view="lab"]
+ #lab[data-haccp-view="catalog"] .haccp-journal-card:not([data-journal="frying"]) .haccp-journal-visual{
+   width:52px!important;max-width:52px!important;height:68px!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"])[data-view="lab"]
+ #lab[data-haccp-view="catalog"] .haccp-journal-copy strong{
+   overflow-wrap:break-word!important;word-break:normal!important;
+   line-height:1.23!important;
+ }
+}
