@@ -36,5 +36,5 @@ export function showProductPhoto(img,source){
  if(!source.startsWith('/assets/categories/')||source.endsWith('.svg'))return;
  img.style.opacity='0';
  if(!cached.has(source))cached.set(source,preparePhoto(source,{ai:false}).catch(()=>source));
- cached.get(source).then(result=>{if(img.isConnected){img.src=result;img.style.opacity='1'}});
+ cached.get(source).then(result=>{img.src=result;img.style.opacity='1'});
 }
