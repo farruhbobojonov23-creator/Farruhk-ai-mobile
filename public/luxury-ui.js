@@ -47,7 +47,7 @@ export function mountLuxuryUI(opts={}){
   const logo=el('span','lx-brand-mark','A');
   header.querySelector('.aurora-brand')?.before(logo);
   const brand=header.querySelector('.aurora-brand');
-  if(brand){brand.replaceChildren(document.createTextNode('FARRUH '),el('strong','','AI'),el('small','','Профессиональная кухня'))}
+  if(brand){const line=el('span','lx-brand-headline');line.append(document.createTextNode('FARRUH '),el('strong','','AI'));brand.replaceChildren(line,el('small','','Профессиональная кухня'))}
   const bell=btn('','lx-header-icon lx-header-bell',()=>opts.onNavigate?.('tasks'));bell.innerHTML=icon('bell');bell.title='Задачи и уведомления';bell.setAttribute('aria-label','Задачи и уведомления');
   const person=btn('','lx-header-icon lx-header-user',()=>opts.onNavigate?.('site-settings'));person.innerHTML=icon('user');person.title='Профиль и настройки';person.setAttribute('aria-label','Профиль и настройки');header.append(bell,person);
  }
