@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
 const src=await fs.readFile(new URL('../public/farukh-print/print.js',import.meta.url),'utf8');
-function makeHarness({managed=false,staffApi=null}={}){
+function makeHarness({managed=true,staffApi=null,signedIn=true,connected=true}={}){
  const sent=[];
  class Canvas{
   constructor(){this.width=0;this.height=0;this.ctx={
@@ -15,11 +15,11 @@ function makeHarness({managed=false,staffApi=null}={}){
   getContext(){return this.ctx}
  }
  const elems={};
- const doc={
+ const doc={body:{classList:{toggle(){}}},
   createElement(tag){assert.equal(tag,'canvas');return new Canvas()},
-  getElementById(id){return elems[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-23T20:00':'',dataset:{},disabled:false,hidden:false,textContent:''}}
+  getElementById(id){return elems[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-23T20:00':'',dataset:{},disabled:false,hidden:false,textContent:'',parentElement:{hidden:false}}}
  };
- const win={FarukhPrinter:{postMessage(data){sent.push(JSON.parse(data))}},FARUKH_PRINT_STAFF_API:staffApi};
+ const win={FarukhPrinter:{postMessage(data){sent.push(JSON.parse(data))}},FARUKH_PRINT_STAFF_API:{loggedIn:()=>signedIn,point:()=> 'Плазма',authorize:async()=>({ok:true}),...staffApi},FARUKH_PRINT_DEVICE_SYNC:{state:()=>({connected})}};
  const hook=src.replace('boot();\n})();',
  "window.__unit={tspl,doPrint,legacy:()=>legacyNative30Transport,pending:()=>pendingNativePrint,setSelected(p){products=[p];kind='prep';selected=p.id}};\n})();");
  assert.notEqual(hook,src);
@@ -32,16 +32,16 @@ function makeHarness({managed=false,staffApi=null}={}){
 const payload=(packet)=>new Uint8Array(Buffer.from(packet.tspl,'base64'));
 const marker=(p)=>new TextDecoder().decode(payload(p).subarray(0,130));
 
-test('native 30×20 request uses exact physical dimensions',()=>{
+test('native 30×20 request uses exact physical dimensions',async()=>{
  const {api,sent}=makeHarness();
- api.doPrint();
+ await api.doPrint();
  assert.equal(sent.length,1);
  assert.match(marker(sent[0]),/SIZE 30 mm,20 mm/);
  assert.match(marker(sent[0]),/BITMAP 0,0,30,160,0,/);
 });
-test('old FARUKH PRINT 31×20 bridge retries rejected 30mm job exactly once with one white padded byte per scanline',()=>{
+test('old FARUKH PRINT 31×20 bridge retries rejected 30mm job exactly once with one white padded byte per scanline',async()=>{
  const {api,win,sent,elems}=makeHarness();
- api.doPrint();
+ await api.doPrint();
  win.FarukhPrinter.onmessage({data:JSON.stringify({ok:false,message:'Неверный формат данных этикетки: размер должен быть 58×40 или 31×20'})});
  assert.equal(sent.length,2);
  assert.match(marker(sent[1]),/SIZE 31 mm,20 mm/);
@@ -54,27 +54,27 @@ test('old FARUKH PRINT 31×20 bridge retries rejected 30mm job exactly once with
  assert.equal(sent.length,2);
  assert.match(elems['print-message'].textContent,/Режим совместимости/);
  assert.equal(api.pending(),null);
- api.doPrint();
+ await api.doPrint();
  assert.equal(sent.length,3);
  assert.match(marker(sent[2]),/SIZE 31 mm,20 mm/);
 });
-test('never retry Bluetooth failures that may have printed labels',()=>{
+test('never retry Bluetooth failures that may have printed labels',async()=>{
  const {api,win,sent}=makeHarness();
- api.doPrint();
+ await api.doPrint();
  win.FarukhPrinter.onmessage({data:JSON.stringify({ok:false,message:'Bluetooth-соединение прервано.'})});
  assert.equal(sent.length,1);
  assert.equal(api.legacy(),false);
 });
-test('modern Android bridge receives exact 30mm TSPL and does not retry',()=>{
+test('modern Android bridge receives exact 30mm TSPL and does not retry',async()=>{
  const {api,win,sent}=makeHarness();
- api.doPrint();
+ await api.doPrint();
  win.FarukhPrinter.onmessage({data:JSON.stringify({ok:true,message:'Напечатано.'})});
  assert.equal(sent.length,1);
  assert.equal(api.legacy(),false);
 });
 
 test('paired staff-managed FARUKH PRINT cannot print before employee sign-in',async()=>{
- const {api,sent,elems}=makeHarness({managed:true});
+ const {api,sent,elems}=makeHarness({managed:true,signedIn:false});
  await api.doPrint();
  assert.equal(sent.length,0);
  assert.match(elems['print-message'].textContent,/Войди|войти/i);
