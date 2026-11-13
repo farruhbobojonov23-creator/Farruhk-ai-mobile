@@ -630,3 +630,120 @@
    line-height:1.23!important;
  }
 }
+
+/* Premium all-the-way-through: dark TTK Studio chrome and compact cloud sync. */
+@media screen {
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #recipes #sync-quick-access {
+   background:linear-gradient(120deg,var(--pf-raised),var(--pf-panel))!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--fai-neon-border)!important;
+   box-shadow:0 5px 18px var(--fai-neon-light),inset 0 1px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #recipes #sync-quick-access .sync-quick-icon {
+   background:linear-gradient(135deg,var(--pf-accent),color-mix(in srgb,var(--pf-accent) 75%,black))!important;
+   color:var(--pf-on-accent)!important;-webkit-text-fill-color:var(--pf-on-accent)!important;
+   box-shadow:0 4px 13px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #recipes #sync-quick-access .sync-quick-label {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #recipes #sync-quick-access:hover{
+   background:linear-gradient(145deg,color-mix(in srgb,var(--pf-accent) 18%,var(--pf-raised)),var(--pf-panel))!important;
+   border-color:var(--pf-accent)!important;
+ }
+
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled,
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled[data-ttk-layout="royal-a4"] {
+   --studio-accent:var(--pf-accent);
+   --studio-ink:var(--pf-ink);
+   --studio-soft:var(--pf-raised);
+   --studio-edge:var(--pf-line);
+   --studio-gold:var(--pf-accent);
+   --pro-ink:var(--pf-ink);
+   --pro-line:var(--pf-line);
+   --pro-mute:var(--pf-muted);
+   --pro-blue:var(--pf-accent);
+   --pro-card:var(--fai-dialog-card);
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   background:radial-gradient(ellipse at 90% 0%,var(--fai-neon-light),transparent 55%),var(--pf-card-grad)!important;
+   border:1px solid var(--fai-neon-border)!important;
+   box-shadow:0 19px 48px rgba(0,0,0,.29),inset 0 1px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled
+ :is(.ttk-toolbar,.ttk-studio-intro,.ttk-pro-head,.ttk-pro-audit,
+     .ttk-pro-rail,.ttk-studio-switch,.ttk-studio-advanced,.ttk-viewport,
+     .ttk-studio-menu-body) {
+   background:var(--fai-dialog-card)!important;
+   background-color:var(--pf-panel)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   box-shadow:inset 0 1px var(--fai-neon-light),0 8px 22px rgba(0,0,0,.14)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled :is(.ttk-toolbar h2,
+  .ttk-studio-intro-title h3,.ttk-pro-title,.ttk-design-picker h3,
+  .ttk-pro-audit h3,.ttk-design-info strong,
+  .ttk-studio-project,.ttk-pro-overline,.ttk-studio-kicker,
+  .ttk-pro-progress-number) {
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled :is(
+   .ttk-studio-intro-title p,.ttk-design-help,.ttk-design-info small,
+   .ttk-pro-subtitle,.ttk-pro-audit-note,.ttk-pro-progress small) {
+   color:var(--pf-muted)!important;-webkit-text-fill-color:var(--pf-muted)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled :is(
+   .ttk-design-card,.ttk-pro-check,.ttk-studio-photo,
+   .ttk-pro-warning,.ttk-pro-save-state){
+   background:var(--fai-dialog-card)!important;
+   border:1px solid var(--pf-line)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   box-shadow:inset 0 1px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"] {
+   background:linear-gradient(140deg,
+     color-mix(in srgb,var(--pf-accent) 17%,var(--pf-raised)),
+     var(--pf-panel))!important;
+   border:2px solid var(--pf-accent)!important;
+   box-shadow:0 0 0 1px var(--fai-neon-border),0 7px 23px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled :is(
+   .ttk-toolbar #closeeditor,.ttk-toolbar .ttk-studio-preview,
+   .ttk-toolbar .ttk-studio-menu>summary,.ttk-studio-switch-button,
+   .ttk-studio-photo-action,.ttk-studio-photo-remove) {
+   background:linear-gradient(145deg,var(--pf-raised),var(--pf-panel))!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--fai-neon-border)!important;
+   box-shadow:inset 0 1px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-toolbar button[type="submit"] {
+   background:linear-gradient(112deg,
+    color-mix(in srgb,var(--pf-accent) 84%,white),var(--pf-accent))!important;
+   color:var(--pf-on-accent)!important;
+   -webkit-text-fill-color:var(--pf-on-accent)!important;
+   border:1px solid var(--pf-accent)!important;
+   box-shadow:0 7px 19px var(--fai-neon-light)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-studio-switch-button[aria-pressed="true"]{
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+   background:linear-gradient(120deg,
+      color-mix(in srgb,var(--pf-accent) 18%,var(--pf-raised)),var(--pf-panel))!important;
+   border-color:var(--pf-accent)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled .ttk-design-info em{
+   color:var(--pf-accent)!important;-webkit-text-fill-color:var(--pf-accent)!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled
+ :is(select,input:not([type=checkbox]):not([type=radio]),textarea)
+ :not(.ttk-paper *){
+   background:var(--pf-raised)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   border:1px solid var(--pf-line)!important;
+   color-scheme:dark!important;
+ }
+ body:is([data-pf-theme="royal"],[data-pf-theme="titanium"],[data-pf-theme="gold"],[data-pf-theme="ice"],[data-pf-theme="burgundy"]) #editor.ttk-studio-enabled
+ :is(label,summary,strong):not(.ttk-paper *):not(.ttk-design-thumb *){
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+ }
+ /* The live A4 design preview and its miniature white pages are deliberately
+    left untouched, so the printed approved TTK stays accurate. */
+}
