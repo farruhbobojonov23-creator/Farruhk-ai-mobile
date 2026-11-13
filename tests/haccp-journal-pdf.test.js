@@ -39,7 +39,6 @@ test('All 13 HACCP journal templates have distinct actionable headers in A4 PDF'
   const pdf=await parsePdf(await buffer(journalPdf({haccp:emptyHaccp(),kind,month:'2026-10',pointId:'point-1'})));
   assert.ok(pdf.numpages>=1&&pdf.numpages<=2,kind+' blank A4 pages');
   assert.match(pdf.text,new RegExp(journalTypes[kind]));
-  if(kind==='receiving')console.log('DEBUG RECEIVING A4',JSON.stringify(pdf.text.slice(0,900)));
   for(const c of columns){
    const extracted=pdf.text.replace(/\s+/g,'');
    const compact=c.label.replace(/\s+/g,'');
