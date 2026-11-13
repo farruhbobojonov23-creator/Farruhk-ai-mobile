@@ -117,7 +117,7 @@ async function verify(mode,width,height){
   await page.locator('#home-new-recipe').click();
   assert.equal(await page.locator('body').getAttribute('data-view'),'recipes','create TTK navigates to recipes');
   assert.equal(await visible(page,'#editor'),true,'TTK editor opens');
-  assert.equal(await page.locator('#editor').getAttribute('data-mode'),'form','TTK editor starts in form mode');
+  assert.equal(await page.locator('#editor').getAttribute('data-mode'),mode==='mobile'?'form':'paper','TTK Studio starts with readable editing mode');
   const colors=await page.locator('#recipe-name').evaluate(el=>{
    const c=getComputedStyle(el);return {background:c.backgroundColor,color:c.color};
   });
