@@ -70,7 +70,10 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   dialog.scrollTop=0;
  }
  const open=()=>{if(!getState()){notify('Данные ещё загружаются.',true);return;}render();dialog.showModal();};
- const entry=button('Мои шаблоны',open);entry.id='my-recipe-templates';document.querySelector('#recipes > .bar').append(entry);
+ const entry=button('Мои шаблоны',open);entry.id='my-recipe-templates';
+ const recipesRoot=document.querySelector('#recipes');
+ const advanced=recipesRoot.querySelector('.lx-sync-details');
+ if(advanced)advanced.append(entry);else recipesRoot.append(entry);
  const editorEntry=button('Мои шаблоны · новая техкарта',open);document.querySelector('#editor .ttk-template-tools').append(editorEntry);
  return {open};
 }
