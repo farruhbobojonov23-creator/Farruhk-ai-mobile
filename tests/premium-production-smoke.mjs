@@ -88,6 +88,23 @@ async function run(theme,width,height){
       text:n.textContent?.trim().slice(0,160)};
    }).filter(n=>n.visible&&n.bottom>innerHeight-220));
    console.log('TTK_NAV_DEBUG='+JSON.stringify(navDebug));
+   const extraNavDebug=await page.evaluate(()=>{
+    const nodes=[...document.querySelectorAll('body *')].filter(el=>{
+      const cs=getComputedStyle(el),r=el.getBoundingClientRect();
+      return r.width>60 && r.height>20 && r.bottom>innerHeight-150 && r.top<innerHeight &&
+        (cs.position==='fixed'||cs.position==='sticky') && (el.className||'')!=='lx-bottom-item';
+    }).slice(0,22).map(el=>{
+      const r=el.getBoundingClientRect(),c=getComputedStyle(el);
+      return {tag:el.tagName,id:el.id,cls:typeof el.className==='string'?el.className.slice(0,100):'',text:(el.textContent||'').slice(0,110),
+        display:c.display,position:c.position,z:c.zIndex,top:Math.round(r.top),bottom:Math.round(r.bottom),height:Math.round(r.height)};
+    });
+    const buttons=[...document.querySelectorAll('.mobile-tools.lx-ref-bottom button')].map(el=>({
+      outer:el.outerHTML.slice(0,300),before:getComputedStyle(el,'::before').content,after:getComputedStyle(el,'::after').content,order:getComputedStyle(el).order
+    }));
+    return {nodes,buttons};
+   });
+   console.log('TTK_NAV_EXTRA='+JSON.stringify(extraNavDebug));
+
    const navLabels=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
    const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','ХАССП','Ещё'];
    check(tag+' bottom navigation has no duplicated captions',
