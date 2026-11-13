@@ -70,3 +70,49 @@
 }
 /* Preserve the separately controlled printable recipe styles. */
 @media print{body{background:transparent!important}}
+
+/* FARUKH AI PREMIUM — unified approved black/gold visual polish.
+   Scoped to screen: all persistence, recipes, Google integrations and print are untouched. */
+@media screen {
+ :root{
+  --fai-bg:#090a0e;--fai-surface:#14151c;--fai-elevated:#1d1d25;
+  --fai-line:rgba(228,180,95,.25);--fai-ink:#f9f5ec;--fai-sub:#b8ae9d;
+  --fai-gold:#e6b75d;--fai-gold-ink:#ffe7b1;
+ }
+ body:not([data-view="home"]){
+  background:radial-gradient(ellipse at 80% -10%,rgba(189,138,56,.14),transparent 50%),linear-gradient(155deg,#090a0e,#13131b 72%)!important;
+ }
+ .aurora-top{background:rgba(12,12,17,.96)!important;border-bottom:1px solid rgba(222,175,91,.25)!important}
+ .aurora-brand,.aurora-brand span{color:#f4d18a!important;-webkit-text-fill-color:#f4d18a!important}
+ #chef-menu,.app>.sidebar.glass{background:linear-gradient(175deg,#1d1b20,#0d0d13)!important;border-color:rgba(227,178,88,.3)!important}
+ #chef-menu .brand{color:#eac47c!important;-webkit-text-fill-color:#eac47c!important}
+ #chef-menu .nav :is(button,a){color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important}
+ #chef-menu .nav :is(button,a):focus-visible{outline-color:#f5cc7a!important}
+ body:not([data-view="home"]) main>.glass,
+ body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel){
+  background:linear-gradient(150deg,#201d21,#111219)!important;
+  border-color:rgba(230,183,93,.25)!important;
+  color:#f9f5ec!important;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(h1,h2,h3){color:#f7deb1!important}
+ body:not([data-view="home"]) .view:not(#home) :is(.small,.section-subtitle){color:#bdb2a1!important}
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea){
+  background-color:#191920!important;border:1px solid rgba(225,182,107,.34)!important;
+  color:#f9f5ec!important;-webkit-text-fill-color:#f9f5ec!important;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(input,select,textarea):focus-visible{
+  outline:2px solid #efc36f!important;outline-offset:2px;
+ }
+ body:not([data-view="home"]) .view:not(#home) :is(input,textarea)::placeholder{color:#a99e91!important}
+ #recipes :is(.catalog-search,#catalog-all,#recipe-categories button){
+  background:#201e24!important;border-color:rgba(228,180,95,.34)!important;color:#f8eddb!important;
+ }
+ #recipes .catalog-search input{background:transparent!important;color:#fff7e7!important;-webkit-text-fill-color:#fff7e7!important}
+ #editor.ttk-studio-enabled:not([data-mode="paper"]){box-shadow:0 20px 60px rgba(0,0,0,.34)!important}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #e6b75d,0 12px 25px rgba(133,95,37,.2)!important}
+}
+@media screen and (max-width:720px){
+ .aurora-top{backdrop-filter:blur(14px)}
+ #chef-menu .nav :is(button,a){min-height:48px}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){min-height:46px}
+}
