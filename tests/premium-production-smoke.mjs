@@ -79,7 +79,7 @@ async function run(theme,width,height){
    // Regression: the settings overlay opens while the home view is active.
    // Old Arctic CSS used to force white panels and white-on-white headings here.
    await page.evaluate(()=>document.getElementById('lunar-settings').click());
-   await page.locator('dialog.lunar-dialog').waitFor({state:'visible',timeout:9000});
+   await page.locator('dialog.lunar-dialog:not(.lunar-history)').waitFor({state:'visible',timeout:9000});
    const settingsOverlay=await page.evaluate(()=>{
      const read=selector=>{
        const el=document.querySelector(selector);if(!el)return null;
@@ -105,7 +105,7 @@ async function run(theme,width,height){
      &&settingsOverlay.title?.inkAvg>150&&settingsOverlay.summary?.inkAvg>150,
      settingsOverlay);
    await page.screenshot({path:'artifacts/premium-'+tag+'-settings-modal.png',timeout:12000});
-   await page.locator('dialog.lunar-dialog > .bar > button').click();
+   await page.locator('dialog.lunar-dialog:not(.lunar-history) > .bar > button').click();
 
    console.log('PREMIUM_ROYAL_PREVIEW_'+(mobile?'MOBILE':'DESKTOP')+'_JPEG='+ (await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    const realProjects=page.locator('#home .pfv-projects .pfv-project:not(.pfv-project-create)');
