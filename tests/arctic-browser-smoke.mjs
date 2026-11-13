@@ -42,6 +42,7 @@ async function verify(mode,width,height){
  const page=await context.newPage();
  // This suite intentionally exercises the legacy Arctic workspace. The owner
  // defaults to premium Titanium, independently covered by premium QA.
+ await page.addInitScript(()=>localStorage.setItem('farruh-ai-approved-premium-v3','true'));
  await page.addInitScript(()=>localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({
   theme:'arctic',density:'standard',radius:20,scale:1,motion:false
  })));
