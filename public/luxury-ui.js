@@ -2,7 +2,7 @@
    Real data only: no invented recipe counts, calories, dates or photography.
    Existing document generator and device storage remain authoritative. */
 import {categoryPhotos} from '/recipe-catalog.js?v=2';
-import {showProductPhoto,preparePhoto} from '/product-photo.js?v=3';
+import {showProductPhoto} from '/product-photo.js?v=3';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const FILTER_KEY='farruh-ai-ttk-project-filter-v2';
 const svgPaths={
@@ -222,17 +222,22 @@ export function mountLuxuryUI(opts={}){
   const projectLabel=el('label','lx-editor-project','Проект ТТК');
   const projectInput=el('select');projectInput.id='recipe-project';projectInput.setAttribute('aria-label','Проект для техкарты');projectLabel.append(projectInput);
   const photoBox=el('div','lx-editor-photo-field');
-  const photoLabel=el('label','','Фото блюда · прозрачный PNG');const photoFile=el('input');photoFile.type='file';photoFile.accept='image/png,image/webp,image/jpeg';photoFile.id='recipe-photo-file';photoLabel.append(photoFile);
+  const photoLabel=el('label','','Фото блюда · сохранить исходный фон');const photoFile=el('input');photoFile.type='file';photoFile.accept='image/png,image/webp,image/jpeg';photoFile.id='recipe-photo-file';photoLabel.append(photoFile);
   const photoPreview=el('div','lx-editor-photo-preview');photoPreview.innerHTML=icon('chef');
-  const photoInfo=el('small','lx-photo-hint','Загрузи фото продукта. Однотонный фон удаляется автоматически; при сложном фоне нужен PNG без фона.');
+  const paperPhoto=el('figure','ttk-inline-photo');
+  const paperCaption=el('figcaption','','ФОТО БЛЮДА');
+  const paperImage=el('img');paperImage.alt='Фото блюда для печатной ТТК';
+  paperPhoto.append(paperCaption,paperImage);
+  editor.querySelector('.ttk-document-title')?.after(paperPhoto);
+  const photoInfo=el('small','lx-photo-hint','PNG/JPG/WebP. Фон фотографии не удаляется. Фото будет видно в карточке ТТК и на листе PDF.');
   const remove=btn('Убрать фото','lx-remove-photo');photoBox.append(photoLabel,photoPreview,remove,photoInfo);
   panel.append(projectLabel,photoBox);
   editor.querySelector('.editor-modes')?.before(panel);
   let storedPhoto=null;
   function updatePreview(){
    photoPreview.replaceChildren();
-   if(storedPhoto){const img=el('img');img.src=storedPhoto;img.alt='Фото готового блюда';photoPreview.append(img)}
-   else photoPreview.innerHTML=icon('chef');
+   if(storedPhoto){const img=el('img');img.src=storedPhoto;img.alt='Фото готового блюда';photoPreview.append(img);paperImage.src=storedPhoto;paperPhoto.hidden=false}
+   else{photoPreview.innerHTML=icon('chef');paperImage.removeAttribute('src');paperPhoto.hidden=true}
   }
   function fillProjects(){
    const prev=projectInput.value;
@@ -245,18 +250,23 @@ export function mountLuxuryUI(opts={}){
   remove.addEventListener('click',()=>{storedPhoto=null;photoFile.value='';updatePreview();onDirty()});
   photoFile.addEventListener('change',async()=>{
    const file=photoFile.files?.[0];if(!file)return;
-   if(file.size>12*1024*1024){photoInfo.textContent='Фото больше 12 МБ. Выбери файл меньшего размера.';photoFile.value='';return}
-   photoInfo.textContent='Обрабатываю прозрачность фото…';
+   if(file.size>12*1024*1024){photoInfo.textContent='Фото больше 12 МБ. Уменьши файл.';photoFile.value='';return}
+   photoInfo.textContent='Подготавливаю фото, сохраняя оригинальный фон…';
    try{
-    let result=await preparePhoto(file,{ai:false,tolerance:40});
-    const image=new Image();image.src=result;await image.decode();
-    const width=Math.min(650,image.naturalWidth),height=Math.max(1,Math.round(image.naturalHeight*width/image.naturalWidth));
-    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-    canvas.getContext('2d').drawImage(image,0,0,width,height);
-    result=canvas.toDataURL('image/png');if(result.length>2_200_000)throw Error('Фото слишком большое после обработки. Уменьши изображение.');
+    const url=URL.createObjectURL(file);const image=new Image();
+    try{image.src=url;await image.decode()}finally{URL.revokeObjectURL(url)}
+    if(!image.naturalWidth||!image.naturalHeight)throw Error('Файл изображения повреждён.');
+    const scale=Math.min(1,800/image.naturalWidth,800/image.naturalHeight);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+    canvas.getContext('2d',{alpha:true}).drawImage(image,0,0,canvas.width,canvas.height);
+    const usePng=file.type==='image/png'||file.type==='image/webp';
+    const result=canvas.toDataURL(usePng?'image/png':'image/jpeg',.88);
+    if(result.length>2_200_000)throw Error('Фото слишком большое. Уменьши изображение.');
     storedPhoto=result;updatePreview();onDirty();
-    photoInfo.textContent='Готово: PNG с прозрачным фоном, изображение сохранится вместе с ТТК.';
-   }catch(error){photoInfo.textContent='Не удалось убрать фон автоматически: '+error.message+' Загрузи PNG с прозрачностью.';photoFile.value=''}
+    photoInfo.textContent='Фото сохранится с исходным фоном — в карточке ТТК и на листе A4 PDF.';
+   }catch(error){photoInfo.textContent='Не удалось обработать фото: '+error.message;photoFile.value=''}
   });
   return {
    populate(r){
@@ -265,7 +275,7 @@ export function mountLuxuryUI(opts={}){
     projectInput.value=[...projectInput.options].some(x=>x.value===v)?v:'';
     storedPhoto=typeof r?.photo==='string'?r.photo:null;
     photoFile.value='';updatePreview();
-    photoInfo.textContent=storedPhoto?'Фото блюда загружено. Можно заменить его или убрать.':'Можно добавить фото блюда на прозрачном фоне.';
+    photoInfo.textContent=storedPhoto?'Фото сохранено с исходным фоном. Можно заменить или убрать.':'Загрузи фотографию — исходный фон останется без изменений.';
    },
    getProjectId:()=>projectInput.value,
    getPhoto:()=>storedPhoto
