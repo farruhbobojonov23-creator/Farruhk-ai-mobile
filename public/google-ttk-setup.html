@@ -6,14 +6,17 @@
 .credentials button{background:#1764be;white-space:nowrap;padding:10px 13px}
 .credentials button[disabled]{opacity:.5;cursor:not-allowed}.credentials .muted{font-size:13px;color:#50667a;margin:9px 0}
 .credentials #credentials-status{min-height:22px;color:#17633c;font-size:14px}
+.credentials input:focus{outline:2px solid #1764be;outline-offset:1px}
+.credentials .field{margin-bottom:9px}.credentials #connect-google{margin-top:8px;background:#17633c}
 </style><article><h1>Автосохранение готовых ТТК</h1><p>Рабочий документ уже подготовлен. Google требует один раз разрешить запись от имени владельца. После подключения готовые ТТК будут отправляться автоматически, пока Farukh AI открыт и есть интернет. Ожидающие отправки сохраняются на устройстве.</p><p><a href="https://docs.google.com/document/d/1sspXqpkmYnZ9M2V3XX2JVXw7bUk8LL1VNkoRM3gMlnY/edit" target="_blank" rel="noopener">Открыть рабочий документ</a></p><section class="credentials" aria-label="Реквизиты Google Apps Script">
 <h2>Мои данные подключения</h2>
 <p class="muted">Скопируйте адрес и ключ, когда понадобится повторно подключить Google к Farukh AI.</p>
 <label for="saved-endpoint">Адрес Google Apps Script</label>
 <div class="field"><input id="saved-endpoint" type="url" readonly spellcheck="false"><button id="copy-endpoint" type="button">Скопировать ссылку</button></div>
 <label for="saved-key">Ключ подключения</label>
-<div class="field"><input id="saved-key" type="password" readonly autocomplete="off" placeholder="Ключ найдётся в настройках этого устройства">
-<button id="reveal-key" type="button" disabled>Показать</button><button id="copy-key" type="button" disabled>Скопировать ключ</button></div>
+<div class="field"><input id="saved-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Вставьте скопированный ключ сюда">
+<button id="paste-key" type="button">Вставить ключ</button><button id="reveal-key" type="button" disabled>Показать</button><button id="copy-key" type="button" disabled>Скопировать ключ</button></div>
+<div class="field"><button id="connect-google" type="button" disabled>Проверить и подключить на этом устройстве</button></div>
 <p class="muted" id="credentials-help">Ключ берётся только из настроек, сохранённых в этом браузере. Он не публикуется на сайте и в GitHub.</p>
 <p id="credentials-status" role="status" aria-live="polite"></p>
 </section><ol><li><a href="https://script.google.com/home" target="_blank" rel="noopener">Открой Google Apps Script</a> в своём аккаунте и создай проект «Farukh AI ТТК».</li><li>Нажми «Скопировать код» ниже. Замени содержимое файла Code.gs этим кодом и сохрани.</li><li>Слева открой <b>Сервисы → +</b> и добавь <b>Google Docs API</b>. Затем выбери функцию <b>initialize</b> и нажми «Выполнить». Разреши доступ Google. В журнале выполнения появится <b>ключ подключения</b> — скопируй его.</li><li>Нажми <b>Развернуть → Новое развертывание → Веб-приложение</b>. Выполнять от имени: <b>я</b>. Доступ: <b>все</b>. Запись защищена личным ключом. Нажми «Развернуть» и скопируй адрес, заканчивающийся на <b>/exec</b>.</li><li>В Farukh AI открой <b>Техкарты → Google Документы</b>. Вставь адрес и ключ, нажми <b>Проверить и подключить</b>.</li></ol><button id="copy">Скопировать код</button> <a href="/google-ttk.gs" download="Code.gs">Скачать код</a><p id="result" role="status"></p><details><summary>Посмотреть код подключения</summary><pre id="code"></pre></details><p><a href="/#recipes">Вернуться в Техкарты</a></p></article><script>fetch('/google-ttk.gs').then(r=>r.text()).then(text=>{document.getElementById('code').textContent=text;document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);document.getElementById('result').textContent='Код скопирован.'}catch{document.getElementById('result').textContent='Скачай файл Code.gs по ссылке рядом.'}}});</script><script type="module">
@@ -21,42 +24,86 @@ import {DeviceStore} from '/device-store.js';
 const defaultEndpoint="https://script.google.com/macros/s/AKfycbxVew0HZOM4ak5fozl36vfP49KqNBd64hjcC5JRPnZwdJoCtE6kEyTRNAw6o-DNFdeh/exec";
 const urlField=document.getElementById('saved-endpoint');
 const keyField=document.getElementById('saved-key');
-const copyEndpoint=document.getElementById('copy-endpoint');
 const copyKey=document.getElementById('copy-key');
 const revealKey=document.getElementById('reveal-key');
+const pasteKey=document.getElementById('paste-key');
+const connectButton=document.getElementById('connect-google');
 const help=document.getElementById('credentials-help');
 const status=document.getElementById('credentials-status');
 urlField.value=defaultEndpoint;
+const store=new DeviceStore();
+function updateControls(){
+  const hasKey=Boolean(keyField.value.trim());
+  revealKey.disabled=!hasKey;copyKey.disabled=!hasKey;
+  connectButton.disabled=keyField.value.trim().length<24;
+}
+keyField.addEventListener('input',()=>{updateControls();status.textContent=''});
 try{
- const state=await new DeviceStore().load();
- const config=state?.googleSync;
- if(config?.endpoint)urlField.value=config.endpoint;
- if(config?.key){
-  keyField.value=config.key;
-  revealKey.disabled=false;copyKey.disabled=false;
-  help.textContent='Ссылка и ключ взяты из настроек Farukh AI на этом устройстве. Сохраните их в надёжном месте. Не отправляйте ключ посторонним.';
+ const state=await store.load();
+ const cfg=state?.googleSync;
+ if(cfg?.endpoint)urlField.value=cfg.endpoint;
+ if(cfg?.key){
+  keyField.value=cfg.key;
+  help.textContent='Ключ загружен из настроек этого браузера. Можно скопировать или проверить подключение повторно. Не отправляйте ключ посторонним.';
  }else{
-  help.textContent='Ссылка указана для повторного подключения. Ключ на этом устройстве не найден: откройте настройки Google в Farukh AI на устройстве, где подключение уже работает.';
+  help.textContent='На этом устройстве ключ ещё не сохранён. Вставьте ключ в поле выше, затем нажмите «Проверить и подключить». Если ключ скопирован на телефоне, сначала безопасно перенесите его на компьютер.';
  }
-}catch{
- help.textContent='Не удалось прочитать настройки браузера. Ссылку можно скопировать, а ключ найти в настройках Farukh AI на подключённом устройстве.';
+}catch(e){
+ help.textContent='Не получилось прочитать сохранённые настройки. Вставьте ключ вручную и проверьте подключение.';
 }
+updateControls();
 async function copy(value,kind){
- if(!value){status.textContent='Данные для копирования ещё не сохранены.';return}
+ if(!value){status.textContent='Нет данных для копирования.';return}
  try{
-  if(!navigator.clipboard?.writeText)throw Error('Clipboard API unavailable');
   await navigator.clipboard.writeText(value);
-  status.textContent=kind+' скопирован'+(kind==='Ключ'?'':'а')+'.';
+  status.textContent=kind+' скопирован'+(kind==='Ссылка'?'а':'')+'.';
  }catch{
-  status.textContent='Не удалось скопировать автоматически. Выделите значение и скопируйте вручную.';
-  if(kind==='Ссылка'){urlField.removeAttribute('readonly');urlField.focus();urlField.select()}
-  else {keyField.type='text';keyField.removeAttribute('readonly');keyField.focus();keyField.select()}
+  const field=kind==='Ссылка'?urlField:keyField;
+  if(kind==='Ссылка')field.removeAttribute('readonly');
+  field.type='text';field.focus();field.select();
+  status.textContent='Автоматическое копирование запрещено браузером. Нажмите Ctrl+C, чтобы скопировать выделенное.';
  }
 }
-copyEndpoint.addEventListener('click',()=>copy(urlField.value,'Ссылка'));
-copyKey.addEventListener('click',()=>copy(keyField.value,'Ключ'));
+document.getElementById('copy-endpoint').addEventListener('click',()=>copy(urlField.value,'Ссылка'));
+copyKey.addEventListener('click',()=>copy(keyField.value.trim(),'Ключ'));
 revealKey.addEventListener('click',()=>{
- const hidden=keyField.type==='password';keyField.type=hidden?'text':'password';
- revealKey.textContent=hidden?'Скрыть':'Показать';
+ const show=keyField.type==='password';
+ keyField.type=show?'text':'password';
+ revealKey.textContent=show?'Скрыть':'Показать';
+});
+pasteKey.addEventListener('click',async()=>{
+ try{
+  const clipboard=(await navigator.clipboard.readText()).trim();
+  if(!clipboard)throw Error('empty');
+  keyField.value=clipboard;updateControls();
+  status.textContent='Ключ вставлен. Нажмите «Проверить и подключить».';
+ }catch{
+  keyField.focus();
+  status.textContent='Браузер не разрешил вставить автоматически. Нажмите на поле ключа и Ctrl+V (или удерживайте палец → «Вставить»).';
+ }
+});
+connectButton.addEventListener('click',async()=>{
+ const endpoint=urlField.value.trim(),key=keyField.value.trim();
+ try{
+  const url=new URL(endpoint);
+  if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(url.pathname)||url.search||url.hash)throw Error('Неверная ссылка Google Apps Script.');
+  if(key.length<24||key.length>200)throw Error('Проверьте ключ подключения.');
+  connectButton.disabled=true;status.textContent='Проверяю подключение к Google…';
+  const response=await fetch('/api/recipes/google-sync',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({endpoint,key,action:'check'}),
+    signal:AbortSignal.timeout(110000)
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||result.ok!==true)throw Error(result.error||'Google не подтвердил подключение.');
+  await store.mutate(s=>{
+    const previous=s.googleSync;
+    s.googleSync={endpoint,key,enabled:true,documentUrl:result.documentUrl||previous?.documentUrl};
+    if(previous?.endpoint!==endpoint||previous?.key!==key)s.googleDelivery={};
+  });
+  status.textContent='✅ Google подключён на этом устройстве. Автосохранение готовых ТТК включено.';
+  help.textContent='Ключ сохранён в настройках этого браузера, но не опубликован на сайте. Теперь можно открыть техкарты.';
+ }catch(e){status.textContent='Не удалось подключить: '+e.message}
+ finally{updateControls()}
 });
 </script></html>
