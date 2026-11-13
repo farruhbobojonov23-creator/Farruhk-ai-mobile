@@ -246,6 +246,15 @@
   background:#ffffffed!important;color:#1b5889!important;-webkit-text-fill-color:#1b5889!important;
   box-shadow:0 4px 12px #153c601e!important
  }
+ #editor.ttk-studio-enabled .ttk-inline-photo .ttk-studio-photo-remove {
+  position:absolute;z-index:3;right:6px;top:6px;
+  display:grid;place-items:center;width:26px!important;height:26px!important;
+  padding:0!important;min-height:26px!important;border-radius:8px!important;
+  border:1px solid #e9bbc6!important;background:#fff1f3!important;
+  color:#a1344f!important;-webkit-text-fill-color:#a1344f!important;
+  font-size:17px!important;box-shadow:0 3px 12px #26374730!important
+ }
+ #editor.ttk-studio-enabled .ttk-inline-photo .ttk-studio-photo-remove[hidden]{display:none!important}
  #editor.ttk-studio-enabled .ttk-inline-photo img{
   height:100px!important;object-fit:contain!important
  }
