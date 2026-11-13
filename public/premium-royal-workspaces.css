@@ -185,3 +185,13 @@
 @media screen and (prefers-reduced-motion:reduce) {
  body[data-pf-theme="royal"][data-view="recipes"] #recipes .category-card[data-category] {transition:none!important}
 }
+
+/* Wide-screen navigation must not depend on transient theme state. */
+@media screen and (min-width:900px){
+ html body[data-view] nav.mobile-tools,
+ html body[data-view] nav.mobile-tools.lx-ref-bottom,
+ html body.lx-pro[data-view] nav.mobile-tools.lx-ref-bottom,
+ html body[data-view] #pf-workspace nav.pf-bottom {
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+ }
+}
