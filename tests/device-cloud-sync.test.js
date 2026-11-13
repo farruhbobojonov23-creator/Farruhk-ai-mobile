@@ -54,3 +54,13 @@ test('only approved data are included; Google integration keys remain local',()=
  assert.equal(result.haccp,undefined);
  assert.equal(result.projectCatalog.selected,undefined);
 });
+
+test('first merge preserves two divergent legacy recipes with the same ID',()=>{
+ const phone=snapshot([recipe('legacy-id','Тест со старого телефона')]);
+ const tablet=snapshot([recipe('legacy-id','Филадельфия с планшета')]);
+ const merged=reconcileSnapshots(null,phone,tablet);
+ assert.equal(merged.recipes.length,2);
+ assert.notEqual(merged.recipes[0].id,merged.recipes[1].id);
+ assert.equal(merged.recipes[0].name,'Филадельфия с планшета');
+ assert.match(merged.recipes[1].name,/копия с другого устройства/);
+});
