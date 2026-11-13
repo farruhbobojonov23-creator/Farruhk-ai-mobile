@@ -29,6 +29,9 @@
   <nav class="side-nav" id="sideNav">
    <button type="button" class="nav-btn active" data-nav="dashboard"><span class="icon" data-icon="grid"></span> Обзор</button>
    <button type="button" class="nav-btn" data-nav="projects"><span class="icon" data-icon="folder"></span> Мои проекты</button>
+   <button type="button" class="nav-btn" data-nav="ingredients"><span class="icon" data-icon="layers"></span> Ингредиенты</button>
+   <button type="button" class="nav-btn" data-nav="prefabs"><span class="icon" data-icon="book"></span> Полуфабрикаты</button>
+   <button type="button" class="nav-btn" data-nav="products"><span class="icon" data-icon="grid"></span> Готовые блюда</button>
    <button type="button" class="nav-btn" data-nav="library"><span class="icon" data-icon="book"></span> Библиотека ТТК</button>
    <button type="button" class="nav-btn" data-nav="editor"><span class="icon" data-icon="edit"></span> Конструктор ТТК</button>
    <div class="nav-sep"></div>
@@ -70,6 +73,21 @@
      <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input class="control" id="projectSearch" type="search" placeholder="Поиск по проектам" aria-label="Поиск проекта"></label>
       <select class="control" id="projectStatus" aria-label="Статус проекта"><option value="active">Активные проекты</option><option value="archive">Архивные проекты</option><option value="all">Все проекты</option></select></div>
      <div id="projectGrid" class="project-grid" aria-live="polite"></div>
+   </section>
+   <section id="viewIngredients" class="page" data-view="ingredients" hidden>
+    <div class="page-head"><div><div class="mini-label">CHEF DATA / INGREDIENTS</div><h2>Ингредиенты</h2><p>Существующий каталог сырья: категория, аллергены, КБЖУ и сведения поставщика.</p></div><span class="pill" id="ingredientsTotal">Загрузка</span></div>
+    <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input id="ingredientsSearch" class="control" type="search" placeholder="Найти ингредиент, производителя или категорию" aria-label="Поиск ингредиента"></label><select class="control" id="ingredientsCategory" aria-label="Категория ингредиента"><option value="">Все категории</option></select></div>
+    <div class="catalog-grid" id="ingredientsCatalog" aria-live="polite"></div>
+   </section>
+   <section id="viewPrefabs" class="page" data-view="prefabs" hidden>
+    <div class="page-head"><div><div class="mini-label">CHEF DATA / PREPARATIONS</div><h2>Полуфабрикаты</h2><p>Рецептуры, состав, выход и технология из действующей базы MORE SUSHI STUDIO.</p></div><span class="pill" id="prefabsTotal">Загрузка</span></div>
+    <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input id="prefabsSearch" class="control" type="search" placeholder="Поиск полуфабриката" aria-label="Поиск полуфабриката"></label><select class="control" id="prefabsCategory" aria-label="Категория полуфабриката"><option value="">Все категории</option></select></div>
+    <div class="catalog-grid" id="prefabsCatalog" aria-live="polite"></div>
+   </section>
+   <section id="viewProducts" class="page" data-view="products" hidden>
+    <div class="page-head"><div><div class="mini-label">CHEF DATA / RECIPES</div><h2>Готовые блюда</h2><p>Рецептуры товаров, технологические процессы и выход порции.</p></div><span class="pill" id="productsTotal">Загрузка</span></div>
+    <div class="toolbar"><label class="search-wrap"><span class="icon" data-icon="search"></span><input id="productsSearch" class="control" type="search" placeholder="Поиск блюда" aria-label="Поиск блюда"></label><select class="control" id="productsCategory" aria-label="Категория блюда"><option value="">Все категории</option></select></div>
+    <div class="catalog-grid" id="productsCatalog" aria-live="polite"></div>
    </section>
    <section id="viewLibrary" class="page" data-view="library" hidden>
      <div class="page-head"><div><div class="mini-label">TTK DOCUMENT LIBRARY</div><h2>Библиотека ТТК</h2><p>Каждая карта привязана к проекту, но остаётся доступной в общей библиотеке.</p></div>
@@ -206,10 +224,12 @@
  <div class="modal-body"><label class="field"><span class="label">В какой проект скопировать?</span><select id="copyProject" class="control" required></select></label></div>
  <div class="modal-foot"><button type="button" class="btn btn-light" data-command="closeCopy">Отмена</button><button type="submit" class="btn btn-primary">Создать копию</button></div>
  </form></dialog>
+<dialog id="chefCatalogDialog" class="chef-catalog-dialog" aria-labelledby="chefCatalogTitle"><div class="modal-head"><div><div class="mini-label">ШЕФ AI / КАТАЛОГ</div><h2 id="chefCatalogTitle">Карточка</h2><p id="chefCatalogSubtitle"></p></div><button type="button" class="modal-close" id="chefCatalogClose" aria-label="Закрыть карточку">×</button></div><div class="modal-body" id="chefCatalogDetails"></div><div class="modal-foot"><button type="button" class="btn btn-primary" id="chefCatalogDone">Закрыть</button></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script src="./archive-sheet.js?v=archive-2"></script>
 <script src="./a4-design-editor.js?v=20261112-v4"></script>
 <script src="./a4-classic-settings.js?v=20261112-v2"></script>
 <script src="./ttk-auto-pro.js?v=20261112-auto2"></script>
 <script src="./farukh-lux-v3.js?v=20261112-auto2" defer></script>
+<script src="./shef-ai-catalog.js?v=chef-catalog-v1" defer></script>
 </body></html>
