@@ -1,0 +1,80 @@
+/* Compact cloud-sync chip. In the project actions row, never use the
+   generic TTK action dimensions or an independent grid cell. */
+#recipes #sync-quick-access {
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  flex:0 0 auto!important;
+  align-self:center!important;
+  width:max-content!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:38px!important;
+  min-height:38px!important;
+  padding:4px 12px 4px 5px!important;
+  margin:0!important;
+  border:1px solid #b0d5ee!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#ffffff 0%,#e4f3ff 100%)!important;
+  box-shadow:0 3px 8px #17609a12,inset 0 1px #fff!important;
+  color:#195580!important;
+  -webkit-text-fill-color:#195580!important;
+  font-family:inherit!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-align:center!important;
+  text-decoration:none!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  cursor:pointer!important;
+  transition:background .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#recipes #sync-quick-access .sync-quick-icon {
+  box-sizing:border-box!important;
+  width:27px!important;height:27px!important;min-width:27px!important;
+  display:grid!important;place-items:center!important;
+  flex:0 0 27px!important;
+  background:linear-gradient(140deg,#269be7,#0962b8)!important;
+  border-radius:9px!important;
+  box-shadow:inset 0 1px #a0d4ff,0 2px 5px #0964b23b!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+#recipes #sync-quick-access .sync-quick-icon svg {
+  width:17px!important;height:17px!important;
+  display:block!important;
+  stroke:currentColor!important;
+  fill:none!important;
+  stroke-width:1.8!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+#recipes #sync-quick-access .sync-quick-label{
+  display:inline!important;
+  color:#195580!important;-webkit-text-fill-color:#195580!important;
+  font-size:inherit!important;font-weight:inherit!important;
+  line-height:1.1!important;white-space:nowrap!important;
+}
+#recipes #sync-quick-access:hover{
+  background:linear-gradient(140deg,#f4fbff,#cceaff)!important;
+  box-shadow:0 5px 12px #17609a25!important;
+}
+#recipes #sync-quick-access:active{transform:translateY(1px)!important}
+#recipes #sync-quick-access:focus-visible{
+  outline:3px solid #3e9be2!important;outline-offset:3px!important;
+}
+@media (max-width:560px){
+  #recipes .lx-project-row #sync-quick-access{
+    height:36px!important;min-height:36px!important;
+    padding:4px 10px 4px 4px!important;
+    gap:6px!important;font-size:11px!important;
+  }
+  #recipes .lx-project-row #sync-quick-access .sync-quick-icon{
+    width:25px!important;height:25px!important;min-width:25px!important;
+    flex-basis:25px!important;border-radius:8px!important;
+  }
+}
+@media print {#recipes #sync-quick-access{display:none!important}}
