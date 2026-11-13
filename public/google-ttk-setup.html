@@ -10,7 +10,7 @@
 .credentials .field{margin-bottom:9px}.credentials #connect-google{margin-top:8px;background:#17633c}
 </style><article><h1>Автосохранение готовых ТТК</h1><p>Рабочий документ уже подготовлен. Google требует один раз разрешить запись от имени владельца. После подключения готовые ТТК будут отправляться автоматически, пока Farukh AI открыт и есть интернет. Ожидающие отправки сохраняются на устройстве.</p><p><a href="https://docs.google.com/document/d/1sspXqpkmYnZ9M2V3XX2JVXw7bUk8LL1VNkoRM3gMlnY/edit" target="_blank" rel="noopener">Открыть рабочий документ</a></p><section class="credentials" aria-label="Реквизиты Google Apps Script">
 <h2>Мои данные подключения</h2>
-<p class="muted">Скопируйте адрес и ключ, когда понадобится повторно подключить Google к Farukh AI.</p>
+<p class="muted">Адрес уже указан. В поле «Ключ» вставляется <strong>только ключ из журнала Google Apps Script</strong>, не текст программы Code.gs.</p><p class="muted"><strong>Где получить ключ:</strong> откройте существующий проект в <a href="https://script.google.com/home" target="_blank" rel="noopener">Google Apps Script</a> → выберите функцию <b>initialize</b> → <b>Выполнить</b> → <b>Журнал выполнения</b>. Скопируйте только значение после слов «Ключ подключения:». Уже созданный ключ сохранится, новый проект создавать не нужно.</p>
 <label for="saved-endpoint">Адрес Google Apps Script</label>
 <div class="field"><input id="saved-endpoint" type="url" readonly spellcheck="false"><button id="copy-endpoint" type="button">Скопировать ссылку</button></div>
 <label for="saved-key">Ключ подключения</label>
@@ -19,7 +19,7 @@
 <div class="field"><button id="connect-google" type="button" disabled>Проверить и подключить на этом устройстве</button></div>
 <p class="muted" id="credentials-help">Ключ берётся только из настроек, сохранённых в этом браузере. Он не публикуется на сайте и в GitHub.</p>
 <p id="credentials-status" role="status" aria-live="polite"></p>
-</section><ol><li><a href="https://script.google.com/home" target="_blank" rel="noopener">Открой Google Apps Script</a> в своём аккаунте и создай проект «Farukh AI ТТК».</li><li>Нажми «Скопировать код» ниже. Замени содержимое файла Code.gs этим кодом и сохрани.</li><li>Слева открой <b>Сервисы → +</b> и добавь <b>Google Docs API</b>. Затем выбери функцию <b>initialize</b> и нажми «Выполнить». Разреши доступ Google. В журнале выполнения появится <b>ключ подключения</b> — скопируй его.</li><li>Нажми <b>Развернуть → Новое развертывание → Веб-приложение</b>. Выполнять от имени: <b>я</b>. Доступ: <b>все</b>. Запись защищена личным ключом. Нажми «Развернуть» и скопируй адрес, заканчивающийся на <b>/exec</b>.</li><li>В Farukh AI открой <b>Техкарты → Google Документы</b>. Вставь адрес и ключ, нажми <b>Проверить и подключить</b>.</li></ol><button id="copy">Скопировать код</button> <a href="/google-ttk.gs" download="Code.gs">Скачать код</a><p id="result" role="status"></p><details><summary>Посмотреть код подключения</summary><pre id="code"></pre></details><p><a href="/#recipes">Вернуться в Техкарты</a></p></article><script>fetch('/google-ttk.gs').then(r=>r.text()).then(text=>{document.getElementById('code').textContent=text;document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);document.getElementById('result').textContent='Код скопирован.'}catch{document.getElementById('result').textContent='Скачай файл Code.gs по ссылке рядом.'}}});</script><script type="module">
+</section><ol><li><a href="https://script.google.com/home" target="_blank" rel="noopener">Открой Google Apps Script</a> в своём аккаунте и создай проект «Farukh AI ТТК».</li><li>Нажми «Скопировать код» ниже. Замени содержимое файла Code.gs этим кодом и сохрани.</li><li>Слева открой <b>Сервисы → +</b> и добавь <b>Google Docs API</b>. Затем выбери функцию <b>initialize</b> и нажми «Выполнить». Разреши доступ Google. В журнале выполнения появится <b>ключ подключения</b> — скопируй его.</li><li>Нажми <b>Развернуть → Новое развертывание → Веб-приложение</b>. Выполнять от имени: <b>я</b>. Доступ: <b>все</b>. Запись защищена личным ключом. Нажми «Развернуть» и скопируй адрес, заканчивающийся на <b>/exec</b>.</li><li>В Farukh AI открой <b>Техкарты → Google Документы</b>. Вставь адрес и ключ, нажми <b>Проверить и подключить</b>.</li></ol><button id="copy">Скопировать код программы Code.gs (не ключ)</button> <a href="/google-ttk.gs" download="Code.gs">Скачать код</a><p id="result" role="status"></p><details><summary>Посмотреть код подключения</summary><pre id="code"></pre></details><p><a href="/#recipes">Вернуться в Техкарты</a></p></article><script>fetch('/google-ttk.gs').then(r=>r.text()).then(text=>{document.getElementById('code').textContent=text;document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);document.getElementById('result').textContent='Код скопирован.'}catch{document.getElementById('result').textContent='Скачай файл Code.gs по ссылке рядом.'}}});</script><script type="module">
 import {DeviceStore} from '/device-store.js';
 const defaultEndpoint="https://script.google.com/macros/s/AKfycbxVew0HZOM4ak5fozl36vfP49KqNBd64hjcC5JRPnZwdJoCtE6kEyTRNAw6o-DNFdeh/exec";
 const urlField=document.getElementById('saved-endpoint');
@@ -76,6 +76,7 @@ pasteKey.addEventListener('click',async()=>{
   const clipboard=(await navigator.clipboard.readText()).trim();
   if(!clipboard)throw Error('empty');
   if(/^https?:\/\//i.test(clipboard)){status.textContent='В буфере обмена ссылка, а не ключ. Скопируйте именно ключ подключения.';return}
+  if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(clipboard)){status.textContent='Вы скопировали код программы, а не ключ. Ключ можно взять из журнала выполнения initialize в Google Apps Script.';return}
   keyField.value=clipboard;updateControls();
   status.textContent='Ключ вставлен. Нажмите «Проверить и подключить».';
  }catch{
@@ -88,7 +89,8 @@ connectButton.addEventListener('click',async()=>{
  try{
   const url=new URL(endpoint);
   if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(url.pathname)||url.search||url.hash)throw Error('Неверная ссылка Google Apps Script.');
-  if(/^https?:\/\//i.test(key)||key===endpoint)throw Error('В поле ключа вставлена ссылка, а не ключ. Скопируйте ключ из настроек подключённого устройства или из журнала выполнения initialize в Google Apps Script.');
+  if(/^https?:\/\//i.test(key)||key===endpoint)throw Error('В поле ключа вставлена ссылка, а не ключ.');
+  if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(key))throw Error('Вы вставили код программы Code.gs, а не ключ. Откройте существующий проект Google Apps Script, запустите initialize и скопируйте из журнала только значение после «Ключ подключения:».');
   if(key.length<24||key.length>200)throw Error('Проверьте ключ подключения.');
   connectButton.disabled=true;status.textContent='Проверяю подключение к Google…';
   const response=await fetch('/api/recipes/google-sync',{
