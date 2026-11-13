@@ -75,6 +75,7 @@ pasteKey.addEventListener('click',async()=>{
  try{
   const clipboard=(await navigator.clipboard.readText()).trim();
   if(!clipboard)throw Error('empty');
+  if(/^https?:\/\//i.test(clipboard)){status.textContent='В буфере обмена ссылка, а не ключ. Скопируйте именно ключ подключения.';return}
   keyField.value=clipboard;updateControls();
   status.textContent='Ключ вставлен. Нажмите «Проверить и подключить».';
  }catch{
@@ -87,6 +88,7 @@ connectButton.addEventListener('click',async()=>{
  try{
   const url=new URL(endpoint);
   if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(url.pathname)||url.search||url.hash)throw Error('Неверная ссылка Google Apps Script.');
+  if(/^https?:\/\//i.test(key)||key===endpoint)throw Error('В поле ключа вставлена ссылка, а не ключ. Скопируйте ключ из настроек подключённого устройства или из журнала выполнения initialize в Google Apps Script.');
   if(key.length<24||key.length>200)throw Error('Проверьте ключ подключения.');
   connectButton.disabled=true;status.textContent='Проверяю подключение к Google…';
   const response=await fetch('/api/recipes/google-sync',{
