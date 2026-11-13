@@ -1,5 +1,48 @@
 /** Farukh AI ready TTK receiver. No account keys are stored in this file. */
 const WORKING_DOCUMENT_ID = '1sspXqpkmYnZ9M2V3XX2JVXw7bUk8LL1VNkoRM3gMlnY';
+const PROJECT_ROOT_FOLDER_ID = '1bmHb1k7IRyI7RrTOxry9VUS1iiW0WhM1';
+const KNOWN_PROJECTS = {
+ 'sushi-beri': {name:'Суши Бери',folderId:'1V5I43-fZZYIy36WHezqdZRvVqJenS8DC',documentId:WORKING_DOCUMENT_ID},
+ 'more-sushi': {name:'Море Суши',folderId:'1Hv4IxMj6bCUrZwgu_x2OrV8fH_oLQZvD',documentId:'1uQdJ3l_sfR2nl317O1C85-T_x6s2BwYE8gj1Hhx-cm8'},
+ 'general': {name:'Без проекта',folderId:'1ma5tlndQG9H0_lwl-T1ggcuj-wZntcNJ',documentId:'1mMxSU0s8zt1V-Ew2YaPk7pwSuZWxuwnwmYAmd-qKZyM'}
+};
+const STANDARD_TTK_CATEGORIES=['Холодные роллы','Запечённые роллы','Темпурные роллы','Маки-роллы','Гунканы','Воки','Суши','Беридоги','Закуски','Онигири','Полуфабрикаты'];
+function projectIdentity(packet){
+ const rawId=String(packet.projectId||packet.recipe?.projectId||'').trim().slice(0,100);
+ const projectId=rawId||'general',known=KNOWN_PROJECTS[projectId];
+ const rawName=String(packet.projectName||packet.recipe?.projectName||known?.name||'').trim().slice(0,120);
+ return {projectId,projectName:projectId==='general'?'Без проекта':rawName||('Проект '+projectId)};
+}
+function projectStorage(properties,packet){
+ const identity=projectIdentity(packet),known=KNOWN_PROJECTS[identity.projectId];
+ const slot='project_'+identity.projectId.replace(/[^a-z0-9_-]/gi,'_').slice(0,85);
+ const previous=JSON.parse(properties.getProperty(slot)||'{}'),root=DriveApp.getFolderById(PROJECT_ROOT_FOLDER_ID);
+ let folder;
+ try{if(previous.folderId)folder=DriveApp.getFolderById(previous.folderId)}catch(e){}
+ if(!folder&&known)folder=DriveApp.getFolderById(known.folderId);
+ if(!folder){const found=root.getFoldersByName(identity.projectName);folder=found.hasNext()?found.next():root.createFolder(identity.projectName);}
+ let documentId=previous.documentId||known?.documentId||'';
+ if(documentId){try{DocumentApp.openById(documentId)}catch(e){documentId=''}}
+ if(!documentId){
+   const title=identity.projectName+' — Готовые ТТК',found=folder.getFilesByName(title);
+   if(found.hasNext())documentId=found.next().getId();
+   else{const doc=DocumentApp.create(title);documentId=doc.getId();DriveApp.getFileById(documentId).moveTo(folder);}
+ }
+ if(previous.name&&previous.name!==identity.projectName){
+   folder.setName(identity.projectName);DriveApp.getFileById(documentId).setName(identity.projectName+' — Готовые ТТК');
+ }
+ const folderId=folder.getId();
+ properties.setProperty(slot,JSON.stringify({folderId,documentId,name:identity.projectName}));
+ if(documentId!==WORKING_DOCUMENT_ID)ensureStandardCategories(documentId);
+ return {...identity,folderId,documentId,folderUrl:'https://drive.google.com/drive/folders/'+folderId,
+   documentUrl:'https://docs.google.com/document/d/'+documentId+'/edit'};
+}
+function ensureStandardCategories(documentId){
+ const tabs=flattenTabs(docsApi('?includeTabsContent=true',null,documentId).tabs);
+ const present=new Set(tabs.filter(t=>!t.tabProperties.parentTabId).map(t=>t.tabProperties.title));
+ const missing=STANDARD_TTK_CATEGORIES.filter(name=>!present.has(name));
+ if(missing.length)docsApi(':batchUpdate',{requests:missing.map(title=>({addDocumentTab:{tabProperties:{title}}}))},documentId);
+}
 function initialize() {
   const properties = PropertiesService.getScriptProperties();
   let key = properties.getProperty('CONNECTION_KEY');
@@ -10,12 +53,12 @@ function initialize() {
   console.log('Рабочий документ: https://docs.google.com/document/d/' + WORKING_DOCUMENT_ID + '/edit');
 }
 function jsonResponse(value) { return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON); }
-function docsApi(suffix, payload) {
-  return payload ? Docs.Documents.batchUpdate(payload,WORKING_DOCUMENT_ID) : Docs.Documents.get(WORKING_DOCUMENT_ID,{includeTabsContent:true});
+function docsApi(suffix,payload,documentId=WORKING_DOCUMENT_ID) {
+  return payload ? Docs.Documents.batchUpdate(payload,documentId) : Docs.Documents.get(documentId,{includeTabsContent:true});
 }
 function flattenTabs(tabs) { return (tabs || []).reduce((all,tab)=>all.concat([tab], flattenTabs(tab.childTabs)), []); }
-function addTab(title, parentTabId) {
-  const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]});
+function addTab(title, parentTabId,documentId=WORKING_DOCUMENT_ID) {
+  const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]},documentId);
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
 const TTK_LAYOUT_VERSION = 'burgundy-4';
@@ -25,7 +68,7 @@ function formatBody(body, packet) {
  sections.forEach((s,i)=>s[0]=s[0].replace(/^\d+\./,String(i+1)+'.'));
  if(sections[2][1][0].length===3)sections[2][1]=sections[2][1].map((row,i)=>[...row,i===0?'Отходы, %':i===sections[2][1].length-1?'':r.ingredients&&r.ingredients[i-1]&&r.ingredients[i-1].lossPercent!=null?String(r.ingredients[i-1].lossPercent):'—']);
  body.clear().setPageWidth(595.28).setPageHeight(841.89).setMarginTop(22).setMarginBottom(22).setMarginLeft(25).setMarginRight(25);
- const title=body.appendParagraph('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)');title.editAsText().setFontFamily('Arial').setFontSize(10).setBold(true).setForegroundColor('#651D2C');
+ const title=body.appendParagraph('ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА ('+String(packet.projectName||r.projectName||'Суши Бери')+')');title.editAsText().setFontFamily('Arial').setFontSize(10).setBold(true).setForegroundColor('#651D2C');
  if(body.getChild(0).getType()===DocumentApp.ElementType.PARAGRAPH&&!body.getChild(0).asParagraph().getText())body.getChild(0).removeFromParent();
  addTable(body,[['Блюдо',String(r.name),'Дата',String(r.cardDate||'—')],['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')],['Статус','Рецептура готова','Количество',r.pieces?String(r.pieces)+' шт.':'—']],false,545);
  const top=body.appendTable([['','']]);top.setBorderColor('#D9B7A3').setBorderWidth(0);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
@@ -120,6 +163,6 @@ function reformatExistingTtk(){
  });document.saveAndClose();tabsToStyle.forEach(normalizeCardTextHighlights);console.log('Исправлено оформление ТТК: '+count);
 }
 
-function normalizeCardTextHighlights(tabId) {
- docsApi(':batchUpdate',{requests:[{updateDocumentStyle:{documentStyle:{background:{color:{color:{rgbColor:{red:1,green:241/255,blue:229/255}}}}},fields:'background'}},{updateDocumentStyle:{tabId,documentStyle:{background:{color:{color:{rgbColor:{red:1,green:241/255,blue:229/255}}}}},fields:'background'}}]});
+function normalizeCardTextHighlights(tabId,documentId=WORKING_DOCUMENT_ID) {
+ docsApi(':batchUpdate',{requests:[{updateDocumentStyle:{documentStyle:{background:{color:{color:{rgbColor:{red:1,green:241/255,blue:229/255}}}}},fields:'background'}},{updateDocumentStyle:{tabId,documentStyle:{background:{color:{color:{rgbColor:{red:1,green:241/255,blue:229/255}}}}},fields:'background'}}]},documentId);
 }
