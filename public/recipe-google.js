@@ -1,6 +1,21 @@
 import {readyArchive,recipeDigest} from './recipe-release.js';
+const PROJECT_CATALOG_KEY='farruh-ai-project-catalog-v1';
+const PROJECT_FILTER_KEY='farruh-ai-ttk-project-filter-v2';
+function linkedProjects(state){
+ let saved;
+ try{saved=JSON.parse(localStorage.getItem(PROJECT_CATALOG_KEY)||'null')?.projects}catch{}
+ const defaults=[{id:'more-sushi',name:'Море Суши'},{id:'sushi-beri',name:'Суши Бери'}];
+ const projects=new Map([['general',{id:'general',name:'Без проекта'}]]);
+ for(const project of Array.isArray(saved)?saved:defaults)
+  if(typeof project?.id==='string'&&project.id.trim()&&typeof project?.name==='string'&&project.name.trim())
+    projects.set(project.id,{id:project.id,name:project.name.trim()});
+ for(const recipe of [...(state?.recipes||[]),...(state?.releasedRecipes||[])])
+  if(recipe.projectId&&!projects.has(recipe.projectId))
+    projects.set(recipe.projectId,{id:recipe.projectId,name:recipe.projectName||'Проект '+recipe.projectId});
+ return [...projects.values()];
+}
 export function mountGoogleSync({getState,store,onState,notify}){
- let running=false,timer,settingsOpen=false;const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
+ let running=false,timer,settingsOpen=false,projectSyncError='';const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
  const retryButton=document.createElement('button');retryButton.type='button';retryButton.textContent='↻ Отправить сейчас';retryButton.hidden=true;retryButton.setAttribute('aria-label','Повторно отправить готовые техкарты в Google');
  const syncDetail=document.createElement('p');syncDetail.className='small';syncDetail.hidden=true;syncDetail.setAttribute('role','status');syncDetail.style.margin='10px 0 0';syncDetail.style.overflowWrap='anywhere';summary.append(retryButton,syncDetail);// Keep optional Google controls accessible without breaking the approved TTK
  // header: the hero subtitle lives inside a strict CSS grid.
@@ -19,17 +34,22 @@ export function mountGoogleSync({getState,store,onState,notify}){
  const mutate=async fn=>{const next=await store.mutate(fn);onState(next);render()};
  const post=async body=>{const response=await fetch('/api/recipes/google-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(110000)});const data=await response.json();if(!response.ok)throw Error(data.error||'Google временно недоступен.');return data};
  button.onclick=()=>{if(!getState())return;const config=getState().googleSync||{};form.elements.endpoint.value=config.endpoint||'';form.elements.key.value=config.key||'';form.elements.enabled.checked=config.enabled!==false;result.textContent='';settingsOpen=true;dialog.showModal()};
- form.onsubmit=async e=>{e.preventDefault();const submit=form.querySelector('[type=submit]');submit.disabled=true;result.textContent='Проверяю соединение с Google…';try{const config={endpoint:form.elements.endpoint.value.trim(),key:form.elements.key.value.trim(),enabled:form.elements.enabled.checked};if(/^https?:\/\//i.test(config.key)||config.key===config.endpoint)throw Error('В поле «Ключ подключения» вставлена ссылка Google Apps Script. Ссылка и ключ — разные данные. Скопируйте настоящий ключ из подключённого устройства или журнала выполнения initialize в Google Apps Script.');if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(config.key))throw Error('Вы вставили код программы Code.gs, а не ключ. В существующем проекте Google Apps Script выполните initialize и скопируйте из журнала только значение после «Ключ подключения:».');const checked=await post({...config,action:'check'});const old=getState().googleSync;await mutate(s=>{s.googleSync={...config,documentUrl:checked.documentUrl};if(old?.endpoint!==config.endpoint||old?.key!==config.key)s.googleDelivery={}});result.textContent='Google подключён. Готовые ТТК будут отправлены автоматически.';schedule()}catch(err){result.textContent=err.message}finally{submit.disabled=false}};
+ form.onsubmit=async e=>{e.preventDefault();const submit=form.querySelector('[type=submit]');submit.disabled=true;result.textContent='Проверяю соединение с Google…';try{const config={endpoint:form.elements.endpoint.value.trim(),key:form.elements.key.value.trim(),enabled:form.elements.enabled.checked};if(/^https?:\/\//i.test(config.key)||config.key===config.endpoint)throw Error('В поле «Ключ подключения» вставлена ссылка Google Apps Script. Ссылка и ключ — разные данные. Скопируйте настоящий ключ из подключённого устройства или журнала выполнения initialize в Google Apps Script.');if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(config.key))throw Error('Вы вставили код программы Code.gs, а не ключ. В существующем проекте Google Apps Script выполните initialize и скопируйте из журнала только значение после «Ключ подключения:».');const checked=await post({...config,action:'check'});const old=getState().googleSync;await mutate(s=>{s.googleSync={...config,documentUrl:checked.documentUrl};if(old?.endpoint!==config.endpoint||old?.key!==config.key){s.googleDelivery={};s.googleProjects={}}});result.textContent='Google подключён. Готовые ТТК будут отправлены автоматически.';schedule()}catch(err){result.textContent=err.message}finally{submit.disabled=false}};
  dialog.querySelector('[data-disable]').onclick=async()=>{try{await mutate(s=>{if(s.googleSync)s.googleSync.enabled=false});result.textContent='Автоматическая отправка отключена. ТТК в Google сохранены.'}catch(e){result.textContent=e.message}};
  async function render(){
   const s=getState();if(!s)return;
   const recipes=readyArchive(s),count=recipes.length,config=s.googleSync;
   let safeUrl=null;
-  try{const u=new URL(config?.documentUrl);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}
-  documentLink.hidden=!safeUrl;if(safeUrl)documentLink.href=safeUrl;
+  const selected=localStorage.getItem(PROJECT_FILTER_KEY)||'all';
+  const chosen=selected==='all'?null:s.googleProjects?.[selected];
+  try{const u=new URL(chosen?.documentUrl||config?.documentUrl);if(u.protocol==='https:'&&u.hostname==='docs.google.com')safeUrl=u.href}catch{}
+  documentLink.hidden=!safeUrl;
+  documentLink.textContent=chosen?'Открыть Google-документ этого проекта':'Открыть Google-документ';
+  if(safeUrl)documentLink.href=safeUrl;
   retryButton.hidden=!config?.enabled||!count;
   retryButton.disabled=running;
   syncDetail.hidden=true;
+  if(projectSyncError){syncDetail.textContent=projectSyncError;syncDetail.hidden=false}
   if(!config?.enabled){status.textContent='Готовых ТТК: '+count+' · Google не подключён';return}
   if(!navigator.onLine){status.textContent='Google: нет интернета. Готовые ТТК остаются на устройстве.';return}
   if(running){status.textContent='Отправляю готовые ТТК в Google…';return}
@@ -53,23 +73,47 @@ export function mountGoogleSync({getState,store,onState,notify}){
    }
   }catch(e){status.textContent='Google: не удалось проверить готовые ТТК';syncDetail.textContent=String(e.message||e);syncDetail.hidden=false}
  }
+ async function ensureProjects(){
+  const config=getState()?.googleSync;
+  if(!config?.enabled||!config.endpoint||!config.key)return false;
+  const list=linkedProjects(getState());
+  for(const project of list){
+   const previous=getState()?.googleProjects?.[project.id];
+   if(previous?.name===project.name&&previous.documentUrl&&!previous.error)continue;
+   try{
+    const result=await post({...config,action:'ensureProject',projectId:project.id==='general'?'':project.id,projectName:project.name});
+    if(!result.documentUrl||!result.folderUrl)throw Error('Не получена ссылка на папку и документ проекта. Обновите Google Apps Script.');
+    await mutate(s=>{if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
+      s.googleProjects??={};s.googleProjects[project.id]={name:project.name,documentUrl:result.documentUrl,folderUrl:result.folderUrl,syncedAt:new Date().toISOString()};
+    });
+    projectSyncError='';
+   }catch(err){
+    projectSyncError='Google: проект «'+project.name+'» не подключён. '+String(err?.message||err).slice(0,250);
+    render();
+    return false;
+   }
+  }
+  return true;
+ }
  async function flush(){
   const config=getState()?.googleSync;
   if(running||!config?.enabled||!navigator.onLine)return;
   running=true;render();
   let failures=0;
   try{
+   if(!await ensureProjects())return;
    for(const recipe of readyArchive(getState())){
     if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint||getState().googleSync.key!==config.key)break;
     const digest=await recipeDigest(recipe);
     const previous=getState().googleDelivery?.[recipe.id];
     if(previous?.digest===digest&&previous?.layoutVersion==='burgundy-1'&&!previous.error)continue;
     try{
-     const response=await post({...config,action:'sync',recipe,digest});
+     const name=linkedProjects(getState()).find(x=>x.id===(recipe.projectId||'general'))?.name||recipe.projectName||'Без проекта';
+     const response=await post({...config,action:'sync',recipe,digest,projectId:recipe.projectId||'',projectName:name});
      await mutate(s=>{
       if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
       s.googleDelivery??={};
-      s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
+      s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',projectId:recipe.projectId||'',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
      });
     }catch(e){
      failures++;
@@ -95,6 +139,7 @@ export function mountGoogleSync({getState,store,onState,notify}){
  }
  window.addEventListener('online',schedule);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
+ document.addEventListener('pf:projects',schedule);
  // Immediate save after a change is still scheduled; periodic retry is deliberately sparse.
  setInterval(()=>{if(!document.hidden)flush().catch(()=>{})},5*60*1000);
  return {schedule,render};
