@@ -120,6 +120,28 @@ async function run(theme,width,height){
      refVisual.xs.length===7&&refVisual.xs.every((x,i)=>i===0||x>=refVisual.xs[i-1]-1),refVisual);
    check(tag+' white labels remain legible on cobalt cards',
      /255, 255, 255/.test(refVisual.whiteStat)&&/255, 255, 255/.test(refVisual.whiteCategory),refVisual);
+   // Exercise the actual recipe-card CSS with a disposable layout probe.
+   // The isolated QA account normally has zero TTK, so the screenshot alone
+   // cannot reveal a mobile ellipsis overlay or a third action row.
+   const cardLayout=await page.evaluate(()=>{
+    const host=document.querySelector('#recipelist');
+    const sample=document.createElement('article');sample.className='lx-recipe lx-ref-card';
+    sample.innerHTML='<div class="lx-recipe-photo"></div>'+
+      '<div class="lx-recipe-content"><div class="lx-card-heading">'+
+      '<h3>Филадельфия классик</h3><span class="lx-card-state is-ready">✓ Готова</span></div>'+
+      '<div class="lx-card-category">Холодные роллы</div></div>'+
+      '<details class="lx-card-more"><summary>⋮</summary><div class="lx-card-menu">Меню</div></details>'+
+      '<div class="lx-card-actions">'+Array.from({length:5},(_,i)=>'<button class="lx-card-action">Действие '+i+'</button>').join('')+'</div>';
+    host.append(sample);
+    const more=sample.querySelector('.lx-card-more'),status=sample.querySelector('.lx-card-state');
+    const d=more.getBoundingClientRect(),s=status.getBoundingClientRect();
+    const buttons=[...sample.querySelectorAll('.lx-card-action')],rows=new Set(buttons.map(b=>Math.round(b.getBoundingClientRect().top))).size;
+    const collision=d.left<s.right&&d.right>s.left&&d.top<s.bottom&&d.bottom>s.top;
+    const result={menuWidth:Math.round(d.width),menuHeight:Math.round(d.height),collision,rows};
+    sample.remove();return result;
+   });
+   check(tag+' recipe ellipsis does not obscure ready status',cardLayout.menuWidth<=33&&!cardLayout.collision,cardLayout);
+   if(mobile)check(tag+' recipe actions fit two rows',cardLayout.rows===2,cardLayout);
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
    await page.locator('#newrecipe').click();
    const editorTools=await page.evaluate(()=>({
