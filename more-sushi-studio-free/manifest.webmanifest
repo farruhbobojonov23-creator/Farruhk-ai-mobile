@@ -14,16 +14,28 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icons/shef-ai-192.svg",
-      "type": "image/svg+xml",
+      "src": "./icons/shef-ai-192.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
+      "src": "./icons/shef-ai-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/shef-ai-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
       "src": "./icons/shef-ai-512.svg",
       "type": "image/svg+xml",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "any",
+      "purpose": "any"
     }
   ],
   "categories": [
