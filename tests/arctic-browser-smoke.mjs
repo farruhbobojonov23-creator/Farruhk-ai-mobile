@@ -150,7 +150,7 @@ async function verify(mode,width,height){
   assert.match(dailyOverview,/Генеральная уборка:/,'monthly deep-clean progress is visible');
   await page.locator('#lab .haccp-utilities button').last().click();
   assert.equal(await visible(page,'#lab .haccp-plan-settings'),true,'HACCP daily schedule settings open');
-  assert.equal(await page.locator('#lab .haccp-plan-check input:checked').count(),4,'four routine journals enabled initially');
+  assert.equal(await page.locator('#lab .haccp-plan-check input:checked').count(),5,'five routine journals enabled initially');
   assert.equal(await page.locator('#lab .haccp-plan-settings input[name=generalCleaningTarget]').inputValue(),'2','deep-clean goal defaults to twice per month');
   await page.screenshot({path:'artifacts/arctic-haccp-plan-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
