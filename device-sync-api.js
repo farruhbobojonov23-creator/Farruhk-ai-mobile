@@ -10,6 +10,7 @@ function safeSnapshot(value){
  if(!value||typeof value!=='object'||Array.isArray(value))throw httpError(400,'Некорректный набор данных синхронизации.');
  const result={};
  for(const name of COLLECTIONS){
+  if(name==='categories'&&value[name]===undefined)continue;
   const items=value[name]??[];
   if(!Array.isArray(items)||items.length>4000)throw httpError(400,'Повреждён раздел '+name);
   const ids=new Set();
