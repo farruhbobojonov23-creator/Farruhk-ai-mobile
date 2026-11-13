@@ -44,6 +44,35 @@ async function run(theme,width,height){
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
+ if(theme==='royal'){
+   await page.locator('#home.pf-upgraded .pfv-showcase').waitFor({state:'visible',timeout:22000});
+   const premium=await page.evaluate(()=>{
+    const root=document.querySelector('#home .pfv-showcase');
+    const cs=getComputedStyle(root);
+    const old=getComputedStyle(document.querySelector('#home .pf-showcase')).display;
+    return {theme:document.body.dataset.pfTheme,display:cs.display,background:cs.backgroundColor,
+      oldHidden:old==='none',overflow:document.documentElement.scrollWidth-innerWidth,
+      kpis:root.querySelectorAll('.pfv-kpi').length,
+      projectList:!!root.querySelector('.pfv-projects'),
+      quick:root.querySelectorAll('.pfv-action').length,
+      recipeList:!!root.querySelector('.pfv-bottom-grid .pfv-recipe-text'),
+      sidebar:!!root.querySelector('.pfv-side nav'),
+      falseStatus:/Все модули работают стабильно|Интеграции: активны/i.test(root.textContent)};
+   });
+   check(tag+' V2 selected',premium.theme==='royal'&&premium.display!=='none'&&premium.oldHidden,premium);
+   check(tag+' V2 structural dashboard',premium.kpis===4&&premium.quick>=5&&premium.projectList&&premium.sidebar,premium);
+   check(tag+' V2 no invented success',!premium.falseStatus,premium);
+   check(tag+' V2 layout does not overflow',premium.overflow<=22,premium);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+   await page.locator('#home .pfv-action').first().click();
+   await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
+   check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
+   await page.locator('#closeeditor').click();
+   await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="site-settings"]')?.click()||document.querySelector('#menu-settings')?.click());
+   // The Settings tab may be created asynchronously by mountSiteSettings.
+   await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
+   check(tag+' settings remain functional',await page.locator('#site-settings').isVisible(),null);
+ }else{
  await page.locator('#home.pf-upgraded .pf-showcase').waitFor({state:'visible',timeout:22000});
  const initial=await page.evaluate(()=>({
   theme:document.body.dataset.pfTheme,old:getComputedStyle(document.querySelector('#home .arctic-shell')).display,
@@ -299,6 +328,7 @@ async function run(theme,width,height){
   await page.locator('#pf-studio-dialog .pf-modal-footer button').filter({hasText:'Отменить'}).click();
   const restored=await page.evaluate(()=>document.body.dataset.pfTheme);
   check('Cancel theme preview restores original',restored==='titanium',restored);
+ }
  }
  results.push({label:tag+' page errors (non-blocking mocked optional APIs)',ok:true,context:errors.slice(0,8)});
  }catch(e){check(tag+' fatal',false,e.message)}
