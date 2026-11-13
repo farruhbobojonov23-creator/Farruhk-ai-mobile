@@ -1,0 +1,249 @@
+/* FARRUH AI · pilot workspace: premium PRO TTK editor.
+   Only #editor is affected. The A4 PDF backend remains authoritative. */
+@media screen {
+ #editor.ttk-sheet-editor{
+  --pro-ink:#153553;--pro-line:#bad6e9;--pro-mute:#557c98;
+  --pro-blue:#1073c9;--pro-card:linear-gradient(135deg,#fff,#ebf6ff);
+  position:relative!important;padding:14px!important;
+  margin:12px 0 18px!important;border-radius:21px!important;
+  border:1px solid #c0dced!important;
+  background:linear-gradient(145deg,#f5fbff,#e5f3ff)!important;
+  color:var(--pro-ink)!important;box-shadow:0 15px 35px #287bb01a!important;
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar{
+  top:0;z-index:9!important;position:sticky;display:flex;flex-wrap:wrap;gap:8px;
+  padding:10px 11px!important;margin:-8px -8px 14px!important;
+  border:1px solid #c1ddec;border-radius:14px;
+  background:#f7fcff!important;backdrop-filter:blur(8px);
+  box-shadow:0 7px 20px #23698c23!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar h2{
+  color:#153f64!important;-webkit-text-fill-color:#153f64!important;
+  font-size:clamp(17px,2vw,22px)!important;font-weight:850!important;
+  line-height:1.2;letter-spacing:-.025em!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar button{
+  width:auto!important;min-width:0;min-height:39px!important;
+  padding:8px 11px!important;font-size:11px!important;font-weight:750!important;
+  border-radius:10px!important;box-shadow:0 3px 9px #1766a51b!important;
+  white-space:normal!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar button[type=submit]{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:linear-gradient(125deg,#188ce3,#0960bb)!important;border:1px solid #1274c8!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar #sheet-download{
+  color:#165681!important;-webkit-text-fill-color:#165681!important;
+  background:linear-gradient(145deg,#fff,#e5f3ff)!important;border:1px solid #b8d6e9!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar #delete-recipe{background:#fff3f3!important;color:#9c3e4f!important}
+ #editor.ttk-sheet-editor .ttk-pro-head{
+  display:flex;align-items:center;gap:17px;justify-content:space-between;flex-wrap:wrap;
+  padding:18px 20px;margin-bottom:10px;border-radius:17px;
+  background:linear-gradient(125deg,#fff,#e5f3ff 70%,#d6ecff);
+  border:1px solid #c1dded;box-shadow:0 5px 17px #2472a718
+ }
+ #editor.ttk-sheet-editor .ttk-pro-heading{flex:1 1 215px;min-width:0}
+ #editor.ttk-sheet-editor .ttk-pro-overline{
+  display:block;color:#2177b0;font-size:10px;font-weight:850;letter-spacing:.15em;margin-bottom:5px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-title{
+  font-size:clamp(19px,2.1vw,26px)!important;font-weight:900!important;
+  letter-spacing:-.032em;line-height:1.1;margin:0 0 5px!important;
+  color:#153858!important;-webkit-text-fill-color:#153858!important;overflow-wrap:anywhere
+ }
+ #editor.ttk-sheet-editor .ttk-pro-subtitle{
+  margin:0!important;color:#527994!important;-webkit-text-fill-color:#527994!important;
+  font-size:12px;line-height:1.35
+ }
+ #editor.ttk-sheet-editor .ttk-pro-progress{
+  display:flex;align-items:center;gap:11px;flex:0 0 auto
+ }
+ #editor.ttk-sheet-editor .ttk-pro-progress small{
+  width:75px;font-size:11px;font-weight:700;color:#4f7390!important;
+  -webkit-text-fill-color:#4f7390!important;line-height:1.25
+ }
+ #editor.ttk-sheet-editor .ttk-pro-gauge{
+  width:67px;height:67px;flex:0 0 67px;
+  border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(#0b7ad2 var(--ttk-audit-pct,0%),#d8e9f4 var(--ttk-audit-pct,0%));
+  box-shadow:0 4px 13px #155cb224
+ }
+ #editor.ttk-sheet-editor .ttk-pro-gauge:before{
+  content:'';position:absolute;inset:7px;background:#f7fbff;border-radius:50%
+ }
+ #editor.ttk-sheet-editor .ttk-pro-progress-number{
+  position:relative;font-size:17px;font-weight:900;color:#12598d!important;
+  -webkit-text-fill-color:#12598d!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-save-state{
+  flex:0 1 auto;padding:7px 12px;border-radius:999px;
+  border:1px solid #b9dccc;background:#e9faed;
+  color:#21734d!important;-webkit-text-fill-color:#21734d!important;
+  font-size:11px;font-weight:760
+ }
+ #editor.ttk-sheet-editor .ttk-pro-save-state[data-state=dirty]{
+  border-color:#efd19e;background:#fff5df;color:#926021!important;
+  -webkit-text-fill-color:#926021!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-tabs{
+  position:relative;display:flex;flex-wrap:nowrap;gap:7px;overflow-x:auto;
+  padding:3px 2px 11px;margin-bottom:5px;scrollbar-width:thin
+ }
+ #editor.ttk-sheet-editor .ttk-pro-tab{
+  flex:1 0 auto;min-height:43px!important;width:auto!important;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid #c4dbef!important;border-radius:12px!important;
+  padding:10px 14px!important;background:linear-gradient(135deg,#fff,#eaf5ff)!important;
+  color:#254e75!important;-webkit-text-fill-color:#254e75!important;
+  box-shadow:0 4px 11px #1f74ac16!important;
+  font-size:12px!important;font-weight:790!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-tab.is-accent{
+  background:linear-gradient(125deg,#178ae2,#0855b3)!important;
+  border-color:#1372cc!important;color:#fff!important;-webkit-text-fill-color:#fff!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-shell{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(285px,350px);
+  gap:13px;align-items:start;min-width:0;isolation:isolate
+ }
+ #editor.ttk-sheet-editor .ttk-pro-shell .ttk-viewport{
+  min-width:0!important;width:100%!important;
+  margin:0!important;padding:10px!important;
+  border:1px solid #bbd7e9!important;border-radius:16px!important;
+  background:linear-gradient(130deg,#dcecf8,#f3faff)!important;
+  box-shadow:0 7px 22px #1960951d!important;
+  overflow:auto;scroll-margin-top:105px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-rail{
+  display:flex;flex-direction:column;gap:13px;min-width:0
+ }
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-picker{
+  margin:0!important;padding:12px!important;border-radius:15px!important;
+  scroll-margin-top:116px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-grid{gap:8px!important}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-card{padding:7px!important;min-width:0!important}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-thumb{
+  max-width:123px!important;height:172px!important;flex-basis:172px!important;
+  padding:7px!important;gap:4px!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-preview-photo{height:37px!important}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-info strong{font-size:11px!important}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-info small{font-size:9px!important}
+ #editor.ttk-sheet-editor .ttk-pro-audit{
+  padding:15px 13px;border-radius:15px;background:linear-gradient(145deg,#fff,#eaf6ff);
+  border:1px solid #bed8ea;box-shadow:0 6px 16px #1f699d1a;
+  color:#153755!important;scroll-margin-top:115px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-audit h3{
+  margin:0 0 4px!important;font-size:15px!important;font-weight:850!important;
+  color:#173858!important;-webkit-text-fill-color:#173858!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-audit-note{
+  margin:0 0 10px!important;font-size:11px!important;line-height:1.35!important;
+  color:#537793!important;-webkit-text-fill-color:#537793!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-checks{
+  display:grid;grid-template-columns:1fr;gap:5px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-check{
+  width:100%!important;display:flex!important;align-items:center;gap:8px;
+  min-height:31px!important;padding:5px 8px!important;
+  border:1px solid #e2edf5!important;border-radius:9px!important;
+  background:#fff!important;text-align:left;cursor:pointer;
+  font-size:11px!important;font-weight:650!important;
+  color:#315a79!important;-webkit-text-fill-color:#315a79!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-check.is-missing{
+  background:#fff9f1!important;border-color:#f1e1c2!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-check-dot{
+  display:grid;place-items:center;flex:0 0 19px;width:19px;height:19px;
+  border-radius:50%;background:#e2f8e9;color:#1f8a54;
+  font-size:11px;font-weight:900
+ }
+ #editor.ttk-sheet-editor .ttk-pro-check.is-missing .ttk-pro-check-dot{
+  color:#aa6925;background:#fff0d9
+ }
+ #editor.ttk-sheet-editor .ttk-pro-warnings{
+  margin:9px 0 0;display:grid;gap:6px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-warning{
+  padding:8px 9px;margin:0!important;border-radius:8px;
+  border:1px solid #ecd9b8;background:#fff8e9;
+  color:#785729!important;-webkit-text-fill-color:#785729!important;
+  font-size:10px!important;line-height:1.4
+ }
+ #editor.ttk-sheet-editor .ttk-pro-paper-estimate{
+  margin:9px 0 0!important;padding:8px 10px;border-radius:9px;
+  background:#f0f7ff;color:#3a6689!important;-webkit-text-fill-color:#3a6689!important;
+  font-size:10px!important;line-height:1.45!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-paper-estimate[data-level=near],
+ #editor.ttk-sheet-editor .ttk-pro-paper-estimate[data-level=overflow]{
+  background:#fff1dd;color:#9d5d22!important;-webkit-text-fill-color:#9d5d22!important
+ }
+ /* The PDF remains the authoritative print layout. Displayed A4 preview uses the
+    existing form fields and cannot change published PDFs until Save. */
+ #editor.ttk-sheet-editor .ttk-viewport .ttk-paper{
+  box-shadow:0 11px 27px #1e54883b!important;
+ }
+ #editor.ttk-sheet-editor[data-ttk-layout=royal-a4]{
+  --pro-line:#c2d0df;--pro-blue:#0a3e7a
+ }
+ #editor.ttk-sheet-editor[data-ttk-layout=royal-a4] .ttk-pro-head{
+  background:linear-gradient(125deg,#fff,#eaf2fb 72%,#e0ebfa);
+  border-color:#c5d7e7
+ }
+ #editor.ttk-sheet-editor[data-ttk-layout=royal-a4] .ttk-pro-overline{
+  color:#926c27!important;-webkit-text-fill-color:#926c27!important
+ }
+ #editor.ttk-sheet-editor[data-ttk-layout=royal-a4] .ttk-pro-tab.is-accent,
+ #editor.ttk-sheet-editor[data-ttk-layout=royal-a4] .ttk-toolbar button[type=submit]{
+  background:linear-gradient(120deg,#0f467f,#092a55)!important;
+  border-color:#a58b5f!important
+ }
+}
+@media screen and (max-width:1050px){
+ #editor.ttk-sheet-editor .ttk-pro-shell{grid-template-columns:minmax(0,1fr)}
+ #editor.ttk-sheet-editor .ttk-pro-rail{
+  order:-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px
+ }
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-pro-audit{
+  max-height:310px;overflow:auto
+ }
+}
+@media screen and (max-width:650px){
+ #editor.ttk-sheet-editor{padding:8px!important;border-radius:14px!important}
+ #editor.ttk-sheet-editor .ttk-toolbar{
+  position:relative!important;top:auto!important;gap:6px!important;margin:0 0 8px!important;
+  padding:9px!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar h2{
+  flex-basis:100%;font-size:17px!important;margin-bottom:3px!important
+ }
+ #editor.ttk-sheet-editor .ttk-toolbar button{
+  flex:1 1 auto!important;min-height:39px!important;font-size:10px!important;
+  padding:7px 8px!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-head{gap:10px;padding:12px!important;border-radius:13px}
+ #editor.ttk-sheet-editor .ttk-pro-progress{gap:7px}
+ #editor.ttk-sheet-editor .ttk-pro-gauge{width:54px;height:54px;flex-basis:54px}
+ #editor.ttk-sheet-editor .ttk-pro-progress-number{font-size:14px}
+ #editor.ttk-sheet-editor .ttk-pro-save-state{flex-basis:100%;text-align:center}
+ #editor.ttk-sheet-editor .ttk-pro-tab{min-height:41px!important;padding:9px!important;font-size:11px!important}
+ #editor.ttk-sheet-editor .ttk-pro-rail{display:flex;flex-direction:column;gap:9px}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #editor.ttk-sheet-editor .ttk-pro-rail .ttk-pro-audit{
+  max-height:250px!important;overflow:auto
+ }
+ #editor.ttk-sheet-editor .ttk-pro-shell .ttk-viewport{padding:4px!important;border-radius:10px!important}
+}
+@media print{
+ #editor.ttk-sheet-editor .ttk-pro-head,
+ #editor.ttk-sheet-editor .ttk-pro-tabs,
+ #editor.ttk-sheet-editor .ttk-pro-rail{display:none!important}
+ #editor.ttk-sheet-editor .ttk-pro-shell{display:block!important}
+}
