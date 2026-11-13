@@ -157,7 +157,11 @@ async function verify(mode,width,height){
   assert.match(autoSummary.description,/черновики/i,'auto-filled reports explicitly protect factual inspection data');
 
   await page.screenshot({path:'artifacts/arctic-haccp-'+mode+'.png',fullPage:false,timeout:12000});
-  const dailyOverview=await page.locator('#lab .haccp-daily-overview').first().innerText();
+  const dailyOverview=await page.waitForFunction(()=>{
+   const text=document.querySelector('#lab .haccp-daily-overview')?.textContent||'';
+   if(!/запланированных проверок|план на сегодня/i.test(text)||!/Генеральная уборка:/.test(text))return false;
+   return text;
+  },null,{timeout:16000}).then(handle=>handle.jsonValue());
   assert.match(dailyOverview,/запланированных проверок|план на сегодня/i,'daily checks use approved schedule, not all event-based journals');
   assert.match(dailyOverview,/Генеральная уборка:/,'monthly deep-clean progress is visible');
   await page.locator('#lab .haccp-utilities button').last().click();
