@@ -1,0 +1,54 @@
+{
+  "id": "./",
+  "name": "ШЕФ AI PREMIUM",
+  "short_name": "ШЕФ AI",
+  "description": "Профессиональная платформа шеф-повара: проекты, ТТК, ингредиенты и рецептуры.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#071426",
+  "background_color": "#061426",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./icons/shef-ai-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/shef-ai-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/shef-ai-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/shef-ai-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity",
+    "food"
+  ],
+  "shortcuts": [
+    {
+      "name": "Создать ТТК",
+      "short_name": "ТТК",
+      "description": "Открыть конструктор технологических карт",
+      "url": "./"
+    }
+  ]
+}

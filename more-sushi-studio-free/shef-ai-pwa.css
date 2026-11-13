@@ -1,0 +1,19 @@
+/* SHEF AI install controls: shared by all visual themes */
+@media screen {
+.shef-install-button{gap:8px;white-space:nowrap;min-height:42px}
+.shef-install-button span:first-child{width:23px;height:23px;border-radius:8px;display:grid;place-items:center;font-size:19px;
+ background:var(--ui-soft,#dceef4);color:var(--ui-highlight,#0082a1);font-weight:900}
+.shef-pwa-panel{margin-top:20px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.shef-pwa-panel h3{margin:7px 0 6px;font-size:19px;color:var(--ui-text,#1d3743)}
+.shef-pwa-panel p{margin:0 0 9px;font-size:12px;line-height:1.6;color:var(--ui-muted,#6a828c)}
+.shef-pwa-panel small{display:block;font-size:11px;color:var(--ui-muted,#78909c)}
+.shef-pwa-panel .btn{flex:none}
+#shefPwaDialog{max-width:min(520px,calc(100vw - 26px));color:var(--ui-text,#213540);border:1px solid var(--ui-line,#d7e4e8)}
+#shefPwaDialog #shefPwaHelp{color:var(--ui-text,#314a56);font-size:14px;line-height:1.7}
+}
+@media screen and (max-width:620px){
+.shef-install-button{padding:8px!important;font-size:10px!important}
+.shef-install-button span:first-child{width:18px;height:18px;font-size:17px}
+.shef-pwa-panel{padding:18px;flex-direction:column;align-items:stretch}
+.shef-pwa-panel .btn{width:100%}
+}

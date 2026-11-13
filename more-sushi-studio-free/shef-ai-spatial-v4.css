@@ -1,0 +1,600 @@
+/* SHEF AI PREMIUM — Spatial Studio V4 (2026-11).
+   Purpose: a layered, tactile culinary workspace.
+   Screen-only; A4 document output and saved recipes never change through this skin. */
+@media screen {
+:root[data-studio-theme="spatial"]{
+ --sp-v4-night:#040e24;--sp-v4-base:#081934;--sp-v4-ice:#a9faff;--sp-v4-blue:#56d6ff;
+ --sp-v4-glow:0 0 22px rgba(84,228,255,.27),0 20px 44px rgba(0,8,36,.35);
+}
+:root[data-studio-theme="spatial"] body{
+ background:
+  radial-gradient(ellipse 52% 32% at 74% 2%,rgba(48,178,224,.26),transparent 84%),
+  radial-gradient(ellipse 48% 24% at 12% 40%,rgba(44,71,177,.22),transparent 82%),
+  radial-gradient(ellipse 62% 43% at 99% 99%,rgba(25,83,161,.15),transparent 85%),
+  linear-gradient(170deg,#031123,#091e3c 49%,#040b1e);
+ background-attachment:fixed;
+}
+:root[data-studio-theme="spatial"] .sidebar{
+ background:
+  radial-gradient(ellipse 104% 24% at 30% 0,rgba(45,207,241,.26),transparent 82%),
+  linear-gradient(173deg,rgba(8,44,82,.99),rgba(5,22,51,.98) 52%,rgba(4,17,40,.99));
+ border-color:rgba(126,216,251,.24);
+ box-shadow:inset -1px 0 rgba(230,255,255,.12),12px 0 43px rgba(0,7,28,.26);
+}
+:root[data-studio-theme="spatial"] .brand-mark{
+ border-radius:15px;
+ background:
+  radial-gradient(circle at 27% 13%,rgba(255,255,255,.95),transparent 17%),
+  linear-gradient(135deg,#c6fbff 2%,#61d7ec 34%,#256fae 71%,#575baf);
+ border:1px solid rgba(238,255,255,.87);
+ box-shadow:0 0 19px rgba(49,230,255,.42),inset 0 2px 4px rgba(255,255,255,.78),
+ inset 0 -5px 8px rgba(24,50,146,.40),0 9px 19px rgba(0,13,39,.35);
+}
+:root[data-studio-theme="spatial"] .brand-name{font-weight:900;letter-spacing:.65px}
+:root[data-studio-theme="spatial"] .brand-name span{color:#9cf8ff}
+:root[data-studio-theme="spatial"] .brand-sub{color:#b0d8ee}
+:root[data-studio-theme="spatial"] .topbar{
+ min-height:78px;
+ background:linear-gradient(120deg,rgba(10,47,88,.83),rgba(10,29,62,.75));
+ box-shadow:0 15px 36px rgba(0,11,42,.22),inset 0 1px rgba(217,255,255,.15);
+ border-bottom:1px solid rgba(170,238,255,.22);
+}
+:root[data-studio-theme="spatial"] .topbar .breadcrumb{color:#91dfe9}
+:root[data-studio-theme="spatial"] .topbar h1{color:#edfcff}
+:root[data-studio-theme="spatial"] .content{
+ padding-top:24px;
+ perspective:1400px;
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero{
+ display:flex;align-items:center;position:relative;overflow:hidden;isolation:isolate;
+ min-height:314px;padding:37px clamp(25px,4vw,43px);
+ gap:12px;border-radius:31px;
+ background:
+  radial-gradient(ellipse 35% 70% at 92% 23%,rgba(139,244,255,.32),transparent 73%),
+  radial-gradient(ellipse 47% 91% at 67% 66%,rgba(55,96,237,.39),transparent 83%),
+  linear-gradient(112deg,#0a3f79 2%,#14669a 56%,#17367a);
+ border:1.4px solid rgba(224,251,255,.89);
+ box-shadow:0 0 0 5px rgba(47,225,253,.036),
+ 0 0 34px rgba(64,202,251,.22),0 32px 56px rgba(0,9,47,.41),
+ inset 0 2px rgba(255,255,255,.52),inset 0 -8px 26px rgba(2,30,101,.39);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero:before{
+ content:"";position:absolute;z-index:0;inset:9px;
+ border-radius:23px;border:1px solid rgba(211,251,255,.23);
+ background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 42%,rgba(143,246,255,.08));
+ pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero:after{
+ content:"";position:absolute;right:-10%;top:-95%;
+ width:88%;height:223%;border-radius:50%;display:block;
+ border:1px solid rgba(187,255,255,.20);
+ background:radial-gradient(ellipse,rgba(100,216,255,.11),transparent 68%);
+ box-shadow:0 0 0 50px rgba(167,239,255,.028),0 0 0 108px rgba(255,255,255,.015);
+ pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .hero-copy{
+ flex:1 1 56%;max-width:57%;z-index:4;transform:none;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .mini-label{
+ display:flex;align-items:center;gap:9px;
+ font-weight:850;letter-spacing:1.8px;font-size:10px;
+ color:#ceffff;text-shadow:0 0 13px rgba(157,247,255,.26);
+}
+:root[data-studio-theme="spatial"] .chef-v4-live-dot{
+ flex:none;width:7px;height:7px;display:inline-block;border-radius:50%;
+ background:#9effef;border:1px solid #fff;box-shadow:0 0 10px 4px rgba(113,254,231,.33);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero h2{
+ margin:15px 0 15px;
+ font:900 clamp(33px,3.7vw,55px)/1.10 Manrope,"Segoe UI",sans-serif;
+ letter-spacing:-1.8px;color:#fff;
+ text-shadow:0 4px 19px rgba(0,25,81,.36);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero h2 em{
+ color:#acfaff;text-shadow:0 0 23px rgba(131,245,255,.28);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero p{
+ font-size:13px;line-height:1.65;max-width:455px;
+ color:#e5f8ff;margin:0 0 22px;
+ text-shadow:0 2px 9px rgba(2,27,81,.27);
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row{
+ gap:11px;display:flex;flex-wrap:wrap;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn{
+ min-height:47px;padding:11px 18px;
+ font-weight:850;font-size:12px;
+ box-shadow:0 9px 21px rgba(0,23,81,.21),inset 0 2px rgba(255,255,255,.39);
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn-primary{
+ box-shadow:0 0 22px rgba(100,246,255,.39),0 9px 21px rgba(0,23,81,.24),
+ inset 0 2px rgba(255,255,255,.8);
+}
+:root[data-studio-theme="spatial"] .chef-hero-footnote{
+ margin-top:24px;display:flex;align-items:center;gap:9px;
+ color:#c3e7f7;font-size:10px;font-weight:700;letter-spacing:.25px;
+}
+:root[data-studio-theme="spatial"] .chef-hero-footnote span{color:#8ceef9}
+:root[data-studio-theme="spatial"] .chef-v4-stage{
+ position:absolute;z-index:2;inset:0 0 0 auto;width:49%;height:100%;
+ transform-style:preserve-3d;pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage:before{
+ content:"";position:absolute;inset:6% 4% 1% 1%;
+ background:radial-gradient(circle at 53% 50%,rgba(145,255,255,.53),rgba(63,191,255,.19) 39%,transparent 69%);
+ filter:blur(22px);
+}
+:root[data-studio-theme="spatial"] .chef-v4-orbit{
+ position:absolute;width:360px;height:240px;border-radius:50%;
+ transform:rotate(-24deg);right:-45px;top:34px;
+ border:1.2px solid rgba(198,253,255,.36);
+ box-shadow:0 0 24px rgba(124,239,255,.17),inset 0 0 30px rgba(101,213,255,.10);
+}
+:root[data-studio-theme="spatial"] .chef-v4-orbit.orbit-two{
+ width:250px;height:178px;right:49px;top:59px;
+ transform:rotate(32deg);border-color:rgba(219,254,255,.25);
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo{
+ position:absolute;display:grid;place-items:center;overflow:hidden;
+ border:1px solid rgba(231,255,255,.77);
+ background:
+  radial-gradient(circle at 32% 10%,rgba(255,255,255,.47),transparent 36%),
+  linear-gradient(135deg,rgba(195,255,255,.35),rgba(54,168,239,.38) 52%,rgba(45,68,171,.52));
+ border-radius:26px;
+ box-shadow:0 21px 39px rgba(0,12,63,.34),
+  0 0 22px rgba(116,235,255,.23),
+  inset 0 2px rgba(252,255,255,.78),
+  inset 0 -9px 16px rgba(20,63,160,.31);
+ backdrop-filter:blur(8px);
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo:after{
+ content:"";inset:4px;position:absolute;border-radius:22px;border:1px solid rgba(245,255,255,.14);
+ pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo img{
+ width:94%;height:94%;object-fit:contain;display:block;
+ filter:drop-shadow(0 12px 10px rgba(0,15,59,.3));
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-primary{
+ width:49%;height:61%;right:22%;top:18%;
+ transform:perspective(500px) rotateY(-15deg) rotate(-7deg) translateZ(42px);
+ z-index:4;
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-shrimp{
+ width:34%;height:42%;right:2%;top:43%;
+ transform:perspective(420px) rotateY(-13deg) rotate(8deg) translateZ(28px);
+ z-index:5;
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-masago{
+ width:25%;height:35%;right:57%;top:5%;
+ transform:perspective(420px) rotateY(19deg) rotate(-13deg) translateZ(12px);
+ z-index:3;
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage-chip{
+ position:absolute;z-index:6;
+ color:#e9ffff;font-size:9px;letter-spacing:1.35px;font-weight:900;
+ padding:9px 11px;border-radius:12px;
+ border:1px solid rgba(246,255,255,.57);
+ background:linear-gradient(140deg,rgba(162,247,255,.39),rgba(21,87,179,.45));
+ box-shadow:0 9px 19px rgba(0,20,65,.26),inset 0 1px rgba(255,255,255,.49);
+ backdrop-filter:blur(15px);
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage-chip.chip-top{right:7%;top:15%}
+:root[data-studio-theme="spatial"] .chef-v4-stage-chip.chip-bottom{right:29%;bottom:10%}
+:root[data-studio-theme="spatial"] .chef-stage-spark{color:#baffff;font-size:13px;margin-right:4px}
+:root[data-studio-theme="spatial"] .spatial-dock{
+ gap:13px;margin:22px 0 23px;grid-template-columns:repeat(6,minmax(0,1fr));
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item{
+ gap:7px;min-height:141px;
+ border-radius:21px;border:1.3px solid rgba(192,251,255,.70);
+ background:radial-gradient(ellipse 90% 35% at 45% 0,rgba(230,255,255,.27),transparent 83%),
+ linear-gradient(155deg,rgba(89,189,241,.41),rgba(34,103,184,.38) 57%,rgba(31,51,142,.43));
+ box-shadow:0 0 17px rgba(95,225,255,.14),0 18px 33px rgba(0,9,43,.32),
+  inset 0 2px rgba(247,255,255,.58),inset 0 -5px 14px rgba(7,44,120,.30);
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item:before{
+ background:linear-gradient(140deg,rgba(255,255,255,.18),transparent 25%,transparent 80%,rgba(181,242,255,.11));
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon{
+ width:59px;height:59px;border-radius:17px;
+ background:
+ radial-gradient(circle at 29% 12%,rgba(255,255,255,.86),transparent 28%),
+ linear-gradient(135deg,#8bffff,#29b6e7 54%,#2463cf);
+ border:1.3px solid rgba(244,255,255,.92);
+ box-shadow:0 0 20px rgba(93,244,255,.35),0 11px 17px rgba(0,20,67,.31),
+  inset 0 2px 1px rgba(255,255,255,.86),inset 0 -6px 11px rgba(10,80,163,.38);
+ transform:translateZ(30px) translateY(-2px) rotate(-3deg);
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon svg{
+ stroke:#faffff;stroke-width:2.6;
+ filter:drop-shadow(0 2px 3px rgba(2,55,107,.38));
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon img{
+ width:97%;height:97%;object-fit:contain;
+ filter:drop-shadow(0 4px 3px rgba(0,18,57,.22));
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item strong{
+ color:#fff;font-weight:900;font-size:11px;
+ text-shadow:0 1px 4px rgba(4,28,68,.33);
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item small{color:#bcdfef;font-size:9px}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading{
+ display:flex;align-items:flex-end;justify-content:space-between;gap:10px;
+ margin:13px 1px 12px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading h3{
+ font:850 20px/1.22 Manrope,"Segoe UI",sans-serif;margin:4px 0 0;
+ color:#efffff;letter-spacing:-.5px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-eyebrow{
+ font-size:9px;font-weight:900;color:#81dfff;letter-spacing:2px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading a{
+ font-size:11px;text-decoration:none;color:#a6f9ff;
+ font-weight:750;padding:7px 0;
+}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading a:hover{color:#fff}
+:root[data-studio-theme="spatial"] .chef-v4-projects{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;
+ margin-bottom:24px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card{
+ min-height:166px;border-radius:21px;overflow:hidden;
+ background:radial-gradient(circle at 90% 0,rgba(159,249,255,.25),transparent 53%),
+ linear-gradient(145deg,rgba(52,151,211,.32),rgba(26,77,160,.36));
+ box-shadow:0 16px 29px rgba(0,12,56,.27),inset 0 2px rgba(247,255,255,.28);
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card:after{
+ content:"";position:absolute;right:-43px;top:-53px;
+ border:1px solid rgba(224,255,255,.13);border-radius:50%;
+ width:170px;height:170px;pointer-events:none;
+ box-shadow:0 0 0 25px rgba(213,252,255,.03);
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-mark{
+ background:radial-gradient(circle at 28% 20%,#eaffff,#59e6ff 41%,#287fb6 83%);
+ box-shadow:0 0 18px rgba(114,243,255,.30),inset 0 2px #fff9,0 10px 19px #001a50a0;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card h3{font-weight:850}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn{
+ font-size:10px;min-height:32px;padding:7px 10px;border-radius:11px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-stats-heading{margin:5px 0 12px}
+:root[data-studio-theme="spatial"] .stats{
+ margin:0 0 22px;gap:12px;
+}
+:root[data-studio-theme="spatial"] .stats .stat{
+ min-height:106px;padding:19px;
+ border-radius:20px;
+ background:radial-gradient(ellipse 84% 55% at 88% 0,rgba(169,249,255,.25),transparent 86%),
+ linear-gradient(145deg,rgba(78,172,230,.32),rgba(31,89,170,.35));
+}
+:root[data-studio-theme="spatial"] .stats .stat b{font-size:31px;margin:4px 0 0}
+:root[data-studio-theme="spatial"] .stats .stat small{font-size:10px;color:#d0eefd}
+:root[data-studio-theme="spatial"] .stats .stat .stat-note{font-size:10px;color:#a9d8ec}
+:root[data-studio-theme="spatial"] .dash-columns{gap:13px}
+:root[data-studio-theme="spatial"] .dash-columns .block{
+ border-radius:23px;padding:21px;
+}
+:root[data-studio-theme="spatial"] .chef-data-banner{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;
+ padding:14px 16px;margin:0 0 14px;border:1px solid rgba(155,238,255,.38);
+ background:linear-gradient(112deg,rgba(46,153,220,.30),rgba(28,67,146,.36));
+ border-radius:16px;color:#e9ffff;line-height:1.45;
+}
+:root[data-studio-theme="spatial"] .chef-data-banner[hidden]{display:none!important}
+:root[data-studio-theme="spatial"] .chef-data-banner>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+:root[data-studio-theme="spatial"] .chef-data-banner strong{font-size:12px;color:#f4ffff}
+:root[data-studio-theme="spatial"] .chef-data-banner span{font-size:11px;color:#c5e1f4}
+:root[data-studio-theme="spatial"] .chef-data-banner.chef-data-warning{
+ border-color:rgba(243,205,119,.57);background:linear-gradient(120deg,rgba(139,97,35,.28),rgba(26,71,130,.34));
+}
+:root[data-studio-theme="spatial"] .chef-data-banner.chef-data-error{
+ border-color:rgba(244,124,140,.63);background:linear-gradient(120deg,rgba(125,39,65,.38),rgba(28,61,126,.34));
+}
+:root[data-studio-theme="spatial"] .chef-data-banner .btn{flex:none;font-size:11px}
+}
+/* Tablet retains 3D but avoids a cramped six-across dock. */
+@media screen and (max-width:1290px){
+:root[data-studio-theme="spatial"] .spatial-dock{grid-template-columns:repeat(3,minmax(0,1fr))}
+:root[data-studio-theme="spatial"] .spatial-dock-item{min-height:123px}
+:root[data-studio-theme="spatial"] .chef-v4-stage{width:45%}
+:root[data-studio-theme="spatial"] .chef-v4-hero .hero-copy{max-width:63%}
+}
+@media screen and (max-width:910px){
+:root[data-studio-theme="spatial"] .sidebar{
+ border-bottom:1px solid rgba(170,245,255,.33);
+ box-shadow:0 8px 28px rgba(0,12,48,.21);
+}
+:root[data-studio-theme="spatial"] .topbar{min-height:66px}
+:root[data-studio-theme="spatial"] .content{padding-top:17px}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero{
+ min-height:285px;padding:26px;gap:8px;
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero h2{font-size:clamp(29px,4vw,39px)}
+:root[data-studio-theme="spatial"] .chef-v4-stage{width:43%}
+:root[data-studio-theme="spatial"] .chef-v4-hero .hero-copy{max-width:67%}
+:root[data-studio-theme="spatial"] .chef-v4-stage-chip{display:none}
+:root[data-studio-theme="spatial"] .chef-v4-projects{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media screen and (max-width:620px){
+:root[data-studio-theme="spatial"] .sidebar{
+ height:auto;min-height:0;padding:10px 10px 8px;
+ background:
+  radial-gradient(ellipse 110% 80% at 18% 0,rgba(35,179,231,.22),transparent 73%),
+  linear-gradient(166deg,rgba(12,47,92,.98),rgba(5,19,48,.99));
+}
+:root[data-studio-theme="spatial"] .sidebar .brand-lockup{padding:0 4px}
+:root[data-studio-theme="spatial"] .brand-name{font-size:14px;letter-spacing:.5px}
+:root[data-studio-theme="spatial"] .brand-sub{font-size:7px;letter-spacing:1.45px;margin-top:3px}
+:root[data-studio-theme="spatial"] .brand-mark{width:43px;height:43px}
+:root[data-studio-theme="spatial"] .side-caption,
+:root[data-studio-theme="spatial"] .sidebar .nav-sep,
+:root[data-studio-theme="spatial"] .sidebar .side-bottom{display:none}
+:root[data-studio-theme="spatial"] .side-nav{
+ margin-top:8px;padding-bottom:2px;gap:6px;
+ scroll-snap-type:x proximity;
+}
+:root[data-studio-theme="spatial"] .nav-btn{
+ flex:0 0 auto;min-height:39px;border-radius:12px;
+ padding:8px 12px;gap:7px;font-size:10px;
+}
+:root[data-studio-theme="spatial"] .nav-btn .icon{width:17px;height:17px}
+:root[data-studio-theme="spatial"] .topbar{
+ padding:8px 12px;min-height:0;gap:5px;
+ display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;
+}
+:root[data-studio-theme="spatial"] .topbar .breadcrumb{
+ font-size:8px;letter-spacing:.6px;margin:0 0 2px;
+}
+:root[data-studio-theme="spatial"] .topbar h1{
+ font-size:15px;margin:0;white-space:nowrap;
+}
+:root[data-studio-theme="spatial"] .top-actions{
+ flex-wrap:nowrap;gap:6px;width:auto;justify-content:flex-end;
+}
+:root[data-studio-theme="spatial"] .top-actions .btn{
+ flex:none;min-height:37px;font-size:10px;padding:7px 9px;
+ border-radius:12px;
+}
+:root[data-studio-theme="spatial"] .top-actions .btn .icon{width:14px;height:14px}
+:root[data-studio-theme="spatial"] .top-actions .top-avatar{display:none}
+:root[data-studio-theme="spatial"] .top-actions .shef-install-button{display:none}
+:root[data-studio-theme="spatial"][data-chef-view="dashboard"] .topbar>div:first-child{
+ display:none;
+}
+:root[data-studio-theme="spatial"][data-chef-view="dashboard"] .top-actions{
+ flex:1;justify-content:space-between;
+}
+:root[data-studio-theme="spatial"][data-chef-view="dashboard"] .top-actions>.btn[data-command="newDoc"]{
+ display:none;
+}
+:root[data-studio-theme="spatial"] .content{
+ padding:12px 10px 45px;
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero{
+ display:flex;align-items:flex-start;
+ min-height:0!important;height:auto;isolation:isolate;
+ padding:23px 18px 18px;
+ border-radius:24px;
+ border:1.2px solid rgba(223,255,255,.91);
+ background:
+  radial-gradient(ellipse 70% 88% at 98% 22%,rgba(79,229,255,.40),transparent 77%),
+  radial-gradient(ellipse 93% 83% at 85% 100%,rgba(62,69,199,.47),transparent 85%),
+  linear-gradient(137deg,#09518a,#135a96 62%,#1a3c91);
+ box-shadow:0 0 18px rgba(105,237,255,.22),0 22px 41px rgba(0,9,45,.35),
+  inset 0 2px rgba(252,255,255,.58),inset 0 -6px 17px rgba(5,42,116,.40);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero:before{
+ inset:6px;border-radius:19px;
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero:after{
+ width:89%;height:180%;top:-78%;right:-35%;opacity:.5;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .hero-copy{
+ max-width:none;width:100%;flex:none;position:relative;z-index:5;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .mini-label{
+ gap:7px;font-size:8px;letter-spacing:1.17px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-live-dot{width:6px;height:6px}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero h2{
+ max-width:100%;margin:13px 0 10px;
+ font-size:clamp(26px,6.2vw,32px)!important;
+ line-height:1.12;letter-spacing:-.9px;
+ text-shadow:0 3px 11px rgba(0,24,72,.45);
+}
+:root[data-studio-theme="spatial"] .hero.chef-v4-hero p{
+ position:relative;z-index:4;
+ max-width:69%;font-size:11px;
+ line-height:1.52;margin:0 0 19px;
+ text-shadow:0 2px 8px rgba(3,28,82,.48);
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row{
+ display:flex;flex-wrap:nowrap;gap:7px;
+ position:relative;z-index:7;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn{
+ min-height:41px;min-width:0;flex:1 1 50%;
+ border-radius:12px;padding:8px 6px;font-size:10px;
+ white-space:nowrap;gap:5px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn .icon{height:14px;width:14px}
+:root[data-studio-theme="spatial"] .chef-hero-footnote{
+ flex-wrap:wrap;gap:6px;margin:12px 0 0;
+ font-size:8px;line-height:1.35;opacity:.93;
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage{
+ position:absolute;inset:auto -19px 44px auto;
+ width:55%;height:160px;
+ opacity:.68;filter:saturate(114%);
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage:before{
+ inset:0;filter:blur(17px);
+}
+:root[data-studio-theme="spatial"] .chef-v4-orbit{
+ width:170px;height:110px;right:0;top:9px;opacity:.7;
+}
+:root[data-studio-theme="spatial"] .chef-v4-orbit.orbit-two{
+ width:110px;height:100px;right:45px;top:11px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo{
+ border-radius:14px;box-shadow:0 9px 19px #0014478a,inset 0 1px #ffffffb0;
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo:after{border-radius:12px}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-primary{
+ width:90px;height:101px;top:7px;right:67px;transform:rotate(-11deg);
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-shrimp{
+ width:74px;height:77px;top:55px;right:13px;transform:rotate(8deg);
+}
+:root[data-studio-theme="spatial"] .chef-v4-photo.photo-masago{
+ width:52px;height:60px;top:-13px;right:13px;transform:rotate(15deg);
+}
+:root[data-studio-theme="spatial"] .chef-v4-stage-chip{display:none}
+:root[data-studio-theme="spatial"] .spatial-dock{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;margin:13px 0 20px;
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item{
+ min-height:105px;padding:10px 3px 8px;
+ display:flex;justify-content:center;gap:5px;border-radius:15px;
+ border:1px solid rgba(208,253,255,.72);
+ background:
+  radial-gradient(ellipse 87% 48% at 50% 0,rgba(226,255,255,.21),transparent 79%),
+  linear-gradient(150deg,rgba(76,173,225,.51),rgba(25,95,169,.45) 60%,rgba(25,50,126,.57));
+ box-shadow:0 0 16px rgba(88,219,255,.15),0 12px 21px rgba(0,13,58,.25),
+  inset 0 2px rgba(255,255,255,.55),inset 0 -5px 8px rgba(3,38,121,.22);
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item:after{
+ left:19%;right:19%;height:2px;
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon{
+ width:42px;height:42px;transform:none;
+ border-radius:13px;margin-bottom:1px;
+ border:1px solid #f0ffff;
+ box-shadow:0 0 16px rgba(95,232,255,.35),inset 0 2px #ffffffc9,
+  inset 0 -5px 8px #0c65a58c,0 5px 10px #00144b88;
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon svg{height:27px;width:27px}
+:root[data-studio-theme="spatial"] .spatial-dock-item strong{
+ font-size:10px;line-height:1.18;letter-spacing:-.1px;
+ overflow-wrap:anywhere;
+}
+:root[data-studio-theme="spatial"] .spatial-dock-item small{
+ font-size:8px;line-height:1.3;color:#d1e8f3;
+}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading{
+ margin:15px 2px 11px;align-items:center;
+}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading h3{
+ font-size:17px;margin:1px 0 0;
+}
+:root[data-studio-theme="spatial"] .chef-v4-eyebrow{font-size:8px;letter-spacing:1.3px}
+:root[data-studio-theme="spatial"] .chef-v4-section-heading a{font-size:10px}
+:root[data-studio-theme="spatial"] .chef-v4-projects{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin-bottom:19px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card{
+ min-height:160px;padding:13px;border-radius:17px;gap:11px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card h3{font-size:12px}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card p{font-size:10px}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-mark{width:43px;height:43px;border-radius:12px}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions{
+ gap:6px;flex-wrap:wrap;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn{
+ font-size:9px;min-height:30px;padding:6px 8px;
+}
+:root[data-studio-theme="spatial"] .chef-v4-stats-heading{margin:9px 2px 10px}
+:root[data-studio-theme="spatial"] .stats{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin:0 0 18px;
+}
+:root[data-studio-theme="spatial"] .stats .stat{
+ padding:14px 13px;min-height:95px;border-radius:17px;
+}
+:root[data-studio-theme="spatial"] .stats .stat small{font-size:10px}
+:root[data-studio-theme="spatial"] .stats .stat b{font-size:27px;margin:2px 0 1px}
+:root[data-studio-theme="spatial"] .stats .stat .stat-note{font-size:9px}
+:root[data-studio-theme="spatial"] .dash-columns{grid-template-columns:1fr;gap:12px}
+:root[data-studio-theme="spatial"] .dash-columns .block{padding:17px;border-radius:17px}
+:root[data-studio-theme="spatial"] .chef-data-banner{
+ padding:11px;flex-wrap:wrap;gap:10px;border-radius:13px;
+}
+:root[data-studio-theme="spatial"] .chef-data-banner .btn{width:100%}
+}
+@media screen and (hover:none),screen and (pointer:coarse){
+:root[data-studio-theme="spatial"] .spatial-dock-item,
+:root[data-studio-theme="spatial"] .spatial-tilt{
+ transform:none!important;
+}
+:root[data-studio-theme="spatial"] .spatial-dock-icon{
+ transform:none;
+}
+}
+@media screen and (prefers-reduced-motion:reduce){
+:root[data-studio-theme="spatial"] .chef-v4-photo,
+:root[data-studio-theme="spatial"] .spatial-dock-item{
+ transition:none!important;animation:none!important;
+}
+}
+/* Brand cards use approved project identity, without inventing new product shots. */
+@media screen {
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more{
+ background:
+ radial-gradient(circle at 105% 28%,rgba(45,237,252,.34),transparent 52%),
+ radial-gradient(ellipse at 6% 90%,rgba(29,102,189,.24),transparent 61%),
+ linear-gradient(137deg,rgba(16,81,139,.77),rgba(5,41,99,.64));
+ border-color:rgba(145,238,255,.60);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more:before{
+ content:"";position:absolute;z-index:0;right:-34px;bottom:-28px;width:185px;height:111px;
+ background:radial-gradient(ellipse at 30% 63%,rgba(104,235,255,.33),transparent 65%);
+ border:1px solid rgba(120,223,255,.18);border-radius:50% 80% 40% 50%;
+ transform:rotate(-13deg);pointer-events:none;
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more .proj-mark{
+ background:linear-gradient(140deg,rgba(212,255,255,.33),rgba(51,143,208,.43));
+ border:1px solid rgba(235,255,255,.74);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-more .proj-mark img{
+ width:86%;height:86%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(1,30,76,.33));
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi{
+ background:
+ radial-gradient(circle at 95% 15%,rgba(223,63,108,.22),transparent 57%),
+ linear-gradient(149deg,rgba(72,45,85,.72),rgba(26,36,81,.77));
+ border-color:rgba(239,161,186,.43);
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi .proj-mark{
+ background:radial-gradient(circle at 24% 14%,#ffb5bb,#f34360 49%,#ba1d4a);
+ border-color:rgba(255,233,235,.83);
+ color:white;text-shadow:0 2px 3px #7b0029;
+}
+:root[data-studio-theme="spatial"] .project-card.chef-brand-sushi:hover{
+ border-color:rgba(255,206,219,.8);
+ box-shadow:0 0 24px rgba(249,64,129,.16),0 17px 31px rgba(0,10,42,.30);
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions{
+ display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn-primary{
+ flex:0 0 auto;
+}
+/* Keep ordinary dialogs and A4 print preview visually separate from dashboard 3D. */
+:root[data-studio-theme="spatial"] .chef-v4-hero .row .btn:focus-visible,
+:root[data-studio-theme="spatial"] .spatial-dock-item:focus-visible{
+ outline:2px solid #e8ffff;outline-offset:3px;
+}
+}
+@media screen and (max-width:620px){
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions{
+ flex-direction:row;align-items:flex-start;
+}
+:root[data-studio-theme="spatial"] .chef-v4-projects .project-card .proj-actions .btn{
+ flex:0 0 auto;
+}
+}

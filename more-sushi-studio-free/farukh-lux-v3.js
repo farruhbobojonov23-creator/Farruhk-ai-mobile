@@ -12,7 +12,7 @@ const n=v=>v===''||v==null?null:(Number.isFinite(Number(v))?Number(v):null);
 const fmt=v=>Number(v||0).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const clone=x=>JSON.parse(JSON.stringify(x));
 const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
-let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
+let session=null,projects=[],docs=[],prefs={studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
 {id:'atelier',name:'Фирменный LUX',sub:'Синий · красный · вода',desc:'Цветной фотолист с фирменной лентой и волной.'},
@@ -79,27 +79,68 @@ async function signOut(){
  session=null;persist();projects=[];docs=[];draft=null;dirty=false;
  $('shell').hidden=true;$('auth').hidden=false;$('loginPassword').value='';$('authError').textContent='';window.scrollTo(0,0);
 }
+let shefLoadInProgress=false;
+function renderShefDataNotice(errors={}){
+ const banner=$('chefDataBanner');if(!banner)return;
+ banner.replaceChildren();banner.hidden=true;
+ let title='',message='',kind='info';
+ if(errors.projects){
+  kind='error';title='Не удалось загрузить проекты';
+  message='Проверь соединение и авторизацию. '+errText(errors.projects);
+ }else if(!projects.length){
+  kind='warning';title='Нет доступных проектов для этого аккаунта';
+  message='В базе есть сохранённые проекты, но доступ зависит от аккаунта. Проверь электронную почту входа; данные других пользователей не раскрываются.';
+ }else if(errors.docs||errors.prefs){
+  kind='warning';title='Не все данные загрузились';
+  message='Проекты доступны, но некоторые разделы не обновились. Нажми «Повторить».';
+ }
+ if(!title)return;
+ banner.hidden=false;banner.className='chef-data-banner chef-data-'+kind;
+ const box=document.createElement('div'),head=document.createElement('strong'),desc=document.createElement('span');
+ head.textContent=title;desc.textContent=message;box.append(head,desc);
+ const retry=document.createElement('button');retry.type='button';retry.className='btn btn-light btn-sm';
+ retry.id='chefReloadData';retry.textContent='↻ Повторить';
+ banner.append(box,retry);
+}
 async function loadAll(){
- const [p,d,pref]=await Promise.all([
-  api('/rest/v1/ttk_projects?select=*&order=updated_at.desc&limit=1000'),
-  api('/rest/v1/ttk_documents?select=*&order=updated_at.desc&limit=2000'),
-  api('/rest/v1/ttk_preferences?select=*&limit=1')
- ]);
- projects=Array.isArray(p)?p:[];docs=Array.isArray(d)?d:[];
- prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
- renderAll();window.FARUKH_TTK_AUTO?.onReady();
+ if(shefLoadInProgress)return;
+ shefLoadInProgress=true;
+ const banner=$('chefDataBanner');
+ if(banner){banner.hidden=false;banner.className='chef-data-banner chef-data-loading';banner.textContent='Обновляем защищённые данные…';}
+ try{
+  if(session?.expires_at && session.expires_at<=Math.floor(Date.now()/1000)+60)await freshSession();
+  const paths=[
+    '/rest/v1/ttk_projects?select=*&order=updated_at.desc&limit=1000',
+    '/rest/v1/ttk_documents?select=*&order=updated_at.desc&limit=2000',
+    '/rest/v1/ttk_preferences?select=*&limit=1'
+  ];
+  const all=await Promise.allSettled(paths.map(path=>api(path)));
+  const errors={};
+  const [p,d,pref]=all.map((item,index)=>{
+   if(item.status==='fulfilled')return item.value;
+   errors[['projects','docs','prefs'][index]]=item.reason;return null;
+  });
+  if(Array.isArray(p))projects=p;else projects=[];
+  if(Array.isArray(d))docs=d;else docs=[];
+  if(Array.isArray(pref)&&pref[0])prefs=pref[0];
+  else if(!prefs?.studio_name)prefs={studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
+  renderAll();
+  renderShefDataNotice(errors);
+  try{window.FARUKH_TTK_AUTO?.onReady()}catch(e){console.warn('ШЕФ AI: не удалось подготовить автозаполнение',e)}
+ }finally{shefLoadInProgress=false}
 }
 async function enter(){
  $('auth').hidden=true;$('shell').hidden=false;
  $('sideEmail').textContent=session?.user?.email||'Закрытый аккаунт';
  try{await loadAll();navigate('dashboard',true)}catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
 }
-const pageTitle={dashboard:'Обзор студии',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
+const pageTitle={dashboard:'Обзор платформы',projects:'Мои проекты',ingredients:'Ингредиенты',prefabs:'Полуфабрикаты',products:'Готовые блюда',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
 function navigate(view,force=false){
  if(!pageTitle[view])return false;
  if(!force&&currentView==='editor'&&view!=='editor'&&dirty&&!confirm('У вас есть несохранённые изменения ТТК. Закрыть без сохранения?'))return false;
  if(view==='editor'&&!draft){startNewDoc();return true}
  currentView=view;
+ document.documentElement.dataset.chefView=view;
  document.querySelectorAll('.page').forEach(el=>el.hidden=el.dataset.view!==view);
  document.querySelectorAll('.nav-btn[data-nav]').forEach(el=>{
   const active=el.dataset.nav===view;el.classList.toggle('active',active);el.setAttribute('aria-current',active?'page':'false');
@@ -153,8 +194,12 @@ function renderDash(){
 function projectCard(p){
  const count=docs.filter(d=>d.project_id===p.id&&d.status!=='Архив').length;
  const initial=esc((p.name||'P').trim().slice(0,1).toLocaleUpperCase('ru'));
- const logo=validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':initial;
- return '<article class="surface project-card" style="--project-color:'+esc(p.accent||'#0F6479')+'">'+
+ const name=String(p.name||'').toLocaleLowerCase('ru');
+ const more=/море\s*суши/.test(name),sushiBeri=/суши\s*бери/.test(name);
+ const logo=validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':
+  (more?'<img src="./whale-logo.svg" alt="Логотип проекта Море Суши" loading="lazy">':initial);
+ const brandClass=more?'chef-brand-more':sushiBeri?'chef-brand-sushi':'';
+ return '<article class="surface project-card '+brandClass+'" style="--project-color:'+esc(p.accent||'#0F6479')+'">'+
  '<div class="row between"><div class="proj-mark">'+logo+'</div><span class="pill '+(p.is_archived?'archive':'approved')+'">'+(p.is_archived?'Архив':'Активный')+'</span></div>'+
  '<div><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||'Частная коллекция ТТК')+'</p><p style="margin-top:6px">'+count+' документов</p></div>'+
  '<div class="proj-actions"><button type="button" class="btn btn-primary btn-sm" data-project-open="'+p.id+'">Открыть ТТК →</button>'+
@@ -200,12 +245,12 @@ function renderTemplates(){
  '<button type="button" class="btn btn-primary" data-template-create="'+esc(t.id)+'">'+icon('plus')+' Создать ТТК в этом стиле</button></article>').join('');
 }
 function renderSettings(){
- $('prefStudio').value=prefs.studio_name||'FARUKH TTK PRO';
+ $('prefStudio').value=prefs.studio_name||'ШЕФ AI PREMIUM';
  $('prefTitle').value=prefs.title||'Студия технико-технологических карт';
  $('prefChef').value=prefs.chef_name||'';
 }
 async function saveSettings(ev){ev.preventDefault();if(busy)return;
- const data={owner_id:session?.user?.id,studio_name:$('prefStudio').value.trim().slice(0,100)||'FARUKH TTK PRO',
+ const data={owner_id:session?.user?.id,studio_name:$('prefStudio').value.trim().slice(0,100)||'ШЕФ AI PREMIUM',
  title:$('prefTitle').value.trim().slice(0,180),chef_name:$('prefChef').value.trim().slice(0,160),updated_at:new Date().toISOString()};
  setBusy(true);try{
  const rows=await api('/rest/v1/ttk_preferences?on_conflict=owner_id&select=*',{
@@ -935,6 +980,11 @@ function clickHandler(ev){
 function init(){
  paintIcons();
  document.addEventListener('click',clickHandler);
+ document.addEventListener('click',e=>{
+  if(e.target.closest('#chefReloadData'))loadAll().catch(error=>{
+   renderShefDataNotice({projects:error});console.warn('SHEF AI retry:',error);
+  });
+ });
  $('loginForm').addEventListener('submit',signIn);
  $('logout').addEventListener('click',signOut);
  $('logoutMobile').addEventListener('click',signOut);
