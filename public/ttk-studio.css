@@ -459,3 +459,47 @@
  #editor.ttk-studio-enabled .ttk-studio-photo-action,
  #editor.ttk-studio-enabled .ttk-studio-advanced{display:none!important}
 }
+
+
+/* FARUKH AI PREMIUM REBUILD — Phase 1: common design foundation.
+   Visual-only overrides; API, TTK print/PDF and stored recipes remain unchanged.
+   Appended after existing screen themes. Do not apply to printable TTK. */
+@media screen {
+ :root{--fai-bg:#080d1b;--fai-panel:#111b31;--fai-panel-2:#16243c;--fai-border:#2d3e60;--fai-text:#f0f5ff;--fai-muted:#acbed9;--fai-accent:#8b64ef;--fai-success:#1ecb8c;--fai-warning:#f4b84f;--fai-error:#f16c86}
+ body{background:radial-gradient(ellipse at 85% -10%,#31235f 0,transparent 48%),linear-gradient(145deg,#090e1b,#101a2c 70%)!important;color:var(--fai-text)}
+ body .app,body main{color:var(--fai-text)}
+ .aurora-top{background:rgba(10,15,30,.94)!important;border-bottom:1px solid var(--fai-border)!important;backdrop-filter:blur(18px)}
+ .aurora-brand,.aurora-brand span,.aurora-top button{color:#f5f4ff!important}
+ .app>.sidebar,.app>.sidebar.glass,#chef-menu{background:linear-gradient(165deg,#161a35,#0e172b)!important;border:1px solid #35436d!important;box-shadow:16px 6px 45px #03071555!important;color:var(--fai-text)!important}
+ #chef-menu .brand{color:#fff!important;letter-spacing:.08em}
+ #chef-menu .nav :is(button,a){display:flex;align-items:center;min-height:44px;border-radius:12px!important;padding:11px 15px!important;background:transparent!important;color:#d9e6ff!important;-webkit-text-fill-color:#d9e6ff!important;border:1px solid transparent!important;transition:background .18s,border-color .18s,transform .18s}
+ #chef-menu .nav :is(button,a):hover,#chef-menu .nav :is(button,a):focus-visible{background:#292c55!important;border-color:#6859ad!important;transform:translateX(2px)}
+ #chef-menu .nav :is(button,a)[aria-current="page"],#chef-menu .nav button.active{background:linear-gradient(110deg,#5441a1,#313d87)!important;border-color:#8273cb!important;color:white!important}
+ main>.bar,.glass>.bar{background:transparent!important;color:#f2f4ff!important}
+ body main>.glass{background:rgba(18,27,48,.74)!important;border:1px solid #2c3b5b!important;box-shadow:0 18px 55px #02071644!important;border-radius:22px!important}
+ .view:not(#home),#recipes,#preparations,#calc,#checks,#tasks{color:var(--fai-text)}
+ .view:not(#home) :is(h1,h2,h3,strong){color:#f3f6ff}
+ .view:not(#home) :is(.small,.section-subtitle){color:var(--fai-muted)}
+ .view:not(#home) :is(.tile,.card,.panel){background:linear-gradient(145deg,#19243b,#111a2e)!important;color:#f0f4ff!important;border:1px solid #314363!important;border-radius:18px!important;box-shadow:0 12px 28px #02071535}
+ .view:not(#home) :is(button.primary,.primary){background:linear-gradient(110deg,#7755e0,#4f77ed)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #a18bf0!important;border-radius:12px!important;box-shadow:0 7px 20px #6146d247!important}
+ .view:not(#home) :is(button,input,select,textarea){accent-color:var(--fai-accent)}
+ #recipes .catalog-search,#recipes #recipe-categories button,#recipes #catalog-all,#recipes #catalog-results{border-color:#354668!important;border-radius:14px!important}
+ #recipes .catalog-search,#recipes #catalog-all,#recipes #recipe-categories button{background:#19253d!important;color:#f0f5ff!important}
+ #recipes .catalog-search input{background:transparent!important;color:#fff!important}
+ #recipes input::placeholder{color:#b2bfd4!important}
+ /* A TTK editor is a workspace; actual printable A4 sheet is intentionally untouched. */
+ #editor:not([data-mode="paper"]){border-radius:20px!important;box-shadow:0 18px 50px #040b202e!important}
+ #editor :is(button,input,textarea,select){border-radius:10px}
+ #editor :is(button,[role="button"]):focus-visible,#chef-menu button:focus-visible{outline:3px solid #8b64ef!important;outline-offset:3px}
+ .notice[role="status"],#connection{font-weight:700}
+ .fai-status-success,[data-status="connected"],[data-state="success"]{color:var(--fai-success)!important}
+ .fai-status-warning,[data-state="pending"]{color:var(--fai-warning)!important}
+ .fai-status-error,[data-state="error"]{color:var(--fai-error)!important}
+}
+@media screen and (max-width:700px){
+ .app>.sidebar,#chef-menu{border-radius:0 18px 18px 0!important}
+ body main>.glass{border-radius:16px!important;box-shadow:none!important}
+ #chef-menu .nav :is(button,a){min-height:48px}
+ .view:not(#home) :is(button.primary,.primary){min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){#chef-menu .nav :is(button,a){transition:none!important;transform:none!important}}
