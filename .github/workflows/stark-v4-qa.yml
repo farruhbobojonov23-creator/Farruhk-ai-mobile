@@ -29,11 +29,17 @@ jobs:
           node --check public/haccp-ui.js
       - name: Run project regression suite
         run: npm test
+      # Stark is a retired prototype on main; its 3D interaction smoke is
+      # only relevant on the two Stark development branches.
+      # Active production Titanium/Crystal/Royal themes are tested independently
+      # on pull requests by premium-qa-20261112.yml.
       - name: Install browser QA dependencies
+        if: github.event_name == 'push'
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Verify live interactions in Chromium desktop and mobile
+      - name: Verify Stark prototype interactions in Chromium desktop and mobile
+        if: github.event_name == 'push'
         run: node tests/stark-browser-smoke.mjs
       - name: Upload visual QA screenshots
         if: always()
