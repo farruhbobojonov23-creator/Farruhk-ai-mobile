@@ -39,7 +39,7 @@ async function commitSync(store,expectedRevision,merged){
   const get=records.get('state');let newState=null,error=null;
   get.onsuccess=()=>{
    try{
-    const existing=validateDeviceState(get.result,{clone:false});
+    const existing=validateDeviceState(get.result===undefined?{tasks:[],recipes:[],chat:[]}:get.result,{clone:false});
     if(existing.revision!==expectedRevision){
      error=Object.assign(Error('За время синхронизации данные изменились на устройстве.'),{code:'STALE'});
      tx.abort();return;
