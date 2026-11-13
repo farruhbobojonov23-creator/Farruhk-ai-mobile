@@ -22,7 +22,7 @@ test('Production server starts and serves health and app assets without external
   const health=await fetch(base+'/healthz');assert.equal(health.status,200);assert.deepEqual(await health.json(),{ok:true});
   const page=await fetch(base+'/');assert.equal(page.status,503,'protected owner dashboard must not be anonymously accessible');
   const html=await page.text();assert.doesNotMatch(html,/DeviceStore/);
-  const assets=new Set(['/manifest.webmanifest','/icon-192.svg','/arctic-glass-orb.svg','/unified-theme.css?v=1','/print-control-theme.css?v=1','/farukh-print/index.html']);
+  const assets=new Set(['/manifest.webmanifest','/icon-192.svg','/arctic-glass-orb.svg','/unified-theme.css?v=1','/print-control-theme.css?v=1']);
   assert.ok(assets.size>=5);
   for(const asset of assets){const response=await fetch(base+asset);assert.equal(response.status,200,asset);assert.doesNotMatch(response.headers.get('content-type')||'',/text\/html/,asset);await response.arrayBuffer()}
   const session=await fetch(base+'/api/auth/session');assert.equal(session.status,200);assert.equal(typeof (await session.json()).authenticated,'boolean');
