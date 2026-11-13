@@ -1,0 +1,218 @@
+/* SHEF AI PREMIUM | Glass Control UI 1.0. Scope: screen only; A4 print is untouched. */
+@media screen {
+:root[data-studio-theme="chef-glass"]{
+ --ui-bg:#071426; --ui-panel:rgba(18,37,69,.73); --ui-raised:rgba(30,56,99,.78);
+ --ui-nav:rgba(8,19,39,.92); --ui-text:#eefaff; --ui-muted:#afc4df;
+ --ui-line:rgba(154,217,255,.19); --ui-accent:#4bd4ed; --ui-accent-hover:#77e9ff;
+ --ui-on-accent:#061a32; --ui-soft:rgba(64,180,232,.16);
+ --ui-highlight:#79eafa; --ui-shadow:0 18px 52px rgba(0,9,34,.29),inset 0 1px 0 rgba(255,255,255,.10);
+ --ui-radius:23px; --ui-button-radius:14px; --ui-stage:#132440;
+ color-scheme:dark; --ink:var(--ui-text); --mute:var(--ui-muted); --line:var(--ui-line);
+ --teal:var(--ui-highlight); --teal-light:var(--ui-soft); --gold:var(--ui-highlight);
+ background:var(--ui-bg);color:var(--ui-text);
+}
+:root[data-studio-theme="chef-glass"] body{
+ background:radial-gradient(ellipse 60% 40% at 90% 0,rgba(51,125,230,.22),transparent 76%),
+ radial-gradient(ellipse 40% 35% at 5% 63%,rgba(25,171,200,.16),transparent 70%),#071426;
+}
+:root[data-studio-theme="chef-glass"] .workspace,
+:root[data-studio-theme="chef-glass"] .auth{background:transparent;color:var(--ui-text)}
+:root[data-studio-theme="chef-glass"] .sidebar{
+ background:linear-gradient(174deg,rgba(9,24,54,.98),rgba(12,30,59,.95) 54%,rgba(17,33,68,.98));
+ border-right:1px solid rgba(124,208,255,.22);box-shadow:12px 0 42px rgba(2,10,31,.24);
+}
+:root[data-studio-theme="chef-glass"] .sidebar:before{
+ content:"";position:absolute;inset:0 0 auto;height:200px;z-index:-1;pointer-events:none;
+ background:radial-gradient(circle at 60% -20%,rgba(73,223,244,.23),transparent 70%);
+}
+:root[data-studio-theme="chef-glass"] .brand-mark{
+ background:linear-gradient(145deg,#6dfaff,#2384cc 64%,#6268da);
+ border:1px solid rgba(217,255,255,.6);border-radius:14px;
+ box-shadow:0 6px 25px rgba(33,194,238,.25),inset 0 2px 2px rgba(255,255,255,.75);
+}
+:root[data-studio-theme="chef-glass"] .brand-mark svg{stroke:#06264a}
+:root[data-studio-theme="chef-glass"] .brand-name{font-family:Manrope,"Segoe UI",sans-serif;font-weight:900;letter-spacing:.6px;color:#f1fbff}
+:root[data-studio-theme="chef-glass"] .brand-name span{color:#77eaff}
+:root[data-studio-theme="chef-glass"] .brand-sub{color:#81a9cf;letter-spacing:2.2px}
+:root[data-studio-theme="chef-glass"] .side-caption{color:#79a6cf}
+:root[data-studio-theme="chef-glass"] .nav-btn{
+ border-radius:15px;min-height:48px;color:#bad1e8;letter-spacing:.06px;
+ transition:transform .16s,background .16s,border-color .16s,box-shadow .16s;
+}
+:root[data-studio-theme="chef-glass"] .nav-btn:hover{background:rgba(109,207,255,.12);color:#fff;transform:translateX(2px)}
+:root[data-studio-theme="chef-glass"] .nav-btn.active{
+ background:linear-gradient(105deg,rgba(48,143,226,.29),rgba(82,217,255,.11));
+ border-color:rgba(123,220,255,.33);box-shadow:inset 0 1px rgba(255,255,255,.13),0 10px 26px rgba(7,25,66,.28);color:#fff;
+}
+:root[data-studio-theme="chef-glass"] .nav-btn.active:before{background:#75e9ff;box-shadow:0 0 13px rgba(105,229,255,.84);border-radius:9px}
+:root[data-studio-theme="chef-glass"] .nav-btn.active .icon{color:#87efff}
+:root[data-studio-theme="chef-glass"] .side-user{
+ background:rgba(56,101,162,.16);border:1px solid rgba(137,219,255,.18);border-radius:16px;padding:13px;
+}
+:root[data-studio-theme="chef-glass"] .topbar{
+ background:linear-gradient(110deg,rgba(12,28,57,.82),rgba(17,38,74,.71));
+ backdrop-filter:blur(12px);border-bottom:1px solid rgba(138,221,255,.16);min-height:85px;
+}
+:root[data-studio-theme="chef-glass"] .topbar h1,
+:root[data-studio-theme="chef-glass"] .page-head h2,
+:root[data-studio-theme="chef-glass"] .editor-head h2{
+ font-family:Manrope,"Segoe UI",sans-serif;font-weight:850;letter-spacing:-.9px;
+}
+:root[data-studio-theme="chef-glass"] .breadcrumb{color:#86b2db;letter-spacing:1.2px}
+:root[data-studio-theme="chef-glass"] .content{padding-top:29px}
+:root[data-studio-theme="chef-glass"] .surface,
+:root[data-studio-theme="chef-glass"] .editor-panel,
+:root[data-studio-theme="chef-glass"] .doc-row,
+:root[data-studio-theme="chef-glass"] .auth-card{
+ background:linear-gradient(145deg,rgba(39,75,124,.72),rgba(15,34,73,.85));
+ border:1px solid rgba(157,225,255,.24);box-shadow:var(--ui-shadow);
+ border-radius:23px;
+}
+:root[data-studio-theme="chef-glass"] .surface{position:relative}
+:root[data-studio-theme="chef-glass"] .stat{overflow:hidden}
+:root[data-studio-theme="chef-glass"] .stat:before{
+ content:"";position:absolute;top:0;left:20px;right:20px;height:1px;
+ background:linear-gradient(90deg,transparent,rgba(180,245,255,.75),transparent);
+}
+:root[data-studio-theme="chef-glass"] .stat b{color:#effdff;font-weight:850;text-shadow:0 0 20px rgba(112,226,251,.22)}
+:root[data-studio-theme="chef-glass"] .stat small{color:#b6d9f4}
+:root[data-studio-theme="chef-glass"] .hero{
+ background:radial-gradient(circle at 80% 15%,rgba(50,206,237,.30),transparent 34%),
+ radial-gradient(circle at 58% 95%,rgba(88,85,223,.32),transparent 45%),
+ linear-gradient(115deg,#0d2850,#1c447e 53%,#144b80);
+ border:1px solid rgba(150,233,255,.36);border-radius:30px;min-height:267px;
+ box-shadow:0 25px 54px rgba(2,12,41,.36),inset 0 2px 0 rgba(240,255,255,.18);overflow:hidden;
+}
+:root[data-studio-theme="chef-glass"] .hero:before{
+ content:"";position:absolute;width:410px;height:410px;right:4%;top:-135px;
+ background:radial-gradient(circle at 33% 37%,rgba(255,255,255,.28),rgba(71,221,242,.18) 32%,rgba(59,103,206,.09) 60%,transparent 70%);
+ border:1px solid rgba(184,249,255,.12);border-radius:50%;box-shadow:0 0 45px rgba(63,218,244,.16);pointer-events:none;
+}
+:root[data-studio-theme="chef-glass"] .hero:after{
+ display:block;content:"";position:absolute;width:580px;height:580px;right:-220px;top:-280px;
+ border:1px solid rgba(166,236,255,.17);border-radius:50%;
+ box-shadow:0 0 0 65px rgba(95,201,252,.036),0 0 0 140px rgba(113,191,249,.027);pointer-events:none;
+}
+:root[data-studio-theme="chef-glass"] .hero h2{font-family:Manrope,"Segoe UI",sans-serif;font-size:clamp(30px,3.4vw,47px);font-weight:850;letter-spacing:-1.8px}
+:root[data-studio-theme="chef-glass"] .hero h2 em{color:#8bf3ff;text-shadow:0 0 20px rgba(127,245,255,.28)}
+:root[data-studio-theme="chef-glass"] .hero p{color:#cce5f8;font-size:13px}
+:root[data-studio-theme="chef-glass"] .hero-decor{
+ background:linear-gradient(150deg,rgba(237,255,255,.94),rgba(179,225,255,.91));
+ border:1px solid rgba(255,255,255,.9);border-radius:16px;transform:rotate(8deg);
+ box-shadow:0 23px 35px rgba(5,17,56,.4),inset 0 2px 0 white;
+}
+:root[data-studio-theme="chef-glass"] .hero-decor:before{content:"SHEF AI";color:#1e6596}
+:root[data-studio-theme="chef-glass"] .hero-decor:after{background:#49cbec}
+:root[data-studio-theme="chef-glass"] .btn{font-weight:800;letter-spacing:.1px}
+:root[data-studio-theme="chef-glass"] .btn-primary,
+:root[data-studio-theme="chef-glass"] .btn-dark{
+ color:#062641;background:linear-gradient(115deg,#77efff,#4bc6ea 56%,#77b8ff);
+ border:1px solid rgba(211,255,255,.76);box-shadow:0 5px 20px rgba(39,175,233,.28),inset 0 1px 0 rgba(255,255,255,.85);
+}
+:root[data-studio-theme="chef-glass"] .btn-primary:hover,
+:root[data-studio-theme="chef-glass"] .btn-dark:hover{
+ background:linear-gradient(115deg,#b4faff,#78dfff 56%,#9acaff);
+ box-shadow:0 7px 26px rgba(47,215,250,.35),inset 0 1px 0 #fff;transform:translateY(-1px);
+}
+:root[data-studio-theme="chef-glass"] .btn-light,
+:root[data-studio-theme="chef-glass"] .btn-ghost,
+:root[data-studio-theme="chef-glass"] .sheet-theme-btn{
+ background:linear-gradient(160deg,rgba(91,155,219,.27),rgba(30,75,137,.22));
+ border-color:rgba(175,232,255,.30);color:#edfaff;box-shadow:inset 0 1px rgba(255,255,255,.08);
+}
+:root[data-studio-theme="chef-glass"] .btn-light:hover,
+:root[data-studio-theme="chef-glass"] .btn-ghost:hover{background:rgba(101,190,246,.27);border-color:rgba(181,248,255,.66)}
+:root[data-studio-theme="chef-glass"] .quick-link,
+:root[data-studio-theme="chef-glass"] .project-add,
+:root[data-studio-theme="chef-glass"] .empty{
+ background:linear-gradient(150deg,rgba(67,125,194,.22),rgba(23,52,103,.32));
+ border-color:rgba(143,224,255,.23);color:#eafaff;border-radius:16px;
+}
+:root[data-studio-theme="chef-glass"] .quick-link:hover,
+:root[data-studio-theme="chef-glass"] .project-add:hover,
+:root[data-studio-theme="chef-glass"] .project-card:hover,
+:root[data-studio-theme="chef-glass"] .doc-row:hover{background:rgba(51,105,174,.47);border-color:rgba(137,236,255,.58);box-shadow:0 13px 34px rgba(0,11,37,.28)}
+:root[data-studio-theme="chef-glass"] .quick-link .badge,
+:root[data-studio-theme="chef-glass"] .project-add .plus{
+ background:linear-gradient(150deg,rgba(103,217,250,.32),rgba(71,111,218,.29));border:1px solid rgba(177,238,255,.22);
+ box-shadow:inset 0 1px rgba(235,255,255,.22),0 5px 13px rgba(3,23,55,.19);color:#9cf7ff;border-radius:13px;
+}
+:root[data-studio-theme="chef-glass"] .project-card .proj-mark{
+ border:1px solid rgba(232,255,255,.44);border-radius:16px;box-shadow:inset 0 1px rgba(255,255,255,.45),0 8px 24px rgba(2,19,49,.27);
+}
+:root[data-studio-theme="chef-glass"] .project-card h3{color:#f7fdff}
+:root[data-studio-theme="chef-glass"] .control,
+:root[data-studio-theme="chef-glass"] .sheet-control select,
+:root[data-studio-theme="chef-glass"] .sheet-verified{
+ background:rgba(8,25,53,.58);border-color:rgba(154,216,255,.26);color:#f7fcff;
+}
+:root[data-studio-theme="chef-glass"] .control::placeholder{color:#93b3d3}
+:root[data-studio-theme="chef-glass"] .control:focus{border-color:#79eaff;box-shadow:0 0 0 3px rgba(104,230,255,.17)}
+:root[data-studio-theme="chef-glass"] .mini-label,
+:root[data-studio-theme="chef-glass"] .auth-card .overline{color:#8cefff}
+:root[data-studio-theme="chef-glass"] .auth-showcase{
+ background:radial-gradient(circle at 48% 33%,rgba(55,229,255,.27),transparent 45%),
+ radial-gradient(circle at 80% 80%,rgba(113,93,253,.23),transparent 44%),
+ linear-gradient(145deg,#082548,#113566 54%,#161d53);color:#f7fcff;
+}
+:root[data-studio-theme="chef-glass"] .auth-showcase:before{
+ content:"";position:absolute;inset:12%;pointer-events:none;border-radius:55%;
+ background:radial-gradient(circle,transparent 50%,rgba(111,236,255,.10) 51%,transparent 52%);
+}
+:root[data-studio-theme="chef-glass"] .auth-showcase h1,
+:root[data-studio-theme="chef-glass"] .auth-card h2{font-family:Manrope,"Segoe UI",sans-serif;font-weight:850}
+:root[data-studio-theme="chef-glass"] .auth-showcase h1 em{color:#9ff8ff}
+:root[data-studio-theme="chef-glass"] .auth-showcase p,
+:root[data-studio-theme="chef-glass"] .auth-points{color:#c4e5f9}
+:root[data-studio-theme="chef-glass"] .auth-panel{
+ background:radial-gradient(circle at 65% 17%,rgba(70,117,222,.20),transparent 35%),#09182b;
+}
+:root[data-studio-theme="chef-glass"] .auth-card{
+ background:linear-gradient(155deg,rgba(34,68,115,.75),rgba(13,34,72,.91));
+ border:1px solid rgba(162,234,255,.29);box-shadow:0 25px 85px rgba(0,7,31,.45),inset 0 2px rgba(255,255,255,.1);
+}
+:root[data-studio-theme="chef-glass"] .auth-card h2{color:#f2fbff}
+:root[data-studio-theme="chef-glass"] .auth-card>p,
+:root[data-studio-theme="chef-glass"] .auth-footer{color:#b8d4ec}
+:root[data-studio-theme="chef-glass"] .auth-card .control{background:rgba(8,24,54,.6)}
+:root[data-studio-theme="chef-glass"] dialog{
+ background:linear-gradient(150deg,#173665,#102545);border:1px solid rgba(151,232,255,.34);box-shadow:0 30px 90px #031027b8;
+}
+:root[data-studio-theme="chef-glass"] .modal-head h2,
+:root[data-studio-theme="chef-glass"] .appearance-heading h3{font-family:Manrope,"Segoe UI",sans-serif;font-weight:850}
+:root[data-studio-theme="chef-glass"] .notice{background:rgba(29,103,148,.25);border-color:rgba(149,231,255,.19);color:#eaf8ff}
+:root[data-studio-theme="chef-glass"] .notice strong{color:#9ef4ff}
+:root[data-studio-theme="chef-glass"] .paper-stage{background:#1a2f54;border-color:rgba(129,196,245,.24)}
+:root[data-studio-theme="chef-glass"] #paper{color-scheme:light}
+:root[data-studio-theme="chef-glass"] .appearance-chef-glass{
+ --mini-bg:#071b37;--mini-panel:#23477d;
+ background:radial-gradient(circle at 70% 12%,#46e5f868,transparent 47%),linear-gradient(140deg,#0a2145,#2b5a99);
+ box-shadow:inset 0 2px rgba(255,255,255,.27),0 12px 25px rgba(6,17,44,.28);
+}
+:root[data-studio-theme="chef-glass"] .appearance-mini .appearance-mini-cards i{box-shadow:0 3px 9px rgba(0,0,0,.16)}
+:root[data-studio-theme="chef-glass"] .appearance-option[aria-checked=true]{box-shadow:0 0 0 2px rgba(108,223,247,.32)}
+:root[data-studio-theme="chef-glass"] .appearance-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+:root[data-studio-theme="chef-glass"] .appearance-option{background:rgba(41,78,132,.43)}
+:root[data-studio-theme="chef-glass"] .appearance-switch-dot{background:linear-gradient(135deg,#8bfaff 20%,#3376df 52%,#9f9bff 90%)}
+:root[data-studio-theme="chef-glass"] .top-avatar{background:linear-gradient(145deg,#a2f9ff,#399cdf);color:#09234a;border:1px solid rgba(255,255,255,.8);box-shadow:0 5px 18px rgba(46,202,242,.25)}
+:root[data-studio-theme="chef-glass"] :focus-visible{outline-color:#8fefff;outline-offset:3px}
+}
+@media screen and (max-width:1250px){
+ :root[data-studio-theme="chef-glass"] .appearance-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media screen and (max-width:910px){
+ :root[data-studio-theme="chef-glass"] .sidebar{box-shadow:0 7px 25px rgba(4,16,43,.23)}
+ :root[data-studio-theme="chef-glass"] .nav-btn:hover{transform:none}
+ :root[data-studio-theme="chef-glass"] .hero{min-height:210px}
+}
+@media screen and (max-width:620px){
+ :root[data-studio-theme="chef-glass"] .appearance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ :root[data-studio-theme="chef-glass"] .hero{border-radius:23px}
+ :root[data-studio-theme="chef-glass"] .hero:before{width:210px;height:210px;right:-85px;top:-110px}
+ :root[data-studio-theme="chef-glass"] .auth-card{border-radius:20px}
+ :root[data-studio-theme="chef-glass"] .content{padding-top:19px}
+ :root[data-studio-theme="chef-glass"] .topbar{backdrop-filter:none}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ :root[data-studio-theme="chef-glass"] .nav-btn,:root[data-studio-theme="chef-glass"] .btn{transition:none;transform:none}
+}
