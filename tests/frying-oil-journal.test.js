@@ -40,7 +40,7 @@ test('Daily oil inspection records real evidence, 72-hour deadline and formal A4
  assert.equal(r.details.ageHours,48);
  assert.equal(r.details.oilDecision,'continue');
  assert.equal(r.details.tpm,null);
- assert.equal(oilCycleState(s.haccp,'point-1','Фритюрница').isDue,false);
+ assert.equal(oilCycleState(s.haccp,'point-1','Фритюрница',new Date('2026-10-22T12:00:00+03:00')).isDue,false);
  assert.equal(oilCycleState(s.haccp,'point-1','Фритюрница',new Date('2026-10-23T12:01:00+03:00')).isDue,true);
  const cols=paperColumns('frying').map(x=>x.key);
  for(const key of ['equipment','oilProductBatch','startedAt','oilAge','oilChecks','oilDecision','reviewer'])
