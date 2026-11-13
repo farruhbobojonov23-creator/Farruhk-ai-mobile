@@ -79,15 +79,55 @@ async function signOut(){
  session=null;persist();projects=[];docs=[];draft=null;dirty=false;
  $('shell').hidden=true;$('auth').hidden=false;$('loginPassword').value='';$('authError').textContent='';window.scrollTo(0,0);
 }
+let shefLoadInProgress=false;
+function renderShefDataNotice(errors={}){
+ const banner=$('chefDataBanner');if(!banner)return;
+ banner.replaceChildren();banner.hidden=true;
+ let title='',message='',kind='info';
+ if(errors.projects){
+  kind='error';title='Не удалось загрузить проекты';
+  message='Проверь соединение и авторизацию. '+errText(errors.projects);
+ }else if(!projects.length){
+  kind='warning';title='Нет доступных проектов для этого аккаунта';
+  message='В базе есть сохранённые проекты, но доступ зависит от аккаунта. Проверь электронную почту входа; данные других пользователей не раскрываются.';
+ }else if(errors.docs||errors.prefs){
+  kind='warning';title='Не все данные загрузились';
+  message='Проекты доступны, но некоторые разделы не обновились. Нажми «Повторить».';
+ }
+ if(!title)return;
+ banner.hidden=false;banner.className='chef-data-banner chef-data-'+kind;
+ const box=document.createElement('div'),head=document.createElement('strong'),desc=document.createElement('span');
+ head.textContent=title;desc.textContent=message;box.append(head,desc);
+ const retry=document.createElement('button');retry.type='button';retry.className='btn btn-light btn-sm';
+ retry.id='chefReloadData';retry.textContent='↻ Повторить';
+ banner.append(box,retry);
+}
 async function loadAll(){
- const [p,d,pref]=await Promise.all([
-  api('/rest/v1/ttk_projects?select=*&order=updated_at.desc&limit=1000'),
-  api('/rest/v1/ttk_documents?select=*&order=updated_at.desc&limit=2000'),
-  api('/rest/v1/ttk_preferences?select=*&limit=1')
- ]);
- projects=Array.isArray(p)?p:[];docs=Array.isArray(d)?d:[];
- prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
- renderAll();window.FARUKH_TTK_AUTO?.onReady();
+ if(shefLoadInProgress)return;
+ shefLoadInProgress=true;
+ const banner=$('chefDataBanner');
+ if(banner){banner.hidden=false;banner.className='chef-data-banner chef-data-loading';banner.textContent='Обновляем защищённые данные…';}
+ try{
+  if(session?.expires_at && session.expires_at<=Math.floor(Date.now()/1000)+60)await freshSession();
+  const paths=[
+    '/rest/v1/ttk_projects?select=*&order=updated_at.desc&limit=1000',
+    '/rest/v1/ttk_documents?select=*&order=updated_at.desc&limit=2000',
+    '/rest/v1/ttk_preferences?select=*&limit=1'
+  ];
+  const all=await Promise.allSettled(paths.map(path=>api(path)));
+  const errors={};
+  const [p,d,pref]=all.map((item,index)=>{
+   if(item.status==='fulfilled')return item.value;
+   errors[['projects','docs','prefs'][index]]=item.reason;return null;
+  });
+  if(Array.isArray(p))projects=p;else projects=[];
+  if(Array.isArray(d))docs=d;else docs=[];
+  if(Array.isArray(pref)&&pref[0])prefs=pref[0];
+  else if(!prefs?.studio_name)prefs={studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
+  renderAll();
+  renderShefDataNotice(errors);
+  try{window.FARUKH_TTK_AUTO?.onReady()}catch(e){console.warn('ШЕФ AI: не удалось подготовить автозаполнение',e)}
+ }finally{shefLoadInProgress=false}
 }
 async function enter(){
  $('auth').hidden=true;$('shell').hidden=false;
@@ -935,6 +975,11 @@ function clickHandler(ev){
 function init(){
  paintIcons();
  document.addEventListener('click',clickHandler);
+ document.addEventListener('click',e=>{
+  if(e.target.closest('#chefReloadData'))loadAll().catch(error=>{
+   renderShefDataNotice({projects:error});console.warn('SHEF AI retry:',error);
+  });
+ });
  $('loginForm').addEventListener('submit',signIn);
  $('logout').addEventListener('click',signOut);
  $('logoutMobile').addEventListener('click',signOut);
