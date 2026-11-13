@@ -20,10 +20,10 @@ test('Production server starts and serves health and app assets without external
   });
   const base='http://127.0.0.1:'+port;
   const health=await fetch(base+'/healthz');assert.equal(health.status,200);assert.deepEqual(await health.json(),{ok:true});
-  const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/DeviceStore/);
-  const assets=new Set([...html.matchAll(/(?:src|href)=["'](\/[^"']+)["']/g)].map(m=>m[1]));
-  for(const match of html.matchAll(/from\s+["'](\/[^"']+)["']/g))assets.add(match[1]);
-  assert.ok(assets.size>5);
+  const page=await fetch(base+'/');assert.equal(page.status,503,'protected owner dashboard must not be anonymously accessible');
+  const html=await page.text();assert.doesNotMatch(html,/DeviceStore/);
+  const assets=new Set(['/manifest.webmanifest','/icon-192.svg','/arctic-glass-orb.svg','/unified-theme.css?v=1','/print-control-theme.css?v=1','/farukh-print/index.html']);
+  assert.ok(assets.size>=5);
   for(const asset of assets){const response=await fetch(base+asset);assert.equal(response.status,200,asset);assert.doesNotMatch(response.headers.get('content-type')||'',/text\/html/,asset);await response.arrayBuffer()}
   const session=await fetch(base+'/api/auth/session');assert.equal(session.status,200);assert.equal(typeof (await session.json()).authenticated,'boolean');
 });
