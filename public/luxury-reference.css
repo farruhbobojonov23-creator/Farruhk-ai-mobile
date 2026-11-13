@@ -556,6 +556,10 @@
  }
  body.lx-pro[data-pf-theme="crystal"] .lx-ref-bottom button span{font-size:8px!important}
 }
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="home"] .mobile-tools.lx-ref-bottom{display:none!important}
+ body.lx-pro[data-pf-theme="crystal"] .pf-banner-visual img{clip-path:none!important;mask-image:none!important;-webkit-mask-image:none!important;background:transparent!important}
+}
 @media print {
  .lx-editor-extras,.lx-ref-searchbar,.lx-ref-status,.lx-ref-bottom,.lx-header-icon,
  #recipes .lx-ref-stats,#recipes .lx-project-row {display:none!important}
