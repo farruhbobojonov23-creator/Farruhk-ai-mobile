@@ -23,7 +23,7 @@ export function mountPremiumWorkspace(){
  // replaces the previous default dark Titanium on existing devices.
  // Keep the previous preference structure and respect subsequent Studio changes.
  const PREMIUM_V3_KEY='farruh-ai-approved-black-gold-v1';
- if(!getJson(PREMIUM_V3_KEY,false)){
+ if(location.hostname.startsWith('farukh-ai-premium-preview-')&&!getJson(PREMIUM_V3_KEY,false)){
   config={...config,theme:'royal',accent:''};
   setJson(DESIGN_KEY,config);
   setJson(PREMIUM_V3_KEY,true);
