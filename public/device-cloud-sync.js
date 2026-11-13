@@ -109,7 +109,11 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    lastError='';
    const connection=document.getElementById('connection');if(connection)connection.textContent='☁️ Облачная синхронизация';
    paint('✅ Синхронизировано: '+new Date().toLocaleTimeString('ru-RU')+'. ТТК: '+(merged.recipes?.length||0)+'.');
-   if(projectChanged){setTimeout(()=>location.reload(),200);return;}
+   if(projectChanged){
+    const editor=document.getElementById('editor');
+    if(editor&&!editor.hidden){paint('✅ Проекты объединены. Обновите страницу после сохранения открытой ТТК.');return;}
+    setTimeout(()=>location.reload(),200);return;
+   }
   }catch(error){
    lastError=error.message||String(error);
    const connection=document.getElementById('connection');if(connection)connection.textContent='На устройстве · облако недоступно';
