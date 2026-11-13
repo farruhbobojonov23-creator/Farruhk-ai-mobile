@@ -65,7 +65,15 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
   for(const p of ps.slice(0,3)){
    const name=String(p.name||'').trim();
    const kind=/море\s*суши|more\s*sushi/i.test(name)?'sea':/суши\s*бери|sushi\s*beri/i.test(name)?'beri':/farukh\s*kitchen|фарух\s*китчен/i.test(name)?'farukh':'default';
-   const card=button('','pfv-project pfv-project-'+kind,openProjects);
+   const card=button('','pfv-project pfv-project-'+kind,()=>{
+     const picker=document.getElementById('pf-home-project-select');
+     if(!picker||![...picker.options].some(option=>option.value===p.id)){openProjects();return}
+     picker.value=p.id;
+     picker.dispatchEvent(new Event('change',{bubbles:true}));
+     goto('recipes');
+   });
+   const activeId=document.getElementById('pf-home-project-select')?.value;
+   if(activeId===p.id)card.classList.add('pfv-project-current');
    card.setAttribute('aria-label','Управление проектом '+name);
    const mark=el('span','pfv-project-mark');mark.setAttribute('aria-hidden','true');
    if(kind==='sea')mark.innerHTML='<svg viewBox="0 0 80 65" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 34c8 6 13 16 28 15 16-1 21-12 28-15M40 45C31 27 24 23 18 21c-4 16 3 22 22 24M40 45c9-18 16-22 22-24 4 16-3 22-22 24M8 53c17 8 46 8 64-1M20 60c14 4 27 4 40 0"/></svg>';
