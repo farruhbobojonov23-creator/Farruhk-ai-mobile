@@ -56,6 +56,7 @@ async function run(theme,width,height){
  check(tag+' dashboard visible',initial.main!=='none',initial);
  results.push({label:tag+' initial render ms',ok:true,context:Date.now()-before});
  if(theme==='crystal'){
+  await page.waitForFunction(()=>{const img=document.querySelector('.pf-banner-visual img');return img&&getComputedStyle(img).opacity!=='0'&&img.complete&&img.naturalWidth>0},null,{timeout:12000});
   await checkCrystalInk(page,'.pf-showcase-banner h1',tag+' homepage heading readable');
   await checkCrystalInk(page,'.pf-showcase-card .pf-card-title',tag+' feature cards readable');
  }
@@ -87,6 +88,10 @@ async function run(theme,width,height){
       text:n.textContent?.trim().slice(0,160)};
    }).filter(n=>n.visible&&n.bottom>innerHeight-220));
    console.log('TTK_NAV_DEBUG='+JSON.stringify(navDebug));
+   const navLabels=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
+   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','ХАССП','Ещё'];
+   check(tag+' bottom navigation has no duplicated captions',
+     navLabels.length===expectedLabels.length&&navLabels.every((s,i)=>s.trim()===expectedLabels[i]),navLabels);
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
    await page.locator('#newrecipe').click();
    const editorTools=await page.evaluate(()=>({
