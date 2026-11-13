@@ -160,7 +160,7 @@ $('recipe-search').oninput=()=>{favoritesOnly=false;catalogOpen=Boolean($('recip
 $('catalog-back').onclick=()=>{favoritesOnly=false;catalogOpen=false;recipeFilter='Все';$('recipe-search').value='';render()};
 $('catalog-all').onclick=()=>{favoritesOnly=false;catalogOpen=true;recipeFilter='Все';render()};
 $('menu-preparations').onclick=$('home-preparations').onclick=()=>show('preparations');
-$('mobile-more').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)};
+if(!$('mobile-more').classList.contains('lx-bottom-item'))$('mobile-more').onclick=e=>{e.stopPropagation();setMenu($('chef-menu').hidden)}; // Premium footer binds its own More handler.
 document.addEventListener('click',e=>{if(!$('chef-menu').hidden&&!e.target.closest('#chef-menu,#menu-toggle,#mobile-more,#ruby-menu'))setMenu(false)});
 function renderCategories(){
  const box=$('recipe-categories');box.replaceChildren();allFilter.setAttribute('aria-pressed',String(!favoritesOnly));favFilter.setAttribute('aria-pressed',String(favoritesOnly));
