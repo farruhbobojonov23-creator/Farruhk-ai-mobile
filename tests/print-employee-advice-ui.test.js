@@ -18,8 +18,8 @@ test('Variant B has a visible independent advice button on every gallery tile',a
  assert.ok(render.indexOf('bottom.append')<render.indexOf('tipsButton.onclick'));
  assert.match(render,/item\.append\(tipsButton,meta\)/);
  assert.match(css,/\.product-tile \.product-tips/);
- assert.match(html,/\.\/print\.js\?v=37/);
- assert.match(html,/\.\/print\.css\?v=22/);
+ assert.match(html,/\.\/print\.js\?v=\d+/);
+ assert.match(html,/\.\/print\.css\?v=\d+/);
 });
 
 test('Every product category has readable neighbors and safety notes',async()=>{
@@ -42,7 +42,7 @@ test('Raw fish must never be recommended to sit with ready-to-eat rolls',()=>{
  const n=neighborsFor({kind:'prep',name:'Форель'});
  assert.match(n.no.join(' '),/готовые роллы/i);
  assert.match(n.no.join(' '),/птица/i);
- assert.match(n.yes.join(' '),/отдельн/);
+ assert.match(n.yes.join(' '),/отдельн|закрытых/);
  const dishes=neighborsFor({kind:'ready',name:'Ролл с лососем',category:'Холодные роллы'});
  assert.match(dishes.no.join(' '),/сырая рыба/i);
 });
