@@ -299,6 +299,33 @@
   min-height:42px!important;padding:8px 9px!important;font-size:11px!important
  }
  #editor.ttk-studio-enabled .ttk-toolbar #sheet-download{font-size:11px!important}
+ /* Exactly two toolbar rows: back / title / more, then save / PDF. */
+ #editor.ttk-studio-enabled .ttk-toolbar{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:auto auto!important;align-items:center!important;
+  gap:6px!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar #closeeditor{
+  grid-column:1;grid-row:1;width:100%!important;white-space:nowrap!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar h2{
+  grid-column:2 / 4;grid-row:1;min-width:0!important;
+  width:100%!important;flex:none!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  text-align:center!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar .ttk-studio-menu{
+  grid-column:4;grid-row:1;min-width:0!important;width:100%!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar .ttk-studio-menu>summary{
+  width:100%!important;padding:8px 4px!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar button[type="submit"]{
+  grid-column:1 / 3;grid-row:2;width:100%!important
+ }
+ #editor.ttk-studio-enabled .ttk-toolbar .ttk-studio-preview{
+  grid-column:3 / 5;grid-row:2;width:100%!important;white-space:nowrap!important
+ }
  #editor.ttk-studio-enabled .ttk-studio-intro{padding:14px 11px!important;border-radius:13px!important}
  #editor.ttk-studio-enabled .ttk-studio-intro-title h3{font-size:19px!important}
  #editor.ttk-studio-enabled .ttk-studio-project{display:block!important}
