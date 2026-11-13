@@ -44,7 +44,7 @@ test('White studio art is a preview only: owner uploads override and shelf appro
  const staff=await get('public/farukh-print/print.js');
  const owner=await get('public/print-control.js');
  const atlas=await get('public/farukh-print/prep-studio-atlas.js');
- assert.match(staff,/img\.src=original\|\|fallback\.url/);
+ assert.match(staff,/const displayed=usingCustom\?original/); assert.match(staff,/img\.src=displayed/);
  assert.match(owner,/if\(p\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(p\.photo\)\)return p\.photo/);
  assert.match(library,/studio:true/);
  assert.match(atlas,/Never persisted to product data/);
