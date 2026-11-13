@@ -278,12 +278,17 @@ export function mountLuxuryUI(opts={}){
   bottom.replaceChildren();
   const navigationItems=[
    ['home','Кабинет шефа','home'],['stack','Проекты','projects'],['chef','Техкарты','recipes'],
-   ['box','Полуфабрикаты','preparations'],['bag','Товары','print-control'],['all','Ещё','more']
+   ['box','Полуфабрикаты','preparations'],['bag','Маркировка','print-control'],['all','Ещё','more']
   ];
   for(const [index,[key,label,target]] of navigationItems.entries()){
    const b=btn('','lx-bottom-item');b.innerHTML=icon(key)+'<span>'+label+'</span>';
    b.style.setProperty('order',String(index),'important');
-   if(target==='more'){b.id='mobile-more'}
+   if(target==='more'){
+    b.id='mobile-more';
+    b.setAttribute('aria-label','Открыть дополнительные разделы');
+    b.setAttribute('aria-controls','chef-menu');
+    b.addEventListener('click',e=>{e.stopPropagation();opts.onMore?.()});
+   }
    else if(target==='projects'){b.addEventListener('click',()=>opts.onOpenProjects?.())}
    else b.dataset.view=target;
    bottom.append(b);
@@ -300,7 +305,7 @@ export function mountLuxuryUI(opts={}){
      const button=bottom.children[index];
      if(!button||button.tagName!=='BUTTON')return;
      // Legacy customizable navigation can reassign inline order after mount.
-     // Approved reference always displays seven buttons in this fixed order.
+     // Approved focused reference displays six buttons in this fixed order.
      if(button.style.getPropertyValue('order')!==String(index)||button.style.getPropertyPriority('order')!=='important')
        button.style.setProperty('order',String(index),'important');
      const text=(button.textContent||'').replace(/\\s+/g,' ').trim();
