@@ -70,6 +70,17 @@ async function run(theme,width,height){
    await page.locator('#recipes .lx-stats').waitFor({state:'visible',timeout:10000});
    await checkCrystalInk(page,'#recipes .lx-project-caption',tag+' recipe library readable');
    await checkCrystalInk(page,'#recipes .category-caption strong',tag+' category captions readable');
+   const ref=await page.evaluate(()=>({
+    title:document.querySelector('#recipes .lx-ref-hero h1')?.textContent?.trim(),
+    kpis:document.querySelectorAll('#recipes .lx-ref-stats .lx-stat').length,
+    project:!!document.querySelector('#lx-project-select'),
+    search:!!document.querySelector('#recipe-search'),
+    statuses:document.querySelectorAll('#recipes .lx-ref-status button').length,
+    categories:document.querySelectorAll('#recipes .recipe-categories .category-card').length,
+    bottom:document.querySelectorAll('.mobile-tools.lx-ref-bottom button').length
+   }));
+   check(tag+' approved reference controls',ref.title==='Техкарты (ТТК)'&&ref.kpis===4&&ref.project&&ref.search&&ref.statuses===5&&ref.categories>=6&&ref.bottom===7,ref);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
   }
   if(target==='lab'){
    await page.waitForTimeout(400);
