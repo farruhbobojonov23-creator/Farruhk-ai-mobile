@@ -20,7 +20,7 @@ function projectStorage(properties,packet){
  let folder;
  try{if(previous.folderId)folder=DriveApp.getFolderById(previous.folderId)}catch(e){}
  if(!folder&&known)folder=DriveApp.getFolderById(known.folderId);
- if(!folder){const found=root.getFoldersByName(identity.projectName);folder=found.hasNext()?found.next():root.createFolder(identity.projectName);}
+ if(!folder){folder=root.createFolder(identity.projectName);properties.setProperty(slot,JSON.stringify({folderId:folder.getId(),name:identity.projectName}));}
  let documentId=previous.documentId||known?.documentId||'';
  if(documentId){try{DocumentApp.openById(documentId)}catch(e){documentId=''}}
  if(!documentId){
