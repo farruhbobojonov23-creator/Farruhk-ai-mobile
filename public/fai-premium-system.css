@@ -116,3 +116,56 @@
  #chef-menu .nav :is(button,a){min-height:48px}
  body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){min-height:46px}
 }
+
+/* Premium home screen: cover the previously unthemed Arctic landing view.
+ * Decorative-only selectors; all controls keep their existing event handlers. */
+@media screen {
+ body[data-view="home"] {
+  background:radial-gradient(ellipse at 50% 20%,rgba(166,107,32,.15),transparent 55%),#0a0a0e!important;
+ }
+ body[data-view="home"] main>.glass {background:#101015!important;border:1px solid rgba(224,174,83,.19)!important;box-shadow:0 22px 65px #0008!important}
+ #home .arctic-shell {
+  background:radial-gradient(circle at 50% 27%,rgba(206,148,51,.11),transparent 39%),linear-gradient(155deg,#141319,#090a0e)!important;
+  border:1px solid rgba(235,187,96,.22)!important;border-radius:26px!important;
+  box-shadow:inset 0 1px 0 #fff1,0 20px 70px #0008!important;
+ }
+ #home .arctic-title strong, #home .ruby-greeting h1, #home .ruby-greeting h1 em {
+  color:#f4d394!important;-webkit-text-fill-color:#f4d394!important;
+  text-shadow:0 4px 26px rgba(170,114,38,.13)!important;
+ }
+ #home .arctic-title small,#home .ruby-greeting p,#home .arctic-date,
+ #home .arctic-date small,#home .ruby-greeting .eyebrow,#home .arctic-clock {
+  color:#d1c2a9!important;-webkit-text-fill-color:#d1c2a9!important;
+ }
+ #home .arctic-topline {border-color:rgba(234,187,103,.18)!important}
+ #home .arctic-top-actions button, #home .home-shortcuts button,
+ #home .home-print-control-quick {
+  background:linear-gradient(145deg,#272127,#151419)!important;
+  color:#f4dfba!important;-webkit-text-fill-color:#f4dfba!important;
+  border:1px solid rgba(236,188,99,.36)!important;
+  box-shadow:0 7px 22px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.06)!important;
+  border-radius:16px!important;
+ }
+ #home .home-shortcuts button svg, #home .arctic-top-actions button svg {
+  stroke:#e9bd6a!important;color:#e9bd6a!important;
+ }
+ #home .home-shortcuts button:hover,#home .home-shortcuts button:focus-visible,
+ #home .arctic-top-actions button:focus-visible,#home .home-print-control-quick:focus-visible {
+  border-color:#f4cb79!important;outline:2px solid rgba(244,203,121,.6)!important;outline-offset:2px;
+ }
+ #home .arctic-status-pill {
+  background:rgba(30,29,32,.91)!important;
+  border:1px solid rgba(230,186,101,.3)!important;color:#f1e5d2!important;
+ }
+ #home .ruby-talk {background:linear-gradient(140deg,#ffe2a2,#d09b48 65%,#94611f)!important;border:1px solid #fce1a6!important;box-shadow:0 10px 30px rgba(194,133,43,.35)!important}
+ #home .ruby-talk svg {stroke:#211807!important}
+ #home .arctic-orb-stage {filter:sepia(.28) saturate(.8) hue-rotate(336deg)}
+ #home .home-today {color:#f6e7ce!important}
+}
+@media screen and (max-width:720px) {
+ #home .arctic-shell {border-radius:19px!important;max-width:100%!important}
+ #home .home-shortcuts {gap:8px!important}
+ #home .home-shortcuts button {min-height:56px!important;min-width:0!important}
+ #home .home-print-control-quick {max-width:calc(100% - 24px)!important;white-space:normal!important}
+ #home .ruby-greeting h1 {overflow-wrap:break-word}
+}
