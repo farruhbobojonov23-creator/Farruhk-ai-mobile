@@ -85,7 +85,7 @@ async function run(theme,width,height){
        const el=document.querySelector(selector);if(!el)return null;
        const s=getComputedStyle(el);
        const avg=value=>{
-         const channels=(String(value).match(/[\\d.]+/g)||[]).slice(0,3).map(Number);
+         const channels=(String(value).match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
          return channels.length===3?channels.reduce((a,b)=>a+b,0)/3:255;
        };
        return {background:s.backgroundColor,backgroundAvg:avg(s.backgroundColor),
