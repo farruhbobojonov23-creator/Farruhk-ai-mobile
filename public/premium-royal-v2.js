@@ -2,6 +2,7 @@
    Navigation uses existing callbacks. KPI and recent recipe values come exclusively
    from the real on-device store. No synthetic connection, counts, projects or recipes. */
 import {DeviceStore} from '/device-store.js?v=72';
+import {showProductPhoto} from '/product-photo.js?v=3';
 const ICONS={
 chef:'<path d="M7 21V12C1 8 6 2 12 6c5-5 13 0 12 6v9M7 21h17M7 26h17"/>',
 home:'<path d="m3 14 13-11 13 11M7 12v17h18V12M13 29V18h6v11"/>',
@@ -49,7 +50,7 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  const content=el('main','pfv-content');
  const header=el('header','pfv-header');const search=el('label','pfv-search');search.innerHTML=icon('search');const searchInput=el('input');searchInput.type='search';searchInput.placeholder='Поиск по ТТК, ингредиентам, проектам…';searchInput.setAttribute('aria-label','Поиск по ТТК');search.append(searchInput);searchInput.addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();goto('recipes');requestAnimationFrame(()=>{const i=document.getElementById('recipe-search');if(i){i.value=searchInput.value;i.dispatchEvent(new Event('input',{bubbles:true}));i.focus()}})});header.append(search);
  const headerActions=el('div','pfv-header-actions');const settingButton=button('','pfv-icon-btn',()=>goto('site-settings'));settingButton.innerHTML=icon('settings');settingButton.setAttribute('aria-label','Настройки');const personButton=button('','pfv-icon-btn',()=>openProjects());personButton.innerHTML=icon('projects');personButton.setAttribute('aria-label','Мои проекты');headerActions.append(settingButton,personButton);header.append(headerActions);content.append(header);
- const intro=el('section','pfv-intro');intro.innerHTML='<div class="pfv-intro-copy"><div class="pfv-kicker">FARUKH AI · ПРЕМИАЛЬНЫЙ КАБИНЕТ ШЕФА</div><h1>Добро пожаловать, Фаррух Ака! <span aria-hidden="true">👋</span></h1><p>Единая платформа для разработки ТТК, полуфабрикатов, меню и управления проектами</p></div><div class="pfv-script" aria-hidden="true">Chef Aka</div><div class="pfv-hero-art" aria-hidden="true"><span class="pfv-hero-glow"></span><img class="pfv-hero-roll pfv-hero-roll-main" src="/assets/categories/baked.png" alt="" decoding="async"><img class="pfv-hero-roll pfv-hero-roll-side" src="/assets/categories/cold.png" alt="" decoding="async"><span class="pfv-hero-petals">✿ ✿</span></div>';content.append(intro);
+ const intro=el('section','pfv-intro');intro.innerHTML='<div class="pfv-intro-copy"><div class="pfv-kicker">FARUKH AI · ПРЕМИАЛЬНЫЙ КАБИНЕТ ШЕФА</div><h1>Добро пожаловать, Фаррух Ака! <span aria-hidden="true">👋</span></h1><p>Единая платформа для разработки ТТК, полуфабрикатов, меню и управления проектами</p></div><div class="pfv-script" aria-hidden="true">Chef Aka</div><div class="pfv-hero-art" aria-hidden="true"><span class="pfv-hero-glow"></span><img class="pfv-hero-roll pfv-hero-roll-main" src="/assets/categories/baked.png" alt="" decoding="async"><img class="pfv-hero-roll pfv-hero-roll-side" src="/assets/categories/cold.png" alt="" decoding="async"><span class="pfv-hero-petals">✿ ✿</span></div>';for(const img of intro.querySelectorAll('.pfv-hero-roll'))showProductPhoto(img,img.getAttribute('src'));content.append(intro);
  const kpis=el('div','pfv-kpis');const kpiItems=[
   ['ttk','ТТК','—','в базе'],['box','Ингредиенты','—','уникальных'],['layers','Полуфабрикаты','—','в базе'],['projects','Проекты','—','в списке']];
  const kpiNodes=[];
@@ -75,7 +76,7 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
    info.append(el('small','',kind==='sea'?'MORE SUSHI · ПРОЕКТ':kind==='beri'?'СУШИ БЕРИ · ПРОЕКТ':kind==='farukh'?'FARUKH KITCHEN · ПРОЕКТ':'РАБОЧИЙ ПРОЕКТ'));
    const hint=el('span','pfv-project-open','Открыть проект →');info.append(hint);
    const photo=el('img','pfv-project-photo');photo.alt='';photo.decoding='async';photo.loading='lazy';photo.src=kind==='sea'?'/assets/categories/baked.png':kind==='beri'?'/assets/categories/cold.png':kind==='farukh'?'/assets/categories/tempura.png':'/assets/categories/sushi.png';
-   card.append(mark,info,photo);projGrid.append(card);
+   showProductPhoto(photo,photo.src);card.append(mark,info,photo);projGrid.append(card);
   }
   if(ps.length<3){const add=button('','pfv-project pfv-project-create',openProjects);add.append(el('span','pfv-project-add-icon','＋'),el('span','','Добавить проект'));projGrid.append(add)}
  }
@@ -90,14 +91,41 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  const mobile=el('nav','pfv-phone-nav');mobile.setAttribute('aria-label','Быстрые переходы');for(const [sym,txt,route] of [['home','Главная','home'],['projects','Проекты','projects'],['ttk','ТТК','recipes'],['printer','Печать','print-control'],['menu','Ещё','site-settings']]){const b=button('', '',()=>route==='projects'?openProjects():goto(route));b.innerHTML=icon(sym);b.append(el('span','',txt));mobile.append(b)}content.append(mobile);
  root.addEventListener('click',event=>{if(event.target.closest('button'))event.stopPropagation()});
  root.append(side,content);shell.prepend(root);
- let dataLoaded=false;
- const readDashboardData=async()=>{if(dataLoaded||document.body.dataset.pfTheme!=='royal')return;dataLoaded=true;try{const state=await new DeviceStore().load();if(!root.isConnected)return;const recipes=Array.isArray(state?.recipes)?state.recipes:[];const prep=Array.isArray(state?.preparations)?state.preparations:[];const ingredientSet=new Set();for(const r of recipes)for(const i of r?.ingredients||[]){const name=String(i?.name||'').trim().toLocaleLowerCase('ru-RU');if(name)ingredientSet.add(name)}
+ let dashboardLoading=false,lastDashboardRead=0;
+ const readDashboardData=async({force=false}={})=>{
+  if(dashboardLoading||document.body.dataset.pfTheme!=='royal')return;
+  if(!force&&Date.now()-lastDashboardRead<2500)return;
+  dashboardLoading=true;try{const state=await new DeviceStore().load();if(!root.isConnected)return;const recipes=Array.isArray(state?.recipes)?state.recipes:[];const prep=Array.isArray(state?.preparations)?state.preparations:[];const ingredientSet=new Set();for(const r of recipes)for(const i of r?.ingredients||[]){const name=String(i?.name||'').trim().toLocaleLowerCase('ru-RU');if(name)ingredientSet.add(name)}
  setCount(kpiNodes[0],recipes.length);setCount(kpiNodes[1],ingredientSet.size);setCount(kpiNodes[2],prep.length);
  recentRows.replaceChildren();const latest=recipes.filter(r=>r&&r.name&&!r.archived).slice().sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))).slice(0,4);
  if(!latest.length)recentRows.append(el('p','pfv-muted','На этом устройстве пока нет сохранённых ТТК.'));
- for(const r of latest){const row=el('div','pfv-recipe');row.append(el('span','pfv-recipe-icon',short(r.name)));const info=el('div','pfv-recipe-text');info.append(el('strong','',r.name),el('small','',r.cardNumber?'ТТК №'+r.cardNumber:r.category||'Техкарта'));row.append(info);row.append(el('span','pfv-recipe-status'+(r.status==='ready'?'':' draft'),r.status==='ready'?'Готова':'Черновик'));recentRows.append(row)}
+ for(const r of latest){
+  const row=button('','pfv-recipe',()=>{
+   goto('recipes');requestAnimationFrame(()=>{
+    const search=document.getElementById('recipe-search');
+    if(search){search.value=r.name;search.dispatchEvent(new Event('input',{bubbles:true}))}
+   });
+  });
+  row.setAttribute('aria-label','Найти техкарту '+r.name);
+  const thumb=el('span','pfv-recipe-icon');
+  if(typeof r.photo==='string'&&r.photo.trim()){const img=el('img','pfv-recipe-photo');img.alt='';img.loading='lazy';showProductPhoto(img,r.photo);thumb.append(img)}
+  else thumb.textContent=short(r.name);
+  row.append(thumb);
+  const info=el('span','pfv-recipe-text');info.append(el('strong','',r.name),el('small','',r.cardNumber?'ТТК №'+r.cardNumber:r.category||'Техкарта'));
+  row.append(info);
+  row.append(el('span','pfv-recipe-status'+(r.status==='ready'?'':' draft'),r.status==='ready'?'Готова':'Черновик'));
+  recentRows.append(row)
+ }
  statusRows.replaceChildren();addStatus('Локальное хранилище доступно',true);addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус в настройках');
- }catch(e){statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}};
- new MutationObserver(()=>{if(document.body.dataset.pfTheme==='royal')void readDashboardData()}).observe(document.body,{attributes:true,attributeFilter:['data-pf-theme']});
+ }catch(e){statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}
+ finally{dashboardLoading=false;lastDashboardRead=Date.now()}
+ };
+ const updateOnNavigation=()=>{
+  if(document.body.dataset.pfTheme==='royal'&&document.body.dataset.view==='home')void readDashboardData();
+ };
+ new MutationObserver(updateOnNavigation).observe(document.body,{attributes:true,attributeFilter:['data-pf-theme','data-view']});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateOnNavigation()});
+ window.addEventListener('focus',updateOnNavigation);
  void readDashboardData();
+
 }
