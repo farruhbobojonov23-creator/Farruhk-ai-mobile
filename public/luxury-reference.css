@@ -560,3 +560,16 @@
  .lx-editor-extras,.lx-ref-searchbar,.lx-ref-status,.lx-ref-bottom,.lx-header-icon,
  #recipes .lx-ref-stats,#recipes .lx-project-row {display:none!important}
 }
+
+
+/* Direct action rows sit outside the content column on narrow phones. */
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-recipe-photo{grid-column:1;grid-row:1/3}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-recipe-content{grid-column:2;grid-row:1}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-more{grid-column:3;grid-row:1}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions{grid-column:2;grid-row:2}
+}
+@media screen and (max-width:560px) {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-recipe-photo{grid-row:1}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions{grid-column:1/-1!important;grid-row:2;min-width:0}
+}
