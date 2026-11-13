@@ -50,6 +50,11 @@ export function mountLuxuryUI({onRefresh=()=>{},onOpenProjects=()=>{}}={}){
  }
  const results=root.querySelector('#catalog-results');
  if(results)results.before(strip);
+ const catNav=root.querySelector('#recipe-categories');
+ const searchWrap=root.querySelector('.catalog-search');
+ const favoriteFilters=root.querySelector('.catalog-filters');
+ if(catNav&&searchWrap)catNav.after(searchWrap);
+ if(searchWrap&&favoriteFilters)searchWrap.after(favoriteFilters);
  const title=root.querySelector('#catalog-title');
  if(title)title.textContent='Категории блюд';
  const search=root.querySelector('#recipe-search');
@@ -79,10 +84,10 @@ export function mountLuxuryUI({onRefresh=()=>{},onOpenProjects=()=>{}}={}){
    const downloads=[...row.querySelectorAll(':scope > a')];
    const remove=row.querySelector(':scope > .recipe-delete');
    const photo=document.createElement('div');photo.className='lx-recipe-photo';
-   const image=document.createElement('img');
-   image.src=categoryPhotos[recipe.category]||'/assets/categories/preparations.png';
-   image.alt='';image.loading='lazy';image.decoding='async';
-   photo.append(image);
+   if(categoryPhotos[recipe.category]){
+    const image=document.createElement('img');image.src=categoryPhotos[recipe.category];
+    image.alt='';image.loading='lazy';image.decoding='async';photo.append(image);
+   }else{photo.classList.add('lx-photo-placeholder');photo.textContent='ТТК'}
    const content=document.createElement('div');content.className='lx-recipe-content';
    const top=document.createElement('div');top.className='lx-recipe-top';
    const title=document.createElement('strong');title.className='lx-recipe-name';
