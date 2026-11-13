@@ -68,11 +68,14 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  const mobile=el('nav','pfv-phone-nav');mobile.setAttribute('aria-label','Быстрые переходы');for(const [sym,txt,route] of [['home','Главная','home'],['projects','Проекты','projects'],['ttk','ТТК','recipes'],['printer','Печать','print-control'],['menu','Ещё','site-settings']]){const b=button('', '',()=>route==='projects'?openProjects():goto(route));b.innerHTML=icon(sym);b.append(el('span','',txt));mobile.append(b)}content.append(mobile);
  root.addEventListener('click',event=>{if(event.target.closest('button'))event.stopPropagation()});
  root.append(side,content);shell.prepend(root);
- (async()=>{try{const state=await new DeviceStore().load();if(!root.isConnected)return;const recipes=Array.isArray(state?.recipes)?state.recipes:[];const prep=Array.isArray(state?.preparations)?state.preparations:[];const ingredientSet=new Set();for(const r of recipes)for(const i of r?.ingredients||[]){const name=String(i?.name||'').trim().toLocaleLowerCase('ru-RU');if(name)ingredientSet.add(name)}
+ let dataLoaded=false;
+ const readDashboardData=async()=>{if(dataLoaded||document.body.dataset.pfTheme!=='royal')return;dataLoaded=true;try{const state=await new DeviceStore().load();if(!root.isConnected)return;const recipes=Array.isArray(state?.recipes)?state.recipes:[];const prep=Array.isArray(state?.preparations)?state.preparations:[];const ingredientSet=new Set();for(const r of recipes)for(const i of r?.ingredients||[]){const name=String(i?.name||'').trim().toLocaleLowerCase('ru-RU');if(name)ingredientSet.add(name)}
  setCount(kpiNodes[0],recipes.length);setCount(kpiNodes[1],ingredientSet.size);setCount(kpiNodes[2],prep.length);
  recentRows.replaceChildren();const latest=recipes.filter(r=>r&&r.name&&!r.archived).slice().sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))).slice(0,4);
  if(!latest.length)recentRows.append(el('p','pfv-muted','На этом устройстве пока нет сохранённых ТТК.'));
  for(const r of latest){const row=el('div','pfv-recipe');row.append(el('span','pfv-recipe-icon',short(r.name)));const info=el('div','pfv-recipe-text');info.append(el('strong','',r.name),el('small','',r.cardNumber?'ТТК №'+r.cardNumber:r.category||'Техкарта'));row.append(info);row.append(el('span','pfv-recipe-status'+(r.status==='ready'?'':' draft'),r.status==='ready'?'Готова':'Черновик'));recentRows.append(row)}
  statusRows.replaceChildren();addStatus('Локальное хранилище доступно',true);addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус в настройках');
- }catch(e){statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}})();
+ }catch(e){statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}};
+ new MutationObserver(()=>{if(document.body.dataset.pfTheme==='royal')void readDashboardData()}).observe(document.body,{attributes:true,attributeFilter:['data-pf-theme']});
+ void readDashboardData();
 }
