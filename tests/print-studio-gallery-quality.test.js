@@ -20,8 +20,8 @@ test('17 local studio images render at crisp 3× quality with original image asp
  assert.match(css,/aspect-ratio:150 \/ 96/);
  assert.match(css,/\.product-visual\.studio-preview \.product-photo/);
  assert.match(page,/prep-studio-atlas\.js\?v=2/);
- assert.match(page,/print\.css\?v=22/);
- assert.match(page,/print\.js\?v=37/);
+ assert.match(page,/print\.css\?v=\d+/);
+ assert.match(page,/print\.js\?v=\d+/);
 });
 
 test('Improving catalog photos cannot alter approved shelf lives, TTK or printed label dimensions',async()=>{

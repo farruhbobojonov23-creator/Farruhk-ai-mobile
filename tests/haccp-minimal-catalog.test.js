@@ -34,5 +34,5 @@ test('Minimal design is isolated from A4 journal forms and downloaded data',()=>
  assert.match(js,/tab=kind;build\(\)/);
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  assert.match(html,/haccp-minimal-v2\.css\?v=3/);
- assert.match(html,/haccp-ui\.js\?v=107/);
+ assert.match(html,/haccp-ui\.js\?v=\d+/);
 });

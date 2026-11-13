@@ -40,6 +40,11 @@ const visible=async(page,selector)=>page.locator(selector).isVisible();
 async function verify(mode,width,height){
  const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1.5,isMobile:mode==='mobile',hasTouch:mode==='mobile',reducedMotion:'reduce',serviceWorkers:'block'});
  const page=await context.newPage();
+ // This suite intentionally exercises the legacy Arctic workspace. The owner
+ // defaults to premium Titanium, independently covered by premium QA.
+ await page.addInitScript(()=>localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({
+  theme:'arctic',density:'standard',radius:20,scale:1,motion:false
+ })));
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',async dialog=>{throw Error('Unexpected destructive-confirmation dialog: '+dialog.message())});
@@ -63,8 +68,8 @@ async function verify(mode,width,height){
 
   await page.locator('#ruby-menu').click();
   assert.equal(await visible(page,'#chef-menu'),true,'menu opens from home shortcut');
-  await page.locator('#ruby-menu').click();
-  assert.equal(await visible(page,'#chef-menu'),false,'menu closes on second tap');
+  await page.locator('#chef-menu-close').click();
+  assert.equal(await visible(page,'#chef-menu'),false,'drawer closes via accessible close button');
 
   // The new free Google Drive backup controls must appear under Device Data.
   const backupLocated=await page.evaluate(()=>document.getElementById('device-export')?.parentElement?.contains(document.querySelector('.google-backup-open')));
@@ -130,9 +135,20 @@ async function verify(mode,width,height){
   }));
   assert.ok(!overview.background.includes('32, 36, 39'),'HACCP daily card must not have legacy dark background: '+overview.background);
   assert.ok(overview.journalCards>=5,'HACCP cards mounted: '+overview.journalCards);
-  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available on HACCP dashboard');
+  // Advanced controls are intentionally collapsed to keep the professional
+  // journal catalog compact on phones; expand before verifying export.
+  // HACCP may rerender as its local DB initializes. Re-open the advanced
+  // details after any such redraw before checking the PDF export control.
+  await page.waitForFunction(()=>{
+   const details=document.querySelector('#lab details.haccp-catalog-more');
+   if(!details)return false;
+   details.open=true;
+   const button=details.querySelector('.haccp-autofill-panel button.primary');
+   return !!button&&!!button.getClientRects().length;
+  },null,{timeout:12000});
+  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available in expanded HACCP controls');
   const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
-  assert.match(packStatus,/12 журналов/,'all 12 journals prepared automatically');
+  assert.match(packStatus,/13 журналов/,'all 13 journal types prepared automatically');
   assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
   assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/черновики/i,'auto-filled reports explicitly protect factual inspection data');
 
@@ -142,7 +158,7 @@ async function verify(mode,width,height){
   assert.match(dailyOverview,/Генеральная уборка:/,'monthly deep-clean progress is visible');
   await page.locator('#lab .haccp-utilities button').last().click();
   assert.equal(await visible(page,'#lab .haccp-plan-settings'),true,'HACCP daily schedule settings open');
-  assert.equal(await page.locator('#lab .haccp-plan-check input:checked').count(),4,'four routine journals enabled initially');
+  assert.equal(await page.locator('#lab .haccp-plan-check input:checked').count(),5,'five routine journals enabled initially');
   assert.equal(await page.locator('#lab .haccp-plan-settings input[name=generalCleaningTarget]').inputValue(),'2','deep-clean goal defaults to twice per month');
   await page.screenshot({path:'artifacts/arctic-haccp-plan-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#lab .haccp-back').click();
@@ -237,7 +253,7 @@ async function verify(mode,width,height){
   await page.locator('#lab [data-journal=hygiene]').click();
   const hygieneHeads=await page.locator('#lab .haccp-a4-table th').allInnerTexts();
   assert.ok(hygieneHeads.includes('Сотрудник')&&hygieneHeads.includes('Допуск к работе'),'hygiene has its own A4 table');
-  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/перед каждой сменой/i,
+  assert.match(await page.locator('#lab .haccp-hygiene-settings').innerText(),/назначенных смен|время смены/i,
    'per-person pre-shift inspection, not an invented daily admission');
   assert.equal(await page.locator('#lab .haccp-sheet-toolbar button').filter({hasText:'Сохранить образец'}).count(),0,
    'prior hygiene admission cannot become an auto-accepted template');
@@ -392,10 +408,14 @@ async function verify(mode,width,height){
   }));
   await isolated.goto(base+'/',{waitUntil:'domcontentloaded',timeout:20000});
   await isolated.waitForFunction(()=>document.querySelector('#connection')?.textContent==='Хранение на устройстве',null,{timeout:20000});
+  // HACCP is optional and loaded on demand; open it to simulate a module
+  // failure. A bad journal bundle must not break navigation or TTK.
+  await isolated.locator('button[data-view="lab"]').first().evaluate(el=>el.click());
   await isolated.waitForFunction(()=>document.querySelector('#lab')?.textContent?.includes('ХАССП временно недоступен'),null,{timeout:10000});
+  await isolated.locator('button[data-view="home"]').first().evaluate(el=>el.click());
   await isolated.locator('#ruby-menu').click();
   assert.equal(await visible(isolated,'#chef-menu'),true,'menu still opens with a broken HACCP module');
-  await isolated.locator('#ruby-menu').click();
+  await isolated.locator('#chef-menu-close').click();
   await isolated.locator('#home-new-recipe').click();
   assert.equal(await isolated.locator('body').getAttribute('data-view'),'recipes','TTK still opens with a broken HACCP module');
   await isolated.close();

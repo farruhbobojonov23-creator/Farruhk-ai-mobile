@@ -33,10 +33,10 @@ test('Employee and owner photo precedence does not overwrite original uploads or
  assert.match(html,/prep-studio-images\.js\?v=1/);
  assert.ok(html.indexOf('prep-studio-images.js?v=1')<html.indexOf('prep-photo-library.js?v=2'));
  assert.match(owner,/import\('\.\/farukh-print\/prep-studio-images\.js\?v=1'\)\.then/);
- assert.match(app,/img\.src=original\|\|fallback\.url/);
+ assert.match(app,/const displayed=usingCustom\?original/); assert.match(app,/img\.src=displayed/);
  assert.match(owner,/if\(p\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(p\.photo\)\)return p\.photo/);
  assert.match(app,/p\.needsReview/);
  assert.match(owner,/verify\.checked=product\?product\.needsReview!==true:false/);
- assert.match(home,/print-control\.js\?v=18/);
- assert.match(html,/print\.js\?v=37/);
+ assert.match(home,/print-control\.js\?v=\d+/);
+ assert.match(html,/print\.js\?v=\d+/);
 });

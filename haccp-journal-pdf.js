@@ -52,11 +52,13 @@ export function journalPdf({haccp,kind,month,pointId=''}){
   doc.font('bold').fontSize(14).fillColor('#19476c').text(journalTypes[kind],X+12,35,{width:W-22});
   text(period+'  ·  '+(pointId?h.points.find(p=>p.id===pointId).name:'Все точки'),X+12,63,W-24,{size:9});
   text('Дата и время: МСК',X,86,W,{size:8,color:'#57758c'});
-  let x=X;const headerTop=102,headerHeight=38;
+  let x=X;const headerTop=102,headerHeight=66;
   for(let i=0;i<columns.length;i++){
    const col=columns[i];rect(x,headerTop,widths[i],headerHeight,head);
-   const lines=safeLines(doc,col.label,widths[i]-8).slice(0,3);
-   lines.forEach((line,j)=>text(line,x+4,headerTop+7+j*10,widths[i]-8,{bold:true,size:7,color:'#244b6c'}));
+   // Let PDFKit wrap header text with its own bold-font metrics.
+   // Using regular-font widths previously clipped «границы» in receiving.
+   doc.font('bold').fontSize(6).fillColor('#244b6c')
+    .text(col.label,x+4,headerTop+6,{width:widths[i]-8,height:headerHeight-10,align:'center',lineGap:1});
    x+=widths[i];
   }
   y=headerTop+headerHeight;
@@ -113,7 +115,7 @@ export function journalPdf({haccp,kind,month,pointId=''}){
  }
  return doc;
 }
-// Read-only monthly print pack: all 12 journals, prefilled dates/points/equipment,
+// Read-only monthly print pack: all 13 journals, prefilled dates/points/equipment,
 // verbatim saved measurements, and unmistakably UNVERIFIED missing checks.
 export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
  const h=validateHaccp(haccp);
@@ -123,7 +125,7 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
  if(pack.confirmed+pack.planned>2400)
   throw Error('Слишком много строк. Выбери одну точку для автосборки журналов.');
  const doc=new PDFDocument({autoFirstPage:false,bufferPages:true,
-  info:{Title:'ХАССП — 12 журналов · '+label,Author:'FARRUH AI'}});
+  info:{Title:'ХАССП — '+pack.kinds+' журналов · '+label,Author:'FARRUH AI'}});
  doc.registerFont('regular',REGULAR).registerFont('bold',BOLD);
  const edge='#adc5d8',textInk='#22445e',heading='#1e5d86';
  let y=0,cols=[],widths=[],kind='',section=0;

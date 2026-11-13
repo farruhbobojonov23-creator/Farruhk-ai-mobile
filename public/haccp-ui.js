@@ -87,7 +87,7 @@ export function mountHaccp(root,{getState,save,notify}){
   }catch(error){autoStats.textContent=error.message}
  };
  autoMonth.onchange=autoPoint.onchange=updateAutoStats;
- const exportAll=button('↓ Скачать все 12 автозаполненных журналов (PDF А4)',
+ const exportAll=button('↓ Скачать все 13 автозаполненных журналов (PDF А4)',
   safe(async()=>{
    exportAll.disabled=true;
    try{
@@ -101,8 +101,8 @@ export function mountHaccp(root,{getState,save,notify}){
      const data=await response.json().catch(()=>({}));
      throw Error(data.error||'Не удалось подготовить сборник журналов.');
     }
-    download(await response.blob(),'ХАССП_все_12_журналов_'+autoMonth.value+'.pdf');
-    say('Все 12 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
+    download(await response.blob(),'ХАССП_все_13_журналов_'+autoMonth.value+'.pdf');
+    say('Все 13 журналов автоматически подготовлены в PDF. Фактические проверки не были выдуманы.');
    }finally{exportAll.disabled=false}
   }),'primary');
  autoPanel.append(autoForm,autoStats,exportAll,
@@ -1068,8 +1068,10 @@ export function mountHaccp(root,{getState,save,notify}){
   }
   if(extraJournals[tab]&&!['defrosting','quality','hygiene','frying'].includes(tab)){const spec=extraJournals[tab];form.append(el('p',spec.hint,'small'));for(const field of spec.fields)inputField(grid,field.label,field.name,{type:field.type,required:true,maxLength:1000});selectField(grid,'Результат контроля','result',[['done','Соответствует заданным условиям'],['problem','Отклонение — требуется действие'],['na','Не оценено']])}
   if(tab==='audit'){form.append(el('p','Рабочий чек-лист точки. Он не заменяет ваш утверждённый план ХАССП.','small'));for(let i=0;i<auditItems.length;i++)selectField(form,auditItems[i],'check'+i,[['yes','Да'],['no','Нет — замечание'],['na','Не применимо']])}
-  inputField(form,'Комментарий / замечание','notes',{type:'textarea'});const photo=fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
-  if(tab==='hygiene')photo.closest('label').hidden=true;
+  inputField(form,'Комментарий / замечание','notes',{type:'textarea'});
+  // Employee hygiene records are facts, not medical image archives.
+  // Do not mount a photo-upload control at all (CSS could unhide hidden labels).
+  const photo=tab==='hygiene'?null:fileField(form,'Фото, при необходимости (JPEG / PNG / WebP, до 2 МБ)','image/jpeg,image/png,image/webp');
   const kind=tab;submitForm(form,async raw=>{
    if(['defrosting','quality','hygiene','frying'].includes(kind)){
     // The sushi branches operate in Moscow/Murmansk time (UTC+03 year-round).
@@ -1090,7 +1092,7 @@ export function mountHaccp(root,{getState,save,notify}){
      'Обработанные зоны: '+(done.join('; ')||'не отмечены'),
      missed.length?'Не выполнено: '+missed.join('; '):''].filter(Boolean).join(' | ');
    }
-   const data={...raw,kind,photo:await fileData(photo.files[0],2*1024*1024,true)};
+   const data={...raw,kind,photo:photo?await fileData(photo.files[0],2*1024*1024,true):null};
     const draftId=form.dataset.autoDraftId;
     await commit(state=>draftId?confirmAutoDraft(state,draftId,data):addJournalRecord(state,data))});sheet(form);
  }

@@ -375,3 +375,23 @@
    color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
  }
 }
+
+
+/* Reachable drawer-dismiss control: menu can overlap its original opener. */
+@media screen{
+ body[data-pf-theme] #chef-menu .chef-menu-close{
+   display:grid!important;place-items:center!important;
+   position:sticky;top:0;float:right;z-index:3;
+   width:43px;height:43px;margin:-3px -3px 6px 8px;
+   border:1px solid var(--pf-line)!important;
+   border-radius:12px!important;background:var(--pf-raised)!important;
+   color:var(--pf-ink)!important;-webkit-text-fill-color:var(--pf-ink)!important;
+   font-size:28px;line-height:1;cursor:pointer;
+ }
+ body[data-pf-theme] #chef-menu .chef-menu-close:focus-visible{
+   outline:3px solid var(--pf-accent)!important;outline-offset:2px;
+ }
+}
+@media screen and (min-width:1000px){
+ body[data-pf-theme]:not([data-view="home"]) #chef-menu .chef-menu-close{display:none!important}
+}

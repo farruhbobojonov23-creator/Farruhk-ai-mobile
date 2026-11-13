@@ -18,12 +18,12 @@ function env(){
   }}
   getContext(){return this.ctx}
  }
- const doc={
+ const doc={body:{classList:{toggle(){}}},
   createElement(name){assert.equal(name,'canvas');return new FakeCanvas()},
-  getElementById(id){return els[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-24T12:00':'',disabled:false,textContent:'',dataset:{}}},
+  getElementById(id){return els[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-24T12:00':'',disabled:false,textContent:'',dataset:{},parentElement:{hidden:false},hidden:id==='catalog'}},
  };
- const win={FarukhPrinter:{postMessage(value){packets.push(JSON.parse(value))}}};
- const storage={getItem:()=>null};
+ const win={FarukhPrinter:{postMessage(value){packets.push(JSON.parse(value))}},FARUKH_PRINT_STAFF_API:{loggedIn:()=>true,point:()=> 'Плазма',authorize:async()=>({ok:true})},FARUKH_PRINT_DEVICE_SYNC:{state:()=>({connected:true})}};
+ const storage={getItem:key=>key==='farukh-print:staff-managed:v1'?'1':null};
  new Function('window','document',svgCode)(win,doc);
  new Function('window','document','localStorage',hooked)(win,doc,storage);
  return {win,doc,packets,els,testApi:win.__vectors,FakeCanvas};

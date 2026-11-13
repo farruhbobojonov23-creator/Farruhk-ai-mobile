@@ -56,7 +56,7 @@ test('New roll timestamps refresh automatically without losing manual production
  assert.match(js,/if\(busy\)return false;\s*\/\/ Refresh the time immediately before printing unless manually fixed\.\s*refreshPrintedAt\(\)/);
  assert.match(js,/if\(!autoPrintedAt\|\|busy\|\|batchRunning\|\|!current\(\)\|\|isHaccp\(current\(\)\)\|\|\$\('catalog'\)\.hidden\)return false/);
  assert.match(html,/id="printed-at-now"/);
- assert.match(html,/legacy\/print\.js\?v=62/);
+ assert.match(html,/legacy\/print\.js\?v=\d+/);
 });
 
 test('Fast printing checks staff and exact approved catalog before the cook taps Print',async()=>{

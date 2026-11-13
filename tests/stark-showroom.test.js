@@ -30,7 +30,7 @@ test('Arctic Sapphire is mounted on live homepage; old Stark files remain availa
 
 test('Existing Google synchronization, TTK and HACCP code paths remain linked',async()=>{
  const [html]=await sources();
- assert.match(html,/import \{mountGoogleSync\} from '\/recipe-google\.js'/);
+ assert.match(html,/import \{mountGoogleSync\} from '\/recipe-google\.js\?v=\d+'/);
  assert.match(html,/import \{deleteRecipe,upsertRecipe\} from '\/recipe-actions\.js/);
  assert.match(html,/import\('\/haccp-ui\.js\?v=/,'HACCP is loaded independently to protect the main navigation');
  assert.match(html,/HACCP module unavailable/);

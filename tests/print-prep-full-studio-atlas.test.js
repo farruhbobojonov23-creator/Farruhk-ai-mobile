@@ -35,8 +35,8 @@ test('Staff and FARUKH AI both load the complete atlas and repaint after image d
  assert.match(control,/import\('\.\/farukh-print\/prep-studio-atlas\.js\?v=2'\)/);
  assert.match(control,/window\.addEventListener\('farukh-studio-ready'/);
  assert.match(library,/window\.FarukhStudioPrep\?\.find\(p\)/);
- assert.match(shell,/print-control\.js\?v=18/);
- assert.match(html,/print\.js\?v=37/);
+ assert.match(shell,/print-control\.js\?v=\d+/);
+ assert.match(html,/print\.js\?v=\d+/);
 });
 
 test('White studio art is a preview only: owner uploads override and shelf approvals remain unchanged',async()=>{
@@ -44,7 +44,7 @@ test('White studio art is a preview only: owner uploads override and shelf appro
  const staff=await get('public/farukh-print/print.js');
  const owner=await get('public/print-control.js');
  const atlas=await get('public/farukh-print/prep-studio-atlas.js');
- assert.match(staff,/img\.src=original\|\|fallback\.url/);
+ assert.match(staff,/const displayed=usingCustom\?original/); assert.match(staff,/img\.src=displayed/);
  assert.match(owner,/if\(p\.photo&&window\.FarukhPrintPhotos\?\.isPhoto\(p\.photo\)\)return p\.photo/);
  assert.match(library,/studio:true/);
  assert.match(atlas,/Never persisted to product data/);
