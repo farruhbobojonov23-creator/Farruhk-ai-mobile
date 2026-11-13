@@ -75,8 +75,10 @@ async function run(theme,width,height){
    await page.evaluate(()=>{location.hash='recipes'});
    await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:8000});
    await page.locator('#recipes .category-card[data-category]').first().waitFor({state:'visible',timeout:8000});
-   const categoryStyle=await page.locator('#recipes .category-card[data-category]').first().evaluate(el=>({background:getComputedStyle(el).backgroundImage}));
-   check(tag+' TTK categories carry dark premium surface',categoryStyle.background.includes('gradient'),categoryStyle);
+   const categoryStyle=await page.locator('#recipes .category-card[data-category]').first().evaluate(el=>{const frame=el.querySelector('.category-photo-frame'),caption=el.querySelector('.category-caption');return {card:getComputedStyle(el).backgroundImage,frame:frame?getComputedStyle(frame).backgroundImage:'none',caption:caption?getComputedStyle(caption).backgroundImage:'none'}});
+   // The reference uses a photo frame and an opaque caption inside the card;
+   // the card root itself can remain transparent for layout and hit targets.
+   check(tag+' TTK categories carry dark premium surface',categoryStyle.frame.includes('gradient')&&categoryStyle.caption.includes('gradient'),categoryStyle);
    if(!mobile)console.log('PREMIUM_ROYAL_TTK_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.evaluate(()=>{location.hash='home'});
    await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:8000});
