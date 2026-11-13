@@ -70,7 +70,7 @@ async function request(url,options={}){
 }
 
 export function mountDeviceCloudSync({store,getState,onState,settingsDialog,notify,downloadFile}){
- const node=document.createElement('details');node.className='panel';
+ const node=document.createElement('details');node.className='panel';node.id='device-cloud-sync-settings';
  node.innerHTML='<summary>☁️ Единая база на телефоне и планшете</summary>'+
   '<p class="small">Техкарты, полуфабрикаты, проекты, категории, шаблоны и настройки. Данные двух устройств объединяются без замены всей базы; при конфликте сохранение блокируется. Личные ключи Google не отправляются.</p>'+
   '<div class="bar"><button type="button" data-toggle-sync></button><button type="button" data-sync-now>Синхронизировать сейчас</button></div>'+
@@ -143,5 +143,11 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(300)});
  setInterval(()=>{if(!document.hidden)schedule(0)},60000);
  paint();
- return {schedule,start:()=>schedule(600),status:()=>lastError};
+ const open=()=>{
+  if(!settingsDialog.open)settingsDialog.showModal();
+  node.open=true;
+  node.scrollIntoView({block:'start',behavior:'auto'});
+  node.querySelector('summary')?.focus?.({preventScroll:true});
+ };
+ return {schedule,start:()=>schedule(600),status:()=>lastError,open};
 }
