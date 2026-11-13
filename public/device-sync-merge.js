@@ -13,7 +13,7 @@ function duplicateId(item){
 
 export function pickSyncSnapshot(state,projects){
  const snapshot={};
- for(const key of LIST_FIELDS)snapshot[key]=structuredClone(Array.isArray(state?.[key])?state[key]:[]);
+ for(const key of LIST_FIELDS){if(key==='categories'&&state?.categories===undefined)continue;snapshot[key]=structuredClone(Array.isArray(state?.[key])?state[key]:[])}
  if(state?.siteSettings)snapshot.siteSettings=structuredClone(state.siteSettings);
  const raw=projects?.projects;
  snapshot.projectCatalog={projects:structuredClone(Array.isArray(raw)?raw.map(p=>({id:p.id,name:p.name})):[])};
@@ -21,6 +21,7 @@ export function pickSyncSnapshot(state,projects){
 }
 
 function mergedItems(field,baseline,local,remote){
+ if(field==='categories'&&baseline===undefined&&local===undefined&&remote===undefined)return undefined;
  const a=index(baseline),b=index(local),c=index(remote),out=[];
  const ids=new Set([...a.keys(),...b.keys(),...c.keys()]);
  for(const id of ids){
