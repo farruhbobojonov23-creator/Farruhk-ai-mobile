@@ -68,6 +68,16 @@ async function run(theme,width,height){
    await page.locator('#home .pfv-header-actions .pfv-icon-btn').first().click();
    await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
    check(tag+' settings remain functional',await page.locator('#site-settings').isVisible(),null);
+   await page.locator('#site-settings #pf-settings-hub').waitFor({state:'visible',timeout:8000});
+   const settingsStyle=await page.evaluate(()=>{const x=document.querySelector('#pf-settings-hub');return {background:getComputedStyle(x).backgroundColor,image:getComputedStyle(x).backgroundImage,ink:getComputedStyle(x).color}});
+   check(tag+' settings styled in Royal dark',!settingsStyle.background.includes('255, 255, 255')&&settingsStyle.image.includes('gradient'),settingsStyle);
+   if(!mobile)console.log('PREMIUM_ROYAL_SETTINGS_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
+   await page.evaluate(()=>{location.hash='recipes'});
+   await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:8000});
+   await page.locator('#recipes .category-card').first().waitFor({state:'visible',timeout:8000});
+   const categoryStyle=await page.locator('#recipes .category-card').first().evaluate(el=>({background:getComputedStyle(el).backgroundImage}));
+   check(tag+' TTK categories carry dark premium surface',categoryStyle.background.includes('gradient'),categoryStyle);
+   if(!mobile)console.log('PREMIUM_ROYAL_TTK_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.evaluate(()=>{location.hash='home'});
    await page.waitForFunction(()=>document.body.dataset.view==='home',null,{timeout:8000});
    await page.locator('#home .pfv-action').first().click();
