@@ -92,6 +92,17 @@ async function run(theme,width,height){
    const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','ХАССП','Ещё'];
    check(tag+' bottom navigation has no duplicated captions',
      navLabels.length===expectedLabels.length&&navLabels.every((s,i)=>s.trim()===expectedLabels[i]),navLabels);
+   const refVisual=await page.evaluate(()=>{
+    const buttons=[...document.querySelectorAll('.mobile-tools.lx-ref-bottom .lx-bottom-item')];
+    const xs=buttons.map(b=>b.getBoundingClientRect().x);
+    const current=s=>getComputedStyle(document.querySelector(s)).webkitTextFillColor;
+    return {xs,whiteStat:current('#recipes .lx-stat-total .lx-stat-body small'),
+      whiteCategory:current('#recipes .lx-all-category .category-caption strong')};
+   });
+   check(tag+' seven navigation buttons appear in reference order',
+     refVisual.xs.length===7&&refVisual.xs.every((x,i)=>i===0||x>=refVisual.xs[i-1]-1),refVisual);
+   check(tag+' white labels remain legible on cobalt cards',
+     /255, 255, 255/.test(refVisual.whiteStat)&&/255, 255, 255/.test(refVisual.whiteCategory),refVisual);
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
    await page.locator('#newrecipe').click();
    const editorTools=await page.evaluate(()=>({
