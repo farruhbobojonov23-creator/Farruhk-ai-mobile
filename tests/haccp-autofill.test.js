@@ -13,16 +13,17 @@ test('Daily autoblanks appear at 11:00 Moscow without generating imaginary outco
  const rows=automaticJournalRows(h,{month:'2026-10',kind:'cleaning',pointId:'point-1',now:when});
  assert.equal(rows.length,33); // 31 daily checks + 2 distinct general-clean schedule slots
  assert.equal(rows.filter(x=>x.type==='confirmed').length,0);
- assert.equal(rows[19].day,'2026-10-20');
- assert.equal(rows[19].due,true);
- assert.equal(rows[20].day,'2026-10-21');
- assert.equal(rows[20].due,true);
- assert.equal(rows[21].due,false);
- assert.equal(plannedCell(rows[20],'result',h.points),'ЧЕРНОВИК');
- assert.equal(plannedCell(rows[21],'result',h.points),'ЗАПЛАНИРОВАНО');
- assert.equal(plannedCell(rows[20],'owner',h.points),'');
- assert.equal(plannedCell(rows[20],'measured',h.points),'');
- assert.equal(plannedCell(rows[20],'at',h.points),'2026-10-21 · 11:00 МСК');
+
+ const day20=rows.find(r=>r.type==='planned'&&r.day==='2026-10-20');
+ const day21=rows.find(r=>r.type==='planned'&&r.day==='2026-10-21');
+ const day22=rows.find(r=>r.type==='planned'&&r.day==='2026-10-22');
+ assert.equal(day20?.due,true);assert.equal(day21?.due,true);assert.equal(day22?.due,false);
+ // A scheduled inspection must never print a fake result or signature.
+ assert.equal(plannedCell(day21,'result',h.points),'');
+ assert.equal(plannedCell(day22,'result',h.points),'');
+ assert.equal(plannedCell(day21,'owner',h.points),'');
+ assert.equal(plannedCell(day21,'measured',h.points),'');
+ assert.equal(plannedCell(day21,'at',h.points),'21.10.2026');
  const before=JSON.stringify(h);
  automaticJournalSummary(h,{month:'2026-10',pointId:'point-1',now:when});
  assert.equal(JSON.stringify(h),before,'auto-prepare must never write to HACCP records');
@@ -51,8 +52,8 @@ test('Event journals remain event-driven and monthly general-clean targets never
  assert.equal(general.length,2);
  for(const row of general){
   assert.equal(plannedCell(row,'cleaningType',s.haccp.points),'Генеральная');
-  assert.equal(plannedCell(row,'result',s.haccp.points),'ПО ГРАФИКУ');
-  assert.equal(plannedCell(row,'at',s.haccp.points),'Дата по графику');
+  assert.equal(plannedCell(row,'result',s.haccp.points),'');
+  assert.match(plannedCell(row,'at',s.haccp.points),/^\d{2}\.10\.2026$/);
  }
 });
 test('Full print pack contains 13 journals and marks missing checks clearly, with no fake numeric results',async()=>{
@@ -67,13 +68,12 @@ test('Full print pack contains 13 journals and marks missing checks clearly, wit
  const data=await pdfBytes(autoJournalPackPdf({haccp:s.haccp,month:'2026-10',pointId:'point-1',now:when}));
  const out=await parsePdf(data);
  assert.ok(out.numpages>=12);
- assert.match(out.text,/ЧЕРНОВИК/);
- assert.match(out.text,/ЗАПЛАНИРОВАНО/);
+ assert.doesNotMatch(out.text,/ЧЕРНОВИК|ЗАПЛАНИРОВАНО|НЕ ПРОВЕРЕНО/);
  assert.match(out.text,/Холодильник А/);
  assert.match(out.text,/Уборка и дезинфекция/);
  assert.match(out.text,/Приёмка продуктов/);
  assert.match(out.text,/Гигиенический осмотр/);
- assert.match(out.text,/Автоматические ЧЕРНОВИКИ/);
+ assert.match(out.text,/Дата и время/);
  assert.doesNotMatch(out.text,/Фиктивная/);
 });
 test('Monthly HACCP pack endpoint returns PDF; invalid month rejected',async()=>{
