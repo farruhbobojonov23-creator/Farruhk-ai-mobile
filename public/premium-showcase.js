@@ -66,6 +66,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  function addStatus(label,ok=false){const r=el('div','pfv-status-item'+(ok?' ok':''));r.innerHTML=icon(ok?'check':'clock');r.append(el('span','',label));statusRows.append(r)}
  addStatus('Проверка локальных данных…');addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус необходимо проверить в настройках');
  const mobile=el('nav','pfv-phone-nav');mobile.setAttribute('aria-label','Быстрые переходы');for(const [sym,txt,route] of [['home','Главная','home'],['projects','Проекты','projects'],['ttk','ТТК','recipes'],['printer','Печать','print-control'],['menu','Ещё','site-settings']]){const b=button('', '',()=>route==='projects'?openProjects():goto(route));b.innerHTML=icon(sym);b.append(el('span','',txt));mobile.append(b)}content.append(mobile);
+ root.addEventListener('click',event=>{if(event.target.closest('button'))event.stopPropagation()});
  root.append(side,content);shell.prepend(root);
  (async()=>{try{const state=await new DeviceStore().load();if(!root.isConnected)return;const recipes=Array.isArray(state?.recipes)?state.recipes:[];const prep=Array.isArray(state?.preparations)?state.preparations:[];const ingredientSet=new Set();for(const r of recipes)for(const i of r?.ingredients||[]){const name=String(i?.name||'').trim().toLocaleLowerCase('ru-RU');if(name)ingredientSet.add(name)}
  setCount(kpiNodes[0],recipes.length);setCount(kpiNodes[1],ingredientSet.size);setCount(kpiNodes[2],prep.length);
