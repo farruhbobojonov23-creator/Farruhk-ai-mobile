@@ -23,6 +23,12 @@ function mergedItems(field,baseline,local,remote){
   if(equal(left,right))chosen=left;
   else if(equal(left,old))chosen=right;
   else if(equal(right,old))chosen=left;
+  else if(old===undefined&&left&&right&&['recipes','releasedRecipes','myRecipeTemplates'].includes(field)){
+   // Two independently edited copies may share the same legacy ID. Keep both.
+   out.push(structuredClone(right));
+   out.push({...structuredClone(left),id:crypto.randomUUID(),name:(left.name||'Запись')+' (копия с другого устройства)'});
+   continue;
+  }
   else conflict(field+' / '+(left?.name||right?.name||id));
   if(chosen!==undefined)out.push(structuredClone(chosen));
  }
