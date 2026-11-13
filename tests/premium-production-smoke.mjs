@@ -217,7 +217,8 @@ async function run(theme,width,height){
  }
  if(theme==='titanium'&&mobile){
   await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]').click());
-  await page.evaluate(()=>document.querySelector('.pf-showcase-top-button[data-pf-action="studio"]').click());
+  await page.locator('.pf-showcase-top-button[data-pf-action="settings"]').click();
+  await page.locator('#site-settings #pf-settings-design-button').click();
   await page.locator('#pf-studio-dialog').waitFor({state:'visible',timeout:5000});
   const count=await page.locator('#pf-studio-dialog .pf-theme-btn').count();
   check('All eight themes selectable',count===8,count);
