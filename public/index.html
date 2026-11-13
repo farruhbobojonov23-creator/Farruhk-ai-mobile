@@ -111,6 +111,7 @@ import {showProductPhoto} from '/product-photo.js?v=3';
 import {mountCategoryManager} from '/category-manager.js?v=owner-3';
 import {mountGoogleSync} from '/recipe-google.js?v=5';
 import {mountGoogleDriveBackup} from '/google-backup.js?v=4';
+import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=1';
 import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
@@ -123,7 +124,7 @@ import {mountSiteSettings} from '/site-settings.js?v=7';
 import {mountPremiumWorkspace} from '/premium-workspace.js?v=12';
 import {mountLuxuryUI} from '/luxury-ui.js?v=9';
 let siteSettings;
-const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false;
+const $=id=>document.getElementById(id);const deviceStore=new DeviceStore();let state=null,editId=null,view='home',busy=false,deviceCloudSync=null;
 const desktopMenu=matchMedia('(min-width:1000px)');
 function setMenu(open){$('chef-menu').hidden=document.body.dataset.view==='home'?!open:(desktopMenu.matches?false:!open);$('menu-toggle').setAttribute('aria-expanded',String(open));$('ruby-menu')?.setAttribute('aria-expanded',String(open));document.body.classList.toggle('section-menu-open',open&&desktopMenu.matches&&document.body.dataset.view!=='home')}
 $('chef-menu-close').onclick=()=>setMenu(false);
@@ -248,7 +249,7 @@ let noticeTimer;function notice(text,error=false){clearTimeout(noticeTimer);$('n
 function show(v){if(!document.getElementById('editor').hidden&&typeof editorDirty!=='undefined'&&editorDirty&&!confirm('В техкарте есть несохранённые изменения. Перейти без сохранения?'))return;view=titles[v]?v:'home';document.body.dataset.view=view;const homeMode=view==='home';(homeMode?$('home-composer'):$('chat')).append($('chat-form'));(homeMode?messagesDialog:$('chat')).append($('messages'));setMenu(false);document.querySelectorAll('.view').forEach(x=>x.hidden=x.id!==view);document.querySelectorAll('.nav button,.mobile-tools [data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('editor').hidden=true;document.body.classList.remove('editing-recipe');if(view==='lab')void ensureHaccp();$('viewtitle').textContent=titles[view];if(location.hash!=='#'+view)location.hash=view;window.scrollTo({top:0});if(state&&!['home','chat'].includes(view))queueMicrotask(()=>{if(view===document.body.dataset.view)render()});}
 document.querySelectorAll('button[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));window.onhashchange=()=>{if(location.hash.slice(1)!==view)show(location.hash.slice(1))};show(location.hash.slice(1)||new URLSearchParams(location.search).get('open'));
 async function api(url,options={}){const r=await fetch(url,{...options,signal:AbortSignal.timeout(60000)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');return d}
-async function save(change){if(busy)throw Error('Дождись завершения сохранения.');busy=true;notice('Сохраняю на устройстве…');try{state=await deviceStore.mutate(change);render();notice('Сохранено на этом устройстве.')}finally{busy=false;googleSync?.schedule();googleDriveBackup?.schedule()}}
+async function save(change){if(busy)throw Error('Дождись завершения сохранения.');busy=true;notice('Сохраняю на устройстве…');try{state=await deviceStore.mutate(change);render();notice('Сохранено на этом устройстве.')}finally{busy=false;googleSync?.schedule();googleDriveBackup?.schedule();deviceCloudSync?.schedule()}}
 async function downloadRecipe(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');const r=await fetch('/api/recipes/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe}),signal:AbortSignal.timeout(30000)});if(!r.ok){const problem=await r.json().catch(()=>({}));throw Error(problem.error||'Не удалось подготовить PDF.')}downloadFile(await r.blob(),'ТТК_'+recipe.name+'.pdf')}
 async function openRecipePdf(recipe){
  const tab=window.open('','_blank');
@@ -542,10 +543,11 @@ $('chat-form').onsubmit=guard(async()=>{const message=$('message').value.trim();
 
 
 const dataTools=document.createElement('details');dataTools.className='panel';
-dataTools.innerHTML='<summary>Данные устройства</summary><p class="small">Техкарты, задачи и история сохраняются в этом браузере. На другом телефоне или компьютере будет отдельная база. Скачивай резервную копию: очистка данных браузера удалит локальную базу.</p><div class="bar"><button id="device-export">Скачать резервную копию</button><button id="device-import">Импортировать файл</button><button id="cloud-import">Загрузить старые данные из облака</button></div><input id="device-import-file" type="file" accept=".json,application/json" hidden>';
+dataTools.innerHTML='<summary>Данные устройства</summary><p class="small">Техкарты, задачи и история сохраняются в этом браузере. Для общей базы включи синхронизацию ниже на каждом устройстве. Перед очисткой браузера сохраняй резервную копию.</p><div class="bar"><button id="device-export">Скачать резервную копию</button><button id="device-import">Импортировать файл</button><button id="cloud-import">Загрузить старые данные из облака</button></div><input id="device-import-file" type="file" accept=".json,application/json" hidden>';
 settingsDialog.append(dataTools);
 const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice});
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog,importData:importDeviceData,downloadFile});
+deviceCloudSync=mountDeviceCloudSync({store:deviceStore,getState:()=>state,onState:next=>{state=next;render()},settingsDialog,notify:notice,downloadFile});
 const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();document.querySelector('.ttk-sync-summary button:last-of-type')?.click()};settingsDialog.append(connectionSettings);
 $('device-export').onclick=guard(async()=>{const saved=await deviceStore.load();downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:saved},null,2)],{type:'application/json'}),'FARRUH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json');notice('Резервная копия подготовлена для скачивания.')});
 async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));showSavedChatHistory(state.chat||[]);notice('Данные импортированы на устройство. Существующие записи сохранены.')}
@@ -570,6 +572,7 @@ async function loadAssistantState(){
     googleDriveBackup.render();
     googleSync.schedule();
     googleDriveBackup.schedule();
+    deviceCloudSync?.start();
     showSavedChatHistory(state?.chat||[]);
     navigator.storage?.persist?.().catch(()=>{});
    }catch(e){console.warn('Optional startup task failed:',e)}

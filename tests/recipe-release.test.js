@@ -29,7 +29,7 @@ test('Google gateway rejects drafts, requires matching acknowledgement and retur
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
  const url='http://127.0.0.1:'+server.address().port;
  const post=(path,data)=>fetch(url+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
- const connection={endpoint:'https://script.google.com/macros/s/ABCDEFGHIJKLMNOPQRST/exec',key:'a'.repeat(48),digest:'a'.repeat(64)};
+ const connection={endpoint:'https://script.google.com/macros/s/ABCDEFGHIJKLMNOPQRST/exec',key:'a'.repeat(48),digest:'a'.repeat(64),action:'sync'};
  try{
   assert.equal((await post('/api/recipes/google-sync',{...connection,recipe:base})).status,400);assert.equal(calls,0);
   assert.equal((await post('/api/recipes/google-sync',{...connection,recipe:{...base,status:'ready'}})).status,200);
