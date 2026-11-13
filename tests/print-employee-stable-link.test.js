@@ -16,7 +16,7 @@ test('FARUKH PRINT staff has a distinct installable shareable URL backed by same
  assert.equal(manifest.scope,'/farukh-print/staff/');
  assert.equal(manifest.display,'standalone');
  assert.match(html,/premium-prep-label\.js\?v=1/);
- assert.match(html,/premium-ready-label\.js\?v=3/);
+ assert.match(html,/premium-ready-label\.js\?v=\d+/);
  assert.match(html,/\.\/legacy\/print\.js\?v=\d+/);
  assert.match(html,/print-staff\.js\?v=\d+/);
 });
