@@ -8,7 +8,7 @@ test('Entry page carries a bounded premium loading fallback and updated assets',
  const page=await get('public/index.html');
  assert.match(page,/document\.documentElement\.dataset\.pfBoot='premium'/);
  assert.match(page,/removeAttribute\('data-pf-boot'\)/);
- assert.match(page,/premium-workspace\.js\?v=13/);
+ assert.match(page,/premium-workspace\.js\?v=14/);
  assert.match(page,/premium-showcase\.css\?v=2/);
  assert.match(page,/requestIdleCallback\(finishStartup,\{timeout:2500\}\)/);
 });
