@@ -115,7 +115,7 @@ export function journalPdf({haccp,kind,month,pointId=''}){
  }
  return doc;
 }
-// Read-only monthly print pack: all 12 journals, prefilled dates/points/equipment,
+// Read-only monthly print pack: all 13 journals, prefilled dates/points/equipment,
 // verbatim saved measurements, and unmistakably UNVERIFIED missing checks.
 export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
  const h=validateHaccp(haccp);
@@ -125,7 +125,7 @@ export function autoJournalPackPdf({haccp,month,pointId='',now=new Date()}={}){
  if(pack.confirmed+pack.planned>2400)
   throw Error('Слишком много строк. Выбери одну точку для автосборки журналов.');
  const doc=new PDFDocument({autoFirstPage:false,bufferPages:true,
-  info:{Title:'ХАССП — 12 журналов · '+label,Author:'FARRUH AI'}});
+  info:{Title:'ХАССП — '+pack.kinds+' журналов · '+label,Author:'FARRUH AI'}});
  doc.registerFont('regular',REGULAR).registerFont('bold',BOLD);
  const edge='#adc5d8',textInk='#22445e',heading='#1e5d86';
  let y=0,cols=[],widths=[],kind='',section=0;
