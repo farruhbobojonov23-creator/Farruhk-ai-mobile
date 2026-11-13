@@ -64,6 +64,7 @@ async function run(theme,width,height){
    check(tag+' V2 no invented success',!premium.falseStatus,premium);
    check(tag+' V2 layout does not overflow',premium.overflow<=22,premium);
    await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+   if(!mobile)console.log('PREMIUM_ROYAL_PREVIEW_JPEG='+ (await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
    await page.locator('#home .pfv-action').first().click();
    await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
    check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
