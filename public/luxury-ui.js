@@ -63,6 +63,14 @@ export function mountLuxuryUI(opts={}){
   const card=el('div','lx-stat lx-stat-'+key);
   card.innerHTML='<span class="lx-stat-icon">'+icon(symbol)+'</span><span class="lx-stat-body"><small></small><strong data-lx-count="'+key+'">0</strong></span>';
   card.querySelector('small').textContent=label;
+  if(key==='total'){
+    // Legacy theme cascade styles <small>/<strong> globally with !important.
+    // Explicit inline important overrides keep the cobalt KPI readable.
+    for(const node of card.querySelectorAll('.lx-stat-body small,.lx-stat-body strong')){
+      node.style.setProperty('color','#ffffff','important');
+      node.style.setProperty('-webkit-text-fill-color','#ffffff','important');
+    }
+  }
   if(key==='archive'){card.setAttribute('role','button');card.tabIndex=0;card.addEventListener('click',()=>selectStatus('archive'));card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectStatus('archive')}})}
   stats.append(card);
  }
@@ -130,7 +138,13 @@ export function mountLuxuryUI(opts={}){
  }
  function updateCategories(category='Все'){
   if(catNav&&!catNav.querySelector('.lx-all-category')){
-   const b=btn('','category-card lx-all-category',()=>opts.onAllCategories?.());b.innerHTML='<span class="lx-all-category-icon">'+icon('all')+'</span><span class="category-caption"><strong>Все</strong><small>Категории</small></span>';catNav.prepend(b);
+   const b=btn('','category-card lx-all-category',()=>opts.onAllCategories?.());b.innerHTML='<span class="lx-all-category-icon">'+icon('all')+'</span><span class="category-caption"><strong>Все</strong><small>Категории</small></span>';
+   for(const node of b.querySelectorAll('.category-caption,.category-caption strong,.category-caption small')){
+    node.style.setProperty('color','#ffffff','important');
+    node.style.setProperty('-webkit-text-fill-color','#ffffff','important');
+    node.style.setProperty('background','transparent','important');
+   }
+   catNav.prepend(b);
   }
   catNav?.querySelectorAll('.category-card').forEach(b=>{
    const active=(category==='Все'&&b.classList.contains('lx-all-category'))||(category!=='Все'&&b.dataset.category===category);
