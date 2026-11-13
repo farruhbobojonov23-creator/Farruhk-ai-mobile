@@ -32,7 +32,7 @@ test('Google gateway rejects drafts, requires matching acknowledgement and retur
  const connection={endpoint:'https://script.google.com/macros/s/ABCDEFGHIJKLMNOPQRST/exec',key:'a'.repeat(48),digest:'a'.repeat(64)};
  try{
   assert.equal((await post('/api/recipes/google-sync',{...connection,recipe:base})).status,400);assert.equal(calls,0);
-  assert.equal((await post('/api/recipes/google-sync',{...connection,recipe:{...base,status:'ready'}})).status,200);
+  const readyResponse=await post('/api/recipes/google-sync',{...connection,recipe:{...base,status:'ready'}});assert.equal(readyResponse.status,200,'Google ready sync response: '+await readyResponse.clone().text());
   bad=true;assert.equal((await post('/api/recipes/google-sync',{...connection,recipe:{...base,status:'ready'}})).status,502);
   const word=await post('/api/recipes/word',{recipe:base});assert.equal(word.status,200);const bytes=new Uint8Array(await word.arrayBuffer());assert.deepEqual([...bytes.slice(0,2)],[80,75]);
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r))}
