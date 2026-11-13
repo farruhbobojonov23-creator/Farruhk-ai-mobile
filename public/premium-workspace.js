@@ -59,10 +59,8 @@ export function mountPremiumWorkspace(){
  function addSidebar(){
   const settings=document.getElementById('menu-settings');
   const projectButton=button('▱  Проекты','pf-sidebar-project',openProjects);
-  const journalButton=button('▤  Журналы','pf-sidebar-journals',()=>goto('lab'));
   const designButton=button('◈  Дизайн и стиль','pf-sidebar-design',openStudio);
   nav.insertBefore(projectButton,settings);
-  nav.insertBefore(journalButton,settings);
   nav.insertBefore(designButton,settings);
   const extras=node('details','pf-sidebar-more');const summary=node('summary','', 'Дополнительные инструменты');extras.append(summary);
   for(const [label,view] of [['Заготовки','preparations'],['Калькулятор','calc'],['Контроль точек','checks']])extras.append(button(label,'',()=>goto(view)));
@@ -71,16 +69,17 @@ export function mountPremiumWorkspace(){
   }
   nav.insertBefore(extras,settings);
  }
- const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['shield','ХАССП','Безопасность производства','lab'],['book','Журналы','СанПиН и учёт','lab'],['box','Заготовки','Ингредиенты и полуфабрикаты','preparations'],['printer','FARUKH PRINT','Этикетки и печать','print-control'],['chef','Управление кухней','Задачи, проверки, точки','checks']];
+ const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Заготовки','Ингредиенты и полуфабрикаты','preparations'],['printer','FARUKH PRINT','Этикетки и печать','print-control'],['chef','Контроль кухни','Проверки и точки','checks']];
  const shell=node('div','pf-workspace');shell.id='pf-workspace';
  shell.innerHTML=
   '<div class="pf-top"><div><div class="pf-brand">FARRUH <span>AI</span></div><div class="pf-caption">Профессиональный кабинет шефа</div></div><div class="pf-top-actions"><button class="pf-icon-btn" data-pf-action="studio" aria-label="Настроить дизайн" title="Дизайн">◈</button><button class="pf-icon-btn" data-pf-go="tasks" aria-label="Открыть задачи" title="Задачи">♧</button></div></div>'+
-  '<section class="pf-hero"><div class="pf-hero-kicker">PRIVATE KITCHEN WORKSPACE</div><h1>Управляй кухней.<br>Создавай лучшее.</h1><p>Техкарты, безопасность, команда и печать в одном кабинете.</p><div class="pf-project-row"><label class="pf-project-picker"><span aria-hidden="true">▱</span><select id="pf-home-project-select" aria-label="Выбрать рабочий проект"></select></label><button class="pf-icon-btn" data-pf-action="projects" aria-label="Управление проектами" title="Проекты">＋</button><div class="pf-project-note">Проекты пока служат навигацией. Данные ТТК и ХАССП ещё находятся в общей базе.</div></div></section>'+
+  '<section class="pf-hero"><div class="pf-hero-kicker">PRIVATE KITCHEN WORKSPACE</div><h1>Управляй кухней.<br>Создавай лучшее.</h1><p>Техкарты, полуфабрикаты и маркировка в одном кабинете.</p><div class="pf-project-row"><label class="pf-project-picker"><span aria-hidden="true">▱</span><select id="pf-home-project-select" aria-label="Выбрать рабочий проект"></select></label><button class="pf-icon-btn" data-pf-action="projects" aria-label="Управление проектами" title="Проекты">＋</button><div class="pf-project-note">Выбирай заказчика или рабочий проект. Сохраняй документы в нужной категории.</div></div></section>'+
   '<div class="pf-dashboard-label"><strong>Рабочие инструменты</strong><small>Выбери раздел</small></div>'+
   '<div class="pf-tiles" id="pf-home-tiles"></div>'+
   '<button class="pf-ai-button" data-pf-go="chat"><span class="pf-ai-icon" aria-hidden="true">✦</span><span style="flex:1"><strong>ИИ-помощник</strong><small>Рабочие вопросы, задачи и идеи</small></span><span aria-hidden="true">›</span></button>'+
   '<div class="pf-actions"><button data-pf-action="projects"><span>▱</span>Проекты</button><button data-pf-go="tasks"><span>☑</span>Задачи</button><button data-pf-go="calc"><span>▦</span>Калькулятор</button><button data-pf-action="studio"><span>⚙</span>Дизайн</button></div>'+
   '<nav class="pf-bottom" aria-label="Основное меню"><button aria-current="page"><span>⌂</span>Главная</button><button data-pf-action="projects"><span>▱</span>Проекты</button><button data-pf-go="recipes"><span>▤</span>ТТК</button><button data-pf-go="print-control"><span>▣</span>Печать</button><button data-pf-action="more"><span>•••</span>Ещё</button></nav>';
+ shell.querySelectorAll('[data-pf-go="tasks"],[data-pf-go="lab"]').forEach(node=>node.remove());
  const grid=shell.querySelector('#pf-home-tiles');
  for(const [symbol,title,subtitle,view] of tiles){
   const tile=node('button','pf-tile');tile.type='button';tile.dataset.pfGo=view;
