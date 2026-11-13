@@ -46,6 +46,18 @@ async function run(theme,width,height){
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
  if(theme==='royal'){
    await page.locator('#home.pf-upgraded .pfv-showcase').waitFor({state:'visible',timeout:22000});
+   // Do not capture a misleading blank banner while its product imagery is
+   // being processed for transparent backgrounds on slow Android devices.
+   await page.waitForFunction(()=>{
+    const imgs=[...document.querySelectorAll('#home .pfv-hero-roll')];
+    return imgs.length===2&&imgs.every(img=>img.complete&&img.naturalWidth>0&&getComputedStyle(img).opacity!=='0');
+   },null,{timeout:20000});
+   const art=await page.evaluate(()=>({
+    bannerPhotos:[...document.querySelectorAll('#home .pfv-hero-roll')].map(x=>({w:x.naturalWidth,h:x.naturalHeight,src:x.currentSrc.slice(0,42)})),
+    projects:[...document.querySelectorAll('#home .pfv-projects .pfv-project')].map(x=>x.textContent.trim().slice(0,35))
+   }));
+   check(tag+' approved Royal hero photographs load before screenshot',art.bannerPhotos.length===2&&art.bannerPhotos.every(x=>x.w>0&&x.h>0),art);
+
    const premium=await page.evaluate(()=>{
     const root=document.querySelector('#home .pfv-showcase');
     const cs=getComputedStyle(root);
