@@ -85,7 +85,7 @@ export function mountTtkProWorkspace(editor,{getDraft,onPreview}={}){
   tab('◉ Предпросмотр PDF',()=>onPreview?.(),true)
  );
  top.after(tabs);
- let currentDirty=false,timer=null;
+ let currentDirty=false,hasPersistedRecipe=false,timer=null;
  function pdfDensity(){
   const paper=editor.querySelector('.ttk-paper');
   const basis=paper?.querySelector('.ttk-regulatory');
@@ -126,16 +126,17 @@ export function mountTtkProWorkspace(editor,{getDraft,onPreview}={}){
    density.textContent='Оценка заполнения макета А4: '+ratio+'%. Итоговую печать проверь в PDF.';
    density.dataset.level=ratio>100?'overflow':ratio>95?'near':'ok';
   }else density.textContent='Размер итогового документа проверяется в PDF.';
-  status.textContent=currentDirty?'● Изменения не сохранены':'✓ Данные сохранены или не изменялись';
-  status.dataset.state=currentDirty?'dirty':'saved';
+  status.textContent=currentDirty?'● Изменения не сохранены':
+    hasPersistedRecipe?'✓ Данные сохранены':'○ Новая ТТК · ещё не сохранена';
+  status.dataset.state=currentDirty?'dirty':hasPersistedRecipe?'saved':'new';
  }
  function schedule(){clearTimeout(timer);timer=setTimeout(refresh,160)}
  editor.addEventListener('input',()=>{currentDirty=true;schedule()});
  editor.addEventListener('change',()=>{currentDirty=true;schedule()});
  editor.addEventListener('click',e=>{if(e.target.closest('#ttk-design-picker')){currentDirty=true;schedule()}});
  return {
-  refresh,open(){currentDirty=false;queueMicrotask(refresh)},
-  markSaved(){currentDirty=false;queueMicrotask(refresh)},
+  refresh,open({persisted=false}={}){currentDirty=false;hasPersistedRecipe=persisted;queueMicrotask(refresh)},
+  markSaved(){currentDirty=false;hasPersistedRecipe=true;queueMicrotask(refresh)},
   markDirty(){currentDirty=true;schedule()}
  };
 }
