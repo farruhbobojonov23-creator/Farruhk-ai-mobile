@@ -139,20 +139,22 @@ async function verify(mode,width,height){
   // journal catalog compact on phones; expand before verifying export.
   // HACCP may rerender as its local DB initializes. Re-open the advanced
   // details after any such redraw before checking the PDF export control.
-  await page.waitForFunction(()=>{
+  // HACCP may redraw this panel during local DB hydration. Capture a real
+  // ready state in one DOM snapshot rather than reading between redraws.
+  const autoSummary=await page.waitForFunction(()=>{
    const details=document.querySelector('#lab details.haccp-catalog-more');
    if(!details)return false;
    details.open=true;
    const button=details.querySelector('.haccp-autofill-panel button.primary');
-   return !!button&&!!button.getClientRects().length;
-  },null,{timeout:12000});
-  // The preceding waitForFunction verifies that a real onscreen button is
-  // available. Avoid a second non-atomic visibility read while the local
-  // HACCP database may re-render this expandable section.
-  const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
-  assert.match(packStatus,/13 журналов/,'all 13 journal types prepared automatically');
-  assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
-  assert.match(await page.locator('#lab .haccp-autofill-panel').innerText(),/черновики/i,'auto-filled reports explicitly protect factual inspection data');
+   const stats=details.querySelector('.haccp-auto-stats')?.textContent||'';
+   const description=details.querySelector('.haccp-autofill-panel')?.textContent||'';
+   if(!button?.getClientRects().length)return false;
+   if(!/13 журналов/.test(stats)||!/строк по графику без подтверждения/.test(stats)||!/черновики/i.test(description))return false;
+   return {stats,description};
+  },null,{timeout:16000}).then(handle=>handle.jsonValue());
+  assert.match(autoSummary.stats,/13 журналов/,'all 13 journal types prepared automatically');
+  assert.match(autoSummary.stats,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
+  assert.match(autoSummary.description,/черновики/i,'auto-filled reports explicitly protect factual inspection data');
 
   await page.screenshot({path:'artifacts/arctic-haccp-'+mode+'.png',fullPage:false,timeout:12000});
   const dailyOverview=await page.locator('#lab .haccp-daily-overview').first().innerText();
