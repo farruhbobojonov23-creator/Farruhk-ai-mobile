@@ -40,7 +40,7 @@ function safeSnapshot(value){
 export function installDeviceSyncApi(app,{store}){
  // A local Render directory without a configured persistent path is not safe
  // as the single source of truth across deployments.
- const durable=store.storage==='yandex'||Boolean(process.env.ASSISTANT_DATA_DIR);
+ const durable=store.storage==='yandex'||(process.env.DEVICE_SYNC_ISOLATED_TEST==='true'&&Boolean(process.env.ASSISTANT_DATA_DIR));
  app.get('/api/device-sync',async(req,res)=>{
   try{
    if(!durable)throw httpError(503,'Нужно подключить постоянное облачное хранилище для синхронизации.');
