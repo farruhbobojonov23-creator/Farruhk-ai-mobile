@@ -38,6 +38,10 @@ test('sync API first saves to a separate workspace and enforces optimistic revis
   const stale=await req('PUT',{revision:0,snapshot:sample()});
   assert.equal(stale.status,409);
   assert.equal((await req('GET')).json.revision,1);
+  const edited=sample();edited.recipes[0].name='Филадельфия PRO';
+  assert.equal((await req('PUT',{revision:1,snapshot:edited})).status,200);
+  assert.equal((await req('GET')).json.snapshot.recipes[0].name,'Филадельфия PRO');
+  assert.equal(store.content.get('device-sync-previous-v1.json').snapshot.recipes[0].name,'Филадельфия');
  });
 });
 test('sync API rejects malformed and oversized snapshots without overwriting cloud data',async()=>{
