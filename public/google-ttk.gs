@@ -102,31 +102,35 @@ function doPost(event) {
     const key=properties.getProperty('CONNECTION_KEY');
     if(!key||packet.key!==key)return jsonResponse({ok:false,error:'Неверный ключ подключения Google.'});
     if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit'})}
+    if(!['sync','ensureProject'].includes(packet.action))throw Error('Неизвестное действие синхронизации.');
     const r=packet.recipe;
-    if(packet.action!=='sync'||!r||r.status!=='ready'||!r.id||!Array.isArray(packet.sections))throw Error('Разрешены только готовые ТТК.');
-    if(!/^[a-f0-9]{64}$/.test(packet.digest||''))throw Error('Неверная версия ТТК.');
+    if(packet.action==='sync'&&(!r||r.status!=='ready'||!r.id||!Array.isArray(packet.sections)))throw Error('Разрешены только готовые ТТК.');
+    if(packet.action==='sync'&&!/^[a-f0-9]{64}$/.test(packet.digest||''))throw Error('Неверная версия ТТК.');
     lock=LockService.getScriptLock();lock.waitLock(25000);
+    const target=projectStorage(properties,packet),documentId=target.documentId;
+    if(packet.action==='ensureProject')return jsonResponse({ok:true,...target});
+    packet.projectName=target.projectName;
     const recordKey='recipe_'+Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(r.id)).map(x=>('0'+((x+256)%256).toString(16)).slice(-2)).join('');
     const previous=JSON.parse(properties.getProperty(recordKey)||'{}');
-    let tabs=flattenTabs(docsApi('?includeTabsContent=true').tabs);
+    let tabs=flattenTabs(docsApi('?includeTabsContent=true',null,documentId).tabs);
     let category=tabs.find(tab=>!tab.tabProperties.parentTabId&&tab.tabProperties.title===r.category);
-    const parentId=category?category.tabProperties.tabId:addTab(String(r.category||'Без категории'));
+    const parentId=category?category.tabProperties.tabId:addTab(String(r.category||'Без категории'),null,documentId);
     // Persist a newly created tab ID BEFORE populating it. A retry repairs the same tab.
     const marker='AI-'+recordKey.slice(7,19),title=(String(r.name)+' №'+String(r.cardNumber||'')).slice(0,95);
-    let tabId=previous.tabId;
+    let tabId=previous.documentId&&previous.documentId!==documentId?'':previous.tabId;
     if(!tabId||!tabs.some(tab=>tab.tabProperties.tabId===tabId)){
       const interrupted=tabs.find(tab=>tab.tabProperties.title===marker);
-      tabId=interrupted?interrupted.tabProperties.tabId:addTab(marker,parentId);
-      properties.setProperty(recordKey,JSON.stringify({tabId}));
+      tabId=interrupted?interrupted.tabProperties.tabId:addTab(marker,parentId,documentId);
+      properties.setProperty(recordKey,JSON.stringify({tabId,documentId}));
     }
-    if(previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION){
-      const document=DocumentApp.openById(WORKING_DOCUMENT_ID),body=document.getTab(tabId).asDocumentTab().getBody();
+    if(previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||previous.documentId!==documentId){
+      const document=DocumentApp.openById(documentId),body=document.getTab(tabId).asDocumentTab().getBody();
       formatBody(body,packet);document.saveAndClose();
-      docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]});
-      normalizeCardTextHighlights(tabId);
-      properties.setProperty(recordKey,JSON.stringify({tabId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION}));
+      docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]},documentId);
+      normalizeCardTextHighlights(tabId,documentId);
+      properties.setProperty(recordKey,JSON.stringify({tabId,documentId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION}));
     }
-    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,tabId,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit?tab='+tabId});
+    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId});
   } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
