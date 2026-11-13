@@ -94,7 +94,7 @@ async function enter(){
  $('sideEmail').textContent=session?.user?.email||'Закрытый аккаунт';
  try{await loadAll();navigate('dashboard',true)}catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
 }
-const pageTitle={dashboard:'Обзор платформы',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
+const pageTitle={dashboard:'Обзор платформы',projects:'Мои проекты',ingredients:'Ингредиенты',prefabs:'Полуфабрикаты',products:'Готовые блюда',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
 function navigate(view,force=false){
  if(!pageTitle[view])return false;
  if(!force&&currentView==='editor'&&view!=='editor'&&dirty&&!confirm('У вас есть несохранённые изменения ТТК. Закрыть без сохранения?'))return false;
