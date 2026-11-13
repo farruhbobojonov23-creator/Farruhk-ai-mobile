@@ -23,6 +23,17 @@ const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usag
 await fs.mkdir('artifacts',{recursive:true});
 const failures=[],results=[];
 function check(label,value,context){results.push({label,ok:!!value,context});if(!value)failures.push({label,context})}
+async function checkCrystalInk(page,selector,label){
+ const ink=await page.evaluate(sel=>{
+  const el=document.querySelector(sel);if(!el)return {missing:true};
+  const s=getComputedStyle(el),value=s.webkitTextFillColor||s.color;
+  const nums=(value.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+  return {color:s.color,fill:s.webkitTextFillColor,nums,
+    text:(el.textContent||'').trim().slice(0,60)};
+ },selector);
+ const avg=ink.nums?.reduce((a,b)=>a+b,0)/3;
+ check(label,!ink.missing&&ink.nums.length===3&&avg<150,ink);
+}
 async function run(theme,width,height){
  const mobile=width<600,tag=theme+'-'+(mobile?'mobile':'desktop');
  const ctx=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,isMobile:mobile,hasTouch:mobile,serviceWorkers:'block',reducedMotion:'reduce'});
@@ -44,6 +55,10 @@ async function run(theme,width,height){
  check(tag+' homepage no overflow',initial.overflow<=16,initial);
  check(tag+' dashboard visible',initial.main!=='none',initial);
  results.push({label:tag+' initial render ms',ok:true,context:Date.now()-before});
+ if(theme==='crystal'){
+  await checkCrystalInk(page,'.pf-showcase-banner h1',tag+' homepage heading readable');
+  await checkCrystalInk(page,'.pf-showcase-card .pf-card-title',tag+' feature cards readable');
+ }
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
  for(const target of ['recipes','lab','tasks','checks','chat','preparations','print-control','site-settings']){
   await page.evaluate(v=>{const b=document.querySelector('#chef-menu button[data-view="'+v+'"]');if(b)b.click();else location.hash=v},target);
@@ -51,7 +66,18 @@ async function run(theme,width,height){
   const info=await page.evaluate(()=>({v:document.body.dataset.view,visible:!!document.querySelector('.view:not([hidden])'),overflow:document.documentElement.scrollWidth-innerWidth}));
   check(tag+' '+target+' opens',info.v===target&&info.visible,info);
   check(tag+' '+target+' no horizontal overflow',info.overflow<=22,info);
-  if(target==='lab')await page.waitForTimeout(400);
+  if(theme==='crystal'&&target==='recipes'){
+   await page.locator('#recipes .lx-stats').waitFor({state:'visible',timeout:10000});
+   await checkCrystalInk(page,'#recipes .lx-workspace-info strong',tag+' recipe library readable');
+   await checkCrystalInk(page,'#recipes .category-caption strong',tag+' category captions readable');
+  }
+  if(target==='lab'){
+   await page.waitForTimeout(400);
+   if(theme==='crystal'){
+    await page.locator('#lab .haccp-journal-copy strong').first().waitFor({state:'visible',timeout:10000});
+    await checkCrystalInk(page,'#lab .haccp-journal-copy strong',tag+' HACCP journal text readable');
+   }
+  }
   if(target==='print-control'){
    await page.locator('#print-control .pc-hero').waitFor({state:'visible',timeout:9000});
    const print=await page.evaluate(()=>{
@@ -59,6 +85,10 @@ async function run(theme,width,height){
     return {hero:getComputedStyle(hero).backgroundImage,stat:stat?getComputedStyle(stat).backgroundImage:'missing'};
    });
    check(tag+' PRINT themed',print.hero.includes('gradient')&&print.stat.includes('gradient'),print);
+   if(theme==='crystal'){
+    await checkCrystalInk(page,'#print-control .pc-hero h1',tag+' PRINT heading readable');
+    await checkCrystalInk(page,'#print-control .pc-stat strong',tag+' PRINT statistics readable');
+   }
    await page.screenshot({path:'artifacts/premium-'+tag+'-print.png',timeout:12000});
   }
   if(theme==='titanium'&&mobile)await page.screenshot({path:'artifacts/premium-'+tag+'-'+target+'.png',timeout:12000});
