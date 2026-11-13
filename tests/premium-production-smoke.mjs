@@ -210,7 +210,7 @@ async function run(theme,width,height){
    check(tag+' TTK photo upload and project editor',editorTools.visible&&editorTools.photo&&editorTools.project&&editorTools.a4,editorTools);
    const pilot=await page.evaluate(()=>({
     hero:!!document.querySelector('#editor .ttk-pro-head'),
-    preview:!!document.querySelector('#editor .ttk-pro-tab.is-accent'),
+    preview:!!document.querySelector('#editor .ttk-studio-preview'),
     rail:!!document.querySelector('#editor .ttk-pro-rail'),
     audit:document.querySelectorAll('#editor .ttk-pro-check').length,
     progress:Number(document.querySelector('#editor .ttk-pro-gauge')?.getAttribute('aria-valuenow')),
@@ -226,14 +226,25 @@ async function run(theme,width,height){
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
     sheet:document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout,
-    unchangedForm:!!document.querySelector('#card-scope')
+    unchangedForm:!!document.querySelector('#card-scope'),
+     galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>100,
+     uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 2 A4 layouts appear in TTK editor with current selection',
-     catalog.count===2&&catalog.selected==='arctic-a4'&&catalog.sheet==='arctic-a4'&&catalog.unchangedForm,catalog);
+     catalog.count===2&&catalog.selected==='arctic-a4'&&catalog.sheet==='arctic-a4'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
    await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
    check(tag+' selecting Royal changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
    if(theme==='crystal'&&mobile){
+    // Upload/delete use the same photo handlers as the original editor.
+    const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
+    await page.locator('#recipe-photo-file').setInputFiles({name:'dish.png',mimeType:'image/png',buffer:tinyPng});
+    await page.waitForFunction(()=>document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')?.startsWith('data:image/'),null,{timeout:6000});
+    check(tag+' dish photo uploads into the editable sheet',
+      await page.locator('#editor .ttk-studio-photo-remove').isVisible(),null);
+    await page.locator('#editor .ttk-studio-photo-remove').click();
+    check(tag+' photo removes from the editable sheet',
+      await page.evaluate(()=>!document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')),null);
     const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
     check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
     await page.locator('#recipe-name').fill('Пробный ролл');
@@ -241,7 +252,7 @@ async function run(theme,width,height){
     await page.locator('#ingredients .ingredient input[data-key="grams"]').first().fill('100');
     await page.waitForFunction(()=>document.querySelector('#editor .ttk-pro-save-state')?.dataset.state==='dirty',null,{timeout:5000});
     const pdfRequest=page.waitForRequest(req=>req.url().endsWith('/api/recipes/pdf')&&req.method()==='POST',{timeout:10000});
-    await page.locator('#editor .ttk-pro-tab.is-accent').click();
+    await page.locator('#editor .ttk-studio-preview').click();
     const req=await pdfRequest;
     const draft=JSON.parse(req.postData()).recipe;
     check(tag+' preview sends unsaved Royal A4 draft to actual PDF route',
