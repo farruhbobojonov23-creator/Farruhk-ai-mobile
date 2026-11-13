@@ -219,7 +219,7 @@ async function run(theme,width,height){
    await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
    check(tag+' selecting Royal changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
-   page.once('dialog',d=>d.accept());
+   await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
   }
   if(target==='lab'){
