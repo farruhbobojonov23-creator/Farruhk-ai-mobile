@@ -60,6 +60,15 @@ async function run(theme,width,height){
   await checkCrystalInk(page,'.pf-showcase-banner h1',tag+' homepage heading readable');
   await checkCrystalInk(page,'.pf-showcase-card .pf-card-title',tag+' feature cards readable');
  }
+ const focused=await page.evaluate(()=>{
+   const grid=[...document.querySelectorAll('#home .pf-showcase-grid .pf-showcase-card')].map(x=>x.querySelector('.pf-card-title')?.textContent?.trim());
+   const hidden=['ХАССП','Журналы','Задачи'];
+   const visibleBad=[...document.querySelectorAll('#home button, #chef-menu .nav button')].filter(b=>
+    ((['lab','tasks'].includes(b.dataset.view)||['lab','tasks'].includes(b.dataset.pfGo)||b.classList.contains('pf-sidebar-journals'))
+    &&getComputedStyle(b).display!=='none'&&b.getClientRects().length>0)).map(b=>b.textContent.trim().slice(0,50));
+   return {grid,visibleBad,noRemovedCards:grid.every(n=>!hidden.includes(n))};
+  });
+  check(tag+' HACCP, journals and tasks removed from home and menu',focused.noRemovedCards&&focused.visibleBad.length===0,focused);
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
  for(const target of ['recipes','lab','tasks','checks','chat','preparations','print-control','site-settings']){
   await page.evaluate(v=>{const b=document.querySelector('#chef-menu button[data-view="'+v+'"]');if(b)b.click();else location.hash=v},target);
@@ -80,7 +89,7 @@ async function run(theme,width,height){
     categories:document.querySelectorAll('#recipes .recipe-categories .category-card').length,
     bottom:document.querySelectorAll('.mobile-tools.lx-ref-bottom button').length
    }));
-   check(tag+' approved reference controls',ref.title==='Техкарты (ТТК)'&&ref.kpis===4&&ref.project&&ref.search&&ref.statuses===5&&ref.categories>=6&&ref.bottom===7,ref);
+   check(tag+' approved reference controls',ref.title==='Техкарты (ТТК)'&&ref.kpis===4&&ref.project&&ref.search&&ref.statuses===5&&ref.categories>=6&&ref.bottom===6,ref);
    const navDebug=await page.evaluate(()=>[...document.querySelectorAll('nav')].map(n=>{
     const rect=n.getBoundingClientRect(),style=getComputedStyle(n);
     return {className:n.className,id:n.id,visible:style.display!=='none'&&rect.height>0,
@@ -106,7 +115,7 @@ async function run(theme,width,height){
    console.log('TTK_NAV_EXTRA='+JSON.stringify(extraNavDebug));
 
    const navLabels=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
-   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','ХАССП','Ещё'];
+   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Товары','Ещё'];
    check(tag+' bottom navigation has no duplicated captions',
      navLabels.length===expectedLabels.length&&navLabels.every((s,i)=>s.trim()===expectedLabels[i]),navLabels);
    const refVisual=await page.evaluate(()=>{
@@ -116,8 +125,8 @@ async function run(theme,width,height){
     return {xs,whiteStat:current('#recipes .lx-stat-total .lx-stat-body small'),
       whiteCategory:current('#recipes .lx-all-category .category-caption strong')};
    });
-   check(tag+' seven navigation buttons appear in reference order',
-     refVisual.xs.length===7&&refVisual.xs.every((x,i)=>i===0||x>=refVisual.xs[i-1]-1),refVisual);
+   check(tag+' six navigation buttons appear in focused reference order',
+     refVisual.xs.length===6&&refVisual.xs.every((x,i)=>i===0||x>=refVisual.xs[i-1]-1),refVisual);
    check(tag+' white labels remain legible on cobalt cards',
      /255, 255, 255/.test(refVisual.whiteStat)&&/255, 255, 255/.test(refVisual.whiteCategory),refVisual);
    // Exercise the actual recipe-card CSS with a disposable layout probe.
