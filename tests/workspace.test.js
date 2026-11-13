@@ -10,7 +10,7 @@ test('task day uses Moscow and edits preserve identity; completion and filters u
  assert.equal(taskDay('2026-10-18T22:00Z'),'2026-10-19');const now=new Date('2026-10-19T12:00Z'),s={tasks:[{id:'a',text:'Рис',due:'2026-10-19T10:00Z',done:false},{id:'b',text:'Рыба',due:null,done:false,priority:'high'}]};assert.deepEqual(selectTasks(s.tasks,{now}).map(t=>t.id),['b','a']);assert.equal(selectTasks(s.tasks,{filter:'overdue',now}).length,1);assert.equal(selectTasks(s.tasks,{filter:'day',day:'2026-10-19'}).length,1);updateTask(s,'a',{done:true,priority:'low'},now);assert.equal(s.tasks[0].completedAt,now.toISOString());assert.equal(selectTasks(s.tasks,{filter:'done'}).length,1);assert.throws(()=>updateTask(s,'b',{text:' '}));assert.equal(s.tasks[1].text,'Рыба');updateTask(s,'a',{done:false});assert.equal(s.tasks[0].completedAt,null);
 });
 test('ordinary additional journals preserve real details; specialized safety checks never accept generic fictional entries',()=>{
- const handledByOwnValidators=new Set(['frying','hygiene','quality']);
+ const handledByOwnValidators=new Set(['frying','hygiene']);
  for(const [kind,spec] of Object.entries(extraJournals)){
   const s={haccp:emptyHaccp()};
   const input={kind,pointId:'point-1',owner:'Повар',at:'2026-10-19T09:00+03:00',
