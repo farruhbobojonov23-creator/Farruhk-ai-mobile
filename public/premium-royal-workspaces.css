@@ -195,3 +195,55 @@
   display:none!important;visibility:hidden!important;pointer-events:none!important;
  }
 }
+
+
+/* Premium Royal: consistent functional workspaces beyond the dashboard.
+   These rules apply only on screen; printable HACCP/TTK/A4 papers remain untouched. */
+@media screen {
+ body[data-pf-theme="royal"] :is(#lab,#tasks,#checks,#calc,#chat){
+  color:#f4e6cd!important;
+  background:transparent!important;
+ }
+ body[data-pf-theme="royal"] :is(#lab,#tasks,#checks,#calc,#chat) :is(h1,h2,h3){
+  color:#f7dba6!important;-webkit-text-fill-color:#f7dba6!important;
+  letter-spacing:-.025em;
+ }
+ body[data-pf-theme="royal"] :is(#lab,#tasks,#checks,#calc,#chat) :is(p,small,.small,.section-subtitle){
+  color:#c4b5a0!important;-webkit-text-fill-color:#c4b5a0!important;
+ }
+ body[data-pf-theme="royal"] :is(#lab,#tasks,#checks,#calc,#chat) :is(.tile,.panel,.create-panel,.settings-row){
+  color:#f5e8d2!important;-webkit-text-fill-color:#f5e8d2!important;
+  background:linear-gradient(145deg,#24201b,#13171b 88%)!important;
+  border:1px solid #81623b!important;border-radius:16px!important;
+  box-shadow:0 9px 25px #0005,inset 0 1px #fbe3a514!important;
+ }
+ body[data-pf-theme="royal"] :is(#lab,#tasks,#checks,#calc,#chat) :is(.tile,.panel) :is(strong,span,label){
+  color:#f4dfb9!important;-webkit-text-fill-color:#f4dfb9!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#calc,#chat) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  background:#17191c!important;color:#f7e5c6!important;-webkit-text-fill-color:#f7e5c6!important;
+  border:1px solid #82643f!important;border-radius:11px!important;box-shadow:none!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#calc,#chat) :is(input,textarea)::placeholder{
+  color:#a9a093!important;-webkit-text-fill-color:#a9a093!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#lab,#calc,#chat) :is(button:not(.primary),.tile){
+  border-color:#8b6a40!important;border-radius:12px!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#lab,#calc,#chat) button.primary{
+  color:#241809!important;-webkit-text-fill-color:#241809!important;
+  background:linear-gradient(120deg,#ffe3a2,#dba453)!important;
+  border:1px solid #f5d492!important;border-radius:12px!important;font-weight:800!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#lab,#calc,#chat) :is(button,input,select,textarea,summary):focus-visible{
+  outline:2px solid #f9da93!important;outline-offset:3px!important;
+ }
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#lab,#calc,#chat) button:hover{
+  filter:brightness(1.08);
+ }
+}
+@media screen and (max-width:720px){
+ body[data-pf-theme="royal"] :is(#tasks,#checks,#lab,#calc,#chat) :is(.tile,.panel,.create-panel){
+  padding:14px!important;border-radius:14px!important;
+ }
+}
