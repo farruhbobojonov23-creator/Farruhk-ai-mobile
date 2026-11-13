@@ -775,3 +775,49 @@
    background:transparent!important
  }
 }
+
+
+/* Regression: mobile title was spaced >100px above the status because the
+   old desktop flex-basis was interpreted vertically after flex-direction:column.
+   Keep title, status, category and metrics aligned alongside the thumbnail. */
+@media screen and (max-width:560px) {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-recipe-content {
+   display:flex!important;flex-direction:column!important;
+   align-self:start!important;justify-content:flex-start!important;
+   gap:5px!important;min-height:0!important;margin:0!important;padding:0!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-card-heading {
+   display:flex!important;flex-direction:column!important;
+   align-items:flex-start!important;justify-content:flex-start!important;
+   gap:4px!important;min-height:0!important;margin:0!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-card-heading h3 {
+   flex:0 1 auto!important;flex-basis:auto!important;
+   width:100%!important;min-width:0!important;min-height:0!important;
+   margin:0!important;padding:0!important;
+   line-height:1.22!important;overflow-wrap:anywhere!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-card-state {
+   flex:none!important;min-height:0!important;line-height:1.15!important;
+   margin:0!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-ref-meta {
+   align-content:start!important;line-height:1.35!important;
+   margin:0!important;min-height:0!important
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card .lx-recipe-photo {
+   align-self:start!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes
+ .lx-ref-card {
+   align-content:start!important;
+   grid-auto-rows:auto!important;
+   row-gap:8px!important;
+ }
+}
