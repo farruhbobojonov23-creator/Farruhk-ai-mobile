@@ -63,7 +63,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  main.innerHTML=
  '<header class="pf-showcase-top">'+
  '<div class="pf-showcase-logo">'+icon3d('kitchen',true)+'<div><strong>FARRUH <em>AI</em></strong><span>Профессиональный кабинет шефа</span></div></div>'+
- '<div class="pf-showcase-top-actions"><button type="button" data-pf-action="studio" class="pf-showcase-top-button" title="Настройка дизайна" aria-label="Настройка дизайна">'+icon3d('settings',true)+'</button><button type="button" data-pf-go="tasks" class="pf-showcase-top-button" title="Задачи" aria-label="Задачи">'+icon3d('tasks',true)+'</button></div>'+
+ '<div class="pf-showcase-top-actions"><button type="button" data-pf-action="settings" class="pf-showcase-top-button" title="Настройки" aria-label="Настройки">'+icon3d('settings',true)+'</button><button type="button" data-pf-go="tasks" class="pf-showcase-top-button" title="Задачи" aria-label="Задачи">'+icon3d('tasks',true)+'</button></div>'+
  '</header>'+
  '<section class="pf-showcase-banner">'+
  '<div class="pf-banner-copy"><p class="pf-overline">FARRUH AI • КАБИНЕТ ШЕФА</p><h1>Управляй кухней.<br><span>Создавай лучшее.</span></h1><p>Техкарты, полуфабрикаты и маркировка в одной системе.</p><button type="button" class="pf-banner-cta" data-pf-go="recipes">Открыть ТТК <span aria-hidden="true">↗</span></button></div>'+
@@ -83,6 +83,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  main.querySelectorAll('[data-pf-go="lab"],[data-pf-go="tasks"]').forEach(node=>node.remove());
  const info=main.querySelector('.pf-showcase-info');
  if(info){while(info.children.length>2)info.lastElementChild.remove()}
+ main.querySelector('.pf-showcase-all')?.remove();
  const grid=main.querySelector('.pf-showcase-grid');
  for(const item of shortcuts){
   if(item.route==='lab'||item.route==='tasks')continue;
@@ -109,7 +110,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   // Stop bubbling so each action runs once (especially navigation with dirty TTK).
   event.stopPropagation();
   if(target.dataset.pfGo)goto(target.dataset.pfGo);
-  if(target.dataset.pfAction==='studio')openStudio();
+  if(target.dataset.pfAction==='settings')document.getElementById('menu-settings')?.click();
   if(target.dataset.pfAction==='projects')openProjects();
   if(target.dataset.pfAction==='more')document.getElementById('ruby-menu')?.click();
  });
