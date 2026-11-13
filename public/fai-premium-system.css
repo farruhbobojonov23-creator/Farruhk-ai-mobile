@@ -47,3 +47,26 @@
  #recipes .catalog-search input{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){#chef-menu .nav :is(button,a),body:not([data-view="home"]) :is(button,.primary){transition:none!important}}
+
+/* Approved Black & Gold direction; complementary category colors stay distinct. */
+@media screen{
+ :root{--fai-violet:#e8b85d;--fai-blue:#64b2ff;--fai-gold:#e6b75d;--fai-gold-ink:#ffe0a0}
+ body:not([data-view="home"]) .view:not(#home) :is(.primary,button.primary){
+  background:linear-gradient(116deg,#f6d38b 0%,#d09a3f 52%,#a97522 100%)!important;
+  color:#211704!important;-webkit-text-fill-color:#211704!important;
+  border:1px solid #f4d894!important;box-shadow:0 9px 25px #d8a24a35!important;
+  font-weight:800!important
+ }
+ #chef-menu .nav :is(button,a):hover{background:linear-gradient(100deg,#6a4b20a8,#3d2e28)!important;border-color:#d2a45b!important}
+ #chef-menu .nav button.active,#chef-menu .nav button[aria-current="page"]{
+  background:linear-gradient(110deg,#694718,#32291e)!important;
+  border:1px solid #b38a4c!important;color:#ffeac3!important;-webkit-text-fill-color:#ffeac3!important
+ }
+ #chef-menu .nav [data-view="recipes"]::before{color:#f0ca84}
+ #chef-menu .nav [data-view="preparations"]::before{color:#bb97f2}
+ #chef-menu .nav [data-view="calc"]::before{color:#7ed2ff}
+ #recipes #recipe-categories button:hover,#recipes #catalog-all:hover{border-color:#d4a959!important;box-shadow:0 7px 24px #c9953e33!important}
+ #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{box-shadow:0 0 0 2px #d4ae6477,0 12px 25px #60441b23!important}
+}
+/* Preserve the separately controlled printable recipe styles. */
+@media print{body{background:transparent!important}}
