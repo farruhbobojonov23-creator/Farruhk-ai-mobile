@@ -169,3 +169,140 @@
  #home .home-print-control-quick {max-width:calc(100% - 24px)!important;white-space:normal!important}
  #home .ruby-greeting h1 {overflow-wrap:break-word}
 }
+
+
+/* FARUKH AI PREMIUM — visual consistency pass, 2026-11-13.
+   Screen-only. Keeps the original document structure, controls, data and print layouts. */
+@media screen {
+  :root {
+    --fai-canvas:#09090d;
+    --fai-panel:#16151a;
+    --fai-panel-raised:#201c1d;
+    --fai-metal:#e7bb6d;
+    --fai-metal-light:#ffe3a5;
+    --fai-muted:#c3b8a8;
+    --fai-hairline:rgba(232,186,105,.24);
+    --fai-shadow:0 18px 48px rgba(0,0,0,.38);
+  }
+  body { color:var(--fai-ink); }
+  .aurora-top {
+    background:linear-gradient(90deg,rgba(15,14,18,.98),rgba(26,22,23,.98))!important;
+    border-bottom:1px solid var(--fai-hairline)!important;
+    box-shadow:0 8px 36px rgba(0,0,0,.23)!important;
+  }
+  .aurora-top :is(button,a):focus-visible,
+  #chef-menu :is(button,a):focus-visible,
+  #home :is(button,a):focus-visible {
+    outline:2px solid var(--fai-metal-light)!important;
+    outline-offset:3px!important;
+  }
+  #chef-menu {
+    background:linear-gradient(165deg,#1c191c 0%,#0c0c11 70%)!important;
+    border-right:1px solid var(--fai-hairline)!important;
+    box-shadow:18px 0 56px rgba(0,0,0,.34)!important;
+  }
+  #chef-menu .nav :is(button,a) {
+    background:transparent!important;
+    border:1px solid transparent!important;
+    border-radius:13px!important;
+    min-height:48px;
+    color:#f5ead7!important;
+    -webkit-text-fill-color:#f5ead7!important;
+    font-weight:650;
+    letter-spacing:.005em;
+    box-shadow:none!important;
+  }
+  #chef-menu .nav :is(button,a):hover {
+    background:linear-gradient(95deg,rgba(173,117,39,.24),rgba(39,29,25,.55))!important;
+    border-color:rgba(231,187,109,.48)!important;
+  }
+  #chef-menu .nav :is(button.active,button[aria-current="page"],a[aria-current="page"]) {
+    background:linear-gradient(105deg,#6b4b23,#2b221c)!important;
+    border:1px solid #c49b59!important;
+    color:#fff0cb!important;
+    -webkit-text-fill-color:#fff0cb!important;
+    box-shadow:inset 0 1px 0 rgba(255,235,190,.15),0 8px 25px rgba(0,0,0,.18)!important;
+  }
+  #home .arctic-shell {
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 16%,rgba(219,164,72,.16),transparent 48%),
+      linear-gradient(155deg,#1a171b 0%,#111016 52%,#090a0e 100%)!important;
+    border:1px solid rgba(236,194,120,.31)!important;
+    box-shadow:inset 0 1px 0 rgba(255,235,190,.12),0 30px 75px rgba(0,0,0,.45)!important;
+  }
+  #home .arctic-shell::before {
+    content:"";
+    position:absolute;
+    top:0;left:9%;right:9%;
+    height:1px;
+    pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,219,145,.67),transparent);
+  }
+  #home .arctic-title strong {
+    letter-spacing:.1em!important;
+    color:var(--fai-metal-light)!important;
+    -webkit-text-fill-color:var(--fai-metal-light)!important;
+  }
+  #home .ruby-greeting h1 {
+    line-height:1.09!important;
+    letter-spacing:-.045em!important;
+    text-wrap:balance;
+  }
+  #home .ruby-greeting h1 em {
+    font-style:normal;
+    background:linear-gradient(110deg,#fff0c7 0%,#f1c879 48%,#bb8439 100%)!important;
+    background-clip:text!important;
+    -webkit-background-clip:text!important;
+    color:transparent!important;
+    -webkit-text-fill-color:transparent!important;
+    text-shadow:none!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick) {
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+    background:linear-gradient(145deg,#292326,#171519)!important;
+    border:1px solid rgba(230,183,93,.4)!important;
+    box-shadow:inset 0 1px 0 rgba(255,234,188,.07),0 12px 27px rgba(0,0,0,.27)!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick):not(:disabled):hover {
+    transform:translateY(-2px);
+    border-color:#f2cb82!important;
+    box-shadow:0 14px 32px rgba(0,0,0,.35),0 0 0 1px rgba(233,184,95,.12)!important;
+  }
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick):not(:disabled):active {
+    transform:translateY(0) scale(.985);
+  }
+  #home .arctic-status-pill {
+    border:1px solid rgba(232,186,105,.37)!important;
+    background:rgba(29,26,29,.91)!important;
+    color:#f4e8d4!important;
+    box-shadow:inset 0 1px 0 rgba(255,232,193,.06)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(.tile,.card,.panel) {
+    background:linear-gradient(145deg,#242025,#141318)!important;
+    border:1px solid var(--fai-hairline)!important;
+    box-shadow:var(--fai-shadow)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(button.primary,.primary) {
+    background:linear-gradient(110deg,#ffe2a2 0%,#e5b45e 51%,#b78131 100%)!important;
+    color:#221706!important;
+    -webkit-text-fill-color:#221706!important;
+    border:1px solid #ffdf99!important;
+    box-shadow:0 11px 25px rgba(176,118,44,.25)!important;
+  }
+  body:not([data-view="home"]) .view:not(#home) :is(button.primary,.primary):focus-visible {
+    outline:2px solid #ffe9b7!important;
+    outline-offset:3px!important;
+  }
+}
+@media screen and (max-width:720px) {
+  #home .arctic-shell {border-radius:20px!important;}
+  #home .ruby-greeting h1 {font-size:clamp(2rem,8vw,3.25rem)!important;}
+  #home .home-shortcuts {min-width:0;max-width:100%;}
+  #home .home-shortcuts button {min-height:58px!important;}
+  #chef-menu .nav :is(button,a) {min-height:50px!important;}
+}
+@media screen and (prefers-reduced-motion:reduce) {
+  #home :is(.arctic-top-actions button,.home-shortcuts button,.home-print-control-quick) {transition:none!important;}
+}
