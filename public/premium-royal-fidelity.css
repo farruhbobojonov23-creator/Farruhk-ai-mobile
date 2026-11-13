@@ -210,3 +210,19 @@
 @media screen and (max-width:1120px){
  body[data-pf-theme="royal"] .pfv-script{display:none!important}
 }
+
+/* Final photographic layering: remove visible dark photo rectangles without
+ * altering the original product photos or storing synthetic pictures. */
+@media screen {
+ body[data-pf-theme="royal"] :is(.pfv-project-photo,.pfv-hero-roll) {
+  mix-blend-mode:screen!important;
+  -webkit-mask-image:radial-gradient(ellipse 76% 76% at 50% 50%,#000 53%,rgba(0,0,0,.9) 69%,transparent 100%);
+  mask-image:radial-gradient(ellipse 76% 76% at 50% 50%,#000 53%,rgba(0,0,0,.9) 69%,transparent 100%);
+ }
+}
+@media screen and (min-width:1121px){
+ body[data-pf-theme="royal"] .pfv-script{
+  top:101px!important;right:clamp(280px,26vw,380px)!important;
+  font-size:30px!important;
+ }
+}
