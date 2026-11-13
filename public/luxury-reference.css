@@ -626,3 +626,36 @@
   background:transparent!important
  }
 }
+
+
+/* High-specificity final legibility guard: active tiles are blue and must
+   not inherit old dark caption colors from other global themes. */
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes.lx-ref
+ .lx-ref-stats .lx-stat.lx-stat-total .lx-stat-body :is(small,strong),
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes.lx-ref
+ .lx-ref-stats .lx-stat.lx-stat-total .lx-stat-body :is(small,strong) * {
+   color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:none!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes.lx-ref
+ .recipe-categories .category-card.lx-all-category .category-caption,
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes.lx-ref
+ .recipe-categories .category-card.lx-all-category .category-caption :is(strong,small) {
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   background:transparent!important;text-shadow:none!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(1){order:0!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(2){order:1!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(3){order:2!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(4){order:3!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(5){order:4!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(6){order:5!important}
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .mobile-tools.lx-ref-bottom
+ button.lx-bottom-item:nth-child(7){order:6!important}
+}
