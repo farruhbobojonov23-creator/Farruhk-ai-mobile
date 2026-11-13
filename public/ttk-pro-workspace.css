@@ -233,7 +233,19 @@
  #editor.ttk-sheet-editor .ttk-pro-gauge{width:54px;height:54px;flex-basis:54px}
  #editor.ttk-sheet-editor .ttk-pro-progress-number{font-size:14px}
  #editor.ttk-sheet-editor .ttk-pro-save-state{flex-basis:100%;text-align:center}
- #editor.ttk-sheet-editor .ttk-pro-tab{min-height:41px!important;padding:9px!important;font-size:11px!important}
+ #editor.ttk-sheet-editor .ttk-pro-tabs{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  overflow:visible!important;gap:7px!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-tab{
+  flex:0 1 auto!important;min-width:0!important;
+  min-height:41px!important;padding:9px 5px!important;font-size:11px!important;
+  white-space:normal!important;text-align:center!important
+ }
+ #editor.ttk-sheet-editor .ttk-pro-save-state[data-state=new]{
+  background:#f5f8fc!important;color:#536f88!important;border-color:#c9ddea!important;
+  -webkit-text-fill-color:#536f88!important
+ }
  #editor.ttk-sheet-editor .ttk-pro-rail{display:flex;flex-direction:column;gap:9px}
  #editor.ttk-sheet-editor .ttk-pro-rail .ttk-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  #editor.ttk-sheet-editor .ttk-pro-rail .ttk-pro-audit{
