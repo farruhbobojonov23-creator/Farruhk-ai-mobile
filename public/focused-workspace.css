@@ -46,3 +46,61 @@
 @media print{
  /* Dashboard visibility rules never affect printable A4 HACCP/TTK sheets. */
 }
+
+
+/* Design Studio now lives in the existing settings dialog, not side navigation.
+   The library tools are discoverable in a collapsed utility section. */
+@media screen {
+ .pf-sidebar-more,.pf-sidebar-design {display:none!important}
+ .lunar-dialog .pf-settings-hub {
+   margin:12px 16px 20px;
+   padding:15px;
+   border:1px solid #b8d8ef;
+   border-radius:16px;
+   background:linear-gradient(145deg,#fafdff,#e8f5ff);
+   box-shadow:0 5px 18px #165e9220;
+   color:#173d5f;
+ }
+ .lunar-dialog .pf-settings-hub-title{
+   margin:0 0 5px;font-weight:850;font-size:16px;
+   color:#183b5e;-webkit-text-fill-color:#183b5e;
+ }
+ .lunar-dialog .pf-settings-hub-caption{
+   margin:0 0 12px;font-size:12px;line-height:1.4;
+   color:#4a7291;-webkit-text-fill-color:#4a7291;
+ }
+ .lunar-dialog .pf-settings-design-button{
+   width:100%;min-height:46px;padding:10px 14px!important;
+   border:1px solid #1166b2!important;border-radius:12px!important;
+   background:linear-gradient(125deg,#1688e5,#0a57b5)!important;
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   font-size:14px;font-weight:780;box-shadow:0 4px 13px #0868b334;
+ }
+ .lunar-dialog .pf-settings-utilities{
+   margin-top:15px;border:1px solid #bedbed;border-radius:12px;
+   padding:0;background:#fafdff;box-shadow:none
+ }
+ .lunar-dialog .pf-settings-utilities > summary{
+   cursor:pointer;list-style:none;padding:12px;
+   color:#245677;-webkit-text-fill-color:#245677;
+   font-size:13px;font-weight:700;
+ }
+ .lunar-dialog .pf-settings-utilities > summary::-webkit-details-marker{display:none}
+ .lunar-dialog .pf-settings-utilities > summary:before{content:'▸';display:inline-block;margin-right:8px}
+ .lunar-dialog .pf-settings-utilities[open] > summary:before{content:'▾'}
+ .lunar-dialog .pf-settings-utilities-list{
+   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+   gap:7px;padding:0 10px 10px;
+ }
+ .lunar-dialog .pf-settings-utilities-list .pf-settings-utility-button{
+   display:flex;align-items:center;justify-content:center;
+   min-height:40px;padding:8px 7px!important;
+   text-align:center;border:1px solid #bfd9e9;border-radius:10px;
+   background:#eff8ff!important;
+   color:#235372!important;-webkit-text-fill-color:#235372!important;
+   text-decoration:none;font-size:11px;font-weight:700;
+ }
+}
+@media screen and (max-width:400px){
+ .lunar-dialog .pf-settings-utilities-list{grid-template-columns:1fr}
+}
