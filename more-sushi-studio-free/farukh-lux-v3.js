@@ -140,6 +140,7 @@ function navigate(view,force=false){
  if(!force&&currentView==='editor'&&view!=='editor'&&dirty&&!confirm('У вас есть несохранённые изменения ТТК. Закрыть без сохранения?'))return false;
  if(view==='editor'&&!draft){startNewDoc();return true}
  currentView=view;
+ document.documentElement.dataset.chefView=view;
  document.querySelectorAll('.page').forEach(el=>el.hidden=el.dataset.view!==view);
  document.querySelectorAll('.nav-btn[data-nav]').forEach(el=>{
   const active=el.dataset.nav===view;el.classList.toggle('active',active);el.setAttribute('aria-current',active?'page':'false');
@@ -193,8 +194,12 @@ function renderDash(){
 function projectCard(p){
  const count=docs.filter(d=>d.project_id===p.id&&d.status!=='Архив').length;
  const initial=esc((p.name||'P').trim().slice(0,1).toLocaleUpperCase('ru'));
- const logo=validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':initial;
- return '<article class="surface project-card" style="--project-color:'+esc(p.accent||'#0F6479')+'">'+
+ const name=String(p.name||'').toLocaleLowerCase('ru');
+ const more=/море\s*суши/.test(name),sushiBeri=/суши\s*бери/.test(name);
+ const logo=validImg(p.logo_data)?'<img src="'+p.logo_data+'" alt="">':
+  (more?'<img src="./whale-logo.svg" alt="Логотип проекта Море Суши" loading="lazy">':initial);
+ const brandClass=more?'chef-brand-more':sushiBeri?'chef-brand-sushi':'';
+ return '<article class="surface project-card '+brandClass+'" style="--project-color:'+esc(p.accent||'#0F6479')+'">'+
  '<div class="row between"><div class="proj-mark">'+logo+'</div><span class="pill '+(p.is_archived?'archive':'approved')+'">'+(p.is_archived?'Архив':'Активный')+'</span></div>'+
  '<div><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||'Частная коллекция ТТК')+'</p><p style="margin-top:6px">'+count+' документов</p></div>'+
  '<div class="proj-actions"><button type="button" class="btn btn-primary btn-sm" data-project-open="'+p.id+'">Открыть ТТК →</button>'+
