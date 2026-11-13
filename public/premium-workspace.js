@@ -1,6 +1,7 @@
 /* FARRUH AI Design Studio · non-destructive interface layer.
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 import {mountPremiumShowcase} from '/premium-showcase.js?v=7';
+import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=1';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const defaults={theme:'crystal',accent:'',radius:20,density:'standard',scale:1,motion:true};
@@ -212,6 +213,7 @@ export function mountPremiumWorkspace(){
  addSidebar();updateProjectPicker();applyDesign(config);
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
+ mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
   new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});
