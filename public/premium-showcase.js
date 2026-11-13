@@ -53,6 +53,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   ['settings','Настройки','site-settings']
  ];
  for(const [kind,title,route] of sideActions){
+  if(route==='lab'||route==='tasks')continue; // Hidden per owner request; stored data preserved.
   const b=el('button','pf-side-link'+(route==='home'?' active':''),icon3d(kind,true)+'<span></span>');
   b.type='button';b.querySelector('span').textContent=title;
   if(route==='projects')b.dataset.pfAction='projects';else b.dataset.pfGo=route;
@@ -65,21 +66,26 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '<div class="pf-showcase-top-actions"><button type="button" data-pf-action="studio" class="pf-showcase-top-button" title="Настройка дизайна" aria-label="Настройка дизайна">'+icon3d('settings',true)+'</button><button type="button" data-pf-go="tasks" class="pf-showcase-top-button" title="Задачи" aria-label="Задачи">'+icon3d('tasks',true)+'</button></div>'+
  '</header>'+
  '<section class="pf-showcase-banner">'+
- '<div class="pf-banner-copy"><p class="pf-overline">FARRUH AI • КАБИНЕТ ШЕФА</p><h1>Управляй кухней.<br><span>Создавай лучшее.</span></h1><p>Техкарты, безопасность, заготовки и контроль в одной системе.</p><button type="button" class="pf-banner-cta" data-pf-go="recipes">Открыть ТТК <span aria-hidden="true">↗</span></button></div>'+
+ '<div class="pf-banner-copy"><p class="pf-overline">FARRUH AI • КАБИНЕТ ШЕФА</p><h1>Управляй кухней.<br><span>Создавай лучшее.</span></h1><p>Техкарты, полуфабрикаты и маркировка в одной системе.</p><button type="button" class="pf-banner-cta" data-pf-go="recipes">Открыть ТТК <span aria-hidden="true">↗</span></button></div>'+
  '<div class="pf-banner-visual"><div class="pf-banner-aura"></div><img src="/assets/categories/cold.png" alt="" loading="eager" decoding="async"></div>'+
  '</section>'+
  '<div class="pf-showcase-controls">'+
  '<label class="pf-showcase-select">'+icon3d('projects',true)+'<span class="pf-actual-select"><small>Текущий проект</small><select aria-label="Рабочий проект" id="pf-showcase-project-select"></select></span></label>'+
  '<button type="button" class="pf-add-project" data-pf-action="projects">＋ <span>Проекты</span></button>'+
- '<div class="pf-project-disclaimer" title="ТТК, ХАССП и журналы пока не разделены по проектам">Список проектов — без отдельной базы документов</div>'+
+ '<div class="pf-project-disclaimer" title="Список проектов — отдельная навигация по заказчикам">Список проектов — без отдельной базы документов</div>'+
  '</div>'+
  '<div class="pf-showcase-info"><span>'+icon3d('ttk',true)+' ТТК и рецептуры</span><span>'+icon3d('box',true)+' Заготовки</span><span>'+icon3d('shield',true)+' Безопасность</span><span>'+icon3d('book',true)+' Журналы</span></div>'+
  '<section class="pf-showcase-tools"><div class="pf-showcase-tools-main"><div class="pf-showcase-section"><div><small>РАБОЧЕЕ ПРОСТРАНСТВО</small><h2>Инструменты кухни</h2></div><button type="button" class="pf-showcase-all" data-pf-action="studio">◈ Настроить вид</button></div><div class="pf-showcase-grid"></div></div>'+
  '<aside class="pf-showcase-quick"><h2>✦ Быстрые действия</h2><button type="button" data-pf-go="recipes">＋ Создать ТТК <span>↗</span></button><button type="button" data-pf-go="preparations">▣ Заготовки <span>↗</span></button><button type="button" data-pf-go="lab">▤ Заполнить журнал <span>↗</span></button><button type="button" data-pf-go="tasks">☑ Открыть задачи <span>↗</span></button><button type="button" data-pf-go="chat">✦ ИИ-помощник <span>↗</span></button><p>Все документы и функции сохранены в действующей системе.</p></aside></section>'+
  '<div class="pf-showcase-banner-bottom"><span>FARRUH <b>AI</b></span> · Профессиональная кухня начинается с порядка</div>'+
  '<nav class="pf-showcase-bottom" aria-label="Быстрый переход"><button class="active" data-pf-go="home">'+icon3d('home',true)+'<span>Главная</span></button><button data-pf-action="projects">'+icon3d('projects',true)+'<span>Проекты</span></button><button data-pf-go="recipes">'+icon3d('ttk',true)+'<span>ТТК</span></button><button data-pf-go="print-control">'+icon3d('printer',true)+'<span>Печать</span></button><button data-pf-action="more">'+icon3d('settings',true)+'<span>Ещё</span></button></nav>';
+ // Remove quick-entry buttons and informational chips for hidden modules.
+ main.querySelectorAll('[data-pf-go="lab"],[data-pf-go="tasks"]').forEach(node=>node.remove());
+ const info=main.querySelector('.pf-showcase-info');
+ if(info){while(info.children.length>2)info.lastElementChild.remove()}
  const grid=main.querySelector('.pf-showcase-grid');
  for(const item of shortcuts){
+  if(item.route==='lab'||item.route==='tasks')continue;
   const b=el('button','pf-showcase-card',icon3d(item.icon)+'<span class="pf-card-title"></span><span class="pf-card-desc"></span><span class="pf-card-arrow" aria-hidden="true">↗</span>');
   b.type='button';b.dataset.pfGo=item.route;
   b.querySelector('.pf-card-title').textContent=item.label;b.querySelector('.pf-card-desc').textContent=item.description;
