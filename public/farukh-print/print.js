@@ -138,15 +138,16 @@ function requirePrintAccess(){
 }
 function updatePrintAccessUI(){
  const allowed=canPrint(),p=current(),note=$('print-access-note');
- document.body.classList.toggle('print-guest',!allowed);
- document.body.classList.toggle('print-owner',canManage());
+ document.body?.classList?.toggle('print-guest',!allowed);
+ document.body?.classList?.toggle('print-owner',canManage());
  if(note){note.hidden=allowed;note.textContent='Режим просмотра: каталог и этикетки доступны. Для печати подключи устройство через FARUKH AI и войди под логином сотрудника.';}
- $('print-now').disabled=!allowed||!p||!!previewError||busy;
- $('print-system').disabled=!allowed||!p||!!previewError||busy;
- $('select-printer').disabled=!allowed||busy;
- $('check-printer').disabled=!allowed||busy;
- $('pro-batch-toggle').disabled=!allowed||batchRunning;
- $('pro-batch-start').disabled=!allowed||batchRunning||!native||!batchSelection.size;
+ for(const [id,disabled] of [
+  ['print-now',!allowed||!p||!!previewError||busy],
+  ['print-system',!allowed||!p||!!previewError||busy],
+  ['select-printer',!allowed||busy],['check-printer',!allowed||busy],
+  ['pro-batch-toggle',!allowed||batchRunning],
+  ['pro-batch-start',!allowed||batchRunning||!native||!batchSelection.size]
+ ]){const control=$(id);if(control)control.disabled=disabled}
 }
 async function checkOwnerAccess(){
  if(isManaged())return;
@@ -413,7 +414,7 @@ function renderCatalog(){
   // Existing owner images saved before photoStyle was introduced must also
   // win over the default 3D artwork if they differ from the bundled stock.
   const bundled=p.kind==='prep'?(p.name==='Бульон Том Ям'?bundledBrothPhoto:bundledPrepPhotos?.photoFor(p)||''):'';
-  const usingCustom=!!original&&(p.photoStyle==='manual'||(!p.photoStyle&&!!bundled&&original!==bundled));
+  const usingCustom=!!original&&(p.photoStyle==='manual'||(!p.photoStyle&&original!==bundled));
   const displayed=usingCustom?original:(approved?.url||threeD?.url||original||fallback?.url||'');
   if(displayed){
    if(displayed===approved?.url)visual.classList.add('prep-photo3d-preview');
@@ -779,7 +780,7 @@ function prepareHaccp(p){
 }
 function haccpControls(p){
  const yes=isHaccp(p),box=$('haccp-controls');if(!box)return;
- box.hidden=!yes;$('printed-at').parentElement.hidden=yes;
+ box.hidden=!yes;if($('printed-at')?.parentElement)$('printed-at').parentElement.hidden=yes;
  if(!yes)return;
  const t=HACCP.getTemplate(p),b=haccpBatch(p),limited=['shift','replacement'].includes(t.mode);
  $('haccp-new').hidden=t.mode==='place';
