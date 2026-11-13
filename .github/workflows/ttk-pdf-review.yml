@@ -1,0 +1,50 @@
+name: FARRUH AI — TTK A4 PDF Visual Review
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'recipe-premium-pdf.js'
+      - 'recipe-word.js'
+      - 'recipe-pdf.js'
+      - 'public/recipe-math.js'
+      - 'scripts/qa-ttk-pdf.mjs'
+      - '.github/workflows/ttk-pdf-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ttk-pdf-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  pdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project
+        run: npm ci --ignore-scripts
+      - name: Validate PDF generator and layouts
+        run: node --test tests/ttk-a4-designs.test.js tests/ttk-pdf-legibility.test.js
+      - name: Render two A4 PDFs using real production generator
+        run: node scripts/qa-ttk-pdf.mjs
+      - name: Rasterize PDF pages
+        run: |
+          command -v pdftoppm >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y poppler-utils)
+          pdftoppm -f 1 -singlefile -png -r 170 artifacts/ttk-demo-Arctic-Glass.pdf artifacts/ttk-preview-Arctic-Glass
+          pdftoppm -f 1 -singlefile -png -r 170 artifacts/ttk-demo-Royal-Blue.pdf artifacts/ttk-preview-Royal-Blue
+          pdfinfo artifacts/ttk-demo-Arctic-Glass.pdf | grep -E 'Pages:|Page size:'
+          pdfinfo artifacts/ttk-demo-Royal-Blue.pdf | grep -E 'Pages:|Page size:'
+      - name: Upload A4 samples and review metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: farruh-ai-ttk-a4-pdf-review
+          path: |
+            artifacts/ttk-demo-*.pdf
+            artifacts/ttk-preview-*.png
+            artifacts/ttk-demo-review.json
+          if-no-files-found: ignore
