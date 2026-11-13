@@ -267,8 +267,9 @@ export function mountLuxuryUI(opts={}){
    ['home','Кабинет шефа','home'],['stack','Проекты','projects'],['chef','Техкарты','recipes'],
    ['box','Полуфабрикаты','preparations'],['bag','Товары','print-control'],['shield','ХАССП','lab'],['all','Ещё','more']
   ];
-  for(const [key,label,target] of navigationItems){
+  for(const [index,[key,label,target]] of navigationItems.entries()){
    const b=btn('','lx-bottom-item');b.innerHTML=icon(key)+'<span>'+label+'</span>';
+   b.style.setProperty('order',String(index),'important');
    if(target==='more'){b.id='mobile-more'}
    else if(target==='projects'){b.addEventListener('click',()=>opts.onOpenProjects?.())}
    else b.dataset.view=target;
