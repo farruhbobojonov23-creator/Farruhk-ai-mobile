@@ -99,6 +99,14 @@ export function mountTtkStudio(editor){
  photoButton.type='button';
  photoButton.title='Загрузить или заменить фотографию блюда';
  photo.append(photoButton);
+ const removePhoto=make('button','ttk-studio-photo-remove','×');
+ removePhoto.type='button';removePhoto.hidden=true;
+ removePhoto.setAttribute('aria-label','Удалить фотографию');
+ removePhoto.addEventListener('click',e=>{
+  e.preventDefault();e.stopPropagation();
+  editor.querySelector('.lx-remove-photo')?.click();
+ });
+ photo.append(removePhoto);
  const openFile=()=>fileInput.click();
  photoButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openFile()});
  photo.addEventListener('click',e=>{
@@ -109,6 +117,7 @@ export function mountTtkStudio(editor){
   const hasImage=Boolean(photo.querySelector('img')?.getAttribute('src'));
   photo.classList.toggle('ttk-studio-photo-filled',hasImage);
   photoButton.textContent=hasImage?'✎ Заменить фото':'＋ Добавить фото';
+  removePhoto.hidden=!hasImage;
  };
  new MutationObserver(refreshPhoto).observe(photo,{attributes:true,subtree:true,
   attributeFilter:['src','hidden']});
