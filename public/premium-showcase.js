@@ -72,7 +72,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '<div class="pf-showcase-controls">'+
  '<label class="pf-showcase-select">'+icon3d('projects',true)+'<span class="pf-actual-select"><small>Текущий проект</small><select aria-label="Рабочий проект" id="pf-showcase-project-select"></select></span></label>'+
  '<button type="button" class="pf-add-project" data-pf-action="projects">＋ <span>Проекты</span></button>'+
- '<div class="pf-project-disclaimer" title="Список проектов — отдельная навигация по заказчикам">Список проектов — без отдельной базы документов</div>'+
+ '<div class="pf-project-disclaimer" title="Список проектов — отдельная навигация по заказчикам">ТТК по проектам · остальные данные общие</div>'+
  '</div>'+
  '<div class="pf-showcase-info"><span>'+icon3d('ttk',true)+' ТТК и рецептуры</span><span>'+icon3d('box',true)+' Заготовки</span><span>'+icon3d('shield',true)+' Безопасность</span><span>'+icon3d('book',true)+' Журналы</span></div>'+
  '<section class="pf-showcase-tools"><div class="pf-showcase-tools-main"><div class="pf-showcase-section"><div><small>РАБОЧЕЕ ПРОСТРАНСТВО</small><h2>Инструменты кухни</h2></div><button type="button" class="pf-showcase-all" data-pf-action="studio">◈ Настроить вид</button></div><div class="pf-showcase-grid"></div></div>'+
