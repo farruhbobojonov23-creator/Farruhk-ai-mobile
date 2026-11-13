@@ -93,7 +93,7 @@ export function mountTtkProWorkspace(editor,{getDraft,onPreview}={}){
   const p=paper.getBoundingClientRect(),b=basis.getBoundingClientRect();
   if(p.width<=0||b.bottom<=0)return null;
   const zoom=p.width/794;
-  return formatPercent((b.bottom-p.top)/zoom/1090*100);
+  return Math.max(0,Math.round((b.bottom-p.top)/zoom/1090*100));
  }
  function refresh(){
   if(editor.hidden)return;
