@@ -1,15 +1,16 @@
 /* Interface appearance only: never changes a recipe, project or printed A4. */
 (function () {
   'use strict';
-  const key = 'shef-ai-premium-interface-v1';
+  const key = 'shef-ai-premium-interface-v2';
   const themes = [
+    { id: 'spatial', name: 'ШЕФ AI · Spatial 3D', note: 'Парящие панели · настоящая глубина', detail: 'Объёмная пространственная панель управления с многослойным стеклом и адаптивным параллаксом.' },
     { id: 'chef-glass', name: 'ШЕФ AI · Glass Premium', note: '3D стекло · арктический голубой', detail: 'Премиальная студия: объёмные панели, мягкие блики, градиенты и единый дизайн всех разделов.' },
     { id: 'shef51', name: 'SHEF51 Original', note: 'Чёрный · красный · белый', detail: 'Характер Shef51: глубокий чёрный, яркие акценты и выразительные заголовки.' },
     { id: 'pearl', name: 'SHEF51 Pearl', note: 'Светлый · красный · графит', detail: 'Светлая рабочая студия с фирменными красными кнопками.' },
     { id: 'gold', name: 'SHEF51 Gold', note: 'Графит · шампань · золото', detail: 'Спокойный тёмный кабинет с тёплыми золотыми деталями.' },
     { id: 'burgundy', name: 'SHEF51 Burgundy', note: 'Бордо · розовый · сливочный', detail: 'Мягкие винные оттенки, округлые окна и авторская типографика.' }
   ];
-  let selected = 'chef-glass';
+  let selected = 'spatial';
   try {
     const saved = localStorage.getItem(key);
     if (themes.some(theme => theme.id === saved)) selected = saved;
@@ -20,7 +21,7 @@
     selected = id;
     document.documentElement.dataset.studioTheme = id;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = { 'chef-glass':'#071426', shef51: '#090909', pearl: '#f7f5f1', gold: '#141412', burgundy: '#24171d' }[id];
+    if (meta) meta.content = { spatial:'#071426', 'chef-glass':'#071426', shef51: '#090909', pearl: '#f7f5f1', gold: '#141412', burgundy: '#24171d' }[id];
     document.querySelectorAll('[data-interface-theme]').forEach(button => {
       const active = button.dataset.interfaceTheme === id;
       button.setAttribute('aria-checked', String(active));
@@ -47,7 +48,7 @@
     const dialog = document.createElement('dialog');
     dialog.id = 'appearanceDialog';
     dialog.setAttribute('aria-labelledby', 'appearanceDialogTitle');
-    dialog.innerHTML = `<div class="modal-head"><div><div class="mini-label">ШЕФ AI PREMIUM</div><h2 id="appearanceDialogTitle">Выберите свой стиль</h2><p>Пять оформлений, включая новый премиальный стеклянный стиль.</p></div><button type="button" class="modal-close" aria-label="Закрыть выбор дизайна">×</button></div><div class="modal-body"><div class="appearance-grid" role="radiogroup" aria-label="Быстрый выбор дизайна">${cards()}</div><p class="appearance-caption">Меняются окна, меню и кнопки. Ваш документ и его оформление сохраняются.</p><p class="appearance-feedback" role="status" aria-live="polite"></p></div><div class="modal-foot"><button type="button" class="btn btn-primary appearance-done">Готово</button></div>`;
+    dialog.innerHTML = `<div class="modal-head"><div><div class="mini-label">ШЕФ AI PREMIUM</div><h2 id="appearanceDialogTitle">Выберите свой стиль</h2><p>Шесть оформлений, включая Spatial 3D для профессиональной платформы.</p></div><button type="button" class="modal-close" aria-label="Закрыть выбор дизайна">×</button></div><div class="modal-body"><div class="appearance-grid" role="radiogroup" aria-label="Быстрый выбор дизайна">${cards()}</div><p class="appearance-caption">Меняются окна, меню и кнопки. Ваш документ и его оформление сохраняются.</p><p class="appearance-feedback" role="status" aria-live="polite"></p></div><div class="modal-foot"><button type="button" class="btn btn-primary appearance-done">Готово</button></div>`;
     document.body.append(dialog);
     let opener = null;
     const open = event => {
@@ -104,7 +105,7 @@
       });
     });
     window.addEventListener('storage', event => {
-      if (event.key === key) apply(event.newValue || 'chef-glass');
+      if (event.key === key) apply(event.newValue || 'spatial');
     });
     apply(selected);
   }
