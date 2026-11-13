@@ -208,6 +208,18 @@ async function run(theme,width,height){
     a4:!!document.querySelector('#editor .ttk-paper')
    }));
    check(tag+' TTK photo upload and project editor',editorTools.visible&&editorTools.photo&&editorTools.project&&editorTools.a4,editorTools);
+   const catalog=await page.evaluate(()=>({
+    count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
+    selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
+    sheet:document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout,
+    unchangedForm:!!document.querySelector('#card-scope')
+   }));
+   check(tag+' 2 A4 layouts appear in TTK editor with current selection',
+     catalog.count===2&&catalog.selected==='arctic-a4'&&catalog.sheet==='arctic-a4'&&catalog.unchangedForm,catalog);
+   await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
+   check(tag+' selecting Royal changes the live A4 paper',
+     await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
+   page.once('dialog',d=>d.accept());
    await page.locator('#closeeditor').click();
   }
   if(target==='lab'){
