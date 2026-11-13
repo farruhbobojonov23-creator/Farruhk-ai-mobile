@@ -10,7 +10,7 @@
 <title>ШЕФ AI PREMIUM — Профессиональная платформа шеф-повара</title>
 <link rel="stylesheet" href="./farukh-pro.css?v=20261111-sheet-v2">
 <link rel="stylesheet" href="./studio-themes.css?v=20261112-shef51-v1">
-<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./archive-sheet.css?v=archive-2"><link rel="stylesheet" href="./shef-ai-premium.css?v=glass-foundation-1"><link rel="stylesheet" href="./shef-ai-vision-v2.css?v=vision-v2-20261114"><link rel="stylesheet" href="./shef-ai-spatial.css?v=spatial-1"><link rel="stylesheet" href="./shef-ai-pwa.css?v=pwa-1"></head>
+<script src="./studio-themes.js?v=20261112-shef51-v1"></script><link rel="stylesheet" href="./archive-sheet.css?v=archive-2"><link rel="stylesheet" href="./shef-ai-premium.css?v=glass-foundation-1"><link rel="stylesheet" href="./shef-ai-vision-v2.css?v=vision-v2-20261114"><link rel="stylesheet" href="./shef-ai-spatial.css?v=spatial-1"><link rel="stylesheet" href="./shef-ai-pwa.css?v=pwa-1"><link rel="stylesheet" href="./shef-ai-spatial-v4.css?v=spatial-v4"></head>
 <body>
 <section id="auth" class="auth">
  <div class="auth-showcase">
@@ -50,9 +50,25 @@
   <header class="topbar"><div><div class="breadcrumb">ШЕФ AI PREMIUM / PRIVATE WORKSPACE</div><h1 id="topTitle">Обзор студии</h1></div><div class="top-actions"><button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" id="logoutMobile" class="btn btn-light mobile-logout" aria-label="Выйти из студии"><span class="icon" data-icon="lock"></span> Выйти</button><span class="top-avatar" aria-label="Шеф">F</span></div></header>
   <main class="content" id="content">
    <section id="viewDashboard" class="page" data-view="dashboard">
-    <div class="hero"><div class="hero-copy"><div class="mini-label">WORKSPACE / ШЕФ AI PREMIUM</div><h2>Управляй рецептами.<br><em>Создавай стандарты.</em></h2><p>Управляй проектами, создавай ТТК для заведений и заказчиков. Рецептуры, документы и версии — в закрытой рабочей системе.</p>
-     <div class="row"><button type="button" class="btn btn-light" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК</button><button type="button" class="btn btn-ghost" data-command="newProject"><span class="icon" data-icon="folder"></span> Новый проект</button></div></div>
-     <div class="chef-portal-scene" aria-hidden="true"><div class="chef-portal-halo"></div><div class="chef-portal-orb"><span class="chef-orb-ring ring-a"></span><span class="chef-orb-ring ring-b"></span><span class="chef-orb-core">AI<span>CHEF</span></span></div><div class="chef-floating-glass glass-a"><span>TTK</span><i></i><i></i><i></i></div><div class="chef-floating-glass glass-b"><span>PRO</span><i></i><i></i></div><div class="chef-portal-reflection"></div></div>
+    <div class="hero chef-v4-hero">
+      <div class="hero-copy">
+       <div class="mini-label"><span class="chef-v4-live-dot" aria-hidden="true"></span> SPATIAL WORKSPACE · ШЕФ AI PREMIUM</div>
+       <h2>Управляй кухней.<br><em>Создавай стандарты.</em></h2>
+       <p>Все рецептуры, проекты и технологические карты в одном профессиональном пространстве.</p>
+       <div class="row">
+        <button type="button" class="btn btn-primary" data-command="newDoc"><span class="icon" data-icon="plus"></span> Создать ТТК <span aria-hidden="true">↗</span></button>
+        <button type="button" class="btn btn-ghost" data-nav="projects"><span class="icon" data-icon="folder"></span> Мои проекты</button>
+       </div>
+       <div class="chef-hero-footnote">ТТК <span>·</span> Ингредиенты <span>·</span> Полуфабрикаты <span>·</span> Документы</div>
+      </div>
+      <div class="chef-v4-stage" aria-hidden="true">
+       <div class="chef-v4-orbit orbit-one"></div><div class="chef-v4-orbit orbit-two"></div>
+       <div class="chef-v4-photo photo-primary"><img src="./photos/fresh_trout_fillet.webp" alt="" loading="eager"></div>
+       <div class="chef-v4-photo photo-shrimp"><img src="./photos/raw_peeled_shrimp.webp" alt="" loading="lazy"></div>
+       <div class="chef-v4-photo photo-masago"><img src="./photos/masago_red.webp" alt="" loading="lazy"></div>
+       <div class="chef-v4-stage-chip chip-top"><span class="chef-stage-spark">✧</span> ПРОФЕССИОНАЛЬНЫЙ КАТАЛОГ</div>
+       <div class="chef-v4-stage-chip chip-bottom"><span class="chef-stage-spark">✦</span> ШЕФ AI · SPATIAL</div>
+      </div>
     </div>
     <nav class="spatial-dock" aria-label="Быстрый переход к рабочим разделам">
       <button type="button" class="spatial-dock-item" data-nav="projects"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 14h16l5 5h13v20H7z"/><path d="M7 14V9h15l5 5"/></svg></span><strong>Проекты</strong><small>Бренды и клиенты</small></button>
@@ -62,6 +78,10 @@
       <button type="button" class="spatial-dock-item" data-nav="products"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 33h32M11 33a13 13 0 0 1 26 0M22 16h4"/></svg></span><strong>Готовые блюда</strong><small>Состав и технология</small></button>
       <button type="button" class="spatial-dock-item" data-nav="library"><span class="spatial-dock-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M13 6h22v36H13a5 5 0 0 1-5-5V11a5 5 0 0 1 5-5ZM8 36c0-3 2-5 5-5h22M17 15h12M17 22h12"/></svg></span><strong>Библиотека ТТК</strong><small>Документы и архив</small></button>
     </nav>
+    <div class="chef-v4-section-heading"><div><span class="chef-v4-eyebrow">WORKSPACE</span><h3>Мои проекты</h3></div><a href="#" data-link="projects">Все проекты <span aria-hidden="true">↗</span></a></div>
+    <div class="project-grid chef-v4-projects" id="dashProjects"></div>
+    <div class="chef-v4-section-heading chef-v4-stats-heading"><div><span class="chef-v4-eyebrow">ANALYTICS</span><h3>Рабочая статистика</h3></div></div>
+    <div id="chefDataBanner" class="chef-data-banner" role="status" aria-live="polite" hidden></div>
     <div class="stats">
       <div class="surface stat"><small>Всего проектов</small><b id="statProjects">0</b><span class="stat-note">Наши бренды и клиенты</span></div>
       <div class="surface stat"><small>ТТК в библиотеке</small><b id="statDocuments">0</b><span class="stat-note">Все документы</span></div>
@@ -79,7 +99,7 @@
       <div class="notice" style="margin-top:15px"><strong>Внимание к качеству</strong>Система не подставляет неподтверждённые КБЖУ, аллергены и сроки хранения.</div>
      </section>
     </div>
-    <div class="section-head" style="margin-top:27px"><h3>Ваши проекты</h3><a href="#" data-link="projects">Все проекты →</a></div><div class="project-grid" id="dashProjects"></div>
+    
    </section>
    <section id="viewProjects" class="page" data-view="projects" hidden>
      <div class="page-head"><div><div class="mini-label">PROJECT ARCHIVE</div><h2>Мои проекты</h2><p>Каждому заведению — собственная коллекция технологических карт.</p></div>
