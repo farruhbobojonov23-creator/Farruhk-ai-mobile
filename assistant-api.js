@@ -1,6 +1,7 @@
 import {AssistantStore,ownerAuth,httpError} from './assistant-store.js';
 import crypto from 'node:crypto';
 import {YandexAssistantStore} from './assistant-cloud-store.js';
+import {installDeviceSyncApi} from './device-sync-api.js';
 
 export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   const store=process.env.YANDEX_DISK_TOKEN&&!process.env.ASSISTANT_DATA_DIR?new YandexAssistantStore(process.env.YANDEX_DISK_TOKEN):new AssistantStore(process.env.ASSISTANT_DATA_DIR||'./data/assistant');
@@ -35,13 +36,14 @@ export function installAssistantApi(app,{multer,ExcelJS,migrateState}){
   }));
   app.post('/api/auth/logout',(req,res)=>{if(!trustedOrigin(req))return res.sendStatus(403);res.setHeader('Set-Cookie','fai_owner=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');res.json({ok:true})});
   app.use((req,res,next)=>{
-    const personal=/^\/api\/(?:state|backups|yandex|frontpad|analytics|chat|transcribe|voice|ai|recipes|status|documents|push)(?:\/|$)/.test(req.path);
+    const personal=/^\/api\/(?:device-sync|state|backups|yandex|frontpad|analytics|chat|transcribe|voice|ai|recipes|status|documents|push)(?:\/|$)/.test(req.path);
     if(!personal)return next();
     if(!passwordless&&!auth.enabled)return res.status(503).json({error:'Вход владельца не настроен.'});
     if(!passwordless&&!auth.verify(cookie(req)))return res.status(401).json({error:'Войдите в личный ассистент.'});
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!trustedOrigin(req))return res.sendStatus(403);
     next();
   });
+  installDeviceSyncApi(app,{store});
   app.get('/api/state',wrap(async(req,res)=>{await initialize();const snapshot=initialRead;initialRead=null;res.json({ok:true,state:snapshot&&Date.now()-snapshot.at<1000?snapshot.state:await store.state()})}));
   app.put('/api/state',wrap(async(req,res)=>{await initialize();initialRead=null;res.json({ok:true,state:await store.save(req.body||{})})}));
   app.get('/api/backups',wrap(async(req,res)=>res.json({ok:true,storage:store.storage,backups:await store.backups()})));
