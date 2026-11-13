@@ -408,10 +408,14 @@ async function verify(mode,width,height){
   }));
   await isolated.goto(base+'/',{waitUntil:'domcontentloaded',timeout:20000});
   await isolated.waitForFunction(()=>document.querySelector('#connection')?.textContent==='Хранение на устройстве',null,{timeout:20000});
+  // HACCP is optional and loaded on demand; open it to simulate a module
+  // failure. A bad journal bundle must not break navigation or TTK.
+  await isolated.locator('button[data-view="lab"]').first().evaluate(el=>el.click());
   await isolated.waitForFunction(()=>document.querySelector('#lab')?.textContent?.includes('ХАССП временно недоступен'),null,{timeout:10000});
+  await isolated.locator('button[data-view="home"]').first().evaluate(el=>el.click());
   await isolated.locator('#ruby-menu').click();
   assert.equal(await visible(isolated,'#chef-menu'),true,'menu still opens with a broken HACCP module');
-  await isolated.locator('#ruby-menu').click();
+  await isolated.locator('#chef-menu-close').click();
   await isolated.locator('#home-new-recipe').click();
   assert.equal(await isolated.locator('body').getAttribute('data-view'),'recipes','TTK still opens with a broken HACCP module');
   await isolated.close();
