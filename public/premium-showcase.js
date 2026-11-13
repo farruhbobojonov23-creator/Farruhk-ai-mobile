@@ -1,3 +1,4 @@
+import {showProductPhoto} from '/product-photo.js';
 /* FARRUH AI · premium desktop/mobile layouts.
    Presentation only: existing project, recipe, HACCP, journal and print storage stays untouched. */
 const PREMIUM=new Set(['titanium','crystal','royal']);
@@ -107,4 +108,6 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   if(target.dataset.pfAction==='more')document.getElementById('ruby-menu')?.click();
  });
  root.append(aside,main);shell.prepend(root);syncProjects();
+ const heroPhoto=root.querySelector('.pf-banner-visual img');
+ if(heroPhoto)showProductPhoto(heroPhoto,'/assets/categories/cold.png');
 }
