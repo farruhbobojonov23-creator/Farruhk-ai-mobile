@@ -56,7 +56,7 @@ export function mountLuxuryUI(opts={}){
   const h=hero.querySelector('h1');if(h){h.textContent='Техкарты (ТТК)';const hat=el('span','lx-ref-hat');hat.innerHTML=icon('chef');h.before(hat)}
   const create=hero.querySelector('#newrecipe');if(create)create.textContent='＋ Создать ТТК';
  }
- const lead=root.querySelector(':scope > .section-subtitle');if(lead)lead.textContent='Рецептуры, технологии, нормы и стандарты кухни';
+ const lead=root.querySelector(':scope > .section-subtitle');if(lead){lead.textContent='Рецептуры, технологии, нормы и стандарты кухни';hero?.append(lead)}
  const stats=el('div','lx-stats lx-ref-stats');
  const metrics=[['total','Всего ТТК','stack'],['ready','Готовые','check'],['draft','Черновики','edit'],['archive','Архив','archive']];
  for(const [key,label,symbol] of metrics){
@@ -66,7 +66,7 @@ export function mountLuxuryUI(opts={}){
   if(key==='archive'){card.setAttribute('role','button');card.tabIndex=0;card.addEventListener('click',()=>selectStatus('archive'));card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectStatus('archive')}})}
   stats.append(card);
  }
- lead?.after(stats);
+ hero?.after(stats);
  const projectRow=el('div','lx-workspace-row lx-project-row');
  const chooser=el('label','lx-project-field');chooser.append(el('span','lx-project-caption','Проект:'));
  const select=el('select','lx-project-select');select.id='lx-project-select';select.setAttribute('aria-label','Выбрать проект для списка ТТК');
