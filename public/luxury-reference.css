@@ -740,3 +740,21 @@
   font-size:8px!important;line-height:1.15!important;max-height:24px!important
  }
 }
+
+
+/* Compact premium TTK actions: three shortcuts, then two — never a third
+   full-width row consuming half of the mobile screen. */
+@media screen and (max-width:560px){
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions{
+   display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+   gap:5px!important;margin-top:3px!important;grid-column:1/-1!important
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions .lx-card-action{
+   min-width:0!important;width:100%!important;grid-column:span 2!important;
+   min-height:36px!important;max-height:38px!important;white-space:nowrap!important;
+   font-size:10px!important;padding:6px 3px!important
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions .lx-card-action:nth-child(n+4){
+   grid-column:span 3!important
+ }
+}
