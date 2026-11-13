@@ -105,6 +105,10 @@ async function run(theme,width,height){
      &&settingsOverlay.title?.inkAvg>150&&settingsOverlay.summary?.inkAvg>150,
      settingsOverlay);
    await page.screenshot({path:'artifacts/premium-'+tag+'-settings-modal.png',timeout:12000});
+   // The user's screenshot showed white cards in the LOWER half of this dialog;
+   // inspect the scrolled content too, not only the visible voice section.
+   await page.evaluate(()=>{const d=document.querySelector('dialog.lunar-dialog:not(.lunar-history)');d.scrollTop=d.scrollHeight;});
+   await page.screenshot({path:'artifacts/premium-'+tag+'-settings-sync.png',timeout:12000});
    await page.locator('dialog.lunar-dialog:not(.lunar-history) > .bar > button').click();
 
    console.log('PREMIUM_ROYAL_PREVIEW_'+(mobile?'MOBILE':'DESKTOP')+'_JPEG='+ (await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
@@ -145,6 +149,7 @@ async function run(theme,width,height){
    await page.locator('#home .pfv-action').first().click();
    await page.waitForFunction(()=>document.body.dataset.view==='recipes'&&!document.getElementById('editor').hidden,null,{timeout:9000});
    check(tag+' create TTK opens real editor',await page.locator('#editor').isVisible(),null);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-editor.png',timeout:12000});
    await page.locator('#closeeditor').click();
    await page.evaluate(()=>{location.hash='print-control'});
    await page.waitForFunction(()=>document.body.dataset.view==='print-control',null,{timeout:8000});
@@ -154,11 +159,12 @@ async function run(theme,width,height){
     return {bg:css.backgroundImage,title:title?getComputedStyle(title).color:'',desc:desc?getComputedStyle(desc).color:''};
    });
    check(tag+' FARUKH PRINT template panels use dark premium contrast',printContrast.bg.includes('gradient')&&printContrast.title!=='rgb(255, 255, 255)'&&printContrast.desc!=='rgb(116, 128, 139)',printContrast);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-print-control.png',timeout:12000});
    if(!mobile)console.log('PREMIUM_ROYAL_PRINT_JPEG='+(await page.screenshot({type:'jpeg',quality:38,timeout:12000})).toString('base64'));
 
    // Visit EVERY remaining owner section in the selected Royal design,
    // not merely Home. Save real Android/desktop screenshots for visual review.
-   for(const target of ['preparations','lab','tasks','checks','calc','chat','site-settings']){
+   for(const target of ['recipes','preparations','lab','tasks','checks','calc','chat','site-settings']){
      await page.evaluate(v=>{location.hash=v},target);
      await page.waitForFunction(v=>document.body.dataset.view===v,target,{timeout:10000});
      const panel=page.locator('#'+target);
