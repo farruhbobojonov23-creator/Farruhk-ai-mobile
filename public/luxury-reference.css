@@ -830,3 +830,101 @@
    display:none!important;
  }
 }
+
+
+/* FARRUH AI: one compact, premium cloud-sync action, never a tall narrow card.
+   The row must be a sibling of the TTK hero grid, not a grid child. */
+body.lx-pro #recipes .lx-sync-shortcut-row {
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:3px 0 10px!important;
+  padding:0 3px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  box-sizing:border-box!important;
+}
+body.lx-pro #recipes #sync-quick-access {
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:38px!important;
+  min-height:38px!important;
+  max-height:38px!important;
+  margin:0!important;
+  padding:0 13px!important;
+  box-sizing:border-box!important;
+  border:1px solid #b9d9ed!important;
+  border-radius:12px!important;
+  background:linear-gradient(120deg,#eaf7ff,#f6fbff)!important;
+  color:#195d8f!important;
+  -webkit-text-fill-color:#195d8f!important;
+  font:700 12px/1.2 Inter,system-ui,-apple-system,sans-serif!important;
+  letter-spacing:0!important;
+  text-align:center!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+  word-break:normal!important;
+  writing-mode:horizontal-tb!important;
+  overflow:visible!important;
+  box-shadow:0 2px 8px rgba(38,104,147,.08)!important;
+  cursor:pointer!important;
+  transition:background .15s ease,border-color .15s ease,box-shadow .15s ease!important;
+}
+body.lx-pro #recipes #sync-quick-access > svg {
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+  stroke:#1681c7!important;
+  fill:none!important;
+}
+body.lx-pro #recipes #sync-quick-access > span {
+  display:inline-block!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  color:inherit!important;
+  font:inherit!important;
+  white-space:nowrap!important;
+}
+body.lx-pro #recipes #sync-quick-access .lx-sync-shortcut-arrow {
+  margin-left:3px!important;
+  color:#5598be!important;
+  font-size:21px!important;
+  font-weight:400!important;
+  line-height:1!important;
+}
+body.lx-pro #recipes #sync-quick-access:is(:hover,:focus-visible) {
+  border-color:#82bce0!important;
+  background:linear-gradient(120deg,#d7f0ff,#eefaff)!important;
+  box-shadow:0 3px 11px rgba(25,101,158,.14)!important;
+}
+body.lx-pro #recipes #sync-quick-access:focus-visible {
+  outline:2px solid #1681c7!important;
+  outline-offset:2px!important;
+}
+/* Graceful fallback if a stale cached HTML build still mounts directly in hero. */
+body.lx-pro #recipes .lx-ref-hero > #sync-quick-access {
+  grid-column:1/-1!important;
+  grid-row:auto!important;
+  justify-self:end!important;
+  align-self:center!important;
+  margin:6px 0 0!important;
+}
+@media(max-width:560px){
+  body.lx-pro #recipes .lx-sync-shortcut-row {margin:0 0 9px!important;padding-right:2px!important}
+  body.lx-pro #recipes #sync-quick-access {height:36px!important;min-height:36px!important;max-height:36px!important;padding:0 12px!important;font-size:12px!important}
+}
+@media print{
+  body.lx-pro #recipes .lx-sync-shortcut-row{display:none!important}
+}
