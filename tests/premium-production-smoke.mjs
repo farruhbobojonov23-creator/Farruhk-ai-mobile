@@ -129,7 +129,8 @@ async function run(theme,width,height){
     sample.innerHTML='<div class="lx-recipe-photo"></div>'+
       '<div class="lx-recipe-content"><div class="lx-card-heading">'+
       '<h3>Филадельфия классик</h3><span class="lx-card-state is-ready">✓ Готова</span></div>'+
-      '<div class="lx-card-category">Холодные роллы</div></div>'+
+      '<div class="lx-card-category">Холодные роллы</div>'+
+      '<div class="lx-ref-meta"><span>⚖ Выход: 265 г (8 шт.)</span><span>КБЖУ: нет данных</span><span>▢ Изменена: 12.11.2026</span><span>№ 001</span></div></div>'+
       '<details class="lx-card-more"><summary>⋮</summary><div class="lx-card-menu">Меню</div></details>'+
       '<div class="lx-card-actions">'+Array.from({length:5},(_,i)=>'<button class="lx-card-action">Действие '+i+'</button>').join('')+'</div>';
     host.append(sample);
@@ -137,11 +138,21 @@ async function run(theme,width,height){
     const d=more.getBoundingClientRect(),s=status.getBoundingClientRect();
     const buttons=[...sample.querySelectorAll('.lx-card-action')],rows=new Set(buttons.map(b=>Math.round(b.getBoundingClientRect().top))).size;
     const collision=d.left<s.right&&d.right>s.left&&d.top<s.bottom&&d.bottom>s.top;
-    const result={menuWidth:Math.round(d.width),menuHeight:Math.round(d.height),collision,rows};
+    const photo=sample.querySelector('.lx-recipe-photo').getBoundingClientRect();
+    const title=sample.querySelector('.lx-card-heading h3').getBoundingClientRect();
+    const card=sample.getBoundingClientRect();
+    const result={menuWidth:Math.round(d.width),menuHeight:Math.round(d.height),collision,rows,
+      height:Math.round(card.height),titleVsPhotoTop:Math.round(title.top-photo.top),
+      statusVsTitleBottom:Math.round(s.top-title.bottom)};
     sample.remove();return result;
    });
    check(tag+' recipe ellipsis does not obscure ready status',cardLayout.menuWidth<=33&&!cardLayout.collision,cardLayout);
-   if(mobile)check(tag+' recipe actions fit two rows',cardLayout.rows===2,cardLayout);
+   if(mobile){
+    check(tag+' recipe actions fit two rows',cardLayout.rows===2,cardLayout);
+    check(tag+' recipe content aligned to thumbnail and compact',
+      cardLayout.height<275&&Math.abs(cardLayout.titleVsPhotoTop)<35&&cardLayout.statusVsTitleBottom<45,
+      cardLayout);
+   }
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
    await page.locator('#newrecipe').click();
    const editorTools=await page.evaluate(()=>({
