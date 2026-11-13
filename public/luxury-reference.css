@@ -577,3 +577,37 @@
  body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-recipe-photo{grid-row:1}
  body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #recipes .lx-ref-card .lx-card-actions{grid-column:1/-1!important;grid-row:2;min-width:0}
 }
+
+
+/* Layout collision fixes detected in real Chromium screenshots. */
+@media screen {
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .app{
+  padding-top:10px!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] .app>main>.bar,
+ body.lx-pro[data-pf-theme="crystal"][data-view="recipes"] #notice:empty{
+  display:none!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"]:not([data-view="home"]) #pf-workspace .pf-showcase-bottom,
+ body.lx-pro[data-pf-theme="crystal"]:not([data-view="home"]) #pf-workspace .pf-bottom{
+  display:none!important;
+ }
+ body.lx-pro[data-pf-theme="crystal"] #recipes .lx-sync-details{
+  margin-top:16px;padding:11px 13px;background:#f7fbff;
+  border:1px solid #c2d8ed;border-radius:12px;color:#254e73;
+ }
+ body.lx-pro[data-pf-theme="crystal"] #recipes .lx-sync-details > summary{
+  cursor:pointer;color:#285b86!important;-webkit-text-fill-color:#285b86!important;
+  font-size:12px;font-weight:750
+ }
+ body.lx-pro[data-pf-theme="crystal"] #recipes .lx-sync-details .ttk-sync-summary{
+  margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px
+ }
+ body.lx-pro[data-pf-theme="crystal"] #recipes .lx-sync-details .ttk-sync-summary > span{
+  flex:1 1 100%;color:#416c8b!important;-webkit-text-fill-color:#416c8b!important;font-size:12px
+ }
+ body.lx-pro[data-pf-theme="crystal"] #recipes .lx-sync-details button{
+  padding:9px 11px!important;font-size:11px!important;border-radius:9px!important;
+  background:#e8f4ff!important;color:#194c7d!important;border:1px solid #bed7e8!important
+ }
+}
