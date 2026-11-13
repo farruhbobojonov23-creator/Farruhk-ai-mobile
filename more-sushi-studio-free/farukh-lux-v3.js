@@ -12,7 +12,7 @@ const n=v=>v===''||v==null?null:(Number.isFinite(Number(v))?Number(v):null);
 const fmt=v=>Number(v||0).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const clone=x=>JSON.parse(JSON.stringify(x));
 const dateRu=v=>v?new Date(v).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
-let session=null,projects=[],docs=[],prefs={studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:''};
+let session=null,projects=[],docs=[],prefs={studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:''};
 let currentView='dashboard',editorTab='main',draft=null,dirty=false,workingId=null,modalProjectId=null,modalLogo=null,pendingCreate=false,copySourceId=null,busy=false,toastTimer;
 const templates=[
 {id:'atelier',name:'Фирменный LUX',sub:'Синий · красный · вода',desc:'Цветной фотолист с фирменной лентой и волной.'},
@@ -86,7 +86,7 @@ async function loadAll(){
   api('/rest/v1/ttk_preferences?select=*&limit=1')
  ]);
  projects=Array.isArray(p)?p:[];docs=Array.isArray(d)?d:[];
- prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
+ prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'ШЕФ AI PREMIUM',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
  renderAll();window.FARUKH_TTK_AUTO?.onReady();
 }
 async function enter(){
@@ -94,7 +94,7 @@ async function enter(){
  $('sideEmail').textContent=session?.user?.email||'Закрытый аккаунт';
  try{await loadAll();navigate('dashboard',true)}catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
 }
-const pageTitle={dashboard:'Обзор студии',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
+const pageTitle={dashboard:'Обзор платформы',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
 function navigate(view,force=false){
  if(!pageTitle[view])return false;
  if(!force&&currentView==='editor'&&view!=='editor'&&dirty&&!confirm('У вас есть несохранённые изменения ТТК. Закрыть без сохранения?'))return false;
@@ -200,12 +200,12 @@ function renderTemplates(){
  '<button type="button" class="btn btn-primary" data-template-create="'+esc(t.id)+'">'+icon('plus')+' Создать ТТК в этом стиле</button></article>').join('');
 }
 function renderSettings(){
- $('prefStudio').value=prefs.studio_name||'FARUKH TTK PRO';
+ $('prefStudio').value=prefs.studio_name||'ШЕФ AI PREMIUM';
  $('prefTitle').value=prefs.title||'Студия технико-технологических карт';
  $('prefChef').value=prefs.chef_name||'';
 }
 async function saveSettings(ev){ev.preventDefault();if(busy)return;
- const data={owner_id:session?.user?.id,studio_name:$('prefStudio').value.trim().slice(0,100)||'FARUKH TTK PRO',
+ const data={owner_id:session?.user?.id,studio_name:$('prefStudio').value.trim().slice(0,100)||'ШЕФ AI PREMIUM',
  title:$('prefTitle').value.trim().slice(0,180),chef_name:$('prefChef').value.trim().slice(0,160),updated_at:new Date().toISOString()};
  setBusy(true);try{
  const rows=await api('/rest/v1/ttk_preferences?on_conflict=owner_id&select=*',{
