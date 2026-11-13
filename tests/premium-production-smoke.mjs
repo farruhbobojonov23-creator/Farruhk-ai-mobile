@@ -80,6 +80,13 @@ async function run(theme,width,height){
     bottom:document.querySelectorAll('.mobile-tools.lx-ref-bottom button').length
    }));
    check(tag+' approved reference controls',ref.title==='Техкарты (ТТК)'&&ref.kpis===4&&ref.project&&ref.search&&ref.statuses===5&&ref.categories>=6&&ref.bottom===7,ref);
+   const navDebug=await page.evaluate(()=>[...document.querySelectorAll('nav')].map(n=>{
+    const rect=n.getBoundingClientRect(),style=getComputedStyle(n);
+    return {className:n.className,id:n.id,visible:style.display!=='none'&&rect.height>0,
+      position:style.position,bottom:Math.round(rect.bottom),top:Math.round(rect.top),
+      text:n.textContent?.trim().slice(0,160)};
+   }).filter(n=>n.visible&&n.bottom>innerHeight-220));
+   console.log('TTK_NAV_DEBUG='+JSON.stringify(navDebug));
    await page.screenshot({path:'artifacts/premium-'+tag+'-recipes.png',fullPage:false,timeout:12000});
   }
   if(target==='lab'){
