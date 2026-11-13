@@ -83,3 +83,29 @@
   .ttk-design-info small{font-size:10px!important}
  }
 }
+
+
+@media screen{
+ #editor .ttk-inline-photo{
+  float:right;position:relative;width:220px;height:146px;
+  padding:8px;box-sizing:border-box;margin:4px 0 12px 13px;
+  background:#fff;border:1px solid #b6d7ed;border-radius:10px;
+  box-shadow:0 3px 11px #2f77ad1d;
+ }
+ #editor .ttk-inline-photo[hidden]{display:none!important}
+ #editor .ttk-inline-photo figcaption{
+  font-size:9px;font-weight:800;letter-spacing:.07em;color:#2b6491;
+  line-height:1.1;margin-bottom:5px
+ }
+ #editor .ttk-inline-photo img{
+  display:block;width:100%;height:112px;object-fit:contain;
+  background:transparent;border:0;border-radius:5px
+ }
+ #editor .ttk-paper[data-ttk-layout="royal-a4"] .ttk-inline-photo{
+  border-color:#c7a156;border-radius:3px
+ }
+ #editor .ttk-paper[data-ttk-layout="royal-a4"] .ttk-inline-photo figcaption{color:#083668}
+}
+@media print{
+ #editor .ttk-inline-photo{box-shadow:none!important;break-inside:avoid}
+}
