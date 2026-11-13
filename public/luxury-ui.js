@@ -191,7 +191,7 @@ export function mountLuxuryUI(opts={}){
    actions.append(cardButton('Печать','print',()=>opts.onPrint?.(r)));
    actions.append(cardButton('Дублировать','copy',()=>opts.onDuplicate?.(r)));
    actions.append(cardButton(r.archived?'Вернуть':'В архив','archive',()=>opts.onArchive?.(r)));
-   main.append(header,category,info,actions);
+   main.append(header,category,info);
    const details=el('details','lx-card-more');
    const summary=el('summary','', '⋮');summary.setAttribute('aria-label','Дополнительные действия с '+r.name);details.append(summary);
    const menu=el('div','lx-card-menu');
@@ -200,7 +200,7 @@ export function mountLuxuryUI(opts={}){
    menu.append(btn('↓ Скачать Word','',()=>opts.onWord?.(r)));
    menu.append(btn('Удалить ТТК','lx-delete-action',()=>opts.onDelete?.(r)));
    details.append(menu);
-   card.append(main,details);host.append(card);
+   card.append(main,details,actions);host.append(card);
   }
  }
  function attachEditor(editor,onDirty=()=>{}){
