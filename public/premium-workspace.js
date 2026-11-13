@@ -3,7 +3,7 @@
 import {mountPremiumShowcase} from '/premium-showcase.js?v=2';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
-const defaults={theme:'titanium',accent:'',radius:20,density:'standard',scale:1,motion:true};
+const defaults={theme:'crystal',accent:'',radius:20,density:'standard',scale:1,motion:true};
 const themeNames={titanium:'Black Ice Titanium',crystal:'Arctic Crystal PRO',royal:'Royal Gold 3D',arctic:'Arctic Sapphire',ice:'Black Ice',white:'Minimal White',gold:'Executive Gold',burgundy:'Burgundy PRO'};
 const themeColors={titanium:['#52caff','#07121c'],crystal:['#1379ce','#e3f3ff'],royal:['#e2b05b','#090909'],arctic:['#087bba','#e8f4ff'],ice:['#35c9ec','#08101d'],white:['#336fc4','#ffffff'],gold:['#d6ae64','#17191e'],burgundy:['#f1739d','#280f1d']};
 const deepCopy=o=>JSON.parse(JSON.stringify(o));
@@ -19,6 +19,15 @@ function icon(key){
 }
 export function mountPremiumWorkspace(){
  let config=validDesign(getJson(DESIGN_KEY,defaults)),draft=null;
+ // One-time opt-in from the owner: the approved Premium PRO (light sapphire)
+ // replaces the previous default dark Titanium on existing devices.
+ // Keep the previous preference structure and respect subsequent Studio changes.
+ const PREMIUM_V3_KEY='farruh-ai-approved-premium-v3';
+ if(!getJson(PREMIUM_V3_KEY,false)){
+  config={...config,theme:'crystal',accent:''};
+  setJson(DESIGN_KEY,config);
+  setJson(PREMIUM_V3_KEY,true);
+ }
  let projects=validProjects(getJson(PROJECT_KEY,null));
  let editingProjects=false;
  const home=document.getElementById('home'),nav=document.querySelector('#chef-menu .nav');
