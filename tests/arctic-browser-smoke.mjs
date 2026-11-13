@@ -146,7 +146,9 @@ async function verify(mode,width,height){
    const button=details.querySelector('.haccp-autofill-panel button.primary');
    return !!button&&!!button.getClientRects().length;
   },null,{timeout:12000});
-  assert.equal(await visible(page,'#lab .haccp-autofill-panel button.primary'),true,'auto-filled monthly PDF bundle available in expanded HACCP controls');
+  // The preceding waitForFunction verifies that a real onscreen button is
+  // available. Avoid a second non-atomic visibility read while the local
+  // HACCP database may re-render this expandable section.
   const packStatus=await page.locator('#lab .haccp-auto-stats').innerText();
   assert.match(packStatus,/13 журналов/,'all 13 journal types prepared automatically');
   assert.match(packStatus,/строк по графику без подтверждения/,'unverified entries are not represented as measured');
