@@ -300,16 +300,21 @@ export function mountLuxuryUI(opts={}){
     navigationItems.forEach(([key,label],index)=>{
      const button=bottom.children[index];
      if(!button||button.tagName!=='BUTTON')return;
+     // Legacy customizable navigation can reassign inline order after mount.
+     // Approved reference always displays seven buttons in this fixed order.
+     if(button.style.getPropertyValue('order')!==String(index)||button.style.getPropertyPriority('order')!=='important')
+       button.style.setProperty('order',String(index),'important');
      const text=(button.textContent||'').replace(/\\s+/g,' ').trim();
-     if(text===label&&button.querySelectorAll('span').length===1)return;
-     const img=button.querySelector('svg')?.cloneNode(true);
-     const caption=el('span','',label);
-     button.replaceChildren(...(img?[img]:[]),caption);
+     if(text!==label||button.querySelectorAll('span').length!==1){
+       const img=button.querySelector('svg')?.cloneNode(true);
+       const caption=el('span','',label);
+       button.replaceChildren(...(img?[img]:[]),caption);
+     }
     });
    }finally{cleaning=false}
   };
   const observer=new MutationObserver(()=>queueMicrotask(normalizeNav));
-  observer.observe(bottom,{childList:true,subtree:true,characterData:true});
+  observer.observe(bottom,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style','class','data-config-hidden']});
   normalizeNav();
   setTimeout(normalizeNav,350);
  }
