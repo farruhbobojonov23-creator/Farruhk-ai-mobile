@@ -1,1 +1,62 @@
-<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Подключение Google Документов</title><style>body{font:16px/1.65 system-ui;color:#263b32;background:#f3f5f0;max-width:780px;margin:auto;padding:30px}article{background:#fff;border-radius:24px;padding:30px}a{color:#28684a}button{padding:12px;background:#28684a;color:#fff;border:0;border-radius:10px;font:inherit;cursor:pointer}pre{max-height:300px;overflow:auto;padding:15px;background:#f5f5f1;font-size:12px}li{margin-bottom:14px}</style><article><h1>Автосохранение готовых ТТК</h1><p>Рабочий документ уже подготовлен. Google требует один раз разрешить запись от имени владельца. После подключения готовые ТТК будут отправляться автоматически, пока Farukh AI открыт и есть интернет. Ожидающие отправки сохраняются на устройстве.</p><p><a href="https://docs.google.com/document/d/1sspXqpkmYnZ9M2V3XX2JVXw7bUk8LL1VNkoRM3gMlnY/edit" target="_blank" rel="noopener">Открыть рабочий документ</a></p><ol><li><a href="https://script.google.com/home/start" target="_blank" rel="noopener">Открой Google Apps Script</a> в своём аккаунте и создай проект «Farukh AI ТТК».</li><li>Нажми «Скопировать код» ниже. Замени содержимое файла Code.gs этим кодом и сохрани.</li><li>Слева открой <b>Сервисы → +</b> и добавь <b>Google Docs API</b>. Затем выбери функцию <b>initialize</b> и нажми «Выполнить». Разреши доступ Google. В журнале выполнения появится <b>ключ подключения</b> — скопируй его.</li><li>Нажми <b>Развернуть → Новое развертывание → Веб-приложение</b>. Выполнять от имени: <b>я</b>. Доступ: <b>все</b>. Запись защищена личным ключом. Нажми «Развернуть» и скопируй адрес, заканчивающийся на <b>/exec</b>.</li><li>В Farukh AI открой <b>Техкарты → Google Документы</b>. Вставь адрес и ключ, нажми <b>Проверить и подключить</b>.</li></ol><button id="copy">Скопировать код</button> <a href="/google-ttk.gs" download="Code.gs">Скачать код</a><p id="result" role="status"></p><details><summary>Посмотреть код подключения</summary><pre id="code"></pre></details><p><a href="/#recipes">Вернуться в Техкарты</a></p></article><script>fetch('/google-ttk.gs').then(r=>r.text()).then(text=>{document.getElementById('code').textContent=text;document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);document.getElementById('result').textContent='Код скопирован.'}catch{document.getElementById('result').textContent='Скачай файл Code.gs по ссылке рядом.'}}});</script></html>
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Подключение Google Документов</title><style>body{font:16px/1.65 system-ui;color:#263b32;background:#f3f5f0;max-width:780px;margin:auto;padding:30px}article{background:#fff;border-radius:24px;padding:30px}a{color:#28684a}button{padding:12px;background:#28684a;color:#fff;border:0;border-radius:10px;font:inherit;cursor:pointer}pre{max-height:300px;overflow:auto;padding:15px;background:#f5f5f1;font-size:12px}li{margin-bottom:14px}</style><style>
+.credentials{margin:22px 0;padding:20px;border:1px solid #cfdfe9;border-radius:18px;background:#f6fbff}
+.credentials h2{font-size:20px;margin:0 0 6px}.credentials label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+.credentials .field{display:flex;gap:8px;flex-wrap:wrap}
+.credentials input{flex:1 1 250px;min-width:0;padding:11px 12px;border:1px solid #c5d4de;border-radius:10px;background:white;color:#20364b;font:14px system-ui}
+.credentials button{background:#1764be;white-space:nowrap;padding:10px 13px}
+.credentials button[disabled]{opacity:.5;cursor:not-allowed}.credentials .muted{font-size:13px;color:#50667a;margin:9px 0}
+.credentials #credentials-status{min-height:22px;color:#17633c;font-size:14px}
+</style><article><h1>Автосохранение готовых ТТК</h1><p>Рабочий документ уже подготовлен. Google требует один раз разрешить запись от имени владельца. После подключения готовые ТТК будут отправляться автоматически, пока Farukh AI открыт и есть интернет. Ожидающие отправки сохраняются на устройстве.</p><p><a href="https://docs.google.com/document/d/1sspXqpkmYnZ9M2V3XX2JVXw7bUk8LL1VNkoRM3gMlnY/edit" target="_blank" rel="noopener">Открыть рабочий документ</a></p><section class="credentials" aria-label="Реквизиты Google Apps Script">
+<h2>Мои данные подключения</h2>
+<p class="muted">Скопируйте адрес и ключ, когда понадобится повторно подключить Google к Farukh AI.</p>
+<label for="saved-endpoint">Адрес Google Apps Script</label>
+<div class="field"><input id="saved-endpoint" type="url" readonly spellcheck="false"><button id="copy-endpoint" type="button">Скопировать ссылку</button></div>
+<label for="saved-key">Ключ подключения</label>
+<div class="field"><input id="saved-key" type="password" readonly autocomplete="off" placeholder="Ключ найдётся в настройках этого устройства">
+<button id="reveal-key" type="button" disabled>Показать</button><button id="copy-key" type="button" disabled>Скопировать ключ</button></div>
+<p class="muted" id="credentials-help">Ключ берётся только из настроек, сохранённых в этом браузере. Он не публикуется на сайте и в GitHub.</p>
+<p id="credentials-status" role="status" aria-live="polite"></p>
+</section><ol><li><a href="https://script.google.com/home" target="_blank" rel="noopener">Открой Google Apps Script</a> в своём аккаунте и создай проект «Farukh AI ТТК».</li><li>Нажми «Скопировать код» ниже. Замени содержимое файла Code.gs этим кодом и сохрани.</li><li>Слева открой <b>Сервисы → +</b> и добавь <b>Google Docs API</b>. Затем выбери функцию <b>initialize</b> и нажми «Выполнить». Разреши доступ Google. В журнале выполнения появится <b>ключ подключения</b> — скопируй его.</li><li>Нажми <b>Развернуть → Новое развертывание → Веб-приложение</b>. Выполнять от имени: <b>я</b>. Доступ: <b>все</b>. Запись защищена личным ключом. Нажми «Развернуть» и скопируй адрес, заканчивающийся на <b>/exec</b>.</li><li>В Farukh AI открой <b>Техкарты → Google Документы</b>. Вставь адрес и ключ, нажми <b>Проверить и подключить</b>.</li></ol><button id="copy">Скопировать код</button> <a href="/google-ttk.gs" download="Code.gs">Скачать код</a><p id="result" role="status"></p><details><summary>Посмотреть код подключения</summary><pre id="code"></pre></details><p><a href="/#recipes">Вернуться в Техкарты</a></p></article><script>fetch('/google-ttk.gs').then(r=>r.text()).then(text=>{document.getElementById('code').textContent=text;document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);document.getElementById('result').textContent='Код скопирован.'}catch{document.getElementById('result').textContent='Скачай файл Code.gs по ссылке рядом.'}}});</script><script type="module">
+import {DeviceStore} from '/device-store.js';
+const defaultEndpoint="https://script.google.com/macros/s/AKfycbxVew0HZOM4ak5fozl36vfP49KqNBd64hjcC5JRPnZwdJoCtE6kEyTRNAw6o-DNFdeh/exec";
+const urlField=document.getElementById('saved-endpoint');
+const keyField=document.getElementById('saved-key');
+const copyEndpoint=document.getElementById('copy-endpoint');
+const copyKey=document.getElementById('copy-key');
+const revealKey=document.getElementById('reveal-key');
+const help=document.getElementById('credentials-help');
+const status=document.getElementById('credentials-status');
+urlField.value=defaultEndpoint;
+try{
+ const state=await new DeviceStore().load();
+ const config=state?.googleSync;
+ if(config?.endpoint)urlField.value=config.endpoint;
+ if(config?.key){
+  keyField.value=config.key;
+  revealKey.disabled=false;copyKey.disabled=false;
+  help.textContent='Ссылка и ключ взяты из настроек Farukh AI на этом устройстве. Сохраните их в надёжном месте. Не отправляйте ключ посторонним.';
+ }else{
+  help.textContent='Ссылка указана для повторного подключения. Ключ на этом устройстве не найден: откройте настройки Google в Farukh AI на устройстве, где подключение уже работает.';
+ }
+}catch{
+ help.textContent='Не удалось прочитать настройки браузера. Ссылку можно скопировать, а ключ найти в настройках Farukh AI на подключённом устройстве.';
+}
+async function copy(value,kind){
+ if(!value){status.textContent='Данные для копирования ещё не сохранены.';return}
+ try{
+  if(!navigator.clipboard?.writeText)throw Error('Clipboard API unavailable');
+  await navigator.clipboard.writeText(value);
+  status.textContent=kind+' скопирован'+(kind==='Ключ'?'':'а')+'.';
+ }catch{
+  status.textContent='Не удалось скопировать автоматически. Выделите значение и скопируйте вручную.';
+  if(kind==='Ссылка'){urlField.removeAttribute('readonly');urlField.focus();urlField.select()}
+  else {keyField.type='text';keyField.removeAttribute('readonly');keyField.focus();keyField.select()}
+ }
+}
+copyEndpoint.addEventListener('click',()=>copy(urlField.value,'Ссылка'));
+copyKey.addEventListener('click',()=>copy(keyField.value,'Ключ'));
+revealKey.addEventListener('click',()=>{
+ const hidden=keyField.type==='password';keyField.type=hidden?'text':'password';
+ revealKey.textContent=hidden?'Скрыть':'Показать';
+});
+</script></html>
