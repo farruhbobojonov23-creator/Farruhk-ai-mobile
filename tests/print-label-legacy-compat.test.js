@@ -17,7 +17,7 @@ function makeHarness({managed=true,staffApi=null,signedIn=true,connected=true}={
  const elems={};
  const doc={body:{classList:{toggle(){}}},
   createElement(tag){assert.equal(tag,'canvas');return new Canvas()},
-  getElementById(id){return elems[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-23T20:00':'',dataset:{},disabled:false,hidden:false,textContent:'',parentElement:{hidden:false}}}
+  getElementById(id){return elems[id] ||= {value:id==='copies'?'1':id==='printed-at'?'2026-10-23T20:00':'',dataset:{},disabled:false,hidden:id==='catalog',textContent:'',parentElement:{hidden:false}}}
  };
  const win={FarukhPrinter:{postMessage(data){sent.push(JSON.parse(data))}},FARUKH_PRINT_STAFF_API:{loggedIn:()=>signedIn,point:()=> 'Плазма',authorize:async()=>({ok:true}),...staffApi},FARUKH_PRINT_DEVICE_SYNC:{state:()=>({connected})}};
  const hook=src.replace('boot();\n})();',
