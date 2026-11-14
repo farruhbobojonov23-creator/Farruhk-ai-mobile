@@ -16,7 +16,7 @@ function linkedProjects(state){
  return [...projects.values()];
 }
 export function mountGoogleSync({getState,store,onState,notify}){
- let running=false,timer,settingsOpen=false,projectSyncError='';const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
+ let running=false,timer,settingsOpen=false,projectSyncError='';const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';button.dataset.googleSettings='1';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
  const retryButton=document.createElement('button');retryButton.type='button';retryButton.textContent='↻ Отправить сейчас';retryButton.hidden=true;retryButton.setAttribute('aria-label','Повторно отправить готовые техкарты в Google');
  const syncDetail=document.createElement('p');syncDetail.className='small';syncDetail.hidden=true;syncDetail.setAttribute('role','status');syncDetail.style.margin='10px 0 0';syncDetail.style.overflowWrap='anywhere';summary.append(retryButton,syncDetail);// Keep optional Google controls accessible without breaking the approved TTK
  // header: the hero subtitle lives inside a strict CSS grid.
@@ -52,7 +52,8 @@ export function mountGoogleSync({getState,store,onState,notify}){
   retryButton.disabled=running;
   syncDetail.hidden=true;
   if(projectSyncError){syncDetail.textContent=projectSyncError;syncDetail.hidden=false}
-  if(!config?.enabled){status.textContent='Готовых ТТК: '+count+' · Google не подключён';return}
+  if(!config?.enabled){status.textContent='Готовых ТТК: '+count+' · Google Документы не подключены (это отдельно от синхронизации телефона).';return}
+  if(!count){status.textContent='Google: нет ТТК со статусом «Рецептура готова». Черновики остаются в Farukh AI.';retryButton.hidden=true;return}
   if(!navigator.onLine){status.textContent='Google: нет интернета. Готовые ТТК остаются на устройстве.';return}
   if(running){status.textContent='Отправляю готовые ТТК в Google…';return}
   status.textContent='Google: проверяю готовые версии…';
@@ -143,7 +144,11 @@ export function mountGoogleSync({getState,store,onState,notify}){
  window.addEventListener('online',schedule);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
  document.addEventListener('pf:projects',schedule);
+ document.addEventListener('farruh:projects-changed',schedule);
+ document.addEventListener('farruh:device-cloud-synced',schedule);
  // Immediate save after a change is still scheduled; periodic retry is deliberately sparse.
  setInterval(()=>{if(!document.hidden)flush().catch(()=>{})},5*60*1000);
- return {schedule,render};
+ const open=()=>{backupTools.open=true;button.click()};
+ const openStatus=()=>{backupTools.open=true;render();backupTools.scrollIntoView({block:'center',behavior:'smooth'});};
+ return {schedule,render,open,openStatus};
 }

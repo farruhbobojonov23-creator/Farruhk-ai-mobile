@@ -76,6 +76,7 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
   '<div class="bar"><button type="button" data-toggle-sync></button><button type="button" data-sync-now>Синхронизировать сейчас</button></div>'+
   '<p class="small" data-sync-status role="status">Синхронизация выключена.</p>';
  settingsDialog.append(node);
+ const googleStatus=document.createElement('p');googleStatus.className='small';googleStatus.setAttribute('role','status');node.append(googleStatus);
  const toggle=node.querySelector('[data-toggle-sync]');
  const manual=node.querySelector('[data-sync-now]');
  const status=node.querySelector('[data-sync-status]');
@@ -85,6 +86,13 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
   toggle.textContent=enabled()?'Выключить синхронизацию':'Включить синхронизацию';
   manual.disabled=running||!enabled();
   status.textContent=message||(enabled()?'Синхронизация включена.':'Синхронизация выключена.');
+  const state=getState(),google=state?.googleSync;
+  const readyCount=(state?.recipes||[]).filter(r=>r.status==='ready').length;
+  const draftCount=(state?.recipes||[]).filter(r=>r.status!=='ready'&&!r.archived).length;
+  googleStatus.textContent=(!google?.enabled||!google?.endpoint||!google?.key)
+   ?'Google Документы: не подключены. Эта кнопка синхронизирует телефон и планшет, но не создаёт файлы Google. Для подключения откройте «Подключение Google Документов» в настройках.'
+   :'Google Документы: отдельная отправка. Готовых ТТК: '+readyCount+'; в разработке: '+draftCount+'. Черновики остаются в Farukh AI. Статус отправки — в разделе «Техкарты → Облачные копии и готовые версии ТТК».';
+
  }
  async function once(){
   if(!enabled()||!getState()||running)return;
@@ -108,7 +116,8 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    if(localChanged)onState(next);
    lastError='';
    const connection=document.getElementById('connection');if(connection)connection.textContent='☁️ Облачная синхронизация';
-   paint('✅ Синхронизировано: '+new Date().toLocaleTimeString('ru-RU')+'. ТТК: '+(merged.recipes?.length||0)+'.');
+   paint('✅ База Farukh AI синхронизирована: '+new Date().toLocaleTimeString('ru-RU')+'. ТТК: '+(merged.recipes?.length||0)+'. Google Документы проверяются отдельно.');
+   document.dispatchEvent(new Event('farruh:device-cloud-synced'));
    if(projectChanged){
     const editor=document.getElementById('editor');
     if(editor&&!editor.hidden){paint('✅ Проекты объединены. Обновите страницу после сохранения открытой ТТК.');return;}

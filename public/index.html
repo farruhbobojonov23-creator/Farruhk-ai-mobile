@@ -106,9 +106,9 @@ import {filterCatalog} from '/recipe-catalog.js?v=3';
 import {categoriesFor} from '/category-model.js';
 import {showProductPhoto} from '/product-photo.js?v=3';
 import {mountCategoryManager} from '/category-manager.js?v=owner-3';
-import {mountGoogleSync} from '/recipe-google.js?v=6';
+import {mountGoogleSync} from '/recipe-google.js?v=8';
 import {mountGoogleDriveBackup} from '/google-backup.js?v=4';
-import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=2';
+import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=3';
 import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
@@ -536,6 +536,12 @@ async function saveRecipeEditor({close=true,download=false}={}){
  editId=recipe.id;pearlHome.remember(recipe);$('delete-recipe').hidden=false;
  $('editor').hidden=close;editorDirty=false;ttkPro.markSaved();
  if(close)document.body.classList.remove('editing-recipe');
+ if(recipe.status==='ready'){
+  if(!recipe.projectId)notice('ТТК готова, но не выбран проект. Для «Море Суши» откройте ТТК и выберите проект.',true);
+  else if(!state.googleSync?.enabled||!state.googleSync?.endpoint||!state.googleSync?.key)
+   notice('ТТК сохранена на устройстве. Google Документы не подключены.',true);
+  else notice('ТТК сохранена на устройстве. Отправка в Google ещё не подтверждена.');
+ }
  if(download)await downloadRecipe(recipe.id);
 }
 $('editor').onsubmit=guard(()=>saveRecipeEditor());
@@ -644,7 +650,15 @@ syncQuickButton.onclick=()=>deviceCloudSync.open();
 const projectManageButton=document.querySelector('#recipes .lx-project-row .lx-project-manage');
 if(projectManageButton)projectManageButton.before(syncQuickButton);
 else (document.querySelector('#recipes > .lx-ref-stats')||document.querySelector('#recipes > .bar'))?.after(syncQuickButton);
-const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();document.querySelector('.ttk-sync-summary button:last-of-type')?.click()};settingsDialog.append(connectionSettings);
+const googleTtkQuickButton=document.createElement('button');
+googleTtkQuickButton.type='button';googleTtkQuickButton.id='google-ttk-quick-access';
+googleTtkQuickButton.className='sync-quick-google';
+googleTtkQuickButton.textContent='Google ТТК · статус';
+googleTtkQuickButton.title='Отдельная отправка готовых техкарт в Google Документы';
+googleTtkQuickButton.setAttribute('aria-label','Статус сохранения ТТК в Google Документах');
+googleTtkQuickButton.onclick=()=>googleSync.openStatus();
+syncQuickButton.after(googleTtkQuickButton);
+const historyButton=document.createElement('button');historyButton.type='button';historyButton.textContent='История разговора';historyButton.onclick=()=>{settingsDialog.close();messagesDialog.append($('chat-form'));messagesDialog.showModal()};settingsDialog.append(historyButton);const connectionSettings=document.createElement('button');connectionSettings.type='button';connectionSettings.textContent='Подключение Google Документов';connectionSettings.onclick=()=>{settingsDialog.close();show('recipes');googleSync.open()};settingsDialog.append(connectionSettings);
 $('device-export').onclick=guard(async()=>{const saved=await deviceStore.load();downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:saved},null,2)],{type:'application/json'}),'FARRUH_AI_backup_'+new Date().toISOString().slice(0,10)+'.json');notice('Резервная копия подготовлена для скачивания.')});
 async function importDeviceData(incoming){const source=validateDeviceState(incoming);await save(current=>Object.assign(current,mergeDeviceState(current,source)));showSavedChatHistory(state.chat||[]);notice('Данные импортированы на устройство. Существующие записи сохранены.')}
 $('device-import').onclick=()=>{$('device-import-file').value='';$('device-import-file').click()};
