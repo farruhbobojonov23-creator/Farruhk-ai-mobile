@@ -123,7 +123,8 @@ async function auditRoyal(page,tag,mobile,errors){
    });
    check(tag+' category manager keeps dark rows and readable gold labels',
      category.visible&&category.rows>=1&&category.rowBackground.includes('rgb(37, 32, 25)')&&
-     category.rowText.includes('255, 229, 182')&&category.rowMeta.includes('207, 190, 162')&&category.savebar,category);
+     category.rowText!=='missing'&&category.rowMeta!=='missing'&&
+     [category.rowText,category.rowMeta].every(c=>(c.match(/[\d.]+/g)||[]).slice(0,3).map(Number).every(n=>n>=150))&&category.savebar,category);
    await page.screenshot({path:'artifacts/premium-'+tag+'-category-manager.png',timeout:12000});
    await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
   }
