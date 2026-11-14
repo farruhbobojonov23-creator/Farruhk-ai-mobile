@@ -76,9 +76,14 @@ async function verify(mode,width,height){
   await page.locator('#chef-menu-close').click();
   assert.equal(await visible(page,'#chef-menu'),false,'drawer closes via accessible close button');
 
-  // The new free Google Drive backup controls must appear under Device Data.
-  const backupLocated=await page.evaluate(()=>document.getElementById('device-export')?.parentElement?.contains(document.querySelector('.google-backup-open')));
-  assert.equal(backupLocated,true,'Google backup is alongside local backup controls');
+  // All storage actions now live in the single premium My Data center,
+  // not scattered through Settings, TTK and separate cloud shortcuts.
+  const backupLocated=await page.evaluate(()=>{
+   const hub=document.getElementById('data-center-dialog');
+   return !!hub&&['#device-export','.google-backup-open','#device-cloud-sync-settings','.ttk-sync-summary']
+    .every(sel=>hub.querySelector(sel)!==null);
+  });
+  assert.equal(backupLocated,true,'Google, local backups, TTK and device sync share one My Data center');
   const settingsDialog=page.locator('.lunar-dialog[aria-label="Настройки и данные"]');
   await settingsDialog.evaluate(el=>el.showModal());
   const settingsContrast=await settingsDialog.evaluate(el=>{
@@ -98,11 +103,13 @@ async function verify(mode,width,height){
   assert.ok(settingsContrast.summaryRgb.length===3&&settingsContrast.summaryRgb[0]<120&&settingsContrast.summaryRgb[2]<190,'Settings summary is too pale: '+JSON.stringify(settingsContrast));
   const deviceBar=await page.locator('#device-export').evaluate(el=>{
     const bar=el.closest('.bar'),style=getComputedStyle(bar);
-    return {background:style.backgroundImage,position:style.position,backgroundColor:style.backgroundColor};
+    return {position:style.position,backgroundColor:style.backgroundColor};
   });
-  assert.ok(deviceBar.background.includes('rgb(248, 252, 255)')&&deviceBar.position!=='sticky',
-    'Device backup buttons have inherited legacy black bar: '+JSON.stringify(deviceBar));
+  assert.ok(deviceBar.position!=='sticky','Local export actions must not cover mobile settings: '+JSON.stringify(deviceBar));
   await page.screenshot({path:'artifacts/arctic-settings-'+mode+'.png',fullPage:false,timeout:12000});
+  await page.locator('.data-center-settings-open').click();
+  assert.equal(await visible(page,'#data-center-dialog'),true,'The single My Data hub opens from Settings');
+  await page.screenshot({path:'artifacts/arctic-data-center-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#device-export').evaluate(el=>el.closest('details').open=true);
   await page.locator('.google-backup-open').click();
   assert.equal(await visible(page,'.google-backup-dialog'),true,'Google backup dialog opens');
@@ -117,6 +124,7 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('.google-backup-dialog [data-list]').isDisabled(),true,'No cloud operations before connection');
   await page.screenshot({path:'artifacts/arctic-google-backup-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('.google-backup-dialog [data-close]').click();
+  await page.locator('#data-center-dialog [data-close]').click();
 
   await page.locator('#home-new-recipe').click();
   assert.equal(await page.locator('body').getAttribute('data-view'),'recipes','create TTK navigates to recipes');
