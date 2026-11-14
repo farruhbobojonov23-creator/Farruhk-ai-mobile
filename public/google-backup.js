@@ -128,6 +128,12 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
    const result=await request('list',c);
    respond('Найдено копий: '+result.items.length+'. Google хранит предыдущие файлы — они не удаляются автоматически.');
    if(!result.items.length)files.textContent='Резервных копий пока нет.';
+   // Show the five newest copies first; keep older files available
+   // behind a collapsed section instead of overwhelming a phone screen.
+   const older=document.createElement('details');older.className='google-backup-older';
+   const olderSummary=document.createElement('summary');olderSummary.textContent='Показать остальные '+Math.max(0,result.items.length-5)+' копий';
+   older.append(olderSummary);
+   let shown=0;
    for(const item of result.items){
     if(!/^[\w-]{15,130}$/.test(item.id))continue;
     const row=document.createElement('div');row.className='row';
@@ -160,8 +166,10 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
      }catch(e){respond('Восстановление не выполнено: '+e.message,true)}
      finally{restore.disabled=false}
     };
-    row.append(label,dl,restore);files.append(row);
+    row.append(label,dl,restore);
+    if(shown++<5)files.append(row);else older.append(row);
    }
+   if(shown>5)files.append(older);
   }catch(e){respond('Не удалось получить список: '+e.message,true)}
   finally{buttonList.disabled=!config()?.endpoint}
  };
