@@ -128,7 +128,7 @@ export function mountTtkStudio(editor){
   name.setAttribute('placeholder','Например, Филадельфия классик');
  }
  const displayStyle=()=>{
-  intro.dataset.layout=editor.dataset.ttkLayout||'arctic-a4';
+  intro.dataset.layout=editor.dataset.ttkLayout||'teal-matrix';
  };
  new MutationObserver(displayStyle).observe(editor,{attributes:true,attributeFilter:['data-ttk-layout']});
  displayStyle();

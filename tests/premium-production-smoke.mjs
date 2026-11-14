@@ -130,6 +130,16 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
+     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>140})));
+   check(tag+' My TTK editor offers exactly four new Premium allergen templates',
+     layouts.length===4&&layouts.every(x=>x.visible)&&
+     layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
+   await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
+   await page.locator('#ttk-design-picker [data-ttk-layout="gold-allergen"]').click();
+   check(tag+' Gold Allergen selection persists in live editor',
+     (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    const editAppearance=await page.evaluate(()=>{
@@ -189,6 +199,15 @@ async function auditRoyal(page,tag,mobile,errors){
      await row.locator('[data-key="name"]').fill(sample[i][0]);
      await row.locator('[data-key="grams"]').fill(sample[i][1]);
    }
+   const matrix=await page.evaluate(()=>{
+     const entries=[...document.querySelectorAll('#editor .ttk-allergen-entry')];
+     const row=label=>entries.find(e=>e.textContent.includes(label));
+     return {count:entries.length,fish:row('Рыба')?.querySelector('strong')?.textContent,
+       milk:row('Молоко')?.querySelector('strong')?.textContent,
+       soy:row('Соя')?.querySelector('strong')?.textContent};
+   });
+   check(tag+' live allergen matrix checks fish and dairy, warns for sauces',
+      matrix.count===8&&matrix.fish==='✓'&&matrix.milk==='✓'&&matrix.soy==='?',matrix);
    await page.locator('#card-chef').fill('Фаррух');
    await page.locator('#card-approver').fill('Бободжонов');
    await page.evaluate(()=>{const input=document.getElementById('nutrition-auto');input.checked=false;input.dispatchEvent(new Event('change',{bubbles:true}))});
@@ -522,11 +541,11 @@ async function run(theme,width,height){
      galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>100,
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
-   check(tag+' 2 A4 layouts appear in TTK editor with current selection',
-     catalog.count===2&&catalog.selected==='arctic-a4'&&catalog.sheet==='arctic-a4'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
-   await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
-   check(tag+' selecting Royal changes the live A4 paper',
-     await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
+   check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
+     catalog.count===4&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+   await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
+   check(tag+' selecting Premium Blue changes the live A4 paper',
+     await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
    if(theme==='crystal'&&mobile){
     // Upload/delete use the same photo handlers as the original editor.
     const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
@@ -548,7 +567,7 @@ async function run(theme,width,height){
     const req=await pdfRequest;
     const draft=JSON.parse(req.postData()).recipe;
     check(tag+' preview sends unsaved Royal A4 draft to actual PDF route',
-      draft.name==='Пробный ролл'&&draft.layoutTemplate==='royal-a4'&&
+      draft.name==='Пробный ролл'&&draft.layoutTemplate==='premium-blue'&&
       draft.ingredients?.some(x=>x.name==='Рис'&&Number(x.grams)===100),
       {name:draft.name,layout:draft.layoutTemplate,ingredients:draft.ingredients?.length});
    }

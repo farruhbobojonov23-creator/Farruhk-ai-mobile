@@ -1,4 +1,5 @@
 import {regulatoryBasis,scopeForName,nutritionOnPortion} from './recipe-math.js?v=ttk-6';
+import {recipeAllergenMatrix} from './ttk-allergens.js?v=1';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
@@ -36,6 +37,11 @@ export function mountRecipeSheet(editor){
   '<span>Нетто, г <b data-total="net">—</b></span>'+
   '<span>Отходы, % <b data-total="loss">—</b></span>';
  paper.append(recipeTotals);
+ const allergenPanel=el('section','ttk-allergen-matrix');
+ const allergenTitle=el('h3');allergenTitle.textContent='Матрица аллергенов · предварительно по составу';
+ const allergenGrid=el('div','ttk-allergen-grid');
+ const allergenNote=el('p','ttk-allergen-note');
+ allergenPanel.append(allergenTitle,allergenGrid,allergenNote);paper.append(allergenPanel);
  section('4. Технологический процесс');
  const process=table(),head=el('tr');for(const text of ['Этап','Описание действий']){const th=el('th');th.textContent=text;head.append(th)}process.append(head);
  for(const [caption,id] of [['Подготовка','card-prep'],['Формовка / приготовление','technology'],['Нарезка / подача','card-serving']]){const row=el('tr');pair(row,caption,id);process.append(row)}
@@ -87,6 +93,17 @@ export function mountRecipeSheet(editor){
   const numberFor=(el,key)=>Number(el.querySelector('[data-key="'+key+'"]')?.value)||0;
   const gross=rows.reduce((sum,row)=>sum+numberFor(row,'grossGrams'),0);
   const net=rows.reduce((sum,row)=>sum+numberFor(row,'grams'),0);
+  const allergenValues=recipeAllergenMatrix({ingredients:rows.map(row=>({name:row.querySelector('[data-key="name"]')?.value||''}))});
+  allergenGrid.replaceChildren(...allergenValues.groups.map(group=>{
+   const item=el('div','ttk-allergen-entry');
+   if(group.checked)item.classList.add('is-present');
+   if(group.possible)item.classList.add('is-possible');
+   const name=el('span');name.textContent=group.label;
+   const mark=el('strong');mark.textContent=group.checked?'✓':group.possible?'?':'□';
+   mark.setAttribute('aria-label',group.checked?'Обнаружено по названию ингредиента, требуется проверка':group.possible?'Возможно присутствие, проверьте этикетку':'Не обнаружено по названию, отсутствие не подтверждено');
+   item.append(name,mark);return item;
+  }));
+  allergenNote.textContent=allergenValues.note;
   const ru=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});
   recipeTotals.querySelector('[data-total="gross"]').textContent=rows.length?ru(gross):'—';
   recipeTotals.querySelector('[data-total="net"]').textContent=rows.length?ru(net):'—';
