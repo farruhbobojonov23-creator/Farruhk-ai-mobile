@@ -44,6 +44,9 @@ async function verify(mode,width,height){
  // defaults to premium Titanium, independently covered by premium QA.
  await page.addInitScript(()=>localStorage.setItem('farruh-ai-approved-premium-v3','true'));
  await page.addInitScript(()=>localStorage.setItem('farruh-ai-approved-black-ice-v1','true'));
+ // Preserve the intentionally selected Arctic theme instead of invoking the owner-approved
+ // one-time Royal migration (Royal has its own separate browser audit).
+ await page.addInitScript(()=>localStorage.setItem('farruh-ai-approved-royal-premium-20261114','true'));
  await page.addInitScript(()=>localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({
   theme:'arctic',density:'standard',radius:20,scale:1,motion:false
  })));
