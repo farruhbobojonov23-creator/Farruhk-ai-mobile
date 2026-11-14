@@ -2,6 +2,9 @@ import {recipeWord,recipeSections} from './recipe-word.js';
 import {recipePdf} from './recipe-pdf.js';
 import {cleanState} from './assistant-store.js';
 export function validGoogleEndpoint(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(u.pathname)}catch{return false}}
+const isGoogleDocUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='docs.google.com'&&/^\\/document\\/d\\/[A-Za-z0-9_-]{10,}\\//.test(u.pathname+'/')}catch{return false}};
+const isGoogleDriveFolderUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='drive.google.com'&&/^\\/drive\\/folders\\/[A-Za-z0-9_-]{10,}\\/?$/.test(u.pathname)}catch{return false}};
+const WRONG_GOOGLE_RECEIVER='Подключён скрипт резервных копий Google Диска вместо скрипта Google ТТК. Откройте Farukh AI → Настройки → Подключение Google Документов и укажите URL веб-приложения «Farukh AI ТТК» (не «Резервные копии»), затем ключ именно этого скрипта. Инструкция: /google-ttk-setup.html.';
 export function installRecipeExportApi(app,{request=fetch}={}){
  const recipeFrom=raw=>{if(!raw||typeof raw.id!=='string'||!raw.id||!raw.name?.trim()||!Array.isArray(raw.ingredients)||raw.ingredients.length>300||raw.ingredients.some(i=>!i||typeof i!=='object'))throw Error('Неверная техкарта.');return cleanState({recipes:[raw]}).recipes[0]};
  app.post('/api/recipes/word',async(req,res)=>{try{const recipe=recipeFrom(req.body?.recipe),buffer=await recipeWord(recipe);res.type('application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.set('Content-Disposition',"attachment; filename=recipe.docx; filename*=UTF-8''"+encodeURIComponent('ТТК_'+recipe.name+'.docx'));res.send(buffer)}catch{res.status(400).json({error:'Не удалось сформировать Word. Проверь техкарту.'})}});
@@ -34,7 +37,17 @@ export function installRecipeExportApi(app,{request=fetch}={}){
    const response=await request(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(100000),redirect:'follow'});
    if(!response.ok)throw Error('Google временно недоступен. Сохранённая ТТК осталась на устройстве.');
    const result=await response.json();
-   if(result.ok!==true)throw Error(result.error||'Google не подтвердил сохранение.');
+   if(result.ok!==true){
+    if(/неизвестная операция/i.test(String(result.error||'')))
+     throw Error('Google не распознаёт отправку ТТК. Вероятно, указано веб-приложение резервных копий вместо Google ТТК или опубликована старая версия. Откройте /google-ttk-setup.html и проверьте подключение.');
+    throw Error(result.error||'Google не подтвердил сохранение.');
+   }
+   // The backup Apps Script also answers action=check with ok:true, but it
+   // returns folderName instead of documentUrl. A matching secret is NOT enough.
+   if(action==='check'&&!isGoogleDocUrl(result.documentUrl))
+    throw Error(result.folderName?WRONG_GOOGLE_RECEIVER:'Google ответил, но не подтвердил документ ТТК. Проверьте опубликованную версию Google Apps Script «Farukh AI ТТК»: /google-ttk-setup.html.');
+   if(action==='ensureProject'&&(!isGoogleDocUrl(result.documentUrl)||!isGoogleDriveFolderUrl(result.folderUrl)))
+    throw Error('Google не подтвердил папку и документ проекта. Обновите развертывание Apps Script «Farukh AI ТТК» по инструкции /google-ttk-setup.html.');
    if(recipe&&(result.recipeId!==recipe.id||result.digest!==digest))throw Error('Google не подтвердил версию ТТК.');
    res.json({ok:true,recipeId:result.recipeId,digest:result.digest,projectId:result.projectId,
     documentUrl:result.documentUrl,folderUrl:result.folderUrl,tabId:result.tabId,
