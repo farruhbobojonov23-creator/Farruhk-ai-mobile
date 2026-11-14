@@ -40,7 +40,7 @@ async function run(theme,width,height){
  const page=await ctx.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.dismiss());
- await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
+ await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
@@ -55,6 +55,42 @@ async function run(theme,width,height){
  check(tag+' homepage no overflow',initial.overflow<=16,initial);
  check(tag+' dashboard visible',initial.main!=='none',initial);
  results.push({label:tag+' initial render ms',ok:true,context:Date.now()-before});
+ if(theme==='titanium'){
+  const ice=page.locator('.pf-ice-screen');
+  await ice.waitFor({state:'visible',timeout:12000});
+  const cards=await ice.locator('.pf-ice-tile .pf-ice-tile-label').allInnerTexts();
+  check(tag+' approved four Black Ice sections',
+    JSON.stringify(cards)===JSON.stringify(['ТТК','ХАССП','Ингредиенты','Журналы']),cards);
+  const projectButtons=ice.locator('.pf-ice-project[data-pf-project]');
+  check(tag+' real project cards render',await projectButtons.count()>=2,
+   await projectButtons.allInnerTexts());
+  check(tag+' approved four-item navigation',
+   await ice.locator('.pf-ice-bottom .pf-ice-nav-btn').count()===4,null);
+  await page.screenshot({path:'artifacts/black-ice-'+tag+'-home.png',timeout:12000});
+  const second=await projectButtons.nth(1).getAttribute('data-pf-project');
+  await projectButtons.nth(1).click();
+  check(tag+' selection updates working project',
+   await page.locator('#pf-home-project-select').inputValue()===second,second);
+  await ice.locator('.pf-ice-tile[data-pf-go="lab"]').first().click();
+  await page.waitForFunction(()=>document.body.dataset.view==='lab',null,{timeout:12000});
+  check(tag+' HACCP opens working safety section',await page.locator('#lab').isVisible(),null);
+  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]')?.click());
+  await ice.locator('[data-pf-action="search"]').click();
+  await page.waitForFunction(()=>document.body.dataset.view==='recipes',null,{timeout:12000});
+  await page.waitForFunction(()=>document.activeElement?.id==='recipe-search',null,{timeout:8000});
+  check(tag+' search focuses recipe input',await page.locator('#recipe-search').isVisible(),null);
+  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]')?.click());
+  await ice.locator('[data-pf-go="site-settings"]').click();
+  await page.waitForFunction(()=>document.body.dataset.view==='site-settings',null,{timeout:8000});
+  check(tag+' profile opens settings',await page.locator('#site-settings').isVisible(),null);
+  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="home"]')?.click());
+  await ice.locator('[data-pf-action="more"]').click();
+  check(tag+' menu is operable',await page.locator('#chef-menu').isVisible(),null);
+  await page.locator('#chef-menu-close').click();
+  check(tag+' no client uncaught errors',errors.length===0,errors.slice(0,5));
+  await ctx.close();
+  return;
+ }
  if(theme==='crystal'){
   await page.waitForFunction(()=>{const img=document.querySelector('.pf-banner-visual img');return img&&getComputedStyle(img).opacity!=='0'&&img.complete&&img.naturalWidth>0},null,{timeout:12000});
   await checkCrystalInk(page,'.pf-showcase-banner h1',tag+' homepage heading readable');
