@@ -46,7 +46,7 @@ test('per-recipe Google indicators do not claim local save means Google save',()
  assert.match(html,/Google: ожидает отправки/);
  assert.match(html,/Google: ошибка отправки/);
  assert.match(html,/Google: сохранено/);
- assert.match(html,/del\.pdfUrl&&del\.url/);
+ assert.match(html,/del\?\.pdfUrl&&del\?\.url/);
  assert.match(html,/del\.projectId===\(recipe\.projectId\|\|''\)/);
 });
 
