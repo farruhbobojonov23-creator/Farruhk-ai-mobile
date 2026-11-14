@@ -23,6 +23,7 @@ export function fourTtkPdf(input){
   info:{Title:'ТТК — '+r.name,Author:'FARRUH AI Premium'}});
  doc.registerFont('r',regular);doc.registerFont('b',bold);
  const X=22,W=551,gap=9,group=recipeAllergenMatrix(r);
+ const dense=(r.ingredients||[]).length>18;
  const nutrition=original.nutrition||{};
  const stats=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,nutrition[k]]));
  function wrap(v,width,font,heavy=false){
@@ -119,22 +120,43 @@ export function fourTtkPdf(input){
  }
  function compactIngredients(x,y,w,s,draw){
   const items=Array.isArray(r.ingredients)?r.ingredients:[];
-  const columns=items.length>65?4:items.length>46?3:items.length>18?2:1;
+  const columns=items.length>46?4:items.length>24?3:items.length>18?2:1;
   doc.ttkIngredientColumns=columns;
-  if(columns===1)return box('3. РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ)',ingredientRows(),x,y,w,s,draw,
+  if(columns===1)return box('3. Рецептура (норма закладки)',ingredientRows(),x,y,w,s,draw,
    {header:true,ratios:[.07,.43,.18,.17,.15]});
-  const bh=cardTitle('3. РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ)',x,y,w,s,false);
+  const bh=cardTitle('3. Рецептура (норма закладки)',x,y,w,s,false);
   const cg=5*s,cw=(w-cg*(columns-1))/columns,per=Math.ceil(items.length/columns);
+  // Fit long, realistic prep catalogues without discarding any ingredient:
+  // compact physical rows only in multi-column tables; all numeric data remains.
+  function compactRows(rows,px,py,pw,drawRows){
+   let yy=py;const shares=[.55,.225,.225],size=6.25*s,pad=2*s;
+   for(let n=0;n<rows.length;n++){
+    const cells=rows[n],lines=cells.map((v,j)=>wrap(v,pw*shares[j]-pad*2,size,n===0));
+    const hh=Math.max(11*s,Math.max(...lines.map(a=>a.length))*size*1.2+pad*2);
+    if(drawRows){
+     let xx=px;
+     for(let j=0;j<3;j++){
+      const ww=pw*shares[j];
+      doc.rect(xx,yy,ww,hh).lineWidth(.3*s)
+       .fillAndStroke(n===0?C.pale:n%2?'#FFFFFF':C.light,C.line);
+      txt(lines[j],xx+pad,yy+pad,ww-pad*2,size,n===0,C.text,true);
+      xx+=ww;
+     }
+    }
+    yy+=hh;
+   }
+   return yy-py;
+  }
   const heightCol=[];
   for(let col=0;col<columns;col++){
    const part=items.slice(col*per,(col+1)*per);
    const rows=[['Сырьё','Брутто','Нетто'],...part.map(i=>[safe(i.name),fmt(i.grossGrams),fmt(i.grams)])];
-   heightCol.push(drawTable(rows,x+col*(cw+cg),y+bh+2*s,cw,s,draw,{ratios:[.56,.22,.22]}));
+   heightCol.push(compactRows(rows,x+col*(cw+cg),y+bh+2*s,cw,draw));
   }
   const maxH=Math.max(...heightCol),foot=15*s,total=bh+2*s+maxH+3*s+foot+3*s;
   if(draw){
    doc.roundedRect(x,y,w,total,6*s).lineWidth(.7*s).stroke(C.line);
-   cardTitle('3. РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ)',x,y,w,s,true);
+   cardTitle('3. Рецептура (норма закладки)',x,y,w,s,true);
    doc.roundedRect(x,y+bh+maxH+4*s,w,foot,4*s).fill('#F9E6AF');
    txt('Выход готового блюда: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
     x+8*s,y+bh+maxH+7*s,w-16*s,8*s,true,C.navy,true);
@@ -142,9 +164,9 @@ export function fourTtkPdf(input){
   return total;
  }
  function allergenBox(x,y,w,s,draw){
-  const full=w>=350,cols=full?2:1,cellH=(full?13.0:12.0)*s;
+  const full=w>=350,cols=full?(dense?4:2):1,cellH=(full?(dense?11.5:13.0):12.0)*s;
   const titleHeight=21*s,rows=Math.ceil(group.groups.length/cols);
-  const noteHeight=full?24*s:33*s,bodyH=rows*cellH;
+  const noteHeight=full?(dense?17*s:24*s):33*s,bodyH=rows*cellH;
   const height=titleHeight+bodyH+noteHeight+4*s;
   if(draw){
    doc.roundedRect(x,y,w,height,7*s).lineWidth(layout==='gold-allergen'?1.4*s:.7*s)
@@ -174,7 +196,7 @@ export function fourTtkPdf(input){
   return height;
  }
  function processCards(x,y,w,s,draw){
-  const titleH=cardTitle('4. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',x,y,w,s,false);
+  const titleH=cardTitle('4. Технология приготовления',x,y,w,s,false);
   const steps=sections[3][1].slice(1);
   const gap=5*s,cw=(w-gap*(steps.length-1))/steps.length;
   const data=steps.map(([head,content])=>({
@@ -185,7 +207,7 @@ export function fourTtkPdf(input){
   const height=titleH+4*s+eachH+3*s;
   if(draw){
    doc.roundedRect(x,y,w,height,6*s).lineWidth(.7*s).stroke(C.line);
-   cardTitle('4. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',x,y,w,s,true);
+   cardTitle('4. Технология приготовления',x,y,w,s,true);
    for(let i=0;i<steps.length;i++){
     const cx=x+i*(cw+gap),cy=y+titleH+4*s;
     doc.roundedRect(cx,cy,cw,eachH,5*s).lineWidth(.5*s).fillAndStroke('#FFFFFF',C.line);
@@ -204,11 +226,11 @@ export function fourTtkPdf(input){
    ['Жиры, г',fmt(stats.fat),stats.fat!=null&&per?fmt(Number(stats.fat)*per):'—'],
    ['Углеводы, г',fmt(stats.carbs),stats.carbs!=null&&per?fmt(Number(stats.carbs)*per):'—'],
    ['Ккал',fmt(stats.kcal),stats.kcal!=null&&per?fmt(Number(stats.kcal)*per):'—']];
-  return box('7. ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
+  return box('7. Пищевая ценность (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
  }
  function headerHeight(s){
   const nameLines=wrap(r.name,W-100*s,13*s,true);
-  return Math.max(96*s,(nameLines.length*18+81)*s);
+  return Math.max((dense?87:96)*s,(nameLines.length*17+(dense?69:81))*s);
  }
  function header(y,s,draw){
   const h=headerHeight(s);
@@ -222,7 +244,7 @@ export function fourTtkPdf(input){
       .lineWidth(.8*s).fillAndStroke(blue?'#FFF5DB':'#F2D487',C.accent);
    txt('№ '+safe(r.cardNumber),X+W-72*s,y+32*s,59*s,8*s,true,C.navy,true);
    txt(wrap(r.name,W-96*s,13*s,true),X+12*s,y+27*s,W-100*s,13*s,true,C.navy,true);
-   doc.moveTo(X+12*s,y+61*s).lineTo(X+W-12*s,y+61*s)
+   doc.moveTo(X+12*s,y+(dense?54:61)*s).lineTo(X+W-12*s,y+(dense?54:61)*s)
      .lineWidth(1*s).strokeColor(C.accent).stroke();
    const data=[
     'Категория: '+safe(r.category),
@@ -232,9 +254,9 @@ export function fourTtkPdf(input){
    const cw=(W-24*s)/3;
    for(let i=0;i<3;i++){
     const xx=X+12*s+i*cw;
-    doc.roundedRect(xx,y+67*s,cw-5*s,19*s,4*s)
+    doc.roundedRect(xx,y+(dense?59:67)*s,cw-5*s,19*s,4*s)
       .lineWidth(.4*s).fillAndStroke(C.pale,C.line);
-    txt(wrap(data[i],cw-14*s,6.5*s),xx+4*s,y+70*s,cw-14*s,6.5*s,i===1,C.text,true);
+    txt(wrap(data[i],cw-14*s,6.5*s),xx+4*s,y+(dense?62:70)*s,cw-14*s,6.5*s,i===1,C.text,true);
    }
    txt('Статус: '+(r.status==='ready'?'Готова':'В разработке'),
     X+15*s,y+h-8.5*s,W-30*s,6*s,true,C.text,true);
@@ -250,12 +272,12 @@ export function fourTtkPdf(input){
   }
   y+=header(y,s,draw)+8*s;
   const half=(W-gap)/2;
-  const a=textBox('1. ОБЛАСТЬ ПРИМЕНЕНИЯ',sections[0][1][0][0],X,y,half,s,false),
-   b=textBox('2. ТРЕБОВАНИЯ К СЫРЬЮ',sections[1][1][0][0],X+half+gap,y,half,s,false),
+  const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
+   b=textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,false),
    first=Math.max(a,b);
   if(draw){
-   textBox('1. ОБЛАСТЬ ПРИМЕНЕНИЯ',sections[0][1][0][0],X,y,half,s,true);
-   textBox('2. ТРЕБОВАНИЯ К СЫРЬЮ',sections[1][1][0][0],X+half+gap,y,half,s,true);
+   textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,true);
+   textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,true);
   }
   y+=first+8*s;
   if((r.ingredients||[]).length<=14&&layout!=='premium-blue'){
@@ -269,15 +291,15 @@ export function fourTtkPdf(input){
    y+=allergenBox(X,y,W,s,draw)+7*s;
   }
   if(layout==='process-matrix')y+=processCards(X,y,W,s,draw)+8*s;
-  else y+=box('4. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',sections[3][1],X,y,W,s,draw,{ratios:[.26,.74]})+8*s;
-  const lowerA=textBox('5. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',sections[4][1][0][0],X,y,half,s,false),
-   lowerB=box('6. КОНТРОЛЬ КАЧЕСТВА',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,false,{ratios:[.34,.66]});
+  else y+=box('4. Технология приготовления',sections[3][1],X,y,W,s,draw,{ratios:[.26,.74]})+8*s;
+  const lowerA=textBox('5. Условия хранения и реализации',sections[4][1][0][0],X,y,half,s,false),
+   lowerB=box('6. Контроль качества',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,false,{ratios:[.34,.66]});
   if(draw){
-   textBox('5. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',sections[4][1][0][0],X,y,half,s,true);
-   box('6. КОНТРОЛЬ КАЧЕСТВА',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,true,{ratios:[.34,.66]});
+   textBox('5. Условия хранения и реализации',sections[4][1][0][0],X,y,half,s,true);
+   box('6. Контроль качества',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,true,{ratios:[.34,.66]});
   }
   y+=Math.max(lowerA,lowerB)+8*s;
-  y+=textBox('8. БЕЗОПАСНОСТЬ (ХАССП)',safe(r.safety),X,y,W,s,draw)+7*s;
+  y+=textBox('8. Безопасность (ХАССП)',safe(r.safety),X,y,W,s,draw)+7*s;
   y+=nutritionBox(X,y,W,s,draw)+9*s;
   const signH=34*s,signGap=10*s,signW=(W-signGap)/2;
   if(draw)for(const [i,who,name] of [[0,'Разработал (Шеф)',r.chef],[1,'Утверждаю',r.approver]]){
@@ -302,7 +324,7 @@ export function fourTtkPdf(input){
   for(let i=0;i<23;i++){const mid=(lo+hi)/2;if(layoutPage(mid)<=791)lo=mid;else hi=mid;}
   scale=lo;
  }
- if(scale<.74)throw Object.assign(new Error('Невозможно разместить все сведения и матрицу аллергенов на одном читаемом листе А4. Уменьшите длинные описания или количество ингредиентов.'),{status:422,code:'TTK_A4_TOO_DENSE'});
+ if(scale<.74)throw Object.assign(new Error('Невозможно разместить все сведения и матрицу аллергенов на одном читаемом листе А4 (масштаб '+scale.toFixed(2)+'). Уменьшите длинные описания или количество ингредиентов.'),{status:422,code:'TTK_A4_TOO_DENSE'});
  doc.ttkLayoutScale=scale;
  doc.ttkLayoutHeight=layoutPage(scale);
  doc.ttkAllergenMatrix=group;
