@@ -51,7 +51,7 @@ test('per-recipe Google indicators do not claim local save means Google save',()
 });
 
 test('mobile hub has responsive safe-area bounds and no duplicate quick buttons',()=>{
- assert.match(html,/\/data-center\.css\?v=1/);
+ assert.match(html,/\/data-center\.css\?v=2/);
  assert.match(html,/\/data-center\.js\?v=1/);
  assert.match(css,/width:min\(740px,calc\(100vw - 22px\)\)/);
  assert.match(css,/@media\(max-width:560px\)/);
