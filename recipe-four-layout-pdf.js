@@ -270,7 +270,7 @@ export function fourTtkPdf(input){
    doc.rect(0,0,595.28,8*s).fill(layout==='premium-blue'?C.navy:C.band);
    doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
   }
-  y+=header(y,s,draw)+8*s;
+  y+=header(y,s,draw)+(dense?5:8)*s;
   const half=(W-gap)/2;
   const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
    b=textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,false),
@@ -279,28 +279,28 @@ export function fourTtkPdf(input){
    textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,true);
    textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,true);
   }
-  y+=first+8*s;
+  y+=first+(dense?5:8)*s;
   if((r.ingredients||[]).length<=14&&layout!=='premium-blue'){
    const recipeW=W*.60,allergenW=W-recipeW-gap;
    const rs=compactIngredients(X,y,recipeW,s,false),
     as=allergenBox(X+recipeW+gap,y,allergenW,s,false);
    if(draw){compactIngredients(X,y,recipeW,s,true);allergenBox(X+recipeW+gap,y,allergenW,s,true)}
-   y+=Math.max(rs,as)+8*s;
+   y+=Math.max(rs,as)+(dense?5:8)*s;
   }else{
    y+=compactIngredients(X,y,W,s,draw)+6*s;
    y+=allergenBox(X,y,W,s,draw)+7*s;
   }
-  if(layout==='process-matrix')y+=processCards(X,y,W,s,draw)+8*s;
-  else y+=box('4. Технология приготовления',sections[3][1],X,y,W,s,draw,{ratios:[.26,.74]})+8*s;
+  if(layout==='process-matrix')y+=processCards(X,y,W,s,draw)+(dense?5:8)*s;
+  else y+=box('4. Технология приготовления',sections[3][1],X,y,W,s,draw,{ratios:[.26,.74]})+(dense?5:8)*s;
   const lowerA=textBox('5. Условия хранения и реализации',sections[4][1][0][0],X,y,half,s,false),
    lowerB=box('6. Контроль качества',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,false,{ratios:[.34,.66]});
   if(draw){
    textBox('5. Условия хранения и реализации',sections[4][1][0][0],X,y,half,s,true);
    box('6. Контроль качества',sections[5][1].filter(row=>row[0]!=='Безопасность'),X+half+gap,y,half,s,true,{ratios:[.34,.66]});
   }
-  y+=Math.max(lowerA,lowerB)+8*s;
+  y+=Math.max(lowerA,lowerB)+(dense?5:8)*s;
   y+=textBox('8. Безопасность (ХАССП)',safe(r.safety),X,y,W,s,draw)+7*s;
-  y+=nutritionBox(X,y,W,s,draw)+9*s;
+  y+=nutritionBox(X,y,W,s,draw)+(dense?5:8)*s;
   const signH=34*s,signGap=10*s,signW=(W-signGap)/2;
   if(draw)for(const [i,who,name] of [[0,'Разработал (Шеф)',r.chef],[1,'Утверждаю',r.approver]]){
    const x=X+i*(signW+signGap);
