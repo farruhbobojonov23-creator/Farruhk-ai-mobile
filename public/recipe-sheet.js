@@ -23,6 +23,8 @@ export function mountRecipeSheet(editor){
  function full(id,caption){const body=table(),row=el('tr'),td=el('td');const input=get(id);input.setAttribute('aria-label',caption);td.append(input);row.append(td);body.append(row)}
  section('1. Область применения');full('card-scope','Область применения');section('2. Требования к сырью');full('card-raw','Требования к сырью');
  section('3. Рецептура');
+ const recipeHelp=el('p','ttk-recipe-help','Состав и нормы закладки ингредиентов на одну порцию. Укажи брутто, нетто и отходы для каждого ингредиента.');
+ paper.append(recipeHelp);
  const ingredients=el('div','ttk-ingredient-table');ingredients.setAttribute('role','table');ingredients.setAttribute('aria-label','Матрица ингредиентов');
  const header=el('div','ttk-ingredient-head');header.setAttribute('role','row');for(const text of ['Наименование сырья / полуфабриката','Брутто, г','Нетто, г','Отходы, %','']){const cell=el('span');cell.textContent=text;cell.setAttribute('role','columnheader');header.append(cell)}
  ingredients.append(header,get('ingredients'));paper.append(ingredients);
