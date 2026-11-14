@@ -62,7 +62,9 @@ export function premiumRecipePdf(input){
   return max+4*s+footH;
  }
  function section(index,x,y,w,s,draw,min=0){
-  const [title,rows]=sections[index],size=8.4*s,pad=6*s,lines=wrap(title,w-pad*2,size,true),
+  const [title,rows]=sections[index],size=8.4*s,pad=6*s,
+   hasBadge=premium&&/^\d+\./.test(title),label=hasBadge?title.replace(/^\d+\.\s*/, ''):title,
+   lines=wrap(label,w-pad*2-(hasBadge?24*s:0),size,true),
    bh=lines.length*size*1.25+pad*2;
   const useColumns=index===2&&ingredientColumns>1;
   const th=useColumns?ingredientTable(rows,x,y+bh,w,s,false):table(rows,x,y+bh,w,s,false,rows[0].length>1);
