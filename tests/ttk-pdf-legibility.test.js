@@ -30,10 +30,22 @@ for(const [size,category] of [[5,'Холодные роллы'],[12,'Запеч�
  }
 }
 
-test('long premium cards show a clear 422 validation instead of unreadable micro-print',()=>{
- const huge={...base('Холодные роллы'),layoutTemplate:'royal-a4',
+test('75 ingredients are all present in one printable A4 using parallel ingredient columns',async()=>{
+ const many={...base('Холодные роллы'),layoutTemplate:'royal-a4',
   ingredients:Array.from({length:75},(_,i)=>({name:'Ингредиент '+(i+1),grams:10,grossGrams:10})),
   netYieldGrams:750};
+ const doc=premiumRecipePdf(many);
+ assert.equal(doc.ttkIngredientColumns,3);
+ const pdf=await parsePdf(await bytes(doc));
+ assert.equal(pdf.numpages,1);
+ assert.match(pdf.text,/Ингредиент 1/);
+ assert.match(pdf.text,/Ингредиент 75/);
+ assert.ok(doc.ttkLayoutScale>=.74,'The printed type must remain legible');
+});
+test('impossible density refuses one-page output instead of silently omitting text',()=>{
+ const huge={...base('Холодные роллы'),layoutTemplate:'royal-a4',
+  ingredients:Array.from({length:300},(_,i)=>({name:'Очень длинный ингредиент проверки технологии '+(i+1),grams:10,grossGrams:10})),
+  netYieldGrams:3000};
  assert.throws(()=>premiumRecipePdf(huge),error=>
   error?.status===422&&error.code==='TTK_A4_TOO_DENSE'&&/один читаемый лист/.test(error.message));
 });
