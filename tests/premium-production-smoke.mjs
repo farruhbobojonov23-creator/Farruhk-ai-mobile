@@ -170,6 +170,76 @@ async function auditRoyal(page,tag,mobile,errors){
      [category.rowText,category.rowMeta].every(c=>(c.match(/[\d.]+/g)||[]).slice(0,3).map(Number).every(n=>n>=150))&&category.savebar,category);
    await page.screenshot({path:'artifacts/premium-'+tag+'-category-manager.png',timeout:12000});
    await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
+   // Disposable local-only recipe: same ingredients as owner's approval mockups.
+   await page.locator('#newrecipe').click();
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#recipe-name').fill('Тест 1');
+   await page.locator('#recipe-status').selectOption('ready');
+   const sample=[['сыр творожный','50'],['лосось','50'],['терияки соус','50'],['рис готовый','120']];
+   for(let i=0;i<sample.length;i++){
+     if(i){
+       const count=await page.evaluate(()=>{
+         document.querySelector('#addingredient').click();
+         return document.querySelectorAll('#ingredients .ingredient').length;
+       });
+       check(tag+' add ingredient '+i+' creates a row',count===i+1,{count,i});
+       if(count!==i+1)throw new Error('No new ingredient after add: '+JSON.stringify({count,i,errors}));
+     }
+     const row=page.locator('#ingredients .ingredient').nth(i);
+     await row.locator('[data-key="name"]').fill(sample[i][0]);
+     await row.locator('[data-key="grams"]').fill(sample[i][1]);
+   }
+   await page.locator('#card-chef').fill('Фаррух');
+   await page.locator('#card-approver').fill('Бободжонов');
+   await page.evaluate(()=>{const input=document.getElementById('nutrition-auto');input.checked=false;input.dispatchEvent(new Event('change',{bubbles:true}))});
+   for(const [key,n] of [['protein','6.565'],['fat','8.859'],['carbs','19.97'],['kcal','188.333']])
+     await page.locator('#card-'+key).fill(n);
+   const formCheck=await page.evaluate(()=>{
+     const rows=[...document.querySelectorAll('#editor #ingredients .ingredient')];
+     const table=document.querySelector('#editor .ttk-block[data-section="7"]>.ttk-table');
+     const totals=document.querySelector('#editor .ttk-recipe-totals');
+     return {rows:rows.length,gross:rows.map(e=>e.querySelector('[data-key="grossGrams"]').value),
+      deleteSize:rows[0].querySelector('button').getBoundingClientRect().height,
+      inputBg:getComputedStyle(rows[0].querySelector('[data-key="grams"]')).backgroundColor,
+      inputRuleMatch:rows[0].querySelector('[data-key="grams"]').matches('html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] #ingredients .ingredient input'),
+      theme:document.body.dataset.pfTheme,luxury:document.body.classList.contains('lx-pro'),
+      stylesheet:[...document.styleSheets].filter(x=>x.href?.includes('ttk-royal-approved-ui')).map(x=>({href:x.href,rules:x.cssRules?.length})),
+      table:table&&getComputedStyle(table).display,
+      totals:totals?.querySelector('[data-total="net"]')?.textContent};
+   });
+   check(tag+' Premium ingredient editor has 4 compact dark cards and accurate totals',
+     formCheck.rows===4&&formCheck.gross.join(',')==='50,50,50,120'&&
+     formCheck.deleteSize<=51&&formCheck.inputBg==='rgb(15, 18, 19)'&&
+     formCheck.table==='table'&&formCheck.totals==='270',formCheck);
+   await page.locator('#ingredients .ingredient').first().scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-approved-ingredients.png',timeout:12000});
+   await page.locator('#editor .ttk-nutrition-status').scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-approved-nutrition.png',timeout:12000});
+   await page.locator('#editor button[type="submit"]').click();
+   await page.waitForFunction(()=>document.querySelector('#editor')?.hidden,{timeout:12000});
+   if(await page.locator('#catalog-all').isVisible())await page.locator('#catalog-all').click();
+   const saved=page.locator('#recipelist .lx-recipe').filter({hasText:'Тест 1'}).first();
+   await saved.waitFor({state:'visible',timeout:12000});
+   const savedView=await saved.evaluate(e=>{
+     const photo=e.querySelector('.lx-recipe-photo'),img=photo?.querySelector('img');
+     const actions=e.querySelector('.lx-card-actions');
+     const cloud=e.querySelector('.lx-recipe-cloud');
+     const meta=e.querySelector('.lx-ref-meta');
+     return {width:e.getBoundingClientRect().width,
+      photoHeight:photo?.getBoundingClientRect().height,
+      photoFit:img&&getComputedStyle(img).objectFit,
+      actions:actions?.querySelectorAll('button').length,
+      actionsDisplay:actions&&getComputedStyle(actions).display,
+      metaDisplay:meta&&getComputedStyle(meta).display,
+      cloud:!!cloud&&cloud.getBoundingClientRect().height>=70,
+      overflow:e.scrollWidth-e.clientWidth};
+   });
+   check(tag+' approved saved card: contained photo, four buttons, cloud tile',
+     savedView.width>=280&&savedView.photoHeight<=310&&savedView.photoFit==='contain'&&
+     savedView.actions===4&&savedView.actionsDisplay==='grid'&&savedView.metaDisplay==='grid'&&
+     savedView.cloud&&savedView.overflow<=3,savedView);
+   await saved.scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-approved-saved-card.png',timeout:12000});
   }
   if(v==='print-control'){
    const metrics=await page.evaluate(()=>{

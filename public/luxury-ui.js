@@ -203,17 +203,24 @@ export function mountLuxuryUI(opts={}){
    actions.append(cardButton('Просмотр','eye',()=>opts.onPreview?.(r)));
    actions.append(cardButton('Печать','print',()=>opts.onPrint?.(r)));
    actions.append(cardButton('Дублировать','copy',()=>opts.onDuplicate?.(r)));
-   actions.append(cardButton(r.archived?'Вернуть':'В архив','archive',()=>opts.onArchive?.(r)));
    main.append(header,category,info);
    const details=el('details','lx-card-more');
    const summary=el('summary','', '⋮');summary.setAttribute('aria-label','Дополнительные действия с '+r.name);details.append(summary);
    const menu=el('div','lx-card-menu');
    menu.append(btn(opts.isFavorite?.(r.id)?'★ Убрать из избранного':'☆ В избранное','',()=>opts.onToggleFavorite?.(r)));
+   menu.append(btn(r.archived?'↩ Вернуть из архива':'▤ В архив','',()=>opts.onArchive?.(r)));
    menu.append(btn('↓ Скачать PDF','',()=>opts.onPdf?.(r)));
    menu.append(btn('↓ Скачать Word','',()=>opts.onWord?.(r)));
    menu.append(btn('Удалить ТТК','lx-delete-action',()=>opts.onDelete?.(r)));
    details.append(menu);
-   card.append(main,details,actions);host.append(card);
+   const cloud=btn('','lx-recipe-cloud',()=>{
+     const panel=root.querySelector('.lx-sync-details')||document.querySelector('#recipes .lx-sync-details');
+     if(panel){if(panel.tagName==='DETAILS')panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'})}
+     else opts.onOpenCloud?.(r);
+   });
+   cloud.innerHTML='<span class="lx-recipe-cloud-icon" aria-hidden="true">☁</span><span class="lx-recipe-cloud-copy"><strong>Облачные копии и готовые версии ТТК</strong><small>История версий, PDF, печатные формы и резервные копии</small></span><span class="lx-recipe-cloud-arrow" aria-hidden="true">›</span>';
+   cloud.setAttribute('aria-label','Открыть облачные копии и готовые версии ТТК');
+   card.append(main,details,actions,cloud);host.append(card);
   }
  }
  function attachEditor(editor,onDirty=()=>{}){

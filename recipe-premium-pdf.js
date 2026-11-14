@@ -16,15 +16,15 @@ export function premiumRecipePdf(input){
  doc.registerFont('regular',regular);doc.registerFont('bold',bold);
  const themes={
  classic:{ink:'#4A1723',band:'#651D2C',line:'#D9B7A3',paper:'#FFF1E5',cell:'#FFF8F1',head:'#F5DCC9'},
- 'arctic-a4':{ink:'#153B5E',band:'#127EC7',line:'#B4D9EF',paper:'#F4FAFF',cell:'#FFFFFF',head:'#DFEFFB'},
- 'royal-a4':{ink:'#142E54',band:'#083668',line:'#B9C8DB',paper:'#FFFFFF',cell:'#FFFFFF',head:'#EAF1F8'}};
+ 'arctic-a4':{ink:'#153B5E',band:'#167FB9',line:'#AECFE5',paper:'#FAFCFF',cell:'#FFFFFF',head:'#DCEFFA'},
+ 'royal-a4':{ink:'#142E54',band:'#134D87',line:'#B9CEDF',paper:'#FFFFFF',cell:'#FFFFFF',head:'#E5F1FC'}};
  const C=themes[layoutId],X=20,W=555,G=9;
  // Owner requirement: A4 TTK is text-only. Saved catalog photos remain untouched.
  const photo=null;
  const value=v=>v==null||v===''?'—':String(v);
  function wrap(v,w,size,strong=false){doc.font(strong?'bold':'regular').fontSize(size);const lines=[];for(const p of value(v).split('\n')){let line='';for(const word of p.split(/\s+/)){if(!word)continue;if(doc.widthOfString(line?line+' '+word:word)<=w){line=line?line+' '+word:word;continue}if(line){lines.push(line);line=''}for(const c of word){if(line&&doc.widthOfString(line+c)>w){lines.push(line);line=''}line+=c}}lines.push(line||' ')}return lines}
  function text(lines,x,y,w,size,strong=false,color=C.ink){doc.font(strong?'bold':'regular').fontSize(size).fillColor(color);lines.forEach((s,i)=>doc.text(s,x,y+i*size*1.25,{width:w,lineBreak:false}));}
- function table(rows,x,y,w,s,draw,header=true){const cols=rows[0].length,ratios=cols===3?[.60,.20,.20]:cols===5?[.30,.175,.175,.175,.175]:cols===2?[.28,.72]:[1];let yy=y;rows.forEach((row,i)=>{const fs=7.6*s,pad=4*s,lines=row.map((v,j)=>wrap(v,w*ratios[j]-pad*2,fs,header&&i===0)),h=Math.max(15*s,Math.max(...lines.map(a=>a.length))*fs*1.25+pad*2);if(draw){let xx=x;row.forEach((v,j)=>{doc.rect(xx,yy,w*ratios[j],h).lineWidth(.4).fillAndStroke(header&&i===0?C.head:C.cell,C.line);text(lines[j],xx+pad,yy+pad,w*ratios[j]-pad*2,fs,header&&i===0);xx+=w*ratios[j]})}yy+=h});return yy-y;}
+ function table(rows,x,y,w,s,draw,header=true){const cols=rows[0].length,ratios=cols===3?[.60,.20,.20]:cols===5?[.30,.175,.175,.175,.175]:cols===2?[.28,.72]:[1];let yy=y;rows.forEach((row,i)=>{const fs=7.6*s,pad=4*s,lines=row.map((v,j)=>wrap(v,w*ratios[j]-pad*2,fs,header&&i===0)),h=Math.max(15*s,Math.max(...lines.map(a=>a.length))*fs*1.25+pad*2);if(draw){let xx=x;row.forEach((v,j)=>{doc.rect(xx,yy,w*ratios[j],h).lineWidth(.4).fillAndStroke(header&&i===0?C.head:premium&&i%2===0?'#F8FBFE':C.cell,C.line);text(lines[j],xx+pad,yy+pad,w*ratios[j]-pad*2,fs,header&&i===0);xx+=w*ratios[j]})}yy+=h});return yy-y;}
  // For long ingredient lists use parallel table columns on the same A4.
  // This preserves every ingredient and numeric cell without shrinking all the
  // safety, technology and signature text to microscopic size.
@@ -62,45 +62,71 @@ export function premiumRecipePdf(input){
   return max+4*s+footH;
  }
  function section(index,x,y,w,s,draw,min=0){
-  const [title,rows]=sections[index],size=8.4*s,pad=6*s,lines=wrap(title,w-pad*2,size,true),
+  const [title,rows]=sections[index],size=8.4*s,pad=6*s,
+   hasBadge=premium&&/^\d+\./.test(title),label=hasBadge?title.replace(/^\d+\.\s*/, ''):title,
+   lines=wrap(label,w-pad*2-(hasBadge?24*s:0),size,true),
    bh=lines.length*size*1.25+pad*2;
   const useColumns=index===2&&ingredientColumns>1;
   const th=useColumns?ingredientTable(rows,x,y+bh,w,s,false):table(rows,x,y+bh,w,s,false,rows[0].length>1);
   const h=Math.max(min,bh+th);
   if(draw){
-   doc.roundedRect(x,y,w,h,5*s).fill(C.cell);
-   doc.rect(x,y,w,bh).fill(C.band);
-   text(lines,x+pad,y+pad,w-pad*2,size,true,'#FFF8F1');
+   doc.roundedRect(x,y,w,h,7*s).lineWidth(.55*s).fillAndStroke(C.cell,C.line);
+   doc.roundedRect(x,y,w,bh+2*s,6*s).fill(C.band);
+   if(premium){
+    // Golden numbered section badge, vector-only and variable length safe.
+    const number=/^(\d+)\./.exec(title)?.[1];
+    if(number){
+     doc.roundedRect(x+4*s,y+2.6*s,19*s,Math.max(12*s,bh-5*s),4*s)
+      .lineWidth(.5).fillAndStroke('#E6BD70','#D3A658');
+     text([number],x+9*s,y+pad,w>200?15*s:14*s,8*s,true,'#173755');
+    }
+    const shown=title.replace(/^\d+\.\s*/, '');
+    text(wrap(shown,w-pad*2-(number?24*s:0),size,true),
+     x+pad+(number?24*s:0),y+pad,w-pad*2-(number?24*s:0),size,true,'#FFFFFF');
+   }else text(lines,x+pad,y+pad,w-pad*2,size,true,'#FFF8F1');
    if(useColumns)ingredientTable(rows,x,y+bh,w,s,true);
    else table(rows,x,y+bh,w,s,true,rows[0].length>1);
   }
   return h;
  }
- function layout(s,draw=false){let y=20;const headerH=(premium?(photo?143:92):57)*s;
+ function layout(s,draw=false){let y=20;const headerH=(premium?106:57)*s;
  if(draw){
   doc.rect(0,0,595.28,841.89).fill(C.paper);
   if(premium){
-   if(layoutId==='arctic-a4'){
-    doc.rect(0,0,595.28,14*s).fill('#CEE9F9');
-    doc.roundedRect(X,y,W,headerH,6*s).fill('#E8F5FE');
-    doc.moveTo(X,y+headerH).lineTo(X+W,y+headerH).lineWidth(.8).strokeColor('#91CBE8').stroke();
-   }else{
-    doc.rect(0,0,595.28,23*s).fill('#083668');
-    doc.moveTo(X,y+headerH).lineTo(X+W,y+headerH).lineWidth(1.2).strokeColor('#C7A156').stroke();
+   // FARRUH AI Premium A4 — clean light-blue document with fine gold accents,
+   // exact dynamic values; no photos or forced screenshot backgrounds.
+   doc.rect(0,0,595.28,9*s).fill('#CBE7F7');
+   doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(.85*s).strokeColor('#D5A75B').stroke();
+   doc.roundedRect(X,y,W,headerH,8*s).lineWidth(.6*s).fillAndStroke('#FFFFFF',C.line);
+   doc.roundedRect(X+3*s,y+3*s,W-6*s,52*s,7*s).fill('#F3F9FE');
+   text(['◆  FARRUH AI'],X+12*s,y+6*s,W*.6,9*s,true,'#152F4E');
+   doc.roundedRect(X+W-95*s,y+5*s,83*s,17*s,8*s)
+      .lineWidth(.65*s).fillAndStroke('#FFF8EA','#DAAE60');
+   text(['✦  PREMIUM'],X+W-86*s,y+8*s,72*s,7*s,true,'#8B5C22');
+   text(['ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],X+13*s,y+24*s,W-26*s,13*s,true,'#153657');
+   text(wrap(r.name,W-24*s,11.2*s,true),X+13*s,y+44*s,W-24*s,11.2*s,true,'#174672');
+   doc.moveTo(X+13*s,y+62*s).lineTo(X+W-13*s,y+62*s)
+      .lineWidth(.8*s).strokeColor('#D8AF63').stroke();
+   doc.roundedRect(X+6*s,y+66*s,W-12*s,35*s,6*s)
+      .fill('#EAF4FB');
+   const m1=[
+    'ТТК № '+value(r.cardNumber),
+    'Дата: '+value(r.cardDate),
+    'Категория: '+value(r.category)
+   ];
+   const m2=[
+    'Количество: '+(r.pieces?value(r.pieces)+' шт.':'—'),
+    'Выход: '+(r.netYieldGrams?value(r.netYieldGrams)+' г':'—'),
+    'Статус: '+(r.status==='ready'?'Готова':'В разработке')
+   ];
+   for(let i=0;i<3;i++){
+    const xx=X+13*s+i*W/3.1;
+    text([m1[i]],xx,y+70*s,W/3.3,6.9*s,i===0,'#254764');
+    text([m2[i]],xx,y+84*s,W/3.3,6.9*s,i===2,'#254764');
    }
-   text(['A  FARRUH AI    /    ТЕХНОЛОГИЧЕСКАЯ КАРТА'],X+5*s,y+5*s,W-10*s,11*s,true,C.band);
-   text(wrap(r.name,photo?W*.52:W*.9,14*s,true),X+6*s,y+27*s,photo?W*.52:W*.9,14*s,true,C.ink);
-   const fields=['ТТК №: '+value(r.cardNumber)+'   ·   Дата: '+value(r.cardDate),
-     'Категория: '+value(r.category),
-     'Количество: '+(r.pieces?value(r.pieces)+' шт.':'—')+'   ·   Выход: '+(r.netYieldGrams?value(r.netYieldGrams)+' г':'—'),
-     'Статус: '+(r.status==='ready'?'Рецептура готова':'Черновик')];
-   text(fields,X+6*s,y+52*s,photo?W*.51:W*.95,7.4*s,false,C.ink);
-   if(photo){
-    const bx=X+W*.565,by=y+27*s,bw=W*.415,bh=104*s;
-    doc.roundedRect(bx,by,bw,bh,6*s).fill('#FFFFFF');
-    doc.roundedRect(bx,by,bw,bh,6*s).lineWidth(.8).strokeColor(layoutId==='royal-a4'?'#C7A156':'#9CD3F0').stroke();
-    try{doc.image(photo,bx+4*s,by+4*s,{fit:[bw-8*s,bh-8*s],align:'center',valign:'center'})}catch{}
-   }
+   // restrained gold corner flourish, no photographic asset
+   doc.moveTo(X+W-80*s,y+55*s).lineTo(X+W-13*s,y+55*s)
+      .lineWidth(1.1*s).strokeColor('#D6A85F').stroke();
   }else{
    text(['СУШИ БЕРИ  /  ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],X,y,W,8*s,true);
    text(wrap(r.name,W*.67,19*s,true),X,y+14*s,W*.67,19*s,true);
@@ -124,8 +150,8 @@ export function premiumRecipePdf(input){
     [0,'Разработал (Шеф)',r.chef],[1,'Утверждаю (Руководитель)',r.approver]
    ]){
     const bx=X+i*(signW+signGap);
-    doc.roundedRect(bx,y,signW,signH,4*s)
-       .lineWidth(.55).fillAndStroke(C.cell,C.line);
+    doc.roundedRect(bx,y,signW,signH,5*s)
+       .lineWidth(.8).fillAndStroke(C.cell,premium?'#D7AD66':C.line);
     text([label],bx+7*s,y+4*s,signW-14*s,7*s,true,C.band);
     text([name?String(name):'____________________________'],bx+7*s,y+14*s,signW-14*s,7.8*s,false,C.ink);
     text(['Подпись __________   Дата __________'],bx+7*s,y+23*s,signW-14*s,5.7*s,false,C.ink);
@@ -157,5 +183,5 @@ export function premiumRecipePdf(input){
  doc.ttkWarnings=foot;
  foot.slice(0,2).forEach((line,i)=>text([line],X,803+i*9,W,6.25,true,
   layoutId==='royal-a4'?'#9B6D21':'#735335'));
- doc.moveTo(X,827).lineTo(X+W,827).lineWidth(layoutId==='royal-a4'?1.2:1).strokeColor(layoutId==='royal-a4'?'#C7A156':C.band).stroke();return doc;
+ doc.moveTo(X,827).lineTo(X+W,827).lineWidth(premium?1.2:1).strokeColor(premium?'#CBA35D':C.band).stroke();return doc;
 }
