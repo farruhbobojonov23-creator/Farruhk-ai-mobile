@@ -44,5 +44,5 @@ test('Black Ice CSS is included after old themes and cannot recolor printed A4',
  assert.match(css,/\.ttk-paper/);
  assert.match(css,/\.haccp-a4-paper/);
  assert.match(css,/prefers-reduced-motion/);
- assert.match(html,/premium-workspace\.js\?v=19/);
+ assert.match(html,/premium-workspace\.js\?v=20/);
 });
