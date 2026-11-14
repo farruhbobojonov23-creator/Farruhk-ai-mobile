@@ -19,11 +19,8 @@ export function premiumRecipePdf(input){
  'arctic-a4':{ink:'#153B5E',band:'#127EC7',line:'#B4D9EF',paper:'#F4FAFF',cell:'#FFFFFF',head:'#DFEFFB'},
  'royal-a4':{ink:'#142E54',band:'#083668',line:'#B9C8DB',paper:'#FFFFFF',cell:'#FFFFFF',head:'#EAF1F8'}};
  const C=themes[layoutId],X=20,W=555,G=9;
- let photo=null;
- if(premium&&typeof r.photo==='string'&&r.photo.length<=3000000){
-  const match=/^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/i.exec(r.photo);
-  if(match){const bytes=Buffer.from(match[2],'base64');if(bytes.length<=2200000)photo=bytes}
- }
+ // Owner requirement: A4 TTK is text-only. Saved catalog photos remain untouched.
+ const photo=null;
  const value=v=>v==null||v===''?'—':String(v);
  function wrap(v,w,size,strong=false){doc.font(strong?'bold':'regular').fontSize(size);const lines=[];for(const p of value(v).split('\n')){let line='';for(const word of p.split(/\s+/)){if(!word)continue;if(doc.widthOfString(line?line+' '+word:word)<=w){line=line?line+' '+word:word;continue}if(line){lines.push(line);line=''}for(const c of word){if(line&&doc.widthOfString(line+c)>w){lines.push(line);line=''}line+=c}}lines.push(line||' ')}return lines}
  function text(lines,x,y,w,size,strong=false,color=C.ink){doc.font(strong?'bold':'regular').fontSize(size).fillColor(color);lines.forEach((s,i)=>doc.text(s,x,y+i*size*1.25,{width:w,lineBreak:false}));}
