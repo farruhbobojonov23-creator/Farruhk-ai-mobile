@@ -34,16 +34,115 @@ async function checkCrystalInk(page,selector,label){
  const avg=ink.nums?.reduce((a,b)=>a+b,0)/3;
  check(label,!ink.missing&&ink.nums.length===3&&avg<150,ink);
 }
+
+/* Royal V2 replaced the old .pf-showcase with .pfv-showcase. Audit the actual
+ * owner-approved dashboard and its live sections, rather than testing a hidden
+ * legacy layout. Browser tests use mocked API responses and never alter user data. */
+async function auditRoyal(page,tag,mobile,errors){
+ const root=page.locator('#home.pf-upgraded .pfv-showcase');
+ await root.waitFor({state:'visible',timeout:22000});
+ const initial=await page.evaluate(()=>{
+  const home=document.querySelector('#home');
+  const header=document.querySelector('.aurora-top');
+  const fixedNav=document.querySelector('.mobile-tools.lx-ref-bottom');
+  const duplicate=document.querySelector('#pf-workspace .pfv-phone-nav');
+  return {
+   theme:document.body.dataset.pfTheme,
+   title:home.querySelector('.pfv-intro h1')?.textContent?.trim(),
+   old:getComputedStyle(home.querySelector('.arctic-shell')).display,
+   royal:getComputedStyle(home.querySelector('.pfv-showcase')).display,
+   header:getComputedStyle(header).display,
+   dock:fixedNav?getComputedStyle(fixedNav).display:null,
+   duplicate:duplicate?getComputedStyle(duplicate).display:null,
+   overflow:document.documentElement.scrollWidth-innerWidth
+  };
+ });
+ check(tag+' Royal V2 boot',initial.theme==='royal'&&initial.title.includes('Premium')&&initial.royal!=='none'&&initial.old==='none',initial);
+ check(tag+' no horizontal overflow',initial.overflow<=20,initial);
+ if(mobile){
+  check(tag+' one unified header and dock',initial.header==='flex'&&initial.dock==='grid'&&initial.duplicate==='none',initial);
+  const nav=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
+  check(tag+' mobile dock contains six readable routes',JSON.stringify(nav.map(x=>x.trim()))===JSON.stringify(['Главная','Проекты','ТТК','Заготовки','Маркировка','Ещё']),nav);
+  await page.locator('.mobile-tools.lx-ref-bottom #mobile-more').click();
+  check(tag+' More opens native sidebar',await page.locator('#chef-menu').isVisible(),null);
+  await page.locator('#chef-menu-close').click();
+  check(tag+' mobile menu can close',!(await page.locator('#chef-menu').isVisible()),null);
+ }else{
+  check(tag+' desktop has sidebar instead of mobile dock',initial.dock==='none'&&await page.locator('#home .pfv-side').isVisible(),initial);
+ }
+ await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+ const routes=['recipes','lab','tasks','checks','preparations','print-control','chat','site-settings'];
+ for(const v of routes){
+  await page.evaluate(route=>{
+   const button=document.querySelector('#chef-menu button[data-view="'+route+'"]');
+   if(button)button.click();
+   else location.hash=route;
+  },v);
+  await page.waitForFunction(route=>document.body.dataset.view===route,v,{timeout:12000});
+  if(v==='print-control')await page.locator('#print-control .pc-hero').waitFor({state:'visible',timeout:14000});
+  const view=await page.evaluate(route=>{
+   const target=document.getElementById(route);
+   const header=document.querySelector('.aurora-top');
+   const bottom=document.querySelector('.mobile-tools.lx-ref-bottom');
+   const body=getComputedStyle(document.body);
+   return {
+    visible:target&&!target.hidden&&target.getBoundingClientRect().height>0,
+    nav:bottom&&getComputedStyle(bottom).display,
+    header:header&&getComputedStyle(header).display,
+    bodyColor:body.backgroundColor,
+    overflow:document.documentElement.scrollWidth-innerWidth
+   };
+  },v);
+  check(tag+' '+v+' opens genuine workspace',!!view.visible,view);
+  check(tag+' '+v+' fits viewport',view.overflow<=24,view);
+  if(mobile)check(tag+' '+v+' shares Royal top and bottom bars',view.header==='flex'&&view.nav==='grid',view);
+  if(v==='recipes'){
+   const stats=await page.locator('#recipes .lx-ref-stats .lx-stat').count();
+   check(tag+' TTK statistics render without fake data',stats===4,stats);
+   const noRecipes=await page.locator('#recipes .lx-stat-total strong').first().innerText().catch(()=>'');
+   check(tag+' TTK count stays truthful',/^(0|—)$/.test(noRecipes.trim()),noRecipes);
+   const edit=page.locator('#newrecipe');
+   check(tag+' Create TTK button visible',await edit.isVisible(),null);
+   await edit.click();
+   check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   await page.evaluate(()=>{window.confirm=()=>true});
+   await page.locator('#closeeditor').click();
+  }
+  if(v==='print-control'){
+   const metrics=await page.evaluate(()=>{
+    const root=document.querySelector('#print-control-root');
+    const buttons=[...root.querySelectorAll('.pc-row-controls button')];
+    const minHeights=buttons.slice(0,5).map(x=>Math.round(x.getBoundingClientRect().height));
+    const source=root.querySelector('.pc-normative-notice');
+    return {catalog:!!root,buttons:buttons.length,minHeights,notice:!!source};
+   });
+   check(tag+' PRINT catalog and normative safety notice',metrics.catalog&&metrics.notice,metrics);
+   if(mobile&&metrics.buttons.length)check(tag+' PRINT row actions have >=44px taps',metrics.minHeights.every(h=>h>=43),metrics);
+  }
+  if(v==='site-settings'){
+   check(tag+' settings and design controls available',
+     await page.locator('#pf-settings-design-button').count()===1,null);
+  }
+  await page.screenshot({path:'artifacts/premium-'+tag+'-'+v+'.png',timeout:12000});
+ }
+ check(tag+' no browser errors',errors.length===0,errors.slice(0,12));
+}
+
 async function run(theme,width,height){
  const mobile=width<600,tag=theme+'-'+(mobile?'mobile':'desktop');
  const ctx=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,isMobile:mobile,hasTouch:mobile,serviceWorkers:'block',reducedMotion:'reduce'});
  const page=await ctx.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.dismiss());
- await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
+ await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-approved-royal-premium-20261114','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
+ if(theme==='royal'){
+  await auditRoyal(page,tag,mobile,errors);
+  await ctx.close();
+  return;
+ }
  await page.locator('#home.pf-upgraded .pf-showcase').waitFor({state:'visible',timeout:22000});
  const initial=await page.evaluate(()=>({
   theme:document.body.dataset.pfTheme,old:getComputedStyle(document.querySelector('#home .arctic-shell')).display,
@@ -340,7 +439,7 @@ async function run(theme,width,height){
  }catch(e){check(tag+' fatal',false,e.message)}
  await ctx.close();
 }
-for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['titanium',1365,900]])await run(theme,w,h);
+for(const [theme,w,h] of [['titanium',390,844],['crystal',390,844],['royal',390,844],['royal',1365,900],['titanium',1365,900]])await run(theme,w,h);
 await browser.close();await new Promise(r=>server.close(r));
 const output={passed:results.filter(x=>x.ok).length,total:results.length,failed:failures};
 await fs.writeFile('artifacts/premium-audit-results.json',JSON.stringify(output,null,2));
