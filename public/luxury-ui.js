@@ -198,6 +198,8 @@ export function mountLuxuryUI(opts={}){
    else info.append(el('span','lx-meta-missing','КБЖУ: нет данных'));
    const date=formatDay(r.updatedAt||r.cardDate||r.createdAt);if(date)info.append(el('span','','▢ Изменена: '+date));
    if(r.cardNumber)info.append(el('span','','№ '+r.cardNumber));
+   const deliveryLabel=opts.googleDeliveryStatus?.(r);
+   if(deliveryLabel)info.append(el('span','lx-google-delivery-status',deliveryLabel));
    const actions=el('div','lx-card-actions');
    actions.append(cardButton('Редактировать','edit',()=>opts.onEdit?.(r)));
    actions.append(cardButton('Просмотр','eye',()=>opts.onPreview?.(r)));
@@ -213,13 +215,9 @@ export function mountLuxuryUI(opts={}){
    menu.append(btn('↓ Скачать Word','',()=>opts.onWord?.(r)));
    menu.append(btn('Удалить ТТК','lx-delete-action',()=>opts.onDelete?.(r)));
    details.append(menu);
-   const cloud=btn('','lx-recipe-cloud',()=>{
-     const panel=root.querySelector('.lx-sync-details')||document.querySelector('#recipes .lx-sync-details');
-     if(panel){if(panel.tagName==='DETAILS')panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'})}
-     else opts.onOpenCloud?.(r);
-   });
-   cloud.innerHTML='<span class="lx-recipe-cloud-icon" aria-hidden="true">☁</span><span class="lx-recipe-cloud-copy"><strong>Облачные копии и готовые версии ТТК</strong><small>История версий, PDF, печатные формы и резервные копии</small></span><span class="lx-recipe-cloud-arrow" aria-hidden="true">›</span>';
-   cloud.setAttribute('aria-label','Открыть облачные копии и готовые версии ТТК');
+   const cloud=btn('','lx-recipe-cloud',()=>opts.onOpenCloud?.(r));
+   cloud.innerHTML='<span class="lx-recipe-cloud-icon" aria-hidden="true">☁</span><span class="lx-recipe-cloud-copy"><strong>Мои данные · Google и копии</strong><small>Статус ТТК, PDF, резервные копии и синхронизация</small></span><span class="lx-recipe-cloud-arrow" aria-hidden="true">›</span>';
+   cloud.setAttribute('aria-label','Открыть единый центр сохранения и Google для ТТК');
    card.append(main,details,actions,cloud);host.append(card);
   }
  }
