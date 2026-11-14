@@ -393,6 +393,10 @@ async function verify(mode,width,height){
   await page.locator(branchSelector).selectOption('point-2');
   assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),0,'other point is separate');
   await page.locator(branchSelector).selectOption('point-1');
+  // A point switch can restore its sample from IndexedDB asynchronously.
+  // Verify persistence after hydration, not on the same event-loop tick.
+  await page.waitForFunction(()=>[...document.querySelectorAll('#lab .haccp-temperature-range strong')]
+   .some(el=>el.textContent==='Морозильник QA · после переименования'),null,{timeout:12000});
   assert.equal(await page.locator('#lab .haccp-temperature-range strong').filter({hasText:'Морозильник QA · после переименования'}).count(),1,'equipment name persists after changing point');
   await page.screenshot({path:'artifacts/arctic-haccp-temperature-sample-'+mode+'.png',fullPage:false,timeout:12000});
 
