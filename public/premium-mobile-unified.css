@@ -352,3 +352,218 @@
   gap:12px!important;
  }
 }
+
+
+/* Owner screenshot regression (2026-11-14): eliminate leftover light-theme
+ * surfaces in Royal FARUKH PRINT staff/cloud and TTK category management.
+ * This affects only screen UI. Never change data, status flags, or print media. */
+@media screen {
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pstaff-tabbar {
+  background:linear-gradient(135deg,#251e18,#121316)!important;
+  border:1px solid #86683d!important;
+  box-shadow:inset 0 1px #ffdf9a18!important;
+  padding:6px!important;
+  gap:5px!important;
+  border-radius:15px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pstaff-tab {
+  background:#211b17!important;
+  border:1px solid #6f583a!important;
+  color:#e8d4b2!important;
+  -webkit-text-fill-color:#e8d4b2!important;
+  border-radius:11px!important;
+  font-weight:720!important;
+  min-height:44px!important;
+  box-shadow:none!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pstaff-tab.active {
+  background:linear-gradient(130deg,#f2be6a,#dba24e)!important;
+  border-color:#ffda97!important;
+  color:#1f1710!important;
+  -webkit-text-fill-color:#1f1710!important;
+  box-shadow:0 2px 13px #e9b26430!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pstaff-tab:focus-visible,
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline button:focus-visible {
+  outline:2px solid #ffe0a5!important;
+  outline-offset:2px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root :is(.pstaff-create-details,.pstaff-worker-details,.pstaff-points){
+  background:#1d1917!important;
+  color:#eddfc9!important;
+  -webkit-text-fill-color:#eddfc9!important;
+  border:1px solid #775d3d!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root :is(.pstaff-create-details,.pstaff-worker-details,.pstaff-points) > summary{
+  color:#ffdfaa!important;
+  -webkit-text-fill-color:#ffdfaa!important;
+ }
+ /* Cloud is actively publishing: retain honest pending/disabled state, but
+    use dark badges that belong with the Premium style. */
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pcloud-connection-summary{
+  gap:9px!important;
+  flex-wrap:wrap!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pcloud-state{
+  background:linear-gradient(125deg,#18352b,#121f1c)!important;
+  color:#b8f3d1!important;
+  -webkit-text-fill-color:#b8f3d1!important;
+  border:1px solid #41745c!important;
+  border-radius:999px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pcloud-state[data-pending="yes"]{
+  background:linear-gradient(125deg,#3a2a19,#241c16)!important;
+  color:#ffdf9f!important;
+  -webkit-text-fill-color:#ffdf9f!important;
+  border-color:#ad8247!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pcloud-devices-count{
+  background:linear-gradient(125deg,#1a2e35,#141c21)!important;
+  color:#c3ebf0!important;
+  -webkit-text-fill-color:#c3ebf0!important;
+  border:1px solid #527983!important;
+  border-radius:999px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #print-control-root .pcloud-btn:disabled{
+  opacity:1!important;
+  color:#b6a793!important;
+  -webkit-text-fill-color:#b6a793!important;
+  background:#27221f!important;
+  border-color:#6e5940!important;
+  cursor:not-allowed!important;
+ }
+ /* Category manager injects legacy light CSS after initial page load.
+    Specific Royal selectors override those rules, including text-fill styles. */
+ html body.lx-pro[data-pf-theme="royal"] #recipes .category-dialog.owner-inline{
+  display:block;
+  box-sizing:border-box!important;
+  min-width:0!important;
+  color:#f2dfbd!important;
+  -webkit-text-fill-color:#f2dfbd!important;
+  background:linear-gradient(155deg,#171511,#111317)!important;
+  border:1px solid #89683d!important;
+  border-radius:20px!important;
+  padding:15px!important;
+  margin:12px 0 23px!important;
+  scroll-margin-top:85px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .category-dialog.owner-inline[hidden]{
+  display:none!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .bar{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:8px 5px 14px!important;
+  position:static!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .bar h2{
+  color:#ffe0a6!important;
+  -webkit-text-fill-color:#ffe0a6!important;
+  font-size:clamp(20px,4vw,27px)!important;
+  line-height:1.22!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline > p{
+  color:#d7c8b0!important;
+  -webkit-text-fill-color:#d7c8b0!important;
+  line-height:1.55!important;
+  margin:10px 6px 14px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row{
+  display:grid!important;
+  grid-template-columns:96px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-width:0!important;
+  padding:14px!important;
+  background:linear-gradient(135deg,#252019,#181a1c)!important;
+  border:1px solid #80643e!important;
+  color:#ffe0a8!important;
+  -webkit-text-fill-color:#ffe0a8!important;
+  border-radius:16px!important;
+  box-shadow:inset 0 1px #fff1bd12!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row img{
+  width:96px!important;
+  height:96px!important;
+  max-width:100%!important;
+  border-radius:12px!important;
+  object-fit:contain!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row > div:not(.category-row-actions){
+  min-width:0!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row strong{
+  display:block!important;
+  color:#ffe5b6!important;
+  -webkit-text-fill-color:#ffe5b6!important;
+  font-size:15px!important;
+  line-height:1.38!important;
+  overflow-wrap:anywhere!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row small{
+  display:block!important;
+  color:#cfbea2!important;
+  -webkit-text-fill-color:#cfbea2!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-row-actions{
+  grid-column:1/-1!important;
+  width:100%!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-row-actions button,
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline > button{
+  min-height:44px!important;
+  padding:9px 13px!important;
+  border:1px solid #987449!important;
+  border-radius:11px!important;
+  background:#32271e!important;
+  color:#ffe3b0!important;
+  -webkit-text-fill-color:#ffe3b0!important;
+  font-size:12px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline button:disabled{
+  opacity:.55!important;
+  cursor:not-allowed!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .owner-savebar{
+  background:linear-gradient(110deg,#282018,#141515)!important;
+  border:1px solid #a27d49!important;
+  box-shadow:0 8px 24px #0009!important;
+  border-radius:15px!important;
+  padding:10px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .owner-savebar button{
+  min-height:44px!important;
+  background:#3c2a1a!important;
+  color:#ffe3b3!important;
+  -webkit-text-fill-color:#ffe3b3!important;
+  border:1px solid #b78c52!important;
+  border-radius:10px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .owner-savebar button:first-child{
+  background:linear-gradient(130deg,#f0be70,#d69b46)!important;
+  color:#21170e!important;
+  -webkit-text-fill-color:#21170e!important;
+ }
+}
+@media screen and (max-width:720px){
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .owner-savebar{
+  bottom:calc(103px + env(safe-area-inset-bottom))!important;
+  z-index:75!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row{
+  grid-template-columns:88px minmax(0,1fr)!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline .category-manage-row img{
+  width:88px!important;
+  height:88px!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #recipes .owner-inline{
+  padding-bottom:25px!important;
+ }
+}

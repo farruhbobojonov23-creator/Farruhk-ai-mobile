@@ -108,6 +108,25 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
    await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
+   // Explicit screenshot regression: the owner category editor used white rows
+   // with nearly white titles. Test the live dynamically injected manager.
+   await page.locator('#manage-categories').click();
+   const category=await page.evaluate(()=>{
+    const editor=document.querySelector('#recipes .category-dialog.owner-inline');
+    const row=editor?.querySelector('.category-manage-row');
+    const title=row?.querySelector('strong'),note=row?.querySelector('small');
+    const color=e=>e?getComputedStyle(e).webkitTextFillColor:'missing';
+    return {visible:!!editor&&!editor.hidden,rows:editor?.querySelectorAll('.category-manage-row').length||0,
+      rowBackground:row?getComputedStyle(row).backgroundImage:'missing',
+      rowText:color(title),rowMeta:color(note),
+      savebar:!!editor?.querySelector('.owner-savebar')};
+   });
+   check(tag+' category manager keeps dark rows and readable gold labels',
+     category.visible&&category.rows>=1&&category.rowBackground.includes('rgb(37, 32, 25)')&&
+     category.rowText!=='missing'&&category.rowMeta!=='missing'&&
+     [category.rowText,category.rowMeta].every(c=>(c.match(/[\d.]+/g)||[]).slice(0,3).map(Number).every(n=>n>=150))&&category.savebar,category);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-category-manager.png',timeout:12000});
+   await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
   }
   if(v==='print-control'){
    const metrics=await page.evaluate(()=>{
@@ -119,6 +138,30 @@ async function auditRoyal(page,tag,mobile,errors){
    });
    check(tag+' PRINT catalog, a sample row and normative safety notice',metrics.catalog&&metrics.notice&&metrics.buttons>=4,metrics);
    if(mobile&&metrics.buttons.length)check(tag+' PRINT row actions have >=44px taps',metrics.minHeights.every(h=>h>=43),metrics);
+   await page.locator('#print-control-root .pc-workspace-tab[data-workspace="staff"]').click();
+   const staffTheme=await page.evaluate(()=>{
+    const nav=document.querySelector('#print-control-root .pstaff-tabbar');
+    const inactive=nav?.querySelector('.pstaff-tab:not(.active)');
+    const active=nav?.querySelector('.pstaff-tab.active');
+    return {navBackground:nav?getComputedStyle(nav).backgroundImage:'missing',
+      inactiveFill:inactive?getComputedStyle(inactive).webkitTextFillColor:'missing',
+      activeFill:active?getComputedStyle(active).webkitTextFillColor:'missing'};
+   });
+   check(tag+' owner staff tabs match Royal dark / gold palette',
+     staffTheme.navBackground.includes('rgb(37, 30, 24)')&&
+     staffTheme.inactiveFill.includes('232, 212, 178')&&
+     staffTheme.activeFill.includes('31, 23, 16'),staffTheme);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-staff-tabs.png',timeout:12000});
+   await page.locator('#print-control-root .pc-workspace-tab[data-workspace="cloud"]').click();
+   const cloudTheme=await page.evaluate(()=>{
+    const badge=document.querySelector('#print-control-root .pcloud-state');
+    const count=document.querySelector('#print-control-root .pcloud-devices-count');
+    return {badge:badge?getComputedStyle(badge).backgroundImage:'missing',
+      devices:count?getComputedStyle(count).backgroundImage:'missing'};
+   });
+   check(tag+' cloud status badges use dark Premium colors',
+     cloudTheme.badge.includes('rgb(24, 53, 43)')&&cloudTheme.devices.includes('rgb(26, 46, 53)'),cloudTheme);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-cloud-badges.png',timeout:12000});
   }
   if(v==='site-settings'){
    check(tag+' settings and design controls available',
