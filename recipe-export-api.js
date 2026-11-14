@@ -2,8 +2,18 @@ import {recipeWord,recipeSections} from './recipe-word.js';
 import {recipePdf} from './recipe-pdf.js';
 import {cleanState} from './assistant-store.js';
 export function validGoogleEndpoint(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(u.pathname)}catch{return false}}
-const isGoogleDocUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='docs.google.com'&&/^\\/document\\/d\\/[A-Za-z0-9_-]{10,}\\//.test(u.pathname+'/')}catch{return false}};
-const isGoogleDriveFolderUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='drive.google.com'&&/^\\/drive\\/folders\\/[A-Za-z0-9_-]{10,}\\/?$/.test(u.pathname)}catch{return false}};
+const isGoogleDocUrl=value=>{
+ try{
+  const u=new URL(value),parts=u.pathname.split('/').filter(Boolean);
+  return u.protocol==='https:'&&u.hostname==='docs.google.com'&&parts[0]==='document'&&parts[1]==='d'&&/^[A-Za-z0-9_-]{10,}$/.test(parts[2]||'');
+ }catch{return false}
+};
+const isGoogleDriveFolderUrl=value=>{
+ try{
+  const u=new URL(value),parts=u.pathname.split('/').filter(Boolean);
+  return u.protocol==='https:'&&u.hostname==='drive.google.com'&&parts[0]==='drive'&&parts[1]==='folders'&&/^[A-Za-z0-9_-]{10,}$/.test(parts[2]||'');
+ }catch{return false}
+};
 const WRONG_GOOGLE_RECEIVER='Подключён скрипт резервных копий Google Диска вместо скрипта Google ТТК. Откройте Farukh AI → Настройки → Подключение Google Документов и укажите URL веб-приложения «Farukh AI ТТК» (не «Резервные копии»), затем ключ именно этого скрипта. Инструкция: /google-ttk-setup.html.';
 export function installRecipeExportApi(app,{request=fetch}={}){
  const recipeFrom=raw=>{if(!raw||typeof raw.id!=='string'||!raw.id||!raw.name?.trim()||!Array.isArray(raw.ingredients)||raw.ingredients.length>300||raw.ingredients.some(i=>!i||typeof i!=='object'))throw Error('Неверная техкарта.');return cleanState({recipes:[raw]}).recipes[0]};
