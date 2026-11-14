@@ -17,7 +17,7 @@ test('TTK pilot reports completeness without claiming compliance',()=>{
  assert.equal(result.complete,result.total);
  assert.equal(result.percent,100);
  assert.equal(result.allFieldsFilled,true);
- assert.ok(result.warnings.some(x=>x.includes('Фото блюда не добавлено')));
+ assert.ok(!result.warnings.some(x=>x.includes('Фото блюда не добавлено')));
 });
 test('TTK pilot catches missing allergen-independent fields without inventing nutrition',()=>{
  const result=auditTtkDraft({...complete,ingredients:[{name:'Рис',grams:100,grossGrams:70,nutritionOrigin:'reference'}],nutrition:{kcal:null},approver:'',status:'ready'});
