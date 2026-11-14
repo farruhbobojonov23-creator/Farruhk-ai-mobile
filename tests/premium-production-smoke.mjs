@@ -172,6 +172,7 @@ async function auditRoyal(page,tag,mobile,errors){
    await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
    // Disposable local-only recipe: same ingredients as owner's approval mockups.
    await page.locator('#newrecipe').click();
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    await page.locator('#recipe-name').fill('Тест 1');
    await page.locator('#recipe-status').selectOption('ready');
    const sample=[['сыр творожный','50'],['лосось','50'],['терияки соус','50'],['рис готовый','120']];
@@ -190,7 +191,7 @@ async function auditRoyal(page,tag,mobile,errors){
    }
    await page.locator('#card-chef').fill('Фаррух');
    await page.locator('#card-approver').fill('Бободжонов');
-   await page.locator('#nutrition-auto').uncheck();
+   await page.evaluate(()=>{const input=document.getElementById('nutrition-auto');input.checked=false;input.dispatchEvent(new Event('change',{bubbles:true}))});
    for(const [key,n] of [['protein','6.565'],['fat','8.859'],['carbs','19.97'],['kcal','188.333']])
      await page.locator('#card-'+key).fill(n);
    const formCheck=await page.evaluate(()=>{
