@@ -34,7 +34,7 @@ export function auditTtkDraft(r={}){
  const reference=ingredients.filter(x=>x.nutritionOrigin==='reference').map(x=>str(x.name)).filter(Boolean);
  const warnings=[];
  if(reference.length)warnings.push('Справочные КБЖУ: '+reference.slice(0,3).join(', ')+'. Сверь с этикетками.');
- if(!r.photo)warnings.push('Фото блюда не добавлено (необязательно).');
+ // Photo is intentionally optional and excluded from A4 documents.
  if(r.status==='ready'&&complete!==checks.length)
   warnings.push('Указан статус «Готова», но часть данных отсутствует.');
  return {checks,complete,total:checks.length,percent:formatPercent(complete/checks.length*100),

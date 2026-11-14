@@ -71,6 +71,16 @@ async function auditRoyal(page,tag,mobile,errors){
   check(tag+' desktop has sidebar instead of mobile dock',initial.dock==='none'&&await page.locator('#home .pfv-side').isVisible(),initial);
  }
  await page.screenshot({path:'artifacts/premium-'+tag+'-home.png',timeout:12000});
+ await page.locator('#home .pfv-hub-tile').filter({hasText:'Проекты'}).first().click();
+ await page.locator('#pf-project-dialog[open]').waitFor({state:'visible',timeout:12000});
+ const pm=await page.evaluate(()=>{
+   const e=document.querySelector('#pf-project-dialog'),b=e.getBoundingClientRect(),h=e.querySelector('.pf-modal-header h2')?.getBoundingClientRect();
+   return {open:e.open,display:getComputedStyle(e).display,w:b.width,h:b.height,top:b.top,bottom:b.bottom,center:Math.abs((b.left+b.right)/2-innerWidth/2),heading:!!h&&h.height>10&&h.top>=0&&h.bottom<innerHeight,rowHeight:e.querySelector('.pf-project-item')?.getBoundingClientRect().height};
+ });
+ check(tag+' Projects native modal visible and centered',pm.open&&pm.display==='flex'&&pm.w>270&&pm.h>220&&pm.top>=0&&pm.bottom<=(page.viewportSize()?.height||900)&&pm.center<12&&pm.heading&&pm.rowHeight<180,pm);
+ await page.screenshot({path:'artifacts/premium-'+tag+'-projects.png',timeout:12000});
+ await page.locator('#pf-project-dialog .pf-modal-header button').click();
+ check(tag+' Projects modal closes',!await page.locator('#pf-project-dialog').evaluate(e=>e.open),null);
  const routes=['recipes','lab','tasks','checks','preparations','print-control','chat','site-settings'];
  for(const v of routes){
   await page.evaluate(route=>{
@@ -98,6 +108,20 @@ async function auditRoyal(page,tag,mobile,errors){
   check(tag+' '+v+' fits viewport',view.overflow<=24,view);
   if(mobile)check(tag+' '+v+' shares Royal top and bottom bars',view.header==='flex'&&view.nav==='grid',view);
   if(v==='recipes'){
+   const tidy=await page.evaluate(()=>{
+    const card=[...document.querySelectorAll('#recipe-categories .category-card')].find(c=>c.querySelector('.category-photo-frame img'));
+    const frame=card?.querySelector('.category-photo-frame');
+    const box=sel=>document.querySelector(sel)?.getBoundingClientRect();
+    return {cardHeight:card?.getBoundingClientRect().height,photoHeight:frame?.getBoundingClientRect().height,
+     divider:frame&&getComputedStyle(frame).borderBottomWidth,
+     search:box('#recipes .lx-ref-searchbar .catalog-search')?.top,filters:box('#recipes .lx-filter-menu')?.top,
+     sorting:box('#recipes .lx-sort-control')?.top,status:box('#recipes .lx-status-filters')?.top};
+   });
+   check(tag+' bigger clean category products and no divider',
+     tidy.cardHeight>255&&tidy.photoHeight>=185&&tidy.divider==='0px',tidy);
+   check(tag+' search/filter/sort/status ordered correctly',
+     tidy.search<tidy.filters&&Math.abs(tidy.filters-tidy.sorting)<12&&tidy.filters<tidy.status,tidy);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-category-cards.png',timeout:12000});
    const stats=await page.locator('#recipes .lx-ref-stats .lx-stat').count();
    check(tag+' TTK statistics render without fake data',stats===4,stats);
    const noRecipes=await page.locator('#recipes .lx-stat-total strong').first().innerText().catch(()=>'');
@@ -106,6 +130,25 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   const editAppearance=await page.evaluate(()=>{
+     const e=document.querySelector('#editor.ttk-studio-enabled'),p=e?.querySelector('.ttk-paper');
+     return {mode:e?.dataset.mode,background:e&&getComputedStyle(e).backgroundImage,
+       paper:p&&getComputedStyle(p).backgroundImage};
+   });
+   check(tag+' Royal editor mobile form is fully dark',
+     editAppearance.mode==='form'&&editAppearance.background.includes('rgb(35, 29, 26)')&&
+     editAppearance.paper.includes('rgb(35, 31, 28)'),editAppearance);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-editor-form.png',timeout:12000});
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Лист А4'}).click();
+   const sheet=await page.evaluate(()=>({
+     mode:document.querySelector('#editor')?.dataset.mode,
+     photo:getComputedStyle(document.querySelector('#editor .ttk-inline-photo')).display
+   }));
+   check(tag+' A4 view has no photo space',sheet.mode==='paper'&&sheet.photo==='none',sheet);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-sheet-no-photo.png',timeout:12000});
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
    // Explicit screenshot regression: the owner category editor used white rows

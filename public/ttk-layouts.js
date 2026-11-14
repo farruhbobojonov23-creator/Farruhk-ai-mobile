@@ -2,8 +2,8 @@
    Separate from "Мои шаблоны" recipe-content templates:
    style changes never overwrite recipe ingredients or technology. */
 export const TTK_LAYOUTS=Object.freeze([
- {id:'arctic-a4',name:'01 · Arctic Glass',subtitle:'Светло-голубой · премиальные блоки',description:'Ледяной голубой, белые карточки, плавные линии. Фото блюда сохраняется с исходным фоном.',tone:'arctic'},
- {id:'royal-a4',name:'02 · Royal Blue',subtitle:'Тёмно-синий · золото · белый',description:'Представительный документ с глубокими синими заголовками, тонкими золотыми линиями и фотографией.',tone:'royal'}
+ {id:'arctic-a4',name:'01 · Arctic Glass',subtitle:'Светло-голубой · премиальные блоки',description:'Ледяной голубой, белые карточки, плавные линии. Без фотографии на печатном листе А4.',tone:'arctic'},
+ {id:'royal-a4',name:'02 · Royal Blue',subtitle:'Тёмно-синий · золото · белый',description:'Представительный документ с глубокими синими заголовками, тонкими золотыми линиями без фотографии на листе.',tone:'royal'}
 ]);
 export const TTK_DEFAULT_LAYOUT='arctic-a4';
 export const ttkLayoutId=value=>TTK_LAYOUTS.some(i=>i.id===value)?value:TTK_DEFAULT_LAYOUT;
@@ -14,7 +14,7 @@ export function layoutPreview(item){
  page.setAttribute('aria-hidden','true');
  page.innerHTML='<div class="ttk-design-preview-top"><b>A</b><span>FARRUH AI</span><i></i></div>'+
  '<div class="ttk-design-preview-heading">ТЕХНОЛОГИЧЕСКАЯ КАРТА</div>'+
- '<div class="ttk-design-preview-hero"><div class="ttk-design-preview-fields"><i></i><i></i><i></i><i></i></div><div class="ttk-design-preview-photo">▧</div></div>'+
+ '<div class="ttk-design-preview-hero ttk-design-preview-text-only"><div class="ttk-design-preview-fields"><i></i><i></i><i></i><i></i></div></div>'+
  '<div class="ttk-design-preview-line"></div><div class="ttk-design-preview-two"><div><b></b><i></i><i></i><i></i><i></i></div><div><b></b><i></i><i></i><i></i><i></i></div></div>'+
  '<div class="ttk-design-preview-two lower"><div><b></b><i></i><i></i></div><div><b></b><i></i><i></i></div></div>'+
  '<div class="ttk-design-preview-signatures">Разработал __________　 Утвердил __________</div>';
@@ -33,7 +33,7 @@ export function mountTtkDesignPicker(editor,{onChange=()=>{}}={}){
  if(!editor)throw Error('Не найден редактор ТТК');
  const panel=el('section','ttk-design-picker');
  panel.id='ttk-design-picker';panel.append(el('h3','','Шаблон оформления · A4'));
- panel.append(el('p','ttk-design-help','Выбери один из двух утверждённых дизайнов. Состав, КБЖУ и технология не меняются. Фото остаётся с исходным фоном.'));
+ panel.append(el('p','ttk-design-help','Выбери один из двух утверждённых дизайнов. Состав, КБЖУ и технология не меняются. Печатный лист А4 без фотографии.'));
  const grid=el('div','ttk-design-grid');panel.append(grid);
  const tools=editor.querySelector('.lx-editor-extras')||editor.querySelector('.editor-modes')||editor.firstElementChild;
  tools?.after(panel);

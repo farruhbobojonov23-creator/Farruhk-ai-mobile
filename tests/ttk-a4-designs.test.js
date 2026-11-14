@@ -36,6 +36,7 @@ for(const layoutTemplate of ['arctic-a4','royal-a4']){
   assert.equal(normalized.layoutTemplate,layoutTemplate);
   assert.equal(normalized.photo,input.photo);
   const buffer=await pdfBytes(recipePdf(normalized));
+  assert.doesNotMatch(buffer.toString('latin1'),/\/Subtype\s*\/Image/, 'A4 must omit saved dish photos');
   const output=await parsePdf(buffer);
   assert.equal(output.numpages,1);
   assert.match(output.text,/FARRUH AI/);

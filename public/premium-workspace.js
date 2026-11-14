@@ -179,7 +179,14 @@ export function mountPremiumWorkspace(){
   body.append(node('p','','ТТК группируются по проектам через поле «Проект ТТК» в редакторе. Другие данные пока общие.'));
   projectModal.append(body);
  }
- function openProjects(){renderProjects();if(!projectModal.open)projectModal.showModal()}
+ function openProjects(){
+  renderProjects();
+  if(!projectModal.open)projectModal.showModal();
+  // Android/WebView may retain an old scroll offset when opening the native dialog.
+  // Always show its actual title and focus the close control, not the blurred backdrop.
+  projectModal.scrollTop=0;
+  requestAnimationFrame(()=>projectModal.querySelector('.pf-modal-header button')?.focus({preventScroll:true}));
+ }
  let tab='themes';
  function renderStudio(){
   studio.replaceChildren();

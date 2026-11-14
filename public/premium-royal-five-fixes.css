@@ -1,0 +1,459 @@
+/* FARUKH AI Royal · owner-reported five-screen refinements (Nov 15, 2026).
+ * On-screen design only. A4 export and label printing use independent styles. */
+@media screen {
+  /* Project picker: native <dialog> must be an actual centered readable panel,
+     not only its blurred background or a clipped one-pixel border. */
+  html body[data-pf-theme="royal"] #pf-project-dialog[open]{
+    box-sizing:border-box!important;
+    position:fixed!important;
+    inset:auto!important;
+    top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;
+    transform:translate(-50%,-50%)!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;flex-direction:column!important;
+    visibility:visible!important;opacity:1!important;
+    width:min(660px,calc(100vw - 26px))!important;
+    max-height:min(80dvh,720px)!important;min-height:260px!important;
+    overflow:auto!important;
+    border:1px solid #bc9558!important;border-radius:20px!important;
+    background:#171613!important;
+    color:#f8e5c2!important;-webkit-text-fill-color:#f8e5c2!important;
+    box-shadow:0 25px 95px #000e!important;
+    z-index:99999!important;
+    overscroll-behavior:contain;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog::backdrop{
+    background:rgba(2,3,6,.72)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-modal-header{
+    position:sticky!important;top:0!important;z-index:2!important;
+    display:flex!important;flex:0 0 auto!important;align-items:center!important;gap:10px!important;
+    padding:15px 17px!important;
+    background:#241e18!important;border-bottom:1px solid #80653e!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-modal-header h2{
+    font-size:clamp(18px,4.5vw,24px)!important;
+    line-height:1.25!important;color:#ffe2ab!important;-webkit-text-fill-color:#ffe2ab!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-modal-header button{
+    flex:0 0 44px!important;width:44px!important;height:44px!important;
+    margin-left:auto!important;border-radius:12px!important;
+    border:1px solid #ad874d!important;color:#ffe0a1!important;
+    -webkit-text-fill-color:#ffe0a1!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-modal-body{
+    display:block!important;flex:1 1 auto!important;min-height:0!important;
+    padding:18px!important;overflow:visible!important;
+    background:#171613!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item{
+    display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:12px!important;
+    margin:10px 0!important;padding:14px!important;
+    background:linear-gradient(130deg,#2d241b,#181a1b)!important;
+    border:1px solid #7f633b!important;border-radius:14px!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item > div:first-child{
+    min-width:140px!important;flex:1 1 145px!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item strong{
+    display:block!important;color:#ffe1aa!important;-webkit-text-fill-color:#ffe1aa!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-add{
+    display:flex!important;flex-wrap:wrap!important;gap:9px!important;
+    margin-top:15px!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-add input{
+    flex:1 1 165px!important;min-height:44px!important;min-width:0!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog button{
+    min-height:43px!important;white-space:normal!important;border-radius:11px!important;
+  }
+  html body[data-pf-theme="royal"] #pf-project-dialog .pf-warning{
+    border-radius:12px!important;padding:12px!important;line-height:1.5!important;
+    color:#d7c6a8!important;-webkit-text-fill-color:#d7c6a8!important;
+  }
+
+  /* Full-photo luxury category tiles. Keep the original photos, names and counts,
+     replacing only their cramped layout and legacy divider. */
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories{
+    display:grid!important;gap:14px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    margin:15px 0 20px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card{
+    box-sizing:border-box!important;
+    min-width:0!important;min-height:282px!important;
+    padding:0!important;overflow:hidden!important;
+    display:flex!important;flex-direction:column!important;justify-content:flex-end!important;
+    border:1px solid #a4814b!important;border-radius:21px!important;
+    background:linear-gradient(154deg,#28231e,#12171d)!important;
+    box-shadow:0 12px 28px #0007,inset 0 1px #e9c58b12!important;
+    color:#ffead0!important;-webkit-text-fill-color:#ffead0!important;
+    isolation:isolate;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card::before,
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card::after{
+    content:none!important;display:none!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-photo-frame{
+    box-sizing:border-box!important;
+    display:grid!important;place-items:center!important;
+    flex:1 1 auto!important;min-height:205px!important;
+    height:215px!important;width:100%!important;
+    background:transparent!important;border:0!important;
+    border-bottom:0!important;overflow:hidden!important;
+    padding:10px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-photo-frame img,
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card > img{
+    display:block!important;width:100%!important;height:100%!important;min-height:170px!important;
+    max-width:100%!important;max-height:235px!important;
+    object-fit:contain!important;
+    padding:0!important;margin:0 auto!important;
+    background:transparent!important;border:0!important;box-shadow:none!important;
+    transform:scale(1.10)!important;transform-origin:center center!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption{
+    flex:0 0 auto!important;display:flex!important;flex-direction:column!important;gap:6px!important;
+    border:0!important;border-top:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    padding:2px 16px 18px!important;
+    box-shadow:none!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption::before,
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption::after{
+    display:none!important;content:none!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption strong{
+    font-size:clamp(15px,1.8vw,18px)!important;line-height:1.28!important;
+    font-weight:780!important;color:#ffe3af!important;-webkit-text-fill-color:#ffe3af!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption small{
+    font-size:12px!important;line-height:1.25!important;
+    opacity:1!important;color:#c7b396!important;-webkit-text-fill-color:#c7b396!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card.lx-all-category{
+    background:linear-gradient(146deg,#9f7538,#42301e)!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card.lx-all-category .category-caption strong,
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card.lx-all-category .category-caption small{
+    color:#fff3da!important;-webkit-text-fill-color:#fff3da!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card.lx-all-category .lx-all-category-icon{
+    flex:1 1 auto!important;display:grid!important;place-items:center!important;
+    align-self:stretch!important;font-size:35px!important;
+  }
+
+  /* Compact search, filters and status row; prevent labels merging with counts. */
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-ref-searchbar{
+    display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:10px!important;align-items:stretch!important;margin:15px 0 13px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-ref-searchbar .catalog-search{
+    grid-column:1/-1!important;grid-row:1!important;
+    width:100%!important;max-width:none!important;
+    min-height:52px!important;margin:0!important;
+    padding:0 15px!important;background:#201c1c!important;
+    border:1px solid #88683e!important;border-radius:15px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-ref-searchbar .catalog-search input{
+    font-size:16px!important;min-height:50px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-filter-menu{
+    grid-column:1!important;grid-row:2!important;min-width:0!important;
+    margin:0!important;padding:0!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-filter-menu>summary{
+    display:flex!important;justify-content:center!important;min-height:50px!important;
+    padding:10px 12px!important;gap:9px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sort-control{
+    grid-column:2!important;grid-row:2!important;
+    box-sizing:border-box!important;min-width:0!important;
+    display:flex!important;align-items:center!important;gap:9px!important;
+    margin:0!important;padding:6px 11px!important;
+    min-height:50px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sort-control svg{
+    flex:0 0 21px!important;width:21px!important;height:21px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sort-control select{
+    flex:1 1 auto!important;min-width:0!important;width:100%!important;
+    font-size:13px!important;border:0!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status{
+    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:7px!important;margin:0 0 17px!important;padding:0!important;
+    border:0!important;background:none!important;box-shadow:none!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button{
+    box-sizing:border-box!important;display:flex!important;align-items:center!important;
+    justify-content:center!important;flex-wrap:wrap!important;
+    width:100%!important;min-width:0!important;min-height:48px!important;
+    margin:0!important;padding:9px 7px!important;gap:5px!important;
+    border:1px solid #77603f!important;border-radius:12px!important;
+    background:#2a211c!important;
+    color:#f3dbb3!important;-webkit-text-fill-color:#f3dbb3!important;
+    font-size:12px!important;line-height:1.2!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button[aria-pressed="true"]{
+    background:linear-gradient(145deg,#f2c477,#d9a252)!important;
+    color:#22170d!important;-webkit-text-fill-color:#22170d!important;
+    border-color:#f4cb8b!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button>span{
+    color:inherit!important;-webkit-text-fill-color:inherit!important;
+    white-space:normal!important;overflow-wrap:normal!important;
+    font-size:inherit!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button>small{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    background:#55432c!important;border-radius:99px!important;
+    padding:1px 5px!important;min-width:17px!important;
+    font-size:11px!important;color:#ffe7bc!important;-webkit-text-fill-color:#ffe7bc!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button[aria-pressed="true"]>small{
+    background:#a4793d!important;color:#fff8ee!important;-webkit-text-fill-color:#fff8ee!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sync-details{
+    display:block!important;margin:18px 0 22px!important;
+    padding:11px!important;border:1px solid #917044!important;
+    border-radius:16px!important;
+    background:linear-gradient(135deg,#2d241e,#18191a)!important;
+    box-shadow:0 10px 22px #0004!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sync-details>summary{
+    min-height:47px!important;padding:11px 14px!important;
+    background:#30251c!important;border-radius:11px!important;
+    color:#ffe0ac!important;-webkit-text-fill-color:#ffe0ac!important;
+    font-size:14px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .ttk-sync-summary{
+    display:flex!important;flex-wrap:wrap!important;gap:9px!important;
+    margin:10px 0!important;
+    padding:12px!important;border:1px solid #6d563b!important;
+    border-radius:12px!important;background:#201d1c!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .ttk-sync-summary>span{
+    flex:1 1 100%!important;min-width:0!important;
+    color:#e0cdae!important;-webkit-text-fill-color:#e0cdae!important;
+    line-height:1.55!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .ttk-sync-summary button{
+    flex:1 1 150px!important;min-height:43px!important;margin:0!important;
+    white-space:normal!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-sync-details :is(.ttk-sync-error,[role="alert"]){
+    display:block!important;padding:12px!important;
+    border:1px solid #ab615b!important;background:#36231f!important;
+    color:#ffd5c6!important;-webkit-text-fill-color:#ffd5c6!important;
+    line-height:1.6!important;border-radius:11px!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  /* TTK editor: a working Royal form on screen while the A4 sheet remains
+     clean, white/blue and printable when selected. */
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled{
+    --studio-ink:#f2dec0!important;
+    --studio-soft:#1a1a1c!important;
+    --studio-edge:#896b42!important;
+    --pro-ink:#f5e6c9!important;
+    --pro-line:#85673c!important;
+    --ttk-line:#756044!important;
+    --ttk-fill:#29231f!important;
+    --studio-accent:#d9a85a!important;
+    border:1px solid #937046!important;
+    background:linear-gradient(145deg,#231d1a,#101317)!important;
+    color:#f6e4c8!important;-webkit-text-fill-color:#f6e4c8!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled :is(.ttk-toolbar,.ttk-studio-intro,.ttk-pro-head,.ttk-pro-audit,.ttk-studio-advanced,.ttk-design-picker,.ttk-studio-switch){
+    background:linear-gradient(137deg,#282019,#16181b)!important;
+    border:1px solid #7d603b!important;
+    color:#f6e3c3!important;-webkit-text-fill-color:#f6e3c3!important;
+    border-radius:14px!important;
+    box-shadow:0 8px 20px #0004!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled :is(.ttk-toolbar h2,.ttk-studio-intro h3,.ttk-pro-title,.ttk-design-picker h3,.ttk-pro-audit h3,.ttk-section-title){
+    color:#ffe4b1!important;-webkit-text-fill-color:#ffe4b1!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled :is(.ttk-pro-subtitle,.ttk-studio-intro p,.ttk-design-help,.ttk-pro-audit-note){
+    color:#cfc0a6!important;-webkit-text-fill-color:#cfc0a6!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled :is(.ttk-pro-tab,.ttk-studio-switch-button,.ttk-studio-preview,.ttk-design-card,.ttk-toolbar button:not([type="submit"])){
+    border:1px solid #907247!important;
+    border-radius:11px!important;background:linear-gradient(130deg,#3a2d21,#201e1f)!important;
+    color:#ffe3ae!important;-webkit-text-fill-color:#ffe3ae!important;
+    min-height:44px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled :is(.ttk-pro-tab[aria-pressed="true"],.ttk-studio-switch-button[aria-pressed="true"],.ttk-design-card[aria-pressed="true"],.ttk-toolbar button[type="submit"]){
+    background:linear-gradient(130deg,#efbe70,#d39a4d)!important;
+    color:#21180f!important;-webkit-text-fill-color:#21180f!important;
+    border-color:#f4d396!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-gauge{
+    background:conic-gradient(#e3b362 var(--ttk-audit-pct,0%),#48392b var(--ttk-audit-pct,0%))!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-gauge:before{background:#201b18!important}
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-progress-number{
+    color:#ffdf9a!important;-webkit-text-fill-color:#ffdf9a!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-gauge small,
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-progress small{
+    color:#d7c5a5!important;-webkit-text-fill-color:#d7c5a5!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-pro-shell .ttk-viewport{
+    background:linear-gradient(130deg,#2b221d,#11151a)!important;
+    border:1px solid #745c3a!important;
+    padding:10px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper{
+    background:linear-gradient(143deg,#231f1c,#15171a)!important;
+    color:#f7e4c4!important;-webkit-text-fill-color:#f7e4c4!important;
+    border:1px solid #745b39!important;border-radius:13px!important;
+    --ttk-fill:#29231f!important;--ttk-line:#705a3d!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-document-title{
+    background:linear-gradient(115deg,#886537,#34271a)!important;
+    border:1px solid #b68b52!important;border-radius:10px!important;
+    color:#fff0d4!important;-webkit-text-fill-color:#fff0d4!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper :is(.ttk-table,.ttk-block,.ttk-block .ttk-table){
+    background:transparent!important;color:#edddc2!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper .ttk-table tr{
+    background:#241e1b!important;border:1px solid #705638!important;border-radius:11px!important;
+    color:#f0dcc0!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper .ttk-table :is(th,td){
+    border-color:#715a3c!important;color:#decbae!important;-webkit-text-fill-color:#decbae!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper .ttk-table th{
+    background:#32271f!important;
+    color:#e8cda3!important;-webkit-text-fill-color:#e8cda3!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper :is(input,select,textarea){
+    background:#15171a!important;color:#f9ebd2!important;-webkit-text-fill-color:#f9ebd2!important;
+    border:1px solid #947348!important;border-radius:9px!important;
+    box-shadow:none!important;min-height:44px!important;font-size:16px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-paper :is(input,select,textarea)::placeholder{
+    color:#ad9c82!important;-webkit-text-fill-color:#ad9c82!important;opacity:1!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] #ingredients .ingredient{
+    background:#25201d!important;border:1px solid #84683f!important;border-radius:11px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] #ingredients .ingredient :is(label,span){
+    color:#e5cfa9!important;-webkit-text-fill-color:#e5cfa9!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-section-title span{
+    background:linear-gradient(105deg,#a77941,#694a2d)!important;
+    border:0!important;border-radius:9px!important;
+    color:#fff2d9!important;-webkit-text-fill-color:#fff2d9!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-inline-photo{
+    box-sizing:border-box!important;
+    height:110px!important;min-height:110px!important;max-height:110px!important;
+    background:#252019!important;border:1px dashed #856943!important;border-radius:12px!important;
+    overflow:hidden!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-inline-photo img{
+    height:65px!important;max-height:65px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-inline-photo figcaption{
+    color:#e3c18c!important;-webkit-text-fill-color:#e3c18c!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] .ttk-inline-photo .ttk-studio-photo-action{
+    background:#3a2b1d!important;color:#ffe4ae!important;-webkit-text-fill-color:#ffe4ae!important;
+    border:1px solid #ad834c!important;
+  }
+  /* A4 document view stays light and readable, but deliberately has no photo. */
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="paper"] .ttk-inline-photo,
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="paper"] .ttk-design-preview-photo{
+    display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="paper"] .ttk-paper{
+    color:#142b46!important;-webkit-text-fill-color:#142b46!important;
+  }
+}
+@media screen and (max-width:720px){
+  html body.lx-pro[data-pf-theme="royal"] #pf-project-dialog[open]{
+    width:calc(100vw - 26px)!important;max-height:calc(100dvh - 140px)!important;
+    min-height:280px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-card{
+    min-height:269px!important;border-radius:19px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-photo-frame{
+    height:200px!important;min-height:190px!important;padding:7px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption{
+    padding:3px 12px 15px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes #recipe-categories .category-caption strong{
+    font-size:15px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .lx-status-filters.lx-ref-status button{
+    padding:9px 4px!important;font-size:12px!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #recipes .ttk-sync-summary button{
+    flex:1 1 calc(50% - 9px)!important;
+  }
+  html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled{
+    padding:10px!important;
+  }
+}
+@media print{
+  /* No placeholder, photograph or upload control on a physical A4 TTK. */
+  #editor.ttk-studio-enabled .ttk-inline-photo,
+  #editor.ttk-studio-enabled .ttk-studio-photo-action,
+  #editor.ttk-studio-enabled .ttk-studio-photo-remove{
+    display:none!important;
+  }
+}
+
+
+/* Final real-browser visual check: keep project rows compact on narrow phones.
+   Older shared mobile CSS switches the flex axis to column, so a 145px flex
+   basis would otherwise make each project title consume an empty 145px block. */
+@media screen and (max-width:720px){
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item{
+  flex-direction:column!important;flex-wrap:nowrap!important;
+  align-items:stretch!important;justify-content:flex-start!important;
+  height:auto!important;min-height:0!important;
+  gap:10px!important;padding:13px 14px!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:first-child{
+  flex:0 0 auto!important;width:100%!important;min-width:0!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:last-child{
+  flex:0 0 auto!important;display:flex!important;gap:8px!important;
+  width:100%!important;justify-content:flex-start!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:last-child button{
+  flex:1 1 auto!important;min-width:108px!important;
+ }
+}
+/* The selected A4 design uses a dark premium card with a gold border;
+   never pale-yellow card plus nearly-white captions. */
+@media screen{
+ html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{
+  background:linear-gradient(140deg,#4b3822,#211d1a)!important;
+  border:2px solid #edbc68!important;
+  color:#f8e5c4!important;-webkit-text-fill-color:#f8e5c4!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"] :is(.ttk-design-info strong,.ttk-design-info small,.ttk-design-info em){
+  color:#ffe5bb!important;-webkit-text-fill-color:#ffe5bb!important;
+  opacity:1!important;
+ }
+}
