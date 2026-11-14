@@ -75,7 +75,8 @@ export function mountPremiumWorkspace(){
  }
  function addSidebar(){
   const settings=document.getElementById('menu-settings');
-  const projectButton=button('▱  Проекты','pf-sidebar-project',openProjects);
+  const projectButton=button('Проекты','pf-sidebar-project',openProjects);
+  projectButton.insertAdjacentHTML('afterbegin',icon('book'));
   // Keep the main menu short: Design Studio and infrequently used tools live
   // inside the existing "Настройки и данные" dialog, never in a second menu.
   nav.insertBefore(projectButton,settings);

@@ -6,7 +6,7 @@ const page=()=>readFile(new URL('../public/index.html',import.meta.url),'utf8');
 
 test('FARUKH PRINT administration loads on first visit, not on every Home visit',async()=>{
  const html=await page();
- for(const script of ['print-control.js?v=26','print-control-cloud.js?v=7','print-control-staff.js?v=9']){
+ for(const script of ['print-control.js?v=27','print-control-cloud.js?v=7','print-control-staff.js?v=9']){
   assert.ok(html.includes("import('/"+script+"')"),'Lazy import missing: '+script);
   assert.ok(!html.includes("from '/"+script+"'"),'Eager import remains: '+script);
  }
