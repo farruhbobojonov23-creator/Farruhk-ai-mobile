@@ -25,7 +25,57 @@ export function premiumRecipePdf(input){
  function wrap(v,w,size,strong=false){doc.font(strong?'bold':'regular').fontSize(size);const lines=[];for(const p of value(v).split('\n')){let line='';for(const word of p.split(/\s+/)){if(!word)continue;if(doc.widthOfString(line?line+' '+word:word)<=w){line=line?line+' '+word:word;continue}if(line){lines.push(line);line=''}for(const c of word){if(line&&doc.widthOfString(line+c)>w){lines.push(line);line=''}line+=c}}lines.push(line||' ')}return lines}
  function text(lines,x,y,w,size,strong=false,color=C.ink){doc.font(strong?'bold':'regular').fontSize(size).fillColor(color);lines.forEach((s,i)=>doc.text(s,x,y+i*size*1.25,{width:w,lineBreak:false}));}
  function table(rows,x,y,w,s,draw,header=true){const cols=rows[0].length,ratios=cols===3?[.60,.20,.20]:cols===5?[.30,.175,.175,.175,.175]:cols===2?[.28,.72]:[1];let yy=y;rows.forEach((row,i)=>{const fs=7.6*s,pad=4*s,lines=row.map((v,j)=>wrap(v,w*ratios[j]-pad*2,fs,header&&i===0)),h=Math.max(15*s,Math.max(...lines.map(a=>a.length))*fs*1.25+pad*2);if(draw){let xx=x;row.forEach((v,j)=>{doc.rect(xx,yy,w*ratios[j],h).lineWidth(.4).fillAndStroke(header&&i===0?C.head:C.cell,C.line);text(lines[j],xx+pad,yy+pad,w*ratios[j]-pad*2,fs,header&&i===0);xx+=w*ratios[j]})}yy+=h});return yy-y;}
- function section(index,x,y,w,s,draw,min=0){const [title,rows]=sections[index],size=8.4*s,pad=6*s,lines=wrap(title,w-pad*2,size,true),bh=lines.length*size*1.25+pad*2;const th=table(rows,x,y+bh,w,s,false,rows[0].length>1),h=Math.max(min,bh+th);if(draw){doc.roundedRect(x,y,w,h,5*s).fill(C.cell);doc.rect(x,y,w,bh).fill(C.band);text(lines,x+pad,y+pad,w-pad*2,size,true,'#FFF8F1');table(rows,x,y+bh,w,s,true,rows[0].length>1)}return h;}
+ // For long ingredient lists use parallel table columns on the same A4.
+ // This preserves every ingredient and numeric cell without shrinking all the
+ // safety, technology and signature text to microscopic size.
+ const ingredientCount=(r.ingredients||[]).length;
+ const ingredientColumns=ingredientCount>80?4:ingredientCount>46?3:ingredientCount>18?2:1;
+ doc.ttkIngredientColumns=ingredientColumns;
+ function ingredientTable(rows,x,y,w,s,draw){
+  const header=rows[0],items=rows.slice(1,-1),yieldRow=rows.at(-1);
+  const gap=6*s,columnW=(w-gap*(ingredientColumns-1))/ingredientColumns;
+  const each=Math.ceil(items.length/ingredientColumns);
+  function compact(rows,px,py,pw,render){
+   const shares=[.57,.215,.215],font=7.2*s,pad=2.6*s;let yy=py;
+   for(let i=0;i<rows.length;i++){
+    const cells=rows[i],wrapped=cells.map((v,j)=>wrap(v,pw*shares[j]-pad*2,font,i===0));
+    const height=Math.max(12.7*s,Math.max(...wrapped.map(x=>x.length))*font*1.24+pad*2);
+    if(render){
+     let xx=px;for(let j=0;j<cells.length;j++){
+      const cw=pw*shares[j];doc.rect(xx,yy,cw,height).lineWidth(.35).fillAndStroke(i===0?C.head:C.cell,C.line);
+      text(wrapped[j],xx+pad,yy+pad,cw-2*pad,font,i===0);
+      xx+=cw;
+     }
+    }
+    yy+=height;
+   }
+   return yy-py;
+  }
+  let max=0;
+  for(let col=0;col<ingredientColumns;col++){
+   const part=items.slice(col*each,(col+1)*each);
+   if(!part.length)continue;
+   const rowsHere=[header,...part];
+   max=Math.max(max,compact(rowsHere,x+col*(columnW+gap),y,columnW,draw));
+  }
+  const footH=table([yieldRow],x,y+max+4*s,w,s,draw,false);
+  return max+4*s+footH;
+ }
+ function section(index,x,y,w,s,draw,min=0){
+  const [title,rows]=sections[index],size=8.4*s,pad=6*s,lines=wrap(title,w-pad*2,size,true),
+   bh=lines.length*size*1.25+pad*2;
+  const useColumns=index===2&&ingredientColumns>1;
+  const th=useColumns?ingredientTable(rows,x,y+bh,w,s,false):table(rows,x,y+bh,w,s,false,rows[0].length>1);
+  const h=Math.max(min,bh+th);
+  if(draw){
+   doc.roundedRect(x,y,w,h,5*s).fill(C.cell);
+   doc.rect(x,y,w,bh).fill(C.band);
+   text(lines,x+pad,y+pad,w-pad*2,size,true,'#FFF8F1');
+   if(useColumns)ingredientTable(rows,x,y+bh,w,s,true);
+   else table(rows,x,y+bh,w,s,true,rows[0].length>1);
+  }
+  return h;
+ }
  function layout(s,draw=false){let y=20;const headerH=(premium?(photo?143:92):57)*s;
  if(draw){
   doc.rect(0,0,595.28,841.89).fill(C.paper);
