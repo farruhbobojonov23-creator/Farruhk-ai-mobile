@@ -229,7 +229,7 @@ export function mountLuxuryUI(opts={}){
   const paperImage=el('img');paperImage.alt='Фото блюда для печатной ТТК';
   paperPhoto.append(paperCaption,paperImage);
   editor.querySelector('.ttk-document-title')?.after(paperPhoto);
-  const photoInfo=el('small','lx-photo-hint','PNG/JPG/WebP. Фон фотографии не удаляется. Фото будет видно в карточке ТТК и на листе PDF.');
+  const photoInfo=el('small','lx-photo-hint','PNG/JPG/WebP. Фон фотографии не удаляется. Фото используется только для карточки в каталоге; на лист А4 и в PDF не выводится.');
   const remove=btn('Убрать фото','lx-remove-photo');photoBox.append(photoLabel,photoPreview,remove,photoInfo);
   panel.append(projectLabel,photoBox);
   editor.querySelector('.editor-modes')?.before(panel);
