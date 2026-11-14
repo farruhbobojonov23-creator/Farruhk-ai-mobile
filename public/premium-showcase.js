@@ -104,7 +104,7 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '<button type="button" class="pf-ice-nav-btn" data-pf-go="site-settings">'+icon3d('settings',true)+'<span>Профиль</span></button></nav>';
  main.append(ice);
  // Remove quick-entry buttons and informational chips for hidden modules.
- main.querySelectorAll('[data-pf-go="lab"],[data-pf-go="tasks"]').forEach(node=>node.remove());
+ main.querySelectorAll('.pf-showcase-quick [data-pf-go="lab"],.pf-showcase-quick [data-pf-go="tasks"]').forEach(node=>node.remove());
  const info=main.querySelector('.pf-showcase-info');
  if(info){while(info.children.length>2)info.lastElementChild.remove();info.append(el('span','',icon3d('printer',true)+' Маркировка'))}
  main.querySelector('.pf-showcase-all')?.remove();
