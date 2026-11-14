@@ -1,5 +1,5 @@
 import {templateFor,recipeCategories} from './recipe-math.js?v=categories-13';
-import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from './ttk-layouts.js?v=1';
+import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from './ttk-layouts.js?v=3';
 export const fields={preparation:'4. Подготовка',forming:'4. Приготовление',serving:'4. Нарезка и подача',storage:'5. Оформление, подача и хранение',shelfLife:'5. Срок годности',temperature:'5. Температура хранения',appearance:'6. Внешний вид',taste:'6. Вкус, запах и консистенция'};
 export function validateMyTemplates(list){
  if(list===undefined)return;
@@ -21,7 +21,7 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   list.replaceChildren();form.replaceChildren();draft=null;dirty=false;
   const gallery=el('section');gallery.className='ttk-design-gallery';
   gallery.append(el('h3','Шаблоны оформления ТТК · A4'),
-   el('p','Два готовых дизайна: 01 — Arctic Glass и 02 — Royal Blue. Фото блюда сохраняет оригинальный фон. Выбор меняет только оформление PDF, не рецептуру.'));
+   el('p','Четыре готовых дизайна Premium: Teal Matrix, Process Matrix, Gold Allergen и Premium Blue. Во всех есть матрица аллергенов с галочками; состав и технология не меняются. Фото не выводится на печатный лист.'));
   const designs=el('div');designs.className='ttk-design-grid';
   const selected=ttkLayoutId(document.getElementById('editor')?.dataset.ttkLayout);
   function chooseDesign(id){
