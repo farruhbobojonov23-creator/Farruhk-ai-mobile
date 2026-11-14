@@ -309,3 +309,46 @@
     transition:none!important;
   }
 }
+
+/* The lightweight HACCP fallback is visible while its journal bundle loads.
+ * Stack title and explanation rather than squeezing both into a single row.
+ * The fully loaded journal UI keeps its own grid/card rules. */
+@media screen {
+ html body.lx-pro[data-pf-theme="royal"] #lab > .grid > button.tile{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:9px!important;
+  min-width:0!important;
+  min-height:102px!important;
+  padding:17px 18px!important;
+  text-align:left!important;
+  border-radius:16px!important;
+  white-space:normal!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #lab > .grid > button.tile > strong{
+  display:block!important;
+  font-size:15px!important;
+  font-weight:780!important;
+  line-height:1.4!important;
+  color:#ffe0a5!important;
+  -webkit-text-fill-color:#ffe0a5!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #lab > .grid > button.tile > span{
+  display:block!important;
+  font-size:13px!important;
+  font-weight:450!important;
+  line-height:1.55!important;
+  color:#d5c6ac!important;
+  -webkit-text-fill-color:#d5c6ac!important;
+ }
+}
+@media screen and (max-width:720px) {
+ html body.lx-pro[data-pf-theme="royal"] #lab > .grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:12px!important;
+ }
+}
