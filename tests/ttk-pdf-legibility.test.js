@@ -35,7 +35,7 @@ test('75 ingredients are all present in one printable A4 using parallel ingredie
   ingredients:Array.from({length:75},(_,i)=>({name:'Ингредиент '+(i+1),grams:10,grossGrams:10})),
   netYieldGrams:750};
  const doc=premiumRecipePdf(many);
- assert.equal(doc.ttkIngredientColumns,3);
+ assert.equal(doc.ttkIngredientColumns,4);
  const pdf=await parsePdf(await bytes(doc));
  assert.equal(pdf.numpages,1);
  assert.match(pdf.text,/Ингредиент 1/);
