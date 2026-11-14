@@ -421,3 +421,39 @@
     display:none!important;
   }
 }
+
+
+/* Final real-browser visual check: keep project rows compact on narrow phones.
+   Older shared mobile CSS switches the flex axis to column, so a 145px flex
+   basis would otherwise make each project title consume an empty 145px block. */
+@media screen and (max-width:720px){
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item{
+  flex-direction:column!important;flex-wrap:nowrap!important;
+  align-items:stretch!important;justify-content:flex-start!important;
+  height:auto!important;min-height:0!important;
+  gap:10px!important;padding:13px 14px!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:first-child{
+  flex:0 0 auto!important;width:100%!important;min-width:0!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:last-child{
+  flex:0 0 auto!important;display:flex!important;gap:8px!important;
+  width:100%!important;justify-content:flex-start!important;
+ }
+ html body[data-pf-theme="royal"] #pf-project-dialog .pf-project-item>div:last-child button{
+  flex:1 1 auto!important;min-width:108px!important;
+ }
+}
+/* The selected A4 design uses a dark premium card with a gold border;
+   never pale-yellow card plus nearly-white captions. */
+@media screen{
+ html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"]{
+  background:linear-gradient(140deg,#4b3822,#211d1a)!important;
+  border:2px solid #edbc68!important;
+  color:#f8e5c4!important;-webkit-text-fill-color:#f8e5c4!important;
+ }
+ html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled .ttk-design-card[aria-pressed="true"] :is(.ttk-design-info strong,.ttk-design-info small,.ttk-design-info em){
+  color:#ffe5bb!important;-webkit-text-fill-color:#ffe5bb!important;
+  opacity:1!important;
+ }
+}
