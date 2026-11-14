@@ -61,7 +61,7 @@ function addTab(title, parentTabId,documentId=WORKING_DOCUMENT_ID) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]},documentId);
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
-const TTK_LAYOUT_VERSION = 'burgundy-4';
+const TTK_LAYOUT_VERSION = 'a4-pdf-1';
 function formatBody(body, packet) {
  const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
@@ -95,6 +95,28 @@ function addTable(parent,rows,header,width){
  }
  return table;
 }
+/** Canonical one-page A4 copy alongside the editable Google Docs tab.
+ * The PDF bytes originate from the validated server-side one-page exporter;
+ * no information is dropped to force Google Docs' editor pagination. */
+function saveOnePagePdf(target,recipe,packet,previousPdfId){
+ const data=String(packet.pdfBase64||'');
+ if(packet.pdfPageCount!==1||data.length<20||data.length>4300000||!/^[A-Za-z0-9+/=]+$/.test(data))
+  throw Error('Не получен проверенный одностраничный PDF A4. Обновите сервер синхронизации.');
+ const bytes=Utilities.base64Decode(data);
+ if(bytes.length>3145728||bytes.length<100||String.fromCharCode.apply(null,bytes.slice(0,5))!=='%PDF-')
+  throw Error('Некорректный PDF A4');
+ const folder=DriveApp.getFolderById(target.folderId);
+ const found=folder.getFoldersByName('ТТК PDF A4');
+ const pdfFolder=found.hasNext()?found.next():folder.createFolder('ТТК PDF A4');
+ const safeName=String(recipe.name||'ТТК').replace(/[\\/\n\r:*?"<>|]/g,' ').trim().slice(0,85);
+ const filename='ТТК_'+safeName+'_'+String(recipe.id).slice(0,12)+'.pdf';
+ const file=pdfFolder.createFile(Utilities.newBlob(bytes,'application/pdf',filename));
+ if(previousPdfId&&previousPdfId!==file.getId()){
+  try{const old=DriveApp.getFileById(previousPdfId);if(!old.isTrashed())old.setTrashed(true)}catch(error){console.warn('Старый PDF остался: '+error)}
+ }
+ return {pdfFileId:file.getId(),pdfUrl:file.getUrl()};
+}
+
 function doPost(event) {
   let lock;
   try {
@@ -123,14 +145,36 @@ function doPost(event) {
       tabId=interrupted?interrupted.tabProperties.tabId:addTab(marker,parentId,documentId);
       properties.setProperty(recordKey,JSON.stringify({tabId,documentId}));
     }
-    if(previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||previous.documentId!==documentId){
+    const changed=previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||
+      previous.documentId!==documentId||!previous.pdfFileId;
+    if(changed){
       const document=DocumentApp.openById(documentId),body=document.getTab(tabId).asDocumentTab().getBody();
       formatBody(body,packet);document.saveAndClose();
       docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]},documentId);
       normalizeCardTextHighlights(tabId,documentId);
-      properties.setProperty(recordKey,JSON.stringify({tabId,documentId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION}));
+      // Keep the independent tab A4-sized even if the containing project has
+      // legacy default margins. The matching PDF above is always one page.
+      docsApi(':batchUpdate',{requests:[{updateDocumentStyle:{
+        tabId,documentStyle:{
+          pageSize:{width:{magnitude:595.28,unit:'PT'},height:{magnitude:841.89,unit:'PT'}},
+          marginTop:{magnitude:22,unit:'PT'},marginBottom:{magnitude:22,unit:'PT'},
+          marginLeft:{magnitude:25,unit:'PT'},marginRight:{magnitude:25,unit:'PT'}
+        },fields:'pageSize,marginTop,marginBottom,marginLeft,marginRight'
+      }}]},documentId);
+      // Only switch the recorded version after both Google Docs and the PDF
+      // have been durably created. Old PDFs survive any failed save attempt.
+      const pdf=saveOnePagePdf(target,r,packet,previous.pdfFileId);
+      properties.setProperty(recordKey,JSON.stringify({
+        tabId,documentId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION,...pdf
+      }));
+      previous.pdfFileId=pdf.pdfFileId;previous.pdfUrl=pdf.pdfUrl;
     }
-    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId});
+    let pdfUrl=previous.pdfUrl;
+    if(previous.pdfFileId&&!pdfUrl){
+      try{pdfUrl=DriveApp.getFileById(previous.pdfFileId).getUrl()}catch(e){}
+    }
+    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,
+      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl});
   } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
