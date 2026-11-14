@@ -23,13 +23,14 @@ const recipe={
 };
 const pdfBytes=doc=>new Promise((resolve,reject)=>{const buffers=[];doc.on('data',chunk=>buffers.push(chunk));doc.on('end',()=>resolve(Buffer.concat(buffers)));doc.on('error',reject);doc.end()});
 
-test('two approved visual options are selectable',()=>{
- assert.deepEqual(TTK_LAYOUTS.map(x=>x.id),['arctic-a4','royal-a4']);
- assert.equal(ttkLayoutId('royal-a4'),'royal-a4');
- assert.equal(ttkLayoutId('unknown'),'arctic-a4');
+test('four approved allergen layouts replace both old templates',()=>{
+ assert.deepEqual(TTK_LAYOUTS.map(x=>x.id),['teal-matrix','process-matrix','gold-allergen','premium-blue']);
+ assert.equal(ttkLayoutId('arctic-a4'),'teal-matrix');
+ assert.equal(ttkLayoutId('royal-a4'),'premium-blue');
+ assert.equal(ttkLayoutId('unknown'),'teal-matrix');
 });
 
-for(const layoutTemplate of ['arctic-a4','royal-a4']){
+for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
  test(layoutTemplate+' persists through normalization and produces readable one-page A4 PDF',async()=>{
   const input={...recipe,layoutTemplate};
   const normalized=cleanState({recipes:[input]}).recipes[0];
@@ -49,6 +50,6 @@ for(const layoutTemplate of ['arctic-a4','royal-a4']){
 }
 test('untrusted design or photo payload is not accepted by server normalization',()=>{
  const out=cleanState({recipes:[{...recipe,layoutTemplate:'evil-style',photo:'https://example.com/evil.png'}]}).recipes[0];
- assert.equal(out.layoutTemplate,'classic');
+ assert.equal(out.layoutTemplate,'teal-matrix');
  assert.equal(out.photo,null);
 });
