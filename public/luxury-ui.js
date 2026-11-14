@@ -287,8 +287,8 @@ export function mountLuxuryUI(opts={}){
   bottom.classList.add('lx-ref-bottom');
   bottom.replaceChildren();
   const navigationItems=[
-   ['home','Кабинет шефа','home'],['stack','Проекты','projects'],['chef','Техкарты','recipes'],
-   ['box','Полуфабрикаты','preparations'],['bag','Маркировка','print-control'],['all','Ещё','more']
+   ['home','Главная','home'],['stack','Проекты','projects'],['chef','ТТК','recipes'],
+   ['box','Заготовки','preparations'],['bag','Маркировка','print-control'],['all','Ещё','more']
   ];
   for(const [index,[key,label,target]] of navigationItems.entries()){
    const b=btn('','lx-bottom-item');b.innerHTML=icon(key)+'<span>'+label+'</span>';
