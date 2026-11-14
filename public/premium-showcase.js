@@ -79,6 +79,30 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
  '<aside class="pf-showcase-quick"><h2>✦ Быстрые действия</h2><button type="button" data-pf-action="newrecipe">＋ Создать ТТК <span>↗</span></button><button type="button" data-pf-go="preparations">▣ Заготовки <span>↗</span></button><button type="button" data-pf-go="lab">▤ Заполнить журнал <span>↗</span></button><button type="button" data-pf-go="tasks">☑ Открыть задачи <span>↗</span></button><button type="button" data-pf-go="chat">✦ ИИ-помощник <span>↗</span></button><p>Все документы и функции сохранены в действующей системе.</p></aside></section>'+
  '<div class="pf-showcase-banner-bottom"><span>FARRUH <b>AI</b></span> · Профессиональная кухня начинается с порядка</div>'+
  '<nav class="pf-showcase-bottom" aria-label="Быстрый переход"><button class="active" data-pf-go="home">'+icon3d('home',true)+'<span>Главная</span></button><button data-pf-action="projects">'+icon3d('projects',true)+'<span>Проекты</span></button><button data-pf-go="recipes">'+icon3d('ttk',true)+'<span>ТТК</span></button><button data-pf-go="print-control">'+icon3d('printer',true)+'<span>Печать</span></button><button data-pf-action="more">'+icon3d('settings',true)+'<span>Ещё</span></button></nav>';
+ // Approved Black Ice design: separate functional presentation of the same
+ // live routes and project picker. Other user-selectable themes remain intact.
+ const ice=el('div','pf-ice-screen');
+ ice.innerHTML=
+ '<header class="pf-ice-header">'+
+ '<button type="button" class="pf-ice-square" data-pf-action="more" aria-label="Открыть меню"><span class="pf-ice-menu-bars" aria-hidden="true"></span></button>'+
+ '<div class="pf-ice-brand"><span class="pf-ice-hat">'+icon3d('kitchen')+'</span><strong>FARRUH <em>AI</em></strong><small>CHEF PLATFORM</small></div>'+
+ '<button type="button" class="pf-ice-square pf-ice-alert" data-pf-go="tasks" aria-label="Открыть задачи">'+icon3d('tasks',true)+'</button></header>'+
+ '<section class="pf-ice-tiles" aria-label="Рабочие разделы">'+
+ '<button type="button" class="pf-ice-tile" data-pf-go="recipes"><span class="pf-ice-tile-art">'+icon3d('ttk')+'</span><span class="pf-ice-tile-label">ТТК</span><span class="pf-ice-tile-arrow" aria-hidden="true">›</span></button>'+
+ '<button type="button" class="pf-ice-tile" data-pf-go="lab"><span class="pf-ice-tile-art">'+icon3d('shield')+'</span><span class="pf-ice-tile-label">ХАССП</span><span class="pf-ice-tile-arrow" aria-hidden="true">›</span></button>'+
+ '<button type="button" class="pf-ice-tile" data-pf-go="preparations"><span class="pf-ice-tile-art"><img class="pf-ice-food" src="/assets/categories/preparations.png" alt="" loading="lazy" decoding="async"></span><span class="pf-ice-tile-label">Ингредиенты</span><span class="pf-ice-tile-arrow" aria-hidden="true">›</span></button>'+
+ '<button type="button" class="pf-ice-tile" data-pf-go="lab"><span class="pf-ice-tile-art">'+icon3d('book')+'</span><span class="pf-ice-tile-label">Журналы</span><span class="pf-ice-tile-arrow" aria-hidden="true">›</span></button>'+
+ '</section>'+
+ '<section class="pf-ice-projects" aria-label="Проекты">'+
+ '<div class="pf-ice-project-head"><h2 class="pf-ice-project-title">'+icon3d('projects',true)+'<span>Проекты</span></h2>'+
+ '<button type="button" class="pf-ice-all" data-pf-action="projects">Все <span aria-hidden="true">›</span></button></div>'+
+ '<div class="pf-ice-project-list" aria-label="Выбрать проект"></div></section>'+
+ '<nav class="pf-ice-bottom" aria-label="Главное меню">'+
+ '<button type="button" class="pf-ice-nav-btn active" data-pf-go="home" aria-current="page">'+icon3d('home',true)+'<span>Главная</span></button>'+
+ '<button type="button" class="pf-ice-nav-btn" data-pf-action="projects">'+icon3d('projects',true)+'<span>Проекты</span></button>'+
+ '<button type="button" class="pf-ice-nav-btn" data-pf-action="search"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="13.5" cy="13.5" r="8" stroke="currentColor" stroke-width="2.8"/><path d="m19.5 19.5 8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg><span>Поиск</span></button>'+
+ '<button type="button" class="pf-ice-nav-btn" data-pf-go="site-settings">'+icon3d('settings',true)+'<span>Профиль</span></button></nav>';
+ main.append(ice);
  // Remove quick-entry buttons and informational chips for hidden modules.
  main.querySelectorAll('[data-pf-go="lab"],[data-pf-go="tasks"]').forEach(node=>node.remove());
  const info=main.querySelector('.pf-showcase-info');
@@ -99,6 +123,25 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   const before=select.value;select.replaceChildren();
   for(const option of original.options)select.add(new Option(option.text.replace(/^Проект:\s*/,'') ,option.value));
   select.value=original.value||before;
+  const host=ice.querySelector('.pf-ice-project-list');
+  if(host){
+   host.replaceChildren();
+   const options=[...original.options];
+   const selected=options.find(o=>o.value===original.value);
+   const visible=options.slice(0,2);
+   if(selected&&!visible.some(o=>o.value===selected.value))visible.splice(0,visible.length,selected,options.find(o=>o.value!==selected.value)).filter(Boolean);
+   for(const option of visible){
+    if(!option)continue;
+    const b=el('button','pf-ice-project'+(option.value===original.value?' selected':''));b.type='button';
+    b.dataset.pfProject=option.value;b.setAttribute('aria-pressed',String(option.value===original.value));
+    b.append(el('span','pf-ice-project-symbol',icon3d('projects',true)),el('strong',''));
+    b.querySelector('strong').textContent=option.text.replace(/^Проект:\\s*/,'');
+    host.append(b);
+   }
+   const add=el('button','pf-ice-project pf-ice-project-add');add.type='button';add.dataset.pfAction='projects';
+   add.append(el('span','pf-ice-project-add-mark','+'),el('strong','','Новый проект'));
+   host.append(add);
+  }
  }
  select.addEventListener('change',()=>{
   const original=document.getElementById('pf-home-project-select');if(!original)return;
@@ -110,7 +153,16 @@ export function mountPremiumShowcase({shell,goto,openStudio,openProjects}){
   // Buttons also live inside the legacy #pf-workspace click listener.
   // Stop bubbling so each action runs once (especially navigation with dirty TTK).
   event.stopPropagation();
+  if(target.dataset.pfProject){
+   const original=document.getElementById('pf-home-project-select');
+   if(original){original.value=target.dataset.pfProject;original.dispatchEvent(new Event('change',{bubbles:true}));}
+   return;
+  }
   if(target.dataset.pfGo)goto(target.dataset.pfGo);
+  if(target.dataset.pfAction==='search'){
+   goto('recipes');
+   requestAnimationFrame(()=>{const input=document.getElementById('recipe-search');input?.focus();input?.scrollIntoView({block:'nearest'});});
+  }
   if(target.dataset.pfAction==='settings')document.getElementById('menu-settings')?.click();
   if(target.dataset.pfAction==='newrecipe'){
    goto('recipes');
