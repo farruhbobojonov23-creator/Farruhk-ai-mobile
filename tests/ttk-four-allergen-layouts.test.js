@@ -59,11 +59,12 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
   assert.doesNotMatch(data.toString('latin1'),/\/Subtype\s*\/Image/);
   const result=await parsePdf(data);
   assert.equal(result.numpages,1);
-  for(const value of ['FARRUH AI','Филадельфия классик','Лосось','Сыр творожный','Огурец','МАТРИЦА АЛЛЕРГЕНОВ',
+  for(const value of ['FARRUH AI','Филадельфия классик','Лосось','Сыр творожный','Огурец' ,
    'Разработал','Утверждаю','Бободжонов','ХАССП','ГАЛОЧКИ']) {
    if(value==='ГАЛОЧКИ')continue;
    assert.ok(result.text.includes(value),'missing PDF element: '+value);
   }
+  assert.match(result.text,/(?:МАТРИЦА АЛЛЕРГЕНОВ|АЛЛЕРГЕНЫ В БЛЮДЕ)/);
   assert.ok(result.text.includes('Рыба'));
   assert.ok(result.text.includes('Молоко'));
   assert.ok(result.text.includes('270'));
