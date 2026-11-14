@@ -59,7 +59,16 @@ export function mountRecipeSheet(editor){
  // Observe the available column, including opening the editor and rotating a phone.
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitPaper).observe(viewport);
  else window.addEventListener('resize',fitPaper);
- function refresh(){if(editor.hidden)return;fitPaper();const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const topHeight=Math.max($('card-scope').scrollHeight,$('card-raw').scrollHeight)+2;$('card-scope').style.height=topHeight+'px';$('card-raw').style.height=topHeight+'px';const yieldGrams=$('card-yield').value;
+ function refresh(){
+  if(editor.hidden)return;
+  // Match the backend A4 ingredient-column count in the interactive sheet.
+  // The original input nodes and their listeners stay intact.
+  const count=$('ingredients')?.children.length||0;
+  const cols=count>65?4:count>46?3:count>18?2:1;
+  paper.dataset.ttkIngredientColumns=String(cols);
+  paper.style.setProperty('--ttk-screen-ingredient-cols',String(cols));
+  paper.style.setProperty('--ttk-screen-ingredient-rows',String(Math.max(1,Math.ceil(count/cols))));
+  fitPaper();const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const topHeight=Math.max($('card-scope').scrollHeight,$('card-raw').scrollHeight)+2;$('card-scope').style.height=topHeight+'px';$('card-raw').style.height=topHeight+'px';const yieldGrams=$('card-yield').value;
  const nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(key=>[key,$('card-'+key).value===''?null:Number($('card-'+key).value)]));
  const portionValues=nutritionOnPortion(nutrition,yieldGrams);
  portionLabel.textContent=Number(yieldGrams)>0?'На порцию ('+Number(yieldGrams).toLocaleString('ru-RU',{maximumFractionDigits:2})+' г)':'На порцию';
