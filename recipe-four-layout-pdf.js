@@ -207,7 +207,7 @@ export function fourTtkPdf(input){
   return box('7. ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
  }
  function headerHeight(s){
-  const nameLines=wrap(r.name,W-22*s,14*s,true);
+  const nameLines=wrap(r.name,W-100*s,13*s,true);
   return Math.max(96*s,(nameLines.length*18+81)*s);
  }
  function header(y,s,draw){
@@ -280,7 +280,7 @@ export function fourTtkPdf(input){
   y+=textBox('8. БЕЗОПАСНОСТЬ (ХАССП)',safe(r.safety),X,y,W,s,draw)+7*s;
   y+=nutritionBox(X,y,W,s,draw)+9*s;
   const signH=34*s,signGap=10*s,signW=(W-signGap)/2;
-  if(draw)for(const [i,who,name] of [[0,'РАЗРАБОТАЛ (ШЕФ)',r.chef],[1,'УТВЕРЖДАЮ',r.approver]]){
+  if(draw)for(const [i,who,name] of [[0,'Разработал (Шеф)',r.chef],[1,'Утверждаю',r.approver]]){
    const x=X+i*(signW+signGap);
    doc.roundedRect(x,y,signW,signH,6*s).lineWidth(.9*s).fillAndStroke('#FFFFFF',C.accent);
    txt(who,x+8*s,y+4*s,signW-16*s,6.9*s,true,C.navy,true);
