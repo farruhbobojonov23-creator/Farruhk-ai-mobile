@@ -60,7 +60,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
   }
   backupNow.disabled=!google?.endpoint||!google?.key;
   bindings?.googleSync?.render();
-  bindings?.googleDriveBackup?.render();
+  // Backup configuration form refreshes only when opened; never overwrite a key being edited.
  }
  backupNow.onclick=async()=>{
   if(!bindings?.googleDriveBackup)return;
