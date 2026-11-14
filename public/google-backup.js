@@ -24,7 +24,7 @@ export function explainBackupEndpoint(value){
   return 'Здесь нужен URL веб-приложения Google Apps Script вида https://script.google.com/macros/s/…/exec. Ссылка на проект или папку не подходит.';
  return '';
 }
-export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDialog,importData,downloadFile}){
+export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDialog,importData,downloadFile,buttonRoot=null}){
  const dialog=document.createElement('dialog');
  dialog.className='category-dialog google-backup-dialog';
  dialog.setAttribute('aria-label','Резервные копии Google Диск');
@@ -47,8 +47,8 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
  const buttonSave=dialog.querySelector('[data-save]'),buttonList=dialog.querySelector('[data-list]');
  const status=dialog.querySelector('[data-status]'),files=dialog.querySelector('[data-files]');
  const buttonOpen=document.createElement('button');
- buttonOpen.type='button';buttonOpen.textContent='Google Диск · резервные копии';buttonOpen.className='google-backup-open';
- const toolsArea=document.getElementById('device-export')?.parentElement||settingsDialog;
+ buttonOpen.type='button';buttonOpen.textContent='Посмотреть копии и настроить Google Диск';buttonOpen.className='google-backup-open';
+ const toolsArea=buttonRoot||document.getElementById('device-export')?.parentElement||settingsDialog;
  toolsArea.append(buttonOpen);
  const config=()=>getState()?.googleBackup;
  let running=false,timer=null;
@@ -73,7 +73,7 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
   buttonSave.disabled=!c?.endpoint;
   buttonList.disabled=!c?.endpoint;
  }
- buttonOpen.onclick=()=>{refresh();settingsDialog.close();dialog.showModal()};
+ buttonOpen.onclick=()=>{refresh();if(!buttonRoot&&settingsDialog.open)settingsDialog.close();if(!dialog.open)dialog.showModal()};
  close.onclick=()=>dialog.close();
  form.onsubmit=async event=>{
   event.preventDefault();const submit=form.querySelector('button[type=submit]');submit.disabled=true;
