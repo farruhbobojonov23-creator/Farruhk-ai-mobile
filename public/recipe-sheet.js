@@ -10,7 +10,12 @@ export function mountRecipeSheet(editor){
  const guidance=el('p','ttk-guidance');guidance.textContent='Заполняй удобные поля или переключись на лист А4. Брутто и выход рассчитываются автоматически. Перед скачиванием PDF изменения сохраняются.';
  const viewport=el('div','ttk-viewport');viewport.tabIndex=0;viewport.setAttribute('aria-label','Редактируемая техкарта');
  const paper=el('div','ttk-paper');viewport.append(paper);
- const title=el('div','ttk-document-title');title.textContent='ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)';paper.append(title);
+ const brand=el('div','ttk-document-brand');
+ brand.innerHTML='<span>✦ &nbsp;FARRUH AI</span><span>♛ &nbsp;Premium</span>';
+ paper.append(brand);
+ const title=el('div','ttk-document-title');title.textContent='ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА';paper.append(title);
+ const nameBar=el('div','ttk-document-namebar'),productName=el('strong'),productState=el('span');
+ nameBar.append(productName,productState);paper.append(nameBar);
  function table(){const t=el('table','ttk-table');t.append(el('tbody'));paper.append(t);return t.tBodies[0]}
  function pair(row,caption,id){const th=el('th'),td=el('td');th.scope='row';th.textContent=caption;const input=get(id);input.setAttribute('aria-label',caption);td.append(input);row.append(th,td)}
  const metadata=table();for(const pairs of [[['Блюдо:','recipe-name'],['Дата:','card-date']],[['Категория:','recipe-category'],['ТТК №:','card-number']],[['Статус:','recipe-status'],['Количество:','card-pieces']]]){const row=el('tr');for(const [caption,id] of pairs)pair(row,caption,id);metadata.append(row)}
@@ -23,6 +28,12 @@ export function mountRecipeSheet(editor){
  ingredients.append(header,get('ingredients'));paper.append(ingredients);
  const add=get('addingredient');add.classList.add('ttk-add');add.textContent='＋ Добавить ингредиент';paper.append(add);
  const output=table(),outputRow=el('tr');pair(outputRow,'ВЫХОД ГОТОВОГО БЛЮДА, г:','card-yield');get('card-yield').removeAttribute('aria-describedby');const outputNote=el('td');outputNote.colSpan=2;outputNote.textContent='Сумма нетто готовых ингредиентов';outputRow.append(outputNote);output.append(outputRow);
+ const recipeTotals=el('div','ttk-recipe-totals');
+ recipeTotals.innerHTML='<span class="ttk-recipe-total-title">⚖ &nbsp;Итого по рецептуре</span>'+
+  '<span>Брутто, г <b data-total="gross">—</b></span>'+
+  '<span>Нетто, г <b data-total="net">—</b></span>'+
+  '<span>Отходы, % <b data-total="loss">—</b></span>';
+ paper.append(recipeTotals);
  section('4. Технологический процесс');
  const process=table(),head=el('tr');for(const text of ['Этап','Описание действий']){const th=el('th');th.textContent=text;head.append(th)}process.append(head);
  for(const [caption,id] of [['Подготовка','card-prep'],['Формовка / приготовление','technology'],['Нарезка / подача','card-serving']]){const row=el('tr');pair(row,caption,id);process.append(row)}
@@ -68,6 +79,16 @@ export function mountRecipeSheet(editor){
   paper.dataset.ttkIngredientColumns=String(cols);
   paper.style.setProperty('--ttk-screen-ingredient-cols',String(cols));
   paper.style.setProperty('--ttk-screen-ingredient-rows',String(Math.max(1,Math.ceil(count/cols))));
+  productName.textContent=$('recipe-name').value.trim()||'Название блюда';
+  productState.textContent=$('recipe-status').value==='ready'?'✓ Готова':'В разработке';
+  const rows=[...$('ingredients').querySelectorAll('.ingredient')];
+  const numberFor=(el,key)=>Number(el.querySelector('[data-key="'+key+'"]')?.value)||0;
+  const gross=rows.reduce((sum,row)=>sum+numberFor(row,'grossGrams'),0);
+  const net=rows.reduce((sum,row)=>sum+numberFor(row,'grams'),0);
+  const ru=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});
+  recipeTotals.querySelector('[data-total="gross"]').textContent=rows.length?ru(gross):'—';
+  recipeTotals.querySelector('[data-total="net"]').textContent=rows.length?ru(net):'—';
+  recipeTotals.querySelector('[data-total="loss"]').textContent=rows.length&&gross>0?ru(Math.max(0,(gross-net)/gross*100)):'—';
   fitPaper();const scope=$('card-scope');scope.value=scopeForName(scope.value,$('recipe-name').value);for(const area of editor.querySelectorAll('textarea')){area.style.height='auto';area.style.height=Math.max(38,area.scrollHeight+2)+'px'}const topHeight=Math.max($('card-scope').scrollHeight,$('card-raw').scrollHeight)+2;$('card-scope').style.height=topHeight+'px';$('card-raw').style.height=topHeight+'px';const yieldGrams=$('card-yield').value;
  const nutrition=Object.fromEntries(['protein','fat','carbs','kcal'].map(key=>[key,$('card-'+key).value===''?null:Number($('card-'+key).value)]));
  const portionValues=nutritionOnPortion(nutrition,yieldGrams);
