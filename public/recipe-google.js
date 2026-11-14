@@ -149,5 +149,6 @@ export function mountGoogleSync({getState,store,onState,notify}){
  // Immediate save after a change is still scheduled; periodic retry is deliberately sparse.
  setInterval(()=>{if(!document.hidden)flush().catch(()=>{})},5*60*1000);
  const open=()=>{backupTools.open=true;button.click()};
- return {schedule,render,open};
+ const openStatus=()=>{backupTools.open=true;render();backupTools.scrollIntoView({block:'center',behavior:'smooth'});};
+ return {schedule,render,open,openStatus};
 }
