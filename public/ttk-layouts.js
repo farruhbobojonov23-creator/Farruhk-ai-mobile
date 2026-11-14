@@ -1,23 +1,40 @@
-/* Two owner-approved A4 TTK visual layouts.
-   Separate from "Мои шаблоны" recipe-content templates:
-   style changes never overwrite recipe ingredients or technology. */
+/* Four owner-approved Premium A4 TTK layouts (teal, process, allergen, blue).
+ * Recipe, nutrition and safety data are unaffected by selecting a design.
+ * Legacy two-style recipes are transparently mapped to the closest new style. */
 export const TTK_LAYOUTS=Object.freeze([
- {id:'arctic-a4',name:'01 · Arctic Glass',subtitle:'Светло-голубой · премиальные блоки',description:'Ледяной голубой, белые карточки, плавные линии. Без фотографии на печатном листе А4.',tone:'arctic'},
- {id:'royal-a4',name:'02 · Royal Blue',subtitle:'Тёмно-синий · золото · белый',description:'Представительный документ с глубокими синими заголовками, тонкими золотыми линиями без фотографии на листе.',tone:'royal'}
+ {id:'teal-matrix',name:'01 · Teal Matrix',subtitle:'Бирюзовый · матрица аллергенов',description:'Бирюзовые заголовки, таблица рецептуры и чек-лист аллергенов.',tone:'teal'},
+ {id:'process-matrix',name:'02 · Process Matrix',subtitle:'Бирюзовый · этапы приготовления',description:'Технология в четырёх последовательных блоках и матрица аллергенов.',tone:'process'},
+ {id:'gold-allergen',name:'03 · Gold Allergen',subtitle:'Золото · выделенные аллергены',description:'Акцент на аллергенах с галочками и технологических этапах.',tone:'gold'},
+ {id:'premium-blue',name:'04 · Premium Blue',subtitle:'Синий · золото · контроль',description:'Тёмно-синий документ с блоком аллергенов и пищевой ценностью.',tone:'blue'}
 ]);
-export const TTK_DEFAULT_LAYOUT='arctic-a4';
-export const ttkLayoutId=value=>TTK_LAYOUTS.some(i=>i.id===value)?value:TTK_DEFAULT_LAYOUT;
+export const TTK_DEFAULT_LAYOUT='teal-matrix';
+const LEGACY_LAYOUTS=Object.freeze({'arctic-a4':'teal-matrix','royal-a4':'premium-blue',classic:TTK_DEFAULT_LAYOUT});
+export const ttkLayoutId=value=>TTK_LAYOUTS.some(i=>i.id===value)?value:LEGACY_LAYOUTS[value]||TTK_DEFAULT_LAYOUT;
 export const ttkLayout=key=>TTK_LAYOUTS.find(i=>i.id===ttkLayoutId(key));
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x};
+const row=(n=3)=>Array.from({length:n},()=>'<i></i>').join('');
 export function layoutPreview(item){
  const page=el('div','ttk-design-thumb ttk-design-'+item.tone);
  page.setAttribute('aria-hidden','true');
- page.innerHTML='<div class="ttk-design-preview-top"><b>A</b><span>FARRUH AI</span><i></i></div>'+
- '<div class="ttk-design-preview-heading">ТЕХНОЛОГИЧЕСКАЯ КАРТА</div>'+
- '<div class="ttk-design-preview-hero ttk-design-preview-text-only"><div class="ttk-design-preview-fields"><i></i><i></i><i></i><i></i></div></div>'+
- '<div class="ttk-design-preview-line"></div><div class="ttk-design-preview-two"><div><b></b><i></i><i></i><i></i><i></i></div><div><b></b><i></i><i></i><i></i><i></i></div></div>'+
- '<div class="ttk-design-preview-two lower"><div><b></b><i></i><i></i></div><div><b></b><i></i><i></i></div></div>'+
- '<div class="ttk-design-preview-signatures">Разработал __________　 Утвердил __________</div>';
+ const isBlue=item.id==='premium-blue',isProcess=item.id==='process-matrix',isGold=item.id==='gold-allergen';
+ const top='<div class="ttk-mini-brand"><b>♛</b> FARRUH AI <em>Premium</em></div>'+
+  '<div class="ttk-mini-title">ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)</div>'+
+  '<div class="ttk-mini-name">Филадельфия классик <span>№ 001</span></div>';
+ const meta='<div class="ttk-mini-meta"><span>270 г · 8 шт.</span><span>15.11.2026</span></div>';
+ const section=(title,body)=>'<div class="ttk-mini-section"><b>'+title+'</b><div>'+body+'</div></div>';
+ const tinyRows=row(4);
+ const table=section('РЕЦЕПТУРА','<div class="ttk-mini-table">'+tinyRows+'<strong>Выход: 270 г</strong></div>');
+ const checks=section(isGold?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
+  '<div class="ttk-mini-checks"><span>Рыба <strong>✓</strong></span><span>Молоко <strong>✓</strong></span><span>Глютен <i>□</i></span><span>Соя <i>□</i></span></div>');
+ const process=section('ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',
+  '<div class="'+(isProcess?'ttk-mini-flow':'ttk-mini-steps')+'">'+
+  ['Подготовка','Формовка','Сборка','Подача'].map((x,i)=>'<span><b>'+(i+1)+'</b>'+x+'</span>').join('')+'</div>');
+ const nutrition=section('КБЖУ','<div class="ttk-mini-nutrients">'+row(3)+'</div>');
+ const upper=isBlue?'<div class="ttk-mini-duo">'+table+nutrition+'</div>'+section('АЛЛЕРГЕНЫ', '<div class="ttk-mini-alert">⚠  РЫБА · МОЛОКО  ✓</div>'):
+ '<div class="ttk-mini-duo">'+table+checks+'</div>';
+ page.innerHTML=top+meta+upper+process+
+  '<div class="ttk-mini-duo lower">'+section('КАЧЕСТВО',tinyRows)+section('УСЛОВИЯ',row(2))+'</div>'+
+  '<div class="ttk-mini-sign">Разработал ______　Утверждаю ______</div>';
  return page;
 }
 export function layoutCard(item,selected,onPick){
@@ -25,18 +42,16 @@ export function layoutCard(item,selected,onPick){
  b.type='button';b.dataset.ttkLayout=item.id;b.setAttribute('aria-pressed',String(!!selected));
  const picture=layoutPreview(item);const info=el('span','ttk-design-info');
  info.append(el('strong','',item.name),el('small','',item.subtitle),el('em','',selected?'✓ Выбран':'Выбрать оформление'));
- b.append(picture,info);
- b.addEventListener('click',()=>onPick(item.id));
+ b.append(picture,info);b.addEventListener('click',()=>onPick(item.id));
  return b;
 }
 export function mountTtkDesignPicker(editor,{onChange=()=>{}}={}){
  if(!editor)throw Error('Не найден редактор ТТК');
- const panel=el('section','ttk-design-picker');
- panel.id='ttk-design-picker';panel.append(el('h3','','Шаблон оформления · A4'));
- panel.append(el('p','ttk-design-help','Выбери один из двух утверждённых дизайнов. Состав, КБЖУ и технология не меняются. Печатный лист А4 без фотографии.'));
+ const panel=el('section','ttk-design-picker');panel.id='ttk-design-picker';
+ panel.append(el('h3','','Шаблон оформления · А4'));
+ panel.append(el('p','ttk-design-help','Четыре варианта Premium с матрицей аллергенов и галочками. Состав, расчёты и технология не меняются. Аллергены необходимо сверять с этикетками.'));
  const grid=el('div','ttk-design-grid');panel.append(grid);
- const tools=editor.querySelector('.lx-editor-extras')||editor.querySelector('.editor-modes')||editor.firstElementChild;
- tools?.after(panel);
+ const tools=editor.querySelector('.lx-editor-extras')||editor.querySelector('.editor-modes')||editor.firstElementChild;tools?.after(panel);
  let chosen=TTK_DEFAULT_LAYOUT;
  function select(id,{notify=true}={}){
   chosen=ttkLayoutId(id);
