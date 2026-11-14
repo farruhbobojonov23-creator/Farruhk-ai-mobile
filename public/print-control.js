@@ -426,7 +426,9 @@ export function mountPrintControl({root}){
    if(!p.template)controls.append(btn(p.homeCover===true?'★ Обложка':'☆ На главную','pc-edit pc-cover-btn'+(p.homeCover===true?' active':''),()=>setHomeCover(p)));
    if(!p.template)controls.append(btn('Фото','pc-edit pc-photo-btn',()=>{edit(p);photoPick.focus()}));
    if(!p.template)controls.append(btn('Изменить','pc-edit',()=>edit(p)));
-   controls.append(btn('×','pc-remove',()=>remove(p)));
+   const deleteButton=btn('Удалить','pc-remove',()=>remove(p));
+   deleteButton.setAttribute('aria-label','Удалить этикетку «'+p.name+'»');
+   controls.append(deleteButton);
    row.append(pic,desc,controls);table.append(row);
   }
  }
