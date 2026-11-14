@@ -80,6 +80,7 @@ async function auditRoyal(page,tag,mobile,errors){
   },v);
   await page.waitForFunction(route=>document.body.dataset.view===route,v,{timeout:12000});
   if(v==='print-control')await page.locator('#print-control .pc-hero').waitFor({state:'visible',timeout:14000});
+  if(v==='lab')await page.locator('#lab .haccp-journal-card').first().waitFor({state:'visible',timeout:15000});
   const view=await page.evaluate(route=>{
    const target=document.getElementById(route);
    const header=document.querySelector('.aurora-top');
@@ -287,7 +288,7 @@ async function run(theme,width,height){
    console.log('TTK_NAV_EXTRA='+JSON.stringify(extraNavDebug));
 
    const navLabels=await page.locator('.mobile-tools.lx-ref-bottom button').allTextContents();
-   const expectedLabels=['Кабинет шефа','Проекты','Техкарты','Полуфабрикаты','Маркировка','Ещё'];
+   const expectedLabels=['Главная','Проекты','ТТК','Заготовки','Маркировка','Ещё'];
    check(tag+' bottom navigation has no duplicated captions',
      navLabels.length===expectedLabels.length&&navLabels.every((s,i)=>s.trim()===expectedLabels[i]),navLabels);
    const refVisual=await page.evaluate(()=>{
