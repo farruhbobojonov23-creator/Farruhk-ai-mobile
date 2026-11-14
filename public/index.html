@@ -106,7 +106,7 @@ import {filterCatalog} from '/recipe-catalog.js?v=3';
 import {categoriesFor} from '/category-model.js';
 import {showProductPhoto} from '/product-photo.js?v=3';
 import {mountCategoryManager} from '/category-manager.js?v=owner-3';
-import {mountGoogleSync} from '/recipe-google.js?v=10';
+import {mountGoogleSync} from '/recipe-google.js?v=11';
 import {createDataCenter} from '/data-center.js?v=1';
 import {mountGoogleDriveBackup} from '/google-backup.js?v=5';
 import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=4';
@@ -654,6 +654,10 @@ const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:n
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog:dataCenter.dialog,buttonRoot:dataCenter.backupRoot,importData:importDeviceData,downloadFile});
 deviceCloudSync=mountDeviceCloudSync({store:deviceStore,getState:()=>state,onState:next=>{state=next;render()},settingsDialog:dataCenter.dialog,panelRoot:dataCenter.deviceRoot,notify:notice,downloadFile});
 dataCenter.bind({googleSync,googleDriveBackup,deviceCloudSync});
+document.addEventListener('farruh:google-ttk-status-changed',()=>{
+ if(view==='recipes')render();
+ if(dataCenter.dialog.open)dataCenter.refresh();
+});
 const syncQuickButton=document.createElement('button');
 syncQuickButton.type='button';syncQuickButton.id='sync-quick-access';
 syncQuickButton.setAttribute('aria-label','Мои данные: Google, копии и синхронизация');
