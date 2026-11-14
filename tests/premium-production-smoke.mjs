@@ -130,6 +130,8 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
+   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    const editAppearance=await page.evaluate(()=>{
      const e=document.querySelector('#editor.ttk-studio-enabled'),p=e?.querySelector('.ttk-paper');
      return {mode:e?.dataset.mode,background:e&&getComputedStyle(e).backgroundImage,
