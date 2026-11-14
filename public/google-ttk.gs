@@ -73,7 +73,7 @@ function formatBody(body, packet) {
  addTable(body,[['Блюдо',String(r.name),'Дата',String(r.cardDate||'—')],['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')],['Статус','Рецептура готова','Количество',r.pieces?String(r.pieces)+' шт.':'—']],false,545);
  const top=body.appendTable([['','']]);top.setBorderColor('#D9B7A3').setBorderWidth(0);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(top.getCell(0,0),sections[0],265);addSection(top.getCell(0,1),sections[1],265);
- body.appendParagraph('');addSection(body,sections[2],545);
+ body.appendParagraph('');addCompactRecipeSection(body,sections[2],545);
  addSection(body,sections[3],545);
  const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(0);lower.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(lower.getCell(0,0),sections[4],265);addSection(lower.getCell(0,1),['6. Показатели качества',sections[5][1].filter(row=>row[0]!=='Безопасность')],265);
@@ -83,6 +83,31 @@ function formatBody(body, packet) {
  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
  compactCardBody(body);
 }
+/** The editable Google Doc uses the same compact multicolumn arrangement
+ * as the canonical PDF. Each ingredient is retained; no row is truncated. */
+function addCompactRecipeSection(parent,section,width){
+ const rows=section[1],items=rows.slice(1,-1);
+ const count=items.length,columns=count>65?4:count>46?3:count>18?2:1;
+ if(columns===1){addSection(parent,section,width);return}
+ const band=parent.appendTable([[String(section[0])]]);
+ band.setColumnWidth(0,width).setBorderWidth(0);
+ band.getCell(0,0).setBackgroundColor('#651D2C');
+ band.getCell(0,0).editAsText().setForegroundColor('#FFF8F1').setBold(true);
+ const grid=parent.appendTable([Array(columns).fill('')]);
+ grid.setBorderWidth(0).setBorderColor('#FFF1E5');
+ const gap=5,columnWidth=(width-gap*(columns-1))/columns;
+ const perColumn=Math.ceil(count/columns);
+ for(let i=0;i<columns;i++){
+  const cell=grid.getCell(0,i);
+  cell.setBackgroundColor('#FFF1E5').setPaddingTop(0).setPaddingBottom(0).setPaddingLeft(1).setPaddingRight(1);
+  grid.setColumnWidth(i,columnWidth+gap);
+  const group=items.slice(i*perColumn,(i+1)*perColumn);
+  if(group.length)addTable(cell,[rows[0],...group],true,columnWidth);
+ }
+ addTable(parent,[rows[rows.length-1]],false,width);
+ parent.appendParagraph('');
+}
+
 function addSection(parent,section,width){
  const band=parent.appendTable([[String(section[0])]]);band.setColumnWidth(0,width);band.setBorderWidth(0);band.getCell(0,0).setBackgroundColor('#651D2C');band.getCell(0,0).editAsText().setForegroundColor('#FFF8F1').setBold(true);
  addTable(parent,section[1],section[1][0].length>1,width);parent.appendParagraph('');
