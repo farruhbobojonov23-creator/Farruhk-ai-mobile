@@ -136,6 +136,16 @@ const filters=document.createElement('div');filters.className='catalog-filters';
 const safely=fn=>{try{return Promise.resolve(fn()).catch(error=>notice(error?.message||String(error),true))}catch(error){notice(error?.message||String(error),true)}};
 const luxuryUI=mountLuxuryUI({
  onRefresh:()=>render(),
+ onOpenCloud:()=>dataCenter.open(),
+ googleDeliveryStatus:recipe=>{
+  if(recipe.status!=='ready')return '🟡 Google: только для готовых ТТК';
+  const cfg=state?.googleSync,del=state?.googleDelivery?.[recipe.id];
+  if(!cfg?.enabled||!cfg?.endpoint||!cfg?.key)return '⚪ Google: не подключено';
+  if(del?.error)return '🔴 Google: ошибка отправки';
+  const synced=Date.parse(del?.syncedAt||'')||0,updated=Date.parse(recipe.updatedAt||'')||0;
+  if(del?.pdfUrl&&del?.url&&del.layoutVersion==='a4-pdf-1'&&del.projectId===(recipe.projectId||'')&&synced>=updated)return '🟢 Google: сохранено';
+  return '🟡 Google: ожидает отправки';
+ },
  onOpenProjects:()=>{const dlg=document.getElementById('pf-project-dialog');if(dlg&&!dlg.open)dlg.showModal();else if(!dlg)show('home')},
  onMore:()=>document.getElementById('menu-toggle')?.click(),
  onNavigate:destination=>show(destination),
