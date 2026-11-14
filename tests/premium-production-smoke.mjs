@@ -176,7 +176,14 @@ async function auditRoyal(page,tag,mobile,errors){
    await page.locator('#recipe-status').selectOption('ready');
    const sample=[['сыр творожный','50'],['лосось','50'],['терияки соус','50'],['рис готовый','120']];
    for(let i=0;i<sample.length;i++){
-     if(i)await page.locator('#addingredient').click();
+     if(i){
+       const count=await page.evaluate(()=>{
+         document.querySelector('#addingredient').click();
+         return document.querySelectorAll('#ingredients .ingredient').length;
+       });
+       check(tag+' add ingredient '+i+' creates a row',count===i+1,{count,i});
+       if(count!==i+1)throw new Error('No new ingredient after add: '+JSON.stringify({count,i,errors}));
+     }
      const row=page.locator('#ingredients .ingredient').nth(i);
      await row.locator('[data-key="name"]').fill(sample[i][0]);
      await row.locator('[data-key="grams"]').fill(sample[i][1]);
@@ -193,6 +200,9 @@ async function auditRoyal(page,tag,mobile,errors){
      return {rows:rows.length,gross:rows.map(e=>e.querySelector('[data-key="grossGrams"]').value),
       deleteSize:rows[0].querySelector('button').getBoundingClientRect().height,
       inputBg:getComputedStyle(rows[0].querySelector('[data-key="grams"]')).backgroundColor,
+      inputRuleMatch:rows[0].querySelector('[data-key="grams"]').matches('html body.lx-pro[data-pf-theme="royal"] #editor.ttk-studio-enabled[data-mode="form"] #ingredients .ingredient input'),
+      theme:document.body.dataset.pfTheme,luxury:document.body.classList.contains('lx-pro'),
+      stylesheet:[...document.styleSheets].filter(x=>x.href?.includes('ttk-royal-approved-ui')).map(x=>({href:x.href,rules:x.cssRules?.length})),
       table:table&&getComputedStyle(table).display,
       totals:totals?.querySelector('[data-total="net"]')?.textContent};
    });
