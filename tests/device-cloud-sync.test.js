@@ -88,7 +88,7 @@ test('sync has visible entry, deep link opens panel without silently enabling wr
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  const client=readFileSync(new URL('../public/device-cloud-sync.js',import.meta.url),'utf8');
  assert.match(html,/sync-quick-access/);
- assert.match(html,/deviceCloudSync\.open\(\)/);
+ assert.match(html,/deviceCloudSync\?\.open\(\)/);
  assert.match(html,/new URLSearchParams\(location\.search\)\.get\('sync'\)==='1'/);
  assert.match(client,/node\.id='device-cloud-sync-settings'/);
  assert.match(client,/node\.open=true/);
@@ -96,7 +96,7 @@ test('sync has visible entry, deep link opens panel without silently enabling wr
  assert.doesNotMatch(client,/const open=[\s\S]*localStorage\.setItem\(ENABLED_KEY/);
 });
 
-test('Premium TTK button is outside the hero and Settings exposes visible cloud sync',async()=>{
+test('Premium TTK uses one data hub beside project management',async()=>{
  const {readFileSync}=await import('node:fs');
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  const settings=readFileSync(new URL('../public/site-settings.js',import.meta.url),'utf8');
@@ -104,9 +104,10 @@ test('Premium TTK button is outside the hero and Settings exposes visible cloud 
  assert.match(luxury,/hero\?\.append\(lead\)/,'Premium layout moves the subtitle into the hero');
  assert.match(html,/projectManageButton\.before\(syncQuickButton\)/,'Place cloud sync next to project management tools');
  assert.doesNotMatch(html,/document\.querySelector\('#recipes \.section-subtitle'\)\?\.after\(syncQuickButton\)/);
- assert.match(settings,/button\('☁️ Синхронизация телефона и планшета'/);
- assert.match(settings,/#device-cloud-sync-settings/);
- assert.match(html,/site-settings\.js\?v=8/,'PWA must load the updated Settings component');
+ assert.match(settings,/button\('☁️ Мои данные · Google и резервные копии'/);
+ assert.doesNotMatch(settings,/button\('☁️ Синхронизация телефона и планшета'/);
+ assert.match(html,/syncQuickButton\.onclick=\(\)=>dataCenter\.open\(\)/);
+ assert.match(html,/site-settings\.js\?v=9/,'PWA must load the updated Settings component');
 });
 
 test('Compact sync chip never expands into a tall narrow tile on mobile',async()=>{
@@ -114,7 +115,7 @@ test('Compact sync chip never expands into a tall narrow tile on mobile',async()
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  const css=readFileSync(new URL('../public/device-sync-compact.css',import.meta.url),'utf8');
  assert.match(html,/device-sync-compact\.css\?v=1/);
- assert.match(html,/class="sync-quick-label">Синхронизация<\/span>/);
+ assert.match(html,/class="sync-quick-label">Мои данные<\/span>/);
  assert.match(html,/projectManageButton\.before\(syncQuickButton\)/);
  assert.doesNotMatch(html,/syncQuickButton\.style\.cssText=/);
  assert.match(css,/width:max-content!important/);

@@ -24,7 +24,7 @@ export function explainBackupEndpoint(value){
   return 'Здесь нужен URL веб-приложения Google Apps Script вида https://script.google.com/macros/s/…/exec. Ссылка на проект или папку не подходит.';
  return '';
 }
-export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDialog,importData,downloadFile}){
+export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDialog,importData,downloadFile,buttonRoot=null}){
  const dialog=document.createElement('dialog');
  dialog.className='category-dialog google-backup-dialog';
  dialog.setAttribute('aria-label','Резервные копии Google Диск');
@@ -47,8 +47,8 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
  const buttonSave=dialog.querySelector('[data-save]'),buttonList=dialog.querySelector('[data-list]');
  const status=dialog.querySelector('[data-status]'),files=dialog.querySelector('[data-files]');
  const buttonOpen=document.createElement('button');
- buttonOpen.type='button';buttonOpen.textContent='Google Диск · резервные копии';buttonOpen.className='google-backup-open';
- const toolsArea=document.getElementById('device-export')?.parentElement||settingsDialog;
+ buttonOpen.type='button';buttonOpen.textContent='Посмотреть копии и настроить Google Диск';buttonOpen.className='google-backup-open';
+ const toolsArea=buttonRoot||document.getElementById('device-export')?.parentElement||settingsDialog;
  toolsArea.append(buttonOpen);
  const config=()=>getState()?.googleBackup;
  let running=false,timer=null;
@@ -73,7 +73,7 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
   buttonSave.disabled=!c?.endpoint;
   buttonList.disabled=!c?.endpoint;
  }
- buttonOpen.onclick=()=>{refresh();settingsDialog.close();dialog.showModal()};
+ buttonOpen.onclick=()=>{refresh();if(!buttonRoot&&settingsDialog.open)settingsDialog.close();if(!dialog.open)dialog.showModal()};
  close.onclick=()=>dialog.close();
  form.onsubmit=async event=>{
   event.preventDefault();const submit=form.querySelector('button[type=submit]');submit.disabled=true;
@@ -128,6 +128,12 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
    const result=await request('list',c);
    respond('Найдено копий: '+result.items.length+'. Google хранит предыдущие файлы — они не удаляются автоматически.');
    if(!result.items.length)files.textContent='Резервных копий пока нет.';
+   // Show the five newest copies first; keep older files available
+   // behind a collapsed section instead of overwhelming a phone screen.
+   const older=document.createElement('details');older.className='google-backup-older';
+   const olderSummary=document.createElement('summary');olderSummary.textContent='Показать остальные '+Math.max(0,result.items.length-5)+' копий';
+   older.append(olderSummary);
+   let shown=0;
    for(const item of result.items){
     if(!/^[\w-]{15,130}$/.test(item.id))continue;
     const row=document.createElement('div');row.className='row';
@@ -160,8 +166,10 @@ export function mountGoogleDriveBackup({getState,store,onState,notify,settingsDi
      }catch(e){respond('Восстановление не выполнено: '+e.message,true)}
      finally{restore.disabled=false}
     };
-    row.append(label,dl,restore);files.append(row);
+    row.append(label,dl,restore);
+    if(shown++<5)files.append(row);else older.append(row);
    }
+   if(shown>5)files.append(older);
   }catch(e){respond('Не удалось получить список: '+e.message,true)}
   finally{buttonList.disabled=!config()?.endpoint}
  };

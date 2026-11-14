@@ -8,7 +8,7 @@ export function settingsState(raw={}){
  const home=sections.find(s=>s.id==='home');home.hidden=false;home.deleted=false;
  return {sections,brand:String(raw.brand||'FARRUH AI').slice(0,40),headline:String(raw.headline||'Будущее. В ваших руках.').slice(0,120),homeImage:typeof raw.homeImage==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(raw.homeImage)?raw.homeImage:'',subtitle:String(raw.subtitle||'Интеллект, который работает для вас.').slice(0,180),motion:raw.motion!==false,scale:[1,1.1,1.2].includes(raw.scale)?raw.scale:1};
 }
-export function mountSiteSettings({getState,save,show,titles,settingsDialog,notify}){
+export function mountSiteSettings({getState,save,show,titles,settingsDialog,notify,openDataCenter}){
  const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n};
  const root=el('section');root.id='site-settings';root.className='view';root.hidden=document.body.dataset.view!=='site-settings';document.querySelector('main > .glass').append(root);titles['site-settings']='Настройки';
  const style=el('style');style.textContent=`[data-config-hidden="true"]{display:none!important}#site-settings{max-width:1000px;margin:auto;padding:20px}#site-settings .settings-row{padding:16px;margin:12px 0;background:#ffffffa6;border:1px solid #c7d8e8;border-radius:18px}#site-settings .settings-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#site-settings input,#site-settings textarea{width:100%;box-sizing:border-box}#site-settings button{min-height:44px}body.config-still *,body.config-still *::before,body.config-still *::after{animation:none!important;transition:none!important}#home.arctic-home .home-shortcuts{grid-template-columns:repeat(5,minmax(0,1fr))!important}#home.arctic-home .home-shortcuts button{min-width:0!important;font-size:11px!important}@media(max-width:420px){#home.arctic-home .home-shortcuts{gap:5px!important}#home.arctic-home .home-shortcuts button{padding:8px 3px!important}}`;
@@ -76,12 +76,9 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
  }
  function input(parent,label,value,type='text'){const l=el('label',label),i=el(type==='textarea'?'textarea':'input');if(type!=='textarea')i.type=type;i.value=value;l.append(i);parent.append(l);return i}
  function render(force=false){if(!getState())return;const c=config(),serial=JSON.stringify(c),view=document.body.dataset.view;if(serial!==lastConfig){apply(c);lastConfig=serial}if(view!=='site-settings'){lastView=view;return}if(!force&&lastView===view&&draft)return;lastView=view;draft=structuredClone(c);root.replaceChildren(el('h1','Настройки'),el('p','Управляй разделами, главной страницей и данными. Изменения сохраняются на этом устройстве.'));
-  const top=el('div');top.className='settings-actions';root.append(top);button('☁️ Синхронизация телефона и планшета',()=>{
-    if(!settingsDialog.open)settingsDialog.showModal();
-    const panel=settingsDialog.querySelector('#device-cloud-sync-settings');
-    if(panel){panel.open=true;panel.scrollIntoView({block:'start',behavior:'auto'});}
-   },top);
-   button('Голос, Google и резервные копии',()=>settingsDialog.showModal(),top);
+  const top=el('div');top.className='settings-actions';root.append(top);
+  button('☁️ Мои данные · Google и резервные копии',()=>openDataCenter?.(),top);
+  button('Голос и другие настройки',()=>settingsDialog.showModal(),top);
   const appearance=el('details');appearance.className='settings-row pf-settings-section';appearance.append(el('summary','Название, подписи и базовое оформление'));
   const brand=input(appearance,'Название в меню',draft.brand);brand.maxLength=40;
   const motion=el('label',' Анимация и эффекты '),check=el('input');check.type='checkbox';check.checked=draft.motion;check.style.width='auto';motion.prepend(check);appearance.append(motion);
