@@ -117,7 +117,7 @@ async function auditRoyal(page,tag,mobile,errors){
     const source=root.querySelector('.pc-normative-notice');
     return {catalog:!!root,buttons:buttons.length,minHeights,notice:!!source};
    });
-   check(tag+' PRINT catalog and normative safety notice',metrics.catalog&&metrics.notice,metrics);
+   check(tag+' PRINT catalog, a sample row and normative safety notice',metrics.catalog&&metrics.notice&&metrics.buttons>=4,metrics);
    if(mobile&&metrics.buttons.length)check(tag+' PRINT row actions have >=44px taps',metrics.minHeights.every(h=>h>=43),metrics);
   }
   if(v==='site-settings'){
@@ -135,7 +135,7 @@ async function run(theme,width,height){
  const page=await ctx.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.dismiss());
- await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-approved-royal-premium-20261114','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}))},theme);
+ await page.addInitScript(t=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-approved-royal-premium-20261114','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:t,density:'standard',radius:20,scale:1,motion:false}));if(t==='royal')localStorage.setItem('farukh-print:catalog:v1',JSON.stringify([{id:'qa-prep-only',kind:'prep',name:'Капуста — QA образец',storage:'+2…+6 °C',hours:12,needsReview:false,prepCategory:'Овощи'}]))},theme);
  const before=Date.now();
  try{
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
