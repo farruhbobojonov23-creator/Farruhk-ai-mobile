@@ -130,6 +130,16 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
+     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>140})));
+   check(tag+' My TTK editor offers exactly four new Premium allergen templates',
+     layouts.length===4&&layouts.every(x=>x.visible)&&
+     layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
+   await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
+   await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
+   await page.locator('#ttk-design-picker [data-ttk-layout="gold-allergen"]').click();
+   check(tag+' Gold Allergen selection persists in live editor',
+     (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    const editAppearance=await page.evaluate(()=>{
@@ -189,6 +199,15 @@ async function auditRoyal(page,tag,mobile,errors){
      await row.locator('[data-key="name"]').fill(sample[i][0]);
      await row.locator('[data-key="grams"]').fill(sample[i][1]);
    }
+   const matrix=await page.evaluate(()=>{
+     const entries=[...document.querySelectorAll('#editor .ttk-allergen-entry')];
+     const row=label=>entries.find(e=>e.textContent.includes(label));
+     return {count:entries.length,fish:row('Рыба')?.querySelector('strong')?.textContent,
+       milk:row('Молоко')?.querySelector('strong')?.textContent,
+       soy:row('Соя')?.querySelector('strong')?.textContent};
+   });
+   check(tag+' live allergen matrix checks fish and dairy, warns for sauces',
+      matrix.count===8&&matrix.fish==='✓'&&matrix.milk==='✓'&&matrix.soy==='?',matrix);
    await page.locator('#card-chef').fill('Фаррух');
    await page.locator('#card-approver').fill('Бободжонов');
    await page.evaluate(()=>{const input=document.getElementById('nutrition-auto');input.checked=false;input.dispatchEvent(new Event('change',{bubbles:true}))});
