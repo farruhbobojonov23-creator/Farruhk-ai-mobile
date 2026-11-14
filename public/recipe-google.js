@@ -1,6 +1,7 @@
 import {readyArchive,recipeDigest} from './recipe-release.js';
 const PROJECT_CATALOG_KEY='farruh-ai-project-catalog-v1';
 const PROJECT_FILTER_KEY='farruh-ai-ttk-project-filter-v2';
+const A4_PDF_VERSION='a4-pdf-1';
 function linkedProjects(state){
  let saved;
  try{saved=JSON.parse(localStorage.getItem(PROJECT_CATALOG_KEY)||'null')?.projects}catch{}
@@ -25,7 +26,7 @@ export function mountGoogleSync({getState,store,onState,notify}){
  backupTools.append(backupTitle,summary);recipesView.append(backupTools);
  const dialog=document.createElement('dialog');dialog.className='category-dialog';dialog.setAttribute('aria-label','Автосохранение готовых ТТК');dialog.innerHTML='<div class="bar"><h2>Автосохранение готовых ТТК</h2><button data-close type="button">✕</button></div><p>Только готовые ТТК отправляются в Google. Изменения обновляют ту же вкладку, без дублей. Возврат в разработку сохраняет последнюю готовую версию.</p><p><a href="/google-ttk-setup.html" target="_blank" rel="noopener">Как один раз подключить Google</a></p><form><label>Адрес подключения Google<input name="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" required></label><div class="bar"><button data-copy-endpoint type="button">📋 Скопировать ссылку</button></div><label>Ключ подключения<input name="key" type="password" minlength="24" autocomplete="off" required></label><div class="bar"><button data-toggle-key type="button">Показать ключ</button><button data-copy-key type="button">📋 Скопировать ключ</button></div><p class="small">Адрес и ключ сохраняются в этом браузере. Ключ можно скопировать для повторного подключения, не показывая его на экране. Никому не передавайте ключ.</p><label><input name="enabled" type="checkbox" style="width:auto" checked> Автоматически сохранять готовые ТТК</label><div class="bar"><button class="primary" type="submit">Проверить и подключить</button><button data-disable type="button">Отключить</button></div></form><p data-result role="status"></p>';document.body.append(dialog);
  const archiveDialog=document.createElement('dialog');archiveDialog.className='category-dialog';archiveDialog.setAttribute('aria-label','Последние готовые версии ТТК');document.body.append(archiveDialog);
- archiveButton.onclick=()=>{archiveDialog.innerHTML='<div class="bar"><h2>Последние готовые версии</h2><button type="button">✕</button></div><p>Здесь остаётся последняя сохранённая готовая версия каждой ТТК, даже после возврата в разработку.</p>';archiveDialog.querySelector('button').onclick=()=>archiveDialog.close();const recipes=readyArchive(getState()||{});if(!recipes.length){const empty=document.createElement('p');empty.textContent='Готовых ТТК пока нет.';archiveDialog.append(empty)}for(const recipe of recipes){const row=document.createElement('div');row.className='row';const label=document.createElement('span');label.textContent=recipe.name+' · '+recipe.category;const download=document.createElement('button');download.type='button';download.textContent='Скачать Word';download.onclick=async()=>{download.disabled=true;try{const response=await fetch('/api/recipes/word',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe})});if(!response.ok)throw Error('Не удалось подготовить Word.');const url=URL.createObjectURL(await response.blob()),link=document.createElement('a');link.href=url;link.download='ТТК_'+recipe.name+'.docx';link.click();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(e){notify(e.message,true)}finally{download.disabled=false}};row.append(label,download);archiveDialog.append(row)}archiveDialog.showModal()};
+ archiveButton.onclick=()=>{archiveDialog.innerHTML='<div class="bar"><h2>Последние готовые версии</h2><button type="button">✕</button></div><p>Здесь остаётся последняя сохранённая готовая версия каждой ТТК, даже после возврата в разработку.</p>';archiveDialog.querySelector('button').onclick=()=>archiveDialog.close();const recipes=readyArchive(getState()||{});if(!recipes.length){const empty=document.createElement('p');empty.textContent='Готовых ТТК пока нет.';archiveDialog.append(empty)}for(const recipe of recipes){const row=document.createElement('div');row.className='row';const label=document.createElement('span');label.textContent=recipe.name+' · '+recipe.category;const download=document.createElement('button');download.type='button';download.textContent='Скачать Word';download.onclick=async()=>{download.disabled=true;try{const response=await fetch('/api/recipes/word',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe})});if(!response.ok)throw Error('Не удалось подготовить Word.');const url=URL.createObjectURL(await response.blob()),link=document.createElement('a');link.href=url;link.download='ТТК_'+recipe.name+'.docx';link.click();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(e){notify(e.message,true)}finally{download.disabled=false}};row.append(label,download);const stored=getState()?.googleDelivery?.[recipe.id];if(stored?.pdfUrl&&stored.layoutVersion===A4_PDF_VERSION){try{const u=new URL(stored.pdfUrl);if(u.protocol==='https:'&&(u.hostname==='drive.google.com'||u.hostname==='docs.google.com')){const a=document.createElement('a');a.href=u.href;a.target='_blank';a.rel='noopener';a.textContent='PDF А4 · Google';row.append(a)}}catch{}}archiveDialog.append(row)}archiveDialog.showModal()};
  const form=dialog.querySelector('form'),result=dialog.querySelector('[data-result]');dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{settingsOpen=false;form.elements.key.type='password';dialog.querySelector('[data-toggle-key]').textContent='Показать ключ'});
  const copySetting=async(name,label)=>{const value=String(form.elements[name].value||'').trim();if(!value){result.textContent=label+' ещё не указан.';return}try{await navigator.clipboard.writeText(value);result.textContent=label+' скопирован'+(name==='endpoint'?'а':'')+'.'}catch{result.textContent='Не удалось автоматически скопировать. Выделите значение в поле и скопируйте вручную.'}};
  dialog.querySelector('[data-copy-endpoint]').onclick=()=>copySetting('endpoint','Ссылка');
@@ -59,12 +60,12 @@ export function mountGoogleSync({getState,store,onState,notify}){
    const digests=await Promise.all(recipes.map(recipeDigest));
    if(getState()!==s||running)return;
    const deliveries=recipes.map(r=>s.googleDelivery?.[r.id]);
-   const confirmed=deliveries.filter((d,i)=>d?.digest===digests[i]&&d?.layoutVersion==='burgundy-1'&&!d.error).length;
+   const confirmed=deliveries.filter((d,i)=>d?.digest===digests[i]&&d?.layoutVersion===A4_PDF_VERSION&&!d.error).length;
    const pending=count-confirmed;
    const failed=deliveries.filter(d=>d?.error);
    retryButton.hidden=!pending;
-   if(!pending){status.textContent='✅ Google: сохранено '+confirmed+' из '+count+' готовых ТТК';return}
-   status.textContent='Google: ожидают отправки '+pending+' из '+count+' готовых ТТК.';
+   if(!pending){status.textContent='✅ Google: '+confirmed+' из '+count+' ТТК сохранены вместе с PDF А4 (1 лист)';return}
+   status.textContent='Google: ожидают PDF А4 '+pending+' из '+count+' готовых ТТК.';
    if(failed.length){
     const error=failed[failed.length-1];
     const name=recipes.find(r=>s.googleDelivery?.[r.id]===error)?.name||'ТТК';
@@ -107,14 +108,15 @@ export function mountGoogleSync({getState,store,onState,notify}){
     if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint||getState().googleSync.key!==config.key)break;
     const digest=await recipeDigest(recipe);
     const previous=getState().googleDelivery?.[recipe.id];
-    if(previous?.digest===digest&&previous?.layoutVersion==='burgundy-1'&&!previous.error)continue;
+    if(previous?.digest===digest&&previous?.layoutVersion===A4_PDF_VERSION&&!previous.error)continue;
     try{
      const name=linkedProjects(getState()).find(x=>x.id===(recipe.projectId||'general'))?.name||recipe.projectName||'Без проекта';
      const response=await post({...config,action:'sync',recipe,digest,projectId:recipe.projectId||'',projectName:name});
+     if(!response.pdfReady||!response.pdfUrl)throw Error('Google Документы обновлены, но одностраничный PDF A4 ещё не подтверждён. Обновите опубликованный Apps Script.');
      await mutate(s=>{
       if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
       s.googleDelivery??={};
-      s.googleDelivery[recipe.id]={digest,layoutVersion:'burgundy-1',projectId:recipe.projectId||'',url:response.documentUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
+      s.googleDelivery[recipe.id]={digest,layoutVersion:A4_PDF_VERSION,projectId:recipe.projectId||'',url:response.documentUrl,pdfUrl:response.pdfUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
      });
     }catch(e){
      failures++;

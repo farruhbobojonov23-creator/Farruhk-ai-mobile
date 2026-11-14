@@ -216,6 +216,35 @@ export function templateFor(category,pieces=8){
   safety:rollTemplate.safety+' '+categorySafetyChecks[category]
  };
 }
+/** Build product-specific editable field suggestions from the actual recipe.
+ * No inferred heating temperatures, holding periods or allergen certifications:
+ * generic HACCP instructions remain in the category template until confirmed. */
+export function individualRecipeFields(recipe={}){
+ const category=String(recipe.category||'Холодные роллы');
+ const pieces=Math.max(1,Math.trunc(Number(recipe.pieces)||8));
+ const base=templateFor(category,pieces);
+ const name=String(recipe.name||'').trim();
+ const raw=Array.isArray(recipe.ingredients)?recipe.ingredients:[];
+ const names=[...new Set(raw.map(i=>String(i?.name||'').trim()).filter(Boolean))];
+ const shown=names.slice(0,7);
+ const composition=shown.join(', ')+(names.length>shown.length?' и ещё '+(names.length-shown.length)+' ингредиентов':'');
+ const title=name?'«'+name+'»':'данного блюда';
+ const ingredients=composition||'компоненты из рецептуры';
+ const amount=Number(recipe.netYieldGrams)>0?' Выход по рецептуре: '+Number(recipe.netYieldGrams).toLocaleString('ru-RU')+' г.':'';
+ return {
+  ...base,
+  scope:scopeForName(base.scope,name),
+  rawRequirements:base.rawRequirements+' Для '+title+' до начала работы сверяют маркировку и пригодность позиций рецептуры: '+ingredients+'.',
+  preparation:base.preparation+' Для '+title+' отдельно подготовить компоненты: '+ingredients+'. Массу каждого компонента взять из строки рецептуры.',
+  forming:base.forming+' При формовке '+title+' распределить указанную в таблице рецептуры начинку: '+ingredients+'.',
+  serving:base.serving+' Подача '+title+' — '+pieces+' шт. по указанному выходу.'+amount,
+  storage:base.storage+' Для '+title+' режим и срок подтверждаются действующей утверждённой картой предприятия.',
+  appearance:base.appearance+' Контроль '+title+': все компоненты из рецептуры присутствуют, без повреждений и посторонних включений.',
+  taste:base.taste+' У '+title+' органолептические характеристики сверяют с утверждённым образцом; отклонения фиксируют.',
+  safety:base.safety+' Для '+title+' отдельно проверяют технологические условия и документы на используемые компоненты: '+ingredients+'.'
+ };
+}
+
 export const categoryTextFields=['rawRequirements','preparation','forming','serving','storage','appearance','taste','safety'];
 // Upgrade known default text only. User-written descriptions remain intact.
 export function resolveCategoryFields(recipe){

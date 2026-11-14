@@ -1,4 +1,5 @@
 import {recipeWord,recipeSections} from './recipe-word.js';
+import {recipePdf} from './recipe-pdf.js';
 import {cleanState} from './assistant-store.js';
 export function validGoogleEndpoint(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(u.pathname)}catch{return false}}
 export function installRecipeExportApi(app,{request=fetch}={}){
@@ -14,13 +15,30 @@ export function installRecipeExportApi(app,{request=fetch}={}){
    const projectName=String(req.body?.projectName||recipe?.projectName||'').trim().slice(0,120);
    if(recipe&&recipe.status!=='ready')return res.status(400).json({error:'В Google передаются только готовые ТТК.'});
    if(recipe&&!/^[a-f0-9]{64}$/.test(digest||''))return res.status(400).json({error:'Неверная версия ТТК.'});
-   const payload={key,action,digest,projectId,projectName,...(recipe?recipeSections(recipe):{})};
+   // The PDF is the canonical one-page A4 print version. Google Docs
+   // pagination is editor-dependent, so retain a real PDF next to each tab.
+   let pdfBase64;
+   if(recipe){
+    const doc=recipePdf(recipe);
+    const chunks=[];
+    const bytes=await new Promise((resolve,reject)=>{
+     doc.on('data',b=>chunks.push(b));
+     doc.on('error',reject);
+     doc.on('end',()=>resolve(Buffer.concat(chunks)));
+     doc.end();
+    });
+    if(bytes.length>3*1024*1024)throw Error('PDF ТТК превышает лимит синхронизации.');
+    pdfBase64=bytes.toString('base64');
+   }
+   const payload={key,action,digest,projectId,projectName,...(recipe?recipeSections(recipe):{}),...(pdfBase64?{pdfBase64,pdfPageCount:1}: {})};
    const response=await request(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(100000),redirect:'follow'});
    if(!response.ok)throw Error('Google временно недоступен. Сохранённая ТТК осталась на устройстве.');
    const result=await response.json();
    if(result.ok!==true)throw Error(result.error||'Google не подтвердил сохранение.');
    if(recipe&&(result.recipeId!==recipe.id||result.digest!==digest))throw Error('Google не подтвердил версию ТТК.');
-   res.json({ok:true,recipeId:result.recipeId,digest:result.digest,projectId:result.projectId,documentUrl:result.documentUrl,folderUrl:result.folderUrl,tabId:result.tabId});
+   res.json({ok:true,recipeId:result.recipeId,digest:result.digest,projectId:result.projectId,
+    documentUrl:result.documentUrl,folderUrl:result.folderUrl,tabId:result.tabId,
+    pdfUrl:result.pdfUrl||null,pdfReady:!!result.pdfUrl});
   }catch(e){res.status(502).json({error:e.message||'Не удалось записать ТТК в Google.'})}
  });
 }

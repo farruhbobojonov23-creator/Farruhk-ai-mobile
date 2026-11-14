@@ -61,7 +61,7 @@ function addTab(title, parentTabId,documentId=WORKING_DOCUMENT_ID) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]},documentId);
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
-const TTK_LAYOUT_VERSION = 'burgundy-4';
+const TTK_LAYOUT_VERSION = 'a4-pdf-1';
 function formatBody(body, packet) {
  const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
@@ -73,7 +73,7 @@ function formatBody(body, packet) {
  addTable(body,[['Блюдо',String(r.name),'Дата',String(r.cardDate||'—')],['Категория',String(r.category||'—'),'ТТК №',String(r.cardNumber||'—')],['Статус','Рецептура готова','Количество',r.pieces?String(r.pieces)+' шт.':'—']],false,545);
  const top=body.appendTable([['','']]);top.setBorderColor('#D9B7A3').setBorderWidth(0);top.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(top.getCell(0,0),sections[0],265);addSection(top.getCell(0,1),sections[1],265);
- body.appendParagraph('');addSection(body,sections[2],545);
+ body.appendParagraph('');addCompactRecipeSection(body,sections[2],545);
  addSection(body,sections[3],545);
  const lower=body.appendTable([['','']]);lower.setBorderColor('#D9B7A3').setBorderWidth(0);lower.setColumnWidth(0,272.5).setColumnWidth(1,272.5);
  addSection(lower.getCell(0,0),sections[4],265);addSection(lower.getCell(0,1),['6. Показатели качества',sections[5][1].filter(row=>row[0]!=='Безопасность')],265);
@@ -83,6 +83,31 @@ function formatBody(body, packet) {
  addTable(body,[['Разработал',String(r.chef||'—'),'Утверждаю',String(r.approver||'—')]],false,545);
  compactCardBody(body);
 }
+/** The editable Google Doc uses the same compact multicolumn arrangement
+ * as the canonical PDF. Each ingredient is retained; no row is truncated. */
+function addCompactRecipeSection(parent,section,width){
+ const rows=section[1],items=rows.slice(1,-1);
+ const count=items.length,columns=count>65?4:count>46?3:count>18?2:1;
+ if(columns===1){addSection(parent,section,width);return}
+ const band=parent.appendTable([[String(section[0])]]);
+ band.setColumnWidth(0,width).setBorderWidth(0);
+ band.getCell(0,0).setBackgroundColor('#651D2C');
+ band.getCell(0,0).editAsText().setForegroundColor('#FFF8F1').setBold(true);
+ const grid=parent.appendTable([Array(columns).fill('')]);
+ grid.setBorderWidth(0).setBorderColor('#FFF1E5');
+ const gap=5,columnWidth=(width-gap*(columns-1))/columns;
+ const perColumn=Math.ceil(count/columns);
+ for(let i=0;i<columns;i++){
+  const cell=grid.getCell(0,i);
+  cell.setBackgroundColor('#FFF1E5').setPaddingTop(0).setPaddingBottom(0).setPaddingLeft(1).setPaddingRight(1);
+  grid.setColumnWidth(i,columnWidth+gap);
+  const group=items.slice(i*perColumn,(i+1)*perColumn);
+  if(group.length)addTable(cell,[rows[0],...group],true,columnWidth);
+ }
+ addTable(parent,[rows[rows.length-1]],false,width);
+ parent.appendParagraph('');
+}
+
 function addSection(parent,section,width){
  const band=parent.appendTable([[String(section[0])]]);band.setColumnWidth(0,width);band.setBorderWidth(0);band.getCell(0,0).setBackgroundColor('#651D2C');band.getCell(0,0).editAsText().setForegroundColor('#FFF8F1').setBold(true);
  addTable(parent,section[1],section[1][0].length>1,width);parent.appendParagraph('');
@@ -95,6 +120,28 @@ function addTable(parent,rows,header,width){
  }
  return table;
 }
+/** Canonical one-page A4 copy alongside the editable Google Docs tab.
+ * The PDF bytes originate from the validated server-side one-page exporter;
+ * no information is dropped to force Google Docs' editor pagination. */
+function saveOnePagePdf(target,recipe,packet,previousPdfId){
+ const data=String(packet.pdfBase64||'');
+ if(packet.pdfPageCount!==1||data.length<20||data.length>4300000||!/^[A-Za-z0-9+/=]+$/.test(data))
+  throw Error('Не получен проверенный одностраничный PDF A4. Обновите сервер синхронизации.');
+ const bytes=Utilities.base64Decode(data);
+ if(bytes.length>3145728||bytes.length<100||String.fromCharCode.apply(null,bytes.slice(0,5))!=='%PDF-')
+  throw Error('Некорректный PDF A4');
+ const folder=DriveApp.getFolderById(target.folderId);
+ const found=folder.getFoldersByName('ТТК PDF A4');
+ const pdfFolder=found.hasNext()?found.next():folder.createFolder('ТТК PDF A4');
+ const safeName=String(recipe.name||'ТТК').replace(/[\\/\n\r:*?"<>|]/g,' ').trim().slice(0,85);
+ const filename='ТТК_'+safeName+'_'+String(recipe.id).slice(0,12)+'.pdf';
+ const file=pdfFolder.createFile(Utilities.newBlob(bytes,'application/pdf',filename));
+ if(previousPdfId&&previousPdfId!==file.getId()){
+  try{const old=DriveApp.getFileById(previousPdfId);if(!old.isTrashed())old.setTrashed(true)}catch(error){console.warn('Старый PDF остался: '+error)}
+ }
+ return {pdfFileId:file.getId(),pdfUrl:file.getUrl()};
+}
+
 function doPost(event) {
   let lock;
   try {
@@ -123,14 +170,36 @@ function doPost(event) {
       tabId=interrupted?interrupted.tabProperties.tabId:addTab(marker,parentId,documentId);
       properties.setProperty(recordKey,JSON.stringify({tabId,documentId}));
     }
-    if(previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||previous.documentId!==documentId){
+    const changed=previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||
+      previous.documentId!==documentId||!previous.pdfFileId;
+    if(changed){
       const document=DocumentApp.openById(documentId),body=document.getTab(tabId).asDocumentTab().getBody();
       formatBody(body,packet);document.saveAndClose();
       docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]},documentId);
       normalizeCardTextHighlights(tabId,documentId);
-      properties.setProperty(recordKey,JSON.stringify({tabId,documentId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION}));
+      // Keep the independent tab A4-sized even if the containing project has
+      // legacy default margins. The matching PDF above is always one page.
+      docsApi(':batchUpdate',{requests:[{updateDocumentStyle:{
+        tabId,documentStyle:{
+          pageSize:{width:{magnitude:595.28,unit:'PT'},height:{magnitude:841.89,unit:'PT'}},
+          marginTop:{magnitude:22,unit:'PT'},marginBottom:{magnitude:22,unit:'PT'},
+          marginLeft:{magnitude:25,unit:'PT'},marginRight:{magnitude:25,unit:'PT'}
+        },fields:'pageSize,marginTop,marginBottom,marginLeft,marginRight'
+      }}]},documentId);
+      // Only switch the recorded version after both Google Docs and the PDF
+      // have been durably created. Old PDFs survive any failed save attempt.
+      const pdf=saveOnePagePdf(target,r,packet,previous.pdfFileId);
+      properties.setProperty(recordKey,JSON.stringify({
+        tabId,documentId,digest:packet.digest,layoutVersion:TTK_LAYOUT_VERSION,...pdf
+      }));
+      previous.pdfFileId=pdf.pdfFileId;previous.pdfUrl=pdf.pdfUrl;
     }
-    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId});
+    let pdfUrl=previous.pdfUrl;
+    if(previous.pdfFileId&&!pdfUrl){
+      try{pdfUrl=DriveApp.getFileById(previous.pdfFileId).getUrl()}catch(e){}
+    }
+    return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,
+      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl});
   } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
