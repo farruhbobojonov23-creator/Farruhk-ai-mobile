@@ -77,7 +77,7 @@ async function auditRoyal(page,tag,mobile,errors){
    const e=document.querySelector('#pf-project-dialog'),b=e.getBoundingClientRect(),h=e.querySelector('.pf-modal-header h2')?.getBoundingClientRect();
    return {open:e.open,display:getComputedStyle(e).display,w:b.width,h:b.height,top:b.top,bottom:b.bottom,center:Math.abs((b.left+b.right)/2-innerWidth/2),heading:!!h&&h.height>10&&h.top>=0&&h.bottom<innerHeight};
  });
- check(tag+' Projects native modal visible and centered',pm.open&&pm.display==='flex'&&pm.w>270&&pm.h>220&&pm.top>=0&&pm.bottom<=innerHeight&&pm.center<12&&pm.heading,pm);
+ check(tag+' Projects native modal visible and centered',pm.open&&pm.display==='flex'&&pm.w>270&&pm.h>220&&pm.top>=0&&pm.bottom<=(page.viewportSize()?.height||900)&&pm.center<12&&pm.heading,pm);
  await page.screenshot({path:'artifacts/premium-'+tag+'-projects.png',timeout:12000});
  await page.locator('#pf-project-dialog .pf-modal-header button').click();
  check(tag+' Projects modal closes',!await page.locator('#pf-project-dialog').evaluate(e=>e.open),null);
