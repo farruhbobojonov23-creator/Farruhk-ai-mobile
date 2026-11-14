@@ -132,7 +132,7 @@ export function mountGoogleSync({getState,store,onState,notify,mountRoot=null}){
      if(failures>=4)break;
     }
    }
-  }finally{running=false;render()}
+  }finally{running=false;render();document.dispatchEvent(new Event('farruh:google-ttk-status-changed'))}
  }
  retryButton.onclick=()=>flush().catch(e=>notify('Google: '+e.message,true));
  function schedule(){
