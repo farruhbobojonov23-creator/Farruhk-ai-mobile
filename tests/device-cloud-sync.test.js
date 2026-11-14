@@ -88,7 +88,7 @@ test('sync has visible entry, deep link opens panel without silently enabling wr
  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  const client=readFileSync(new URL('../public/device-cloud-sync.js',import.meta.url),'utf8');
  assert.match(html,/sync-quick-access/);
- assert.match(html,/deviceCloudSync\.open\(\)/);
+ assert.match(html,/deviceCloudSync\?\.open\(\)/);
  assert.match(html,/new URLSearchParams\(location\.search\)\.get\('sync'\)==='1'/);
  assert.match(client,/node\.id='device-cloud-sync-settings'/);
  assert.match(client,/node\.open=true/);
