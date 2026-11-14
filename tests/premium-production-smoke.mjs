@@ -541,11 +541,11 @@ async function run(theme,width,height){
      galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>100,
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
-   check(tag+' 2 A4 layouts appear in TTK editor with current selection',
-     catalog.count===2&&catalog.selected==='arctic-a4'&&catalog.sheet==='arctic-a4'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
-   await page.locator('#ttk-design-picker [data-ttk-layout="royal-a4"]').click();
-   check(tag+' selecting Royal changes the live A4 paper',
-     await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='royal-a4'),null);
+   check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
+     catalog.count===4&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+   await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
+   check(tag+' selecting Premium Blue changes the live A4 paper',
+     await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
    if(theme==='crystal'&&mobile){
     // Upload/delete use the same photo handlers as the original editor.
     const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
@@ -567,7 +567,7 @@ async function run(theme,width,height){
     const req=await pdfRequest;
     const draft=JSON.parse(req.postData()).recipe;
     check(tag+' preview sends unsaved Royal A4 draft to actual PDF route',
-      draft.name==='Пробный ролл'&&draft.layoutTemplate==='royal-a4'&&
+      draft.name==='Пробный ролл'&&draft.layoutTemplate==='premium-blue'&&
       draft.ingredients?.some(x=>x.name==='Рис'&&Number(x.grams)===100),
       {name:draft.name,layout:draft.layoutTemplate,ingredients:draft.ingredients?.length});
    }
