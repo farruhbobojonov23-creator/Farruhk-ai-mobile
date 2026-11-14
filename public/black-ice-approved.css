@@ -10,6 +10,12 @@ body[data-pf-theme="titanium"]{
  --pf-shadow:0 12px 35px rgba(0,0,0,.46);
  color-scheme:dark;
 }
+/* The older Focused Workspace intentionally hid HACCP/Journal buttons.
+   The owner explicitly approved restoring them in the Black Ice dashboard. */
+@media screen {
+ body[data-pf-theme="titanium"] #home button.pf-ice-tile[data-pf-go="lab"]{display:flex!important}
+ body[data-pf-theme="titanium"] #home button.pf-ice-alert[data-pf-go="tasks"]{display:grid!important}
+}
 body:not([data-pf-theme="titanium"]) #pf-workspace .pf-ice-screen{display:none!important}
 body[data-pf-theme="titanium"] #pf-workspace .pf-showcase-main > :not(.pf-ice-screen){display:none!important}
 body[data-pf-theme="titanium"] #home.arctic-home.pf-upgraded #pf-workspace > .pf-showcase{
