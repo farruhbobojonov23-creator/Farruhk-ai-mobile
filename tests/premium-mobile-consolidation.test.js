@@ -8,7 +8,7 @@ test('One Royal mobile header and bottom dock are reused for Home and workspaces
  const css=await read('public/premium-mobile-unified.css');
  const html=await read('public/index.html');
  const luxury=await read('public/luxury-ui.js');
- assert.ok(html.includes('/premium-mobile-unified.css?v=1'));
+ assert.ok(html.includes('/premium-mobile-unified.css?v=2'));
  assert.ok(html.includes('/luxury-ui.js?v=10'));
  assert.ok(css.includes('body.lx-pro[data-pf-theme="royal"][data-view="home"] > .aurora-top'));
  assert.ok(css.includes('body.lx-pro[data-pf-theme="royal"][data-view="home"] .mobile-tools.lx-ref-bottom'));
