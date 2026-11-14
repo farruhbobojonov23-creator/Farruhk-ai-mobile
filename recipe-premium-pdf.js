@@ -29,7 +29,7 @@ export function premiumRecipePdf(input){
  // This preserves every ingredient and numeric cell without shrinking all the
  // safety, technology and signature text to microscopic size.
  const ingredientCount=(r.ingredients||[]).length;
- const ingredientColumns=ingredientCount>80?4:ingredientCount>46?3:ingredientCount>18?2:1;
+ const ingredientColumns=ingredientCount>65?4:ingredientCount>46?3:ingredientCount>18?2:1;
  doc.ttkIngredientColumns=ingredientColumns;
  function ingredientTable(rows,x,y,w,s,draw){
   const header=rows[0],items=rows.slice(1,-1),yieldRow=rows.at(-1);
