@@ -247,3 +247,63 @@
   content:none!important;display:none!important;
  }
 }
+
+
+/* Clear, always-visible general settings shortcut.
+   Previously a 32px gear was squeezed into a 4-control phone toolbar,
+   and some Android viewports clipped it. A dedicated labeled row solves it. */
+@media screen {
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-general-settings.ttk-settings-access-row {
+   display:block!important;
+   position:relative!important;
+   flex:none!important;
+   width:100%!important;
+   max-width:100%!important;
+   min-width:0!important;
+   min-height:37px!important;
+   margin:3px 0 7px!important;
+   padding:0!important;
+   border:0!important;
+   overflow:visible!important;
+   z-index:1100!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-settings-access-row>summary {
+   display:flex!important;
+   align-items:center!important;
+   justify-content:center!important;
+   width:100%!important;
+   max-width:100%!important;
+   height:37px!important;
+   min-height:37px!important;
+   padding:6px 12px!important;
+   margin:0!important;
+   border:1px solid #C9A25A!important;
+   border-radius:8px!important;
+   background:linear-gradient(110deg,#393021,#594124)!important;
+   font:800 13px/20px Arial,system-ui,sans-serif!important;
+   text-align:center!important;
+   color:#FFE6B1!important;
+   -webkit-text-fill-color:#FFE6B1!important;
+   white-space:nowrap!important;
+   cursor:pointer!important;
+   touch-action:manipulation!important;
+   appearance:none!important;
+   list-style:none!important;
+   box-sizing:border-box!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-settings-access-row[open]>summary {
+   background:linear-gradient(100deg,#DAB65E,#BF8B37)!important;
+   color:#2C271C!important;
+   -webkit-text-fill-color:#2C271C!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-settings-access-row>summary::-webkit-details-marker {
+   display:none!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-settings-access-row .ttk-general-panel {
+   display:block!important;
+   z-index:2147483000!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-settings-access-row:not([open]) .ttk-general-panel {
+   display:none!important;
+ }
+}

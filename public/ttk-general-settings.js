@@ -33,8 +33,8 @@ const elem=(tag,cls,text)=>{
 };
 export function mountTtkGeneralSettings(editor,stage,topbar){
  if(!editor||!stage||!topbar)throw Error('Нет панели редактирования ТТК.');
- const menu=elem('details','ttk-general-settings');
- const trigger=elem('summary','','⚙');
+ const menu=elem('details','ttk-general-settings ttk-settings-access-row');
+ const trigger=elem('summary','','⚙ Общие настройки ТТК');
  trigger.setAttribute('aria-label','Общие настройки ТТК');
  trigger.title='Общие настройки ТТК';
  const panel=elem('div','ttk-general-panel');
@@ -102,7 +102,9 @@ export function mountTtkGeneralSettings(editor,stage,topbar){
  action.append(reset,done);panel.append(action);
  const note=elem('p','ttk-general-note','');note.setAttribute('aria-live','polite');
  panel.append(note);
- menu.append(trigger,panel);topbar.insertBefore(menu,topbar.querySelector('.ttk-onepage-zoom'));
+ // Standalone visible row UNDER the A4 toolbar. The old tiny ⚙ icon was
+ // cramped between four toolbar controls on Android and could be clipped.
+ menu.append(trigger,panel);topbar.after(menu);
  const applyToNew=()=>{
   if(editor.hidden)return;
   if(!editor.querySelector('#edit-title')?.textContent?.includes('Новая техкарта'))return;
