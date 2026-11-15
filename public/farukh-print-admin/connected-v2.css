@@ -93,3 +93,11 @@ body{min-height:100vh}
 .connected-label-sheet canvas{display:block;max-width:100%;height:auto;background:#fff;
  box-shadow:0 7px 20px #0002}
 .connected-label-live .connected-quiet{margin:8px 0 2px}
+
+.connected-advanced{margin:13px 0;border:1px solid var(--pf-line);border-radius:11px;padding:10px 12px}
+.connected-advanced summary{cursor:pointer;color:var(--pf-ink);font:800 12px Inter,system-ui,sans-serif}
+.connected-advanced summary span{color:var(--pf-muted);font-weight:500}
+.connected-three,.connected-four{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.connected-four{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:0}
+.connected-advanced input,.connected-advanced select{padding:10px}
+@media(max-width:680px){.connected-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
