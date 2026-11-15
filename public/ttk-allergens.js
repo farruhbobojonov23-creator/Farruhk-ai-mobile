@@ -13,7 +13,13 @@ export const TTK_ALLERGENS=Object.freeze([
  {id:'nuts',name:'Орехи',label:'Орехи',symbol:'◇',rx:/арахис|фундук|миндал|кешью|грецк|фисташ|макадам|пекан|nuts|almond|walnut|peanut/i}
 ]);
 const POSSIBLE_MIX=/терияки|унаги соус|спайси соус|фирменный соус|соус готовый|соус поке|майонез|сухая смесь|маринад|заправка|приправа|tempura sauce/i;
+export function validAllergenOverrides(input){
+ const source=input&&typeof input==='object'&&!Array.isArray(input)?input:{};
+ return Object.fromEntries(TTK_ALLERGENS.filter(group=>typeof source[group.id]==='boolean')
+  .map(group=>[group.id,source[group.id]]));
+}
 export function recipeAllergenMatrix(recipe={}){
+ const overrides=validAllergenOverrides(recipe.allergenOverrides);
  const ingredients=Array.isArray(recipe.ingredients)?recipe.ingredients:[];
  const explicit=new Set(),screened=new Set(),possible=new Set();
  for(const item of ingredients){
@@ -23,11 +29,13 @@ export function recipeAllergenMatrix(recipe={}){
   if(POSSIBLE_MIX.test(name))for(const tag of ['soy','gluten','egg','sesame'])possible.add(tag);
   for(const group of TTK_ALLERGENS)if(group.rx.test(name))screened.add(group.id);
  }
- const groups=TTK_ALLERGENS.map(({rx,...group})=>({
-  ...group,checked:explicit.has(group.id)||screened.has(group.id),
-  confirmed:explicit.has(group.id),
-  possible:!explicit.has(group.id)&&!screened.has(group.id)&&possible.has(group.id)
- }));
- return {groups,hasUnverified:groups.some(g=>g.checked&&!g.confirmed||g.possible),
-  note:'Предварительно по составу. Галочки требуют сверки с этикетками; пустые клетки не подтверждают отсутствие аллергена.'};
+ const groups=TTK_ALLERGENS.map(({rx,...group})=>{
+  const edited=Object.hasOwn(overrides,group.id);
+  const matched=explicit.has(group.id)||screened.has(group.id);
+  const checked=edited?overrides[group.id]:matched;
+  return {...group,checked,confirmed:!edited&&explicit.has(group.id),
+   manual:edited,possible:!checked&&(possible.has(group.id)||edited&&matched)};
+ });
+ return {groups,hasUnverified:groups.some(g=>g.checked&&!g.confirmed||g.possible||g.manual),
+  note:'Аллергены отмечены предварительно по составу или вручную. Сверь этикетки и ПФ: пустые клетки НЕ подтверждают отсутствие аллергена.'};
 }

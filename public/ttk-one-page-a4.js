@@ -3,6 +3,7 @@
  * Tapping an A4 section opens large accessible controls in a dialog.
  * Values only ever update the canonical existing recipe controls.
  */
+import {TTK_ALLERGENS,recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=2';
 export function mountOnePageA4(editor,stage,live){
  if(!editor||!stage||!live?.page)throw Error('Невозможно открыть одностраничный редактор ТТК.');
  stage.classList.add('ttk-onepage-enabled');
@@ -141,7 +142,70 @@ export function mountOnePageA4(editor,stage,live){
    const f=field(id);if(f){content.append(f);fields.push([id,f]);}
   }
   content.append(make('small','ttk-onepage-dialog-note',
-   'Показатели на 100 г. Для автоматического расчёта укажи КБЖУ каждого ингредиента в «Удобном заполнении».'));
+   'КБЖУ на 100 г продукта указывай по этикетке. Справочные показатели ориентировочны.'));
+  const details=make('details','ttk-onepage-nutrition-details');
+  const summary=make('summary','','КБЖУ каждого ингредиента · заполнить');
+  details.append(summary);
+  const items=[...recipeInputs.querySelectorAll('.ingredient')];
+  for(const [index,row] of items.entries()){
+   const source=document.getElementById(row.dataset.nutritionId);
+   if(!source)continue;
+   const block=make('div','ttk-onepage-nutrition-ingredient');
+   const name=row.querySelector('[data-key="name"]')?.value||'Ингредиент №'+(index+1);
+   block.append(make('strong','',name));
+   const grid=make('div','ttk-onepage-nutrition-grid');
+   for(const [key,label] of [['protein','Белки'],['fat','Жиры'],['carbs','Углеводы'],['kcal','Ккал']]){
+    const src=source.querySelector('[data-key="'+key+'"]');
+    if(!src)continue;
+    const wrapper=make('label','ttk-onepage-field');
+    wrapper.append(make('span','',label+' на 100 г'));
+    const input=make('input','ttk-onepage-field-input');
+    input.type='number';input.step='any';input.min='0';input.value=src.value;
+    input.addEventListener('input',()=>{
+     src.value=input.value;dispatch(src,'input');
+     live.refreshComputed();
+     for(const [id,el] of fields){
+      const modal=el.querySelector('.ttk-onepage-field-input');
+      if(modal){modal.value=original(id)?.value||'';modal.readOnly=!!original(id)?.readOnly;}
+     }
+    });
+    wrapper.append(input);grid.append(wrapper);
+   }
+   block.append(grid);details.append(block);
+  }
+  content.append(details);
+ }
+ function allergens(){
+  content.replaceChildren();
+  const raw=editor.dataset.allergenOverrides||'{}';
+  let overrides={};
+  try{overrides=validAllergenOverrides(JSON.parse(raw))}catch{}
+  const ingredients=[...recipeInputs.querySelectorAll('.ingredient')].map(row=>({
+   name:row.querySelector('[data-key="name"]')?.value||''
+  }));
+  const matrix=recipeAllergenMatrix({ingredients,allergenOverrides:overrides});
+  const note=make('p','ttk-onepage-dialog-note',
+   'Предварительные галочки по названиям ингредиентов. Проверь этикетки поставщиков и состав полуфабрикатов. Снятая галочка НЕ подтверждает отсутствие аллергена.');
+  content.append(note);
+  for(const group of matrix.groups){
+   const line=make('label','ttk-onepage-allergen-line');
+   const check=make('input');check.type='checkbox';check.checked=group.checked;
+   const text=make('span','',group.label);
+   const caption=make('small','',group.manual?'Изменено вручную':group.checked?'Обнаружено по названию':'Не выявлено по названию · требуется проверка');
+   check.addEventListener('change',()=>{
+    overrides[group.id]=check.checked;
+    editor.dataset.allergenOverrides=JSON.stringify(overrides);
+    editor.dispatchEvent(new Event('input',{bubbles:true}));
+    caption.textContent='Изменено вручную · проверь этикетку';
+    live.refreshComputed();
+   });
+   line.append(check,text,caption);content.append(line);
+  }
+  const reset=make('button','ttk-onepage-allergen-reset','↺ Вернуть автоопределение');
+  reset.type='button';reset.addEventListener('click',()=>{
+   editor.dataset.allergenOverrides='{}';editor.dispatchEvent(new Event('input',{bubbles:true}));live.refreshComputed();allergens();
+  });
+  content.append(reset);
  }
  const panels=[
   ['.ttk-live-title',['card-number'],'Номер технологической карты'],
@@ -162,7 +226,8 @@ export function mountOnePageA4(editor,stage,live){
   const entry=panels[index];if(!entry)return;
   const [,,heading]=entry;
   title.textContent=heading;content.replaceChildren();
-  if(index===5||index===6)inventory();
+  if(index===5)inventory();
+  else if(index===6)allergens();
   else if(index===10)nutrition();
   else for(const id of entry[1]||[]){
    const f=field(id);if(f)content.append(f);

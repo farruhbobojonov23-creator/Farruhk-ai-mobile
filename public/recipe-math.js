@@ -77,6 +77,15 @@ export function calculateNutritionBoth(ingredients,yieldGrams){
 }
 export const recipeCategories=['Холодные роллы','Запечённые роллы','Темпурные роллы','Маки-роллы','Гунканы','Воки','Суши','Беридоги','Закуски','Онигири','Полуфабрикаты'];
 export function lossFromWeights(gross,net){if(!number(gross)||!number(net)||Number(gross)<=0||Number(net)<0||Number(net)>Number(gross))return null;return Math.round((1-Number(net)/Number(gross))*1000000)/10000}
+/** Ignore only fully blank, untouched add-row placeholders.
+ * Partially entered ingredients stay visible to validation and must not be
+ * silently dropped from food-safety or nutrition calculations.
+ */
+export function filledIngredientRows(rows=[]){
+ return rows.filter(i=>String(i?.name??'').trim()||
+  (i?.grams!==null&&i?.grams!==undefined&&i?.grams!=='')||
+  (i?.grossGrams!==null&&i?.grossGrams!==undefined&&i?.grossGrams!==''));
+}
 export function netYield(ingredients){if(!ingredients.length||ingredients.some(i=>!number(i.grams)||Number(i.grams)<=0))return null;return Math.round(ingredients.reduce((sum,i)=>sum+Number(i.grams),0)*10000)/10000}
 export function legacyTemplateFor(category,pieces=8){
  const count=[1,4,6,8,16].includes(Number(pieces))?Number(pieces):8;

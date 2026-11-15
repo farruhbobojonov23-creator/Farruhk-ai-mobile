@@ -34,6 +34,15 @@ export function auditTtkDraft(r={}){
  const reference=ingredients.filter(x=>x.nutritionOrigin==='reference').map(x=>str(x.name)).filter(Boolean);
  const warnings=[];
  if(reference.length)warnings.push('Справочные КБЖУ: '+reference.slice(0,3).join(', ')+'. Сверь с этикетками.');
+ const names=ingredients.map(i=>str(i.name).toLocaleLowerCase('ru-RU').replace(/ё/g,'е'));
+ const isRoll=/ролл/i.test(str(r.category));
+ if(isRoll&&names.length&&!names.some(name=>name.includes('рис')))
+  warnings.push('В категории роллов не указан рис: сверь выбранную категорию и технологию. Не применяй шаблон вслепую.');
+ if(isRoll&&names.length&&!names.some(name=>name.includes('нори')))
+  warnings.push('В составе ролла не указаны нори: проверь, соответствует ли шаблон реальному способу приготовления.');
+ if(names.some(name=>/соус|майонез|смесь|заправк|полуфабрикат/.test(name)))
+  warnings.push('Составные продукты: проверь вложенные аллергены по этикеткам и ТТК полуфабрикатов.');
+
  // Photo is intentionally optional and excluded from A4 documents.
  if(r.status==='ready'&&complete!==checks.length)
   warnings.push('Указан статус «Готова», но часть данных отсутствует.');
