@@ -3,6 +3,15 @@
    affects only the new .ttk-live-page. */
 @media screen {
  #editor.ttk-studio-enabled .ttk-live-shell{margin:0!important;width:100%!important;min-width:0!important;}
+ #editor.ttk-studio-enabled .ttk-real-a4-start-edit{
+  display:block!important;width:100%!important;max-width:100%!important;
+  min-height:47px!important;margin:12px 0 17px!important;padding:11px 14px!important;
+  background:linear-gradient(110deg,#f0c477,#b88b39)!important;
+  color:#291c10!important;-webkit-text-fill-color:#291c10!important;
+  border:1px solid #ffd696!important;border-radius:11px!important;
+  text-align:center!important;font-size:14px!important;font-weight:900!important;
+  box-shadow:0 5px 20px #0005!important;cursor:pointer!important;
+ }
  #editor.ttk-studio-enabled .ttk-live-page{
   --live-deep:#004E49;--live-green:#008178;--live-gold:#D8A63B;--live-outline:#B1CEC6;
   --live-ink:#163A3B;--live-pale:#E5F4EF;--live-tint:#F8FDFC;
