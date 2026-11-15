@@ -67,6 +67,17 @@ public final class FoodPhotos {
     public static Bitmap cached(Context ctx,String asset){
         asset=sanitize(asset);
         Bitmap bmp=MEMORY.get(asset);if(bmp!=null && !bmp.isRecycled())return bmp;
+        // Prefer bundled photographs for zero-network first launch.
+        try(InputStream builtIn=ctx.getAssets().open("food/"+asset)){
+            ByteArrayOutputStream data=new ByteArrayOutputStream();
+            byte[] buf=new byte[8192];int n;
+            while((n=builtIn.read(buf))!=-1){
+                if(data.size()+n>2*1024*1024)throw new Exception("Photo exceeds size limit");
+                data.write(buf,0,n);
+            }
+            bmp=decoded(data.toByteArray());
+            if(bmp!=null){MEMORY.put(asset,bmp);return bmp;}
+        }catch(Exception ignore){}
         File file=cachePath(ctx,asset);
         if(!file.exists())return null;
         try{
