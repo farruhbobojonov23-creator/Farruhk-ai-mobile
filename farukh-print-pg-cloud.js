@@ -1,0 +1,123 @@
+// FARUKH PRINT Cloud: private PostgreSQL bridge for the isolated owner panel.
+// Credentials exist only as Render environment secrets; all routes require the
+// validated owner PIN session. Production printing and FARUKH AI are untouched.
+import {Pool} from 'pg';
+
+const url=String(process.env.FARUKH_PRINT_PG_URL||'');
+const pool=url?new Pool({
+  connectionString:url, max:2, connectionTimeoutMillis:9000,
+  idleTimeoutMillis:15000, statement_timeout:14000, query_timeout:17000
+}):null;
+pool?.on('error',err=>console.error('[print-db] idle connection error',err.code||'error'));
+const allowedOrigin='https://farukh-print-cloud-test-20261115.onrender.com';
+function failure(res,err){
+  console.error('[print-db] database request failed',String(err?.code||err?.name||'error'));
+  return res.status(503).json({ok:false,error:'Облако временно недоступно. Изменения не подтверждены — повтори сохранение.'});
+}
+function positiveInt(v){
+  if(v===null||v===''||v===undefined)return null;
+  const n=Number(v);return Number.isInteger(n)&&n>=1&&n<=8760?n:NaN;
+}
+function short(v,max){return String(v??'').trim().slice(0,max);}
+async function stats(db=pool){
+  const q=await db.query(\`SELECT
+    (SELECT count(*)::int FROM farukh_print.products WHERE active) products,
+    (SELECT count(*)::int FROM farukh_print.product_photos ph JOIN farukh_print.products p ON p.id=ph.product_id WHERE p.active) photos,
+    (SELECT count(*)::int FROM farukh_print.locations WHERE active) locations,
+    (SELECT count(*)::int FROM farukh_print.staff_accounts WHERE status='active') employees,
+    (SELECT count(*)::int FROM farukh_print.devices WHERE status='approved') devices,
+    (SELECT count(*)::int FROM farukh_print.catalog_backups) backups,
+    (SELECT coalesce(max(id),0)::bigint FROM farukh_print.catalog_revisions) revision\`);
+  return q.rows[0];
+}
+export async function printPgSelfCheck(){
+  if(!pool){console.warn('[print-db] not configured');return}
+  try{
+    const data=await stats();
+    console.info('[print-db] connected',JSON.stringify({target:process.env.FARUKH_PRINT_PG_TARGET||'unspecified',products:data.products,photos:data.photos,locations:data.locations}));
+  }catch(e){console.error('[print-db] connection failed',e.code||e.name||'error')}
+}
+export function mountPrintPgBridge(app,authPin){
+  app.use('/api/owner/db',authPin,async(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    if(!pool)return res.status(503).json({ok:false,error:'База ещё не подключена.'});
+    if(req.method==='POST'&&req.get('origin')!==allowedOrigin)
+      return res.status(403).json({ok:false,error:'Запрос не из панели владельца.'});
+    const route=req.path;
+    try{
+      if(req.method==='GET'&&route==='/status'){
+        return res.json({ok:true,cloudConnected:true,target:process.env.FARUKH_PRINT_PG_TARGET||'unspecified',staffConnected:false,...await stats()});
+      }
+      if(req.method==='GET'&&route==='/catalog'){
+        const q=await pool.query(\`SELECT p.id,p.kind,p.name,p.category,p.composition,p.storage,
+          p.shelf_life_hours AS hours,p.needs_review AS "needsReview",p.updated_at AS "updatedAt",
+          (ph.product_id IS NOT NULL) AS "hasPhoto"
+          FROM farukh_print.products p
+          LEFT JOIN farukh_print.product_photos ph ON ph.product_id=p.id
+          WHERE p.active ORDER BY p.name,p.id\`);
+        return res.json({ok:true,products:q.rows});
+      }
+      if(req.method==='GET'&&route.startsWith('/photo/')){
+        const id=decodeURIComponent(route.slice(7));
+        if(id.length>128||!(/^[\w-]+$/).test(id))return res.status(400).end();
+        const q=await pool.query('SELECT mime_type,image_data,external_url FROM farukh_print.product_photos WHERE product_id=$1',[id]);
+        if(!q.rows.length)return res.status(404).end();
+        const p=q.rows[0];
+        if(p.image_data){
+          if(!['image/png','image/jpeg','image/webp'].includes(p.mime_type))return res.status(415).end();
+          res.setHeader('Content-Type',p.mime_type);res.setHeader('X-Content-Type-Options','nosniff');
+          return res.send(p.image_data);
+        }
+        if(/^https:\/\/[^@\s]+$/.test(p.external_url||''))return res.redirect(302,p.external_url);
+        return res.status(404).end();
+      }
+      if(req.method==='POST'&&route==='/save'){
+        const b=req.body;
+        if(!b||typeof b!=='object'||Array.isArray(b))
+          return res.status(400).json({ok:false,error:'Неверный формат карточки.'});
+        const id=String(b.id||'');
+        const updatedAt=String(b.updatedAt||'');
+        const name=short(b.name,91),kind=b.kind,category=short(b.category,120)||null;
+        const composition=short(b.composition,600)||null,storage=short(b.storage,60)||null;
+        const hours=positiveInt(b.hours);
+        if(id.length<1||id.length>128||!/^[\w-]+$/.test(id)||
+          name.length<1||name.length>90||!['ready','prep'].includes(kind)||
+          (b.category!=null&&String(b.category).length>120)||
+          (b.composition!=null&&String(b.composition).length>600)||
+          (b.storage!=null&&String(b.storage).length>60)||
+          Number.isNaN(hours)||!Number.isFinite(Date.parse(updatedAt)))
+          return res.status(400).json({ok:false,error:'Проверь название, срок хранения и обязательные поля.'});
+        const client=await pool.connect();
+        try{
+          await client.query('BEGIN');
+          const current=await client.query('SELECT updated_at FROM farukh_print.products WHERE id=$1 AND active=true FOR UPDATE',[id]);
+          if(!current.rows.length){await client.query('ROLLBACK');return res.status(404).json({ok:false,error:'Товар в облаке не найден.'})}
+          if(new Date(current.rows[0].updated_at).getTime()!==new Date(updatedAt).getTime()){
+            await client.query('ROLLBACK');
+            return res.status(409).json({ok:false,conflict:true,error:'Карточка уже изменена в облаке. Обнови список перед повторным сохранением.'});
+          }
+          const patch={name,kind,category:category||'',composition:composition||'',storage:storage||'',hours,needsReview:true};
+          const q=await client.query(\`UPDATE farukh_print.products SET name=$2,kind=$3,category=$4,
+             composition=$5,storage=$6,shelf_life_hours=$7,needs_review=true,
+             approved_for_print=false,payload=payload||$8::jsonb,
+             updated_at=date_trunc('milliseconds',clock_timestamp())
+             WHERE id=$1 RETURNING updated_at\`,[
+              id,name,kind,category,composition,storage,hours,JSON.stringify(patch)
+          ]);
+          const totals=await client.query(\`SELECT count(*)::int total,
+             count(*) FILTER(WHERE kind='ready')::int ready,
+             count(*) FILTER(WHERE kind='prep')::int prep
+             FROM farukh_print.products WHERE active\`);
+          const n=totals.rows[0];
+          await client.query(\`INSERT INTO farukh_print.catalog_revisions
+             (source,products_count,ready_count,prep_count,note)
+             VALUES ('owner-web-save',$1,$2,$3,'Owner panel saved to private Neon PostgreSQL')\`,[n.total,n.ready,n.prep]);
+          await client.query('COMMIT');
+          return res.json({ok:true,id,updatedAt:q.rows[0].updated_at,cloudSaved:true});
+        }catch(e){await client.query('ROLLBACK').catch(()=>{});return failure(res,e)}
+        finally{client.release()}
+      }
+      return res.status(404).json({ok:false,error:'Неизвестная операция.'});
+    }catch(e){return failure(res,e)}
+  });
+}
