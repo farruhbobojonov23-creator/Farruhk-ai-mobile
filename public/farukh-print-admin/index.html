@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/print-control-theme.css?v=1">
   <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=3">
   <link rel="stylesheet" href="/farukh-print-admin/premium-v2.css?v=1">
-  <link rel="stylesheet" href="/farukh-print-admin/compact-v2.css?v=1">
+  <link rel="stylesheet" href="/farukh-print-admin/compact-v2.css?v=2">
   <style>
     :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
     * { box-sizing: border-box; }
@@ -55,7 +55,7 @@
     </div>
     <span class="preview-mode">Neon Cloud · тестовая версия</span>
   </header>
-  <details class="premium-switcher" aria-labelledby="premium-title"><summary>🎨 Оформление: Neon Premium <span style="color:var(--pf-muted);font-size:11px;font-weight:500">Изменить тему</span></summary>
+  <details class="premium-switcher" aria-labelledby="premium-title"><summary>🎨 Оформление: <strong id="premium-current-theme">Neon Premium</strong> <span style="color:var(--pf-muted);font-size:11px;font-weight:500">Изменить тему</span></summary>
     <div class="premium-top">
       <div><span class="premium-eyebrow">PREMIUM DESIGN STUDIO</span><h2 id="premium-title">Выбери дизайн</h2></div>
       <p class="premium-hint" id="premium-description">Переключение моментальное · выбор сохранится на этом устройстве</p>
@@ -75,6 +75,8 @@
       const choose=(name,focus=false)=>{
         if(!allowed.includes(name))name='emerald';
         document.body.dataset.adminTheme=name;
+        const currentTheme=document.getElementById('premium-current-theme');
+        if(currentTheme)currentTheme.textContent=({beige:'Luxury Beige',gold:'Black Gold',emerald:'White Emerald',neon:'Neon Premium'})[name];
         buttons.forEach(button=>{
           const selected=button.dataset.theme===name;
           button.setAttribute('aria-checked',String(selected));
