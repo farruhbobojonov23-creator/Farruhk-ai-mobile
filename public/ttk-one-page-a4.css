@@ -591,3 +591,21 @@ textarea.ttk-onepage-field-input{min-height:145px!important;resize:vertical!impo
   min-height:35px!important;
  }
 }
+
+/* Match the reference document: fields are white/light, not chocolate/dark.
+   Royal global input skins have high specificity, hence the exact page ID. */
+@media screen {
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page .ttk-live-control:not([data-source="card-number"]),
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page .ttk-live-ingredient-input{
+  background:#FCFEFE!important;background-color:#FCFEFE!important;
+  color:#123B40!important;-webkit-text-fill-color:#123B40!important;
+  border:1px solid #A6CFC7!important;box-shadow:none!important;opacity:1!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page .ttk-live-control[readonly]{
+  background:#ECF5F3!important;background-color:#ECF5F3!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page .ttk-live-title [data-source="card-number"]{
+  background:transparent!important;background-color:transparent!important;
+  color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
+ }
+}
