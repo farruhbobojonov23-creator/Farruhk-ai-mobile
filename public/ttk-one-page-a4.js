@@ -195,6 +195,7 @@ export function mountOnePageA4(editor,stage,live){
    check.addEventListener('change',()=>{
     overrides[group.id]=check.checked;
     editor.dataset.allergenOverrides=JSON.stringify(overrides);
+    editor.dispatchEvent(new Event('input',{bubbles:true}));
     caption.textContent='Изменено вручную · проверь этикетку';
     live.refreshComputed();
    });
@@ -202,7 +203,7 @@ export function mountOnePageA4(editor,stage,live){
   }
   const reset=make('button','ttk-onepage-allergen-reset','↺ Вернуть автоопределение');
   reset.type='button';reset.addEventListener('click',()=>{
-   editor.dataset.allergenOverrides='{}';live.refreshComputed();allergens();
+   editor.dataset.allergenOverrides='{}';editor.dispatchEvent(new Event('input',{bubbles:true}));live.refreshComputed();allergens();
   });
   content.append(reset);
  }
