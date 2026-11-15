@@ -275,16 +275,32 @@ public class MainActivity extends Activity {
         spaceH(xy,10);piecesField=fieldInline(xy,"Количество, шт",dish.optString("pieces","8"));
         content.addView(xy);space(content,18);
         content.addView(text("ШАБЛОН ТТК • СВЕТЛЫЙ ЯПОНСКИЙ",13,GREY,true));space(content,9);
-        LinearLayout templates=horizontal();
+        HorizontalScrollView templateScroller=new HorizontalScrollView(this);
+        templateScroller.setHorizontalScrollBarEnabled(false);
+        LinearLayout templates=horizontal();pad(templates,2,3);
         for(int i=0;i<4;i++){
-            int at=i;
-            LinearLayout t=vertical();pad(t,6,10);t.setGravity(Gravity.CENTER);
-            t.setBackground(border(i==dish.optInt("template",0)?0xFFFFEBEE:WHITE,11,i==dish.optInt("template",0)?RED:BORDER));
-            TextView ico=text(i==0?"⛩":i==1?"🌸":i==2?"🗻":"☀",25,RED,true);ico.setGravity(Gravity.CENTER);t.addView(ico);
-            TextView nm=text(TTKStore.TEMPLATE_NAMES[i],10,INK,true);nm.setGravity(Gravity.CENTER);t.addView(nm);
-            LinearLayout.LayoutParams wt=new LinearLayout.LayoutParams(0,dp(87),1);wt.setMargins(dp(2),0,dp(2),0);templates.addView(t,wt);
-            t.setOnClickListener(v->{saveEditor();try{dish.put("template",at);}catch(Exception ignore){}store.save();edit(dish);});
-        }content.addView(templates);space(content,19);
+            final int at=i,selected=dish.optInt("template",0);
+            LinearLayout t=vertical();t.setGravity(Gravity.CENTER);
+            pad(t,8,9);t.setBackground(border(i==selected?0xFFFFF0F2:WHITE,13,i==selected?RED:BORDER));
+            TemplateThumbnail thumbnail=new TemplateThumbnail(this,i,i==selected);
+            t.addView(thumbnail,lp(90,122));
+            TextView name=text(TTKStore.TEMPLATE_NAMES[i],12,i==selected?RED:INK,true);
+            name.setGravity(Gravity.CENTER);
+            t.addView(name,lp(-1,28));
+            LinearLayout.LayoutParams wt=lp(109,162);wt.setMargins(dp(3),dp(2),dp(7),dp(2));
+            templates.addView(t,wt);
+            t.setOnClickListener(v->{
+                saveEditor();
+                try{dish.put("template",at);}catch(Exception ignore){}
+                store.save();edit(dish);
+            });
+        }
+        templateScroller.addView(templates);content.addView(templateScroller);
+        space(content,13);
+        TextView preview=button("▣  Посмотреть выбранный лист А4",false);
+        content.addView(preview,lp(-1,45));
+        preview.setOnClickListener(v->{saveEditor();previewPdf(dish);});
+        space(content,19);
         TextView recipeTitle=text("РЕЦЕПТУРА · БРУТТО / НЕТТО",16,INK,true);content.addView(recipeTitle);space(content,8);
         JSONArray rows=dish.optJSONArray("rows");
         if(rows==null)rows=new JSONArray();
