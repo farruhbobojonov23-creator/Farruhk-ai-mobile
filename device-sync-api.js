@@ -33,6 +33,15 @@ function safeSnapshot(value){
   ids.add(project.id);
   return {id:project.id,name:project.name.trim().slice(0,100)};
  })};
+
+ const removed=Array.isArray(value.deletedRecipeIds)?value.deletedRecipeIds:[];
+ if(removed.length>4000||removed.some(id=>typeof id!=='string'||!/^[A-Za-z0-9_-]{1,160}$/.test(id)))
+  throw httpError(400,'Повреждён список удалённых ТТК.');
+ result.deletedRecipeIds=[...new Set(removed)];
+ if(result.deletedRecipeIds.length){
+  const deleted=new Set(result.deletedRecipeIds);
+  for(const field of ['recipes','releasedRecipes'])result[field]=result[field].filter(item=>!deleted.has(item.id));
+ }
  const size=Buffer.byteLength(JSON.stringify(result),'utf8');
  if(size>MAX_BYTES)throw httpError(413,'Слишком большой объём для синхронизации. Сохраните локальную копию и уменьшите размер фотографий.');
  return result;
@@ -55,6 +64,35 @@ export function installDeviceSyncApi(app,{store,auth}){
    res.setHeader('Cache-Control','no-store');
    res.json({ok:true,revision:current.revision||0,snapshot:current.snapshot||null,updatedAt:current.updatedAt,storage:store.storage});
   }catch(e){res.status(e.status||503).json({ok:false,error:e.message||'Не удалось прочитать облачные данные.'});}
+ });
+ app.delete('/api/device-sync/recipes/:recipeId',async(req,res)=>{
+  try{
+   if(!durable)throw httpError(503,'Для удаления нужен доступ к постоянному облачному хранилищу.');
+   const recipeId=req.params.recipeId;
+   if(typeof recipeId!=='string'||!/^[A-Za-z0-9_-]{1,160}$/.test(recipeId))
+    throw httpError(400,'Неверный идентификатор ТТК.');
+   const expected=req.body?.revision;
+   if(!Number.isSafeInteger(expected)||expected<0)throw httpError(400,'Требуется актуальная версия облака.');
+   const updated=await store.transaction(async()=>{
+    const current=await store.read(FILE,{revision:0,snapshot:null,updatedAt:null});
+    if(current.revision!==expected)throw httpError(409,'Облако изменилось. Обновите список и подтвердите удаление ещё раз.');
+    if(!current.snapshot)throw httpError(404,'Облачная база пуста.');
+    const existing=safeSnapshot(current.snapshot);
+    const found=(existing.recipes||[]).some(r=>r.id===recipeId)||(existing.releasedRecipes||[]).some(r=>r.id===recipeId);
+    if(!found)throw httpError(404,'Такой ТТК в общей облачной базе нет.');
+    const next=safeSnapshot({...existing,
+      recipes:existing.recipes.filter(r=>r.id!==recipeId),
+      releasedRecipes:existing.releasedRecipes.filter(r=>r.id!==recipeId),
+      deletedRecipeIds:[...(existing.deletedRecipeIds||[]),recipeId]});
+    const output={revision:expected+1,snapshot:next,updatedAt:new Date().toISOString()};
+    // Keep old revision for emergency recovery and do not touch independent backups.
+    await store.write('device-sync-previous-v1.json',current);
+    await store.write(FILE,output);
+    return output;
+   });
+   res.setHeader('Cache-Control','no-store');
+   res.json({ok:true,recipeId,deleted:true,revision:updated.revision});
+  }catch(e){res.status(e.status||503).json({ok:false,error:e.message||'Не удалось удалить из облачной базы.'});}
  });
  app.put('/api/device-sync',async(req,res)=>{
   try{
