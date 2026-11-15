@@ -220,8 +220,8 @@
   })();
   </script>
   <details class="preview-banner">
-    <summary>Демо-режим: реальные данные не подключены <span>Подробнее ▾</span></summary>
-    <p>Это изолированный предпросмотр. Товары и отчёты здесь демонстрационные, а облако, учётные записи сотрудников и рабочая печать не подключены.
+    <summary>Тестовый контур: сотрудники и печать не подключены <span>Подробнее ▾</span></summary>
+    <p>Это изолированная тестовая админка. Каталог из 110 товаров уже в Neon. Для редактирования через облако используй защищённую панель выше. Сотрудники, отчёты и рабочая печать пока не подключены.
     Можно менять оформление и проверять локальный редактор: изменения не попадут к сотрудникам.</p>
   </details>
   <main id="print-control"><div id="print-control-root"><p role="status">Загружаю действующий интерфейс управления печатью…</p></div></main>
@@ -282,7 +282,7 @@
         const note=document.createElement('div');
         note.className='pcloud-demo-status';
         note.setAttribute('role','status');
-        note.innerHTML='<div aria-hidden="true">◇</div><div><strong>Демо • облако не подключено</strong><span>Здесь показан внешний вид управления синхронизацией. Настоящие товары, устройства и сотрудники отсутствуют. Изменения нельзя отправить в рабочий Farukh Print.</span></div>';
+        note.innerHTML='<div aria-hidden="true">◇</div><div><strong>Neon Cloud V2 управляется в защищённой панели выше</strong><span>Эта устаревшая вкладка синхронизации пока демонстрационная. Настоящие товары уже находятся в Neon, сотрудники ещё не подключены. Действия этой вкладки нельзя отправить в рабочий Farukh Print.</span></div>';
         demoCloud.querySelector('.pcloud-status')?.before(note);
         const actions=demoCloud.querySelector('.pcloud-actions');
         if(actions){
@@ -295,7 +295,7 @@
           actions.addEventListener('click',event=>{
             if(!event.target.closest('button,a'))return;
             event.preventDefault();event.stopImmediatePropagation();
-            alert('Это демонстрационная админка. Подключение облака и сотрудников будет доступно только после согласования рабочей версии.');
+            alert('Это старый демонстрационный модуль. Для работы с Neon используй отдельную защищённую панель выше. Сотрудников пока не подключаем.');
           },true);
         }
       }
