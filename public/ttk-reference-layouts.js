@@ -109,7 +109,7 @@ export function mountReferenceLayouts(page,editor,controls){
    qualityTable.append(row);
   }
   const value=String(get('card-storage')?.value||'').trim();
-  const expiry=value.match(/\b\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я|я)?|день)\b/i)?.[0]||'Не указан';
+  const expiry=value.match(/\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)(?![а-я])/i)?.[0]||'Не указан';
   storageTable.replaceChildren();storageRows([['Условия хранения',value||'—'],['Срок годности',expiry]]);
   nutritionTable.replaceChildren();
   const header=node('div','ttk-ref-info-row ttk-ref-nutri-head');
