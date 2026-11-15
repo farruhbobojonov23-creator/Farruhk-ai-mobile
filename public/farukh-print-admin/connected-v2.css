@@ -107,3 +107,28 @@ body{min-height:100vh}
  color:#f3ffff;box-shadow:0 8px 24px #10204b44}
 .connected-demo-note b{letter-spacing:.04em;color:#71f5ef}
 @media(max-width:650px){.connected-demo-note{margin:10px 12px}}
+
+.connected-action-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.connected-action-row .connected-primary{flex:0 1 auto}
+.connected-action-row .connected-quiet{margin:0}
+.connected-danger,.connected-restore,.connected-file-actions button,.connected-archive-tools button,.connected-check-action{
+ border:1px solid var(--pf-line);border-radius:10px;background:var(--pf-raised);color:var(--pf-ink);
+ min-height:40px;padding:9px 13px;cursor:pointer;font:750 12px Inter,system-ui,sans-serif}
+.connected-danger{color:#f6a1b5;border-color:#a84d64}
+.connected-file-actions{border:1px solid var(--pf-line);border-radius:11px;padding:12px;
+ display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:11px;background:var(--pf-card-grad)}
+.connected-file-actions label{width:100%;margin:0 0 4px}
+.connected-file-actions input[type=file]{flex:1 1 190px;font-size:11px;padding:8px;max-width:360px}
+.connected-file-actions small{width:100%;font-size:10px;color:var(--pf-muted)}
+.connected-archive{margin-top:17px;border:1px solid var(--pf-line);border-radius:13px;padding:13px}
+.connected-archive summary{cursor:pointer;font:850 13px Inter,system-ui,sans-serif;color:var(--pf-ink)}
+.connected-archive-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.connected-archive-tools .connected-quiet{margin:0}
+.connected-archive .connected-lines{max-height:240px;overflow:auto}
+.connected-restore:disabled,.connected-danger:disabled{opacity:.5}
+.connected-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.connected-checks>div{border:1px solid var(--pf-line);border-radius:9px;padding:9px;font:600 12px Inter,system-ui,sans-serif}
+.connected-checks>div[data-state=ok]{border-color:#39ad8c;color:#84f3c5}
+.connected-checks>div[data-state=wait]{border-color:#9e7b3e;color:#e2bd75}
+.connected-checks>div[data-state=fail]{border-color:#b34d65;color:#f4a3b4}
+@media(max-width:560px){.connected-checks{grid-template-columns:1fr}.connected-file-actions button{width:100%}}
