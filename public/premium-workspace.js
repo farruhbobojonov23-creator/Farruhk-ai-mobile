@@ -2,7 +2,7 @@
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 import {mountPremiumShowcase} from '/premium-showcase.js?v=8';
 import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=9';
-import {mountUltraAdmin} from '/ultra-admin.js?v=1';
+import {mountVisualEditor} from '/site-visual-editor.js?v=1';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const defaults={theme:'royal',accent:'',radius:20,density:'standard',scale:1,motion:true};
@@ -70,16 +70,12 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
   if(meta)meta.content=['titanium','royal','ice','gold','burgundy'].includes(c.theme)?themeColors[c.theme][1]:c.theme==='white'?'#f5f6f8':'#e8f4ff';
  }
  function goto(view){
-  if(view==='ultra-admin') {if(typeof show==='function')show(view);else location.hash=view;return}
   const target=nav.querySelector('button[data-view="'+view+'"]');
   if(target){target.click();return}
   location.hash=view;
  }
  function addSidebar(){
   const settings=document.getElementById('menu-settings');
-  const ultraButton=button('♛ ULTRA ADMIN','pf-sidebar-ultra-admin',()=>goto('ultra-admin'));
-  ultraButton.dataset.view='ultra-admin';
-  nav.insertBefore(ultraButton,settings);
   const projectButton=button('Проекты','pf-sidebar-project',openProjects);
   projectButton.insertAdjacentHTML('afterbegin',icon('book'));
   // Keep the main menu short: Design Studio and infrequently used tools live
@@ -99,10 +95,11 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
   const hub=node('section','pf-settings-hub');hub.id='pf-settings-hub';
   const title=node('h3','pf-settings-hub-title','Оформление FARRUH AI');
   const caption=node('p','pf-settings-hub-caption','Темы, кнопки и размер элементов.');
+  const visual=button('✏️  Редактировать на экране','pf-settings-design-button',()=>visualEditor?.open());
+  visual.id='pf-site-visual-editor-button';
   const design=button('🎨  Дизайн и стиль','pf-settings-design-button',openStudio);
   design.id='pf-settings-design-button';
-  const admin=button('♛  ULTRA ADMIN · Управление','pf-settings-design-button',()=>goto('ultra-admin'));
-  hub.append(title,caption,admin,design);
+  hub.append(title,caption,visual,design);
   const utilities=node('details','pf-settings-utilities');utilities.id='pf-settings-utilities';
   const summary=node('summary','','Редко используемые функции');
   const list=node('div','pf-settings-utilities-list');
@@ -119,7 +116,7 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
   const after=target.querySelector(':scope > .settings-actions');
   if(after)after.after(hub);else target.querySelector('h1')?.after(hub);
  }
- const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Полуфабрикаты','Ингредиенты и заготовки','preparations'],['printer','FARUKH PRINT','Этикетки и маркировка','print-control'],['settings','Настройки','Оформление и инструменты','site-settings'],['settings','ULTRA ADMIN','Центр управления владельца','ultra-admin']];
+ const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Полуфабрикаты','Ингредиенты и заготовки','preparations'],['printer','FARUKH PRINT','Этикетки и маркировка','print-control'],['settings','Настройки','Оформление и инструменты','site-settings']];
  const shell=node('div','pf-workspace');shell.id='pf-workspace';
  shell.innerHTML=
   '<div class="pf-top"><div><div class="pf-brand">FARRUH <span>AI</span></div><div class="pf-caption">Профессиональный кабинет шефа</div></div><div class="pf-top-actions"><button class="pf-icon-btn" data-pf-action="settings" aria-label="Настройки" title="Настройки">◈</button><button class="pf-icon-btn" data-pf-go="tasks" aria-label="Открыть задачи" title="Задачи">♧</button></div></div>'+
@@ -244,7 +241,7 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
  mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
- mountUltraAdmin({root:document.getElementById('ultra-admin'),goTo:goto,openStudio,openProjects,openDataCenter:typeof openDataCenter==='function'?openDataCenter:()=>goto('site-settings')});
+ const visualEditor=mountVisualEditor({show:typeof show==='function'?show:goto});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
   new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});
