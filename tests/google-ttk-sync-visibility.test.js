@@ -22,11 +22,11 @@ test('Device cloud sync is not incorrectly reported as a Google Docs delivery',(
  assert.match(google,/нет ТТК со статусом «Рецептура готова»/);
  assert.match(html,/Мои данные · Google и резервные копии/);
  assert.match(html,/dataCenter\.googleRoot/);
- assert.match(html,/Отправка в Google ещё не подтверждена/);
+ assert.match(html,/Отправка PDF в Google ещё не подтверждена/);
  assert.match(html,/не выбран проект/);
 });
 
 test('Updated Google and device sync modules bypass stale browser cache',()=>{
  assert.match(html,/\/recipe-google\.js\?v=17/);
- assert.match(html,/\/device-cloud-sync\.js\?v=6/);
+ assert.match(html,/\/device-cloud-sync\.js\?v=7/);
 });
