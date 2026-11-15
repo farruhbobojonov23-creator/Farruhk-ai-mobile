@@ -127,7 +127,7 @@ app.listen(PORT,'0.0.0.0',()=>{
   try{const response=await fetch('https://br-solitary-brook-baxakvoe-fpcloudapi.compute.c-8.eu-central-1.aws.neon.tech/',{
     headers:{Authorization:'Bearer '+GATEWAY},signal:AbortSignal.timeout(15000)});
    const data=await response.json().catch(()=>({}));
-   console.info('[farukh-print] Neon FUNCTION SQL probe',JSON.stringify({status:response.status,ok:data.ok,products:data.products,error:data.error,type:data.type}));
+   console.info('[farukh-print] Neon FUNCTION SQL probe',JSON.stringify({status:response.status,ok:data.ok,products:data.products,error:data.error,type:data.type,serverReady:data.serverReady,headerReady:data.headerReady,gatewayReady:GATEWAY.length===64}));
   }catch(e){console.warn('[farukh-print] Neon FUNCTION SQL probe unavailable',e.name||'error')}
  },2300);
 });
