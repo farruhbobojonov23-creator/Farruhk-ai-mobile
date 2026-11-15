@@ -13,6 +13,8 @@ on:
       - 'scripts/qa-ttk-pdf.mjs'
       - 'scripts/qa-ttk-reference-pdf.mjs'
       - '.github/workflows/ttk-pdf-review.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
