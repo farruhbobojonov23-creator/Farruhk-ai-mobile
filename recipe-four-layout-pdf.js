@@ -219,7 +219,7 @@ export function fourTtkPdf(input){
    x,y,w,s,draw,{ratios:[.34,.66]});
  }
  function referenceStorage(x,y,w,s,draw){
-  const raw=safe(r.storage),term=raw.match(/\b\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)\b/i)?.[0]||'Не указан';
+  const raw=safe(r.storage),term=raw.match(/\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)(?![а-я])/i)?.[0]||'Не указан';
   return box(layout==='process-matrix'?'УСЛОВИЯ ХРАНЕНИЯ':
     layout==='premium-blue'?'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ':
     layout==='gold-allergen'?'7. УСЛОВИЯ ХРАНЕНИЯ':'6. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',
