@@ -28,28 +28,52 @@
     <div class="preview-note">Тестовая оболочка · без изменения рабочего Farukh AI и APK сотрудников</div>
   </header>
   <div class="preview-banner" role="status">
-    Предпросмотр существующего центра управления: разделы, карточки, шаблоны 58×40 и 30×20 и интерфейс сотрудников сохранены.
-    Публикация в рабочую базу и изменения доступов на этом этапе отключены.
+    Предпросмотр существующего центра управления: те же разделы, карточки и шаблоны 58×40 и 30×20. Все позиции и отчёты ниже — ДЕМО, а не твои настоящие данные.
+    Облако, сотрудники и рабочее приложение не подключены. Можно открывать экраны и пробовать локальный редактор — никаких изменений у сотрудников не будет.
   </div>
   <main id="print-control"><div id="print-control-root"><p role="status">Загружаю действующий интерфейс управления печатью…</p></div></main>
   <script type="module">
-    // Safety: this preview cannot submit print-admin mutations to a live server.
+    // Static, isolated demo: no production API, no production data, no real account credentials.
+    const SAMPLE = [
+      {id:'demo-roll',kind:'ready',name:'Демо: ролл',category:'Роллы',storage:'',hours:null,needsReview:true,composition:'Демонстрационная карточка — не для печати',p:0,f:0,c:0,kcal:0,weight:200,tolerance:10,weightUnit:'г',photo:'',labelStyle:'premium-ready-58x40'},
+      {id:'demo-prep',kind:'prep',name:'Демо: полуфабрикат',category:'Соусы',storage:'',hours:null,needsReview:true,point:'',photo:'',labelStyle:'premium-prep-30x20'}
+    ];
+    const catalogKey='farukh-print:catalog:v1';
+    if (localStorage.getItem(catalogKey)===null) localStorage.setItem(catalogKey,JSON.stringify(SAMPLE));
     const originalFetch = window.fetch.bind(window);
+    const asJson = (data,status=200) => Promise.resolve(new Response(JSON.stringify(data),{
+      status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}
+    }));
     window.fetch = (input, init = {}) => {
-      const url = typeof input === 'string' ? input : input?.url || '';
-      const method = String(init.method || input?.method || 'GET').toUpperCase();
-      const target = new URL(url, location.href);
-      if (target.origin === location.origin && target.pathname.startsWith('/api/farukh-print/') && !['GET','HEAD','OPTIONS'].includes(method)) {
-        return Promise.resolve(new Response(JSON.stringify({error: 'Тестовый просмотр: изменения облачной базы и сотрудников отключены.'}), {
-          status: 403, headers: {'Content-Type': 'application/json'}
-        }));
+      const raw = typeof input==='string' ? input : input?.url || '';
+      const method=String(init.method || input?.method || 'GET').toUpperCase();
+      const target = new URL(raw,location.href);
+      if (target.origin !== location.origin) return originalFetch(input,init);
+      const path=target.pathname;
+      if (path.startsWith('/api/auth/')) return asJson({error:'В демонстрационной версии авторизация владельца отключена.'},403);
+      if (path.startsWith('/api/farukh-print/')) {
+        if (!['GET','HEAD','OPTIONS'].includes(method)) return asJson({error:'Демо: изменение рабочей облачной базы или доступов запрещено.'},403);
+        if (path==='/api/farukh-print/sync/status') return asJson({enabled:true});
+        if (path==='/api/farukh-print/admin/catalog') {
+          const local=JSON.parse(localStorage.getItem(catalogKey)||'[]');
+          return asJson({revision:'ДЕМО',products:local});
+        }
+        if (path==='/api/farukh-print/admin/devices') return asJson({devices:[]});
+        if (path==='/api/farukh-print/admin/staff/points') return asJson({points:['Точка 1','Точка 2','Точка 3','Точка 4']});
+        if (path==='/api/farukh-print/admin/staff') return asJson({staff:[]});
+        if (path==='/api/farukh-print/admin/staff/report') return asJson({summary:{staff:0,active:0,requests:0,labels:0},rows:[],topProducts:[],note:'Демонстрация интерфейса. Реальные данные сотрудников не подключены.'});
+        if (path==='/api/farukh-print/admin/staff/activity') return asJson({events:[],total:0});
+        if (path==='/api/farukh-print/admin/staff/alerts') return asJson({alerts:[]});
+        return asJson({error:'Функция отключена в демонстрации.'},404);
       }
-      return originalFetch(input, init);
+      return originalFetch(input,init);
     };
+    document.addEventListener('click',e=>{
+      const a=e.target.closest('a[href^="/farukh-print/"]');
+      if(a){e.preventDefault();window.alert('Это тестовый управляющий центр. Рабочее приложение сотрудников не подключено.');}
+    });
     const root = document.getElementById('print-control-root');
     try {
-      const auth = await import('/owner-login.js?v=2');
-      await auth.requireOwner();
       const [local, cloud, staff] = await Promise.all([
         import('/print-control.js?v=27'),
         import('/print-control-cloud.js?v=7'),
