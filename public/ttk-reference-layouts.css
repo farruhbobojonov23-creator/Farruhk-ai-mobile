@@ -1,0 +1,313 @@
+/* Reference-specific A4 compositions, NOT one tinted layout.
+ * Reference 01: process+quality, storage+nutrition in paired tables.
+ * Reference 02: 4-stage horizontal process, 3-column quality row, 3-part HACCP.
+ * Reference 03: nine individually numbered sections, green / gold numbering.
+ * Reference 04: oversized gold allergen matrix with teal structured tables.
+ * All selectors are confined to the fixed A4 live preview.
+ */
+@media screen {
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page {
+ --ref-teal:#006d66;--ref-deep:#063c42;--ref-gold:#d5a43f;
+ --ref-pale:#e9f6f3;--ref-line:#a8cbc7;
+ background:#fff!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-meta {
+ grid-template-columns:1.31fr 1fr 1fr 1fr!important;gap:8px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-ref-pieces-field {display:none!important}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta > .ttk-live-label {
+ display:grid!important;grid-template-columns:34px minmax(0,1fr)!important;
+ grid-template-rows:15px 25px!important;gap:0 5px!important;
+ align-content:center!important;border:1px solid var(--ref-line)!important;
+ border-radius:8px!important;max-height:52px!important;padding:3px 5px!important;
+ background:#fff!important;overflow:hidden!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta .ttk-ref-icon{
+ grid-row:1 / 3;align-self:center!important;width:27px!important;height:27px!important;
+ color:#c79b3d!important;-webkit-text-fill-color:#c79b3d!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta .ttk-live-caption {
+ grid-column:2;font:800 11px/13px Arial,system-ui!important;color:#183d43!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta .ttk-live-control{
+ grid-column:2!important;height:24px!important;min-height:24px!important;
+ font:700 13.2px/22px Arial,system-ui!important;padding:0 2px!important;
+ background:transparent!important;border:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-yield-pieces{
+ position:absolute!important;right:7px!important;bottom:2px!important;
+ font:800 9px/11px Arial,system-ui!important;color:#986c22!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta [data-ttk-field="card-yield"]{
+ position:relative!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-name-sample{
+ font:900 25px/27px Georgia,'Times New Roman',serif!important;color:var(--ref-deep)!important;
+ -webkit-text-fill-color:var(--ref-deep)!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-section-head {
+ background:linear-gradient(105deg,#005d56,#00877e)!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ border-radius:7px 7px 2px 2px!important;
+ font:900 12.2px/16px Arial,system-ui!important;
+ letter-spacing:.003em!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-count {
+ background:linear-gradient(#f9d67b,#cb982e)!important;
+ color:#202b28!important;-webkit-text-fill-color:#202b28!important;
+ border-radius:6px!important;font:900 17px/24px Arial,system-ui!important;
+ width:27px!important;height:24px!important;flex:0 0 27px!important;
+ text-align:center!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-recipe-pair{
+ grid-template-columns:1.48fr 1fr!important;gap:9px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-ingredient-row{
+ grid-template-columns:23px minmax(0,1.65fr) .72fr .70fr .72fr 17px!important;
+ min-height:23px!important;height:23px!important;gap:1px!important;
+ font-size:10.5px!important;padding:0 2px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-ingredient-index {
+ display:grid!important;place-items:center!important;font:800 10px/16px Arial,sans-serif!important;
+ color:#22413e!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-ingredient-head {
+ grid-template-columns:1.66fr .72fr .7fr .72fr 17px!important;
+ font-size:10.1px!important;font-weight:800!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-ingredient-row .ttk-live-ingredient-input{
+ font:650 10.2px/17px Arial,system-ui!important;padding:0 2px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-yield{
+ border-radius:5px!important;background:linear-gradient(90deg,#f4d788,#dbaa41)!important;
+ font-size:12px!important;font-weight:900!important;color:#403416!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-allergens{
+ border:1px solid #9dc8bc!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-allergen-row{
+ gap:5px!important;border-bottom:1px solid #dce6e3!important;
+ font:650 10.5px/15px Arial,system-ui!important;
+ height:22px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-icon{
+ display:grid!important;place-items:center!important;flex:0 0 auto!important;
+ width:16px!important;height:16px!important;color:#0a6057!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-icon svg{
+ display:block!important;width:100%!important;height:100%!important;stroke:currentColor!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-allergen-box[data-state="present"]{
+ background:linear-gradient(#e4b849,#bf8a1f)!important;color:#fff!important;
+ -webkit-text-fill-color:#fff!important;
+ border-color:#c49a3e!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-lower{
+ grid-template-rows:154px 160px 69px 66px 21px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-duo{
+ display:grid!important;grid-template-columns:1.13fr 1fr!important;
+ gap:7px!important;min-width:0!important;overflow:hidden!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-process-quality{
+ height:154px!important;min-height:154px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-conditions-nutrition{
+ height:160px!important;min-height:160px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-duo > .ttk-live-section{
+ height:100%!important;min-height:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process-fields,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality > .ttk-live-label,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-conditions > .ttk-live-label,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-nutrition > .ttk-live-auto,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-nutrition > .ttk-live-nutri-grid,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-nutrition > .ttk-live-nutri-note {
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-process-stages{
+ display:grid!important;grid-template-columns:1fr!important;grid-template-rows:repeat(4,minmax(0,1fr))!important;
+ gap:0!important;margin:0 5px!important;height:calc(100% - 31px)!important;
+ overflow:hidden!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage{
+ display:grid!important;grid-template-columns:105px minmax(0,1fr)!important;
+ gap:4px!important;align-items:start!important;
+ border-bottom:1px solid #c8dcda!important;padding:2px 3px!important;
+ overflow:hidden!important;min-width:0!important;min-height:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-head{
+ display:flex!important;gap:4px!important;align-items:center!important;min-width:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-head strong{
+ font:900 10px/14px Arial,system-ui!important;white-space:normal!important;
+ color:#063f3c!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-index{
+ width:18px!important;height:18px!important;border-radius:50%!important;flex:0 0 18px!important;
+ background:linear-gradient(#f3d173,#d1a03d)!important;display:grid!important;place-items:center!important;
+ font:900 12px/17px Arial,sans-serif!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-head .ttk-ref-icon{
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-body{
+ margin:0!important;padding:0!important;
+ font:500 10.25px/12.7px Arial,system-ui!important;
+ overflow:hidden!important;word-break:normal!important;overflow-wrap:anywhere!important;
+ color:#213d41!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-info-table{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+ gap:0!important;width:calc(100% - 10px)!important;margin:0 5px!important;
+ background:#fff!important;overflow:hidden!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-info-row{
+ display:grid!important;grid-template-columns:34% minmax(0,1fr)!important;
+ min-height:26px!important;border-bottom:1px solid #cfdfdc!important;
+ align-items:center!important;gap:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-info-row>*{
+ padding:3px 5px!important;font:550 10.3px/13px Arial,system-ui!important;
+ color:#203f40!important;min-width:0!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-info-row>strong{
+ font-weight:850!important;background:#e6f5f1!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-quality-table .ttk-ref-info-row:first-child{
+ min-height:17px!important;background:#dcefeb!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-quality-table .ttk-ref-info-row:first-child>*{
+ font-size:9.6px!important;line-height:12px!important;font-weight:900!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-storage-table .ttk-ref-info-row{
+ min-height:51px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-nutri-table .ttk-ref-info-row{
+ grid-template-columns:46% 27% 27%!important;min-height:19px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-nutri-table .ttk-ref-info-row>*{
+ padding:2px 4px!important;font-size:10px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-nutri-head{
+ background:#d8ede8!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety>.ttk-ref-haccp-cards{
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety textarea.ttk-live-control{
+ height:35px!important;max-height:35px!important;min-height:35px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-signatures .ttk-live-label{
+ position:relative!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-sign-date{
+ position:absolute!important;right:14px!important;top:23px!important;
+ font:800 12px/15px Arial,system-ui!important;color:#273e41!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-sign-line{
+ position:absolute!important;bottom:3px!important;left:10px!important;
+ font:500 9px/11px Arial,system-ui!important;color:#556b6c!important;
+ white-space:nowrap!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-regulatory{
+ display:flex!important;justify-content:space-between!important;align-items:center!important;
+ padding:0 2px!important;gap:4px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-footer-brand{
+ align-items:center!important;display:flex!important;gap:3px!important;
+ padding:1px 7px!important;background:linear-gradient(90deg,#f5dd9b,#cfa040)!important;
+ border-radius:3px!important;white-space:nowrap!important;
+ color:#203b3a!important;font:900 11px/14px Arial,system-ui!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-footer-brand .ttk-ref-icon{
+ color:#b38831!important;width:12px!important;height:12px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-footer-brand em{
+ font:italic 700 10px Georgia,serif!important;
+}
+/* 01 — teal: paired table matrix exactly as the first reference. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="teal-matrix"] .ttk-ref-duo{
+ grid-template-columns:1.12fr 1fr!important;
+}
+/* 02 — arrows, horizontal four-step workflow and tri-column quality/storage/nutrition. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-live-process{
+ height:154px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-process-stages{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:1fr!important;gap:6px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-stage{
+ display:flex!important;flex-direction:column!important;gap:6px!important;
+ border:1px solid #b6d0cb!important;border-radius:8px!important;
+ padding:8px!important;position:relative!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-stage:not(:last-child):after{
+ content:'❯';position:absolute!important;right:-10px!important;top:36px!important;
+ color:#c69a39!important;font-size:18px!important;z-index:3!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-stage-head{
+ width:100%!important;flex-direction:column!important;gap:4px!important;align-items:center!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-stage-head .ttk-ref-icon{
+ display:block!important;width:22px!important;height:22px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-stage-body{
+ font-size:10px!important;line-height:13.5px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-live-quality-pair{
+ grid-template-columns:1.16fr .79fr 1fr!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-live-safety>.ttk-live-label{
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-live-safety>.ttk-ref-haccp-cards{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:4px!important;padding:1px 5px!important;height:calc(100% - 30px)!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-haccp-card{
+ display:flex!important;flex-direction:column!important;gap:2px!important;padding:2px 4px!important;
+ border-right:1px solid #d1b05b!important;overflow:hidden!important;
+ font:550 9.5px/11.6px Arial,system-ui!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="process-matrix"] .ttk-ref-haccp-card b{
+ font-size:10.5px!important;color:#0e514a!important;
+}
+/* 03 — gold: nine numbered sections (including allergen #4), classic serif name. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-allergens{
+ border:2px solid #d0a043!important;border-radius:13px!important;
+ box-shadow:0 0 0 2px #f5e3b4!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-allergens .ttk-live-section-head{
+ background:linear-gradient(110deg,#bd8c2f,#fff3c1,#c79a43)!important;
+ color:#382c18!important;-webkit-text-fill-color:#382c18!important;
+ font:900 15px/18px Georgia,serif!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-title strong{
+ font-family:Georgia,'Times New Roman',serif!important;letter-spacing:.01em!important;
+}
+/* 04 — gold allergens with no numbering, wider recipe and large gold title. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="premium-blue"]{
+ --ref-teal:#006c65;--ref-deep:#003b44;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-recipe-pair{
+ grid-template-columns:1.2fr 1fr!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-allergens{
+ border:2px solid #d4a64e!important;border-radius:15px!important;
+ box-shadow:0 0 0 2px #fae7b7!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-allergens .ttk-live-section-head{
+ height:40px!important;min-height:40px!important;max-height:40px!important;
+ background:linear-gradient(115deg,#d8a348,#fff3c8,#e2b359)!important;
+ font:900 18px/21px Georgia,serif!important;color:#153e3d!important;
+ -webkit-text-fill-color:#153e3d!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-allergen-row{
+ height:21px!important;min-height:21px!important;
+}
+/* hide purely decorative app-ui icons from actual print; PDF uses matching vector drawing */
+@media print{.ttk-ref-footer-brand svg,.ttk-ref-icon svg{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+}
