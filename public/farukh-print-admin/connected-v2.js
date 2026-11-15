@@ -280,7 +280,7 @@ async function loadArchives(){
 }
 async function optimizePhoto(file){
  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Нужен PNG, JPG или WebP.');
- if(file.size<=1300000)return file;
+ if(file.size<=1000000)return file;
  const url=URL.createObjectURL(file),img=new Image();
  try{
   img.src=url;
@@ -292,8 +292,9 @@ async function optimizePhoto(file){
   const ctx=canvas.getContext('2d');
   if(!ctx)throw Error('Не удалось обработать изображение.');
   ctx.drawImage(img,0,0,canvas.width,canvas.height);
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.88));
-  if(!blob||blob.size>1350000)throw Error('Фото слишком большое. Попробуй изображение меньше 1,35 МБ.');
+  let blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.88));
+  if(blob&&blob.size>1040000)blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.72));
+  if(!blob||blob.size>1040000)throw Error('Фото слишком большое. Попробуй изображение меньше 1 МБ.');
   return blob;
  }finally{URL.revokeObjectURL(url)}
 }
@@ -304,7 +305,7 @@ async function uploadPhoto(){
  const button=$('photo-upload');button.disabled=true;note('save-note','Подготавливаю фотографию…');
  try{
   const blob=await optimizePhoto(file);
-  if(blob.size>1350000)throw Error('Фото превышает лимит 1,35 МБ.');
+  if(blob.size>1040000)throw Error('Фото превышает лимит 1 МБ.');
   const data=await new Promise((resolve,reject)=>{
    const reader=new FileReader();
    reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
