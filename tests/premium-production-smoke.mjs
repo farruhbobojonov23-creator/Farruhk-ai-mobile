@@ -150,6 +150,40 @@ async function auditRoyal(page,tag,mobile,errors){
      layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
    await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
    await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
+   // Real visual regression: each of the four approved A4 options must have
+   // its own arrangement, not only a new background/border color.
+   for(const [layout,pairKind,processKind,allergensTitle,numbered] of [
+    ['teal-matrix','process-quality','table','МАТРИЦА АЛЛЕРГЕНОВ',true],
+    ['process-matrix','quality-pair','four-horizontal','МАТРИЦА АЛЛЕРГЕНОВ',false],
+    ['gold-allergen','process-quality','table','МАТРИЦА АЛЛЕРГЕНОВ',true],
+    ['premium-blue','process-quality','table','АЛЛЕРГЕНЫ В БЛЮДЕ',false]
+   ]){
+    await page.locator('#ttk-design-picker [data-ttk-layout="'+layout+'"]').click();
+    const rendered=await page.evaluate(()=>{
+     const root=document.querySelector('#ttk-live-page');
+     const lower=root.querySelector('.ttk-live-lower');
+     const stage=root.querySelector('.ttk-ref-process-stages');
+     const names=[...root.querySelectorAll('.ttk-live-section-head strong')].map(x=>x.textContent);
+     const processPair=lower.firstElementChild?.classList.contains('ttk-ref-process-quality');
+     return {layout:root.dataset.ttkLayout,lowerFirst:lower.firstElementChild?.className,
+      pair:processPair?'process-quality':'quality-pair',
+      process:getComputedStyle(stage).gridTemplateColumns.split(' ').length===4?'four-horizontal':'table',
+      names,numbered:!!root.querySelector('.ttk-live-scope .ttk-live-count'),
+      footer:!!root.querySelector('.ttk-ref-footer-brand'),
+      nutritionRows:root.querySelectorAll('.ttk-ref-nutri-table .ttk-ref-info-row').length,
+      steps:root.querySelectorAll('.ttk-ref-stage').length,
+      allergens:root.querySelector('.ttk-live-allergens .ttk-live-section-head strong')?.textContent,
+      mast:root.querySelector('.ttk-live-paper-brand')?.textContent};
+    });
+    check(tag+' real A4 layout '+layout+' is structurally distinct and data driven',
+     rendered.layout===layout&&rendered.pair===pairKind&&rendered.process===processKind&&
+      rendered.allergens===allergensTitle&&rendered.numbered===numbered&&
+      rendered.nutritionRows===5&&rendered.steps===4&&rendered.footer&&
+      rendered.mast?.includes('FARRUH AI'),rendered);
+    await page.locator('#ttk-live-page').screenshot({
+     path:'artifacts/premium-'+tag+'-reference-'+layout+'.png',timeout:12000
+    });
+   }
    await page.locator('#ttk-design-picker [data-ttk-layout="gold-allergen"]').click();
    const inlineState=await page.evaluate(()=>{
      const live=document.querySelector('#ttk-live-page');

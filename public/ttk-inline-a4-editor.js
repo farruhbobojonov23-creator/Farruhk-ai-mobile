@@ -3,6 +3,7 @@
  * recipe persistence, formulas, attachments or approval state.
  */
 import {recipeAllergenMatrix} from './ttk-allergens.js?v=2';
+import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=1';
 const node=(tag,cls,text)=>{
  const n=document.createElement(tag);
  if(cls)n.className=cls;
@@ -130,7 +131,7 @@ export function mountInlineTtkPage(editor){
  const introPair=node('div','ttk-live-row ttk-live-intro-pair');introPair.append(scope,raw);
  const formula=section(3,'РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ НА ПОРЦИЮ)','ttk-live-formula');
  const ingredientHead=node('div','ttk-live-ingredient-head');
- for(const name of ['Ингредиент','Брутто, г','Отходы, %','Нетто, г',''])ingredientHead.append(node('span','',name));
+ for(const name of ['№','Ингредиент','Брутто, г','Отходы, %','Нетто, г',''])ingredientHead.append(node('span','',name));
  const rows=node('div','ttk-live-ingredient-rows');
  const add=node('button','ttk-live-add','＋ Добавить ингредиент');add.type='button';
  add.addEventListener('click',()=>{
@@ -275,17 +276,20 @@ export function mountInlineTtkPage(editor){
    marker.title=group.manual?'Отметка вручную: требуется проверка по этикетке':group.checked?'Предположительно присутствует':group.possible?'Возможно присутствие':'Не найдено по названию ингредиентов, проверь состав';
    entry.append(node('span','',group.label),marker);return entry;
   }));
-  syncFromSource();
+  syncFromSource();reference.update();
   // Delayed text personalization sets source inputs programmatically.
   clearTimeout(refreshComputed.timer);
   refreshComputed.timer=setTimeout(syncFromSource,240);
  }
+ const reference=mountReferenceLayouts(page,editor,{lower,process,processFields,quality,
+  conditions,nutrition,safety,signs,regulatory,qualityPair,scope,raw,formula,
+  allergens,allergenRows,meta});
  function refresh(){
-  page.dataset.ttkLayout=editor.dataset.ttkLayout||'teal-matrix';
+  reference.arrange(editor.dataset.ttkLayout||'teal-matrix');
   renderIngredients();
   refreshComputed();
  }
  return {shell,page,refresh,refreshComputed,setLayout:()=>{
-  page.dataset.ttkLayout=editor.dataset.ttkLayout||'teal-matrix';
+  reference.arrange(editor.dataset.ttkLayout||'teal-matrix');refreshComputed();
  }};
 }
