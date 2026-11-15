@@ -431,8 +431,8 @@ export function fourTtkPdf(input){
    textBox(rightTitle,sections[1][1][0][0],X+half+gap,y,half,s,true);
   }
   y+=first+(dense?3:8)*s;
-  if((r.ingredients||[]).length<=14&&layout!=='premium-blue'){
-   const recipeW=W*.60,allergenW=W-recipeW-gap;
+  if((r.ingredients||[]).length<=14){
+   const recipeW=W*(layout==='premium-blue'?.54:.60),allergenW=W-recipeW-gap;
    const rs=compactIngredients(X,y,recipeW,s,false),
     as=allergenBox(X+recipeW+gap,y,allergenW,s,false);
    if(draw){compactIngredients(X,y,recipeW,s,true);allergenBox(X+recipeW+gap,y,allergenW,s,true)}
