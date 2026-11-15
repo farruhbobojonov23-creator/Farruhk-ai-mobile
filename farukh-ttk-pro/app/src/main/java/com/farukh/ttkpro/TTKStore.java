@@ -69,6 +69,20 @@ public class TTKStore {
     private void load(){
         loadList("categories",categories);loadList("ingredients",ingredients);loadList("dishes",dishes);
         if(categories.isEmpty())for(int i=0;i<DEFAULT_CATEGORIES.length;i++)categories.add(category(DEFAULT_CATEGORIES[i],ICONS[i]));
+        // Upgrade existing installations without dropping user changes. The default
+        // photo key is separate from the editable title and remains stable on rename.
+        for(int i=0;i<categories.size();i++){
+            JSONObject c=categories.get(i);
+            if(!c.has("asset")){
+                try{
+                    String oldName=c.optString("name","");
+                    String asset=i<DEFAULT_CATEGORIES.length && oldName.equals(DEFAULT_CATEGORIES[i])
+                        ? FoodPhotos.categoryAsset(DEFAULT_CATEGORIES[i])
+                        : FoodPhotos.categoryAsset(oldName);
+                    c.put("asset",asset);
+                }catch(Exception ignore){}
+            }
+        }
         if(ingredients.isEmpty()){
             ingredients.add(ingredient("Рис для суши готовый",130,2.8,0.3,28.2,""));
             ingredients.add(ingredient("Нори",350,35,5,30,"Рыба/морепродукты — проверить упаковку"));
