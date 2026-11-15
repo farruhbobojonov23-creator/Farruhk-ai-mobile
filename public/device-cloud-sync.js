@@ -1,5 +1,5 @@
 import {validateDeviceState} from './device-store.js?v=72';
-import {LIST_FIELDS,pickSyncSnapshot,reconcileSnapshots} from './device-sync-merge.js?v=1';
+import {LIST_FIELDS,pickSyncSnapshot,reconcileSnapshots} from './device-sync-merge.js?v=2';
 
 const BASE_KEY='device-cloud-sync-base-v1';
 const ENABLED_KEY='farruh-device-cloud-sync-enabled-v1';
