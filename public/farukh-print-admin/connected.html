@@ -1,0 +1,151 @@
+<!doctype html><html lang="ru"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#eef5f8">
+  <title>FARUKH PRINT · Neon Premium — Облачная админка</title>
+  <!-- These are the EXACT SAME management styles used by Farukh AI. -->
+  <link rel="stylesheet" href="/print-control.css?v=18">
+  <link rel="stylesheet" href="/print-control-theme.css?v=1">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=3">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-v2.css?v=1">
+  <link rel="stylesheet" href="/farukh-print-admin/compact-v2.css?v=2">
+  <style>
+    :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    .preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px max(18px, calc((100vw - 1160px) / 2)); background: #132439; color: #f9fcff; }
+    .preview-brand { font-size: 16px; font-weight: 850; letter-spacing: .02em; }
+    .preview-note { color: #d8edf5; font-size: 12px; }
+    .preview-banner { max-width: 1160px; margin: 22px auto 14px; padding: 14px 18px; border: 1px solid #d1dfea; border-radius: 14px; background: #e9f4ff; color: #37526d; font: 600 13px/1.55 Inter, system-ui, sans-serif; }
+    #print-control { padding: 8px 14px 40px; }
+    .preview-error { color: #b12948; padding: 20px; }
+    @media (max-width: 650px) { .preview-bar { padding: 14px 18px; } .preview-banner { margin: 12px 12px 10px; } }
+  
+    .migration-panel{max-width:1160px;margin:0 auto 18px;padding:22px;border:1px solid var(--pf-line);border-radius:22px;background:var(--pf-card-grad);color:var(--pf-ink);box-shadow:var(--pf-shadow)}
+    .migration-panel-top{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .migration-panel h2{color:var(--pf-ink);font-size:clamp(18px,3vw,25px);margin:5px 0 9px}
+    .migration-panel p{color:var(--pf-muted);font-size:12px;line-height:1.65;margin:6px 0 10px}
+    .migration-badge,.migration-wait{display:inline-block;background:var(--pf-soft-accent);color:var(--pf-accent);border:1px solid var(--pf-line);border-radius:99px;padding:8px 11px;font-size:11px;font-weight:800}
+    .migration-badge{white-space:nowrap}
+    .migration-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .migration-step{padding:16px;background:var(--pf-raised);border:1px solid var(--pf-line);border-radius:16px;min-width:0}
+    .migration-step strong{font-size:13px;line-height:1.4;display:block}
+    .migration-action{display:inline-flex;justify-content:center;align-items:center;padding:10px 13px;min-height:40px;background:var(--pf-accent);color:var(--pf-on-accent);border:0;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+    .migration-success,.migration-error{padding:9px;border-radius:10px;margin-top:12px!important;background:var(--pf-soft-accent)}
+    .migration-error{color:#f26e86!important}
+    .migration-disclaimer{margin-bottom:0!important}
+    .migration-import-button{margin-top:12px;background:linear-gradient(120deg,var(--pf-accent),var(--pf-glow));color:var(--pf-on-accent)}
+    .migration-import-button[hidden]{display:none!important}
+    @media(max-width:700px){.migration-steps{grid-template-columns:1fr}.migration-panel{margin:0 12px 15px;padding:15px}.migration-badge{display:none}}
+
+  </style>
+  <link rel="stylesheet" href="/farukh-print-admin/connected-v2.css?v=1">
+</head>
+<body data-view="print-control" data-pf-theme="preview" data-admin-theme="neon" data-admin-page="home">
+  <header class="preview-bar">
+    <div class="preview-brand-wrap">
+      <div class="preview-brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3.5" width="16" height="8" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="4" y="10.5" width="24" height="15" rx="3" stroke="currentColor" stroke-width="2"/><rect x="8" y="19" width="16" height="9.5" rx="1.5" fill="currentColor"/><path d="M12 23h8" stroke="#13243A" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="15" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div><div class="preview-brand">Farukh Print <b>Admin</b></div>
+      <div class="preview-note">Управляющий центр печати и этикеток</div></div>
+    </div>
+    <span class="preview-mode">NEON PREMIUM · ОБЛАКО</span>
+  </header>
+<details class="premium-switcher" aria-labelledby="premium-title"><summary>🎨 Оформление: <strong id="premium-current-theme">Neon Premium</strong> <span style="color:var(--pf-muted);font-size:11px;font-weight:500">Изменить тему</span></summary>
+    <div class="premium-top">
+      <div><span class="premium-eyebrow">PREMIUM DESIGN STUDIO</span><h2 id="premium-title">Выбери дизайн</h2></div>
+      <p class="premium-hint" id="premium-description">Переключение моментальное · выбор сохранится на этом устройстве</p>
+    </div>
+    <div class="premium-options" role="radiogroup" aria-label="Цветовая тема Farukh Print Admin" aria-describedby="premium-description">
+      <button type="button" role="radio" class="premium-option" data-theme="beige" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Luxury Beige</span><span class="premium-option-sub">Светлый · медный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="gold" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Black Gold</span><span class="premium-option-sub">Чёрный · золотой</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="emerald" aria-checked="true"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">White Emerald</span><span class="premium-option-sub">Белый · изумрудный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="neon" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Neon Premium</span><span class="premium-option-sub">Тёмный · неоновый</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+    </div>
+  </details>
+<div id="auth-box" class="connected-auth" role="region" aria-label="Вход владельца">
+ <span class="connected-kicker">FARUKH PRINT · NEON CLOUD</span>
+ <h1>Вход владельца</h1>
+ <p>Один код доступа. Сотрудникам не требуется повторная регистрация, их рабочая печать не изменяется.</p>
+ <form id="pin-form"><label for="pin-code">Код владельца</label>
+  <input id="pin-code" type="password" inputmode="numeric" autocomplete="off" pattern="[0-9]{5,12}" maxlength="12" required placeholder="•••••">
+  <button class="connected-primary" id="enter" type="submit">Открыть панель</button>
+ </form><div id="auth-note" class="connected-state" role="status" aria-live="polite">Проверяю доступ…</div>
+</div>
+<div id="connected-app" hidden>
+ <div class="connected-bar"><span id="connected-state" role="status" aria-live="polite">Проверяю облако…</span>
+  <button id="reload-all" type="button">⟳ Обновить</button><button id="logout" type="button">Выйти</button></div>
+ <main id="print-control"><div id="print-control-root">
+  <div class="connected-tabs" aria-hidden="true">
+   <button type="button" class="pc-workspace-tab" data-workspace="catalog">Товары</button>
+   <button type="button" class="pc-workspace-tab" data-workspace="staff">Сотрудники</button>
+   <button type="button" class="pc-workspace-tab" data-workspace="cloud">Облако</button>
+   <button type="button" class="pc-workspace-tab" data-workspace="backup">Настройки</button>
+  </div>
+  <section class="connected-page" id="page-catalog" hidden>
+   <div class="connected-head"><div><span class="connected-kicker">РЕАЛЬНАЯ БАЗА NEON</span><h2>Товары и этикетки</h2></div>
+     <span id="catalog-count" class="connected-badge">— товаров</span></div>
+   <div class="connected-filters">
+    <input id="find-product" type="search" placeholder="Поиск товара…" aria-label="Поиск товаров">
+    <select id="kind-filter" aria-label="Тип товара"><option value="all">Все товары</option><option value="ready">Готовая продукция</option><option value="prep">Полуфабрикаты</option></select>
+   </div>
+   <div class="connected-layout">
+    <div id="catalog-list" class="connected-list" aria-label="Товары"><p>Загружаю…</p></div>
+    <form id="edit-form" class="connected-editor" hidden>
+     <div class="connected-editor-top"><span class="connected-kicker">КАРТОЧКА ТОВАРА</span><span id="editor-state">В облаке</span></div>
+     <img id="product-photo" class="connected-photo" alt="Изображение товара" hidden>
+     <label for="product-name">Название</label><input id="product-name" maxlength="90" required>
+     <div class="connected-two"><div><label for="product-kind">Тип</label><select id="product-kind"><option value="ready">Готовый</option><option value="prep">Полуфабрикат</option></select></div>
+     <div><label for="product-category">Категория</label><input id="product-category" maxlength="120"></div></div>
+     <label for="product-composition">Состав</label><textarea id="product-composition" maxlength="600" rows="3"></textarea>
+     <div class="connected-two"><div><label for="product-storage">Хранение</label><input id="product-storage" maxlength="60" placeholder="+2…+6 °C"></div>
+     <div><label for="product-hours">Срок, часов</label><input id="product-hours" type="number" min="1" max="8760"></div></div>
+     <p class="connected-quiet">Редактирование автоматически сохраняется в Neon. После сохранения допуск к печати нужно проверить заново.</p>
+     <div id="save-note" class="connected-state" role="status" aria-live="polite">Выбери товар</div>
+     <button class="connected-primary" type="submit" id="save-product">Сохранить сейчас</button>
+    </form>
+   </div>
+  </section>
+  <section class="connected-page" id="page-staff" hidden>
+   <div class="connected-head"><div><span class="connected-kicker">СОТРУДНИКИ · 4 ТОЧКИ</span><h2>Команда и устройства</h2></div></div>
+   <div class="connected-notice"><b>Существующие сотрудники работают в прежнем FARUKH PRINT.</b> Их логины, пароли, устройства и Bluetooth-печать не изменялись. Новая таблица Neon ещё не объединена с прежней системой, поэтому её ноль не означает отсутствие сотрудников.</div>
+   <div id="legacy-staff-note" class="connected-state">Проверяю подключение…</div>
+   <div class="connected-statgrid">
+    <div><strong id="staff-new">—</strong><small>Новые аккаунты Neon</small></div>
+    <div><strong id="devices-new">—</strong><small>Новые устройства Neon</small></div>
+    <div><strong id="staff-pending">—</strong><small>Запросы привязки Neon</small></div>
+    <div><strong id="staff-events">—</strong><small>События в новом журнале</small></div>
+   </div>
+   <div id="staff-locations" class="connected-lines"></div>
+   <p class="connected-quiet">Управление прежними сотрудниками подключим после проверки действующего хранилища учётных записей. Создавать их заново не нужно.</p>
+  </section>
+  <section class="connected-page" id="page-cloud" hidden>
+   <div class="connected-head"><div><span class="connected-kicker">NEON CLOUD · ОСНОВНАЯ БАЗА</span><h2>Облако и синхронизация</h2></div></div>
+   <div class="connected-statgrid">
+    <div><strong id="cloud-products">—</strong><small>Товаров</small></div>
+    <div><strong id="cloud-photos">—</strong><small>Фотографий</small></div>
+    <div><strong id="cloud-locations">—</strong><small>Торговые точки</small></div>
+    <div><strong id="cloud-backups">—</strong><small>Резервных копий</small></div>
+   </div>
+   <div id="cloud-note" class="connected-state">Загружаю текущие данные Neon…</div>
+   <p class="connected-quiet">Сохранение товаров в Neon работает. Автоматическая синхронизация с оригинальным приложением Bluetooth-печати пока не подключена: обновлённые карточки не появляются на телефонах сотрудников автоматически.</p>
+   <button id="refresh-cloud" class="connected-primary" type="button">Проверить облако</button>
+  </section>
+  <section class="connected-page" id="page-backup" hidden>
+   <div class="connected-head"><div><span class="connected-kicker">НАСТРОЙКИ · БЕЗ ЛИШНИХ КНОПОК</span><h2>Состояние и безопасность</h2></div></div>
+   <div class="connected-lines">
+    <div><span>Код владельца</span><strong>✓ Вход по одному коду</strong></div>
+    <div><span>Оформление</span><strong>Neon Premium V2</strong></div>
+    <div><span>Реальный каталог Neon</span><strong>✓ Подключён</strong></div>
+    <div><span>Старые пароли сотрудников</span><strong>✓ Не изменены</strong></div>
+    <div><span>Автоматическая синхронизация V3 BT</span><strong>⏳ Не подключена</strong></div>
+    <div><span>Физическая печать 58×40 / 30×20</span><strong>⏳ Требуется проверка</strong></div>
+   </div>
+   <p class="connected-quiet">Удаление товаров, сброс паролей и изменение точек не доступны из этого экрана до полного объединения с действующей системой.</p>
+  </section>
+ </div></main>
+</div>
+<script type="module" src="/farukh-print-admin/connected-v2.js?v=1"></script>
+</body></html>
