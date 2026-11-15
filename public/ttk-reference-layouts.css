@@ -277,13 +277,13 @@
 }
 /* 03 — gold: nine numbered sections (including allergen #4), classic serif name. */
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-allergens{
- border:2px solid #d0a043!important;border-radius:13px!important;
- box-shadow:0 0 0 2px #f5e3b4!important;
+ border:1px solid #9dc8bc!important;border-radius:8px!important;
+ box-shadow:none!important;
 }
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-allergens .ttk-live-section-head{
- background:linear-gradient(110deg,#bd8c2f,#fff3c1,#c79a43)!important;
- color:#382c18!important;-webkit-text-fill-color:#382c18!important;
- font:900 15px/18px Georgia,serif!important;
+ background:linear-gradient(100deg,#005d56,#00877e)!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ font:900 12.2px/16px Arial,system-ui!important;
 }
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="gold-allergen"] .ttk-live-title strong{
  font-family:Georgia,'Times New Roman',serif!important;letter-spacing:.01em!important;
