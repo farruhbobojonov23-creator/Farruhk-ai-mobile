@@ -5,6 +5,8 @@ on:
     branches: [farukh-ttk-pro]
     paths:
       - '.github/workflows/farukh-ttk-smoke.yml'
+      - 'farukh-ttk-pro/app/**'
+      - 'farukh-ttk-pro/updates/**'
 jobs:
   android-smoke:
     runs-on: ubuntu-latest
@@ -36,15 +38,15 @@ jobs:
           profile: pixel_6
           script: |
             adb install -r farukh-ttk-pro/app/build/outputs/apk/debug/app-debug.apk
-            adb shell am start -W -n com.farukh.ttkpro/.MainActivity
+            adb shell am start -W -n com.farukh.ttkpro.premium/com.farukh.ttkpro.MainActivity
             sleep 10
             # Dismiss any emulator launcher ANR; return the TTK app to foreground.
             adb shell input tap 265 945 || true
-            adb shell am start -W -n com.farukh.ttkpro/.MainActivity
+            adb shell am start -W -n com.farukh.ttkpro.premium/com.farukh.ttkpro.MainActivity
             sleep 4
             adb shell screencap -p /sdcard/farukh_home.png
             adb pull /sdcard/farukh_home.png farukh-home.png
-            adb shell input tap 400 600
+            adb shell input tap 350 670
             sleep 3
             adb shell screencap -p /sdcard/farukh_editor.png
             adb pull /sdcard/farukh_editor.png farukh-editor.png
