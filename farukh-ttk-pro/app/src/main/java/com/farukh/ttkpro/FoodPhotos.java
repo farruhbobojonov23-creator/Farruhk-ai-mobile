@@ -68,7 +68,7 @@ public final class FoodPhotos {
         asset=sanitize(asset);
         Bitmap bmp=MEMORY.get(asset);if(bmp!=null && !bmp.isRecycled())return bmp;
         // Prefer bundled photographs for zero-network first launch.
-        try(InputStream builtIn=ctx.getAssets().open("food/"+asset)){
+        try(InputStream builtIn=ctx.getAssets().open("food/"+asset.replace(".png",".webp"))){
             ByteArrayOutputStream data=new ByteArrayOutputStream();
             byte[] buf=new byte[8192];int n;
             while((n=builtIn.read(buf))!=-1){
