@@ -71,12 +71,9 @@ export function mountInlineTtkPage(editor){
   bounds.set(id,input);
   return label;
  }
- const hero=node('header','ttk-live-hero');
- const brand=node('div','ttk-live-brand');
- brand.append(node('span','ttk-live-crown','♛'),node('strong','','FARRUH AI'),
-  node('em','','Premium'),node('small','','ПРОФЕССИОНАЛЬНЫЕ ТЕХКАРТЫ'));
- const badges=node('div','ttk-live-badges','♧ ТТК　 ⛨ ХАССП　 ▢ ПФ　 ▣ ПЕЧАТЬ');
- hero.append(brand,badges);
+ // The app chrome already identifies FARRUH AI. Keep the printable A4
+ // document free of redundant brand/navigation badges; its first row is the
+ // actual TECHNOLOGICAL CARD title, as in the owner-approved compact mockup.
  const title=node('div','ttk-live-title');
  title.append(node('strong','','ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)'),node('span','','№'));
  const numberInput=proxy('card-number',{caption:'Номер карты'});
@@ -148,7 +145,7 @@ export function mountInlineTtkPage(editor){
  const regulatory=node('footer','ttk-live-regulatory',
    'Нормативная основа: действующие санитарные правила и технические регламенты. Данные и аллергены проверяют до утверждения.');
  const lower=node('div','ttk-live-lower');lower.append(process,qualityPair,safety,signs,regulatory);
- page.append(hero,title,name,meta,introPair,recipePair,lower);
+ page.append(title,name,meta,introPair,recipePair,lower);
  const status=node('p','ttk-live-edit-status','Нажимайте на поля непосредственно в выбранном шаблоне. Все изменения идут в настоящую ТТК.');
  status.setAttribute('role','status');
  const tools=node('div','ttk-live-actions');
