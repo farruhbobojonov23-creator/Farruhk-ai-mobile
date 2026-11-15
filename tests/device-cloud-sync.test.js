@@ -92,7 +92,10 @@ test('sync has visible entry, deep link opens panel without silently enabling wr
  assert.match(html,/new URLSearchParams\(location\.search\)\.get\('sync'\)==='1'/);
  assert.match(client,/node\.id='device-cloud-sync-settings'/);
  assert.match(client,/node\.open=true/);
- assert.match(client,/return \{schedule,start:\(\)=>schedule\(600\),status:\(\)=>lastError,open\}/);
+ assert.match(client,/return \{schedule,start:\(\)=>schedule\(600\),status:\(\)=>lastError,isEnabled:enabled,confirmSaved,open\}/);
+ assert.match(client,/const enabled=\(\)=>localStorage\.getItem\(ENABLED_KEY\)!=='false'/);
+ assert.match(client,/pendingRevision=null/);
+ assert.match(client,/notify\('✅ Сохранено в облаке и на устройстве\.'/);
  assert.doesNotMatch(client,/const open=[\s\S]*localStorage\.setItem\(ENABLED_KEY/);
 });
 
