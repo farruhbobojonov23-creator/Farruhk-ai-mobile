@@ -560,8 +560,8 @@ async function saveRecipeEditor({close=true,download=false}={}){
  if(recipe.status==='ready'){
   if(!recipe.projectId)notice('ТТК готова, но не выбран проект. Для «Море Суши» откройте ТТК и выберите проект.',true);
   else if(!state.googleSync?.enabled||!state.googleSync?.endpoint||!state.googleSync?.key)
-   notice('ТТК сохранена на устройстве. Google Документы не подключены.',true);
-  else notice('ТТК сохранена на устройстве. Отправка в Google ещё не подтверждена.');
+   notice('ТТК сохранена в Farukh AI. Google Документы для PDF пока не подключены.',true);
+  else notice('ТТК сохранена в Farukh AI. Отправка PDF в Google ещё не подтверждена.');
  }
  if(download)await downloadRecipe(recipe.id);
 }
