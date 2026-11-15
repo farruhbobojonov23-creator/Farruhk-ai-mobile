@@ -31,9 +31,9 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   if(r)s.deletedRecipeRefs[id]={id,name:String(r.name||'ТТК'),category:String(r.category||''),projectId:String(r.projectId||''),projectName:String(r.projectName||'')};
  }
  const locations=[
-  {scope:'phone',label:'📱 ✕',description:'Удалить с телефона'},
-  {scope:'cloud',label:'☁️ ✕',description:'Удалить из общей базы телефона и планшета'},
-  {scope:'google',label:'📄 ✕',description:'Удалить из Google Документов'}
+  {scope:'phone',label:'📱 Телефон ✕',description:'Удалить с телефона'},
+  {scope:'cloud',label:'☁️ Облако ✕',description:'Удалить из общей базы телефона и планшета'},
+  {scope:'google',label:'📄 Google ✕',description:'Удалить из Google Документов'}
  ];
  function message(text,undo=false){
   feedback.replaceChildren();
@@ -90,7 +90,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
    const empty=document.createElement('p');empty.className='small';
    empty.textContent='Сохранённых ТТК на устройстве пока нет.';list.append(empty);
   }
-  count.textContent='Показано ТТК: '+records.length+'. Кнопки 📱, ☁️ и 📄 удаляют из разных мест.';
+  count.textContent='Показано ТТК: '+records.length+'. Нажмите ✕ у нужного места хранения.';
  }
  async function postGoogle(s,id,recipe){
   const cfg=s?.googleSync;
