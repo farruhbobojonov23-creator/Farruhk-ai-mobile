@@ -22,6 +22,22 @@
     #print-control { padding: 8px 14px 40px; }
     .preview-error { color: #b12948; padding: 20px; }
     @media (max-width: 650px) { .preview-bar { padding: 14px 18px; } .preview-banner { margin: 12px 12px 10px; } }
+  
+    .migration-panel{max-width:1160px;margin:0 auto 18px;padding:22px;border:1px solid var(--pf-line);border-radius:22px;background:var(--pf-card-grad);color:var(--pf-ink);box-shadow:var(--pf-shadow)}
+    .migration-panel-top{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .migration-panel h2{color:var(--pf-ink);font-size:clamp(18px,3vw,25px);margin:5px 0 9px}
+    .migration-panel p{color:var(--pf-muted);font-size:12px;line-height:1.65;margin:6px 0 10px}
+    .migration-badge,.migration-wait{display:inline-block;background:var(--pf-soft-accent);color:var(--pf-accent);border:1px solid var(--pf-line);border-radius:99px;padding:8px 11px;font-size:11px;font-weight:800}
+    .migration-badge{white-space:nowrap}
+    .migration-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .migration-step{padding:16px;background:var(--pf-raised);border:1px solid var(--pf-line);border-radius:16px;min-width:0}
+    .migration-step strong{font-size:13px;line-height:1.4;display:block}
+    .migration-action{display:inline-flex;justify-content:center;align-items:center;padding:10px 13px;min-height:40px;background:var(--pf-accent);color:var(--pf-on-accent);border:0;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+    .migration-success,.migration-error{padding:9px;border-radius:10px;margin-top:12px!important;background:var(--pf-soft-accent)}
+    .migration-error{color:#f26e86!important}
+    .migration-disclaimer{margin-bottom:0!important}
+    @media(max-width:700px){.migration-steps{grid-template-columns:1fr}.migration-panel{margin:0 12px 15px;padding:15px}.migration-badge{display:none}}
+
   </style>
 </head>
 <body data-view="print-control" data-pf-theme="preview" data-admin-theme="neon" data-admin-page="catalog">
@@ -77,6 +93,67 @@
         });
       });
     })();
+  </script>
+
+  <section class="migration-panel" aria-labelledby="migration-panel-title">
+    <div class="migration-panel-top">
+      <div><span class="premium-eyebrow">ПЕРЕНОС БАЗЫ · ЭТАП 1 ИЗ 3</span>
+      <h2 id="migration-panel-title">Подключаем настоящие товары</h2>
+      <p>Сначала сохраним и проверим резервную копию. Работающие телефоны сотрудников не затрагиваем.</p></div>
+      <span class="migration-badge">Безопасная проверка</span>
+    </div>
+    <div class="migration-steps">
+      <div class="migration-step"><strong>① Скачать JSON из действующего Farukh AI</strong>
+        <p>В разделе Farukh Print выбери «Копии и настройки» → «Скачать базу JSON». Не удаляй и не заменяй текущую базу.</p>
+        <a href="https://farruhk-ai-mobile.onrender.com/" target="_blank" rel="noopener noreferrer" class="migration-action">Открыть Farukh AI ↗</a>
+      </div>
+      <div class="migration-step"><strong>② Проверить резервную копию</strong>
+        <p>Проверка выполняется в памяти браузера: файл не отправляется в облако и не сохраняется на сервере.</p>
+        <button class="migration-action" type="button" id="migration-choose">Проверить JSON-файл</button>
+        <input id="migration-file" type="file" accept=".json,application/json" hidden>
+        <div id="migration-check-result" role="status" aria-live="polite"></div>
+      </div>
+      <div class="migration-step"><strong>③ Перенести в отдельное облако</strong>
+        <p>После проверки настроим защищённую независимую базу с резервированием и проверкой ревизий.</p>
+        <span class="migration-wait">Ожидает подключения облака</span>
+      </div>
+    </div>
+    <p class="migration-disclaimer">JSON каталога не содержит все учётные данные сотрудников. Их перенос проверим отдельно; текущие логины и печать не меняем.</p>
+  </section>
+  <script>
+  (() => {
+    const input=document.getElementById('migration-file');
+    const btn=document.getElementById('migration-choose');
+    const result=document.getElementById('migration-check-result');
+    btn.addEventListener('click',()=>input.click());
+    input.addEventListener('change',async()=>{
+      const file=input.files&&input.files[0];input.value='';result.replaceChildren();
+      if(!file)return;
+      const say=(message,isError=false)=>{
+        const p=document.createElement('p');p.className=isError?'migration-error':'migration-success';
+        p.textContent=message;result.replaceChildren(p);
+      };
+      try{
+        if(file.size<2||file.size>5*1024*1024)throw Error('Нужен JSON размером до 5 МБ.');
+        const obj=JSON.parse(await file.text());
+        const data=Array.isArray(obj)?obj:obj&&obj.products;
+        if(!Array.isArray(data)||!data.length||data.length>1000)throw Error('Нужна непустая база Farukh Print до 1000 товаров.');
+        const uniques=new Set();let ready=0,prep=0,invalid=0,duplicate=0,pending=0;
+        for(const row of data){
+          if(!row||!['prep','ready'].includes(row.kind)||typeof row.name!=='string'||!row.name.trim()){invalid++;continue}
+          const key=row.kind+'|'+row.name.trim().toLocaleLowerCase('ru').replace(/ё/g,'е');
+          if(uniques.has(key))duplicate++;
+          uniques.add(key);
+          if(row.kind==='ready')ready++;else prep++;
+          if(row.needsReview===true||!Number.isInteger(row.hours)||!row.storage)pending++;
+        }
+        say('Проверено без загрузки: '+data.length+' товаров (готовые '+ready+', полуфабрикаты '+prep+
+          '). Сроки требуют проверки: '+pending+'. Повторы: '+duplicate+'. Некорректные записи: '+invalid+
+          '. '+(invalid||duplicate?'Нужно исправить ошибки до переноса.':'Копия готова к дальнейшему согласованию.')+
+          ' Ничего не отправлено в облако.',Boolean(invalid||duplicate));
+      }catch(e){say('Проверка не пройдена: '+(e.message||'ошибка файла'),true)}
+    });
+  })();
   </script>
   <details class="preview-banner">
     <summary>Демо-режим: реальные данные не подключены <span>Подробнее ▾</span></summary>
