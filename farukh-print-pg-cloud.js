@@ -118,13 +118,13 @@ export function mountPrintPgBridge(app,authPin){
         const b=req.body||{},id=String(b.id||''),mime=String(b.mime||''),raw=String(b.base64||'');
         if(id.length>128||!/^[\w-]+$/.test(id)||
           !['image/png','image/jpeg','image/webp'].includes(mime)||
-          raw.length>1850000||raw.length<100||!/^[-A-Za-z0-9+/]+={0,2}$/.test(raw))
-          return res.status(400).json({ok:false,error:'Выбери фото PNG, JPG или WebP до 1,35 МБ.'});
+          raw.length>1390000||raw.length<100||!/^[-A-Za-z0-9+/]+={0,2}$/.test(raw))
+          return res.status(400).json({ok:false,error:'Выбери фото PNG, JPG или WebP до 1 МБ.'});
         const data=Buffer.from(raw,'base64');
         const valid=mime==='image/png'?data.subarray(0,8).toString('hex')==='89504e470d0a1a0a':
           mime==='image/jpeg'?data.subarray(0,3).toString('hex')==='ffd8ff':
           data.subarray(0,4).toString('ascii')==='RIFF'&&data.subarray(8,12).toString('ascii')==='WEBP';
-        if(!valid||data.length>1350000||data.length<24)return res.status(400).json({ok:false,error:'Некорректное или слишком большое изображение.'});
+        if(!valid||data.length>1040000||data.length<24)return res.status(400).json({ok:false,error:'Некорректное или слишком большое изображение.'});
         const sha=crypto.createHash('sha256').update(data).digest('hex');
         const client=await pool.connect();
         try{
