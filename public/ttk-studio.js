@@ -2,7 +2,7 @@
  * Reuses the original controls, validators, photo handler and PDF exporter.
  * No duplicated form state, no changes to recipe persistence or sanitation data.
  */
-import {mountTtkRealPreview} from './ttk-real-a4-preview.js?v=7';
+import {mountTtkRealPreview} from './ttk-real-a4-preview.js?v=8';
 const make=(tag,className,text)=>{
  const el=document.createElement(tag);
  if(className)el.className=className;
