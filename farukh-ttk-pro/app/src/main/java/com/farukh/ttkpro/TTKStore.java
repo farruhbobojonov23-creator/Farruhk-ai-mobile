@@ -125,6 +125,35 @@ public class TTKStore {
         for(JSONObject o:ingredients)if(o.optString("name").equalsIgnoreCase(name))return o;
         return null;
     }
+    public JSONObject backup(){
+        JSONObject o=new JSONObject();
+        try{
+            o.put("format","farukh-ttk-pro-backup-v1");
+            o.put("categories",new JSONArray(categories));
+            o.put("ingredients",new JSONArray(ingredients));
+            o.put("dishes",new JSONArray(dishes));
+        }catch(Exception e){throw new IllegalStateException("Failed to build backup",e);}
+        return o;
+    }
+    public void restore(String json) throws Exception{
+        JSONObject backup=new JSONObject(json);
+        if(!"farukh-ttk-pro-backup-v1".equals(backup.optString("format")))
+            throw new IllegalArgumentException("Неверный формат резервной копии");
+        JSONArray cats=backup.getJSONArray("categories");
+        JSONArray ing=backup.getJSONArray("ingredients");
+        JSONArray cards=backup.getJSONArray("dishes");
+        if(cats.length()==0 || cats.length()>300 || ing.length()>3000 || cards.length()>10000)
+            throw new IllegalArgumentException("Неверное количество записей в резервной копии");
+        for(int i=0;i<cats.length();i++)cats.getJSONObject(i);
+        for(int i=0;i<ing.length();i++)ing.getJSONObject(i);
+        for(int i=0;i<cards.length();i++)cards.getJSONObject(i);
+        // Replace all lists only once validation of every entry has passed.
+        categories.clear();ingredients.clear();dishes.clear();
+        for(int i=0;i<cats.length();i++)categories.add(cats.getJSONObject(i));
+        for(int i=0;i<ing.length();i++)ingredients.add(ing.getJSONObject(i));
+        for(int i=0;i<cards.length();i++)dishes.add(cards.getJSONObject(i));
+        save();
+    }
     public void save(){
         prefs.edit().putString("categories",new JSONArray(categories).toString())
           .putString("ingredients",new JSONArray(ingredients).toString())
