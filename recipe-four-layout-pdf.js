@@ -23,6 +23,12 @@ export function fourTtkPdf(input){
   info:{Title:'ТТК — '+r.name,Author:'FARRUH AI Premium'}});
  doc.registerFont('r',regular);doc.registerFont('b',bold);
  const X=22,W=551,gap=9,group=recipeAllergenMatrix(r);
+ const rawDate=String(r.cardDate||'');
+ const localizedDate=/^\d{4}-\d{2}-\d{2}$/.test(rawDate)?
+  rawDate.slice(8)+'.'+rawDate.slice(5,7)+'.'+rawDate.slice(0,4):rawDate;
+ const freeHeadings=layout==='process-matrix'||layout==='premium-blue';
+ const recipeHeading=freeHeadings?
+  'РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ НА 1 ПОРЦИЮ)':'3. Рецептура (норма закладки)';
  const dense=(r.ingredients||[]).length>18;
  const nutrition=original.nutrition||{};
  const stats=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,nutrition[k]]));
@@ -122,9 +128,9 @@ export function fourTtkPdf(input){
   const items=Array.isArray(r.ingredients)?r.ingredients:[];
   const columns=items.length>46?4:items.length>24?3:items.length>18?2:1;
   doc.ttkIngredientColumns=columns;
-  if(columns===1)return box('3. Рецептура (норма закладки)',ingredientRows(),x,y,w,s,draw,
+  if(columns===1)return box(recipeHeading,ingredientRows(),x,y,w,s,draw,
    {header:true,ratios:[.07,.43,.18,.17,.15]});
-  const bh=cardTitle('3. Рецептура (норма закладки)',x,y,w,s,false);
+  const bh=cardTitle(recipeHeading,x,y,w,s,false);
   const cg=5*s,cw=(w-cg*(columns-1))/columns,per=Math.ceil(items.length/columns);
   // Fit long, realistic prep catalogues without discarding any ingredient:
   // compact physical rows only in multi-column tables; all numeric data remains.
@@ -156,7 +162,7 @@ export function fourTtkPdf(input){
   const maxH=Math.max(...heightCol),foot=15*s,total=bh+2*s+maxH+3*s+foot+3*s;
   if(draw){
    doc.roundedRect(x,y,w,total,6*s).lineWidth(.7*s).stroke(C.line);
-   cardTitle('3. Рецептура (норма закладки)',x,y,w,s,true);
+   cardTitle(recipeHeading,x,y,w,s,true);
    doc.roundedRect(x,y+bh+maxH+4*s,w,foot,4*s).fill('#F9E6AF');
    txt('Выход готового блюда: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
     x+8*s,y+bh+maxH+7*s,w-16*s,8*s,true,C.navy,true);
@@ -173,7 +179,7 @@ export function fourTtkPdf(input){
      .fillAndStroke('#FFFFFF',layout==='premium-blue'?C.accent:C.line);
    doc.roundedRect(x,y,w,titleHeight,5*s).fill(
     layout==='premium-blue'?'#E3BB66':C.band);
-   txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
+   txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':layout==='gold-allergen'?'4. МАТРИЦА АЛЛЕРГЕНОВ':'МАТРИЦА АЛЛЕРГЕНОВ',
     x+8*s,y+5*s,w-16*s,8*s,true,
     layout==='premium-blue'?C.navy:'#FFFFFF',true);
    for(let i=0;i<group.groups.length;i++){
@@ -384,7 +390,7 @@ export function fourTtkPdf(input){
    const data=[
     'Категория: '+safe(r.category),
     'Выход: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
-    'Дата: '+safe(r.cardDate),
+    'Дата: '+(localizedDate||'—'),
     'Статус: '+(r.status==='ready'?'Готова':'В разработке')
    ];
    const fractions=[.29,.31,.20,.20],usable=W-24*s;
@@ -413,12 +419,16 @@ export function fourTtkPdf(input){
   else y+=masthead(y,Math.min(s,1),draw)+4*s;
   y+=header(y,s,draw)+(dense?3:8)*s;
   const half=(W-gap)/2;
-  const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
-   b=textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,false),
+  const leftTitle=freeHeadings?
+   (layout==='process-matrix'?'НАЗНАЧЕНИЕ И ОБЛАСТЬ ПРИМЕНЕНИЯ':'ОБЛАСТЬ ПРИМЕНЕНИЯ'):
+   '1. Область применения';
+  const rightTitle=freeHeadings?'ТРЕБОВАНИЯ К СЫРЬЮ':'2. Требования к сырью';
+  const a=textBox(leftTitle,sections[0][1][0][0],X,y,half,s,false),
+   b=textBox(rightTitle,sections[1][1][0][0],X+half+gap,y,half,s,false),
    first=Math.max(a,b);
   if(draw){
-   textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,true);
-   textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,true);
+   textBox(leftTitle,sections[0][1][0][0],X,y,half,s,true);
+   textBox(rightTitle,sections[1][1][0][0],X+half+gap,y,half,s,true);
   }
   y+=first+(dense?3:8)*s;
   if((r.ingredients||[]).length<=14&&layout!=='premium-blue'){
