@@ -6,7 +6,7 @@ android {
         applicationId = "com.farukh.ttkpro.premium"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.4-preview"
+        versionCode = 5
+        versionName = "0.5-japanese-pro"
     }
 }
