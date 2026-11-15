@@ -9,7 +9,7 @@ const ui=readFileSync(new URL('../public/recipe-google.js',import.meta.url),'utf
 test('Google receiver advertises separate PDF A4 capability and saves real files',()=>{
  assert.match(receiver,/pdfA4Supported:true/);
  assert.match(receiver,/function saveOnePagePdf\(/);
- assert.match(receiver,/folder\.createFile\(Utilities\.newBlob/); 
+ assert.match(receiver,/pdfFolder\.createFile\(Utilities\.newBlob/); 
  assert.match(receiver,/pdfUrl,pdfA4Supported:true/);
 });
 test('gateway does not call an old Docs-only response a completed PDF upload',()=>{
