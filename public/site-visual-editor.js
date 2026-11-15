@@ -3,7 +3,7 @@
  * Do not alter recipe payloads, print documents, API credentials, or form values.
  */
 const STORAGE_KEY='farruh-ai-visual-layout-v1';
-const PAGES=[['home','Главная'],['recipes','ТТК'],['preparations','Полуфабрикаты'],['lab','ХАССП'],['tasks','Задачи'],['calc','Калькулятор'],['site-settings','Настройки']];
+const PAGES=[['home','Главная'],['recipes','ТТК'],['preparations','Полуфабрикаты'],['lab','ХАССП'],['tasks','Задачи'],['calc','Калькулятор'],['checks','Контроль точек'],['print-control','Печать'],['chat','Ассистент'],['site-settings','Настройки']];
 const EDIT_STYLES={
  color:'color',background:'background-color',fontSize:'font-size',
  fontFamily:'font-family',fontWeight:'font-weight',borderRadius:'border-radius',
@@ -123,7 +123,7 @@ export function mountVisualEditor({show}={}){
   const ui=create('aside','fai-ve-panel');ui.id='fai-visual-editor-panel';ui.setAttribute('aria-label','Визуальный редактор FARRUH AI');
   const head=create('div','fai-ve-top');
   const names=create('div');
-  names.append(create('strong','','✏️ Визуальная настройка'),create('small','','Нажмите на элемент страницы, чтобы его изменить.'));
+  names.append(create('strong','','✏️ Визуальная настройка'),create('small','','Коснитесь элемента, чтобы изменить его. Сохранение действует на этом устройстве.'));
   const close=create('button','fai-ve-close','✕');close.type='button';close.setAttribute('aria-label','Закрыть без сохранения');close.onclick=cancel;
   head.append(names,close);ui.append(head);
   const choice=create('select','fai-ve-page');choice.setAttribute('aria-label','Открыть страницу для редактирования');
@@ -137,7 +137,9 @@ export function mountVisualEditor({show}={}){
   const undo=create('button','','↶ Отменить');undo.type='button';undo.onclick=()=>{if(!lastCommit)return;draft=lastCommit;lastCommit=null;applyRecords(draft);showInspector();refreshHidden();};
   const cancelButton=create('button','','Отмена');cancelButton.type='button';cancelButton.onclick=cancel;
   const save=create('button','fai-ve-save','✓ Сохранить');save.type='button';save.onclick=commit;
-  actions.append(undo,cancelButton,save);ui.append(actions);
+  const resetAll=create('button','fai-ve-danger','Сбросить все изменения');resetAll.type='button';
+  resetAll.onclick=()=>{if(!confirm('Вернуть исходное оформление всех страниц на этом устройстве? Техкарты не затрагиваются.'))return;lastCommit=clone(draft);draft=[];applyRecords(draft);refreshHidden();showInspector();};
+  actions.append(undo,cancelButton,save);ui.append(actions,resetAll);
   document.body.append(ui);
   panel=ui;showInspector();refreshHidden();
  }
@@ -209,7 +211,7 @@ export function mountVisualEditor({show}={}){
  function selectFrom(event){
   if(!active||!panel)return;
   if(event.target.closest('#fai-visual-editor-panel'))return;
-  const inApp=event.target.closest('#home,#recipes,#preparations,#lab,#tasks,#calc,#site-settings,#chef-menu');
+  const inApp=event.target.closest('.view,#chef-menu');
   if(!inApp)return;
   event.preventDefault();event.stopImmediatePropagation();
   if(event.target.closest('input,textarea,select,form,dialog,#editor,.login-overlay'))return;
@@ -254,5 +256,7 @@ export function mountVisualEditor({show}={}){
  observer.observe(document.body,{subtree:true,childList:true});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)applyRecords(active?draft:saved)});
  setTimeout(()=>applyRecords(saved),0);
- const api={open,isActive:()=>active};window.__faiVisualEditor=api;return api;
+ const api={open,isActive:()=>active};window.__faiVisualEditor=api;
+ if(new URLSearchParams(location.search).get('visualEditor')==='1')setTimeout(open,120);
+ return api;
 }
