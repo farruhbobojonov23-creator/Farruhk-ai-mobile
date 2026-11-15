@@ -131,3 +131,12 @@ app.listen(PORT,'0.0.0.0',()=>{
   }catch(e){console.warn('[farukh-print] Neon FUNCTION SQL probe unavailable',e.name||'error')}
  },2300);
 });
+
+// Temporary public metadata probe; no credentials or data returned.
+setTimeout(async()=>{
+ try {
+  const res=await fetch('https://br-solitary-brook-baxakvoe-fpjwt.compute.c-8.eu-central-1.aws.neon.tech/probe',{signal:AbortSignal.timeout(15000)});
+  const data=await res.json().catch(()=>({}));
+  console.info('[farukh-print] pg runtime check',JSON.stringify({status:res.status,ok:data.ok,pgAvailable:data.pgAvailable,pgError:data.pgError,dbHostIsNeon:data.dbHostIsNeon,dbHasPassword:data.dbHasPassword}));
+ }catch(e){console.warn('[farukh-print] pg runtime check unavailable',e.name||'error')}
+},2500);
