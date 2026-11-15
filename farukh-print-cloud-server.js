@@ -151,3 +151,16 @@ setTimeout(async()=>{
   console.info('[farukh-print] pg runtime check',JSON.stringify({status:res.status,ok:data.ok,pgAvailable:data.pgAvailable,pgError:data.pgError,dbHostIsNeon:data.dbHostIsNeon,dbHasPassword:data.dbHasPassword}));
  }catch(e){console.warn('[farukh-print] pg runtime check unavailable',e.name||'error')}
 },2500);
+
+setTimeout(async()=>{
+ try{
+  if(!selfCheck())throw Error('invalid-owner-jwt-key');
+  const token=signOwnerJWT();
+  const url='https://ep-polished-frost-baf2s4dg.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1/rpc/cloud_status';
+  const result=await fetch(url,{method:'POST',redirect:'error',signal:AbortSignal.timeout(17000),
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','Content-Profile':'farukh_print_api','Accept-Profile':'farukh_print_api'},
+   body:'{}'});
+  const body=await result.json().catch(()=>({}));
+  console.info('[farukh-print] PIN JWT Neon Data API staging check',JSON.stringify({http:result.status,ok:body.ok,products:body.products??null,code:body.code||null}));
+ }catch(e){console.warn('[farukh-print] staging JWT check unavailable',e.name||'error')}
+},2600);
