@@ -609,3 +609,15 @@ textarea.ttk-onepage-field-input{min-height:145px!important;resize:vertical!impo
   color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
  }
 }
+
+/* Legacy sticky editor controls must never intercept taps on the A4 focus bar. */
+@media screen{
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-toolbar,
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-toolbar *{
+  pointer-events:none!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-pro-shell,
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-viewport{
+  overflow:visible!important;isolation:auto!important;
+ }
+}
