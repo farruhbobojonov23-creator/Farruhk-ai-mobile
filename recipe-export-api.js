@@ -14,6 +14,7 @@ const isGoogleDriveFolderUrl=value=>{
   return u.protocol==='https:'&&u.hostname==='drive.google.com'&&parts[0]==='drive'&&parts[1]==='folders'&&/^[A-Za-z0-9_-]{10,}$/.test(parts[2]||'');
  }catch{return false}
 };
+const isGoogleDrivePdfUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='drive.google.com'&&/^\/file\/d\/[A-Za-z0-9_-]{10,}\/view$/.test(u.pathname)}catch{return false}};
 const WRONG_GOOGLE_RECEIVER='Подключён скрипт резервных копий Google Диска вместо скрипта Google ТТК. Откройте Farukh AI → Настройки → Подключение Google Документов и укажите URL веб-приложения «Farukh AI ТТК» (не «Резервные копии»), затем ключ именно этого скрипта. Инструкция: /google-ttk-setup.html.';
 export function installRecipeExportApi(app,{request=fetch}={}){
  const recipeFrom=raw=>{if(!raw||typeof raw.id!=='string'||!raw.id||!raw.name?.trim()||!Array.isArray(raw.ingredients)||raw.ingredients.length>300||raw.ingredients.some(i=>!i||typeof i!=='object'))throw Error('Неверная техкарта.');return cleanState({recipes:[raw]}).recipes[0]};
@@ -59,9 +60,15 @@ export function installRecipeExportApi(app,{request=fetch}={}){
    // returns folderName instead of documentUrl. A matching secret is NOT enough.
    if(action==='check'&&!isGoogleDocUrl(result.documentUrl))
     throw Error(result.folderName?WRONG_GOOGLE_RECEIVER:'Google ответил, но не подтвердил документ ТТК. Проверьте опубликованную версию Google Apps Script «Farukh AI ТТК»: /google-ttk-setup.html.');
+   // A check can succeed even when the published script is too old to create A4 PDFs.
+   if(action==='check')return res.json({ok:true,documentUrl:result.documentUrl,pdfA4Supported:result.pdfA4Supported===true,receiverVersion:result.receiverVersion||null});
    if(action==='ensureProject'&&(!isGoogleDocUrl(result.documentUrl)||!isGoogleDriveFolderUrl(result.folderUrl)))
     throw Error('Google не подтвердил папку и документ проекта. Обновите развертывание Apps Script «Farukh AI ТТК» по инструкции /google-ttk-setup.html.');
    if(recipe&&(result.recipeId!==recipe.id||result.digest!==digest))throw Error('Google не подтвердил версию ТТК.');
+   // A legacy receiver reports success after editing the Google Doc but never
+   // writes the separate PDF. Do not send a false green confirmation.
+   if(recipe&&!isGoogleDrivePdfUrl(result.pdfUrl))
+    return res.status(502).json({code:'GOOGLE_PDF_NOT_CONFIRMED',documentSaved:isGoogleDocUrl(result.documentUrl),documentUrl:isGoogleDocUrl(result.documentUrl)?result.documentUrl:null,pdfReady:false,error:'Google подтвердил ТТК, но не создал PDF А4. Опубликованное веб-приложение Google TTK не подтвердило поддержку PDF. На телефоне можно скачать готовый PDF А4; для сохранения PDF в Google нужно обновить код и версию этого Apps Script (не скрипта резервных копий).'});
    if(action==='deleteRecipe'){
     if(result.recipeId!==recipeId||typeof result.deleted!=='boolean'||typeof result.found!=='boolean')
      throw Error('Google не подтвердил удаление выбранной ТТК. Опубликуйте актуальную версию Google Apps Script.');
@@ -69,7 +76,7 @@ export function installRecipeExportApi(app,{request=fetch}={}){
    }
    res.json({ok:true,recipeId:result.recipeId,digest:result.digest,projectId:result.projectId,
     documentUrl:result.documentUrl,folderUrl:result.folderUrl,tabId:result.tabId,
-    pdfUrl:result.pdfUrl||null,pdfReady:!!result.pdfUrl});
+    pdfUrl:result.pdfUrl||null,pdfReady:!!result.pdfUrl,pdfA4Supported:result.pdfA4Supported===true});
   }catch(e){res.status(502).json({error:e.message||'Не удалось записать ТТК в Google.'})}
  });
 }
