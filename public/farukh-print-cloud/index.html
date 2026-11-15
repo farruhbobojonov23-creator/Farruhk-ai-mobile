@@ -32,6 +32,34 @@ label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width
 #edit-form .preview{max-width:125px;max-height:105px;object-fit:contain;display:block;margin:5px auto}
 #edit-form #cloud-save-note{margin:12px 0}
 @media(max-width:670px){.edit-layout{grid-template-columns:1fr}.product-list{height:200px;max-height:200px}.edit-toolbar select{flex:1 1 120px}#edit-form .two{grid-template-columns:1fr 1fr}}
+
+.opshead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+details.ops{margin:10px 0;border:1px solid var(--border);border-radius:13px;background:#0c193a;overflow:hidden}
+details.ops summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;padding:17px 14px}
+details.ops summary::-webkit-details-marker{display:none}
+details.ops summary:after{content:'＋';float:right;color:var(--accent)}
+details.ops[open] summary:after{content:'−'}
+.ops-body{padding:5px 14px 16px;border-top:1px solid var(--border)}
+.ops-body input,.ops-body select{font:500 14px system-ui;letter-spacing:normal;padding:12px}
+.ops-body label{margin:10px 0 5px}
+.opsrow{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--border)}
+.opsrow small{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.opsbuttons{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.opsbuttons button{padding:8px 10px;min-height:38px}
+.opsbuttons select{width:auto;max-width:160px}
+.ops-note{white-space:pre-wrap;overflow-wrap:anywhere}
+.two-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.four-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.four-cols .stat{padding:11px}
+.four-cols .stat strong{font-size:23px}
+.label-sample{background:#fff;color:#111;border:1px solid #aaa;margin:12px auto;padding:1.6mm;font-family:Arial,sans-serif;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.label-sample.f58{width:58mm;height:40mm;font-size:8.3px}
+.label-sample.f30{width:30mm;height:20mm;font-size:6px}
+.label-sample .line{border-bottom:1px solid #444;margin:2px 0}
+.label-sample .title{font-weight:900;font-size:1.28em;line-height:1.15;overflow-wrap:anywhere}
+.label-sample .small{font-size:.89em;line-height:1.12;overflow-wrap:anywhere}
+.label-sample .bottom{font-size:.86em;line-height:1.12}
+@media(max-width:600px){.two-cols{grid-template-columns:1fr}.four-cols{grid-template-columns:repeat(2,1fr)}}
 </style></head>
 <body><div class="wrap">
 <header><div class="brand"><div class="logo" aria-hidden="true">▤</div><div><strong>FARUKH <b>PRINT</b></strong><small>Облачная панель владельца</small></div></div><span class="badge">NEON CLOUD · ТЕСТ</span></header>
@@ -90,6 +118,63 @@ label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width
   </form>
  </div>
 </div>
+
+<div class="panel editor" id="ops-root">
+ <div class="opshead"><div><span class="overline">УПРАВЛЕНИЕ ТОЧКАМИ И ПЕЧАТЬЮ</span><h2>Сотрудники · Устройства · Журнал · Этикетки</h2></div>
+ <button type="button" id="ops-refresh">Обновить</button></div>
+ <p>Доступ владельца. Изменения в основной базе Neon; действующее приложение V3 BT работает отдельно, до проверки на реальном принтере.</p>
+ <div class="four-cols">
+  <div class="stat"><strong id="ops-staff-count">—</strong><small>Сотрудники</small></div>
+  <div class="stat"><strong id="ops-device-count">—</strong><small>Устройства</small></div>
+  <div class="stat"><strong id="ops-pending-count">—</strong><small>Ожидают разрешения</small></div>
+  <div class="stat"><strong id="ops-event-count">—</strong><small>Записи печати</small></div>
+ </div>
+ <div class="status" id="ops-status" role="status" aria-live="polite">Готовлю данные…</div>
+ <details class="ops" id="ops-staff"><summary>👨‍🍳 Сотрудники и доступ (30 дней)</summary>
+  <div class="ops-body">
+   <p>Создай сотруднику отдельный логин. Пароль показывается только один раз при создании либо сбросе. Сотрудник входит на странице печати.</p>
+   <form id="new-employee">
+    <div class="two-cols">
+     <div><label for="employee-name">Имя сотрудника</label><input id="employee-name" maxlength="120" placeholder="Иван" required></div>
+     <div><label for="employee-login">Логин (латиницей)</label><input id="employee-login" maxlength="48" pattern="[a-zA-Z0-9._-]{3,48}" placeholder="ivan01" required></div>
+     <div><label for="employee-location">Торговая точка</label><select id="employee-location" required></select></div>
+     <div><label for="employee-role">Роль</label><select id="employee-role"><option value="employee">Повар</option><option value="manager">Администратор точки</option></select></div>
+    </div>
+    <button type="submit" class="primary" style="margin-top:12px">Создать сотрудника</button>
+   </form>
+   <div class="status ops-note" id="employee-credentials" hidden role="status" aria-live="polite"></div>
+   <div id="employee-list" style="margin-top:12px"><p>Загружаю…</p></div>
+   <p><a href="/cloud/staff/" target="_blank" rel="noopener" style="color:var(--accent)">Открыть страницу сотрудника</a></p>
+  </div>
+ </details>
+ <details class="ops" id="ops-devices"><summary>📱 Привязка устройств к четырём точкам</summary>
+  <div class="ops-body">
+   <p>Сотрудник входит на своём устройстве и отправляет запрос. Здесь появится его устройство: выбери точку и нажми «Разрешить».</p>
+   <div id="device-list">Запросов пока нет.</div>
+  </div>
+ </details>
+ <details class="ops" id="ops-journal"><summary>🖨️ Журнал печати</summary>
+  <div class="ops-body">
+   <p>Фиксируются запросы из облачной страницы сотрудника. «Подтверждено сотрудником» не равно проверке принтером.</p>
+   <div id="events-list">Пока записей нет.</div>
+  </div>
+ </details>
+ <details class="ops" id="ops-labels"><summary>🏷️ Этикетки 58×40 и 30×20 · проверка</summary>
+  <div class="ops-body">
+   <div id="label-checks" class="status">Проверяю заполненность карточек…</div>
+   <p>Это предварительный просмотр. Фактический вывод, размеры, читабельность и Bluetooth V3 BT требуют проверки на принтере.</p>
+   <label for="label-item">Товар</label><select id="label-item"></select>
+   <label for="label-format">Размер этикетки</label><select id="label-format"><option value="58x40">58 × 40 мм — готовые товары</option><option value="30x20">30 × 20 мм — полуфабрикаты</option></select>
+   <div id="label-preview" class="label-sample f58" role="img" aria-label="Предварительный макет этикетки"></div>
+   <div id="label-warning" class="status">Выбери товар.</div>
+   <div class="actions">
+    <button id="label-approve" type="button">Допустить выбранный товар к печати</button>
+    <button id="label-check-refresh" type="button">Перепроверить</button>
+   </div>
+   <p>Допуск действует только для товаров с проверенными обязательными данными. Не включает автоматическую отправку на принтер.</p>
+  </div>
+ </details>
+</div>
 </section>
 </main><div class="footer">FARUKH PRINT · 110 товаров сохранены · Действующая система печати не затронута</div>
-</div><script type="module" src="/cloud/assets/owner-console.js?v=4"></script></body></html>
+</div><script type="module" src="/cloud/assets/owner-console.js?v=5"></script><script type="module" src="/cloud/assets/operations-console.js?v=1"></script></body></html>
