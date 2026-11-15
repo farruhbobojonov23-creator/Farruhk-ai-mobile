@@ -232,7 +232,10 @@ export function mountInlineTtkPage(editor){
  function refreshComputed(){
   yieldBand.lastChild.textContent=number(get('card-yield').value)+' г ('+
    (get('card-pieces').selectedOptions?.[0]?.textContent||get('card-pieces').value)+' )';
+  let allergenOverrides={};
+  try{allergenOverrides=JSON.parse(editor.dataset.allergenOverrides||'{}')}catch{}
   const matrix=recipeAllergenMatrix({
+   allergenOverrides,
    ingredients:[...get('ingredients').querySelectorAll('.ingredient')].map(row=>({
     name:row.querySelector('[data-key="name"]')?.value||''
    }))
@@ -241,7 +244,7 @@ export function mountInlineTtkPage(editor){
    const entry=node('div','ttk-live-allergen-row');
    const marker=node('strong','ttk-live-allergen-box',group.checked?'✓':group.possible?'?':'');
    marker.dataset.state=group.checked?'present':group.possible?'possible':'absent';
-   marker.title=group.checked?'Предположительно присутствует':group.possible?'Возможно присутствие':'Не найдено по названию ингредиентов, проверь состав';
+   marker.title=group.manual?'Отметка вручную: требуется проверка по этикетке':group.checked?'Предположительно присутствует':group.possible?'Возможно присутствие':'Не найдено по названию ингредиентов, проверь состав';
    entry.append(node('span','',group.label),marker);return entry;
   }));
   syncFromSource();
