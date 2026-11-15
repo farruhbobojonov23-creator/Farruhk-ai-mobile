@@ -41,6 +41,14 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   throw Error('Не найдена форма или селектор четырёх ТТК.');
  const stage=ui('section','ttk-real-a4-stage');
  stage.id='ttk-real-a4-stage';
+ const quickNav=ui('div','ttk-onepage-topbar');
+ const back=ui('button','ttk-onepage-back','← Назад');
+ const full=ui('button','ttk-onepage-full-form','✎ Полный редактор');
+ back.type=full.type='button';
+ back.addEventListener('click',()=>editor.querySelector('#closeeditor')?.click());
+ full.addEventListener('click',()=>editor.querySelector('.ttk-studio-switch-button')?.click());
+ quickNav.append(back,ui('strong','ttk-onepage-topbar-title','ТТК · А4'),full);
+ stage.append(quickNav);
  const mast=ui('div','ttk-real-a4-mast');
  mast.append(ui('span','ttk-real-a4-kicker','FARRUH AI  /  PREMIUM A4'),
   ui('h3','','4 шаблона технологической карты'),
