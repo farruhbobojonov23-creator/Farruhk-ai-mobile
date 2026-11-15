@@ -39,6 +39,7 @@ function build(){
  '<div class="ns-notice" id="ns-status" role="status" aria-live="polite">Проверяю авторизацию…</div>',
  '<div id="ns-guest">',
  '<div class="ns-buttons"><button class="ns-primary" type="button" id="ns-google">Войти через Google</button><button type="button" id="ns-show-email">Войти по email</button><button type="button" id="ns-check-login">↻ Проверить вход</button></div>',
+ '<div class="ns-browser-help" id="ns-browser-help" hidden><strong>Браузер может блокировать вход Neon.</strong> На Android открой этот сайт в Google Chrome (цветной круглый значок), а не в Яндекс Браузере. <div class="ns-buttons"><a id="ns-chrome-link" href="intent://farukh-print-admin-preview-20261115.onrender.com/farukh-print-admin/#Intent;scheme=https;package=com.android.chrome;end">↗ Открыть в Chrome</a><button type="button" id="ns-copy-link">▢ Скопировать адрес</button></div></div>',
  '<div id="ns-email-panel" hidden><label>Email владельца</label><input id="ns-email" type="email" autocomplete="email" placeholder="Email Neon">',
  '<label>Пароль</label><input id="ns-password" type="password" autocomplete="current-password" placeholder="Пароль">',
  '<div class="ns-buttons"><button class="ns-primary" id="ns-magic" type="button">✉ Получить ссылку для входа</button><button id="ns-login" type="button">Войти по паролю</button><button id="ns-reset" type="button">Установить / восстановить пароль</button><button id="ns-verify" type="button">Подтвердить email</button></div>',
@@ -52,7 +53,7 @@ function build(){
  const anchor=document.querySelector('.migration-panel')||document.querySelector('#print-control');
  anchor.parentNode.insertBefore(slot,anchor);
  const style=document.createElement('style');
- style.textContent='#ns{max-width:1160px;margin:14px auto;padding:22px;border-radius:22px;background:linear-gradient(125deg,#172c60,#111638);border:1px solid #456ca3;color:#eaf3ff;font:500 13px/1.6 Inter,system-ui,sans-serif}#ns *{box-sizing:border-box}#ns .ns-head{display:flex;gap:14px;align-items:center}#ns .ns-icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#3ee5eb,#9076e5);color:#081434;font-size:23px}#ns h2{color:white;font-size:clamp(19px,3vw,24px);margin:4px 0}#ns .ns-head small{color:#64ecf4;letter-spacing:.14em;font-size:10px;font-weight:850}#ns p{color:#bbd2f3;margin:12px 0}#ns .ns-notice{border:1px solid #597ca5;border-radius:11px;padding:10px 13px;background:#113151;color:#e0f5ff;white-space:pre-wrap}#ns .ns-notice[data-state=good]{color:#78f9d5;border-color:#2bafa5}#ns .ns-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}#ns button{font-weight:850;font-size:12px;cursor:pointer;color:white;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #5874a6;background:#263d78}#ns button.ns-primary{background:linear-gradient(105deg,#43dce8,#96a8ff);color:#0c2043}#ns label{display:block;margin-top:9px;font-size:11px;font-weight:800}#ns input{padding:11px;border:1px solid #6587b5;border-radius:10px;background:#0b1734;color:white;display:block;width:min(100%,400px);font-size:14px}#ns .ns-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}#ns .ns-cards div{padding:12px;border:1px solid #5269a8;border-radius:13px;background:#152752}#ns .ns-cards b{font-size:26px;display:block}#ns .ns-cards small{font-size:10px;color:#c0d0eb}#ns .ns-foot{font-size:11px}@media(max-width:650px){#ns{margin:10px 12px;padding:15px}#ns .ns-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+ style.textContent='#ns{max-width:1160px;margin:14px auto;padding:22px;border-radius:22px;background:linear-gradient(125deg,#172c60,#111638);border:1px solid #456ca3;color:#eaf3ff;font:500 13px/1.6 Inter,system-ui,sans-serif}#ns *{box-sizing:border-box}#ns .ns-head{display:flex;gap:14px;align-items:center}#ns .ns-icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#3ee5eb,#9076e5);color:#081434;font-size:23px}#ns h2{color:white;font-size:clamp(19px,3vw,24px);margin:4px 0}#ns .ns-head small{color:#64ecf4;letter-spacing:.14em;font-size:10px;font-weight:850}#ns p{color:#bbd2f3;margin:12px 0}#ns .ns-notice{border:1px solid #597ca5;border-radius:11px;padding:10px 13px;background:#113151;color:#e0f5ff;white-space:pre-wrap}#ns .ns-notice[data-state=good]{color:#78f9d5;border-color:#2bafa5}#ns .ns-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}#ns button{font-weight:850;font-size:12px;cursor:pointer;color:white;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #5874a6;background:#263d78}#ns button.ns-primary{background:linear-gradient(105deg,#43dce8,#96a8ff);color:#0c2043}#ns label{display:block;margin-top:9px;font-size:11px;font-weight:800}#ns input{padding:11px;border:1px solid #6587b5;border-radius:10px;background:#0b1734;color:white;display:block;width:min(100%,400px);font-size:14px}#ns .ns-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}#ns .ns-cards div{padding:12px;border:1px solid #5269a8;border-radius:13px;background:#152752}#ns .ns-cards b{font-size:26px;display:block}#ns .ns-cards small{font-size:10px;color:#c0d0eb}#ns .ns-browser-help{margin:12px 0;padding:12px;border:1px solid #8493ce;border-radius:12px;background:#24264e;color:#e1eeff}#ns .ns-browser-help strong{display:block;font-size:13px}#ns .ns-browser-help a{font-weight:850;font-size:12px;cursor:pointer;color:#0b2351;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #70c7f9;background:#94d9ff;text-decoration:none;display:inline-flex;align-items:center}#ns .ns-foot{font-size:11px}@media(max-width:650px){#ns{margin:10px 12px;padding:15px}#ns .ns-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}';
  document.head.append(style);
 }
 async function stats(){
@@ -144,10 +145,14 @@ function bind(){
   location.assign(x.url);
  });
  $('ns-show-email').onclick=()=>$('ns-email-panel').hidden=!$('ns-email-panel').hidden;
+ $('ns-copy-link').onclick=()=>safeRun(async()=>{
+  await navigator.clipboard.writeText(location.origin+location.pathname);
+  notify('✓ Адрес скопирован. Открой Google Chrome и вставь его в адресную строку.',true);
+ });
  $('ns-check-login').onclick=()=>safeRun(async()=>{
   notify('Проверяю сессию Neon…');
   if(await loginState()){await resumeSync();try{sessionStorage.removeItem('fp-google-login-attempt')}catch{}}
-  else notify('⚠ Вход подтверждён на сервере Neon, но этот браузер не показывает сессию. Открой ссылку на админку во внешнем Google Chrome и войди там. Если всё ещё не работает, пришли скриншот.'); 
+  else { $('ns-browser-help').hidden=false;notify('⚠ В этом браузере нет доступной сессии Neon. Нажми «Открыть в Chrome» и повтори вход. Если не поможет — это проблема междоменного входа, а не твоего аккаунта.'); } 
  });
  $('ns-login').onclick=()=>safeRun(async()=>{
   await authReq('/sign-in/email',{email:$('ns-email').value,password:$('ns-password').value});
@@ -204,12 +209,15 @@ function bind(){
 }
 async function init(){
  build();bind();
+ const browser=String(navigator.userAgent||'');
+ const suspicious=/YaBrowser|Yowser|YaApp|SamsungBrowser|FBAN|FBAV/i.test(browser);
+ $('ns-browser-help').hidden=!suspicious;
  try{
   if(await loginState())await resumeSync();
   else {
    const started=Number(sessionStorage.getItem('fp-google-login-attempt')||0);
    if(started&&Date.now()-started<20*60*1000)
-    notify('⚠ После входа через Google браузер не передал сессию в админку. Нажми «Проверить вход». Если экран не изменится, открой сайт во внешнем Chrome (встроенный браузер может блокировать cookies).');
+    notify('⚠ В этом браузере Neon не передаёт сессию обратно в админку. Нажми «Открыть в Chrome» ниже либо скопируй адрес. Если Chrome не поможет, потребуется исправить междоменную авторизацию на сервере.');
    else notify('● Neon работает. Войди через Google аккаунтом владельца, чтобы подключить редактирование.');
   }
  }catch(e){notify('Проверка входа: '+e.message)}
