@@ -170,13 +170,20 @@ async function auditRoyal(page,tag,mobile,errors){
      const size={w:outer.width,h:outer.height,ratio:outer.height/outer.width,
        fixedHeight:page.offsetHeight,zoom:getComputedStyle(page).zoom,
        stageWidth:stage.width,screenHeight:innerHeight,
+       stageTop:stage.top,stageBottom:stage.bottom,paperTop:outer.top,paperBottom:outer.bottom,
+       nameBg:getComputedStyle(page.querySelector('[data-source="recipe-name"]')).backgroundColor,
        ingredients:[...page.querySelectorAll('.ttk-live-ingredient-row')].filter(x=>!x.hidden).length};
      return size;
    });
    check(tag+' A4 sheet is one fixed portrait page, scaled to phone screen without vertical form',
      onePage.fixedHeight===1123&&Math.abs(onePage.ratio-1123/794)<.03&&
      onePage.w<=onePage.stageWidth+1&&
+     onePage.stageTop>=0&&onePage.stageBottom<=onePage.screenHeight+3&&
+     onePage.paperTop>=onePage.stageTop-2&&onePage.paperBottom<=onePage.stageBottom+3&&
      (mobile?onePage.h<onePage.screenHeight-165:true)&&onePage.ingredients<=5,onePage);
+   const rgb=(onePage.nameBg.match(/\d+(?:\.\d+)?/g)||[]).slice(0,3).map(Number);
+   check(tag+' A4 page uses light paper inputs instead of dark fields',
+     rgb.length===3&&rgb.every(n=>n>=225),onePage.nameBg);
    await page.screenshot({path:'artifacts/premium-'+tag+'-one-portrait-A4.png',timeout:12000});
    const originalApprover=await page.locator('#card-approver').inputValue();
    await page.locator('#ttk-live-page .ttk-live-signatures').click();
