@@ -287,12 +287,12 @@ public class MainActivity extends Activity {
         templateScroller.setHorizontalScrollBarEnabled(false);
         LinearLayout templates=horizontal();pad(templates,2,3);
         for(int i=0;i<4;i++){
-            final int at=i,selected=dish.optInt("template",0);
+            final int at=i,chosenTemplate=dish.optInt("template",0);
             LinearLayout t=vertical();t.setGravity(Gravity.CENTER);
-            pad(t,8,9);t.setBackground(border(i==selected?0xFFFFF0F2:WHITE,13,i==selected?RED:BORDER));
-            TemplateThumbnail thumbnail=new TemplateThumbnail(this,i,i==selected);
+            pad(t,8,9);t.setBackground(border(i==chosenTemplate?0xFFFFF0F2:WHITE,13,i==chosenTemplate?RED:BORDER));
+            TemplateThumbnail thumbnail=new TemplateThumbnail(this,i,i==chosenTemplate);
             t.addView(thumbnail,lp(90,122));
-            TextView name=text(TTKStore.TEMPLATE_NAMES[i],12,i==selected?RED:INK,true);
+            TextView name=text(TTKStore.TEMPLATE_NAMES[i],12,i==chosenTemplate?RED:INK,true);
             name.setGravity(Gravity.CENTER);
             t.addView(name,lp(-1,28));
             LinearLayout.LayoutParams wt=lp(109,162);wt.setMargins(dp(3),dp(2),dp(7),dp(2));
