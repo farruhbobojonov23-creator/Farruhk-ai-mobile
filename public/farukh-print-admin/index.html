@@ -9,7 +9,7 @@
   <!-- These are the EXACT SAME management styles used by Farukh AI. -->
   <link rel="stylesheet" href="/print-control.css?v=18">
   <link rel="stylesheet" href="/print-control-theme.css?v=1">
-  <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=2">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=3">
   <style>
     :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
     * { box-sizing: border-box; }
@@ -134,6 +134,28 @@
       root.replaceChildren();
       const control = local.mountPrintControl({root});
       cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
+      const demoCloud=root.querySelector('.pcloud');
+      if(demoCloud){
+        const note=document.createElement('div');
+        note.className='pcloud-demo-status';
+        note.setAttribute('role','status');
+        note.innerHTML='<div aria-hidden="true">◇</div><div><strong>Демо • облако не подключено</strong><span>Здесь показан внешний вид управления синхронизацией. Настоящие товары, устройства и сотрудники отсутствуют. Изменения нельзя отправить в рабочий Farukh Print.</span></div>';
+        demoCloud.querySelector('.pcloud-status')?.before(note);
+        const actions=demoCloud.querySelector('.pcloud-actions');
+        if(actions){
+          actions.querySelectorAll('button,a').forEach(el=>{
+            el.setAttribute('aria-disabled','true');
+            el.setAttribute('title','Недоступно в демонстрации');
+          });
+          // The preview must not navigate to the real staff gateway or copy
+          // a working staff link. Handle in capture phase before module handlers.
+          actions.addEventListener('click',event=>{
+            if(!event.target.closest('button,a'))return;
+            event.preventDefault();event.stopImmediatePropagation();
+            alert('Это демонстрационная админка. Подключение облака и сотрудников будет доступно только после согласования рабочей версии.');
+          },true);
+        }
+      }
       staff.mountPrintStaffControl({root});
       control.render();
       // Decorative preview cards: these never alter the 58×40 / 30×20 print templates.
