@@ -12,6 +12,7 @@ const app=express();app.enable('strict routing');app.disable('x-powered-by');app
 const PORT=Number(process.env.PORT)||10000;
 const SELF='https://farukh-print-cloud-test-20261115.onrender.com';
 const ROOT=path.join(path.dirname(fileURLToPath(import.meta.url)),'public','farukh-print-cloud');
+const PUBLIC=path.join(path.dirname(fileURLToPath(import.meta.url)),'public');
 app.use(express.json({limit:'2mb',strict:true}));
 app.use((_req,res,next)=>{
  res.setHeader('X-Content-Type-Options','nosniff');
@@ -30,6 +31,20 @@ app.get('/cloud/staff/',(_req,res)=>{
  res.setHeader('Cache-Control','no-store');
  res.sendFile(path.join(ROOT,'staff.html'));
 });
+/* The approved Premium V2 appearance and the live catalog now share
+ * the same origin, owner session and Neon bridge — no cross-domain OAuth. */
+app.get('/farukh-print-admin',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
+app.get('/farukh-print-admin/index.html',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
+app.get('/farukh-print-admin/',(_req,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+ res.sendFile(path.join(PUBLIC,'farukh-print-admin','connected.html'));
+});
+app.use('/farukh-print-admin',express.static(path.join(PUBLIC,'farukh-print-admin'),{
+ index:false,fallthrough:false,maxAge:600000
+}));
+app.get('/print-control.css',(_req,res)=>res.sendFile(path.join(PUBLIC,'print-control.css')));
+app.get('/print-control-theme.css',(_req,res)=>res.sendFile(path.join(PUBLIC,'print-control-theme.css')));
 app.use('/cloud/assets',express.static(ROOT,{index:false,fallthrough:false,maxAge:600000}));
 app.get('/.well-known/farukh-print-jwks.json',(_req,res)=>{
  res.setHeader('Cache-Control','public,max-age=120');
