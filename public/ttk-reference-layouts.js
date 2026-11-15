@@ -219,7 +219,12 @@ export function mountReferenceLayouts(page,editor,controls){
    if(document.activeElement!==span)span.textContent=sentences[i]||'—';
   });
   for(const d of addedDate)d.textContent=displayDate(get('card-date')?.value);
-  if(sourcePieces&&document.activeElement!==yieldPieces)yieldPieces.value=sourcePieces.value;
+  if(sourcePieces&&document.activeElement!==yieldPieces){
+   const options=[...sourcePieces.options];
+   if(options.map(x=>x.value).join('|')!==[...yieldPieces.options].map(x=>x.value).join('|'))
+    yieldPieces.replaceChildren(...options.map(x=>new Option(x.text,x.value)));
+   yieldPieces.value=sourcePieces.value;
+  }
   if(sourceAuto&&document.activeElement!==autoInput)autoInput.checked=sourceAuto.checked;
   [...allergenRows.querySelectorAll('.ttk-live-allergen-row')].forEach((row,i)=>{
    if(!row.querySelector('.ttk-ref-icon'))row.prepend(icon(allergenIcons[i]||'sesame'));
