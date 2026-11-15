@@ -5,6 +5,7 @@ const load=path=>readFileSync(new URL('../public/'+path,import.meta.url),'utf8')
 const html=load('index.html'),hub=load('data-center.js'),css=load('data-center.css');
 const backup=load('google-backup.js'),google=load('recipe-google.js'),devices=load('device-cloud-sync.js');
 const luxury=load('luxury-ui.js'),settings=load('site-settings.js');
+const premium=load('data-center-premium.css');
 
 test('a single My Data entry from TTK and Settings opens the same dialog',()=>{
  assert.match(html,/const dataCenter=createDataCenter/);
@@ -56,4 +57,20 @@ test('mobile hub has responsive safe-area bounds and no duplicate quick buttons'
  assert.match(css,/width:min\(740px,calc\(100vw - 22px\)\)/);
  assert.match(css,/@media\(max-width:560px\)/);
  assert.match(css,/max-height:min\(92dvh,970px\)/, 'Hub stays within viewport');
+});
+
+test('My Data and its connection dialogs use one black/gold premium theme',()=>{
+ assert.match(html,/\/data-center-premium\.css\?v=2/);
+ assert.ok(html.indexOf('/data-center-premium.css?v=2')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
+ assert.match(html,/\/recipe-google\.js\?v=12/);
+ assert.match(google,/dialog\.className='category-dialog data-center-subdialog'/);
+ assert.match(google,/archiveDialog\.className='category-dialog data-center-subdialog'/);
+ assert.match(premium,/dialog#data-center-dialog\.data-center-dialog/);
+ assert.match(premium,/data-center-section :is\(details,\.panel,\.lx-sync-details\)/);
+ assert.match(premium,/dialog\.google-backup-dialog/);
+ assert.match(premium,/dialog\.category-dialog\.data-center-subdialog/);
+ assert.match(premium,/color-scheme:dark!important/);
+ assert.match(premium,/background-color:#16110e!important/);
+ assert.match(premium,/background:#251e18!important/);
+ assert.match(premium,/@media \(max-width:560px\)/);
 });

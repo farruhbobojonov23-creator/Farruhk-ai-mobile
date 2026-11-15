@@ -109,16 +109,28 @@ async function verify(mode,width,height){
   await page.screenshot({path:'artifacts/arctic-settings-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('.data-center-settings-open').click();
   assert.equal(await visible(page,'#data-center-dialog'),true,'The single My Data hub opens from Settings');
+  const hubPalette=await page.locator('#data-center-dialog').evaluate(hub=>{
+    const bg=selector=>getComputedStyle(hub.querySelector(selector)||hub).backgroundColor;
+    const ink=selector=>getComputedStyle(hub.querySelector(selector)||hub).color;
+    return {outer:getComputedStyle(hub).backgroundColor,section:bg('[data-local-section]'),
+      localPanel:bg('[data-local-root] .panel'),googlePanel:bg('.ttk-sync-summary'),
+      backupButton:bg('[data-backup-now]'),heading:ink('.data-center-section h3')};
+  });
+  const dark=color=>{const nums=(color.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);return nums.length===3&&nums.every(n=>n<110)};
+  assert.ok(['outer','section','localPanel','googlePanel'].every(key=>dark(hubPalette[key])),
+   'My Data must use matching dark surfaces, not white cards: '+JSON.stringify(hubPalette));
+  assert.ok(!dark(hubPalette.heading),'Gold headings must be readable: '+JSON.stringify(hubPalette));
   await page.screenshot({path:'artifacts/arctic-data-center-'+mode+'.png',fullPage:false,timeout:12000});
   await page.locator('#device-export').evaluate(el=>el.closest('details').open=true);
   await page.locator('.google-backup-open').click();
   assert.equal(await visible(page,'.google-backup-dialog'),true,'Google backup dialog opens');
   const backupFormBar=await page.locator('.google-backup-dialog form .bar').evaluate(el=>{
     const s=getComputedStyle(el);
-    return {background:s.backgroundImage,position:s.position,columns:s.gridTemplateColumns};
+    return {backgroundColor:s.backgroundColor,position:s.position,columns:s.gridTemplateColumns,
+      dialogBackground:getComputedStyle(el.closest('dialog')).backgroundColor};
   });
-  assert.ok(backupFormBar.background.includes('rgb(247, 252, 255)')&&backupFormBar.position!=='sticky',
-    'Google connect buttons have inherited black action bar: '+JSON.stringify(backupFormBar));
+  assert.ok(dark(backupFormBar.backgroundColor)&&dark(backupFormBar.dialogBackground)&&backupFormBar.position!=='sticky',
+    'Google Drive connection must use same dark/gold palette as My Data: '+JSON.stringify(backupFormBar));
 
   assert.equal(await page.locator('.google-backup-dialog [data-save]').isDisabled(),true,'No upload before Google is connected');
   assert.equal(await page.locator('.google-backup-dialog [data-list]').isDisabled(),true,'No cloud operations before connection');
