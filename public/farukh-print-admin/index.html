@@ -9,6 +9,7 @@
   <!-- These are the EXACT SAME management styles used by Farukh AI. -->
   <link rel="stylesheet" href="/print-control.css?v=18">
   <link rel="stylesheet" href="/print-control-theme.css?v=1">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=1">
   <style>
     :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
     * { box-sizing: border-box; }
@@ -22,11 +23,60 @@
     @media (max-width: 650px) { .preview-bar { padding: 14px 18px; } .preview-banner { margin: 12px 12px 10px; } }
   </style>
 </head>
-<body data-view="print-control">
+<body data-view="print-control" data-pf-theme="preview" data-admin-theme="emerald">
+
   <header class="preview-bar">
-    <div class="preview-brand">FARUKH PRINT · ADMIN</div>
-    <div class="preview-note">Тестовая оболочка · без изменения рабочего Farukh AI и APK сотрудников</div>
+    <div class="preview-brand-wrap">
+      <div class="preview-brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3.5" width="16" height="8" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="4" y="10.5" width="24" height="15" rx="3" stroke="currentColor" stroke-width="2"/><rect x="8" y="19" width="16" height="9.5" rx="1.5" fill="currentColor"/><path d="M12 23h8" stroke="#13243A" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="15" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div><div class="preview-brand">Farukh Print <b>Admin</b></div>
+      <div class="preview-note">Управляющий центр печати и этикеток</div></div>
+    </div>
+    <span class="preview-mode">Демо · изолировано</span>
   </header>
+  <section class="premium-switcher" aria-labelledby="premium-title">
+    <div class="premium-top">
+      <div><span class="premium-eyebrow">PREMIUM DESIGN STUDIO</span><h2 id="premium-title">Выбери дизайн</h2></div>
+      <p class="premium-hint" id="premium-description">Переключение моментальное · выбор сохранится на этом устройстве</p>
+    </div>
+    <div class="premium-options" role="radiogroup" aria-label="Цветовая тема Farukh Print Admin" aria-describedby="premium-description">
+      <button type="button" role="radio" class="premium-option" data-theme="beige" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Luxury Beige</span><span class="premium-option-sub">Светлый · медный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="gold" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Black Gold</span><span class="premium-option-sub">Чёрный · золотой</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="emerald" aria-checked="true"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">White Emerald</span><span class="premium-option-sub">Белый · изумрудный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="neon" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Neon Premium</span><span class="premium-option-sub">Тёмный · неоновый</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+    </div>
+  </section>
+  <script>
+    (() => {
+      const key='farukh-print-admin:theme:v1';
+      const allowed=['beige','gold','emerald','neon'];
+      const buttons=Array.from(document.querySelectorAll('.premium-option'));
+      const choose=(name,focus=false)=>{
+        if(!allowed.includes(name))name='emerald';
+        document.body.dataset.adminTheme=name;
+        buttons.forEach(button=>{
+          const selected=button.dataset.theme===name;
+          button.setAttribute('aria-checked',String(selected));
+          button.tabIndex=selected?0:-1;
+          if(selected&&focus)button.focus();
+        });
+        try{localStorage.setItem(key,name)}catch{}
+      };
+      let saved=null;try{saved=localStorage.getItem(key)}catch{}
+      choose(saved||'emerald');
+      buttons.forEach((button,i)=>{
+        button.addEventListener('click',()=>choose(button.dataset.theme));
+        button.addEventListener('keydown',event=>{
+          if(!['ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+          event.preventDefault();
+          const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
+            (i+((event.key==='ArrowRight'||event.key==='ArrowDown')?1:-1)+buttons.length)%buttons.length;
+          choose(buttons[next].dataset.theme,true);
+        });
+      });
+    })();
+  </script>
   <div class="preview-banner" role="status">
     Предпросмотр существующего центра управления: те же разделы, карточки и шаблоны 58×40 и 30×20. Все позиции и отчёты ниже — ДЕМО, а не твои настоящие данные.
     Облако, сотрудники и рабочее приложение не подключены. Можно открывать экраны и пробовать локальный редактор — никаких изменений у сотрудников не будет.
@@ -85,6 +135,12 @@
       cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
       staff.mountPrintStaffControl({root});
       control.render();
+      const hero=root.querySelector('.pc-hero');
+      if(hero){
+        const art=document.createElement('div');art.className='preview-hero-art';art.setAttribute('aria-hidden','true');
+        art.innerHTML='<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="8" width="40" height="26" rx="5" stroke="currentColor" stroke-width="4"/><rect x="10" y="28" width="60" height="35" rx="9" stroke="currentColor" stroke-width="4"/><path d="M19 48h42v21H19z" fill="currentColor" fill-opacity=".20" stroke="currentColor" stroke-width="3"/><path d="M27 56v7M33 54v9M40 56v7M48 54v9M54 56v7" stroke="currentColor" stroke-width="2"/><circle cx="59" cy="39" r="3" fill="currentColor"/></svg>';
+        hero.append(art);
+      }
     } catch(error) {
       console.error('Farukh Print Admin preview loading failed', error);
       root.innerHTML = '';
