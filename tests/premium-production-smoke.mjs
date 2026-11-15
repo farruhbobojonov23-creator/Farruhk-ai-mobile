@@ -644,7 +644,10 @@ async function run(theme,width,height){
       {name:draft.name,layout:draft.layoutTemplate,ingredients:draft.ingredients?.length});
    }
    await page.evaluate(()=>{window.confirm=()=>true});
-   await page.locator('#closeeditor').click();
+   // PDF preview returns to fixed A4 focus mode, which has its own Back button.
+   if(await page.locator('#editor').getAttribute('data-mode')==='paper')
+    await page.locator('#editor .ttk-onepage-back').click();
+   else await page.locator('#closeeditor').click();
   }
   if(target==='lab'){
    await page.waitForTimeout(400);
