@@ -198,7 +198,7 @@ function doPost(event) {
     const packet=JSON.parse(event.postData.contents), properties=PropertiesService.getScriptProperties();
     const key=properties.getProperty('CONNECTION_KEY');
     if(!key||packet.key!==key)return jsonResponse({ok:false,error:'Неверный ключ подключения Google.'});
-    if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit'})}
+    if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit',pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION})}
     if(!['sync','ensureProject','deleteRecipe'].includes(packet.action))throw Error('Неизвестное действие синхронизации.');
     const r=packet.recipe;
     if(packet.action==='sync'&&(!r||r.status!=='ready'||!r.id||!Array.isArray(packet.sections)))throw Error('Разрешены только готовые ТТК.');
@@ -206,7 +206,7 @@ function doPost(event) {
     lock=LockService.getScriptLock();lock.waitLock(25000);
     if(packet.action==='deleteRecipe')return jsonResponse(deleteOwnedRecipe(properties,packet));
     const target=projectStorage(properties,packet),documentId=target.documentId;
-    if(packet.action==='ensureProject')return jsonResponse({ok:true,...target});
+    if(packet.action==='ensureProject')return jsonResponse({ok:true,...target,pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION});
     packet.projectName=target.projectName;
     const recordKey='recipe_'+Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(r.id)).map(x=>('0'+((x+256)%256).toString(16)).slice(-2)).join('');
     const previous=JSON.parse(properties.getProperty(recordKey)||'{}');
@@ -250,8 +250,8 @@ function doPost(event) {
       try{pdfUrl=DriveApp.getFileById(previous.pdfFileId).getUrl()}catch(e){}
     }
     return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,
-      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl});
-  } catch(error) { return jsonResponse({ok:false,error:String(error.message||error)}) }
+      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl,pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION});
+  } catch(error) { console.error('FARRUH AI ТТК: '+String(error.message||error).slice(0,240));return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
 
