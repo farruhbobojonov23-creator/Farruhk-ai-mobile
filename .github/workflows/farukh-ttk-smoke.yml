@@ -22,6 +22,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Embed offline sushi photography
+        run: bash embed-food-photos.sh
       - name: Build test APK
         run: gradle :app:assembleDebug --no-daemon
       - name: Enable KVM access
