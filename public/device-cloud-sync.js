@@ -45,7 +45,13 @@ async function commitSync(store,expectedRevision,merged){
      tx.abort();return;
     }
     const patch={};
-    for(const key of LIST_FIELDS){if(key==='categories'&&merged.categories===undefined)continue;patch[key]=merged[key]}
+    // Local-only deletion must never erase another device's cloud copy.
+    const hidden=new Set(Object.keys(existing.localOnlyDeletedIds||{}).filter(id=>existing.localOnlyDeletedIds[id]));
+    for(const key of LIST_FIELDS){
+     if(key==='categories'&&merged.categories===undefined)continue;
+     patch[key]=(key==='recipes'||key==='releasedRecipes')&&Array.isArray(merged[key])
+      ?merged[key].filter(recipe=>!hidden.has(recipe.id)):merged[key];
+    }
     if(merged.siteSettings!==undefined)patch.siteSettings=merged.siteSettings;
     if(Array.isArray(merged.deletedRecipeIds))patch.deletedRecipeIds=merged.deletedRecipeIds;
     const changed=Object.keys(patch).some(key=>!same(existing[key],patch[key]));
@@ -104,6 +110,16 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    const base=await readBase(store);
    const ours=pickSyncSnapshot(local,projectCatalog());
    const cloud=await request('/api/device-sync');
+   // Mirror remotely stored records during reconciliation for recipes deleted
+   // on this phone ONLY, so no unintended cloud deletion is submitted.
+   const hidden=new Set(Object.keys(local.localOnlyDeletedIds||{}).filter(id=>local.localOnlyDeletedIds[id]));
+   for(const field of ['recipes','releasedRecipes']){
+    for(const row of cloud.snapshot?.[field]||[]){
+     if(hidden.has(row.id)&&!ours[field]?.some(item=>item.id===row.id)){
+      ours[field]??=[];ours[field].push(structuredClone(row));
+     }
+    }
+   }
    const merged=reconcileSnapshots(base,ours,cloud.snapshot);
    // Optimistic revision check on the server prevents lost writes if another
    // phone saves between the GET and PUT.
