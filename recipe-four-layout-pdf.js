@@ -228,38 +228,41 @@ export function fourTtkPdf(input){
    ['Ккал',fmt(stats.kcal),stats.kcal!=null&&per?fmt(Number(stats.kcal)*per):'—']];
   return box('7. Пищевая ценность (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
  }
+ // Clean owner-approved A4 header: title first, no duplicate brand,
+ // Premium/PF/print/HACCP navigation text is never printed inside the card.
  function headerHeight(s){
-  const nameLines=wrap(r.name,W-100*s,13*s,true);
-  return Math.max((dense?87:96)*s,(nameLines.length*17+(dense?69:81))*s);
+  const nameLines=wrap(r.name,W-24*s,12*s,true);
+  return Math.max(79*s,(59+16*nameLines.length)*s);
  }
  function header(y,s,draw){
   const h=headerHeight(s);
   if(draw){
    const blue=layout==='premium-blue',dark=blue?C.navy:C.band;
-   doc.roundedRect(X,y,W,h,8*s).lineWidth(.65*s).fillAndStroke('#FFFFFF',C.line);
-   doc.roundedRect(X,y,W,23*s,7*s).fill(dark);
-   txt('♛  FARRUH AI  Premium',X+8*s,y+5*s,W*.49,9*s,true,'#FFFFFF',true);
-   txt('ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)',X+W*.45,y+7*s,W*.53,8*s,true,'#FFFFFF',true);
-   doc.roundedRect(X+W-78*s,y+29*s,66*s,15*s,6*s)
-      .lineWidth(.8*s).fillAndStroke(blue?'#FFF5DB':'#F2D487',C.accent);
-   txt('№ '+safe(r.cardNumber),X+W-72*s,y+32*s,59*s,8*s,true,C.navy,true);
-   txt(wrap(r.name,W-96*s,13*s,true),X+12*s,y+27*s,W-100*s,13*s,true,C.navy,true);
-   doc.moveTo(X+12*s,y+(dense?54:61)*s).lineTo(X+W-12*s,y+(dense?54:61)*s)
-     .lineWidth(1*s).strokeColor(C.accent).stroke();
+   doc.roundedRect(X,y,W,h,7*s).lineWidth(.65*s).fillAndStroke('#FFFFFF',C.line);
+   doc.roundedRect(X,y,W,29*s,6*s).fill(dark);
+   txt('ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)',
+    X+10*s,y+6*s,W-105*s,11.3*s,true,'#FFFFFF',true);
+   doc.roundedRect(X+W-84*s,y+4*s,74*s,21*s,5*s)
+    .lineWidth(.7*s).fillAndStroke(blue?'#123B6C':'#09584F',C.accent);
+   txt('№ '+safe(r.cardNumber),X+W-79*s,y+8*s,65*s,9*s,true,'#F9E0A1',true);
+   txt(wrap(r.name,W-24*s,12*s,true),
+    X+12*s,y+34*s,W-24*s,12*s,true,C.navy,true);
    const data=[
     'Категория: '+safe(r.category),
     'Выход: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
-    'Дата: '+safe(r.cardDate)
+    'Дата: '+safe(r.cardDate),
+    'Статус: '+(r.status==='ready'?'Готова':'В разработке')
    ];
-   const cw=(W-24*s)/3;
-   for(let i=0;i<3;i++){
-    const xx=X+12*s+i*cw;
-    doc.roundedRect(xx,y+(dense?59:67)*s,cw-5*s,19*s,4*s)
-      .lineWidth(.4*s).fillAndStroke(C.pale,C.line);
-    txt(wrap(data[i],cw-14*s,6.5*s),xx+4*s,y+(dense?62:70)*s,cw-14*s,6.5*s,i===1,C.text,true);
+   const fractions=[.29,.31,.20,.20],usable=W-24*s;
+   let xx=X+12*s;
+   for(let i=0;i<data.length;i++){
+    const ww=usable*fractions[i];
+    doc.roundedRect(xx,y+h-24*s,ww-5*s,19*s,4*s)
+     .lineWidth(.4*s).fillAndStroke(C.pale,C.line);
+    txt(wrap(data[i],ww-13*s,6.5*s),xx+4*s,y+h-20*s,
+     ww-13*s,6.5*s,i===1,C.text,true);
+    xx+=ww;
    }
-   txt('Статус: '+(r.status==='ready'?'Готова':'В разработке'),
-    X+15*s,y+h-8.5*s,W-30*s,6*s,true,C.text,true);
   }
   return h;
  }
