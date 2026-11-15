@@ -25,7 +25,7 @@ test('Google endpoint permits only published Apps Script URLs',()=>{
 });
 test('Google gateway rejects drafts, requires matching acknowledgement and returns valid Word',async()=>{
  const app=express();app.use(express.json());let calls=0,bad=false;
- installRecipeExportApi(app,{request:async(url,options)=>{calls++;const packet=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,recipeId:packet.recipe.id,digest:bad?'wrong':packet.digest,tabId:'t.recipe'})}}});
+ installRecipeExportApi(app,{request:async(url,options)=>{calls++;const packet=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,recipeId:packet.recipe.id,digest:bad?'wrong':packet.digest,tabId:'t.recipe',pdfUrl:'https://drive.google.com/file/d/1Hv4IxMj6bCUrZwgu_x2OrV8fH_oLQZvD/view'})}}});
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
  const url='http://127.0.0.1:'+server.address().port;
  const post=(path,data)=>fetch(url+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
