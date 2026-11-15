@@ -1,4 +1,8 @@
 name: FARUKH TTK PRO APK
+concurrency:
+  group: ${{ github.workflow }}-farukh-ttk
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
