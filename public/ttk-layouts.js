@@ -2,10 +2,10 @@
  * Recipe, nutrition and safety data are unaffected by selecting a design.
  * Legacy two-style recipes are transparently mapped to the closest new style. */
 export const TTK_LAYOUTS=Object.freeze([
- {id:'teal-matrix',name:'01 · Teal Matrix',subtitle:'Бирюзовый · матрица аллергенов',description:'Бирюзовые заголовки, таблица рецептуры и чек-лист аллергенов.',tone:'teal'},
- {id:'process-matrix',name:'02 · Process Matrix',subtitle:'Бирюзовый · этапы приготовления',description:'Технология в четырёх последовательных блоках и матрица аллергенов.',tone:'process'},
- {id:'gold-allergen',name:'03 · Gold Allergen',subtitle:'Золото · выделенные аллергены',description:'Акцент на аллергенах с галочками и технологических этапах.',tone:'gold'},
- {id:'premium-blue',name:'04 · Premium Blue',subtitle:'Синий · золото · контроль',description:'Тёмно-синий документ с блоком аллергенов и пищевой ценностью.',tone:'blue'}
+ {id:'teal-matrix',name:'01 · Бирюзовая матрица',subtitle:'Бирюзовый · матрица аллергенов',description:'Бирюзовые заголовки, таблица рецептуры и чек-лист аллергенов.',tone:'teal'},
+ {id:'process-matrix',name:'02 · Технологический процесс',subtitle:'Бирюзовый · этапы приготовления',description:'Технология в четырёх последовательных блоках и матрица аллергенов.',tone:'process'},
+ {id:'gold-allergen',name:'03 · Золотые аллергены',subtitle:'Золото · выделенные аллергены',description:'Акцент на аллергенах с галочками и технологических этапах.',tone:'gold'},
+ {id:'premium-blue',name:'04 · Премиальный синий',subtitle:'Синий · золото · контроль',description:'Тёмно-синий документ с блоком аллергенов и пищевой ценностью.',tone:'blue'}
 ]);
 export const TTK_DEFAULT_LAYOUT='teal-matrix';
 const LEGACY_LAYOUTS=Object.freeze({'arctic-a4':'teal-matrix','royal-a4':'premium-blue',classic:TTK_DEFAULT_LAYOUT});
