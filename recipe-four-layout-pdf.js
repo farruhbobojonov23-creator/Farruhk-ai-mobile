@@ -180,8 +180,13 @@ export function fourTtkPdf(input){
      .fillAndStroke('#FFFFFF',layout==='premium-blue'?C.accent:C.line);
    doc.roundedRect(x,y,w,titleHeight,5*s).fill(
     layout==='premium-blue'?'#E3BB66':C.band);
-   txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':layout==='gold-allergen'?'4. МАТРИЦА АЛЛЕРГЕНОВ':'МАТРИЦА АЛЛЕРГЕНОВ',
-    x+8*s,y+5*s,w-16*s,8*s,true,
+   if(layout==='gold-allergen'){
+    doc.roundedRect(x+4*s,y+2*s,17*s,16*s,4*s).fill(C.accent);
+    txt('4',x+8.8*s,y+4*s,9*s,8.5*s,true,C.navy,true);
+   }
+   txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
+    x+(layout==='gold-allergen'?25:8)*s,y+5*s,
+    w-(layout==='gold-allergen'?31:16)*s,8*s,true,
     layout==='premium-blue'?C.navy:'#FFFFFF',true);
    for(let i=0;i<group.groups.length;i++){
     const row=Math.floor(i/cols),col=i%cols,g=group.groups[i];
@@ -231,7 +236,7 @@ export function fourTtkPdf(input){
     layout==='premium-blue'?'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ':
     layout==='gold-allergen'?'7. УСЛОВИЯ ХРАНЕНИЯ':'6. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',
    [['Условия хранения',raw],['Срок годности',term]],x,y,w,s,draw,
-   {header:false,ratios:[.34,.66]});
+   {header:false,ratios:layout==='process-matrix'?[.46,.54]:[.34,.66]});
  }
  function drawReferencePair(left,right,leftShare,y,s,draw){
   const first=W*leftShare,second=W-first-gap;
@@ -530,7 +535,9 @@ export function fourTtkPdf(input){
  doc.ttkWarnings=warnings;
  // Include warnings inside the printable margins only if space is available.
  let bottom=Math.max(doc.ttkLayoutHeight+4,799);
- for(const warning of warnings.slice(0,2)){
+ // Other warnings are already present in the allergen note or status chip.
+ // Keep a visible footnote only for a real net-yield discrepancy.
+ for(const warning of warnings.filter(w=>w.startsWith('ВЫХОД НЕ СОВПАДАЕТ')).slice(0,1)){
   if(bottom+9>824)break;
   txt(warning,X,bottom,W,5.4,true,'#805A29',true);bottom+=9;
  }
