@@ -144,7 +144,7 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('#editor').getAttribute('data-mode'),'paper','TTK Studio opens with 4 A4 Premium designs on both phone and desktop');
   assert.equal(await page.locator('#ttk-real-a4-stage .ttk-design-card').count(),4,'four designs are selectable');
   assert.equal(await page.locator('#editor .ttk-viewport>.ttk-paper').evaluate(e=>getComputedStyle(e).display),'none','old pale-blue sheet is hidden');
-  await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+  await page.locator('#editor .ttk-onepage-full-form').click();
   const colors=await page.locator('#recipe-name').evaluate(el=>{
    const c=getComputedStyle(el);return {background:c.backgroundColor,color:c.color};
   });
