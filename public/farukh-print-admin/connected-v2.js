@@ -101,9 +101,8 @@ async function loadLabel(){
   if(!render||typeof render.draw!=='function')throw Error('Исходный шаблон не загрузился.');
   if(!p.name||!p.storage||!Number(p.hours))throw Error('Для макета нужны название, температура и срок хранения.');
   const n=p.nutrition||{};
-  if(!prep&&(!p.composition||p.weight==null||p.tolerance==null||
-    ['kcal','p','f','c'].some(k=>n[k]===undefined||n[k]===null||n[k]==='')))
-    throw Error('Для оригинального 58×40 пока не хватает состава, массы, допуска или КБЖУ. Значения не подставляются автоматически.');
+  if(!prep&&(!p.composition||p.weight==null||p.tolerance==null))
+    throw Error('Для оригинального 58×40 нужны состав, масса нетто и допустимое отклонение. Значения не подставляются автоматически.');
   const canvas=document.createElement('canvas');canvas.width=prep?240:464;canvas.height=prep?160:320;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Твой браузер не поддерживает холст печати.');
   render.draw(ctx,{
@@ -112,7 +111,8 @@ async function loadLabel(){
    tolerance:p.tolerance,p:n.p,f:n.f,c:n.c,kcal:n.kcal
   },Date.now());
   root.append(canvas);
-  caption.textContent='✓ Оригинальный макет '+fmt+' мм. Предпросмотр не подтверждает печать на Bluetooth V3 BT.';
+  const hasNutrition=['kcal','p','f','c'].every(k=>n[k]!==undefined&&n[k]!==null&&n[k]!=='');
+  caption.textContent='✓ Оригинальный макет '+fmt+' мм'+(prep?'':hasNutrition?' · с КБЖУ':' · КБЖУ скрыто (нет данных)')+'. Предпросмотр не подтверждает печать на Bluetooth V3 BT.';
  }catch(error){
   if(chosen?.id!==id)return;
   const msg=document.createElement('div');msg.className='connected-state';msg.dataset.type='error';
