@@ -4,6 +4,7 @@
  * and previews the actual server-rendered PDF, using the current unsaved data.
  * The existing editable controls remain mounted inside .ttk-paper unchanged. */
 import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=1';
+import {mountOnePageA4} from './ttk-one-page-a4.js?v=1';
 const ui=(tag,cls,content)=>{
  const el=document.createElement(tag);
  if(cls)el.className=cls;
@@ -70,6 +71,7 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   'Галочки аллергенов предварительные. Сверяй состав с этикетками и учитывай перекрёстный контакт. Пустая клетка не означает отсутствие аллергена.');
  output.append(live.shell,status,actions,frame,note);
  stage.append(output);viewport.append(stage);
+ const onePage=mountOnePageA4(editor,stage,live);
  let active=false,controller=null,requestNo=0,objectUrl=null;
  const clear=()=>{
   controller?.abort();controller=null;requestNo++;
@@ -81,6 +83,7 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  function setMode(mode){
   active=mode==='paper';
   stage.hidden=!active;
+  onePage.setVisible(active);
   if(active){
    movePicker(true);
    // Each selected layout is a LIVE editable form, not a dead PDF frame.
@@ -142,10 +145,10 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  picker.addEventListener('click',event=>{
   const card=event.target.closest?.('[data-ttk-layout]');
   if(active&&card)queueMicrotask(()=>{
-   clear();live.setLayout();status.textContent='Оформление выбрано. Поля ниже можно заполнять прямо на листе.';
+   clear();live.setLayout();onePage.scheduleFit();status.textContent='Оформление выбрано. Нажми на нужный блок ТТК для удобного ввода.';
   });
  });
  preview.addEventListener('click',()=>void showPdf());
  setMode('form');
- return {setMode,showPdf,stage,live};
+ return {setMode,showPdf,stage,live,onePage};
 }
