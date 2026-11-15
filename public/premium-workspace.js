@@ -2,6 +2,7 @@
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 import {mountPremiumShowcase} from '/premium-showcase.js?v=8';
 import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=9';
+import {mountVisualEditor} from '/site-visual-editor.js?v=1';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const defaults={theme:'royal',accent:'',radius:20,density:'standard',scale:1,motion:true};
@@ -94,9 +95,11 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
   const hub=node('section','pf-settings-hub');hub.id='pf-settings-hub';
   const title=node('h3','pf-settings-hub-title','Оформление FARRUH AI');
   const caption=node('p','pf-settings-hub-caption','Темы, кнопки и размер элементов.');
+  const visual=button('✏️  Редактировать на экране','pf-settings-design-button',()=>visualEditor?.open());
+  visual.id='pf-site-visual-editor-button';
   const design=button('🎨  Дизайн и стиль','pf-settings-design-button',openStudio);
   design.id='pf-settings-design-button';
-  hub.append(title,caption,design);
+  hub.append(title,caption,visual,design);
   const utilities=node('details','pf-settings-utilities');utilities.id='pf-settings-utilities';
   const summary=node('summary','','Редко используемые функции');
   const list=node('div','pf-settings-utilities-list');
@@ -238,6 +241,7 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
  mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
+ const visualEditor=mountVisualEditor({show:typeof show==='function'?show:goto});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
   new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});
