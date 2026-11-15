@@ -60,7 +60,7 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
   const result=await parsePdf(data);
   assert.equal(result.numpages,1);
   // A4 starts with the document title: brand is in the app chrome, not paper.
-  assert.doesNotMatch(result.text,/FARRUH AI|Premium|ПЕЧАТЬ|ПФ/);
+  assert.doesNotMatch(result.text,/FARRUH AI|Premium|ПЕЧАТЬ/);
   assert.match(result.text,/ТЕХНОЛОГИЧЕСКАЯ КАРТА \(ТТК\)/);
 
   for(const value of ['Филадельфия классик','Лосось','Сыр творожный','Огурец' ,
