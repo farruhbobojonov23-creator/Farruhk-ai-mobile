@@ -7,7 +7,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
  const panel=document.createElement('details');
  panel.className='recipe-deletion-manager';
  panel.innerHTML=`<summary>🗑️ Удалить ТТК</summary>
-  <p class="small">Нажмите ✕ рядом с нужной ТТК. Удалится только выбранная копия — с телефона, из общей базы или Google.</p>
+  <p class="small"><strong>🗑️ Везде ✕</strong> — одно нажатие для удаления ТТК с телефона, из облака и Google. Кнопка «Телефон ✕» удаляет <strong>только на этом устройстве</strong>: ранее сохранённая вкладка Google остаётся в документе, пока не удалить её отдельно.</p>
   <p class="small">Удаление из Google требует обновлённого Apps Script. Оно не устраняет ошибку экспорта PDF А4.</p>
   <div class="recipe-delete-list" data-list></div>
   <p class="small" data-count></p>
@@ -31,6 +31,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   if(r)s.deletedRecipeRefs[id]={id,name:String(r.name||'ТТК'),category:String(r.category||''),projectId:String(r.projectId||''),projectName:String(r.projectName||'')};
  }
  const locations=[
+  {scope:'all',label:'🗑️ Везде ✕',description:'Удалить конкретную ТТК с телефона, из общей базы и Google'},
   {scope:'phone',label:'📱 Телефон ✕',description:'Удалить с телефона'},
   {scope:'cloud',label:'☁️ Облако ✕',description:'Удалить из общей базы телефона и планшета'},
   {scope:'google',label:'📄 Google ✕',description:'Удалить из Google Документов'}
@@ -62,7 +63,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
     button.textContent=option.label;
     button.title=option.description+' · '+recipe.name;
     button.setAttribute('aria-label',option.description+' — '+recipe.name);
-    button.disabled=busy||(option.scope==='phone'&&!local)||
+    button.disabled=busy||(option.scope==='phone'&&!local)||(option.scope==='all'&&!local&&!!s.cloudDeletedRecipes?.[recipe.id]&&!!s.googleDeletedRecipes?.[recipe.id])||
      (option.scope==='cloud'&&!!s.cloudDeletedRecipes?.[recipe.id])||
      (option.scope==='google'&&!!s.googleDeletedRecipes?.[recipe.id]);
     button.onclick=()=>void removeOne(recipe.id,option.scope);
@@ -105,7 +106,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   if(data.recipeId!==id||data.deleted!==true)throw Error(data.found===false?'Google не нашёл ранее отправленную ТТК. Запись на устройстве оставлена; отправка в Google приостановлена.':'Google не подтвердил удаление этой ТТК.');
   return data;
  }
- async function deleteCloud(id){
+ async function deleteCloud(id,{allowMissing=false}={}){
   const request=async(url,options={})=>{
    const response=await fetch(url,{...options,credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(60000)});
    const data=await response.json().catch(()=>({}));
@@ -114,12 +115,13 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   };
   const cloud=await request('/api/device-sync');
   const found=[...(cloud.snapshot?.recipes||[]),...(cloud.snapshot?.releasedRecipes||[])].some(r=>r.id===id);
-  if(!found)throw Error('В общей облачной базе эта ТТК не найдена. На телефоне её можно удалить отдельно.');
+  if(!found){if(allowMissing)return {found:false};throw Error('В общей облачной базе эта ТТК не найдена. На телефоне её можно удалить отдельно.')}
   const done=await request('/api/device-sync/recipes/'+encodeURIComponent(id),{
    method:'DELETE',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({revision:cloud.revision})
   });
   if(done.deleted!==true||done.recipeId!==id)throw Error('Облако не подтвердило удаление конкретной ТТК.');
+  return {found:true};
  }
  async function backupBeforeRemote(){
   const backup=await store.load();
@@ -154,10 +156,46 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   const s=getState(),recipe=byId(s).get(id);
   if(!recipe||!locations.some(option=>option.scope===scope))return false;
   busy=true;render();
-  const label={phone:'телефона',cloud:'общей базы',google:'Google Документов'}[scope];
+  const label={all:'всех мест хранения',phone:'телефона',cloud:'общей базы',google:'Google Документов'}[scope];
   message('Удаляю «'+recipe.name+'» из '+label+'…');
   try{
-   if(scope==='phone'){
+   if(scope==='all'){
+    // First stop further automatic uploads. Never claim complete deletion
+    // when Google or shared cloud did not confirm the specific record.
+    await backupBeforeRemote();
+    const paused=await store.mutate(d=>{
+     recordRef(d,id,recipe);d.googleSuppressed??={};d.googleSuppressed[id]=true;
+    });
+    onState(paused);
+    document.dispatchEvent(new CustomEvent('farruh:recipe-local-deleted',{detail:{id}}));
+    onGoogleChanged?.();
+    if(!paused.googleDeletedRecipes?.[id]){
+     await postGoogle(paused,id,recipe);
+     const done=await store.mutate(d=>{
+      d.googleDeletedRecipes??={};d.googleDeletedRecipes[id]=true;
+      if(d.googleDelivery)delete d.googleDelivery[id];
+     });
+     onState(done);
+    }
+    if(!getState()?.cloudDeletedRecipes?.[id]){
+     await deleteCloud(id,{allowMissing:true});
+     const done=await store.mutate(d=>{
+      d.cloudDeletedRecipes??={};d.cloudDeletedRecipes[id]=true;
+     });
+     onState(done);
+    }
+    const next=await store.mutate(d=>{
+     recordRef(d,id,recipe);
+     d.recipes=(d.recipes||[]).filter(r=>r.id!==id);
+     d.releasedRecipes=(d.releasedRecipes||[]).filter(r=>r.id!==id);
+     d.googleSuppressed??={};d.googleSuppressed[id]=true;
+     d.localOnlyDeletedIds??={};d.localOnlyDeletedIds[id]=true;
+     if(d.googleDelivery)delete d.googleDelivery[id];
+    });
+    undoRecord=null;
+    onState(next);onGoogleChanged?.();
+    message('✅ «'+recipe.name+'» удалена с телефона, из общей базы и Google.');
+   }else if(scope==='phone'){
     const local=await store.load();
     const recipes=(local.recipes||[]).filter(r=>r.id===id);
     const released=(local.releasedRecipes||[]).filter(r=>r.id===id);
@@ -173,8 +211,10 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
      d.localOnlyDeletedIds??={};d.localOnlyDeletedIds[id]=true;
     });
     undoRecord={id,name:recipe.name,recipes,released,wasSuppressed,wasLocalOnly};
-    onState(next);onGoogleChanged?.();
-    message('✅ Удалена с телефона: «'+recipe.name+'». Google и общая база не затронуты.',true);
+    onState(next);
+    document.dispatchEvent(new CustomEvent('farruh:recipe-local-deleted',{detail:{id}}));
+    onGoogleChanged?.();
+    message('✅ Удалена только с телефона: «'+recipe.name+'». Ранее загруженная вкладка Google остаётся. Для полного удаления нажмите «🗑️ Везде ✕».',true);
    }else if(scope==='cloud'){
     await backupBeforeRemote();
     await deleteCloud(id);
@@ -186,7 +226,9 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
     const paused=await store.mutate(d=>{
      recordRef(d,id,recipe);d.googleSuppressed??={};d.googleSuppressed[id]=true;
     });
-    onState(paused);onGoogleChanged?.();
+    onState(paused);
+    document.dispatchEvent(new CustomEvent('farruh:recipe-local-deleted',{detail:{id}}));
+    onGoogleChanged?.();
     await postGoogle(paused,id,recipe);
     const next=await store.mutate(d=>{
      recordRef(d,id,recipe);d.googleDeletedRecipes??={};d.googleDeletedRecipes[id]=true;
@@ -198,7 +240,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
    notify?.('Удалена «'+recipe.name+'» из '+label+'.');
    return true;
   }catch(e){
-   message('⚠️ Не удалена из '+label+': '+String(e.message||e));
+   message('⚠️ Не удалось полностью удалить из '+label+': '+String(e.message||e)+'. Автоматическая отправка этой ТТК в Google приостановлена. Выполненные удалённые этапы сохранены — можно повторить.');
    notify?.(String(e.message||e),true);
    return false;
   }finally{busy=false;render()}

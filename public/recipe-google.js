@@ -15,9 +15,14 @@ function linkedProjects(state){
     projects.set(recipe.projectId,{id:recipe.projectId,name:recipe.projectName||'Проект '+recipe.projectId});
  return [...projects.values()];
 }
-const googleReady=state=>readyArchive(state).filter(recipe=>!state?.googleSuppressed?.[recipe.id]);
+// Removing a local TTK must also remove it from every pending Google upload queue.
+export const googleReady=state=>readyArchive(state).filter(recipe=>!state?.googleSuppressed?.[recipe.id]&&!state?.localOnlyDeletedIds?.[recipe.id]&&!state?.deletedRecipeIds?.includes(recipe.id));
 export function mountGoogleSync({getState,store,onState,notify,mountRoot=null}){
- let running=false,timer,settingsOpen=false,projectSyncError='';const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';button.dataset.googleSettings='1';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
+ let running=false,timer,settingsOpen=false,projectSyncError='';
+ const activeUploads=new Map();
+ const isStopped=id=>!!(getState()?.googleSuppressed?.[id]||getState()?.localOnlyDeletedIds?.[id]||getState()?.deletedRecipeIds?.includes(id));
+ const cancelUpload=id=>{const controller=activeUploads.get(id);if(controller){controller.abort();activeUploads.delete(id)}};
+ document.addEventListener('farruh:recipe-local-deleted',event=>{if(event.detail?.id)cancelUpload(event.detail.id);});const summary=document.createElement('div');summary.className='ttk-sync-summary';const status=document.createElement('span');status.setAttribute('role','status');const button=document.createElement('button');button.type='button';button.textContent='Google Документы';button.dataset.googleSettings='1';const archiveButton=document.createElement('button');archiveButton.type='button';archiveButton.textContent='Готовые версии';summary.append(status,archiveButton,button);const documentLink=document.createElement('a');documentLink.hidden=true;documentLink.target='_blank';documentLink.rel='noopener';documentLink.textContent='Открыть сборник';summary.append(documentLink);
  const retryButton=document.createElement('button');retryButton.type='button';retryButton.textContent='↻ Отправить сейчас';retryButton.hidden=true;retryButton.setAttribute('aria-label','Повторно отправить готовые техкарты в Google');
  let pdfDownloadRecipe=null;
  const downloadPdfButton=document.createElement('button');downloadPdfButton.type='button';downloadPdfButton.textContent='↓ Скачать PDF А4 на телефон';downloadPdfButton.hidden=true;downloadPdfButton.setAttribute('aria-label','Скачать готовую техкарту PDF А4 без Google');
@@ -62,7 +67,7 @@ export function mountGoogleSync({getState,store,onState,notify,mountRoot=null}){
  dialog.querySelector('[data-copy-key]').onclick=()=>copySetting('key','Ключ');
  dialog.querySelector('[data-toggle-key]').onclick=()=>{const input=form.elements.key;const show=input.type==='password';input.type=show?'text':'password';dialog.querySelector('[data-toggle-key]').textContent=show?'Скрыть ключ':'Показать ключ'};
  const mutate=async fn=>{const next=await store.mutate(fn);onState(next);render()};
- const post=async body=>{const response=await fetch('/api/recipes/google-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(110000)});const data=await response.json();if(!response.ok){const error=new Error(data.error||'Google временно недоступен.');error.code=data.code;error.documentSaved=data.documentSaved===true;error.documentUrl=data.documentUrl;throw error}return data};
+ const post=async (body,signal)=>{const response=await fetch('/api/recipes/google-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(110000)]):AbortSignal.timeout(110000)});const data=await response.json();if(!response.ok){const error=new Error(data.error||'Google временно недоступен.');error.code=data.code;error.documentSaved=data.documentSaved===true;error.documentUrl=data.documentUrl;throw error}return data};
  button.onclick=()=>{if(!getState())return;const config=getState().googleSync||{};form.elements.endpoint.value=config.endpoint||'';form.elements.key.value=config.key||'';form.elements.enabled.checked=config.enabled!==false;result.textContent='';settingsOpen=true;dialog.showModal()};
  form.onsubmit=async e=>{e.preventDefault();const submit=form.querySelector('[type=submit]');submit.disabled=true;result.textContent='Проверяю соединение с Google…';try{const config={endpoint:form.elements.endpoint.value.trim(),key:form.elements.key.value.trim(),enabled:form.elements.enabled.checked};if(/^https?:\/\//i.test(config.key)||config.key===config.endpoint)throw Error('В поле «Ключ подключения» вставлена ссылка Google Apps Script. Ссылка и ключ — разные данные. Скопируйте настоящий ключ из подключённого устройства или журнала выполнения initialize в Google Apps Script.');if(/\/\*|\*\/|function\s|const\s|Farukh AI ready|WORKING_DOCUMENT_ID|\n/i.test(config.key))throw Error('Вы вставили код программы Code.gs, а не ключ. В существующем проекте Google Apps Script выполните initialize и скопируйте из журнала только значение после «Ключ подключения:».');const checked=await post({...config,action:'check'});const old=getState().googleSync;await mutate(s=>{s.googleSync={...config,documentUrl:checked.documentUrl};if(old?.endpoint!==config.endpoint||old?.key!==config.key){s.googleDelivery={};s.googleProjects={}}});result.textContent=checked.pdfA4Supported===false?'Google Документы подключены, но опубликованная версия Apps Script пока не подтверждает поддержку PDF А4. ТТК можно сохранить на телефон через «Скачать PDF А4»; для загрузки PDF в Google потребуется обновить развёртывание Google ТТК.':'Google подключён. Готовые ТТК будут отправлены автоматически.';schedule()}catch(err){result.textContent=err.message}finally{submit.disabled=false}};
  dialog.querySelector('[data-disable]').onclick=async()=>{try{await mutate(s=>{if(s.googleSync)s.googleSync.enabled=false});result.textContent='Автоматическая отправка отключена. ТТК в Google сохранены.'}catch(e){result.textContent=e.message}};
@@ -138,31 +143,36 @@ export function mountGoogleSync({getState,store,onState,notify,mountRoot=null}){
   try{
    if(!await ensureProjects())return;
    for(const recipe of googleReady(getState())){
-    if(getState()?.googleSuppressed?.[recipe.id])continue;
+    if(isStopped(recipe.id))continue;
     if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint||getState().googleSync.key!==config.key)break;
     const digest=await recipeDigest(recipe);
-    if(getState()?.googleSuppressed?.[recipe.id])continue;
+    if(isStopped(recipe.id))continue;
     const previous=getState().googleDelivery?.[recipe.id];
     if(previous?.digest===digest&&previous?.layoutVersion===A4_PDF_VERSION&&!previous.error)continue;
     try{
      const name=linkedProjects(getState()).find(x=>x.id===(recipe.projectId||'general'))?.name||recipe.projectName||'Без проекта';
-     const response=await post({...config,action:'sync',recipe,digest,projectId:recipe.projectId||'',projectName:name});
+     // Cancel a queued request when the owner deletes this TTK during synchronization.
+     if(isStopped(recipe.id))continue;
+     const controller=new AbortController();activeUploads.set(recipe.id,controller);
+     const response=await post({...config,action:'sync',recipe,digest,projectId:recipe.projectId||'',projectName:name},controller.signal);
+     if(isStopped(recipe.id))continue;
      if(!response.pdfReady||!response.pdfUrl)throw Error('Google Документы обновлены, но одностраничный PDF A4 ещё не подтверждён. Обновите опубликованный Apps Script.');
      await mutate(s=>{
-      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
+      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key||s.googleSuppressed?.[recipe.id]||s.localOnlyDeletedIds?.[recipe.id])return;
       s.googleDelivery??={};
       s.googleDelivery[recipe.id]={digest,layoutVersion:A4_PDF_VERSION,projectId:recipe.projectId||'',url:response.documentUrl,pdfUrl:response.pdfUrl,tabId:response.tabId,syncedAt:new Date().toISOString()};
      });
     }catch(e){
+     if(isStopped(recipe.id)||e?.name==='AbortError')continue;
      failures++;
      await mutate(s=>{
-      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key)return;
+      if(s.googleSync?.endpoint!==config.endpoint||s.googleSync?.key!==config.key||s.googleSuppressed?.[recipe.id]||s.localOnlyDeletedIds?.[recipe.id])return;
       s.googleDelivery??={};
       s.googleDelivery[recipe.id]={...s.googleDelivery[recipe.id],...(e?.documentSaved&&e.documentUrl?{url:e.documentUrl,documentSaved:true}:{}),error:String(e?.message||'Google не подтвердил сохранение.'),errorCode:e?.code||'',lastAttemptAt:new Date().toISOString()};
      });
      // A broken TTK must not block other ready TTKs. Avoid hammering an unavailable Google service.
      if(failures>=4)break;
-    }
+    }finally{activeUploads.delete(recipe.id)}
    }
   }finally{running=false;render();document.dispatchEvent(new Event('farruh:google-ttk-status-changed'))}
  }
