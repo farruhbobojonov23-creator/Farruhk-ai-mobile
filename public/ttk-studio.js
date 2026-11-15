@@ -135,8 +135,8 @@ export function mountTtkStudio(editor){
  return {
   open(){
    menu.open=false;qa.open=false;
-   // A4 sheet on desktop; full-size, readable fields on a phone.
-   setMode(window.matchMedia('(min-width: 1050px)').matches?'paper':'form');
+   // Open the approved editable A4 template on all devices; the user can switch to the large-field view manually.
+   setMode('paper');
    refreshPhoto();displayStyle();
   },
   setMode
