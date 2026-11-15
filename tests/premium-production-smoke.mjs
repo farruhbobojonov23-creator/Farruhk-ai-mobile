@@ -415,7 +415,7 @@ async function auditRoyal(page,tag,mobile,errors){
    await panel.waitFor({state:'visible',timeout:8000});
    check(tag+' visual editor opens working inspector',await page.locator('#home').isVisible(),null);
    const title=page.locator('#home .pfv-intro h1');
-   const beforeText=await title.innerText();
+   const beforeText=await title.evaluate(el=>el.textContent.trim());
    await title.click();
    const input=panel.locator('input[type="text"]').first();
    await input.fill('Проверка визуального редактора');
