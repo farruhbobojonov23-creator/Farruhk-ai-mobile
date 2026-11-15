@@ -4,6 +4,7 @@ import express from 'express';
 import {jwks,selfCheck} from './farukh-print-jwt.js';
 import {mountPrintNeonBridge} from './farukh-print-neon-proxy.js';
 import {mountPrintPgBridge, printPgSelfCheck} from './farukh-print-pg-cloud.js';
+import {mountPrintOperations} from './farukh-print-operations.js';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -24,6 +25,10 @@ app.get('/cloud/',(_req,res)=>{
  res.setHeader('Cache-Control','no-store');
  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
  res.sendFile(path.join(ROOT,'index.html'));
+});
+app.get('/cloud/staff/',(_req,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ res.sendFile(path.join(ROOT,'staff.html'));
 });
 app.use('/cloud/assets',express.static(ROOT,{index:false,fallthrough:false,maxAge:600000}));
 app.get('/.well-known/farukh-print-jwks.json',(_req,res)=>{
@@ -131,6 +136,7 @@ app.get('/api/owner/cloud/catalog',authPin,async(_req,res)=>handleGateway(res,'g
 
 
 mountPrintPgBridge(app,authPin);
+mountPrintOperations(app,authPin);
 mountPrintNeonBridge(app,authPin);
 app.use('/api/print-cloud/v1',(_req,res)=>res.status(410).json({error:'Старый API отключён. Используй панель владельца FARUKH PRINT Cloud.'}));
 app.use((_req,res)=>res.status(404).json({error:'Страница не найдена.'}));
