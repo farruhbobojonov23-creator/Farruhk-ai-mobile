@@ -33,6 +33,7 @@ app.get('/',(_req,res)=>res.redirect(302,'/cloud/'));
 app.get('/cloud',(_req,res)=>res.redirect(302,'/cloud/'));
 app.get('/cloud/',(_req,res)=>{
  res.setHeader('Cache-Control','no-store');
+ res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
  res.sendFile(path.join(appRoot,'index.html'));
 });
 app.use('/cloud/assets',express.static(appRoot,{index:false,fallthrough:false,maxAge:3600000}));
@@ -173,7 +174,7 @@ app.use('/owner-auth',async(req,res)=>{
   const cookies=response.headers.getSetCookie?.()||[];
   for(const v of cookies){
    const cookie=v.replace(/;\\s*Domain=[^;]*/gi,'').replace(/;\\s*Path=[^;]*/gi,'').replace(/;\\s*SameSite=[^;]*/gi,'');
-   res.append('Set-Cookie',cookie+'; Path=/owner-auth; Secure; HttpOnly; SameSite=Lax');
+   res.append('Set-Cookie',cookie.replace(/;\\s*Partitioned/gi,'')+'; Path=/; Secure; HttpOnly; SameSite=Lax');
   }
   res.status(response.status).type('application/json').send(raw);
  }catch(err){
