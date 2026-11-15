@@ -34,7 +34,7 @@ test('Google receiver request includes the exact single-page A4 PDF and every in
  installRecipeExportApi(app,{request:async(_url,options)=>{
   packet=JSON.parse(options.body);
   return {ok:true,json:async()=>({ok:true,recipeId:packet.recipe.id,digest:packet.digest,
-   documentUrl:'https://docs.google.com/document/d/fake',pdfUrl:'https://drive.google.com/file/d/fake/view'})};
+   documentUrl:'https://docs.google.com/document/d/1uQdJ3l_sfR2nl317O1C85-T_x6s2BwYE8gj1Hhx-cm8/edit',pdfUrl:'https://drive.google.com/file/d/1Hv4IxMj6bCUrZwgu_x2OrV8fH_oLQZvD/view'})};
  }});
  assert.equal(typeof handler,'function');
  const ingredients=Array.from({length:55},(_,i)=>({name:'Ингредиент '+(i+1),grams:5,grossGrams:5,lossPercent:0}));
