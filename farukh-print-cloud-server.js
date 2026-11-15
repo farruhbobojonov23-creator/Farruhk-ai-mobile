@@ -267,5 +267,14 @@ app.get(api+'/catalog',auth,async(_req,res)=>{
  }catch(err){console.error('[print-cloud] catalog read failed',err.code||'error');res.status(503).json({ok:false,error:'Не удалось прочитать каталог.'})}
 });
 app.use(api,(_req,res)=>res.status(404).json({ok:false,error:'Неизвестный адрес API.'}));
-app.listen(PORT,'0.0.0.0',()=>console.info('[print-cloud] test service listening, separate Neon storage, staff sync disabled'));
+app.listen(PORT,'0.0.0.0',()=>{
+ console.info('[print-cloud] test service listening, separate Neon storage, staff sync disabled');
+ if(neonFnUrl.startsWith('https://'))setTimeout(async()=>{
+  try{
+   const r=await fetch(neonFnUrl,{signal:AbortSignal.timeout(15000)});
+   const safe=(await r.text()).slice(0,320).replace(/postgres(?:ql)?:\\/\\/[^\\s"]+/g,'[hidden]');
+   console.info('[print-cloud] Neon native probe',r.status,safe);
+  }catch(err){console.warn('[print-cloud] Neon native probe unavailable',err.name||'error')}
+ },1500);
+});
 process.on('SIGTERM',()=>{pool.end().finally(()=>process.exit(0))});
