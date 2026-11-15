@@ -23,6 +23,7 @@ function showPanel(name){
  const p=$('page-'+name);if(p)p.hidden=false;
  if(name==='staff')void loadStaff();
  if(name==='cloud')void loadCloud();
+ if(name==='backup')void loadArchives();
 }
 function initTheme(){
  const KEY='farukh-print-admin:theme:v1';
@@ -227,6 +228,98 @@ async function loadStaff(){
   note('legacy-staff-note','✓ Данные Neon загружены. Старые учётные записи обслуживает прежний шлюз сотрудников.','good');
  }catch(e){note('legacy-staff-note','Не удалось проверить новый контур сотрудников: '+e.message,'error')}
 }
+
+async function createItem(){
+ if(dirty||saving){note('save-note','Сначала сохрани изменения в открытой карточке.','error');return}
+ const name=window.prompt('Название нового товара в тестовой копии:', '');
+ if(name===null||!name.trim())return;
+ const prep=window.confirm('Это полуфабрикат (ПФ)?\nОК — ПФ, Отмена — готовый товар.');
+ const button=$('create-item');button.disabled=true;
+ try{
+  const q=await api('db/create',{name:name.trim(),kind:prep?'prep':'ready'});
+  chosen={id:q.id};await loadCatalog();await loadCloud();
+  note('save-note','✓ Товар создан только в тестовой базе. Заполни состав, срок, условия и массу.','good');
+  $('edit-form').scrollIntoView({behavior:'smooth',block:'nearest'});
+ }catch(e){note('connected-state','Не удалось создать товар: '+e.message,'error')}
+ finally{button.disabled=false}
+}
+async function archiveItem(){
+ if(!chosen)return;
+ if(dirty||saving)return note('save-note','Сначала сохрани изменения в текущей карточке.','error');
+ if(!window.confirm('Перенести «'+chosen.name+'» в архив тестовой копии?\nРабочие товары сотрудников не изменятся.'))return;
+ const button=$('archive-item');button.disabled=true;
+ try{
+  await api('db/archive',{id:chosen.id});
+  chosen=null;await loadCatalog();await loadCloud();await loadArchives();
+  note('connected-state','✓ Товар перенесён в архив тестовой базы. Его можно восстановить в «Настройках».','good');
+ }catch(e){note('save-note',e.message,'error')}
+ finally{button.disabled=false}
+}
+async function loadArchives(){
+ const host=$('archive-list');host.replaceChildren();
+ try{
+  const result=await api('db/archive');
+  if(!result.products?.length){
+   const row=document.createElement('div');row.textContent='Архив пуст.';host.append(row);return;
+  }
+  for(const p of result.products){
+   const row=document.createElement('div'),left=document.createElement('span'),right=document.createElement('button');
+   left.textContent=p.name+' · '+(p.kind==='prep'?'ПФ':'Готовый');
+   right.type='button';right.textContent='Восстановить';
+   right.className='connected-restore';
+   right.addEventListener('click',async()=>{
+    if(!window.confirm('Восстановить «'+p.name+'» в тестовой каталог?'))return;
+    right.disabled=true;
+    try{await api('db/restore',{id:p.id});chosen={id:p.id};await loadCatalog();await loadCloud();await loadArchives();}
+    catch(e){note('connected-state','Ошибка восстановления: '+e.message,'error')}
+    finally{right.disabled=false}
+   });
+   row.append(left,right);host.append(row);
+  }
+ }catch(e){const row=document.createElement('div');row.textContent='Архив недоступен: '+e.message;host.append(row)}
+}
+async function optimizePhoto(file){
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Нужен PNG, JPG или WebP.');
+ if(file.size<=1300000)return file;
+ const url=URL.createObjectURL(file),img=new Image();
+ try{
+  img.src=url;
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Изображение не открылось.'))});
+  const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Не удалось обработать изображение.');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.88));
+  if(!blob||blob.size>1350000)throw Error('Фото слишком большое. Попробуй изображение меньше 1,35 МБ.');
+  return blob;
+ }finally{URL.revokeObjectURL(url)}
+}
+async function uploadPhoto(){
+ if(!chosen)return;
+ if(dirty||saving)return note('save-note','Дождись сохранения карточки перед загрузкой фото.','error');
+ const file=$('photo-file').files?.[0];if(!file)return note('save-note','Сначала выбери фотографию.','error');
+ const button=$('photo-upload');button.disabled=true;note('save-note','Подготавливаю фотографию…');
+ try{
+  const blob=await optimizePhoto(file);
+  if(blob.size>1350000)throw Error('Фото превышает лимит 1,35 МБ.');
+  const data=await new Promise((resolve,reject)=>{
+   const reader=new FileReader();
+   reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
+   reader.onerror=()=>reject(Error('Не получилось прочитать файл.'));
+   reader.readAsDataURL(blob);
+  });
+  note('save-note','Сохраняю фотографию в тестовый Neon…');
+  const result=await api('db/photo-upload',{id:chosen.id,mime:blob.type,base64:data});
+  const id=chosen.id;chosen={id};$('photo-file').value='';
+  await loadCatalog();await loadCloud();
+  note('save-note','✓ Фото сохранено в тестовой базе: '+Math.ceil(result.bytes/1024)+' КБ.','good');
+ }catch(e){note('save-note','Не удалось загрузить фото: '+e.message,'error')}
+ finally{button.disabled=false}
+}
+
 function attach(){
  $('pin-form').addEventListener('submit',async e=>{
   e.preventDefault();$('enter').disabled=true;
@@ -246,6 +339,10 @@ function attach(){
  });
  $('reload-all').addEventListener('click',()=>{void loadCloud();void loadCatalog()});
  $('refresh-cloud').addEventListener('click',()=>void loadCloud());
+ $('create-item').addEventListener('click',()=>void createItem());
+ $('archive-item').addEventListener('click',()=>void archiveItem());
+ $('archive-refresh').addEventListener('click',()=>void loadArchives());
+ $('photo-upload').addEventListener('click',()=>void uploadPhoto());
  $('find-product').addEventListener('input',drawList);
  $('kind-filter').addEventListener('change',drawList);
  $('edit-form').addEventListener('submit',e=>{e.preventDefault();void save()});
@@ -272,7 +369,7 @@ async function enter(){
   const mod=await import('/farukh-print-admin/premium-v2.js?v=2');
   premium=mod.mountPremiumV2({root:$('print-control-root'),main:$('print-control')});
   const tag=document.querySelector('.v2-hero-tag');
-  if(tag)tag.textContent='☁ Рабочий каталог Neon · сотрудники и Bluetooth-печать не изменены';
+  if(tag)tag.textContent='🧪 Тестовая копия Neon · сотрудники и Bluetooth-печать не изменены';
   const notice=document.querySelector('.v2-section-title .v2-micro-tag');
   if(notice)notice.textContent='Данные проверяются в Neon';
 
