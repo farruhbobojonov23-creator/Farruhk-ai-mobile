@@ -131,8 +131,16 @@ public class MainActivity extends Activity {
             JSONObject cat=store.categories().get(i);final String catName=cat.optString("name");
             LinearLayout tile=vertical();tile.setGravity(Gravity.CENTER);pad(tile,5,11);
             tile.setBackground(border(WHITE,15,BORDER));
-            TextView pic=text(cat.optString("icon","🍣"),34,RED,false);pic.setGravity(Gravity.CENTER);
-            tile.addView(pic,lp(-1,55));
+            String photo=cat.optString("photo","");
+            if(!photo.isEmpty()){
+                ImageView iv=new ImageView(this);iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                try{iv.setImageURI(Uri.parse(photo));}catch(Exception ignore){}
+                iv.setBackground(bg(0xFFFFEBEF,12));
+                iv.setClipToOutline(true);tile.addView(iv,lp(-1,55));
+            }else{
+                TextView pic=text(cat.optString("icon","🍣"),34,RED,false);pic.setGravity(Gravity.CENTER);
+                tile.addView(pic,lp(-1,55));
+            }
             TextView label=text(catName,12,INK,true);label.setGravity(Gravity.CENTER);label.setMaxLines(2);
             tile.addView(label,lp(-1,42));
             GridLayout.LayoutParams p=new GridLayout.LayoutParams();
@@ -187,14 +195,16 @@ public class MainActivity extends Activity {
         LinearLayout box=vertical();pad(box,18,10);
         EditText n=input(box,"Название категории",old==null?"":old.optString("name"),false);
         EditText icon=input(box,"Эмодзи / значок",old==null?"🍣":old.optString("icon"),false);
-        new AlertDialog.Builder(this).setTitle(old==null?"Добавить категорию":"Изменить категорию").setView(box)
+        AlertDialog.Builder dialog=new AlertDialog.Builder(this).setTitle(old==null?"Добавить категорию":"Изменить категорию").setView(box)
             .setNegativeButton("Отмена",null).setPositiveButton("Сохранить",(a,b)->{
                 if(n.getText().toString().trim().isEmpty())return;
                 JSONObject target=old;
                 if(target==null){target=new JSONObject();store.categories().add(target);}
                 try{target.put("name",n.getText().toString().trim());target.put("icon",icon.getText().toString());}catch(Exception ignore){}
                 store.save();categoriesScreen();
-            }).show();
+            });
+        if(old!=null)dialog.setNeutralButton("Изменить фото",(a,b)->choosePhoto(true,old));
+        dialog.show();
     }
     private EditText input(LinearLayout host,String label,String value,boolean multi){
         TextView l=text(label,12,GREY,true);LinearLayout.LayoutParams pl=lp(-1,-2);pl.topMargin=dp(12);host.addView(l,pl);
@@ -268,6 +278,12 @@ public class MainActivity extends Activity {
         space(content,14);
         addButton(content,"СОХРАНИТЬ ТТК",true,v->{saveEditor();allDishes(null);});
         addButton(content,"▤  СОХРАНИТЬ PDF • А4",false,v->{saveEditor();export(dish);});
+        addButton(content,"◉  ПРЕДПРОСМОТР / ПЕЧАТЬ А4",false,v->{
+            saveEditor();
+            try{pendingPdf=PdfMaker.generate(this,store,dish);printPdf();}
+            catch(Exception err){new AlertDialog.Builder(this).setTitle("Ошибка печати")
+                .setMessage(err.getMessage()).setPositiveButton("Закрыть",null).show();}
+        });
         space(content,23);
     }
     private EditText fieldInline(LinearLayout row,String label,String value){
