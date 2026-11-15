@@ -250,7 +250,18 @@ export function mountInlineTtkPage(editor){
    remove.addEventListener('click',()=>{
     sourceRow.querySelector('button')?.click();
     renderIngredients();refreshComputed();
-   });row.append(remove);rows.append(row);
+   });
+   row.append(remove);
+   // The print grid stays unchanged. Only the readable mobile editing view
+   // displays these clear labels above numeric ingredient fields.
+   for(const [key,label] of [
+    ['grossGrams','Брутто, г'],['lossPercent','Отходы, %'],['grams','Нетто, г']
+   ]){
+    const caption=node('span','ttk-ref-mobile-caption',label);
+    caption.dataset.for=key;
+    row.append(caption);
+   }
+   rows.append(row);
   });
   if(!sourceRows.length){
    const missing=node('p','ttk-live-empty','Добавьте ингредиенты, чтобы сформировать рецептуру.');
