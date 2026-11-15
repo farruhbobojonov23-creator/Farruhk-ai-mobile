@@ -110,6 +110,18 @@ app.use(api,(req,res,next)=>{
  }
  next();
 });
+const neonFnUrl=String(process.env.FARUKH_PRINT_NEON_FUNCTION_URL||'');
+app.get('/neon-probe',async(_req,res)=>{
+ if(!neonFnUrl.startsWith('https://'))return res.status(503).json({ok:false,error:'Neon Function not configured'});
+ try{
+  const upstream=await fetch(new URL('/healthz',neonFnUrl),{signal:AbortSignal.timeout(12000)});
+  const body=await upstream.json().catch(()=>({}));
+  res.status(upstream.status).json({ok:upstream.ok&&body.ok===true,neonApiStatus:upstream.status,neonConnected:body?.neonConnected===true||body?.points===4,points:body?.points??null});
+ }catch(err){
+  console.error('[print-cloud] Neon native function probe failed',err?.code||err?.name||'network-error');
+  res.status(503).json({ok:false,error:'Neon function not reachable'});
+ }
+});
 app.get('/healthz',async(_req,res)=>{
  try{
   const result=await pool.query('SELECT 1 FROM farukh_print.locations LIMIT 1');
