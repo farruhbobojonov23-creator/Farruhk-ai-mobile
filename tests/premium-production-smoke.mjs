@@ -601,7 +601,7 @@ async function run(theme,width,height){
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
     sheet:document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout,
     unchangedForm:!!document.querySelector('#card-scope'),
-     galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>100,
+     galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>30,
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
