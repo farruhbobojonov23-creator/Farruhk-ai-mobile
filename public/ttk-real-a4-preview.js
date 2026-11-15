@@ -47,6 +47,10 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  stage.append(mast);
  const gallery=ui('div','ttk-real-a4-gallery');
  stage.append(gallery);
+ const startEdit=ui('button','ttk-real-a4-start-edit','✎ Заполнить выбранный шаблон прямо на листе');
+ startEdit.type='button';
+ startEdit.addEventListener('click',()=>live.page.scrollIntoView({behavior:'smooth',block:'start'}));
+ stage.append(startEdit);
  const output=ui('section','ttk-real-a4-output');
  output.setAttribute('aria-label','Просмотр выбранного шаблона');
  const live=mountInlineTtkPage(editor);
