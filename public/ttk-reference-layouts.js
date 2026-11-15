@@ -27,7 +27,12 @@ const displayDate=v=>{
  return /^\d{4}-\d{2}-\d{2}$/.test(date)?date.slice(8)+'.'+date.slice(5,7)+'.'+date.slice(0,4):date||'—';
 };
 const splitSentences=value=>{
- const parts=String(value||'').trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+ const text=String(value||'');
+ if(text.includes('\n')){
+  const [first,...remaining]=text.split('\n');
+  return [first||'—',remaining.join('\n')||'—'];
+ }
+ const parts=text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
  if(parts.length<2)return [parts[0]||'—','—'];
  const boundary=Math.ceil(parts.length/2);
  return [parts.slice(0,boundary).join(' '),parts.slice(boundary).join(' ')];
@@ -89,10 +94,45 @@ export function mountReferenceLayouts(page,editor,controls){
   label.prepend(icon(metaIcons[index]||'soy'));
  });
  const allergenIcons=['fish','milk','grain','egg','crab','soy','sesame','nuts'];
+ // A tiny contenteditable CELL is the field itself, not an overlay. All edits
+ // flow through the existing canonical form/validation/persistence controls.
+ const write=(id,value)=>{
+  const source=get(id);if(!source||source.readOnly)return;
+  source.value=String(value);
+  source.dispatchEvent(new Event('input',{bubbles:true}));
+ };
+ const editable=(cell,label,save)=>{
+  cell.contentEditable='plaintext-only';cell.tabIndex=0;cell.spellcheck=true;
+  cell.classList.add('ttk-ref-direct-cell');
+  cell.setAttribute('role','textbox');cell.setAttribute('aria-label',label);
+  cell.addEventListener('focus',()=>{
+   if(cell.textContent.trim()==='—')cell.textContent='';
+  });
+  cell.addEventListener('input',()=>save(cell.textContent));
+  cell.addEventListener('blur',()=>{
+   if(!cell.textContent.trim())cell.textContent='—';
+   queueMicrotask(update);
+  });
+  return cell;
+ };
+ stageCards.forEach((cell,i)=>editable(cell,
+  ['Подготовка','Формовка','Сборка','Нарезка и подача'][i],value=>{
+   if(i===0)write('card-prep',value);
+   else if(i===3)write('card-serving',value);
+   else write('technology',stageCards.slice(1,3).map(x=>x.textContent.trim()).join('\n'));
+  }));
  const storageRows=(array)=>{
   array.forEach(([title,body])=>{
    const row=node('div','ttk-ref-info-row');
-   row.append(node('strong','',title),node('span','',body||'—'));
+   const cell=node('span','',body||'—');
+   if(title==='Условия хранения')editable(cell,'Условия хранения',value=>write('card-storage',value));
+   if(title==='Срок годности')editable(cell,'Срок годности',value=>{
+    const old=String(get('card-storage')?.value||'');
+    const match=/\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)(?![а-я])/i;
+    write('card-storage',match.test(old)?old.replace(match,value):
+     old.trim()+' Срок годности '+value);
+   });
+   row.append(node('strong','',title),cell);
    storageTable.append(row);
   });
  };
@@ -100,17 +140,25 @@ export function mountReferenceLayouts(page,editor,controls){
   const rawTech=String(get('technology')?.value||'');
   const [form,assembly]=splitSentences(rawTech);
   for(const [i,txt] of [get('card-prep')?.value,form,assembly,get('card-serving')?.value].entries())
-   stageCards[i].textContent=String(txt||'—');
+   if(document.activeElement!==stageCards[i])stageCards[i].textContent=String(txt||'—');
+  if(!qualityTable.contains(document.activeElement)){
   qualityTable.replaceChildren();
   for(const [heading,id] of [['Показатель',''],['Внешний вид','card-appearance'],['Вкус и запах','card-taste'],['Консистенция','']]){
    const row=node('div','ttk-ref-info-row');
-   row.append(node('strong','',heading),node('span','',
-    id?String(get(id)?.value||'—'):heading==='Консистенция'?'—':'Требование'));
+   const cell=node('span','',id?String(get(id)?.value||'—'):
+    heading==='Консистенция'?'—':'Требование');
+   if(id)editable(cell,heading,value=>write(id,value));
+   row.append(node('strong','',heading),cell);
    qualityTable.append(row);
+  }
   }
   const value=String(get('card-storage')?.value||'').trim();
   const expiry=value.match(/\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)(?![а-я])/i)?.[0]||'Не указан';
-  storageTable.replaceChildren();storageRows([['Условия хранения',value||'—'],['Срок годности',expiry]]);
+  if(!storageTable.contains(document.activeElement)){
+   storageTable.replaceChildren();
+   storageRows([['Условия хранения',value||'—'],['Срок годности',expiry]]);
+  }
+  if(!nutritionTable.contains(document.activeElement)){
   nutritionTable.replaceChildren();
   const header=node('div','ttk-ref-info-row ttk-ref-nutri-head');
   header.append(node('strong','','Показатель'),node('span','','На 100 г'),node('span','','На порцию'));
@@ -120,13 +168,27 @@ export function mountReferenceLayouts(page,editor,controls){
    const raw=get(id)?.value;
    const numeric=Number(raw);
    const row=node('div','ttk-ref-info-row');
-   row.append(node('strong','',label),node('span','',fmt(raw)),
+   const valueCell=node('span','',fmt(raw));
+   if(!get(id)?.readOnly)editable(valueCell,label+' на 100 г',
+    value=>write(id,value.trim().replace(',','.')));
+   row.append(node('strong','',label),valueCell,
     node('span','',raw!==''&&Number.isFinite(numeric)&&factor>0?fmt(numeric*factor):'—'));
    nutritionTable.append(row);
   }
+  }
   const safetyVal=String(get('card-safety')?.value||'').trim();
-  const sentences=safetyVal.split(/(?<=[.!?;])\s+/).filter(Boolean);
-  [...safetyCols.children].forEach((c,i)=>{c.querySelector('span').textContent=sentences[i]||'—';});
+  const sentences=safetyVal.includes('\n')?safetyVal.split('\n'):
+   safetyVal.split(/(?<=[.!?;])\s+/).filter(Boolean);
+  [...safetyCols.children].forEach((c,i)=>{
+   const span=c.querySelector('span');
+   if(!span.dataset.directConnected){
+    editable(span,['Критические точки','Контроль','Результат'][i],()=>{
+     write('card-safety',[...safetyCols.children].map(row=>row.querySelector('span').textContent.trim()).join('\n'));
+    });
+    span.dataset.directConnected='true';
+   }
+   if(document.activeElement!==span)span.textContent=sentences[i]||'—';
+  });
   for(const d of addedDate)d.textContent=displayDate(get('card-date')?.value);
   yieldPieces.textContent='('+String(get('card-pieces')?.selectedOptions?.[0]?.textContent||get('card-pieces')?.value||'—')+')';
   [...allergenRows.querySelectorAll('.ttk-live-allergen-row')].forEach((row,i)=>{
