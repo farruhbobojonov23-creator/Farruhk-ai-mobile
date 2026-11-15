@@ -102,6 +102,19 @@
      <label for="product-composition">Состав</label><textarea id="product-composition" maxlength="600" rows="3"></textarea>
      <div class="connected-two"><div><label for="product-storage">Хранение</label><input id="product-storage" maxlength="60" placeholder="+2…+6 °C"></div>
      <div><label for="product-hours">Срок, часов</label><input id="product-hours" type="number" min="1" max="8760"></div></div>
+     <details class="connected-advanced"><summary>⚖ Масса и КБЖУ <span>для этикетки ▾</span></summary>
+       <div class="connected-three">
+        <div><label for="product-weight">Масса нетто</label><input id="product-weight" type="number" min="0.001" max="100000" step="any" placeholder="280"></div>
+        <div><label for="product-tolerance">Допуск ±</label><input id="product-tolerance" type="number" min="0" max="10000" step="any" placeholder="10"></div>
+        <div><label for="product-unit">Единица</label><select id="product-unit"><option value="г">г</option><option value="кг">кг</option><option value="мл">мл</option><option value="л">л</option><option value="шт">шт</option></select></div>
+       </div>
+       <div class="connected-four">
+        <div><label for="product-kcal">Ккал</label><input id="product-kcal" type="number" step="any" min="0" max="1000" placeholder="—"></div>
+        <div><label for="product-p">Белки, г</label><input id="product-p" type="number" step="any" min="0" max="1000" placeholder="—"></div>
+        <div><label for="product-f">Жиры, г</label><input id="product-f" type="number" step="any" min="0" max="1000" placeholder="—"></div>
+        <div><label for="product-c">Углеводы, г</label><input id="product-c" type="number" step="any" min="0" max="1000" placeholder="—"></div>
+       </div><p class="connected-quiet">КБЖУ необязательно. Если данных нет, оставь поля пустыми — ничего не придумываем.</p>
+     </details>
      <p class="connected-quiet">Редактирование автоматически сохраняется в Neon. После сохранения допуск к печати нужно проверить заново.</p>
      <div id="save-note" class="connected-state" role="status" aria-live="polite">Выбери товар</div>
      <button class="connected-primary" type="submit" id="save-product">Сохранить сейчас</button>
@@ -154,5 +167,5 @@
 </div>
 <script src="/cloud/assets/original-premium-ready-label.js?v=1"></script>
 <script src="/cloud/assets/original-premium-prep-label.js?v=1"></script>
-<script type="module" src="/farukh-print-admin/connected-v2.js?v=2"></script>
+<script type="module" src="/farukh-print-admin/connected-v2.js?v=3"></script>
 </body></html>
