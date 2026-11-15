@@ -615,5 +615,19 @@ export function mountPrintControl({root}){
   cloudPhotos.clear();for(const p of event.detail?.products||[]){if(!window.FarukhPrintPhotos?.isPhoto(p.photo))continue;cloudPhotos.set(p.id,p.photo);cloudPhotos.set(photoKey(p),p.photo)}renderRows();
  });
  window.addEventListener('storage',event=>{if([DB_KEY,LOG_KEY].includes(event.key))render()});
- return {render,kind:()=>group,count:()=>records.length};
+ // Preview-only owner import: same parser as the existing JSON restore action.
+ // It replaces only this browser's localStorage on the isolated preview origin.
+ // The working Farukh AI database and every staff device remain unchanged.
+ function importCheckedPreviewCatalog(content){
+  const parsed=validateBackup(content);
+  if(!parsed.length)throw Error('Резервная копия пуста.');
+  if(!confirm('Импортировать '+parsed.length+' товаров только в ТЕСТОВУЮ админку? Сейчас здесь '+records.length+' позиций. Рабочее облако и сотрудники НЕ изменятся.'))return {ok:false,cancelled:true};
+  localStorage.setItem(DB_KEY,JSON.stringify(parsed));
+  pushLog('Импорт в тестовую админку',parsed.length+' поз.');
+  render();
+  window.dispatchEvent(new CustomEvent('farukh-print-catalog-local-updated',{detail:{action:'Импорт в демо',name:'Резервная копия'}}));
+  message('Загружено '+parsed.length+' товаров в тестовую админку на этом устройстве. В облако данные не отправлены.');
+  return {ok:true,count:parsed.length};
+ }
+ return {render,kind:()=>group,count:()=>records.length,importCheckedPreviewCatalog};
 }
