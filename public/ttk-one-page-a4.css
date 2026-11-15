@@ -519,7 +519,7 @@ textarea.ttk-onepage-field-input{min-height:145px!important;resize:vertical!impo
   top:calc(69px + env(safe-area-inset-top,0px))!important;
   bottom:calc(77px + env(safe-area-inset-bottom,0px))!important;
   left:7px!important;right:7px!important;
-  z-index:880!important;
+  z-index:2147483000!important;
   width:auto!important;max-width:1050px!important;
   height:auto!important;max-height:none!important;
   margin:0 auto!important;overflow:hidden!important;
