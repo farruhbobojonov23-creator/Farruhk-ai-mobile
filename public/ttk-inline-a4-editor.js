@@ -3,7 +3,7 @@
  * recipe persistence, formulas, attachments or approval state.
  */
 import {recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=2';
-import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=1';
+import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=2';
 const node=(tag,cls,text)=>{
  const n=document.createElement(tag);
  if(cls)n.className=cls;
