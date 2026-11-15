@@ -136,7 +136,9 @@ function draw(g,p,epoch,{formatDate}={}){
  if(!p.name||!value(p.composition)||!value(p.storage)||!(Number(p.hours)>0)){
   throw Error('Требуются название, состав, хранение и подтверждённый срок.');
  }
- if([p.p,p.f,p.c,p.kcal,p.weight,p.tolerance].some(v=>!Number.isFinite(Number(v))))throw Error('Проверь КБЖУ и массу изделия.');
+ if([p.weight,p.tolerance].some(v=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))))
+  throw Error('Проверь массу нетто и допустимое отклонение.');
+ const nutritionComplete=['p','f','c','kcal'].every(k=>p[k]!==null&&p[k]!==undefined&&p[k]!==''&&Number.isFinite(Number(p[k])));
  const formatted=typeof formatDate==='function'?formatDate:ms=>new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(ms)).replace(',','');
  g.fillStyle='#fff';g.fillRect(0,0,464,320);g.fillStyle='#000';g.strokeStyle='#000';g.textBaseline='middle';
 
@@ -182,6 +184,7 @@ function draw(g,p,epoch,{formatDate}={}){
 
  // 5. Balanced KBZhU table. The frame always finishes at a fixed baseline,
  // keeping dates and the lower band perfectly aligned for every recipe.
+ if(nutritionComplete){
  const tableTop=arr.length<=2?155:arr.length===3?163:arr.length===4?171:177;
  const tableBottom=234.5,tableHeight=tableBottom-tableTop;
  box(g,16,tableTop,432,tableHeight,5.5,1.35);
@@ -200,6 +203,14 @@ function draw(g,p,epoch,{formatDate}={}){
   if(i)line(g,16+i*108,separator+1,16+i*108,tableBottom-2,1.05);
   text(g,data[i][0],cx,keyY,{family:SERIF,size:compactTable?11.2:12,min:10,weight:'700',width:96,align:'center'});
   text(g,data[i][1],cx,valueY,{family:SERIF,size:compactTable?18.2:19.7,min:12.8,weight:'900',width:100,align:'center'});
+ }
+
+
+ }else{
+  // Approved universal format: omit empty KBZhU completely; no invented zeros.
+  const y=202;
+  line(g,18,y,216,y,.9);line(g,248,y,446,y,.9);
+  leaf(g,232,y);
  }
 
  // 6. Raised data band with date icons on left and right.
