@@ -115,51 +115,84 @@ public class MainActivity extends Activity {
         }shell.addView(nav);
     }
     private void home(){
-        tab=0;base("FARUKH TTK PRO","JAPANESE COLLECTION  •  ANDROID",false);
-        LinearLayout hero=vertical();pad(hero,20,20);hero.setBackground(gradient(DARK,0xFF622231,22));
-        TextView badge=text("✦  ПРЕМИАЛЬНЫЙ КОНСТРУКТОР ТТК",11,BLUE,true);hero.addView(badge);
-        space(hero,15);hero.addView(text("Японская кухня.\nТвои стандарты.",27,WHITE,true));
-        space(hero,7);hero.addView(text("Создавай, редактируй и сохраняй технологические карты в PDF формата А4.",13,0xFFE7DDE2,false));
-        space(hero,18);
-        TextView b=button("＋  Создать ТТК",true);hero.addView(b);b.setOnClickListener(v->edit(store.newDish(store.categories().get(0).optString("name"))));
+        tab=0;base("FARUKH TTK PRO","JAPANESE PRO  •  ТЕХНОЛОГИЧЕСКИЕ КАРТЫ",false);
+        // Deep-ruby Japanese hero with a real food photograph from the user's library.
+        LinearLayout hero=vertical();pad(hero,18,18);hero.setBackground(gradient(DARK,0xFF712633,23));
+        TextView badge=text("✦  JAPANESE PRO  /  CHEF EDITION",11,BLUE,true);hero.addView(badge);
+        space(hero,13);
+        LinearLayout heroRow=horizontal();
+        LinearLayout heroCopy=vertical();
+        heroCopy.addView(text("Японская кухня.\\nТвои стандарты.",23,WHITE,true));
+        space(heroCopy,7);
+        heroCopy.addView(text("ТТК всегда под рукой",12,0xFFFFC8CE,true));
+        heroRow.addView(heroCopy,new LinearLayout.LayoutParams(0,dp(126),1));
+        ImageView heroPhoto=new ImageView(this);
+        heroPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        heroPhoto.setBackground(bg(0x20FFFFFF,17));
+        heroRow.addView(heroPhoto,lp(119,119));
+        FoodPhotos.show(this,heroPhoto,"cold.png");
+        hero.addView(heroRow);
+        TextView description=text("Создавай профессиональные карты. Редактируй рецептуры и печатай цветные PDF формата А4.",13,0xFFEEDBE0,false);
+        hero.addView(description);
+        space(hero,15);
+        TextView b=button("＋  Создать новую ТТК",true);hero.addView(b);
+        b.setOnClickListener(v->edit(store.newDish(store.categories().get(0).optString("name"))));
         content.addView(hero);
-        space(content,19);
+        space(content,13);
+        // Gentle Japanese calligraphy / wave accent in the approved red-white theme.
+        LinearLayout stripe=horizontal();stripe.setGravity(Gravity.CENTER_VERTICAL);
+        TextView blossom=text("❀  桜",18,RED,true);
+        stripe.addView(blossom);
+        TextView mark=text("  JAPAN  •  RECIPE STUDIO  •  A4  ",10,GREY,true);
+        mark.setGravity(Gravity.CENTER);stripe.addView(mark,new LinearLayout.LayoutParams(0,dp(27),1));
+        TextView torii=text("⛩",23,RED,true);stripe.addView(torii);
+        content.addView(stripe);
+        space(content,12);
         LinearLayout summ=horizontal();
         summ.addView(counter(""+store.dishes().size(),"ТТК"),new LinearLayout.LayoutParams(0,dp(73),1));
         View g=new View(this);summ.addView(g,lp(11,1));
         summ.addView(counter(""+store.ingredients().size(),"Ингредиентов"),new LinearLayout.LayoutParams(0,dp(73),1));
-        content.addView(summ);space(content,22);
-        LinearLayout ttl=horizontal();TextView h=text("Категории кухни",19,INK,true);ttl.addView(h,new LinearLayout.LayoutParams(0,-2,1));
-        TextView manage=chip("ИЗМЕНИТЬ",RED,WHITE);ttl.addView(manage);manage.setOnClickListener(v->categoriesScreen());
-        content.addView(ttl);space(content,12);
+        content.addView(summ);space(content,20);
+        LinearLayout ttl=horizontal();
+        ttl.addView(text("Категории кухни",19,INK,true),new LinearLayout.LayoutParams(0,-2,1));
+        TextView manage=chip("✎ НАСТРОИТЬ",RED,WHITE);ttl.addView(manage);
+        manage.setOnClickListener(v->categoriesScreen());
+        content.addView(ttl);space(content,11);
         GridLayout grid=new GridLayout(this);grid.setColumnCount(3);
         for(int i=0;i<store.categories().size();i++){
-            JSONObject cat=store.categories().get(i);final String catName=cat.optString("name");
-            LinearLayout tile=vertical();tile.setGravity(Gravity.CENTER);pad(tile,5,11);
-            tile.setBackground(border(WHITE,15,BORDER));
+            JSONObject cat=store.categories().get(i);
+            String catName=cat.optString("name");
+            LinearLayout tile=vertical();tile.setGravity(Gravity.CENTER);
+            pad(tile,5,7);tile.setBackground(border(WHITE,17,BORDER));
+            ImageView image=new ImageView(this);
+            image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            image.setBackground(bg(0xFFF8F5F5,12));
             String photo=cat.optString("photo","");
             if(!photo.isEmpty()){
-                ImageView iv=new ImageView(this);iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                try{iv.setImageURI(Uri.parse(photo));}catch(Exception ignore){}
-                iv.setBackground(bg(0xFFFFEBEF,12));
-                iv.setClipToOutline(true);tile.addView(iv,lp(-1,55));
+                try{image.setImageURI(Uri.parse(photo));}
+                catch(Exception ignore){FoodPhotos.show(this,image,cat.optString("asset",FoodPhotos.categoryAsset(catName)));}
             }else{
-                TextView pic=text(cat.optString("icon","🍣"),34,RED,false);pic.setGravity(Gravity.CENTER);
-                tile.addView(pic,lp(-1,55));
+                FoodPhotos.show(this,image,cat.optString("asset",FoodPhotos.categoryAsset(catName)));
             }
-            TextView label=text(catName,12,INK,true);label.setGravity(Gravity.CENTER);label.setMaxLines(2);
-            tile.addView(label,lp(-1,42));
+            tile.addView(image,lp(-1,80));
+            space(tile,7);
+            TextView label=text(catName,12,INK,true);
+            label.setGravity(Gravity.CENTER);label.setMaxLines(2);
+            tile.addView(label,lp(-1,39));
             GridLayout.LayoutParams p=new GridLayout.LayoutParams();
             p.width=(getResources().getDisplayMetrics().widthPixels-dp(52))/3;
-            p.height=dp(124);p.setMargins(dp(3),dp(3),dp(3),dp(3));grid.addView(tile,p);
+            p.height=dp(143);
+            p.setMargins(dp(3),dp(3),dp(3),dp(3));grid.addView(tile,p);
             tile.setOnClickListener(v->allDishes(catName));
             tile.setOnLongClickListener(v->{editCategory(cat);return true;});
         }
-        content.addView(grid);space(content,19);
-        addButton(content,"＋ Новая категория",false,v->editCategory(null));
+        content.addView(grid);space(content,15);
+        addButton(content,"＋ Добавить категорию",false,v->editCategory(null));
         space(content,15);
-        TextView hint=text("Демо-данные необходимо проверить: рецептуры, КБЖУ, аллергены и сроки хранения не являются утверждёнными нормами.",11,GREY,false);
-        content.addView(hint);space(content,24);
+        content.addView(text("Фото категорий загружаются из твоей библиотеки MORE SUSHI, затем доступны офлайн. Нажми на категорию для списка ТТК или удерживай для редактирования.",11,GREY,false));
+        space(content,11);
+        content.addView(text("Демо-данные требуют проверки рецептур, КБЖУ, аллергенов, температур и сроков хранения.",11,RED,false));
+        space(content,23);
     }
     private LinearLayout counter(String big,String small){
         LinearLayout c=vertical();pad(c,13,9);c.setBackground(border(WHITE,16,BORDER));
