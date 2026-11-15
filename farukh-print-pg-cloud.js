@@ -50,7 +50,7 @@ export function mountPrintPgBridge(app,authPin){
       }
       if(req.method==='GET'&&route==='/catalog'){
         const q=await pool.query(`SELECT p.id,p.kind,p.name,p.category,p.composition,p.storage,
-          p.shelf_life_hours AS hours,p.needs_review AS "needsReview",p.updated_at AS "updatedAt",
+          p.shelf_life_hours AS hours,p.net_weight AS weight,p.weight_unit AS "weightUnit",p.tolerance,p.nutrition,p.needs_review AS "needsReview",p.updated_at AS "updatedAt",
           (ph.product_id IS NOT NULL) AS "hasPhoto"
           FROM farukh_print.products p
           LEFT JOIN farukh_print.product_photos ph ON ph.product_id=p.id
@@ -90,19 +90,53 @@ export function mountPrintPgBridge(app,authPin){
         const client=await pool.connect();
         try{
           await client.query('BEGIN');
-          const current=await client.query('SELECT updated_at FROM farukh_print.products WHERE id=$1 AND active=true FOR UPDATE',[id]);
+          const current=await client.query('SELECT updated_at,net_weight,weight_unit,tolerance,nutrition FROM farukh_print.products WHERE id=$1 AND active=true FOR UPDATE',[id]);
           if(!current.rows.length){await client.query('ROLLBACK');return res.status(404).json({ok:false,error:'Товар в облаке не найден.'})}
           if(new Date(current.rows[0].updated_at).getTime()!==new Date(updatedAt).getTime()){
             await client.query('ROLLBACK');
             return res.status(409).json({ok:false,conflict:true,error:'Карточка уже изменена в облаке. Обнови список перед повторным сохранением.'});
           }
-          const patch={name,kind,category:category||'',composition:composition||'',storage:storage||'',hours,needsReview:true};
+          // Keep the previous fields if the client did not provide these new options.
+          const before=current.rows[0],isSet=key=>Object.prototype.hasOwnProperty.call(b,key);
+          const parseNumber=(val,{allowZero=false,max=100000}={})=>{
+            if(val===null||val===''||val===undefined)return null;
+            const n=Number(val);
+            return Number.isFinite(n)&&(allowZero?n>=0:n>0)&&n<=max?n:NaN;
+          };
+          const weight=isSet('weight')?parseNumber(b.weight):before.net_weight;
+          const tolerance=isSet('tolerance')?parseNumber(b.tolerance,{allowZero:true,max:10000}):before.tolerance;
+          const weightUnit=isSet('weightUnit')?String(b.weightUnit||'г'):before.weight_unit;
+          if(Number.isNaN(weight)||Number.isNaN(tolerance)||!['г','кг','мл','л','шт'].includes(weightUnit||'г')){
+            await client.query('ROLLBACK');
+            return res.status(400).json({ok:false,error:'Проверь массу, отклонение и единицу измерения.'});
+          }
+          const nutrients={...(before.nutrition||{})};
+          if(isSet('nutrition')){
+            if(!b.nutrition||typeof b.nutrition!=='object'||Array.isArray(b.nutrition)){
+              await client.query('ROLLBACK');
+              return res.status(400).json({ok:false,error:'Неверный формат КБЖУ.'});
+            }
+            for(const key of ['kcal','p','f','c']){
+              if(!Object.prototype.hasOwnProperty.call(b.nutrition,key))continue;
+              const value=parseNumber(b.nutrition[key],{allowZero:true,max:1000});
+              if(Number.isNaN(value)){
+                await client.query('ROLLBACK');
+                return res.status(400).json({ok:false,error:'КБЖУ: только неотрицательные числа.'});
+              }
+              if(value===null)delete nutrients[key];else nutrients[key]=value;
+            }
+          }
+          const patch={name,kind,category:category||'',composition:composition||'',storage:storage||'',hours,
+            ...(isSet('weight')?{weight}:{}),...(isSet('tolerance')?{tolerance}:{}),
+            ...(isSet('weightUnit')?{weightUnit}:{}),...(isSet('nutrition')?{nutrition:nutrients}:{}),
+            needsReview:true};
           const q=await client.query(`UPDATE farukh_print.products SET name=$2,kind=$3,category=$4,
              composition=$5,storage=$6,shelf_life_hours=$7,needs_review=true,
              approved_for_print=false,payload=payload||$8::jsonb,
+             net_weight=$9,tolerance=$10,weight_unit=$11,nutrition=$12::jsonb,
              updated_at=date_trunc('milliseconds',clock_timestamp())
              WHERE id=$1 RETURNING updated_at`,[
-              id,name,kind,category,composition,storage,hours,JSON.stringify(patch)
+              id,name,kind,category,composition,storage,hours,JSON.stringify(patch),weight,tolerance,weightUnit||null,JSON.stringify(nutrients)
           ]);
           const totals=await client.query(`SELECT count(*)::int total,
              count(*) FILTER(WHERE kind='ready')::int ready,
