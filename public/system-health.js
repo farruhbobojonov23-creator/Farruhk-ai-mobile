@@ -177,7 +177,7 @@ export function mountSystemBadges() {
   if (element.closest('.pfv-projects')) return 'projects';
   if (element.closest('.pfv-actions')) {
    const name = element.textContent.toLowerCase();
-   return /печат/.test(name) ? 'print-control' :
+   return /ultra admin/.test(name) ? 'ultra-admin' : /печат/.test(name) ? 'print-control' :
     /ингредиент|полуфабрикат/.test(name) ? 'preparations' :
     /калькулятор/.test(name) ? 'calc' : 'recipes';
   }
