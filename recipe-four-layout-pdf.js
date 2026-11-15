@@ -169,13 +169,13 @@ export function fourTtkPdf(input){
   const noteHeight=full?(dense?17*s:24*s):33*s,bodyH=rows*cellH;
   const height=titleHeight+bodyH+noteHeight+4*s;
   if(draw){
-   doc.roundedRect(x,y,w,height,7*s).lineWidth(layout==='gold-allergen'?1.4*s:.7*s)
-     .fillAndStroke('#FFFFFF',layout==='gold-allergen'?C.accent:C.line);
+   doc.roundedRect(x,y,w,height,7*s).lineWidth(layout==='premium-blue'?1.4*s:.7*s)
+     .fillAndStroke('#FFFFFF',layout==='premium-blue'?C.accent:C.line);
    doc.roundedRect(x,y,w,titleHeight,5*s).fill(
-    layout==='gold-allergen'?'#E3BB66':layout==='premium-blue'?'#E0B15E':C.band);
-   txt(layout==='gold-allergen'?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
+    layout==='premium-blue'?'#E3BB66':C.band);
+   txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
     x+8*s,y+5*s,w-16*s,8*s,true,
-    layout==='gold-allergen'||layout==='premium-blue'?C.navy:'#FFFFFF',true);
+    layout==='premium-blue'?C.navy:'#FFFFFF',true);
    for(let i=0;i<group.groups.length;i++){
     const row=Math.floor(i/cols),col=i%cols,g=group.groups[i];
     const cx=x+col*w/cols,cy=y+titleHeight+row*cellH;
