@@ -205,7 +205,10 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
  }
  document.addEventListener('farruh:delete-recipe-fast',e=>{
   const id=e.detail?.id;if(!id)return;
-  void removeOne(id,'phone').then(ok=>{if(ok)e.detail?.onDone?.()});
+  void removeOne(id,'phone').then(ok=>{
+   if(ok)e.detail?.onDone?.();
+   else e.detail?.onFail?.();
+  }).catch(()=>e.detail?.onFail?.());
  });
  document.addEventListener('farruh:manage-recipe',e=>{
   const id=e.detail?.id;if(!id)return;
