@@ -106,10 +106,11 @@ import {filterCatalog} from '/recipe-catalog.js?v=3';
 import {categoriesFor} from '/category-model.js';
 import {showProductPhoto} from '/product-photo.js?v=3';
 import {mountCategoryManager} from '/category-manager.js?v=owner-3';
-import {mountGoogleSync} from '/recipe-google.js?v=12';
-import {createDataCenter} from '/data-center.js?v=1';
+import {mountGoogleSync} from '/recipe-google.js?v=13';
+import {mountRecipeDeletionManager} from '/recipe-delete-manager.js?v=1';
+import {createDataCenter} from '/data-center.js?v=2';
 import {mountGoogleDriveBackup} from '/google-backup.js?v=6';
-import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=4';
+import {mountDeviceCloudSync} from '/device-cloud-sync.js?v=5';
 import {parseTaskCommand} from '/task-commands.js';
 
 import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
@@ -138,6 +139,7 @@ const luxuryUI=mountLuxuryUI({
  onRefresh:()=>render(),
  onOpenCloud:()=>dataCenter.open(),
  googleDeliveryStatus:recipe=>{
+  if(state?.googleSuppressed?.[recipe.id])return '⏸ Google: удалено или отправка приостановлена';
   if(recipe.status!=='ready')return '🟡 Google: только для готовых ТТК';
   const cfg=state?.googleSync,del=state?.googleDelivery?.[recipe.id];
   if(!cfg?.enabled||!cfg?.endpoint||!cfg?.key)return '⚪ Google: не подключено';
@@ -653,7 +655,13 @@ dataCenter.localRoot.append(dataTools);
 const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,mountRoot:dataCenter.googleRoot});
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog:dataCenter.dialog,buttonRoot:dataCenter.backupRoot,importData:importDeviceData,downloadFile});
 deviceCloudSync=mountDeviceCloudSync({store:deviceStore,getState:()=>state,onState:next=>{state=next;render()},settingsDialog:dataCenter.dialog,panelRoot:dataCenter.deviceRoot,notify:notice,downloadFile});
-dataCenter.bind({googleSync,googleDriveBackup,deviceCloudSync});
+const deletionManager=mountRecipeDeletionManager({
+ getState:()=>state,store:deviceStore,onState:next=>{state=next;render()},
+ downloadFile,notify:notice,mountRoot:dataCenter.deletionRoot,
+ openDataCenter:()=>dataCenter.open(),
+ onGoogleChanged:()=>{googleSync.schedule();document.dispatchEvent(new Event('farruh:google-ttk-status-changed'))}
+});
+dataCenter.bind({googleSync,googleDriveBackup,deviceCloudSync,deletionManager});
 document.addEventListener('farruh:google-ttk-status-changed',()=>{
  if(view==='recipes')render();
  if(dataCenter.dialog.open)dataCenter.refresh();
