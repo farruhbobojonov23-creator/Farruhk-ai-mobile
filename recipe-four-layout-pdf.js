@@ -256,8 +256,24 @@ export function fourTtkPdf(input){
   doc.restore();
  }
  function masthead(y,s,draw){
-  const h=27*s;
-  if(draw){
+  // Very dense preparation catalogues (19–100+ ingredients) retain the same
+  // mandatory labels in a slim vector strip, instead of shrinking all recipe
+  // information below the minimum legible A4 scale.
+  const h=(dense?15:27)*s;
+  if(draw&&dense){
+   txt('♛',X+2*s,y+.5*s,18*s,12*s,true,C.accent,true);
+   txt('FARRUH AI',X+20*s,y+1*s,103*s,7.7*s,true,C.navy,true);
+   txt('Premium',X+20*s,y+9*s,103*s,5.4*s,false,'#A87926',true);
+   txt('ПРОФЕССИОНАЛЬНЫЕ ТТК · HORECA',X+135*s,y+4*s,179*s,6.3*s,true,C.navy,true);
+   const badgeStart=X+329*s,badgeW=49*s,badgeGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
+    const bx=badgeStart+i*(badgeW+badgeGap);
+    doc.roundedRect(bx,y,badgeW,14*s,3*s).lineWidth(.6*s).strokeColor('#CEAB65').stroke();
+    drawMastIcon(type,bx+8*s,y+1*s,s*.60);
+    txt(label,bx+17*s,y+4*s,badgeW-18*s,5.7*s,true,'#66491D',true);
+   }
+   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.8*s).strokeColor(C.accent).stroke();
+  }else if(draw){
    // Brand left: restrained gold crown with stacked FARRUH AI / Premium.
    txt('♛',X+3*s,y+1.5*s,24*s,20*s,true,C.accent,true);
    txt('FARRUH AI',X+29*s,y+3*s,133*s,11*s,true,C.navy,true);
