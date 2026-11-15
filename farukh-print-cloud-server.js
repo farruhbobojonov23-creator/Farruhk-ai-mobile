@@ -13,12 +13,11 @@ const PORT=Number(process.env.PORT)||10000;
 const dburl=String(process.env.FARUKH_PRINT_DATABASE_URL||'');
 const sessionSecret=String(process.env.FARUKH_PRINT_CLOUD_SESSION_SECRET||'');
 const setupCode=String(process.env.FARUKH_PRINT_CLOUD_SETUP_CODE||'');
-if(!dburl.startsWith('postgres')||sessionSecret.length<40||setupCode.length<20){
- console.error('[print-cloud] Required database or authentication configuration missing');
- process.exit(1);
-}
-const pool=new Pool({connectionString:dburl,max:3,idleTimeoutMillis:15000,connectionTimeoutMillis:10000,
- ssl:{rejectUnauthorized:true}});
+const configured=dburl.startsWith('postgres')&&sessionSecret.length>=40&&setupCode.length>=20;
+if(!configured)console.warn('[print-cloud] Awaiting Neon DATABASE_URL and private owner secrets in Render');
+const pool=configured
+ ? new Pool({connectionString:dburl,max:3,idleTimeoutMillis:15000,connectionTimeoutMillis:10000,ssl:{rejectUnauthorized:true}})
+ : {query:async()=>{throw new Error('configuration_required')},connect:async()=>{throw new Error('configuration_required')},end:async()=>{}};
 const folder=path.dirname(fileURLToPath(import.meta.url));
 const appRoot=path.join(folder,'public','farukh-print-cloud');
 const api='/api/print-cloud/v1';
