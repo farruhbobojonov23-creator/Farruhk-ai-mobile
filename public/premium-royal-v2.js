@@ -2,7 +2,7 @@
    Navigation uses existing callbacks. KPI and recent recipe values come exclusively
    from the real on-device store. No synthetic connection, counts, projects or recipes. */
 import {DeviceStore} from '/device-store.js?v=72';
-import {inspectSystemHealth, mountSystemBadges} from '/system-health.js?v=2';
+import {inspectSystemHealth, mountSystemBadges} from '/system-health.js?v=3';
 import {showProductPhoto} from '/product-photo.js?v=3';
 const ICONS={
 chef:'<path d="M7 21V12C1 8 6 2 12 6c5-5 13 0 12 6v9M7 21h17M7 26h17"/>',
