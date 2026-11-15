@@ -60,7 +60,7 @@ details.ops[open] summary:after{content:'−'}
 .label-sample .small{font-size:.89em;line-height:1.12;overflow-wrap:anywhere}
 .label-sample .bottom{font-size:.86em;line-height:1.12}
 @media(max-width:600px){.two-cols{grid-template-columns:1fr}.four-cols{grid-template-columns:repeat(2,1fr)}}
-</style></head>
+</style><link rel="stylesheet" href="/cloud/assets/original-visual-theme.css?v=1"></head>
 <body><div class="wrap">
 <header><div class="brand"><div class="logo" aria-hidden="true">▤</div><div><strong>FARUKH <b>PRINT</b></strong><small>Облачная панель владельца</small></div></div><span class="badge">NEON CLOUD · ТЕСТ</span></header>
 <main>
@@ -133,7 +133,7 @@ details.ops[open] summary:after{content:'−'}
  <details class="ops" id="ops-staff"><summary>👨‍🍳 Сотрудники и доступ (30 дней)</summary>
   <div class="ops-body">
    <p>Создай сотруднику отдельный логин. Пароль показывается только один раз при создании либо сбросе. Сотрудник входит на странице печати.</p>
-   <form id="new-employee">
+   <form id="new-employee" hidden aria-label="Регистрация сотрудников Neon временно отключена до проверки миграции">
     <div class="two-cols">
      <div><label for="employee-name">Имя сотрудника</label><input id="employee-name" maxlength="120" placeholder="Иван" required></div>
      <div><label for="employee-login">Логин (латиницей)</label><input id="employee-login" maxlength="48" pattern="[a-zA-Z0-9._-]{3,48}" placeholder="ivan01" required></div>
@@ -144,7 +144,7 @@ details.ops[open] summary:after{content:'−'}
    </form>
    <div class="status ops-note" id="employee-credentials" hidden role="status" aria-live="polite"></div>
    <div id="employee-list" style="margin-top:12px"><p>Загружаю…</p></div>
-   <p><a href="/cloud/staff/" target="_blank" rel="noopener" style="color:var(--accent)">Открыть страницу сотрудника</a></p>
+   <p><strong>Уже работающие сотрудники:</strong> старые логины и пароли остаются в оригинальном FARUKH PRINT. Не регистрируй их заново в этой тестовой Neon-базе до переноса учётных записей.</p><p><a href="https://farukh-print-staff-gateway.onrender.com/farukh-print/staff/" target="_blank" rel="noopener">Открыть оригинальный FARUKH PRINT — вход сотрудников</a></p><p><small>Новая облачная страница сотрудников — <a href="/cloud/staff/" target="_blank" rel="noopener">отдельный тестовый контур</a>, старые логины там пока не действуют.</small></p>
   </div>
  </details>
  <details class="ops" id="ops-devices"><summary>📱 Привязка устройств к четырём точкам</summary>
@@ -177,4 +177,4 @@ details.ops[open] summary:after{content:'−'}
 </div>
 </section>
 </main><div class="footer">FARUKH PRINT · 110 товаров сохранены · Действующая система печати не затронута</div>
-</div><script type="module" src="/cloud/assets/owner-console.js?v=5"></script><script type="module" src="/cloud/assets/operations-console.js?v=1"></script></body></html>
+</div><script src="/cloud/assets/original-premium-ready-label.js?v=1"></script><script src="/cloud/assets/original-premium-prep-label.js?v=1"></script><script type="module" src="/cloud/assets/owner-console.js?v=5"></script><script type="module" src="/cloud/assets/operations-console.js?v=1"></script></body></html>
