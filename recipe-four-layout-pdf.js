@@ -12,7 +12,7 @@ const COLORS={
  'teal-matrix':{navy:'#003F44',band:'#006C65',accent:'#D7AB4C',pale:'#E4F4F0',light:'#F7FCFB',line:'#9BC9C1',text:'#183F42'},
  'process-matrix':{navy:'#003F42',band:'#008078',accent:'#CFA246',pale:'#E4F6EE',light:'#F9FDFB',line:'#90CAC2',text:'#133F43'},
  'gold-allergen':{navy:'#003D42',band:'#00665F',accent:'#D5A13F',pale:'#E9F6F1',light:'#FFFFF8',line:'#A4CFC8',text:'#173C40'},
- 'premium-blue':{navy:'#0B2B55',band:'#14507D',accent:'#D7AD54',pale:'#DCECF8',light:'#F9FBFE',line:'#B6CCD9',text:'#17365A'}
+ 'premium-blue':{navy:'#004B48',band:'#00756B',accent:'#D7AB48',pale:'#E4F4EF',light:'#FCFEFC',line:'#9FC9BB',text:'#19413C'}
 };
 const fmt=x=>x==null||x===''?'—':Number.isFinite(Number(x))?Number(x).toLocaleString('ru-RU',{maximumFractionDigits:2}):String(x);
 const safe=x=>x==null||x===''?'—':String(x);
@@ -23,6 +23,12 @@ export function fourTtkPdf(input){
   info:{Title:'ТТК — '+r.name,Author:'FARRUH AI Premium'}});
  doc.registerFont('r',regular);doc.registerFont('b',bold);
  const X=22,W=551,gap=9,group=recipeAllergenMatrix(r);
+ const rawDate=String(r.cardDate||'');
+ const localizedDate=/^\d{4}-\d{2}-\d{2}$/.test(rawDate)?
+  rawDate.slice(8)+'.'+rawDate.slice(5,7)+'.'+rawDate.slice(0,4):rawDate;
+ const freeHeadings=layout==='process-matrix'||layout==='premium-blue';
+ const recipeHeading=freeHeadings?
+  'РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ НА 1 ПОРЦИЮ)':'3. Рецептура (норма закладки)';
  const dense=(r.ingredients||[]).length>18;
  const nutrition=original.nutrition||{};
  const stats=Object.fromEntries(['protein','fat','carbs','kcal'].map(k=>[k,nutrition[k]]));
@@ -75,7 +81,8 @@ export function fourTtkPdf(input){
   const shares=ratios||({1:[1],2:[.29,.71],3:[.58,.21,.21],5:[.31,.17,.17,.17,.18]})[count]||Array(count).fill(1/count);
   let yy=y;
   for(let i=0;i<rows.length;i++){
-   const row=rows[i],f=(count===5?6.45:7.05)*s,pad=3.5*s;
+   const row=rows[i],boost=!dense&&(r.ingredients||[]).length<=6,
+   f=(count===5?(boost?6.75:6.45):(boost?7.25:7.05))*s,pad=3.5*s;
    const cellLines=row.map((v,j)=>wrap(v,w*shares[j]-pad*2,f,header&&i===0));
    const height=Math.max(14*s,Math.max(...cellLines.map(a=>a.length))*f*1.29+pad*2);
    if(draw){
@@ -122,9 +129,9 @@ export function fourTtkPdf(input){
   const items=Array.isArray(r.ingredients)?r.ingredients:[];
   const columns=items.length>46?4:items.length>24?3:items.length>18?2:1;
   doc.ttkIngredientColumns=columns;
-  if(columns===1)return box('3. Рецептура (норма закладки)',ingredientRows(),x,y,w,s,draw,
+  if(columns===1)return box(recipeHeading,ingredientRows(),x,y,w,s,draw,
    {header:true,ratios:[.07,.43,.18,.17,.15]});
-  const bh=cardTitle('3. Рецептура (норма закладки)',x,y,w,s,false);
+  const bh=cardTitle(recipeHeading,x,y,w,s,false);
   const cg=5*s,cw=(w-cg*(columns-1))/columns,per=Math.ceil(items.length/columns);
   // Fit long, realistic prep catalogues without discarding any ingredient:
   // compact physical rows only in multi-column tables; all numeric data remains.
@@ -156,7 +163,7 @@ export function fourTtkPdf(input){
   const maxH=Math.max(...heightCol),foot=15*s,total=bh+2*s+maxH+3*s+foot+3*s;
   if(draw){
    doc.roundedRect(x,y,w,total,6*s).lineWidth(.7*s).stroke(C.line);
-   cardTitle('3. Рецептура (норма закладки)',x,y,w,s,true);
+   cardTitle(recipeHeading,x,y,w,s,true);
    doc.roundedRect(x,y+bh+maxH+4*s,w,foot,4*s).fill('#F9E6AF');
    txt('Выход готового блюда: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
     x+8*s,y+bh+maxH+7*s,w-16*s,8*s,true,C.navy,true);
@@ -173,8 +180,13 @@ export function fourTtkPdf(input){
      .fillAndStroke('#FFFFFF',layout==='premium-blue'?C.accent:C.line);
    doc.roundedRect(x,y,w,titleHeight,5*s).fill(
     layout==='premium-blue'?'#E3BB66':C.band);
+   if(layout==='gold-allergen'){
+    doc.roundedRect(x+4*s,y+2*s,17*s,16*s,4*s).fill(C.accent);
+    txt('4',x+8.8*s,y+4*s,9*s,8.5*s,true,C.navy,true);
+   }
    txt(layout==='premium-blue'?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
-    x+8*s,y+5*s,w-16*s,8*s,true,
+    x+(layout==='gold-allergen'?25:8)*s,y+5*s,
+    w-(layout==='gold-allergen'?31:16)*s,8*s,true,
     layout==='premium-blue'?C.navy:'#FFFFFF',true);
    for(let i=0;i<group.groups.length;i++){
     const row=Math.floor(i/cols),col=i%cols,g=group.groups[i];
@@ -210,7 +222,7 @@ export function fourTtkPdf(input){
     layout==='gold-allergen'?'6. КОНТРОЛЬ КАЧЕСТВА':
     layout==='premium-blue'?'КОНТРОЛЬ КАЧЕСТВА':'5. КОНТРОЛЬ КАЧЕСТВА',
    [['Показатель','Требование'],['Внешний вид',safe(r.appearance)],
-    ['Вкус и запах',safe(r.taste)],['Консистенция','—']],x,y,w,s,draw,{ratios:[.33,.67]});
+    ['Вкус и запах',safe(r.taste)],['Консистенция','—']],x,y,w,s,draw,{ratios:layout==='process-matrix'?[.43,.57]:[.33,.67]});
  }
  function processReferenceTable(x,y,w,s,draw){
   return box(layout==='gold-allergen'?'5. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ':
@@ -224,7 +236,7 @@ export function fourTtkPdf(input){
     layout==='premium-blue'?'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ':
     layout==='gold-allergen'?'7. УСЛОВИЯ ХРАНЕНИЯ':'6. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',
    [['Условия хранения',raw],['Срок годности',term]],x,y,w,s,draw,
-   {header:false,ratios:[.34,.66]});
+   {header:false,ratios:layout==='process-matrix'?[.46,.54]:[.34,.66]});
  }
  function drawReferencePair(left,right,leftShare,y,s,draw){
   const first=W*leftShare,second=W-first-gap;
@@ -319,42 +331,49 @@ export function fourTtkPdf(input){
   doc.restore();
  }
  function masthead(y,s,draw){
-  // Very dense preparation catalogues (19–100+ ingredients) retain the same
-  // mandatory labels in a slim vector strip, instead of shrinking all recipe
-  // information below the minimum legible A4 scale.
-  const h=(dense?9:27)*s;
-  if(draw&&dense){
-   // Single-line branded treatment for exceptionally long ingredient tables:
-   // preserves every ingredient and the minimum export font scale.
+  // Keep all brand and safety labels on the same A4, even on unusually
+  // dense ingredient cards. Normal cards use the larger reference crest.
+  const compactBrand=dense||(r.ingredients||[]).length>6;
+  const h=(compactBrand?9:34)*s;
+  if(draw&&compactBrand){
    txt('♛ FARRUH AI Premium',X+2*s,y+.7*s,152*s,7*s,true,C.navy,true);
    txt('ТЕХКАРТЫ HORECA',X+155*s,y+1.8*s,153*s,5.6*s,true,C.navy,true);
-   const badgeStart=X+329*s,badgeW=49*s,badgeGap=5*s;
-   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
-    const bx=badgeStart+i*(badgeW+badgeGap);
-    doc.roundedRect(bx,y,badgeW,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
+   const bStart=X+329*s,bw=49*s,bGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,n)=>[n,...a])){
+    const bx=bStart+i*(bw+bGap);
+    doc.roundedRect(bx,y,bw,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
     drawMastIcon(type,bx+8*s,y+.7*s,s*.38);
-    txt(label,bx+15*s,y+1.2*s,badgeW-16*s,5*s,true,'#66491D',true);
+    txt(label,bx+15*s,y+1.2*s,bw-16*s,5*s,true,'#66491D',true);
    }
-   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.6*s).strokeColor(C.accent).stroke();
   }else if(draw){
-   // Brand left: restrained gold crown with stacked FARRUH AI / Premium.
-   txt('♛',X+3*s,y+1.5*s,24*s,20*s,true,C.accent,true);
-   txt('FARRUH AI',X+29*s,y+3*s,133*s,11*s,true,C.navy,true);
-   txt('Premium',X+29*s,y+16*s,122*s,7.5*s,false,'#A87926',true);
-   doc.moveTo(X+154*s,y+2*s).lineTo(X+154*s,y+23*s)
+   // Gold vector crown (filled, not a small font glyph).
+   const cx=X+6*s,cy=y+4*s;
+   doc.save();
+   doc.moveTo(cx+2*s,cy+9*s).lineTo(cx+8*s,cy+15*s)
+    .lineTo(cx+14*s,cy+4*s).lineTo(cx+20*s,cy+15*s)
+    .lineTo(cx+27*s,cy+9*s).lineTo(cx+25*s,cy+25*s)
+    .lineTo(cx+4*s,cy+25*s).closePath().fill('#D8AA46');
+   doc.rect(cx+4*s,cy+26*s,21*s,3*s).fill('#A97B27');
+   for(const [x,yc] of [[2,8],[14,3],[27,8]])
+    doc.circle(cx+x*s,cy+yc*s,2*s).fill('#E4C067');
+   doc.restore();
+   txt('FARRUH AI',X+46*s,y+3*s,126*s,13*s,true,C.navy,true);
+   txt('Premium',X+46*s,y+21*s,125*s,8.2*s,false,'#B0832C',true);
+   doc.moveTo(X+170*s,y+3*s).lineTo(X+170*s,y+31*s)
     .lineWidth(1*s).strokeColor(C.accent).stroke();
    txt(['ПРОФЕССИОНАЛЬНАЯ СИСТЕМА','ТЕХНОЛОГИЧЕСКИХ КАРТ','ДЛЯ HORECA'],
-    X+162*s,y+3*s,165*s,6.0*s,true,C.navy,true);
-   const badgeStart=X+333*s, badgeW=49*s, badgeGap=5*s;
-   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
-    const bx=badgeStart+i*(badgeW+badgeGap);
-    doc.roundedRect(bx,y+1*s,badgeW,24*s,4*s).lineWidth(.7*s)
-      .fillAndStroke('#FFFFFF','#CEAB65');
-    drawMastIcon(type,bx+badgeW/2,y+3*s,s*.86);
-    txt(label,bx+4*s,y+17*s,badgeW-8*s,5.7*s,true,'#66491D',true);
+    X+177*s,y+6*s,150*s,6.8*s,true,C.navy,true);
+   const bStart=X+333*s,bw=49*s,bGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,n)=>[n,...a])){
+    const bx=bStart+i*(bw+bGap);
+    doc.roundedRect(bx,y+2*s,bw,29*s,4*s).lineWidth(.8*s)
+     .fillAndStroke('#FFFFFF','#C99C48');
+    drawMastIcon(type,bx+bw/2,y+5*s,s*1.13);
+    txt(label,bx+4*s,y+23*s,bw-8*s,6.1*s,true,'#61421D',true);
    }
-   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.8*s).strokeColor(C.accent).stroke();
   }
+  if(draw)doc.moveTo(X,y+h).lineTo(X+W,y+h)
+   .lineWidth(.8*s).strokeColor(C.accent).stroke();
   return h;
  }
  // Title bar follows the masthead; it remains the first content section.
@@ -365,7 +384,7 @@ export function fourTtkPdf(input){
  function header(y,s,draw){
   const h=headerHeight(s);
   if(draw){
-   const blue=layout==='premium-blue',dark=blue?C.navy:C.band;
+   const blue=false,dark=C.band;
    doc.roundedRect(X,y,W,h,7*s).lineWidth(.65*s).fillAndStroke('#FFFFFF',C.line);
    doc.roundedRect(X,y,W,29*s,6*s).fill(dark);
    txt('ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)',
@@ -378,7 +397,7 @@ export function fourTtkPdf(input){
    const data=[
     'Категория: '+safe(r.category),
     'Выход: '+fmt(r.netYieldGrams)+' г ('+fmt(r.pieces)+' шт.)',
-    'Дата: '+safe(r.cardDate),
+    'Дата: '+(localizedDate||'—'),
     'Статус: '+(r.status==='ready'?'Готова':'В разработке')
    ];
    const fractions=[.29,.31,.20,.20],usable=W-24*s;
@@ -398,7 +417,7 @@ export function fourTtkPdf(input){
   let y=18;
   if(draw){
    doc.rect(0,0,595.28,841.89).fill('#FFFFFF');
-   doc.rect(0,0,595.28,8*s).fill(layout==='premium-blue'?C.navy:C.band);
+   doc.rect(0,0,595.28,8*s).fill(C.band);
    if(!dense)doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
   }
   // Dense ingredient catalogues use otherwise-empty 8–18pt top margin;
@@ -407,16 +426,20 @@ export function fourTtkPdf(input){
   else y+=masthead(y,Math.min(s,1),draw)+4*s;
   y+=header(y,s,draw)+(dense?3:8)*s;
   const half=(W-gap)/2;
-  const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
-   b=textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,false),
+  const leftTitle=freeHeadings?
+   (layout==='process-matrix'?'НАЗНАЧЕНИЕ И ОБЛАСТЬ ПРИМЕНЕНИЯ':'ОБЛАСТЬ ПРИМЕНЕНИЯ'):
+   '1. Область применения';
+  const rightTitle=freeHeadings?'ТРЕБОВАНИЯ К СЫРЬЮ':'2. Требования к сырью';
+  const a=textBox(leftTitle,sections[0][1][0][0],X,y,half,s,false),
+   b=textBox(rightTitle,sections[1][1][0][0],X+half+gap,y,half,s,false),
    first=Math.max(a,b);
   if(draw){
-   textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,true);
-   textBox('2. Требования к сырью',sections[1][1][0][0],X+half+gap,y,half,s,true);
+   textBox(leftTitle,sections[0][1][0][0],X,y,half,s,true);
+   textBox(rightTitle,sections[1][1][0][0],X+half+gap,y,half,s,true);
   }
   y+=first+(dense?3:8)*s;
-  if((r.ingredients||[]).length<=14&&layout!=='premium-blue'){
-   const recipeW=W*.60,allergenW=W-recipeW-gap;
+  if((r.ingredients||[]).length<=14){
+   const recipeW=W*(layout==='premium-blue'?.54:.60),allergenW=W-recipeW-gap;
    const rs=compactIngredients(X,y,recipeW,s,false),
     as=allergenBox(X+recipeW+gap,y,allergenW,s,false);
    if(draw){compactIngredients(X,y,recipeW,s,true);allergenBox(X+recipeW+gap,y,allergenW,s,true)}
@@ -512,15 +535,16 @@ export function fourTtkPdf(input){
  doc.ttkWarnings=warnings;
  // Include warnings inside the printable margins only if space is available.
  let bottom=Math.max(doc.ttkLayoutHeight+4,799);
- for(const warning of warnings.slice(0,2)){
+ // Other warnings are already present in the allergen note or status chip.
+ // Keep a visible footnote only for a real net-yield discrepancy.
+ for(const warning of warnings.filter(w=>w.startsWith('ВЫХОД НЕ СОВПАДАЕТ')).slice(0,1)){
   if(bottom+9>824)break;
   txt(warning,X,bottom,W,5.4,true,'#805A29',true);bottom+=9;
  }
  // Footer ribbon is part of the same vector A4 (no attached image). It
  // occupies the reserved bottom margin without replacing regulatory text.
- doc.roundedRect(X+W-133,817,133,11,4).fill(layout==='premium-blue'?'#0C5856':C.band);
- txt('♛  FARRUH AI Premium',X+W-128,819,125,6.2,true,
-   layout==='premium-blue'?'#FFE1A2':'#FFFFFF',true);
+ doc.roundedRect(X+W-146,813,146,15,4).fill(C.band);
+ txt('♛  FARRUH AI Premium',X+W-141,817,138,7.2,true,'#FCE6B4',true);
   doc.moveTo(X,828).lineTo(X+W,828).lineWidth(1).strokeColor(C.accent).stroke();
  return doc;
 }

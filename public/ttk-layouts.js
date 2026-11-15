@@ -4,8 +4,8 @@
 export const TTK_LAYOUTS=Object.freeze([
  {id:'teal-matrix',name:'01 · Бирюзовая матрица',subtitle:'Бирюзовый · матрица аллергенов',description:'Бирюзовые заголовки, таблица рецептуры и чек-лист аллергенов.',tone:'teal'},
  {id:'process-matrix',name:'02 · Технологический процесс',subtitle:'Бирюзовый · этапы приготовления',description:'Технология в четырёх последовательных блоках и матрица аллергенов.',tone:'process'},
- {id:'gold-allergen',name:'03 · Золотые аллергены',subtitle:'Золото · выделенные аллергены',description:'Акцент на аллергенах с галочками и технологических этапах.',tone:'gold'},
- {id:'premium-blue',name:'04 · Премиальный синий',subtitle:'Синий · золото · контроль',description:'Тёмно-синий документ с блоком аллергенов и пищевой ценностью.',tone:'blue'}
+ {id:'gold-allergen',name:'03 · Золотая нумерация',subtitle:'Бирюзовый · девять разделов',description:'Девять разделов с золотыми номерами и проверкой аллергенов.',tone:'gold'},
+ {id:'premium-blue',name:'04 · Золотые аллергены',subtitle:'Бирюзовый · золотая матрица',description:'Крупная золотая матрица аллергенов и самостоятельная структура А4.',tone:'blue'}
 ]);
 export const TTK_DEFAULT_LAYOUT='teal-matrix';
 const LEGACY_LAYOUTS=Object.freeze({'arctic-a4':'teal-matrix','royal-a4':'premium-blue',classic:TTK_DEFAULT_LAYOUT});
@@ -16,7 +16,7 @@ const row=(n=3)=>Array.from({length:n},()=>'<i></i>').join('');
 export function layoutPreview(item){
  const page=el('div','ttk-design-thumb ttk-design-'+item.tone);
  page.setAttribute('aria-hidden','true');
- const isBlue=item.id==='premium-blue',isProcess=item.id==='process-matrix',isGold=item.id==='gold-allergen';
+ const isBlue=item.id==='premium-blue',isProcess=item.id==='process-matrix',isGold=item.id==='premium-blue',isNumbered=item.id==='gold-allergen';
  const top='<div class="ttk-mini-brand"><b>♛</b> FARRUH AI <em>Premium</em></div>'+
   '<div class="ttk-mini-title">ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)</div>'+
   '<div class="ttk-mini-name">Филадельфия классик <span>№ 001</span></div>';
@@ -24,13 +24,13 @@ export function layoutPreview(item){
  const section=(title,body)=>'<div class="ttk-mini-section"><b>'+title+'</b><div>'+body+'</div></div>';
  const tinyRows=row(4);
  const table=section('РЕЦЕПТУРА','<div class="ttk-mini-table">'+tinyRows+'<strong>Выход: 270 г</strong></div>');
- const checks=section(isGold?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',
+ const checks=section(isGold?'АЛЛЕРГЕНЫ В БЛЮДЕ':isNumbered?'4. МАТРИЦА АЛЛЕРГЕНОВ':'МАТРИЦА АЛЛЕРГЕНОВ',
   '<div class="ttk-mini-checks"><span>Рыба <strong>✓</strong></span><span>Молоко <strong>✓</strong></span><span>Глютен <i>□</i></span><span>Соя <i>□</i></span></div>');
  const process=section('ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',
   '<div class="'+(isProcess?'ttk-mini-flow':'ttk-mini-steps')+'">'+
   ['Подготовка','Формовка','Сборка','Подача'].map((x,i)=>'<span><b>'+(i+1)+'</b>'+x+'</span>').join('')+'</div>');
  const nutrition=section('КБЖУ','<div class="ttk-mini-nutrients">'+row(3)+'</div>');
- const upper=isBlue?'<div class="ttk-mini-duo">'+table+nutrition+'</div>'+section('АЛЛЕРГЕНЫ', '<div class="ttk-mini-alert">⚠  РЫБА · МОЛОКО  ✓</div>'):
+ const upper=isBlue?table+checks:
  '<div class="ttk-mini-duo">'+table+checks+'</div>';
  page.innerHTML=top+meta+upper+process+
   '<div class="ttk-mini-duo lower">'+section('КАЧЕСТВО',tinyRows)+section('УСЛОВИЯ',row(2))+'</div>'+
