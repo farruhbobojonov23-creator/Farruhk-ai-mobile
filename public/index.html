@@ -320,6 +320,10 @@ function renderPrintControl(){
  });
 }
 function render(){
+ // Project-picker/workspace callbacks can fire before the device database
+ // finishes loading. Never render recipe data from a null state (observed
+ // in both Android and desktop Chromium audit).
+ if(!state)return;
  if(view==='print-control'){renderPrintControl();return}
  siteSettings?.render();
  if(view==='site-settings'||view.startsWith('custom-'))return;
