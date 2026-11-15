@@ -87,8 +87,31 @@ export function mountReferenceLayouts(page,editor,controls){
  regulatory.append(footerBrand);
  const piecesField=meta.querySelector('[data-ttk-field="card-pieces"]');
  const yieldField=meta.querySelector('[data-ttk-field="card-yield"]');
- const yieldPieces=node('span','ttk-ref-yield-pieces','');
+ const yieldPieces=node('select','ttk-ref-yield-pieces ttk-ref-pieces-select');
+ const sourcePieces=get('card-pieces');
+ if(sourcePieces){
+  for(const option of sourcePieces.options)yieldPieces.add(new Option(option.text,option.value));
+  yieldPieces.value=sourcePieces.value;
+  yieldPieces.setAttribute('aria-label','Количество порций / штук');
+  yieldPieces.addEventListener('change',()=>{
+   sourcePieces.value=yieldPieces.value;
+   sourcePieces.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+ }
  yieldField?.append(yieldPieces);
+ // Inline switch above the calorie table; nothing is hidden in a modal.
+ const sourceAuto=get('nutrition-auto');
+ const autoLabel=node('label','ttk-ref-auto-switch');
+ const autoInput=node('input');autoInput.type='checkbox';
+ autoInput.checked=Boolean(sourceAuto?.checked);
+ autoInput.setAttribute('aria-label','Автоматический расчёт КБЖУ');
+ autoInput.addEventListener('change',()=>{
+  if(!sourceAuto)return;
+  sourceAuto.checked=autoInput.checked;
+  sourceAuto.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ autoLabel.append(autoInput,node('span','','Авто'));
+ nutrition.querySelector('.ttk-live-section-head')?.append(autoLabel);
  const metaIcons=['soy','nuts','grain','fish','crab'];
  [...meta.querySelectorAll(':scope > .ttk-live-label')].forEach((label,index)=>{
   label.prepend(icon(metaIcons[index]||'soy'));
@@ -190,7 +213,8 @@ export function mountReferenceLayouts(page,editor,controls){
    if(document.activeElement!==span)span.textContent=sentences[i]||'—';
   });
   for(const d of addedDate)d.textContent=displayDate(get('card-date')?.value);
-  yieldPieces.textContent='('+String(get('card-pieces')?.selectedOptions?.[0]?.textContent||get('card-pieces')?.value||'—')+')';
+  if(sourcePieces&&document.activeElement!==yieldPieces)yieldPieces.value=sourcePieces.value;
+  if(sourceAuto&&document.activeElement!==autoInput)autoInput.checked=sourceAuto.checked;
   [...allergenRows.querySelectorAll('.ttk-live-allergen-row')].forEach((row,i)=>{
    if(!row.querySelector('.ttk-ref-icon'))row.prepend(icon(allergenIcons[i]||'sesame'));
   });
