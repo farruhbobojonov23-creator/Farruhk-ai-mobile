@@ -97,7 +97,7 @@ app.listen(PORT,'0.0.0.0',()=>{
  console.info('[farukh-print] minimal owner console live; staff production untouched');
  setTimeout(async()=>{
   try {
-   const result=await fetch('https://br-solitary-brook-baxakvoe-fpprobe.compute.c-8.eu-central-1.aws.neon.tech/check',{signal:AbortSignal.timeout(14000)});
+   const result=await fetch('https://br-solitary-brook-baxakvoe-fpprobe.compute.c-8.eu-central-1.aws.neon.tech/',{signal:AbortSignal.timeout(14000)});
    const raw=(await result.text()).slice(0,320);
    let data={};try{data=JSON.parse(raw)}catch{}
    console.info('[farukh-print] test-only Neon native query',JSON.stringify({status:result.status,type:result.headers.get('content-type'),ok:data.ok,stage:data.stage,products:data.products,excerpt:raw.slice(0,180)}));
