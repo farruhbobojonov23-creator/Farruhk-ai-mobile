@@ -448,7 +448,7 @@ public class MainActivity extends Activity {
         space(content,20);
         content.addView(text("Обновления",18,INK,true));
         space(content,9);
-        content.addView(text("Версия 0.4 Preview • обновления поверх приложения сохраняют данные при одинаковой цифровой подписи.",13,GREY,false));
+        content.addView(text("Версия 0.5 Japanese Pro • обновления поверх приложения сохраняют данные при одинаковой цифровой подписи.",13,GREY,false));
         addButton(content,"⟳  Проверить обновления",true,v->checkForUpdates());
         space(content,20);
         content.addView(text("Резервная копия",18,INK,true));
@@ -618,10 +618,10 @@ public class MainActivity extends Activity {
                         .setPositiveButton("Понятно",null).show();return;
                 }
                 int latest=info.optInt("versionCode",0);
-                int installed=4;
+                int installed=5;
                 if(latest<=installed){
                     new AlertDialog.Builder(this).setTitle("Обновлений нет")
-                        .setMessage("Установлена версия 0.4 Preview. Новые версии появятся после проверки и выпуска.")
+                        .setMessage("Установлена версия 0.5 Japanese Pro. Новые версии появятся после проверки и выпуска.")
                         .setPositiveButton("Закрыть",null).show();
                     return;
                 }
