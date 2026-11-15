@@ -34,6 +34,16 @@
   background:#E4F3EF!important;
   font-weight:850!important;
  }
+ /* Long names stay a one-line preview on a physical A4, but they are
+    multiline and completely editable when the user opens reading mode. */
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled:not(.ttk-direct-editing)
+ #ttk-live-page .ttk-live-name textarea.ttk-live-control {
+  display:block!important;height:39px!important;min-height:39px!important;
+  max-height:39px!important;overflow:hidden!important;resize:none!important;
+  white-space:nowrap!important;text-overflow:ellipsis!important;
+  font:900 24px/30px Georgia,'Times New Roman',serif!important;
+  color:#073F3C!important;-webkit-text-fill-color:#073F3C!important;
+ }
  /* At A4 thumbnail size, use a visible excerpt rather than unreadable
     overprinted lines. Full content becomes visible in readable mode. */
  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled:not(.ttk-direct-editing) #ttk-live-page
@@ -203,6 +213,16 @@
   white-space:normal!important;overflow:visible!important;
   height:auto!important;min-height:42px!important;max-height:none!important;
   padding:7px 5px!important;border:1px solid #B5D2CB!important;
+ }
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled.ttk-direct-editing
+ #ttk-live-page .ttk-live-name textarea.ttk-live-control {
+  height:auto!important;min-height:70px!important;max-height:none!important;
+  overflow:visible!important;resize:vertical!important;
+  padding:9px!important;
+  white-space:pre-wrap!important;overflow-wrap:break-word!important;
+  font:900 19px/1.45 Georgia,'Times New Roman',serif!important;
+  background:#FFF!important;color:#073E3B!important;
+  -webkit-text-fill-color:#073E3B!important;
  }
  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled.ttk-direct-editing
  #ttk-live-page .ttk-live-meta{
