@@ -458,6 +458,60 @@
     }
   }
 }
+/* Simple one-tap recipe removal — each X is an explicit location. */
+@media screen {
+ html body > dialog#data-center-dialog .recipe-delete-actions {
+  display:flex!important;flex-wrap:wrap!important;gap:7px!important;
+  flex:1 1 100%!important;align-items:center!important;
+ }
+ html body > dialog#data-center-dialog .recipe-delete-actions .recipe-delete-x {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:1 1 100px!important;min-height:43px!important;
+  border:1px solid #a67a4b!important;border-radius:12px!important;
+  background:#32251d!important;color:#f8d7a9!important;
+  -webkit-text-fill-color:#f8d7a9!important;
+  font-weight:800!important;font-size:16px!important;
+  padding:8px 12px!important;white-space:nowrap!important;
+  box-shadow:none!important;
+ }
+ html body > dialog#data-center-dialog .recipe-delete-actions .recipe-delete-x:disabled {
+  opacity:.36!important;cursor:not-allowed!important;
+ }
+ html body > dialog#data-center-dialog .recipe-delete-actions .recipe-delete-x-phone {
+  background:#442720!important;border-color:#b16c4e!important;
+ }
+ html body > dialog#data-center-dialog .recipe-delete-feedback {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  gap:10px!important;padding:10px 0!important;
+  color:#f2d0a0!important;-webkit-text-fill-color:#f2d0a0!important;
+  line-height:1.5!important;overflow-wrap:anywhere!important;
+ }
+ html body > dialog#data-center-dialog .recipe-delete-feedback button {
+  flex:0 0 auto!important;min-height:43px!important;
+  background:#3c2b20!important;color:#f4d9b0!important;
+  -webkit-text-fill-color:#f4d9b0!important;border:1px solid #bb8d51!important;
+  border-radius:12px!important;padding:10px 14px!important;font-weight:800!important;
+ }
+ html body > dialog.category-dialog.data-center-subdialog .ready-version-delete-x,
+ html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog .ready-version-delete-x {
+  flex:0 0 48px!important;min-width:48px!important;min-height:44px!important;
+  font-size:22px!important;font-weight:850!important;
+  color:#f6d6b3!important;-webkit-text-fill-color:#f6d6b3!important;
+  background:#48291f!important;border:1px solid #ac6948!important;
+  border-radius:11px!important;padding:7px 10px!important;
+ }
+ html body > dialog.category-dialog.data-center-subdialog .ready-version-delete-x:disabled {
+  opacity:.4!important;cursor:wait!important;
+ }
+ @media(max-width:560px) {
+  html body > dialog#data-center-dialog .recipe-delete-actions .recipe-delete-x{
+   flex:1 1 80px!important;min-width:0!important;font-size:15px!important;
+  }
+  html body > dialog.category-dialog.data-center-subdialog .ready-version-delete-x{
+   flex:0 0 43px!important;min-width:43px!important;
+  }
+ }
+}
 @media print {
   #data-center-dialog,
   .google-backup-dialog,
