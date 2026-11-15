@@ -281,8 +281,8 @@ export function mountInlineTtkPage(editor){
   }
  }
  function refreshComputed(){
-  yieldBand.lastChild.textContent=number(get('card-yield').value)+' г ('+
-   (get('card-pieces').selectedOptions?.[0]?.textContent||get('card-pieces').value)+' )';
+  yieldBand.querySelector('.ttk-live-yield-value').textContent=
+   number(get('card-yield').value)+' г';
   let allergenOverrides={};
   try{allergenOverrides=JSON.parse(editor.dataset.allergenOverrides||'{}')}catch{}
   const matrix=recipeAllergenMatrix({
