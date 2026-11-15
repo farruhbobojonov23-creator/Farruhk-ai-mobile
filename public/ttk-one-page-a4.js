@@ -1,4 +1,4 @@
-import {mountTtkGeneralSettings} from './ttk-general-settings.js?v=1';
+import {mountTtkGeneralSettings} from './ttk-general-settings.js?v=2';
 /* FARRUH AI Premium · DIRECT A4 editing.
  * Tapping a field focuses its REAL inline input, without dialog/overlay.
  * All inputs continue to update the canonical recipe. The sheet is still a
