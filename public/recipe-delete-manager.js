@@ -226,7 +226,9 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
     const paused=await store.mutate(d=>{
      recordRef(d,id,recipe);d.googleSuppressed??={};d.googleSuppressed[id]=true;
     });
-    onState(paused);onGoogleChanged?.();
+    onState(paused);
+    document.dispatchEvent(new CustomEvent('farruh:recipe-local-deleted',{detail:{id}}));
+    onGoogleChanged?.();
     await postGoogle(paused,id,recipe);
     const next=await store.mutate(d=>{
      recordRef(d,id,recipe);d.googleDeletedRecipes??={};d.googleDeletedRecipes[id]=true;
