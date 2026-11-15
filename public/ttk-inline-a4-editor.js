@@ -2,7 +2,7 @@
  * All values are proxied into the ORIGINAL form elements. No duplicated
  * recipe persistence, formulas, attachments or approval state.
  */
-import {recipeAllergenMatrix} from './ttk-allergens.js?v=1';
+import {recipeAllergenMatrix} from './ttk-allergens.js?v=2';
 const node=(tag,cls,text)=>{
  const n=document.createElement(tag);
  if(cls)n.className=cls;
