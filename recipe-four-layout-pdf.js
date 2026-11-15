@@ -195,9 +195,71 @@ export function fourTtkPdf(input){
   }
   return height;
  }
- function processCards(x,y,w,s,draw){
+ // Structure follows the actual reference images; data still comes solely
+ // from the user's recipe, never the example "Филадельфия" in the sample art.
+ function referenceSteps(){
+  const forming=safe(r.forming||r.technology),parts=forming.split(/(?<=[.!?])\\s+/).filter(Boolean);
+  const at=Math.ceil(parts.length/2);
+  return [['Подготовка',safe(r.preparation)],['Формовка',parts.slice(0,at).join(' ')||'—'],
+   ['Сборка',parts.slice(at).join(' ')||'—'],['Нарезка и подача',safe(r.serving)]];
+ }
+ function qualityReference(x,y,w,s,draw){
+  // The third row is deliberately blank until consistency is actually entered;
+  // the editor never fabricates organoleptic indicators from another product.
+  return box(layout==='process-matrix'?'СТАНДАРТЫ КАЧЕСТВА':
+    layout==='gold-allergen'?'6. КОНТРОЛЬ КАЧЕСТВА':
+    layout==='premium-blue'?'КОНТРОЛЬ КАЧЕСТВА':'5. КОНТРОЛЬ КАЧЕСТВА',
+   [['Показатель','Требование'],['Внешний вид',safe(r.appearance)],
+    ['Вкус и запах',safe(r.taste)],['Консистенция','—']],x,y,w,s,draw,{ratios:[.33,.67]});
+ }
+ function processReferenceTable(x,y,w,s,draw){
+  return box(layout==='gold-allergen'?'5. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ':
+   layout==='premium-blue'?'ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ':'4. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',
+   [['Этап','Описание действий'],...referenceSteps().map(([heading,body],i)=>[(i+1)+'. '+heading,body])],
+   x,y,w,s,draw,{ratios:[.34,.66]});
+ }
+ function referenceStorage(x,y,w,s,draw){
+  const raw=safe(r.storage),term=raw.match(/\\b\\d+(?:[.,]\\d+)?\\s*(?:час(?:а|ов)?|ч\\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)\\b/i)?.[0]||'Не указан';
+  return box(layout==='process-matrix'?'УСЛОВИЯ ХРАНЕНИЯ':
+    layout==='premium-blue'?'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ':
+    layout==='gold-allergen'?'7. УСЛОВИЯ ХРАНЕНИЯ':'6. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',
+   [['Условия хранения',raw],['Срок годности',term]],x,y,w,s,draw,
+   {header:false,ratios:[.34,.66]});
+ }
+ function drawReferencePair(left,right,leftShare,y,s,draw){
+  const first=W*leftShare,second=W-first-gap;
+  const leftH=left(X,y,first,s,false),rightH=right(X+first+gap,y,second,s,false);
+  if(draw){left(X,y,first,s,true);right(X+first+gap,y,second,s,true);}
+  return Math.max(leftH,rightH);
+ }
+ function haccpReference(x,y,w,s,draw){
+  const sentences=safe(r.safety).split(/(?<=[.!?;])\\s+/).filter(Boolean);
+  const items=[['Критические точки',sentences[0]||'—'],
+   ['Контроль',sentences[1]||'—'],['Результат',sentences.slice(2).join(' ')||'—']];
+  const header=cardTitle('БЕЗОПАСНОСТЬ (ХАССП)',x,y,w,s,false);
+  const cw=(w-12*s)/3, gap=6*s, fs=6.0*s;
+  let inner=0;
+  for(const [name,body] of items){
+   const nl=wrap(name,cw-8*s,7*s,true).length,bl=wrap(body,cw-8*s,fs).length;
+   inner=Math.max(inner,nl*9*s+bl*7.6*s+8*s);
+  }
+  const height=header+inner+5*s;
+  if(draw){
+   doc.roundedRect(x,y,w,height,6*s).lineWidth(.6*s).stroke(C.line);
+   cardTitle('БЕЗОПАСНОСТЬ (ХАССП)',x,y,w,s,true);
+   for(let i=0;i<3;i++){
+    const xx=x+i*(cw+gap),yy=y+header+2*s;
+    doc.rect(xx,yy,cw,inner).lineWidth(.45*s).fillAndStroke('#FFFFFF',C.line);
+    txt(items[i][0],xx+4*s,yy+4*s,cw-8*s,7*s,true,C.navy,true);
+    txt(items[i][1],xx+4*s,yy+15*s,cw-8*s,fs,false,C.text,true);
+   }
+  }
+  return height;
+ }
+  function processCards(x,y,w,s,draw){
   const titleH=cardTitle('4. Технология приготовления',x,y,w,s,false);
-  const steps=sections[3][1].slice(1);
+  const four=referenceSteps();
+  const steps=four.map(([title,body])=>[title,body]);
   const gap=5*s,cw=(w-gap*(steps.length-1))/steps.length;
   const data=steps.map(([head,content])=>({
    head:wrap(head,cw-10*s,6.7*s,true),
@@ -226,7 +288,7 @@ export function fourTtkPdf(input){
    ['Жиры, г',fmt(stats.fat),stats.fat!=null&&per?fmt(Number(stats.fat)*per):'—'],
    ['Углеводы, г',fmt(stats.carbs),stats.carbs!=null&&per?fmt(Number(stats.carbs)*per):'—'],
    ['Ккал',fmt(stats.kcal),stats.kcal!=null&&per?fmt(Number(stats.kcal)*per):'—']];
-  return box('7. Пищевая ценность (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
+  return box(layout==='gold-allergen'?'8. ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)':layout==='process-matrix'?'ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)':layout==='premium-blue'?'ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)':'7. ПИЩЕВАЯ ЦЕННОСТЬ (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
  }
  // Owner-approved FARRUH AI Premium masthead. All graphics are vector PDF
  // operations (not a screenshot or raster); the badges are document symbols.
