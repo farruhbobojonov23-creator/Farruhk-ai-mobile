@@ -227,6 +227,70 @@
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-footer-brand em{
  font:italic 700 10px Georgia,serif!important;
 }
+/* Contrast and exact A4 header/grid fixes verified against browser screenshot. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-paper-brand,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-brand-words strong{
+ color:#053f42!important;-webkit-text-fill-color:#053f42!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-paper-descriptor{
+ color:#183b3b!important;-webkit-text-fill-color:#183b3b!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-meta>.ttk-live-label.ttk-ref-pieces-field{
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page .ttk-live-title{
+ display:flex!important;align-items:center!important;gap:4px!important;
+ justify-content:space-between!important;overflow:hidden!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title>strong{
+ min-width:0!important;flex:1 1 auto!important;
+ font:900 20px/23px Arial,system-ui!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title>span{
+ font:900 15px/22px Georgia,serif!important;
+ color:#ffe4a3!important;-webkit-text-fill-color:#ffe4a3!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title>.ttk-live-number{
+ display:block!important;position:relative!important;
+ flex:0 0 65px!important;width:65px!important;
+ height:30px!important;min-height:30px!important;max-height:30px!important;
+ border:1.6px solid #dfbc72!important;border-radius:7px!important;
+ overflow:hidden!important;padding:1px 3px!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title .ttk-live-number .ttk-live-caption{
+ display:none!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title .ttk-live-number .ttk-live-control{
+ display:block!important;width:100%!important;height:25px!important;min-height:25px!important;
+ background:transparent!important;border:0!important;padding:0!important;
+ font:900 17px/25px Arial,system-ui!important;text-align:center!important;
+ color:#ffe5ae!important;-webkit-text-fill-color:#ffe5ae!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-info-row>*,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-head>*,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-body{
+ color:#203f40!important;-webkit-text-fill-color:#203f40!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-stage-index{
+ color:#29302b!important;-webkit-text-fill-color:#29302b!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-yield,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-yield *{
+ color:#3b3221!important;-webkit-text-fill-color:#3b3221!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-signatures input,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-signatures .ttk-live-caption,
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-ref-sign-date{
+ color:#1c3e40!important;-webkit-text-fill-color:#1c3e40!important;
+}
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta .ttk-live-control{
+ color:#133d3d!important;-webkit-text-fill-color:#133d3d!important;
+}
+/* Reference screenshots use four top metadata cards, never a wrapped fifth card. */
+#editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta{
+ grid-auto-rows:52px!important;align-content:stretch!important;
+}
+
 /* 01 — teal: paired table matrix exactly as the first reference. */
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page[data-ttk-layout="teal-matrix"] .ttk-ref-duo{
  grid-template-columns:1.12fr 1fr!important;
