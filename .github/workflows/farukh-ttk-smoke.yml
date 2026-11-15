@@ -50,6 +50,15 @@ jobs:
             sleep 3
             adb shell screencap -p /sdcard/farukh_editor.png
             adb pull /sdcard/farukh_editor.png farukh-editor.png
+            adb shell am force-stop com.farukh.ttkpro.premium
+            adb shell am start -W -n com.farukh.ttkpro.premium/com.farukh.ttkpro.MainActivity --ez FARUKH_RUN_QA true
+            sleep 12
+            adb pull /sdcard/Android/data/com.farukh.ttkpro.premium/files/farukh-qa-results.txt farukh-qa-results.txt
+            cat farukh-qa-results.txt
+            grep -q 'RESULT: PASS' farukh-qa-results.txt
+            for index in 0 1 2 3; do
+              adb pull /sdcard/Android/data/com.farukh.ttkpro.premium/files/farukh-smoke-$index.pdf farukh-smoke-$index.pdf
+            done
             adb logcat -d -s AndroidRuntime:E > runtime.log
             if grep -q "FATAL EXCEPTION" runtime.log; then cat runtime.log; exit 1; fi
       - uses: actions/upload-artifact@v4
@@ -59,5 +68,7 @@ jobs:
           path: |
             farukh-home.png
             farukh-editor.png
+            farukh-qa-results.txt
+            farukh-smoke-*.pdf
             farukh-ttk-pro/runtime.log
           if-no-files-found: warn
