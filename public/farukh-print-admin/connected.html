@@ -86,17 +86,27 @@
    <button type="button" class="pc-workspace-tab" data-workspace="backup">Настройки</button>
   </div>
   <section class="connected-page" id="page-catalog" hidden>
-   <div class="connected-head"><div><span class="connected-kicker">РЕАЛЬНАЯ БАЗА NEON</span><h2>Товары и этикетки</h2></div>
+   <div class="connected-head"><div><span class="connected-kicker">ТЕСТОВАЯ БАЗА NEON</span><h2>Товары и этикетки</h2></div>
      <span id="catalog-count" class="connected-badge">— товаров</span></div>
    <div class="connected-filters">
     <input id="find-product" type="search" placeholder="Поиск товара…" aria-label="Поиск товаров">
     <select id="kind-filter" aria-label="Тип товара"><option value="all">Все товары</option><option value="ready">Готовая продукция</option><option value="prep">Полуфабрикаты</option></select>
    </div>
+<div class="connected-action-row">
+  <button class="connected-primary" type="button" id="create-item">＋ Новый товар</button>
+  <span class="connected-quiet">Изменения в отдельной тестовой базе, рабочие 110 товаров не затрагиваются.</span>
+ </div>
    <div class="connected-layout">
     <div id="catalog-list" class="connected-list" aria-label="Товары"><p>Загружаю…</p></div>
     <form id="edit-form" class="connected-editor" hidden>
      <div class="connected-editor-top"><span class="connected-kicker">КАРТОЧКА ТОВАРА</span><span id="editor-state">В облаке</span></div>
      <img id="product-photo" class="connected-photo" alt="Изображение товара" hidden>
+     <div class="connected-file-actions">
+       <label for="photo-file">Фото товара (PNG, JPG, WebP)</label>
+       <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp">
+       <button id="photo-upload" type="button">Загрузить / заменить фото</button>
+       <small>Фото автоматически оптимизируется до 1600 пикселей, только для тестовой копии.</small>
+     </div>
      <label for="product-name">Название</label><input id="product-name" maxlength="90" required>
      <div class="connected-two"><div><label for="product-kind">Тип</label><select id="product-kind"><option value="ready">Готовый</option><option value="prep">Полуфабрикат</option></select></div>
      <div><label for="product-category">Категория</label><input id="product-category" maxlength="120"></div></div>
@@ -118,7 +128,10 @@
      </details>
      <p class="connected-quiet">Редактирование автоматически сохраняется в Neon. После сохранения допуск к печати нужно проверить заново.</p>
      <div id="save-note" class="connected-state" role="status" aria-live="polite">Выбери товар</div>
-     <button class="connected-primary" type="submit" id="save-product">Сохранить сейчас</button>
+<div class="connected-action-row">
+       <button class="connected-primary" type="submit" id="save-product">Сохранить сейчас</button>
+       <button type="button" id="archive-item" class="connected-danger">В архив</button>
+     </div>
      <div id="label-live" class="connected-label-live">
        <div class="connected-label-title"><b>Предпросмотр утверждённого макета</b><small id="label-live-size">58×40 / 30×20</small></div>
        <div id="label-live-sheet" class="connected-label-sheet" aria-label="Макет этикетки"></div>
@@ -157,16 +170,22 @@
    <div class="connected-lines">
     <div><span>Код владельца</span><strong>✓ Вход по одному коду</strong></div>
     <div><span>Оформление</span><strong>Neon Premium V2</strong></div>
-    <div><span>Реальный каталог Neon</span><strong>✓ Подключён</strong></div>
+    <div><span>Тестовый каталог Neon</span><strong>✓ Подключён</strong></div>
     <div><span>Старые пароли сотрудников</span><strong>✓ Не изменены</strong></div>
     <div><span>Автоматическая синхронизация V3 BT</span><strong>⏳ Не подключена</strong></div>
     <div><span>Физическая печать 58×40 / 30×20</span><strong>⏳ Требуется проверка</strong></div>
    </div>
-   <p class="connected-quiet">Удаление товаров, сброс паролей и изменение точек не доступны из этого экрана до полного объединения с действующей системой.</p>
+   <details class="connected-archive" id="archive-section">
+     <summary>Архив товаров · можно восстановить</summary>
+     <div class="connected-archive-tools"><button type="button" id="archive-refresh">Обновить архив</button>
+     <span class="connected-quiet">Удаление обратимое. Только в тестовой копии.</span></div>
+     <div id="archive-list" class="connected-lines">Архив пока не загружен.</div>
+   </details>
+   <p class="connected-quiet">Рабочие сотрудники, пароли, смартфоны и Bluetooth-печать остаются в прежней системе. Данные тестового архива не переносятся автоматически.</p>
   </section>
  </div></main>
 </div>
 <script src="/cloud/assets/original-premium-ready-label.js?v=1"></script>
 <script src="/cloud/assets/original-premium-prep-label.js?v=1"></script>
-<script type="module" src="/farukh-print-admin/connected-v2.js?v=4"></script>
+<script type="module" src="/farukh-print-admin/connected-v2.js?v=5"></script>
 </body></html>
