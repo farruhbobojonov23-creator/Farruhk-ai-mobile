@@ -200,7 +200,7 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    const editAppearance=await page.evaluate(()=>{
      const e=document.querySelector('#editor.ttk-studio-enabled'),p=e?.querySelector('.ttk-paper');
      return {mode:e?.dataset.mode,background:e&&getComputedStyle(e).backgroundImage,
@@ -221,7 +221,7 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' four premium templates remain visible in A4 view',
     await page.locator('#ttk-real-a4-stage .ttk-design-card').count()===4,null);
    await page.screenshot({path:'artifacts/premium-'+tag+'-sheet-no-photo.png',timeout:12000});
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
    // Explicit screenshot regression: the owner category editor used white rows
@@ -245,7 +245,7 @@ async function auditRoyal(page,tag,mobile,errors){
    await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
    // Disposable local-only recipe: same ingredients as owner's approval mockups.
    await page.locator('#newrecipe').click();
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    await page.locator('#recipe-name').fill('Тест 1');
    await page.locator('#recipe-status').selectOption('ready');
    const sample=[['сыр творожный','50'],['лосось','50'],['терияки соус','50'],['рис готовый','120']];
@@ -594,7 +594,7 @@ async function run(theme,width,height){
    check(tag+' Premium PRO editor has working audit and PDF preview shortcut',
      pilot.hero&&pilot.preview&&pilot.rail&&pilot.audit===13&&pilot.progress<100&&
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
-   await page.locator('#editor .ttk-pro-head').scrollIntoViewIfNeeded();
+   // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
@@ -611,7 +611,7 @@ async function run(theme,width,height){
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
    if(theme==='crystal'&&mobile){
     // The design showroom is read-only; switch to original editable fields first.
-    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+    await page.locator('#editor .ttk-onepage-full-form').click();
     // Upload/delete use the same photo handlers as the original editor.
     const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
     await page.locator('#recipe-photo-file').setInputFiles({name:'dish.png',mimeType:'image/png',buffer:tinyPng});
