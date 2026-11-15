@@ -408,6 +408,39 @@ async function auditRoyal(page,tag,mobile,errors){
   }
   await page.screenshot({path:'artifacts/premium-'+tag+'-'+v+'.png',timeout:12000});
  }
+ if(mobile){
+   // Owner changes live text, saves on this device, reloads, then restores defaults.
+   await page.locator('#site-settings #pf-site-visual-editor-button').click();
+   const panel=page.locator('#fai-visual-editor-panel');
+   await panel.waitFor({state:'visible',timeout:8000});
+   check(tag+' visual editor opens working inspector',await page.locator('#home').isVisible(),null);
+   const title=page.locator('#home .pfv-intro h1');
+   const beforeText=await title.evaluate(el=>el.textContent.trim());
+   await title.click();
+   const input=panel.locator('input[type="text"]').first();
+   await input.fill('Проверка визуального редактора');
+   await input.dispatchEvent('change');
+   check(tag+' visual edit immediately changes heading',
+     (await title.innerText()).includes('Проверка визуального редактора'),null);
+   await panel.locator('.fai-ve-save').click();
+   check(tag+' visual edits persist in local records',
+     await page.evaluate(()=>JSON.parse(localStorage.getItem('farruh-ai-visual-layout-v1')||'[]')
+      .some(r=>r.label==='Проверка визуального редактора')),null);
+   await page.reload({waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>document.querySelector('#home .pfv-intro h1')?.textContent?.includes('Проверка визуального редактора'),null,{timeout:16000});
+   check(tag+' visual label survives browser refresh',
+     (await page.locator('#home .pfv-intro h1').innerText()).includes('Проверка визуального редактора'),null);
+   await page.evaluate(()=>{
+     window.confirm=()=>true;
+     window.__faiVisualEditor.open();
+     [...document.querySelectorAll('#fai-visual-editor-panel button')]
+      .find(b=>b.textContent.includes('Сбросить все изменения')).click();
+     document.querySelector('#fai-visual-editor-panel .fai-ve-save').click();
+   });
+   await page.waitForFunction(expected=>document.querySelector('#home .pfv-intro h1')?.textContent?.includes(expected),beforeText,{timeout:8000});
+   check(tag+' visual editor reset restores original site without touching TTK',
+     await page.evaluate(()=>JSON.parse(localStorage.getItem('farruh-ai-visual-layout-v1')||'[]').length===0),null);
+ }
  check(tag+' no browser errors',errors.length===0,errors.slice(0,12));
 }
 
