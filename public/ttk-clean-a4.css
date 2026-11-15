@@ -3,7 +3,7 @@
    and the four small ТТК / ХАССП / ПФ / Печать icon labels.
    Document body remains editable by tap and on one 794×1123 portrait A4. */
 @media screen {
-  #editor.ttk-studio-enabled .ttk-live-page>.ttk-live-paper-mast {
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page>.ttk-live-paper-mast {
     display:grid!important;
     grid-template-columns:210px minmax(0,1fr) 228px!important;
     align-items:center!important;
