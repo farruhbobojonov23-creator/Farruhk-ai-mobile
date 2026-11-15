@@ -99,10 +99,15 @@ export function installDeviceSyncApi(app,{store,auth}){
    if(!durable)throw httpError(503,'Нужно постоянное облачное хранилище.');
    const supplied=req.body||{},expected=supplied.revision;
    if(!Number.isSafeInteger(expected)||expected<0)throw httpError(400,'Нет версии облачных данных.');
-   const snapshot=safeSnapshot(supplied.snapshot);
+   const submitted=safeSnapshot(supplied.snapshot);
    const next=await store.transaction(async()=>{
     const current=await store.read(FILE,{revision:0,snapshot:null,updatedAt:null});
     if(current.revision!==expected)throw httpError(409,'Данные изменились на другом устройстве. Повторяем объединение.');
+    // Older app versions may omit tombstones. Never let them restore a recipe
+    // deliberately deleted by the owner in this cloud workspace.
+    const snapshot=safeSnapshot({...submitted,deletedRecipeIds:[
+     ...(current.snapshot?.deletedRecipeIds||[]),...(submitted.deletedRecipeIds||[])
+    ]});
     const saved={revision:expected+1,snapshot,updatedAt:new Date().toISOString()};
     // Keep the last confirmed cloud revision for emergency recovery.
     if(current.snapshot&&current.revision>0)await store.write('device-sync-previous-v1.json',current);
