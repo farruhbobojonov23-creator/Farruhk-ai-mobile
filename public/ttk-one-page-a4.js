@@ -3,7 +3,7 @@
  * Tapping an A4 section opens large accessible controls in a dialog.
  * Values only ever update the canonical existing recipe controls.
  */
-import {TTK_ALLERGENS,recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=1';
+import {TTK_ALLERGENS,recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=2';
 export function mountOnePageA4(editor,stage,live){
  if(!editor||!stage||!live?.page)throw Error('Невозможно открыть одностраничный редактор ТТК.');
  stage.classList.add('ttk-onepage-enabled');
