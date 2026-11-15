@@ -403,8 +403,19 @@ function attach(){
   const card=e.target.closest?.('[data-v2-action="ready"],[data-v2-action="prep"]');
   if(!card)return;
   e.stopImmediatePropagation();
+  if(dirty||saving){
+   premium?.navigate('catalog');
+   note('save-note','Сначала дождись сохранения предыдущей карточки.','error');
+   return;
+  }
+  const which=card.dataset.v2Action;
+  $('find-product').value='';
+  $('kind-filter').value=which==='prep'?'prep':'ready';
+  drawList();
+  const first=listProducts()[0];
+  if(first)pick(first);
   premium?.navigate('catalog');
-  note('save-note','Предпросмотр оригинального макета находится под карточкой товара. Физическую печать на V3 BT ещё нужно проверить.');
+  note('save-note','Открыт оригинальный макет '+(which==='prep'?'30×20':'58×40')+' мм. Печать на V3 BT проверяется отдельно.','good');
   setTimeout(()=>$('label-live')?.scrollIntoView({behavior:'smooth',block:'nearest'}),150);
  },true);
 }
