@@ -2,6 +2,7 @@
 // Only one dashboard, one first-party login and Neon Auth verified JWT -> Neon Data API.
 import express from 'express';
 import {jwks,selfCheck,signOwnerJWT} from './farukh-print-jwt.js';
+import {mountPrintNeonBridge} from './farukh-print-neon-proxy.js';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -9,7 +10,7 @@ const app=express();app.enable('strict routing');app.disable('x-powered-by');app
 const PORT=Number(process.env.PORT)||10000;
 const SELF='https://farukh-print-cloud-test-20261115.onrender.com';
 const ROOT=path.join(path.dirname(fileURLToPath(import.meta.url)),'public','farukh-print-cloud');
-app.use(express.json({limit:'16kb',strict:true}));
+app.use(express.json({limit:'2mb',strict:true}));
 app.use((_req,res,next)=>{
  res.setHeader('X-Content-Type-Options','nosniff');
  res.setHeader('X-Frame-Options','DENY');
@@ -128,6 +129,7 @@ app.get('/api/owner/cloud/status',authPin,async(_req,res)=>handleGateway(res,'ga
 app.get('/api/owner/cloud/catalog',authPin,async(_req,res)=>handleGateway(res,'gateway_catalog'));
 
 
+mountPrintNeonBridge(app,authPin);
 app.use('/api/print-cloud/v1',(_req,res)=>res.status(410).json({error:'Старый API отключён. Используй панель владельца FARUKH PRINT Cloud.'}));
 app.use((_req,res)=>res.status(404).json({error:'Страница не найдена.'}));
 app.listen(PORT,'0.0.0.0',()=>{
