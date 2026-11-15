@@ -131,7 +131,7 @@ export function mountInlineTtkPage(editor){
  const introPair=node('div','ttk-live-row ttk-live-intro-pair');introPair.append(scope,raw);
  const formula=section(3,'РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ НА ПОРЦИЮ)','ttk-live-formula');
  const ingredientHead=node('div','ttk-live-ingredient-head');
- for(const name of ['Ингредиент','Брутто, г','Отходы, %','Нетто, г',''])ingredientHead.append(node('span','',name));
+ for(const name of ['№','Ингредиент','Брутто, г','Отходы, %','Нетто, г',''])ingredientHead.append(node('span','',name));
  const rows=node('div','ttk-live-ingredient-rows');
  const add=node('button','ttk-live-add','＋ Добавить ингредиент');add.type='button';
  add.addEventListener('click',()=>{
