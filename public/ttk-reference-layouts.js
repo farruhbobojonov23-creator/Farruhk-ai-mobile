@@ -147,7 +147,7 @@ export function mountReferenceLayouts(page,editor,controls){
   sectionTitle(scope,flow?'НАЗНАЧЕНИЕ И ОБЛАСТЬ ПРИМЕНЕНИЯ':'ОБЛАСТЬ ПРИМЕНЕНИЯ',unnumbered?null:1);
   sectionTitle(raw,'ТРЕБОВАНИЯ К СЫРЬЮ',unnumbered?null:2);
   sectionTitle(formula,'РЕЦЕПТУРА (НОРМА ЗАКЛАДКИ НА 1 ПОРЦИЮ)',unnumbered?null:3);
-  sectionTitle(allergens,gold?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',gold?4:null);
+  sectionTitle(allergens,blue?'АЛЛЕРГЕНЫ В БЛЮДЕ':'МАТРИЦА АЛЛЕРГЕНОВ',gold?4:null);
   sectionTitle(process,flow?'ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС ПРИГОТОВЛЕНИЯ':'ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ',unnumbered?null:gold?5:4);
   sectionTitle(quality,flow?'СТАНДАРТЫ КАЧЕСТВА':'КОНТРОЛЬ КАЧЕСТВА',unnumbered?null:gold?6:5);
   sectionTitle(conditions,flow?'УСЛОВИЯ ХРАНЕНИЯ':'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',unnumbered?null:gold?7:6);
