@@ -3,6 +3,7 @@
  * the four approved print layouts. This screen displays the four real choices
  * and previews the actual server-rendered PDF, using the current unsaved data.
  * The existing editable controls remain mounted inside .ttk-paper unchanged. */
+import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=1';
 const ui=(tag,cls,content)=>{
  const el=document.createElement(tag);
  if(cls)el.className=cls;
@@ -42,16 +43,17 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  const mast=ui('div','ttk-real-a4-mast');
  mast.append(ui('span','ttk-real-a4-kicker','FARRUH AI  /  PREMIUM A4'),
   ui('h3','','4 шаблона технологической карты'),
-  ui('p','','Выбери один из четырёх дизайнов с матрицей аллергенов. Ниже откроется настоящий PDF А4, а не старый голубой лист с полями.'));
+  ui('p','','Выбери оформление и заполняй карту прямо на листе ниже. Нажимай на название, ингредиенты, технологию и другие поля — изменения сохраняются в настоящей ТТК.'));
  stage.append(mast);
  const gallery=ui('div','ttk-real-a4-gallery');
  stage.append(gallery);
  const output=ui('section','ttk-real-a4-output');
  output.setAttribute('aria-label','Просмотр выбранного шаблона');
- const status=ui('p','ttk-real-a4-status','Выбери шаблон выше, чтобы увидеть ТТК А4.');
+ const live=mountInlineTtkPage(editor);
+ const status=ui('p','ttk-real-a4-status','Заполняй поля на выбранном листе. Для проверки печатного вида открой PDF.');
  status.setAttribute('role','status');
  const actions=ui('div','ttk-real-a4-actions');
- const preview=ui('button','ttk-real-a4-refresh','↻ Обновить PDF из заполненных полей');
+ const preview=ui('button','ttk-real-a4-refresh','◉ Посмотреть печатный PDF А4');
  const open=ui('a','ttk-real-a4-open','↗ Открыть PDF на весь экран');
  preview.type='button';
  open.target='_blank';open.rel='noopener noreferrer';open.hidden=true;
@@ -62,7 +64,7 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  frame.hidden=true;
  const note=ui('p','ttk-real-a4-footnote',
   'Галочки аллергенов предварительные. Сверяй состав с этикетками и учитывай перекрёстный контакт. Пустая клетка не означает отсутствие аллергена.');
- output.append(status,actions,frame,note);
+ output.append(live.shell,status,actions,frame,note);
  stage.append(output);viewport.append(stage);
  let active=false,controller=null,requestNo=0,objectUrl=null;
  const clear=()=>{
@@ -77,8 +79,9 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   stage.hidden=!active;
   if(active){
    movePicker(true);
-   // Offer the four approved variants first; never restore the obsolete A4 form.
-   status.textContent='Выбери один из четырёх шаблонов для просмотра настоящего PDF.';
+   // Each selected layout is a LIVE editable form, not a dead PDF frame.
+   live.refresh();
+   status.textContent='Заполняй поля прямо на выбранной карте. PDF нужен только для просмотра печати.';
   }else{
    movePicker(false);
    clear();
@@ -99,10 +102,9 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   const entered=!!recipe?.name?.trim()&&Array.isArray(recipe?.ingredients)&&
     recipe.ingredients.some(item=>String(item?.name||'').trim()&&Number(item?.grams)>0);
   const selected=chosen();
-  const target=entered?{...recipe,layoutTemplate:selected}:demoRecipe(selected);
-  status.textContent=entered?
-    'Создаю настоящий PDF А4 для «'+recipe.name+'»…':
-    'Создаю демонстрационный образец «Филадельфия классик». Это не ваши данные и он не сохраняется.';
+  if(!entered){status.textContent='Сначала заполни название блюда и хотя бы один ингредиент с граммовкой — после этого можно посмотреть PDF.';return;}
+  const target={...recipe,layoutTemplate:selected};
+  status.textContent='Готовлю печатный PDF А4 из ваших полей для «'+recipe.name+'»…';
   controller=new AbortController();
   const current=controller;
   const timeout=setTimeout(()=>current.abort(),30000);
@@ -121,9 +123,8 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
    objectUrl=URL.createObjectURL(blob);
    frame.src=objectUrl;frame.hidden=false;
    open.href=objectUrl;open.hidden=false;
-   status.textContent=(entered?'Ваша ТТК: «'+recipe.name+'». ':'Демонстрационный образец. ')+
-     'Выбранный дизайн: '+(picker.querySelector('[aria-pressed="true"] .ttk-design-info strong')?.textContent||selected)+
-     '. PDF ниже совпадает с печатной версией.';
+   status.textContent='Печатная версия вашей ТТК «'+recipe.name+'». Выбранный дизайн: '+
+     (picker.querySelector('[aria-pressed="true"] .ttk-design-info strong')?.textContent||selected)+'.';
   }catch(error){
    if(requestNo!==token)return;
    status.textContent=error.name==='AbortError'?
@@ -136,9 +137,11 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  }
  picker.addEventListener('click',event=>{
   const card=event.target.closest?.('[data-ttk-layout]');
-  if(active&&card)queueMicrotask(()=>void showPdf());
+  if(active&&card)queueMicrotask(()=>{
+   clear();live.setLayout();status.textContent='Оформление выбрано. Поля ниже можно заполнять прямо на листе.';
+  });
  });
  preview.addEventListener('click',()=>void showPdf());
  setMode('form');
- return {setMode,showPdf,stage};
+ return {setMode,showPdf,stage,live};
 }
