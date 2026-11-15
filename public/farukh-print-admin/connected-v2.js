@@ -77,7 +77,45 @@ function pick(product){
  else photo.removeAttribute('src');
  note('save-note','✓ Карточка загружена из Neon','good');
  $('editor-state').textContent='✓ Облачная версия';
- drawList();
+ drawList();void loadLabel();
+}
+// Read the complete product only for preview; never infer missing nutrition
+// or mass from another product. Print approval and BT remain unchanged.
+async function loadLabel(){
+ if(!chosen)return;
+ const id=chosen.id,root=$('label-live-sheet');
+ root.replaceChildren();
+ const caption=$('label-live-note');
+ caption.textContent='Проверяю этикетку по данным Neon…';
+ try{
+  const response=await api('ops/labels/product/'+encodeURIComponent(id));
+  if(chosen?.id!==id)return;
+  const p=response.product,prep=p.kind==='prep';
+  const fmt=prep?'30×20':'58×40';
+  $('label-live-size').textContent=fmt+' мм';
+  const render=prep?window.FarukhPremiumPrep:window.FarukhPremiumReady;
+  if(!render||typeof render.draw!=='function')throw Error('Исходный шаблон не загрузился.');
+  if(!p.name||!p.storage||!Number(p.hours))throw Error('Для макета нужны название, температура и срок хранения.');
+  const n=p.nutrition||{};
+  if(!prep&&(!p.composition||p.weight==null||p.tolerance==null||
+    ['kcal','p','f','c'].some(k=>n[k]===undefined||n[k]===null||n[k]==='')))
+    throw Error('Для оригинального 58×40 пока не хватает состава, массы, допуска или КБЖУ. Значения не подставляются автоматически.');
+  const canvas=document.createElement('canvas');canvas.width=prep?240:464;canvas.height=prep?160:320;
+  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Твой браузер не поддерживает холст печати.');
+  render.draw(ctx,{
+   name:p.name,kind:p.kind,category:p.category,composition:p.composition,
+   storage:p.storage,hours:Number(p.hours),weight:p.weight,weightUnit:p.weightUnit,
+   tolerance:p.tolerance,p:n.p,f:n.f,c:n.c,kcal:n.kcal
+  },Date.now());
+  root.append(canvas);
+  caption.textContent='✓ Оригинальный макет '+fmt+' мм. Предпросмотр не подтверждает печать на Bluetooth V3 BT.';
+ }catch(error){
+  if(chosen?.id!==id)return;
+  const msg=document.createElement('div');msg.className='connected-state';msg.dataset.type='error';
+  msg.textContent='⚠ '+(error.message||'Не удалось проверить данные этикетки.');
+  root.replaceChildren(msg);
+  caption.textContent='Макет не заменён упрощённой этикеткой: сперва нужны проверенные сведения.';
+ }
 }
 function card(){
  return {id:chosen.id,updatedAt:chosen.updatedAt,
@@ -98,6 +136,7 @@ function edited(){
  dirty=true;editVersion++;
  $('editor-state').textContent='● Изменено';
  note('save-note','Сохраняю автоматически через 1,5 секунды…');
+ $('label-live-note').textContent='Макет относится к последней сохранённой версии; текущие правки ещё не сохранены.';
  clearTimeout(saveTask);
  if(!saving)saveTask=setTimeout(()=>void save(),1500);
 }
@@ -120,7 +159,7 @@ async function save(){
    $('editor-state').textContent='● Новое изменение';
    note('save-note','Первая версия сохранена, ожидает следующее изменение…');
   }
-  drawList();
+  drawList();void loadLabel();
  }catch(e){
   note('save-note','Не сохранено: '+e.message+' Нажми «Сохранить сейчас».','error');
  }finally{
@@ -142,7 +181,11 @@ async function loadCatalog(){
   drawList();
   if(products.length)pick(products.find(x=>x.id===previous)||products[0]);
   note('connected-state','✓ Каталог Neon доступен: '+products.length+' товаров','good');
+  window.FARUKH_PRINT_NEON_COUNT=products.length;
   premium?.refresh();
+  const count=$('v2-product-count');
+  if(count)count.textContent=String(products.length);
+
  }catch(e){note('connected-state','Каталог недоступен: '+e.message,'error')}
  finally{loading=false}
 }
@@ -211,6 +254,13 @@ async function enter(){
  if(!premium){
   const mod=await import('/farukh-print-admin/premium-v2.js?v=2');
   premium=mod.mountPremiumV2({root:$('print-control-root'),main:$('print-control')});
+  const cards=Array.from(document.querySelectorAll('.v2-kpi'));
+  if(cards[3]){
+   const k=cards[3].querySelector('small'),em=cards[3].querySelector('em');
+   if(k)k.textContent='Товаров доступно';
+   if(em)em.textContent='Прямое редактирование в Neon';
+  }
+
  }
  hideAll();
  await Promise.all([loadCatalog(),loadCloud()]);
