@@ -1,0 +1,27 @@
+/* Cloud test styling aligned to the original FARUKH PRINT white/red app.
+   Original production frontend and accounts remain untouched. */
+:root{color-scheme:light!important;--bg:#f6f7f9;--card:#fff;--card2:#fff;--ink:#20242a;--muted:#707985;--border:#e3e7ec;--accent:#d52e3c;--accent2:#e7535e;--input:#fff}
+body{background:#f6f7f9!important;color:#20242a}
+.panel{background:#fff!important;border-color:#e3e7ec!important;box-shadow:0 7px 30px #111c2810!important}
+.logo{background:#d52e3c!important;color:white!important}
+.badge{background:#fff6f7!important;color:#b62b37!important;border-color:#eccbd0!important}
+button.primary{background:#d52e3c!important;color:#fff!important;border-color:#d52e3c!important}
+button.primary:hover{background:#bd2733!important}
+.product-list,#edit-form,details.ops{background:#fff!important;border-color:#e4e7eb!important}
+.product-line{color:#272e36}
+.product-line.active{border-color:#e6a8ae!important;background:#fff8f9!important}
+.product-line .thumb{background:#f2f3f5!important}
+.status[data-type=error]{color:#b52b3b!important}
+.status[data-type=good]{color:#187b4b!important}
+.pill,.note.good{background:#e7f7ee!important;color:#167649!important;border-color:#bbe4cc!important}
+#edit-form input,#edit-form textarea,#edit-form select,.edit-toolbar input,.edit-toolbar select{background:#fff!important;color:#20242a!important}
+.label-sample,.print-sample{padding:0!important;display:block!important;background:#fff!important;border:1px solid #d4d7dc!important;overflow:hidden!important;box-sizing:content-box!important}
+.label-sample canvas,.print-sample img{display:block;width:100%;height:100%;object-fit:fill;image-rendering:auto}
+.label-sample.f58,.print-sample.f58{width:58mm!important;height:40mm!important}
+.label-sample.f30,.print-sample.f30{width:30mm!important;height:20mm!important}
+.label-preview-error{font:600 11px/1.4 Arial,sans-serif;color:#b52b3b;padding:9px;box-sizing:border-box}
+.card{background:#fff!important;color:#20242a!important;border-color:#e3e7ec!important}
+.note{border-color:#e3e7ec!important;color:#626b78!important}
+.note.bad{color:#b52b3b!important}
+a{color:#ba2a35}
+@media print{.print-sample{border:0!important}}
