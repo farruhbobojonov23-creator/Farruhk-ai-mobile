@@ -82,3 +82,14 @@ body{min-height:100vh}
  .connected-statgrid{grid-template-columns:1fr 1fr}
  .connected-statgrid>div{padding:12px}
 }
+
+/* Same approved canvas engines as the original working labels. */
+.connected-label-live{border-top:1px solid var(--pf-line);margin-top:16px;padding-top:14px}
+.connected-label-title{display:flex;justify-content:space-between;gap:10px;align-items:center;
+ font:750 12px Inter,system-ui,sans-serif;color:var(--pf-ink)}
+.connected-label-title small{color:var(--pf-accent);font-size:11px}
+.connected-label-sheet{display:grid;place-items:center;max-width:100%;
+ margin:12px auto 8px;min-height:95px}
+.connected-label-sheet canvas{display:block;max-width:100%;height:auto;background:#fff;
+ box-shadow:0 7px 20px #0002}
+.connected-label-live .connected-quiet{margin:8px 0 2px}
