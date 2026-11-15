@@ -1,0 +1,180 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0d1531"><title>FARUKH PRINT · Панель владельца</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color-scheme:dark;--bg:#0b1433;--card:#182754;--card2:#17264f;--ink:#f0f7ff;--muted:#afc6e8;--border:#3e5a94;--accent:#6ae0ee;--accent2:#a79cff;--input:#20376f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 100% 0%,#3b286d85,transparent 48%),radial-gradient(ellipse at 0% 60%,#0b478055,transparent 50%),var(--bg);color:var(--ink)}
+.wrap{max-width:1030px;margin:auto;padding:22px 16px 45px}header{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:26px}.brand{display:flex;align-items:center;gap:12px}.logo{width:50px;height:50px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(130deg,#a782f5,#4fe7ee);color:#0c1a39;font-weight:900;font-size:27px}.brand strong{font-size:23px;letter-spacing:-.04em}.brand b{color:var(--accent)}.brand small{display:block;font-size:11px;color:var(--muted)}.badge{font-size:10px;font-weight:850;border-radius:99px;padding:9px 12px;border:1px solid var(--border);color:var(--accent);background:var(--card2)}
+.panel{background:linear-gradient(135deg,#1b2a5a,var(--card2));border:1px solid var(--border);border-radius:22px;padding:26px;box-shadow:0 14px 40px #0004}
+#entry,#loading{max-width:520px;margin:7vh auto 0}.overline{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.16em}h1{font-size:clamp(27px,5vw,38px);margin:11px 0;letter-spacing:-.04em}h2{font-size:21px;margin:0 0 10px}p{font-size:13px;line-height:1.6;color:var(--muted)}
+label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width:100%;padding:16px;background:var(--input);border:1px solid var(--border);border-radius:13px;color:var(--ink);font:700 19px system-ui;outline-offset:2px;letter-spacing:.15em}input:focus{outline:2px solid var(--accent)}button{cursor:pointer;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--ink);padding:13px 17px;min-height:46px;font:800 13px system-ui}button.primary{border-color:var(--accent);color:#092344;background:linear-gradient(105deg,#4de3ed,#a5aaff)}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}.status{padding:13px 14px;margin-top:16px;border:1px solid var(--border);border-radius:12px;font-size:12px;line-height:1.6;color:var(--muted)}.status[data-type=error]{border-color:#b95275;color:#ffb1c8}.status[data-type=good]{border-color:#32b9aa;color:#93f9dc}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:17px 0}.stat{padding:19px 14px;border:1px solid var(--border);border-radius:15px;background:var(--card2)}.stat strong{display:block;font-size:30px}.stat small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:8px 12px;font-size:11px;font-weight:850;background:#173c58;color:#7af1e0;border:1px solid #357c90}.pill.off{background:#3b2b42;color:#ffc4d4;border-color:#74485b}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--border);padding:12px 0;font-size:13px}.row:last-child{border:0}.row span{color:var(--muted)}
+.footer{text-align:center;font-size:11px;color:var(--muted);margin-top:36px}
+[hidden]{display:none!important}
+@media(max-width:580px){.wrap{padding:17px 13px}.panel{padding:19px}header{align-items:flex-start;flex-wrap:wrap}.badge{margin-left:64px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:26px}}
+
+.editor{margin-top:18px}
+.edit-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.edit-toolbar input{flex:1 1 200px}
+.edit-toolbar select{flex:0 1 170px}
+.edit-layout{display:grid;grid-template-columns:minmax(220px,290px) minmax(0,1fr);gap:14px}
+.product-list{height:520px;max-height:65vh;overflow:auto;border:1px solid var(--border);border-radius:13px;background:#0c193a;padding:6px}
+.product-line{display:flex;gap:9px;width:100%;text-align:left;padding:9px;margin:2px 0;border:1px solid transparent;background:transparent;border-radius:10px}
+.product-line.active{border-color:#5ecedc;background:#173e62}
+.product-line .thumb{width:43px;height:43px;flex:0 0 auto;object-fit:contain;border-radius:8px;background:#273963}
+.product-line strong{display:block;font-size:12px;font-weight:800}
+.product-line small{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+#edit-form{background:#0c193a;border:1px solid var(--border);border-radius:14px;padding:16px}
+#edit-form input,#edit-form textarea,#edit-form select,.edit-toolbar input,.edit-toolbar select{width:100%;padding:11px 12px;border-radius:10px;background:var(--input);color:var(--ink);border:1px solid var(--border);font:500 14px system-ui;letter-spacing:normal}
+#edit-form textarea{min-height:90px;resize:vertical}
+#edit-form label{margin:11px 0 5px}
+#edit-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#edit-form .preview{max-width:125px;max-height:105px;object-fit:contain;display:block;margin:5px auto}
+#edit-form #cloud-save-note{margin:12px 0}
+@media(max-width:670px){.edit-layout{grid-template-columns:1fr}.product-list{height:200px;max-height:200px}.edit-toolbar select{flex:1 1 120px}#edit-form .two{grid-template-columns:1fr 1fr}}
+
+.opshead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+details.ops{margin:10px 0;border:1px solid var(--border);border-radius:13px;background:#0c193a;overflow:hidden}
+details.ops summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;padding:17px 14px}
+details.ops summary::-webkit-details-marker{display:none}
+details.ops summary:after{content:'＋';float:right;color:var(--accent)}
+details.ops[open] summary:after{content:'−'}
+.ops-body{padding:5px 14px 16px;border-top:1px solid var(--border)}
+.ops-body input,.ops-body select{font:500 14px system-ui;letter-spacing:normal;padding:12px}
+.ops-body label{margin:10px 0 5px}
+.opsrow{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--border)}
+.opsrow small{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.opsbuttons{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.opsbuttons button{padding:8px 10px;min-height:38px}
+.opsbuttons select{width:auto;max-width:160px}
+.ops-note{white-space:pre-wrap;overflow-wrap:anywhere}
+.two-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.four-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.four-cols .stat{padding:11px}
+.four-cols .stat strong{font-size:23px}
+.label-sample{background:#fff;color:#111;border:1px solid #aaa;margin:12px auto;padding:1.6mm;font-family:Arial,sans-serif;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.label-sample.f58{width:58mm;height:40mm;font-size:8.3px}
+.label-sample.f30{width:30mm;height:20mm;font-size:6px}
+.label-sample .line{border-bottom:1px solid #444;margin:2px 0}
+.label-sample .title{font-weight:900;font-size:1.28em;line-height:1.15;overflow-wrap:anywhere}
+.label-sample .small{font-size:.89em;line-height:1.12;overflow-wrap:anywhere}
+.label-sample .bottom{font-size:.86em;line-height:1.12}
+@media(max-width:600px){.two-cols{grid-template-columns:1fr}.four-cols{grid-template-columns:repeat(2,1fr)}}
+</style><link rel="stylesheet" href="/cloud/assets/original-visual-theme.css?v=1"></head>
+<body><div class="wrap">
+<header><div class="brand"><div class="logo" aria-hidden="true">▤</div><div><strong>FARUKH <b>PRINT</b></strong><small>Облачная панель владельца</small></div></div><span class="badge">NEON CLOUD · ТЕСТ</span></header>
+<main>
+<section id="loading" class="panel" role="status" aria-live="polite"><span class="overline">ДОСТУП ВЛАДЕЛЬЦА</span><h1>Проверяю доступ…</h1><p>Если ты уже вводил код на этом устройстве, он не потребуется повторно.</p></section>
+<section id="entry" class="panel" hidden><span class="overline">FARUKH PRINT · PRIVATE</span><h1>Введи код доступа</h1><p>Только один код. Без логина, Google и дополнительных настроек.</p>
+<form id="pin-form" autocomplete="off"><label for="pin">Код доступа</label><input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="5" maxlength="12" required autocomplete="off" placeholder="•••••">
+<button class="primary" id="enter" type="submit" style="width:100%;margin-top:17px">Открыть админку</button></form>
+<div class="status" id="login-note" role="status" aria-live="polite">Доступ защищён. Для безопасности число попыток ограничено.</div>
+</section>
+<section id="dashboard" hidden>
+<div class="panel">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+  <div><span class="overline">ВЛАДЕЛЕЦ · ОБЛАЧНЫЙ КАТАЛОГ</span><h1>FARUKH PRINT</h1></div>
+  <button type="button" id="logout">Выйти</button>
+ </div>
+ <div id="owner-note" class="status" role="status" aria-live="polite">Проверяю связь с Neon…</div>
+ <div class="grid">
+  <div class="stat"><strong id="stat-products">—</strong><small>Товары в Neon</small></div>
+  <div class="stat"><strong id="stat-photos">—</strong><small>Фотографии</small></div>
+  <div class="stat"><strong id="stat-locations">—</strong><small>Торговые точки</small></div>
+ </div>
+ <h2>Состояние системы</h2>
+ <div class="row"><span>Вход по коду</span><strong class="pill">✓ Работает</strong></div>
+ <div class="row"><span>Каталог и автосохранение</span><strong id="db-state" class="pill off">Проверяю</strong></div>
+ <div class="row"><span>Сотрудники и принтеры</span><strong class="pill off">Пока не подключены</strong></div>
+ <p>Карточки редактируются в облаке Neon. Рабочая система печати пока отдельно, изменения в ней автоматически не появляются.</p>
+</div>
+<div class="panel editor">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+  <div><span class="overline">НЕПОСРЕДСТВЕННО В ОБЛАКЕ</span><h2>Каталог товаров</h2></div>
+  <button type="button" id="reload">Обновить каталог</button>
+ </div>
+ <div class="edit-toolbar">
+  <input id="product-search" type="search" placeholder="Найти товар по названию…" aria-label="Поиск товара">
+  <select id="product-kind" aria-label="Тип товара"><option value="all">Все товары</option><option value="ready">Готовые</option><option value="prep">Полуфабрикаты</option></select>
+ </div>
+ <div class="edit-layout">
+  <div id="product-list" class="product-list" role="list" aria-label="Список товаров"><p>Загружаю каталог…</p></div>
+  <form id="edit-form" hidden>
+   <div class="overline">КАРТОЧКА ТОВАРА</div>
+   <img id="product-photo" class="preview" alt="Фотография товара" hidden>
+   <label for="field-name">Название</label><input id="field-name" maxlength="90" required>
+   <div class="two">
+    <div><label for="field-kind">Тип</label><select id="field-kind"><option value="ready">Готовый</option><option value="prep">Полуфабрикат</option></select></div>
+    <div><label for="field-category">Категория</label><input id="field-category" maxlength="120"></div>
+   </div>
+   <label for="field-composition">Состав</label><textarea id="field-composition" maxlength="600" rows="3"></textarea>
+   <div class="two">
+    <div><label for="field-storage">Условия хранения</label><input id="field-storage" maxlength="60" placeholder="+2…+6 °C"></div>
+    <div><label for="field-hours">Срок хранения (часы)</label><input id="field-hours" type="number" min="1" max="8760" step="1" placeholder="12"></div>
+   </div>
+   <div id="cloud-save-note" class="status" data-type="good" role="status" aria-live="polite">Выбери товар для редактирования</div>
+   <button type="submit" id="save-now" class="primary" style="width:100%">Сохранить сейчас</button>
+   <p>После изменения поля карточка автоматически сохраняется в Neon. Дождись зелёной отметки «Сохранено в облаке».</p>
+  </form>
+ </div>
+</div>
+
+<div class="panel editor" id="ops-root">
+ <div class="opshead"><div><span class="overline">УПРАВЛЕНИЕ ТОЧКАМИ И ПЕЧАТЬЮ</span><h2>Сотрудники · Устройства · Журнал · Этикетки</h2></div>
+ <button type="button" id="ops-refresh">Обновить</button></div>
+ <p>Доступ владельца. Изменения в основной базе Neon; действующее приложение V3 BT работает отдельно, до проверки на реальном принтере.</p>
+ <div class="four-cols">
+  <div class="stat"><strong id="ops-staff-count">—</strong><small>Сотрудники</small></div>
+  <div class="stat"><strong id="ops-device-count">—</strong><small>Устройства</small></div>
+  <div class="stat"><strong id="ops-pending-count">—</strong><small>Ожидают разрешения</small></div>
+  <div class="stat"><strong id="ops-event-count">—</strong><small>Записи печати</small></div>
+ </div>
+ <div class="status" id="ops-status" role="status" aria-live="polite">Готовлю данные…</div>
+ <details class="ops" id="ops-staff"><summary>👨‍🍳 Сотрудники и доступ (30 дней)</summary>
+  <div class="ops-body">
+   <p>Создай сотруднику отдельный логин. Пароль показывается только один раз при создании либо сбросе. Сотрудник входит на странице печати.</p>
+   <form id="new-employee" hidden aria-label="Регистрация сотрудников Neon временно отключена до проверки миграции">
+    <div class="two-cols">
+     <div><label for="employee-name">Имя сотрудника</label><input id="employee-name" maxlength="120" placeholder="Иван" required></div>
+     <div><label for="employee-login">Логин (латиницей)</label><input id="employee-login" maxlength="48" pattern="[a-zA-Z0-9._-]{3,48}" placeholder="ivan01" required></div>
+     <div><label for="employee-location">Торговая точка</label><select id="employee-location" required></select></div>
+     <div><label for="employee-role">Роль</label><select id="employee-role"><option value="employee">Повар</option><option value="manager">Администратор точки</option></select></div>
+    </div>
+    <button type="submit" class="primary" style="margin-top:12px">Создать сотрудника</button>
+   </form>
+   <div class="status ops-note" id="employee-credentials" hidden role="status" aria-live="polite"></div>
+   <div id="employee-list" style="margin-top:12px"><p>Загружаю…</p></div>
+   <p><strong>Уже работающие сотрудники:</strong> старые логины и пароли остаются в оригинальном FARUKH PRINT. Не регистрируй их заново в этой тестовой Neon-базе до переноса учётных записей.</p><p><a href="https://farukh-print-staff-gateway.onrender.com/farukh-print/staff/" target="_blank" rel="noopener">Открыть оригинальный FARUKH PRINT — вход сотрудников</a></p><p><small>Новая облачная страница сотрудников — <a href="/cloud/staff/" target="_blank" rel="noopener">отдельный тестовый контур</a>, старые логины там пока не действуют.</small></p>
+  </div>
+ </details>
+ <details class="ops" id="ops-devices"><summary>📱 Привязка устройств к четырём точкам</summary>
+  <div class="ops-body">
+   <p>Сотрудник входит на своём устройстве и отправляет запрос. Здесь появится его устройство: выбери точку и нажми «Разрешить».</p>
+   <div id="device-list">Запросов пока нет.</div>
+  </div>
+ </details>
+ <details class="ops" id="ops-journal"><summary>🖨️ Журнал печати</summary>
+  <div class="ops-body">
+   <p>Фиксируются запросы из облачной страницы сотрудника. «Подтверждено сотрудником» не равно проверке принтером.</p>
+   <div id="events-list">Пока записей нет.</div>
+  </div>
+ </details>
+ <details class="ops" id="ops-labels"><summary>🏷️ Этикетки 58×40 и 30×20 · проверка</summary>
+  <div class="ops-body">
+   <div id="label-checks" class="status">Проверяю заполненность карточек…</div>
+   <p>Это предварительный просмотр. Фактический вывод, размеры, читабельность и Bluetooth V3 BT требуют проверки на принтере.</p>
+   <label for="label-item">Товар</label><select id="label-item"></select>
+   <label for="label-format">Размер этикетки</label><select id="label-format"><option value="58x40">58 × 40 мм — готовые товары</option><option value="30x20">30 × 20 мм — полуфабрикаты</option></select>
+   <div id="label-preview" class="label-sample f58" role="img" aria-label="Предварительный макет этикетки"></div>
+   <div id="label-warning" class="status">Выбери товар.</div>
+   <div class="actions">
+    <button id="label-approve" type="button">Допустить выбранный товар к печати</button>
+    <button id="label-check-refresh" type="button">Перепроверить</button>
+   </div>
+   <p>Допуск действует только для товаров с проверенными обязательными данными. Не включает автоматическую отправку на принтер.</p>
+  </div>
+ </details>
+</div>
+</section>
+</main><div class="footer">FARUKH PRINT · 110 товаров сохранены · Действующая система печати не затронута</div>
+</div><script src="/cloud/assets/original-premium-ready-label.js?v=1"></script><script src="/cloud/assets/original-premium-prep-label.js?v=1"></script><script type="module" src="/cloud/assets/owner-console.js?v=5"></script><script type="module" src="/cloud/assets/operations-console.js?v=1"></script></body></html>

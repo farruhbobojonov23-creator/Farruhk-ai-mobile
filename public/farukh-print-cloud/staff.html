@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0d1736">
+<title>FARUKH PRINT · Сотрудник</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;--bg:#0c1636;--card:#192b56;--text:#f0f6ff;--muted:#acc0e2;--border:#425a8c;--blue:#57e3f1}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:radial-gradient(ellipse at top right,#244c857a,transparent 55%),var(--bg);color:var(--text)}
+main{max-width:720px;margin:auto;padding:24px 14px 80px}header{display:flex;gap:9px;align-items:center;justify-content:space-between;margin-bottom:22px}header b{font-size:23px;letter-spacing:-.03em}header span{color:var(--blue)}
+.card{padding:20px;background:var(--card);border:1px solid var(--border);border-radius:19px;margin:14px 0}h1{font-size:26px;margin:6px 0}h2{font-size:18px;margin:5px 0 14px}p{font-size:13px;line-height:1.55;color:var(--muted)}
+label{display:block;font-size:12px;font-weight:800;margin:12px 0 5px}input,select{width:100%;font:500 15px system-ui;background:#243c70;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:13px}
+button{background:#244273;color:var(--text);font-weight:750;font-size:14px;cursor:pointer;border:1px solid var(--border);border-radius:10px;min-height:47px;padding:12px 14px}button.primary{background:linear-gradient(110deg,#51e2eb,#9eaafc);border:none;color:#112246}button:disabled{opacity:.55;cursor:not-allowed}.buttons{display:flex;gap:8px;flex-wrap:wrap}.buttons button{flex:1 1 170px}
+.note{border:1px solid var(--border);padding:13px;margin:13px 0;border-radius:11px;font-size:12px;line-height:1.5}.note.good{color:#a5fada;border-color:#31ad8d}.note.bad{color:#ffb2c2;border-color:#b9576d}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.print-sample{background:white;color:#101010;margin:18px auto;overflow:hidden;padding:1.6mm;display:flex;flex-direction:column;justify-content:space-between;font-family:Arial,sans-serif;border:1px solid #999}
+.print-sample.f58{width:58mm;height:40mm;font-size:8.2px}.print-sample.f30{width:30mm;height:20mm;font-size:6.1px}
+.print-sample .title{font-size:1.28em;font-weight:900;overflow-wrap:anywhere;line-height:1.13}.print-sample .small{font-size:.9em;overflow-wrap:anywhere;line-height:1.14}.print-sample .line{border-bottom:1px solid #111}.print-sample .bottom{font-size:.86em;line-height:1.12}
+#print-pages{display:none}
+@media(max-width:520px){.two{grid-template-columns:1fr}main{padding:15px 11px}}
+@media print{
+ @page{size:58mm 40mm;margin:0}
+ html,body{width:auto;height:auto;padding:0;margin:0;background:white}
+ header,main{display:none!important}
+ #print-pages{display:block!important}
+ #print-pages .print-sample{margin:0;border:0;border-radius:0;page-break-after:always;break-after:page;box-shadow:none}
+ #print-pages .print-sample:last-child{page-break-after:auto;break-after:auto}
+}
+</style><link rel="stylesheet" href="/cloud/assets/original-visual-theme.css?v=1"><style id="page-size"></style></head><body>
+<main><header><b>FARUKH <span>PRINT</span></b><small>РАБОЧЕЕ МЕСТО</small></header>
+<section class="card" id="login">
+<h1>Вход сотрудника</h1><p>Это отдельный тестовый вход Neon. Если у тебя уже есть логин FARUKH PRINT, используй <a href="https://farukh-print-staff-gateway.onrender.com/farukh-print/staff/" rel="noopener">оригинальный рабочий FARUKH PRINT</a>: старые пароли в этот тестовый контур не переносились.</p>
+<form id="login-form"><label for="login-name">Логин</label><input id="login-name" autocomplete="username" required minlength="3">
+<label for="login-pass">Пароль</label><input id="login-pass" autocomplete="current-password" type="password" required>
+<button type="submit" class="primary" style="margin-top:17px;width:100%">Войти</button></form>
+<div id="login-note" class="note" role="status">Сотрудникам доступны только назначенные устройства и точки.</div>
+</section>
+<section id="workspace" hidden>
+<div class="card">
+ <div class="buttons" style="justify-content:space-between;align-items:center"><h2 id="welcome">FARUKH PRINT</h2><button id="logout" type="button">Выйти</button></div>
+ <div class="note" id="device-note" role="status">Проверяю устройство…</div>
+ <form id="pair-form" hidden><label for="device-name">Название этого устройства</label>
+  <input id="device-name" maxlength="100" required placeholder="Телефон кухни — Баумана 18">
+  <button class="primary" type="submit" style="margin-top:10px;width:100%">Запросить привязку устройства</button></form>
+</div>
+<div class="card">
+<h2>Этикетки и печать</h2>
+<p>До разрешения устройства владельцем печать недоступна. Данные синхронизируются с Neon.</p>
+<label for="search">Поиск товара</label><input id="search" type="search" placeholder="Название товара…">
+<label for="product">Товар</label><select id="product"></select>
+<div class="two">
+<div><label for="format">Размер</label><select id="format"><option value="58x40">58 × 40 мм</option><option value="30x20">30 × 20 мм (ПФ)</option></select></div>
+<div><label for="qty">Количество</label><input type="number" id="qty" value="1" min="1" max="50"></div>
+</div>
+<div id="sheet" class="print-sample f58" aria-label="Макет этикетки"></div>
+<div id="print-note" class="note" role="status">Выбери товар.</div>
+<button id="print" type="button" class="primary" style="width:100%">Печать / открыть диалог принтера</button>
+<div id="confirm-zone" hidden><p>Принтер действительно отпечатал этикетку? Подтверди результат для журнала.</p>
+<div class="buttons"><button type="button" id="done">Да, распечатано</button><button type="button" id="failed">Нет, ошибка</button></div></div>
+</div>
+<div class="card"><small>Тестовая облачная страница. Прямое Bluetooth V3 BT из браузера не подключено; для этого требуется проверка на реальном принтере.</small></div>
+</section>
+</main><div id="print-pages" aria-hidden="true"></div><script src="/cloud/assets/original-premium-ready-label.js?v=1"></script><script src="/cloud/assets/original-premium-prep-label.js?v=1"></script><script type="module" src="/cloud/assets/staff-console.js?v=2"></script></body></html>
