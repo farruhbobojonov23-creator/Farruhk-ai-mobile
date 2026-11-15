@@ -124,3 +124,24 @@ test('Compact sync chip never expands into a tall narrow tile on mobile',async()
  assert.match(css,/flex:0 0 auto!important/);
  assert.match(css,/@media \(max-width:560px\)/);
 });
+
+test('cloud recipe tombstones remove local, remote and released copies even after offline edits',()=>{
+ const old=snapshot([recipe('x','До удаления'),recipe('y','Остаётся')]);
+ old.releasedRecipes=[recipe('x','Готовая сохранённая')];
+ const phone=snapshot([recipe('x','Изменено офлайн'),recipe('y','Остаётся')]);
+ phone.releasedRecipes=[recipe('x','Готовая с телефона')];
+ const remote=snapshot([recipe('y','Остаётся')]);
+ remote.deletedRecipeIds=['x'];
+ const merged=reconcileSnapshots(old,phone,remote);
+ assert.deepEqual(merged.recipes.map(r=>r.id),['y']);
+ assert.deepEqual(merged.releasedRecipes,[]);
+ assert.deepEqual(merged.deletedRecipeIds,['x']);
+ const subsequent=reconcileSnapshots(merged,phone,merged);
+ assert.deepEqual(subsequent.recipes.map(r=>r.id),['y']);
+});
+
+test('cloud sync never sends private Google keys alongside deletion tombstones',()=>{
+ const snapshot=pickSyncSnapshot({recipes:[],deletedRecipeIds:['x'],googleSync:{key:'hidden'}},{});
+ assert.deepEqual(snapshot.deletedRecipeIds,['x']);
+ assert.equal(snapshot.googleSync,undefined);
+});
