@@ -10,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const app=express();app.enable('strict routing');app.disable('x-powered-by');app.set('trust proxy',1);
 const PORT=Number(process.env.PORT)||10000;
-const SELF='https://farukh-print-cloud-test-20261115.onrender.com';
+const SELF=String(process.env.FARUKH_PRINT_APP_ORIGIN||'https://farukh-print-cloud-test-20261115.onrender.com');
 const ROOT=path.join(path.dirname(fileURLToPath(import.meta.url)),'public','farukh-print-cloud');
 const PUBLIC=path.join(path.dirname(fileURLToPath(import.meta.url)),'public');
 app.use(express.json({limit:'2mb',strict:true}));
@@ -20,17 +20,17 @@ app.use((_req,res,next)=>{
  res.setHeader('Referrer-Policy','no-referrer');
  next();
 });
-app.get('/',(_req,res)=>res.redirect(302,'/cloud/'));
-app.get('/cloud',(_req,res)=>res.redirect(302,'/cloud/'));
-app.get('/cloud/',(_req,res)=>{
+app.get('/',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
+app.get('/cloud',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
+app.get('/cloud/',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
+/* Unused legacy Cloud screen is intentionally hidden in this test copy. */
+app.get('/legacy-cloud-unlinked/',(_req,res)=>{
  res.setHeader('Cache-Control','no-store');
  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
  res.sendFile(path.join(ROOT,'index.html'));
 });
-app.get('/cloud/staff/',(_req,res)=>{
- res.setHeader('Cache-Control','no-store');
- res.sendFile(path.join(ROOT,'staff.html'));
-});
+app.get('/cloud/staff/',(_req,res)=>res.status(404).send('Тестовая копия предназначена только для владельца. Сотрудники работают в оригинальном FARUKH PRINT.'));
+
 /* The approved Premium V2 appearance and the live catalog now share
  * the same origin, owner session and Neon bridge — no cross-domain OAuth. */
 app.get('/farukh-print-admin',(_req,res)=>res.redirect(302,'/farukh-print-admin/'));
@@ -94,7 +94,7 @@ function authPin(req,res,next){
  if(!validPinSession(req))return res.status(401).json({ok:false,error:'Срок доступа истёк. Введи код ещё раз.'});
  next();
 }
-function sameOrigin(req){return req.get('origin')==='https://farukh-print-cloud-test-20261115.onrender.com'}
+function sameOrigin(req){return req.get('origin')===SELF}
 function pinThrottled(req){
  const now=Date.now(),ip=String(req.ip||'unknown').slice(0,120);
  if(pinLimitByIP.size>1200)pinLimitByIP.clear();
