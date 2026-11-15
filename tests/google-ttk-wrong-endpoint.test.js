@@ -53,3 +53,18 @@ test('unknown operation from backups is explained instead of being reported as s
   assert.match(project.data.error,/резервных копий вместо Google ТТК/);
  });
 });
+
+test('check distinguishes a working Google Doc from a published PDF-capable receiver',async()=>{
+ await withGateway(()=>({ok:true,documentUrl:docUrl}),async send=>{
+  const old=await send('check');
+  assert.equal(old.status,200);
+  assert.equal(old.data.pdfA4Supported,false);
+  assert.equal(old.data.documentUrl,docUrl);
+ });
+ await withGateway(()=>({ok:true,documentUrl:docUrl,pdfA4Supported:true,receiverVersion:'a4-pdf-1'}),async send=>{
+  const current=await send('check');
+  assert.equal(current.status,200);
+  assert.equal(current.data.pdfA4Supported,true);
+  assert.equal(current.data.receiverVersion,'a4-pdf-1');
+ });
+});
