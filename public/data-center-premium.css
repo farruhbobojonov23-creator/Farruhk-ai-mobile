@@ -386,6 +386,78 @@
     }
   }
 }
+@media screen {
+  html body > dialog#data-center-dialog .recipe-deletion-manager {
+    padding:13px!important;
+    background:linear-gradient(145deg,#30251d,#1d1814)!important;
+    border:1px solid #81623f!important;
+    border-radius:14px!important;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-list {
+    display:grid!important;
+    gap:9px!important;
+    margin:12px 0!important;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-row {
+    display:flex!important;
+    align-items:center!important;
+    gap:9px!important;
+    flex-wrap:wrap!important;
+    padding:11px!important;
+    background:#231b16!important;
+    border:1px solid #6e5134!important;
+    border-radius:12px!important;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-record {
+    display:grid;gap:3px;min-width:0;flex:1 1 190px;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-record strong {
+    color:#f5d6a0!important;-webkit-text-fill-color:#f5d6a0!important;
+    font-size:14px!important;overflow-wrap:anywhere!important;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-record small {
+    color:#d3bfa5!important;-webkit-text-fill-color:#d3bfa5!important;
+    line-height:1.45!important;overflow-wrap:anywhere!important;
+  }
+  html body > dialog#data-center-dialog .recipe-delete-row button {
+    flex:0 1 auto!important;min-height:43px!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm fieldset {
+    margin:12px 0!important;
+    padding:12px!important;
+    border:1px solid #907047!important;
+    border-radius:14px!important;
+    background:#241c17!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm legend {
+    color:#f5d6a2!important;-webkit-text-fill-color:#f5d6a2!important;
+    padding:0 6px!important;font-weight:800!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm fieldset label {
+    display:flex!important;align-items:flex-start!important;gap:12px!important;
+    margin:12px 0!important;cursor:pointer!important;
+    color:#f0dcc1!important;-webkit-text-fill-color:#f0dcc1!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm input[type=radio] {
+    width:19px!important;height:19px!important;flex:0 0 19px!important;
+    accent-color:#d8a45e!important;margin:1px 0 0!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm [data-result] {
+    min-height:22px;overflow-wrap:anywhere!important;
+    color:#ffdaa7!important;-webkit-text-fill-color:#ffdaa7!important;
+  }
+  html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm [data-apply] {
+    background:linear-gradient(135deg,#cf8f55,#a85c3d)!important;
+    border-color:#dfa374!important;
+    color:#fff4e4!important;-webkit-text-fill-color:#fff4e4!important;
+  }
+  @media(max-width:560px){
+    html body > dialog#data-center-dialog .recipe-delete-row button{flex:1 1 120px!important}
+    html body[data-pf-theme] > dialog.category-dialog.data-center-subdialog.recipe-delete-confirm .bar button{
+      flex:1 1 140px!important;
+    }
+  }
+}
 @media print {
   #data-center-dialog,
   .google-backup-dialog,
