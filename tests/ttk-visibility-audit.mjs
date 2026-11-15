@@ -65,7 +65,7 @@ async function measure(page){
 for(const [kind,width,height] of [['android',393,851],['desktop',1365,915]]){
  const ctx=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,isMobile:kind==='android',hasTouch:kind==='android',serviceWorkers:'block'});
  const page=await ctx.newPage(),errors=[];
- page.on('pageerror',e=>errors.push(String(e.message)));
+ page.on('pageerror',e=>errors.push(String(e.stack||e.message)));
  page.on('dialog',d=>d.dismiss());
  await page.addInitScript(()=>{localStorage.setItem('farruh-ai-approved-premium-v3','true');localStorage.setItem('farruh-ai-approved-black-ice-v1','true');localStorage.setItem('farruh-ai-approved-royal-premium-20261114','true');localStorage.setItem('farruh-ai-appearance-v1',JSON.stringify({theme:'royal',density:'standard',radius:20,scale:1,motion:false}));});
  await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:25000});
@@ -90,15 +90,43 @@ for(const [kind,width,height] of [['android',393,851],['desktop',1365,915]]){
  results.push({device:kind,scenario:'stress-compact',...longBefore});
  await page.locator('#ttk-onepage-zoom').count().catch(()=>0);
  await page.locator('.ttk-onepage-zoom').click();
- await page.waitForTimeout(250);
+ await page.waitForTimeout(580);
  const longEdit=await measure(page);
- results.push({device:kind,scenario:'stress-editing',...longEdit});
- await page.screenshot({path:'artifacts/ttk-audit-'+kind+'-stress-editing.png',fullPage:true,timeout:15000});
+ const scroller=await page.evaluate(()=>{
+  const node=document.querySelector('#ttk-real-a4-stage');
+  node.scrollTop=node.scrollHeight;
+  const safety=document.querySelector('#ttk-live-page .ttk-live-safety');
+  const rect=safety?.getBoundingClientRect();
+  const viewport=node.getBoundingClientRect();
+  const name=document.querySelector('#ttk-live-page [data-source="recipe-name"]');
+  const scope=document.querySelector('#ttk-live-page [data-source="card-scope"]');
+  return {
+   top:node.scrollTop,available:node.scrollHeight-node.clientHeight,
+   safetyVisible:!!rect&&rect.top<viewport.bottom&&rect.bottom>viewport.top,
+   nameFull:name?.value.includes('контрольная длинная технологическая карта'),
+   scopeSynced:scope?.value===document.querySelector('#card-scope')?.value,
+   clippedVisibleTextareas:[...document.querySelectorAll('#ttk-live-page textarea.ttk-live-control')]
+    .filter(el=>el.getBoundingClientRect().width>0&&el.scrollHeight>el.clientHeight+3)
+    .map(x=>x.dataset.source)
+  };
+ });
+ results.push({device:kind,scenario:'stress-editing',...longEdit,scroller});
+ await page.screenshot({path:'artifacts/ttk-audit-'+kind+'-stress-editing-bottom.png',timeout:15000});
  await page.locator('.ttk-onepage-zoom').click();
+ const compact=await page.evaluate(()=>({
+  pageHeight:document.querySelector('#ttk-live-page').offsetHeight,
+  overflowWarning:document.querySelector('.ttk-visibility-notice')?.textContent,
+  hiddenExtra:document.querySelectorAll('#ttk-live-page .ttk-live-ingredient-row[hidden]').length
+ }));
+ results.push({device:kind,scenario:'return-to-one-A4',compact});
  results.push({device:kind,scenario:'errors',messages:errors});
  await ctx.close();
 }
 await fs.writeFile('artifacts/ttk-visibility-audit.json',JSON.stringify(results,null,2));
+const findings=results.filter(x=>x.scenario==='stress-editing'&&
+ (x.issues?.length||!x.scroller?.safetyVisible||!x.scroller?.nameFull||!x.scroller?.scopeSynced||
+  x.scroller?.clippedVisibleTextareas?.length));
+if(findings.length)process.exitCode=1;
 for(const result of results){
  console.log('TTK_QA',result.device,result.scenario,result.layout||'',
  'pageHeight',result.pageSize?.height,'issues',result.issues?.length,
