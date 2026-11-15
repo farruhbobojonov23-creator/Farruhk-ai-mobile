@@ -77,10 +77,11 @@
       });
     })();
   </script>
-  <div class="preview-banner" role="status">
-    Предпросмотр существующего центра управления: те же разделы, карточки и шаблоны 58×40 и 30×20. Все позиции и отчёты ниже — ДЕМО, а не твои настоящие данные.
-    Облако, сотрудники и рабочее приложение не подключены. Можно открывать экраны и пробовать локальный редактор — никаких изменений у сотрудников не будет.
-  </div>
+  <details class="preview-banner">
+    <summary>Демо-режим: реальные данные не подключены <span>Подробнее ▾</span></summary>
+    <p>Это изолированный предпросмотр. Товары и отчёты здесь демонстрационные, а облако, учётные записи сотрудников и рабочая печать не подключены.
+    Можно менять оформление и проверять локальный редактор: изменения не попадут к сотрудникам.</p>
+  </details>
   <main id="print-control"><div id="print-control-root"><p role="status">Загружаю действующий интерфейс управления печатью…</p></div></main>
   <script type="module">
     // Static, isolated demo: no production API, no production data, no real account credentials.
@@ -135,6 +136,27 @@
       cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
       staff.mountPrintStaffControl({root});
       control.render();
+      // Decorative preview cards: these never alter the 58×40 / 30×20 print templates.
+      for(const [selector,title,subtitle] of [
+        ['.pc-premium-template:not(.pc-prep-template)','58 × 40','FARUKH PRINT'],
+        ['.pc-premium-template.pc-prep-template','30 × 20','ПОЛУФАБРИКАТ']
+      ]){
+        const card=root.querySelector(selector);
+        const intro=card?.querySelector('.pc-premium-template-text');
+        if(!intro)continue;
+        const visual=document.createElement('div');
+        visual.className='admin-label-visual';
+        visual.setAttribute('aria-label','Декоративный эскиз этикетки '+title);
+        visual.innerHTML='<span class="admin-label-paper"><span class="admin-label-brand">'+subtitle+'</span><span class="admin-label-stripes"></span><span class="admin-label-size">'+title+' мм</span></span>';
+        intro.append(visual);
+      }
+      // Demo placeholders should not look like damaged product pictures.
+      for(const row of root.querySelectorAll('.pc-row')){
+        if(row.querySelector('.pc-item strong')?.textContent?.startsWith('Демо:')){
+          row.classList.add('admin-demo-row');
+          row.querySelector('.pc-row-photo')?.setAttribute('aria-label','Демонстрационный товар без фотографии');
+        }
+      }
       const hero=root.querySelector('.pc-hero');
       if(hero){
         const art=document.createElement('div');art.className='preview-hero-art';art.setAttribute('aria-hidden','true');
