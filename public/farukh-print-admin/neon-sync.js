@@ -2,6 +2,9 @@
 const AUTH='https://ep-small-forest-basx2akr.neonauth.c-8.eu-central-1.aws.neon.tech/farukh_print/auth';
 const REST='https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1';
 const CAT='farukh-print:catalog:v1';
+const NEON_PORTAL='https://br-solitary-brook-baxakvoe-fpcloud.compute.c-8.eu-central-1.aws.neon.tech/farukh-print-admin/';
+const NEON_ORIGIN=new URL(NEON_PORTAL).origin;
+const LEGACY_ORIGIN=location.origin!==NEON_ORIGIN;
 const $=id=>document.getElementById(id);
 let jwt='',online=false,baseline=null,queue=Promise.resolve(),pulling=false,autosync=false,revision=0;
 function notify(message,good=false){const el=$('ns-status');el.textContent=message;el.dataset.state=good?'good':'neutral'}
@@ -37,6 +40,7 @@ function build(){
  '<div class="ns-head"><b class="ns-icon">☁</b><div><small>FARUKH PRINT · NEON CLOUD</small><h2>Облако подключено к базе — настройка входа</h2></div></div>',
  '<p>110 товаров и 110 фотографий сохранены в независимой базе Neon. Вход защищён проверкой владельца. Печать сотрудников не затронута.</p>',
  '<div class="ns-notice" id="ns-status" role="status" aria-live="polite">Проверяю авторизацию…</div>',
+ '<div class="ns-portal-banner" id="ns-portal-banner" hidden><strong>Исправлена причина сбоя входа</strong> Авторизация Neon работает на отдельном адресе, где браузер может отправлять cookie как first-party. <div class="ns-buttons"><a id="ns-portal-link" href="'+NEON_PORTAL+'">✅ Открыть исправленную админку</a></div><small>110 товаров и фотографии уже в Neon. Исходные данные на этом устройстве не удаляются.</small></div>',
  '<div id="ns-guest">',
  '<div class="ns-buttons"><button class="ns-primary" type="button" id="ns-google">Войти через Google</button><button type="button" id="ns-show-email">Войти по email</button><button type="button" id="ns-check-login">↻ Проверить вход</button></div>',
  '<div class="ns-browser-help" id="ns-browser-help" hidden><strong>Браузер может блокировать вход Neon.</strong> На Android открой этот сайт в Google Chrome (цветной круглый значок), а не в Яндекс Браузере. <div class="ns-buttons"><a id="ns-chrome-link" href="intent://farukh-print-admin-preview-20261115.onrender.com/farukh-print-admin/#Intent;scheme=https;package=com.android.chrome;end">↗ Открыть в Chrome</a><button type="button" id="ns-copy-link">▢ Скопировать адрес</button></div></div>',
@@ -53,7 +57,7 @@ function build(){
  const anchor=document.querySelector('.migration-panel')||document.querySelector('#print-control');
  anchor.parentNode.insertBefore(slot,anchor);
  const style=document.createElement('style');
- style.textContent='#ns{max-width:1160px;margin:14px auto;padding:22px;border-radius:22px;background:linear-gradient(125deg,#172c60,#111638);border:1px solid #456ca3;color:#eaf3ff;font:500 13px/1.6 Inter,system-ui,sans-serif}#ns *{box-sizing:border-box}#ns .ns-head{display:flex;gap:14px;align-items:center}#ns .ns-icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#3ee5eb,#9076e5);color:#081434;font-size:23px}#ns h2{color:white;font-size:clamp(19px,3vw,24px);margin:4px 0}#ns .ns-head small{color:#64ecf4;letter-spacing:.14em;font-size:10px;font-weight:850}#ns p{color:#bbd2f3;margin:12px 0}#ns .ns-notice{border:1px solid #597ca5;border-radius:11px;padding:10px 13px;background:#113151;color:#e0f5ff;white-space:pre-wrap}#ns .ns-notice[data-state=good]{color:#78f9d5;border-color:#2bafa5}#ns .ns-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}#ns button{font-weight:850;font-size:12px;cursor:pointer;color:white;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #5874a6;background:#263d78}#ns button.ns-primary{background:linear-gradient(105deg,#43dce8,#96a8ff);color:#0c2043}#ns label{display:block;margin-top:9px;font-size:11px;font-weight:800}#ns input{padding:11px;border:1px solid #6587b5;border-radius:10px;background:#0b1734;color:white;display:block;width:min(100%,400px);font-size:14px}#ns .ns-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}#ns .ns-cards div{padding:12px;border:1px solid #5269a8;border-radius:13px;background:#152752}#ns .ns-cards b{font-size:26px;display:block}#ns .ns-cards small{font-size:10px;color:#c0d0eb}#ns .ns-browser-help{margin:12px 0;padding:12px;border:1px solid #8493ce;border-radius:12px;background:#24264e;color:#e1eeff}#ns .ns-browser-help strong{display:block;font-size:13px}#ns .ns-browser-help a{font-weight:850;font-size:12px;cursor:pointer;color:#0b2351;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #70c7f9;background:#94d9ff;text-decoration:none;display:inline-flex;align-items:center}#ns .ns-foot{font-size:11px}@media(max-width:650px){#ns{margin:10px 12px;padding:15px}#ns .ns-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+ style.textContent='#ns{max-width:1160px;margin:14px auto;padding:22px;border-radius:22px;background:linear-gradient(125deg,#172c60,#111638);border:1px solid #456ca3;color:#eaf3ff;font:500 13px/1.6 Inter,system-ui,sans-serif}#ns *{box-sizing:border-box}#ns .ns-head{display:flex;gap:14px;align-items:center}#ns .ns-icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#3ee5eb,#9076e5);color:#081434;font-size:23px}#ns h2{color:white;font-size:clamp(19px,3vw,24px);margin:4px 0}#ns .ns-head small{color:#64ecf4;letter-spacing:.14em;font-size:10px;font-weight:850}#ns p{color:#bbd2f3;margin:12px 0}#ns .ns-notice{border:1px solid #597ca5;border-radius:11px;padding:10px 13px;background:#113151;color:#e0f5ff;white-space:pre-wrap}#ns .ns-notice[data-state=good]{color:#78f9d5;border-color:#2bafa5}#ns .ns-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}#ns button{font-weight:850;font-size:12px;cursor:pointer;color:white;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #5874a6;background:#263d78}#ns button.ns-primary{background:linear-gradient(105deg,#43dce8,#96a8ff);color:#0c2043}#ns label{display:block;margin-top:9px;font-size:11px;font-weight:800}#ns input{padding:11px;border:1px solid #6587b5;border-radius:10px;background:#0b1734;color:white;display:block;width:min(100%,400px);font-size:14px}#ns .ns-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}#ns .ns-cards div{padding:12px;border:1px solid #5269a8;border-radius:13px;background:#152752}#ns .ns-cards b{font-size:26px;display:block}#ns .ns-cards small{font-size:10px;color:#c0d0eb}#ns .ns-portal-banner{margin:12px 0;padding:13px;border:1px solid #45cabc;border-radius:12px;background:#123b56;color:#eaf6ff}#ns .ns-portal-banner strong{display:block;color:#6ef3db;margin-bottom:4px}#ns .ns-portal-banner a{font:850 13px/1.3 system-ui;color:#071d37;border:1px solid #54efd8;background:linear-gradient(100deg,#53e8e2,#a2bcff);padding:13px 15px;border-radius:11px;display:inline-block;text-decoration:none}#ns .ns-portal-banner small{font-size:11px;color:#c3e6f6}#ns .ns-browser-help{margin:12px 0;padding:12px;border:1px solid #8493ce;border-radius:12px;background:#24264e;color:#e1eeff}#ns .ns-browser-help strong{display:block;font-size:13px}#ns .ns-browser-help a{font-weight:850;font-size:12px;cursor:pointer;color:#0b2351;padding:11px 13px;min-height:42px;border-radius:10px;border:1px solid #70c7f9;background:#94d9ff;text-decoration:none;display:inline-flex;align-items:center}#ns .ns-foot{font-size:11px}@media(max-width:650px){#ns{margin:10px 12px;padding:15px}#ns .ns-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}';
  document.head.append(style);
 }
 async function stats(){
@@ -138,6 +142,7 @@ function onLocalChange(){
 }
 function bind(){
  $('ns-google').onclick=()=>safeRun(async()=>{
+  if(LEGACY_ORIGIN){location.assign(NEON_PORTAL);return;}
   notify('Открываю защищённый вход Neon через Google…');
   try{sessionStorage.setItem('fp-google-login-attempt',String(Date.now()))}catch{}
   const x=await authReq('/sign-in/social',{provider:'google',callbackURL:location.origin+location.pathname});
@@ -209,6 +214,11 @@ function bind(){
 }
 async function init(){
  build();bind();
+ $('ns-portal-banner').hidden=!LEGACY_ORIGIN;
+ if(LEGACY_ORIGIN){
+  notify('⚠ Вход не может завершиться на старом адресе Render из-за междоменных cookies. Открой исправленную админку по кнопке выше.');
+  return;
+ }
  const browser=String(navigator.userAgent||'');
  const suspicious=/YaBrowser|Yowser|YaApp|SamsungBrowser|FBAN|FBAV/i.test(browser);
  $('ns-browser-help').hidden=!suspicious;
