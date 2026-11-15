@@ -142,6 +142,56 @@ function saveOnePagePdf(target,recipe,packet,previousPdfId){
  return {pdfFileId:file.getId(),pdfUrl:file.getUrl()};
 }
 
+/** Delete one owned recipe tab and its matching A4 PDF; never delete a project document,
+ * category, another recipe's tab or an unrelated Drive file. Existing backups stay intact.
+ * Owner must publish a new Apps Script web-app version to enable this action. */
+function deleteOwnedRecipe(properties,packet) {
+ const recipeId=packet.recipeId;
+ if(typeof recipeId!=='string'||!/^[A-Za-z0-9_-]{1,160}$/.test(recipeId))throw Error('Неверный ID удаляемой ТТК.');
+ const identity=projectIdentity(packet);
+ const slot='project_'+identity.projectId.replace(/[^a-z0-9_-]/gi,'_').slice(0,85);
+ const project=JSON.parse(properties.getProperty(slot)||'{}');
+ const known=KNOWN_PROJECTS[identity.projectId];
+ const folderId=project.folderId||known?.folderId;
+ const documentId=project.documentId||known?.documentId;
+ if(!documentId||!folderId)throw Error('Для удаления Google ТТК нужно выбрать существующий проект.');
+ const hash=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,recipeId)
+  .map(x=>('0'+((x+256)%256).toString(16)).slice(-2)).join('');
+ const recordKey='recipe_'+hash;
+ const previous=JSON.parse(properties.getProperty(recordKey)||'{}');
+ if(!previous.tabId&&!previous.pdfFileId)
+  return {ok:true,recipeId,found:false,deleted:false,tabDeleted:false,pdfTrashed:false};
+ if(previous.documentId!==documentId)throw Error('ТТК записана в другом проекте. Удаление остановлено.');
+ let tabDeleted=false,pdfTrashed=false;
+ if(previous.tabId){
+  const tabs=flattenTabs(docsApi('?includeTabsContent=true',null,documentId).tabs);
+  const tab=tabs.find(t=>t.tabProperties.tabId===previous.tabId);
+  if(tab){
+   if(!tab.tabProperties.parentTabId)throw Error('Нельзя удалить основную вкладку категории.');
+   docsApi(':batchUpdate',{requests:[{deleteTab:{tabId:previous.tabId}}]},documentId);
+   tabDeleted=true;
+  }
+ }
+ if(previous.pdfFileId){
+  let file;
+  try{file=DriveApp.getFileById(previous.pdfFileId)}
+  catch(e){if(!/not found|не найден|does not exist/i.test(String(e)))throw e}
+  if(file&&!file.isTrashed()){
+   const parents=file.getParents();let owned=false;
+   while(parents.hasNext()){
+    const parent=parents.next();
+    if(parent.getName()!=='ТТК PDF A4')continue;
+    const grand=parent.getParents();
+    while(grand.hasNext())if(grand.next().getId()===folderId){owned=true;break}
+   }
+   if(!owned)throw Error('PDF не находится в папке выбранного проекта — удаление остановлено.');
+   file.setTrashed(true);pdfTrashed=true;
+  }
+ }
+ properties.deleteProperty(recordKey);
+ return {ok:true,recipeId,found:true,deleted:true,tabDeleted,pdfTrashed};
+}
+
 function doPost(event) {
   let lock;
   try {
@@ -149,11 +199,12 @@ function doPost(event) {
     const key=properties.getProperty('CONNECTION_KEY');
     if(!key||packet.key!==key)return jsonResponse({ok:false,error:'Неверный ключ подключения Google.'});
     if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit'})}
-    if(!['sync','ensureProject'].includes(packet.action))throw Error('Неизвестное действие синхронизации.');
+    if(!['sync','ensureProject','deleteRecipe'].includes(packet.action))throw Error('Неизвестное действие синхронизации.');
     const r=packet.recipe;
     if(packet.action==='sync'&&(!r||r.status!=='ready'||!r.id||!Array.isArray(packet.sections)))throw Error('Разрешены только готовые ТТК.');
     if(packet.action==='sync'&&!/^[a-f0-9]{64}$/.test(packet.digest||''))throw Error('Неверная версия ТТК.');
     lock=LockService.getScriptLock();lock.waitLock(25000);
+    if(packet.action==='deleteRecipe')return jsonResponse(deleteOwnedRecipe(properties,packet));
     const target=projectStorage(properties,packet),documentId=target.documentId;
     if(packet.action==='ensureProject')return jsonResponse({ok:true,...target});
     packet.projectName=target.projectName;

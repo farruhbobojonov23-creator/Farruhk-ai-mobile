@@ -1,5 +1,5 @@
 import {validateDeviceState} from './device-store.js?v=72';
-import {LIST_FIELDS,pickSyncSnapshot,reconcileSnapshots} from './device-sync-merge.js?v=1';
+import {LIST_FIELDS,pickSyncSnapshot,reconcileSnapshots} from './device-sync-merge.js?v=2';
 
 const BASE_KEY='device-cloud-sync-base-v1';
 const ENABLED_KEY='farruh-device-cloud-sync-enabled-v1';
@@ -47,6 +47,7 @@ async function commitSync(store,expectedRevision,merged){
     const patch={};
     for(const key of LIST_FIELDS){if(key==='categories'&&merged.categories===undefined)continue;patch[key]=merged[key]}
     if(merged.siteSettings!==undefined)patch.siteSettings=merged.siteSettings;
+    if(Array.isArray(merged.deletedRecipeIds))patch.deletedRecipeIds=merged.deletedRecipeIds;
     const changed=Object.keys(patch).some(key=>!same(existing[key],patch[key]));
     newState=changed?validateDeviceState({...existing,...patch,revision:existing.revision+1,updatedAt:new Date().toISOString()},{clone:false}):existing;
     if(changed)records.put(newState,'state');

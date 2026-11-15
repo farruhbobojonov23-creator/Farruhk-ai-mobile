@@ -25,6 +25,9 @@ export function createDataCenter({getState,settingsDialog,notify}){
   <section class="data-center-section" data-device-section><h3>📱 Телефон и планшет</h3>
    <p class="data-center-info">Необязательно. Используйте только если нужны общие ТТК на нескольких устройствах. При конфликте версий объединение останавливается без удаления записей.</p>
    <div data-device-root></div></section>
+  <section class="data-center-section" data-delete-section><h3>🗑 Управление и удаление ТТК</h3>
+   <p class="data-center-info">Выберите одну ТТК и место удаления. Никакой общей очистки без подтверждения.</p>
+   <div data-delete-root></div></section>
   <p class="data-center-footnote">В Google сохраняются только подтверждённые отправки. Выключение функции не удаляет уже сохранённые документы и копии.</p>
  </div>`;
  document.body.append(dialog);
@@ -33,6 +36,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
  const googleRoot=root('[data-google-root]');
  const backupRoot=root('[data-backup-root]');
  const deviceRoot=root('[data-device-root]');
+ const deletionRoot=root('[data-delete-root]');
  let bindings=null;
  const localStatus=root('[data-local-status]'),backupStatus=root('[data-backup-status]'),backupNow=root('[data-backup-now]');
  root('[data-close]').addEventListener('click',()=>dialog.close());
@@ -60,6 +64,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
   }
   backupNow.disabled=!google?.endpoint||!google?.key;
   bindings?.googleSync?.render();
+  bindings?.deletionManager?.render?.();
   // Backup configuration form refreshes only when opened; never overwrite a key being edited.
  }
  backupNow.onclick=async()=>{
@@ -73,8 +78,8 @@ export function createDataCenter({getState,settingsDialog,notify}){
   }catch(e){backupStatus.textContent='⚠️ '+String(e.message||e);notify?.(e.message||String(e),true)}
   finally{backupNow.disabled=!getState()?.googleBackup?.endpoint}
  };
- function bind({googleSync,googleDriveBackup,deviceCloudSync}){
-  bindings={googleSync,googleDriveBackup,deviceCloudSync};
+ function bind({googleSync,googleDriveBackup,deviceCloudSync,deletionManager}){
+  bindings={googleSync,googleDriveBackup,deviceCloudSync,deletionManager};
   refresh();
  }
  function open(){
@@ -88,5 +93,5 @@ export function createDataCenter({getState,settingsDialog,notify}){
   if(devices)devices.open=true;
   refresh();
  }
- return {dialog,localRoot,googleRoot,backupRoot,deviceRoot,bind,open,refresh};
+ return {dialog,localRoot,googleRoot,backupRoot,deviceRoot,deletionRoot,bind,open,refresh};
 }

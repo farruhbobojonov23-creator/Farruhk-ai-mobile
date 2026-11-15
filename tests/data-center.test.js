@@ -38,7 +38,7 @@ test('automatic backups and TTK sync are retained with no forced cloud device wr
  assert.match(backup,/Date\.now\(\)-last<24\*3600\*1000/);
  assert.match(google,/retryButton\.onclick=\(\)=>flush/);
  assert.match(devices,/if\(!enabled\(\)\|\|!getState\(\)\)return/);
- assert.match(html,/dataCenter\.bind\(\{googleSync,googleDriveBackup,deviceCloudSync\}\)/);
+ assert.match(html,/dataCenter\.bind\(\{googleSync,googleDriveBackup,deviceCloudSync,deletionManager\}\)/);
 });
 
 test('per-recipe Google indicators do not claim local save means Google save',()=>{
@@ -53,16 +53,16 @@ test('per-recipe Google indicators do not claim local save means Google save',()
 
 test('mobile hub has responsive safe-area bounds and no duplicate quick buttons',()=>{
  assert.match(html,/\/data-center\.css\?v=2/);
- assert.match(html,/\/data-center\.js\?v=1/);
+ assert.match(html,/\/data-center\.js\?v=2/);
  assert.match(css,/width:min\(740px,calc\(100vw - 22px\)\)/);
  assert.match(css,/@media\(max-width:560px\)/);
  assert.match(css,/max-height:min\(92dvh,970px\)/, 'Hub stays within viewport');
 });
 
 test('My Data and its connection dialogs use one black/gold premium theme',()=>{
- assert.match(html,/\/data-center-premium\.css\?v=2/);
- assert.ok(html.indexOf('/data-center-premium.css?v=2')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
- assert.match(html,/\/recipe-google\.js\?v=12/);
+ assert.match(html,/\/data-center-premium\.css\?v=3/);
+ assert.ok(html.indexOf('/data-center-premium.css?v=3')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
+ assert.match(html,/\/recipe-google\.js\?v=14/);
  assert.match(google,/dialog\.className='category-dialog data-center-subdialog'/);
  assert.match(google,/archiveDialog\.className='category-dialog data-center-subdialog'/);
  assert.match(premium,/dialog#data-center-dialog\.data-center-dialog/);
@@ -73,4 +73,20 @@ test('My Data and its connection dialogs use one black/gold premium theme',()=>{
  assert.match(premium,/background-color:#16110e!important/);
  assert.match(premium,/background:#251e18!important/);
  assert.match(premium,/@media \(max-width:560px\)/);
+});
+
+test('TTK can be managed individually from saved versions or My Data without any global wipe',()=>{
+ const manager=load('recipe-delete-manager.js');
+ assert.match(hub,/data-delete-root/);
+ assert.match(html,/mountRecipeDeletionManager\(\{/);
+ assert.match(html,/mountRoot:dataCenter\.deletionRoot/);
+ assert.match(google,/farruh:manage-recipe/);
+ assert.match(manager,/name="deleteScope" value="phone"/);
+ assert.match(manager,/name="deleteScope" value="cloud"/);
+ assert.match(manager,/name="deleteScope" value="google"/);
+ assert.match(manager,/input\.value\.trim\(\)!=='УДАЛИТЬ'/);
+ assert.match(manager,/store\.mutate/);
+ assert.match(manager,/s\.googleSuppressed\?\./);
+ assert.doesNotMatch(manager,/localStorage\.clear\(\)/);
+ assert.doesNotMatch(manager,/\bdeleteAll\b/);
 });
