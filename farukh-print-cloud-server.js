@@ -98,8 +98,9 @@ app.listen(PORT,'0.0.0.0',()=>{
  setTimeout(async()=>{
   try {
    const result=await fetch('https://br-solitary-brook-baxakvoe-fpprobe.compute.c-8.eu-central-1.aws.neon.tech/healthz',{signal:AbortSignal.timeout(14000)});
-   const data=await result.json().catch(()=>({}));
-   console.info('[farukh-print] test-only Neon native query',JSON.stringify({status:result.status,ok:data.ok,stage:data.stage,products:data.products}));
+   const raw=(await result.text()).slice(0,320);
+   let data={};try{data=JSON.parse(raw)}catch{}
+   console.info('[farukh-print] test-only Neon native query',JSON.stringify({status:result.status,type:result.headers.get('content-type'),ok:data.ok,stage:data.stage,products:data.products,excerpt:raw.slice(0,180)}));
   } catch(e) { console.warn('[farukh-print] Neon native probe fetch unavailable',e.name||'error') }
  },2500);
 });
