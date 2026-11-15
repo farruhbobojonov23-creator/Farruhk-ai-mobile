@@ -36,6 +36,8 @@
     .migration-success,.migration-error{padding:9px;border-radius:10px;margin-top:12px!important;background:var(--pf-soft-accent)}
     .migration-error{color:#f26e86!important}
     .migration-disclaimer{margin-bottom:0!important}
+    .migration-import-button{margin-top:12px;background:linear-gradient(120deg,var(--pf-accent),var(--pf-glow));color:var(--pf-on-accent)}
+    .migration-import-button[hidden]{display:none!important}
     @media(max-width:700px){.migration-steps{grid-template-columns:1fr}.migration-panel{margin:0 12px 15px;padding:15px}.migration-badge{display:none}}
 
   </style>
@@ -112,6 +114,7 @@
         <button class="migration-action" type="button" id="migration-choose">Проверить JSON-файл</button>
         <input id="migration-file" type="file" accept=".json,application/json" hidden>
         <div id="migration-check-result" role="status" aria-live="polite"></div>
+        <button class="migration-action migration-import-button" type="button" id="migration-import" hidden>✓ Импортировать в тестовую админку</button>
       </div>
       <div class="migration-step"><strong>③ Перенести в отдельное облако</strong>
         <p>После проверки настроим защищённую независимую базу с резервированием и проверкой ревизий.</p>
@@ -124,20 +127,39 @@
   (() => {
     const input=document.getElementById('migration-file');
     const btn=document.getElementById('migration-choose');
+    const importBtn=document.getElementById('migration-import');
+    let checkedCopy=null;
+    importBtn.addEventListener('click',()=>{
+      if(!checkedCopy)return;
+      const doImport=window.FarukhPrintAdminImportCatalog;
+      if(typeof doImport!=='function'){
+        say('Редактор ещё не загрузился. Обнови страницу и повтори.',true);return;
+      }
+      try{
+        const done=doImport(checkedCopy);
+        if(!done?.ok)return;
+        checkedCopy=null;importBtn.hidden=true;
+        say('✓ Импортировано '+done.count+' товаров только в эту тестовую админку. Рабочая печать и облако не изменились.');
+        window.FarukhPrintAdminPremiumV2?.refresh();
+        window.FarukhPrintAdminPremiumV2?.navigate('catalog');
+      }catch(error){say('Импорт не выполнен: '+(error?.message||'ошибка данных'),true)}
+    });
     const result=document.getElementById('migration-check-result');
+    const say=(message,isError=false)=>{
+      const p=document.createElement('p');p.className=isError?'migration-error':'migration-success';
+      p.textContent=message;result.replaceChildren(p);
+    };
     btn.addEventListener('click',()=>input.click());
     input.addEventListener('change',async()=>{
       const file=input.files&&input.files[0];input.value='';result.replaceChildren();
+      checkedCopy=null;importBtn.hidden=true;
       if(!file)return;
-      const say=(message,isError=false)=>{
-        const p=document.createElement('p');p.className=isError?'migration-error':'migration-success';
-        p.textContent=message;result.replaceChildren(p);
-      };
       try{
         if(file.size<2||file.size>5*1024*1024)throw Error('Нужен JSON размером до 5 МБ.');
         const obj=JSON.parse(await file.text());
         const data=Array.isArray(obj)?obj:obj&&obj.products;
         if(!Array.isArray(data)||!data.length||data.length>1000)throw Error('Нужна непустая база Farukh Print до 1000 товаров.');
+        if(obj?.format!=='farukh-print-catalog-v1')throw Error('Этот файл не является резервной копией каталога Farukh Print. Скачай JSON в разделе «Копии и настройки» действующего Farukh AI.');
         const uniques=new Set();let ready=0,prep=0,invalid=0,duplicate=0,pending=0;
         for(const row of data){
           if(!row||!['prep','ready'].includes(row.kind)||typeof row.name!=='string'||!row.name.trim()){invalid++;continue}
@@ -151,6 +173,9 @@
           '). Сроки требуют проверки: '+pending+'. Повторы: '+duplicate+'. Некорректные записи: '+invalid+
           '. '+(invalid||duplicate?'Нужно исправить ошибки до переноса.':'Копия готова к дальнейшему согласованию.')+
           ' Ничего не отправлено в облако.',Boolean(invalid||duplicate));
+        if(invalid===0&&duplicate===0){
+          checkedCopy=obj;importBtn.hidden=false;
+        }
       }catch(e){say('Проверка не пройдена: '+(e.message||'ошибка файла'),true)}
     });
   })();
@@ -211,6 +236,7 @@
       ]).then(([local,cloud,staff])=>[local,cloud,staff]);
       root.replaceChildren();
       const control = local.mountPrintControl({root});
+      window.FarukhPrintAdminImportCatalog=payload=>control.importCheckedPreviewCatalog(payload);
       cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
       const demoCloud=root.querySelector('.pcloud');
       if(demoCloud){
