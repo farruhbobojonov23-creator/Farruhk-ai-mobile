@@ -59,7 +59,11 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
   assert.doesNotMatch(data.toString('latin1'),/\/Subtype\s*\/Image/);
   const result=await parsePdf(data);
   assert.equal(result.numpages,1);
-  for(const value of ['FARRUH AI','Филадельфия классик','Лосось','Сыр творожный','Огурец' ,
+  // A4 starts with the document title: brand is in the app chrome, not paper.
+  assert.doesNotMatch(result.text,/FARRUH AI|Premium|ПЕЧАТЬ|ПФ/);
+  assert.match(result.text,/ТЕХНОЛОГИЧЕСКАЯ КАРТА \(ТТК\)/);
+
+  for(const value of ['Филадельфия классик','Лосось','Сыр творожный','Огурец' ,
    'Разработал','Утверждаю','Бободжонов','ХАССП','ГАЛОЧКИ']) {
    if(value==='ГАЛОЧКИ')continue;
    assert.ok(result.text.includes(value),'missing PDF element: '+value);
