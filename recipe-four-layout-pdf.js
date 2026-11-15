@@ -404,7 +404,7 @@ export function fourTtkPdf(input){
   // Dense ingredient catalogues use otherwise-empty 8–18pt top margin;
   // this avoids sacrificing the existing minimum .74 A4 type scale.
   if(dense)masthead(9*s,s,draw);
-  else y+=masthead(y,s,draw)+4*s;
+  else y+=masthead(y,Math.min(s,1),draw)+4*s;
   y+=header(y,s,draw)+(dense?3:8)*s;
   const half=(W-gap)/2;
   const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
@@ -486,8 +486,16 @@ export function fourTtkPdf(input){
  }
  let scale=1;
  if(layoutPage(1)>791){
+  // Overfull real recipes shrink only down to the legibility threshold.
   let lo=.001,hi=1;
   for(let i=0;i<23;i++){const mid=(lo+hi)/2;if(layoutPage(mid)<=791)lo=mid;else hi=mid;}
+  scale=lo;
+ }else if(!dense&&(r.ingredients||[]).length<=14){
+  // Owner references use the ENTIRE A4, not a tiny block with 1/3 blank.
+  // Enlarge vectors, table type and row leading until they fill the page.
+  // The brand row has a separate 1x upper limit to keep icon badges in W.
+  let lo=1,hi=1.42;
+  for(let i=0;i<22;i++){const mid=(lo+hi)/2;if(layoutPage(mid)<=787)lo=mid;else hi=mid;}
   scale=lo;
  }
  if(scale<.74)throw Object.assign(new Error('Невозможно разместить все сведения и матрицу аллергенов на одном читаемом листе А4 (масштаб '+scale.toFixed(2)+'). Уменьшите длинные описания или количество ингредиентов.'),{status:422,code:'TTK_A4_TOO_DENSE'});
