@@ -9,7 +9,7 @@ const pool=url?new Pool({
   idleTimeoutMillis:15000, statement_timeout:14000, query_timeout:17000
 }):null;
 pool?.on('error',err=>console.error('[print-db] idle connection error',err.code||'error'));
-const allowedOrigin='https://farukh-print-cloud-test-20261115.onrender.com';
+const allowedOrigin=String(process.env.FARUKH_PRINT_APP_ORIGIN||'https://farukh-print-cloud-test-20261115.onrender.com');
 function failure(res,err){
   console.error('[print-db] database request failed',String(err?.code||err?.name||'error'));
   return res.status(503).json({ok:false,error:'Облако временно недоступно. Изменения не подтверждены — повтори сохранение.'});
