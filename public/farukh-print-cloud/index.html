@@ -63,6 +63,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <header class="header"><div class="brand"><div class="logo" aria-hidden="true">▤</div><span>Farukh Print <b>Cloud</b></span></div><span class="tag">NEON PREMIUM · V1</span></header>
 <div class="hero"><span class="overline">FARUKH PRINT · PRIVATE DATABASE</span><h1>Собственное облако печати</h1><p>Независимая база Neon для товаров, фотографий, точек и будущей истории печати. Управление — только после входа владельца.</p></div>
 <div class="warn"><strong>Тестовый сервер.</strong> Приложения сотрудников и действующий Farukh AI к этой базе пока не подключены. Новые товары не появляются у сотрудников автоматически. Не удаляй исходную JSON-копию.</div>
+<section id="configure-card" class="card hidden">
+<h2>Остался защищённый шаг подключения Neon</h2>
+<p>Сервер Render уже создан, но строка подключения базы должна быть добавлена лично владельцем через секретные переменные Render. Не отправляй её в чат и не вставляй в GitHub.</p>
+<div class="step"><b>1</b> В Neon открой FARUKH PRINT → Connect и скопируй PostgreSQL connection string для базы farukh_print.</div>
+<div class="step"><b>2</b> В Render открой farukh-print-cloud-test-20261115 → Environment. Добавь <code>FARUKH_PRINT_DATABASE_URL</code> со скопированным значением и сохрани.</div>
+<div class="step"><b>3</b> Дождись статуса Live и обнови страницу. Код первичной настройки уже записан в Render и нужен при первом входе.</div>
+<div class="stack"><a class="button" target="_blank" rel="noopener noreferrer" href="https://console.neon.tech/">Открыть Neon ↗</a><a class="button" target="_blank" rel="noopener noreferrer" href="https://dashboard.render.com/">Открыть Render ↗</a></div>
+</section>
 <section class="card" aria-live="polite">
 <div class="card-head"><span class="icon" aria-hidden="true">☁</span><span>Состояние Neon</span></div>
 <span id="connection" class="cloud-state off">○ Проверяю соединение…</span><p id="connection-text">Сервер проверяет отдельную базу FARUKH PRINT.</p>
@@ -154,10 +162,11 @@ async function authenticated(){
 }
 async function init(){
  try{
-  const status=await request('/status');setState(status);
+  const status=await request('/status');setState(status);show('configure-card',false);
   try{await request('/me');await authenticated();return}catch{}
   show('authorized-panel',false);show('setup-card',status.setupRequired);show('login-card',!status.setupRequired);
- }catch(e){setState({connected:false});byId('connection-text').textContent=e.message}
+ }catch(e){setState({connected:false});byId('connection-text').textContent=e.message;
+ show('configure-card',true);show('authorized-panel',false);show('setup-card',false);show('login-card',false);}
 }
 byId('setup-form').addEventListener('submit',async ev=>{
  ev.preventDefault();const code=byId('setup-code').value,password=byId('new-password').value;
