@@ -94,12 +94,38 @@ app.post('/api/owner/logout',(req,res)=>{
  if(!sameOrigin(req))return res.status(403).json({ok:false,error:'Неверный адрес.'});
  pinCookie(res,'',0);res.json({ok:true});
 });
-app.get('/api/owner/catalog-status',authPin,(_req,res)=>{
- res.json({ok:true,staffConnected:false,connected:false,
-  productsStoredInNeon:110,photosStoredInNeon:110,
-  message:'Вход владельца активен. Прямой обмен с Neon ещё проходит проверку.'});
-});
+const GATEWAY=String(process.env.FARUKH_PRINT_GATEWAY_KEY||'');
+const DATA_API='https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1';
+async function gatewayCall(method,fields={}){
+ if(GATEWAY.length!==64)throw Error('SERVICE_CONFIGURATION_REQUIRED');
+ const response=await fetch(DATA_API+'/rpc/'+method,{method:'POST',headers:{
+  'Content-Type':'application/json','Accept':'application/json',
+  'Content-Profile':'farukh_print_api','Accept-Profile':'farukh_print_api'},
+  body:JSON.stringify({key:GATEWAY,...fields}),signal:AbortSignal.timeout(18000)});
+ const json=await response.json().catch(()=>({}));
+ if(!response.ok||json?.ok===false){
+  const code=String(json?.code||'');
+  const safeMessage=String(json?.message||json?.error||'').slice(0,250);
+  console.warn('[farukh-print] Neon Data API',method,'HTTP',response.status,'code',code);
+  throw Error('NEON_DATA_API_'+response.status+(code?'_'+code:'')+(safeMessage?'_'+safeMessage:''));
+ }
+ return json;
+}
+async function handleGateway(res,method,fields={}){
+ try{const result=await gatewayCall(method,fields);res.setHeader('Cache-Control','no-store');res.json(result)}
+ catch(e){res.status(503).json({ok:false,error:'Нет соединения с Neon. Данные сохранены, повтори позже.'})}
+}
+app.get('/api/owner/cloud/status',authPin,async(_req,res)=>handleGateway(res,'gateway_status'));
+app.get('/api/owner/cloud/catalog',authPin,async(_req,res)=>handleGateway(res,'gateway_catalog'));
+
 
 app.use('/api/print-cloud/v1',(_req,res)=>res.status(410).json({error:'Старый API отключён. Используй панель владельца FARUKH PRINT Cloud.'}));
 app.use((_req,res)=>res.status(404).json({error:'Страница не найдена.'}));
-app.listen(PORT,'0.0.0.0',()=>console.info('[farukh-print] PIN console live, pinConfigured='+PIN_READY+', staff gateway untouched'));
+app.listen(PORT,'0.0.0.0',()=>{
+ console.info('[farukh-print] PIN console live, pinConfigured='+PIN_READY+', staff gateway untouched');
+ setTimeout(async()=>{
+  try{const result=await gatewayCall('gateway_status');
+   console.info('[farukh-print] Neon live read test',JSON.stringify({ok:result.ok,products:result.products,photos:result.photos,backups:result.backups}));
+  }catch(e){console.warn('[farukh-print] Neon live read test unavailable',String(e.message).slice(0,200))}
+ },2300);
+});
