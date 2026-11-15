@@ -3,6 +3,10 @@
 // for the food used at the kitchen. No brand-specific assumptions are made.
 // Full metadata/source is returned with every lookup.
 const items=[
+ {id:'egg-whole-raw',names:['яйцо','яйцо куриное','куриное яйцо','яйцо сырое','яйцо куриное сырое','egg'],
+  title:'Яйцо куриное, цельное, сырое (справочные данные)',
+  protein:12.56,fat:9.51,carbs:0.72,kcal:143,
+  fdcId:'171287',description:'USDA FoodData Central: Egg, whole, raw, fresh, на 100 г съедобной части; после приготовления и для конкретной марки требуется уточнение.'},
  {id:'cream-cheese',names:['сыр творожный','творожный сыр','сливочный сыр','сыр сливочный','cream cheese'],
   title:'Сливочный творожный сыр, полножирный (типовой)',
   protein:5.79,fat:33.49,carbs:4.56,kcal:337,
