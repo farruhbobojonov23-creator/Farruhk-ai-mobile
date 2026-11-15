@@ -106,7 +106,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   if(data.recipeId!==id||data.deleted!==true)throw Error(data.found===false?'Google не нашёл ранее отправленную ТТК. Запись на устройстве оставлена; отправка в Google приостановлена.':'Google не подтвердил удаление этой ТТК.');
   return data;
  }
- async function deleteCloud(id){
+ async function deleteCloud(id,{allowMissing=false}={}){
   const request=async(url,options={})=>{
    const response=await fetch(url,{...options,credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(60000)});
    const data=await response.json().catch(()=>({}));
@@ -115,7 +115,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
   };
   const cloud=await request('/api/device-sync');
   const found=[...(cloud.snapshot?.recipes||[]),...(cloud.snapshot?.releasedRecipes||[])].some(r=>r.id===id);
-  if(!found)return {found:false};
+  if(!found){if(allowMissing)return {found:false};throw Error('В общей облачной базе эта ТТК не найдена. На телефоне её можно удалить отдельно.')}
   const done=await request('/api/device-sync/recipes/'+encodeURIComponent(id),{
    method:'DELETE',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({revision:cloud.revision})
@@ -178,7 +178,7 @@ export function mountRecipeDeletionManager({getState,store,onState,downloadFile,
      onState(done);
     }
     if(!getState()?.cloudDeletedRecipes?.[id]){
-     await deleteCloud(id);
+     await deleteCloud(id,{allowMissing:true});
      const done=await store.mutate(d=>{
       d.cloudDeletedRecipes??={};d.cloudDeletedRecipes[id]=true;
      });
