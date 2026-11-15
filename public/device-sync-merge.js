@@ -15,6 +15,7 @@ export function pickSyncSnapshot(state,projects){
  const snapshot={};
  for(const key of LIST_FIELDS){if(key==='categories'&&state?.categories===undefined)continue;snapshot[key]=structuredClone(Array.isArray(state?.[key])?state[key]:[])}
  if(state?.siteSettings)snapshot.siteSettings=structuredClone(state.siteSettings);
+ snapshot.deletedRecipeIds=[...new Set(Array.isArray(state?.deletedRecipeIds)?state.deletedRecipeIds:[])];
  const raw=projects?.projects;
  snapshot.projectCatalog={projects:structuredClone(Array.isArray(raw)?raw.map(p=>({id:p.id,name:p.name})):[])};
  return snapshot;
@@ -53,8 +54,17 @@ function mergedObject(field,old,local,remote){
 
 export function reconcileSnapshots(baseline,local,remote){
  const base=baseline||{},ours=local||{},theirs=remote||{},result={};
- for(const key of LIST_FIELDS)
+ // Deletions in the owner's shared cloud are durable. An offline device
+ // cannot silently re-upload a removed recipe or its released version.
+ result.deletedRecipeIds=[...new Set([
+  ...(base.deletedRecipeIds||[]),...(ours.deletedRecipeIds||[]),...(theirs.deletedRecipeIds||[])
+ ])];
+ const deleted=new Set(result.deletedRecipeIds);
+ for(const key of LIST_FIELDS){
   result[key]=mergedItems(key,base[key],ours[key],theirs[key]);
+  if((key==='recipes'||key==='releasedRecipes')&&Array.isArray(result[key]))
+   result[key]=result[key].filter(item=>!deleted.has(item.id));
+ }
  result.siteSettings=mergedObject('Настройки',base.siteSettings,ours.siteSettings,theirs.siteSettings);
  result.projectCatalog={projects:mergedItems('Проекты',base.projectCatalog?.projects,ours.projectCatalog?.projects,theirs.projectCatalog?.projects)};
  return result;
