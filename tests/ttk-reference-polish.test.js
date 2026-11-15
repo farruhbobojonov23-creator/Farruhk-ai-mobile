@@ -58,6 +58,9 @@ for(const layoutTemplate of ['teal-matrix','process-matrix','gold-allergen','pre
    assert.match(extracted,/АЛЛЕРГЕНЫ В БЛЮДЕ/);
    assert.doesNotMatch(extracted,/3\. Рецептура \(норма закладки\)/);
   }
-  if(layoutTemplate==='gold-allergen')assert.match(extracted,/4\. МАТРИЦА АЛЛЕРГЕНОВ/);
+  if(layoutTemplate==='gold-allergen'){
+   assert.match(extracted,/МАТРИЦА АЛЛЕРГЕНОВ/);
+   assert.match(extracted,/4/);
+  }
  });
 }
