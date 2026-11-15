@@ -6,6 +6,9 @@
  * These selectors are intentionally after all legacy fixed-height A4 CSS.
  */
 @media screen {
+ /* Mobile-only ingredient captions are deliberately absent from the 1:1 PDF preview. */
+ #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page
+ .ttk-ref-mobile-caption{display:none!important;}
  /* Fix pale-on-pale labels even in the scaled overview. */
  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled #ttk-live-page
  .ttk-ref-stage-head strong,
