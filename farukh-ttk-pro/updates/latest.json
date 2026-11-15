@@ -1,0 +1,8 @@
+{
+  "channel": "premium",
+  "packageId": "com.farukh.ttkpro.premium",
+  "versionCode": 4,
+  "versionName": "0.4-preview",
+  "downloadUrl": "",
+  "notes": "Первая версия с постоянной подписью. Новые выпуски будут публиковаться после проверки совместимости и установки."
+}
