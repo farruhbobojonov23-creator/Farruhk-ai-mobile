@@ -26,19 +26,25 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final int INK=0xFF20222A, RED=0xFFC81C2C, RED2=0xFFE43B46, PALE=0xFFF8F7F6,
         GREY=0xFF6E7078, BORDER=0xFFE5E5EA, WHITE=Color.WHITE, DARK=0xFF14161E, BLUE=0xFF9EEAFA;
-    private static final int PICK_PHOTO=101,SAVE_PDF=102;
+    private static final int PICK_PHOTO=101,SAVE_PDF=102,SAVE_BACKUP=103,LOAD_BACKUP=104;
     private TTKStore store;
     private LinearLayout content;
     private JSONObject editing;
     private boolean editingCategoryPhoto=false;
     private JSONObject photoCategory;
     private byte[] pendingPdf;
+    private String updateManifestUrl="https://raw.githubusercontent.com/farruhbobojonov23-creator/Farruhk-ai-mobile/farukh-ttk-pro/farukh-ttk-pro/updates/latest.json";
     private Uri lastPdfUri;
     private EditText nameField,yieldField,piecesField,techField,qualityField,servingField,tempField,storageField,authorField,approverField,dateField;
     private Spinner catSpinner;
@@ -383,6 +389,17 @@ public class MainActivity extends Activity {
         addButton(content,"Категории / иконки",false,v->categoriesScreen());
         addButton(content,"База ингредиентов",false,v->ingredientsScreen());
         space(content,20);
+        content.addView(text("Обновления",18,INK,true));
+        space(content,9);
+        content.addView(text("Версия 0.4 Preview • обновления поверх приложения сохраняют данные при одинаковой цифровой подписи.",13,GREY,false));
+        addButton(content,"⟳  Проверить обновления",true,v->checkForUpdates());
+        space(content,20);
+        content.addView(text("Резервная копия",18,INK,true));
+        space(content,8);
+        content.addView(text("Сохраняй копию ТТК перед крупными обновлениями. Картинки, выбранные из памяти телефона, остаются внешними файлами — их желательно сохранить отдельно.",12,GREY,false));
+        addButton(content,"↓  Сохранить базу ТТК (.json)",false,v->exportBackup());
+        addButton(content,"↑  Восстановить базу ТТК (.json)",false,v->importBackup());
+        space(content,20);
         content.addView(text("О сохранении PDF",18,INK,true));
         space(content,10);
         content.addView(text("При сохранении система Android предложит выбрать папку или Google Диск через системный файловый менеджер. Автоматическая фоновая синхронизация с Google Диском пока не реализована.",13,GREY,false));
@@ -418,6 +435,33 @@ public class MainActivity extends Activity {
                 else if(editing!=null){editing.put("photo",uri.toString());store.save();edit(editing);}
             }catch(Exception ex){Toast.makeText(this,"Ошибка фотографии",Toast.LENGTH_LONG).show();}
         }
+        if(req==SAVE_BACKUP){
+            try(OutputStream out=getContentResolver().openOutputStream(uri)){
+                if(out==null)throw new Exception("Нет доступа к файлу");
+                out.write(store.backup().toString(2).getBytes(StandardCharsets.UTF_8));
+                Toast.makeText(this,"Резервная копия сохранена",Toast.LENGTH_LONG).show();
+            }catch(Exception e){Toast.makeText(this,"Ошибка копии: "+e.getMessage(),Toast.LENGTH_LONG).show();}
+            return;
+        }
+        if(req==LOAD_BACKUP){
+            new AlertDialog.Builder(this).setTitle("Восстановить базу?")
+             .setMessage("Все текущие ТТК, категории и ингредиенты будут заменены данными из резервной копии.")
+             .setNegativeButton("Отмена",null).setPositiveButton("Восстановить",(d,w)->{
+                try(InputStream in=getContentResolver().openInputStream(uri)){
+                    if(in==null)throw new Exception("Нет доступа к файлу");
+                    ByteArrayOutputStream out=new ByteArrayOutputStream();
+                    byte[] buf=new byte[4096];int n;
+                    while((n=in.read(buf))!=-1){
+                        if(out.size()+n>5*1024*1024)throw new Exception("Файл слишком большой");
+                        out.write(buf,0,n);
+                    }
+                    store.restore(out.toString("UTF-8"));Toast.makeText(this,"База восстановлена",Toast.LENGTH_LONG).show();home();
+                }catch(Exception e){
+                    new AlertDialog.Builder(this).setTitle("Ошибка восстановления").setMessage(e.getMessage()).setPositiveButton("Закрыть",null).show();
+                }
+             }).show();
+            return;
+        }
         if(req==SAVE_PDF&&pendingPdf!=null){
             try(OutputStream out=getContentResolver().openOutputStream(uri)){
                 if(out==null)throw new Exception("Нет доступа к файлу");out.write(pendingPdf);
@@ -429,6 +473,71 @@ public class MainActivity extends Activity {
                     .setNegativeButton("Закрыть",null).show();
             }catch(Exception ex){Toast.makeText(this,"Ошибка PDF: "+ex.getMessage(),Toast.LENGTH_LONG).show();}
         }
+    }
+    private void exportBackup(){
+        Intent in=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        in.setType("application/json");in.addCategory(Intent.CATEGORY_OPENABLE);
+        in.putExtra(Intent.EXTRA_TITLE,"FARUKH_TTK_PRO_backup.json");
+        startActivityForResult(in,SAVE_BACKUP);
+    }
+    private void importBackup(){
+        Intent in=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        in.setType("application/json");in.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(in,LOAD_BACKUP);
+    }
+    private void checkForUpdates(){
+        Toast.makeText(this,"Проверка обновлений…",Toast.LENGTH_SHORT).show();
+        new Thread(()->{
+            String error=null;JSONObject update=null;HttpURLConnection cn=null;
+            try{
+                cn=(HttpURLConnection)new URL(updateManifestUrl).openConnection();
+                cn.setConnectTimeout(8000);cn.setReadTimeout(8000);
+                cn.setRequestProperty("Accept","application/json");
+                if(cn.getResponseCode()!=200)throw new Exception("Сервер: "+cn.getResponseCode());
+                ByteArrayOutputStream out=new ByteArrayOutputStream();
+                try(InputStream in=cn.getInputStream()){
+                    byte[] buf=new byte[4096];int n;
+                    while((n=in.read(buf))!=-1){
+                        if(out.size()+n>20000)throw new Exception("Некорректный ответ сервера");
+                        out.write(buf,0,n);
+                    }
+                }
+                update=new JSONObject(out.toString("UTF-8"));
+                if(!"com.farukh.ttkpro.premium".equals(update.optString("packageId")))throw new Exception("Неправильный идентификатор пакета");
+            }catch(Exception e){error=e.getMessage();}
+            finally{if(cn!=null)cn.disconnect();}
+            final String message=error;
+            final JSONObject info=update;
+            runOnUiThread(()->{
+                if(message!=null){
+                    new AlertDialog.Builder(this).setTitle("Не удалось проверить обновления")
+                        .setMessage(message+"\\nТвои данные сохранены. Попробуй позже.")
+                        .setPositiveButton("Понятно",null).show();return;
+                }
+                int latest=info.optInt("versionCode",0);
+                int installed=4;
+                if(latest<=installed){
+                    new AlertDialog.Builder(this).setTitle("Обновлений нет")
+                        .setMessage("Установлена версия 0.4 Preview. Новые версии появятся после проверки и выпуска.")
+                        .setPositiveButton("Закрыть",null).show();
+                    return;
+                }
+                String url=info.optString("downloadUrl","");
+                String release=info.optString("versionName","новая");
+                String notes=info.optString("notes","");
+                if(!url.startsWith("https://")){
+                    new AlertDialog.Builder(this).setTitle("Обновление ожидает публикации")
+                      .setMessage("Новая версия "+release+" ещё не доступна для скачивания.")
+                      .setPositiveButton("Закрыть",null).show();
+                    return;
+                }
+                new AlertDialog.Builder(this).setTitle("Доступна версия "+release)
+                    .setMessage(notes+"\\nДанные сохранятся, если подписанный пакет соответствует установленному приложению.")
+                    .setNegativeButton("Позже",null).setPositiveButton("Скачать",(d,w)->{
+                        startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));
+                    }).show();
+            });
+        }).start();
     }
     private void sharePdf(Uri uri){
         Intent send=new Intent(Intent.ACTION_SEND);send.setType("application/pdf");
