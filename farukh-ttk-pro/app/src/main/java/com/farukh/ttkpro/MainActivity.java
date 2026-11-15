@@ -60,6 +60,9 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(DARK);getWindow().setNavigationBarColor(WHITE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         store=new TTKStore(this);home();
+        if(getIntent().getBooleanExtra("FARUKH_RUN_QA",false)){
+            new Thread(()->SmokeCheck.run(getApplicationContext(),store),"farukh-pdf-qa").start();
+        }
     }
     private int dp(float x){return (int)(getResources().getDisplayMetrics().density*x+.5f);}
     private GradientDrawable bg(int color,float radius){
@@ -477,10 +480,9 @@ public class MainActivity extends Activity {
             try(ParcelFileDescriptor fd=ParcelFileDescriptor.open(temp,ParcelFileDescriptor.MODE_READ_ONLY);
                 PdfRenderer renderer=new PdfRenderer(fd)){
                 if(renderer.getPageCount()!=1)throw new Exception("Ошибка PDF: документ должен содержать ровно один лист A4");
+                Matrix scale=new Matrix();scale.setScale(2f,2f);
                 try(PdfRenderer.Page page=renderer.openPage(0)){
-                    page.render(bitmap,null,new Matrix(){{
-                        postScale(2,2);
-                    }},PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                    page.render(bitmap,null,scale,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                 }
             }
             LinearLayout screen=vertical();
