@@ -336,9 +336,12 @@ export function fourTtkPdf(input){
   if(draw){
    doc.rect(0,0,595.28,841.89).fill('#FFFFFF');
    doc.rect(0,0,595.28,8*s).fill(layout==='premium-blue'?C.navy:C.band);
-   doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
+   if(!dense)doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
   }
-  y+=masthead(y,s,draw)+4*s;
+  // Dense ingredient catalogues use otherwise-empty 8–18pt top margin;
+  // this avoids sacrificing the existing minimum .74 A4 type scale.
+  if(dense)masthead(9*s,s,draw);
+  else y+=masthead(y,s,draw)+4*s;
   y+=header(y,s,draw)+(dense?3:8)*s;
   const half=(W-gap)/2;
   const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),
