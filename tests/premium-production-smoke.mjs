@@ -150,13 +150,25 @@ async function auditRoyal(page,tag,mobile,errors){
      layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
    await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
    await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
-   const designRequest=page.waitForRequest(req=>req.url().endsWith('/api/recipes/pdf')&&req.method()==='POST',{timeout:10000});
    await page.locator('#ttk-design-picker [data-ttk-layout="gold-allergen"]').click();
-   const received=await designRequest;
-   const designPayload=JSON.parse(received.postData()).recipe;
-   check(tag+' A4 gallery requests real printable PDF for the chosen layout',
-      designPayload.layoutTemplate==='gold-allergen'&&designPayload.name==='Филадельфия классик',
-      {layout:designPayload.layoutTemplate,name:designPayload.name});
+   const inlineState=await page.evaluate(()=>{
+     const live=document.querySelector('#ttk-live-page');
+     return {visible:!!live&&getComputedStyle(live).display!=='none',
+       layout:live?.dataset.ttkLayout,
+       name:!!live?.querySelector('[data-source="recipe-name"]'),
+       rows:live?.querySelectorAll('.ttk-live-ingredient-row').length,
+       allergens:live?.querySelectorAll('.ttk-live-allergen-row').length,
+       pdfHidden:document.querySelector('#ttk-real-a4-stage iframe')?.hidden};
+   });
+   check(tag+' four-layout choice opens directly editable actual TTK, not static PDF',
+     inlineState.visible&&inlineState.layout==='gold-allergen'&&inlineState.name&&
+     inlineState.rows>=1&&inlineState.allergens===8&&inlineState.pdfHidden,inlineState);
+   const originalApprover=await page.locator('#card-approver').inputValue();
+   await page.locator('#ttk-live-page [data-source="card-approver"]').fill('Тест А4 редактор');
+   check(tag+' typing directly on Premium A4 updates canonical recipe form',
+     await page.locator('#card-approver').inputValue()==='Тест А4 редактор',null);
+   await page.locator('#ttk-live-page [data-source="card-approver"]').fill(originalApprover);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-editable-a4.png',timeout:12000});
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
