@@ -99,7 +99,7 @@ export async function inspectSystemHealth({state, force = false} = {}) {
    google, backup, phone
   ],
   areas: {
-   home: local && server, projects: local, recipes: local,
+   home: local && server, projects: local, recipes: local, 'ultra-admin': local,
    preparations: local, lab: local, checks: local, tasks: local,
    calc: local, 'site-settings': local
   }
