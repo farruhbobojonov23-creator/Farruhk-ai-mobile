@@ -272,8 +272,8 @@ app.listen(PORT,'0.0.0.0',()=>{
  if(neonFnUrl.startsWith('https://'))setTimeout(async()=>{
   try{
    const r=await fetch(neonFnUrl,{signal:AbortSignal.timeout(15000)});
-   const safe=(await r.text()).slice(0,320).replace(/postgres(?:ql)?:\\/\\/[^\\s"]+/g,'[hidden]');
-   console.info('[print-cloud] Neon native probe',r.status,safe);
+   const probe=await r.json().catch(()=>({}));
+   console.info('[print-cloud] Neon native probe',r.status,JSON.stringify({ok:probe.ok,points:probe.points,neonConnected:probe.neonConnected,code:probe.error||null}).slice(0,220));
   }catch(err){console.warn('[print-cloud] Neon native probe unavailable',err.name||'error')}
  },1500);
 });
