@@ -382,7 +382,7 @@ function updateNutrition(){
 }
 function ingredient(i={}){
  const r=document.createElement('div');r.className='ingredient';r.recipePrice=i.price;r.dataset.nutritionId='nutrition-'+crypto.randomUUID();
- for(const [key,label] of [['name','Ингредиент'],['grossGrams','Брутто, г'],['grams','Нетто, г'],['lossPercent','Отходы, %']]){const labelEl=document.createElement('label');labelEl.textContent=label;const x=document.createElement('input');x.dataset.key=key;x.setAttribute('aria-label',label);if(key==='name')x.setAttribute('list','ttk-known-ingredients');x.value=i[key]??(key==='lossPercent'?(lossFromWeights(i.grossGrams,i.grams)??0):'');x.required=true;if(key==='grossGrams'){x.readOnly=true;x.title='Рассчитывается по нетто и проценту отходов'}if(key!=='name'){x.type='number';x.min=key==='grams'?'0.01':'0';x.max=key==='lossPercent'?'99.99':'10000000';x.step='any'}labelEl.append(x);r.append(labelEl)}
+ for(const [key,label] of [['name','Ингредиент'],['grossGrams','Брутто, г'],['grams','Нетто, г'],['lossPercent','Отходы, %']]){const labelEl=document.createElement('label');labelEl.textContent=label;const x=document.createElement('input');x.dataset.key=key;x.setAttribute('aria-label',label);if(key==='name')x.setAttribute('list','ttk-known-ingredients');x.value=i[key]??(key==='lossPercent'?(lossFromWeights(i.grossGrams,i.grams)??0):'');x.required=false;if(key==='grossGrams'){x.readOnly=true;x.title='Рассчитывается по нетто и проценту отходов'}if(key!=='name'){x.type='number';x.min=key==='grams'?'0.01':'0';x.max=key==='lossPercent'?'99.99':'10000000';x.step='any'}labelEl.append(x);r.append(labelEl)}
  // Decorative, accessible thumbnail for a premium ingredient card, without
  // changing its value, cost or nutrition calculations.
  const first=r.querySelector('label:first-child');
@@ -441,12 +441,18 @@ function ingredient(i={}){
  reuseKnownNutrition();
  const gross=r.querySelector('[data-key="grossGrams"]'),net=r.querySelector('[data-key="grams"]'),loss=r.querySelector('[data-key="lossPercent"]');
  function recalcGross(){gross.value=grossFromNet(net.value,loss.value)??'';gross.setCustomValidity('')}
- recalcGross();
+ function validateRow(){
+  const name=r.querySelector('[data-key="name"]').value;
+  const active=!!name.trim()||net.value!==''||gross.value!==''||
+    (loss.value!==''&&Number(loss.value)!==0);
+  for(const field of r.querySelectorAll('input[data-key]'))field.required=active;
+ }
+ recalcGross();validateRow();
  r.addEventListener('input',e=>{
   const key=e.target.dataset.key;
   if(key==='name'){title.textContent=e.target.value||'Новый ингредиент';first.dataset.ingredientIcon=ingredientIcon(e.target.value);reuseKnownNutrition()}
   if(['lossPercent','grams'].includes(key))recalcGross();
-  updateNutrition();
+  validateRow();updateNutrition();
  });const b=document.createElement('button');b.type='button';b.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v7M14 11v7M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>';b.setAttribute('aria-label','Убрать ингредиент');b.onclick=()=>{r.remove();n.remove();updateNutrition();queueIndividualText()};r.append(b);$('ingredients').append(r);updateNutrition();
 }
 $('nutrition-auto').onchange=updateNutrition;
