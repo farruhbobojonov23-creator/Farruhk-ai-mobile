@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#eef5f8">
+  <title>FARUKH PRINT Admin — структурный предпросмотр</title>
+  <!-- These are the EXACT SAME management styles used by Farukh AI. -->
+  <link rel="stylesheet" href="/print-control.css?v=18">
+  <link rel="stylesheet" href="/print-control-theme.css?v=1">
+  <style>
+    :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    .preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px max(18px, calc((100vw - 1160px) / 2)); background: #132439; color: #f9fcff; }
+    .preview-brand { font-size: 16px; font-weight: 850; letter-spacing: .02em; }
+    .preview-note { color: #d8edf5; font-size: 12px; }
+    .preview-banner { max-width: 1160px; margin: 22px auto 14px; padding: 14px 18px; border: 1px solid #d1dfea; border-radius: 14px; background: #e9f4ff; color: #37526d; font: 600 13px/1.55 Inter, system-ui, sans-serif; }
+    #print-control { padding: 8px 14px 40px; }
+    .preview-error { color: #b12948; padding: 20px; }
+    @media (max-width: 650px) { .preview-bar { padding: 14px 18px; } .preview-banner { margin: 12px 12px 10px; } }
+  </style>
+</head>
+<body data-view="print-control">
+  <header class="preview-bar">
+    <div class="preview-brand">FARUKH PRINT · ADMIN</div>
+    <div class="preview-note">Тестовая оболочка · без изменения рабочего Farukh AI и APK сотрудников</div>
+  </header>
+  <div class="preview-banner" role="status">
+    Предпросмотр существующего центра управления: разделы, карточки, шаблоны 58×40 и 30×20 и интерфейс сотрудников сохранены.
+    Публикация в рабочую базу и изменения доступов на этом этапе отключены.
+  </div>
+  <main id="print-control"><div id="print-control-root"><p role="status">Загружаю действующий интерфейс управления печатью…</p></div></main>
+  <script type="module">
+    // Safety: this preview cannot submit print-admin mutations to a live server.
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (input, init = {}) => {
+      const url = typeof input === 'string' ? input : input?.url || '';
+      const method = String(init.method || input?.method || 'GET').toUpperCase();
+      const target = new URL(url, location.href);
+      if (target.origin === location.origin && target.pathname.startsWith('/api/farukh-print/') && !['GET','HEAD','OPTIONS'].includes(method)) {
+        return Promise.resolve(new Response(JSON.stringify({error: 'Тестовый просмотр: изменения облачной базы и сотрудников отключены.'}), {
+          status: 403, headers: {'Content-Type': 'application/json'}
+        }));
+      }
+      return originalFetch(input, init);
+    };
+    const root = document.getElementById('print-control-root');
+    try {
+      const auth = await import('/owner-login.js?v=2');
+      await auth.requireOwner();
+      const [local, cloud, staff] = await Promise.all([
+        import('/print-control.js?v=27'),
+        import('/print-control-cloud.js?v=7'),
+        import('/print-control-staff.js?v=9'),
+        import('/farukh-print/photo-utils.js?v=2'),
+      ]).then(([local,cloud,staff])=>[local,cloud,staff]);
+      root.replaceChildren();
+      const control = local.mountPrintControl({root});
+      cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
+      staff.mountPrintStaffControl({root});
+      control.render();
+    } catch(error) {
+      console.error('Farukh Print Admin preview loading failed', error);
+      root.innerHTML = '';
+      const note = document.createElement('p');
+      note.className = 'preview-error';
+      note.textContent = 'Не удалось загрузить интерфейс управления: '+(error?.message || 'неизвестная ошибка');
+      root.append(note);
+    }
+  </script>
+</body>
+</html>
