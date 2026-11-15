@@ -1,6 +1,7 @@
 // FARUKH PRINT owner cloud — separate from FARUKH AI and production staff print.
 // Only one dashboard, one first-party login and Neon Auth verified JWT -> Neon Data API.
 import express from 'express';
+import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const app=express();app.enable('strict routing');app.disable('x-powered-by');app.set('trust proxy',1);
@@ -25,6 +26,82 @@ app.get('/cloud/',(_req,res)=>{
 });
 app.use('/cloud/assets',express.static(ROOT,{index:false,fallthrough:false,maxAge:600000}));
 app.get('/healthz',(_req,res)=>res.json({ok:true,service:'farukh-print-owner-cloud',authConfigured:OWNER.includes('@'),staffConnected:false,legacyEndpointsRemoved:true}));
+
+/* Temporary single-PIN owner entry, verified only on server.
+ * PIN hash, pepper and HMAC key are configured as Render secret env values.
+ * The PIN itself is never included in public JS or GitHub.
+ */
+const PIN_SALT=process.env.FARUKH_PRINT_PIN_SALT||'';
+const PIN_HASH=process.env.FARUKH_PRINT_PIN_HASH||'';
+const PIN_PEPPER=process.env.FARUKH_PRINT_PIN_PEPPER||'';
+const PIN_SESSION_KEY=process.env.FARUKH_PRINT_SESSION_KEY||'';
+const PIN_READY=PIN_SALT.length===32&&PIN_HASH.length===64&&PIN_PEPPER.length>=40&&PIN_SESSION_KEY.length>=40;
+const pinLimitByIP=new Map();let globalPinWindow={until:0,count:0};
+function pinCookie(res,value,age=1209600){
+ res.setHeader('Set-Cookie','fp_owner='+encodeURIComponent(value)+'; Path=/; Max-Age='+age+'; HttpOnly; Secure; SameSite=Lax');
+}
+function readPinCookie(req){
+ const raw=String(req.headers.cookie||'').split(';').find(s=>s.trim().startsWith('fp_owner='));
+ if(!raw)return '';
+ try{return decodeURIComponent(raw.trim().slice('fp_owner='.length))}catch{return ''}
+}
+const hmac=(value)=>crypto.createHmac('sha256',PIN_SESSION_KEY).update(value).digest('base64url');
+function safeEqual(a,b){
+ const x=Buffer.from(String(a)),y=Buffer.from(String(b));
+ return x.length===y.length&&crypto.timingSafeEqual(x,y);
+}
+function validPinSession(req){
+ if(!PIN_READY)return false;
+ const cookie=readPinCookie(req),point=cookie.lastIndexOf('.');
+ if(point<2)return false;
+ const message=cookie.slice(0,point),mac=cookie.slice(point+1);
+ if(!safeEqual(mac,hmac(message)))return false;
+ try{
+  const body=JSON.parse(Buffer.from(message,'base64url').toString('utf8'));
+  return body.kind==='owner-pin-v1'&&Number.isFinite(body.expires)&&Date.now()<body.expires;
+ }catch{return false}
+}
+function authPin(req,res,next){
+ if(!validPinSession(req))return res.status(401).json({ok:false,error:'Срок доступа истёк. Введи код ещё раз.'});
+ next();
+}
+function sameOrigin(req){return req.get('origin')==='https://farukh-print-cloud-test-20261115.onrender.com'}
+function pinThrottled(req){
+ const now=Date.now(),ip=String(req.ip||'unknown').slice(0,120);
+ if(pinLimitByIP.size>1200)pinLimitByIP.clear();
+ let rec=pinLimitByIP.get(ip);
+ if(!rec||now>rec.until)rec={count:0,until:now+900000};
+ if(now>globalPinWindow.until)globalPinWindow={until:now+900000,count:0};
+ if(rec.count>=5||globalPinWindow.count>=40)return true;
+ rec.count++;globalPinWindow.count++;pinLimitByIP.set(ip,rec);return false;
+}
+app.get('/api/owner/session',(req,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ res.json({ok:true,authorized:validPinSession(req),method:'pin',cloudConnected:false,staffConnected:false});
+});
+app.post('/api/owner/pin',(req,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ if(!sameOrigin(req))return res.status(403).json({ok:false,error:'Неверный адрес.'});
+ if(!PIN_READY)return res.status(503).json({ok:false,error:'Защита кода ещё не настроена.'});
+ if(pinThrottled(req))return res.status(429).json({ok:false,error:'Слишком много попыток. Подожди 15 минут.'});
+ const code=req.body?.pin;
+ if(typeof code!=='string'||!(/^[0-9]{5,12}$/).test(code))return res.status(401).json({ok:false,error:'Неверный код.'});
+ const computed=crypto.scryptSync(code+PIN_PEPPER,Buffer.from(PIN_SALT,'hex'),32,{N:16384,r:8,p:1,maxmem:64*1024*1024}).toString('hex');
+ if(!safeEqual(computed,PIN_HASH))return res.status(401).json({ok:false,error:'Неверный код.'});
+ const data=Buffer.from(JSON.stringify({kind:'owner-pin-v1',expires:Date.now()+1209600000})).toString('base64url');
+ pinCookie(res,data+'.'+hmac(data));pinLimitByIP.delete(String(req.ip||'unknown').slice(0,120));
+ res.json({ok:true,authorized:true,method:'pin'});
+});
+app.post('/api/owner/logout',(req,res)=>{
+ if(!sameOrigin(req))return res.status(403).json({ok:false,error:'Неверный адрес.'});
+ pinCookie(res,'',0);res.json({ok:true});
+});
+app.get('/api/owner/catalog-status',authPin,(_req,res)=>{
+ res.json({ok:true,staffConnected:false,connected:false,
+  productsStoredInNeon:110,photosStoredInNeon:110,
+  message:'Вход владельца активен. Прямой обмен с Neon ещё проходит проверку.'});
+});
+
 const METHODS=new Map([
  ['/get-session','GET'],['/token','GET'],['/sign-in/email','POST'],
  ['/request-password-reset','POST'],['/reset-password','POST'],
@@ -97,7 +174,7 @@ app.listen(PORT,'0.0.0.0',()=>{
  console.info('[farukh-print] minimal owner console live; staff production untouched');
  setTimeout(async()=>{
   try {
-   const result=await fetch('https://br-solitary-brook-baxakvoe-fpprobe.compute.c-8.eu-central-1.aws.neon.tech/',{signal:AbortSignal.timeout(14000)});
+   const result=await fetch('https://br-solitary-brook-baxakvoe-fpdbtest.compute.c-8.eu-central-1.aws.neon.tech/',{signal:AbortSignal.timeout(14000)});
    const raw=(await result.text()).slice(0,320);
    let data={};try{data=JSON.parse(raw)}catch{}
    console.info('[farukh-print] test-only Neon native query',JSON.stringify({status:result.status,type:result.headers.get('content-type'),ok:data.ok,stage:data.stage,products:data.products,excerpt:raw.slice(0,180)}));
