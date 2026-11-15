@@ -144,7 +144,7 @@ async function auditRoyal(page,tag,mobile,errors){
      fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
-     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>140})));
+     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>30})));
    check(tag+' My TTK editor offers exactly four new Premium allergen templates',
      layouts.length===4&&layouts.every(x=>x.visible)&&
      layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
@@ -163,11 +163,39 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' four-layout choice opens directly editable actual TTK, not static PDF',
      inlineState.visible&&inlineState.layout==='gold-allergen'&&inlineState.name&&
      inlineState.rows>=1&&inlineState.allergens===8&&inlineState.pdfHidden,inlineState);
+   const onePage=await page.evaluate(()=>{
+     const page=document.querySelector('#ttk-live-page');
+     const outer=page.getBoundingClientRect();
+     const stage=document.querySelector('#ttk-real-a4-stage').getBoundingClientRect();
+     const size={w:outer.width,h:outer.height,ratio:outer.height/outer.width,
+       fixedHeight:page.offsetHeight,zoom:getComputedStyle(page).zoom,
+       stageWidth:stage.width,screenHeight:innerHeight,
+       ingredients:[...page.querySelectorAll('.ttk-live-ingredient-row')].filter(x=>!x.hidden).length};
+     return size;
+   });
+   check(tag+' A4 sheet is one fixed portrait page, scaled to phone screen without vertical form',
+     onePage.fixedHeight===1123&&Math.abs(onePage.ratio-1123/794)<.03&&
+     onePage.w<=onePage.stageWidth+1&&
+     (mobile?onePage.h<onePage.screenHeight-165:true)&&onePage.ingredients<=5,onePage);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-one-portrait-A4.png',timeout:12000});
    const originalApprover=await page.locator('#card-approver').inputValue();
-   await page.locator('#ttk-live-page [data-source="card-approver"]').fill('Тест А4 редактор');
-   check(tag+' typing directly on Premium A4 updates canonical recipe form',
+   await page.locator('#ttk-live-page .ttk-live-signatures').click();
+   check(tag+' touching compact A4 opens full-sized editing dialog',
+     await page.locator('#ttk-onepage-dialog').evaluate(el=>el.open),null);
+   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill('Тест А4 редактор');
+   check(tag+' A4 dialog changes canonical TTK approver',
      await page.locator('#card-approver').inputValue()==='Тест А4 редактор',null);
-   await page.locator('#ttk-live-page [data-source="card-approver"]').fill(originalApprover);
+   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill(originalApprover);
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
+   await page.locator('#ttk-live-page .ttk-live-formula .ttk-live-section-head').click();
+   check(tag+' ingredient formula opens a proper editable ingredient list',
+     await page.locator('#ttk-onepage-dialog .ttk-onepage-product').count()>=1,null);
+   const amountBefore=await page.locator('#ingredients .ingredient').count();
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-add').click();
+   check(tag+' ingredient added through compact A4 persists in actual original form',
+     await page.locator('#ingredients .ingredient').count()===amountBefore+1,null);
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-product').last().locator('button').click();
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
    await page.screenshot({path:'artifacts/premium-'+tag+'-editable-a4.png',timeout:12000});
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
