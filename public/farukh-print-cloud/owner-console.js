@@ -55,7 +55,7 @@ async function ownerSession(){
  // RPC itself enforces owner identity and verified email.
  await cloud('cloud_status');
  authenticated=true;
- $('login').hidden=true;$('owner').hidden=false;
+ $('connecting').hidden=true;$('login').hidden=true;$('owner').hidden=false;
  await refresh();
  return true;
 }
@@ -178,11 +178,20 @@ async function start(){
  $('cloud-download').addEventListener('click',async()=>{try{const r=await cloud('catalog_read');dl('FARUKH_PRINT_NEON_'+new Date().toISOString().slice(0,10)+'.json',{format:r.format,products:r.products,revision:r.revision});note('✓ JSON Neon скачан.','good')}catch(e){note(e.message,'bad')}});
  $('cloud-backup').addEventListener('click',async()=>{if(!confirm('Создать резервную копию всего каталога в Neon?'))return;try{await cloud('snapshot_create',{snapshot_label:'Резервная копия владельца'});await refresh();note('✓ Резервная копия создана.','good')}catch(e){note(e.message,'bad')}});
  $('change-password').addEventListener('click',changePassword);
- if(new URL(location.href).searchParams.get('token')){$('recovery-panel').hidden=false;$('reset-panel').hidden=false;note('Установи новый пароль по полученной ссылке.')}
- else {
-  note('Проверяю действующий сеанс…');
-  try{if(!await ownerSession())note('Введи логин admin и пароль. Если пароль ещё не задан, нажми «Создать / восстановить пароль».')}
-  catch(e){note('Введи логин admin и пароль. Подключение: '+e.message)}
+ if(new URL(location.href).searchParams.get('token')){
+  $('connecting').hidden=true;$('login').hidden=false;
+  $('recovery-panel').hidden=false;$('reset-panel').hidden=false;
+  note('Установи новый пароль по полученной ссылке.');
+ }else{
+  try{
+   if(!await ownerSession()){
+    $('connecting').hidden=true;$('login').hidden=false;
+    note('Доступ на этом устройстве ещё не подтверждён. Для безопасности потребуется однократный вход. После него админка будет открываться автоматически.');
+   }
+  }catch(e){
+   $('connecting').hidden=true;$('login').hidden=false;
+   note('Автоматический вход не выполнен: '+e.message,'bad');
+  }
  }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
