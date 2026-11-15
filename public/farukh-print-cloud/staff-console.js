@@ -13,23 +13,37 @@ function el(tag,text,cls=''){const e=document.createElement(tag);if(text!==undef
 function line(root,text,cls){if(text===undefined||text===null||text==='')return;root.append(el('div',text,cls))}
 function dateText(d){return d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function label(p,fmt){
- const root=el('div',undefined,'print-sample '+(fmt==='30x20'?'f30':'f58'));
- root.append(el('div',p.name||'Без названия','title'));
- if(fmt==='58x40'){
-  line(root,p.composition?'Состав: '+p.composition:'Состав: не указан','small');
-  if(p.weight)line(root,'Масса нетто: '+p.weight+' '+(p.weightUnit||'г')+(p.tolerance?' ±'+p.tolerance+' г':''),'small');
-  const n=p.nutrition||{};
-  if(['kcal','p','f','c'].some(k=>n[k]!=null&&n[k]!=='')){
-   line(root,'КБЖУ (100 г): '+[n.kcal,n.p,n.f,n.c].map(x=>x??'—').join(' / '),'small');
-  }
+ // Original FARUKH PRINT monochrome print layout shared by preview and print.
+ const ready=fmt!=='30x20';
+ const root=el('div',undefined,'print-sample '+(ready?'f58':'f30'));
+ const fail=msg=>{root.dataset.error=msg;root.append(el('div','Эталон недоступен: '+msg,'label-preview-error'));return root};
+ const painter=ready?window.FarukhPremiumReady:window.FarukhPremiumPrep;
+ if(!painter||typeof painter.draw!=='function')return fail('не загружен оригинальный шаблон');
+ const n=p.nutrition||{};
+ if(ready){
+   if(!p.composition)return fail('нет состава');
+   if(p.weight===null||p.weight===undefined||p.weight==='')return fail('нет массы нетто');
+   if(p.tolerance===null||p.tolerance===undefined||p.tolerance==='')return fail('нет допуска массы');
+   if(['p','f','c','kcal'].some(k=>n[k]===undefined||n[k]===null||n[k]===''))
+     return fail('нет КБЖУ для утверждённого шаблона');
  }
- root.append(el('div',undefined,'line'));
- line(root,'Изготовлено: '+dateText(new Date()),'bottom');
- if(p.hours)line(root,'Годен до: '+dateText(new Date(Date.now()+Number(p.hours)*3600_000)),'bottom');
- else line(root,'Срок: не указан','bottom');
- line(root,'Хранить: '+(p.storage||'не указано'),'bottom');
+ const canvas=document.createElement('canvas');
+ canvas.width=ready?464:240;canvas.height=ready?320:160;
+ const data={name:p.name,kind:p.kind,category:p.category,composition:p.composition,
+   storage:p.storage,hours:p.hours,weight:p.weight,weightUnit:p.weightUnit,
+   tolerance:p.tolerance,p:n.p,f:n.f,c:n.c,kcal:n.kcal,prepEvent:p.prepEvent};
+ try{
+   const context=canvas.getContext('2d');
+   if(!context)return fail('браузер не поддерживает печатный холст');
+   painter.draw(context,data,Date.now());
+   const img=document.createElement('img');
+   img.alt='Печатная этикетка FARUKH PRINT '+(ready?'58 × 40':'30 × 20')+' мм';
+   img.src=canvas.toDataURL('image/png');
+   root.append(img);
+ }catch(err){return fail(err.message||'ошибка формирования этикетки')}
  return root;
 }
+
 function renderItem(){
  const p=items.find(i=>i.id===$('product').value);current=p||null;
  const fmt=$('format').value;
@@ -39,6 +53,7 @@ function renderItem(){
  $('sheet').className=x.className;
  $('sheet').replaceChildren(...Array.from(x.childNodes));
  const issues=[];
+ if(x.dataset.error)issues.push(x.dataset.error);
  if(!p.hours)issues.push('срок хранения');
  if(!p.storage)issues.push('условия хранения');
  if(fmt==='30x20'&&p.kind!=='prep')issues.push('30×20 только для ПФ');
