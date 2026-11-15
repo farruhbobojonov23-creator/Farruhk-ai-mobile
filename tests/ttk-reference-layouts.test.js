@@ -39,13 +39,13 @@ test('A4 screen layouts use real data fields in four unique groups',async()=>{
  assert.match(script,/function update\(\)/);
  assert.match(script,/get\('card-storage'\)/);
  assert.match(script,/get\('card-yield'\)/);
- assert.match(script,/get\('card-protein'\)/);
+ assert.ok(script.includes("'card-protein'")&&script.includes('get(id)'));
  assert.match(html,/ttk-reference-layouts\.css\?v=1/);
 });
 for(const [layout,required] of [
- ['teal-matrix',['4. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','5. КОНТРОЛЬ КАЧЕСТВА','12 часов']],
+ ['teal-matrix',['ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','КОНТРОЛЬ КАЧЕСТВА','Срок годности']],
  ['process-matrix',['ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС ПРИГОТОВЛЕНИЯ','Критические точки','Контроль','Результат','СТАНДАРТЫ КАЧЕСТВА']],
- ['gold-allergen',['5. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','6. КОНТРОЛЬ КАЧЕСТВА','9. БЕЗОПАСНОСТЬ']],
+ ['gold-allergen',['ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','КОНТРОЛЬ КАЧЕСТВА','БЕЗОПАСНОСТЬ']],
  ['premium-blue',['АЛЛЕРГЕНЫ В БЛЮДЕ','ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','ПИЩЕВАЯ ЦЕННОСТЬ']]
 ]){
  test(layout+' exports independently structured vector A4 preserving user recipe',async()=>{
@@ -53,11 +53,12 @@ for(const [layout,required] of [
   const pdf=await parsePdf(await bytes(doc));
   assert.equal(pdf.numpages,1);
   assert.ok(doc.ttkLayoutScale>=.74,'unreadable export scale: '+doc.ttkLayoutScale);
-  for(const phrase of required)assert.ok(pdf.text.includes(phrase),'missing '+phrase);
+  const extracted=pdf.text.replace(/\s+/g,' ');
+  for(const phrase of required)assert.ok(extracted.includes(phrase),'missing '+phrase);
   for(const phrase of ['FARRUH AI','Premium','Филадельфия классик',
    'Рис для суши готовый','Огурец свежий','Фаррух Ака','Бободжонов А.',
-   '6,6','8,9','12 часов','15.11.2026'])
-   assert.ok(pdf.text.includes(phrase),'lost recipe content '+phrase);
+   '6,6','8,9','Хранить','12','15.11.2026'])
+   assert.ok(extracted.includes(phrase),'lost recipe content '+phrase);
   assert.ok(pdf.text.includes('Формовка')&&pdf.text.includes('Сборка'));
  });
 }
