@@ -41,7 +41,7 @@ function build(){
  '<div class="ns-buttons"><button class="ns-primary" type="button" id="ns-google">Войти через Google</button><button type="button" id="ns-show-email">Войти по email</button></div>',
  '<div id="ns-email-panel" hidden><label>Email владельца</label><input id="ns-email" type="email" autocomplete="email" placeholder="Email Neon">',
  '<label>Пароль</label><input id="ns-password" type="password" autocomplete="current-password" placeholder="Пароль">',
- '<div class="ns-buttons"><button class="ns-primary" id="ns-login" type="button">Войти</button><button id="ns-reset" type="button">Установить / восстановить пароль</button><button id="ns-verify" type="button">Подтвердить email</button></div>',
+ '<div class="ns-buttons"><button class="ns-primary" id="ns-magic" type="button">✉ Получить ссылку для входа</button><button id="ns-login" type="button">Войти по паролю</button><button id="ns-reset" type="button">Установить / восстановить пароль</button><button id="ns-verify" type="button">Подтвердить email</button></div>',
  '<div id="ns-reset-panel" hidden><label>Новый пароль (от 12 символов)</label><input id="ns-newpass" type="password" autocomplete="new-password"><button id="ns-change-pass" type="button">Сохранить новый пароль</button></div>',
  '</div></div>',
  '<div id="ns-authed" hidden><div class="ns-cards"><div><b id="ns-products">—</b><small>Товары Neon</small></div><div><b id="ns-photos">—</b><small>Фото</small></div><div><b id="ns-revision">—</b><small>Ревизия</small></div><div><b>4</b><small>Точки</small></div></div>',
@@ -147,6 +147,12 @@ function bind(){
   $('ns-password').value='';
   if(!await loginState())throw Error('Сеанс не создан. Проверь подтверждение email.');
   await resumeSync();
+ });
+ $('ns-magic').onclick=()=>safeRun(async()=>{
+  const email=$('ns-email').value.trim();
+  if(!email)throw Error('Введи email аккаунта владельца Neon.');
+  await authReq('/sign-in/magic-link',{email,callbackURL:location.origin+location.pathname});
+  notify('✓ Ссылка для входа запрошена. Открой письмо и перейди по ссылке в течение 15 минут.',true);
  });
  $('ns-reset').onclick=()=>safeRun(async()=>{
   if(!$('ns-email').value)throw Error('Введи email.');
