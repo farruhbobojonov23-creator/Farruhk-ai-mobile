@@ -1,7 +1,7 @@
 // FARUKH PRINT owner cloud — separate from FARUKH AI and production staff print.
 // Only one dashboard, one first-party login and Neon Auth verified JWT -> Neon Data API.
 import express from 'express';
-import {jwks,selfCheck,signOwnerJWT} from './farukh-print-jwt.js';
+import {jwks,selfCheck} from './farukh-print-jwt.js';
 import {mountPrintNeonBridge} from './farukh-print-neon-proxy.js';
 import {mountPrintPgBridge, printPgSelfCheck} from './farukh-print-pg-cloud.js';
 import crypto from 'node:crypto';
@@ -137,33 +137,7 @@ app.use((_req,res)=>res.status(404).json({error:'Страница не найд�
 app.listen(PORT,'0.0.0.0',()=>{
  console.info('[farukh-print] PIN console live, pinConfigured='+PIN_READY+', staff gateway untouched');
  setTimeout(()=>void printPgSelfCheck(),700);
- setTimeout(async()=>{
-  try{const response=await fetch('https://br-solitary-brook-baxakvoe-fpcloudapi.compute.c-8.eu-central-1.aws.neon.tech/',{
-    headers:{Authorization:'Bearer '+GATEWAY},signal:AbortSignal.timeout(15000)});
-   const data=await response.json().catch(()=>({}));
-   console.info('[farukh-print] Neon FUNCTION SQL probe',JSON.stringify({status:response.status,ok:data.ok,products:data.products,error:data.error,type:data.type,serverReady:data.serverReady,headerReady:data.headerReady,gatewayReady:GATEWAY.length===64,dbPasswordPresent:data.dbPasswordPresent,hostValid:data.hostValid,sqlMessage:data.sqlMessage}));
-  }catch(e){console.warn('[farukh-print] Neon FUNCTION SQL probe unavailable',e.name||'error')}
- },2300);
+
 });
 
-// Temporary public metadata probe; no credentials or data returned.
-setTimeout(async()=>{
- try {
-  const res=await fetch('https://br-solitary-brook-baxakvoe-fpjwt.compute.c-8.eu-central-1.aws.neon.tech/probe',{signal:AbortSignal.timeout(15000)});
-  const data=await res.json().catch(()=>({}));
-  console.info('[farukh-print] pg runtime check',JSON.stringify({status:res.status,ok:data.ok,pgAvailable:data.pgAvailable,pgError:data.pgError,dbHostIsNeon:data.dbHostIsNeon,dbHasPassword:data.dbHasPassword}));
- }catch(e){console.warn('[farukh-print] pg runtime check unavailable',e.name||'error')}
-},2500);
 
-setTimeout(async()=>{
- try{
-  if(!selfCheck())throw Error('invalid-owner-jwt-key');
-  const token=signOwnerJWT();
-  const url='https://ep-polished-frost-baf2s4dg.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1/rpc/cloud_status';
-  const result=await fetch(url,{method:'POST',redirect:'error',signal:AbortSignal.timeout(17000),
-   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','Content-Profile':'farukh_print_api','Accept-Profile':'farukh_print_api'},
-   body:'{}'});
-  const body=await result.json().catch(()=>({}));
-  console.info('[farukh-print] PIN JWT Neon Data API staging check',JSON.stringify({http:result.status,ok:body.ok,products:body.products??null,code:body.code||null}));
- }catch(e){console.warn('[farukh-print] staging JWT check unavailable',e.name||'error')}
-},2600);
