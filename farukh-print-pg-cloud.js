@@ -20,14 +20,14 @@ function positiveInt(v){
 }
 function short(v,max){return String(v??'').trim().slice(0,max);}
 async function stats(db=pool){
-  const q=await db.query(\`SELECT
+  const q=await db.query(`SELECT
     (SELECT count(*)::int FROM farukh_print.products WHERE active) products,
     (SELECT count(*)::int FROM farukh_print.product_photos ph JOIN farukh_print.products p ON p.id=ph.product_id WHERE p.active) photos,
     (SELECT count(*)::int FROM farukh_print.locations WHERE active) locations,
     (SELECT count(*)::int FROM farukh_print.staff_accounts WHERE status='active') employees,
     (SELECT count(*)::int FROM farukh_print.devices WHERE status='approved') devices,
     (SELECT count(*)::int FROM farukh_print.catalog_backups) backups,
-    (SELECT coalesce(max(id),0)::bigint FROM farukh_print.catalog_revisions) revision\`);
+    (SELECT coalesce(max(id),0)::bigint FROM farukh_print.catalog_revisions) revision`);
   return q.rows[0];
 }
 export async function printPgSelfCheck(){
@@ -49,12 +49,12 @@ export function mountPrintPgBridge(app,authPin){
         return res.json({ok:true,cloudConnected:true,target:process.env.FARUKH_PRINT_PG_TARGET||'unspecified',staffConnected:false,...await stats()});
       }
       if(req.method==='GET'&&route==='/catalog'){
-        const q=await pool.query(\`SELECT p.id,p.kind,p.name,p.category,p.composition,p.storage,
+        const q=await pool.query(`SELECT p.id,p.kind,p.name,p.category,p.composition,p.storage,
           p.shelf_life_hours AS hours,p.needs_review AS "needsReview",p.updated_at AS "updatedAt",
           (ph.product_id IS NOT NULL) AS "hasPhoto"
           FROM farukh_print.products p
           LEFT JOIN farukh_print.product_photos ph ON ph.product_id=p.id
-          WHERE p.active ORDER BY p.name,p.id\`);
+          WHERE p.active ORDER BY p.name,p.id`);
         return res.json({ok:true,products:q.rows});
       }
       if(req.method==='GET'&&route.startsWith('/photo/')){
@@ -97,21 +97,21 @@ export function mountPrintPgBridge(app,authPin){
             return res.status(409).json({ok:false,conflict:true,error:'Карточка уже изменена в облаке. Обнови список перед повторным сохранением.'});
           }
           const patch={name,kind,category:category||'',composition:composition||'',storage:storage||'',hours,needsReview:true};
-          const q=await client.query(\`UPDATE farukh_print.products SET name=$2,kind=$3,category=$4,
+          const q=await client.query(`UPDATE farukh_print.products SET name=$2,kind=$3,category=$4,
              composition=$5,storage=$6,shelf_life_hours=$7,needs_review=true,
              approved_for_print=false,payload=payload||$8::jsonb,
              updated_at=date_trunc('milliseconds',clock_timestamp())
-             WHERE id=$1 RETURNING updated_at\`,[
+             WHERE id=$1 RETURNING updated_at`,[
               id,name,kind,category,composition,storage,hours,JSON.stringify(patch)
           ]);
-          const totals=await client.query(\`SELECT count(*)::int total,
+          const totals=await client.query(`SELECT count(*)::int total,
              count(*) FILTER(WHERE kind='ready')::int ready,
              count(*) FILTER(WHERE kind='prep')::int prep
-             FROM farukh_print.products WHERE active\`);
+             FROM farukh_print.products WHERE active`);
           const n=totals.rows[0];
-          await client.query(\`INSERT INTO farukh_print.catalog_revisions
+          await client.query(`INSERT INTO farukh_print.catalog_revisions
              (source,products_count,ready_count,prep_count,note)
-             VALUES ('owner-web-save',$1,$2,$3,'Owner panel saved to private Neon PostgreSQL')\`,[n.total,n.ready,n.prep]);
+             VALUES ('owner-web-save',$1,$2,$3,'Owner panel saved to private Neon PostgreSQL')`,[n.total,n.ready,n.prep]);
           await client.query('COMMIT');
           return res.json({ok:true,id,updatedAt:q.rows[0].updated_at,cloudSaved:true});
         }catch(e){await client.query('ROLLBACK').catch(()=>{});return failure(res,e)}
