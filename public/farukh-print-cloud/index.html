@@ -12,6 +12,26 @@ label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width
 .footer{text-align:center;font-size:11px;color:var(--muted);margin-top:36px}
 [hidden]{display:none!important}
 @media(max-width:580px){.wrap{padding:17px 13px}.panel{padding:19px}header{align-items:flex-start;flex-wrap:wrap}.badge{margin-left:64px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:26px}}
+
+.editor{margin-top:18px}
+.edit-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.edit-toolbar input{flex:1 1 200px}
+.edit-toolbar select{flex:0 1 170px}
+.edit-layout{display:grid;grid-template-columns:minmax(220px,290px) minmax(0,1fr);gap:14px}
+.product-list{height:520px;max-height:65vh;overflow:auto;border:1px solid var(--border);border-radius:13px;background:#0c193a;padding:6px}
+.product-line{display:flex;gap:9px;width:100%;text-align:left;padding:9px;margin:2px 0;border:1px solid transparent;background:transparent;border-radius:10px}
+.product-line.active{border-color:#5ecedc;background:#173e62}
+.product-line .thumb{width:43px;height:43px;flex:0 0 auto;object-fit:contain;border-radius:8px;background:#273963}
+.product-line strong{display:block;font-size:12px;font-weight:800}
+.product-line small{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+#edit-form{background:#0c193a;border:1px solid var(--border);border-radius:14px;padding:16px}
+#edit-form input,#edit-form textarea,#edit-form select,.edit-toolbar input,.edit-toolbar select{width:100%;padding:11px 12px;border-radius:10px;background:var(--input);color:var(--ink);border:1px solid var(--border);font:500 14px system-ui;letter-spacing:normal}
+#edit-form textarea{min-height:90px;resize:vertical}
+#edit-form label{margin:11px 0 5px}
+#edit-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#edit-form .preview{max-width:125px;max-height:105px;object-fit:contain;display:block;margin:5px auto}
+#edit-form #cloud-save-note{margin:12px 0}
+@media(max-width:670px){.edit-layout{grid-template-columns:1fr}.product-list{height:200px;max-height:200px}.edit-toolbar select{flex:1 1 120px}#edit-form .two{grid-template-columns:1fr 1fr}}
 </style></head>
 <body><div class="wrap">
 <header><div class="brand"><div class="logo" aria-hidden="true">▤</div><div><strong>FARUKH <b>PRINT</b></strong><small>Облачная панель владельца</small></div></div><span class="badge">NEON CLOUD · ТЕСТ</span></header>
@@ -22,15 +42,54 @@ label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width
 <button class="primary" id="enter" type="submit" style="width:100%;margin-top:17px">Открыть админку</button></form>
 <div class="status" id="login-note" role="status" aria-live="polite">Доступ защищён. Для безопасности число попыток ограничено.</div>
 </section>
-<section id="dashboard" hidden><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><span class="overline">ВЛАДЕЛЕЦ · ВХОД ПОДТВЕРЖДЁН</span><h1>Панель FARUKH PRINT</h1></div><button type="button" id="logout">Выйти</button></div>
-<div id="owner-note" class="status" role="status" aria-live="polite" data-type="good">Код принят. Доступ владельца действует на этом устройстве.</div>
-<div class="grid"><div class="stat"><strong>110</strong><small>Товары в Neon (сверены)</small></div><div class="stat"><strong>110</strong><small>Фото в Neon (сверены)</small></div><div class="stat"><strong>4</strong><small>Зарегистрированные точки</small></div></div>
-<h2>Состояние системы</h2>
-<div class="row"><span>Вход по коду</span><strong class="pill">✓ Работает</strong></div>
-<div class="row"><span>Копия товаров и фото в Neon</span><strong class="pill">✓ Создана</strong></div>
-<div class="row"><span>Живое редактирование каталога</span><strong class="pill off">Ожидает подключения API</strong></div>
-<div class="row"><span>Сотрудники и рабочие принтеры</span><strong class="pill off">Не подключены</strong></div>
-<p>Счётчики выше подтверждены по базе Neon, но здесь пока не являются результатом живого чтения API. Изменять товары из этой панели до подключения API нельзя — исходная база сохранена.</p>
-</div></section>
+<section id="dashboard" hidden>
+<div class="panel">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+  <div><span class="overline">ВЛАДЕЛЕЦ · ОБЛАЧНЫЙ КАТАЛОГ</span><h1>FARUKH PRINT</h1></div>
+  <button type="button" id="logout">Выйти</button>
+ </div>
+ <div id="owner-note" class="status" role="status" aria-live="polite">Проверяю связь с Neon…</div>
+ <div class="grid">
+  <div class="stat"><strong id="stat-products">—</strong><small>Товары в Neon</small></div>
+  <div class="stat"><strong id="stat-photos">—</strong><small>Фотографии</small></div>
+  <div class="stat"><strong id="stat-locations">—</strong><small>Торговые точки</small></div>
+ </div>
+ <h2>Состояние системы</h2>
+ <div class="row"><span>Вход по коду</span><strong class="pill">✓ Работает</strong></div>
+ <div class="row"><span>Каталог и автосохранение</span><strong id="db-state" class="pill off">Проверяю</strong></div>
+ <div class="row"><span>Сотрудники и принтеры</span><strong class="pill off">Пока не подключены</strong></div>
+ <p>Карточки редактируются в облаке Neon. Рабочая система печати пока отдельно, изменения в ней автоматически не появляются.</p>
+</div>
+<div class="panel editor">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+  <div><span class="overline">НЕПОСРЕДСТВЕННО В ОБЛАКЕ</span><h2>Каталог товаров</h2></div>
+  <button type="button" id="reload">Обновить каталог</button>
+ </div>
+ <div class="edit-toolbar">
+  <input id="product-search" type="search" placeholder="Найти товар по названию…" aria-label="Поиск товара">
+  <select id="product-kind" aria-label="Тип товара"><option value="all">Все товары</option><option value="ready">Готовые</option><option value="prep">Полуфабрикаты</option></select>
+ </div>
+ <div class="edit-layout">
+  <div id="product-list" class="product-list" role="list" aria-label="Список товаров"><p>Загружаю каталог…</p></div>
+  <form id="edit-form" hidden>
+   <div class="overline">КАРТОЧКА ТОВАРА</div>
+   <img id="product-photo" class="preview" alt="Фотография товара" hidden>
+   <label for="field-name">Название</label><input id="field-name" maxlength="90" required>
+   <div class="two">
+    <div><label for="field-kind">Тип</label><select id="field-kind"><option value="ready">Готовый</option><option value="prep">Полуфабрикат</option></select></div>
+    <div><label for="field-category">Категория</label><input id="field-category" maxlength="120"></div>
+   </div>
+   <label for="field-composition">Состав</label><textarea id="field-composition" maxlength="600" rows="3"></textarea>
+   <div class="two">
+    <div><label for="field-storage">Условия хранения</label><input id="field-storage" maxlength="60" placeholder="+2…+6 °C"></div>
+    <div><label for="field-hours">Срок хранения (часы)</label><input id="field-hours" type="number" min="1" max="8760" step="1" placeholder="12"></div>
+   </div>
+   <div id="cloud-save-note" class="status" data-type="good" role="status" aria-live="polite">Выбери товар для редактирования</div>
+   <button type="submit" id="save-now" class="primary" style="width:100%">Сохранить сейчас</button>
+   <p>После изменения поля карточка автоматически сохраняется в Neon. Дождись зелёной отметки «Сохранено в облаке».</p>
+  </form>
+ </div>
+</div>
+</section>
 </main><div class="footer">FARUKH PRINT · 110 товаров сохранены · Действующая система печати не затронута</div>
-</div><script type="module" src="/cloud/assets/owner-console.js?v=3"></script></body></html>
+</div><script type="module" src="/cloud/assets/owner-console.js?v=4"></script></body></html>
