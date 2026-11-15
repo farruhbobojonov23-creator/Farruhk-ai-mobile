@@ -570,6 +570,8 @@ async function run(theme,width,height){
    check(tag+' selecting Premium Blue changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
    if(theme==='crystal'&&mobile){
+    // The design showroom is read-only; switch to original editable fields first.
+    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
     // Upload/delete use the same photo handlers as the original editor.
     const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
     await page.locator('#recipe-photo-file').setInputFiles({name:'dish.png',mimeType:'image/png',buffer:tinyPng});
