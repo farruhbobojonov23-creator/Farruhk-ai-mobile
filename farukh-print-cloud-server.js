@@ -122,6 +122,65 @@ app.get('/neon-probe',async(_req,res)=>{
   res.status(503).json({ok:false,error:'Neon function not reachable'});
  }
 });
+// First-party Neon Auth bridge; does not expose PostgreSQL secrets or staff production routes.
+// All browser auth cookies remain HttpOnly on the Cloud test origin.
+const authBaseUrl='https://ep-small-forest-basx2akr.neonauth.c-8.eu-central-1.aws.neon.tech/farukh_print/auth';
+const authOwnerEmail=String(process.env.FARUKH_PRINT_OWNER_EMAIL||'');
+const authSite='https://farukh-print-cloud-test-20261115.onrender.com';
+const allowedAuthMethods=new Map([
+ ['/get-session','GET'],['/token','GET'],['/sign-in/email','POST'],
+ ['/request-password-reset','POST'],['/reset-password','POST'],
+ ['/change-password','POST'],['/sign-out','POST']
+]);
+app.use('/owner-auth',async(req,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ if(req.get('host')!=='farukh-print-cloud-test-20261115.onrender.com')return res.status(421).json({error:'Неправильный адрес сервиса.'});
+ const rest=req.path.replace(/\\/g,'/');
+ if(allowedAuthMethods.get(rest)!==req.method)return res.status(404).json({error:'Нет такого действия.'});
+ if(!authOwnerEmail.includes('@'))return res.status(503).json({error:'Учетная запись владельца пока не настроена на сервере.'});
+ if(req.method==='POST'){
+  if(req.get('origin')!==authSite)return res.status(403).json({error:'Неверное происхождение запроса.'});
+  if(!req.is('application/json'))return res.status(415).json({error:'Нужен JSON.'});
+ }
+ let body=req.body&&typeof req.body==='object'?{...req.body}:{};
+ if(rest==='/sign-in/email'){
+  if(body.login!=='admin'||typeof body.password!=='string'||body.password.length<8||body.password.length>128)
+   return res.status(401).json({error:'Неверный логин или пароль.'});
+  body={email:authOwnerEmail,password:body.password};
+ }
+ if(rest==='/request-password-reset')body={email:authOwnerEmail,redirectTo:authSite+'/cloud/'};
+ if(rest==='/change-password'){
+  if(typeof body.currentPassword!=='string'||typeof body.newPassword!=='string'||body.newPassword.length<12)
+   return res.status(400).json({error:'Нужен текущий и новый пароль от 12 символов.'});
+  body={currentPassword:body.currentPassword,newPassword:body.newPassword,revokeOtherSessions:true};
+ }
+ if(rest==='/reset-password'){
+  if(typeof body.newPassword!=='string'||body.newPassword.length<12||!body.token)
+   return res.status(400).json({error:'Неверный код восстановления или пароль.'});
+  body={token:String(body.token),newPassword:body.newPassword};
+ }
+ const upstreamHeaders={'Accept':'application/json','Origin':authSite,'Referer':authSite+'/cloud/'};
+ if(req.headers.cookie)upstreamHeaders['Cookie']=String(req.headers.cookie);
+ if(req.method==='POST')upstreamHeaders['Content-Type']='application/json';
+ try{
+  const response=await fetch(authBaseUrl+rest,{
+   method:req.method,headers:upstreamHeaders,body:req.method==='POST'?JSON.stringify(body):undefined,
+   redirect:'manual',signal:AbortSignal.timeout(16000)
+  });
+  const contentType=response.headers.get('content-type')||'';
+  const raw=await response.text();
+  if(!contentType.includes('json')||raw.length>300000)throw Error('bad_auth_upstream');
+  const cookies=response.headers.getSetCookie?.()||[];
+  for(const v of cookies){
+   const cookie=v.replace(/;\\s*Domain=[^;]*/gi,'').replace(/;\\s*Path=[^;]*/gi,'').replace(/;\\s*SameSite=[^;]*/gi,'');
+   res.append('Set-Cookie',cookie+'; Path=/owner-auth; Secure; HttpOnly; SameSite=Lax');
+  }
+  res.status(response.status).type('application/json').send(raw);
+ }catch(err){
+  console.error('[farukh-print] auth bridge unavailable',err.name||'error');
+  res.status(503).json({error:'Сервис проверки пароля временно недоступен.'});
+ }
+});
 app.get('/neon-security-check',async(_req,res)=>{
  const url='https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1/rpc/cloud_status';
  try{
