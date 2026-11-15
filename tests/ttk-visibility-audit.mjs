@@ -123,9 +123,11 @@ for(const [kind,width,height] of [['android',393,851],['desktop',1365,915]]){
  await ctx.close();
 }
 await fs.writeFile('artifacts/ttk-visibility-audit.json',JSON.stringify(results,null,2));
-const findings=results.filter(x=>x.scenario==='stress-editing'&&
+const findings=results.filter(x=>
+ (x.scenario==='errors'&&x.messages?.length)||
+ (x.scenario==='stress-editing'&&
  (x.issues?.length||!x.scroller?.safetyVisible||!x.scroller?.nameFull||!x.scroller?.scopeSynced||
-  x.scroller?.clippedVisibleTextareas?.length));
+  x.scroller?.clippedVisibleTextareas?.length)));
 if(findings.length)process.exitCode=1;
 for(const result of results){
  console.log('TTK_QA',result.device,result.scenario,result.layout||'',
