@@ -26,8 +26,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Embed offline sushi photography
-        run: bash embed-food-photos.sh
+        run: |
+          bash embed-food-photos.sh
+          python -m pip install --quiet Pillow
+          python clean-food-photos.py
+          test "$(find app/src/main/assets/food -name '*.webp' | wc -l)" -eq 11
       - name: Build test APK
         run: gradle :app:assembleDebug --no-daemon
       - name: Enable KVM access
