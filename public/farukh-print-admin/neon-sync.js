@@ -38,7 +38,7 @@ function build(){
  '<p>110 товаров и 110 фотографий сохранены в независимой базе Neon. Вход защищён проверкой владельца. Печать сотрудников не затронута.</p>',
  '<div class="ns-notice" id="ns-status" role="status" aria-live="polite">Проверяю авторизацию…</div>',
  '<div id="ns-guest">',
- '<div class="ns-buttons"><button class="ns-primary" type="button" id="ns-google">Войти через Google</button><button type="button" id="ns-show-email">Войти по email</button></div>',
+ '<div class="ns-buttons"><button class="ns-primary" type="button" id="ns-google">Войти через Google</button><button type="button" id="ns-show-email">Войти по email</button><button type="button" id="ns-check-login">↻ Проверить вход</button></div>',
  '<div id="ns-email-panel" hidden><label>Email владельца</label><input id="ns-email" type="email" autocomplete="email" placeholder="Email Neon">',
  '<label>Пароль</label><input id="ns-password" type="password" autocomplete="current-password" placeholder="Пароль">',
  '<div class="ns-buttons"><button class="ns-primary" id="ns-magic" type="button">✉ Получить ссылку для входа</button><button id="ns-login" type="button">Войти по паролю</button><button id="ns-reset" type="button">Установить / восстановить пароль</button><button id="ns-verify" type="button">Подтвердить email</button></div>',
@@ -137,11 +137,18 @@ function onLocalChange(){
 }
 function bind(){
  $('ns-google').onclick=()=>safeRun(async()=>{
+  notify('Открываю защищённый вход Neon через Google…');
+  try{sessionStorage.setItem('fp-google-login-attempt',String(Date.now()))}catch{}
   const x=await authReq('/sign-in/social',{provider:'google',callbackURL:location.origin+location.pathname});
   if(typeof x.url!=='string'||!x.url.startsWith('https://'))throw Error('Google вход недоступен.');
   location.assign(x.url);
  });
  $('ns-show-email').onclick=()=>$('ns-email-panel').hidden=!$('ns-email-panel').hidden;
+ $('ns-check-login').onclick=()=>safeRun(async()=>{
+  notify('Проверяю сессию Neon…');
+  if(await loginState()){await resumeSync();try{sessionStorage.removeItem('fp-google-login-attempt')}catch{}}
+  else notify('⚠ Вход подтверждён на сервере Neon, но этот браузер не показывает сессию. Открой ссылку на админку во внешнем Google Chrome и войди там. Если всё ещё не работает, пришли скриншот.'); 
+ });
  $('ns-login').onclick=()=>safeRun(async()=>{
   await authReq('/sign-in/email',{email:$('ns-email').value,password:$('ns-password').value});
   $('ns-password').value='';
@@ -199,7 +206,12 @@ async function init(){
  build();bind();
  try{
   if(await loginState())await resumeSync();
-  else notify('● Neon работает. Войди через Google аккаунтом владельца, чтобы подключить редактирование.');
+  else {
+   const started=Number(sessionStorage.getItem('fp-google-login-attempt')||0);
+   if(started&&Date.now()-started<20*60*1000)
+    notify('⚠ После входа через Google браузер не передал сессию в админку. Нажми «Проверить вход». Если экран не изменится, открой сайт во внешнем Chrome (встроенный браузер может блокировать cookies).');
+   else notify('● Neon работает. Войди через Google аккаунтом владельца, чтобы подключить редактирование.');
+  }
  }catch(e){notify('Проверка входа: '+e.message)}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
