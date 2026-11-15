@@ -72,7 +72,7 @@
  color:#22413e!important;
 }
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-ingredient-head {
- grid-template-columns:1.66fr .72fr .7fr .72fr 17px!important;
+ grid-template-columns:23px minmax(0,1.65fr) .72fr .70fr .72fr 17px!important;
  font-size:10.1px!important;font-weight:800!important;
 }
 #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-ingredient-row .ttk-live-ingredient-input{
