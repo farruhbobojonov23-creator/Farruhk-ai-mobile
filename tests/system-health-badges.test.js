@@ -18,3 +18,12 @@ test('dashboard checks live data instead of fake green', () => {
   assert.ok(dashboard.includes('inspectSystemHealth({state,force})'));
   assert.ok(!dashboard.includes('Google: состояние подключения здесь не проверено'));
 });
+
+test('badges show symbols only and retain accessible descriptions', () => {
+  assert.ok(health.includes("level === 'ok' ? '✓' : level === 'error' ? '!' : '?'"));
+  assert.ok(health.includes("badge.textContent !== icon"));
+  assert.ok(health.includes("badge.setAttribute('aria-label', explanation)"));
+  assert.ok(health.includes("badge.setAttribute('role','img')"));
+  assert.ok(health.includes("width:22px;height:22px"));
+  assert.ok(!health.includes("badge.textContent !== message"));
+});
