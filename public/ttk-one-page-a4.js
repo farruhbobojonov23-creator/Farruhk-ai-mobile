@@ -220,10 +220,13 @@ export function mountOnePageA4(editor,stage,live){
   const width=Math.max(190,Math.min(rect.width-padding,shellRect.width-2));
   const mobile=window.innerWidth<=760;
   // Keep both A4 height and chooser within the mobile viewport.
-  const chooser=stage.querySelector('#ttk-design-picker')?.getBoundingClientRect().height||72;
-  const controls=stage.querySelector('.ttk-live-actions')?.getBoundingClientRect().height||48;
-  const margin=mobile?172:140;
-  const spare=Math.max(250,window.innerHeight-margin-chooser-controls);
+  const chooser=stage.querySelector('#ttk-design-picker')?.getBoundingClientRect().height||44;
+  const controls=stage.querySelector('.ttk-live-actions')?.getBoundingClientRect().height||38;
+  const bar=stage.querySelector('.ttk-onepage-topbar')?.getBoundingClientRect().height||35;
+  // Fit inside the ACTUAL fixed preview region, not the entire document;
+  // leave room for header, four compact tabs, save/print actions and gutters.
+  const available=stage.clientHeight-bar-chooser-controls-30;
+  const spare=Math.max(160,Math.min(window.innerHeight-(mobile?155:135),available));
   const ratio=Math.max(.20,Math.min(1,width/794,spare/1123));
   page.style.setProperty('--ttk-onepage-zoom',String(ratio));
   page.dataset.ttkScale=ratio.toFixed(3);
