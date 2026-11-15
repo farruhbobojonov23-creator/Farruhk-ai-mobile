@@ -198,7 +198,7 @@ export function fourTtkPdf(input){
  // Structure follows the actual reference images; data still comes solely
  // from the user's recipe, never the example "Филадельфия" in the sample art.
  function referenceSteps(){
-  const forming=safe(r.forming||r.technology),parts=forming.split(/(?<=[.!?])\\s+/).filter(Boolean);
+  const forming=safe(r.forming||r.technology),parts=forming.split(/(?<=[.!?])\s+/).filter(Boolean);
   const at=Math.ceil(parts.length/2);
   return [['Подготовка',safe(r.preparation)],['Формовка',parts.slice(0,at).join(' ')||'—'],
    ['Сборка',parts.slice(at).join(' ')||'—'],['Нарезка и подача',safe(r.serving)]];
@@ -219,7 +219,7 @@ export function fourTtkPdf(input){
    x,y,w,s,draw,{ratios:[.34,.66]});
  }
  function referenceStorage(x,y,w,s,draw){
-  const raw=safe(r.storage),term=raw.match(/\\b\\d+(?:[.,]\\d+)?\\s*(?:час(?:а|ов)?|ч\\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)\\b/i)?.[0]||'Не указан';
+  const raw=safe(r.storage),term=raw.match(/\b\d+(?:[.,]\d+)?\s*(?:час(?:а|ов)?|ч\.?|сут(?:ок|ки)?|дн(?:ей|я)?|день)\b/i)?.[0]||'Не указан';
   return box(layout==='process-matrix'?'УСЛОВИЯ ХРАНЕНИЯ':
     layout==='premium-blue'?'УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ':
     layout==='gold-allergen'?'7. УСЛОВИЯ ХРАНЕНИЯ':'6. УСЛОВИЯ ХРАНЕНИЯ И РЕАЛИЗАЦИИ',
@@ -233,7 +233,7 @@ export function fourTtkPdf(input){
   return Math.max(leftH,rightH);
  }
  function haccpReference(x,y,w,s,draw){
-  const sentences=safe(r.safety).split(/(?<=[.!?;])\\s+/).filter(Boolean);
+  const sentences=safe(r.safety).split(/(?<=[.!?;])\s+/).filter(Boolean);
   const items=[['Критические точки',sentences[0]||'—'],
    ['Контроль',sentences[1]||'—'],['Результат',sentences.slice(2).join(' ')||'—']];
   const header=cardTitle('БЕЗОПАСНОСТЬ (ХАССП)',x,y,w,s,false);
@@ -470,7 +470,7 @@ export function fourTtkPdf(input){
    txt(who,x+8*s,y+4*s,signW-16*s,6.9*s,true,C.navy,true);
    txt(safe(name),x+8*s,y+14*s,signW-16*s,8*s,true,C.text,true);
    const printedDate=String(r.cardDate||'');
-   const ruDate=/^\\d{4}-\\d{2}-\\d{2}$/.test(printedDate)?
+   const ruDate=/^\d{4}-\d{2}-\d{2}$/.test(printedDate)?
     printedDate.slice(8)+'.'+printedDate.slice(5,7)+'.'+printedDate.slice(0,4):printedDate;
    txt('Подпись __________   Дата '+(ruDate||'__________'),x+8*s,y+26*s,
     signW-16*s,5.5*s,false,C.text,true);
