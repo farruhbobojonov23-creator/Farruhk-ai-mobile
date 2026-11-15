@@ -2,7 +2,7 @@
  * All values are proxied into the ORIGINAL form elements. No duplicated
  * recipe persistence, formulas, attachments or approval state.
  */
-import {recipeAllergenMatrix} from './ttk-allergens.js?v=2';
+import {recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=2';
 import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=1';
 const node=(tag,cls,text)=>{
  const n=document.createElement(tag);
@@ -143,6 +143,28 @@ export function mountInlineTtkPage(editor){
  formula.append(ingredientHead,rows,add,yieldBand);
  const allergens=section(null,'МАТРИЦА АЛЛЕРГЕНОВ','ttk-live-allergens');
  const allergenRows=node('div','ttk-live-allergen-rows');allergens.append(allergenRows);
+ // A click on a gold tick changes that allergen on the sheet itself.
+ // The check remains preliminary until the ingredient labels are verified.
+ const toggleAllergen=id=>{
+  if(!id)return;
+  let overrides={};
+  try{overrides=validAllergenOverrides(JSON.parse(editor.dataset.allergenOverrides||'{}'))}catch{}
+  const marker=allergenRows.querySelector('[data-allergen-id="'+id+'"]');
+  const current=marker?.getAttribute('aria-checked')==='true';
+  overrides[id]=!current;
+  editor.dataset.allergenOverrides=JSON.stringify(overrides);
+  editor.dispatchEvent(new Event('input',{bubbles:true}));
+  refreshComputed();
+ };
+ allergenRows.addEventListener('click',event=>{
+  const checkbox=event.target.closest('[data-allergen-id]');
+  if(checkbox)toggleAllergen(checkbox.dataset.allergenId);
+ });
+ allergenRows.addEventListener('keydown',event=>{
+  if(event.key!=='Enter'&&event.key!==' ')return;
+  const checkbox=event.target.closest('[data-allergen-id]');
+  if(checkbox){event.preventDefault();toggleAllergen(checkbox.dataset.allergenId);}
+ });
  allergens.append(node('small','ttk-live-allergen-info','Предварительные отметки по ингредиентам; необходимо сверять этикетки.'));
  const recipePair=node('div','ttk-live-row ttk-live-recipe-pair');recipePair.append(formula,allergens);
  const process=section(4,'ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ','ttk-live-process');
@@ -178,7 +200,7 @@ export function mountInlineTtkPage(editor){
    'Нормативная основа: действующие санитарные правила и технические регламенты. Данные и аллергены проверяют до утверждения.');
  const lower=node('div','ttk-live-lower');lower.append(process,qualityPair,safety,signs,regulatory);
  page.append(masthead,title,name,meta,introPair,recipePair,lower);
- const status=node('p','ttk-live-edit-status','Нажимайте на поля непосредственно в выбранном шаблоне. Все изменения идут в настоящую ТТК.');
+ const status=node('p','ttk-live-edit-status','Нажмите на текст прямо в ТТК, чтобы ввести данные. Для удобства лист увеличится; отдельное окно не откроется.');
  status.setAttribute('role','status');
  const tools=node('div','ttk-live-actions');
  const save=node('button','ttk-live-save','✓ Сохранить ТТК');
@@ -273,6 +295,10 @@ export function mountInlineTtkPage(editor){
    const entry=node('div','ttk-live-allergen-row');
    const marker=node('strong','ttk-live-allergen-box',group.checked?'✓':group.possible?'?':'');
    marker.dataset.state=group.checked?'present':group.possible?'possible':'absent';
+   marker.dataset.allergenId=group.id;
+   marker.tabIndex=0;marker.setAttribute('role','checkbox');
+   marker.setAttribute('aria-checked',String(group.checked));
+   marker.setAttribute('aria-label',group.label+' — предварительная отметка аллергена');
    marker.title=group.manual?'Отметка вручную: требуется проверка по этикетке':group.checked?'Предположительно присутствует':group.possible?'Возможно присутствие':'Не найдено по названию ингредиентов, проверь состав';
    entry.append(node('span','',group.label),marker);return entry;
   }));
