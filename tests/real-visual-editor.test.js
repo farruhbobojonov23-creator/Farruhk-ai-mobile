@@ -27,7 +27,7 @@ test('real editing controls are wired to live DOM, reversible and stored',()=>{
   "Сбросить все изменения","CSS.escape(root.id)"]){
   assert.ok(editor.includes(token),'Missing editing behavior: '+token);
  }
- assert.match(editor,/Нажмите на элемент/);
+ assert.match(editor,/Коснитесь элемента/);
  assert.doesNotMatch(editor,/eval\(/);
 });
 test('the visual editor does not edit recipe forms or printed documents',()=>{
