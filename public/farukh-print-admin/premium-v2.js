@@ -25,6 +25,7 @@ const NAV=[
 ];
 const make=(tag,cl)=>{const n=document.createElement(tag);if(cl)n.className=cl;return n};
 function productCount(){
+ if(Number.isSafeInteger(window.FARUKH_PRINT_NEON_COUNT))return window.FARUKH_PRINT_NEON_COUNT;
  try{
   const value=JSON.parse(localStorage.getItem('farukh-print:catalog:v1')||'[]');
   return Array.isArray(value)?value.filter(x=>x&&['ready','prep'].includes(x.kind)).length:0;
