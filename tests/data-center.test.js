@@ -62,7 +62,7 @@ test('mobile hub has responsive safe-area bounds and no duplicate quick buttons'
 test('My Data and its connection dialogs use one black/gold premium theme',()=>{
  assert.match(html,/\/data-center-premium\.css\?v=4/);
  assert.ok(html.indexOf('/data-center-premium.css?v=4')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
- assert.match(html,/\/recipe-google\.js\?v=16/);
+ assert.match(html,/\/recipe-google\.js\?v=17/);
  assert.match(google,/dialog\.className='category-dialog data-center-subdialog'/);
  assert.match(google,/archiveDialog\.className='category-dialog data-center-subdialog'/);
  assert.match(premium,/dialog#data-center-dialog\.data-center-dialog/);
