@@ -101,3 +101,9 @@ body{min-height:100vh}
 .connected-four{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:0}
 .connected-advanced input,.connected-advanced select{padding:10px}
 @media(max-width:680px){.connected-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.connected-demo-note{max-width:1160px;margin:10px auto;padding:12px 16px;line-height:1.5;font:600 12px Inter,system-ui,sans-serif;
+ border-radius:13px;border:1px solid #43c7df;background:linear-gradient(105deg,#112e59,#274978);
+ color:#f3ffff;box-shadow:0 8px 24px #10204b44}
+.connected-demo-note b{letter-spacing:.04em;color:#71f5ef}
+@media(max-width:650px){.connected-demo-note{margin:10px 12px}}
