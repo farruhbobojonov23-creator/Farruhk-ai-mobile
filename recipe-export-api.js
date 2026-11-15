@@ -22,8 +22,11 @@ export function installRecipeExportApi(app,{request=fetch}={}){
   try{
    const {endpoint,key,action,digest}=req.body||{};
    if(!validGoogleEndpoint(endpoint)||typeof key!=='string'||key.length<24||key.length>200)return res.status(400).json({error:'Проверь адрес подключения Google и ключ.'});
-   if(!['check','sync','ensureProject'].includes(action))return res.status(400).json({error:'Неизвестное действие Google.'});
+   if(!['check','sync','ensureProject','deleteRecipe'].includes(action))return res.status(400).json({error:'Неизвестное действие Google.'});
    const recipe=action==='sync'?recipeFrom(req.body?.recipe):null;
+   const recipeId=action==='deleteRecipe'?req.body?.recipeId:null;
+   if(action==='deleteRecipe'&&(typeof recipeId!=='string'||!/^[-a-zA-Z0-9_]{1,160}$/.test(recipeId)))
+    return res.status(400).json({error:'Неверный идентификатор удаляемой ТТК.'});
    const projectId=String(recipe?.projectId||req.body?.projectId||'').trim().slice(0,100);
    const projectName=String(req.body?.projectName||recipe?.projectName||'').trim().slice(0,120);
    if(recipe&&recipe.status!=='ready')return res.status(400).json({error:'В Google передаются только готовые ТТК.'});
@@ -43,7 +46,7 @@ export function installRecipeExportApi(app,{request=fetch}={}){
     if(bytes.length>3*1024*1024)throw Error('PDF ТТК превышает лимит синхронизации.');
     pdfBase64=bytes.toString('base64');
    }
-   const payload={key,action,digest,projectId,projectName,...(recipe?recipeSections(recipe):{}),...(pdfBase64?{pdfBase64,pdfPageCount:1}: {})};
+   const payload={key,action,digest,projectId,projectName,...(recipeId?{recipeId}:{}),...(recipe?recipeSections(recipe):{}),...(pdfBase64?{pdfBase64,pdfPageCount:1}: {})};
    const response=await request(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(100000),redirect:'follow'});
    if(!response.ok)throw Error('Google временно недоступен. Сохранённая ТТК осталась на устройстве.');
    const result=await response.json();
@@ -59,6 +62,11 @@ export function installRecipeExportApi(app,{request=fetch}={}){
    if(action==='ensureProject'&&(!isGoogleDocUrl(result.documentUrl)||!isGoogleDriveFolderUrl(result.folderUrl)))
     throw Error('Google не подтвердил папку и документ проекта. Обновите развертывание Apps Script «Farukh AI ТТК» по инструкции /google-ttk-setup.html.');
    if(recipe&&(result.recipeId!==recipe.id||result.digest!==digest))throw Error('Google не подтвердил версию ТТК.');
+   if(action==='deleteRecipe'){
+    if(result.recipeId!==recipeId||typeof result.deleted!=='boolean'||typeof result.found!=='boolean')
+     throw Error('Google не подтвердил удаление выбранной ТТК. Опубликуйте актуальную версию Google Apps Script.');
+    return res.json({ok:true,recipeId,deleted:result.deleted,found:result.found,tabDeleted:!!result.tabDeleted,pdfTrashed:!!result.pdfTrashed});
+   }
    res.json({ok:true,recipeId:result.recipeId,digest:result.digest,projectId:result.projectId,
     documentUrl:result.documentUrl,folderUrl:result.folderUrl,tabId:result.tabId,
     pdfUrl:result.pdfUrl||null,pdfReady:!!result.pdfUrl});
