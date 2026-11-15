@@ -10,7 +10,7 @@ async function api(path,payload){
  if(!r.ok||data.ok===false)throw Error(data.error||'Ошибка соединения: '+r.status);
  return data;
 }
-function show(which){for(const x of ['loading','entry','dashboard'])$(x).hidden=x!==which;}
+function show(which){for(const x of ['loading','entry','dashboard'])$(x).hidden=x!==which;if(which==='dashboard')window.dispatchEvent(new Event('owner-ready'));}
 function note(text,type=''){$('login-note').textContent=text;$('login-note').dataset.type=type;}
 function ownerNote(text,type=''){$('owner-note').textContent=text;$('owner-note').dataset.type=type;}
 function saveNote(text,type=''){$('cloud-save-note').textContent=text;$('cloud-save-note').dataset.type=type;}
