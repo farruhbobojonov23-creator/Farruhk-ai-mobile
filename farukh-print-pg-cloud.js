@@ -2,6 +2,7 @@
 // Credentials exist only as Render environment secrets; all routes require the
 // validated owner PIN session. Production printing and FARUKH AI are untouched.
 import {Pool} from 'pg';
+import crypto from 'node:crypto';
 
 const url=String(process.env.FARUKH_PRINT_PG_URL||'');
 const pool=url?new Pool({
@@ -71,6 +72,80 @@ export function mountPrintPgBridge(app,authPin){
         if(/^https:\/\/[^@\s]+$/.test(p.external_url||''))return res.redirect(302,p.external_url);
         return res.status(404).end();
       }
+
+      // DEMO ONLY. New mutation routes refuse any environment not tagged DEMO.
+      const isDemo=String(process.env.FARUKH_PRINT_PG_TARGET||'').startsWith('DEMO');
+      if(req.method==='GET'&&route==='/archive'){
+        if(!isDemo)return res.status(403).json({ok:false,error:'Архив доступен только в тестовой копии.'});
+        const q=await pool.query('SELECT id,name,kind,updated_at AS "updatedAt" FROM farukh_print.products WHERE NOT active ORDER BY updated_at DESC LIMIT 150');
+        return res.json({ok:true,products:q.rows});
+      }
+      if(req.method==='POST'&&route==='/create'){
+        if(!isDemo)return res.status(403).json({ok:false,error:'Создание товаров доступно только в тестовой копии.'});
+        const b=req.body||{},name=short(b.name,91),kind=b.kind;
+        if(!name||name.length>90||!['ready','prep'].includes(kind))return res.status(400).json({ok:false,error:'Проверь название и тип товара.'});
+        const id='fpdemo-'+crypto.randomUUID(),client=await pool.connect();
+        try{
+          await client.query('BEGIN');
+          const q=await client.query("INSERT INTO farukh_print.products (id,name,kind,category,composition,storage,shelf_life_hours,net_weight,weight_unit,tolerance,nutrition,payload,active,needs_review,approved_for_print) VALUES ($1,$2,$3,NULL,NULL,NULL,NULL,NULL,'г',NULL,'{}'::jsonb,$4::jsonb,true,true,false) RETURNING id,updated_at",[id,name,kind,JSON.stringify({source:'neon-premium-demo',name,kind})]);
+          const counts=await client.query("SELECT count(*)::int all_count,count(*) FILTER(WHERE kind='ready')::int ready,count(*) FILTER(WHERE kind='prep')::int prep FROM farukh_print.products WHERE active");
+          const n=counts.rows[0];
+          await client.query("INSERT INTO farukh_print.catalog_revisions(source,products_count,ready_count,prep_count,note) VALUES ('demo-owner-create',$1,$2,$3,'New demo item created from Premium V2')",[n.all_count,n.ready,n.prep]);
+          await client.query('COMMIT');
+          return res.json({ok:true,id,updatedAt:q.rows[0].updated_at,cloudSaved:true});
+        }catch(e){await client.query('ROLLBACK').catch(()=>{});return failure(res,e)}
+        finally{client.release()}
+      }
+      if(req.method==='POST'&&['/archive','/restore'].includes(route)){
+        if(!isDemo)return res.status(403).json({ok:false,error:'Управление архивом только в тестовой копии.'});
+        const b=req.body||{},id=String(b.id||'');
+        if(id.length>128||!/^[\w-]+$/.test(id))return res.status(400).json({ok:false,error:'Неверный код товара.'});
+        const restore=route==='/restore',client=await pool.connect();
+        try{
+          await client.query('BEGIN');
+          const q=await client.query("UPDATE farukh_print.products SET active=$2,needs_review=true,approved_for_print=false,updated_at=date_trunc('milliseconds',clock_timestamp()) WHERE id=$1 AND active<>$2 RETURNING id",[id,restore]);
+          if(!q.rows.length){await client.query('ROLLBACK');return res.status(409).json({ok:false,error:'Товар отсутствует или уже изменён. Обнови список.'})}
+          const counts=await client.query("SELECT count(*)::int all_count,count(*) FILTER(WHERE kind='ready')::int ready,count(*) FILTER(WHERE kind='prep')::int prep FROM farukh_print.products WHERE active");
+          const n=counts.rows[0];
+          await client.query("INSERT INTO farukh_print.catalog_revisions(source,products_count,ready_count,prep_count,note) VALUES ($1,$2,$3,$4,$5)",[restore?'demo-owner-restore':'demo-owner-archive',n.all_count,n.ready,n.prep,'Owner changed demo catalog; production Neon main unchanged']);
+          await client.query('COMMIT');
+          return res.json({ok:true,id,archived:!restore});
+        }catch(e){await client.query('ROLLBACK').catch(()=>{});return failure(res,e)}
+        finally{client.release()}
+      }
+      if(req.method==='POST'&&route==='/photo-upload'){
+        if(!isDemo)return res.status(403).json({ok:false,error:'Замена фото разрешена только в тестовой копии.'});
+        const b=req.body||{},id=String(b.id||''),mime=String(b.mime||''),raw=String(b.base64||'');
+        if(id.length>128||!/^[\w-]+$/.test(id)||
+          !['image/png','image/jpeg','image/webp'].includes(mime)||
+          raw.length>1850000||raw.length<100||!/^[-A-Za-z0-9+/]+={0,2}$/.test(raw))
+          return res.status(400).json({ok:false,error:'Выбери фото PNG, JPG или WebP до 1,35 МБ.'});
+        const data=Buffer.from(raw,'base64');
+        const valid=mime==='image/png'?data.subarray(0,8).toString('hex')==='89504e470d0a1a0a':
+          mime==='image/jpeg'?data.subarray(0,3).toString('hex')==='ffd8ff':
+          data.subarray(0,4).toString('ascii')==='RIFF'&&data.subarray(8,12).toString('ascii')==='WEBP';
+        if(!valid||data.length>1350000||data.length<24)return res.status(400).json({ok:false,error:'Некорректное или слишком большое изображение.'});
+        const sha=crypto.createHash('sha256').update(data).digest('hex');
+        const client=await pool.connect();
+        try{
+          await client.query('BEGIN');
+          const row=await client.query("SELECT id FROM farukh_print.products WHERE id=$1 AND active FOR UPDATE",[id]);
+          if(!row.rows.length){await client.query('ROLLBACK');return res.status(404).json({ok:false,error:'Товар не найден.'})}
+          const photoSql=[
+            'INSERT INTO farukh_print.product_photos',
+            '(product_id,mime_type,image_data,external_url,sha256,byte_size,updated_at)',
+            'VALUES($1,$2,$3,NULL,$4,$5,now()) ON CONFLICT(product_id) DO UPDATE SET',
+            'mime_type=EXCLUDED.mime_type,image_data=EXCLUDED.image_data,external_url=NULL,',
+            'sha256=EXCLUDED.sha256,byte_size=EXCLUDED.byte_size,updated_at=now()'
+          ].join(' ');
+          await client.query(photoSql,[id,mime,data,sha,data.length]);
+          await client.query("UPDATE farukh_print.products SET approved_for_print=false,needs_review=true,updated_at=date_trunc('milliseconds',clock_timestamp()) WHERE id=$1",[id]);
+          await client.query('COMMIT');
+          return res.json({ok:true,id,hasPhoto:true,bytes:data.length});
+        }catch(e){await client.query('ROLLBACK').catch(()=>{});return failure(res,e)}
+        finally{client.release()}
+      }
+
       if(req.method==='POST'&&route==='/save'){
         const b=req.body;
         if(!b||typeof b!=='object'||Array.isArray(b))
