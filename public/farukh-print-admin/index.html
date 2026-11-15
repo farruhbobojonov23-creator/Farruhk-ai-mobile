@@ -1,4 +1,344 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<meta http-equiv="refresh" content="1;url=https://farukh-print-cloud-test-20261115.onrender.com/cloud/"><title>FARUKH PRINT — Панель владельца</title>
-<style>body{min-height:100vh;margin:0;display:grid;place-items:center;background:#0c1535;color:#f1f7ff;font:15px/1.5 system-ui,sans-serif}main{max-width:540px;background:#192751;border:1px solid #3f6491;border-radius:22px;padding:30px;text-align:center;margin:15px}h1{font-size:27px}p{color:#afc6e9}a{display:inline-block;background:linear-gradient(110deg,#50e6eb,#a1b4ff);border-radius:11px;padding:13px 20px;color:#0c2346;text-decoration:none;font-weight:850}</style></head>
-<body><main><h1>☁ FARUKH PRINT</h1><p>Лишние демонстрационные кнопки убраны. Админка перенесена на единый адрес с входом владельца по логину и паролю.</p><a href="https://farukh-print-cloud-test-20261115.onrender.com/cloud/">Открыть панель владельца</a><p><small>110 товаров и фотографии сохранены в Neon. Приложения сотрудников не изменены.</small></p></main></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#eef5f8">
+  <title>FARUKH PRINT Admin — Neon Premium V2</title>
+  <!-- These are the EXACT SAME management styles used by Farukh AI. -->
+  <link rel="stylesheet" href="/print-control.css?v=18">
+  <link rel="stylesheet" href="/print-control-theme.css?v=1">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-themes.css?v=3">
+  <link rel="stylesheet" href="/farukh-print-admin/premium-v2.css?v=1">
+  <style>
+    :root { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: #25333f; background: #f5f8fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    .preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px max(18px, calc((100vw - 1160px) / 2)); background: #132439; color: #f9fcff; }
+    .preview-brand { font-size: 16px; font-weight: 850; letter-spacing: .02em; }
+    .preview-note { color: #d8edf5; font-size: 12px; }
+    .preview-banner { max-width: 1160px; margin: 22px auto 14px; padding: 14px 18px; border: 1px solid #d1dfea; border-radius: 14px; background: #e9f4ff; color: #37526d; font: 600 13px/1.55 Inter, system-ui, sans-serif; }
+    #print-control { padding: 8px 14px 40px; }
+    .preview-error { color: #b12948; padding: 20px; }
+    @media (max-width: 650px) { .preview-bar { padding: 14px 18px; } .preview-banner { margin: 12px 12px 10px; } }
+  
+    .migration-panel{max-width:1160px;margin:0 auto 18px;padding:22px;border:1px solid var(--pf-line);border-radius:22px;background:var(--pf-card-grad);color:var(--pf-ink);box-shadow:var(--pf-shadow)}
+    .migration-panel-top{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .migration-panel h2{color:var(--pf-ink);font-size:clamp(18px,3vw,25px);margin:5px 0 9px}
+    .migration-panel p{color:var(--pf-muted);font-size:12px;line-height:1.65;margin:6px 0 10px}
+    .migration-badge,.migration-wait{display:inline-block;background:var(--pf-soft-accent);color:var(--pf-accent);border:1px solid var(--pf-line);border-radius:99px;padding:8px 11px;font-size:11px;font-weight:800}
+    .migration-badge{white-space:nowrap}
+    .migration-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .migration-step{padding:16px;background:var(--pf-raised);border:1px solid var(--pf-line);border-radius:16px;min-width:0}
+    .migration-step strong{font-size:13px;line-height:1.4;display:block}
+    .migration-action{display:inline-flex;justify-content:center;align-items:center;padding:10px 13px;min-height:40px;background:var(--pf-accent);color:var(--pf-on-accent);border:0;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+    .migration-success,.migration-error{padding:9px;border-radius:10px;margin-top:12px!important;background:var(--pf-soft-accent)}
+    .migration-error{color:#f26e86!important}
+    .migration-disclaimer{margin-bottom:0!important}
+    .migration-import-button{margin-top:12px;background:linear-gradient(120deg,var(--pf-accent),var(--pf-glow));color:var(--pf-on-accent)}
+    .migration-import-button[hidden]{display:none!important}
+    @media(max-width:700px){.migration-steps{grid-template-columns:1fr}.migration-panel{margin:0 12px 15px;padding:15px}.migration-badge{display:none}}
+
+  </style>
+</head>
+<body data-view="print-control" data-pf-theme="preview" data-admin-theme="neon" data-admin-page="catalog">
+
+  <header class="preview-bar">
+    <div class="preview-brand-wrap">
+      <div class="preview-brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3.5" width="16" height="8" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="4" y="10.5" width="24" height="15" rx="3" stroke="currentColor" stroke-width="2"/><rect x="8" y="19" width="16" height="9.5" rx="1.5" fill="currentColor"/><path d="M12 23h8" stroke="#13243A" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="15" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div><div class="preview-brand">Farukh Print <b>Admin</b></div>
+      <div class="preview-note">Управляющий центр печати и этикеток</div></div>
+    </div>
+    <span class="preview-mode">Neon Cloud · тестовая версия</span>
+  </header>
+  <section class="premium-switcher" aria-labelledby="premium-title">
+    <div class="premium-top">
+      <div><span class="premium-eyebrow">PREMIUM DESIGN STUDIO</span><h2 id="premium-title">Выбери дизайн</h2></div>
+      <p class="premium-hint" id="premium-description">Переключение моментальное · выбор сохранится на этом устройстве</p>
+    </div>
+    <div class="premium-options" role="radiogroup" aria-label="Цветовая тема Farukh Print Admin" aria-describedby="premium-description">
+      <button type="button" role="radio" class="premium-option" data-theme="beige" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Luxury Beige</span><span class="premium-option-sub">Светлый · медный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="gold" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Black Gold</span><span class="premium-option-sub">Чёрный · золотой</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="emerald" aria-checked="true"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">White Emerald</span><span class="premium-option-sub">Белый · изумрудный</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+      <button type="button" role="radio" class="premium-option" data-theme="neon" aria-checked="false"><span class="premium-swatch" aria-hidden="true"></span><span class="premium-option-text"><span class="premium-option-title">Neon Premium</span><span class="premium-option-sub">Тёмный · неоновый</span></span><span class="premium-selected" aria-hidden="true">✓</span></button>
+    </div>
+  </section>
+  <script>
+    (() => {
+      const key='farukh-print-admin:theme:v1';
+      const allowed=['beige','gold','emerald','neon'];
+      const buttons=Array.from(document.querySelectorAll('.premium-option'));
+      const choose=(name,focus=false)=>{
+        if(!allowed.includes(name))name='emerald';
+        document.body.dataset.adminTheme=name;
+        buttons.forEach(button=>{
+          const selected=button.dataset.theme===name;
+          button.setAttribute('aria-checked',String(selected));
+          button.tabIndex=selected?0:-1;
+          if(selected&&focus)button.focus();
+        });
+        try{localStorage.setItem(key,name)}catch{}
+      };
+      let saved=null;try{saved=localStorage.getItem(key)}catch{}
+      choose(saved||'neon');
+      buttons.forEach((button,i)=>{
+        button.addEventListener('click',()=>choose(button.dataset.theme));
+        button.addEventListener('keydown',event=>{
+          if(!['ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+          event.preventDefault();
+          const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
+            (i+((event.key==='ArrowRight'||event.key==='ArrowDown')?1:-1)+buttons.length)%buttons.length;
+          choose(buttons[next].dataset.theme,true);
+        });
+      });
+    })();
+  </script>
+
+  <section class="migration-panel" aria-labelledby="migration-panel-title">
+    <div class="migration-panel-top">
+      <div><span class="premium-eyebrow">ПЕРЕНОС БАЗЫ · ЭТАП 1 ИЗ 3</span>
+      <h2 id="migration-panel-title">Подключаем настоящие товары</h2>
+      <p>Сначала сохраним и проверим резервную копию. Работающие телефоны сотрудников не затрагиваем.</p></div>
+      <span class="migration-badge">Безопасная проверка</span>
+    </div>
+    <div class="migration-steps">
+      <div class="migration-step"><strong>① Скачать JSON из действующего Farukh AI</strong>
+        <p>В разделе Farukh Print выбери «Копии и настройки» → «Скачать базу JSON». Не удаляй и не заменяй текущую базу.</p>
+        <a href="https://farruhk-ai-mobile.onrender.com/" target="_blank" rel="noopener noreferrer" class="migration-action">Открыть Farukh AI ↗</a>
+      </div>
+      <div class="migration-step"><strong>② Проверить резервную копию</strong>
+        <p>Проверка выполняется в памяти браузера: файл не отправляется в облако и не сохраняется на сервере.</p>
+        <button class="migration-action" type="button" id="migration-export">↓ Скачать текущие товары для Neon</button>
+        <div id="migration-export-result" role="status" aria-live="polite"></div>
+        <p>Файл должен содержать именно актуальные 110 товаров. Копия сохраняется на телефоне и никуда автоматически не отправляется.</p>
+        <button class="migration-action" type="button" id="migration-choose">Проверить JSON-файл</button>
+        <input id="migration-file" type="file" accept=".json,application/json" hidden>
+        <div id="migration-check-result" role="status" aria-live="polite"></div>
+        <button class="migration-action migration-import-button" type="button" id="migration-import" hidden>✓ Импортировать в тестовую админку</button>
+      </div>
+      <div class="migration-step"><strong>③ Перенести в отдельное облако</strong>
+        <p>110 товаров, 110 фотографий и 1 резервная копия перенесены в отдельную базу Neon 15.11.2026. Сверка исходного файла: 110/110, без расхождений. Подключение защищённого API к этой админке и синхронизация сотрудников пока не завершены.</p>
+        <a class="migration-action" href="https://farukh-print-cloud-test-20261115.onrender.com/cloud/" target="_blank" rel="noopener noreferrer">Открыть Farukh Print Cloud ↗</a>
+        <p class="migration-wait">✓ База Neon: данные перенесены. ⏳ API и синхронизация: ожидают подключения.</p>
+      </div>
+    </div>
+    <p class="migration-disclaimer">JSON каталога не содержит все учётные данные сотрудников. Их перенос проверим отдельно; текущие логины и печать не меняем.</p>
+  </section>
+  <script>
+  (() => {
+    const input=document.getElementById('migration-file');
+    const btn=document.getElementById('migration-choose');
+    const importBtn=document.getElementById('migration-import');
+    let checkedCopy=null;
+    importBtn.addEventListener('click',()=>{
+      if(!checkedCopy)return;
+      const doImport=window.FarukhPrintAdminImportCatalog;
+      if(typeof doImport!=='function'){
+        say('Редактор ещё не загрузился. Обнови страницу и повтори.',true);return;
+      }
+      try{
+        const done=doImport(checkedCopy);
+        if(!done?.ok)return;
+        checkedCopy=null;importBtn.hidden=true;
+        say('✓ Импортировано '+done.count+' товаров только в эту тестовую админку. Рабочая печать и облако не изменились.');
+        window.FarukhPrintAdminPremiumV2?.refresh();
+        window.FarukhPrintAdminPremiumV2?.navigate('catalog');
+      }catch(error){say('Импорт не выполнен: '+(error?.message||'ошибка данных'),true)}
+    });
+    const result=document.getElementById('migration-check-result');
+    const say=(message,isError=false)=>{
+      const p=document.createElement('p');p.className=isError?'migration-error':'migration-success';
+      p.textContent=message;result.replaceChildren(p);
+    };
+    const exportButton=document.getElementById('migration-export');
+    const exportResult=document.getElementById('migration-export-result');
+    exportButton.addEventListener('click',()=>{
+      exportResult.replaceChildren();
+      const notify=(message,isError)=>{
+        const item=document.createElement('p');
+        item.className=isError?'migration-error':'migration-success';
+        item.textContent=message;exportResult.append(item);
+      };
+      try{
+        const raw=localStorage.getItem('farukh-print:catalog:v1');
+        if(!raw)throw Error('Каталог на этом устройстве ещё не загружен.');
+        const records=JSON.parse(raw);
+        if(!Array.isArray(records)||records.length<3)throw Error('Сейчас в браузере только демонстрационные товары. Открой админку на телефоне, куда импортировала 110 товаров.');
+        if(records.length>1000)throw Error('Слишком большой каталог для экспорта.');
+        const names=new Set();
+        for(const record of records){
+          if(!record||!['ready','prep'].includes(record.kind)||!record.name||!record.id)throw Error('Обнаружена повреждённая карточка. Рекомендуется использовать раздел резервных копий.');
+          const key=record.kind+'|'+String(record.name).trim().toLocaleLowerCase('ru');
+          if(names.has(key))throw Error('Обнаружены повторяющиеся товары.');
+          names.add(key);
+        }
+        const date=new Date().toISOString().slice(0,10);
+        const payload={format:'farukh-print-catalog-v1',createdAt:new Date().toISOString(),
+          source:'farukh-print-admin-local-export',products:records};
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const anchor=document.createElement('a');
+        anchor.href=url;anchor.download='FARUKH_PRINT_NEON_'+records.length+'_товаров_'+date+'.json';
+        document.body.append(anchor);anchor.click();anchor.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),15000);
+        const photos=records.filter(p=>typeof p.photo==='string'&&p.photo.length>0).length;
+        notify('Скачан JSON: '+records.length+' товаров, карточек с фотографиями: '+photos+'. Прикрепи файл в этот чат, чтобы перенести данные в Neon.',false);
+      }catch(e){notify('Выгрузка не выполнена: '+e.message,true)}
+    });
+    btn.addEventListener('click',()=>input.click());
+    input.addEventListener('change',async()=>{
+      const file=input.files&&input.files[0];input.value='';result.replaceChildren();
+      checkedCopy=null;importBtn.hidden=true;
+      if(!file)return;
+      try{
+        if(file.size<2||file.size>5*1024*1024)throw Error('Нужен JSON размером до 5 МБ.');
+        const obj=JSON.parse(await file.text());
+        const data=Array.isArray(obj)?obj:obj&&obj.products;
+        if(!Array.isArray(data)||!data.length||data.length>1000)throw Error('Нужна непустая база Farukh Print до 1000 товаров.');
+        if(obj?.format!=='farukh-print-catalog-v1')throw Error('Этот файл не является резервной копией каталога Farukh Print. Скачай JSON в разделе «Копии и настройки» действующего Farukh AI.');
+        const uniques=new Set();let ready=0,prep=0,invalid=0,duplicate=0,pending=0;
+        for(const row of data){
+          if(!row||!['prep','ready'].includes(row.kind)||typeof row.name!=='string'||!row.name.trim()){invalid++;continue}
+          const key=row.kind+'|'+row.name.trim().toLocaleLowerCase('ru').replace(/ё/g,'е');
+          if(uniques.has(key))duplicate++;
+          uniques.add(key);
+          if(row.kind==='ready')ready++;else prep++;
+          if(row.needsReview===true||!Number.isInteger(row.hours)||!row.storage)pending++;
+        }
+        say('Проверено без загрузки: '+data.length+' товаров (готовые '+ready+', полуфабрикаты '+prep+
+          '). Сроки требуют проверки: '+pending+'. Повторы: '+duplicate+'. Некорректные записи: '+invalid+
+          '. '+(invalid||duplicate?'Нужно исправить ошибки до переноса.':'Копия готова к дальнейшему согласованию.')+
+          ' Ничего не отправлено в облако.',Boolean(invalid||duplicate));
+        if(invalid===0&&duplicate===0){
+          checkedCopy=obj;importBtn.hidden=false;
+        }
+      }catch(e){say('Проверка не пройдена: '+(e.message||'ошибка файла'),true)}
+    });
+  })();
+  </script>
+  <details class="preview-banner">
+    <summary>Тестовый контур: сотрудники и печать не подключены <span>Подробнее ▾</span></summary>
+    <p>Это изолированная тестовая админка. Каталог из 110 товаров уже в Neon. Для редактирования через облако используй защищённую панель выше. Сотрудники, отчёты и рабочая печать пока не подключены.
+    Можно менять оформление и проверять локальный редактор: изменения не попадут к сотрудникам.</p>
+  </details>
+  <main id="print-control"><div id="print-control-root"><p role="status">Загружаю действующий интерфейс управления печатью…</p></div></main>
+  <script type="module">
+    // Static, isolated demo: no production API, no production data, no real account credentials.
+    const SAMPLE = [
+      {id:'demo-roll',kind:'ready',name:'Демо: ролл',category:'Роллы',storage:'',hours:null,needsReview:true,composition:'Демонстрационная карточка — не для печати',p:0,f:0,c:0,kcal:0,weight:200,tolerance:10,weightUnit:'г',photo:'',labelStyle:'premium-ready-58x40'},
+      {id:'demo-prep',kind:'prep',name:'Демо: полуфабрикат',category:'Соусы',storage:'',hours:null,needsReview:true,point:'',photo:'',labelStyle:'premium-prep-30x20'}
+    ];
+    const catalogKey='farukh-print:catalog:v1';
+    if (localStorage.getItem(catalogKey)===null) localStorage.setItem(catalogKey,JSON.stringify(SAMPLE));
+    const originalFetch = window.fetch.bind(window);
+    const asJson = (data,status=200) => Promise.resolve(new Response(JSON.stringify(data),{
+      status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}
+    }));
+    window.fetch = (input, init = {}) => {
+      const raw = typeof input==='string' ? input : input?.url || '';
+      const method=String(init.method || input?.method || 'GET').toUpperCase();
+      const target = new URL(raw,location.href);
+      if (target.origin !== location.origin) return originalFetch(input,init);
+      const path=target.pathname;
+      if (path.startsWith('/api/auth/')) return asJson({error:'В демонстрационной версии авторизация владельца отключена.'},403);
+      if (path.startsWith('/api/farukh-print/')) {
+        if (!['GET','HEAD','OPTIONS'].includes(method)) return asJson({error:'Демо: изменение рабочей облачной базы или доступов запрещено.'},403);
+        if (path==='/api/farukh-print/sync/status') return asJson({enabled:true});
+        if (path==='/api/farukh-print/admin/catalog') {
+          const local=JSON.parse(localStorage.getItem(catalogKey)||'[]');
+          return asJson({revision:'ДЕМО',products:local});
+        }
+        if (path==='/api/farukh-print/admin/devices') return asJson({devices:[]});
+        if (path==='/api/farukh-print/admin/staff/points') return asJson({points:['Точка 1','Точка 2','Точка 3','Точка 4']});
+        if (path==='/api/farukh-print/admin/staff') return asJson({staff:[]});
+        if (path==='/api/farukh-print/admin/staff/report') return asJson({summary:{staff:0,active:0,requests:0,labels:0},rows:[],topProducts:[],note:'Демонстрация интерфейса. Реальные данные сотрудников не подключены.'});
+        if (path==='/api/farukh-print/admin/staff/activity') return asJson({events:[],total:0});
+        if (path==='/api/farukh-print/admin/staff/alerts') return asJson({alerts:[]});
+        return asJson({error:'Функция отключена в демонстрации.'},404);
+      }
+      return originalFetch(input,init);
+    };
+    document.addEventListener('click',e=>{
+      const a=e.target.closest('a[href^="/farukh-print/"]');
+      if(a){e.preventDefault();window.alert('Это тестовый управляющий центр. Рабочее приложение сотрудников не подключено.');}
+    });
+    const root = document.getElementById('print-control-root');
+    try {
+      const [local, cloud, staff] = await Promise.all([
+        import('/print-control.js?v=28'),
+        import('/print-control-cloud.js?v=7'),
+        import('/print-control-staff.js?v=9'),
+        import('/farukh-print/photo-utils.js?v=2'),
+      ]).then(([local,cloud,staff])=>[local,cloud,staff]);
+      root.replaceChildren();
+      const control = local.mountPrintControl({root});
+      window.FarukhPrintAdminImportCatalog=payload=>control.importCheckedPreviewCatalog(payload);
+      cloud.mountPrintCloudControl({root,renderLocal:()=>control.render()});
+      const demoCloud=root.querySelector('.pcloud');
+      if(demoCloud){
+        const note=document.createElement('div');
+        note.className='pcloud-demo-status';
+        note.setAttribute('role','status');
+        note.innerHTML='<div aria-hidden="true">◇</div><div><strong>Neon Cloud V2 управляется в защищённой панели выше</strong><span>Эта устаревшая вкладка синхронизации пока демонстрационная. Настоящие товары уже находятся в Neon, сотрудники ещё не подключены. Действия этой вкладки нельзя отправить в рабочий Farukh Print.</span></div>';
+        demoCloud.querySelector('.pcloud-status')?.before(note);
+        const actions=demoCloud.querySelector('.pcloud-actions');
+        if(actions){
+          actions.querySelectorAll('button,a').forEach(el=>{
+            el.setAttribute('aria-disabled','true');
+            el.setAttribute('title','Недоступно в демонстрации');
+          });
+          // The preview must not navigate to the real staff gateway or copy
+          // a working staff link. Handle in capture phase before module handlers.
+          actions.addEventListener('click',event=>{
+            if(!event.target.closest('button,a'))return;
+            event.preventDefault();event.stopImmediatePropagation();
+            alert('Это старый демонстрационный модуль. Для работы с Neon используй отдельную защищённую панель выше. Сотрудников пока не подключаем.');
+          },true);
+        }
+      }
+      staff.mountPrintStaffControl({root});
+      control.render();
+      // Decorative preview cards: these never alter the 58×40 / 30×20 print templates.
+      for(const [selector,title,subtitle] of [
+        ['.pc-premium-template:not(.pc-prep-template)','58 × 40','FARUKH PRINT'],
+        ['.pc-premium-template.pc-prep-template','30 × 20','ПОЛУФАБРИКАТ']
+      ]){
+        const card=root.querySelector(selector);
+        const intro=card?.querySelector('.pc-premium-template-text');
+        if(!intro)continue;
+        const visual=document.createElement('div');
+        visual.className='admin-label-visual';
+        visual.setAttribute('aria-label','Декоративный эскиз этикетки '+title);
+        visual.innerHTML='<span class="admin-label-paper"><span class="admin-label-brand">'+subtitle+'</span><span class="admin-label-stripes"></span><span class="admin-label-size">'+title+' мм</span></span>';
+        intro.append(visual);
+      }
+      // Demo placeholders should not look like damaged product pictures.
+      for(const row of root.querySelectorAll('.pc-row')){
+        if(row.querySelector('.pc-item strong')?.textContent?.startsWith('Демо:')){
+          row.classList.add('admin-demo-row');
+          row.querySelector('.pc-row-photo')?.setAttribute('aria-label','Демонстрационный товар без фотографии');
+        }
+      }
+      const hero=root.querySelector('.pc-hero');
+      if(hero){
+        const art=document.createElement('div');art.className='preview-hero-art';art.setAttribute('aria-hidden','true');
+        art.innerHTML='<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="8" width="40" height="26" rx="5" stroke="currentColor" stroke-width="4"/><rect x="10" y="28" width="60" height="35" rx="9" stroke="currentColor" stroke-width="4"/><path d="M19 48h42v21H19z" fill="currentColor" fill-opacity=".20" stroke="currentColor" stroke-width="3"/><path d="M27 56v7M33 54v9M40 56v7M48 54v9M54 56v7" stroke="currentColor" stroke-width="2"/><circle cx="59" cy="39" r="3" fill="currentColor"/></svg>';
+        hero.append(art);
+      }
+      const premiumV2=await import('/farukh-print-admin/premium-v2.js?v=1');
+      window.FarukhPrintAdminPremiumV2=premiumV2.mountPremiumV2({root,main:document.getElementById('print-control')});
+    } catch(error) {
+      console.error('Farukh Print Admin preview loading failed', error);
+      root.innerHTML = '';
+      const note = document.createElement('p');
+      note.className = 'preview-error';
+      note.textContent = 'Не удалось загрузить интерфейс управления: '+(error?.message || 'неизвестная ошибка');
+      root.append(note);
+    }
+  </script>
+  <script type="module" src="/farukh-print-admin/neon-sync.js?v=5"></script>
+</body>
+</html>
