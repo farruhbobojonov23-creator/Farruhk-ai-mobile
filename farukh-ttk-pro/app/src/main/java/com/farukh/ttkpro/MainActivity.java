@@ -130,7 +130,7 @@ public class MainActivity extends Activity {
         space(hero,13);
         LinearLayout heroRow=horizontal();
         LinearLayout heroCopy=vertical();
-        heroCopy.addView(text("Японская кухня.\\nТвои стандарты.",23,WHITE,true));
+        heroCopy.addView(text("Японская кухня.\nТвои стандарты.",23,WHITE,true));
         space(heroCopy,7);
         heroCopy.addView(text("ТТК всегда под рукой",12,0xFFFFC8CE,true));
         heroRow.addView(heroCopy,new LinearLayout.LayoutParams(0,dp(126),1));
