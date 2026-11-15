@@ -1,6 +1,7 @@
 // FARUKH PRINT owner cloud — separate from FARUKH AI and production staff print.
 // Only one dashboard, one first-party login and Neon Auth verified JWT -> Neon Data API.
 import express from 'express';
+import {jwks,selfCheck,signOwnerJWT} from './farukh-print-jwt.js';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -23,6 +24,14 @@ app.get('/cloud/',(_req,res)=>{
  res.sendFile(path.join(ROOT,'index.html'));
 });
 app.use('/cloud/assets',express.static(ROOT,{index:false,fallthrough:false,maxAge:600000}));
+app.get('/.well-known/farukh-print-jwks.json',(_req,res)=>{
+ res.setHeader('Cache-Control','public,max-age=120');
+ res.json(jwks());
+});
+app.get('/api/owner/jwt-check',authPin,(_req,res)=>{
+ try{res.json({ok:selfCheck(),jwtSigningReady:selfCheck()})}
+ catch(e){res.status(503).json({ok:false,jwtSigningReady:false,error:'Signing key missing or incorrect'})}
+});
 app.get('/healthz',(_req,res)=>res.json({ok:true,service:'farukh-print-owner-cloud',pinReady:PIN_READY,staffConnected:false,legacyEndpointsRemoved:true}));
 
 /* Temporary single-PIN owner entry, verified only on server.
