@@ -3,7 +3,7 @@
 import express from 'express';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-const app=express();app.disable('x-powered-by');app.set('trust proxy',1);
+const app=express();app.enable('strict routing');app.disable('x-powered-by');app.set('trust proxy',1);
 const PORT=Number(process.env.PORT)||10000;
 const SELF='https://farukh-print-cloud-test-20261115.onrender.com';
 const AUTH='https://ep-small-forest-basx2akr.neonauth.c-8.eu-central-1.aws.neon.tech/farukh_print/auth';
