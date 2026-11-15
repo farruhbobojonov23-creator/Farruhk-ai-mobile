@@ -1,0 +1,134 @@
+/* FARRUH AI · Owner-approved compact TTK A4 (2026-11-15).
+   Screenshot reference: no redundant document masthead; document starts with
+   ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК). Never hide content in the saved recipe or PDF.
+   Paper preview is a fixed 794×1123 portrait A4; tap opens full-size inputs. */
+@media screen {
+  #editor.ttk-studio-enabled .ttk-live-page>.ttk-live-hero {
+    display:none!important;
+  }
+  /* Recover the 52px masthead and allocate the freed height to content.
+     Fixed rows + lower inner rows stay within the 1123px sheet. */
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page{
+    grid-template-rows:43px 55px 56px 148px 246px minmax(0,1fr)!important;
+    gap:7px!important;
+    font-size:12px!important;
+    line-height:1.42!important;
+    text-rendering:optimizeLegibility!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-title{
+    margin:0!important;
+    font-size:20px!important;
+    letter-spacing:.005em!important;
+    padding:6px 11px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-name{
+    height:55px!important;
+    gap:2px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-name-sample{
+    height:24px!important;line-height:24px!important;
+    font-size:22px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta{
+    height:56px!important;
+    padding:2px 0 3px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta>.ttk-live-label{
+    padding:4px 5px!important;
+    max-height:53px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-caption{
+    font-size:10px!important;line-height:13px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-intro-pair{
+    height:148px!important;min-height:148px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-intro-pair textarea{
+    height:113px!important;min-height:113px!important;max-height:113px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-recipe-pair{
+    height:246px!important;min-height:246px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-lower{
+    grid-template-rows:158px 160px 71px 66px 21px!important;
+    gap:7px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process{
+    height:158px!important;min-height:158px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process-fields>.ttk-live-label{
+    height:119px!important;min-height:119px!important;
+    padding:5px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process-fields .ttk-live-caption{
+    height:18px!important;max-height:18px!important;
+    line-height:16px!important;font-size:10.7px!important;font-weight:800!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process-fields textarea{
+    height:87px!important;min-height:87px!important;max-height:87px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality-pair,
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality-pair .ttk-live-section{
+    height:160px!important;min-height:160px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality-pair .ttk-live-section-head{
+    height:37px!important;min-height:37px!important;max-height:37px!important;
+    font-size:11.9px!important;line-height:14.5px!important;
+    padding:3px 6px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality .ttk-live-caption{
+    font-size:9.7px!important;line-height:13px!important;height:13px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality .ttk-live-label textarea{
+    height:42px!important;min-height:42px!important;max-height:42px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-conditions textarea{
+    height:111px!important;min-height:111px!important;max-height:111px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-nutri-grid .ttk-live-caption{
+    font-size:9.6px!important;line-height:13px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety{
+    height:71px!important;min-height:71px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety textarea{
+    height:37px!important;min-height:37px!important;max-height:37px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-signatures{
+    height:66px!important;min-height:66px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-signatures .ttk-live-label{
+    height:66px!important;min-height:66px!important;
+  }
+  /* The letters used to visually merge because 9.5px type had 11.6px leading.
+     Both figures are increased, keeping field data untouched and editable. */
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled textarea.ttk-live-control{
+    font-family:Arial,system-ui,sans-serif!important;
+    font-size:10.9px!important;
+    font-weight:450!important;
+    line-height:14.3px!important;
+    letter-spacing:.002em!important;
+    padding:5px 7px!important;
+    white-space:pre-wrap!important;
+    word-break:normal!important;
+    overflow-wrap:break-word!important;
+    text-rendering:optimizeLegibility!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-section-head{
+    font-size:12.5px!important;line-height:15.5px!important;
+    font-weight:900!important;
+    letter-spacing:.005em!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality-pair .ttk-live-section-head{
+    font-size:11.9px!important;line-height:14.5px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-allergen-row{
+    font-size:10.4px!important;line-height:14px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-allergen-info{
+    font-size:8.9px!important;line-height:11.5px!important;
+  }
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-regulatory{
+    font-size:9.1px!important;line-height:11px!important;
+  }
+}
