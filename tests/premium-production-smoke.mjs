@@ -220,23 +220,26 @@ async function auditRoyal(page,tag,mobile,errors){
      rgb.length===3&&rgb.every(n=>n>=225),onePage.nameBg);
    await page.screenshot({path:'artifacts/premium-'+tag+'-one-portrait-A4.png',timeout:12000});
    const originalApprover=await page.locator('#card-approver').inputValue();
-   await page.locator('#ttk-live-page .ttk-live-signatures').click();
-   check(tag+' touching compact A4 opens full-sized editing dialog',
-     await page.locator('#ttk-onepage-dialog').evaluate(el=>el.open),null);
-   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill('Тест А4 редактор');
-   check(tag+' A4 dialog changes canonical TTK approver',
+   const sheetApprover=page.locator('#ttk-live-page [data-source="card-approver"]');
+   await sheetApprover.fill('Тест А4 редактор');
+   check(tag+' typing directly on A4 updates canonical approver',
      await page.locator('#card-approver').inputValue()==='Тест А4 редактор',null);
-   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill(originalApprover);
-   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
-   await page.locator('#ttk-live-page .ttk-live-formula .ttk-live-section-head').click();
-   check(tag+' ingredient formula opens a proper editable ingredient list',
-     await page.locator('#ttk-onepage-dialog .ttk-onepage-product').count()>=1,null);
+   check(tag+' A4 shows NO modal or bottom editing sheet',
+     await page.locator('#ttk-onepage-dialog').count()===0,null);
+   check(tag+' A4 zooms the same document for in-place typing',
+     await page.locator('#ttk-real-a4-stage').evaluate(el=>el.classList.contains('ttk-direct-editing')),null);
+   await sheetApprover.fill(originalApprover);
+   const originalPrep=await page.locator('#card-prep').inputValue();
+   const inlinePreparation=page.locator('#ttk-live-page .ttk-ref-stage-body[contenteditable]').first();
+   await inlinePreparation.fill('Подготовить продукты прямо в ТТК');
+   check(tag+' technology edits directly in the document',
+     await page.locator('#card-prep').inputValue()==='Подготовить продукты прямо в ТТК',null);
+   await inlinePreparation.fill(originalPrep);
    const amountBefore=await page.locator('#ingredients .ingredient').count();
-   await page.locator('#ttk-onepage-dialog .ttk-onepage-add').click();
-   check(tag+' ingredient added through compact A4 persists in actual original form',
+   await page.locator('#ttk-live-page .ttk-live-add').click();
+   check(tag+' ingredients added without a popup persist in canonical recipe',
      await page.locator('#ingredients .ingredient').count()===amountBefore+1,null);
-   await page.locator('#ttk-onepage-dialog .ttk-onepage-product').last().locator('button').click();
-   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
+   await page.locator('#ttk-live-page .ttk-live-remove').last().click();
    await page.screenshot({path:'artifacts/premium-'+tag+'-editable-a4.png',timeout:12000});
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
