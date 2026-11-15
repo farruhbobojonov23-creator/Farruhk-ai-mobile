@@ -1,117 +1,36 @@
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1433"><meta name="robots" content="noindex,nofollow">
-<title>FARUKH PRINT — Панель владельца</title>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0d1531"><title>FARUKH PRINT · Панель владельца</title>
 <style>
-:root{color-scheme:dark;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--bg:#0b1433;--card:#162450;--card2:#1c2f65;--text:#f0f6ff;--sub:#acbddc;--stroke:#39558c;--accent:#53e6ef;--accent2:#a188ff;--buttonText:#08233e}
-*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(ellipse at 100% 0%,#42276590,transparent 46%),radial-gradient(ellipse at 0% 42%,#044c8070,transparent 42%),var(--bg);min-height:100vh}
-body[data-theme="beige"]{--bg:#f8f4eb;--card:#fff9f0;--card2:#eee2d4;--text:#392d26;--sub:#786b62;--stroke:#cfb9a8;--accent:#c67a50;--accent2:#a77047;--buttonText:#fff;color-scheme:light}
-body[data-theme="gold"]{--bg:#111010;--card:#231f1a;--card2:#302a23;--text:#fff5de;--sub:#c5b7a3;--stroke:#6a5a42;--accent:#e6bf66;--accent2:#c59141;--buttonText:#21180a}
-body[data-theme="emerald"]{--bg:#f3faf6;--card:#fff;--card2:#e4f2eb;--text:#173d35;--sub:#608076;--stroke:#a0c9b8;--accent:#0f997d;--accent2:#1baf90;--buttonText:#fff;color-scheme:light}
-header,.container{max-width:1080px;margin:auto;padding:16px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:27px}
-.identity{display:flex;align-items:center;gap:12px}.icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#0c213a;font-size:27px}
-.identity strong{display:block;font-size:22px;letter-spacing:-.04em}.identity strong span{color:var(--accent)}.identity small{display:block;font-size:11px;color:var(--sub)}
-.tag{font-size:10px;font-weight:850;padding:9px 11px;border:1px solid var(--stroke);border-radius:99px;color:var(--accent);background:var(--card)}
-.card{background:linear-gradient(135deg,var(--card),var(--bg));border:1px solid var(--stroke);border-radius:21px;padding:23px;box-shadow:0 14px 46px #01071955}
-a{color:var(--accent)}h1{font-size:clamp(27px,5vw,37px);letter-spacing:-.035em;margin:10px 0}h2{font-size:clamp(19px,3vw,24px);margin:0 0 8px;letter-spacing:-.02em}p{color:var(--sub);font-size:13px;line-height:1.6}
-.overline{font-size:11px;letter-spacing:.17em;color:var(--accent);font-weight:900}
-.login-card{max-width:520px;margin:8vh auto 0}
-label{display:block;font-size:12px;font-weight:800;margin:17px 0 6px}
-input,select,textarea{display:block;background:var(--card2);border:1px solid var(--stroke);border-radius:11px;color:var(--text);font:14px system-ui;width:100%;padding:13px;outline-offset:3px}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-textarea{min-height:95px;resize:vertical}
-button{appearance:none;border:1px solid var(--stroke);border-radius:11px;background:var(--card2);color:var(--text);padding:12px 15px;min-height:44px;font:800 13px system-ui;cursor:pointer}
-button.primary{background:linear-gradient(105deg,var(--accent),var(--accent2));border-color:var(--accent);color:var(--buttonText)}
-button:disabled{opacity:.4;cursor:not-allowed}
-.flex{display:flex;flex-wrap:wrap;align-items:center;gap:9px}.flex-between{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
-.note{padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);font-size:12px;color:var(--sub);line-height:1.55;margin:15px 0;background:var(--card)}
-.note[data-kind="good"]{border-color:#27b999;color:var(--accent)}.note[data-kind="bad"]{border-color:#cd6481;color:#fa9caa}
-.screen{padding:0 0 40px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
-.tabs button[aria-current="page"]{border-color:var(--accent);color:var(--accent)}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 22px}
-.stat{background:var(--card);border:1px solid var(--stroke);border-radius:14px;padding:15px}
-.stat strong{display:block;font-size:28px}.stat small{font-size:11px;color:var(--sub)}
-.rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.product{display:flex;gap:12px;align-items:center;text-align:left;min-width:0;padding:12px;background:var(--card);border:1px solid var(--stroke);border-radius:14px;cursor:pointer}
-.product img,.product .placeholder{height:66px;width:66px;object-fit:contain;border-radius:9px;background:var(--card2);flex:0 0 66px}
-.product strong{display:block;font-size:13px;color:var(--text);overflow-wrap:anywhere}.product small{display:block;font-size:11px;color:var(--sub);margin-top:4px}
-.column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.column label{margin:0 0 5px}.column>div{margin-top:8px}
-.overlay{position:fixed;inset:0;background:#030715c9;display:grid;place-items:center;padding:14px;z-index:30;overflow:auto}
-.modal{width:min(650px,100%);max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--stroke);border-radius:22px;padding:20px}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:14px}
-.theme-switch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.theme-switch button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
-.foot{margin:24px 0;color:var(--sub);font-size:11px;text-align:center}
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color-scheme:dark;--bg:#0b1433;--card:#182754;--card2:#17264f;--ink:#f0f7ff;--muted:#afc6e8;--border:#3e5a94;--accent:#6ae0ee;--accent2:#a79cff;--input:#20376f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 100% 0%,#3b286d85,transparent 48%),radial-gradient(ellipse at 0% 60%,#0b478055,transparent 50%),var(--bg);color:var(--ink)}
+.wrap{max-width:1030px;margin:auto;padding:22px 16px 45px}header{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:26px}.brand{display:flex;align-items:center;gap:12px}.logo{width:50px;height:50px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(130deg,#a782f5,#4fe7ee);color:#0c1a39;font-weight:900;font-size:27px}.brand strong{font-size:23px;letter-spacing:-.04em}.brand b{color:var(--accent)}.brand small{display:block;font-size:11px;color:var(--muted)}.badge{font-size:10px;font-weight:850;border-radius:99px;padding:9px 12px;border:1px solid var(--border);color:var(--accent);background:var(--card2)}
+.panel{background:linear-gradient(135deg,#1b2a5a,var(--card2));border:1px solid var(--border);border-radius:22px;padding:26px;box-shadow:0 14px 40px #0004}
+#entry,#loading{max-width:520px;margin:7vh auto 0}.overline{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.16em}h1{font-size:clamp(27px,5vw,38px);margin:11px 0;letter-spacing:-.04em}h2{font-size:21px;margin:0 0 10px}p{font-size:13px;line-height:1.6;color:var(--muted)}
+label{font-size:12px;font-weight:850;display:block;margin:20px 0 7px}input{width:100%;padding:16px;background:var(--input);border:1px solid var(--border);border-radius:13px;color:var(--ink);font:700 19px system-ui;outline-offset:2px;letter-spacing:.15em}input:focus{outline:2px solid var(--accent)}button{cursor:pointer;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--ink);padding:13px 17px;min-height:46px;font:800 13px system-ui}button.primary{border-color:var(--accent);color:#092344;background:linear-gradient(105deg,#4de3ed,#a5aaff)}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}.status{padding:13px 14px;margin-top:16px;border:1px solid var(--border);border-radius:12px;font-size:12px;line-height:1.6;color:var(--muted)}.status[data-type=error]{border-color:#b95275;color:#ffb1c8}.status[data-type=good]{border-color:#32b9aa;color:#93f9dc}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:17px 0}.stat{padding:19px 14px;border:1px solid var(--border);border-radius:15px;background:var(--card2)}.stat strong{display:block;font-size:30px}.stat small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:8px 12px;font-size:11px;font-weight:850;background:#173c58;color:#7af1e0;border:1px solid #357c90}.pill.off{background:#3b2b42;color:#ffc4d4;border-color:#74485b}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--border);padding:12px 0;font-size:13px}.row:last-child{border:0}.row span{color:var(--muted)}
+.footer{text-align:center;font-size:11px;color:var(--muted);margin-top:36px}
 [hidden]{display:none!important}
-@media(max-width:720px){header{padding:18px 14px 4px}.container{padding:13px}.tag{font-size:9px}.identity strong{font-size:19px}.icon{height:44px;width:44px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.rows{grid-template-columns:1fr}.column{grid-template-columns:1fr}.theme-switch{grid-template-columns:repeat(2,minmax(0,1fr))}.login-card{margin:4vh auto 0}.card{padding:18px}}
-</style>
-</head><body data-theme="neon">
-<header><div class="identity"><div class="icon" aria-hidden="true">▤</div><div><strong>FARUKH <span>PRINT</span></strong><small>Панель владельца</small></div></div><span class="tag">NEON CLOUD · ТЕСТ</span></header>
-<main class="container">
-<section id="connecting" class="card login-card" aria-live="polite"><span class="overline">NEON CLOUD · OWNER</span><h1>Открываю админку…</h1><p>Проверяю сохранённый доступ на этом устройстве. Вводить пароль при действующей сессии не нужно.</p></section>
-<section id="login" class="card login-card" aria-label="Вход владельца" hidden>
-<span class="overline">SECURE OWNER ACCESS</span><h1>Вход в админку</h1>
-<p>Один логин и пароль. Без Google и лишних кнопок. Каталог и фотографии уже сохранены в Neon.</p>
-<form id="login-form" autocomplete="on">
-<label for="login-user">Логин</label><input id="login-user" required value="admin" maxlength="32" autocomplete="username" spellcheck="false">
-<label for="login-pass">Пароль</label><input id="login-pass" type="password" required autocomplete="current-password" minlength="8">
-<div class="flex" style="margin-top:17px"><button type="submit" class="primary">Войти</button><button id="first-password" type="button">Создать / восстановить пароль</button></div>
-</form>
-<div id="recovery-panel" hidden>
-<p>Для безопасности ссылка установки пароля придёт на подтверждённую почту владельца Neon. Выбери собственный пароль — временный не требуется.</p>
-<button id="recovery-send" type="button" class="primary">Отправить письмо владельцу</button>
-</div>
-<div id="reset-panel" hidden><p>Придумай новый пароль (от 12 символов).</p>
-<label for="reset-pass">Новый пароль</label><input id="reset-pass" type="password" minlength="12" maxlength="128" autocomplete="new-password">
-<label for="reset-repeat">Повтори пароль</label><input id="reset-repeat" type="password" minlength="12" maxlength="128" autocomplete="new-password">
-<button id="reset-submit" type="button" class="primary" style="margin-top:12px">Установить пароль</button>
-</div>
-<div class="note" id="login-status" role="status" aria-live="polite">Вход ещё не выполнен. Пароль здесь не хранится.</div>
+@media(max-width:580px){.wrap{padding:17px 13px}.panel{padding:19px}header{align-items:flex-start;flex-wrap:wrap}.badge{margin-left:64px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:26px}}
+</style></head>
+<body><div class="wrap">
+<header><div class="brand"><div class="logo" aria-hidden="true">▤</div><div><strong>FARUKH <b>PRINT</b></strong><small>Облачная панель владельца</small></div></div><span class="badge">NEON CLOUD · ТЕСТ</span></header>
+<main>
+<section id="loading" class="panel" role="status" aria-live="polite"><span class="overline">ДОСТУП ВЛАДЕЛЬЦА</span><h1>Проверяю доступ…</h1><p>Если ты уже вводил код на этом устройстве, он не потребуется повторно.</p></section>
+<section id="entry" class="panel" hidden><span class="overline">FARUKH PRINT · PRIVATE</span><h1>Введи код доступа</h1><p>Только один код. Без логина, Google и дополнительных настроек.</p>
+<form id="pin-form" autocomplete="off"><label for="pin">Код доступа</label><input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="5" maxlength="12" required autocomplete="off" placeholder="•••••">
+<button class="primary" id="enter" type="submit" style="width:100%;margin-top:17px">Открыть админку</button></form>
+<div class="status" id="login-note" role="status" aria-live="polite">Доступ защищён. Для безопасности число попыток ограничено.</div>
 </section>
-<section id="owner" class="screen" hidden>
-<div class="flex-between"><div><span class="overline">FARUKH PRINT · CONTROL</span><h1>Управление</h1></div><button id="logout" type="button">Выйти</button></div>
-<nav class="tabs" aria-label="Разделы"><button data-tab="products" aria-current="page" type="button">📦 Товары</button><button data-tab="cloud" type="button">☁ Облако</button><button data-tab="settings" type="button">⚙ Настройки</button></nav>
-<div id="owner-status" class="note" role="status" aria-live="polite">Проверяю каталог…</div>
-<section id="section-products">
-<div class="stats"><div class="stat"><strong id="stat-total">—</strong><small>Всего товаров</small></div><div class="stat"><strong id="stat-ready">—</strong><small>Готовые</small></div><div class="stat"><strong id="stat-prep">—</strong><small>Полуфабрикаты</small></div><div class="stat"><strong id="stat-photos">—</strong><small>Фото в облаке</small></div></div>
-<div class="card"><div class="flex-between"><h2>Каталог Neon</h2><div class="flex"><button id="catalog-refresh" type="button">↻ Обновить</button><button id="add-item" type="button" class="primary">+ Товар</button></div></div>
-<p>Изменения сохраняются в облако после нажатия «Сохранить». Рабочая печать сотрудников пока не подключена.</p>
-<input id="filter" type="search" placeholder="Поиск по названию и категории" aria-label="Поиск товаров">
-<div class="rows" id="product-list" style="margin-top:14px"></div></div>
-</section>
-<section id="section-cloud" hidden>
-<div class="card"><h2>☁ Neon PostgreSQL</h2><div class="stats"><div class="stat"><strong id="cloud-items">—</strong><small>Товаров</small></div><div class="stat"><strong id="cloud-photos">—</strong><small>Фото</small></div><div class="stat"><strong id="cloud-revision">—</strong><small>Ревизия</small></div><div class="stat"><strong id="cloud-backups">—</strong><small>Резервных копий</small></div></div>
-<div class="flex"><button id="cloud-refresh" type="button">↻ Проверить</button><button id="cloud-download" type="button">↓ Скачать JSON</button><button id="cloud-backup" type="button" class="primary">+ Резервная копия</button></div>
-<p>Сотрудники пока не подключены. Действующая печать 58×40 и 30×20 работает отдельно — до проверки не переключаем.</p></div>
-</section>
-<section id="section-settings" hidden><div class="card">
-<h2>Оформление</h2><p>Выбор сохраняется на этом устройстве.</p>
-<div class="theme-switch"><button data-theme-choice="neon" type="button">Neon Premium</button><button data-theme-choice="gold" type="button">Black Gold</button><button data-theme-choice="emerald" type="button">White Emerald</button><button data-theme-choice="beige" type="button">Luxury Beige</button></div>
-<hr style="border:0;border-top:1px solid var(--stroke);margin:24px 0">
-<h2>Безопасность</h2><p>Меняй пароль только через защищённый сервис авторизации. Пароль не сохраняется в браузере админки.</p>
-<div class="column"><div><label for="old-password">Текущий пароль</label><input id="old-password" type="password" autocomplete="current-password"></div><div><label for="next-password">Новый пароль</label><input id="next-password" type="password" autocomplete="new-password" minlength="12"></div></div>
-<button id="change-password" type="button" style="margin-top:12px" class="primary">Сменить пароль</button>
+<section id="dashboard" hidden><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><span class="overline">ВЛАДЕЛЕЦ · ВХОД ПОДТВЕРЖДЁН</span><h1>Панель FARUKH PRINT</h1></div><button type="button" id="logout">Выйти</button></div>
+<div id="owner-note" class="status" role="status" aria-live="polite" data-type="good">Код принят. Доступ владельца действует на этом устройстве.</div>
+<div class="grid"><div class="stat"><strong>110</strong><small>Товары в Neon (сверены)</small></div><div class="stat"><strong>110</strong><small>Фото в Neon (сверены)</small></div><div class="stat"><strong>4</strong><small>Зарегистрированные точки</small></div></div>
+<h2>Состояние системы</h2>
+<div class="row"><span>Вход по коду</span><strong class="pill">✓ Работает</strong></div>
+<div class="row"><span>Копия товаров и фото в Neon</span><strong class="pill">✓ Создана</strong></div>
+<div class="row"><span>Живое редактирование каталога</span><strong class="pill off">Ожидает подключения API</strong></div>
+<div class="row"><span>Сотрудники и рабочие принтеры</span><strong class="pill off">Не подключены</strong></div>
+<p>Счётчики выше подтверждены по базе Neon, но здесь пока не являются результатом живого чтения API. Изменять товары из этой панели до подключения API нельзя — исходная база сохранена.</p>
 </div></section>
-</section>
-<div class="foot">FARUKH PRINT · Независимая облачная база · Сотрудников не переключаем</div>
-</main>
-<div id="edit-overlay" class="overlay" hidden><div class="modal">
-<div class="bar"><h2 id="edit-title">Изменить товар</h2><button id="edit-close" type="button" aria-label="Закрыть">✕</button></div>
-<form id="editor"><div class="column"><div><label for="p-name">Название</label><input id="p-name" required maxlength="90"></div>
-<div><label for="p-kind">Тип</label><select id="p-kind"><option value="ready">Готовый товар · 58×40</option><option value="prep">Полуфабрикат · 30×20</option></select></div>
-<div><label for="p-category">Категория</label><input id="p-category" maxlength="120"></div>
-<div><label for="p-weight">Масса нетто, г</label><input id="p-weight" type="number" step="0.01" min="0"></div>
-<div><label for="p-hours">Срок хранения, часы</label><input id="p-hours" type="number" min="1" max="8760"></div>
-<div><label for="p-storage">Условия хранения</label><input id="p-storage" maxlength="60" placeholder="+2…+6 °C"></div>
-</div><label for="p-composition">Состав</label><textarea id="p-composition" maxlength="600"></textarea>
-<div class="column"><div><label for="p-kcal">Ккал</label><input id="p-kcal" type="number" step="0.01" min="0"></div>
-<div><label for="p-protein">Белки, г</label><input id="p-protein" type="number" step="0.01" min="0"></div>
-<div><label for="p-fat">Жиры, г</label><input id="p-fat" type="number" step="0.01" min="0"></div>
-<div><label for="p-carb">Углеводы, г</label><input id="p-carb" type="number" step="0.01" min="0"></div></div>
-<label for="p-photo">Фото (JPG, PNG, WebP, до 1 МБ)</label><input id="p-photo" type="file" accept="image/jpeg,image/png,image/webp">
-<div style="display:flex;align-items:center;gap:12px;margin:8px 0"><img id="p-preview" alt="Предпросмотр товара" style="width:78px;height:78px;object-fit:contain" hidden><label style="margin:0"><input id="p-review" type="checkbox" style="display:inline;width:auto"> Требует проверки ТТК</label></div>
-<div class="note" id="edit-status" role="status" aria-live="polite">Сохранение только в Neon. Существующие данные не удаляются.</div>
-<div class="flex"><button id="edit-save" type="submit" class="primary">💾 Сохранить в облако</button><button id="edit-cancel" type="button">Отмена</button></div>
-</form>
-</div></div>
-<script type="module" src="/cloud/assets/owner-console.js?v=2"></script></body></html>
+</main><div class="footer">FARUKH PRINT · 110 товаров сохранены · Действующая система печати не затронута</div>
+</div><script type="module" src="/cloud/assets/owner-console.js?v=3"></script></body></html>
