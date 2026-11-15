@@ -1,16 +1,89 @@
-/* FARRUH AI · Owner-approved compact TTK A4 (2026-11-15).
-   Screenshot reference: no redundant document masthead; document starts with
-   ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК). Never hide content in the saved recipe or PDF.
-   Paper preview is a fixed 794×1123 portrait A4; tap opens full-size inputs. */
+/* FARRUH AI · Four Premium TTK A4 references (2026-11-15).
+   Owner-approved masthead: gold crown, FARRUH AI Premium, HORECA tagline,
+   and the four small ТТК / ХАССП / ПФ / Печать icon labels.
+   Document body remains editable by tap and on one 794×1123 portrait A4. */
 @media screen {
-  #editor.ttk-studio-enabled .ttk-live-page>.ttk-live-hero {
-    display:none!important;
+  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page>.ttk-live-paper-mast {
+    display:grid!important;
+    grid-template-columns:210px minmax(0,1fr) 228px!important;
+    align-items:center!important;
+    column-gap:8px!important;
+    padding:0 3px 3px!important;
+    margin:0!important;
+    width:100%!important;
+    height:46px!important;
+    min-height:46px!important;
+    max-height:46px!important;
+    border-bottom:2px solid var(--live-gold)!important;
+    background:#fff!important;
+    overflow:hidden!important;
   }
-  /* Recover the 52px masthead and allocate the freed height to content.
-     Fixed rows + lower inner rows stay within the 1123px sheet. */
+  #editor.ttk-studio-enabled .ttk-live-paper-brand {
+    display:flex!important;align-items:center!important;
+    gap:6px!important;min-width:0!important;
+    white-space:nowrap!important;
+    color:var(--live-deep)!important;
+    -webkit-text-fill-color:var(--live-deep)!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-paper-brand>.ttk-live-mast-icon{
+    width:39px!important;height:39px!important;flex:0 0 39px!important;
+    color:var(--live-gold)!important;-webkit-text-fill-color:var(--live-gold)!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-mast-icon svg{
+    display:block!important;width:100%!important;height:100%!important;fill:none!important;
+    stroke:currentColor!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-brand-words{
+    display:flex!important;flex-direction:column!important;
+    align-items:flex-start!important;justify-content:center!important;gap:0!important;
+    min-width:0!important;line-height:1!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-brand-words strong{
+    font:900 18px/1.13 Arial,system-ui,sans-serif!important;
+    letter-spacing:.01em!important;color:var(--live-deep)!important;
+    -webkit-text-fill-color:var(--live-deep)!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-brand-words em{
+    font:italic 700 15px/1.1 Georgia,'Times New Roman',serif!important;
+    color:#B98B35!important;-webkit-text-fill-color:#B98B35!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-paper-descriptor{
+    border-left:2px solid var(--live-gold)!important;
+    padding-left:8px!important;
+    display:flex!important;flex-direction:column!important;justify-content:center!important;
+    gap:2px!important;min-height:32px!important;
+    white-space:nowrap!important;
+    font:800 9.7px/1.14 Arial,system-ui,sans-serif!important;
+    color:var(--live-ink)!important;-webkit-text-fill-color:var(--live-ink)!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-paper-badges{
+    display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;min-width:0!important;
+    align-items:center!important;height:41px!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-paper-badge{
+    display:flex!important;flex-direction:column!important;align-items:center!important;
+    justify-content:center!important;gap:2px!important;
+    width:100%!important;height:40px!important;min-width:0!important;
+    border:1.3px solid #D2AB63!important;border-radius:7px!important;
+    background:#fff!important;
+    color:#5D4D31!important;-webkit-text-fill-color:#5D4D31!important;
+    font:800 8.6px/1.05 Arial,system-ui,sans-serif!important;
+    text-align:center!important;white-space:nowrap!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-paper-badge>.ttk-live-mast-icon{
+    display:block!important;width:18px!important;height:18px!important;
+    color:#BC8A2B!important;-webkit-text-fill-color:#BC8A2B!important;
+  }
+  #editor.ttk-studio-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-paper-brand,
+  #editor.ttk-studio-enabled .ttk-live-page[data-ttk-layout="premium-blue"] .ttk-live-brand-words strong{
+    color:#123F6D!important;-webkit-text-fill-color:#123F6D!important;
+  }
+  /* Preserve one portrait A4: reclaim only white space, not typography.
+     46+43+51+52+141+224+498 + 6*6 = 1091px content + 32px padding. */
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-page{
-    grid-template-rows:43px 55px 56px 148px 246px minmax(0,1fr)!important;
-    gap:7px!important;
+    grid-template-rows:46px 43px 51px 52px 141px 224px minmax(0,1fr)!important;
+    gap:6px!important;
     font-size:12px!important;
     line-height:1.42!important;
     text-rendering:optimizeLegibility!important;
@@ -22,7 +95,7 @@
     padding:6px 11px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-name{
-    height:55px!important;
+    height:51px!important;
     gap:2px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-name-sample{
@@ -30,31 +103,31 @@
     font-size:22px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta{
-    height:56px!important;
+    height:52px!important;
     padding:2px 0 3px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-meta>.ttk-live-label{
     padding:4px 5px!important;
-    max-height:53px!important;
+    max-height:49px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-caption{
     font-size:10px!important;line-height:13px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-intro-pair{
-    height:148px!important;min-height:148px!important;
+    height:141px!important;min-height:141px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-intro-pair textarea{
-    height:113px!important;min-height:113px!important;max-height:113px!important;
+    height:106px!important;min-height:106px!important;max-height:106px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-recipe-pair{
-    height:246px!important;min-height:246px!important;
+    height:224px!important;min-height:224px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-lower{
-    grid-template-rows:158px 160px 71px 66px 21px!important;
+    grid-template-rows:154px 160px 69px 66px 21px!important;
     gap:7px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process{
-    height:158px!important;min-height:158px!important;
+    height:154px!important;min-height:154px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-process-fields>.ttk-live-label{
     height:119px!important;min-height:119px!important;
@@ -72,7 +145,7 @@
     height:160px!important;min-height:160px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-quality-pair .ttk-live-section-head{
-    height:37px!important;min-height:37px!important;max-height:37px!important;
+    height:35px!important;min-height:35px!important;max-height:35px!important;
     font-size:11.9px!important;line-height:14.5px!important;
     padding:3px 6px!important;
   }
@@ -89,7 +162,7 @@
     font-size:9.6px!important;line-height:13px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety{
-    height:71px!important;min-height:71px!important;
+    height:69px!important;min-height:69px!important;
   }
   #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-live-safety textarea{
     height:37px!important;min-height:37px!important;max-height:37px!important;

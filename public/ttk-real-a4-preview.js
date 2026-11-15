@@ -3,7 +3,7 @@
  * the four approved print layouts. This screen displays the four real choices
  * and previews the actual server-rendered PDF, using the current unsaved data.
  * The existing editable controls remain mounted inside .ttk-paper unchanged. */
-import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=3';
+import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=4';
 import {mountOnePageA4} from './ttk-one-page-a4.js?v=2';
 const ui=(tag,cls,content)=>{
  const el=document.createElement(tag);

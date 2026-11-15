@@ -9,6 +9,20 @@ const node=(tag,cls,text)=>{
  if(text!==undefined)n.textContent=text;
  return n;
 };
+// Inline SVG uses only trusted, constant paths. Scales cleanly on mobile A4
+// without loading an icon font, PNG, third-party resource or user HTML.
+const mastIconPaths=Object.freeze({
+ crown:'<path d="m2 7 4.5 4 5.5-7 5.5 7L22 7l-2 12H4L2 7Z"/><path d="M5 22h14"/>',
+ chef:'<path d="M6 19v-7a4 4 0 0 1-.5-7.5A5 5 0 0 1 12 3a5 5 0 0 1 6.5 1.5A4 4 0 0 1 18 12v7"/><path d="M6 16h12M6 20h12"/>',
+ shield:'<path d="M12 2 4 5v6c0 5.5 3.1 8.4 8 11 4.9-2.6 8-5.5 8-11V5l-8-3Z"/><path d="m8.5 12.3 2.5 2.5 4.7-5.3"/>',
+ box:'<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="M3 7v10l9 5 9-5V7M12 12v10"/>',
+ print:'<path d="M6 8V3h12v5M6 18H4a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2h-2"/><path d="M6 15h12v7H6zM18 12h.01"/>'
+});
+function mastIcon(name){
+ const outer=node('span','ttk-live-mast-icon');
+ outer.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+mastIconPaths[name]+'</svg>';
+ return outer;
+}
 const number=x=>Number(x)>0?Number(x).toLocaleString('ru-RU',{maximumFractionDigits:2}):'—';
 const entries={
  'recipe-name':'Блюдо','card-number':'ТТК №','recipe-category':'Категория',
@@ -71,9 +85,26 @@ export function mountInlineTtkPage(editor){
   bounds.set(id,input);
   return label;
  }
- // The app chrome already identifies FARRUH AI. Keep the printable A4
- // document free of redundant brand/navigation badges; its first row is the
- // actual TECHNOLOGICAL CARD title, as in the owner-approved compact mockup.
+ // Firm-style paper masthead intentionally matches the four approved A4
+ // references. The badges are printed labels, not false navigation buttons.
+ const masthead=node('header','ttk-live-hero ttk-live-paper-mast');
+ masthead.setAttribute('aria-label','FARRUH AI Premium — профессиональные технологические карты');
+ const mastBrand=node('div','ttk-live-paper-brand');
+ mastBrand.append(mastIcon('crown'));
+ const brandWords=node('span','ttk-live-brand-words');
+ brandWords.append(node('strong','','FARRUH AI'),node('em','','Premium'));
+ mastBrand.append(brandWords);
+ const descriptor=node('div','ttk-live-paper-descriptor');
+ descriptor.append(node('span','','ПРОФЕССИОНАЛЬНАЯ СИСТЕМА'),
+  node('span','','ТЕХНОЛОГИЧЕСКИХ КАРТ'),
+  node('span','','ДЛЯ HORECA'));
+ const badges=node('div','ttk-live-paper-badges');
+ for(const [icon,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']]){
+  const badge=node('span','ttk-live-paper-badge');
+  badge.append(mastIcon(icon),node('span','',label));
+  badges.append(badge);
+ }
+ masthead.append(mastBrand,descriptor,badges);
  const title=node('div','ttk-live-title');
  title.append(node('strong','','ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)'),node('span','','№'));
  const numberInput=proxy('card-number',{caption:'Номер карты'});
@@ -145,7 +176,7 @@ export function mountInlineTtkPage(editor){
  const regulatory=node('footer','ttk-live-regulatory',
    'Нормативная основа: действующие санитарные правила и технические регламенты. Данные и аллергены проверяют до утверждения.');
  const lower=node('div','ttk-live-lower');lower.append(process,qualityPair,safety,signs,regulatory);
- page.append(title,name,meta,introPair,recipePair,lower);
+ page.append(masthead,title,name,meta,introPair,recipePair,lower);
  const status=node('p','ttk-live-edit-status','Нажимайте на поля непосредственно в выбранном шаблоне. Все изменения идут в настоящую ТТК.');
  status.setAttribute('role','status');
  const tools=node('div','ttk-live-actions');

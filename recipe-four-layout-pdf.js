@@ -228,8 +228,73 @@ export function fourTtkPdf(input){
    ['Ккал',fmt(stats.kcal),stats.kcal!=null&&per?fmt(Number(stats.kcal)*per):'—']];
   return box('7. Пищевая ценность (КБЖУ)',body,x,y,w,s,draw,{ratios:[.46,.27,.27]});
  }
- // Clean owner-approved A4 header: title first, no duplicate brand,
- // Premium/PF/print/HACCP navigation text is never printed inside the card.
+ // Owner-approved FARRUH AI Premium masthead. All graphics are vector PDF
+ // operations (not a screenshot or raster); the badges are document symbols.
+ function drawMastIcon(type,cx,y,scale){
+  const k=scale;
+  doc.save();doc.strokeColor('#B98A35').lineWidth(1*k);
+  if(type==='chef'){
+   doc.circle(cx-4*k,y+5*k,2.1*k).stroke();
+   doc.circle(cx,y+3.5*k,2.7*k).stroke();
+   doc.circle(cx+4*k,y+5*k,2.1*k).stroke();
+   doc.moveTo(cx-6*k,y+7*k).lineTo(cx-6*k,y+12*k).lineTo(cx+6*k,y+12*k).lineTo(cx+6*k,y+7*k).stroke();
+  }else if(type==='shield'){
+   doc.moveTo(cx,y).lineTo(cx+6*k,y+2.5*k).lineTo(cx+5*k,y+8*k)
+    .lineTo(cx,y+13*k).lineTo(cx-5*k,y+8*k).lineTo(cx-6*k,y+2.5*k).closePath().stroke();
+   doc.moveTo(cx-3*k,y+6.7*k).lineTo(cx-0.7*k,y+9*k).lineTo(cx+3.4*k,y+4.6*k).stroke();
+  }else if(type==='box'){
+   doc.moveTo(cx,y).lineTo(cx+6*k,y+3*k).lineTo(cx,y+6*k).lineTo(cx-6*k,y+3*k).closePath().stroke();
+   doc.moveTo(cx-6*k,y+3*k).lineTo(cx-6*k,y+10*k).lineTo(cx,y+13*k)
+    .lineTo(cx+6*k,y+10*k).lineTo(cx+6*k,y+3*k).stroke();
+   doc.moveTo(cx,y+6*k).lineTo(cx,y+13*k).stroke();
+  }else{
+   doc.rect(cx-5.5*k,y+5*k,11*k,6*k).stroke();
+   doc.rect(cx-4*k,y,8*k,5*k).stroke();
+   doc.rect(cx-4*k,y+9*k,8*k,5*k).stroke();
+   doc.circle(cx+3.1*k,y+7*k,.6*k).fill('#B98A35');
+  }
+  doc.restore();
+ }
+ function masthead(y,s,draw){
+  // Very dense preparation catalogues (19–100+ ingredients) retain the same
+  // mandatory labels in a slim vector strip, instead of shrinking all recipe
+  // information below the minimum legible A4 scale.
+  const h=(dense?9:27)*s;
+  if(draw&&dense){
+   // Single-line branded treatment for exceptionally long ingredient tables:
+   // preserves every ingredient and the minimum export font scale.
+   txt('♛ FARRUH AI Premium',X+2*s,y+.7*s,152*s,7*s,true,C.navy,true);
+   txt('ТЕХКАРТЫ HORECA',X+155*s,y+1.8*s,153*s,5.6*s,true,C.navy,true);
+   const badgeStart=X+329*s,badgeW=49*s,badgeGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
+    const bx=badgeStart+i*(badgeW+badgeGap);
+    doc.roundedRect(bx,y,badgeW,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
+    drawMastIcon(type,bx+8*s,y+.7*s,s*.38);
+    txt(label,bx+15*s,y+1.2*s,badgeW-16*s,5*s,true,'#66491D',true);
+   }
+   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.6*s).strokeColor(C.accent).stroke();
+  }else if(draw){
+   // Brand left: restrained gold crown with stacked FARRUH AI / Premium.
+   txt('♛',X+3*s,y+1.5*s,24*s,20*s,true,C.accent,true);
+   txt('FARRUH AI',X+29*s,y+3*s,133*s,11*s,true,C.navy,true);
+   txt('Premium',X+29*s,y+16*s,122*s,7.5*s,false,'#A87926',true);
+   doc.moveTo(X+154*s,y+2*s).lineTo(X+154*s,y+23*s)
+    .lineWidth(1*s).strokeColor(C.accent).stroke();
+   txt(['ПРОФЕССИОНАЛЬНАЯ СИСТЕМА','ТЕХНОЛОГИЧЕСКИХ КАРТ','ДЛЯ HORECA'],
+    X+162*s,y+3*s,165*s,6.0*s,true,C.navy,true);
+   const badgeStart=X+333*s, badgeW=49*s, badgeGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
+    const bx=badgeStart+i*(badgeW+badgeGap);
+    doc.roundedRect(bx,y+1*s,badgeW,24*s,4*s).lineWidth(.7*s)
+      .fillAndStroke('#FFFFFF','#CEAB65');
+    drawMastIcon(type,bx+badgeW/2,y+3*s,s*.86);
+    txt(label,bx+4*s,y+17*s,badgeW-8*s,5.7*s,true,'#66491D',true);
+   }
+   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.8*s).strokeColor(C.accent).stroke();
+  }
+  return h;
+ }
+ // Title bar follows the masthead; it remains the first content section.
  function headerHeight(s){
   const nameLines=wrap(r.name,W-24*s,12*s,true);
   return Math.max(79*s,(59+16*nameLines.length)*s);
@@ -271,8 +336,12 @@ export function fourTtkPdf(input){
   if(draw){
    doc.rect(0,0,595.28,841.89).fill('#FFFFFF');
    doc.rect(0,0,595.28,8*s).fill(layout==='premium-blue'?C.navy:C.band);
-   doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
+   if(!dense)doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
   }
+  // Dense ingredient catalogues use otherwise-empty 8–18pt top margin;
+  // this avoids sacrificing the existing minimum .74 A4 type scale.
+  if(dense)masthead(9*s,s,draw);
+  else y+=masthead(y,s,draw)+4*s;
   y+=header(y,s,draw)+(dense?3:8)*s;
   const half=(W-gap)/2;
   const a=textBox('1. Область применения',sections[0][1][0][0],X,y,half,s,false),

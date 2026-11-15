@@ -40,9 +40,8 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
   assert.doesNotMatch(buffer.toString('latin1'),/\/Subtype\s*\/Image/, 'A4 must omit saved dish photos');
   const output=await parsePdf(buffer);
   assert.equal(output.numpages,1);
-  if(['teal-matrix','process-matrix','gold-allergen','premium-blue'].includes(layoutTemplate))
-   assert.doesNotMatch(output.text,/FARRUH AI|Premium/);
-  else assert.match(output.text,/FARRUH AI/);
+  assert.match(output.text,/FARRUH AI/);
+  assert.match(output.text,/Premium/);
   assert.match(output.text,/Филадельфия классик/);
   assert.match(output.text,/ТЕХНОЛОГИЧЕСКАЯ КАРТА/);
   assert.match(output.text,/Разработал/);
