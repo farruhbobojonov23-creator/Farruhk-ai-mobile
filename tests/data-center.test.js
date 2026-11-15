@@ -60,9 +60,9 @@ test('mobile hub has responsive safe-area bounds and no duplicate quick buttons'
 });
 
 test('My Data and its connection dialogs use one black/gold premium theme',()=>{
- assert.match(html,/\/data-center-premium\.css\?v=3/);
- assert.ok(html.indexOf('/data-center-premium.css?v=3')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
- assert.match(html,/\/recipe-google\.js\?v=14/);
+ assert.match(html,/\/data-center-premium\.css\?v=4/);
+ assert.ok(html.indexOf('/data-center-premium.css?v=4')>html.indexOf('/ttk-four-layouts.css?v=1'),'premium overrides must load LAST');
+ assert.match(html,/\/recipe-google\.js\?v=15/);
  assert.match(google,/dialog\.className='category-dialog data-center-subdialog'/);
  assert.match(google,/archiveDialog\.className='category-dialog data-center-subdialog'/);
  assert.match(premium,/dialog#data-center-dialog\.data-center-dialog/);
@@ -81,12 +81,26 @@ test('TTK can be managed individually from saved versions or My Data without any
  assert.match(html,/mountRecipeDeletionManager\(\{/);
  assert.match(html,/mountRoot:dataCenter\.deletionRoot/);
  assert.match(google,/farruh:manage-recipe/);
- assert.match(manager,/name="deleteScope" value="phone"/);
- assert.match(manager,/name="deleteScope" value="cloud"/);
- assert.match(manager,/name="deleteScope" value="google"/);
- assert.match(manager,/input\.value\.trim\(\)!=='УДАЛИТЬ'/);
+ assert.match(manager,/scope:'phone',label:'📱 Телефон ✕'/);
+ assert.match(manager,/scope:'cloud',label:'☁️ Облако ✕'/);
+ assert.match(manager,/scope:'google',label:'📄 Google ✕'/);
+ assert.doesNotMatch(manager,/data-confirm|Введите слово УДАЛИТЬ|window\.confirm\('Подтвердите удаление/);
  assert.match(manager,/store\.mutate/);
  assert.match(manager,/s\.googleSuppressed\?\./);
  assert.doesNotMatch(manager,/localStorage\.clear\(\)/);
  assert.doesNotMatch(manager,/\bdeleteAll\b/);
+});
+
+test('one tap X deletes a single TTK without a typing field, scope dialog or confirmation step',()=>{
+ const manager=load('recipe-delete-manager.js');
+ assert.match(manager,/button\.onclick=\(\)=>void removeOne\(recipe\.id,option\.scope\)/);
+ assert.match(manager,/async function removeOne\(id,scope\)/);
+ assert.match(manager,/async function undoPhoneDelete\(\)/);
+ assert.match(manager,/↶ Отменить/);
+ assert.match(manager,/localOnlyDeletedIds/);
+ assert.match(google,/ready-version-delete-x/);
+ assert.match(google,/farruh:delete-recipe-fast/);
+ assert.match(html,/deletionManager\.removeOne\(id,'phone'\)/);
+ assert.doesNotMatch(manager,/\.showModal\(\)/);
+ assert.doesNotMatch(manager,/window\.confirm\(/);
 });
