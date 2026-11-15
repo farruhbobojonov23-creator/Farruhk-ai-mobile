@@ -1,7 +1,8 @@
 /* FARRUH AI Design Studio · non-destructive interface layer.
    Recipe/HACCP/label stores and printed A4 documents are deliberately untouched. */
 import {mountPremiumShowcase} from '/premium-showcase.js?v=8';
-import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=8';
+import {mountPremiumRoyalV2} from '/premium-royal-v2.js?v=9';
+import {mountUltraAdmin} from '/ultra-admin.js?v=1';
 const DESIGN_KEY='farruh-ai-appearance-v1';
 const PROJECT_KEY='farruh-ai-project-catalog-v1';
 const defaults={theme:'royal',accent:'',radius:20,density:'standard',scale:1,motion:true};
@@ -18,7 +19,7 @@ function icon(key){
  const path={ttk:'M7 3h8l4 4v14H7z M15 3v5h5 M10 12h6 M10 16h6',shield:'M12 2l9 4v6c0 5-4 9-9 10-5-1-9-5-9-10V6z M8 12l3 3 5-6',book:'M4 5c3-1 5 0 8 2 3-2 5-3 8-2v15c-4-1-6 0-8 2-2-2-5-3-8-2z M12 7v15',box:'M3 7l9-4 9 4-9 5z M3 7v10l9 4 9-4V7 M12 12v9',printer:'M6 9V3h12v6M6 18H4V10h16v8h-2 M6 15h12v7H6z',chef:'M6 12C1 10 3 3 8 4c2-3 6-3 8 0 5-1 7 6 2 8v8H6z M6 16h12',home:'M3 11L12 3l9 8M6 9v12h5v-7h3v7h5V9',settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2m10-10 2-2'}[key];
  return '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+path+'"/></svg>';
 }
-export function mountPremiumWorkspace(){
+export function mountPremiumWorkspace({show,openDataCenter}={}){
  let config=validDesign(getJson(DESIGN_KEY,defaults)),draft=null;
  // One-time opt-in from the owner: the approved Premium PRO (light sapphire)
  // replaces the previous default dark Titanium on existing devices.
@@ -69,12 +70,16 @@ export function mountPremiumWorkspace(){
   if(meta)meta.content=['titanium','royal','ice','gold','burgundy'].includes(c.theme)?themeColors[c.theme][1]:c.theme==='white'?'#f5f6f8':'#e8f4ff';
  }
  function goto(view){
+  if(view==='ultra-admin') {if(typeof show==='function')show(view);else location.hash=view;return}
   const target=nav.querySelector('button[data-view="'+view+'"]');
   if(target){target.click();return}
   location.hash=view;
  }
  function addSidebar(){
   const settings=document.getElementById('menu-settings');
+  const ultraButton=button('♛ ULTRA ADMIN','pf-sidebar-ultra-admin',()=>goto('ultra-admin'));
+  ultraButton.dataset.view='ultra-admin';
+  nav.insertBefore(ultraButton,settings);
   const projectButton=button('Проекты','pf-sidebar-project',openProjects);
   projectButton.insertAdjacentHTML('afterbegin',icon('book'));
   // Keep the main menu short: Design Studio and infrequently used tools live
@@ -96,7 +101,8 @@ export function mountPremiumWorkspace(){
   const caption=node('p','pf-settings-hub-caption','Темы, кнопки и размер элементов.');
   const design=button('🎨  Дизайн и стиль','pf-settings-design-button',openStudio);
   design.id='pf-settings-design-button';
-  hub.append(title,caption,design);
+  const admin=button('♛  ULTRA ADMIN · Управление','pf-settings-design-button',()=>goto('ultra-admin'));
+  hub.append(title,caption,admin,design);
   const utilities=node('details','pf-settings-utilities');utilities.id='pf-settings-utilities';
   const summary=node('summary','','Редко используемые функции');
   const list=node('div','pf-settings-utilities-list');
@@ -113,7 +119,7 @@ export function mountPremiumWorkspace(){
   const after=target.querySelector(':scope > .settings-actions');
   if(after)after.after(hub);else target.querySelector('h1')?.after(hub);
  }
- const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Полуфабрикаты','Ингредиенты и заготовки','preparations'],['printer','FARUKH PRINT','Этикетки и маркировка','print-control'],['settings','Настройки','Оформление и инструменты','site-settings']];
+ const tiles=[['ttk','ТТК','Технологические карты и расчёты','recipes'],['box','Полуфабрикаты','Ингредиенты и заготовки','preparations'],['printer','FARUKH PRINT','Этикетки и маркировка','print-control'],['settings','Настройки','Оформление и инструменты','site-settings'],['settings','ULTRA ADMIN','Центр управления владельца','ultra-admin']];
  const shell=node('div','pf-workspace');shell.id='pf-workspace';
  shell.innerHTML=
   '<div class="pf-top"><div><div class="pf-brand">FARRUH <span>AI</span></div><div class="pf-caption">Профессиональный кабинет шефа</div></div><div class="pf-top-actions"><button class="pf-icon-btn" data-pf-action="settings" aria-label="Настройки" title="Настройки">◈</button><button class="pf-icon-btn" data-pf-go="tasks" aria-label="Открыть задачи" title="Задачи">♧</button></div></div>'+
@@ -238,6 +244,7 @@ export function mountPremiumWorkspace(){
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
  mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
+ mountUltraAdmin({root:document.getElementById('ultra-admin'),goTo:goto,openStudio,openProjects,openDataCenter:typeof openDataCenter==='function'?openDataCenter:()=>goto('site-settings')});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
   new MutationObserver(attachSettingsHub).observe(settingsTarget,{childList:true});

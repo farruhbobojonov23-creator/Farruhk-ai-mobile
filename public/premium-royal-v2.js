@@ -2,7 +2,7 @@
    Navigation uses existing callbacks. KPI and recent recipe values come exclusively
    from the real on-device store. No synthetic connection, counts, projects or recipes. */
 import {DeviceStore} from '/device-store.js?v=72';
-import {inspectSystemHealth, mountSystemBadges} from '/system-health.js?v=2';
+import {inspectSystemHealth, mountSystemBadges} from '/system-health.js?v=3';
 import {showProductPhoto} from '/product-photo.js?v=3';
 const ICONS={
 chef:'<path d="M7 21V12C1 8 6 2 12 6c5-5 13 0 12 6v9M7 21h17M7 26h17"/>',
@@ -43,7 +43,7 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
   ['home','Главная','home'],['projects','Проекты','projects'],['ttk','ТТК','recipes'],
   ['layers','Ингредиенты и ПФ','preparations'],['check','ХАССП','lab'],
   ['chart','Контроль точек','checks'],['printer','FARUKH PRINT','print-control'],['calc','Калькулятор','calc'],
-  ['assistant','Ассистент','chat'],['settings','Настройки','site-settings']
+  ['assistant','Ассистент','chat'],['chef','♛ ULTRA ADMIN','ultra-admin'],['settings','Настройки','site-settings']
  ];
  for(const [symbol,label,route] of navigation){const b=button(label,'pfv-nav'+(route==='home'?' active':''));b.dataset.pfvRoute=route;if(route==='home')b.setAttribute('aria-current','page');b.insertAdjacentHTML('afterbegin',icon(symbol));b.addEventListener('click',()=>route==='projects'?openProjects():goto(route));nav.append(b)}
  side.append(nav);
@@ -97,7 +97,7 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  }
  drawProjects();document.addEventListener('pf:projects',drawProjects);
  const actionBlock=section('Быстрые действия','plus'),actions=el('div','pfv-actions');
- const acts=[['plus','Создать ТТК',()=>{goto('recipes');requestAnimationFrame(()=>document.getElementById('newrecipe')?.click())}],['ttk','Все ТТК',()=>goto('recipes')],['layers','Полуфабрикаты',()=>goto('preparations')],['box','Ингредиенты',()=>goto('preparations')],['calc','Калькулятор',()=>goto('calc')],['printer','Печать',()=>goto('print-control')]];
+ const acts=[['plus','Создать ТТК',()=>{goto('recipes');requestAnimationFrame(()=>document.getElementById('newrecipe')?.click())}],['ttk','Все ТТК',()=>goto('recipes')],['layers','Полуфабрикаты',()=>goto('preparations')],['box','Ингредиенты',()=>goto('preparations')],['calc','Калькулятор',()=>goto('calc')],['printer','Печать',()=>goto('print-control')],['settings','ULTRA ADMIN',()=>goto('ultra-admin')]];
  for(const [symbol,label,action] of acts){const b=button('','pfv-action',action);b.innerHTML=icon(symbol);b.append(el('span','',label));actions.append(b)}
  actionBlock.section.append(actions);content.append(actionBlock.section);
  const lower=el('div','pfv-bottom-grid');const recent=section('Последние ТТК','ttk');recent.header.append(button('Все ТТК →','pfv-section-link',()=>goto('recipes')));const recentRows=el('div');recent.section.append(recentRows);const status=section('Состояние системы','shield');const statusRows=el('div','pfv-status');status.section.append(statusRows);status.header.append(button('↻ Проверить','pfv-section-link',()=>void readDashboardData({force:true})));lower.append(recent.section,status.section);content.append(lower);

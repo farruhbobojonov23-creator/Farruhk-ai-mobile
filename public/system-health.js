@@ -99,7 +99,7 @@ export async function inspectSystemHealth({state, force = false} = {}) {
    google, backup, phone
   ],
   areas: {
-   home: local && server, projects: local, recipes: local,
+   home: local && server, projects: local, recipes: local, 'ultra-admin': local,
    preparations: local, lab: local, checks: local, tasks: local,
    calc: local, 'site-settings': local
   }
@@ -177,7 +177,7 @@ export function mountSystemBadges() {
   if (element.closest('.pfv-projects')) return 'projects';
   if (element.closest('.pfv-actions')) {
    const name = element.textContent.toLowerCase();
-   return /печат/.test(name) ? 'print-control' :
+   return /ultra admin/.test(name) ? 'ultra-admin' : /печат/.test(name) ? 'print-control' :
     /ингредиент|полуфабрикат/.test(name) ? 'preparations' :
     /калькулятор/.test(name) ? 'calc' : 'recipes';
   }
