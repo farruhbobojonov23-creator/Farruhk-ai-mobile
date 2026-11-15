@@ -14,7 +14,7 @@ async function auth(endpoint,data){
 }
 async function cloud(func,args={}){
  if(!token)throw Error('Сеанс владельца не подтверждён.');
- const r=await fetch(REST+'/rpc/'+func,{method:'POST',cache:'no-store',mode:'cors',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(args)});
+ const r=await fetch(REST+'/rpc/'+func,{method:'POST',cache:'no-store',mode:'cors',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json','Content-Profile':'farukh_print_api','Accept-Profile':'farukh_print_api'},body:JSON.stringify(args)});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw Error(d.message||d.error||'Neon HTTP '+r.status);
  if(d?.ok===false)throw Error(d.error||'Действие отклонено Neon.');
