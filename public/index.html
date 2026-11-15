@@ -583,6 +583,34 @@ settingsDialog.append(dataTools);
 const googleSync=mountGoogleSync({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice});
 const googleDriveBackup=mountGoogleDriveBackup({getState:()=>state,store:deviceStore,onState:next=>{state=next},notify:notice,settingsDialog,importData:importDeviceData,downloadFile});
 deviceCloudSync=mountDeviceCloudSync({store:deviceStore,getState:()=>state,onState:next=>{state=next;render()},settingsDialog,notify:notice,downloadFile});
+// Storage routing is intentionally separate from the sync mechanisms: no misleading green status.
+const storageRouting=document.createElement('details');storageRouting.className='panel';storageRouting.id='storage-routing';
+storageRouting.innerHTML='<summary>🗂 Куда сохраняются данные · ТТК и Google Drive</summary>'+
+ '<p class="small">У каждой синхронизации своя задача. Наличие Google Drive в ChatGPT не означает, что сам сайт сохраняет ТТК в Google.</p>'+
+ '<div class="panel"><strong>① Черновики и редактируемые ТТК</strong><p data-route-device role="status" class="small">Проверка основного облачного хранилища…</p><button type="button" data-route-devices>Настройки общей базы</button></div>'+
+ '<div class="panel"><strong>② Готовые ТТК → Google Drive</strong><p data-route-ready role="status" class="small">Проверка подключения Google Документов…</p><button type="button" data-route-ready-open>Открыть отправку ТТК</button></div>'+
+ '<div class="panel"><strong>③ Резервная копия всей базы → Google Drive</strong><p data-route-backup role="status" class="small">Проверка настройки копий…</p><button type="button" data-route-backup-open>Настройки резервных копий</button></div>'+
+ '<p class="small">Зелёный статус должен появляться только после ответа облака. Если облако недоступно, не удаляйте данные браузера.</p>';
+settingsDialog.insertBefore(storageRouting,dataTools);
+storageRouting.querySelector('[data-route-devices]').onclick=()=>deviceCloudSync.open();
+storageRouting.querySelector('[data-route-ready-open]').onclick=()=>{
+ settingsDialog.close();show('recipes');const section=document.querySelector('#recipes .lx-sync-details');if(section){section.open=true;section.scrollIntoView({block:'center',behavior:'smooth'});}
+};
+storageRouting.querySelector('[data-route-backup-open]').onclick=()=>{
+ settingsDialog.close();const dialog=document.querySelector('dialog[aria-label="Резервные копии Google Диск"]');if(dialog&&!dialog.open)dialog.showModal();
+};
+async function inspectStorageRoutes(){
+ const ready=storageRouting.querySelector('[data-route-ready]'),backup=storageRouting.querySelector('[data-route-backup]'),device=storageRouting.querySelector('[data-route-device]');
+ const g=state?.googleSync||{},b=state?.googleBackup||{};
+ ready.textContent=g.enabled&&g.endpoint&&g.key?'Адрес и ключ указаны. Доставку каждой готовой ТТК проверяйте в разделе «Техкарты».':'⚠️ Google Документы для готовых ТТК не подключены на этом устройстве.';
+ backup.textContent=b.enabled&&b.endpoint&&b.key?'Резервные копии настроены. Последнее подтверждение: '+(b.lastBackupAt?new Date(b.lastBackupAt).toLocaleString('ru-RU'):'ещё нет')+'.':'Резервное копирование в Google Drive не включено.';
+ device.textContent='Проверяю доступность постоянной облачной базы…';
+ try{const response=await fetch('/api/device-sync',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(12000)});const data=await response.json().catch(()=>({}));
+ device.textContent=response.ok&&data.ok===true?'✅ Облачная база отвечает. Хранилище: '+(data.storage||'проверено')+'.':'⚠️ Основная облачная база недоступна: '+String(data.error||'подтверждения от сервера нет').slice(0,180)+'. Черновики могут оставаться на устройстве.';
+ }catch(error){device.textContent='⚠️ Облако не подтвердило сохранение черновиков: '+String(error.message||error).slice(0,120);}
+}
+storageRouting.addEventListener('toggle',()=>{if(storageRouting.open)void inspectStorageRoutes()});
+
 // A single, accessible compact chip next to project management.
 const syncQuickButton=document.createElement('button');
 syncQuickButton.type='button';syncQuickButton.id='sync-quick-access';
