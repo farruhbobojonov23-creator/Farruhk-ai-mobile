@@ -2,6 +2,7 @@
    Navigation uses existing callbacks. KPI and recent recipe values come exclusively
    from the real on-device store. No synthetic connection, counts, projects or recipes. */
 import {DeviceStore} from '/device-store.js?v=72';
+import {inspectSystemHealth, mountSystemBadges} from '/system-health.js?v=1';
 import {showProductPhoto} from '/product-photo.js?v=3';
 const ICONS={
 chef:'<path d="M7 21V12C1 8 6 2 12 6c5-5 13 0 12 6v9M7 21h17M7 26h17"/>',
@@ -99,12 +100,12 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
  const acts=[['plus','Создать ТТК',()=>{goto('recipes');requestAnimationFrame(()=>document.getElementById('newrecipe')?.click())}],['ttk','Все ТТК',()=>goto('recipes')],['layers','Полуфабрикаты',()=>goto('preparations')],['box','Ингредиенты',()=>goto('preparations')],['calc','Калькулятор',()=>goto('calc')],['printer','Печать',()=>goto('print-control')]];
  for(const [symbol,label,action] of acts){const b=button('','pfv-action',action);b.innerHTML=icon(symbol);b.append(el('span','',label));actions.append(b)}
  actionBlock.section.append(actions);content.append(actionBlock.section);
- const lower=el('div','pfv-bottom-grid');const recent=section('Последние ТТК','ttk');recent.header.append(button('Все ТТК →','pfv-section-link',()=>goto('recipes')));const recentRows=el('div');recent.section.append(recentRows);const status=section('Состояние системы','shield');const statusRows=el('div','pfv-status');status.section.append(statusRows);lower.append(recent.section,status.section);content.append(lower);
- function addStatus(label,ok=false){const r=el('div','pfv-status-item'+(ok?' ok':''));r.innerHTML=icon(ok?'check':'clock');r.append(el('span','',label));statusRows.append(r)}
- addStatus('Проверка локальных данных…');addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус необходимо проверить в настройках');
+ const lower=el('div','pfv-bottom-grid');const recent=section('Последние ТТК','ttk');recent.header.append(button('Все ТТК →','pfv-section-link',()=>goto('recipes')));const recentRows=el('div');recent.section.append(recentRows);const status=section('Состояние системы','shield');const statusRows=el('div','pfv-status');status.section.append(statusRows);status.header.append(button('↻ Проверить','pfv-section-link',()=>void readDashboardData({force:true})));lower.append(recent.section,status.section);content.append(lower);
+ function addStatus(label,level='warn'){const r=el('div','pfv-status-item'+(level==='ok'?' ok':level==='error'?' error':''));r.innerHTML=icon(level==='ok'?'check':'clock');r.append(el('span','',label));statusRows.append(r)}
+ addStatus('Проверяю сервер, локальную базу и Google…');
  const mobile=el('nav','pfv-phone-nav');mobile.setAttribute('aria-label','Быстрые переходы');for(const [sym,txt,route] of [['home','Главная','home'],['projects','Проекты','projects'],['ttk','ТТК','recipes'],['printer','Печать','print-control'],['menu','Ещё','site-settings']]){const b=button('', '',()=>route==='projects'?openProjects():goto(route));b.dataset.pfvRoute=route;b.innerHTML=icon(sym);b.append(el('span','',txt));mobile.append(b)}content.append(mobile);
  root.addEventListener('click',event=>{if(event.target.closest('button'))event.stopPropagation()});
- root.append(side,content);shell.prepend(root);
+ root.append(side,content);shell.prepend(root);mountSystemBadges();
  let dashboardLoading=false,lastDashboardRead=0;
  const readDashboardData=async({force=false}={})=>{
   if(dashboardLoading||document.body.dataset.pfTheme!=='royal')return;
@@ -130,14 +131,15 @@ export function mountPremiumRoyalV2({shell,goto,openStudio,openProjects}){
   row.append(el('span','pfv-recipe-status'+(r.status==='ready'?'':' draft'),r.status==='ready'?'Готова':'Черновик'));
   recentRows.append(row)
  }
- statusRows.replaceChildren();addStatus('Локальное хранилище доступно',true);addStatus('Google: состояние подключения здесь не проверено');addStatus('Резервное копирование: статус в настройках');
+ const health = await inspectSystemHealth({state,force});
+ statusRows.replaceChildren();for(const entry of health.items)addStatus(entry.label,entry.level);
  if(!status.section.querySelector('.pfv-status-emblem')){
   const emblem=el('div','pfv-status-emblem');
   emblem.setAttribute('aria-hidden','true');
   emblem.innerHTML=icon('chef')+'<small>ЛОКАЛЬНО</small>';
   status.section.append(emblem);
  }
- }catch(e){status.section.querySelector('.pfv-status-emblem')?.remove();statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные');addStatus('Проверь сохранённые ТТК в разделе «ТТК»');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}
+ }catch(e){status.section.querySelector('.pfv-status-emblem')?.remove();statusRows.replaceChildren();addStatus('Не удалось прочитать локальные данные','error');addStatus('Проверь сохранённые ТТК в разделе «ТТК»','warn');recentRows.replaceChildren();recentRows.append(el('p','pfv-muted','Данные пока не загружены.'))}
  finally{dashboardLoading=false;lastDashboardRead=Date.now()}
  };
  const updateOnNavigation=()=>{
