@@ -21,14 +21,14 @@ import java.util.Locale;
 public class PdfMaker {
     private final Canvas c;
     private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final int red,dark,muted,pale,line;
+    private final int red,dark,muted,pale,line,template;
     private final float left=29,right=566;
     private final Context ctx;
     private final JSONObject dish;
     private final TTKStore store;
     private float size=8.6f;
     private PdfMaker(Canvas canvas,Context context,TTKStore st,JSONObject d,int template){
-        c=canvas;ctx=context;store=st;dish=d;
+        c=canvas;ctx=context;store=st;dish=d;this.template=template;
         int[] accents={0xFFC51C2E,0xFFBD4764,0xFF304F8C,0xFFD34538};
         red=accents[Math.max(0,Math.min(3,template))];
         dark=0xFF1C2029;muted=0xFF68707A;pale=0xFFFAF3F1;line=0xFFE4E6E9;
@@ -117,92 +117,39 @@ public class PdfMaker {
         p.setColor(red);p.setStrokeWidth(2);c.drawLine(left,78,right,78,p);
         p.setColor(0x18D34548);c.drawCircle(538,94,55,p);
         p.setColor(red);c.drawCircle(526,103,10,p);
-        sakura(537,105,.7f);
+        if(template==0){
+            sakura(537,105,.7f);torii(536,145,.6f);
+        }else if(template==1){
+            sakura(538,108,1.0f);sakura(490,68,.45f);
+        }else if(template==2){
+            mountain(505,139,1.0f);wave(left,157,.7f);
+        }else{
+            torii(524,142,1.05f);sakura(563,77,.4f);
+        }
     }
-    byte[] render() throws Exception{
-        JSONArray rows=dish.optJSONArray("rows");if(rows==null)rows=new JSONArray();
-        String tech=dish.optString("tech","");
-        size= rows.length()>18||tech.length()>550?7.2f:rows.length()>11||tech.length()>350?7.7f:8.7f;
-        PdfDocument doc=new PdfDocument();
-        PdfDocument.PageInfo info=new PdfDocument.PageInfo.Builder(595,842,1).create();
-        PdfDocument.Page page=doc.startPage(info);
-        header();
-        text(dish.optString("name","Новое блюдо"),left,113,17,dark,true);
-        text("Категория: "+dish.optString("category",""),left,132,9,muted,false);
-        text("Выход: "+dish.optString("yield","")+" г  •  "+dish.optString("pieces","")+" шт",left,149,10,red,true);
-        photo(408,91,158,75);
-        float y=179;
-        titleBar("1. РЕЦЕПТУРА И ВЫХОД",left,y,537);y+=22;
-        box(left,y,537,16,0,0xFFF3F4F5);
-        text("№",left+9,y+11,8,dark,true);
-        text("Наименование сырья / полуфабриката",left+30,y+11,8,dark,true);
-        text("Брутто, г",left+393,y+11,8,dark,true);
-        text("Нетто, г",left+476,y+11,8,dark,true);
-        y+=16;
-        double total=0,cal=0,pv=0,fv=0,cv=0;
-        LinkedHashSet<String> allerg=new LinkedHashSet<>();
-        for(int i=0;i<rows.length();i++){
-            JSONObject r=rows.optJSONObject(i);if(r==null)continue;
-            float rh=size<8?15:17;
-            if(i%2==0)box(left,y,537,rh,0,0xFFF9F9FA);
-            String nm=r.optString("name");
-            text(""+(i+1),left+9,y+11,size,dark,false);
-            float nmSize=size;if(nm.length()>60)nmSize=6.7f;
-            text(nm.length()>74?nm.substring(0,73)+"…":nm,left+30,y+11,nmSize,dark,false);
-            text(num(r.optDouble("brutto",0)),left+395,y+11,size,dark,false);
-            text(num(r.optDouble("netto",0)),left+477,y+11,size,dark,false);
-            double g=r.optDouble("netto",0);total+=g;
-            JSONObject ing=store.findIngredient(nm);
-            if(ing!=null){cal+=g*ing.optDouble("kcal",0)/100;pv+=g*ing.optDouble("p",0)/100;
-                fv+=g*ing.optDouble("f",0)/100;cv+=g*ing.optDouble("c",0)/100;
-                String allergens=ing.optString("allergen","");
-                if(!allergens.isEmpty())allerg.add(allergens);
-            }
-            y+=rh;
-        }
-        box(left,y,537,20,3,0xFFF7E8EA);
-        text("ИТОГО НЕТТО ПО РЕЦЕПТУРЕ: "+num(total)+" г",left+9,y+13,9,red,true);
-        text("Заявленный выход: "+dish.optString("yield","")+" г",left+294,y+13,8.5f,red,true);y+=33;
-        y=sectionText("2. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ",tech,left,y,537);
-        float column=263,gap=11;
-        float yStart=y;
-        float lY=sectionText("3. ТРЕБОВАНИЯ К КАЧЕСТВУ",dish.optString("quality",""),left,yStart,column);
-        lY=sectionText("4. ПОДАЧА И ОФОРМЛЕНИЕ",dish.optString("serving",""),left,lY,column);
-        float rX=left+column+gap;
-        String cvText="Энергия: "+num(cal)+" ккал; белки: "+num(pv)+" г; жиры: "+num(fv)+" г; углеводы: "+num(cv)+" г. Значения ориентировочные; используются данные справочника на весь состав.";
-        float rY=sectionText("5. ПИЩЕВАЯ ЦЕННОСТЬ",cvText,rX,yStart,column);
-        String allergText=allerg.isEmpty()?"Не определены по текущему справочнику. Требуется проверить этикетки каждого ингредиента.":String.join("; ",allerg)+". Подтвердить по этикеткам сырья.";
-        rY=sectionText("6. АЛЛЕРГЕНЫ",allergText,rX,rY,column);
-        y=Math.max(lY,rY)+2;
-        y=sectionText("7. УСЛОВИЯ И СРОК ХРАНЕНИЯ",
-             "Температура: "+dish.optString("temp","")+". Срок: "+dish.optString("storage","")+".",left,y,537);
-        if(y>747){
-            doc.finishPage(page);doc.close();
-            throw new Exception("Слишком много текста для одного читаемого листа А4. Сократите формулировки или рецептуру.");
-        }
-        float fy=Math.max(765,y+13);
-        rule(fy-12);
-        text("Разработал: "+dish.optString("author","________________________"),left,fy,8,dark,false);
-        text("Утверждаю: "+dish.optString("approver","________________________"),307,fy,8,dark,false);
-        text("Подпись: ____________________",left,fy+20,8,muted,false);
-        text("Дата: "+dish.optString("date","__________________"),307,fy+20,8,muted,false);
-        p.setColor(red);p.setStrokeWidth(2);c.drawLine(left,809,right,809,p);
-        text("FARUKH TTK PRO  •  JAPANESE COLLECTION",left,822,7,muted,false);
-        text("Данные требуют профессиональной проверки и утверждения",331,822,6.2f,muted,false);
-        doc.finishPage(page);
-        ByteArrayOutputStream buffer=new ByteArrayOutputStream();doc.writeTo(buffer);doc.close();
-        return buffer.toByteArray();
+    private void torii(float x,float y,float sc){
+        p.setStyle(Paint.Style.FILL);p.setColor(red);
+        c.drawRect(x-28*sc,y-20*sc,x+28*sc,y-15*sc,p);
+        c.drawRect(x-23*sc,y-11*sc,x+23*sc,y-8*sc,p);
+        c.drawRect(x-20*sc,y-15*sc,x-15*sc,y+14*sc,p);
+        c.drawRect(x+15*sc,y-15*sc,x+20*sc,y+14*sc,p);
+    }
+    private void mountain(float x,float y,float sc){
+        p.setColor(0x55304F8C);Path m=new Path();
+        m.moveTo(x-55*sc,y);m.lineTo(x,y-45*sc);m.lineTo(x+55*sc,y);m.close();c.drawPath(m,p);
+        p.setColor(Color.WHITE);Path snow=new Path();
+        snow.moveTo(x-13*sc,y-34*sc);snow.lineTo(x,y-45*sc);snow.lineTo(x+12*sc,y-35*sc);
+        snow.lineTo(x+6*sc,y-31*sc);snow.lineTo(x,y-34*sc);snow.lineTo(x-6*sc,y-31*sc);
+        snow.close();c.drawPath(snow,p);
+    }
+    private void wave(float x,float y,float sc){
+        p.setColor(red);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.0f);
+        for(int j=0;j<3;j++)for(int i=0;i<8;i++){
+            float xx=x+(i*16+j*7)*sc;RectF r=new RectF(xx,y+j*4*sc,xx+14*sc,y+(j*4+10)*sc);
+            c.drawArc(r,180,180,false,p);
+        }p.setStyle(Paint.Style.FILL);
     }
     public static byte[] generate(Context ctx,TTKStore store,JSONObject dish) throws Exception{
-        // A 595 x 842 point A4 canvas, as required by Android PdfDocument.
-        PdfDocument test=null;
-        // Canvas is only obtainable from the final PDF page; construct once below.
-        PdfDocument d=new PdfDocument();
-        PdfDocument.Page pg=d.startPage(new PdfDocument.PageInfo.Builder(595,842,1).create());
-        PdfMaker maker=new PdfMaker(pg.getCanvas(),ctx,store,dish,dish.optInt("template",0));
-        // We draw the actual page here. render() uses its own PdfDocument page,
-        // but canvas fields must reference that page: delegate instead.
-        d.finishPage(pg);d.close();
         return renderIntoNewDocument(ctx,store,dish);
     }
     private static byte[] renderIntoNewDocument(Context ctx,TTKStore store,JSONObject dish) throws Exception{
@@ -219,7 +166,9 @@ public class PdfMaker {
         String tech=dish.optString("tech","");
         size=rows.length()>18||tech.length()>550?7.2f:rows.length()>11||tech.length()>350?7.7f:8.7f;
         header();
-        text(dish.optString("name","Новое блюдо"),left,113,17,dark,true);
+        String dishTitle=dish.optString("name","Новое блюдо");
+        if(dishTitle.length()>38)throw new Exception("Длинное название блюда не помещается в заголовок А4.");
+        text(dishTitle,left,113,17,dark,true);
         text("Категория: "+dish.optString("category",""),left,132,9,muted,false);
         text("Выход: "+dish.optString("yield","")+" г  •  "+dish.optString("pieces","")+" шт",left,149,10,red,true);
         photo(408,91,158,75);
@@ -238,7 +187,9 @@ public class PdfMaker {
             if(i%2==0)box(left,y,537,rh,0,0xFFF9F9FA);
             String nm=row.optString("name");
             text(""+(i+1),left+9,y+11,size,dark,false);
-            text(nm.length()>74?nm.substring(0,73)+"…":nm,left+30,y+11,nm.length()>60?6.7f:size,dark,false);
+            p.setTextSize(nm.length()>60?6.7f:size);p.setTypeface(Typeface.DEFAULT);
+            if(p.measureText(nm)>355)throw new Exception("Слишком длинное название ингредиента: "+nm);
+            text(nm,left+30,y+11,nm.length()>60?6.7f:size,dark,false);
             text(num(row.optDouble("brutto",0)),left+395,y+11,size,dark,false);
             text(num(row.optDouble("netto",0)),left+477,y+11,size,dark,false);
             double g=row.optDouble("netto",0);total+=g;
