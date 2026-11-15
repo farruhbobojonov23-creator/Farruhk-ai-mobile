@@ -262,7 +262,8 @@ function attach(){
   if(!card)return;
   e.stopImmediatePropagation();
   premium?.navigate('catalog');
-  note('save-note','Шаблоны 58×40 и 30×20 требуют проверки состава, массы и печати на V3 BT.');
+  note('save-note','Предпросмотр оригинального макета находится под карточкой товара. Физическую печать на V3 BT ещё нужно проверить.');
+  setTimeout(()=>$('label-live')?.scrollIntoView({behavior:'smooth',block:'nearest'}),150);
  },true);
 }
 async function enter(){
@@ -270,6 +271,11 @@ async function enter(){
  if(!premium){
   const mod=await import('/farukh-print-admin/premium-v2.js?v=2');
   premium=mod.mountPremiumV2({root:$('print-control-root'),main:$('print-control')});
+  const tag=document.querySelector('.v2-hero-tag');
+  if(tag)tag.textContent='☁ Рабочий каталог Neon · сотрудники и Bluetooth-печать не изменены';
+  const notice=document.querySelector('.v2-section-title .v2-micro-tag');
+  if(notice)notice.textContent='Данные проверяются в Neon';
+
   const cards=Array.from(document.querySelectorAll('.v2-kpi'));
   if(cards[3]){
    const k=cards[3].querySelector('small'),em=cards[3].querySelector('em');
