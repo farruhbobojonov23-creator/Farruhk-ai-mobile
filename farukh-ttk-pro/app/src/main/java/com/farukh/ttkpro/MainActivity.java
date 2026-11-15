@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
     private void base(String title,String subtitle,boolean back){
         LinearLayout shell=vertical();shell.setBackgroundColor(PALE);
         LinearLayout head=horizontal();head.setBackgroundColor(WHITE);pad(head,17,16);
-        if(back){TextView a=text("‹",31,RED,true);head.addView(a,lp(35,44));a.setOnClickListener(v->home());}
+        if(back){TextView a=text("‹",31,RED,true);head.addView(a,lp(35,44));a.setOnClickListener(v->{if("Создание ТТК".equals(title))saveEditor();home();});}
         LinearLayout headline=vertical();TextView n=text(title,21,INK,true),s=text(subtitle,11,GREY,false);
         headline.addView(n);headline.addView(s);head.addView(headline,new LinearLayout.LayoutParams(0,dp(49),1f));
         TextView mark=text("A",30,RED,true);head.addView(mark);shell.addView(head);
@@ -247,10 +247,19 @@ public class MainActivity extends Activity {
         EditText icon=input(box,"Эмодзи / значок",old==null?"🍣":old.optString("icon"),false);
         AlertDialog.Builder dialog=new AlertDialog.Builder(this).setTitle(old==null?"Добавить категорию":"Изменить категорию").setView(box)
             .setNegativeButton("Отмена",null).setPositiveButton("Сохранить",(a,b)->{
-                if(n.getText().toString().trim().isEmpty())return;
+                String newName=n.getText().toString().trim();
+                if(newName.isEmpty())return;
+                String oldName=old==null?"":old.optString("name","");
                 JSONObject target=old;
                 if(target==null){target=new JSONObject();store.categories().add(target);}
-                try{target.put("name",n.getText().toString().trim());target.put("icon",icon.getText().toString());}catch(Exception ignore){}
+                try{
+                    target.put("name",newName);target.put("icon",icon.getText().toString());
+                    if(old!=null && !oldName.equals(newName)){
+                        for(JSONObject d:store.dishes()){
+                            if(oldName.equals(d.optString("category")))d.put("category",newName);
+                        }
+                    }
+                }catch(Exception ignore){}
                 store.save();categoriesScreen();
             });
         if(old!=null)dialog.setNeutralButton("Изменить фото",(a,b)->choosePhoto(true,old));
@@ -270,6 +279,15 @@ public class MainActivity extends Activity {
         TextView info=text("Все поля редактируются. Рецептура, технология, КБЖУ и сроки требуют проверки перед утверждением.",12,GREY,false);intro.addView(info);
         content.addView(intro);space(content,13);
         nameField=input(content,"НАЗВАНИЕ БЛЮДА",dish.optString("name"),false);
+        ImageView dishPhoto=new ImageView(this);
+        dishPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        dishPhoto.setBackground(border(WHITE,14,BORDER));
+        LinearLayout.LayoutParams ph=lp(-1,140);ph.topMargin=dp(10);content.addView(dishPhoto,ph);
+        if(!dish.optString("photo").isEmpty()){
+            try{dishPhoto.setImageURI(Uri.parse(dish.optString("photo")));}
+            catch(Exception ignored){FoodPhotos.show(this,dishPhoto,FoodPhotos.categoryAsset(dish.optString("category")));}
+        }else FoodPhotos.show(this,dishPhoto,FoodPhotos.categoryAsset(dish.optString("category")));
+        dishPhoto.setOnClickListener(v->choosePhoto(false,null));
         TextView pbtn=button("📷  Добавить / заменить фото блюда",false);LinearLayout.LayoutParams pp=lp(-1,50);pp.topMargin=dp(12);content.addView(pbtn,pp);
         pbtn.setOnClickListener(v->choosePhoto(false,null));
         TextView catLabel=text("КАТЕГОРИЯ",12,GREY,true);LinearLayout.LayoutParams lbl=lp(-1,-2);lbl.topMargin=dp(16);content.addView(catLabel,lbl);
@@ -433,9 +451,20 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle(old==null?"Новый ингредиент":"Изменить ингредиент").setView(scroll)
          .setNegativeButton("Отмена",null).setPositiveButton("Сохранить",(a,b)->{
              if(name.getText().toString().trim().isEmpty())return;
+             String previous=old==null?"":old.optString("name","");
+             String current=name.getText().toString().trim();
              JSONObject target=old;if(target==null){target=new JSONObject();store.ingredients().add(target);}
              try{
-                 target.put("name",name.getText().toString().trim());
+                 target.put("name",current);
+                 if(old!=null && !previous.equals(current)){
+                     for(JSONObject d:store.dishes()){
+                         JSONArray rows=d.optJSONArray("rows");
+                         if(rows!=null)for(int i=0;i<rows.length();i++){
+                             JSONObject row=rows.optJSONObject(i);
+                             if(row!=null && previous.equals(row.optString("name")))row.put("name",current);
+                         }
+                     }
+                 }
                  target.put("kcal",number(kcal.getText().toString()));target.put("p",number(pr.getText().toString()));
                  target.put("f",number(fat.getText().toString()));target.put("c",number(carb.getText().toString()));
                  target.put("allergen",alleg.getText().toString());
@@ -444,7 +473,7 @@ public class MainActivity extends Activity {
          }).show();
     }
     private void settings(){
-        tab=3;base("Настройки","FARUKH TTK PRO • V0.3 TEST",false);
+        tab=3;base("Настройки","FARUKH TTK PRO • V0.5 JAPANESE PRO",false);
         content.addView(text("Настройка каталога",18,INK,true));
         addButton(content,"Категории / иконки",false,v->categoriesScreen());
         addButton(content,"База ингредиентов",false,v->ingredientsScreen());
@@ -469,6 +498,7 @@ public class MainActivity extends Activity {
         content.addView(text("Демонстрационные рецептуры, расчёты и режимы не являются утверждённой ТТК. Перед производственным использованием необходимо проверить нормы, технологию, безопасность, пищевую ценность, аллергены и оформить утверждение.",13,GREY,false));
     }
     private void choosePhoto(boolean category,JSONObject c){
+        if(!category && editing!=null && nameField!=null)saveEditor();
         editingCategoryPhoto=category;photoCategory=c;
         Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.setType("image/*");
         i.addCategory(Intent.CATEGORY_OPENABLE);i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
