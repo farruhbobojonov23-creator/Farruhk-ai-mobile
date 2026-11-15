@@ -223,3 +223,117 @@ body[data-admin-theme="beige"] .premium-top h2{font-family:Georgia,Inter,serif;f
  body[data-admin-theme] .preview-bar,
  body[data-admin-theme] .preview-banner{display:none!important}
 }
+
+/* Review from Android screenshots: remove oversized gaps and sticky overlap. */
+body[data-admin-theme] .preview-banner{padding:0!important;overflow:hidden}
+body[data-admin-theme] .preview-banner summary{
+ display:flex;align-items:center;justify-content:space-between;
+ list-style:none;gap:8px;cursor:pointer;padding:12px 15px;
+ font-size:12px;font-weight:800;color:var(--pf-ink);line-height:1.45;
+}
+body[data-admin-theme] .preview-banner summary::-webkit-details-marker{display:none}
+body[data-admin-theme] .preview-banner summary span{
+ color:var(--pf-accent);font-size:11px;font-weight:800;white-space:nowrap
+}
+body[data-admin-theme] .preview-banner[open] summary span{transform:rotate(180deg)}
+body[data-admin-theme] .preview-banner p{
+ margin:0;padding:0 15px 14px;font-size:12px;line-height:1.6;
+ color:var(--pf-muted)
+}
+/* Existing owner workspace tabs were sticky and covered the heading
+   of the two label editors while scrolling on Android. Keep them in flow. */
+body[data-pf-theme][data-admin-theme] #print-control-root .pc-workspace-tabs{
+ position:static!important;top:auto!important;z-index:auto!important;
+ margin-bottom:14px!important;
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-hero{
+ min-height:155px!important;padding:22px 24px!important;
+ display:flex;flex-direction:row;align-items:center;
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-hero > :first-child{
+ max-width:74%;min-width:0
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-hero .pc-badge{
+ position:static!important;display:inline-flex!important;align-items:center;
+ margin-top:12px;font-size:10px
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-hero p{
+ display:block!important;font-size:12px!important;line-height:1.5!important;
+ max-width:450px;margin:6px 0!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-hero .pc-kicker{
+ display:block;font-size:10px!important;letter-spacing:.1em!important;
+ white-space:normal;line-height:1.5
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template{
+ gap:12px!important;margin:8px 0 12px!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-prep-template{margin-top:0!important}
+body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template h2{
+ font-size:clamp(17px,2.6vw,22px)!important;line-height:1.2
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template p{
+ font-size:12px!important;line-height:1.48!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template-button{
+ font-size:12px!important;padding:12px 14px!important;min-width:154px
+}
+/* Stylized previews are decorative only; thermal label layout is untouched. */
+body[data-pf-theme][data-admin-theme] #print-control .admin-label-visual{
+ margin-top:13px;max-width:280px;padding:10px 12px;
+ background:var(--pf-soft-accent);
+ border:1px solid var(--pf-line);border-radius:14px;
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-label-paper{
+ display:flex;gap:5px;flex-direction:column;justify-content:center;
+ min-height:81px;max-width:225px;padding:9px 14px;
+ background:#fff;color:#0a0a0a;border:3px double #202020;
+ border-radius:3px;box-shadow:0 3px 10px #0002
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-label-brand{
+ font-size:10px;font-weight:900;letter-spacing:1.2px;color:#111!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-label-size{
+ font-size:12px;font-weight:850;color:#111!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-label-stripes{
+ height:19px;width:76%;background:repeating-linear-gradient(to right,#161616 0 2px,#fff 2px 4px,#111 4px 5px,#fff 5px 8px)
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-demo-row .pc-row-photo{
+ background:linear-gradient(135deg,var(--pf-soft-accent),var(--pf-raised))!important;
+ border-color:var(--pf-line)!important
+}
+body[data-pf-theme][data-admin-theme] #print-control .admin-demo-row .pc-row-photo img{
+ mix-blend-mode:multiply;opacity:.85;object-fit:contain
+}
+@media(max-width:620px){
+ body[data-pf-theme][data-admin-theme] #print-control .pc-hero{
+   min-height:145px!important;padding:17px 17px 16px!important;align-items:center
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-hero > :first-child{max-width:78%}
+ body[data-pf-theme][data-admin-theme] #print-control .pc-hero h1{
+   font-size:clamp(22px,5.6vw,28px)!important;margin:7px 0 4px!important
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-hero p{
+   font-size:11px!important;margin-top:4px!important;
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-hero .pc-badge{
+   margin-top:8px!important;padding:6px 8px!important;
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-workspace-tab{
+   min-height:53px!important;padding:9px 5px!important;
+   font-size:11px!important;line-height:1.25!important;
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template{
+   padding:14px!important;gap:12px!important
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template p{
+   font-size:11px!important
+ }
+ body[data-pf-theme][data-admin-theme] #print-control .admin-label-visual{max-width:100%;margin-top:8px}
+ body[data-pf-theme][data-admin-theme] #print-control .pc-premium-template-button{
+   min-width:0;width:100%;margin:0
+ }
+ .preview-hero-art{right:3%;top:16%;width:56px;height:56px}
+ .preview-hero-art svg{width:44px;height:44px}
+}
