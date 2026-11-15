@@ -130,6 +130,19 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   const fourOnOpen=await page.evaluate(()=>{
+    const editor=document.querySelector('#editor'),stage=editor.querySelector('#ttk-real-a4-stage');
+    const obsolete=editor.querySelector('.ttk-viewport>.ttk-paper');
+    const cards=[...stage.querySelectorAll('.ttk-design-card')];
+    return {mode:editor.dataset.mode,stage:!!stage&&getComputedStyle(stage).display!=='none',
+      oldSheet:obsolete?getComputedStyle(obsolete).display:'missing',
+      cards:cards.length,ids:cards.map(c=>c.dataset.ttkLayout)};
+   });
+   check(tag+' A4 opens as four real templates, never as old HTML sheet',
+     fourOnOpen.mode==='paper'&&fourOnOpen.stage&&fourOnOpen.oldSheet==='none'&&
+     fourOnOpen.cards===4&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',
+     fourOnOpen);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
      nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>140})));
    check(tag+' My TTK editor offers exactly four new Premium allergen templates',
@@ -137,7 +150,13 @@ async function auditRoyal(page,tag,mobile,errors){
      layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
    await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
    await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
+   const designRequest=page.waitForRequest(req=>req.url().endsWith('/api/recipes/pdf')&&req.method()==='POST',{timeout:10000});
    await page.locator('#ttk-design-picker [data-ttk-layout="gold-allergen"]').click();
+   const received=await designRequest;
+   const designPayload=JSON.parse(received.postData()).recipe;
+   check(tag+' A4 gallery requests real printable PDF for the chosen layout',
+      designPayload.layoutTemplate==='gold-allergen'&&designPayload.name==='Филадельфия классик',
+      {layout:designPayload.layoutTemplate,name:designPayload.name});
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
@@ -157,6 +176,10 @@ async function auditRoyal(page,tag,mobile,errors){
      photo:getComputedStyle(document.querySelector('#editor .ttk-inline-photo')).display
    }));
    check(tag+' A4 view has no photo space',sheet.mode==='paper'&&sheet.photo==='none',sheet);
+   check(tag+' A4 view never reveals obsolete editable HTML page',
+    await page.evaluate(()=>getComputedStyle(document.querySelector('#editor .ttk-viewport>.ttk-paper')).display==='none'),null);
+   check(tag+' four premium templates remain visible in A4 view',
+    await page.locator('#ttk-real-a4-stage .ttk-design-card').count()===4,null);
    await page.screenshot({path:'artifacts/premium-'+tag+'-sheet-no-photo.png',timeout:12000});
    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
    await page.evaluate(()=>{window.confirm=()=>true});

@@ -2,13 +2,14 @@
  * Reuses the original controls, validators, photo handler and PDF exporter.
  * No duplicated form state, no changes to recipe persistence or sanitation data.
  */
+import {mountTtkRealPreview} from './ttk-real-a4-preview.js?v=1';
 const make=(tag,className,text)=>{
  const el=document.createElement(tag);
  if(className)el.className=className;
  if(text!==undefined)el.textContent=text;
  return el;
 };
-export function mountTtkStudio(editor){
+export function mountTtkStudio(editor,{getDraft}={}){
  if(!editor)throw Error('TTK Studio: редактор не найден.');
  if(editor.classList.contains('ttk-studio-enabled'))return {open(){}};
  const toolbar=editor.querySelector('.ttk-toolbar');
@@ -31,7 +32,7 @@ export function mountTtkStudio(editor){
  if(save)save.textContent='✓ Сохранить';
  const preview=make('button','ttk-studio-preview','◉ Предпросмотр PDF');
  preview.type='button';
- preview.addEventListener('click',()=>editor.querySelector('.ttk-pro-tab.is-accent')?.click());
+ preview.addEventListener('click',()=>{setMode('paper');void realPreview.showPdf()});
  const menu=make('details','ttk-studio-menu');
  const menuTitle=make('summary','','⋯ Ещё');menu.append(menuTitle);
  const menuBody=make('div','ttk-studio-menu-body');
@@ -64,6 +65,8 @@ export function mountTtkStudio(editor){
  for(const b of [form,sheet,check])b.type='button';
  switcher.append(form,sheet,check);
  (progress||intro).after(switcher);
+ // The paper tab is now a genuine four-layout PDF showroom, never the old editable HTML mockup.
+ const realPreview=mountTtkRealPreview(editor,{getDraft,picker,intro});
 
  const rail=workspace.querySelector('.ttk-pro-rail');
  const audit=editor.querySelector('.ttk-pro-audit');
@@ -84,6 +87,7 @@ export function mountTtkStudio(editor){
  function setMode(value){
   const button=value==='paper'?modeButtons[1]:modeButtons[0];
   button.click();editor.dataset.studioMode=value;
+  realPreview.setMode(value);
   form.setAttribute('aria-pressed',String(value==='form'));
   sheet.setAttribute('aria-pressed',String(value==='paper'));
  }
@@ -135,8 +139,9 @@ export function mountTtkStudio(editor){
  return {
   open(){
    menu.open=false;qa.open=false;
-   // A4 sheet on desktop; full-size, readable fields on a phone.
-   setMode(window.matchMedia('(min-width: 1050px)').matches?'paper':'form');
+   // Both phone and desktop open on the four owner-approved A4 designs.
+   // Fields remain available with the prominent «Удобное заполнение» button.
+   setMode('paper');
    refreshPhoto();displayStyle();
   },
   setMode
