@@ -144,7 +144,7 @@ async function auditRoyal(page,tag,mobile,errors){
      fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
-     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>140})));
+     nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>30})));
    check(tag+' My TTK editor offers exactly four new Premium allergen templates',
      layouts.length===4&&layouts.every(x=>x.visible)&&
      layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
@@ -163,16 +163,51 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' four-layout choice opens directly editable actual TTK, not static PDF',
      inlineState.visible&&inlineState.layout==='gold-allergen'&&inlineState.name&&
      inlineState.rows>=1&&inlineState.allergens===8&&inlineState.pdfHidden,inlineState);
+   const onePage=await page.evaluate(()=>{
+     const page=document.querySelector('#ttk-live-page');
+     const outer=page.getBoundingClientRect();
+     const stage=document.querySelector('#ttk-real-a4-stage').getBoundingClientRect();
+     const size={w:outer.width,h:outer.height,ratio:outer.height/outer.width,
+       fixedHeight:page.offsetHeight,zoom:getComputedStyle(page).zoom,
+       stageWidth:stage.width,screenHeight:innerHeight,
+       stageTop:stage.top,stageBottom:stage.bottom,paperTop:outer.top,paperBottom:outer.bottom,
+       nameBg:getComputedStyle(page.querySelector('[data-source="recipe-name"]')).backgroundColor,
+       ingredients:[...page.querySelectorAll('.ttk-live-ingredient-row')].filter(x=>!x.hidden).length};
+     return size;
+   });
+   check(tag+' A4 sheet is one fixed portrait page, scaled to phone screen without vertical form',
+     onePage.fixedHeight===1123&&Math.abs(onePage.ratio-1123/794)<.03&&
+     onePage.w<=onePage.stageWidth+1&&
+     onePage.stageTop>=0&&onePage.stageBottom<=onePage.screenHeight+3&&
+     onePage.paperTop>=onePage.stageTop-2&&onePage.paperBottom<=onePage.stageBottom+3&&
+     (mobile?onePage.h<onePage.screenHeight-165:true)&&onePage.ingredients<=5,onePage);
+   const rgb=(onePage.nameBg.match(/\d+(?:\.\d+)?/g)||[]).slice(0,3).map(Number);
+   check(tag+' A4 page uses light paper inputs instead of dark fields',
+     rgb.length===3&&rgb.every(n=>n>=225),onePage.nameBg);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-one-portrait-A4.png',timeout:12000});
    const originalApprover=await page.locator('#card-approver').inputValue();
-   await page.locator('#ttk-live-page [data-source="card-approver"]').fill('Тест А4 редактор');
-   check(tag+' typing directly on Premium A4 updates canonical recipe form',
+   await page.locator('#ttk-live-page .ttk-live-signatures').click();
+   check(tag+' touching compact A4 opens full-sized editing dialog',
+     await page.locator('#ttk-onepage-dialog').evaluate(el=>el.open),null);
+   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill('Тест А4 редактор');
+   check(tag+' A4 dialog changes canonical TTK approver',
      await page.locator('#card-approver').inputValue()==='Тест А4 редактор',null);
-   await page.locator('#ttk-live-page [data-source="card-approver"]').fill(originalApprover);
+   await page.locator('#ttk-onepage-dialog [aria-label="Утверждаю"]').fill(originalApprover);
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
+   await page.locator('#ttk-live-page .ttk-live-formula .ttk-live-section-head').click();
+   check(tag+' ingredient formula opens a proper editable ingredient list',
+     await page.locator('#ttk-onepage-dialog .ttk-onepage-product').count()>=1,null);
+   const amountBefore=await page.locator('#ingredients .ingredient').count();
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-add').click();
+   check(tag+' ingredient added through compact A4 persists in actual original form',
+     await page.locator('#ingredients .ingredient').count()===amountBefore+1,null);
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-product').last().locator('button').click();
+   await page.locator('#ttk-onepage-dialog .ttk-onepage-dialog-finish').click();
    await page.screenshot({path:'artifacts/premium-'+tag+'-editable-a4.png',timeout:12000});
    check(tag+' Gold Allergen selection persists in live editor',
      (await page.locator('#editor').getAttribute('data-ttk-layout'))==='gold-allergen',null);
    // Desktop defaults to paper preview; explicitly switch to the editable mobile-style form.
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    const editAppearance=await page.evaluate(()=>{
      const e=document.querySelector('#editor.ttk-studio-enabled'),p=e?.querySelector('.ttk-paper');
      return {mode:e?.dataset.mode,background:e&&getComputedStyle(e).backgroundImage,
@@ -193,7 +228,7 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' four premium templates remain visible in A4 view',
     await page.locator('#ttk-real-a4-stage .ttk-design-card').count()===4,null);
    await page.screenshot({path:'artifacts/premium-'+tag+'-sheet-no-photo.png',timeout:12000});
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    await page.evaluate(()=>{window.confirm=()=>true});
    await page.locator('#closeeditor').click();
    // Explicit screenshot regression: the owner category editor used white rows
@@ -217,7 +252,7 @@ async function auditRoyal(page,tag,mobile,errors){
    await page.locator('#recipes .owner-inline .owner-savebar button').filter({hasText:'Отменить все правки'}).click();
    // Disposable local-only recipe: same ingredients as owner's approval mockups.
    await page.locator('#newrecipe').click();
-   await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+   await page.locator('#editor .ttk-onepage-full-form').click();
    await page.locator('#recipe-name').fill('Тест 1');
    await page.locator('#recipe-status').selectOption('ready');
    const sample=[['сыр творожный','50'],['лосось','50'],['терияки соус','50'],['рис готовый','120']];
@@ -566,14 +601,14 @@ async function run(theme,width,height){
    check(tag+' Premium PRO editor has working audit and PDF preview shortcut',
      pilot.hero&&pilot.preview&&pilot.rail&&pilot.audit===13&&pilot.progress<100&&
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
-   await page.locator('#editor .ttk-pro-head').scrollIntoViewIfNeeded();
+   // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
     sheet:document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout,
     unchangedForm:!!document.querySelector('#card-scope'),
-     galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>100,
+     galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>30,
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
@@ -583,7 +618,7 @@ async function run(theme,width,height){
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
    if(theme==='crystal'&&mobile){
     // The design showroom is read-only; switch to original editable fields first.
-    await page.locator('#editor .ttk-studio-switch-button').filter({hasText:'Удобное заполнение'}).click();
+    await page.locator('#editor .ttk-onepage-full-form').click();
     // Upload/delete use the same photo handlers as the original editor.
     const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/OQAAAABJRU5ErkJggg==','base64');
     await page.locator('#recipe-photo-file').setInputFiles({name:'dish.png',mimeType:'image/png',buffer:tinyPng});
@@ -609,7 +644,10 @@ async function run(theme,width,height){
       {name:draft.name,layout:draft.layoutTemplate,ingredients:draft.ingredients?.length});
    }
    await page.evaluate(()=>{window.confirm=()=>true});
-   await page.locator('#closeeditor').click();
+   // PDF preview returns to fixed A4 focus mode, which has its own Back button.
+   if(await page.locator('#editor').getAttribute('data-mode')==='paper')
+    await page.locator('#editor .ttk-onepage-back').click();
+   else await page.locator('#closeeditor').click();
   }
   if(target==='lab'){
    await page.waitForTimeout(400);

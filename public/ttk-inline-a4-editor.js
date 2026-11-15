@@ -57,7 +57,7 @@ export function mountInlineTtkPage(editor){
   input.readOnly=!!source.readOnly;
   if(source.tagName==='SELECT'){
    input.addEventListener('change',()=>{
-    source.value=input.value;emit(source,'change');refreshAll();
+    source.value=input.value;emit(source,'change');refreshComputed();
    });
   }else{
    input.addEventListener('input',()=>{
