@@ -201,6 +201,8 @@ async function loadCatalog(){
   premium?.refresh();
   const count=$('v2-product-count');
   if(count)count.textContent=String(products.length);
+  const summaryKpi=document.querySelector('#v2-dashboard .v2-kpi:nth-child(1) strong');
+  if(summaryKpi)summaryKpi.textContent=String(products.length);
 
  }catch(e){note('connected-state','Каталог недоступен: '+e.message,'error')}
  finally{loading=false}
@@ -283,8 +285,7 @@ async function optimizePhoto(file){
  if(file.size<=1000000)return file;
  const url=URL.createObjectURL(file),img=new Image();
  try{
-  img.src=url;
-  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Изображение не открылось.'))});
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Изображение не открылось.'));img.src=url;});
   const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
   const canvas=document.createElement('canvas');
   canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
@@ -321,6 +322,48 @@ async function uploadPhoto(){
  finally{button.disabled=false}
 }
 
+
+async function runSystemCheck(){
+ const box=$('system-check-results'),button=$('run-system-check');
+ button.disabled=true;box.replaceChildren();
+ const checks=[
+  ['Код владельца','session'],
+  ['Соединение с тестовой Neon','db/status'],
+  ['Каталог и поиск','db/catalog'],
+  ['Четыре торговые точки','ops/locations'],
+  ['Обратимый архив','db/archive']
+ ];
+ const result=await Promise.allSettled(checks.map(x=>api(x[1])));
+ const add=(title,state,detail)=>{
+  const div=document.createElement('div');
+  div.dataset.state=state;
+  div.textContent=(state==='ok'?'✓ ':state==='fail'?'✕ ':'⏳ ')+title+(detail?' · '+detail:'');
+  box.append(div);
+ };
+ for(let i=0;i<result.length;i++){
+  const p=result[i];
+  if(p.status==='rejected'){add(checks[i][0],'fail',p.reason?.message||'Нет ответа');continue}
+  const data=p.value;
+  const ok=i===0?data.authorized===true:
+   i===1?data.cloudConnected&&String(data.target).startsWith('DEMO'):
+   i===2?Array.isArray(data.products)&&data.products.length>0:
+   i===3?Array.isArray(data.locations)&&data.locations.length===4:
+   Array.isArray(data.products);
+  const detail=i===1?String(data.products)+' товаров / '+String(data.photos)+' фото':
+   i===2?data.products.length+' товаров':
+   i===3?data.locations?.length+' точки':'';
+  add(checks[i][0],ok?'ok':'fail',detail);
+ }
+ const ready=window.FarukhPremiumReady?.draw;
+ const prep=window.FarukhPremiumPrep?.draw;
+ add('Исходные шаблоны 58×40 и 30×20',
+  typeof ready==='function'&&typeof prep==='function'?'ok':'fail',
+  'нужна проверка принтера');
+ add('Сохранение товара / загрузка фото','wait','проверь изменением тестовой карточки');
+ add('Сотрудники и Bluetooth-принтеры','wait','рабочая версия не затронута, физическая проверка отдельно');
+ button.disabled=false;
+}
+
 function attach(){
  $('pin-form').addEventListener('submit',async e=>{
   e.preventDefault();$('enter').disabled=true;
@@ -343,6 +386,7 @@ function attach(){
  $('create-item').addEventListener('click',()=>void createItem());
  $('archive-item').addEventListener('click',()=>void archiveItem());
  $('archive-refresh').addEventListener('click',()=>void loadArchives());
+ $('run-system-check').addEventListener('click',()=>void runSystemCheck());
  $('photo-upload').addEventListener('click',()=>void uploadPhoto());
  $('find-product').addEventListener('input',drawList);
  $('kind-filter').addEventListener('change',drawList);
