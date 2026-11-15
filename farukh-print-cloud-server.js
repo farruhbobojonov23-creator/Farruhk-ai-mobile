@@ -93,4 +93,13 @@ app.use('/owner-auth',async(req,res)=>{
 });
 app.use('/api/print-cloud/v1',(_req,res)=>res.status(410).json({error:'Старый API отключён. Используй панель владельца FARUKH PRINT Cloud.'}));
 app.use((_req,res)=>res.status(404).json({error:'Страница не найдена.'}));
-app.listen(PORT,'0.0.0.0',()=>console.info('[farukh-print] minimal owner console live; staff production untouched'));
+app.listen(PORT,'0.0.0.0',()=>{
+ console.info('[farukh-print] minimal owner console live; staff production untouched');
+ setTimeout(async()=>{
+  try {
+   const result=await fetch('https://br-solitary-brook-baxakvoe-fpprobe.compute.c-8.eu-central-1.aws.neon.tech/healthz',{signal:AbortSignal.timeout(14000)});
+   const data=await result.json().catch(()=>({}));
+   console.info('[farukh-print] test-only Neon native query',JSON.stringify({status:result.status,ok:data.ok,stage:data.stage,products:data.products}));
+  } catch(e) { console.warn('[farukh-print] Neon native probe fetch unavailable',e.name||'error') }
+ },2500);
+});
