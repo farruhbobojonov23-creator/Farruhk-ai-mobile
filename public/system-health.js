@@ -119,13 +119,16 @@ function ensureStyle() {
   color:#50ecaf;font:700 10px/1.2 system-ui,-apple-system,sans-serif;letter-spacing:0}
  .fai-health-badge[data-level="warn"]{border-color:rgba(234,178,94,.4);
   background:rgba(80,54,24,.75);color:#f0c77d}
+ .pfv-status-item.error svg{color:#ff9ca5}
  .fai-health-badge[data-level="error"]{border-color:rgba(234,96,104,.4);
   background:rgba(86,27,35,.72);color:#ff9ca5}
- .pfv-hub-tile,.pfv-project,.pfv-action,.category-card{position:relative}
+ .pfv-hub-tile,.pfv-project,.pfv-action,.category-card,.view .tile,#lab .haccp-journal-card{position:relative}
  .pfv-hub-tile>.fai-health-badge,.pfv-project>.fai-health-badge,
- .pfv-action>.fai-health-badge,.category-card>.fai-health-badge{
+ .pfv-action>.fai-health-badge,.category-card>.fai-health-badge,
+ .view .tile>.fai-health-badge,#lab .haccp-journal-card>.fai-health-badge{
   position:absolute;right:8px;top:8px;pointer-events:none;z-index:1}
  .pfv-project>.fai-health-badge{top:auto;bottom:7px}
+ #lab .haccp-journal-card>.fai-health-badge{top:auto;bottom:5px;right:8px}
  .pfv-action>.fai-health-badge{top:5px;right:5px;font-size:9px;padding:2px 5px}
  .pfv-nav>.fai-health-badge,.pfv-phone-nav .fai-health-badge{margin-left:auto}
  .pfv-nav,.pfv-phone-nav button{min-width:0}
@@ -190,6 +193,11 @@ export function mountSystemBadges() {
    putBadge(node, snapshot.local ? 'ok' : 'error',
     snapshot.local ? '✓ Доступна' : '! Нет данных',
     snapshot.local ? 'Категория открывается из доступной локальной базы.' : 'Локальная база не читается.');
+  }
+  for (const node of document.querySelectorAll('.view .tile,#lab .haccp-journal-card')) {
+   putBadge(node, snapshot.local ? 'ok' : 'warn',
+    snapshot.local ? '✓ Доступно' : '• Проверить',
+    snapshot.local ? normalTitle : unknownTitle);
   }
   const heading = document.querySelector('#recipes .catalog-heading');
   if (heading && !document.getElementById('catalog-back')?.hidden)
