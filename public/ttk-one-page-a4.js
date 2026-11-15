@@ -59,6 +59,12 @@ export function mountOnePageA4(editor,stage,live){
   for(const ta of page.querySelectorAll('textarea.ttk-live-control')){
    const visible=ta.getBoundingClientRect();
    if(visible.width<2||visible.height<2)continue;
+   // Canonical fields can be filled programmatically immediately before the
+   // 240ms deferred refresh. Read the newest value BEFORE measuring height.
+   const id=ta.dataset.source;
+   const source=id?editor.querySelector('#'+id):null;
+   if(source&&document.activeElement!==ta&&ta.value!==source.value)
+    ta.value=source.value;
    ta.style.removeProperty('height');
    const height=Math.max(ta.dataset.source==='recipe-name'?70:112,ta.scrollHeight+8);
    ta.style.setProperty('height',String(height)+'px','important');
