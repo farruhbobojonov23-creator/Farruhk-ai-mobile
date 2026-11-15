@@ -113,8 +113,10 @@ export function mountGoogleSync({getState,store,onState,notify,mountRoot=null}){
   try{
    if(!await ensureProjects())return;
    for(const recipe of googleReady(getState())){
+    if(getState()?.googleSuppressed?.[recipe.id])continue;
     if(!getState()?.googleSync?.enabled||getState().googleSync.endpoint!==config.endpoint||getState().googleSync.key!==config.key)break;
     const digest=await recipeDigest(recipe);
+    if(getState()?.googleSuppressed?.[recipe.id])continue;
     const previous=getState().googleDelivery?.[recipe.id];
     if(previous?.digest===digest&&previous?.layoutVersion===A4_PDF_VERSION&&!previous.error)continue;
     try{
