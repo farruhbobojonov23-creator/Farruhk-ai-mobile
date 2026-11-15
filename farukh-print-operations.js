@@ -35,26 +35,26 @@ function setCookie(res,name,val,maxAge){
  res.append('Set-Cookie',name+'='+encodeURIComponent(val)+'; Path=/; Max-Age='+maxAge+'; HttpOnly; Secure; SameSite=Lax');
 }
 function signedSession(id){
- const body=Buffer.from(JSON.stringify({id,exp:Date.now()+8*3600_000})).toString('base64url');
+ const body=Buffer.from(JSON.stringify({id,iat:Date.now(),exp:Date.now()+8*3600_000})).toString('base64url');
  return body+'.'+crypto.createHmac('sha256',secret).update(body).digest('base64url');
 }
 function verifySession(s){
  const cut=s.lastIndexOf('.');if(cut<0||secret.length<40)return null;
  const body=s.slice(0,cut),sig=s.slice(cut+1);
  if(!safeEq(sig,crypto.createHmac('sha256',secret).update(body).digest('base64url')))return null;
- try{const b=JSON.parse(Buffer.from(body,'base64url').toString());return b.exp>Date.now()&&uuid.test(b.id)?b.id:null}catch{return null}
+ try{const b=JSON.parse(Buffer.from(body,'base64url').toString());return b.exp>Date.now()&&Number.isFinite(b.iat)&&uuid.test(b.id)?b:null}catch{return null}
 }
 function sameOrigin(req,res,next){
  if(req.method==='GET'||req.get('origin')===origin)return next();
  return res.status(403).json({ok:false,error:'Запрос отклонён: другой адрес.'});
 }
 async function staffAuth(req,res,next){
- const id=verifySession(cookie(req,'fp_staff'));
- if(!id)return res.status(401).json({ok:false,error:'Войди как сотрудник.'});
+ const session=verifySession(cookie(req,'fp_staff'));
+ if(!session)return res.status(401).json({ok:false,error:'Войди как сотрудник.'});
  try{
-  const q=await pool.query('SELECT id,login,display_name,role,location_id,status,expires_at FROM farukh_print.staff_accounts WHERE id=$1',[id]);
+  const q=await pool.query('SELECT id,login,display_name,role,location_id,status,expires_at,updated_at FROM farukh_print.staff_accounts WHERE id=$1',[session.id]);
   const s=q.rows[0];
-  if(!s||s.status!=='active'||s.expires_at&&new Date(s.expires_at)<new Date())
+  if(!s||s.status!=='active'||(s.expires_at&&new Date(s.expires_at)<new Date())||new Date(s.updated_at).getTime()>session.iat+1000)
    return res.status(401).json({ok:false,error:'Доступ сотрудника отключён или истёк.'});
   req.staff=s;next();
  }catch(e){err(res,e)}
