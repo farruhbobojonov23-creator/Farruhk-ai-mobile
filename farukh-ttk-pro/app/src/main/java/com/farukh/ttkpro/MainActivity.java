@@ -4,6 +4,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.print.PrintManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.pdf.PdfRenderer;
+import java.io.File;
+import java.io.FileOutputStream;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.content.res.ColorStateList;
@@ -462,6 +467,53 @@ public class MainActivity extends Activity {
         Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.setType("image/*");
         i.addCategory(Intent.CATEGORY_OPENABLE);i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         startActivityForResult(i,PICK_PHOTO);
+    }
+    private void previewPdf(JSONObject dish){
+        try{
+            pendingPdf=PdfMaker.generate(this,store,dish);
+            File temp=new File(getCacheDir(),"farukh_ttk_preview.pdf");
+            try(FileOutputStream out=new FileOutputStream(temp)){out.write(pendingPdf);}
+            Bitmap bitmap=Bitmap.createBitmap(1190,1684,Bitmap.Config.ARGB_8888);
+            try(ParcelFileDescriptor fd=ParcelFileDescriptor.open(temp,ParcelFileDescriptor.MODE_READ_ONLY);
+                PdfRenderer renderer=new PdfRenderer(fd)){
+                if(renderer.getPageCount()!=1)throw new Exception("Ошибка PDF: документ должен содержать ровно один лист A4");
+                try(PdfRenderer.Page page=renderer.openPage(0)){
+                    page.render(bitmap,null,new Matrix(){{
+                        postScale(2,2);
+                    }},PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                }
+            }
+            LinearLayout screen=vertical();
+            screen.setBackgroundColor(0xFFF3F3F5);
+            LinearLayout tools=horizontal();tools.setBackgroundColor(WHITE);pad(tools,9,9);
+            TextView close=chip("‹ Назад",RED,WHITE);
+            TextView save=chip("↓ PDF",RED,WHITE);
+            TextView print=chip("▤ Печать",RED,WHITE);
+            tools.addView(close,new LinearLayout.LayoutParams(0,dp(43),1));
+            spaceH(tools,5);
+            tools.addView(save,new LinearLayout.LayoutParams(0,dp(43),1));
+            spaceH(tools,5);
+            tools.addView(print,new LinearLayout.LayoutParams(0,dp(43),1));
+            screen.addView(tools);
+            ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);pad(scroll,7,9);
+            ImageView preview=new ImageView(this);preview.setAdjustViewBounds(true);
+            preview.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            preview.setBackgroundColor(WHITE);preview.setImageBitmap(bitmap);
+            scroll.addView(preview,lp(-1,-2));
+            screen.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+            final android.app.Dialog dialog=new android.app.Dialog(this);
+            dialog.setContentView(screen);
+            dialog.getWindow().setLayout(-1,-1);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            close.setOnClickListener(v->dialog.dismiss());
+            save.setOnClickListener(v->{dialog.dismiss();export(dish);});
+            print.setOnClickListener(v->printPdf());
+            dialog.show();
+            dialog.getWindow().setLayout(-1,-1);
+        }catch(Exception e){
+            new AlertDialog.Builder(this).setTitle("Не удалось показать А4")
+                .setMessage(e.getMessage()).setPositiveButton("Закрыть",null).show();
+        }
     }
     private void export(JSONObject d){
         try{
