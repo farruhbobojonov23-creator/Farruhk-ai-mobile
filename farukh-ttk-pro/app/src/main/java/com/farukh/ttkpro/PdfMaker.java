@@ -231,6 +231,17 @@ public class PdfMaker {
         ry=sectionText("6. АЛЛЕРГЕНЫ",allergText,rx,ry,col);
         y=sectionText("7. УСЛОВИЯ И СРОК ХРАНЕНИЯ","Температура: "+dish.optString("temp","")+". Срок: "+dish.optString("storage","")+".",left,Math.max(ly,ry)+2,537);
         if(y>744)throw new Exception("ТТК не помещается на читаемый лист А4. Сократите текст или количество позиций.");
+        // Elegant Japanese artwork fills empty space on short cards, without
+        // stealing any of the required sections or obscuring signature fields.
+        if(y<675){
+            float start=Math.max(y+11,657);
+            box(left,start,537,Math.min(738-start,87),12,template==2?0xFFF1F5FA:0xFFFFF6F6);
+            p.setColor(0x22C51C2E);c.drawCircle(455,start+27,28,p);
+            mountain(469,start+77,.78f);
+            sakura(88,start+38,.76f);
+            wave(118,start+53,.86f);
+            torii(548,start+46,.52f);
+        }
         float fy=Math.max(765,y+13);
         rule(fy-12);
         text("Разработал: "+dish.optString("author","________________________"),left,fy,8,dark,false);
