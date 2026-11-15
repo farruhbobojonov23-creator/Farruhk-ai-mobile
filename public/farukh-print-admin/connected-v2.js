@@ -70,7 +70,11 @@ function pick(product){
  for(const [key,value] of [
   ['product-name',product.name],['product-kind',product.kind],
   ['product-category',product.category||''],['product-composition',product.composition||''],
-  ['product-storage',product.storage||''],['product-hours',product.hours??'']
+  ['product-storage',product.storage||''],['product-hours',product.hours??''],
+  ['product-weight',product.weight??''],['product-tolerance',product.tolerance??''],
+  ['product-unit',product.weightUnit||'г'],
+  ['product-kcal',product.nutrition?.kcal??''],['product-p',product.nutrition?.p??''],
+  ['product-f',product.nutrition?.f??''],['product-c',product.nutrition?.c??'']
  ])$(key).value=value;
  const photo=$('product-photo');photo.hidden=!product.hasPhoto;
  if(product.hasPhoto)photo.src='/api/owner/db/photo/'+encodeURIComponent(product.id);
@@ -123,12 +127,23 @@ function card(){
   category:$('product-category').value.trim(),
   composition:$('product-composition').value.trim(),
   storage:$('product-storage').value.trim(),
-  hours:$('product-hours').value===''?null:Number($('product-hours').value)};
+  hours:$('product-hours').value===''?null:Number($('product-hours').value),
+  weight:$('product-weight').value===''?null:Number($('product-weight').value),
+  tolerance:$('product-tolerance').value===''?null:Number($('product-tolerance').value),
+  weightUnit:$('product-unit').value,
+  nutrition:Object.fromEntries(['kcal','p','f','c'].map(k=>[k,
+    $('product-'+k).value===''?null:Number($('product-'+k).value)]))};
 }
 function validate(p){
  if(!p.name||p.name.length>90)return 'Укажи название до 90 символов.';
  if(p.hours!==null&&(!Number.isInteger(p.hours)||p.hours<1||p.hours>8760))
   return 'Срок хранения — от 1 до 8760 часов.';
+ if(p.weight!==null&&(!Number.isFinite(p.weight)||p.weight<=0||p.weight>100000))
+  return 'Масса нетто должна быть положительным числом.';
+ if(p.tolerance!==null&&(!Number.isFinite(p.tolerance)||p.tolerance<0||p.tolerance>10000))
+  return 'Допуск массы должен быть неотрицательным.';
+ if(Object.values(p.nutrition).some(v=>v!==null&&(!Number.isFinite(v)||v<0||v>1000)))
+  return 'КБЖУ: допустимы только числа от 0 до 1000.';
  return '';
 }
 function edited(){
@@ -234,9 +249,10 @@ function attach(){
  $('find-product').addEventListener('input',drawList);
  $('kind-filter').addEventListener('change',drawList);
  $('edit-form').addEventListener('submit',e=>{e.preventDefault();void save()});
- for(const key of ['product-name','product-category','product-composition','product-storage','product-hours'])
+ for(const key of ['product-name','product-category','product-composition','product-storage','product-hours','product-weight','product-tolerance','product-kcal','product-p','product-f','product-c'])
   $(key).addEventListener('input',edited);
  $('product-kind').addEventListener('change',edited);
+ $('product-unit').addEventListener('change',edited);
  for(const tab of document.querySelectorAll('.pc-workspace-tab'))
   tab.addEventListener('click',()=>showPanel(tab.dataset.workspace));
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
