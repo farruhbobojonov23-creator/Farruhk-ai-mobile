@@ -81,7 +81,8 @@ export function fourTtkPdf(input){
   const shares=ratios||({1:[1],2:[.29,.71],3:[.58,.21,.21],5:[.31,.17,.17,.17,.18]})[count]||Array(count).fill(1/count);
   let yy=y;
   for(let i=0;i<rows.length;i++){
-   const row=rows[i],f=(count===5?6.75:7.25)*s,pad=3.5*s;
+   const row=rows[i],boost=!dense&&(r.ingredients||[]).length<=6,
+   f=(count===5?(boost?6.75:6.45):(boost?7.25:7.05))*s,pad=3.5*s;
    const cellLines=row.map((v,j)=>wrap(v,w*shares[j]-pad*2,f,header&&i===0));
    const height=Math.max(14*s,Math.max(...cellLines.map(a=>a.length))*f*1.29+pad*2);
    if(draw){
@@ -327,8 +328,9 @@ export function fourTtkPdf(input){
  function masthead(y,s,draw){
   // Keep all brand and safety labels on the same A4, even on unusually
   // dense ingredient cards. Normal cards use the larger reference crest.
-  const h=(dense?9:34)*s;
-  if(draw&&dense){
+  const compactBrand=dense||(r.ingredients||[]).length>6;
+  const h=(compactBrand?9:34)*s;
+  if(draw&&compactBrand){
    txt('♛ FARRUH AI Premium',X+2*s,y+.7*s,152*s,7*s,true,C.navy,true);
    txt('ТЕХКАРТЫ HORECA',X+155*s,y+1.8*s,153*s,5.6*s,true,C.navy,true);
    const bStart=X+329*s,bw=49*s,bGap=5*s;
