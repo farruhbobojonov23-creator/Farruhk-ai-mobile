@@ -18,7 +18,7 @@ test('Premium styles and screen elements remain separate from printing and data'
  const server=await read('server.js');
  const css=await read('public/premium-v2.css');
  assert.match(html,/fai-premium-system\.css\?v=3/);
- assert.match(html,/premium-workspace\.js\?v=21/);
+ assert.match(html,/premium-workspace\.js\?v=22/);
  assert.match(js,/export function mountPremiumRoyalV2/);
  assert.match(js,/from '\/device-store\.js/);
  assert.match(js,/FARUKH PRINT/);

@@ -113,10 +113,12 @@ function ensureStyle() {
  const style = document.createElement('style');
  style.id = 'fai-health-style';
  style.textContent = `
- .fai-health-badge{display:inline-flex;align-items:center;justify-content:center;gap:3px;
-  max-width:100%;padding:3px 7px;border-radius:999px;white-space:nowrap;
-  border:1px solid rgba(49,217,147,.42);background:rgba(13,91,61,.73);
-  color:#50ecaf;font:700 10px/1.2 system-ui,-apple-system,sans-serif;letter-spacing:0}
+ .fai-health-badge{display:inline-flex;flex:0 0 22px;align-items:center;justify-content:center;
+  width:22px;height:22px;box-sizing:border-box;padding:0;border-radius:50%;
+  border:1px solid rgba(49,217,147,.55);background:rgba(13,91,61,.88);
+  box-shadow:0 0 0 1px rgba(13,91,61,.12),0 0 10px rgba(48,220,151,.12);
+  color:#50ecaf;font:800 15px/1 system-ui,-apple-system,sans-serif;
+  letter-spacing:0;white-space:nowrap;user-select:none;pointer-events:none}
  .fai-health-badge[data-level="warn"]{border-color:rgba(234,178,94,.4);
   background:rgba(80,54,24,.75);color:#f0c77d}
  .pfv-status-item.error svg{color:#ff9ca5}
@@ -129,16 +131,16 @@ function ensureStyle() {
   position:absolute;right:8px;top:8px;pointer-events:none;z-index:1}
  .pfv-project>.fai-health-badge{top:auto;bottom:7px}
  #lab .haccp-journal-card>.fai-health-badge{top:auto;bottom:5px;right:8px}
- .pfv-action>.fai-health-badge{top:5px;right:5px;font-size:9px;padding:2px 5px}
+ .pfv-action>.fai-health-badge{top:5px;right:5px;width:20px;height:20px;flex-basis:20px;font-size:13px}
  .pfv-nav>.fai-health-badge,.pfv-phone-nav .fai-health-badge{margin-left:auto}
  .pfv-nav,.pfv-phone-nav button{min-width:0}
- .pfv-nav .fai-health-badge{font-size:9px;padding:2px 5px}
- .pfv-phone-nav .fai-health-badge{font-size:8px;padding:2px 4px}
+ .pfv-nav .fai-health-badge{width:19px;height:19px;flex-basis:19px;font-size:13px}
+ .pfv-phone-nav .fai-health-badge{width:16px;height:16px;flex-basis:16px;font-size:11px}
  #recipes .catalog-heading>.fai-health-badge{margin-left:auto}
  .view>.bar>.fai-health-badge,.data-center-section>h3>.fai-health-badge{
   margin-left:9px;vertical-align:middle}
  @media(max-width:600px){
-  .pfv-hub-tile>.fai-health-badge,.category-card>.fai-health-badge{font-size:9px;padding:2px 6px}
+  .pfv-hub-tile>.fai-health-badge,.category-card>.fai-health-badge{width:20px;height:20px;flex-basis:20px;font-size:13px}
   .pfv-project>.fai-health-badge{bottom:4px}
  }
  `;
@@ -154,9 +156,15 @@ function putBadge(node, level, message, title) {
   badge.className = 'fai-health-badge';
   node.append(badge);
  }
+ // Keep detailed diagnostics available to assistive tech and long-press tooltips,
+ // but use one compact symbol in the interface without a visible status label.
+ const icon = level === 'ok' ? '✓' : level === 'error' ? '!' : '?';
+ const explanation = [message, title].filter(Boolean).join(' — ');
  if (badge.dataset.level !== level) badge.dataset.level = level;
- if (badge.textContent !== message) badge.textContent = message;
- if (badge.title !== title) badge.title = title;
+ if (badge.textContent !== icon) badge.textContent = icon;
+ if (badge.title !== explanation) badge.title = explanation;
+ if (badge.getAttribute('aria-label') !== explanation) badge.setAttribute('aria-label', explanation);
+ if (badge.getAttribute('role') !== 'img') badge.setAttribute('role','img');
 }
 
 export function mountSystemBadges() {
