@@ -259,20 +259,20 @@ export function fourTtkPdf(input){
   // Very dense preparation catalogues (19–100+ ingredients) retain the same
   // mandatory labels in a slim vector strip, instead of shrinking all recipe
   // information below the minimum legible A4 scale.
-  const h=(dense?15:27)*s;
+  const h=(dense?9:27)*s;
   if(draw&&dense){
-   txt('♛',X+2*s,y+.5*s,18*s,12*s,true,C.accent,true);
-   txt('FARRUH AI',X+20*s,y+1*s,103*s,7.7*s,true,C.navy,true);
-   txt('Premium',X+20*s,y+9*s,103*s,5.4*s,false,'#A87926',true);
-   txt('ПРОФЕССИОНАЛЬНЫЕ ТТК · HORECA',X+135*s,y+4*s,179*s,6.3*s,true,C.navy,true);
+   // Single-line branded treatment for exceptionally long ingredient tables:
+   // preserves every ingredient and the minimum export font scale.
+   txt('♛ FARRUH AI Premium',X+2*s,y+.7*s,152*s,7*s,true,C.navy,true);
+   txt('ТЕХКАРТЫ HORECA',X+155*s,y+1.8*s,153*s,5.6*s,true,C.navy,true);
    const badgeStart=X+329*s,badgeW=49*s,badgeGap=5*s;
    for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
     const bx=badgeStart+i*(badgeW+badgeGap);
-    doc.roundedRect(bx,y,badgeW,14*s,3*s).lineWidth(.6*s).strokeColor('#CEAB65').stroke();
-    drawMastIcon(type,bx+8*s,y+1*s,s*.60);
-    txt(label,bx+17*s,y+4*s,badgeW-18*s,5.7*s,true,'#66491D',true);
+    doc.roundedRect(bx,y,badgeW,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
+    drawMastIcon(type,bx+8*s,y+.7*s,s*.38);
+    txt(label,bx+15*s,y+1.2*s,badgeW-16*s,5*s,true,'#66491D',true);
    }
-   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.8*s).strokeColor(C.accent).stroke();
+   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.6*s).strokeColor(C.accent).stroke();
   }else if(draw){
    // Brand left: restrained gold crown with stacked FARRUH AI / Premium.
    txt('♛',X+3*s,y+1.5*s,24*s,20*s,true,C.accent,true);
