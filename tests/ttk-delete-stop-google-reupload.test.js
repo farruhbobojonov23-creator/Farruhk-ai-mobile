@@ -28,7 +28,7 @@ test('one-tap delete everywhere waits for both Google and cloud confirmations',(
  const code=manager.slice(manager.indexOf("if(scope==='all')"),manager.indexOf("}else if(scope==='phone')"));
  assert.match(manager,/scope:'all',label:'🗑️ Везде ✕'/);
  assert.match(code,/await postGoogle\(paused,id,recipe\)/);
- assert.match(code,/await deleteCloud\(id\)/);
+ assert.match(code,/await deleteCloud\(id,\{allowMissing:true\}\)/);
  assert.match(code,/d\.recipes=\(d\.recipes\|\|\[\]\)\.filter/);
  assert.ok(code.indexOf('await postGoogle')<code.indexOf('await deleteCloud'));
  assert.ok(code.indexOf('await deleteCloud')<code.indexOf('d.recipes='));
