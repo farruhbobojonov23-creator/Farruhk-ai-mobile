@@ -124,8 +124,10 @@ app.use((_req,res)=>res.status(404).json({error:'Страница не найд�
 app.listen(PORT,'0.0.0.0',()=>{
  console.info('[farukh-print] PIN console live, pinConfigured='+PIN_READY+', staff gateway untouched');
  setTimeout(async()=>{
-  try{const result=await gatewayCall('gateway_status');
-   console.info('[farukh-print] Neon live read test',JSON.stringify({ok:result.ok,products:result.products,photos:result.photos,backups:result.backups}));
-  }catch(e){console.warn('[farukh-print] Neon live read test unavailable',String(e.message).slice(0,200))}
+  try{const response=await fetch('https://br-solitary-brook-baxakvoe-fpcloudapi.compute.c-8.eu-central-1.aws.neon.tech/',{
+    headers:{Authorization:'Bearer '+GATEWAY},signal:AbortSignal.timeout(15000)});
+   const data=await response.json().catch(()=>({}));
+   console.info('[farukh-print] Neon FUNCTION SQL probe',JSON.stringify({status:response.status,ok:data.ok,products:data.products,error:data.error,type:data.type}));
+  }catch(e){console.warn('[farukh-print] Neon FUNCTION SQL probe unavailable',e.name||'error')}
  },2300);
 });
