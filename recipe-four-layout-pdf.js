@@ -12,7 +12,7 @@ const COLORS={
  'teal-matrix':{navy:'#003F44',band:'#006C65',accent:'#D7AB4C',pale:'#E4F4F0',light:'#F7FCFB',line:'#9BC9C1',text:'#183F42'},
  'process-matrix':{navy:'#003F42',band:'#008078',accent:'#CFA246',pale:'#E4F6EE',light:'#F9FDFB',line:'#90CAC2',text:'#133F43'},
  'gold-allergen':{navy:'#003D42',band:'#00665F',accent:'#D5A13F',pale:'#E9F6F1',light:'#FFFFF8',line:'#A4CFC8',text:'#173C40'},
- 'premium-blue':{navy:'#0B2B55',band:'#14507D',accent:'#D7AD54',pale:'#DCECF8',light:'#F9FBFE',line:'#B6CCD9',text:'#17365A'}
+ 'premium-blue':{navy:'#004B48',band:'#00756B',accent:'#D7AB48',pale:'#E4F4EF',light:'#FCFEFC',line:'#9FC9BB',text:'#19413C'}
 };
 const fmt=x=>x==null||x===''?'—':Number.isFinite(Number(x))?Number(x).toLocaleString('ru-RU',{maximumFractionDigits:2}):String(x);
 const safe=x=>x==null||x===''?'—':String(x);
@@ -75,7 +75,7 @@ export function fourTtkPdf(input){
   const shares=ratios||({1:[1],2:[.29,.71],3:[.58,.21,.21],5:[.31,.17,.17,.17,.18]})[count]||Array(count).fill(1/count);
   let yy=y;
   for(let i=0;i<rows.length;i++){
-   const row=rows[i],f=(count===5?6.45:7.05)*s,pad=3.5*s;
+   const row=rows[i],f=(count===5?6.75:7.25)*s,pad=3.5*s;
    const cellLines=row.map((v,j)=>wrap(v,w*shares[j]-pad*2,f,header&&i===0));
    const height=Math.max(14*s,Math.max(...cellLines.map(a=>a.length))*f*1.29+pad*2);
    if(draw){
@@ -319,42 +319,48 @@ export function fourTtkPdf(input){
   doc.restore();
  }
  function masthead(y,s,draw){
-  // Very dense preparation catalogues (19–100+ ingredients) retain the same
-  // mandatory labels in a slim vector strip, instead of shrinking all recipe
-  // information below the minimum legible A4 scale.
-  const h=(dense?9:27)*s;
+  // Keep all brand and safety labels on the same A4, even on unusually
+  // dense ingredient cards. Normal cards use the larger reference crest.
+  const h=(dense?9:34)*s;
   if(draw&&dense){
-   // Single-line branded treatment for exceptionally long ingredient tables:
-   // preserves every ingredient and the minimum export font scale.
    txt('♛ FARRUH AI Premium',X+2*s,y+.7*s,152*s,7*s,true,C.navy,true);
    txt('ТЕХКАРТЫ HORECA',X+155*s,y+1.8*s,153*s,5.6*s,true,C.navy,true);
-   const badgeStart=X+329*s,badgeW=49*s,badgeGap=5*s;
-   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
-    const bx=badgeStart+i*(badgeW+badgeGap);
-    doc.roundedRect(bx,y,badgeW,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
+   const bStart=X+329*s,bw=49*s,bGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,n)=>[n,...a])){
+    const bx=bStart+i*(bw+bGap);
+    doc.roundedRect(bx,y,bw,8.4*s,2*s).lineWidth(.5*s).strokeColor('#CEAB65').stroke();
     drawMastIcon(type,bx+8*s,y+.7*s,s*.38);
-    txt(label,bx+15*s,y+1.2*s,badgeW-16*s,5*s,true,'#66491D',true);
+    txt(label,bx+15*s,y+1.2*s,bw-16*s,5*s,true,'#66491D',true);
    }
-   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.6*s).strokeColor(C.accent).stroke();
   }else if(draw){
-   // Brand left: restrained gold crown with stacked FARRUH AI / Premium.
-   txt('♛',X+3*s,y+1.5*s,24*s,20*s,true,C.accent,true);
-   txt('FARRUH AI',X+29*s,y+3*s,133*s,11*s,true,C.navy,true);
-   txt('Premium',X+29*s,y+16*s,122*s,7.5*s,false,'#A87926',true);
-   doc.moveTo(X+154*s,y+2*s).lineTo(X+154*s,y+23*s)
+   // Gold vector crown (filled, not a small font glyph).
+   const cx=X+6*s,cy=y+4*s;
+   doc.save();
+   doc.moveTo(cx+2*s,cy+9*s).lineTo(cx+8*s,cy+15*s)
+    .lineTo(cx+14*s,cy+4*s).lineTo(cx+20*s,cy+15*s)
+    .lineTo(cx+27*s,cy+9*s).lineTo(cx+25*s,cy+25*s)
+    .lineTo(cx+4*s,cy+25*s).closePath().fill('#D8AA46');
+   doc.rect(cx+4*s,cy+26*s,21*s,3*s).fill('#A97B27');
+   for(const [x,yc] of [[2,8],[14,3],[27,8]])
+    doc.circle(cx+x*s,cy+yc*s,2*s).fill('#E4C067');
+   doc.restore();
+   txt('FARRUH AI',X+46*s,y+3*s,126*s,13*s,true,C.navy,true);
+   txt('Premium',X+46*s,y+21*s,125*s,8.2*s,false,'#B0832C',true);
+   doc.moveTo(X+170*s,y+3*s).lineTo(X+170*s,y+31*s)
     .lineWidth(1*s).strokeColor(C.accent).stroke();
    txt(['ПРОФЕССИОНАЛЬНАЯ СИСТЕМА','ТЕХНОЛОГИЧЕСКИХ КАРТ','ДЛЯ HORECA'],
-    X+162*s,y+3*s,165*s,6.0*s,true,C.navy,true);
-   const badgeStart=X+333*s, badgeW=49*s, badgeGap=5*s;
-   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,index)=>[index,...a])){
-    const bx=badgeStart+i*(badgeW+badgeGap);
-    doc.roundedRect(bx,y+1*s,badgeW,24*s,4*s).lineWidth(.7*s)
-      .fillAndStroke('#FFFFFF','#CEAB65');
-    drawMastIcon(type,bx+badgeW/2,y+3*s,s*.86);
-    txt(label,bx+4*s,y+17*s,badgeW-8*s,5.7*s,true,'#66491D',true);
+    X+177*s,y+6*s,150*s,6.8*s,true,C.navy,true);
+   const bStart=X+333*s,bw=49*s,bGap=5*s;
+   for(const [i,type,label] of [['chef','ТТК'],['shield','ХАССП'],['box','ПФ'],['print','Печать']].map((a,n)=>[n,...a])){
+    const bx=bStart+i*(bw+bGap);
+    doc.roundedRect(bx,y+2*s,bw,29*s,4*s).lineWidth(.8*s)
+     .fillAndStroke('#FFFFFF','#C99C48');
+    drawMastIcon(type,bx+bw/2,y+5*s,s*1.13);
+    txt(label,bx+4*s,y+23*s,bw-8*s,6.1*s,true,'#61421D',true);
    }
-   doc.moveTo(X,y+h).lineTo(X+W,y+h).lineWidth(.8*s).strokeColor(C.accent).stroke();
   }
+  if(draw)doc.moveTo(X,y+h).lineTo(X+W,y+h)
+   .lineWidth(.8*s).strokeColor(C.accent).stroke();
   return h;
  }
  // Title bar follows the masthead; it remains the first content section.
@@ -365,7 +371,7 @@ export function fourTtkPdf(input){
  function header(y,s,draw){
   const h=headerHeight(s);
   if(draw){
-   const blue=layout==='premium-blue',dark=blue?C.navy:C.band;
+   const blue=false,dark=C.band;
    doc.roundedRect(X,y,W,h,7*s).lineWidth(.65*s).fillAndStroke('#FFFFFF',C.line);
    doc.roundedRect(X,y,W,29*s,6*s).fill(dark);
    txt('ТЕХНОЛОГИЧЕСКАЯ КАРТА (ТТК)',
@@ -398,7 +404,7 @@ export function fourTtkPdf(input){
   let y=18;
   if(draw){
    doc.rect(0,0,595.28,841.89).fill('#FFFFFF');
-   doc.rect(0,0,595.28,8*s).fill(layout==='premium-blue'?C.navy:C.band);
+   doc.rect(0,0,595.28,8*s).fill(C.band);
    if(!dense)doc.moveTo(X,12*s).lineTo(X+W,12*s).lineWidth(1.1*s).strokeColor(C.accent).stroke();
   }
   // Dense ingredient catalogues use otherwise-empty 8–18pt top margin;
@@ -518,9 +524,8 @@ export function fourTtkPdf(input){
  }
  // Footer ribbon is part of the same vector A4 (no attached image). It
  // occupies the reserved bottom margin without replacing regulatory text.
- doc.roundedRect(X+W-133,817,133,11,4).fill(layout==='premium-blue'?'#0C5856':C.band);
- txt('♛  FARRUH AI Premium',X+W-128,819,125,6.2,true,
-   layout==='premium-blue'?'#FFE1A2':'#FFFFFF',true);
+ doc.roundedRect(X+W-146,813,146,15,4).fill(C.band);
+ txt('♛  FARRUH AI Premium',X+W-141,817,138,7.2,true,'#FCE6B4',true);
   doc.moveTo(X,828).lineTo(X+W,828).lineWidth(1).strokeColor(C.accent).stroke();
  return doc;
 }
