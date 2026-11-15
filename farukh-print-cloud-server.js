@@ -3,6 +3,7 @@
 import express from 'express';
 import {jwks,selfCheck,signOwnerJWT} from './farukh-print-jwt.js';
 import {mountPrintNeonBridge} from './farukh-print-neon-proxy.js';
+import {mountPrintPgBridge, printPgSelfCheck} from './farukh-print-pg-cloud.js';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -129,11 +130,13 @@ app.get('/api/owner/cloud/status',authPin,async(_req,res)=>handleGateway(res,'ga
 app.get('/api/owner/cloud/catalog',authPin,async(_req,res)=>handleGateway(res,'gateway_catalog'));
 
 
+mountPrintPgBridge(app,authPin);
 mountPrintNeonBridge(app,authPin);
 app.use('/api/print-cloud/v1',(_req,res)=>res.status(410).json({error:'Старый API отключён. Используй панель владельца FARUKH PRINT Cloud.'}));
 app.use((_req,res)=>res.status(404).json({error:'Страница не найдена.'}));
 app.listen(PORT,'0.0.0.0',()=>{
  console.info('[farukh-print] PIN console live, pinConfigured='+PIN_READY+', staff gateway untouched');
+ setTimeout(()=>void printPgSelfCheck(),700);
  setTimeout(async()=>{
   try{const response=await fetch('https://br-solitary-brook-baxakvoe-fpcloudapi.compute.c-8.eu-central-1.aws.neon.tech/',{
     headers:{Authorization:'Bearer '+GATEWAY},signal:AbortSignal.timeout(15000)});
