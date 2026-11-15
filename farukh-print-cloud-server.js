@@ -122,6 +122,16 @@ app.get('/neon-probe',async(_req,res)=>{
   res.status(503).json({ok:false,error:'Neon function not reachable'});
  }
 });
+app.get('/neon-security-check',async(_req,res)=>{
+ const url='https://ep-small-forest-basx2akr.apirest.c-8.eu-central-1.aws.neon.tech/farukh_print/rest/v1/rpc/cloud_status';
+ try{
+  const upstream=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+   body:'{}',signal:AbortSignal.timeout(12000)});
+  const denied=upstream.status===401||upstream.status===403||upstream.status===404;
+  res.status(denied?200:503).json({ok:denied,anonymousDenied:denied,httpStatus:upstream.status,
+    detail:denied?'Neon data protected from unauthenticated requests':'Review permission configuration'});
+ }catch(err){res.status(503).json({ok:false,error:'Connectivity check failed',type:err?.name||'error'})}
+});
 app.get('/healthz',async(_req,res)=>{
  try{
   const result=await pool.query('SELECT 1 FROM farukh_print.locations LIMIT 1');
