@@ -104,7 +104,7 @@ export function mountReferenceLayouts(page,editor,controls){
    sourcePieces.dispatchEvent(new Event('change',{bubbles:true}));
   });
  }
- yieldField?.append(yieldPieces);
+ // No absolute-positioned dropdown in the "Выход, г" input anymore.
  // Inline switch above the calorie table; nothing is hidden in a modal.
  const sourceAuto=get('nutrition-auto');
  const autoLabel=node('label','ttk-ref-auto-switch');
