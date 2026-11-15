@@ -111,6 +111,9 @@
       </div>
       <div class="migration-step"><strong>② Проверить резервную копию</strong>
         <p>Проверка выполняется в памяти браузера: файл не отправляется в облако и не сохраняется на сервере.</p>
+        <button class="migration-action" type="button" id="migration-export">↓ Скачать текущие товары для Neon</button>
+        <div id="migration-export-result" role="status" aria-live="polite"></div>
+        <p>Файл должен содержать именно актуальные 110 товаров. Копия сохраняется на телефоне и никуда автоматически не отправляется.</p>
         <button class="migration-action" type="button" id="migration-choose">Проверить JSON-файл</button>
         <input id="migration-file" type="file" accept=".json,application/json" hidden>
         <div id="migration-check-result" role="status" aria-live="polite"></div>
@@ -150,6 +153,41 @@
       const p=document.createElement('p');p.className=isError?'migration-error':'migration-success';
       p.textContent=message;result.replaceChildren(p);
     };
+    const exportButton=document.getElementById('migration-export');
+    const exportResult=document.getElementById('migration-export-result');
+    exportButton.addEventListener('click',()=>{
+      exportResult.replaceChildren();
+      const notify=(message,isError)=>{
+        const item=document.createElement('p');
+        item.className=isError?'migration-error':'migration-success';
+        item.textContent=message;exportResult.append(item);
+      };
+      try{
+        const raw=localStorage.getItem('farukh-print:catalog:v1');
+        if(!raw)throw Error('Каталог на этом устройстве ещё не загружен.');
+        const records=JSON.parse(raw);
+        if(!Array.isArray(records)||records.length<3)throw Error('Сейчас в браузере только демонстрационные товары. Открой админку на телефоне, куда импортировала 110 товаров.');
+        if(records.length>1000)throw Error('Слишком большой каталог для экспорта.');
+        const names=new Set();
+        for(const record of records){
+          if(!record||!['ready','prep'].includes(record.kind)||!record.name||!record.id)throw Error('Обнаружена повреждённая карточка. Рекомендуется использовать раздел резервных копий.');
+          const key=record.kind+'|'+String(record.name).trim().toLocaleLowerCase('ru');
+          if(names.has(key))throw Error('Обнаружены повторяющиеся товары.');
+          names.add(key);
+        }
+        const date=new Date().toISOString().slice(0,10);
+        const payload={format:'farukh-print-catalog-v1',createdAt:new Date().toISOString(),
+          source:'farukh-print-admin-local-export',products:records};
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const anchor=document.createElement('a');
+        anchor.href=url;anchor.download='FARUKH_PRINT_NEON_'+records.length+'_товаров_'+date+'.json';
+        document.body.append(anchor);anchor.click();anchor.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),15000);
+        const photos=records.filter(p=>typeof p.photo==='string'&&p.photo.length>0).length;
+        notify('Скачан JSON: '+records.length+' товаров, карточек с фотографиями: '+photos+'. Прикрепи файл в этот чат, чтобы перенести данные в Neon.',false);
+      }catch(e){notify('Выгрузка не выполнена: '+e.message,true)}
+    });
     btn.addEventListener('click',()=>input.click());
     input.addEventListener('change',async()=>{
       const file=input.files&&input.files[0];input.value='';result.replaceChildren();
