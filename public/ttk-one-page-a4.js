@@ -121,7 +121,9 @@ export function mountOnePageA4(editor,stage,live){
   const chooser=stage.querySelector('#ttk-design-picker')?.getBoundingClientRect().height||44;
   const controls=stage.querySelector('.ttk-live-actions')?.getBoundingClientRect().height||38;
   const bar=stage.querySelector('.ttk-onepage-topbar')?.getBoundingClientRect().height||35;
-  const available=stage.clientHeight-bar-chooser-controls-30;
+  const settingsHeight=stage.querySelector('.ttk-settings-access-row')?.getBoundingClientRect().height||0;
+  const noticeHeight=notice.hidden?0:notice.getBoundingClientRect().height||0;
+  const available=stage.clientHeight-bar-chooser-controls-settingsHeight-noticeHeight-37;
   const spare=Math.max(160,Math.min(window.innerHeight-(mobile?155:135),available));
   const ratio=Math.max(.20,Math.min(1,width/794,spare/1123));
   lastRatio=ratio;
