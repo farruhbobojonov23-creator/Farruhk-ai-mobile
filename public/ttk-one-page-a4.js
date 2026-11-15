@@ -45,14 +45,22 @@ export function mountOnePageA4(editor,stage,live){
    row.hidden=!editing&&i>=5;
   });
  }
- let warningTimer=null;
+ let warningTimer=null,growTimer=null;
+ function syncGrowingText(){
+  if(!editing)return;
+  requestAnimationFrame(autogrow);
+  // The canonical form has a 240 ms deferred value synchronization.
+  // One animation frame is too early and leaves the newest text clipped.
+  clearTimeout(growTimer);
+  growTimer=setTimeout(autogrow,340);
+ }
  function autogrow(){
   if(!editing)return;
   for(const ta of page.querySelectorAll('textarea.ttk-live-control')){
    const visible=ta.getBoundingClientRect();
    if(visible.width<2||visible.height<2)continue;
    ta.style.removeProperty('height');
-   const height=Math.max(112,ta.scrollHeight+5);
+   const height=Math.max(ta.dataset.source==='recipe-name'?70:112,ta.scrollHeight+8);
    ta.style.setProperty('height',String(height)+'px','important');
   }
  }
@@ -96,6 +104,7 @@ export function mountOnePageA4(editor,stage,live){
     autogrow();
     if(focusTarget?.isConnected)focusTarget.scrollIntoView({behavior:'instant',block:'nearest'});
    });
+   syncGrowingText();
   }else{
    stage.scrollTop=0;
    scheduleWarning();
@@ -104,7 +113,7 @@ export function mountOnePageA4(editor,stage,live){
  zoom.addEventListener('click',()=>setEditing(!editing));
  page.addEventListener('input',event=>{
   if(editing&&event.target.matches('textarea.ttk-live-control'))
-   requestAnimationFrame(autogrow);
+   syncGrowingText();
  });
  stage.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&editing&&event.target.tagName!=='TEXTAREA'){
@@ -180,7 +189,7 @@ export function mountOnePageA4(editor,stage,live){
   live[method]=(...args)=>{
    const value=prior(...args);
    ingredientNote();scheduleFit();scheduleWarning();
-   if(editing)requestAnimationFrame(autogrow);
+   if(editing)syncGrowingText();
    return value;
   };
  }
@@ -188,7 +197,7 @@ export function mountOnePageA4(editor,stage,live){
  function setVisible(value){
   visible=Boolean(value);
   if(visible){live.refresh();scheduleFit();scheduleWarning();}
-  else setEditing(false);
+  else{setEditing(false);clearTimeout(growTimer);}
  }
  window.addEventListener('resize',scheduleFit,{passive:true});
  if('ResizeObserver' in window){
