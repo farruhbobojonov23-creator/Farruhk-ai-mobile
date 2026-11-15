@@ -3,7 +3,7 @@
  * recipe persistence, formulas, attachments or approval state.
  */
 import {recipeAllergenMatrix,validAllergenOverrides} from './ttk-allergens.js?v=2';
-import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=2';
+import {mountReferenceLayouts} from './ttk-reference-layouts.js?v=3';
 const node=(tag,cls,text)=>{
  const n=document.createElement(tag);
  if(cls)n.className=cls;
@@ -281,8 +281,8 @@ export function mountInlineTtkPage(editor){
   }
  }
  function refreshComputed(){
-  yieldBand.lastChild.textContent=number(get('card-yield').value)+' г ('+
-   (get('card-pieces').selectedOptions?.[0]?.textContent||get('card-pieces').value)+' )';
+  yieldBand.querySelector('.ttk-live-yield-value').textContent=
+   number(get('card-yield').value)+' г';
   let allergenOverrides={};
   try{allergenOverrides=JSON.parse(editor.dataset.allergenOverrides||'{}')}catch{}
   const matrix=recipeAllergenMatrix({

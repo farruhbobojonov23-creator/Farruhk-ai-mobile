@@ -1,3 +1,4 @@
+import {mountTtkGeneralSettings} from './ttk-general-settings.js?v=1';
 /* FARRUH AI Premium · DIRECT A4 editing.
  * Tapping a field focuses its REAL inline input, without dialog/overlay.
  * All inputs continue to update the canonical recipe. The sheet is still a
@@ -19,6 +20,7 @@ export function mountOnePageA4(editor,stage,live){
  zoom.setAttribute('aria-label','Увеличить лист А4 для заполнения непосредственно в шаблоне');
  const quickNav=stage.querySelector('.ttk-onepage-topbar');
  quickNav?.insertBefore(zoom,quickNav.querySelector('.ttk-onepage-full-form'));
+ const settings=mountTtkGeneralSettings(editor,stage,quickNav);
  const mark=document.createElement('div');
  mark.className='ttk-onepage-overflow-marker';
  mark.setAttribute('aria-live','polite');
@@ -116,7 +118,7 @@ export function mountOnePageA4(editor,stage,live){
   observer=new ResizeObserver(scheduleFit);observer.observe(stage);
  }
  ingredientNote();
- return {dialog:null,fit,scheduleFit,setVisible,setEditing,openSection(index){
+ return {dialog:null,settings,fit,scheduleFit,setVisible,setEditing,openSection(index){
   const names=['.ttk-live-title','.ttk-live-name','.ttk-live-meta','.ttk-live-scope',
    '.ttk-live-raw','.ttk-live-formula','.ttk-live-allergens','.ttk-live-process',
    '.ttk-live-quality','.ttk-live-conditions','.ttk-live-nutrition',

@@ -86,8 +86,14 @@ export function mountReferenceLayouts(page,editor,controls){
  footerBrand.append(icon('grain'),node('span','','FARRUH AI'),node('em','','Premium'));
  regulatory.append(footerBrand);
  const piecesField=meta.querySelector('[data-ttk-field="card-pieces"]');
- const yieldField=meta.querySelector('[data-ttk-field="card-yield"]');
+ // Quantity belongs in its own LABEL on the yellow recipe yield bar.
+ // It must not float over the empty grams input (old black "8 шт." glitch).
+ const yieldBand=page.querySelector('.ttk-live-yield');
+ const piecesLabel=node('label','ttk-ref-piece-field');
+ piecesLabel.append(node('span','','Количество:'));
  const yieldPieces=node('select','ttk-ref-yield-pieces ttk-ref-pieces-select');
+ piecesLabel.append(yieldPieces);
+ yieldBand?.append(piecesLabel);
  const sourcePieces=get('card-pieces');
  if(sourcePieces){
   for(const option of sourcePieces.options)yieldPieces.add(new Option(option.text,option.value));
@@ -98,7 +104,7 @@ export function mountReferenceLayouts(page,editor,controls){
    sourcePieces.dispatchEvent(new Event('change',{bubbles:true}));
   });
  }
- yieldField?.append(yieldPieces);
+ // No absolute-positioned dropdown in the "Выход, г" input anymore.
  // Inline switch above the calorie table; nothing is hidden in a modal.
  const sourceAuto=get('nutrition-auto');
  const autoLabel=node('label','ttk-ref-auto-switch');
@@ -213,7 +219,12 @@ export function mountReferenceLayouts(page,editor,controls){
    if(document.activeElement!==span)span.textContent=sentences[i]||'—';
   });
   for(const d of addedDate)d.textContent=displayDate(get('card-date')?.value);
-  if(sourcePieces&&document.activeElement!==yieldPieces)yieldPieces.value=sourcePieces.value;
+  if(sourcePieces&&document.activeElement!==yieldPieces){
+   const options=[...sourcePieces.options];
+   if(options.map(x=>x.value).join('|')!==[...yieldPieces.options].map(x=>x.value).join('|'))
+    yieldPieces.replaceChildren(...options.map(x=>new Option(x.text,x.value)));
+   yieldPieces.value=sourcePieces.value;
+  }
   if(sourceAuto&&document.activeElement!==autoInput)autoInput.checked=sourceAuto.checked;
   [...allergenRows.querySelectorAll('.ttk-live-allergen-row')].forEach((row,i)=>{
    if(!row.querySelector('.ttk-ref-icon'))row.prepend(icon(allergenIcons[i]||'sesame'));

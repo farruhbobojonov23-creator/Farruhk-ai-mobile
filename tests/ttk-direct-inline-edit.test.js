@@ -15,7 +15,7 @@ test('four A4 designs edit actual inputs in document; never create bottom modal'
  assert.match(css,/pointer-events:auto!important/);
  assert.match(css,/\.ttk-live-name-sample\{\s*display:none!important/);
  assert.match(css,/\.ttk-live-name \.ttk-live-control/);
- assert.match(html,/ttk-direct-inline\.css\?v=1/);
+ assert.match(html,/ttk-direct-inline\.css\?v=2/);
  assert.match(inline,/marker\.setAttribute\('role','checkbox'\)/);
  assert.match(inline,/editor\.dataset\.allergenOverrides=JSON\.stringify\(overrides\)/);
 });
