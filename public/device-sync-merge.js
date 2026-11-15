@@ -61,9 +61,11 @@ export function reconcileSnapshots(baseline,local,remote){
  ])];
  const deleted=new Set(result.deletedRecipeIds);
  for(const key of LIST_FIELDS){
-  result[key]=mergedItems(key,base[key],ours[key],theirs[key]);
-  if((key==='recipes'||key==='releasedRecipes')&&Array.isArray(result[key]))
-   result[key]=result[key].filter(item=>!deleted.has(item.id));
+  // Filter tombstoned recipes BEFORE conflict detection. A deleted recipe
+  // edited offline must not block reconciliation or reappear unexpectedly.
+  const scoped=value=>(key==='recipes'||key==='releasedRecipes')&&Array.isArray(value)
+   ?value.filter(item=>!deleted.has(item.id)):value;
+  result[key]=mergedItems(key,scoped(base[key]),scoped(ours[key]),scoped(theirs[key]));
  }
  result.siteSettings=mergedObject('Настройки',base.siteSettings,ours.siteSettings,theirs.siteSettings);
  result.projectCatalog={projects:mergedItems('Проекты',base.projectCatalog?.projects,ours.projectCatalog?.projects,theirs.projectCatalog?.projects)};
