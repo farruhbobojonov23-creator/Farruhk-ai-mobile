@@ -143,6 +143,29 @@ async function auditRoyal(page,tag,mobile,errors){
      fourOnOpen.cards===4&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',
      fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
+   // Production regression: on Android the old icon-only ⚙ could be
+   // clipped by the four-button topbar. The full-width labeled row MUST be
+   // visible and its panel reachable, before the user taps any template.
+   const settingsSummary=page.locator('#ttk-real-a4-stage .ttk-settings-access-row>summary');
+   const settingsPosition=await settingsSummary.evaluate(el=>{
+    const rect=el.getBoundingClientRect();
+    return {text:el.textContent.trim(),left:rect.left,right:rect.right,
+      w:rect.width,h:rect.height,viewport:window.innerWidth,
+      visible:getComputedStyle(el).display!=='none'};
+   });
+   check(tag+' Общие настройки ТТК is a prominent visible button on mobile',
+    settingsPosition.text.includes('Общие настройки ТТК')&&
+    settingsPosition.visible&&settingsPosition.w>180&&settingsPosition.h>=35&&
+    settingsPosition.left>=-1&&settingsPosition.right<=settingsPosition.viewport+1,
+    settingsPosition);
+   await settingsSummary.click();
+   check(tag+' settings panel opens and displays real global controls',
+    await page.locator('#ttk-real-a4-stage .ttk-settings-access-row').evaluate(el=>el.open)&&
+    await page.locator('#ttk-real-a4-stage .ttk-general-panel').isVisible()&&
+    await page.locator('#ttk-real-a4-stage .ttk-general-panel').getByText('Количество штук по умолчанию').count()===1,
+    null);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-ttk-global-settings-visible.png',timeout:12000});
+   await settingsSummary.click();
    const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
      nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>30})));
    check(tag+' My TTK editor offers exactly four new Premium allergen templates',
