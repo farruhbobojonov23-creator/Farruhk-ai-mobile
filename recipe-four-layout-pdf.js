@@ -222,7 +222,7 @@ export function fourTtkPdf(input){
     layout==='gold-allergen'?'6. КОНТРОЛЬ КАЧЕСТВА':
     layout==='premium-blue'?'КОНТРОЛЬ КАЧЕСТВА':'5. КОНТРОЛЬ КАЧЕСТВА',
    [['Показатель','Требование'],['Внешний вид',safe(r.appearance)],
-    ['Вкус и запах',safe(r.taste)],['Консистенция','—']],x,y,w,s,draw,{ratios:[.33,.67]});
+    ['Вкус и запах',safe(r.taste)],['Консистенция','—']],x,y,w,s,draw,{ratios:layout==='process-matrix'?[.43,.57]:[.33,.67]});
  }
  function processReferenceTable(x,y,w,s,draw){
   return box(layout==='gold-allergen'?'5. ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ':
