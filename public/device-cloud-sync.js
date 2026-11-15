@@ -87,8 +87,9 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
  const toggle=node.querySelector('[data-toggle-sync]');
  const manual=node.querySelector('[data-sync-now]');
  const status=node.querySelector('[data-sync-status]');
- let running=false,queued=false,timer=null,lastError='';
- const enabled=()=>localStorage.getItem(ENABLED_KEY)==='true';
+ let running=false,queued=false,timer=null,lastError='',pendingRevision=null,errorNotified=false;
+ // Cloud sync is the default for the signed-in owner. An explicit switch-off is respected.
+ const enabled=()=>localStorage.getItem(ENABLED_KEY)!=='false';
  function paint(message){
   toggle.textContent=enabled()?'Выключить синхронизацию':'Включить синхронизацию';
   manual.disabled=running||!enabled();
@@ -132,6 +133,12 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    const projectChanged=putProjectCatalog(merged);
    if(localChanged)onState(next);
    lastError='';
+   // Confirm cloud storage only after the remote GET/PUT and the local
+   // revision-safe commit have both succeeded. Never show a false green tick.
+   if(pendingRevision!==null && next.revision>=pendingRevision && getState()?.revision<=next.revision){
+    pendingRevision=null;errorNotified=false;
+    notify('✅ Сохранено в облаке и на устройстве.');
+   }
    const connection=document.getElementById('connection');if(connection)connection.textContent='☁️ Облачная синхронизация';
    paint('✅ База Farukh AI синхронизирована: '+new Date().toLocaleTimeString('ru-RU')+'. ТТК: '+(merged.recipes?.length||0)+'. Google Документы проверяются отдельно.');
    document.dispatchEvent(new Event('farruh:device-cloud-synced'));
@@ -142,6 +149,10 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    }
   }catch(error){
    lastError=error.message||String(error);
+   if(pendingRevision!==null&&!errorNotified){
+    notify('⚠️ На устройстве сохранено, но облако не подтвердило: '+lastError,true);
+    errorNotified=true;
+   }
    const connection=document.getElementById('connection');if(connection)connection.textContent='На устройстве · облако недоступно';
    paint('⚠️ '+lastError);
    if(isStale(error)||error.status===409)queued=true;
@@ -150,13 +161,19 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    if(queued){queued=false;schedule(900);}
   }
  }
+ function confirmSaved(){
+  pendingRevision=getState()?.revision??null;
+  errorNotified=false;
+  if(!enabled()){notify('⚠️ Сохранено только на устройстве: облачная синхронизация выключена.',true);return;}
+  schedule(0);
+ }
  function schedule(delay=1500){
   if(!enabled()||!getState())return;
   if(running){queued=true;return;}
   clearTimeout(timer);timer=setTimeout(once,delay);
  }
  toggle.onclick=async()=>{
-  if(enabled()){localStorage.removeItem(ENABLED_KEY);clearTimeout(timer);paint();return;}
+  if(enabled()){localStorage.setItem(ENABLED_KEY,'false');clearTimeout(timer);paint();return;}
   // Download a non-destructive safety copy before the first merge.
   const snapshot=await store.load();
   downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:snapshot},null,2)],{type:'application/json'}),
@@ -175,5 +192,5 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
   node.scrollIntoView({block:'start',behavior:'auto'});
   node.querySelector('summary')?.focus?.({preventScroll:true});
  };
- return {schedule,start:()=>schedule(600),status:()=>lastError,open};
+ return {schedule,start:()=>schedule(600),status:()=>lastError,isEnabled:enabled,confirmSaved,open};
 }
