@@ -86,8 +86,14 @@ export function mountReferenceLayouts(page,editor,controls){
  footerBrand.append(icon('grain'),node('span','','FARRUH AI'),node('em','','Premium'));
  regulatory.append(footerBrand);
  const piecesField=meta.querySelector('[data-ttk-field="card-pieces"]');
- const yieldField=meta.querySelector('[data-ttk-field="card-yield"]');
+ // Quantity belongs in its own LABEL on the yellow recipe yield bar.
+ // It must not float over the empty grams input (old black "8 шт." glitch).
+ const yieldBand=page.querySelector('.ttk-live-yield');
+ const piecesLabel=node('label','ttk-ref-piece-field');
+ piecesLabel.append(node('span','','Количество:'));
  const yieldPieces=node('select','ttk-ref-yield-pieces ttk-ref-pieces-select');
+ piecesLabel.append(yieldPieces);
+ yieldBand?.append(piecesLabel);
  const sourcePieces=get('card-pieces');
  if(sourcePieces){
   for(const option of sourcePieces.options)yieldPieces.add(new Option(option.text,option.value));
