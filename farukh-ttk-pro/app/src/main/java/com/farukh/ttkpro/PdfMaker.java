@@ -80,17 +80,31 @@ public class PdfMaker {
         }
     }
     private void photo(float x,float y,float w,float h){
-        String raw=dish.optString("photo","");
-        if(!raw.isEmpty())try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(raw))){
-            Bitmap bmp=BitmapFactory.decodeStream(in);
-            if(bmp!=null){
-                float sc=Math.max(w/bmp.getWidth(),h/bmp.getHeight());
-                float bw=bmp.getWidth()*sc,bh=bmp.getHeight()*sc;
-                c.save();Path clip=new Path();clip.addRoundRect(new RectF(x,y,x+w,y+h),6,6,Path.Direction.CW);c.clipPath(clip);
-                p.setAlpha(255);c.drawBitmap(bmp,null,new RectF(x+(w-bw)/2,y+(h-bh)/2,x+(w+bw)/2,y+(h+bh)/2),p);
-                c.restore();bmp.recycle();return;
-            }
-        }catch(Exception ignore){}
+        Bitmap bmp=null;
+        boolean owned=false;
+        String uri=dish.optString("photo","");
+        if(!uri.isEmpty()){
+            try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(uri))){
+                bmp=BitmapFactory.decodeStream(in);owned=bmp!=null;
+            }catch(Exception ignore){}
+        }
+        if(bmp==null){
+            String asset=FoodPhotos.categoryAsset(dish.optString("category",""));
+            bmp=FoodPhotos.cached(ctx,asset);
+        }
+        if(bmp!=null){
+            // Render photo inside a rounded rectangle without stretching.
+            c.save();Path clip=new Path();
+            clip.addRoundRect(new RectF(x,y,x+w,y+h),6,6,Path.Direction.CW);
+            c.clipPath(clip);box(x,y,w,h,6,0xFFFCF8F7);
+            float scale=Math.min(w/bmp.getWidth(),h/bmp.getHeight());
+            float dw=bmp.getWidth()*scale,dh=bmp.getHeight()*scale;
+            p.setColor(Color.WHITE);p.setAlpha(255);
+            c.drawBitmap(bmp,null,new RectF(x+(w-dw)/2,y+(h-dh)/2,x+(w+dw)/2,y+(h+dh)/2),p);
+            c.restore();
+            if(owned)bmp.recycle();
+            return;
+        }
         box(x,y,w,h,7,0xFFF9EDEF);
         text("FARUKH",x+14,y+27,17,red,true);
         text("JAPANESE PRO",x+14,y+45,9,dark,true);
@@ -179,7 +193,7 @@ public class PdfMaker {
         text("Наименование сырья / полуфабриката",left+30,y+11,8,dark,true);
         text("Брутто, г",left+393,y+11,8,dark,true);
         text("Нетто, г",left+476,y+11,8,dark,true);y+=16;
-        double total=0,cal=0,pv=0,fv=0,cv=0;
+        double total=0,cal=0,pv=0,fv=0,cv=0;int missingNutrition=0;
         LinkedHashSet<String> allerg=new LinkedHashSet<>();
         for(int i=0;i<rows.length();i++){
             JSONObject row=rows.optJSONObject(i);if(row==null)continue;
@@ -199,7 +213,7 @@ public class PdfMaker {
                 fv+=g*ing.optDouble("f",0)/100;cv+=g*ing.optDouble("c",0)/100;
                 String a=ing.optString("allergen","");
                 if(!a.isEmpty())allerg.add(a);
-            }
+            }else missingNutrition++;
             y+=rh;
         }
         box(left,y,537,20,3,0xFFF7E8EA);
@@ -210,7 +224,9 @@ public class PdfMaker {
         float ly=sectionText("3. ТРЕБОВАНИЯ К КАЧЕСТВУ",dish.optString("quality",""),left,y,col);
         ly=sectionText("4. ПОДАЧА И ОФОРМЛЕНИЕ",dish.optString("serving",""),left,ly,col);
         float rx=left+col+gap;
-        float ry=sectionText("5. ПИЩЕВАЯ ЦЕННОСТЬ","Энергия: "+num(cal)+" ккал; белки: "+num(pv)+" г; жиры: "+num(fv)+" г; углеводы: "+num(cv)+" г. Расчёт ориентировочный, по текущей базе сырья.",rx,y,col);
+        String nutrition="Энергия: "+num(cal)+" ккал; Б: "+num(pv)+" г; Ж: "+num(fv)+" г; У: "+num(cv)+" г. ";
+        nutrition+=missingNutrition>0 ? "ВНИМАНИЕ: отсутствуют КБЖУ для "+missingNutrition+" позиций; итог неполный." : "Расчёт ориентировочный, по текущей базе сырья.";
+        float ry=sectionText("5. ПИЩЕВАЯ ЦЕННОСТЬ",nutrition,rx,y,col);
         String allergText=allerg.isEmpty()?"Не определены по справочнику. Проверить этикетки сырья.":String.join("; ",allerg)+". Подтвердить по этикеткам сырья.";
         ry=sectionText("6. АЛЛЕРГЕНЫ",allergText,rx,ry,col);
         y=sectionText("7. УСЛОВИЯ И СРОК ХРАНЕНИЯ","Температура: "+dish.optString("temp","")+". Срок: "+dish.optString("storage","")+".",left,Math.max(ly,ry)+2,537);
