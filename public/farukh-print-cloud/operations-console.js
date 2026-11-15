@@ -113,21 +113,41 @@ function appendLine(root,value,cls){
 }
 function dateRu(date){return date.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function renderLabel(p,format){
+ // Use the original 203 dpi FARUKH PRINT renderers, not an HTML mock-up.
  const root=$('label-preview');root.replaceChildren();
- root.className='label-sample '+(format==='30x20'?'f30':'f58');
- const title=el('div',p.name,'title');root.append(title);
- if(format==='58x40'){
-  appendLine(root,p.composition?'Состав: '+p.composition:'Состав: —','small');
-  if(p.weight)appendLine(root,'Масса нетто: '+p.weight+' '+(p.weightUnit||'г')+(p.tolerance?' ±'+p.tolerance+' г':''),'small');
-  if(p.nutrition&&Object.values(p.nutrition).some(v=>v!==null&&v!==''&&v!==undefined))
-   appendLine(root,'КБЖУ (100 г): '+['kcal','p','f','c'].map(k=>p.nutrition[k]??'—').join(' / '),'small');
+ const ready=format!=='30x20';
+ root.className='label-sample '+(ready?'f58':'f30');
+ const painter=ready?window.FarukhPremiumReady:window.FarukhPremiumPrep;
+ const fail=message=>{
+   root.append(el('div','Эталон не построен: '+message,'label-preview-error'));
+   return message;
+ };
+ if(!painter||typeof painter.draw!=='function')return fail('оригинальный шаблон не загружен');
+ const n=p.nutrition||{};
+ if(ready){
+   if(!p.composition)return fail('отсутствует состав');
+   if(p.weight===null||p.weight===undefined||p.weight==='')return fail('не указана масса нетто');
+   if(p.tolerance===null||p.tolerance===undefined||p.tolerance==='')return fail('не указан допуск массы');
+   if(['p','f','c','kcal'].some(k=>n[k]===undefined||n[k]===null||n[k]===''))
+     return fail('нет полного КБЖУ для утверждённого шаблона');
  }
- root.append(el('div','','line'));
- appendLine(root,'Дата: '+dateRu(new Date()),'bottom');
- const h=p.hours||0;
- appendLine(root,'Годен до: '+(h?dateRu(new Date(Date.now()+h*3600_000)):'не указано'),'bottom');
- appendLine(root,'Хранение: '+(p.storage||'не указано'),'bottom');
+ const canvas=document.createElement('canvas');
+ canvas.width=ready?464:240;canvas.height=ready?320:160;
+ const values={
+   name:p.name,kind:p.kind,category:p.category,composition:p.composition,
+   storage:p.storage,hours:p.hours,weight:p.weight,weightUnit:p.weightUnit,
+   tolerance:p.tolerance,p:n.p,f:n.f,c:n.c,kcal:n.kcal,prepEvent:p.prepEvent
+ };
+ try{
+   const g=canvas.getContext('2d');
+   if(!g)return fail('холст браузера недоступен');
+   painter.draw(g,values,Date.now());
+ }catch(err){return fail(err.message||'не удалось нарисовать макет')}
+ canvas.setAttribute('aria-label','Оригинальный макет FARUKH PRINT '+(ready?'58 × 40':'30 × 20')+' мм');
+ root.append(canvas);
+ return '';
 }
+
 async function loadLabel(){
  if(!$('label-item').value)return;
  try{
@@ -141,8 +161,9 @@ async function loadLabel(){
 function showLabel(){
  const p=selectedLabel;if(!p)return;
  const fmt=$('label-format').value;
- renderLabel(p,fmt);
+ const rendererError=renderLabel(p,fmt);
  const missing=[];
+ if(rendererError)missing.push(rendererError);
  if(!p.storage)missing.push('условия хранения');
  if(!p.hours)missing.push('срок хранения');
  if(fmt==='58x40'){
