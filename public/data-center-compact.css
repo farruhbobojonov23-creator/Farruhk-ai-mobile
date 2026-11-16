@@ -1,14 +1,14 @@
 /* Compact data hub; live errors and deletion confirmations remain visible. */
 @media screen {
- html body > dialog#data-center-dialog .data-center-section .data-center-flat {
+ html body > dialog#data-center-dialog .data-center-section :is(.data-center-flat,#device-cloud-sync-settings) {
   border:0!important;background:transparent!important;box-shadow:none!important;
   padding:0!important;margin:0!important;
  }
  html body > dialog#data-center-dialog .data-center-flat > summary {display:none!important}
- html body > dialog#data-center-dialog .data-center-section .ttk-sync-summary {
+ html body > dialog#data-center-dialog .data-center-section :is(.ttk-sync-summary,#unused-compact-specificity) {
   border:0!important;background:transparent!important;padding:0!important;margin:0!important;
  }
- html body > dialog#data-center-dialog .data-center-section .data-center-help {
+ html body > dialog#data-center-dialog .data-center-section :is(.data-center-help,#unused-compact-specificity) {
   border:0!important;background:transparent!important;box-shadow:none!important;
   padding:0!important;margin:10px 0 0!important;
  }
