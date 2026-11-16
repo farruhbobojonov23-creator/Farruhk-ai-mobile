@@ -1,3 +1,4 @@
+import {helpDetails} from './ui-help.js?v=1';
 const BASE=[['home','Кабинет шефа'],['lab','ХАССП'],['recipes','Техкарты'],['preparations','Заготовки'],['calc','Калькулятор'],['checks','Контроль точек'],['tasks','Задачи'],['chat','Ассистент']];
 export function settingsState(raw={}){
  const saved=Array.isArray(raw.sections)?raw.sections:[];
@@ -57,7 +58,7 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
   panel.addEventListener('cancel',e=>{e.preventDefault();cancel()});
   function open(){if(!getState())return;working=structuredClone(config());history=[];previous=structuredClone(working);draw();panel.show();document.body.classList.add('owner-home-editing')}
   function preview(){history.push(previous);if(history.length>30)history.shift();previous=structuredClone(working);apply(working)}
-  function draw(){panel.replaceChildren(el('h2','Настроить главный экран'));panel.append(el('p','Нажми выделенный элемент на главном экране — его поле откроется здесь. «Готово» сохранит все правки, «Отмена» вернёт прежний вид.'));
+  function draw(){panel.replaceChildren(el('h2','Настроить главный экран'));panel.append(helpDetails('Нажми выделенный элемент на главном экране — его поле откроется здесь. «Готово» сохранит все правки, «Отмена» вернёт прежний вид.'));
    for(const [key,label] of [['brand','Название сайта'],['headline','Заголовок'],['subtitle','Подпись']]){const field=input(panel,label,working[key]);field.dataset.field=key;field.maxLength=key==='brand'?40:key==='headline'?120:180;field.oninput=()=>{working[key]=field.value;preview()}}
    const upload=input(panel,'Изображение главного экрана','','file');upload.accept='image/png,image/jpeg,image/webp';upload.onchange=async()=>{try{const file=upload.files[0];if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>10*1024*1024)throw Error('Выбери JPG, PNG или WEBP до 10 МБ.');const target=working;photoBusy=true;const bitmap=await createImageBitmap(file);const canvas=document.createElement('canvas'),ratio=Math.min(1,1200/Math.max(bitmap.width,bitmap.height));canvas.width=Math.round(bitmap.width*ratio);canvas.height=Math.round(bitmap.height*ratio);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();if(target!==working)return;working.homeImage=canvas.toDataURL('image/webp',.85);preview()}catch(e){notify(e.message,true)}finally{photoBusy=false}};
    button('Вернуть стандартное изображение',()=>{working.homeImage='';preview()},panel);
@@ -75,7 +76,7 @@ export function mountSiteSettings({getState,save,show,titles,settingsDialog,noti
   }
  }
  function input(parent,label,value,type='text'){const l=el('label',label),i=el(type==='textarea'?'textarea':'input');if(type!=='textarea')i.type=type;i.value=value;l.append(i);parent.append(l);return i}
- function render(force=false){if(!getState())return;const c=config(),serial=JSON.stringify(c),view=document.body.dataset.view;if(serial!==lastConfig){apply(c);lastConfig=serial}if(view!=='site-settings'){lastView=view;return}if(!force&&lastView===view&&draft)return;lastView=view;draft=structuredClone(c);root.replaceChildren(el('h1','Настройки'),el('p','Управляй разделами, главной страницей и данными. Изменения сохраняются на этом устройстве.'));
+ function render(force=false){if(!getState())return;const c=config(),serial=JSON.stringify(c),view=document.body.dataset.view;if(serial!==lastConfig){apply(c);lastConfig=serial}if(view!=='site-settings'){lastView=view;return}if(!force&&lastView===view&&draft)return;lastView=view;draft=structuredClone(c);root.replaceChildren(el('h1','Настройки'),el('p','Разделы, оформление и данные.'));
   const top=el('div');top.className='settings-actions';root.append(top);
   button('☁️ Мои данные · Google и резервные копии',()=>openDataCenter?.(),top);
   button('Голос и другие настройки',()=>settingsDialog.showModal(),top);

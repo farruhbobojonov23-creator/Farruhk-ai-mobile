@@ -10,8 +10,11 @@ test('health indicator uses real server and Google PDF confirmations', () => {
 test('backup green requires recent confirmed copy', () => {
   for (const token of ['lastBackupAt', 'now - last <= STALE_BACKUP_MS', 'первая копия не подтверждена']) assert.ok(health.includes(token), token);
 });
-test('categories and subcategories are annotated', () => {
-  for (const token of ['.pfv-nav[data-pfv-route]', '#recipe-categories .category-card', '#lab .haccp-journal-card', '.data-center-section']) assert.ok(health.includes(token), token);
+test('badges are reserved for confirmed data services, not untested navigation', () => {
+  assert.ok(health.includes("badge.remove()"));
+  assert.ok(health.includes("[data-local-section],[data-google-section],[data-backup-section],[data-device-section]"));
+  assert.ok(!health.includes("snapshot.areas[route]"));
+  assert.ok(!health.includes("✓ Доступно"));
 });
 test('dashboard checks live data instead of fake green', () => {
   assert.ok(dashboard.includes('mountSystemBadges()'));

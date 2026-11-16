@@ -1,3 +1,4 @@
+import {helpDetails} from './ui-help.js?v=1';
 import {getTemplate as getHaccpTemplate} from './farukh-print/haccp-catalog.js?v=2';
 import './farukh-print/categories.js?v=2';
 import {guidanceForProduct,REFERENCES} from './farukh-print/shelf-life-guidance.js?v=2';
@@ -106,7 +107,7 @@ export function mountPrintControl({root}){
 
  const head=el('div','pc-hero');
  const headInfo=el('div');
- headInfo.append(el('span','pc-kicker','ПОДКЛЮЧЕННЫЙ ИНСТРУМЕНТ · FARUKH PRINT'),el('h1','','Управляющий центр'),el('p','','Каталог двух форматов, контроль готовности этикеток и перенос базы на телефон или планшет.'));
+ headInfo.append(el('span','pc-kicker','ПОДКЛЮЧЕННЫЙ ИНСТРУМЕНТ · FARUKH PRINT'),el('h1','','Управляющий центр'),el('p','','Этикетки 58 × 40 и 30 × 20 мм.'));
  const pill=el('span','pc-badge','База этого устройства');
  head.append(headInfo,pill);
  const notice=el('p','pc-alert');notice.hidden=true;
@@ -138,14 +139,14 @@ export function mountPrintControl({root}){
  right.append(pending,add,seed,open);toolbar.append(left,right);
  const templateCard=el('section','pc-premium-template');
  const templateIntro=el('div','pc-premium-template-text');
- templateIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 58 × 40 ММ'),el('h2','','Премиальная этикетка'),el('p','','Сохранённый чёрно-белый шаблон: рамки, состав, таблица КБЖУ, даты и иконки. Создай новую позицию вручную — эталон применится автоматически.'));
+ templateIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 58 × 40 ММ'),el('h2','','Премиальная этикетка'),helpDetails('Сохранённый чёрно-белый шаблон: рамки, состав, таблица КБЖУ, даты и иконки. Создай новую позицию вручную — эталон применится автоматически.'));
  const templateButton=btn('＋ Заполнить вручную','pc-primary pc-premium-template-button',()=>{group='ready';query='';category='all';onlyPending=false;page=1;search.value='';render();edit(null,true)});
  templateCard.append(templateIntro,templateButton);
  const prepCard=el('section','pc-premium-template pc-prep-template');
  const prepIntro=el('div','pc-premium-template-text');
  prepIntro.append(el('span','pc-premium-template-badge','УТВЕРЖДЁННЫЙ ЭТАЛОН · 30 × 20 ММ'),
   el('h2','','Премиальная этикетка полуфабриката'),
-  el('p','','Строго выбранный третий вариант: двойная рамка, название, изготовлено/разморожено, годен до, температура и срок. Без состава.'));
+  helpDetails('Двойная рамка, название, изготовлено/разморожено, годен до, температура и срок. Без состава.'));
  const prepButton=btn('＋ Заполнить вручную','pc-primary pc-premium-template-button',()=>{group='prep';query='';category='all';onlyPending=false;page=1;search.value='';render();edit(null,'prep')});
  prepCard.append(prepIntro,prepButton);
  const search=el('input','pc-search');search.type='search';search.placeholder='Поиск по названию';search.setAttribute('aria-label','Поиск по названию');search.addEventListener('input',()=>{query=search.value.toLocaleLowerCase('ru').trim();page=1;renderRows()});
@@ -159,7 +160,7 @@ export function mountPrintControl({root}){
  const table=el('div','pc-list');
  const pagination=el('div','pc-pagination');const paginationText=el('span','','');const prev=btn('← Назад','pc-pager',()=>{if(page>1){page--;renderRows()}});const next=btn('Далее →','pc-pager',()=>{page++;renderRows()});pagination.append(paginationText,prev,next);
  const sub=el('div','pc-transfer');
- const transferHead=el('div');transferHead.append(el('h2','','Перенос базы'),el('p','','Главный каталог хранится в облаке FARUKH AI и обновляется на подключённых телефонах и планшетах. Если на старом устройстве остались отдельные позиции, скачай там копию и добавь её через «Объединить старую базу» ниже.'));
+ const transferHead=el('div');transferHead.append(el('h2','','Перенос базы'),helpDetails('Главный каталог хранится в облаке FARUKH AI и обновляется на подключённых телефонах и планшетах. Если на старом устройстве остались отдельные позиции, скачай там копию и добавь её через «Объединить старую базу» ниже.'));
  const transferActions=el('div','pc-transfer-buttons');
  const download=btn('↓ Скачать базу JSON','pc-primary',exportBackup);
  const importButton=btn('↑ Загрузить базу JSON','pc-secondary',()=>fileInput.click());
@@ -173,7 +174,7 @@ export function mountPrintControl({root}){
  const roadmap=el('p','pc-roadmap','Общая база, привязка устройств, логины сотрудников и журнал доступа работают через защищённое облако. Перед печатью на новом устройстве подключи его по коду владельца и войди в аккаунт сотрудника.');
  integration.append(roadmap);
  const logSection=el('details','pc-log');const summary=el('summary','','История изменений на этом устройстве');logSection.append(summary);const logBox=el('div','pc-log-body');logSection.append(logBox);
- root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,prepCard,filters,normativeNotice,table,pagination,sub,integration,logSection);
+ root.append(head,notice,workspaceNav,cardGrid,readiness,toolbar,templateCard,prepCard,filters,normativeNotice,table,pagination,sub,helpDetails(integration,'Подробнее о подключении'),logSection);
  // The editor lives in the same root; controls are never inserted from user HTML.
  const guideDialog=el('dialog','pc-dialog pc-guide-dialog');
  const guideBody=el('div','pc-guide-body');guideDialog.append(guideBody);root.append(guideDialog);
