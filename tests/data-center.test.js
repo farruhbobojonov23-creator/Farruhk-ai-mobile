@@ -32,7 +32,7 @@ test('TTK, backup, and optional phone sync controls are all mounted inside one h
 });
 
 test('automatic backups and TTK sync are retained with no forced cloud device writes',()=>{
- assert.match(hub,/Последняя подтверждённая копия/);
+ assert.match(hub,/Последняя копия/);
  assert.match(hub,/lastBackupAt/);
  assert.match(hub,/googleDriveBackup\.backup\(\{manual:true\}\)/);
  assert.match(backup,/Date\.now\(\)-last<24\*3600\*1000/);
