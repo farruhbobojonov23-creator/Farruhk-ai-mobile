@@ -1,7 +1,7 @@
-name: CHEF TTK PRO — Flutter Android APK
+name: CHEF TTK PRO v0.6.1 — Parallel Install
 on:
   push:
-    branches: [chef-ttk-pro-flutter]
+    branches: [chef-ttk-pro-side-by-side-v06]
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,6 +19,7 @@ jobs:
           sed -i 's/height: 94)/height: 105)/g; s/height: 12.8,/height: 11.8,/g' lib/services/ttk_pdf.dart  # preserve all four KBJU rows
           test -f lib/services/ttk_pdf.dart
           test -f test/ttk_pdf_test.dart
+          sed -i 's/version: 0.6.0+6/version: 0.6.1+7/' pubspec.yaml
       - name: Download open-source Noto Sans fonts for offline PDF
         run: |
           mkdir -p assets/pdf
@@ -35,6 +36,11 @@ jobs:
         run: |
           flutter create . --platforms android --org com.chefttkpro
           rm -f test/widget_test.dart
+          # This is a side-by-side install that cannot overwrite v0.5 user data.
+          sed -Ei 's/(applicationId[[:space:]]*=[[:space:]]*")[^"]+(")/\1com.chefttkpro.chef_ttk_pro.preview\2/' android/app/build.gradle.kts
+          grep -F 'applicationId = "com.chefttkpro.chef_ttk_pro.preview"' android/app/build.gradle.kts
+          sed -i 's/android:label="chef_ttk_pro"/android:label="CHEF TTK PRO Preview"/' android/app/src/main/AndroidManifest.xml
+          grep -F 'android:label="CHEF TTK PRO Preview"' android/app/src/main/AndroidManifest.xml
       - name: Resolve dependencies
         run: flutter pub get
       - name: Check Dart analyzer
@@ -54,7 +60,7 @@ jobs:
       - name: Upload printable A4 PDF preview
         uses: actions/upload-artifact@v4
         with:
-          name: CHEF-TTK-PRO-v0.6-A4-PDF-preview
+          name: CHEF-TTK-PRO-v0.6.1-PREVIEW-A4-PDF
           path: build/ttk_pdf_preview/philadelphia_a4.pdf
           if-no-files-found: error
       - name: Build Android debug APK
@@ -62,15 +68,6 @@ jobs:
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: CHEF-TTK-PRO-v0.6-debug-APK
+          name: CHEF-TTK-PRO-v0.6.1-PREVIEW-debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
-      - name: Publish v0.6 source changes in this isolated branch
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add lib test pubspec.yaml
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update CHEF TTK PRO v0.6 A4 PDF generator and tests'
-            git push origin HEAD:chef-ttk-pro-flutter
-          fi
