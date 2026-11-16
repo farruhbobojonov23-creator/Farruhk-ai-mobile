@@ -569,15 +569,25 @@ public class MainActivity extends Activity {
              store.save();ingredientsScreen();
          }).show();
     }
+    private int installedVersionCode(){
+        try{
+            android.content.pm.PackageInfo pkg=getPackageManager().getPackageInfo(getPackageName(),0);
+            return android.os.Build.VERSION.SDK_INT>=28 ? (int)pkg.getLongVersionCode() : pkg.versionCode;
+        }catch(Exception e){return 0;}
+    }
+    private String installedVersionName(){
+        try{return getPackageManager().getPackageInfo(getPackageName(),0).versionName;}
+        catch(Exception e){return "beta";}
+    }
     private void settings(){
-        tab=3;base("Настройки","FARUKH TTK PRO • V0.5 JAPANESE PRO",false);
+        tab=3;base("Настройки","FARUKH TTK PRO • "+installedVersionName(),false);
         content.addView(text("Настройка каталога",18,INK,true));
         addButton(content,"Категории / иконки",false,v->categoriesScreen());
         addButton(content,"База ингредиентов",false,v->ingredientsScreen());
         space(content,20);
         content.addView(text("Обновления",18,INK,true));
         space(content,9);
-        content.addView(text("Версия 0.5 Japanese Pro • обновления поверх приложения сохраняют данные при одинаковой цифровой подписи.",13,GREY,false));
+        content.addView(text("Версия "+installedVersionName()+" • обновления поверх приложения возможны только при совпадении постоянной подписи и возрастании номера версии.",13,GREY,false));
         addButton(content,"⟳  Проверить обновления",true,v->checkForUpdates());
         space(content,18);
         content.addView(text("Автоархив PDF и ТТК",18,INK,true));
@@ -784,10 +794,10 @@ public class MainActivity extends Activity {
                         .setPositiveButton("Понятно",null).show();return;
                 }
                 int latest=info.optInt("versionCode",0);
-                int installed=5;
+                int installed=installedVersionCode();
                 if(latest<=installed){
                     new AlertDialog.Builder(this).setTitle("Обновлений нет")
-                        .setMessage("Установлена версия 0.5 Japanese Pro. Новые версии появятся после проверки и выпуска.")
+                        .setMessage("Установлена версия "+installedVersionName()+". Новые версии появятся после проверки и выпуска.")
                         .setPositiveButton("Закрыть",null).show();
                     return;
                 }
