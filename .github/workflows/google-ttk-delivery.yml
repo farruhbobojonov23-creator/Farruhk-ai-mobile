@@ -1,0 +1,27 @@
+name: Google TTK delivery regression
+on:
+  push:
+    branches: [fix/google-ttk-delivery-contract-20261117, main]
+    paths:
+      - 'recipe-export-api.js'
+      - 'public/recipe-google.js'
+      - 'public/google-ttk.gs'
+      - 'tests/google-ttk-delivery-flow.test.js'
+      - '.github/workflows/google-ttk-delivery.yml'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  delivery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify ready-card delivery and actual one-page PDF against simulated Google
+        run: node --test tests/google-ttk-delivery-flow.test.js tests/google-ttk-wrong-endpoint.test.js tests/google-ttk-a4-receiver-proof.test.js tests/ttk-individual-google-a4.test.js tests/recipe-release.test.js tests/ttk-delete-stop-google-reupload.test.js tests/google-backup.test.js
