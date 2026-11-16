@@ -1,7 +1,7 @@
 name: chef_ttk_pro
 publish_to: none
 description: Профессиональный конструктор технологических карт — Flutter/Android.
-version: 0.5.0+5
+version: 0.6.0+6
 environment:
   sdk: '>=3.7.0 <4.0.0'
 dependencies:
@@ -18,3 +18,6 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 flutter:
   uses-material-design: true
+  assets:
+    - assets/pdf/NotoSans-Regular.ttf
+    - assets/pdf/NotoSans-Bold.ttf
