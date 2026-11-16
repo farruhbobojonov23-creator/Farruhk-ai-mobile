@@ -31,6 +31,8 @@ public class TTKStore {
         try{
             o.put("name",name);o.put("kcal",kcal);o.put("p",p);o.put("f",f);o.put("c",c);
             o.put("allergen",allergen);
+            o.put("nutritionVerified",false);o.put("allergensVerified",false);
+            o.put("source","Демонстрационный справочник: сверить этикетку производителя");
         }catch(Exception ignore){}return o;
     }
     public static JSONObject row(String name,double brutto,double netto){
@@ -48,6 +50,10 @@ public class TTKStore {
             o.put("temp","Указать обоснованный температурный режим");
             o.put("quality","Аккуратная форма, характерные вкус, цвет и запах, без посторонних включений.");
             o.put("serving","Оформить и подать согласно стандарту предприятия.");
+            o.put("scope","");
+            o.put("rawRequirements","Сырьё и полуфабрикаты должны соответствовать действующим требованиям и иметь документы, подтверждающие качество и безопасность.");
+            o.put("safety","Органолептический контроль; микробиологические показатели по применимым требованиям и программе производственного контроля.");
+            o.put("approved",false);
             o.put("author","");o.put("approver","");o.put("date","");
             o.put("template",0);o.put("rows",new JSONArray());
             o.put("tech",defaultTechnology(cat));
@@ -85,7 +91,7 @@ public class TTKStore {
         }
         if(ingredients.isEmpty()){
             ingredients.add(ingredient("Рис для суши готовый",130,2.8,0.3,28.2,""));
-            ingredients.add(ingredient("Нори",350,35,5,30,"Рыба/морепродукты — проверить упаковку"));
+            ingredients.add(ingredient("Нори",350,35,5,30,""));
             ingredients.add(ingredient("Лосось (форель)",208,20,13,0,"Рыба"));
             ingredients.add(ingredient("Сыр сливочный",250,6,24,4,"Молоко"));
             ingredients.add(ingredient("Огурец свежий",15,0.7,0.1,3.1,""));
