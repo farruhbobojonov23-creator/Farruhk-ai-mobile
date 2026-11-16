@@ -1,0 +1,20 @@
+name: chef_ttk_pro
+publish_to: none
+description: Профессиональный конструктор технологических карт — Flutter/Android.
+version: 0.5.0+5
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  path_provider: ^2.1.5
+  google_sign_in: ^7.2.0
+  http: ^1.3.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true
