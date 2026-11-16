@@ -1,3 +1,4 @@
+import {getDeviceSyncHealth} from './device-sync-status.js?v=1';
 /* Verified status indicators. A green badge never means an untested cloud service works. */
 import {DeviceStore} from '/device-store.js?v=72';
 import {googleReady} from '/recipe-google.js';
@@ -17,7 +18,8 @@ const hasPdf = value => {
 
 export async function inspectSystemHealth({state, force = false} = {}) {
  const now = Date.now();
- if (!force && recent && now - recent.checkedAt < 12000 &&
+ const phone = getDeviceSyncHealth({enabled: (() => {try {return localStorage.getItem('farruh-device-cloud-sync-enabled-v1') !== 'false';} catch {return false;}})(), online: typeof navigator === 'undefined' || navigator.onLine !== false, now});
+ if (!force && recent && recent.phoneLabel === phone.label && now - recent.checkedAt < 12000 &&
      (state === undefined || state?.revision === recentRevision)) return recent;
 
  let local = false, s = state;
@@ -83,16 +85,9 @@ export async function inspectSystemHealth({state, force = false} = {}) {
  } else if (local && !s.googleBackup?.enabled) {
   backup = item('warn', 'Google Диск: автокопии отключены');
  }
- const syncEnabled = (() => {
-  try { return localStorage.getItem('farruh-device-cloud-sync-enabled-v1') === 'true'; }
-  catch { return false; }
- })();
- const phone = item('warn', syncEnabled
-  ? 'Телефон ↔ облако: включено, результат последней синхронизации не проверен'
-  : 'Телефон ↔ облако: синхронизация отключена');
 
  const result = {
-  checkedAt: now, local, server, googleLevel, backupLevel, phoneLevel: 'warn',
+  checkedAt: now, local, server, googleLevel, backupLevel, phoneLevel: phone.level, phoneLabel: phone.label,
   items: [
    item(server ? 'ok' : 'error', server ? 'Сервер Farukh AI отвечает' : 'Сервер: нет подтверждения связи'),
    item(local ? 'ok' : 'error', local ? 'Локальная база ТТК читается' : 'Локальная база недоступна'),
@@ -171,7 +166,7 @@ export function mountSystemBadges() {
  if (window.__faiHealthBadgesMounted) return;
  window.__faiHealthBadgesMounted = true;
  ensureStyle();
- let snapshot = null, timer = null, busy = false;
+ let snapshot = null, timer = null, busy = false, pendingCheck = false;
  const routeFor = (element) => {
   if (element.dataset.pfvRoute) return element.dataset.pfvRoute;
   if (element.closest('.pfv-projects')) return 'projects';
@@ -215,7 +210,7 @@ export function mountSystemBadges() {
    ['[data-local-section]', snapshot.local ? 'ok' : 'error', snapshot.local ? '✓ Работает' : '! Ошибка'],
    ['[data-google-section]', snapshot.googleLevel, snapshot.googleLevel === 'ok' ? '✓ PDF сохранён' : '• Проверить'],
    ['[data-backup-section]', snapshot.backupLevel, snapshot.backupLevel === 'ok' ? '✓ Копия есть' : '• Проверить'],
-   ['[data-device-section]', snapshot.phoneLevel, '• Не проверено'],
+   ['[data-device-section]', snapshot.phoneLevel, snapshot.phoneLabel],
    ['[data-delete-section]', snapshot.local ? 'ok' : 'error', snapshot.local ? '✓ Доступно' : '! Ошибка']
   ]) {
    const h = document.querySelector('.data-center-section' + section + '>h3');
@@ -235,10 +230,11 @@ export function mountSystemBadges() {
   timer = setTimeout(render, 100);
  };
  const check = async (force = false) => {
-  if (busy || document.hidden) return;
+  if (document.hidden) return;
+  if (busy) {pendingCheck = true; return;}
   busy = true;
   try { snapshot = await inspectSystemHealth({force}); render(); }
-  finally {busy = false;}
+  finally {busy = false; if (pendingCheck) {pendingCheck = false; void check(true);}}
  };
  // Newly rendered category cards and workspace panels receive badges too.
  const observer = new MutationObserver(mutations => {
@@ -246,8 +242,10 @@ export function mountSystemBadges() {
    n.nodeType === 1 && !n.matches?.('[data-fai-health]')))) scheduleRender();
  });
  observer.observe(document.body, {childList:true, subtree:true});
- for (const name of ['farruh:google-ttk-status-changed','farruh:device-cloud-synced',
+ for (const name of ['farruh:device-cloud-status-changed','farruh:google-ttk-status-changed','farruh:device-cloud-synced',
   'farruh:projects-changed','pf:projects']) document.addEventListener(name, () => { void check(true); });
+ window.addEventListener('offline', () => { void check(true); });
+ window.addEventListener('storage', () => { void check(true); });
  window.addEventListener('focus', () => { void check(true); });
  document.addEventListener('visibilitychange', () => { if (!document.hidden) void check(true); });
  setInterval(() => { if (!document.hidden) void check(true); }, 60000);

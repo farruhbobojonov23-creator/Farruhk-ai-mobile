@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {getDeviceSyncHealth, setDeviceSyncStatus} from '../public/device-sync-status.js';
+test('sync badge follows confirmed results and never treats enabled as success', () => {
+ setDeviceSyncStatus('unknown');
+ assert.equal(getDeviceSyncHealth().level,'warn');
+ setDeviceSyncStatus('checking');
+ assert.equal(getDeviceSyncHealth().level,'warn');
+ setDeviceSyncStatus('ok');
+ assert.equal(getDeviceSyncHealth().level,'ok');
+ assert.equal(getDeviceSyncHealth({enabled:false}).level,'warn');
+ assert.equal(getDeviceSyncHealth({online:false}).level,'error');
+ assert.equal(getDeviceSyncHealth({now:Date.now()+120001}).level,'warn');
+ setDeviceSyncStatus('error');
+ assert.equal(getDeviceSyncHealth().level,'error');
+ setDeviceSyncStatus('checking');
+ assert.equal(getDeviceSyncHealth().level,'warn');
+ setDeviceSyncStatus('ok');
+ assert.equal(getDeviceSyncHealth().level,'ok');
+ setDeviceSyncStatus('unknown');
+});

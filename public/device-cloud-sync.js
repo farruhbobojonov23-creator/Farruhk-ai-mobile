@@ -1,3 +1,4 @@
+import {setDeviceSyncStatus} from './device-sync-status.js?v=1';
 import {validateDeviceState} from './device-store.js?v=72';
 import {LIST_FIELDS,pickSyncSnapshot,reconcileSnapshots} from './device-sync-merge.js?v=2';
 
@@ -104,7 +105,7 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
  }
  async function once(){
   if(!enabled()||!getState()||running)return;
-  running=true;manual.disabled=true;paint('Проверяю устройства и облачную базу…');
+  running=true;setDeviceSyncStatus('checking');manual.disabled=true;paint('Проверяю устройства и облачную базу…');
   try{
    const local=await store.load();
    const originalRevision=local.revision;
@@ -133,6 +134,7 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    const projectChanged=putProjectCatalog(merged);
    if(localChanged)onState(next);
    lastError='';
+   setDeviceSyncStatus('ok');
    // Confirm cloud storage only after the remote GET/PUT and the local
    // revision-safe commit have both succeeded. Never show a false green tick.
    if(pendingRevision!==null && next.revision>=pendingRevision && getState()?.revision<=next.revision){
@@ -149,6 +151,7 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
    }
   }catch(error){
    lastError=error.message||String(error);
+   setDeviceSyncStatus('error');
    if(pendingRevision!==null&&!errorNotified){
     notify('⚠️ На устройстве сохранено, но облако не подтвердило: '+lastError,true);
     errorNotified=true;
@@ -173,12 +176,12 @@ export function mountDeviceCloudSync({store,getState,onState,settingsDialog,noti
   clearTimeout(timer);timer=setTimeout(once,delay);
  }
  toggle.onclick=async()=>{
-  if(enabled()){localStorage.setItem(ENABLED_KEY,'false');clearTimeout(timer);paint();return;}
+  if(enabled()){localStorage.setItem(ENABLED_KEY,'false');clearTimeout(timer);setDeviceSyncStatus('unknown');paint();return;}
   // Download a non-destructive safety copy before the first merge.
   const snapshot=await store.load();
   downloadFile(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state:snapshot},null,2)],{type:'application/json'}),
    'FARRUH_AI_before_cloud_sync_'+new Date().toISOString().slice(0,10)+'.json');
-  localStorage.setItem(ENABLED_KEY,'true');paint('Сохранили копию устройства. Подключаю синхронизацию…');schedule(100);
+  localStorage.setItem(ENABLED_KEY,'true');setDeviceSyncStatus('unknown');paint('Сохранили копию устройства. Подключаю синхронизацию…');schedule(100);
  };
  manual.onclick=()=>{schedule(0)};
  document.addEventListener('farruh:projects-changed',()=>schedule(400));

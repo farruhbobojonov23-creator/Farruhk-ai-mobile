@@ -28,5 +28,5 @@ test('Device cloud sync is not incorrectly reported as a Google Docs delivery',(
 
 test('Updated Google and device sync modules bypass stale browser cache',()=>{
  assert.match(html,/\/recipe-google\.js\?v=18/);
- assert.match(html,/\/device-cloud-sync\.js\?v=7/);
+ assert.match(html,/\/device-cloud-sync\.js\?v=8/);
 });
