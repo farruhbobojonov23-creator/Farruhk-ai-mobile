@@ -42,7 +42,7 @@ import java.util.Locale;
 public class MainActivity extends Activity {
     private static final int INK=0xFF20222A, RED=0xFFC81C2C, RED2=0xFFE43B46, PALE=0xFFF8F7F6,
         GREY=0xFF6E7078, BORDER=0xFFE5E5EA, WHITE=Color.WHITE, DARK=0xFF14161E, BLUE=0xFF9EEAFA;
-    private static final int PICK_PHOTO=101,SAVE_PDF=102,SAVE_BACKUP=103,LOAD_BACKUP=104;
+    private static final int PICK_PHOTO=101,SAVE_PDF=102,SAVE_BACKUP=103,LOAD_BACKUP=104,PICK_ARCHIVE=105;
     private TTKStore store;
     private LinearLayout content;
     private JSONObject editing;
@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
     private byte[] pendingPdf;
     private String updateManifestUrl="https://raw.githubusercontent.com/farruhbobojonov23-creator/Farruhk-ai-mobile/farukh-ttk-pro/farukh-ttk-pro/updates/latest.json";
     private Uri lastPdfUri;
-    private EditText nameField,yieldField,piecesField,techField,qualityField,servingField,tempField,storageField,authorField,approverField,dateField;
+    private EditText nameField,yieldField,piecesField,techField,qualityField,servingField,tempField,storageField,authorField,approverField,dateField,scopeField,rawField,safetyField;
     private Spinner catSpinner;
     private int tab=0;
     private final ArrayList<EditText> rowBrutto=new ArrayList<>(),rowNetto=new ArrayList<>();
@@ -279,6 +279,7 @@ public class MainActivity extends Activity {
         TextView info=text("Все поля редактируются. Рецептура, технология, КБЖУ и сроки требуют проверки перед утверждением.",12,GREY,false);intro.addView(info);
         content.addView(intro);space(content,13);
         nameField=input(content,"НАЗВАНИЕ БЛЮДА",dish.optString("name"),false);
+        content.addView(text("Нормативы: "+RecipeAudit.SANPIN+" / "+RecipeAudit.GOST,11,RED,true));
         ImageView dishPhoto=new ImageView(this);
         dishPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
         dishPhoto.setBackground(border(WHITE,14,BORDER));
@@ -348,19 +349,33 @@ public class MainActivity extends Activity {
         }
         addButton(content,"＋ Добавить ингредиент",false,v->{saveEditor();addIngredientRow(dish);});
         space(content,18);
+        scopeField=input(content,"ОБЛАСТЬ ПРИМЕНЕНИЯ • ПРЕДПРИЯТИЕ",dish.optString("scope",""),true);
+        rawField=input(content,"ТРЕБОВАНИЯ К СЫРЬЮ",dish.optString("rawRequirements",""),true);
         techField=input(content,"ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ",dish.optString("tech"),true);
         addButton(content,"↻ Предложить технологию по категории",false,v->new AlertDialog.Builder(this)
             .setTitle("Заменить технологию?").setMessage("Текущий текст будет заменён шаблоном выбранной категории.")
             .setNegativeButton("Отмена",null).setPositiveButton("Заменить",(a,b)->techField.setText(TTKStore.defaultTechnology(cs.get(catSpinner.getSelectedItemPosition())))).show());
         qualityField=input(content,"ТРЕБОВАНИЯ К КАЧЕСТВУ",dish.optString("quality"),true);
         servingField=input(content,"ПОДАЧА И ОФОРМЛЕНИЕ",dish.optString("serving"),true);
+        safetyField=input(content,"ПОКАЗАТЕЛИ БЕЗОПАСНОСТИ И КОНТРОЛЬ",dish.optString("safety",""),true);
         tempField=input(content,"ТЕМПЕРАТУРА ХРАНЕНИЯ",dish.optString("temp"),false);
         storageField=input(content,"СРОК ХРАНЕНИЯ",dish.optString("storage"),false);
         authorField=input(content,"РАЗРАБОТАЛ",dish.optString("author"),false);
         approverField=input(content,"УТВЕРЖДАЮ",dish.optString("approver"),false);
         dateField=input(content,"ДАТА",dish.optString("date"),false);
         space(content,14);
-        addButton(content,"СОХРАНИТЬ ТТК",true,v->{saveEditor();allDishes(null);});
+        addButton(content,"⚑ ПРОВЕРИТЬ ТТК • ГОСТ / САНПИН",false,v->{
+            saveEditor();
+            RecipeAudit check=RecipeAudit.inspect(store,dish);
+            new AlertDialog.Builder(this).setTitle(check.readyForApproval?"Поля готовы к утверждению":"Замечания к ТТК")
+                .setMessage(check.summary()+"\n\nКБЖУ на 100 г: "+RecipeAudit.num(check.kcal100())+" ккал, Б "+RecipeAudit.num(check.protein100())+", Ж "+RecipeAudit.num(check.fat100())+", У "+RecipeAudit.num(check.carbohydrates100())+" г.")
+                .setPositiveButton("Понятно",null).show();
+        });
+        addButton(content,"СОХРАНИТЬ ТТК",true,v->{
+            saveEditor();
+            autoArchiveDish(dish);
+            allDishes(null);
+        });
         addButton(content,"▤  СОХРАНИТЬ PDF • А4",false,v->{saveEditor();export(dish);});
         addButton(content,"◉  ПРЕДПРОСМОТР / ПЕЧАТЬ А4",false,v->{
             saveEditor();
@@ -383,6 +398,9 @@ public class MainActivity extends Activity {
             editing.put("category",catSpinner.getSelectedItem().toString());
             editing.put("yield",yieldField.getText().toString());
             editing.put("pieces",piecesField.getText().toString());
+            editing.put("scope",scopeField.getText().toString());
+            editing.put("rawRequirements",rawField.getText().toString());
+            editing.put("safety",safetyField.getText().toString());
             editing.put("tech",techField.getText().toString());
             editing.put("quality",qualityField.getText().toString());
             editing.put("serving",servingField.getText().toString());
@@ -482,6 +500,21 @@ public class MainActivity extends Activity {
         space(content,9);
         content.addView(text("Версия 0.5 Japanese Pro • обновления поверх приложения сохраняют данные при одинаковой цифровой подписи.",13,GREY,false));
         addButton(content,"⟳  Проверить обновления",true,v->checkForUpdates());
+        space(content,18);
+        content.addView(text("Автоархив PDF и ТТК",18,INK,true));
+        space(content,8);
+        content.addView(text("При сохранении карты PDF и резервная копия базы автоматически отправляются в выбранную папку. Выбери папку Google Диска, если он доступен в системном файловом менеджере.",12,GREY,false));
+        addButton(content,"☁  Выбрать папку Google Диска / архива",false,v->{
+            try{startActivityForResult(AutoArchive.picker(),PICK_ARCHIVE);}
+            catch(Exception e){new AlertDialog.Builder(this).setTitle("Папка недоступна")
+                .setMessage("Google Диск не предоставил доступ к выбору папки. Для полной синхронизации потребуется OAuth Google Drive API.")
+                .setPositiveButton("Понятно",null).show();}
+        });
+        if(AutoArchive.enabled(this)){
+            addButton(content,"×  Отключить автоархив",false,v->{AutoArchive.disable(this);settings();});
+        }
+        content.addView(text("Папка: "+AutoArchive.label(this),11,INK,false));
+        content.addView(text("Статус: "+AutoArchive.lastStatus(this),11,GREY,false));
         space(content,20);
         content.addView(text("Резервная копия",18,INK,true));
         space(content,8);
@@ -491,11 +524,11 @@ public class MainActivity extends Activity {
         space(content,20);
         content.addView(text("О сохранении PDF",18,INK,true));
         space(content,10);
-        content.addView(text("При сохранении система Android предложит выбрать папку или Google Диск через системный файловый менеджер. Автоматическая фоновая синхронизация с Google Диском пока не реализована.",13,GREY,false));
+        content.addView(text("PDF можно сохранить вручную через Android. Автосохранение в выбранную папку работает только при разрешённом доступе; не все версии Google Диска поддерживают выбор папки.",13,GREY,false));
         space(content,22);
         content.addView(text("Профессиональная проверка",18,INK,true));
         space(content,8);
-        content.addView(text("Демонстрационные рецептуры, расчёты и режимы не являются утверждённой ТТК. Перед производственным использованием необходимо проверить нормы, технологию, безопасность, пищевую ценность, аллергены и оформить утверждение.",13,GREY,false));
+        content.addView(text("С сентября 2026 действует СанПиН 2.3/2.4.4282-26 (взамен 3590-20). Структура ТТК — ГОСТ 31987-2012. Ни программная проверка, ни PDF не заменяют испытания, ХАССП и утверждение на предприятии.",13,GREY,false));
     }
     private void choosePhoto(boolean category,JSONObject c){
         if(!category && editing!=null && nameField!=null)saveEditor();
@@ -550,6 +583,21 @@ public class MainActivity extends Activity {
                 .setMessage(e.getMessage()).setPositiveButton("Закрыть",null).show();
         }
     }
+    private void autoArchiveDish(JSONObject dish){
+        if(!AutoArchive.enabled(this))return;
+        Toast.makeText(this,"Сохраняю PDF и базу в выбранную папку…",Toast.LENGTH_SHORT).show();
+        final String copy=dish.toString();
+        new Thread(()->{
+            try{
+                AutoArchive.archive(getApplicationContext(),store,new JSONObject(copy));
+                runOnUiThread(()->Toast.makeText(this,"PDF и резервная копия сохранены в архив",Toast.LENGTH_LONG).show());
+            }catch(Exception e){
+                AutoArchive.error(getApplicationContext(),e);
+                runOnUiThread(()->new AlertDialog.Builder(this).setTitle("ТТК сохранена локально")
+                  .setMessage("Автосохранение в Google Диск / папку не выполнено: "+e.getMessage()+"\nМожно сохранить PDF вручную.").setPositiveButton("Закрыть",null).show());
+            }
+        },"farukh-archive").start();
+    }
     private void export(JSONObject d){
         try{
             pendingPdf=PdfMaker.generate(this,store,d);
@@ -564,6 +612,12 @@ public class MainActivity extends Activity {
         super.onActivityResult(req,result,data);
         if(result!=RESULT_OK||data==null||data.getData()==null)return;
         Uri uri=data.getData();
+        if(req==PICK_ARCHIVE){
+            try{AutoArchive.select(this,uri,data.getFlags());settings();}
+            catch(Exception e){new AlertDialog.Builder(this).setTitle("Невозможно подключить папку")
+                .setMessage(e.getMessage()).setPositiveButton("Понятно",null).show();}
+            return;
+        }
         if(req==PICK_PHOTO){
             try{getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION);}catch(Exception ignore){}
             try{
