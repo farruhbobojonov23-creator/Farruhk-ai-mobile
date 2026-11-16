@@ -15,6 +15,7 @@ jobs:
           cat bootstrap/v06.patch.part* | base64 --decode > v06.patch.tar.xz
           echo 'a86bafeef0664d4e4d65184c06983cba29be72632da009f86014c4465a8c2d16  v06.patch.tar.xz' | sha256sum -c -
           tar -xJf v06.patch.tar.xz
+          sed -i '46,47d' lib/services/ttk_pdf.dart  # drop unused local helper; keep warnings fatal
           test -f lib/services/ttk_pdf.dart
           test -f test/ttk_pdf_test.dart
       - name: Download open-source Noto Sans fonts for offline PDF
