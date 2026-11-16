@@ -10,13 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore original Flutter v0.5 source archive
+      - name: Restore CHEF TTK PRO v0.6 patch and verify checksum
         run: |
-          cat bootstrap/source.b64.part* | base64 --decode > source.tar.xz
-          echo "85240b3ef886ff56c513711c9552a5d47f31b79d7cfe4a747e4fdbd14181dad6  source.tar.xz" | sha256sum -c -
-          tar -xJf source.tar.xz
-          test -f lib/main.dart
-          test -f pubspec.yaml
+          cat bootstrap/v06.patch.part* | base64 --decode > v06.patch.tar.xz
+          echo 'a86bafeef0664d4e4d65184c06983cba29be72632da009f86014c4465a8c2d16  v06.patch.tar.xz' | sha256sum -c -
+          tar -xJf v06.patch.tar.xz
+          test -f lib/services/ttk_pdf.dart
+          test -f test/ttk_pdf_test.dart
+      - name: Download open-source Noto Sans fonts for offline PDF
+        run: |
+          mkdir -p assets/pdf
+          curl --retry 3 -fLsS -o assets/pdf/NotoSans-Regular.ttf https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
+          curl --retry 3 -fLsS -o assets/pdf/NotoSans-Bold.ttf https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf
+          test $(wc -c < assets/pdf/NotoSans-Regular.ttf) -gt 100000
+          test $(wc -c < assets/pdf/NotoSans-Bold.ttf) -gt 100000
       - name: Install Flutter SDK
         uses: subosito/flutter-action@v2
         with:
@@ -30,22 +37,36 @@ jobs:
         run: flutter pub get
       - name: Check Dart analyzer
         run: flutter analyze --no-fatal-infos
-      - name: Run Flutter unit tests
-        run: flutter test test/recipe_test.dart
+      - name: Run all tests and render approved A4 PDF
+        run: flutter test
+      - name: Verify sample PDF is exactly one A4 page and contains 9 sections
+        run: |
+          pdfinfo build/ttk_pdf_preview/philadelphia_a4.pdf
+          pdfinfo build/ttk_pdf_preview/philadelphia_a4.pdf | grep -E '^Pages:[[:space:]]+1$'
+          pdftotext -layout build/ttk_pdf_preview/philadelphia_a4.pdf sample.txt
+          grep -F 'ТЕХНОЛОГИЧЕСКАЯ КАРТА' sample.txt
+          grep -F 'АЛЛЕРГЕНЫ В БЛЮДЕ' sample.txt
+          grep -F 'БЕЗОПАСНОСТЬ' sample.txt
+      - name: Upload printable A4 PDF preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHEF-TTK-PRO-v0.6-A4-PDF-preview
+          path: build/ttk_pdf_preview/philadelphia_a4.pdf
+          if-no-files-found: error
       - name: Build Android debug APK
         run: flutter build apk --debug
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: CHEF-TTK-PRO-v0.5-debug-APK
+          name: CHEF-TTK-PRO-v0.6-debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
-      - name: Publish unpacked source code to this isolated branch
+      - name: Publish v0.6 source changes in this isolated branch
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add lib test tool pubspec.yaml analysis_options.yaml .gitignore
+          git add lib test pubspec.yaml
           if ! git diff --cached --quiet; then
-            git commit -m "Unpack CHEF TTK PRO v0.5 source code"
+            git commit -m 'Update CHEF TTK PRO v0.6 A4 PDF generator and tests'
             git push origin HEAD:chef-ttk-pro-flutter
           fi
