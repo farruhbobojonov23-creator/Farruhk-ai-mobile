@@ -1,3 +1,4 @@
+import {helpDetails} from './ui-help.js?v=1';
 import {templateFor,recipeCategories} from './recipe-math.js?v=categories-13';
 import {TTK_LAYOUTS,ttkLayoutId,layoutCard} from './ttk-layouts.js?v=3';
 export const fields={preparation:'4. Подготовка',forming:'4. Приготовление',serving:'4. Нарезка и подача',storage:'5. Оформление, подача и хранение',shelfLife:'5. Срок годности',temperature:'5. Температура хранения',appearance:'6. Внешний вид',taste:'6. Вкус, запах и консистенция'};
@@ -21,7 +22,7 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   list.replaceChildren();form.replaceChildren();draft=null;dirty=false;
   const gallery=el('section');gallery.className='ttk-design-gallery';
   gallery.append(el('h3','Шаблоны оформления ТТК · A4'),
-   el('p','Четыре готовых дизайна Premium: Teal Matrix, Process Matrix, Gold Allergen и Premium Blue. Во всех есть матрица аллергенов с галочками; состав и технология не меняются. Фото не выводится на печатный лист.'));
+   helpDetails('Четыре готовых дизайна Premium: Teal Matrix, Process Matrix, Gold Allergen и Premium Blue. Во всех есть матрица аллергенов с галочками; состав и технология не меняются. Фото не выводится на печатный лист.'));
   const designs=el('div');designs.className='ttk-design-grid';
   const selected=ttkLayoutId(document.getElementById('editor')?.dataset.ttkLayout);
   function chooseDesign(id){
@@ -35,7 +36,7 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   }
   designs.append(...TTK_LAYOUTS.map(item=>layoutCard(item,item.id===selected,chooseDesign)));
   gallery.append(designs);list.append(gallery);
-  list.append(el('p','Ниже — пользовательские шаблоны состава и технологии. Они не изменяют выбранный стиль листа.'));
+  list.append(el('h3','Шаблоны состава и технологии'));
   list.append(button('＋ Создать свой шаблон',()=>edit()));
   for(const t of getState()?.myRecipeTemplates||[]){
    const row=el('div');row.className='panel';row.append(el('h3',t.name),el('p',t.category));

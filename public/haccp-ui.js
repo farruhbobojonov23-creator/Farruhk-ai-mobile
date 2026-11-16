@@ -1,3 +1,4 @@
+import {helpDetails} from './ui-help.js?v=1';
 import {extraJournals,extraFieldNames} from './haccp-extra.js?v=3';
 import {journalCards,journalGroups,russianRecordCount,russianJournalCount,journalIcon} from './haccp-catalog-v2.js?v=2';
 import {measurementDate,monthLabel} from './temperature-journal.js';
@@ -32,7 +33,7 @@ function attachmentLink(data,name,label){const a=el('a',label);a.href='#';a.oncl
 export function mountHaccp(root,{getState,save,notify}){
  let tab=null,lastRevision=null,loaded=false,temperaturePointInitialized=false;const temperatureSelection={};let currentMonth=measurementDate().slice(0,7);
  root.replaceChildren();root.classList.add('haccp-workspace');const heading=el('div',undefined,'bar');heading.append(el('h1','ХАССП'));root.append(heading,el('p','Выбери журнал для учёта и контроля. Данные хранятся отдельно по каждой точке.','small'));
- const banner=el('p','Записи хранятся на этом устройстве. Скачивай резервную копию в «Данных устройства».','haccp-banner');root.append(banner);const guidance=el('details'),guidanceTitle=el('summary','Формы журналов и применимость');guidance.append(guidanceTitle,el('p','Это рабочие формы учёта. Состав журналов, критерии контроля и порядок подписания утвердите для своей кухни. Дополнительные журналы используются при наличии соответствующих процессов. Имя ответственного в записи не заменяет требуемую подпись.','small'));const source=el('a','СанПиН 2.3/2.4.4282-26 — текст и рекомендуемые образцы');source.href='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';source.target='_blank';source.rel='noopener';guidance.append(source);root.append(guidance);
+ const banner=el('p','Записи хранятся на этом устройстве. Скачивай резервную копию в «Мои данные».','haccp-banner');root.append(banner);const guidance=el('details'),guidanceTitle=el('summary','Формы журналов и применимость');guidance.append(guidanceTitle,el('p','Это рабочие формы учёта. Состав журналов, критерии контроля и порядок подписания утвердите для своей кухни. Дополнительные журналы используются при наличии соответствующих процессов. Имя ответственного в записи не заменяет требуемую подпись.','small'));const source=el('a','СанПиН 2.3/2.4.4282-26 — текст и рекомендуемые образцы');source.href='https://legalacts.ru/doc/postanovlenie-glavnogo-gosudarstvennogo-sanitarnogo-vracha-rf-ot-02062026-n_1/';source.target='_blank';source.rel='noopener';guidance.append(source);root.append(guidance);
  const metrics=el('div',undefined,'haccp-metrics');root.append(metrics);
  const controls=el('div',undefined,'haccp-controls fields'),pointFilter=selectField(controls,'Точка','pointFilter',[['','Все точки']],{required:false,blank:false}),fromDate=inputField(controls,'С даты','fromDate',{type:'date'}),toDate=inputField(controls,'По дату','toDate',{type:'date'});root.append(controls);
  const monthBar=el('div',undefined,'haccp-month-controls'),monthFilter=inputField(monthBar,'Месяц журнала','journalMonth',{type:'month',value:currentMonth}),archive=selectField(monthBar,'Сохранённые месяцы','archive',[[currentMonth,'Текущий месяц']],{required:false,blank:false});const periodHint=el('p',undefined,'small');monthBar.append(button('Текущий месяц',()=>{monthFilter.value=currentMonth;selectMonth()}));root.append(monthBar,periodHint);
@@ -73,7 +74,7 @@ export function mountHaccp(root,{getState,save,notify}){
  }
  const autoPanel=el('section',undefined,'haccp-autofill-panel');
  autoPanel.append(el('h2','Автозаполнение · 13 журналов А4'),
-  el('p','FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. По сохранённым образцам создаются черновики, которые ты можешь проверить и поправить перед подтверждением.','small'));
+  helpDetails('FARRUH AI самостоятельно готовит даты, контрольные точки, оборудование и уже сохранённые реальные записи. По сохранённым образцам создаются черновики, которые ты можешь проверить и поправить перед подтверждением.','Как работает автозаполнение'));
  const autoForm=el('div',undefined,'haccp-auto-controls');
  const autoMonth=inputField(autoForm,'Месяц для печати','autoMonth',{type:'month',value:currentMonth});
  const autoPoint=selectField(autoForm,'Точка для печати','autoPoint',[['','Все точки'],...pointOptions()],{required:false,blank:false});
@@ -106,7 +107,7 @@ export function mountHaccp(root,{getState,save,notify}){
    }finally{exportAll.disabled=false}
   }),'primary');
  autoPanel.append(autoForm,autoStats,exportAll,
-  el('p','План обновляется по московскому времени с 11:00, а при закрытом приложении — при следующем открытии. В PDF внесены только реальные записи и неподтверждённые строки по графику. Распечатка не заменяет фактический контроль.','small'));
+  helpDetails('План обновляется по московскому времени с 11:00, а при закрытом приложении — при следующем открытии.','Обновление плана'), el('p','В PDF — записи и неподтверждённые строки по графику. Распечатка не заменяет фактический контроль.','small'));
  updateAutoStats();
  const extras=el('details',undefined,'haccp-catalog-more');extras.append(el('summary','План контроля, автозаполнение и печать'),dailyOverview(),autoPanel);
  body.append(grid,extras);root.append(banner,guidance);

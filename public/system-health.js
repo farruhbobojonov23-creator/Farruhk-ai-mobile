@@ -167,64 +167,23 @@ export function mountSystemBadges() {
  window.__faiHealthBadgesMounted = true;
  ensureStyle();
  let snapshot = null, timer = null, busy = false, pendingCheck = false;
- const routeFor = (element) => {
-  if (element.dataset.pfvRoute) return element.dataset.pfvRoute;
-  if (element.closest('.pfv-projects')) return 'projects';
-  if (element.closest('.pfv-actions')) {
-   const name = element.textContent.toLowerCase();
-   return /печат/.test(name) ? 'print-control' :
-    /ингредиент|полуфабрикат/.test(name) ? 'preparations' :
-    /калькулятор/.test(name) ? 'calc' : 'recipes';
-  }
-  if (element.closest('.pfv-hub')) {
-   const name = element.textContent.toLowerCase();
-   return /хасс/.test(name) ? 'lab' : /проект/.test(name) ? 'projects' :
-    /учёт/.test(name) ? 'checks' : 'recipes';
-  }
-  return '';
- };
  function render() {
   if (!snapshot) return;
-  const normalTitle = 'Проверена доступность локальных данных. Это не проверка каждой функции.';
-  const unknownTitle = 'Этот раздел требует отдельной функциональной проверки.';
-  for (const node of document.querySelectorAll('.pfv-nav[data-pfv-route],.pfv-hub-tile,.pfv-projects>.pfv-project,.pfv-actions>.pfv-action')) {
-   const route = routeFor(node);
-   const ok = snapshot.areas[route] === true;
-   putBadge(node, ok ? 'ok' : 'warn', ok ? '✓ Доступно' : '• Проверить', ok ? normalTitle : unknownTitle);
-  }
-  for (const node of document.querySelectorAll('#recipe-categories .category-card')) {
-   putBadge(node, snapshot.local ? 'ok' : 'error',
-    snapshot.local ? '✓ Доступна' : '! Нет данных',
-    snapshot.local ? 'Категория открывается из доступной локальной базы.' : 'Локальная база не читается.');
-  }
-  for (const node of document.querySelectorAll('.view .tile,#lab .haccp-journal-card')) {
-   putBadge(node, snapshot.local ? 'ok' : 'warn',
-    snapshot.local ? '✓ Доступно' : '• Проверить',
-    snapshot.local ? normalTitle : unknownTitle);
-  }
-  const heading = document.querySelector('#recipes .catalog-heading');
-  if (heading && !document.getElementById('catalog-back')?.hidden)
-   putBadge(heading, snapshot.local ? 'ok' : 'error',
-    snapshot.local ? '✓ Категория открыта' : '! Ошибка базы', normalTitle);
+  // Navigation is not a functional check. Only show badges for measured data services.
+  document.querySelectorAll('[data-fai-health]').forEach(badge=>{
+   if(!badge.closest('[data-local-section],[data-google-section],[data-backup-section],[data-device-section]'))badge.remove();
+  });
   for (const [section, level, label] of [
    ['[data-local-section]', snapshot.local ? 'ok' : 'error', snapshot.local ? '✓ Работает' : '! Ошибка'],
    ['[data-google-section]', snapshot.googleLevel, snapshot.googleLevel === 'ok' ? '✓ PDF сохранён' : '• Проверить'],
    ['[data-backup-section]', snapshot.backupLevel, snapshot.backupLevel === 'ok' ? '✓ Копия есть' : '• Проверить'],
-   ['[data-device-section]', snapshot.phoneLevel, snapshot.phoneLabel],
-   ['[data-delete-section]', snapshot.local ? 'ok' : 'error', snapshot.local ? '✓ Доступно' : '! Ошибка']
+   ['[data-device-section]', snapshot.phoneLevel, snapshot.phoneLabel]
   ]) {
    const h = document.querySelector('.data-center-section' + section + '>h3');
    if (h) putBadge(h, level, label, 'Статус основан на последней подтверждённой проверке, не на цвете кнопки.');
   }
-  const map = {recipes:'ТТК',lab:'ХАССП',preparations:'Полуфабрикаты',
-   checks:'Проверки',tasks:'Задачи',calc:'Калькулятор','print-control':'Печать'};
-  for (const [view] of Object.entries(map)) {
-   const el = document.querySelector('#' + view + '>.bar');
-   if (!el) continue;
-   const ok = snapshot.areas[view] === true;
-   putBadge(el, ok ? 'ok' : 'warn', ok ? '✓ Доступно' : '• Проверить', ok ? normalTitle : unknownTitle);
-  }
  }
+
  const scheduleRender = () => {
   clearTimeout(timer);
   timer = setTimeout(render, 100);
@@ -236,7 +195,7 @@ export function mountSystemBadges() {
   try { snapshot = await inspectSystemHealth({force}); render(); }
   finally {busy = false; if (pendingCheck) {pendingCheck = false; void check(true);}}
  };
- // Newly rendered category cards and workspace panels receive badges too.
+ // Newly opened data panels receive their last confirmed status.
  const observer = new MutationObserver(mutations => {
   if (mutations.some(m => [...m.addedNodes].some(n =>
    n.nodeType === 1 && !n.matches?.('[data-fai-health]')))) scheduleRender();
