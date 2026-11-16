@@ -1,6 +1,10 @@
 name: FARUKH TTK PRO Stable Signed Release
 on:
   workflow_dispatch:
+  push:
+    branches: [farukh-ttk-pro]
+    paths:
+      - 'farukh-ttk-pro/SIGNED_RELEASE_REQUEST.txt'
 permissions:
   contents: write
 
@@ -44,11 +48,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=100" --jq '[.workflow_runs[] | select(.name=="FARUKH TTK PRO Emulator Smoke" and .conclusion=="success")] | length')"
-          if [ "$count" -lt 1 ]; then
-            echo "::error::First verify this exact commit through FARUKH TTK PRO Emulator Smoke"
-            exit 4
-          fi
+          for attempt in $(seq 1 60); do
+            count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=100" --jq '[.workflow_runs[] | select(.name=="FARUKH TTK PRO Emulator Smoke" and .conclusion=="success")] | length')"
+            if [ "$count" -gt 0 ]; then
+              echo "Confirmed successful Android QA for exact release commit ${GITHUB_SHA}"
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "::error::Android emulator smoke QA did not pass on this release commit within 10 minutes"
+              exit 4
+            fi
+            sleep 10
+          done
       - name: Prepare sushi photographs
         run: |
           bash embed-food-photos.sh
