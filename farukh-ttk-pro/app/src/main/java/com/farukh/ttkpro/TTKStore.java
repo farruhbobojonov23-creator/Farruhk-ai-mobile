@@ -122,6 +122,16 @@ public class TTKStore {
             ingredients.add(ingredient("Кимчи соус",90,2,2,15,"Соя, пшеница — проверить упаковку"));
             save();
         }
+        // Correct only the known inaccurate demo nori allergen from V0.4/V0.5;
+        // never overwrite a user's own verified manufacturer information.
+        for(JSONObject ingredient:ingredients){
+            if("Нори".equals(ingredient.optString("name"))
+               && !ingredient.optBoolean("allergensVerified",false)
+               && "Рыба/морепродукты — проверить упаковку".equals(ingredient.optString("allergen"))){
+                try{ingredient.put("allergen","");}catch(Exception ignore){}
+            }
+        }
+        save();
         if(dishes.isEmpty()){
             JSONObject sample=newDish("Холодные роллы");
             try{
