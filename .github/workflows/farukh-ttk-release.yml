@@ -130,7 +130,7 @@ jobs:
           doc["versionName"]=os.environ["RELEASE_NAME"]
           doc["downloadUrl"]="https://github.com/"+os.environ["GITHUB_REPOSITORY"]+"/releases/download/"+os.environ["RELEASE_TAG"]+"/FARUKH_TTK_PRO_v"+os.environ["RELEASE_CODE"]+"_signed.apk"
           doc["notes"]="Подписанный выпуск FARUKH TTK PRO: новые функции и исправления. Перед обновлением рекомендуем резервную копию."
-          p.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          p.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+chr(10),encoding="utf-8")
           PY
           git config user.name "farukh-ttk-release-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
