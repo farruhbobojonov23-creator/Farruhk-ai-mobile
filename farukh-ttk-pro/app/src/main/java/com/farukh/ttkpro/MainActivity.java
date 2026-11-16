@@ -765,6 +765,12 @@ public class MainActivity extends Activity {
         startActivityForResult(in,LOAD_BACKUP);
     }
     private void checkForUpdates(){
+        if(getPackageName().endsWith(".qa")){
+            new AlertDialog.Builder(this).setTitle("Тестовая версия")
+                .setMessage("Это отдельное безопасное приложение для проверки 0.6. Оно не обновляет установленную Premium 0.4/0.5. Подписанные обновления появятся в стабильной версии после настройки постоянного ключа.")
+                .setPositiveButton("Понятно",null).show();
+            return;
+        }
         Toast.makeText(this,"Проверка обновлений…",Toast.LENGTH_SHORT).show();
         new Thread(()->{
             String error=null;JSONObject update=null;HttpURLConnection cn=null;
