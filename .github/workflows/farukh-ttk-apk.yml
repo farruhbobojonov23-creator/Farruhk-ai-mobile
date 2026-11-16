@@ -49,3 +49,10 @@ jobs:
           name: FARUKH-TTK-PRO-debug-apk
           path: farukh-ttk-pro/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Build isolated QA app (install alongside current production)
+        run: gradle :app:assembleDebug -PqaPreview --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-TTK-PRO-QA-v06-side-by-side
+          path: farukh-ttk-pro/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
