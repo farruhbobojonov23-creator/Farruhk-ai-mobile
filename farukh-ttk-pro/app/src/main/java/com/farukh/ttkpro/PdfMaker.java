@@ -126,7 +126,7 @@ public class PdfMaker {
         text("A",left,58,35,red,true);
         text("FARUKH",left+37,43,17,dark,true);
         text("TTK PRO",left+37,59,10,red,true);
-        text("ТЕХНОЛОГИЧЕСКАЯ",262,37,15,dark,true);
+        text("ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ",220,37,11.5f,dark,true);
         text("КАРТА (ТТК)",350,55,15,dark,true);
         p.setColor(red);p.setStrokeWidth(2);c.drawLine(left,78,right,78,p);
         p.setColor(0x18D34548);c.drawCircle(538,94,55,p);
@@ -179,12 +179,15 @@ public class PdfMaker {
         JSONArray rows=dish.optJSONArray("rows");if(rows==null)rows=new JSONArray();
         String tech=dish.optString("tech","");
         size=rows.length()>18||tech.length()>550?7.2f:rows.length()>11||tech.length()>350?7.7f:8.7f;
+        RecipeAudit audit=RecipeAudit.inspect(store,dish);
         header();
         String dishTitle=dish.optString("name","Новое блюдо");
         if(dishTitle.length()>38)throw new Exception("Длинное название блюда не помещается в заголовок А4.");
         text(dishTitle,left,113,17,dark,true);
         text("Категория: "+dish.optString("category",""),left,132,9,muted,false);
         text("Выход: "+dish.optString("yield","")+" г  •  "+dish.optString("pieces","")+" шт",left,149,10,red,true);
+        String scope=dish.optString("scope","");
+        text("Область: "+(scope.isEmpty()?"не указана":scope.length()>55?scope.substring(0,55)+"…":scope),left,165,7.2f,muted,false);
         photo(408,91,158,75);
         float y=179;
         titleBar("1. РЕЦЕПТУРА И ВЫХОД",left,y,537);y+=22;
@@ -224,12 +227,18 @@ public class PdfMaker {
         float ly=sectionText("3. ТРЕБОВАНИЯ К КАЧЕСТВУ",dish.optString("quality",""),left,y,col);
         ly=sectionText("4. ПОДАЧА И ОФОРМЛЕНИЕ",dish.optString("serving",""),left,ly,col);
         float rx=left+col+gap;
-        String nutrition="Энергия: "+num(cal)+" ккал; Б: "+num(pv)+" г; Ж: "+num(fv)+" г; У: "+num(cv)+" г. ";
-        nutrition+=missingNutrition>0 ? "ВНИМАНИЕ: отсутствуют КБЖУ для "+missingNutrition+" позиций; итог неполный." : "Расчёт ориентировочный, по текущей базе сырья.";
+        String nutrition="На 100 г: "+num(audit.kcal100())+" ккал / Б "+num(audit.protein100())+" / Ж "+num(audit.fat100())+" / У "+num(audit.carbohydrates100())+" г. ";
+        nutrition+="На порцию: "+num(audit.kcal)+" ккал. ";
+        nutrition+=!audit.missingIngredients.isEmpty()||audit.unverifiedIngredients>0
+            ? "ДЕМО: неполные или неподтверждённые данные." : "Расчёт по проверенной базе ингредиентов.";
         float ry=sectionText("5. ПИЩЕВАЯ ЦЕННОСТЬ",nutrition,rx,y,col);
-        String allergText=allerg.isEmpty()?"Не определены по справочнику. Проверить этикетки сырья.":String.join("; ",allerg)+". Подтвердить по этикеткам сырья.";
+        String allergText=audit.allergens.isEmpty()?"Аллергены не установлены по данным справочника.":"Выявлены: "+String.join("; ",audit.allergens)+".";
+        allergText+=(audit.unknownAllergens>0?" НЕ ПОДТВЕРЖДЕНО: "+audit.unknownAllergens+" ингредиентов.":" Сверено с этикетками.");
         ry=sectionText("6. АЛЛЕРГЕНЫ",allergText,rx,ry,col);
-        y=sectionText("7. УСЛОВИЯ И СРОК ХРАНЕНИЯ","Температура: "+dish.optString("temp","")+". Срок: "+dish.optString("storage","")+".",left,Math.max(ly,ry)+2,537);
+        y=sectionText("7. СЫРЬЁ И ПОКАЗАТЕЛИ БЕЗОПАСНОСТИ",
+            dish.optString("rawRequirements","")+". "+dish.optString("safety",""),left,Math.max(ly,ry)+2,537);
+        y=sectionText("8. ХРАНЕНИЕ И РЕАЛИЗАЦИЯ",
+            "Температура: "+dish.optString("temp","")+". Срок: "+dish.optString("storage","")+".",left,y,537);
         if(y>744)throw new Exception("ТТК не помещается на читаемый лист А4. Сократите текст или количество позиций.");
         // Elegant Japanese artwork fills empty space on short cards, without
         // stealing any of the required sections or obscuring signature fields.
@@ -250,6 +259,7 @@ public class PdfMaker {
         text("Дата: "+dish.optString("date","__________________"),307,fy+20,8,muted,false);
         p.setColor(red);p.setStrokeWidth(2);c.drawLine(left,809,right,809,p);
         text("FARUKH TTK PRO  •  JAPANESE COLLECTION",left,822,7,muted,false);
-        text("ТРЕБУЕТ УТВЕРЖДЕНИЯ",455,822,7,muted,false);
+        text("СанПиН 4282-26 / ГОСТ 31987-2012",294,822,6.6f,muted,false);
+        text(audit.readyForApproval?"К УТВЕРЖДЕНИЮ":"ЧЕРНОВИК",502,822,7,red,true);
     }
 }
