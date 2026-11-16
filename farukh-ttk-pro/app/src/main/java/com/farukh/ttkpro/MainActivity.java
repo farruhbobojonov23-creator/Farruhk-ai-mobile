@@ -105,9 +105,9 @@ public class MainActivity extends Activity {
     }
     private void base(String title,String subtitle,boolean back){
         LinearLayout shell=vertical();shell.setBackgroundColor(PALE);
-        LinearLayout head=horizontal();head.setBackgroundColor(WHITE);pad(head,17,16);
+        LinearLayout head=horizontal();head.setBackground(gradient(DARK,0xFF38202A,0));pad(head,17,16);
         if(back){TextView a=text("‹",31,RED,true);head.addView(a,lp(35,44));a.setOnClickListener(v->{if("Создание ТТК".equals(title))saveEditor();home();});}
-        LinearLayout headline=vertical();TextView n=text(title,21,INK,true),s=text(subtitle,11,GREY,false);
+        LinearLayout headline=vertical();TextView n=text(title,21,WHITE,true),s=text(subtitle,11,0xFFE6C8D1,false);
         headline.addView(n);headline.addView(s);head.addView(headline,new LinearLayout.LayoutParams(0,dp(49),1f));
         TextView mark=text("A",30,RED,true);head.addView(mark);shell.addView(head);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);
