@@ -10,7 +10,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
  dialog.setAttribute('aria-label','Мои данные — сохранение и синхронизация');
  dialog.innerHTML=`<div class="data-center-shell">
   <header class="data-center-header"><div><span class="data-center-eyebrow">FARRUH AI · БЕЗОПАСНОЕ ХРАНЕНИЕ</span>
-   <h2>☁️ Мои данные</h2><p>Все сохранения, Google и синхронизация — в одном месте.</p></div>
+   <h2>☁️ Мои данные</h2></div>
    <button type="button" data-close aria-label="Закрыть мои данные">✕</button></header>
   <section class="data-center-section" data-local-section><h3>💾 На этом устройстве</h3>
    <p class="data-center-info" data-local-status role="status">Техкарты сохраняются в этом браузере.</p>
@@ -50,7 +50,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
   const recipes=state?.recipes||[];
   const ready=recipes.filter(r=>r.status==='ready'&&!r.archived).length;
   const drafts=recipes.filter(r=>r.status!=='ready'&&!r.archived).length;
-  localStatus.textContent=state?'✅ На устройстве: '+ready+' готовых ТТК, '+drafts+' в разработке.':'Загружаю сохранённые данные устройства…';
+  localStatus.textContent=state?'✅ '+ready+' ТТК сохранено · '+drafts+' в разработке.':'Загружаю сохранённые данные устройства…';
   const google=state?.googleBackup;
   if(!google?.endpoint||!google?.key){
    backupStatus.textContent='⚪ Google Диск не подключён. Локальную резервную копию можно скачать ниже.';
@@ -58,7 +58,7 @@ export function createDataCenter({getState,settingsDialog,notify}){
    backupStatus.textContent='⏸ Автокопии выключены. Ранее созданные файлы не удалены.';
   }else if(google.lastBackupAt){
    const date=Date.parse(google.lastBackupAt);
-   backupStatus.textContent='✅ Ежедневное резервирование включено. Последняя подтверждённая копия: '+(Number.isFinite(date)?new Date(date).toLocaleString('ru-RU'):'дата неизвестна')+'.';
+   backupStatus.textContent='✅ Автокопии включены · Последняя копия: '+(Number.isFinite(date)?new Date(date).toLocaleString('ru-RU'):'дата неизвестна')+'.';
   }else{
    backupStatus.textContent='🟡 Автокопии включены, первая копия Google ещё не подтверждена.';
   }
@@ -78,8 +78,49 @@ export function createDataCenter({getState,settingsDialog,notify}){
   }catch(e){backupStatus.textContent='⚠️ '+String(e.message||e);notify?.(e.message||String(e),true)}
   finally{backupNow.disabled=!getState()?.googleBackup?.endpoint}
  };
+
+ // Move explanatory copy, keeping live status/error nodes and action handlers intact.
+ function compactSections(){
+  if(dialog.dataset.compact)return;
+  dialog.dataset.compact='true';
+  const help=(section,nodes)=>{
+   const details=document.createElement('details');details.className='data-center-help';
+   const summary=document.createElement('summary');summary.textContent='Подробнее';
+   details.append(summary);
+   for(const node of nodes)if(node)details.append(node);
+   if(details.children.length>1)section.append(details);
+  };
+  const local=localRoot.querySelector('details');
+  const google=googleRoot.querySelector('details');
+  const device=deviceRoot.querySelector('details');
+  for(const panel of [local,google,device]){
+   if(!panel)continue;
+   panel.open=true;panel.classList.add('data-center-flat');
+  }
+  help(root('[data-local-section]'),[
+   local?.querySelector(':scope > p'),local?.querySelector(':scope > details')
+  ]);
+  help(root('[data-google-section]'),[
+   root('[data-google-section] > .data-center-info')
+  ]);
+  const deviceCopy=device?Array.from(device.children).filter(node=>
+   node.tagName==='P'&&!node.hasAttribute('data-sync-status')):[];
+  help(root('[data-device-section]'),[
+   root('[data-device-section] > .data-center-info'),...deviceCopy
+  ]);
+  help(root('[data-backup-section]'),[root('.data-center-footnote')]);
+  const googleSettings=googleRoot.querySelector('[data-google-settings]');
+  if(googleSettings){
+   googleSettings.textContent='⚙ Настройки';
+   googleSettings.setAttribute('aria-label','Настройки подключения Google Документов');
+  }
+  const backupSettings=backupRoot.querySelector('.google-backup-open');
+  if(backupSettings)backupSettings.textContent='⚙ Копии и настройки';
+ }
+
  function bind({googleSync,googleDriveBackup,deviceCloudSync,deletionManager}){
   bindings={googleSync,googleDriveBackup,deviceCloudSync,deletionManager};
+  compactSections();
   refresh();
  }
  function open(){
