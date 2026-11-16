@@ -453,6 +453,10 @@ public class MainActivity extends Activity {
             LinearLayout card=card();card.addView(text(o.optString("name"),15,INK,true));
             space(card,5);
             card.addView(text("Ккал "+o.optDouble("kcal")+"  •  Б "+o.optDouble("p")+"  •  Ж "+o.optDouble("f")+"  •  У "+o.optDouble("c"),12,GREY,false));
+            space(card,5);
+            card.addView(text(o.optBoolean("nutritionVerified",false)&&o.optBoolean("allergensVerified",false)
+                 ?"✓ Подтверждено по источнику":"⚠ Демонстрационные / непроверенные данные",11,
+                 o.optBoolean("nutritionVerified",false)&&o.optBoolean("allergensVerified",false)?0xFF2F7B59:RED,true));
             if(!o.optString("allergen").isEmpty()){space(card,4);card.addView(text("Аллергены: "+o.optString("allergen"),11,RED,false));}
             card.setOnClickListener(v->editIngredient(o));LinearLayout.LayoutParams p=lp(-1,-2);p.bottomMargin=dp(9);content.addView(card,p);
         }
@@ -465,6 +469,17 @@ public class MainActivity extends Activity {
         EditText fat=input(box,"Жиры / 100 г",old==null?"0":old.optString("f"),false);
         EditText carb=input(box,"Углеводы / 100 г",old==null?"0":old.optString("c"),false);
         EditText alleg=input(box,"Аллергены по этикетке",old==null?"":old.optString("allergen"),true);
+        EditText src=input(box,"Источник КБЖУ / производитель / этикетка",old==null?"":old.optString("source",""),true);
+        CheckBox verifiedNutrition=new CheckBox(this);
+        verifiedNutrition.setText("КБЖУ сверены по этикетке / ТТК полуфабриката");
+        verifiedNutrition.setChecked(old!=null && old.optBoolean("nutritionVerified",false));
+        box.addView(verifiedNutrition);
+        CheckBox verifiedAllergens=new CheckBox(this);
+        verifiedAllergens.setText("Аллергены проверены, включая состав полуфабриката");
+        verifiedAllergens.setChecked(old!=null && old.optBoolean("allergensVerified",false));
+        box.addView(verifiedAllergens);
+        TextView note=text("Не ставь галочки до фактической проверки. Пустой список аллергенов не означает их отсутствие.",12,RED,false);
+        box.addView(note);
         ScrollView scroll=new ScrollView(this);scroll.addView(box);
         new AlertDialog.Builder(this).setTitle(old==null?"Новый ингредиент":"Изменить ингредиент").setView(scroll)
          .setNegativeButton("Отмена",null).setPositiveButton("Сохранить",(a,b)->{
@@ -486,6 +501,9 @@ public class MainActivity extends Activity {
                  target.put("kcal",number(kcal.getText().toString()));target.put("p",number(pr.getText().toString()));
                  target.put("f",number(fat.getText().toString()));target.put("c",number(carb.getText().toString()));
                  target.put("allergen",alleg.getText().toString());
+                 target.put("source",src.getText().toString());
+                 target.put("nutritionVerified",verifiedNutrition.isChecked());
+                 target.put("allergensVerified",verifiedAllergens.isChecked());
              }catch(Exception ignore){}
              store.save();ingredientsScreen();
          }).show();
