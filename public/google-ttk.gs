@@ -22,11 +22,11 @@ function projectStorage(properties,packet){
  if(!folder&&known)folder=DriveApp.getFolderById(known.folderId);
  if(!folder){folder=root.createFolder(identity.projectName);properties.setProperty(slot,JSON.stringify({folderId:folder.getId(),name:identity.projectName}));}
  let documentId=previous.documentId||known?.documentId||'';
- if(documentId){try{DocumentApp.openById(documentId)}catch(e){documentId=''}}
+ if(documentId){try{DocumentApp.openById(documentId).saveAndClose()}catch(e){documentId=''}}
  if(!documentId){
    const title=identity.projectName+' — Готовые ТТК',found=folder.getFilesByName(title);
    if(found.hasNext())documentId=found.next().getId();
-   else{const doc=DocumentApp.create(title);documentId=doc.getId();DriveApp.getFileById(documentId).moveTo(folder);}
+   else{const doc=DocumentApp.create(title);documentId=doc.getId();doc.saveAndClose();DriveApp.getFileById(documentId).moveTo(folder);}
  }
  if(previous.name&&previous.name!==identity.projectName){
    folder.setName(identity.projectName);DriveApp.getFileById(documentId).setName(identity.projectName+' — Готовые ТТК');
@@ -61,7 +61,31 @@ function addTab(title, parentTabId,documentId=WORKING_DOCUMENT_ID) {
   const result = docsApi(':batchUpdate', {requests:[{addDocumentTab:{tabProperties:{title, ...(parentTabId ? {parentTabId} : {})}}}]},documentId);
   return result.replies[0].addDocumentTab.tabProperties.tabId;
 }
+// Docs API creates tabs; DocumentApp may still hold an earlier document snapshot.
+// Resolve only the requested ID, close stale snapshots, and retry without creating another tab.
+function findDocumentTabById(tabs,tabId){
+ for(const tab of tabs||[]){
+  if(tab.getId()===tabId)return tab;
+  const child=findDocumentTabById(tab.getChildTabs(),tabId);
+  if(child)return child;
+ }
+ return null;
+}
+function openRecipeTab(documentId,tabId){
+ if(typeof tabId!=='string'||!tabId)throw Error('Google не вернул идентификатор вкладки ТТК.');
+ const waits=[0,250,500,1000,2000];
+ for(let attempt=0;attempt<waits.length;attempt++){
+  if(waits[attempt])Utilities.sleep(waits[attempt]);
+  const document=DocumentApp.openById(documentId);
+  const tab=document.getTab(tabId)||findDocumentTabById(document.getTabs(),tabId);
+  if(tab)return {document,body:tab.asDocumentTab().getBody()};
+  document.saveAndClose();
+ }
+ throw Error('Google пока не открыл вкладку этой ТТК. Повторите отправку через несколько секунд; данные на устройстве сохранены.');
+}
+
 const TTK_LAYOUT_VERSION = 'a4-pdf-1';
+const TTK_RECEIVER_VERSION = 'a4-pdf-1-tab-retry-2';
 function formatBody(body, packet) {
  const r=packet.recipe,sections=packet.sections.map(s=>[s[0],s[1]]);
  if(sections.length===6)sections.unshift(['1. Область применения',[[String(r.scope||('Блюдо «'+r.name+'». Предприятия изготовления и реализации: [уточнить].'))]]]);
@@ -198,7 +222,7 @@ function doPost(event) {
     const packet=JSON.parse(event.postData.contents), properties=PropertiesService.getScriptProperties();
     const key=properties.getProperty('CONNECTION_KEY');
     if(!key||packet.key!==key)return jsonResponse({ok:false,error:'Неверный ключ подключения Google.'});
-    if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit',pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION})}
+    if(packet.action==='check'){DocumentApp.openById(WORKING_DOCUMENT_ID).saveAndClose();return jsonResponse({ok:true,documentUrl:'https://docs.google.com/document/d/'+WORKING_DOCUMENT_ID+'/edit',pdfA4Supported:true,receiverVersion:TTK_RECEIVER_VERSION})}
     if(!['sync','ensureProject','deleteRecipe'].includes(packet.action))throw Error('Неизвестное действие синхронизации.');
     const r=packet.recipe;
     if(packet.action==='sync'&&(!r||r.status!=='ready'||!r.id||!Array.isArray(packet.sections)))throw Error('Разрешены только готовые ТТК.');
@@ -206,7 +230,7 @@ function doPost(event) {
     lock=LockService.getScriptLock();lock.waitLock(25000);
     if(packet.action==='deleteRecipe')return jsonResponse(deleteOwnedRecipe(properties,packet));
     const target=projectStorage(properties,packet),documentId=target.documentId;
-    if(packet.action==='ensureProject')return jsonResponse({ok:true,...target,pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION});
+    if(packet.action==='ensureProject')return jsonResponse({ok:true,...target,pdfA4Supported:true,receiverVersion:TTK_RECEIVER_VERSION});
     packet.projectName=target.projectName;
     const recordKey='recipe_'+Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(r.id)).map(x=>('0'+((x+256)%256).toString(16)).slice(-2)).join('');
     const previous=JSON.parse(properties.getProperty(recordKey)||'{}');
@@ -224,7 +248,7 @@ function doPost(event) {
     const changed=previous.digest!==packet.digest||previous.layoutVersion!==TTK_LAYOUT_VERSION||
       previous.documentId!==documentId||!previous.pdfFileId;
     if(changed){
-      const document=DocumentApp.openById(documentId),body=document.getTab(tabId).asDocumentTab().getBody();
+      const {document,body}=openRecipeTab(documentId,tabId);
       formatBody(body,packet);document.saveAndClose();
       docsApi(':batchUpdate',{requests:[{updateDocumentTabProperties:{tabProperties:{tabId,title,parentTabId:parentId},fields:'title,parentTabId'}}]},documentId);
       normalizeCardTextHighlights(tabId,documentId);
@@ -250,7 +274,7 @@ function doPost(event) {
       try{pdfUrl=DriveApp.getFileById(previous.pdfFileId).getUrl()}catch(e){}
     }
     return jsonResponse({ok:true,recipeId:r.id,digest:packet.digest,projectId:target.projectId,
-      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl,pdfA4Supported:true,receiverVersion:TTK_LAYOUT_VERSION});
+      folderUrl:target.folderUrl,tabId,documentUrl:target.documentUrl+'?tab='+tabId,pdfUrl,pdfA4Supported:true,receiverVersion:TTK_RECEIVER_VERSION});
   } catch(error) { console.error('FARRUH AI ТТК: '+String(error.message||error).slice(0,240));return jsonResponse({ok:false,error:String(error.message||error)}) }
   finally { if(lock&&lock.hasLock())lock.releaseLock() }
 }
