@@ -5,6 +5,8 @@ on:
     paths:
       - 'recipe-export-api.js'
       - 'public/recipe-google.js'
+      - 'public/google-sync-transport.js'
+      - 'tests/google-sync-transport.test.js'
       - 'public/google-ttk.gs'
       - 'tests/google-ttk-delivery-flow.test.js'
       - 'tests/google-ttk-tab-retry.test.js'
@@ -25,4 +27,4 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Verify ready-card delivery and actual one-page PDF against simulated Google
-        run: node --test tests/google-ttk-tab-retry.test.js tests/google-ttk-delivery-flow.test.js tests/google-ttk-wrong-endpoint.test.js tests/google-ttk-a4-receiver-proof.test.js tests/ttk-individual-google-a4.test.js tests/recipe-release.test.js tests/ttk-delete-stop-google-reupload.test.js tests/google-backup.test.js
+        run: node --test tests/google-sync-transport.test.js tests/google-ttk-tab-retry.test.js tests/google-ttk-delivery-flow.test.js tests/google-ttk-wrong-endpoint.test.js tests/google-ttk-a4-receiver-proof.test.js tests/ttk-individual-google-a4.test.js tests/recipe-release.test.js tests/ttk-delete-stop-google-reupload.test.js tests/google-backup.test.js
