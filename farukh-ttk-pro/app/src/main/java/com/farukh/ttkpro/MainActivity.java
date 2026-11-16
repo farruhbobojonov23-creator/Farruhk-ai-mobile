@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
     private Uri lastPdfUri;
     private EditText nameField,yieldField,piecesField,techField,qualityField,servingField,tempField,storageField,authorField,approverField,dateField,scopeField,rawField,safetyField;
     private Spinner catSpinner;
+    private TextView nutritionPreview;
     private int tab=0;
     private final ArrayList<EditText> rowBrutto=new ArrayList<>(),rowNetto=new ArrayList<>();
     @Override public void onCreate(Bundle b){
@@ -348,10 +349,45 @@ public class MainActivity extends Activity {
             LinearLayout.LayoutParams pr=lp(-1,-2);pr.bottomMargin=dp(8);content.addView(rr,pr);
         }
         addButton(content,"＋ Добавить ингредиент",false,v->{saveEditor();addIngredientRow(dish);});
+        space(content,12);
+        LinearLayout nutrBox=card();
+        nutrBox.addView(text("АВТОРАСЧЁТ КБЖУ",13,RED,true));
+        nutritionPreview=text("",12,INK,false);
+        nutrBox.addView(nutritionPreview);
+        content.addView(nutrBox);
+        android.text.TextWatcher recalculator=new android.text.TextWatcher(){
+            public void beforeTextChanged(CharSequence v,int start,int count,int after){}
+            public void onTextChanged(CharSequence v,int start,int before,int count){recalculatePreview();}
+            public void afterTextChanged(android.text.Editable v){}
+        };
+        for(EditText e:rowNetto)e.addTextChangedListener(recalculator);
+        yieldField.addTextChangedListener(recalculator);
+        recalculatePreview();
         space(content,18);
         scopeField=input(content,"ОБЛАСТЬ ПРИМЕНЕНИЯ • ПРЕДПРИЯТИЕ",dish.optString("scope",""),true);
         rawField=input(content,"ТРЕБОВАНИЯ К СЫРЬЮ",dish.optString("rawRequirements",""),true);
         techField=input(content,"ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ",dish.optString("tech"),true);
+        final String[] previousCategory={dish.optString("category","")};
+        catSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent,View view,int pos,long id){
+                String fresh=catSpinner.getSelectedItem().toString();
+                String old=previousCategory[0];
+                if(!old.equals(fresh)&&techField!=null){
+                    String was=techField.getText().toString();
+                    if(was.trim().isEmpty() || was.equals(TTKStore.defaultTechnology(old))){
+                        techField.setText(TTKStore.defaultTechnology(fresh));
+                    }else{
+                        new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Категория изменена")
+                            .setMessage("Подставить технологию приготовления для категории «"+fresh+"»? Ваш собственный текст будет заменён только с разрешения.")
+                            .setNegativeButton("Оставить мой текст",null)
+                            .setPositiveButton("Обновить технологию",(dlg,which)->techField.setText(TTKStore.defaultTechnology(fresh))).show();
+                    }
+                }
+                previousCategory[0]=fresh;
+            }
+        });
         addButton(content,"↻ Предложить технологию по категории",false,v->new AlertDialog.Builder(this)
             .setTitle("Заменить технологию?").setMessage("Текущий текст будет заменён шаблоном выбранной категории.")
             .setNegativeButton("Отмена",null).setPositiveButton("Заменить",(a,b)->techField.setText(TTKStore.defaultTechnology(cs.get(catSpinner.getSelectedItemPosition())))).show());
@@ -390,6 +426,31 @@ public class MainActivity extends Activity {
         EditText e=new EditText(this);e.setSingleLine(true);e.setText(value);e.setTextSize(15);e.setTextColor(INK);
         e.setBackground(border(WHITE,10,BORDER));pad(e,9,9);space(column,4);column.addView(e,lp(-1,45));
         row.addView(column,new LinearLayout.LayoutParams(0,-2,1));return e;
+    }
+    private void recalculatePreview(){
+        if(nutritionPreview==null||editing==null)return;
+        JSONArray rows=editing.optJSONArray("rows");
+        double sum=0,kcal=0,protein=0,fat=0,carbs=0;
+        int missing=0,uncertain=0;
+        if(rows!=null)for(int i=0;i<rows.length()&&i<rowNetto.size();i++){
+            JSONObject row=rows.optJSONObject(i);if(row==null)continue;
+            double mass=number(rowNetto.get(i).getText().toString());
+            if(mass<0)mass=0;sum+=mass;
+            JSONObject ing=store.findIngredient(row.optString("name"));
+            if(ing==null){missing++;continue;}
+            kcal+=ing.optDouble("kcal")*mass/100d;
+            protein+=ing.optDouble("p")*mass/100d;
+            fat+=ing.optDouble("f")*mass/100d;
+            carbs+=ing.optDouble("c")*mass/100d;
+            if(!ing.optBoolean("nutritionVerified",false))uncertain++;
+        }
+        double out=yieldField==null?0:number(yieldField.getText().toString());
+        String per100=out>0 ? "На 100 г: "+RecipeAudit.num(kcal*100/out)+" ккал  •  Б "+RecipeAudit.num(protein*100/out)+"  Ж "+RecipeAudit.num(fat*100/out)+"  У "+RecipeAudit.num(carbs*100/out)+" г"
+                : "Укажите корректный выход блюда для расчёта на 100 г.";
+        String details="На порцию: "+RecipeAudit.num(kcal)+" ккал. Сумма нетто: "+RecipeAudit.num(sum)+" г. "+per100;
+        if(missing>0||uncertain>0)details+="\n⚠ Расчёт предварительный: без данных "+missing+" и неподтверждённых ингредиентов "+uncertain+".";
+        else details+="\nДля использования проверьте технологические потери и производственную рецептуру.";
+        nutritionPreview.setText(details);
     }
     private void saveEditor(){
         if(editing==null||nameField==null)return;
