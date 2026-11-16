@@ -2,7 +2,7 @@ name: FARUKH TTK PRO Stable Signed Release
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: farukh-ttk-release
@@ -39,6 +39,16 @@ jobs:
           test -n "$KEY_ALIAS" || { echo "::error::Missing FARUKH_TTK_KEY_ALIAS"; exit 2; }
           test -n "$KEY_PASSWORD" || { echo "::error::Missing FARUKH_TTK_KEY_PASSWORD"; exit 2; }
           test -n "$EXPECTED_SHA256" || { echo "::error::Missing pinned FARUKH_TTK_CERT_SHA256 fingerprint"; exit 2; }
+      - name: Require successful emulator verification on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=100" --jq '[.workflow_runs[] | select(.name=="FARUKH TTK PRO Emulator Smoke" and .conclusion=="success")] | length')"
+          if [ "$count" -lt 1 ]; then
+            echo "::error::First verify this exact commit through FARUKH TTK PRO Emulator Smoke"
+            exit 4
+          fi
       - name: Prepare sushi photographs
         run: |
           bash embed-food-photos.sh
@@ -81,3 +91,38 @@ jobs:
           path: farukh-ttk-pro/app/build/outputs/apk/release/FARUKH-TTK-PRO-signed.apk
           retention-days: 90
           if-no-files-found: error
+      - name: Publish signed APK and atomic update manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CODE="$(sed -n 's/^ *versionCode = \([0-9]*\).*/\1/p' app/build.gradle.kts | head -1)"
+          NAME="$(sed -n 's/^ *versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -1)"
+          test -n "$CODE"
+          test -n "$NAME"
+          TAG="farukh-ttk-pro-v${CODE}"
+          SRC="app/build/outputs/apk/release/FARUKH-TTK-PRO-signed.apk"
+          OUT="app/build/outputs/apk/release/FARUKH_TTK_PRO_v${CODE}_signed.apk"
+          cp "$SRC" "$OUT"
+          gh release create "$TAG" "$OUT" --target "$GITHUB_SHA" \
+              --title "FARUKH TTK PRO v${NAME}" \
+              --notes "Проверенный подписанный APK. Подпись защищена секретами; пользователи новой стабильной линии обновляются поверх предыдущей версии."
+          export RELEASE_CODE="$CODE" RELEASE_NAME="$NAME" RELEASE_TAG="$TAG"
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          p=Path("updates/latest.json")
+          doc=json.loads(p.read_text(encoding="utf-8"))
+          doc["packageId"]="com.farukh.ttkpro.premium"
+          doc["versionCode"]=int(os.environ["RELEASE_CODE"])
+          doc["versionName"]=os.environ["RELEASE_NAME"]
+          doc["downloadUrl"]="https://github.com/"+os.environ["GITHUB_REPOSITORY"]+"/releases/download/"+os.environ["RELEASE_TAG"]+"/FARUKH_TTK_PRO_v"+os.environ["RELEASE_CODE"]+"_signed.apk"
+          doc["notes"]="Подписанный выпуск FARUKH TTK PRO: новые функции и исправления. Перед обновлением рекомендуем резервную копию."
+          p.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          PY
+          git config user.name "farukh-ttk-release-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates/latest.json
+          git commit -m "Publish FARUKH TTK PRO signed v${CODE} update manifest [skip ci]"
+          git push origin "HEAD:farukh-ttk-pro"
