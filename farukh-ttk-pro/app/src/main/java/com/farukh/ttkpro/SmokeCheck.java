@@ -26,6 +26,26 @@ public final class SmokeCheck {
             JSONObject original=store.dishes().get(0);
             if(!"farukh-ttk-pro-backup-v1".equals(store.backup().getString("format")))throw new Exception("Backup serialization error");
             result.append("PASS: JSON backup serialization\n");checks++;
+            // Verify that nutrient arithmetic is per recipe/100g, not blindly per 100g raw weight.
+            RecipeAudit audit=RecipeAudit.inspect(store,original);
+            if(audit.netto<=0||audit.kcal<=0||audit.yield<=0)throw new Exception("Nutritional results unexpectedly blank");
+            double expected=audit.kcal*100d/audit.yield;
+            if(Math.abs(expected-audit.kcal100())>0.00001)throw new Exception("KБЖУ per-100g formula failure");
+            result.append("PASS: nutrition per dish and per 100g; sample kcal=").append(RecipeAudit.num(audit.kcal)).append("\\n");checks++;
+            if(audit.issues.isEmpty())throw new Exception("Unverified sample must not be marked compliant");
+            if(audit.unknownAllergens<1)throw new Exception("Unverified allergens not flagged");
+            result.append("PASS: unverified allergens and ingredients flagged\\n");checks++;
+            JSONObject modified=new JSONObject(original.toString());
+            JSONArray wrong=new JSONArray();
+            wrong.put(TTKStore.row("Рис для суши готовый",2,5));
+            modified.put("rows",wrong);
+            RecipeAudit bad=RecipeAudit.inspect(store,modified);
+            if(!bad.summary().contains("Нетто больше брутто"))throw new Exception("Brutto/netto consistency check failed");
+            result.append("PASS: brutto vs netto check\\n");checks++;
+            if(!TTKStore.defaultTechnology("Запечённые роллы").contains("термическую")
+              ||!TTKStore.defaultTechnology("Темпура").contains("Обжар"))
+              throw new Exception("Category-specific technologies are not independent");
+            result.append("PASS: category-specific cooking technology\\n");checks++;
             for(int t=0;t<4;t++){
                 JSONObject dish=new JSONObject(original.toString());dish.put("template",t);
                 byte[] data=PdfMaker.generate(ctx,store,dish);
