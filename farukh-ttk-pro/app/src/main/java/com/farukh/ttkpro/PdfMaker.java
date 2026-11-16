@@ -242,14 +242,17 @@ public class PdfMaker {
         if(y>744)throw new Exception("ТТК не помещается на читаемый лист А4. Сократите текст или количество позиций.");
         // Elegant Japanese artwork fills empty space on short cards, without
         // stealing any of the required sections or obscuring signature fields.
-        if(y<675){
-            float start=Math.max(y+11,657);
-            box(left,start,537,Math.min(738-start,87),12,template==2?0xFFF1F5FA:0xFFFFF6F6);
-            p.setColor(0x22C51C2E);c.drawCircle(455,start+27,28,p);
-            mountain(469,start+77,.78f);
-            sakura(88,start+38,.76f);
-            wave(118,start+53,.86f);
-            torii(548,start+46,.52f);
+        if(y<716){
+            float start=Math.max(y+10,683);
+            float height=Math.min(742-start,55);
+            if(height>16){
+                box(left,start,537,height,9,template==2?0xFFF1F5FA:0xFFFFF6F6);
+                p.setColor(0x22C51C2E);c.drawCircle(455,start+height*.34f,Math.min(19,height*.35f),p);
+                mountain(466,start+height-4,.52f);
+                sakura(88,start+20,.52f);
+                wave(132,start+height-16,.72f);
+                torii(545,start+height-16,.43f);
+            }
         }
         float fy=Math.max(765,y+13);
         rule(fy-12);
