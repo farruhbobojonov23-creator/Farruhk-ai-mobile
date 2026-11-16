@@ -1,0 +1,26 @@
+name: Farukh AI measured startup audit
+on:
+  push:
+    branches: [audit/farukh-speed-20261117]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/audit-startup-speed.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-startup-performance
+          path: artifacts/performance-audit.json
