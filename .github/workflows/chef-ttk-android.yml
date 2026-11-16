@@ -42,6 +42,7 @@ jobs:
         run: flutter test
       - name: Verify sample PDF is exactly one A4 page and contains 9 sections
         run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
           pdfinfo build/ttk_pdf_preview/philadelphia_a4.pdf
           pdfinfo build/ttk_pdf_preview/philadelphia_a4.pdf | grep -E '^Pages:[[:space:]]+1$'
           pdftotext -layout build/ttk_pdf_preview/philadelphia_a4.pdf sample.txt
