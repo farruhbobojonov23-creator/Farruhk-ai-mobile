@@ -1,0 +1,34 @@
+/* Staff report surfaces must use the active theme, including nested counters. */
+@media screen {
+ html body[data-pf-theme] #print-control-root .pstaff-worker-row > span {
+  background:var(--pf-raised,#2b241c)!important;
+  background-image:none!important;
+  color:var(--pf-ink,#f3e5d0)!important;
+  -webkit-text-fill-color:var(--pf-ink,#f3e5d0)!important;
+  border:1px solid var(--pf-line,#80623d)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  font-size:13px!important;
+  line-height:1.65!important;
+  overflow-wrap:anywhere;
+ }
+ html body[data-pf-theme] #print-control-root .pstaff-mini-track {
+  background:var(--pf-raised,#2b241c)!important;
+  background-image:none!important;
+  border-color:var(--pf-line,#80623d)!important;
+ }
+ html body[data-pf-theme] #print-control-root .pstaff-mini-bar {
+  background:var(--pf-accent,#d9ad66)!important;
+  background-image:none!important;
+ }
+ html body[data-pf-theme] #print-control-root .pstaff-mini-chart > span {
+  color:var(--pf-muted,#d5c4ae)!important;
+  -webkit-text-fill-color:var(--pf-muted,#d5c4ae)!important;
+ }
+ html body[data-pf-theme] #print-control-root .pstaff-product-row > b {
+  background:var(--pf-raised,#2b241c)!important;
+  color:var(--pf-accent,#d9ad66)!important;
+  -webkit-text-fill-color:var(--pf-accent,#d9ad66)!important;
+  border:1px solid var(--pf-line,#80623d)!important;
+ }
+}
