@@ -1,0 +1,45 @@
+/* Optional explanations follow the selected print-manager theme, not legacy Arctic surfaces. */
+@media screen {
+ html body[data-pf-theme] #print-control-root details.fai-help-details {
+  background:var(--pf-panel,#211c17)!important;
+  background-image:none!important;
+  color:var(--pf-ink,#f3e5d0)!important;
+  -webkit-text-fill-color:var(--pf-ink,#f3e5d0)!important;
+  border:1px solid var(--pf-line,#80623d)!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+  padding:0!important;
+  margin:10px 0!important;
+ }
+ html body[data-pf-theme] #print-control-root details.fai-help-details > summary {
+  display:list-item!important;
+  box-sizing:border-box!important;
+  min-height:44px!important;
+  padding:11px 14px!important;
+  margin:0!important;
+  background:transparent!important;
+  color:var(--pf-ink,#f3e5d0)!important;
+  -webkit-text-fill-color:var(--pf-ink,#f3e5d0)!important;
+  border:0!important;
+  border-radius:11px!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  font-size:14px!important;
+  line-height:22px!important;
+  cursor:pointer!important;
+ }
+ html body[data-pf-theme] #print-control-root details.fai-help-details > summary::marker {
+  color:var(--pf-accent,#d9ad66)!important;
+ }
+ html body[data-pf-theme] #print-control-root details.fai-help-details > summary:focus-visible {
+  outline:2px solid var(--pf-accent,#d9ad66)!important;
+  outline-offset:2px!important;
+ }
+ html body[data-pf-theme] #print-control-root details.fai-help-details > p {
+  color:var(--pf-muted,#d5c4ae)!important;
+  -webkit-text-fill-color:var(--pf-muted,#d5c4ae)!important;
+  margin:0!important;
+  padding:0 14px 14px!important;
+  line-height:1.6!important;
+ }
+}
