@@ -1,3 +1,5 @@
+import {isPremiumTtkTheme} from './public/ttk-premium-themes.js';
+import {premiumDualRecipeWord} from './recipe-dual-word.js';
 import {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType} from 'docx';
 import {resolveCategoryFields,calculateNutrition,scopeForName} from './public/recipe-math.js';
 const gold='651D2C',pale='F5DCC9';
@@ -8,7 +10,8 @@ export function recipeSections(input){
  return {recipe:r,nutrition,sections:[['1. Область применения',[[scopeForName(r.scope,r.name)]]],['2. Требования к сырью',[[text(r.rawRequirements)]]],['3. Рецептура',[['Наименование сырья / полуфабриката','Брутто, г','Нетто, г'],...(r.ingredients||[]).map(i=>[text(i.name),format(i.grossGrams),format(i.grams)]),['Выход готового блюда'+(r.pieces?' ('+r.pieces+' шт.)':''),'',format(r.netYieldGrams)+' г']]],['4. Технологический процесс приготовления',[['Этап','Описание действий'],['Подготовка',text(r.preparation)],['Приготовление',text(r.forming||r.technology)],['Нарезка и подача',text(r.serving)]]],['5. Оформление, подача, реализация и хранение',[[text(r.storage)]]],['6. Показатели качества и безопасности',[['Показатель','Характеристика'],['Внешний вид',text(r.appearance)],['Вкус, запах и консистенция',text(r.taste)],['Безопасность',text(r.safety)]]],['7. Пищевая ценность',[['Показатель','Белки, г','Жиры, г','Углеводы, г','Ккал'],['На 100 г',...['protein','fat','carbs','kcal'].map(k=>format(nutrition[k]))],['На порцию '+format(r.netYieldGrams)+' г',...['protein','fat','carbs','kcal'].map(k=>nutrition[k]!=null&&Number(r.netYieldGrams)>0?format(Number(nutrition[k])*Number(r.netYieldGrams)/100):'—')]]]]};
 }
 export async function recipeWord(input){
- const {recipe:r,sections}=recipeSections(input);
+ const {recipe:r,sections,nutrition}=recipeSections(input);
+ if(isPremiumTtkTheme(r.layoutTemplate))return premiumDualRecipeWord(r,nutrition);
  const safetyRows=sections[5][1].filter(row=>row[0]==='Безопасность');sections[5][1]=sections[5][1].filter(row=>row[0]!=='Безопасность');sections[5][0]='6. Показатели качества';sections.push(['Безопасность',[[safetyRows.map(row=>row[1]).join('\n')||'—']]]);
  const para=(value,bold=false,color='4A1723')=>new Paragraph({children:[new TextRun({text:text(value),bold,color,font:'Arial',size:16})],spacing:{after:20,line:200}});
  const widths=count=>({1:[100],2:[28,72],3:[60,20,20],4:[15,40,15,30],5:[30,17.5,17.5,17.5,17.5]})[count]||Array(count).fill(100/count);
