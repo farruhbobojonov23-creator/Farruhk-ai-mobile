@@ -1,0 +1,34 @@
+name: FARUKH AI — Premium dual-column TTK QA
+on:
+  push:
+    branches:
+      - feature/ttk-dual-column-premium-20261119
+  pull_request:
+    paths:
+      - 'recipe-dual-*.js'
+      - 'recipe-premium-pdf.js'
+      - 'recipe-word.js'
+      - 'public/ttk-premium-*'
+      - 'public/recipe-sheet.js'
+      - 'public/ttk-layouts.js'
+      - 'tests/ttk-dual-premium.test.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  premium-ttk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax check
+        run: |
+          for p in public/recipe-sheet.js public/ttk-layouts.js public/ttk-premium-themes.js recipe-dual-pdf.js recipe-dual-word.js recipe-premium-pdf.js recipe-word.js; do node --check "$p"; done
+      - name: Test one-page PDF and editable Word (all four palettes)
+        run: node --test tests/ttk-dual-premium.test.js tests/ttk-a4-designs.test.js
