@@ -23,8 +23,8 @@ const recipe={
 };
 const pdfBytes=doc=>new Promise((resolve,reject)=>{const buffers=[];doc.on('data',chunk=>buffers.push(chunk));doc.on('end',()=>resolve(Buffer.concat(buffers)));doc.on('error',reject);doc.end()});
 
-test('four new premium themes plus two legacy themes are selectable',()=>{
- assert.deepEqual(TTK_LAYOUTS.map(x=>x.id),['emerald-gold-a4','navy-silver-a4','bordeaux-gold-a4','graphite-copper-a4','arctic-a4','royal-a4']);
+test('four premium choices are visible; legacy cards remain supported',()=>{
+ assert.deepEqual(TTK_LAYOUTS.map(x=>x.id),['emerald-gold-a4','navy-silver-a4','bordeaux-gold-a4','graphite-copper-a4']);
  assert.equal(ttkLayoutId('royal-a4'),'royal-a4');
  assert.equal(ttkLayoutId('unknown'),'emerald-gold-a4');
 });
