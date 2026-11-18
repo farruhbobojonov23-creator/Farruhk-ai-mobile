@@ -21,7 +21,7 @@ export function mountMyRecipeTemplates({getState,save,createRecipe,notify}){
   list.replaceChildren();form.replaceChildren();draft=null;dirty=false;
   const gallery=el('section');gallery.className='ttk-design-gallery';
   gallery.append(el('h3','Шаблоны оформления ТТК · A4'),
-   el('p','Два готовых дизайна: 01 — Arctic Glass и 02 — Royal Blue. Фото блюда сохраняет оригинальный фон. Выбор меняет только оформление PDF, не рецептуру.'));
+   el('p','Четыре утверждённые премиальные палитры с одной сеткой: 1|2, 3|4, 5|6, 7|аллергены. PDF и Word получат те же цвета и таблицы. Старые стили сохранены.'));
   const designs=el('div');designs.className='ttk-design-grid';
   const selected=ttkLayoutId(document.getElementById('editor')?.dataset.ttkLayout);
   function chooseDesign(id){
