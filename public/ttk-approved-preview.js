@@ -34,7 +34,7 @@ export function buildApprovedA4Payload(recipe={}){
  const overrides=r.allergenOverrides&&typeof r.allergenOverrides==='object'?r.allergenOverrides:{};
  return {
   cardNumber:r.cardNumber||'—',name:r.name||'—',category:r.category||'—',
-  yield:(pieces?pieces+' шт. · ':'')+weightLabel,date:showDate(r.cardDate),
+  yield:(pieces?pieces+' шт. · ':'')+weightLabel,portionWeight,date:showDate(r.cardDate),
   status:r.status==='ready'?'Рецептура готова':'В разработке',
   scope:r.scope||'',rawRequirements:r.rawRequirements||'',ingredients,
   technologyStages:stages,serving:r.serving||'',sale:'',storage:r.storage||'',
@@ -100,6 +100,8 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
   const r=buildApprovedA4Payload({...current,brandLogo:brandLogo||current.brandLogo||null});
   const doc=iframe.contentDocument;
   iframe.contentWindow.applyTtkData(r);
+  const portionHeader=doc.querySelector('.nutrition thead th:last-child');
+  if(portionHeader)portionHeader.textContent='На порцию ('+(r.portionWeight?displayNum(r.portionWeight)+' г':'—')+')';
   doc.querySelectorAll('[contenteditable]').forEach(n=>n.setAttribute('contenteditable','false'));
   const brand=doc.querySelector('.brand');
   if(brand&&!r.brandLogo){
