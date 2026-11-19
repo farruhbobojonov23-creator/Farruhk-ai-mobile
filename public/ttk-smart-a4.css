@@ -50,3 +50,29 @@ body.smart-modal-open{overflow:hidden!important}
  .ttk-smart-controls button{font-size:11px;min-height:40px;padding:6px}
  .smart-fullscreen-toolbar b{flex-basis:100%}
 }
+
+/* Restore General Settings in the primary Smart A4 view.
+   The old controls were hidden with the legacy stage on mobile. */
+.ttk-smart-controls .smart-settings-row{
+ grid-column:1/-1!important;position:relative!important;display:block!important;
+ max-width:none!important;width:100%!important;padding:0!important;margin:0!important;
+ overflow:visible!important;z-index:300!important;background:transparent!important;border:none!important
+}
+.ttk-smart-controls .smart-settings-row>summary{display:none!important}
+.ttk-smart-controls .smart-settings-row:not([open]) .ttk-general-panel{display:none!important}
+.ttk-smart-controls .smart-settings-row[open] .ttk-general-panel{
+ display:block!important;position:static!important;z-index:301!important;max-width:100%!important;
+ width:100%!important;min-width:0!important;max-height:min(64vh,650px)!important;
+ overflow:auto!important;margin:3px 0 7px!important;padding:14px!important;
+ background:#fffdf7!important;border:2px solid #d1ab64!important;border-radius:12px!important;
+ color:#244335!important;box-shadow:0 15px 38px #0005!important
+}
+.ttk-smart-controls .smart-settings-row[open] .ttk-general-panel *{color:#173b30}
+.ttk-smart-controls .smart-settings-row .ttk-general-actions button{
+ min-height:38px!important;width:auto!important;background:#065844!important;color:#fff3d9!important
+}
+.ttk-smart-controls .smart-settings-row .ttk-general-field select,
+.ttk-smart-controls .smart-settings-row .ttk-general-field input{
+ background:#fff!important;color:#123e31!important;max-width:100%!important
+}
+.ttk-smart-controls:not([data-selected="true"]) .smart-settings{display:none!important}
