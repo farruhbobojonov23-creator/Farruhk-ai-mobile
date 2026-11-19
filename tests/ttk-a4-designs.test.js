@@ -51,6 +51,6 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
 }
 test('untrusted design or photo payload is not accepted by server normalization',()=>{
  const out=cleanState({recipes:[{...recipe,layoutTemplate:'evil-style',photo:'https://example.com/evil.png'}]}).recipes[0];
- assert.equal(out.layoutTemplate,'premium-smart-a4');
+ assert.equal(out.layoutTemplate,'teal-matrix'); // Untrusted IDs preserve the hardened legacy fallback.
  assert.equal(out.photo,null);
 });
