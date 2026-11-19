@@ -10,8 +10,8 @@ test('Entry page carries a bounded premium loading fallback and updated assets',
  assert.match(page,/root\.dataset\.pfSlow='1'/);
  assert.match(page,/\},15000\)/);
  assert.match(page,/removeAttribute\('data-pf-boot'\)/);
- assert.match(page,/premium-workspace\.js\?v=24/);
- assert.match(page,/premium-showcase\.css\?v=2/);
+ assert.match(page,/premium-workspace\.js\?v=25/);
+ assert.match(page,/premium-showcase\.css\?v=3/);
  assert.match(page,/requestIdleCallback\(finishStartup,\{timeout:2500\}\)/);
 });
 test('Old home stays hidden until Royal V2 is mounted or an actual error occurs',async()=>{
