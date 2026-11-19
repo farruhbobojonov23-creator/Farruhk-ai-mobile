@@ -84,3 +84,29 @@ body.ttk-approved-preview-open{overflow:hidden!important}
  width:1024px;height:1448px;border:0;
  background:#fffaf0;transform-origin:top left;
 }
+
+/* Existing TTK Studio A4 mode forces viewport display:block. Override its
+   specific selector when the owner-approved art is selected. */
+@media screen {
+ #editor.ttk-studio-enabled[data-mode="paper"][data-ttk-layout="emerald-master-a4"][data-ttk-show-legacy="false"] .ttk-pro-shell .ttk-viewport,
+ #editor.ttk-studio-enabled[data-mode="form"][data-ttk-layout="emerald-master-a4"][data-ttk-show-legacy="false"] .ttk-pro-shell .ttk-viewport {
+  display:none!important;visibility:hidden!important
+ }
+ #editor.ttk-studio-enabled[data-ttk-layout="emerald-master-a4"] .ttk-approved-controls {
+  display:grid!important;visibility:visible!important;position:relative;z-index:10;
+  width:100%!important;box-sizing:border-box!important;margin-bottom:10px!important
+ }
+ #editor.ttk-studio-enabled[data-ttk-layout="emerald-master-a4"] .ttk-approved-mini {
+  display:block!important;min-height:0!important
+ }
+ #editor.ttk-studio-enabled[data-ttk-layout="emerald-master-a4"] .ttk-approved-mini[hidden]{
+  display:none!important
+ }
+ #editor.ttk-studio-enabled[data-ttk-layout="emerald-master-a4"] .ttk-approved-save{
+  background:linear-gradient(110deg,#b28a43,#ecd38a)!important;
+  color:#173827!important;border-color:#fff0b3!important
+ }
+ #editor.ttk-studio-enabled[data-ttk-layout="emerald-master-a4"] .ttk-approved-controls button{
+  pointer-events:auto!important
+ }
+}
