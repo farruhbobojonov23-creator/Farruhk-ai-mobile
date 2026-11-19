@@ -1,0 +1,52 @@
+/* Approved variant #1: fixed A4, 15 ingredient slots, mobile first. */
+.ttk-smart-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-width:0;
+ padding:15px;margin:12px 0;border:1px solid #c99f55;border-radius:14px;background:linear-gradient(120deg,#002c23,#085943 78%,#003327);
+ color:#fff1cb;box-shadow:0 8px 25px #0004}
+.ttk-smart-controls h3{grid-column:1/-1;margin:0;font:900 20px Arial,sans-serif;color:#ffe4a5;letter-spacing:.4px}
+.ttk-smart-controls p{grid-column:1/-1;margin:0 0 4px;font:12px/1.45 Arial,sans-serif;color:#f4e4c5}
+.ttk-smart-controls button{
+ font:800 12px/1.25 Arial,sans-serif;color:#fce6bd;min-height:42px;
+ padding:8px 9px;background:linear-gradient(110deg,#0d5944,#133c30);
+ border:1px solid #d3ae64;border-radius:9px;cursor:pointer;white-space:normal;
+}
+.ttk-smart-controls button:focus-visible{outline:3px solid #ffdb91;outline-offset:2px}
+.ttk-smart-controls button.smart-choose,.ttk-smart-controls button.smart-save{
+ background:linear-gradient(110deg,#b88933,#f5dda4)!important;color:#172f25!important
+}
+.ttk-smart-controls button:disabled{opacity:.45;cursor:not-allowed}
+.ttk-smart-controls .smart-status{grid-column:1/-1;padding:3px 7px;font:12px/1.45 Arial,sans-serif;color:#ffe1a5}
+.ttk-smart-controls .smart-status:empty{display:none}
+.ttk-smart-controls .smart-status[data-overflow="true"]{background:#66312c;color:#ffe1df;border:1px solid #f5b7a2;border-radius:8px;padding:9px}
+.ttk-smart-controls .smart-inline-viewport{grid-column:1/-1;margin:5px auto 0;width:100%;max-width:1024px;min-height:1px;position:relative;overflow:hidden;box-shadow:0 8px 30px #00170dbb;border:1px solid #bf9655;border-radius:4px}
+.ttk-smart-controls .smart-inline-viewport iframe{display:block;position:absolute;inset:0 auto auto 0;width:1024px;height:1448px;
+ transform-origin:top left;border:none;background:#fffaf0}
+.ttk-smart-controls:not([data-selected="true"]) .smart-inline-viewport,
+.ttk-smart-controls:not([data-selected="true"]) .smart-edit,
+.ttk-smart-controls:not([data-selected="true"]) .smart-open,
+.ttk-smart-controls:not([data-selected="true"]) .smart-save,
+.ttk-smart-controls:not([data-selected="true"]) .smart-print,
+.ttk-smart-controls:not([data-selected="true"]) .smart-upload,
+.ttk-smart-controls:not([data-selected="true"]) .smart-photo {display:none!important}
+#editor[data-ttk-layout="premium-smart-a4"] .ttk-approved-controls {display:none!important}
+#editor[data-ttk-layout="premium-smart-a4"][data-studio-mode="paper"][data-smart-legacy-visible="false"] .ttk-studio-intro,
+#editor[data-ttk-layout="premium-smart-a4"][data-studio-mode="paper"][data-smart-legacy-visible="false"] .ttk-pro-shell,
+#editor[data-ttk-layout="premium-smart-a4"][data-mode="paper"][data-smart-legacy-visible="false"] .ttk-studio-intro,
+#editor[data-ttk-layout="premium-smart-a4"][data-mode="paper"][data-smart-legacy-visible="false"] .ttk-pro-shell {display:none!important}
+#editor[data-ttk-layout="premium-smart-a4"][data-studio-mode="form"] .smart-inline-viewport,
+#editor[data-ttk-layout="premium-smart-a4"][data-mode="form"] .smart-inline-viewport {display:none!important}
+body.smart-modal-open{overflow:hidden!important}
+.smart-fullscreen[hidden]{display:none!important}
+.smart-fullscreen{position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;background:#101f1be8;backdrop-filter:blur(6px)}
+.smart-fullscreen-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 13px;
+ background:linear-gradient(100deg,#003d30,#075a42);color:#ffeac2;border-bottom:2px solid #d7af68}
+.smart-fullscreen-toolbar b{flex:1 1 145px;font:800 15px Arial,sans-serif}
+.smart-fullscreen-toolbar button{color:#ffebc3;background:#104c39;border:1px solid #cda45d;border-radius:7px;padding:9px;min-height:40px}
+.smart-fullscreen-stage{flex:1;overflow:auto;min-height:0;padding:11px;background:#303b35}
+.smart-fullpaper{position:relative;margin:0 auto;min-width:0;min-height:0;overflow:hidden}
+.smart-fullpaper iframe{display:block;position:absolute;top:0;left:0;width:1024px;height:1448px;transform-origin:top left;background:#fff;border:0}
+@media(max-width:580px){
+ .ttk-smart-controls{grid-template-columns:1fr 1fr;padding:10px;gap:6px}
+ .ttk-smart-controls h3{font-size:17px}
+ .ttk-smart-controls button{font-size:11px;min-height:40px;padding:6px}
+ .smart-fullscreen-toolbar b{flex-basis:100%}
+}
