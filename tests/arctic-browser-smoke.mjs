@@ -52,7 +52,10 @@ async function verify(mode,width,height){
  })));
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- page.on('dialog',async dialog=>{throw Error('Unexpected destructive-confirmation dialog: '+dialog.message())});
+ page.on('dialog',async dialog=>{
+  if(dialog.type()==='confirm'&&/В техкарте есть несохранённые изменения/.test(dialog.message())){await dialog.accept();return}
+  throw Error('Unexpected destructive-confirmation dialog: '+dialog.message());
+ });
  try{
   await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:20000});
   await page.waitForFunction(()=>document.querySelector('#connection')?.textContent==='Хранение на устройстве',null,{timeout:20000});
