@@ -28,6 +28,7 @@ test('global settings are optional and apply only to newly created TTKs',async()
  ]);
  assert.match(s,/farruh_ai_ttk_defaults_v1/);
  assert.match(s,/['"]1['"],['"]4['"],['"]6['"],['"]8['"],['"]10['"],['"]12['"],['"]16['"]/);
+ assert.match(s,/['"]emerald-master-a4['"]/);
  assert.match(s,/['"]teal-matrix['"]/);
  assert.match(s,/['"]gold-allergen['"]/);
  assert.match(s,/['"]premium-blue['"]/);
@@ -40,7 +41,7 @@ test('global settings are optional and apply only to newly created TTKs',async()
  assert.match(s,/#newrecipe,#home-new-recipe,#quickrecipe/);
  assert.match(onepage,/mountTtkGeneralSettings\(editor,stage,quickNav\)/);
  assert.match(html,/ttk-direct-inline\.css\?v=3/);
- assert.match(html,/ttk-studio\.js\?v=12/);
+ assert.match(html,/ttk-studio\.js\?v=13/);
 });
 
 test('settings and quantity are visually separated with accessible labels',async()=>{
