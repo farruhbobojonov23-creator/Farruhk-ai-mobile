@@ -130,6 +130,7 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   await page.waitForFunction(()=>{const e=document.querySelector('#editor'),m=e?.querySelector('.ttk-approved-mini');return e?.dataset.ttkLayout==='emerald-master-a4'&&!!m&&!m.hidden&&m.getBoundingClientRect().height>250},null,{timeout:18000});
    const fourOnOpen=await page.evaluate(()=>{
     const editor=document.querySelector('#editor'),stage=editor.querySelector('#ttk-real-a4-stage');
     const obsolete=editor.querySelector('.ttk-viewport>.ttk-paper');
