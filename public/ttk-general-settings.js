@@ -130,7 +130,7 @@ export function mountTtkGeneralSettings(editor,stage,topbar){
     field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));
    }
   }
-  if(settings.layout==='premium-smart-a4')document.dispatchEvent(new CustomEvent('ttk:choose-layout',{detail:{id:settings.layout}}));
+  if(settings.layout==='premium-smart-a4'&&editor.dataset.ttkLayout!==settings.layout)document.dispatchEvent(new CustomEvent('ttk:choose-layout',{detail:{id:settings.layout,notify:false}}));
   else {
    const card=editor.querySelector('#ttk-design-picker [data-ttk-layout="'+settings.layout+'"]');
    if(card&&card.getAttribute('aria-pressed')!=='true')card.click();
