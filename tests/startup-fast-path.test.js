@@ -29,7 +29,8 @@ test('Noncritical functional styles are async, all stylesheet URLs remain stable
  // Home still retains synchronous layout styles so its first paint does not flash unstyled.
  assert.match(html,/<link rel="stylesheet" href="\/premium-workspace\.css[^>]*>/);
  assert.match(html,/<link rel="stylesheet" href="\/premium-showcase\.css[^>]*>/);
- assert.match(html,/\},3500\)/);
+ assert.match(html,/root\.dataset\.pfBoot='premium'/);
+ assert.match(html,/\},15000\)/);
 });
 
 test('Legacy print builds on install, not on every Render cold start',async()=>{
