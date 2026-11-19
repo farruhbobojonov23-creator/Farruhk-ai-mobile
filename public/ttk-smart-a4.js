@@ -154,6 +154,9 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  });
  photo.onclick=()=>editor.querySelector('#recipe-photo-file')?.click();
  gallery.onclick=()=>{
+  const show=editor.dataset.smartLegacyVisible!=='true';
+  editor.dataset.smartLegacyVisible=String(show);
+  gallery.textContent=show?'◫ Скрыть другие шаблоны':'◫ Другие шаблоны';
   const mode=[...editor.querySelectorAll('.ttk-studio-switch-button')].find(x=>/Лист А4/i.test(x.textContent));
   if(mode)mode.click();
   const picker=editor.querySelector('#ttk-design-picker');
