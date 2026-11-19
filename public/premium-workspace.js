@@ -144,9 +144,8 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
   if(action==='more')document.getElementById('menu-toggle')?.click();
  });
  home.append(shell);
- // The selected design is applied at initialization and whenever Studio
- // changes the theme. This keeps legacy and premium dashboards exclusive.
- document.documentElement.removeAttribute('data-pf-boot');
+ // Retain the single loading view until the approved dashboard is mounted.
+ // Releasing it earlier can briefly expose the old Arctic home on slow phones.
  function updateProjectPicker(){
   const select=document.getElementById('pf-home-project-select');if(!select)return;
   select.replaceChildren();for(const p of projects.projects)select.add(new Option('Проект: '+p.name,p.id));select.value=projects.selected;document.dispatchEvent(new Event('pf:projects'));
@@ -241,6 +240,8 @@ export function mountPremiumWorkspace({show,openDataCenter}={}){
  // Premium layouts are additive, and keep the original five designs intact.
  mountPremiumShowcase({shell,goto,openStudio,openProjects});
  mountPremiumRoyalV2({shell,goto,openStudio,openProjects});
+ document.documentElement.removeAttribute('data-pf-boot');
+ document.documentElement.removeAttribute('data-pf-slow');
  const visualEditor=mountVisualEditor({show:typeof show==='function'?show:goto});
  const settingsTarget=document.getElementById('site-settings');
  if(settingsTarget){
