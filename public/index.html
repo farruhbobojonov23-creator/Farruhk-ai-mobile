@@ -261,7 +261,7 @@ async function openRecipePdf(recipe){
   setTimeout(()=>URL.revokeObjectURL(url),180000);
  }catch(err){tab?.close();throw err}
 }
-async function downloadWord(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');const response=await fetch('/api/recipes/word',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe})});if(!response.ok)throw Error('Не удалось подготовить Word.');downloadFile(await response.blob(),'ТТК_'+recipe.name+'.docx')}
+async function downloadWord(id){const recipe=(state?.recipes||[]).find(r=>r.id===id);if(!recipe)throw Error('Техкарта не найдена.');const response=await fetch('/api/recipes/word',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe})});if(!response.ok){const problem=await response.json().catch(()=>({}));throw Error(problem.error||'Не удалось подготовить Word.')}downloadFile(await response.blob(),'ТТК_'+recipe.name+'.docx')}
 function downloadFile(blob,name){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000)}
 function guard(fn){return async e=>{e?.preventDefault();try{await fn(e)}catch(err){notice(err.message,true)}}}
 function empty(box,text){const p=document.createElement('p');p.className='empty';p.textContent=text;box.append(p)}
