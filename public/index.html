@@ -769,6 +769,11 @@ try{await requireOwner();try{mountPremiumWorkspace({show,openDataCenter:()=>data
  // Direct safe link: opens the sync section, but never enables it automatically.
  if(new URLSearchParams(location.search).get('sync')==='1')deviceCloudSync?.open();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
-}catch(e){notice(e.message,true)}
+}catch(e){
+ document.documentElement.removeAttribute('data-pf-boot');
+ document.documentElement.removeAttribute('data-pf-slow');
+ $('connection').textContent='Не удалось завершить загрузку';
+ notice(e.message,true);
+}
 </script></body></html>
 
