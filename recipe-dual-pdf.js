@@ -52,7 +52,14 @@ export function premiumDualRecipePdf(input){
   const titleFont=8.15*s,barPad=5*s;
   const titleLines=wrap(block.title,width-2*barPad,titleFont,true);
   const barH=titleLines.length*titleFont*1.30+barPad*2;
-  if(block.allergens)return {barH,heights:Array(5).fill(20*s),total:barH+100*s};
+  if(block.allergens){
+   const heights=Array.from({length:Math.ceil(ALLERGEN_OPTIONS.length/2)},(_,row)=>{
+    const items=[ALLERGEN_OPTIONS[row*2],ALLERGEN_OPTIONS[row*2+1]].filter(Boolean);
+    const lines=items.map(([key,label])=>wrap(key==='other'&&r.allergenOther?'Другое: '+r.allergenOther:label,width/2-22*s,6.7*s));
+    return Math.max(20*s,Math.max(...lines.map(x=>x.length))*6.7*s*1.3+8*s);
+   });
+   return {barH,heights,total:barH+heights.reduce((a,b)=>a+b,0)};
+  }
   const font=7*s,pad=3.5*s;
   const heights=block.rows.map((row,idx)=>{
    const pieces=row.map((v,j)=>wrap(v,width*block.weights[j]-pad*2,font,block.header&&idx===0));
@@ -70,8 +77,8 @@ export function premiumDualRecipePdf(input){
    const selected=new Set(r.allergens||[]);
    ALLERGEN_OPTIONS.forEach(([key,label],index)=>{
     const column=index%2, row=Math.floor(index/2),cellWidth=width/2;
-    const cellX=bx+column*cellWidth,cellY=yy+row*20*s;
-    doc.rect(cellX,cellY,cellWidth,20*s).lineWidth(.35).fillAndStroke(t.cell,t.line);
+    const cellX=bx+column*cellWidth,cellY=yy+info.heights.slice(0,row).reduce((a,b)=>a+b,0),cellH=info.heights[row];
+    doc.rect(cellX,cellY,cellWidth,cellH).lineWidth(.35).fillAndStroke(t.cell,t.line);
     const squareX=cellX+5*s,squareY=cellY+5*s;
     doc.rect(squareX,squareY,9*s,9*s).lineWidth(.75).strokeColor(t.band).stroke();
     if(selected.has(key)){
@@ -111,8 +118,8 @@ export function premiumDualRecipePdf(input){
    drawText(['ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],x+150*s,y+7*s,W-255*s,9*s,true,'#FFFFFF');
    drawText(['№ '+f(r.cardNumber)],x+W-84*s,y+9*s,75*s,9*s,true,'#FFFFFF');
    drawText(wrap(r.name,W-20*s,14*s,true).slice(0,2),x+8*s,y+39*s,W-16*s,14*s,true,t.band);
-   drawText(['Категория: '+f(r.category)+'   •   Дата: '+f(r.cardDate)],x+8*s,y+70*s,W-18*s,7*s,false,t.ink);
-   drawText(['Выход: '+(Number(r.netYieldGrams)>0?number(r.netYieldGrams)+' г':'—')+'   •   Количество: '+(r.pieces?f(r.pieces)+' шт.':'—')],x+8*s,y+83*s,W-18*s,7*s,false,t.ink);
+   drawText(['Категория: '+f(r.category)+'   •   Дата: '+f(r.cardDate)+'   •   Статус: '+(r.status==='ready'?'Рецептура готова':'Проект')],x+8*s,y+70*s,W-18*s,7*s,false,t.ink);
+   drawText(['Предприятие: '+f(r.projectName||'—')+'   •   Выход: '+(Number(r.netYieldGrams)>0?number(r.netYieldGrams)+' г':'—')+'   •   Количество: '+(r.pieces?f(r.pieces)+' шт.':'—')],x+8*s,y+83*s,W-18*s,7*s,false,t.ink);
   }
   y+=headerH+9*s;
   for(const [leftIndex,rightIndex] of [[0,1],[2,3],[4,5],[6,7]]){
