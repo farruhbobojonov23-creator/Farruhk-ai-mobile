@@ -4,7 +4,7 @@
  * and previews the actual server-rendered PDF, using the current unsaved data.
  * The existing editable controls remain mounted inside .ttk-paper unchanged. */
 import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=8';
-import {mountOnePageA4} from './ttk-one-page-a4.js?v=6';
+import {mountOnePageA4} from './ttk-one-page-a4.js?v=7';
 const ui=(tag,cls,content)=>{
  const el=document.createElement(tag);
  if(cls)el.className=cls;
