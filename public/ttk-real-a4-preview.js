@@ -107,6 +107,11 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  }
  async function showPdf(){
   if(!active)return;
+  if(chosen()==='emerald-master-a4'){
+   editor.dispatchEvent(new Event('ttk:show-approved'));
+   status.textContent='Открыта утверждённая печатная версия Emerald Gold A4.';
+   return;
+  }
   clear();
   const token=requestNo;
   let recipe;
