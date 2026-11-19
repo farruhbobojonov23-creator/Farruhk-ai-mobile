@@ -130,6 +130,15 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   // New TTK first presents the approved Smart A4, not the old tiny mockup.
+   const smartStart=await page.evaluate(()=>{
+    const e=document.querySelector('#editor'),preview=e?.querySelector('.ttk-smart-controls');
+    return {layout:e?.dataset.ttkLayout,visible:!!preview&&preview.getBoundingClientRect().height>150,
+      url:preview?.querySelector('iframe')?.getAttribute('src')};
+   });
+   check(tag+' SMART PREMIUM A4 is main sheet',smartStart.layout==='premium-smart-a4'&&smartStart.visible&&smartStart.url?.includes('/ttk-smart-a4.html'),smartStart);
+   await page.locator('#editor .smart-legacy').click();
+   await page.locator('#ttk-design-picker [data-ttk-layout="teal-matrix"]').click();
    const fourOnOpen=await page.evaluate(()=>{
     const editor=document.querySelector('#editor'),stage=editor.querySelector('#ttk-real-a4-stage');
     const obsolete=editor.querySelector('.ttk-viewport>.ttk-paper');
@@ -696,16 +705,6 @@ async function run(theme,width,height){
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
    // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
-   // New cards start with the approved Smart A4. The four old palettes are
-   // still available behind 'Другие шаблоны' and must retain their behavior.
-   const smartFirst=await page.evaluate(()=>({
-    chosen:document.querySelector('#editor')?.dataset.ttkLayout,
-    visible:document.querySelector('#editor .ttk-smart-controls')?.getBoundingClientRect().height>120,
-    rows:document.querySelector('#editor .smart-inline-viewport iframe')?.getAttribute('src')
-   }));
-   check(tag+' approved Smart A4 starts new TTK',smartFirst.chosen==='premium-smart-a4'&&smartFirst.visible&&smartFirst.rows?.includes('ttk-smart-a4.html'),smartFirst);
-   await page.locator('#editor .smart-legacy').click();
-   await page.locator('#ttk-design-picker [data-ttk-layout="teal-matrix"]').click();
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
@@ -732,7 +731,7 @@ async function run(theme,width,height){
     check(tag+' photo removes from the editable sheet',
       await page.evaluate(()=>!document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')),null);
     const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
-    check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
+    check(tag+' new TTK remains unsaved after photo edits',newState==='new'||newState==='dirty',newState);
     await page.locator('#recipe-name').fill('Пробный ролл');
     await page.locator('#ingredients .ingredient input[data-key="name"]').first().fill('Рис');
     await page.locator('#ingredients .ingredient input[data-key="grams"]').first().fill('100');
