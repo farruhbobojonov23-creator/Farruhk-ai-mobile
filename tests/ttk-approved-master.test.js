@@ -58,8 +58,23 @@ test('unknown nutritional values stay unknown; no demo recipe silently appears',
 test('controls connect existing editor to master without changing other PDFs and docs',async()=>{
  const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
  assert.match(index,/mountApprovedA4Preview/);
- assert.match(index,/approvedPreview\.populate\(r\)/);
+ assert.match(index,/approvedPreview\.populate\(r\|\|\{layoutTemplate:APPROVED_A4_LAYOUT\}\)/);
  assert.match(index,/approvedPreview\.getLogo\(\)/);
  assert.match(index,/recipe\.layoutTemplate===APPROVED_A4_LAYOUT/);
  assert.match(index,/Word 1:1 для эталона/);
+});
+
+test('approved A4 is the first visible preview on Android while original editor stays available',async()=>{
+ const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ const js=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ const css=await fs.readFile(new URL('../public/ttk-approved-preview.css',import.meta.url),'utf8');
+ assert.match(index,/recipeLayoutPicker\.populate\(r\|\|\{layoutTemplate:APPROVED_A4_LAYOUT\}\)/);
+ assert.match(index,/approvedPreview\.refreshInline\(\)/);
+ assert.match(js,/topToolbar\.after\(menu\)/,'approved template must be outside the hidden A4 stage');
+ assert.match(js,/saveA4\.addEventListener/,'save controls must remain accessible when legacy preview is hidden');
+ assert.match(js,/miniFrame\.contentWindow\.applyTtkData\(data\)/,'live sample must display current recipe');
+ assert.match(js,/const showFields=el\('button'/,'old fields must be recoverable');
+ assert.match(js,/editor\.dataset\.ttkShowLegacy=String\(show\)/);
+ assert.match(css,/#editor\[data-ttk-layout="emerald-master-a4"\]\[data-ttk-show-legacy="false"\] \.ttk-viewport/);
+ assert.match(css,/\.ttk-approved-mini-page iframe/,'A4 embeds the real dynamic master');
 });

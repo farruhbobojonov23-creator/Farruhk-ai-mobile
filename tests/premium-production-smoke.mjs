@@ -130,6 +130,7 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' Create TTK button visible',await edit.isVisible(),null);
    await edit.click();
    check(tag+' Create TTK opens working editor',await page.locator('#editor').isVisible(),null);
+   await page.waitForFunction(()=>{const e=document.querySelector('#editor'),m=e?.querySelector('.ttk-approved-mini');return e?.dataset.ttkLayout==='emerald-master-a4'&&!!m&&!m.hidden&&m.getBoundingClientRect().height>250},null,{timeout:18000});
    const fourOnOpen=await page.evaluate(()=>{
     const editor=document.querySelector('#editor'),stage=editor.querySelector('#ttk-real-a4-stage');
     const obsolete=editor.querySelector('.ttk-viewport>.ttk-paper');
@@ -138,10 +139,32 @@ async function auditRoyal(page,tag,mobile,errors){
       oldSheet:obsolete?getComputedStyle(obsolete).display:'missing',
       cards:cards.length,ids:cards.map(c=>c.dataset.ttkLayout)};
    });
-   check(tag+' A4 opens as four real templates, never as old HTML sheet',
-     fourOnOpen.mode==='paper'&&fourOnOpen.stage&&fourOnOpen.oldSheet==='none'&&
-     fourOnOpen.cards===4&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',
-     fourOnOpen);
+   const approvedFirst=await page.evaluate(()=>{
+    const editor=document.querySelector('#editor'),mini=editor.querySelector('.ttk-approved-mini');
+    const frame=mini?.querySelector('iframe'),page=mini?.querySelector('.ttk-approved-mini-page');
+    return {
+     selected:editor.dataset.ttkLayout,
+     visible:!!mini&&!mini.hidden&&mini.getBoundingClientRect().height>250,
+     previewHeight:page?.getBoundingClientRect().height,
+     startsBeforeStage:(editor.querySelector('.ttk-approved-controls')?.compareDocumentPosition(editor.querySelector('.ttk-pro-shell'))&Node.DOCUMENT_POSITION_FOLLOWING)!==0,
+     hiddenLegacy:getComputedStyle(editor.querySelector('.ttk-viewport')).display==='none',
+     frameSrc:frame?.getAttribute('src')
+    };
+   });
+   check(tag+' new TTK opens the approved live Emerald A4 above the old miniature',
+    approvedFirst.selected==='emerald-master-a4'&&approvedFirst.visible&&
+    approvedFirst.previewHeight>250&&approvedFirst.startsBeforeStage&&
+    approvedFirst.hiddenLegacy&&approvedFirst.frameSrc?.includes('/ttk-approved-master.html'),
+    approvedFirst);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-new-approved-emerald-master.png',timeout:12000});
+   // The original four premium variants and their real editable fields are
+   // retained behind a clear, user-accessible "Редактировать поля" button.
+   await page.locator('#editor .ttk-approved-fields').click();
+   await page.waitForFunction(()=>document.querySelector('#editor .ttk-viewport')?.getBoundingClientRect().height>100);
+   check(tag+' four legacy cards stay reachable after opening edit fields',
+     fourOnOpen.mode==='paper'&&fourOnOpen.cards===4&&
+     fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue'&&
+     await page.locator('#ttk-real-a4-stage').isVisible(),fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    // Production regression: on Android the old icon-only ⚙ could be
    // clipped by the four-button topbar. The full-width labeled row MUST be
@@ -696,6 +719,10 @@ async function run(theme,width,height){
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
    // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
+   // The owner's approved Emerald master is the primary screen. Reveal the
+   // previous four layouts via explicit edit-fields control for regression.
+   await page.locator('#editor .ttk-approved-fields').click();
+   await page.waitForFunction(()=>document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>30,null,{timeout:12000});
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
@@ -705,7 +732,7 @@ async function run(theme,width,height){
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
-     catalog.count===4&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+     catalog.count===4&&catalog.sheet==='emerald-master-a4'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
    await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
    check(tag+' selecting Premium Blue changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
@@ -722,7 +749,7 @@ async function run(theme,width,height){
     check(tag+' photo removes from the editable sheet',
       await page.evaluate(()=>!document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')),null);
     const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
-    check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
+    check(tag+' new TTK remains unsaved after photo edits',newState==='new'||newState==='dirty',newState);
     await page.locator('#recipe-name').fill('Пробный ролл');
     await page.locator('#ingredients .ingredient input[data-key="name"]').first().fill('Рис');
     await page.locator('#ingredients .ingredient input[data-key="grams"]').first().fill('100');

@@ -3,9 +3,10 @@
    cards are NEVER rewritten when defaults change. */
 const STORAGE_KEY='farruh_ai_ttk_defaults_v1';
 const DEFAULT=Object.freeze({
-  layout:'teal-matrix',pieces:'8',nutritionAuto:true,showPencils:true,chef:'',approver:''
+  layout:'emerald-master-a4',pieces:'8',nutritionAuto:true,showPencils:true,chef:'',approver:''
 });
 const LAYOUTS=[
+ ['emerald-master-a4','00 · Emerald Gold · утверждённый эталон А4'],
  ['teal-matrix','01 · Бирюзовая матрица'],
  ['process-matrix','02 · Технологический процесс'],
  ['gold-allergen','03 · Золотая нумерация'],
@@ -129,8 +130,12 @@ export function mountTtkGeneralSettings(editor,stage,topbar){
     field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));
    }
   }
-  const card=editor.querySelector('#ttk-design-picker [data-ttk-layout="'+settings.layout+'"]');
-  if(card&&card.getAttribute('aria-pressed')!=='true')card.click();
+  if(settings.layout==='emerald-master-a4'){
+   if(editor.dataset.ttkLayout!==settings.layout)editor.querySelector('#ttk-approved-select')?.click();
+  }else{
+   const card=editor.querySelector('#ttk-design-picker [data-ttk-layout="'+settings.layout+'"]');
+   if(card&&card.getAttribute('aria-pressed')!=='true')card.click();
+  }
  };
  // Main app opens a NEW card synchronously through these existing buttons.
  // Apply defaults one tick later; NEVER overwrite a saved card being edited.
