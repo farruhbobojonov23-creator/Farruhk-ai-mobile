@@ -696,6 +696,16 @@ async function run(theme,width,height){
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
    // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
+   // New cards start with the approved Smart A4. The four old palettes are
+   // still available behind 'Другие шаблоны' and must retain their behavior.
+   const smartFirst=await page.evaluate(()=>({
+    chosen:document.querySelector('#editor')?.dataset.ttkLayout,
+    visible:document.querySelector('#editor .ttk-smart-controls')?.getBoundingClientRect().height>120,
+    rows:document.querySelector('#editor .smart-inline-viewport iframe')?.getAttribute('src')
+   }));
+   check(tag+' approved Smart A4 starts new TTK',smartFirst.chosen==='premium-smart-a4'&&smartFirst.visible&&smartFirst.rows?.includes('ttk-smart-a4.html'),smartFirst);
+   await page.locator('#editor .smart-legacy').click();
+   await page.locator('#ttk-design-picker [data-ttk-layout="teal-matrix"]').click();
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
