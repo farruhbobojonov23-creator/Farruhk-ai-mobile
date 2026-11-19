@@ -426,6 +426,9 @@ html[data-pf-boot="premium"] body[data-view="home"] #home.arctic-home:not(.pf-up
  letter-spacing:.06em!important;text-align:center!important;
  pointer-events:none!important;
 }
+html[data-pf-boot="premium"][data-pf-slow="1"] body[data-view="home"] #home.arctic-home:not(.pf-upgraded)::after{
+ content:"FARRUH AI · Загрузка задержалась. Проверьте интернет-соединение…";
+}
 body[data-pf-theme="crystal"] #home.arctic-home.pf-upgraded .pf-showcase{
  background:linear-gradient(155deg,#e1f4ff,#f3faff 55%,#cfe9fe)!important;
 }
