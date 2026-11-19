@@ -27,7 +27,7 @@ test('four approved allergen layouts replace both old templates',()=>{
  assert.deepEqual(TTK_LAYOUTS.map(x=>x.id),['teal-matrix','process-matrix','gold-allergen','premium-blue']);
  assert.equal(ttkLayoutId('arctic-a4'),'teal-matrix');
  assert.equal(ttkLayoutId('royal-a4'),'premium-blue');
- assert.equal(ttkLayoutId('unknown'),'teal-matrix');
+ assert.equal(ttkLayoutId('unknown'),'premium-smart-a4');
 });
 
 for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
@@ -51,6 +51,6 @@ for(const layoutTemplate of TTK_LAYOUTS.map(x=>x.id)){
 }
 test('untrusted design or photo payload is not accepted by server normalization',()=>{
  const out=cleanState({recipes:[{...recipe,layoutTemplate:'evil-style',photo:'https://example.com/evil.png'}]}).recipes[0];
- assert.equal(out.layoutTemplate,'teal-matrix');
+ assert.equal(out.layoutTemplate,'premium-smart-a4');
  assert.equal(out.photo,null);
 });
