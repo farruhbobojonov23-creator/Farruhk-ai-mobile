@@ -18,12 +18,13 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  const upload=el('button','smart-upload','▧ Логотип');upload.type='button';
  const photo=el('button','smart-photo','▧ Фото блюда');photo.type='button';
  const gallery=el('button','smart-legacy','◫ Другие шаблоны');gallery.type='button';
+ const settings=el('button','smart-settings','⚙ Общие настройки ТТК');settings.type='button';
  const file=el('input');file.type='file';file.accept='image/png,image/jpeg';file.hidden=true;
  const status=el('div','smart-status','');status.setAttribute('role','status');
  const viewport=el('div','smart-inline-viewport');
  const inlineFrame=el('iframe');inlineFrame.title='Премиальная ТТК SMART на одном листе А4';
  inlineFrame.src='/ttk-smart-a4.html?v=1';viewport.append(inlineFrame);
- panel.append(title,caption,choose,edit,open,save,print,upload,photo,gallery,file,status,viewport);
+ panel.append(title,caption,choose,edit,open,save,print,upload,photo,gallery,settings,file,status,viewport);
  // This is deliberately outside the old showroom which is hidden in paper mode.
  const toolbar=editor.querySelector('.ttk-toolbar');
  if(toolbar)toolbar.after(panel);else editor.prepend(panel);
@@ -42,6 +43,19 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  fullPaper.append(fullFrame);fullStage.append(fullPaper);overlay.append(control,fullStage);document.body.append(overlay);
 
  let currentLogo=null,draftRecipe=null,overrideRecipe=null,inlineLoaded=false,fullLoaded=false,zoomed=false,timer=null,lastFocus=null;
+ const settingsRow=editor.querySelector('.ttk-general-settings');
+ const settingsParent=settingsRow?.parentNode||null,settingsNext=settingsRow?.nextSibling||null;
+ if(settingsRow)settingsRow.classList.add('smart-settings-row');
+ function positionSettings(active){
+  if(!settingsRow||!settingsParent)return;
+  if(active&&settingsRow.parentNode!==panel)panel.insertBefore(settingsRow,status);
+  if(!active&&settingsRow.parentNode===panel)settingsParent.insertBefore(settingsRow,settingsNext&&settingsNext.parentNode===settingsParent?settingsNext:null);
+ }
+ settings.onclick=()=>{
+  if(!settingsRow){status.textContent='Общие настройки доступны в редакторе ТТК.';return}
+  positionSettings(true);settingsRow.open=!settingsRow.open;
+  if(settingsRow.open)settingsRow.scrollIntoView({block:'center',behavior:'smooth'});
+ };
  const isSelected=()=>editor.dataset.ttkLayout===SMART_A4_LAYOUT;
  const previewActive=()=>isSelected()||(!overlay.hidden&&overrideRecipe!==null);
  const safeLogo=data=>typeof data==='string'&&data.length<1500000&&/^data:image\/(?:png|jpeg);base64,[a-zA-Z0-9+/=]+$/.test(data);
@@ -89,6 +103,7 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  }
  function refresh(){
   const active=isSelected();panel.dataset.selected=String(active);panel.classList.toggle('is-active',active);
+  positionSettings(active);
   choose.textContent=active?'✓ PREMIUM SMART выбран':'☆ Выбрать PREMIUM SMART';
   if(!previewActive())return;
   try{
