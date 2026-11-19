@@ -16,7 +16,7 @@ export function cleanState(input={}){
     memory:list(input.memory).slice(-200).map(m=>({id:text(m.id||crypto.randomUUID(),80),text:text(m.text,1000),createdAt:text(m.createdAt,64)})).filter(m=>m.text),
     chat:list(input.chat).slice(-80).map(m=>({role:m.role==='user'?'user':'ai',text:text(m.text,6000)})).filter(m=>m.text),
     recipes:list(input.recipes).slice(-300).map(r=>({id:text(r.id||crypto.randomUUID(),80),name:text(r.name,200),category:text(r.category,100),status:['draft','ready'].includes(r.status)?r.status:'draft',technology:text(r.technology,10000),
- layoutTemplate:['emerald-master-a4','teal-matrix','process-matrix','gold-allergen','premium-blue'].includes(r.layoutTemplate)?r.layoutTemplate:r.layoutTemplate==='royal-a4'?'premium-blue':'emerald-master-a4',
+ layoutTemplate:['emerald-master-a4','teal-matrix','process-matrix','gold-allergen','premium-blue'].includes(r.layoutTemplate)?r.layoutTemplate:r.layoutTemplate==='royal-a4'?'premium-blue':'teal-matrix',
  brandLogo:typeof r.brandLogo==='string'&&r.brandLogo.length<1800000&&/^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/=]+$/i.test(r.brandLogo)?r.brandLogo:null,
  photo:typeof r.photo==='string'&&r.photo.length<=3000000&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/i.test(r.photo)?r.photo:null,
  projectId:text(r.projectId,100),projectName:text(r.projectName,120),
