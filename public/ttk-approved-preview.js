@@ -50,7 +50,7 @@ export function buildApprovedA4Payload(recipe={}){
   overrides
  };
 }
-export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
+export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelectMaster=()=>{}}={}){
  if(!editor||typeof getDraft!=='function')throw Error('Не найден редактор или источник ТТК.');
  const el=(tag,cls,label)=>{
   const n=document.createElement(tag);if(cls)n.className=cls;
@@ -62,9 +62,10 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  const note=el('p',null,'Макет MORE SUSHI: один лист А4, семь разделов, таблицы, аллергены и подписи. Заполняется из текущей ТТК. PDF — через печать браузера.');
  const open=el('button','ttk-approved-open','👁 Открыть эталон А4');
  open.type='button';open.id='ttk-approved-open';
+ const select=el('button','ttk-approved-select','★ Выбрать Emerald Gold для этой ТТК');select.type='button';
  const logo=el('button','ttk-approved-logo','▧ Загрузить логотип');
  logo.type='button';const file=el('input');file.type='file';file.accept='image/png,image/jpeg';file.hidden=true;
- menu.append(heading,note,open,logo,file);
+ menu.append(heading,note,select,open,logo,file);
  (editor.querySelector('#ttk-design-picker')||editor.querySelector('.editor-modes')||editor).after(menu);
  const dialog=el('div','ttk-approved-modal');dialog.hidden=true;dialog.id='ttk-approved-modal';
  dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Просмотр эталонной ТТК А4');
@@ -123,6 +124,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
   requestAnimationFrame(()=>{fit();render();close.focus()});
  }
  function hide(){dialog.hidden=true;document.body.classList.remove('ttk-approved-preview-open');lastFocus?.focus?.();}
+ select.onclick=()=>{onSelectMaster();select.textContent='✓ Emerald Gold выбран';onChange();show(getDraft())};
  open.onclick=()=>show(getDraft());
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
@@ -138,7 +140,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
   iframe.contentWindow.print(); // browser print dialog, users choose Save as PDF
  }
  print.onclick=printCurrent;
- function populate(r){brandLogo=r?.brandLogo||null;logo.textContent=brandLogo?'▧ Заменить логотип':'▧ Загрузить логотип';}
+ function populate(r){brandLogo=r?.brandLogo||null;logo.textContent=brandLogo?'▧ Заменить логотип':'▧ Загрузить логотип';select.textContent=r?.layoutTemplate===APPROVED_A4_LAYOUT?'✓ Emerald Gold выбран':'★ Выбрать Emerald Gold для этой ТТК';}
  logo.onclick=()=>file.click();
  file.addEventListener('change',()=>{
   const f=file.files?.[0];file.value='';
