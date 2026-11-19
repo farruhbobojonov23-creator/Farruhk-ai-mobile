@@ -41,15 +41,16 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  const fullFrame=el('iframe');fullFrame.src='/ttk-smart-a4.html?v=1';fullFrame.title='ТТК SMART для печати';
  fullPaper.append(fullFrame);fullStage.append(fullPaper);overlay.append(control,fullStage);document.body.append(overlay);
 
- let currentLogo=null,draftRecipe=null,inlineLoaded=false,fullLoaded=false,zoomed=false,timer=null,lastFocus=null;
+ let currentLogo=null,draftRecipe=null,overrideRecipe=null,inlineLoaded=false,fullLoaded=false,zoomed=false,timer=null,lastFocus=null;
  const isSelected=()=>editor.dataset.ttkLayout===SMART_A4_LAYOUT;
+ const previewActive=()=>isSelected()||(!overlay.hidden&&overrideRecipe!==null);
  const safeLogo=data=>typeof data==='string'&&data.length<1500000&&/^data:image\/(?:png|jpeg);base64,[a-zA-Z0-9+/=]+$/.test(data);
  function data(){
-  const r=getDraft();
+  const r=overrideRecipe||getDraft();
   draftRecipe=r;
-  const payload=buildApprovedA4Payload({...r,brandLogo:currentLogo||r.brandLogo||null});
+  const payload=buildApprovedA4Payload({...r,brandLogo:(overrideRecipe?r.brandLogo:currentLogo)||r.brandLogo||null});
   payload.photo=r.photo||null;
-  payload.brandLogo=currentLogo||r.brandLogo||null;
+  payload.brandLogo=(overrideRecipe?r.brandLogo:currentLogo)||r.brandLogo||null;
   payload.chef=r.chef||'';payload.approver=r.approver||'';
   payload.status=r.status;
   if(Array.isArray(r.ingredients)&&r.ingredients.length>15)payload.warnings.unshift('Слишком много ингредиентов: '+r.ingredients.length+' из 15. Ничего не удалено.');
@@ -57,7 +58,7 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  }
  function size(frame,box,available){
   if(!box.clientWidth)return;
-  const scale=Math.min(zoomed&&frame===fullFrame?1:Infinity,Math.max(.2,Math.min(1,(available.clientWidth-4)/1024)));
+  const scale=zoomed&&frame===fullFrame?1:Math.max(.2,Math.min(1,(available.clientWidth-4)/1024));
   frame.style.width='1024px';frame.style.height='1448px';
   frame.style.transform='scale('+scale+')';frame.style.transformOrigin='top left';
   box.style.height=Math.ceil(1448*scale)+'px';
@@ -89,7 +90,7 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  function refresh(){
   const active=isSelected();panel.dataset.selected=String(active);panel.classList.toggle('is-active',active);
   choose.textContent=active?'✓ PREMIUM SMART выбран':'☆ Выбрать PREMIUM SMART';
-  if(!active)return;
+  if(!previewActive())return;
   try{
    const payload=data();
    const a=inlineLoaded?fill(inlineFrame,payload):null;
@@ -115,17 +116,17 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
  choose.onclick=select;
  function startModal(){
   lastFocus=document.activeElement;
-  if(!isSelected())onSelect(SMART_A4_LAYOUT);
+  if(!isSelected()&&!overrideRecipe)onSelect(SMART_A4_LAYOUT);
   zoomed=false;overlay.hidden=false;document.body.classList.add('smart-modal-open');
   requestAnimationFrame(()=>{refresh();rescale();close.focus()});
  }
  open.onclick=startModal;
- close.onclick=()=>{overlay.hidden=true;document.body.classList.remove('smart-modal-open');lastFocus?.focus?.()};
+ close.onclick=()=>{overlay.hidden=true;overrideRecipe=null;document.body.classList.remove('smart-modal-open');lastFocus?.focus?.();refresh()};
  overlay.addEventListener('click',e=>{if(e.target===overlay)close.click()});
  window.addEventListener('keydown',e=>{if(!overlay.hidden&&e.key==='Escape')close.click()});
  zoom.onclick=()=>{zoomed=!zoomed;zoom.textContent=zoomed?'По ширине':'100%';rescale()};
  function printSheet(){
-  if(!isSelected())return select();
+  if(!previewActive())return select();
   const payload=data(),r=fullLoaded&&!overlay.hidden?fill(fullFrame,payload):inlineLoaded?fill(inlineFrame,payload):null;
   if(!r||!r.ready){status.textContent='⚠ Нельзя распечатать без потери текста: '+(r?.violations||['Шаблон ещё не загрузился']).join('; ');status.dataset.overflow='true';return}
   if(!payload.ingredients.length||!String(payload.name||'').trim()||payload.name==='—'){
@@ -159,11 +160,11 @@ export function mountSmartA4Preview(editor,{getDraft,onSelect=()=>{},onChange=()
   if(picker){picker.classList.add('smart-show-gallery');picker.scrollIntoView({block:'center',behavior:'smooth'})}
  };
  function populate(r){
-  currentLogo=safeLogo(r?.brandLogo)?r.brandLogo:null;editor.dataset.smartLegacyVisible='false';
+  overrideRecipe=null;currentLogo=safeLogo(r?.brandLogo)?r.brandLogo:null;editor.dataset.smartLegacyVisible='false';
   choose.textContent=r?.layoutTemplate===SMART_A4_LAYOUT?'✓ PREMIUM SMART выбран':'☆ Выбрать PREMIUM SMART';
   schedule();
  }
  return {populate,refresh,getLogo:()=>currentLogo,isSelected,openForRecipe(recipe){
-  if(recipe)draftRecipe=recipe;startModal();
+  overrideRecipe=recipe||null;startModal();
  }};
 }
