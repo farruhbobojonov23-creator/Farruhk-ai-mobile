@@ -32,3 +32,29 @@ jobs:
           for p in public/recipe-sheet.js public/ttk-layouts.js public/ttk-premium-themes.js recipe-dual-pdf.js recipe-dual-word.js recipe-premium-pdf.js recipe-word.js; do node --check "$p"; done
       - name: Test one-page PDF and editable Word (all four palettes)
         run: node --test tests/ttk-dual-premium.test.js tests/ttk-a4-designs.test.js
+      - name: Generate four sample Word and PDF documents
+        run: node scripts/qa-ttk-dual-premium.mjs
+      - name: Check real Word pagination (not just PDF)
+        run: |
+          if ! command -v libreoffice >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq libreoffice-writer poppler-utils
+          fi
+          mkdir -p artifacts/ttk-dual-wordpdf
+          libreoffice -env:UserInstallation=file:///tmp/ttk-lo-qa --headless --convert-to pdf --outdir artifacts/ttk-dual-wordpdf artifacts/ttk-dual/*.docx
+          for pdf in artifacts/ttk-dual-wordpdf/*.pdf artifacts/ttk-dual/*.pdf; do
+            test -f "$pdf" || { echo "Missing PDF conversion for $pdf"; exit 1; }
+            pages=$(pdfinfo "$pdf" | awk '/^Pages:/{print $2}')
+            echo "$pdf: $pages page(s)"
+            test "$pages" = "1" || { echo "TTK A4 overflow: $pdf"; exit 1; }
+          done
+      - name: Save actual A4 samples
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: farukh-ai-approved-premium-ttk-samples
+          path: |
+            artifacts/ttk-dual/*.pdf
+            artifacts/ttk-dual/*.docx
+            artifacts/ttk-dual-wordpdf/*.pdf
+          if-no-files-found: ignore
