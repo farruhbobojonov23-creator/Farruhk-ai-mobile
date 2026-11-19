@@ -72,11 +72,24 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
  const miniFrame=el('iframe');miniFrame.title='Предпросмотр Emerald Gold A4 · текущая ТТК';
  miniFrame.src='/ttk-approved-master.html?v=owner-master-20261119';
  miniPage.append(miniFrame);mini.append(miniMessage,miniPage);
- menu.append(heading,note,select,open,logo,showFields,file,mini);
- // Place the approved template ABOVE old template cards and mockup, not below the fold.
- const choices=editor.querySelector('#ttk-design-picker');
- if(choices)choices.before(menu);
- else (editor.querySelector('.ttk-viewport')||editor.firstElementChild).before(menu);
+ const saveA4=el('button','ttk-approved-save','✓ Сохранить ТТК');saveA4.type='button';
+ const backA4=el('button','ttk-approved-back','← Назад к ТТК');backA4.type='button';
+ menu.append(heading,note,select,open,logo,showFields,saveA4,backA4,file,mini);
+ // This must be outside the studio intro AND outside the old A4 viewport:
+ // both are reorganized/hidden by the existing phone-mode renderer.
+ const topToolbar=editor.querySelector('.ttk-toolbar');
+ if(topToolbar)topToolbar.after(menu);
+ else editor.prepend(menu);
+ saveA4.addEventListener('click',()=>editor.querySelector('.ttk-toolbar button[type="submit"]')?.click());
+ backA4.addEventListener('click',()=>editor.querySelector('#closeeditor')?.click());
+ editor.addEventListener('click',event=>{
+  const switchButton=event.target.closest?.('.ttk-studio-switch-button');
+  if(!switchButton||!selected())return;
+  const toForm=switchButton.classList.contains('ttk-studio-check-button')?null:
+   /заполн|редактор|форм/i.test(switchButton.textContent||'');
+  if(toForm===true){editor.dataset.ttkShowLegacy='true';showFields.textContent='✓ Скрыть старую миниатюру'}
+  else if(toForm===false){editor.dataset.ttkShowLegacy='false';showFields.textContent='✎ Редактировать поля ТТК'}
+ },true);
  const dialog=el('div','ttk-approved-modal');dialog.hidden=true;dialog.id='ttk-approved-modal';
  dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Просмотр эталонной ТТК А4');
  const shell=el('div','ttk-approved-modal-inner'),head=el('div','ttk-approved-modal-head');
