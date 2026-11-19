@@ -140,16 +140,19 @@ export function premiumDualRecipePdf(input){
    if(logo){try{doc.image(logo,x+6*s,y+4*s,{fit:[115*s,26*s],align:'left',valign:'center'})}catch{logo=null}}
    if(!logo)drawText(['FARRUH AI'],x+8*s,y+9*s,123*s,11*s,true,'#FFFFFF');
    drawText(['ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА'],x+150*s,y+8*s,W-255*s,8.6*s,true,'#FFF3C9');
-   doc.roundedRect(x+W-82*s,y+5*s,74*s,24*s,7*s).lineWidth(.9*s).strokeColor(t.accent).stroke();
-   drawText(['ТТК № '+f(r.cardNumber)],x+W-77*s,y+10*s,65*s,8.5*s,true,'#FFF1C7');
+   doc.roundedRect(x+W-93*s,y+3*s,85*s,29*s,7*s).lineWidth(.9*s).strokeColor(t.accent).stroke();
+   drawText(['ТТК №'],x+W-89*s,y+6*s,78*s,7.3*s,true,'#FFF1C7');
+   const serial=wrap(f(r.cardNumber),76*s,8*s,true);
+   drawText(serial.slice(0,1),x+W-89*s,y+17*s,78*s,8*s,true,'#FFF1C7');
    drawText(wrap(r.name,W-20*s,14*s,true).slice(0,2),x+8*s,y+39*s,W-16*s,14*s,true,t.band);
    drawText(['Категория: '+f(r.category)+'   •   Дата: '+f(r.cardDate)+'   •   Статус: '+(r.status==='ready'?'Рецептура готова':'Проект')],x+8*s,y+70*s,W-18*s,7*s,false,t.ink);
    drawText(['Предприятие: '+f(r.projectName||'—')+'   •   Выход: '+(Number(r.netYieldGrams)>0?number(r.netYieldGrams)+' г':'—')+'   •   Количество: '+(r.pieces?f(r.pieces)+' шт.':'—')],x+8*s,y+83*s,W-18*s,7*s,false,t.ink);
   }
   y+=headerH+9*s;
-  for(const [leftIndex,rightIndex] of [[0,1],[2,3],[4,5],[6,7]]){
+  const minHeight=[120,175,150,120]; // keeps the approved four-row proportions when a card is short
+  for(const [pairIndex,[leftIndex,rightIndex]] of [[0,1],[2,3],[4,5],[6,7]].entries()){
    const a=sectionData[leftIndex],b=sectionData[rightIndex];
-   const h=Math.max(measure(a,half,s).total,measure(b,half,s).total);
+   const h=Math.max(minHeight[pairIndex]*s,measure(a,half,s).total,measure(b,half,s).total);
    if(paint){drawBlock(a,x,y,half,h,s);drawBlock(b,x+half+gap,y,half,h,s)}
    y+=h+8*s;
   }
