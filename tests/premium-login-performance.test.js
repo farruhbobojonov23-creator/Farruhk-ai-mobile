@@ -6,11 +6,23 @@ const get=path=>fs.readFile(new URL('../'+path,import.meta.url),'utf8');
 
 test('Entry page carries a bounded premium loading fallback and updated assets',async()=>{
  const page=await get('public/index.html');
- assert.match(page,/document\.documentElement\.dataset\.pfBoot='premium'/);
+ assert.match(page,/root\.dataset\.pfBoot='premium'/);
+ assert.match(page,/root\.dataset\.pfSlow='1'/);
+ assert.match(page,/\},15000\)/);
  assert.match(page,/removeAttribute\('data-pf-boot'\)/);
  assert.match(page,/premium-workspace\.js\?v=24/);
  assert.match(page,/premium-showcase\.css\?v=2/);
  assert.match(page,/requestIdleCallback\(finishStartup,\{timeout:2500\}\)/);
+});
+test('Old home stays hidden until Royal V2 is mounted or an actual error occurs',async()=>{
+ const page=await get('public/index.html');
+ const workspace=await get('public/premium-workspace.js');
+ const styles=await get('public/premium-showcase.css');
+ assert.doesNotMatch(page,/\},3500\)/);
+ const royal=workspace.indexOf('mountPremiumRoyalV2({shell,goto,openStudio,openProjects});');
+ const clear=workspace.lastIndexOf("document.documentElement.removeAttribute('data-pf-boot');");
+ assert.ok(royal>=0&&clear>royal,'Splash guard must clear after the real dashboard mounts');
+ assert.match(styles,/data-pf-slow="1"/);
 });
 test('Owner HTML is authorized server-side without duplicate client session roundtrip',async()=>{
  const server=await get('server.js');
