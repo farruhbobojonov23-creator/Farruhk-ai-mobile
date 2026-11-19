@@ -63,3 +63,18 @@ test('controls connect existing editor to master without changing other PDFs and
  assert.match(index,/recipe\.layoutTemplate===APPROVED_A4_LAYOUT/);
  assert.match(index,/Word 1:1 для эталона/);
 });
+
+
+test('large approved A4 artwork loads only on preview open, never on home startup',async()=>{
+ const preview=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ assert.match(preview,/let masterRequested=false/);
+ assert.match(preview,/function ensureMasterLoaded\(\)/);
+ assert.match(preview,/if\(masterRequested\)return/);
+ assert.match(preview,/ensureMasterLoaded\(\);/);
+ assert.match(preview,/typeof iframe\.contentWindow\?\.applyTtkData==='function'/);
+ const showAt=preview.indexOf('function show(recipe)');
+ const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
+ assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
+ assert.match(index,/ttk-approved-preview\.js\?v=2/);
+});
