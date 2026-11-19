@@ -128,7 +128,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
  iframe.addEventListener('load',()=>{
   loaded=typeof iframe.contentWindow?.applyTtkData==='function'&&
     typeof iframe.contentWindow?.checkTtkPage==='function';
-  if(!loaded)warning.textContent='Не удалось загрузить печатный эталон. Закройте просмотр и повторите попытку.';
+  if(!loaded){masterRequested=false;warning.textContent='Не удалось загрузить печатный эталон. Закройте просмотр и попробуйте снова.';}
   render();
  });
  function show(recipe){
