@@ -139,7 +139,7 @@ import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
 import {mountMyRecipeTemplates} from '/my-recipe-templates.js?v=6';
 import {mountTtkDesignPicker} from '/ttk-layouts.js?v=5';
-import {mountApprovedA4Preview,APPROVED_A4_LAYOUT} from '/ttk-approved-preview.js?v=1';
+import {mountApprovedA4Preview,APPROVED_A4_LAYOUT} from '/ttk-approved-preview.js?v=2';
 import {mountTtkProWorkspace} from '/ttk-pro-workspace.js?v=3';
 import {mountTtkStudio} from '/ttk-studio.js?v=12';
 import {mountSiteSettings} from '/site-settings.js?v=9';
@@ -769,6 +769,11 @@ try{await requireOwner();try{mountPremiumWorkspace({show,openDataCenter:()=>data
  // Direct safe link: opens the sync section, but never enables it automatically.
  if(new URLSearchParams(location.search).get('sync')==='1')deviceCloudSync?.open();
  fetch('/api/ai/status',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{geminiStatus.textContent=d.configured?'Gemini: ключ на сервере установлен. Проверь разговор микрофоном.':'Gemini: серверный API-ключ не настроен. Доступны локальные команды и распознавание браузера.'}).catch(()=>{geminiStatus.textContent='Статус Gemini недоступен. Повтори проверку после перезагрузки.'});
-}catch(e){notice(e.message,true)}
+}catch(e){
+ document.documentElement.removeAttribute('data-pf-boot');
+ document.documentElement.removeAttribute('data-pf-slow');
+ $('connection').textContent='Не удалось завершить загрузку';
+ notice(e.message,true);
+}
 </script></body></html>
 

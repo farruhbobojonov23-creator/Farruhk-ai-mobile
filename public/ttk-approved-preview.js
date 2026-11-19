@@ -80,7 +80,14 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
  const canvas=el('div','ttk-approved-canvas');
  const sheet=el('div','ttk-approved-sheet');
  const iframe=el('iframe');iframe.title='Эталонная ТТК А4';
- iframe.src='/ttk-approved-master.html?v=owner-master-20261119';
+ // The approved visual master is ~1 MB of embedded print artwork. Do not
+ // download or parse it during the dashboard startup; open it on demand.
+ let masterRequested=false;
+ function ensureMasterLoaded(){
+  if(masterRequested)return;
+  masterRequested=true;
+  iframe.src='/ttk-approved-master.html?v=owner-master-20261119';
+ }
  sheet.append(iframe);canvas.append(sheet);shell.append(head,warning,canvas);dialog.append(shell);
  document.body.append(dialog);
  let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null;
@@ -118,11 +125,18 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
   warning.dataset.overflow=String(!report.ready);
   fit();
  }
- iframe.addEventListener('load',()=>{loaded=true;render()});
+ iframe.addEventListener('load',()=>{
+  loaded=typeof iframe.contentWindow?.applyTtkData==='function'&&
+    typeof iframe.contentWindow?.checkTtkPage==='function';
+  if(!loaded){masterRequested=false;warning.textContent='Не удалось загрузить печатный эталон. Закройте просмотр и попробуйте снова.';}
+  render();
+ });
  function show(recipe){
   lastFocus=document.activeElement;
   current=recipe||getDraft();zoomOne=false;dialog.hidden=false;
   document.body.classList.add('ttk-approved-preview-open');
+  if(!loaded)warning.textContent='Загружаю утверждённый макет А4…';
+  ensureMasterLoaded();
   requestAnimationFrame(()=>{fit();render();close.focus()});
  }
  function hide(){dialog.hidden=true;document.body.classList.remove('ttk-approved-preview-open');lastFocus?.focus?.();}
