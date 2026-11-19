@@ -719,6 +719,10 @@ async function run(theme,width,height){
      pilot.note?.includes('не соответствие')&&pilot.overflow<=16,pilot);
    // A4 is a fixed focus surface: old PRO bar lives underneath.
    await page.screenshot({path:'artifacts/premium-'+tag+'-editor-pro.png',fullPage:false,timeout:12000});
+   // The owner's approved Emerald master is the primary screen. Reveal the
+   // previous four layouts via explicit edit-fields control for regression.
+   await page.locator('#editor .ttk-approved-fields').click();
+   await page.waitForFunction(()=>document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>30,null,{timeout:12000});
    const catalog=await page.evaluate(()=>({
     count:document.querySelectorAll('#ttk-design-picker .ttk-design-card').length,
     selected:document.querySelector('#ttk-design-picker .ttk-design-card[aria-pressed="true"]')?.dataset.ttkLayout,
@@ -728,7 +732,7 @@ async function run(theme,width,height){
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
-     catalog.count===4&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+     catalog.count===4&&catalog.sheet==='emerald-master-a4'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
    await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
    check(tag+' selecting Premium Blue changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
