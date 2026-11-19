@@ -1,0 +1,47 @@
+name: FARUKH AI — Approved A4 Master Gate
+on:
+  push:
+    branches:
+      - feature/ttk-approved-visual-master-20261119
+  pull_request:
+    paths:
+      - 'public/ttk-approved-*'
+      - 'public/index.html'
+      - 'public/ttk-layouts.js'
+      - 'assistant-store.js'
+      - 'tests/ttk-approved-master.test.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-a4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Syntax check
+        run: |
+          node --check public/ttk-approved-preview.js
+          node --check public/ttk-layouts.js
+          node --check assistant-store.js
+          node --check tests/ttk-approved-master.test.js
+      - name: Test approved A4 data and image assets
+        run: node --test tests/ttk-approved-master.test.js
+      - name: Run complete app regression tests
+        run: npm test
+      - name: Keep page preview for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: approved-a4-master-source
+          path: |
+            public/ttk-approved-master.html
+            public/ttk-approved-preview.css
+            public/ttk-approved-preview.js
+          if-no-files-found: ignore
