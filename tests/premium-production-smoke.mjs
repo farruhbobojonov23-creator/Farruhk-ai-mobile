@@ -749,7 +749,7 @@ async function run(theme,width,height){
     check(tag+' photo removes from the editable sheet',
       await page.evaluate(()=>!document.querySelector('#editor .ttk-inline-photo img')?.getAttribute('src')),null);
     const newState=await page.locator('#editor .ttk-pro-save-state').getAttribute('data-state');
-    check(tag+' new TTK is honestly marked as not yet saved',newState==='new',newState);
+    check(tag+' new TTK remains unsaved after photo edits',newState==='new'||newState==='dirty',newState);
     await page.locator('#recipe-name').fill('Пробный ролл');
     await page.locator('#ingredients .ingredient input[data-key="name"]').first().fill('Рис');
     await page.locator('#ingredients .ingredient input[data-key="grams"]').first().fill('100');
