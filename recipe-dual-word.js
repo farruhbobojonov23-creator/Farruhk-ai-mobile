@@ -42,8 +42,8 @@ export async function premiumDualRecipeWord(r,nutrition){
   ['','ВЫХОД ('+(r.pieces?f(r.pieces)+' шт.':'1 порц.')+')','',num(r.netYieldGrams)+' г']];
  const recipe=block('3. РЕЦЕПТУРА',ingredients,[.08,.48,.22,.22],true);
  const proc=block('4. ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС',[['Этап','Описание'],['Подготовка',f(r.preparation)],['Приготовление',f(r.forming||r.technology)],['Нарезка/подача',f(r.serving)]],[.29,.71],true);
- const storage=block('5. ПОДАЧА, РЕАЛИЗАЦИЯ И ХРАНЕНИЕ',[['Условия',f(r.storage)]],[.26,.74]);
- const quality=block('6. КАЧЕСТВО И БЕЗОПАСНОСТЬ',[['Внешний вид',f(r.appearance)],['Вкус/запах/консистенция',f(r.taste)],['Безопасность',f(r.safety)]],[.29,.71]);
+ const storage=block('5. ОФОРМЛЕНИЕ, ПОДАЧА, РЕАЛИЗАЦИЯ И ХРАНЕНИЕ',[['Условия',f(r.storage)]],[.26,.74]);
+ const quality=block('6. ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ',[['Внешний вид',f(r.appearance)],['Вкус/запах/консистенция',f(r.taste)],['Безопасность',f(r.safety)]],[.29,.71]);
  const nutritionRows=[['Показатель','На 100 г','На порцию'],...[
    ['Белки, г','protein'],['Жиры, г','fat'],['Углеводы, г','carbs'],['Ккал','kcal']
   ].map(([label,key])=>[label,num(nutrition[key]),nutrition[key]!=null&&Number(r.netYieldGrams)>0?num(Number(nutrition[key])*Number(r.netYieldGrams)/100):'—'])];
@@ -54,7 +54,7 @@ export async function premiumDualRecipeWord(r,nutrition){
   allergyRows.push([ALLERGEN_OPTIONS[i],ALLERGEN_OPTIONS[i+1]].map(pair=>pair?
     (selected.has(pair[0])?'☑ ':'☐ ')+(pair[0]==='other'&&r.allergenOther?'Другое: '+r.allergenOther:pair[1]):''));
  }
- const allergy=block('АЛЛЕРГЕНЫ · ВЫБЕРИТЕ ГАЛОЧКАМИ',allergyRows,[.5,.5]);
+ const allergy=block('АЛЛЕРГЕНЫ · ОТМЕТЬТЕ ПРИСУТСТВУЮЩИЕ',allergyRows,[.5,.5]);
  const pairRow=(left,right)=>{
   const tableCell=children=>new TableCell({width:{size:50,type:WidthType.PERCENTAGE},borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
    margins:{top:40,bottom:40,left:65,right:65},children:[...children,blank()]});
