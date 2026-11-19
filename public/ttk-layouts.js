@@ -61,6 +61,6 @@ export function mountTtkDesignPicker(editor,{onChange=()=>{}}={}){
   if(notify)onChange(chosen);
  }
  select(chosen,{notify:false});
- document.addEventListener('ttk:choose-layout',e=>select(e.detail?.id));
+ document.addEventListener('ttk:choose-layout',e=>select(e.detail?.id,{notify:e.detail?.notify!==false}));
  return {populate:recipe=>select(recipe?.layoutTemplate,{notify:false}),get:()=>chosen,select};
 }
