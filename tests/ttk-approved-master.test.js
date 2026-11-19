@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {buildApprovedA4Payload,APPROVED_A4_LAYOUT} from '../public/ttk-approved-preview.js';
 import {cleanState} from '../assistant-store.js';
-import {ttkLayoutId,TTK_LAYOUTS} from '../public/ttk-layouts.js';
+import {ttkLayoutId,ttkLayout,TTK_LAYOUTS} from '../public/ttk-layouts.js';
 
 test('approved master is a standalone A4 with embedded visual ornaments and live data binding',async()=>{
  const html=await fs.readFile(new URL('../public/ttk-approved-master.html',import.meta.url),'utf8');
@@ -17,7 +17,8 @@ test('approved master is a standalone A4 with embedded visual ornaments and live
 });
 test('approved master is a selectable and persisted layout',()=>{
  assert.equal(ttkLayoutId(APPROVED_A4_LAYOUT),APPROVED_A4_LAYOUT);
- assert.ok(TTK_LAYOUTS.some(t=>t.id===APPROVED_A4_LAYOUT));
+ assert.equal(ttkLayout(APPROVED_A4_LAYOUT)?.id,APPROVED_A4_LAYOUT);
+ assert.equal(TTK_LAYOUTS.length,4,'legacy choices remain available unchanged');
  const recipe={id:'test',name:'Филадельфия',category:'Холодные роллы',layoutTemplate:APPROVED_A4_LAYOUT,
   brandLogo:'data:image/png;base64,AAAA',ingredients:[{name:'Форель',grams:30,grossGrams:31}]};
  const saved=cleanState({recipes:[recipe]}).recipes[0];
