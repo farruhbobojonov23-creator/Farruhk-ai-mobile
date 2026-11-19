@@ -161,10 +161,14 @@ app.get(['/farukh-print/staff','/farukh-print/staff/'],async(req,res,next)=>{
 app.use(express.static('public',{
   etag:true,
   setHeaders(res,filePath){
-    if(/[/\\]assets[/\\].*\.(?:webp|png|jpe?g|svg|avif)$/i.test(filePath)){
+    // A4 master is versioned, standalone and contains NO owner recipe data.
+    // Cache its large artwork for repeat previews without affecting HTML login.
+    if(/[/\\]ttk-approved-master\.html$/i.test(filePath)){
+      res.setHeader('Cache-Control','private, max-age=3600, stale-while-revalidate=86400');
+    }else if(/[/\\]assets[/\\].*\.(?:webp|png|jpe?g|svg|avif)$/i.test(filePath)){
       res.setHeader('Cache-Control','public, max-age=86400');
     }else if(/\.(?:css|js|mjs|svg)$/i.test(filePath)){
-      res.setHeader('Cache-Control','public, max-age=300, must-revalidate');
+      res.setHeader('Cache-Control','public, max-age=300, stale-while-revalidate=3600');
     }
   }
 }));
