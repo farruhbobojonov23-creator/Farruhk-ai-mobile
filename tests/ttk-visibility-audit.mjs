@@ -72,7 +72,12 @@ for(const [kind,width,height] of [['android',393,851],['desktop',1365,915]]){
  await page.evaluate(()=>document.querySelector('#chef-menu button[data-view="recipes"]')?.click());
  await page.waitForFunction(()=>document.body.dataset.view==='recipes');
  await page.locator('#newrecipe').click();
- await page.waitForSelector('#ttk-live-page');
+ // Verify the new Smart sheet first; expose legacy modes explicitly for
+ // the existing long-text regression checks.
+ await page.waitForFunction(()=>document.querySelector('#editor')?.dataset.ttkLayout==='premium-smart-a4',null,{timeout:15000});
+ await page.locator('#editor .smart-legacy').click();
+ await page.locator('#ttk-design-picker [data-ttk-layout="teal-matrix"]').click();
+ await page.waitForSelector('#ttk-live-page',{state:'visible',timeout:15000});
  for(const id of ['teal-matrix','process-matrix','gold-allergen','premium-blue']){
   await page.locator('#ttk-design-picker [data-ttk-layout="'+id+'"]').click();
   let info=await measure(page);

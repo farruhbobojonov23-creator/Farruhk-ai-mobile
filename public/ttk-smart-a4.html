@@ -1,0 +1,208 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH AI · PREMIUM SMART ТТК · А4</title>
+<style>
+:root{--emerald:#003b2e;--deep:#00261e;--jade:#075943;--gold:#d9aa50;--pale:#f4e4bd;--light:#fff9ea;--ink:#163128;--border:#bb9c5a}
+*{box-sizing:border-box}html,body{margin:0;background:#edf0ed;font-family:Arial,'Liberation Sans',sans-serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.a4{width:1024px;height:1448px;position:relative;background:linear-gradient(118deg,#fffdf8,#fcf5e7 68%,#fffaf1);overflow:hidden;isolation:isolate}
+.top{height:144px;position:absolute;inset:0 0 auto;background:radial-gradient(ellipse at 50% -60%,#0d7c5e,#003d30 55%,#00251f);color:#fff3cb;border-bottom:5px solid var(--gold)}
+.top::before,.top::after{content:"";position:absolute;pointer-events:none;z-index:0}
+.top::before{right:12px;top:-30px;width:225px;height:140px;border-radius:50%;background:repeating-radial-gradient(ellipse at 100% 0,transparent 0 12px,#d0a84e99 13px,#d0a84e99 14px,transparent 15px 24px);opacity:.7}
+.top::after{left:0;right:0;bottom:1px;height:4px;background:linear-gradient(90deg,transparent,#ffe5a1,transparent)}
+.brand{position:absolute;left:31px;top:24px;width:278px;height:91px;border-right:2px solid #dab263;display:flex;align-items:center;gap:8px;z-index:1}
+.logo-mark{font-family:Georgia,serif;color:#f9d67f;font-size:57px;font-style:italic;line-height:1}
+.brand-copy{display:flex;flex-direction:column;gap:2px}.brand-name{color:#f8e4b1;font-size:23px;font-weight:900;letter-spacing:.4px;line-height:1.02;overflow-wrap:anywhere;max-width:193px}.brand-sub{font-size:11px;letter-spacing:2.6px;color:#e3bf7b}
+.brand img{display:none;object-fit:contain;max-width:255px;max-height:85px}
+.heading{position:absolute;left:343px;top:22px;width:440px;text-align:center;z-index:1}
+.heading .big{font:900 59px Georgia,serif;color:#ffe4a1;line-height:1;letter-spacing:4px;text-shadow:1px 3px 3px #0005}
+.heading .caption{font-size:18px;font-weight:800;color:#fff5d9;letter-spacing:2.2px;line-height:1.13}
+.no{position:absolute;right:27px;top:55px;border:2px solid #dbb55e;border-radius:20px;padding:8px 15px;color:#ffe0a0;font:800 28px Georgia,serif;z-index:1;background:#003c2bbb;max-width:185px;white-space:nowrap;overflow:hidden}
+.meta{position:absolute;top:152px;left:20px;width:984px;height:131px;border:1px solid #c79a48;border-radius:13px;background:#fffdf8;box-shadow:0 2px 5px #a7803333;display:grid;grid-template-columns:53% 47%;overflow:hidden}
+.meta-fields{padding:11px 14px;display:grid;grid-template-rows:34px 34px 34px;gap:4px}
+.meta-line{display:grid;grid-template-columns:117px 1fr;align-items:center;font-size:16px;border:1px solid #ddc999;border-radius:7px;overflow:hidden;min-width:0}
+.meta-line b{background:#f5dfad;padding:7px 9px;height:100%;color:#253e2c}
+.meta-line span{padding:3px 10px;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.photo{margin:8px 11px 8px 0;border-radius:13px;background:radial-gradient(ellipse at 60% 20%,#fff8e4,#e1c997);border:1px solid #dfba69;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.photo::before{content:"";width:170px;height:76px;border-radius:50%;border:6px double #b69148;position:absolute;transform:rotate(-11deg);opacity:.35}
+.photo img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;display:none}
+.photo .caption{position:relative;z-index:1;font-weight:800;font-size:14px;letter-spacing:1px;color:#807044}
+.gridpair{display:grid;grid-template-columns:1fr 1fr;gap:13px;position:absolute;left:20px;width:984px}
+.row-top{top:292px;height:189px}.row-middle{top:492px;height:473px}.row-quality{top:976px;height:156px}.row-bottom{top:1143px;height:174px}
+.panel{min-width:0;height:100%;border:1px solid #c7a052;background:#fffdf8;border-radius:12px;overflow:hidden;box-shadow:0 2px 4px #ac804519;display:flex;flex-direction:column}
+.panel-title{height:35px;flex:0 0 35px;padding:5px 8px 5px 10px;background:linear-gradient(102deg,#003f30 0%,#002e25 68%,#07543f 100%);border-bottom:2px solid #d4b065;display:flex;align-items:center;gap:8px;color:#fff6dd;font-size:15px;font-weight:900;line-height:1.08;letter-spacing:-.16px;min-width:0}
+.panel-title .badge{display:inline-flex;align-items:center;justify-content:center;flex:0 0 29px;height:27px;background:linear-gradient(150deg,#fff1c1,#d3a14a);border-radius:11px;color:#173a2a;font:900 19px Georgia,serif;box-shadow:0 1px 3px #0007}
+.panel-title .title-text{min-width:0;flex:1;overflow-wrap:anywhere}.panel-title .icon{flex:0 0 21px;text-align:right;color:#ffe1a4;font-size:20px}
+.panel-body{position:relative;flex:1;min-height:0;padding:10px 13px;overflow:hidden}
+.block-text{white-space:pre-wrap;font-size:15px;line-height:1.19;overflow-wrap:anywhere}
+.nutrient-table,.recipe-table,.compact-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.recipe-table{font-size:13.2px;line-height:1.08}
+.recipe-table th,.recipe-table td{border:1px solid #bea36d;padding:0 4px;height:21px;vertical-align:middle}
+.recipe-table thead th{height:27px;background:#f0d9a7;font-weight:900;font-size:13px}
+.recipe-table tbody tr:nth-child(even){background:#fff5de}
+.recipe-table .idx{text-align:center;width:35px;font-weight:750}
+.recipe-table .ing{width:auto;white-space:nowrap}
+.recipe-table .quantity{width:78px;text-align:center;white-space:nowrap}
+.recipe-table .ingredient-text{display:block;white-space:nowrap}
+.recipe-table tfoot td{height:27px;background:#f1d69c;font-weight:900;color:#113a2a}
+.recipe-table .total-label{text-align:left;padding-left:9px}.recipe-table .total-value{text-align:right;padding-right:10px}
+.recipe-body{padding:4px 8px}
+.stages{padding:7px 10px 7px 13px}
+.stage{display:grid;grid-template-columns:29px 1fr;gap:9px;padding:5px 0 6px;border-bottom:1px solid #e4d2aa;min-height:55px;max-height:116px}
+.stage:last-child{border-bottom:0}
+.stage .num{display:flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:50%;background:linear-gradient(120deg,#ffe6a1,#ddb15f);font:bold 16px Georgia,serif;color:#20412f}
+.stage .copy{font-size:13.8px;line-height:1.13;overflow-wrap:anywhere;white-space:pre-wrap}
+.stage .copy b{font-weight:800}
+.compact-body{padding:6px 9px}
+.compact-table{font-size:13px;line-height:1.15}
+.compact-table th,.compact-table td{border:1px solid #cbb689;padding:6px 7px;vertical-align:top;overflow-wrap:anywhere}
+.compact-table th{background:#f7e7c2;width:34%;text-align:left;font-weight:800}
+.compact-table td{background:#fffdf8}
+.nutrient-body{padding:4px 9px}.nutrient-table{font-size:12.5px}
+.nutrient-table th,.nutrient-table td{border:1px solid #b9b8a1;height:19px;padding:1px 7px}
+.nutrient-table th{background:#f2deb4;font-size:12.1px;text-align:left}.nutrient-table th:not(:first-child),.nutrient-table td:not(:first-child){text-align:center}
+.nutrient-table tbody tr:nth-child(even){background:#fff5e2}
+.allergen-body{padding:8px 9px}
+.allergens{display:grid;grid-template-columns:1fr 1fr;column-gap:6px;row-gap:1px}
+.allergen{display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;line-height:1.08}
+.allergen span{overflow-wrap:anywhere}
+.allergen input{appearance:none;-webkit-appearance:none;display:grid;place-items:center;flex:0 0 16px;width:16px;height:16px;margin:0;border:1.6px solid #286148;background:#fffefb;border-radius:3px;cursor:pointer}
+.allergen input:checked::after{content:"✓";font-weight:900;color:#07593e;line-height:14px;font-size:16px}
+.signature{position:absolute;top:1327px;left:20px;width:984px;height:66px;display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.sign{border:1px solid #cda751;border-radius:12px;background:#fffcf5;display:flex;flex-direction:column;padding:9px 15px;gap:8px;font-size:15px}
+.sign-line{display:flex;gap:10px;align-items:center;min-width:0}
+.sign-line b{white-space:nowrap}.sign-line span{flex:1;border-bottom:1px solid #172b22;min-height:20px;overflow:hidden;white-space:nowrap}
+.sign-note{display:flex;gap:14px;justify-content:space-between;color:#604a26;font-size:12px}
+.footer{position:absolute;bottom:0;left:0;right:0;height:52px;background:#00382b;border-top:5px solid #d8af5b}
+.footer::before{content:"";position:absolute;left:-5%;right:-5%;height:23px;top:-14px;border-top:5px solid #e2bd6c;border-radius:48% 50% 0 0;background:linear-gradient(#fff8ec,#f1d697 50%,#003a2c 52%)}
+.footer::after{content:"";position:absolute;inset:10px 18% 0;background:repeating-radial-gradient(ellipse at 50% 150%,transparent 0 10px,#d1a44a66 11px,#d1a44a66 12px,transparent 13px 22px);opacity:.55}
+#errors{position:absolute;top:0;left:0;display:none}
+@page{size:A4;margin:0}
+@media print{html,body{width:210mm;height:297mm;overflow:hidden;background:white}.a4{transform:scale(.775);transform-origin:top left;break-after:avoid;page-break-after:avoid}.allergen input{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+</style></head><body>
+<article class="a4" role="document" aria-label="Технико-технологическая карта А4">
+ <header class="top">
+  <div class="brand"><strong class="logo-mark">A</strong><div class="brand-copy"><div class="brand-name" data-field="brandName">FARRUH AI</div><div class="brand-sub">PREMIUM • ТТК</div></div><img id="logo" alt="Логотип предприятия"></div>
+  <div class="heading"><div class="big">ТТК</div><div class="caption">ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА</div></div>
+  <div class="no">№ <span data-field="cardNumber">—</span></div>
+ </header>
+ <section class="meta">
+  <div class="meta-fields">
+   <div class="meta-line"><b>Название</b><span data-field="name">Название блюда</span></div>
+   <div class="meta-line"><b>Категория</b><span data-field="category">—</span></div>
+   <div class="meta-line"><b>Выход</b><span data-field="yield">—</span></div>
+  </div>
+  <div class="photo"><img id="dish-photo" alt="Фото блюда"><span class="caption" id="photo-hint">ФОТО БЛЮДА</span></div>
+ </section>
+ <div class="gridpair row-top">
+  <section class="panel"><h3 class="panel-title"><span class="badge">1</span><span class="title-text">ОБЛАСТЬ ПРИМЕНЕНИЯ</span><span class="icon">◎</span></h3><div class="panel-body"><div class="block-text" data-field="scope"></div></div></section>
+  <section class="panel"><h3 class="panel-title"><span class="badge">2</span><span class="title-text">ТРЕБОВАНИЯ К СЫРЬЮ</span><span class="icon">❧</span></h3><div class="panel-body"><div class="block-text" data-field="rawRequirements"></div></div></section>
+ </div>
+ <div class="gridpair row-middle">
+  <section class="panel"><h3 class="panel-title"><span class="badge">3</span><span class="title-text">РЕЦЕПТУРА · ДО 15 ИНГРЕДИЕНТОВ</span><span class="icon">⚖</span></h3><div class="panel-body recipe-body">
+   <table class="recipe-table"><thead><tr><th class="idx">№</th><th>Ингредиент</th><th class="quantity">Брутто, г</th><th class="quantity">Нетто, г</th></tr></thead><tbody id="ingredient-rows"></tbody><tfoot><tr><td colspan="3" class="total-label">ВЫХОД ГОТОВОГО БЛЮДА</td><td class="total-value" data-field="netOutput">—</td></tr></tfoot></table>
+  </div></section>
+  <section class="panel"><h3 class="panel-title"><span class="badge">4</span><span class="title-text">ТЕХНОЛОГИЯ ПРИГОТОВЛЕНИЯ</span><span class="icon">♧</span></h3><div class="panel-body stages" id="stages"></div></section>
+ </div>
+ <div class="gridpair row-quality">
+  <section class="panel"><h3 class="panel-title"><span class="badge">5</span><span class="title-text">ХРАНЕНИЕ И РЕАЛИЗАЦИЯ</span><span class="icon">❄</span></h3><div class="panel-body compact-body"><table class="compact-table">
+   <tr><th>Подача</th><td data-field="serving"></td></tr><tr><th>Хранение / срок</th><td data-field="storage"></td></tr>
+  </table></div></section>
+  <section class="panel"><h3 class="panel-title"><span class="badge">6</span><span class="title-text">ПОКАЗАТЕЛИ КАЧЕСТВА И БЕЗОПАСНОСТИ</span><span class="icon">◇</span></h3><div class="panel-body compact-body"><table class="compact-table">
+   <tr><th>Качество</th><td data-field="quality"></td></tr><tr><th>Безопасность</th><td data-field="safety"></td></tr>
+  </table></div></section>
+ </div>
+ <div class="gridpair row-bottom">
+  <section class="panel"><h3 class="panel-title"><span class="badge">7</span><span class="title-text">ПИЩЕВАЯ И ЭНЕРГЕТИЧЕСКАЯ ЦЕННОСТЬ</span><span class="icon">▥</span></h3><div class="panel-body nutrient-body"><table class="nutrient-table">
+   <thead><tr><th>Показатель</th><th>На 100 г</th><th>На порцию</th></tr></thead>
+   <tbody><tr><td>Белки, г</td><td data-field="protein100"></td><td data-field="proteinPortion"></td></tr>
+   <tr><td>Жиры, г</td><td data-field="fat100"></td><td data-field="fatPortion"></td></tr>
+   <tr><td>Углеводы, г</td><td data-field="carbs100"></td><td data-field="carbsPortion"></td></tr>
+   <tr><td>Калорийность, ккал</td><td data-field="kcal100"></td><td data-field="kcalPortion"></td></tr></tbody></table></div></section>
+  <section class="panel"><h3 class="panel-title"><span class="title-text">АЛЛЕРГЕНЫ · ОТМЕТЬТЕ ПРИСУТСТВУЮЩИЕ</span><span class="icon">⚠</span></h3><div class="panel-body allergen-body"><div class="allergens" id="allergens"></div></div></section>
+ </div>
+ <div class="signature">
+  <div class="sign"><div class="sign-line"><b>Разработал:</b><span data-field="chef"></span></div><div class="sign-note"><span>Должность, Ф. И. О., подпись</span><span data-field="date"></span></div></div>
+  <div class="sign"><div class="sign-line"><b>Утверждаю:</b><span data-field="approver"></span></div><div class="sign-note"><span>Должность, Ф. И. О., подпись</span><span data-field="date"></span></div></div>
+ </div>
+ <div class="footer"></div>
+</article>
+<script>
+(()=>{'use strict';
+const labels=[['fish','Рыба и рыбопродукты'],['milk','Молоко и молочные продукты'],['gluten','Злаки, содержащие глютен'],['sesame','Кунжут'],['eggs','Яйца'],['soy','Соя'],['crustaceans','Ракообразные'],['nuts','Орехи'],['other','Другое']];
+const $=(s)=>document.querySelector(s),all=$('#allergens'),rows=$('#ingredient-rows'),steps=$('#stages');
+const format=n=>{if(n===null||n===undefined||n==='')return '—';const x=Number(n);return Number.isFinite(x)?x.toLocaleString('ru-RU',{maximumFractionDigits:2}):String(n)};
+const set=(name,value)=>document.querySelectorAll('[data-field="'+name+'"]').forEach(n=>n.textContent=String(value??''));
+for(let i=0;i<15;i++){
+ const row=document.createElement('tr');row.className='ingredient-row';
+ const index=document.createElement('td');index.className='idx';index.textContent=String(i+1);
+ const name=document.createElement('td');name.className='ing';
+ const label=document.createElement('span');label.className='ingredient-text';name.append(label);
+ const gross=document.createElement('td');gross.className='quantity';
+ const net=document.createElement('td');net.className='quantity';
+ row.append(index,name,gross,net);rows.append(row);
+}
+labels.forEach(([id,text])=>{
+ const label=document.createElement('label');label.className='allergen';
+ const input=document.createElement('input');input.type='checkbox';input.name=id;
+ const desc=document.createElement('span');desc.textContent=text;label.append(input,desc);all.append(label);
+});
+let itemCount=0;
+window.applyTtkData=(data={})=>{
+ const items=Array.isArray(data.ingredients)?data.ingredients:[];itemCount=items.length;
+ const rowNodes=[...rows.children];
+ rowNodes.forEach((row,i)=>{
+  const item=items[i];const cells=row.children;
+  cells[1].firstElementChild.textContent=item?String(item.name||''):'';
+  cells[2].textContent=item?String(item.gross??'—'):'';
+  cells[3].textContent=item?String(item.net??'—'):'';
+  row.dataset.used=String(!!item);
+ });
+ for(const key of ['cardNumber','name','category','yield','scope','rawRequirements','serving','storage','quality','safety','chef','approver','date','brandName'])set(key,data[key]??'');
+ set('netOutput',data.portionWeight?format(data.portionWeight):'—');
+ const logo=$('#logo'),brand=$('.brand'),photo=$('#dish-photo'),caption=$('#photo-hint');
+ const photoValue=typeof data.photo==='string'?data.photo:(data.photo&&typeof data.photo==='object'?(data.photo.dataUrl||data.photo.url||''):'');
+ const logoValue=typeof data.brandLogo==='string'?data.brandLogo:'';
+ const safeImage=s=>/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(s)||/^\/assets\/[a-zA-Z0-9_./-]+\.(?:png|jpe?g|webp)$/i.test(s);
+ logo.style.display=safeImage(logoValue)?'block':'none';
+ brand.querySelector('.logo-mark').style.display=safeImage(logoValue)?'none':'';
+ brand.querySelector('.brand-copy').style.display=safeImage(logoValue)?'none':'';
+ if(safeImage(logoValue))logo.src=logoValue;else logo.removeAttribute('src');
+ photo.style.display=safeImage(photoValue)?'block':'none';
+ caption.style.display=safeImage(photoValue)?'none':'';
+ if(safeImage(photoValue))photo.src=photoValue;else photo.removeAttribute('src');
+ const stageData=Array.isArray(data.technologyStages)?data.technologyStages:[];
+ steps.replaceChildren();
+ stageData.slice(0,6).forEach((stage,i)=>{
+  const row=document.createElement('div');row.className='stage';
+  const num=document.createElement('span');num.className='num';num.textContent=String(i+1);
+  const copy=document.createElement('div');copy.className='copy';
+  const title=document.createElement('b');title.textContent=String(stage.title||'Этап');copy.append(title,document.createTextNode(' — '+String(stage.description||'')));
+  row.append(num,copy);steps.append(row);
+ });
+ const nutrition=data.nutrition&&typeof data.nutrition==='object'?data.nutrition:{};
+ for(const key of ['protein','fat','carbs','kcal']){
+  set(key+'100',nutrition[key]?.per100??'—');set(key+'Portion',nutrition[key]?.perPortion??'—');
+ }
+ const selected=new Set(Array.isArray(data.allergens)?data.allergens:[]);
+ for(const input of all.querySelectorAll('input'))input.checked=selected.has(input.name);
+ return window.checkTtkPage();
+};
+window.checkTtkPage=()=>{
+ const violations=[];
+ if(itemCount>15)violations.push('Более 15 ингредиентов; требуется другая компоновка без потери данных');
+ const candidates=[...document.querySelectorAll('.panel-body .block-text, .panel-body .compact-table, .stage .copy, .ingredient-text, .sign-line span, .meta-line span, .panel-title .title-text, .allergen span')];
+ for(const el of candidates){
+  if(el.clientHeight===0||el.clientWidth===0)continue;
+  if(el.scrollHeight>el.clientHeight+2||el.scrollWidth>el.clientWidth+2){
+   const label=el.closest('.panel')?.querySelector('.title-text')?.textContent||'Название/подпись';
+   violations.push(label+': не помещается текст');
+  }
+ }
+ for(const block of document.querySelectorAll('.panel-body')){
+  if(block.scrollHeight>block.clientHeight+2)violations.push(block.closest('.panel')?.querySelector('.title-text')?.textContent+': переполнение раздела');
+ }
+ if(steps.children.length>6)violations.push('Более 6 этапов');
+ return {ready:violations.length===0,violations:[...new Set(violations)],ingredientCount:itemCount,page:'A4',rows:15};
+};
+window.printTtk=()=>{const result=window.checkTtkPage();if(!result.ready)throw Error(result.violations.join('; '));window.print()};
+window.addEventListener('beforeprint',()=>{const result=window.checkTtkPage();if(!result.ready)console.warn('Не печатать: '+result.violations.join('; '))});
+})();
+</script></body></html>

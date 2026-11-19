@@ -1,0 +1,35 @@
+name: FARUKH AI — Premium Smart A4 Gate
+on:
+  push:
+    branches: [feature/ttk-smart-a4-fixed-15-20261120]
+  pull_request:
+    paths: ['public/ttk-smart-*','public/index.html','public/ttk-layouts.js','public/ttk-general-settings.js','assistant-store.js','tests/ttk-smart-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smart:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22',cache: npm}
+      - run: npm ci --ignore-scripts
+      - run: |
+          node --check public/ttk-smart-a4.js
+          node --check tests/ttk-smart-browser.mjs
+          node --test tests/ttk-smart-a4.test.js
+          npm test
+      - run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Render real PDFs for 1 and 15 ingredients
+        run: node tests/ttk-smart-browser.mjs
+      - name: Upload A4 examples
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-a4-premium-1-and-15
+          path: artifacts/smart-a4/
+          if-no-files-found: ignore
