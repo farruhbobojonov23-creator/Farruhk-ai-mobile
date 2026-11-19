@@ -200,6 +200,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
  function hide(){dialog.hidden=true;document.body.classList.remove('ttk-approved-preview-open');lastFocus?.focus?.();}
  select.onclick=()=>{onSelectMaster();select.textContent='✓ Emerald Gold выбран';editor.dataset.ttkShowLegacy='false';showFields.textContent='✎ Редактировать поля ТТК';onChange();updateInline();mini.scrollIntoView({behavior:'smooth',block:'start'})};
  open.onclick=()=>show(getDraft());
+ editor.addEventListener('ttk:show-approved',()=>show(getDraft()));
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
  window.addEventListener('keydown',e=>{if(isOpen()&&e.key==='Escape'){hide();e.stopPropagation()}});
