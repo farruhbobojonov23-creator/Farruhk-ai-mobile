@@ -32,6 +32,8 @@ jobs:
           for p in public/recipe-sheet.js public/ttk-layouts.js public/ttk-premium-themes.js recipe-dual-pdf.js recipe-dual-word.js recipe-premium-pdf.js recipe-word.js; do node --check "$p"; done
       - name: Test one-page PDF and editable Word (all four palettes)
         run: node --test tests/ttk-dual-premium.test.js tests/ttk-a4-designs.test.js
+      - name: Application regression suite
+        run: npm test
       - name: Generate four sample Word and PDF documents
         run: node scripts/qa-ttk-dual-premium.mjs
       - name: Check real Word pagination (not just PDF)
