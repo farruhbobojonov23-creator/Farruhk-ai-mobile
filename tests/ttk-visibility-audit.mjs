@@ -73,7 +73,7 @@ for(const [kind,width,height] of [['android',393,851],['desktop',1365,915]]){
  await page.waitForFunction(()=>document.body.dataset.view==='recipes');
  await page.locator('#newrecipe').click();
  // Reveal the original editable four-layout workspace only for this deep audit.
- await page.locator('#ttk-approved-fields').click();
+ await page.locator('#editor .ttk-approved-fields').click();
  await page.waitForSelector('#ttk-live-page',{state:'visible',timeout:18000});
  for(const id of ['teal-matrix','process-matrix','gold-allergen','premium-blue']){
   await page.locator('#ttk-design-picker [data-ttk-layout="'+id+'"]').click();
