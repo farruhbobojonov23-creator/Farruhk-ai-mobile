@@ -57,3 +57,30 @@ body.ttk-approved-preview-open{overflow:hidden!important}
  .ttk-approved-modal-head button{font-size:11px;min-height:39px;padding:6px 8px}
  .ttk-approved-controls{padding:11px;gap:7px}
 }
+
+/* Main TTK sheet: the approved art is the PRIMARY preview after selection. */
+#editor[data-ttk-layout="emerald-master-a4"][data-ttk-show-legacy="false"] .ttk-viewport {
+ display:none!important;
+}
+.ttk-approved-controls[data-selected="true"] {
+ border-width:2px;box-shadow:0 0 0 1px #f4d18b77,0 12px 32px #0007;
+}
+.ttk-approved-controls[data-selected="true"] .ttk-approved-select {
+ background:linear-gradient(125deg,#cfad64,#f2d98f)!important;
+ color:#143b2b!important;border-color:#fff3cf!important;
+}
+.ttk-approved-mini[hidden],.ttk-approved-fields[hidden]{display:none!important}
+.ttk-approved-mini{
+ grid-column:1/-1;min-width:0;overflow:hidden;
+ border:1px solid #d9b36c;border-radius:10px;
+ background:#283e34;padding:6px
+}
+.ttk-approved-mini-note{font-size:12px;color:#ffedbe;line-height:1.5;margin:0}
+.ttk-approved-mini-note:empty{display:none}
+.ttk-approved-mini-note[data-overflow="true"]{color:#ffb7a5;background:#562f29;padding:8px;border-radius:6px}
+.ttk-approved-mini-page{width:100%;position:relative;min-width:0;overflow:hidden;max-width:1024px;margin:auto}
+.ttk-approved-mini-page iframe{
+ position:absolute;top:0;left:0;display:block;
+ width:1024px;height:1448px;border:0;
+ background:#fffaf0;transform-origin:top left;
+}
