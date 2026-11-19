@@ -70,7 +70,8 @@ test('approved A4 is the first visible preview on Android while original editor 
  const css=await fs.readFile(new URL('../public/ttk-approved-preview.css',import.meta.url),'utf8');
  assert.match(index,/recipeLayoutPicker\.populate\(r\|\|\{layoutTemplate:APPROVED_A4_LAYOUT\}\)/);
  assert.match(index,/approvedPreview\.refreshInline\(\)/);
- assert.match(js,/choices\.before\(menu\)/,'approved template controls must precede old cards');
+ assert.match(js,/topToolbar\.after\(menu\)/,'approved template must be outside the hidden A4 stage');
+ assert.match(js,/saveA4\.addEventListener/,'save controls must remain accessible when legacy preview is hidden');
  assert.match(js,/miniFrame\.contentWindow\.applyTtkData\(data\)/,'live sample must display current recipe');
  assert.match(js,/const showFields=el\('button'/,'old fields must be recoverable');
  assert.match(js,/editor\.dataset\.ttkShowLegacy=String\(show\)/);
