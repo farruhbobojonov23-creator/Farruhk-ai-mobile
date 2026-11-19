@@ -1,0 +1,59 @@
+/* Approved MORE SUSHI A4 visual-master preview. Scoped: no changes to existing app styles. */
+.ttk-approved-controls{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+  margin:15px 0;padding:15px;border:1px solid #c5a056;border-radius:14px;
+  background:linear-gradient(130deg,#07362c,#004c3c 76%,#0b302a);color:#ffefd1;
+  box-shadow:0 9px 24px #0004
+}
+.ttk-approved-controls h3{grid-column:1/-1;margin:0;color:#ffe6a3;font-size:17px;font-weight:800}
+.ttk-approved-controls p{grid-column:1/-1;margin:0 0 5px;color:#f7e9c6;font-size:12px;line-height:1.5}
+.ttk-approved-controls button{
+  min-height:43px!important;width:100%;border:1px solid #d6b167!important;
+  border-radius:9px!important;color:#ffefc7!important;font-weight:750!important;font-size:12px!important;
+  background:linear-gradient(120deg,#165a44,#143f32)!important;
+  padding:9px 11px!important;white-space:normal!important
+}
+.ttk-approved-controls button:hover,.ttk-approved-controls button:focus-visible{
+  box-shadow:0 0 0 2px #f9e3aa8c!important;outline:none
+}
+body.ttk-approved-preview-open{overflow:hidden!important}
+.ttk-approved-modal[hidden]{display:none!important}
+.ttk-approved-modal{
+ position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;
+ background:#020b0be8;backdrop-filter:blur(8px);
+}
+.ttk-approved-modal-inner{
+ display:flex;flex-direction:column;min-width:0;width:min(1105px,100vw);height:min(97dvh,1100px);
+ background:#142d28;border:1px solid #d7b26b;border-radius:13px;overflow:hidden;
+ box-shadow:0 24px 95px #0009;color:#ffefcf;
+}
+.ttk-approved-modal-head{
+ display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:11px 13px;
+ background:linear-gradient(130deg,#003b30,#075c44);border-bottom:1px solid #c19b51;
+}
+.ttk-approved-modal-head strong{flex:1 1 180px;font-size:15px;color:#ffe3a0}
+.ttk-approved-modal-head button{
+  border:1px solid #d5b369;border-radius:8px;background:#184f3e;color:#ffeac7;
+  min-height:40px;font-size:12px;font-weight:700;padding:7px 12px;cursor:pointer
+}
+.ttk-approved-modal-head button:focus-visible{outline:2px solid #ffcc78}
+.ttk-approved-warning{font-size:11px;line-height:1.5;padding:9px 13px;color:#fff0c5;
+ background:#254738;border-bottom:1px solid #405b40;max-height:70px;overflow:auto}
+.ttk-approved-warning[data-overflow="true"]{background:#572222;color:#ffe5db}
+.ttk-approved-canvas{
+ flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;
+ background:#363f3b;padding:9px;box-sizing:border-box
+}
+.ttk-approved-sheet{margin:0 auto;position:relative;max-width:none}
+.ttk-approved-sheet iframe{
+ display:block;background:white;border:0;position:absolute;top:0;left:0;
+ width:1024px;height:1448px;box-shadow:0 8px 35px #0008
+}
+@media(max-width:600px){
+ .ttk-approved-modal{align-items:stretch}
+ .ttk-approved-modal-inner{border:0;border-radius:0;height:100dvh}
+ .ttk-approved-modal-head{gap:5px;padding:9px}
+ .ttk-approved-modal-head strong{flex-basis:100%}
+ .ttk-approved-modal-head button{font-size:11px;min-height:39px;padding:6px 8px}
+ .ttk-approved-controls{padding:11px;gap:7px}
+}
