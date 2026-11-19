@@ -138,10 +138,32 @@ async function auditRoyal(page,tag,mobile,errors){
       oldSheet:obsolete?getComputedStyle(obsolete).display:'missing',
       cards:cards.length,ids:cards.map(c=>c.dataset.ttkLayout)};
    });
-   check(tag+' A4 opens as four real templates, never as old HTML sheet',
-     fourOnOpen.mode==='paper'&&fourOnOpen.stage&&fourOnOpen.oldSheet==='none'&&
-     fourOnOpen.cards===4&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',
-     fourOnOpen);
+   const approvedFirst=await page.evaluate(()=>{
+    const editor=document.querySelector('#editor'),mini=editor.querySelector('.ttk-approved-mini');
+    const frame=mini?.querySelector('iframe'),page=mini?.querySelector('.ttk-approved-mini-page');
+    return {
+     selected:editor.dataset.ttkLayout,
+     visible:!!mini&&!mini.hidden&&mini.getBoundingClientRect().height>250,
+     previewHeight:page?.getBoundingClientRect().height,
+     startsBeforeStage:(editor.querySelector('.ttk-approved-controls')?.compareDocumentPosition(editor.querySelector('.ttk-pro-shell'))&Node.DOCUMENT_POSITION_FOLLOWING)!==0,
+     hiddenLegacy:getComputedStyle(editor.querySelector('.ttk-viewport')).display==='none',
+     frameSrc:frame?.getAttribute('src')
+    };
+   });
+   check(tag+' new TTK opens the approved live Emerald A4 above the old miniature',
+    approvedFirst.selected==='emerald-master-a4'&&approvedFirst.visible&&
+    approvedFirst.previewHeight>250&&approvedFirst.startsBeforeStage&&
+    approvedFirst.hiddenLegacy&&approvedFirst.frameSrc?.includes('/ttk-approved-master.html'),
+    approvedFirst);
+   await page.screenshot({path:'artifacts/premium-'+tag+'-new-approved-emerald-master.png',timeout:12000});
+   // The original four premium variants and their real editable fields are
+   // retained behind a clear, user-accessible "Редактировать поля" button.
+   await page.locator('#editor .ttk-approved-fields').click();
+   await page.waitForFunction(()=>document.querySelector('#editor .ttk-viewport')?.getBoundingClientRect().height>100);
+   check(tag+' four legacy cards stay reachable after opening edit fields',
+     fourOnOpen.mode==='paper'&&fourOnOpen.cards===4&&
+     fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue'&&
+     await page.locator('#ttk-real-a4-stage').isVisible(),fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    // Production regression: on Android the old icon-only ⚙ could be
    // clipped by the four-button topbar. The full-width labeled row MUST be
