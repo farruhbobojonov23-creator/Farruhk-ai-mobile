@@ -58,7 +58,7 @@ test('unknown nutritional values stay unknown; no demo recipe silently appears',
 test('controls connect existing editor to master without changing other PDFs and docs',async()=>{
  const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
  assert.match(index,/mountApprovedA4Preview/);
- assert.match(index,/approvedPreview\.populate\(r\)/);
+ assert.match(index,/approvedPreview\.populate\(r\|\|\{layoutTemplate:APPROVED_A4_LAYOUT\}\)/);
  assert.match(index,/approvedPreview\.getLogo\(\)/);
  assert.match(index,/recipe\.layoutTemplate===APPROVED_A4_LAYOUT/);
  assert.match(index,/Word 1:1 для эталона/);
