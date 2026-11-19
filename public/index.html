@@ -492,7 +492,7 @@ const ttkPro=mountTtkProWorkspace($('editor'),{
  onPreview:guard(async()=>{recipeSheet.refresh();updateNutrition();await openRecipePdf(buildEditorRecipe({requireCore:true}))})
 });
 const ttkStudio=mountTtkStudio($('editor'),{getDraft:()=>buildEditorRecipe()});
-const approvedPreview=mountApprovedA4Preview($('editor'),{getDraft:()=>buildEditorRecipe(),onChange:()=>{editorDirty=true;ttkPro.markDirty()}});
+const approvedPreview=mountApprovedA4Preview($('editor'),{getDraft:()=>buildEditorRecipe(),onSelectMaster:()=>recipeLayoutPicker.select(APPROVED_A4_LAYOUT),onChange:()=>{editorDirty=true;ttkPro.markDirty()}});
 const knownIngredientNames=document.createElement('datalist');knownIngredientNames.id='ttk-known-ingredients';
 $('ingredients').before(knownIngredientNames);
 function refreshKnownIngredientNames(){
