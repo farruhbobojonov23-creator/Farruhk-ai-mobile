@@ -1,4 +1,5 @@
 import {regulatoryBasis,scopeForName,nutritionOnPortion} from './recipe-math.js?v=ttk-6';
+import {ALLERGEN_OPTIONS,normalizeAllergens} from './ttk-premium-themes.js';
 // Keep the existing form controls and calculations; arrange them on an editable A4 sheet.
 export function mountRecipeSheet(editor){
  const $=id=>document.getElementById(id),el=(tag,className)=>{const n=document.createElement(tag);if(className)n.className=className;return n};
@@ -10,6 +11,19 @@ export function mountRecipeSheet(editor){
  const guidance=el('p','ttk-guidance');guidance.textContent='Заполняй удобные поля или переключись на лист А4. Брутто и выход рассчитываются автоматически. Перед скачиванием PDF изменения сохраняются.';
  const viewport=el('div','ttk-viewport');viewport.tabIndex=0;viewport.setAttribute('aria-label','Редактируемая техкарта');
  const paper=el('div','ttk-paper');viewport.append(paper);
+ const logoBar=el('div','ttk-brand-row'),logoButton=el('button','ttk-logo-upload'),logoImg=el('img','ttk-logo-image'),logoInput=el('input');
+ logoButton.type='button';logoButton.textContent='＋ Загрузить логотип';logoButton.setAttribute('aria-label','Загрузить логотип компании');
+ logoInput.type='file';logoInput.accept='image/png,image/jpeg';logoInput.hidden=true;
+ logoBar.append(logoButton,logoImg,logoInput);paper.append(logoBar);
+ let logoData=null;
+ function setLogo(value){logoData=typeof value==='string'&&value.length<2000000&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/i.test(value)?value:null;logoImg.src=logoData||'';logoImg.hidden=!logoData;logoButton.textContent=logoData?'✎ Заменить логотип':'＋ Загрузить логотип';}
+ logoButton.onclick=()=>logoInput.click();
+ logoInput.addEventListener('change',()=>{
+  const file=logoInput.files?.[0];if(!file)return;
+  if(!['image/png','image/jpeg'].includes(file.type)||file.size>1400000){alert('Логотип: только PNG/JPEG размером до 1,4 МБ.');logoInput.value='';return;}
+  const reader=new FileReader();reader.onload=()=>{setLogo(String(reader.result||''));editor.dispatchEvent(new Event('change',{bubbles:true}));};reader.readAsDataURL(file);
+ });
+ setLogo(null);
  const title=el('div','ttk-document-title');title.textContent='ТЕХНИКО-ТЕХНОЛОГИЧЕСКАЯ КАРТА (Суши Бери)';paper.append(title);
  function table(){const t=el('table','ttk-table');t.append(el('tbody'));paper.append(t);return t.tBodies[0]}
  function pair(row,caption,id){const th=el('th'),td=el('td');th.scope='row';th.textContent=caption;const input=get(id);input.setAttribute('aria-label',caption);td.append(input);row.append(th,td)}
@@ -37,6 +51,20 @@ export function mountRecipeSheet(editor){
  paper.append(get('nutrition-products'));
  const signatures=table(),signatureRow=el('tr');pair(signatureRow,'Разработал (Шеф):','card-chef');pair(signatureRow,'Утверждаю (Руководитель):','card-approver');signatures.append(signatureRow);signatures.parentNode.classList.add('ttk-signatures');
  const basis=el('p','ttk-regulatory');basis.textContent=regulatoryBasis;paper.append(basis);const tools=el('div','ttk-template-tools');tools.append(get('apply-roll-template'));const note=el('p');note.textContent='Стандартные тексты доступны для правки. Проверь применимость к блюду перед утверждением.';tools.append(note);
+ // Аллергены выбираются вручную; система не заявляет автоматическую нормативную проверку.
+ const allergenBlock=el('section','ttk-block ttk-allergen-block');
+ const allergenTitle=el('h3','ttk-section-title'),allergenCaption=el('span');
+ allergenCaption.textContent='Аллергены · отметьте присутствующие';allergenTitle.append(allergenCaption);allergenBlock.append(allergenTitle);
+ const allergenGrid=el('div','ttk-allergen-grid'),allergenInputs=new Map();
+ for(const [key,label] of ALLERGEN_OPTIONS){
+  const wrapper=el('label','ttk-allergen-item'),input=el('input');input.type='checkbox';input.dataset.ttkAllergen=key;
+  const text=el('span');text.textContent=label;wrapper.append(input,text);allergenGrid.append(wrapper);allergenInputs.set(key,input);
+ }
+ allergenBlock.append(allergenGrid);
+ const otherInput=el('input','ttk-allergen-other');otherInput.type='text';otherInput.placeholder='Уточнение для «Другое»';otherInput.maxLength=180;
+ otherInput.setAttribute('aria-label','Другие аллергены');allergenBlock.append(otherInput);
+ function setAllergens(values=[],other=''){const chosen=new Set(normalizeAllergens(values));for(const [key,input] of allergenInputs)input.checked=chosen.has(key);otherInput.value=String(other||'');}
+ function getAllergens(){return [...allergenInputs].filter(([,input])=>input.checked).map(([key])=>key);}
  // Move the existing controls, preserving every listener and input identity.
  const blocks=[];let block;
  for(const node of [...paper.children]){
@@ -44,8 +72,12 @@ export function mountRecipeSheet(editor){
   if(block)block.append(node);
  }
  const top=el('div','ttk-top-pair');top.append(blocks[0],blocks[1]);
+ const middle=el('div','ttk-middle-grid');middle.append(blocks[2],blocks[3]);
+ blocks[5].append(safety);
  const lower=el('div','ttk-lower-grid');lower.append(blocks[4],blocks[5]);
- paper.append(top,blocks[2],blocks[3],lower,safety,blocks[6]);
+ const bottom=el('div','ttk-bottom-grid');bottom.append(blocks[6],allergenBlock);
+ // Approval signatures and regulatory note must remain below both final columns.
+ paper.append(top,middle,lower,bottom,signatures.parentNode,basis);
  const modes=el('nav','editor-modes');modes.setAttribute('aria-label','Режим техкарты');
  const formMode=el('button'),paperMode=el('button');formMode.type=paperMode.type='button';formMode.textContent='Заполнение';paperMode.textContent='Лист А4';
  function setEditorMode(value){editor.dataset.mode=value;formMode.setAttribute('aria-pressed',String(value==='form'));paperMode.setAttribute('aria-pressed',String(value==='paper'));refresh()}
@@ -68,6 +100,6 @@ export function mountRecipeSheet(editor){
    portionValues[key].toLocaleString('ru-RU',{maximumFractionDigits:2,minimumFractionDigits:0}):'—';
  }
  editor.addEventListener('input',()=>queueMicrotask(refresh));editor.addEventListener('change',()=>queueMicrotask(refresh));
- return {refresh,downloadButton:download};
+ return {refresh,downloadButton:download,getLogo:()=>logoData,setLogo,getAllergens,setAllergens,getAllergenOther:()=>otherInput.value.trim()};
 }
 

@@ -1,3 +1,5 @@
+import {isPremiumTtkTheme} from './public/ttk-premium-themes.js';
+import {premiumDualRecipePdf} from './recipe-dual-pdf.js';
 import PDFDocument from 'pdfkit';
 import {recipeSections} from './recipe-word.js';
 import {regulatoryBasis} from './public/recipe-math.js';
@@ -5,6 +7,7 @@ const regular=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',impor
 const bold=new URL('./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf',import.meta.url).pathname;
 const valueForYield=v=>v==null?'—':String(v);
 export function premiumRecipePdf(input){
+ if(isPremiumTtkTheme(input?.layoutTemplate))return premiumDualRecipePdf(input);
  const {recipe:r,sections,nutrition}=recipeSections(input);
  const safetyRows=sections[5][1].filter(row=>row[0]==='Безопасность');sections[5][1]=sections[5][1].filter(row=>row[0]!=='Безопасность');sections[5][0]='6. Показатели качества';sections.push(['Безопасность',[[safetyRows.map(row=>row[1]).join('\n')||'—']]]);
  const fmt=v=>v==null?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:1});

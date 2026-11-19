@@ -1,0 +1,150 @@
+{
+  "name": "FARUKH AI — MORE SUSHI TTK Premium Emerald Gold",
+  "status": "approved visual reference / implementation pending visual parity",
+  "figmaFileUrl": "https://www.figma.com/design/ItzqMMj8QzwGCjvs87FQEr",
+  "referenceImage": "User-approved sample image (19 Nov 2026), supplied in conversation",
+  "referenceWidth": 1024,
+  "referenceHeight": 1448,
+  "page": "A4 portrait 210 × 297 mm",
+  "palette": {
+    "background": "#FFF9EA",
+    "emeraldDark": "#003A2F",
+    "emerald": "#005642",
+    "gold": "#D7AD52",
+    "lightGold": "#F8E6BC",
+    "card": "#FFFEF8",
+    "text": "#1A3027"
+  },
+  "blocks": [
+    {
+      "id": "header",
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 146,
+      "editable": [
+        "logo",
+        "name",
+        "cardNumber"
+      ],
+      "ornaments": [
+        "golden top-right fan",
+        "gold separators"
+      ]
+    },
+    {
+      "id": "metadata",
+      "x": 14,
+      "y": 153,
+      "width": 996,
+      "height": 100,
+      "editable": [
+        "name",
+        "category",
+        "netYieldGrams",
+        "pieces",
+        "cardDate",
+        "status"
+      ]
+    },
+    {
+      "id": "scope",
+      "section": 1,
+      "x": 14,
+      "y": 272,
+      "width": 489,
+      "height": 212
+    },
+    {
+      "id": "rawRequirements",
+      "section": 2,
+      "x": 519,
+      "y": 272,
+      "width": 491,
+      "height": 212
+    },
+    {
+      "id": "recipe",
+      "section": 3,
+      "x": 14,
+      "y": 505,
+      "width": 489,
+      "height": 279
+    },
+    {
+      "id": "process",
+      "section": 4,
+      "x": 519,
+      "y": 505,
+      "width": 491,
+      "height": 279
+    },
+    {
+      "id": "storage",
+      "section": 5,
+      "x": 14,
+      "y": 804,
+      "width": 489,
+      "height": 236
+    },
+    {
+      "id": "qualitySafety",
+      "section": 6,
+      "x": 519,
+      "y": 804,
+      "width": 491,
+      "height": 236
+    },
+    {
+      "id": "nutrition",
+      "section": 7,
+      "x": 14,
+      "y": 1058,
+      "width": 489,
+      "height": 202
+    },
+    {
+      "id": "allergens",
+      "section": "extra",
+      "x": 519,
+      "y": 1058,
+      "width": 491,
+      "height": 202,
+      "widget": "checkboxes two columns",
+      "editable": true
+    },
+    {
+      "id": "signatures",
+      "x": 14,
+      "y": 1280,
+      "width": 996,
+      "height": 76,
+      "editable": [
+        "chef",
+        "approver",
+        "signatures"
+      ]
+    },
+    {
+      "id": "footer",
+      "x": 0,
+      "y": 1356,
+      "width": 1024,
+      "height": 92,
+      "ornament": "gold wave over emerald"
+    }
+  ],
+  "requirements": [
+    "Same visual geometry for all four approved palettes; do not alter seven sections.",
+    "Logo must be user-provided rather than hardcoded MORE SUSHI.",
+    "Allergen selections preserved, not inferred as approved safety decisions.",
+    "Must retain legibility and mandatory fields, return explicit overcapacity error instead of truncation.",
+    "Preview, PDF and DOCX should be compared on the same sample by rasterized page screenshot.",
+    "Never claim 1:1 parity until visual diffs and Android UX reviewed."
+  ],
+  "actualStatus": {
+    "figmaMaster": true,
+    "figmaPixelParityVerified": false,
+    "productionDeployed": false
+  }
+}
