@@ -144,6 +144,12 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('#editor').getAttribute('data-mode'),'paper','TTK Studio opens with 4 A4 Premium designs on both phone and desktop');
   assert.equal(await page.locator('#ttk-real-a4-stage .ttk-design-card').count(),4,'four designs are selectable');
   assert.equal(await page.locator('#editor .ttk-viewport>.ttk-paper').evaluate(e=>getComputedStyle(e).display),'none','old pale-blue sheet is hidden');
+  // Preserve testing of the original editable layout by explicitly selecting
+  // its legacy palette after checking the newly approved Smart A4 default.
+  const initialLayout=await page.locator('#editor').getAttribute('data-ttk-layout');
+  assert.equal(initialLayout,'premium-smart-a4','new TTK should start with Smart A4');
+  await page.locator('#editor .smart-legacy').click();
+  await page.locator('#ttk-design-picker [data-ttk-layout="teal-matrix"]').click();
   await page.locator('#editor .ttk-onepage-full-form').click();
   const colors=await page.locator('#recipe-name').evaluate(el=>{
    const c=getComputedStyle(el);return {background:c.backgroundColor,color:c.color};
