@@ -3,7 +3,7 @@ import {cleanState} from './assistant-store.js';
 export function validGoogleEndpoint(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&/^\/macros\/s\/[A-Za-z0-9_-]{15,}\/exec$/.test(u.pathname)}catch{return false}}
 export function installRecipeExportApi(app,{request=fetch}={}){
  const recipeFrom=raw=>{if(!raw||typeof raw.id!=='string'||!raw.id||!raw.name?.trim()||!Array.isArray(raw.ingredients)||raw.ingredients.length>300||raw.ingredients.some(i=>!i||typeof i!=='object'))throw Error('Неверная техкарта.');return cleanState({recipes:[raw]}).recipes[0]};
- app.post('/api/recipes/word',async(req,res)=>{try{const recipe=recipeFrom(req.body?.recipe),buffer=await recipeWord(recipe);res.type('application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.set('Content-Disposition',"attachment; filename=recipe.docx; filename*=UTF-8''"+encodeURIComponent('ТТК_'+recipe.name+'.docx'));res.send(buffer)}catch{res.status(400).json({error:'Не удалось сформировать Word. Проверь техкарту.'})}});
+ app.post('/api/recipes/word',async(req,res)=>{try{const recipe=recipeFrom(req.body?.recipe),buffer=await recipeWord(recipe);res.type('application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.set('Content-Disposition',"attachment; filename=recipe.docx; filename*=UTF-8''"+encodeURIComponent('ТТК_'+recipe.name+'.docx'));res.send(buffer)}catch(e){res.status(e?.status===422?422:400).json({error:e?.status===422?e.message:'Не удалось сформировать Word. Проверь техкарту.'})}});
  app.post('/api/recipes/google-sync',async(req,res)=>{
   try{
    const {endpoint,key,action,digest}=req.body||{};
