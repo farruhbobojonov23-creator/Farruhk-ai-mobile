@@ -77,7 +77,7 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  assert.match(preview,/iframe\.addEventListener\('error',loadFailed\)/);
  assert.match(preview,/setTimeout\(loadFailed,15000\)/);
  assert.match(preview,/if\(!loaded\)\{loadFailed\(\);return\}/);
- const showAt=preview.indexOf('function show(recipe)');
+ const showAt=preview.indexOf('function show(recipe,openedFromEditor=false)');
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
  assert.match(index,/ttk-approved-preview\.js\?v=5/);
