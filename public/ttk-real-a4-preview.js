@@ -1,7 +1,5 @@
-/* FARRUH AI · Real A4 showroom.
- * Four legacy designs use the existing live editor and server PDF renderer.
- * The fifth Emerald Gold uses its separate approved browser-print master.
- * Recipe data and editing controls remain shared, not copied. */
+/* FARRUH AI · Real A4 showroom. Four editable reference designs.
+ * Uses the original live editor and server PDF renderer; one shared recipe. */
 import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=8';
 import {mountOnePageA4} from './ttk-one-page-a4.js?v=6';
 const ui=(tag,cls,content)=>{
@@ -50,19 +48,14 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  stage.append(quickNav);
  const mast=ui('div','ttk-real-a4-mast');
  mast.append(ui('span','ttk-real-a4-kicker','FARRUH AI  /  PREMIUM A4'),
-  ui('h3','','5 шаблонов технологической карты'),
-  ui('p','','Пять вариантов А4: первые четыре редактируются прямо на листе. Для Emerald Gold заполни ТТК в полном редакторе и открой точный эталон перед печатью.'));
+  ui('h3','','4 шаблона технологической карты'),
+  ui('p','','Четыре варианта А4: каждый редактируется прямо на листе. После заполнения можно посмотреть и сохранить PDF.'));
  stage.append(mast);
  const gallery=ui('div','ttk-real-a4-gallery');
  stage.append(gallery);
  const startEdit=ui('button','ttk-real-a4-start-edit','✎ Заполнить выбранный шаблон прямо на листе');
  startEdit.type='button';
- startEdit.addEventListener('click',()=>{
-  if((editor.dataset.ttkLayout||'teal-matrix')==='emerald-master-a4'){
-   editor.querySelector('.ttk-studio-switch-button')?.click();
-   requestAnimationFrame(()=>editor.querySelector('#recipe-name')?.scrollIntoView({block:'center',behavior:'smooth'}));
-  }else live.page.scrollIntoView({behavior:'smooth',block:'start'});
- });
+ startEdit.addEventListener('click',()=>live.page.scrollIntoView({behavior:'smooth',block:'start'}));
  stage.append(startEdit);
  const output=ui('section','ttk-real-a4-output');
  output.setAttribute('aria-label','Просмотр выбранного шаблона');
@@ -93,26 +86,6 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  };
  const movePicker=show=>{(show?gallery:intro).append(picker);};
  const chosen=()=>editor.dataset.ttkLayout||'teal-matrix';
- const isEmerald=()=>chosen()==='emerald-master-a4';
- const syncSelectedLayout=()=>{
-  // The generic inline sheet and /api/recipes/pdf do not draw Emerald Gold.
-  // Display only the approved master actions for that layout, never a false
-  // turquoise PDF that looks unlike the selected thumbnail.
-  const emerald=isEmerald();
-  live.shell.hidden=emerald;
-  // Some legacy printable layout CSS specifies display explicitly; enforce hidden.
-  if(emerald)live.shell.style.setProperty('display','none','important');
-  else live.shell.style.removeProperty('display');
-  // Emerald cannot be typed into as a 1024px scaled iframe, but opening
-  // the real editor is always one obvious tap away on the A4 screen.
-  startEdit.hidden=false;
-  startEdit.style.removeProperty('display');
-  startEdit.textContent=emerald?'✎ Заполнить ТТК Emerald Gold':'✎ Заполнить выбранный шаблон прямо на листе';
-  preview.textContent=emerald?'👁 Открыть точный эталон Emerald Gold А4':'◉ Посмотреть печатный PDF А4';
-  if(emerald){
-   status.textContent='Выбран Emerald Gold. Нажми «Открыть точный эталон» — отобразится утверждённый лист А4 с данными текущей ТТК.';
-  }
- };
  function setMode(mode){
   active=mode==='paper';
   stage.hidden=!active;
@@ -120,9 +93,9 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   if(active){
    movePicker(true);
    // Each selected layout is a LIVE editable form, not a dead PDF frame.
-   if(!isEmerald())live.refresh();
+   live.refresh();
    status.textContent='Заполняй поля прямо на выбранной карте. PDF нужен только для просмотра печати.';
-   syncSelectedLayout();
+
   }else{
    movePicker(false);
    clear();
@@ -131,14 +104,6 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  async function showPdf(){
   if(!active)return;
   clear();
-  if(isEmerald()){
-   // Route *all* preview/print entry points to the same approved master.
-   // Never submit the Emerald ID to the older server PDF renderer.
-   const button=picker.querySelector('#ttk-approved-open');
-   if(button){button.click();status.textContent='Открыт утверждённый Emerald Gold А4. Сохрани PDF через диалог печати.';}
-   else status.textContent='Эталон Emerald Gold временно недоступен. Открой полный редактор и повтори.';
-   return;
-  }
   const token=requestNo;
   let recipe;
   try{recipe=getDraft()}catch(error){
@@ -185,10 +150,9 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   const card=event.target.closest?.('[data-ttk-layout]');
   if(active&&card)queueMicrotask(()=>{
    clear();
-   if(!isEmerald())live.setLayout();
-   syncSelectedLayout();
+   live.setLayout();
    onePage.scheduleFit();
-   if(!isEmerald())status.textContent='Оформление выбрано. Нажми на нужный блок ТТК для удобного ввода.';
+   status.textContent='Оформление выбрано. Нажми на нужный блок ТТК для удобного ввода.';
   });
  });
  preview.addEventListener('click',()=>void showPdf());
