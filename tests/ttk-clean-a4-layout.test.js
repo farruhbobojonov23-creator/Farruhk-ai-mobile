@@ -13,7 +13,7 @@ test('paper A4 includes approved premium brand, HORECA caption and four compact 
  assert.match(js,/const masthead=node\('header','ttk-live-hero ttk-live-paper-mast'\)/);
  assert.match(js,/page\.append\(masthead,title,name,meta,introPair,recipePair,lower\)/);
  assert.match(css,/\.ttk-live-page>\.ttk-live-paper-mast\s*\{[^}]*display:grid!important/s);
- assert.match(html,/ttk-one-page-a4\.css\?v=3"><link rel="stylesheet" href="\/ttk-clean-a4\.css\?v=2"/);
+ assert.match(html,/ttk-one-page-a4\.css\?v=4"><link rel="stylesheet" href="\/ttk-clean-a4\.css\?v=2"/);
  for(const label of ['FARRUH AI','Premium','ПФ','ХАССП','Печать','ТТК']){
   assert.ok(js.includes(label),'missing paper masthead label: '+label);
  }
