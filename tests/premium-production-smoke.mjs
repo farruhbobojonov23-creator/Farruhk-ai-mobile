@@ -705,7 +705,7 @@ async function run(theme,width,height){
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
    check(tag+' 5 Premium allergen A4 layouts appear in TTK editor with current selection',
-     catalog.count===5&&catalog.selected='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+     catalog.count===5&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
    await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
    check(tag+' selecting Premium Blue changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);
