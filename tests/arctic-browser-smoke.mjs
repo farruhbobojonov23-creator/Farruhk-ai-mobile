@@ -155,6 +155,16 @@ async function verify(mode,width,height){
   await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').click();
   assert.equal(await visible(page,'#ttk-approved-controls'),true,'Emerald tools are visible inside the same gallery');
   assert.match(await page.locator('.ttk-real-a4-refresh').textContent(),/Emerald Gold/,'preview uses approved Emerald master');
+  await page.locator('#ttk-approved-open').click();
+  assert.equal(await visible(page,'#ttk-approved-modal'),true,'Emerald A4 print preview opens');
+  assert.equal(await visible(page,'.ttk-approved-edit'),true,'clear edit action is available above printed sheet');
+  await page.locator('.ttk-approved-edit').click();
+  assert.equal(await visible(page,'#ttk-approved-modal'),false,'edit closes print-only preview');
+  assert.equal(await page.locator('#editor').getAttribute('data-studio-mode'),'form','edit returns to actual recipe form');
+  assert.equal(await visible(page,'#recipe-name'),true,'recipe name field can be filled in owner form');
+  await page.locator('.ttk-studio-switch-button').nth(1).click();
+  assert.equal(await page.locator('#editor').getAttribute('data-studio-mode'),'paper','user can return to A4 design');
+
   assert.equal(await page.locator('#editor .ttk-viewport>.ttk-paper').evaluate(e=>getComputedStyle(e).display),'none','old pale-blue sheet is hidden');
   await page.locator('#editor .ttk-onepage-full-form').click();
   const colors=await page.locator('#recipe-name').evaluate(el=>{

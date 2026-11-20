@@ -50,7 +50,7 @@ export function buildApprovedA4Payload(recipe={}){
   overrides
  };
 }
-export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
+export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRecipe=null}={}){
  if(!editor||typeof getDraft!=='function')throw Error('Не найден редактор или источник ТТК.');
  const el=(tag,cls,label)=>{
   const n=document.createElement(tag);if(cls)n.className=cls;
@@ -61,7 +61,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  menu.id='ttk-approved-controls';menu.setAttribute('aria-label','Инструменты шаблона Emerald Gold');
  menu.hidden=true;
  const heading=el('h3',null,'05 · Emerald Gold — утверждённый эталон');
- const note=el('p',null,'Точный лист А4 откроется с данными этой ТТК. При печати выбери «Сохранить как PDF».');
+ const note=el('p',null,'Это печатный вид. Для заполнения нажми «✎ Заполнить ТТК» или коснись нужного раздела на листе. После заполнения вернись к предпросмотру и сохрани PDF.');
  const open=el('button','ttk-approved-open','👁 Просмотреть эталон А4');
  open.type='button';open.id='ttk-approved-open';
  const logo=el('button','ttk-approved-logo','▧ Загрузить логотип');
@@ -76,11 +76,12 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Просмотр эталонной ТТК А4');
  const shell=el('div','ttk-approved-modal-inner'),head=el('div','ttk-approved-modal-head');
  const title=el('strong',null,'ТТК Emerald Gold · один лист А4');
+ const edit=el('button','ttk-approved-edit','✎ Заполнить ТТК');edit.type='button';
  const scaleBtn=el('button',null,'100%');scaleBtn.type='button';scaleBtn.setAttribute('aria-pressed','false');
  const print=el('button',null,'🖨 Печать / сохранить PDF');print.type='button';
  const retry=el('button',null,'↻ Повторить загрузку');retry.type='button';retry.hidden=true;
  const close=el('button',null,'✕ Закрыть');close.type='button';
- head.append(title,scaleBtn,print,retry,close);
+ head.append(title,edit,scaleBtn,print,retry,close);
  const warning=el('div','ttk-approved-warning');
  warning.setAttribute('role','status');
  const canvas=el('div','ttk-approved-canvas');
@@ -110,7 +111,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  iframe.addEventListener('error',loadFailed);
  sheet.append(iframe);canvas.append(sheet);shell.append(head,warning,canvas);dialog.append(shell);
  document.body.append(dialog);
- let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null;
+ let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null,fromEditor=false;
  const isOpen=()=>!dialog.hidden;
  function fit(){
   const w=Math.max(0,canvas.clientWidth-8),factor=zoomOne?1:Math.min(1,w/1024);
@@ -139,10 +140,18 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
    brand.textContent=String(r.brandName).slice(0,28);
   }
   const report=iframe.contentWindow.checkTtkPage();
-  const messages=[...r.warnings];
-  if(!report.ready)messages.unshift('⚠ Текст выходит за пределы блока. Печать остановлена — сократите или исправьте содержание.');
-  warning.textContent=messages.join('  •  ');
-  warning.dataset.overflow=String(!report.ready);
+  const hasRequiredFields=Boolean(r.name&&r.name!=='—'&&r.ingredients.some(row=>row.name.trim()&&row.net!=='—')&&r.portionWeight>0);
+  if(!hasRequiredFields){
+   // A blank draft may contain long category examples. Do not pretend that
+   // these examples mean the owner entered overflowing content.
+   warning.textContent='✎ ТТК ещё не заполнена. Нажми «Заполнить ТТК» или коснись раздела А4. Название, ингредиенты и граммовки укажи в редакторе.';
+   warning.dataset.overflow='false';
+  }else{
+   const messages=[...r.warnings];
+   if(!report.ready)messages.unshift('⚠ Текст выходит за пределы блока. Печать остановлена — сократите или исправьте содержание.');
+   warning.textContent=messages.join('  •  ');
+   warning.dataset.overflow=String(!report.ready);
+  }
   fit();
  }
  iframe.addEventListener('load',()=>{
@@ -155,16 +164,41 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
   retry.hidden=true;
   render();
  });
- function show(recipe){
+ function show(recipe,openedFromEditor=false){
   lastFocus=document.activeElement;
-  current=recipe||getDraft();zoomOne=false;dialog.hidden=false;
+  current=recipe||getDraft();fromEditor=openedFromEditor;zoomOne=false;dialog.hidden=false;
   document.body.classList.add('ttk-approved-preview-open');
   if(!loaded)warning.textContent='Загружаю утверждённый макет А4…';
   ensureMasterLoaded();
   requestAnimationFrame(()=>{fit();render();close.focus()});
  }
  function hide(){dialog.hidden=true;document.body.classList.remove('ttk-approved-preview-open');lastFocus?.focus?.();}
- open.onclick=()=>show(getDraft());
+ function editCurrent(fieldId='#recipe-name'){
+  const recipe=current||getDraft();
+  hide();
+  // Print view can also open from a saved recipe list. In that case load the
+  // selected card into the ORIGINAL editor before focusing a field.
+  let sameDraft=fromEditor&&!editor.hidden;
+  if(!sameDraft&&!editor.hidden){
+   try{
+    const draft=getDraft();
+    sameDraft=Boolean(recipe?.id)?draft?.id===recipe.id:!draft?.id;
+   }catch{}
+  }
+  if(!sameDraft&&typeof onEditRecipe==='function')onEditRecipe(recipe);
+  if(editor.hidden){warning.textContent='Не удалось открыть редактор ТТК.';dialog.hidden=false;return;}
+  const formButton=[...editor.querySelectorAll('.ttk-studio-switch-button')][0];
+  if(formButton)formButton.click();
+  requestAnimationFrame(()=>{
+   const field=editor.querySelector(fieldId)||editor.querySelector('#recipe-name');
+   if(!field)return;
+   field.scrollIntoView({block:'center',behavior:'smooth'});
+   // On Android, focus without opening the keyboard automatically; tap to type.
+   field.focus({preventScroll:true});
+  });
+ }
+ edit.onclick=()=>editCurrent();
+ open.onclick=()=>show(getDraft(),true);
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
  window.addEventListener('keydown',e=>{if(isOpen()&&e.key==='Escape'){hide();e.stopPropagation()}});
@@ -194,7 +228,31 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
   reader.readAsDataURL(f);
  });
  iframe.addEventListener('load',()=>{
-  iframe.contentDocument?.querySelectorAll('.allergen input').forEach(box=>{
+  const master=iframe.contentDocument;
+  // Tapping a section of the *printed* A4 jumps to the corresponding real
+  // recipe field, instead of silently refusing to edit the scaled preview.
+  master?.addEventListener('click',event=>{
+   if(!isOpen()||!loaded||event.target.closest('.allergen input'))return;
+   const field=event.target.closest('[data-field]')?.dataset.field;
+   const section=event.target.closest('.sect');
+   const sectionClass=[...section?.classList||[]].find(x=>/^section-[1-8]$/.test(x));
+   const fieldTarget={
+    name:'#recipe-name',cardNumber:'#card-number',
+    category:'#recipe-category',date:'#card-date',status:'#recipe-status',
+    yield:'#addingredient',scope:'#card-scope',rawRequirements:'#card-raw',
+    serving:'#card-serving',sale:'#card-storage',storage:'#card-storage',
+    quality:'#card-appearance',safety:'#card-safety'
+   };
+   const sectionTarget={
+    'section-1':'#card-scope','section-2':'#card-raw',
+    'section-3':'#addingredient','section-4':'#technology',
+    'section-5':'#card-storage','section-6':'#card-appearance',
+    'section-7':'#card-protein','section-8':'#recipe-name'
+   };
+   const target=fieldTarget[field]||sectionTarget[sectionClass]||null;
+   if(target)editCurrent(target);
+  });
+  master?.querySelectorAll('.allergen input').forEach(box=>{
    box.addEventListener('change',()=>{
     if(!current)return;
     const overrides={...(current.allergenOverrides||{})};
@@ -206,5 +264,5 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
    });
   });
  });
- return {openForRecipe:show,populate,getLogo:()=>brandLogo,openCurrent:()=>show(getDraft()),isOpen};
+ return {openForRecipe:r=>show(r,false),populate,getLogo:()=>brandLogo,openCurrent:()=>show(getDraft(),true),isOpen};
 }
