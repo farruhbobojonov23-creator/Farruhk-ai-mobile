@@ -111,7 +111,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
  iframe.addEventListener('error',loadFailed);
  sheet.append(iframe);canvas.append(sheet);shell.append(head,warning,canvas);dialog.append(shell);
  document.body.append(dialog);
- let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null;
+ let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null,fromEditor=false;
  const isOpen=()=>!dialog.hidden;
  function fit(){
   const w=Math.max(0,canvas.clientWidth-8),factor=zoomOne?1:Math.min(1,w/1024);
@@ -164,9 +164,9 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
   retry.hidden=true;
   render();
  });
- function show(recipe){
+ function show(recipe,openedFromEditor=false){
   lastFocus=document.activeElement;
-  current=recipe||getDraft();zoomOne=false;dialog.hidden=false;
+  current=recipe||getDraft();fromEditor=openedFromEditor;zoomOne=false;dialog.hidden=false;
   document.body.classList.add('ttk-approved-preview-open');
   if(!loaded)warning.textContent='Загружаю утверждённый макет А4…';
   ensureMasterLoaded();
@@ -178,8 +178,8 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
   hide();
   // Print view can also open from a saved recipe list. In that case load the
   // selected card into the ORIGINAL editor before focusing a field.
-  let sameDraft=false;
-  if(!editor.hidden){
+  let sameDraft=fromEditor&&!editor.hidden;
+  if(!sameDraft&&!editor.hidden){
    try{
     const draft=getDraft();
     sameDraft=Boolean(recipe?.id)?draft?.id===recipe.id:!draft?.id;
@@ -198,7 +198,7 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
   });
  }
  edit.onclick=()=>editCurrent();
- open.onclick=()=>show(getDraft());
+ open.onclick=()=>show(getDraft(),true);
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
  window.addEventListener('keydown',e=>{if(isOpen()&&e.key==='Escape'){hide();e.stopPropagation()}});
@@ -264,5 +264,5 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
    });
   });
  });
- return {openForRecipe:show,populate,getLogo:()=>brandLogo,openCurrent:()=>show(getDraft()),isOpen};
+ return {openForRecipe:r=>show(r,false),populate,getLogo:()=>brandLogo,openCurrent:()=>show(getDraft(),true),isOpen};
 }
