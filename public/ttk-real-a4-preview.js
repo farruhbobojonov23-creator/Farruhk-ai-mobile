@@ -1,8 +1,7 @@
 /* FARRUH AI · Real A4 showroom.
- * The previous "A4" view was an editable HTML form and did not resemble
- * the four approved print layouts. This screen displays the four real choices
- * and previews the actual server-rendered PDF, using the current unsaved data.
- * The existing editable controls remain mounted inside .ttk-paper unchanged. */
+ * Four legacy designs use the existing live editor and server PDF renderer.
+ * The fifth Emerald Gold uses its separate approved browser-print master.
+ * Recipe data and editing controls remain shared, not copied. */
 import {mountInlineTtkPage} from './ttk-inline-a4-editor.js?v=8';
 import {mountOnePageA4} from './ttk-one-page-a4.js?v=6';
 const ui=(tag,cls,content)=>{
@@ -38,7 +37,7 @@ function demoRecipe(layoutTemplate){
 export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  const viewport=editor?.querySelector('.ttk-viewport');
  if(!editor||!viewport||!picker||!intro||typeof getDraft!=='function')
-  throw Error('Не найдена форма или селектор четырёх ТТК.');
+  throw Error('Не найдена форма или селектор шаблонов ТТК.');
  const stage=ui('section','ttk-real-a4-stage');
  stage.id='ttk-real-a4-stage';
  const quickNav=ui('div','ttk-onepage-topbar');
@@ -51,7 +50,7 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  stage.append(quickNav);
  const mast=ui('div','ttk-real-a4-mast');
  mast.append(ui('span','ttk-real-a4-kicker','FARRUH AI  /  PREMIUM A4'),
-  ui('h3','','4 шаблона технологической карты'),
+  ui('h3','','5 шаблонов технологической карты'),
   ui('p','','Выбери оформление и заполняй карту прямо на листе ниже. Нажимай на название, ингредиенты, технологию и другие поля — изменения сохраняются в настоящей ТТК.'));
  stage.append(mast);
  const gallery=ui('div','ttk-real-a4-gallery');
@@ -88,6 +87,20 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
  };
  const movePicker=show=>{(show?gallery:intro).append(picker);};
+ const chosen=()=>editor.dataset.ttkLayout||'teal-matrix';
+ const isEmerald=()=>chosen()==='emerald-master-a4';
+ const syncSelectedLayout=()=>{
+  // The generic inline sheet and /api/recipes/pdf do not draw Emerald Gold.
+  // Display only the approved master actions for that layout, never a false
+  // turquoise PDF that looks unlike the selected thumbnail.
+  const emerald=isEmerald();
+  live.shell.hidden=emerald;
+  startEdit.hidden=emerald;
+  preview.textContent=emerald?'👁 Открыть точный эталон Emerald Gold А4':'◉ Посмотреть печатный PDF А4';
+  if(emerald){
+   status.textContent='Выбран Emerald Gold. Нажми «Открыть точный эталон» — отобразится утверждённый лист А4 с данными текущей ТТК.';
+  }
+ };
  function setMode(mode){
   active=mode==='paper';
   stage.hidden=!active;
@@ -95,19 +108,25 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   if(active){
    movePicker(true);
    // Each selected layout is a LIVE editable form, not a dead PDF frame.
-   live.refresh();
+   if(!isEmerald())live.refresh();
    status.textContent='Заполняй поля прямо на выбранной карте. PDF нужен только для просмотра печати.';
+   syncSelectedLayout();
   }else{
    movePicker(false);
    clear();
   }
  }
- function chosen(){
-  return editor.dataset.ttkLayout||'teal-matrix';
- }
  async function showPdf(){
   if(!active)return;
   clear();
+  if(isEmerald()){
+   // Route *all* preview/print entry points to the same approved master.
+   // Never submit the Emerald ID to the older server PDF renderer.
+   const button=picker.querySelector('#ttk-approved-open');
+   if(button){button.click();status.textContent='Открыт утверждённый Emerald Gold А4. Сохрани PDF через диалог печати.';}
+   else status.textContent='Эталон Emerald Gold временно недоступен. Открой полный редактор и повтори.';
+   return;
+  }
   const token=requestNo;
   let recipe;
   try{recipe=getDraft()}catch(error){
@@ -153,7 +172,11 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  picker.addEventListener('click',event=>{
   const card=event.target.closest?.('[data-ttk-layout]');
   if(active&&card)queueMicrotask(()=>{
-   clear();live.setLayout();onePage.scheduleFit();status.textContent='Оформление выбрано. Нажми на нужный блок ТТК для удобного ввода.';
+   clear();
+   if(!isEmerald())live.setLayout();
+   syncSelectedLayout();
+   onePage.scheduleFit();
+   if(!isEmerald())status.textContent='Оформление выбрано. Нажми на нужный блок ТТК для удобного ввода.';
   });
  });
  preview.addEventListener('click',()=>void showPdf());
