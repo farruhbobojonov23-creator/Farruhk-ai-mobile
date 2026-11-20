@@ -78,6 +78,12 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
  assert.match(index,/ttk-approved-preview\.js\?v=3/);
+ const real=await fs.readFile(new URL('../public/ttk-real-a4-preview.js',import.meta.url),'utf8');
+ assert.match(real,/const isEmerald=\(\)=>chosen\(\)==='emerald-master-a4'/);
+ assert.match(real,/if\(isEmerald\(\)\)\{/);
+ assert.match(real,/picker\.querySelector\('#ttk-approved-open'\)/);
+ assert.match(real,/live\.shell\.hidden=emerald/);
+ assert.match(real,/5 шаблонов технологической карты/);
 });
 
 test('owner gallery has five selectable A4 layouts and one contextual Emerald control group',async()=>{
