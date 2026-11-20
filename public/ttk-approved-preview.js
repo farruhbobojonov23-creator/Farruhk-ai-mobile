@@ -78,8 +78,9 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  const title=el('strong',null,'ТТК Emerald Gold · один лист А4');
  const scaleBtn=el('button',null,'100%');scaleBtn.type='button';scaleBtn.setAttribute('aria-pressed','false');
  const print=el('button',null,'🖨 Печать / сохранить PDF');print.type='button';
+ const retry=el('button',null,'↻ Повторить загрузку');retry.type='button';retry.hidden=true;
  const close=el('button',null,'✕ Закрыть');close.type='button';
- head.append(title,scaleBtn,print,close);
+ head.append(title,scaleBtn,print,retry,close);
  const warning=el('div','ttk-approved-warning');
  warning.setAttribute('role','status');
  const canvas=el('div','ttk-approved-canvas');
@@ -87,12 +88,26 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  const iframe=el('iframe');iframe.title='Эталонная ТТК А4';
  // The approved visual master is ~1 MB of embedded print artwork. Do not
  // download or parse it during the dashboard startup; open it on demand.
- let masterRequested=false;
- function ensureMasterLoaded(){
-  if(masterRequested)return;
-  masterRequested=true;
-  iframe.src='/ttk-approved-master.html?v=owner-master-20261119';
+ let masterRequested=false,masterLoadTimer=null,retryCount=0;
+ function loadFailed(){
+  if(loaded)return;
+  clearTimeout(masterLoadTimer);
+  masterRequested=false;
+  retry.hidden=false;
+  warning.textContent='⚠ Не удалось загрузить лист А4. Нажмите «Повторить загрузку». Если ошибка останется, обновите страницу FARRUH AI.';
  }
+ function ensureMasterLoaded(){
+  if(masterRequested||loaded)return;
+  masterRequested=true;
+  retry.hidden=true;
+  warning.textContent='Загружаю утверждённый макет А4…';
+  clearTimeout(masterLoadTimer);
+  masterLoadTimer=setTimeout(loadFailed,15000);
+  // New query revision prevents Android's cached DENY header from being reused.
+  iframe.src='/ttk-approved-master.html?v=owner-master-20261120-frame'+(retryCount?'&attempt='+retryCount:'');
+ }
+ retry.onclick=()=>{loaded=false;masterRequested=false;retryCount++;ensureMasterLoaded()};
+ iframe.addEventListener('error',loadFailed);
  sheet.append(iframe);canvas.append(sheet);shell.append(head,warning,canvas);dialog.append(shell);
  document.body.append(dialog);
  let current=null,loaded=false,zoomOne=false,brandLogo=null,lastFocus=null;
@@ -131,9 +146,13 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
   fit();
  }
  iframe.addEventListener('load',()=>{
-  loaded=typeof iframe.contentWindow?.applyTtkData==='function'&&
-    typeof iframe.contentWindow?.checkTtkPage==='function';
-  if(!loaded){masterRequested=false;warning.textContent='Не удалось загрузить печатный эталон. Закройте просмотр и попробуйте снова.';}
+  clearTimeout(masterLoadTimer);
+  try{
+   loaded=typeof iframe.contentWindow?.applyTtkData==='function'&&
+     typeof iframe.contentWindow?.checkTtkPage==='function';
+  }catch{loaded=false;}
+  if(!loaded){loadFailed();return}
+  retry.hidden=true;
   render();
  });
  function show(recipe){
