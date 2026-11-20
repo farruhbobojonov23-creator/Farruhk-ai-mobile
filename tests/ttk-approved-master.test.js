@@ -80,7 +80,7 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  const showAt=preview.indexOf('function show(recipe)');
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
- assert.match(index,/ttk-approved-preview\.js\?v=4/);
+ assert.match(index,/ttk-approved-preview\.js\?v=5/);
  const real=await fs.readFile(new URL('../public/ttk-real-a4-preview.js',import.meta.url),'utf8');
  assert.match(real,/const isEmerald=\(\)=>chosen\(\)==='emerald-master-a4'/);
  assert.match(real,/if\(isEmerald\(\)\)\{/);
@@ -108,7 +108,7 @@ test('owner gallery has five selectable A4 layouts and one contextual Emerald co
  assert.match(bridge,/syncVisibility\(r\?\.layoutTemplate\)/);
  assert.match(styles,/\.ttk-approved-controls\[hidden\]\{display:none!important\}/);
  assert.match(index,/ttk-layouts\.js\?v=6/);
- assert.match(index,/ttk-approved-preview\.js\?v=4/);
+ assert.match(index,/ttk-approved-preview\.js\?v=5/);
 });
 
 test('only the Emerald master can be embedded, and only by the same origin',async()=>{
@@ -118,4 +118,21 @@ test('only the Emerald master can be embedded, and only by the same origin',asyn
  const bridge=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
  assert.match(bridge,/owner-master-20261120-frame/);
  assert.match(bridge,/Повторить загрузку/);
+});
+
+test('Emerald A4 is editable through the same recipe form, not a second disconnected draft',async()=>{
+ const preview=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ const studio=await fs.readFile(new URL('../public/ttk-real-a4-preview.js',import.meta.url),'utf8');
+ const app=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ assert.match(preview,/className=cls/);
+ assert.match(preview,/ttk-approved-edit/);
+ assert.match(preview,/edit\.onclick=\(\)=>editCurrent\(\)/);
+ assert.match(preview,/onEditRecipe\(recipe\)/);
+ assert.match(preview,/fromEditor=openedFromEditor/);
+ assert.match(preview,/editor\.querySelector\(fieldId\)/);
+ assert.match(preview,/master\?\.addEventListener\('click'/);
+ assert.match(preview,/warning\.dataset\.overflow='false'/);
+ assert.match(studio,/startEdit\.textContent=emerald\?'✎ Заполнить ТТК Emerald Gold'/);
+ assert.match(app,/onEditRecipe:r=>openEditor\(r\)/);
+ assert.match(app,/ttk-approved-preview\.css\?v=3/);
 });
