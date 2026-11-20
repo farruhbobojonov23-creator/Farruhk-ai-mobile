@@ -146,7 +146,7 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').count(),1,'approved Emerald Gold is the fifth choice');
   await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').click();
   assert.equal(await visible(page,'#ttk-approved-controls'),true,'Emerald tools are visible inside the same gallery');
-  assert.match(await page.locator('#ttk-real-a4-refresh').textContent(),/Emerald Gold/,'preview uses approved Emerald master');
+  assert.match(await page.locator('.ttk-real-a4-refresh').textContent(),/Emerald Gold/,'preview uses approved Emerald master');
   assert.equal(await page.locator('#editor .ttk-viewport>.ttk-paper').evaluate(e=>getComputedStyle(e).display),'none','old pale-blue sheet is hidden');
   await page.locator('#editor .ttk-onepage-full-form').click();
   const colors=await page.locator('#recipe-name').evaluate(el=>{
