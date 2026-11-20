@@ -61,12 +61,14 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
  menu.id='ttk-approved-controls';menu.setAttribute('aria-label','Инструменты шаблона Emerald Gold');
  menu.hidden=true;
  const heading=el('h3',null,'05 · Emerald Gold — утверждённый эталон');
- const note=el('p',null,'Это печатный вид. Для заполнения нажми «✎ Заполнить ТТК» или коснись нужного раздела на листе. После заполнения вернись к предпросмотру и сохрани PDF.');
+ const note=el('p',null,'Сначала заполни название, состав и граммовки. Затем открой утверждённый лист А4 и сохрани PDF.');
+ const fill=el('button','ttk-approved-fill','✎ Заполнить ТТК Emerald Gold');
+ fill.type='button';fill.id='ttk-approved-fill';
  const open=el('button','ttk-approved-open','👁 Просмотреть эталон А4');
  open.type='button';open.id='ttk-approved-open';
  const logo=el('button','ttk-approved-logo','▧ Загрузить логотип');
  logo.type='button';const file=el('input');file.type='file';file.accept='image/png,image/jpeg';file.hidden=true;
- menu.append(heading,note,open,logo,file);
+ menu.append(heading,note,fill,open,logo,file);
  const picker=editor.querySelector('#ttk-design-picker');
  if(picker)picker.append(menu);else (editor.querySelector('.editor-modes')||editor).after(menu);
  const syncVisibility=id=>{menu.hidden=id!==APPROVED_A4_LAYOUT};
@@ -198,6 +200,8 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onEditRe
   });
  }
  edit.onclick=()=>editCurrent();
+ // This action belongs to the visible gallery, not just the print-only modal.
+ fill.onclick=()=>{current=getDraft();fromEditor=true;editCurrent('#recipe-name');};
  open.onclick=()=>show(getDraft(),true);
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
