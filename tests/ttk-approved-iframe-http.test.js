@@ -5,46 +5,31 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-
-// This is the REAL Express entrypoint, not the static-file mock server used
-// in browser smoke tests. The mock omits security headers and missed the
-// ERR_BLOCKED_BY_RESPONSE bug on Android on 20 November 2026.
-test('real server permits ONLY the Emerald A4 master in a same-origin iframe', {timeout:30000}, async()=>{
+test('restored app blocks all embedded HTML, including retired Emerald page', {timeout:30000}, async()=>{
  const child=spawn(process.execPath,['server.js'],{
-  cwd:root,
-  env:{...process.env,PORT:'0',NODE_ENV:'test',GEMINI_API_KEY:''},
-  stdio:['ignore','pipe','pipe']
+  cwd:root,env:{...process.env,PORT:'0',NODE_ENV:'test',GEMINI_API_KEY:''},stdio:['ignore','pipe','pipe']
  });
- let startupLog='';
- let stopWait;
+ let logs='';
  try{
   const port=await new Promise((resolve,reject)=>{
-   const timer=setTimeout(()=>reject(Error('Express startup timed out: '+startupLog.slice(-1200))),16000);
-   const finish=(fn,value)=>{clearTimeout(timer);child.stdout.off('data',onData);child.off('error',onError);child.off('exit',onExit);fn(value)};
-   const onData=data=>{
-    startupLog+=data.toString('utf8');
-    const match=/Mobile V[\d.]+: host=0\.0\.0\.0 port=(\d+)/i.exec(startupLog);
-    if(match)finish(resolve,Number(match[1]));
-   };
-   const onError=e=>finish(reject,e);
-   const onExit=code=>finish(reject,Error('Express exited '+code+': '+startupLog.slice(-1200)));
+   const timer=setTimeout(()=>reject(Error('Server did not start: '+logs.slice(-1000))),16000);
+   const success=(fn,v)=>{clearTimeout(timer);child.stdout.off('data',onData);child.off('error',onError);child.off('exit',onExit);fn(v);};
+   const onData=data=>{logs+=data.toString();const m=/Mobile V[\d.]+: host=0\.0\.0\.0 port=(\d+)/i.exec(logs);if(m)success(resolve,Number(m[1]));};
+   const onError=e=>success(reject,e);
+   const onExit=code=>success(reject,Error('Server exited '+code));
    child.stdout.on('data',onData);child.on('error',onError);child.on('exit',onExit);
   });
   const base='http://127.0.0.1:'+port;
-  const request=async uri=>fetch(base+uri,{method:'HEAD',signal:AbortSignal.timeout(8000)});
-  const master=await request('/ttk-approved-master.html?v=owner-master-20261120-frame');
-  assert.equal(master.status,200,'approved A4 HTML is served');
-  assert.equal(master.headers.get('x-frame-options'),'SAMEORIGIN','the signed-in editor must be allowed to frame its own A4 HTML');
-  assert.equal(master.headers.get('content-security-policy'),"frame-ancestors 'self'",'other websites must not embed the master');
-  assert.match(master.headers.get('content-type')||'',/text\/html/);
-  const app=await request('/');
-  assert.equal(app.headers.get('x-frame-options'),'DENY','main owner app remains protected');
-  const js=await request('/ttk-approved-preview.js?v=4');
-  assert.equal(js.status,200);
-  assert.equal(js.headers.get('x-frame-options'),'DENY','all unrelated resources keep DENY');
+  for(const resource of ['/','/ttk-approved-master.html','/ttk-layouts.js?v=7']){
+   const response=await fetch(base+resource,{method:'HEAD',signal:AbortSignal.timeout(8000)});
+   // The '/' app shell can legitimately return 503 in NODE_ENV=test until
+   // persistent startup is ready. Security headers must be set either way.
+   assert.ok(response.status===200||(resource==='/'&&response.status===503),
+    resource+' returned unexpected status '+response.status);
+   assert.equal(response.headers.get('x-frame-options'),'DENY',resource+' must remain non-embeddable');
+  }
  }finally{
   child.kill('SIGTERM');
-  stopWait=new Promise(resolve=>child.once('exit',resolve));
-  await Promise.race([stopWait,new Promise(resolve=>setTimeout(resolve,1800))]);
+  await Promise.race([new Promise(resolve=>child.once('exit',resolve)),new Promise(resolve=>setTimeout(resolve,1700))]);
  }
 });

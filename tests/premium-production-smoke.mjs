@@ -138,9 +138,9 @@ async function auditRoyal(page,tag,mobile,errors){
       oldSheet:obsolete?getComputedStyle(obsolete).display:'missing',
       cards:cards.length,ids:cards.map(c=>c.dataset.ttkLayout)};
    });
-   check(tag+' A4 opens with five design choices, never the old HTML sheet',
+   check(tag+' A4 opens with four design choices, never the old HTML sheet',
      fourOnOpen.mode==='paper'&&fourOnOpen.stage&&fourOnOpen.oldSheet==='none'&&
-     fourOnOpen.cards===5&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue,emerald-master-a4',
+     fourOnOpen.cards===4&&fourOnOpen.ids.join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',
      fourOnOpen);
    await page.screenshot({path:'artifacts/premium-'+tag+'-new-a4-four-options.png',timeout:12000});
    // Production regression: on Android the old icon-only ⚙ could be
@@ -168,9 +168,9 @@ async function auditRoyal(page,tag,mobile,errors){
    await settingsSummary.click();
    const layouts=await page.locator('#ttk-design-picker .ttk-design-card').evaluateAll(nodes=>
      nodes.map(node=>({id:node.dataset.ttkLayout,visible:node.getBoundingClientRect().height>30})));
-   check(tag+' My TTK editor offers all five approved A4 templates',
-     layouts.length===5&&layouts.every(x=>x.visible)&&
-     layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue,emerald-master-a4',layouts);
+   check(tag+' My TTK editor offers four original A4 templates',
+     layouts.length===4&&layouts.every(x=>x.visible)&&
+     layouts.map(x=>x.id).join(',')==='teal-matrix,process-matrix,gold-allergen,premium-blue',layouts);
    await page.locator('#ttk-design-picker').scrollIntoViewIfNeeded();
    await page.screenshot({path:'artifacts/premium-'+tag+'-four-ttk-allergen-designs.png',timeout:12000});
    // Real visual regression: each of the four *inline* A4 options must have
@@ -285,8 +285,8 @@ async function auditRoyal(page,tag,mobile,errors){
    check(tag+' A4 view has no photo space',sheet.mode==='paper'&&sheet.photo==='none',sheet);
    check(tag+' A4 view never reveals obsolete editable HTML page',
     await page.evaluate(()=>getComputedStyle(document.querySelector('#editor .ttk-viewport>.ttk-paper')).display==='none'),null);
-   check(tag+' five premium templates remain visible in A4 view',
-    await page.locator('#ttk-real-a4-stage .ttk-design-card').count()===5,null);
+   check(tag+' four premium templates remain visible in A4 view',
+    await page.locator('#ttk-real-a4-stage .ttk-design-card').count()===4,null);
    await page.screenshot({path:'artifacts/premium-'+tag+'-sheet-no-photo.png',timeout:12000});
    await page.locator('#editor .ttk-onepage-full-form').click();
    await page.evaluate(()=>{window.confirm=()=>true});
@@ -704,8 +704,8 @@ async function run(theme,width,height){
      galleryVisible:document.querySelector('#ttk-design-picker')?.getBoundingClientRect().height>30,
      uploadButton:!!document.querySelector('.ttk-studio-photo-action')
    }));
-   check(tag+' 5 Premium allergen A4 layouts appear in TTK editor with current selection',
-     catalog.count===5&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
+   check(tag+' 4 Premium allergen A4 layouts appear in TTK editor with current selection',
+     catalog.count===4&&catalog.selected==='teal-matrix'&&catalog.sheet==='teal-matrix'&&catalog.unchangedForm&&catalog.galleryVisible&&catalog.uploadButton,catalog);
    await page.locator('#ttk-design-picker [data-ttk-layout="premium-blue"]').click();
    check(tag+' selecting Premium Blue changes the live A4 paper',
      await page.evaluate(()=>document.querySelector('#editor .ttk-paper')?.dataset.ttkLayout==='premium-blue'),null);

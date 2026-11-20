@@ -19,7 +19,7 @@
   display:none!important;
  }
  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-design-grid{
-  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:5px!important;align-items:stretch!important;margin:0 0 8px!important;
  }
  #editor.ttk-studio-enabled[data-mode="paper"] .ttk-onepage-enabled .ttk-design-card{

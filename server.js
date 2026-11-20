@@ -49,15 +49,8 @@ const apiRate=new Map();
 app.use((req,res,next)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','same-origin');
-  // Emerald Gold is displayed in a SAME-ORIGIN iframe inside the signed-in
-  // TTK editor. DENY blocks it on Android Chromium (ERR_BLOCKED_BY_RESPONSE).
-  // All other pages and APIs retain DENY; do not permit external embedding.
-  if(req.path==='/ttk-approved-master.html'){
-    res.setHeader('X-Frame-Options','SAMEORIGIN');
-    res.setHeader('Content-Security-Policy',"frame-ancestors 'self'");
-  }else{
-    res.setHeader('X-Frame-Options','DENY');
-  }
+  // The retired Emerald print iframe is no longer mounted in the editor.
+  res.setHeader('X-Frame-Options','DENY');
   res.setHeader('Permissions-Policy','camera=(), geolocation=(), payment=()');
   if(req.secure||req.headers['x-forwarded-proto']==='https')res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   if(req.path.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
