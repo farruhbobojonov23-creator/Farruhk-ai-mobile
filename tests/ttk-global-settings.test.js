@@ -40,7 +40,7 @@ test('global settings are optional and apply only to newly created TTKs',async()
  assert.match(s,/#newrecipe,#home-new-recipe,#quickrecipe/);
  assert.match(onepage,/mountTtkGeneralSettings\(editor,stage,quickNav\)/);
  assert.match(html,/ttk-direct-inline\.css\?v=3/);
- assert.match(html,/ttk-studio\.js\?v=14/);
+ assert.match(html,/ttk-studio\.js\?v=15/);
 });
 
 test('settings and quantity are visually separated with accessible labels',async()=>{
