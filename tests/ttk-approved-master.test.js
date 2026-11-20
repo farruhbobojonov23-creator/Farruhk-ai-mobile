@@ -70,7 +70,7 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
  assert.match(preview,/let masterRequested=false/);
  assert.match(preview,/function ensureMasterLoaded\(\)/);
- assert.match(preview,/if\(masterRequested\)return/);
+ assert.match(preview,/if\(masterRequested\|\|loaded\)return/);
  assert.match(preview,/ensureMasterLoaded\(\);/);
  assert.match(preview,/typeof iframe\.contentWindow\?\.applyTtkData==='function'/);
  assert.match(preview,/function loadFailed\(\)/);
