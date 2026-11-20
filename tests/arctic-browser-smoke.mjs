@@ -141,8 +141,12 @@ async function verify(mode,width,height){
   await page.locator('#home-new-recipe').click();
   assert.equal(await page.locator('body').getAttribute('data-view'),'recipes','create TTK navigates to recipes');
   assert.equal(await visible(page,'#editor'),true,'TTK editor opens');
-  assert.equal(await page.locator('#editor').getAttribute('data-mode'),'paper','TTK Studio opens with 4 A4 Premium designs on both phone and desktop');
-  assert.equal(await page.locator('#ttk-real-a4-stage .ttk-design-card').count(),4,'four designs are selectable');
+  assert.equal(await page.locator('#editor').getAttribute('data-mode'),'paper','TTK Studio opens with five A4 Premium designs on phone and desktop');
+  assert.equal(await page.locator('#ttk-real-a4-stage .ttk-design-card').count(),5,'five A4 templates are selectable');
+  assert.equal(await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').count(),1,'approved Emerald Gold is the fifth choice');
+  await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').click();
+  assert.equal(await visible(page,'#ttk-approved-controls'),true,'Emerald tools are visible inside the same gallery');
+  assert.match(await page.locator('#ttk-real-a4-refresh').textContent(),/Emerald Gold/,'preview uses approved Emerald master');
   assert.equal(await page.locator('#editor .ttk-viewport>.ttk-paper').evaluate(e=>getComputedStyle(e).display),'none','old pale-blue sheet is hidden');
   await page.locator('#editor .ttk-onepage-full-form').click();
   const colors=await page.locator('#recipe-name').evaluate(el=>{
