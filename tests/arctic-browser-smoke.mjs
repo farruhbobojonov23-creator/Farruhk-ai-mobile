@@ -154,6 +154,13 @@ async function verify(mode,width,height){
   assert.equal(await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').count(),1,'approved Emerald Gold is the fifth choice');
   await page.locator('#ttk-real-a4-stage [data-ttk-layout="emerald-master-a4"]').click();
   assert.equal(await visible(page,'#ttk-approved-controls'),true,'Emerald tools are visible inside the same gallery');
+  assert.equal(await visible(page,'#ttk-approved-fill'),true,'Emerald A4 fill button is visible without opening preview');
+  await page.locator('#ttk-approved-fill').click();
+  assert.equal(await page.locator('#editor').getAttribute('data-studio-mode'),'form','gallery fill button switches to the real form');
+  assert.equal(await visible(page,'#recipe-name'),true,'recipe fields are usable after tapping gallery fill action');
+  await page.locator('#recipe-name').fill('Проверка Emerald Gold');
+  await page.locator('.ttk-studio-switch-button').nth(1).click();
+  assert.equal(await page.locator('#recipe-name').inputValue(),'Проверка Emerald Gold','returning to A4 retains unsaved data');
   assert.match(await page.locator('.ttk-real-a4-refresh').textContent(),/Emerald Gold/,'preview uses approved Emerald master');
   await page.locator('#ttk-approved-open').click();
   assert.equal(await visible(page,'#ttk-approved-modal'),true,'Emerald A4 print preview opens');
