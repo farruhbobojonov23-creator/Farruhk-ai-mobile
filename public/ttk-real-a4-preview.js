@@ -95,7 +95,12 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   // turquoise PDF that looks unlike the selected thumbnail.
   const emerald=isEmerald();
   live.shell.hidden=emerald;
+  // Some legacy printable layout CSS specifies display explicitly; enforce hidden.
+  if(emerald)live.shell.style.setProperty('display','none','important');
+  else live.shell.style.removeProperty('display');
   startEdit.hidden=emerald;
+  if(emerald)startEdit.style.setProperty('display','none','important');
+  else startEdit.style.removeProperty('display');
   preview.textContent=emerald?'👁 Открыть точный эталон Emerald Gold А4':'◉ Посмотреть печатный PDF А4';
   if(emerald){
    status.textContent='Выбран Emerald Gold. Нажми «Открыть точный эталон» — отобразится утверждённый лист А4 с данными текущей ТТК.';
