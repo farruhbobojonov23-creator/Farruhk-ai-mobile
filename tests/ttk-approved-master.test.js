@@ -80,7 +80,7 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  const showAt=preview.indexOf('function show(recipe,openedFromEditor=false)');
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
- assert.match(index,/ttk-approved-preview\.js\?v=5/);
+ assert.match(index,/ttk-approved-preview\.js\?v=6/);
  const real=await fs.readFile(new URL('../public/ttk-real-a4-preview.js',import.meta.url),'utf8');
  assert.match(real,/const isEmerald=\(\)=>chosen\(\)==='emerald-master-a4'/);
  assert.match(real,/if\(isEmerald\(\)\)\{/);
@@ -108,7 +108,7 @@ test('owner gallery has five selectable A4 layouts and one contextual Emerald co
  assert.match(bridge,/syncVisibility\(r\?\.layoutTemplate\)/);
  assert.match(styles,/\.ttk-approved-controls\[hidden\]\{display:none!important\}/);
  assert.match(index,/ttk-layouts\.js\?v=6/);
- assert.match(index,/ttk-approved-preview\.js\?v=5/);
+ assert.match(index,/ttk-approved-preview\.js\?v=6/);
 });
 
 test('only the Emerald master can be embedded, and only by the same origin',async()=>{
@@ -134,5 +134,15 @@ test('Emerald A4 is editable through the same recipe form, not a second disconne
  assert.match(preview,/warning\.dataset\.overflow='false'/);
  assert.match(studio,/startEdit\.textContent=emerald\?'✎ Заполнить ТТК Emerald Gold'/);
  assert.match(app,/onEditRecipe:r=>openEditor\(r\)/);
- assert.match(app,/ttk-approved-preview\.css\?v=3/);
+ assert.match(app,/ttk-approved-preview\.css\?v=4/);
+});
+
+test('the visible Emerald gallery, not just its print dialog, offers a real fill button',async()=>{
+ const bridge=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ const css=await fs.readFile(new URL('../public/ttk-approved-preview.css',import.meta.url),'utf8');
+ assert.match(bridge,/fill\.id='ttk-approved-fill'/);
+ assert.match(bridge,/menu\.append\(heading,note,fill,open,logo,file\)/);
+ assert.match(bridge,/fill\.onclick=\(\)=>\{current=getDraft\(\);fromEditor=true;editCurrent\('#recipe-name'\);\}/);
+ assert.match(css,/#editor \.ttk-approved-controls \.ttk-approved-fill/);
+ assert.match(css,/grid-column:1\/-1!important/);
 });
