@@ -139,9 +139,9 @@ import {mountUnifiedWorkspace} from '/unified-workspace.js?v=68';
 import {mountPreparationBoard} from '/preparation-board.js?v=67';
 import {mountMyRecipeTemplates} from '/my-recipe-templates.js?v=6';
 import {mountTtkDesignPicker} from '/ttk-layouts.js?v=6';
-import {mountApprovedA4Preview,APPROVED_A4_LAYOUT} from '/ttk-approved-preview.js?v=4';
+import {mountApprovedA4Preview,APPROVED_A4_LAYOUT} from '/ttk-approved-preview.js?v=5';
 import {mountTtkProWorkspace} from '/ttk-pro-workspace.js?v=3';
-import {mountTtkStudio} from '/ttk-studio.js?v=13';
+import {mountTtkStudio} from '/ttk-studio.js?v=14';
 import {mountSiteSettings} from '/site-settings.js?v=9';
 import {mountPremiumWorkspace} from '/premium-workspace.js?v=25';
 import {mountLuxuryUI} from '/luxury-ui.js?v=12';
@@ -492,7 +492,7 @@ const ttkPro=mountTtkProWorkspace($('editor'),{
  onPreview:guard(async()=>{recipeSheet.refresh();updateNutrition();await openRecipePdf(buildEditorRecipe({requireCore:true}))})
 });
 const ttkStudio=mountTtkStudio($('editor'),{getDraft:()=>buildEditorRecipe()});
-const approvedPreview=mountApprovedA4Preview($('editor'),{getDraft:()=>buildEditorRecipe(),onSelectMaster:()=>recipeLayoutPicker.select(APPROVED_A4_LAYOUT),onChange:()=>{editorDirty=true;ttkPro.markDirty()}});
+const approvedPreview=mountApprovedA4Preview($('editor'),{getDraft:()=>buildEditorRecipe(),onEditRecipe:r=>openEditor(r),onChange:()=>{editorDirty=true;ttkPro.markDirty()}});
 const knownIngredientNames=document.createElement('datalist');knownIngredientNames.id='ttk-known-ingredients';
 $('ingredients').before(knownIngredientNames);
 function refreshKnownIngredientNames(){
