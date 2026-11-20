@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {buildApprovedA4Payload,APPROVED_A4_LAYOUT} from '../public/ttk-approved-preview.js';
 import {cleanState} from '../assistant-store.js';
-import {ttkLayoutId,ttkLayout,TTK_LAYOUTS} from '../public/ttk-layouts.js';
+import {ttkLayoutId,ttkLayout,TTK_LAYOUTS,TTK_GALLERY_LAYOUTS} from '../public/ttk-layouts.js';
 
 test('approved master is a standalone A4 with embedded visual ornaments and live data binding',async()=>{
  const html=await fs.readFile(new URL('../public/ttk-approved-master.html',import.meta.url),'utf8');
@@ -77,5 +77,27 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  const showAt=preview.indexOf('function show(recipe)');
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
- assert.match(index,/ttk-approved-preview\.js\?v=2/);
+ assert.match(index,/ttk-approved-preview\.js\?v=3/);
+});
+
+test('owner gallery has five selectable A4 layouts and one contextual Emerald control group',async()=>{
+ assert.equal(TTK_LAYOUTS.length,4,'the legacy four templates stay available');
+ assert.equal(TTK_GALLERY_LAYOUTS.length,5,'all five templates should be visible together');
+ assert.deepEqual(TTK_GALLERY_LAYOUTS.map(x=>x.id),[
+  'teal-matrix','process-matrix','gold-allergen','premium-blue','emerald-master-a4'
+ ]);
+ for(const item of TTK_GALLERY_LAYOUTS)assert.equal(ttkLayoutId(item.id),item.id);
+ const gallery=await fs.readFile(new URL('../public/ttk-layouts.js',import.meta.url),'utf8');
+ const bridge=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ const index=await fs.readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ const styles=await fs.readFile(new URL('../public/ttk-approved-preview.css',import.meta.url),'utf8');
+ assert.match(gallery,/grid\.replaceChildren\(\.\.\.TTK_GALLERY_LAYOUTS\.map/);
+ assert.match(gallery,/new CustomEvent\('ttk:layout-change'/);
+ assert.match(bridge,/if\(picker\)picker\.append\(menu\)/);
+ assert.match(bridge,/menu\.hidden=true/);
+ assert.match(bridge,/editor\.addEventListener\('ttk:layout-change'/);
+ assert.match(bridge,/syncVisibility\(r\?\.layoutTemplate\)/);
+ assert.match(styles,/\.ttk-approved-controls\[hidden\]\{display:none!important\}/);
+ assert.match(index,/ttk-layouts\.js\?v=6/);
+ assert.match(index,/ttk-approved-preview\.js\?v=3/);
 });
