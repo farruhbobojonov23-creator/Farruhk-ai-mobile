@@ -109,3 +109,43 @@
 @media print{
  #editor .ttk-inline-photo{box-shadow:none!important;break-inside:avoid}
 }
+
+
+/* Five-up A4 gallery: the fifth option is the real Emerald Gold print master.
+ * This preview is deliberately lightweight; actual master is opened on demand. */
+@media screen{
+ .ttk-design-card.ttk-design-card-emerald{
+  border-color:#b99a58!important;background:linear-gradient(145deg,#092e26,#004335 70%,#092c25)!important;
+  box-shadow:inset 0 1px 0 #fff2b024,0 8px 19px #032a2770!important;
+ }
+ .ttk-design-card.ttk-design-card-emerald[aria-pressed="true"]{
+  border-color:#f2c86b!important;box-shadow:0 0 0 2px #f3ce7f,0 9px 22px #003b2f70!important;
+ }
+ .ttk-design-card.ttk-design-card-emerald .ttk-design-info strong{color:#f6dda0!important;-webkit-text-fill-color:#f6dda0!important}
+ .ttk-design-card.ttk-design-card-emerald .ttk-design-info small{color:#e8d3a6!important;-webkit-text-fill-color:#e8d3a6!important}
+ .ttk-design-card.ttk-design-card-emerald .ttk-design-info em{color:#f7cb6f!important;-webkit-text-fill-color:#f7cb6f!important}
+ .ttk-design-thumb.ttk-design-emerald{
+  --tb:#064a36;--ti:#143e32;--ts:#fff3d2;--tg:#cfab59;
+  background:#fff8e9;border:2px solid #d8b56e;padding:0;gap:0;
+  color:#063f31;box-shadow:0 6px 14px #0005;overflow:hidden;
+ }
+ .ttk-mini-emerald-head{flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:8px 7px;background:#004531;color:#ffe0a0;font-size:7px;font-weight:900;letter-spacing:.03em}
+ .ttk-mini-emerald-head b{border:1px solid #cfae61;border-radius:6px;padding:2px;font-size:6px}
+ .ttk-mini-emerald-dish{flex:none;padding:7px 7px 5px;color:#00432f;font:700 10px Georgia,serif;border-bottom:1px solid #c9ab6c}
+ .ttk-mini-emerald-dish small{display:block;margin-top:3px;font:700 6px Arial,sans-serif;color:#7b612d;letter-spacing:.07em}
+ .ttk-mini-emerald-cells{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(27px,1fr);gap:4px;
+  padding:6px;flex:1;min-height:0}
+ .ttk-mini-emerald-cell{border:1px solid #d4bb7f;border-radius:4px;overflow:hidden;background:#fffdf7}
+ .ttk-mini-emerald-cell b{display:block;background:#00523f;color:#ffe4a7;padding:3px;font:700 5px Arial,sans-serif}
+ .ttk-mini-emerald-cell i{display:block;height:2px;margin:3px 4px;background:#cfbf97;opacity:.85}
+ .ttk-mini-emerald-sign{flex:none;font:5.5px Arial,sans-serif;padding:6px;color:#775d25;border-top:1px solid #d2b575}
+ #editor .ttk-paper[data-ttk-layout="emerald-master-a4"]{
+  border-top:7px solid #036044!important;--ttk-line:#d5b66c;--ttk-fill:#fff4d5;
+  background:#fffcf1!important;color:#113c2b!important
+ }
+ #editor .ttk-paper[data-ttk-layout="emerald-master-a4"] .ttk-document-title{color:#00533c!important}
+ #editor .ttk-paper[data-ttk-layout="emerald-master-a4"] .ttk-section-title span{
+  background:#00523c!important;color:#fff2c6!important;border-bottom:2px solid #e2bd65!important
+ }
+}

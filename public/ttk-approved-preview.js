@@ -50,23 +50,28 @@ export function buildApprovedA4Payload(recipe={}){
   overrides
  };
 }
-export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelectMaster=()=>{}}={}){
+export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{}}={}){
  if(!editor||typeof getDraft!=='function')throw Error('Не найден редактор или источник ТТК.');
  const el=(tag,cls,label)=>{
   const n=document.createElement(tag);if(cls)n.className=cls;
   if(label!==undefined)n.textContent=label;return n;
  };
- const menu=el('section','ttk-approved-controls');
- menu.id='ttk-approved-controls';menu.setAttribute('aria-label','Эталонный шаблон Emerald Gold');
- const heading=el('h3',null,'Эталон Emerald Gold · А4');
- const note=el('p',null,'Макет MORE SUSHI: один лист А4, семь разделов, таблицы, аллергены и подписи. Заполняется из текущей ТТК. PDF — через печать браузера.');
- const open=el('button','ttk-approved-open','👁 Открыть эталон А4');
+ // Contextual tools belong to the selected Emerald card in the ONE A4 gallery.
+ const menu=el('div','ttk-approved-controls');
+ menu.id='ttk-approved-controls';menu.setAttribute('aria-label','Инструменты шаблона Emerald Gold');
+ menu.hidden=true;
+ const heading=el('h3',null,'05 · Emerald Gold — утверждённый эталон');
+ const note=el('p',null,'Точный лист А4 откроется с данными этой ТТК. При печати выбери «Сохранить как PDF».');
+ const open=el('button','ttk-approved-open','👁 Просмотреть эталон А4');
  open.type='button';open.id='ttk-approved-open';
- const select=el('button','ttk-approved-select','★ Выбрать Emerald Gold для этой ТТК');select.type='button';
  const logo=el('button','ttk-approved-logo','▧ Загрузить логотип');
  logo.type='button';const file=el('input');file.type='file';file.accept='image/png,image/jpeg';file.hidden=true;
- menu.append(heading,note,select,open,logo,file);
- (editor.querySelector('#ttk-design-picker')||editor.querySelector('.editor-modes')||editor).after(menu);
+ menu.append(heading,note,open,logo,file);
+ const picker=editor.querySelector('#ttk-design-picker');
+ if(picker)picker.append(menu);else (editor.querySelector('.editor-modes')||editor).after(menu);
+ const syncVisibility=id=>{menu.hidden=id!==APPROVED_A4_LAYOUT};
+ editor.addEventListener('ttk:layout-change',e=>syncVisibility(e.detail?.id));
+ syncVisibility(editor.dataset.ttkLayout);
  const dialog=el('div','ttk-approved-modal');dialog.hidden=true;dialog.id='ttk-approved-modal';
  dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Просмотр эталонной ТТК А4');
  const shell=el('div','ttk-approved-modal-inner'),head=el('div','ttk-approved-modal-head');
@@ -140,7 +145,6 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
   requestAnimationFrame(()=>{fit();render();close.focus()});
  }
  function hide(){dialog.hidden=true;document.body.classList.remove('ttk-approved-preview-open');lastFocus?.focus?.();}
- select.onclick=()=>{onSelectMaster();select.textContent='✓ Emerald Gold выбран';onChange();show(getDraft())};
  open.onclick=()=>show(getDraft());
  close.onclick=hide;
  dialog.addEventListener('click',event=>{if(event.target===dialog)hide()});
@@ -156,7 +160,11 @@ export function mountApprovedA4Preview(editor,{getDraft,onChange=()=>{},onSelect
   iframe.contentWindow.print(); // browser print dialog, users choose Save as PDF
  }
  print.onclick=printCurrent;
- function populate(r){brandLogo=r?.brandLogo||null;logo.textContent=brandLogo?'▧ Заменить логотип':'▧ Загрузить логотип';select.textContent=r?.layoutTemplate===APPROVED_A4_LAYOUT?'✓ Emerald Gold выбран':'★ Выбрать Emerald Gold для этой ТТК';}
+ function populate(r){
+  brandLogo=r?.brandLogo||null;
+  logo.textContent=brandLogo?'▧ Заменить логотип':'▧ Загрузить логотип';
+  syncVisibility(r?.layoutTemplate);
+ }
  logo.onclick=()=>file.click();
  file.addEventListener('change',()=>{
   const f=file.files?.[0];file.value='';

@@ -2,7 +2,7 @@
  * Reuses the original controls, validators, photo handler and PDF exporter.
  * No duplicated form state, no changes to recipe persistence or sanitation data.
  */
-import {mountTtkRealPreview} from './ttk-real-a4-preview.js?v=11';
+import {mountTtkRealPreview} from './ttk-real-a4-preview.js?v=12';
 const make=(tag,className,text)=>{
  const el=document.createElement(tag);
  if(className)el.className=className;
@@ -65,7 +65,7 @@ export function mountTtkStudio(editor,{getDraft}={}){
  for(const b of [form,sheet,check])b.type='button';
  switcher.append(form,sheet,check);
  (progress||intro).after(switcher);
- // The paper tab is now a genuine four-layout PDF showroom, never the old editable HTML mockup.
+ // The paper tab displays five A4 designs (four legacy PDF styles plus Emerald Gold), never the old editable HTML mockup.
  const realPreview=mountTtkRealPreview(editor,{getDraft,picker,intro});
 
  const rail=workspace.querySelector('.ttk-pro-rail');
@@ -139,7 +139,7 @@ export function mountTtkStudio(editor,{getDraft}={}){
  return {
   open(){
    menu.open=false;qa.open=false;
-   // Both phone and desktop open on the four owner-approved A4 designs.
+   // Both phone and desktop open on the five approved A4 designs.
    // Fields remain available with the prominent «Удобное заполнение» button.
    setMode('paper');
    refreshPhoto();displayStyle();

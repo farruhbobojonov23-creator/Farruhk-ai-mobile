@@ -1,7 +1,8 @@
 /* Approved MORE SUSHI A4 visual-master preview. Scoped: no changes to existing app styles. */
+.ttk-approved-controls[hidden]{display:none!important}
 .ttk-approved-controls{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
-  margin:15px 0;padding:15px;border:1px solid #c5a056;border-radius:14px;
+  margin:14px 0 0;padding:12px;border:1px solid #c5a056;border-radius:14px;
   background:linear-gradient(130deg,#07362c,#004c3c 76%,#0b302a);color:#ffefd1;
   box-shadow:0 9px 24px #0004
 }
