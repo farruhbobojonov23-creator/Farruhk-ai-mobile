@@ -23,7 +23,7 @@ test('real server permits ONLY the Emerald A4 master in a same-origin iframe', {
    const finish=(fn,value)=>{clearTimeout(timer);child.stdout.off('data',onData);child.off('error',onError);child.off('exit',onExit);fn(value)};
    const onData=data=>{
     startupLog+=data.toString('utf8');
-    const match=/FARRUHK? AI Mobile V[\d.]+: host=0\.0\.0\.0 port=(\d+)/i.exec(startupLog);
+    const match=/Mobile V[\d.]+: host=0\.0\.0\.0 port=(\d+)/i.exec(startupLog);
     if(match)finish(resolve,Number(match[1]));
    };
    const onError=e=>finish(reject,e);
