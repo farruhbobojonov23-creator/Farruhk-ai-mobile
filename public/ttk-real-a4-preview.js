@@ -57,7 +57,12 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  stage.append(gallery);
  const startEdit=ui('button','ttk-real-a4-start-edit','✎ Заполнить выбранный шаблон прямо на листе');
  startEdit.type='button';
- startEdit.addEventListener('click',()=>live.page.scrollIntoView({behavior:'smooth',block:'start'}));
+ startEdit.addEventListener('click',()=>{
+  if((editor.dataset.ttkLayout||'teal-matrix')==='emerald-master-a4'){
+   editor.querySelector('.ttk-studio-switch-button')?.click();
+   requestAnimationFrame(()=>editor.querySelector('#recipe-name')?.scrollIntoView({block:'center',behavior:'smooth'}));
+  }else live.page.scrollIntoView({behavior:'smooth',block:'start'});
+ });
  stage.append(startEdit);
  const output=ui('section','ttk-real-a4-output');
  output.setAttribute('aria-label','Просмотр выбранного шаблона');
@@ -98,9 +103,11 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
   // Some legacy printable layout CSS specifies display explicitly; enforce hidden.
   if(emerald)live.shell.style.setProperty('display','none','important');
   else live.shell.style.removeProperty('display');
-  startEdit.hidden=emerald;
-  if(emerald)startEdit.style.setProperty('display','none','important');
-  else startEdit.style.removeProperty('display');
+  // Emerald cannot be typed into as a 1024px scaled iframe, but opening
+  // the real editor is always one obvious tap away on the A4 screen.
+  startEdit.hidden=false;
+  startEdit.style.removeProperty('display');
+  startEdit.textContent=emerald?'✎ Заполнить ТТК Emerald Gold':'✎ Заполнить выбранный шаблон прямо на листе';
   preview.textContent=emerald?'👁 Открыть точный эталон Emerald Gold А4':'◉ Посмотреть печатный PDF А4';
   if(emerald){
    status.textContent='Выбран Emerald Gold. Нажми «Открыть точный эталон» — отобразится утверждённый лист А4 с данными текущей ТТК.';
