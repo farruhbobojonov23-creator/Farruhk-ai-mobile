@@ -73,11 +73,14 @@ test('large approved A4 artwork loads only on preview open, never on home startu
  assert.match(preview,/if\(masterRequested\)return/);
  assert.match(preview,/ensureMasterLoaded\(\);/);
  assert.match(preview,/typeof iframe\.contentWindow\?\.applyTtkData==='function'/);
- assert.match(preview,/if\(!loaded\)\{masterRequested=false/);
+ assert.match(preview,/function loadFailed\(\)/);
+ assert.match(preview,/iframe\.addEventListener\('error',loadFailed\)/);
+ assert.match(preview,/setTimeout\(loadFailed,15000\)/);
+ assert.match(preview,/if\(!loaded\)\{loadFailed\(\);return\}/);
  const showAt=preview.indexOf('function show(recipe)');
  const setSrcAt=preview.indexOf("iframe.src='/ttk-approved-master.html");
  assert.ok(showAt>setSrcAt,'the source assignment must only exist inside the lazy loader');
- assert.match(index,/ttk-approved-preview\.js\?v=3/);
+ assert.match(index,/ttk-approved-preview\.js\?v=4/);
  const real=await fs.readFile(new URL('../public/ttk-real-a4-preview.js',import.meta.url),'utf8');
  assert.match(real,/const isEmerald=\(\)=>chosen\(\)==='emerald-master-a4'/);
  assert.match(real,/if\(isEmerald\(\)\)\{/);
@@ -105,5 +108,14 @@ test('owner gallery has five selectable A4 layouts and one contextual Emerald co
  assert.match(bridge,/syncVisibility\(r\?\.layoutTemplate\)/);
  assert.match(styles,/\.ttk-approved-controls\[hidden\]\{display:none!important\}/);
  assert.match(index,/ttk-layouts\.js\?v=6/);
- assert.match(index,/ttk-approved-preview\.js\?v=3/);
+ assert.match(index,/ttk-approved-preview\.js\?v=4/);
+});
+
+test('only the Emerald master can be embedded, and only by the same origin',async()=>{
+ const server=await fs.readFile(new URL('../server.js',import.meta.url),'utf8');
+ const guard=/if\(req\.path==='\/ttk-approved-master\.html'\)\{[\s\S]*?res\.setHeader\('X-Frame-Options','SAMEORIGIN'\);[\s\S]*?res\.setHeader\('Content-Security-Policy',"frame-ancestors 'self'"\);[\s\S]*?\}else\{[\s\S]*?res\.setHeader\('X-Frame-Options','DENY'\)/;
+ assert.match(server,guard);
+ const bridge=await fs.readFile(new URL('../public/ttk-approved-preview.js',import.meta.url),'utf8');
+ assert.match(bridge,/owner-master-20261120-frame/);
+ assert.match(bridge,/Повторить загрузку/);
 });
