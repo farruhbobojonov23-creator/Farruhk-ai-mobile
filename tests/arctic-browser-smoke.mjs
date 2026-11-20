@@ -52,7 +52,15 @@ async function verify(mode,width,height){
  })));
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- page.on('dialog',async dialog=>{throw Error('Unexpected destructive-confirmation dialog: '+dialog.message())});
+ // Selecting the new A4 template marks the card as changed. The confirmation is intended.
+ let expectingUnsavedClose=false;
+ page.on('dialog',async dialog=>{
+  if(expectingUnsavedClose&&dialog.type()==='confirm'&&/несохранённые изменения/.test(dialog.message())){
+   await dialog.accept();expectingUnsavedClose=false;return;
+  }
+  await dialog.dismiss();
+  errors.push('Unexpected destructive-confirmation dialog: '+dialog.message());
+ });
  try{
   await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:20000});
   await page.waitForFunction(()=>document.querySelector('#connection')?.textContent==='Хранение на устройстве',null,{timeout:20000});
@@ -155,7 +163,10 @@ async function verify(mode,width,height){
   const rgb=colors.background.match(/[\d.]+/g)?.slice(0,3).map(Number)||[];
   assert.ok(rgb.length===3&&rgb.every(n=>n>218),'TTK input is dark or illegible: '+JSON.stringify(colors));
   await page.screenshot({path:'artifacts/arctic-ttk-'+mode+'.png',fullPage:false,timeout:12000});
+  expectingUnsavedClose=true;
   await page.locator('#closeeditor').evaluate(el=>el.click());
+  await page.waitForFunction(()=>document.querySelector('#editor')?.hidden,{timeout:5000});
+  assert.equal(expectingUnsavedClose,false,'unsaved TTK confirmation was shown and accepted');
   assert.equal(await visible(page,'#editor'),false,'TTK closes without changing saved recipes');
 
   await page.locator('button[data-view="lab"]').first().evaluate(el=>el.click());
