@@ -51,7 +51,7 @@ export function mountTtkRealPreview(editor,{getDraft,picker,intro}={}){
  const mast=ui('div','ttk-real-a4-mast');
  mast.append(ui('span','ttk-real-a4-kicker','FARRUH AI  /  PREMIUM A4'),
   ui('h3','','5 шаблонов технологической карты'),
-  ui('p','','Выбери оформление и заполняй карту прямо на листе ниже. Нажимай на название, ингредиенты, технологию и другие поля — изменения сохраняются в настоящей ТТК.'));
+  ui('p','','Пять вариантов А4: первые четыре редактируются прямо на листе. Для Emerald Gold заполни ТТК в полном редакторе и открой точный эталон перед печатью.'));
  stage.append(mast);
  const gallery=ui('div','ttk-real-a4-gallery');
  stage.append(gallery);
