@@ -25,7 +25,40 @@
   .selectors .control{font-size:13px}
   .kpi .number{font-size:21px}
 }
-</style></head><body>
+
+/* FARUKH REVISION PRO / Android Premium Black Gold Theme */
+.android-premium{--ink:#edf3ff;--sub:#9aaac6;--blue:#e7c27d;--sea:#c59c4a;--bg:#080e18;--line:#293348;--red:#ff6b79;--green:#4fe1aa;--gold:#dcb46c;--shadow:0 12px 30px rgba(0,0,0,.25);background:#080e18;color:#edf3ff}
+.android-premium .shell{background:#080e18}
+.android-premium .sidebar{background:linear-gradient(145deg,#101726,#080c14);border-bottom:1px solid #2f3340}
+.android-premium main{background:linear-gradient(150deg,#0b1422,#080e18)}
+.android-premium .card{background:linear-gradient(150deg,#151e2e,#111a28);border-color:#303a4d;color:#edf3ff}
+.android-premium .summarytile{background:#101927;border-color:#354157;color:#e9efff}
+.android-premium .control,.android-premium .numinput{background:#101927;color:#eef3fd;border-color:#3a485d}
+.android-premium .control::placeholder,.android-premium .numinput::placeholder{color:#71819a}
+.android-premium th{background:#1c293c;color:#bfcee4}
+.android-premium td{border-color:#28374d}
+.android-premium .btn{background:#1a283b;border-color:#38495c;color:#e5cf9f}
+.android-premium .btn.main{background:linear-gradient(140deg,#b98a3b,#f3d58a);color:#121a26;border-color:#d9b671;box-shadow:0 8px 24px #bd8a3633}
+.android-premium .btn.soft{background:#263043;border-color:#4f5765;color:#f0cb82}
+.android-premium .btn.danger{color:#ff8993;background:#2a1b29;border-color:#673444}
+.android-premium .eyebrow{color:#d1ad67}
+.android-premium .pill{color:#dcb46c;background:#242338}
+.android-premium .tag{background:#2e3444;color:#f5d18d}
+.android-premium .tag.start{background:#3d2d1f;color:#f4c882}
+.android-premium .cloud-indicator{background:#1b2a40;color:#acc5f2}
+.android-premium .cloud-indicator.online{background:#163e32;color:#71ddae}
+.android-premium .historyitem{background:#131d2b;border-color:#354055}
+.android-premium .notearea{background:#172336;border-color:#374964;color:#a7b8d3}
+.android-premium .summarytile .hint,.android-premium .kpi .note,.android-premium .historyitem small{color:#9cacc6}
+.android-premium .summarytile .numbers span{color:#91a1bc}
+.android-premium .auth-card{background:#152134;color:#edf3ff;border:1px solid #384459}
+.android-premium .auth-card input{background:#0c1624;color:#edf3ff;border-color:#3a485d}
+.android-premium .foot{color:#71809a}
+.android-premium .menu button.active{background:#322b28;color:#f7d08c;box-shadow:inset 3px 0 #eac17d}
+.android-premium .menu button{color:#a8bad6}
+.android-premium .warning{color:#e6c88a;background:#392c19;border-color:#77572d}
+@media(max-width:600px){.android-premium #view-revision #rows tr{background:#111c2c;border-color:#314058}.android-premium #view-revision #rows td::before{color:#93a3be!important}}
+</style></head><body class="android-premium">
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon">◈</span> FARUKH<br><span style="padding-left:46px">REVISION</span><br><small style="padding-left:46px">PRO / ПИЛОТНАЯ ВЕРСИЯ</small></div><nav class="menu"><button class="active" onclick="go('summary',this)">▤ &nbsp;Сводка по точкам</button><button onclick="go('revision',this)">⚖️ &nbsp;Ревизия</button><button onclick="go('history',this)">▤ &nbsp;История</button><button onclick="go('products',this)">▦ &nbsp;Товары</button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
 <main><div class="top"><div><div class="eyebrow">Панель шеф-повара · MORE SUSHI STUDIO</div><h1>Ревизия остатков</h1><div class="muted">Сверка Frontpad и фактического веса на складе</div></div><div class="pill">● Пилотная версия</div></div>
 <div class="cloud-actions"><span id="cloudIndicator" class="cloud-indicator">● Локально — без входа</span><button class="btn soft" id="cloudLogin" onclick="showLogin()">☁ Войти и включить облако</button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()">↓ История CSV</button></div>
@@ -44,7 +77,7 @@
 const SUPABASE_URL='https://mhsmmssipligbmvfzkce.supabase.co';
 const SUPABASE_KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
 const SESSION_KEY='farukh-revision-auth-v1';
-let cloudToken=null, cloudRefreshToken=null, cloudExpires=0, cloudEnabled=false;
+let cloudToken=null, cloudRefreshToken=null, cloudExpires=0, cloudEnabled=false, borrowedStudioSession=false;
 function showLogin(){document.getElementById('authOverlay').classList.add('open');document.getElementById('authEmail').focus()}
 function hideLogin(){document.getElementById('authOverlay').classList.remove('open');document.getElementById('authPassword').value=''}
 function setCloudBadge(txt,on){const el=document.getElementById('cloudIndicator');el.textContent=txt;el.classList.toggle('online',!!on);document.getElementById('cloudLogin').classList.toggle('hide',!!on);document.getElementById('cloudLogout').classList.toggle('hide',!on)}
@@ -75,11 +108,12 @@ async function rest(table,{method='GET',query='',body=null}={}){
 async function cloudLogin(){
   const e=document.getElementById('authEmail').value.trim(),p=document.getElementById('authPassword').value;
   const btn=document.getElementById('authSubmit');const status=document.getElementById('authStatus');status.textContent='Проверяем вход…';btn.disabled=true;
-  try{const data=await authRequest('token?grant_type=password','POST',{email:e,password:p});setTokens(data);await loadCloud();hideLogin();notice('Облако подключено — история загружена')}
+  try{const data=await authRequest('token?grant_type=password','POST',{email:e,password:p});borrowedStudioSession=false;try{sessionStorage.removeItem('farukh-revision-sso-optout')}catch{}setTokens(data);await loadCloud();hideLogin();notice('Облако подключено — история загружена')}
   catch(err){status.textContent='Ошибка: '+err.message;setCloudBadge('● Не подключено',false)}
   finally{btn.disabled=false}
 }
-async function cloudLogout(){try{if(cloudToken)await authRequest('logout','POST',null,cloudToken)}catch{}
+async function cloudLogout(){try{if(cloudToken&&!borrowedStudioSession)await authRequest('logout','POST',null,cloudToken)}catch{}
+  borrowedStudioSession=false;try{sessionStorage.setItem('farukh-revision-sso-optout','1')}catch{}
   cloudToken=null;cloudRefreshToken=null;cloudExpires=0;cloudEnabled=false;
   try{sessionStorage.removeItem(SESSION_KEY)}catch{}
   try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch{state=null}
@@ -104,7 +138,20 @@ async function loadCloud(){
   cloudEnabled=true;setCloudBadge('● Облако MORE SUSHI подключено',true);refresh();
 }
 async function tryResumeCloud(){
-  try{const t=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(!t?.access_token)return;cloudToken=t.access_token;cloudRefreshToken=t.refresh_token;cloudExpires=t.expires_at;await loadCloud()}catch(e){cloudEnabled=false;cloudToken=null;setCloudBadge('● Локально: повтори вход',false)}
+  try{
+    let t=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');
+    if(!t?.access_token && location.hostname==='more-sushi-studio.onrender.com' && sessionStorage.getItem('farukh-revision-sso-optout')!=='1'){
+      // Reuse the private studio login on the SAME site and SAME Supabase project.
+      const studio=JSON.parse(localStorage.getItem('ms_session')||'null');
+      if(studio?.access_token && studio?.refresh_token){
+        t={access_token:studio.access_token,refresh_token:studio.refresh_token,expires_at:Number(studio.expires_at||0)*1000};
+        borrowedStudioSession=true;
+      }
+    }
+    if(!t?.access_token)return;
+    cloudToken=t.access_token;cloudRefreshToken=t.refresh_token;cloudExpires=t.expires_at;
+    await loadCloud();
+  }catch(e){borrowedStudioSession=false;cloudEnabled=false;cloudToken=null;setCloudBadge('● Локально: повтори вход',false)}
 }
 const KEY='farukh-revision-demo-v1';
 let state;
