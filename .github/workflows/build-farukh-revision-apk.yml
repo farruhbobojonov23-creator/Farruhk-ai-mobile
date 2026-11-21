@@ -1,0 +1,33 @@
+name: Build FARUKH REVISION PRO APK
+on:
+  push:
+    branches: [ more-sushi-studio-free ]
+    paths:
+      - "farukh-revision-android/**"
+      - ".github/workflows/build-farukh-revision-apk.yml"
+  workflow_dispatch:
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Assemble debug APK
+        working-directory: farukh-revision-android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-REVISION-PRO-DEBUG-APK
+          path: farukh-revision-android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
