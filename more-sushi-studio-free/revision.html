@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>FARUKH REVISION • Модуль ревизии</title><style>
+:root{--ink:#15243b;--sub:#6b7990;--blue:#285dc9;--sea:#0e8293;--bg:#eef2f8;--line:#e2e8f3;--red:#d44957;--green:#169f78;--gold:#ba8e3d;--shadow:0 8px 28px rgba(27,48,88,.07)}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}button,input,select{font:inherit}button{cursor:pointer}main{max-width:1340px;margin:auto;padding:24px}.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.sidebar{padding:26px 18px;background:#111d33;color:#d7e3f5;display:flex;flex-direction:column;gap:30px}.brand{font-size:20px;font-weight:900;letter-spacing:.8px;color:white;line-height:1.18}.brand small{color:#91a8c7;font-size:10px;letter-spacing:2.5px;font-weight:600}.brand .brandicon{display:inline-grid;place-items:center;width:35px;height:35px;border:1px solid #667794;color:#f0c578;border-radius:10px;font-size:20px;margin-right:8px}.menu{display:flex;flex-direction:column;gap:7px}.menu button{border:0;border-radius:10px;text-align:left;padding:13px 15px;background:transparent;color:#b5c5df;font-weight:700}.menu button.active{background:#263956;color:#fff;box-shadow:inset 3px 0 #d6ad62}.sidebarfoot{margin-top:auto;font-size:12px;color:#8398b8;line-height:1.7}.muted{color:var(--sub)}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.eyebrow{color:#46719f;text-transform:uppercase;font-size:11px;letter-spacing:2.2px;font-weight:900}h1{font-size:31px;letter-spacing:-.8px;margin:4px 0 7px}h2{font-size:19px;letter-spacing:-.3px;margin:0 0 16px}h3{font-size:14px;margin:0}.pill{border-radius:30px;background:#e3f5f1;color:#168d76;padding:9px 13px;font-size:12px;font-weight:800}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.selectors{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}.control{background:#fff;border:1px solid #d8e2ef;border-radius:10px;padding:12px 14px;min-width:155px;color:#19314e;outline:none}.control:focus,input:focus{border-color:#3478ed;outline:3px solid #3478ed20}.card{background:#fff;border:1px solid #e3eaf4;border-radius:18px;padding:22px;box-shadow:var(--shadow)}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.kpi .label{color:var(--sub);font-size:12px;font-weight:800}.kpi .number{font-size:27px;font-weight:850;letter-spacing:-.8px;margin-top:10px}.kpi .note{color:#8490a2;font-size:12px;margin-top:7px}.red{color:var(--red)}.green{color:var(--green)}.blue{color:var(--blue)}.grid{display:grid;grid-template-columns:1.7fr .8fr;gap:18px}.desc{color:var(--sub);font-size:13px;line-height:1.6;margin-top:-5px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}.btn{padding:11px 15px;border-radius:10px;border:1px solid #d8e2ef;background:white;color:#1a3357;font-weight:800}.btn.main{background:#2458bf;border-color:#2458bf;color:white}.btn.soft{background:#eaf2ff;color:#2757ab;border-color:#dce8fa}.btn.danger{color:#bc334b;background:#fff7f8}.btn:disabled{opacity:.55;cursor:not-allowed}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:690px}th{text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#71829a;background:#f5f8fd;padding:12px 9px}td{padding:12px 9px;border-bottom:1px solid #edf1f7}tbody tr:last-child td{border:0}.itemname{font-weight:750}.hint{display:block;color:#94a1b3;font-size:11px;margin-top:3px}.numinput{width:113px;max-width:100%;padding:10px;border-radius:9px;border:1px solid #d9e2ed;background:white;text-align:right;font-weight:750}.numinput.price{width:93px}.delta{font-weight:900;white-space:nowrap}.tag{display:inline-block;padding:4px 9px;border-radius:7px;background:#edf4ff;color:#3561a1;font-weight:800;font-size:11px}.tag.start{background:#f8efd9;color:#a67a19}.notearea{margin-top:16px;background:#f7f9fd;border:1px dashed #d8e2ef;border-radius:12px;padding:13px;color:#7788a0;line-height:1.6}.history{display:grid;gap:9px}.historyitem{padding:13px;border-radius:12px;border:1px solid #e7edf5;display:flex;align-items:center;justify-content:space-between;gap:8px}.historyitem strong{display:block;margin-bottom:5px}.historyitem small{color:#7c8da5}.empty{padding:25px;text-align:center;color:#8d99ab}.foot{margin:20px 0 5px;color:#97a3b7;font-size:12px}.sectionheading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}.summarycards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.summarytile{border:1px solid #dfe8f2;border-radius:14px;background:#fbfcff;padding:17px}.summarytile strong{font-size:15px}.summarytile .numbers{display:flex;gap:15px;margin-top:14px;flex-wrap:wrap}.summarytile .numbers span{display:block;font-size:11px;color:#7c8da5}.summarytile .numbers b{display:block;margin-top:4px;font-size:22px}.summarytile button{margin-top:12px} @media(max-width:720px){.summarycards{grid-template-columns:1fr}}.archive{margin-top:18px}.rightspace{margin-bottom:18px}.warning{font-size:12px;color:#946412;background:#fff9ea;border:1px solid #fae8b3;border-radius:10px;padding:11px;margin-top:12px}.toast{position:fixed;bottom:20px;right:20px;background:#203552;color:#fff;padding:13px 18px;border-radius:10px;box-shadow:var(--shadow);z-index:3;display:none}.small{font-size:12px}.hide{display:none!important}@media(max-width:1030px){.shell{grid-template-columns:1fr}.sidebar{padding:15px 20px;gap:10px}.sidebarfoot{display:none}.brand{font-size:16px}.menu{flex-direction:row;flex-wrap:wrap}.menu button{padding:10px 12px}.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}@media(max-width:600px){main{padding:15px}.kpis{gap:8px}.card{padding:16px}.kpi .number{font-size:23px}.top{align-items:start}.pill{display:none}h1{font-size:25px}.selectors .control{flex:1;min-width:135px}}
+
+/* production pilot: clear connection states, accessible auth modal, print */
+.cloud-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:5px 0 16px}.cloud-indicator{font-size:12px;padding:8px 11px;border-radius:25px;background:#e7efff;color:#2558aa;font-weight:800}.cloud-indicator.online{background:#e0f5eb;color:#107b58}.auth-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,17,32,.72);z-index:20;padding:18px}.auth-overlay.open{display:flex}.auth-card{background:white;border-radius:20px;padding:28px;max-width:430px;width:100%;box-shadow:0 20px 70px #0003}.auth-card label{display:block;font-weight:800;font-size:12px;margin-top:14px}.auth-card input{width:100%;margin-top:6px}.auth-status{margin-top:12px;min-height:19px;font-size:12px}.eyeshow{font-size:11px;color:#7a8696}.kbd{display:inline-block;background:#f0f5fe;border-radius:7px;padding:2px 6px}.shield{border-left:4px solid #18a478;background:#f0fbf5;padding:12px 14px;border-radius:8px;color:#26745a;line-height:1.5;margin-top:12px;font-size:12px}
+@media print{.sidebar,.selectors,.cloud-actions,.top .pill,.toolbar .row,.warning,.sidebarfoot,.foot,.auth-overlay,.toast,.cloud-only{display:none!important}main{padding:0}.shell{display:block}.card{box-shadow:none;border:1px solid #ddd}.kpis{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:1fr}.numinput{border:0}.notearea{display:none}}
+
+@media(max-width:600px){
+  .tablewrap{overflow:visible}
+  #view-revision table{min-width:0;width:100%;display:block}
+  #view-revision thead{display:none}
+  #view-revision tbody{display:block}
+  #view-revision #rows tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;border:1px solid #e4ebf5;border-radius:14px;padding:12px;margin-bottom:10px;background:#fbfcff}
+  #view-revision #rows td{display:block;border:0;padding:4px 1px;min-width:0}
+  #view-revision #rows td:first-child{grid-column:1/-1;margin-bottom:4px}
+  #view-revision #rows td:nth-child(2)::before{content:'FRONTPAD / УЧЁТ';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(3)::before{content:'ФАКТИЧЕСКИЙ ВЕС';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(4)::before{content:'РАСХОЖДЕНИЕ';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(5)::before{content:'ЦЕНА ₽/КГ';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows .numinput{width:100%}
+  #view-revision #rows .numinput.price{width:100%}
+  #view-revision #rows .delta{padding-top:9px;font-size:15px}
+  .cloud-actions button{flex:1}
+  .selectors .control{font-size:13px}
+  .kpi .number{font-size:21px}
+}
+</style></head><body>
+<div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon">◈</span> FARUKH<br><span style="padding-left:46px">REVISION</span><br><small style="padding-left:46px">PRO / ПИЛОТНАЯ ВЕРСИЯ</small></div><nav class="menu"><button class="active" onclick="go('summary',this)">▤ &nbsp;Сводка по точкам</button><button onclick="go('revision',this)">⚖️ &nbsp;Ревизия</button><button onclick="go('history',this)">▤ &nbsp;История</button><button onclick="go('products',this)">▦ &nbsp;Товары</button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
+<main><div class="top"><div><div class="eyebrow">Панель шеф-повара · MORE SUSHI STUDIO</div><h1>Ревизия остатков</h1><div class="muted">Сверка Frontpad и фактического веса на складе</div></div><div class="pill">● Пилотная версия</div></div>
+<div class="cloud-actions"><span id="cloudIndicator" class="cloud-indicator">● Локально — без входа</span><button class="btn soft" id="cloudLogin" onclick="showLogin()">☁ Войти и включить облако</button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()">↓ История CSV</button></div>
+<div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
+<div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше Frontpad</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше Frontpad</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
+<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Сводка по четырём точкам</h2><div class="desc">Последняя завершённая повторная ревизия на каждой точке · значения показаны по сохранённым данным</div></div><button class="btn soft" onclick="renderSummary()">↻ Обновить</button></div><div id="summaryCards" class="summarycards"></div><div class="notearea" style="margin-top:22px">Без подключения Frontpad остатки по учёту вводятся вручную. Точность сравнения зависит от актуальности цифр и корректности закупочных цен.</div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Внесите остаток из Frontpad и фактический вес, затем сохраните ревизию.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Frontpad, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()">✓ Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()">↓ CSV-отчёт</button><button class="btn" onclick="doPrint()">Печать</button><button class="btn" onclick="clearForm()">Очистить ввод</button></div><div class="warning"><b>Frontpad не подключён.</b> Остатки из Frontpad заносятся вручную. Без входа данные сохраняются только в этом браузере. После входа в облако новые ревизии сохраняются в MORE SUSHI STUDIO под твоей учётной записью.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
+<aside><div class="card rightspace"><div class="sectionheading"><h2 style="margin:0">Как это работает</h2></div><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. В Frontpad выставь те же значения вручную.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, внеси остатки из Frontpad и фактический вес.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></div><div class="card"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
+<div class="card hide" id="view-history"><div class="sectionheading"><div><h2>История ревизий</h2><div class="desc">Для выбранной торговой точки, новые сверху</div></div><button class="btn soft" onclick="exportHistory()">↓ Скачать историю CSV</button></div><div id="allhistory"></div></div>
+<div class="card hide" id="view-products"><h2>Основные контрольные продукты</h2><div class="desc">Продукты применяются ко всем четырём точкам в этой демоверсии. Ранее сохранённые ревизии не изменяются.</div><div class="tablewrap" style="margin-top:18px"><table style="min-width:400px"><thead><tr><th>Продукт</th><th>Учетная единица</th><th>Действие</th></tr></thead><tbody id="productsrows"></tbody></table></div><div class="row" style="margin-top:18px"><input id="newproduct" class="control" placeholder="Название продукта"><button class="btn main" onclick="addProduct()">+ Добавить продукт</button></div></div>
+<div class="foot">FARUKH REVISION PRO · отдельный модуль · к действующему сайту добавляется как revision.html</div></main></div>
+<div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-label="Вход в облако"><div class="auth-card"><div class="eyebrow">FARUKH REVISION PRO</div><h2 style="margin:7px 0">Вход в облако</h2><div class="desc">Для сохранения ревизий в базе MORE SUSHI STUDIO войди под своей учётной записью.</div><form id="authForm" onsubmit="event.preventDefault();cloudLogin()"><label for="authEmail">Email</label><input id="authEmail" class="control" type="email" autocomplete="username" required><label for="authPassword">Пароль</label><input id="authPassword" class="control" type="password" autocomplete="current-password" required><div id="authStatus" class="auth-status" role="status"></div><div class="row" style="margin-top:16px"><button class="btn main" id="authSubmit" type="submit">Войти</button><button class="btn" type="button" onclick="hideLogin()">Отмена</button></div></form><div class="shield">🔒 Сохраняем данные отдельно от каталога ТТК и полуфабрикатов. Без входа облачная отправка недоступна.</div></div></div>
+<div id="toast" class="toast" role="status"></div>
+<script>
+"use strict";
+// Supabase publishable key is intentionally public; access is protected by RLS and the user's session.
+const SUPABASE_URL='https://mhsmmssipligbmvfzkce.supabase.co';
+const SUPABASE_KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
+const SESSION_KEY='farukh-revision-auth-v1';
+let cloudToken=null, cloudRefreshToken=null, cloudExpires=0, cloudEnabled=false;
+function showLogin(){document.getElementById('authOverlay').classList.add('open');document.getElementById('authEmail').focus()}
+function hideLogin(){document.getElementById('authOverlay').classList.remove('open');document.getElementById('authPassword').value=''}
+function setCloudBadge(txt,on){const el=document.getElementById('cloudIndicator');el.textContent=txt;el.classList.toggle('online',!!on);document.getElementById('cloudLogin').classList.toggle('hide',!!on);document.getElementById('cloudLogout').classList.toggle('hide',!on)}
+async function authRequest(path,method='POST',body=null,token=null){
+  const r=await fetch(SUPABASE_URL+'/auth/v1/'+path,{method,headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});
+  let data={};try{data=await r.json()}catch{}
+  if(!r.ok)throw new Error(data.msg||data.message||data.error_description||('Ошибка входа '+r.status));
+  return data;
+}
+async function ensureToken(){
+  if(!cloudToken)throw new Error('Выполни вход в облако');
+  if(Date.now()<cloudExpires-60000)return cloudToken;
+  const data=await authRequest('token?grant_type=refresh_token','POST',{refresh_token:cloudRefreshToken});
+  setTokens(data);return cloudToken;
+}
+function setTokens(data){
+  cloudToken=data.access_token;cloudRefreshToken=data.refresh_token;
+  cloudExpires=Date.now()+(Number(data.expires_in)||3600)*1000;
+  try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({access_token:cloudToken,refresh_token:cloudRefreshToken,expires_at:cloudExpires}))}catch{}
+}
+async function rest(table,{method='GET',query='',body=null}={}){
+  const token=await ensureToken();
+  const response=await fetch(SUPABASE_URL+'/rest/v1/'+table+query,{method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''},body:body===null?undefined:JSON.stringify(body)});
+  let data;try{data=await response.json()}catch{data=null}
+  if(!response.ok)throw new Error(data?.message||data?.details||('Сервер '+response.status));
+  return data;
+}
+async function cloudLogin(){
+  const e=document.getElementById('authEmail').value.trim(),p=document.getElementById('authPassword').value;
+  const btn=document.getElementById('authSubmit');const status=document.getElementById('authStatus');status.textContent='Проверяем вход…';btn.disabled=true;
+  try{const data=await authRequest('token?grant_type=password','POST',{email:e,password:p});setTokens(data);await loadCloud();hideLogin();notice('Облако подключено — история загружена')}
+  catch(err){status.textContent='Ошибка: '+err.message;setCloudBadge('● Не подключено',false)}
+  finally{btn.disabled=false}
+}
+async function cloudLogout(){try{if(cloudToken)await authRequest('logout','POST',null,cloudToken)}catch{}
+  cloudToken=null;cloudRefreshToken=null;cloudExpires=0;cloudEnabled=false;
+  try{sessionStorage.removeItem(SESSION_KEY)}catch{}
+  try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch{state=null}
+  if(!state||!Array.isArray(state.products)||!Array.isArray(state.history))state={products:DEFAULT_PRODUCTS.slice(),history:[]};
+  setCloudBadge('● Локально — без входа',false);refresh();notice('Облачный режим выключен')}
+const DEFAULT_PRODUCTS=['Форель','Креветка','Сливочный сыр','Угорь','Краб'];
+const DEFAULT_LOCATIONS=['Баумана 18','Плазма','Героев Североморцев','Полярные Зори'];
+async function loadCloud(){
+  const [stores0,products0,audits0]=await Promise.all([
+    rest('revision_locations',{query:'?select=*&order=created_at.asc'}),
+    rest('revision_products',{query:'?select=*&order=created_at.asc'}),
+    rest('revision_audits',{query:'?select=*&order=created_at.desc&limit=500'})
+  ]);
+  let stores=stores0,products=products0;
+  if(stores.length===0)stores=await rest('revision_locations',{method:'POST',body:DEFAULT_LOCATIONS.map(name=>({name}))});
+  if(products.length===0)products=await rest('revision_products',{method:'POST',body:DEFAULT_PRODUCTS.map(name=>({name,unit:'кг'}))});
+  // Existing TTK ingredients and all recipes are not read or modified.
+  const selected=document.getElementById('store').value;
+  document.getElementById('store').innerHTML=stores.filter(s=>s.active).map(s=>'<option>'+safe(s.name)+'</option>').join('');
+  if(stores.some(s=>s.name===selected))document.getElementById('store').value=selected;
+  state={products:products.filter(p=>p.active).map(p=>p.name),history:audits0.map(r=>({id:r.id,timestamp:Date.parse(r.created_at),date:r.audit_date,store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name}))};
+  cloudEnabled=true;setCloudBadge('● Облако MORE SUSHI подключено',true);refresh();
+}
+async function tryResumeCloud(){
+  try{const t=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(!t?.access_token)return;cloudToken=t.access_token;cloudRefreshToken=t.refresh_token;cloudExpires=t.expires_at;await loadCloud()}catch(e){cloudEnabled=false;cloudToken=null;setCloudBadge('● Локально: повтори вход',false)}
+}
+const KEY='farukh-revision-demo-v1';
+let state;
+try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+if(!state || !Array.isArray(state.products) || !Array.isArray(state.history)){state={products:['Форель','Креветка','Сливочный сыр','Угорь','Краб'],history:[]}}
+let draft={}; let active='revision';
+const $=id=>document.getElementById(id), safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const fmt=(n, digits=2)=>n.toLocaleString('ru-RU',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+const number=v=>{const s=String(v).trim().replace(',','.').replace(/\s/g,'');if(!/^(?:\d{1,9})(?:\.\d{1,3})?$/.test(s))return null;const n=Number(s);return Number.isFinite(n)&&n>=0?n:null};
+const currentStore=()=>$('store').value;
+const currentMode=()=>$('mode').value;
+const inStore=()=>state.history.filter(x=>x.store===currentStore()).sort((a,b)=>b.timestamp-a.timestamp);
+function notice(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',3000)}
+function getDraft(name){
+ if(draft[name])return draft[name];
+ const previous=state.history.filter(r=>r.store===currentStore()).sort((a,b)=>b.timestamp-a.timestamp).find(r=>r.products.some(p=>p.name===name&&p.price!==null));
+ const saved=previous?.products?.find(p=>p.name===name);
+ return {program:'',actual:'',price:saved?.price===undefined||saved?.price===null?'':String(saved.price)};
+}
+function syncDraft(){document.querySelectorAll('#rows tr[data-product]').forEach(tr=>{const name=tr.dataset.product;const e={};tr.querySelectorAll('input').forEach(el=>e[el.dataset.field]=el.value);draft[name]=e})}
+function clearForm(){draft={};renderRows();calculate()}
+function changeMode(){clearForm();renderRows();calculate()}
+function refresh(){clearForm();renderRows();renderHistory();renderSummary();calculate()}
+function renderRows(){const start=currentMode()==='start';$('formtitle').textContent=start?'Начальная ревизия':'Еженедельная сверка';$('formdesc').textContent=start?'Взвесь продукты и зафиксируй фактические остатки. Расхождения на старте не рассчитываются.':'Внеси учётный остаток из Frontpad и фактический вес, чтобы увидеть разницу.';$('modebadge').textContent=start?'Начало контроля':'Сверка';$('modebadge').className=start?'tag start':'tag';$('programheading').textContent=start?'Frontpad':'Frontpad, кг';$('rows').innerHTML=state.products.map((p,i)=>{const v=getDraft(p);return `<tr data-product="${safe(p)}"><td><span class="itemname">${safe(p)}</span><span class="hint">Позиция ${i+1}</span></td><td>${start?'<span class="muted small">После ввода факта<br>установить вручную</span>':`<input class="numinput" data-field="program" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.program)}" aria-label="Frontpad: ${safe(p)}">`}</td><td><input class="numinput" data-field="actual" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.actual)}" aria-label="Факт: ${safe(p)}"></td><td class="delta" id="delta-${i}">${start?'—':'Нет данных'}</td><td><input class="numinput price" data-field="price" type="text" inputmode="decimal" placeholder="₽/кг" value="${safe(v.price)}" aria-label="Цена за кг: ${safe(p)}"></td></tr>`}).join('');document.querySelectorAll('#rows input').forEach(el=>el.addEventListener('input',()=>{syncDraft();calculate()}));calculate()}
+function calculate(){const start=currentMode()==='start';let shortage=0,surplus=0,match=0,checked=0,unpriced=0;state.products.forEach((p,i)=>{const v=getDraft(p);const actual=v.actual===''?null:number(v.actual);const program=v.program===''?null:number(v.program);const price=v.price===''?null:number(v.price);const valid=actual!==null&&(start||program!==null);if(valid)checked++;const span=$('delta-'+i);if(!span)return;if(start){span.textContent='—';span.className='delta';return}if(!valid){span.textContent='Нет данных';span.className='delta muted';return}const diff=Math.round((actual-program)*1000)/1000;if(diff!==0&&price===null)unpriced++;if(diff<0)shortage+=-diff*(price??0);if(diff>0)surplus+=diff*(price??0);if(diff===0)match++;span.textContent=(diff>0?'+':'')+fmt(diff,3)+' кг';span.className='delta '+(diff>0?'green':diff<0?'red':'blue')});$('short').textContent=start?'—':fmt(shortage)+' ₽';$('surplus').textContent=start?'—':fmt(surplus)+' ₽';$('matches').textContent=start?'—':match+' / '+state.products.length;$('checked').textContent=checked+' / '+state.products.length;$('priceNote').classList.toggle('hide',start||unpriced===0)}
+let savingRevision=false;
+async function saveRevision(){
+ if(savingRevision)return;
+ syncDraft();const start=currentMode()==='start';const products=[];
+ for(const p of state.products){const v=getDraft(p);
+  if(v.actual===''){notice('Укажи фактический вес: '+p);return}
+  const actual=number(v.actual);if(actual===null){notice('Некорректный фактический вес: '+p);return}
+  const program=start?actual:(v.program===''?null:number(v.program));if(program===null){notice('Укажи остаток Frontpad: '+p);return}
+  const price=v.price===''?null:number(v.price);if(price===null&&v.price!==''){notice('Некорректная цена: '+p);return}
+  products.push({name:p,program,actual,price,diff:Math.round((actual-program)*1000)/1000});
+ }
+ if(!state.products.length){notice('Добавь хотя бы один продукт');return}
+ if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?'))return;
+ const r={id:(crypto.randomUUID?.()||String(Date.now())),timestamp:Date.now(),date:$('when').value,store:currentStore(),type:start?'start':'weekly',products,operator:$('operator').value.trim()};
+ savingRevision=true;
+ if(cloudEnabled){
+  try{const created=await rest('revision_audits',{method:'POST',body:{location_name:r.store,audit_type:r.type,audit_date:r.date,operator_name:r.operator,items:products}});r.id=created[0].id;r.timestamp=Date.parse(created[0].created_at)}
+  catch(err){savingRevision=false;notice('Не сохранено в облаке: '+err.message);return}
+ }else{state.history.push(r);save()}
+ if(cloudEnabled)state.history.push(r);
+ clearForm();renderHistory();renderSummary();savingRevision=false;notice(cloudEnabled?'Ревизия сохранена в облаке':'Ревизия сохранена только в этом браузере');
+}
+function totals(r){let shortage=0,surplus=0;for(const p of r.products){const delta=p.diff*(p.price??0);if(delta<0)shortage+=-delta;else surplus+=delta}return {shortage,surplus}}
+function historyItem(r){const t=totals(r);return `<div class="historyitem"><div><strong>${r.type==='start'?'Начальная':'Повторная'} · ${safe(r.date)}</strong><small>${r.products.length} позиций · ${safe(r.store)}</small></div><div style="text-align:right"><strong class="${r.type==='start'?'blue':'red'}">${r.type==='start'?'База 0':('−'+fmt(t.shortage)+' ₽')}</strong><small>${r.type==='start'?'':('+'+fmt(t.surplus)+' ₽')}</small></div></div>`}
+function renderSummary(){
+ const names=Array.from($('store').options).map(x=>x.value);
+ const content=names.map(name=>{
+  const latest=state.history.filter(x=>x.store===name&&x.type==='weekly').sort((a,b)=>b.timestamp-a.timestamp)[0];
+  const t=latest?totals(latest):null;
+  return `<div class="summarytile"><strong>${safe(name)}</strong><div class="hint">${latest?'Последняя ревизия: '+safe(latest.date):'Нет повторной ревизии'}</div><div class="numbers"><div><span>Недостача</span><b class="red">${t?'−'+fmt(t.shortage)+' ₽':'—'}</b></div><div><span>Излишек</span><b class="green">${t?'+'+fmt(t.surplus)+' ₽':'—'}</b></div></div><button class="btn soft" data-summary-store="${safe(name)}">Открыть точку →</button></div>`;
+ }).join('');
+ $('summaryCards').innerHTML=content;
+ document.querySelectorAll('[data-summary-store]').forEach(b=>b.onclick=()=>{
+  $('store').value=b.dataset.summaryStore;
+  const rev=document.querySelector('.menu button[onclick*=\"revision\"]');
+  go('revision',rev);refresh();
+ });
+}
+function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?all.slice(0,4).map(historyItem).join(''):'<div class="empty">Пока нет сохранённых ревизий</div>';$('allhistory').innerHTML=all.length?all.map(r=>`<div class="archive">${historyItem(r)}<details style="margin:5px 0 0 14px"><summary class="muted" style="cursor:pointer;padding:8px">Показать продукты</summary><div class="tablewrap"><table><thead><tr><th>Продукт</th><th>Frontpad</th><th>Факт</th><th>Разница, кг</th><th>Цена ₽/кг</th></tr></thead><tbody>${r.products.map(p=>`<tr><td>${safe(p.name)}</td><td>${fmt(p.program,3)}</td><td>${fmt(p.actual,3)}</td><td class="${p.diff<0?'red':p.diff>0?'green':''}">${fmt(p.diff,3)}</td><td>${p.price===null?'—':fmt(p.price)}</td></tr>`).join('')}</tbody></table></div></details></div>`).join(''):'<div class="empty">У этой точки пока нет сохранённых ревизий</div>'}
+function renderProducts(){$('productsrows').innerHTML=state.products.map(p=>`<tr><td class="itemname">${safe(p)}</td><td>килограмм (кг)</td><td><button class="btn danger" data-delete="${safe(p)}">Удалить</button></td></tr>`).join('');document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Удалить продукт «'+b.dataset.delete+'» из будущих ревизий?'))return;deleteProduct(b.dataset.delete)})}
+async function deleteProduct(name){
+ if(cloudEnabled){try{await rest('revision_products',{method:'PATCH',query:'?name=eq.'+encodeURIComponent(name),body:{active:false}})}catch(err){notice('Не удалено: '+err.message);return}}
+ state.products=state.products.filter(p=>p!==name);if(!cloudEnabled)save();clearForm();renderProducts();notice('Позиция скрыта для новых ревизий');
+}
+async function addProduct(){
+ const n=$('newproduct').value.trim();if(n.length<2||n.length>60){notice('Название: от 2 до 60 символов');return}
+ if(state.products.some(p=>p.toLowerCase()===n.toLowerCase())){notice('Такой продукт уже есть');return}
+ if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
+ state.products.push(n);if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
+}
+function go(view,button){active=view;$('revisionSelectors').classList.toggle('hide',view==='summary');$('operatorSelector').classList.toggle('hide',view==='summary');$('revisionKPIs').classList.toggle('hide',view==='summary');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
+function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
+function csvSave(data,name){const csv='\ufeff'+data.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');if(window.FarukhAndroid&&typeof window.FarukhAndroid.saveCsv==='function'){window.FarukhAndroid.saveCsv(name,btoa(unescape(encodeURIComponent(csv))));return}const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function downloadHistory(){
+ const rows=[['Точка','Дата','Режим','Сотрудник','Продукт','Frontpad кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];
+ for(const r of state.history)for(const p of r.products){const d=p.diff,price=p.price;rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',r.operator||'',p.name,p.program,p.actual,d,price??'',price===null?'':Math.max(0,-d*price),price===null?'':Math.max(0,d*price)])}
+ if(rows.length===1){notice('История пока пустая');return}csvSave(rows,'farukh-revision-history.csv')
+}
+function exportCSV(){syncDraft();const rows=[['Точка','Дата','Тип','Продукт','Frontpad кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];const start=currentMode()==='start';for(const p of state.products){const v=getDraft(p),actual=v.actual===''?null:number(v.actual),program=start?actual:(v.program===''?null:number(v.program)),price=v.price===''?null:number(v.price);if(actual===null||program===null)continue;const diff=Math.round((actual-program)*1000)/1000;rows.push([currentStore(),$('when').value,start?'Начальная':'Повторная',p,program,actual,diff,price??'',price===null?'':Math.max(0,-diff*price),price===null?'':Math.max(0,diff*price)])}if(rows.length===1){notice('Заполни хотя бы одну позицию');return}csvSave(rows,'farukh-revision-'+$('when').value+'.csv')}
+function exportHistory(){const rows=[['Точка','Дата','Тип','Продукт','Frontpad кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];for(const r of inStore())for(const p of r.products){rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',p.name,p.program,p.actual,p.diff,p.price??'',p.price===null?'':Math.max(0,-p.diff*p.price),p.price===null?'':Math.max(0,p.diff*p.price)])}if(rows.length===1){notice('Нет сохранённых ревизий');return}csvSave(rows,'farukh-revision-history.csv')}
+$('when').value=today();go('summary',document.querySelector('.menu button'));renderRows();renderHistory();renderSummary();tryResumeCloud();
+</script></body></html>
