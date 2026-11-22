@@ -1,0 +1,75 @@
+/* MORE SUSHI STUDIO PRO · 4.0.1
+   Home screen fits inside the visible Android viewport and does not scroll.
+   Inner TTK / Catalog / PDF / More pages retain normal scrolling.
+   Dynamic fitting applies only if all live controls can remain visible. */
+@media screen{
+ html.ocean-home-locked[data-mss-tab="home"],
+ html.ocean-home-locked[data-mss-tab="home"] body{
+   height:100%!important;
+   min-height:0!important;
+   overflow:hidden!important;
+   overscroll-behavior:none!important;
+ }
+ html.ocean-home-locked[data-mss-tab="home"] body{
+   height:100dvh!important;
+   max-height:100dvh!important;
+ }
+ html.ocean-home-locked[data-mss-tab="home"] .wrap{
+   height:var(--ocean-home-viewport,100dvh)!important;
+   min-height:0!important;
+   max-height:var(--ocean-home-viewport,100dvh)!important;
+   overflow:hidden!important;
+   overscroll-behavior:none!important;
+   padding-bottom:0!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .wrap>.hero.fadein{
+   height:var(--ocean-home-hero)!important;
+   aspect-ratio:auto!important;
+   margin-bottom:var(--ocean-home-hero-gap)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .cloudbar{
+   margin-bottom:var(--ocean-home-cloud-gap)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .metrics{
+   margin-bottom:var(--ocean-home-metrics-gap)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .metric{
+   height:var(--ocean-home-metric-height)!important;
+   min-height:0!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .mss-heading{
+   margin-bottom:var(--ocean-home-heading-gap)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .mss-feature-grid{
+   grid-template-rows:repeat(2,var(--ocean-home-card-row))!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .mss-quick{
+   margin-top:var(--ocean-home-quick-gap)!important;
+   min-height:var(--ocean-home-quick-height)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .approved-water-band{
+   margin-top:var(--ocean-home-wave-gap)!important;
+   height:var(--ocean-home-wave-height)!important;
+ }
+ html.ocean-home-fit[data-mss-tab="home"] .statusnote{
+   display:none!important;
+ }
+ /* Keep the dock fixed in both modes and allow accessibility focus rings. */
+ html[data-mss-tab="home"] .bottomnav{
+   position:fixed!important;
+   bottom:0!important;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ html.ocean-home-fit[data-mss-tab="home"] .wrap>.hero,
+ html.ocean-home-fit[data-mss-tab="home"] .mss-feature{
+   transition:none!important;
+ }
+}
+@media print{
+ html.ocean-home-locked[data-mss-tab="home"],
+ html.ocean-home-locked[data-mss-tab="home"] body,
+ html.ocean-home-locked[data-mss-tab="home"] .wrap{
+   height:auto!important;max-height:none!important;overflow:visible!important;
+ }
+}
