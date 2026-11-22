@@ -1,0 +1,363 @@
+/* MORE SUSHI STUDIO PRO / OCEAN 4.0 - approved pixel-reference reconstruction.
+   Art pieces are separately cropped from the user-approved reference, not a
+   screenshot of the working app. Real links, nav, cloud, TTK and PDF remain.
+   Source art is optimized WebP; never advertise as natively rendered 8K. */
+@media screen {
+ :root{color-scheme:light;--o40-deep:#011c38;--o40-navy:#013c6b;--o40-cyan:#47ebff;--o40-rose:#df1754}
+ html{background:#021b38!important}
+ body{
+  color:#effcff!important;
+  background:
+   radial-gradient(ellipse 94% 35% at 52% 30%,#128fc38a 0%,transparent 82%),
+   radial-gradient(ellipse 83% 28% at 18% 75%,#0ab3ed3c 0%,transparent 88%),
+   linear-gradient(180deg,#01264c 0%,#03345d 38%,#066797 67%,#01213d 100%)!important;
+ }
+ body:before{
+  opacity:.22!important;
+  background:url('./ocean-wave.jpg') center bottom/cover no-repeat!important;
+  mix-blend-mode:soft-light!important;
+ }
+ .ocean-bg:before{opacity:.08!important}
+ .ocean-bg:after{opacity:.10!important}
+ .wrap{
+  width:min(100%,540px)!important;
+  padding:0 9px calc(91px + env(safe-area-inset-bottom))!important;
+  isolation:isolate;z-index:1;
+ }
+ html[data-mss-tab="home"] .wrap>header{display:none!important}
+
+ /* APPROVED 4.0 PHOTO FRAME. The actual hero photo is the exact approved art,
+    and the real anchor remains a clickable/focusable overlay over its red CTA.
+    If the image cannot load, JS leaves the live HTML alternative visible. */
+ html[data-mss-tab="home"] .wrap>.hero.fadein{
+  opacity:1!important;transform:none!important;animation:none!important;
+  position:relative!important;isolation:isolate;
+  aspect-ratio:830/463!important;height:auto!important;
+  min-height:0!important;margin:0 -9px 14px!important;
+  width:calc(100% + 18px)!important;max-width:none!important;
+  border:0!important;border-radius:22px!important;
+  background:linear-gradient(120deg,#032d57,#037eae)!important;
+  box-shadow:0 6px 16px #001d3aa8,0 0 12px #11c8ff70!important;
+  overflow:hidden!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero .approved-hero-whale{
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  max-width:none!important;object-fit:fill!important;
+  display:block!important;z-index:1!important;
+  border-radius:inherit;
+  opacity:1!important;filter:none!important;transform:none!important;
+  -webkit-mask-image:none!important;mask-image:none!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero:before,
+ html[data-mss-tab="home"] .wrap>.hero:after,
+ html[data-mss-tab="home"] .wrap>.hero .hero-sheen,
+ html[data-mss-tab="home"] .wrap>.hero .ocean-sunburst,
+ html[data-mss-tab="home"] .wrap>.hero .hero-bubbles,
+ html[data-mss-tab="home"] .wrap>.hero .ocean-waterline,
+ html[data-mss-tab="home"] .wrap>.hero .hero-whale{display:none!important}
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-copy{
+  opacity:0!important;
+  pointer-events:none!important;
+  visibility:visible!important;z-index:2!important;
+  position:absolute!important;inset:0!important;width:100%!important;
+ }
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-stamp{
+  pointer-events:auto!important;cursor:pointer!important;
+  position:absolute!important;left:3%!important;bottom:5%!important;
+  top:auto!important;width:44.5%!important;max-width:none!important;
+  height:14%!important;min-height:38px!important;
+  opacity:1!important;z-index:100!important;
+ }
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-stamp:focus-visible{
+  opacity:.23!important;outline:3px solid #fff4a3!important;
+  outline-offset:-3px!important;border-radius:16px!important;
+ }
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero:focus-within{
+  outline:3px solid #ffe28a!important;outline-offset:-3px!important;
+ }
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-stamp:active{
+  opacity:.17!important;transform:translateY(2px)!important;
+ }
+ /* Explicitly prevent the old 3.4 composition mask from hiding full-frame art. */
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-copy > *:not(.hero-stamp){
+  pointer-events:none!important;
+ }
+
+ /* Ice-white cloud bar with real server-state indicator. */
+ .cloudbar{
+  min-height:52px!important;margin:3px 2px 12px!important;
+  border-radius:18px!important;
+  background:linear-gradient(135deg,#e7f9ff,#9fd6ed 55%,#b4ebfc)!important;
+  border:2px solid #bffaff!important;
+  box-shadow:inset 0 1px #fff,0 3px 0 #178ac0,0 7px 13px #00396875,0 0 10px #59d8ff58!important;
+ }
+ .cloudtxt b{color:#082f4b!important;font-weight:900!important;font-size:clamp(10px,2.7vw,12px)!important}
+ .cloudtxt small{color:#2b5571!important;font-size:clamp(9px,2.28vw,11px)!important;font-weight:650!important}
+ .cloudbar .ocean-refresh-btn{
+  background:linear-gradient(#ff91a7,#f42c64 48%,#b70b49 95%)!important;
+  border:1.5px solid #ffcfdf!important;color:#fff!important;
+  text-shadow:0 1px 3px #9c1544!important;
+  box-shadow:inset 0 1px #fffb,0 3px #930d3e,0 5px 11px #a918539c!important;
+  border-radius:15px!important;min-height:43px!important;
+ }
+ .cloudbar .dot{border:2px solid #fff!important}
+ .metrics{
+  gap:7px!important;margin:0 3px 11px!important;
+ }
+ .metric{
+  min-height:73px!important;border-radius:16px!important;
+  padding:9px 3px 8px!important;
+  border:1.5px solid #a6ecff!important;
+  background:linear-gradient(155deg,#eaffff,#9fdff8 74%,#72c8e8)!important;
+  box-shadow:inset 0 2px #fff,0 4px #1389b7,0 7px 10px #002d5977!important;
+ }
+ .metric:nth-child(2){
+  background:linear-gradient(155deg,#fffaff,#e6b9e7 74%,#d58ccc)!important;
+  border-color:#ffd7f5!important;
+  box-shadow:inset 0 2px #fff,0 4px #b9589a,0 7px 10px #64255a69!important;
+ }
+ .metric:nth-child(3){
+  background:linear-gradient(155deg,#f2ffff,#adf3df 74%,#70daba)!important;
+  border-color:#b2ffdd!important;
+  box-shadow:inset 0 2px #fff,0 4px #1aa88a,0 7px 10px #035b526c!important;
+ }
+ .metric:nth-child(4){
+  background:linear-gradient(155deg,#f0ffff,#b7efff 74%,#73c8ef)!important;
+  border-color:#c5faff!important;
+ }
+ .metric svg{width:30px!important;height:29px!important;filter:drop-shadow(0 3px 2px #205d8b7b)!important}
+ .metric label{
+  color:#103a57!important;font-weight:900!important;
+  font-size:clamp(9px,2.4vw,11px)!important;white-space:nowrap;
+ }
+ .metric b{
+  font-size:clamp(17px,4.2vw,21px)!important;font-weight:950!important;
+  color:#043957!important;text-shadow:0 1px #fff9;
+ }
+ .metric:nth-child(2) b{color:#c71046!important}
+ .metric:nth-child(3) b{color:#047746!important}
+ .metric:nth-child(4) b{color:#007f55!important}
+
+ /* Main section exact approved cards. Each illustration is a separate image,
+    placed on a REAL focusable link or button. Not one dead screen screenshot. */
+ html[data-mss-tab="home"] .mss-category-app{margin:7px 2px 0!important}
+ html[data-mss-tab="home"] .mss-heading{
+  margin:0 0 12px!important;gap:7px!important;
+ }
+ html[data-mss-tab="home"] .mss-heading .mss-eyebrow{
+  color:#b7eaff!important;font-size:clamp(8px,2vw,10px)!important;
+  text-shadow:0 1px 2px #033b67!important;letter-spacing:.13em!important;
+ }
+ html[data-mss-tab="home"] .mss-heading h2{
+  color:#f7feff!important;font-weight:950!important;
+  font-size:clamp(17px,4.2vw,21px)!important;
+  text-shadow:0 2px 4px #001f3f!important;
+ }
+ html[data-mss-tab="home"] .mss-edition{
+  color:#b60843!important;
+  background:linear-gradient(#fff,#ffe6f1)!important;
+  border:1.5px solid #ffe1ef!important;
+  font-size:clamp(8px,2.1vw,10px)!important;
+  box-shadow:inset 0 1px #fff,0 3px 0 #b53e74,0 5px 9px #67164788!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:clamp(81px,22vw,118px) clamp(81px,22vw,118px)!important;
+  gap:9px!important;
+ }
+ html[data-mss-tab="home"] .mss-feature{
+  border:0!important;border-radius:17px!important;
+  background-position:center!important;background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  padding:0!important;overflow:hidden!important;
+  box-shadow:0 5px 12px #001e3b89,0 0 9px #52d1ff85!important;
+  transform:none!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-red{background-image:url('./o40_ttk.webp?v=4')!important}
+ html[data-mss-tab="home"] .mss-feature-blue{background-image:url('./o40_catalog.webp?v=4')!important}
+ html[data-mss-tab="home"] .mss-feature-pearl{background-image:url('./o40_pdf.webp?v=4')!important}
+ html[data-mss-tab="home"] .mss-feature:before,
+ html[data-mss-tab="home"] .mss-feature:after{display:none!important}
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>.mss-feature-icon,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>strong,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>small,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>.mss-feature-arrow{
+  opacity:0!important;visibility:visible!important;
+ }
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>.mss-feature-icon,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>strong,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>small,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>.mss-feature-arrow{
+  opacity:1!important;visibility:visible!important;
+ }
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-failed{
+  background-image:none!important;
+  background:linear-gradient(135deg,#ff658c,#a90d45)!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-blue.ocean40-card-failed{
+  background:linear-gradient(135deg,#7ef5ff,#056a9d)!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-pearl.ocean40-card-failed{
+  background:linear-gradient(135deg,#f5ffff,#8bdcf4)!important;
+ }
+ html[data-mss-tab="home"] .mss-feature:focus-visible{
+  outline:3px solid #fff2a5!important;outline-offset:3px!important;
+ }
+ html[data-mss-tab="home"] .mss-feature:active{
+  transform:translateY(2px) scale(.994)!important;filter:brightness(1.12)!important;
+ }
+ html[data-mss-tab="home"] .mss-quick{
+  margin:13px 0 0!important;min-height:55px!important;
+  background:linear-gradient(148deg,#ebffff,#b8e5f5 76%,#95d1e9)!important;
+  border:1.5px solid #b6f8ff!important;border-radius:18px!important;
+  box-shadow:inset 0 2px #fff,0 4px 0 #469cc5,0 7px 12px #023a6077!important;
+  padding:10px 13px!important;
+ }
+ html[data-mss-tab="home"] .mss-quick-label{
+  color:#235772!important;font-size:clamp(9px,2.25vw,11px)!important;
+  font-weight:900!important;
+ }
+ html[data-mss-tab="home"] .mss-quick b{
+  color:#082f4e!important;font-size:clamp(12px,3.05vw,15px)!important;
+  font-weight:900!important;
+ }
+ html[data-mss-tab="home"] .mss-quick-link{
+  font-size:clamp(11px,2.7vw,13px)!important;font-weight:900!important;
+  background:linear-gradient(#ff8eac,#ef2c62 49%,#a80b42)!important;
+  color:#fff!important;border:1.5px solid #ffd5e4!important;
+  border-radius:14px!important;padding:10px 13px!important;
+  box-shadow:inset 0 1px #fff8,0 3px 0 #960b41,0 6px 11px #70134388!important;
+ }
+ html[data-mss-tab="home"] .approved-water-band{
+  height:clamp(48px,11.5vw,71px)!important;
+  width:calc(100% + 18px)!important;
+  margin:13px -9px 0!important;
+  background:url('./o40_waves.webp?v=4') center center/100% 100% no-repeat!important;
+  filter:saturate(1.15) contrast(1.07)!important;
+ }
+
+ /* Five-item app dock: fix 3.4 extra blank bottom padding on Xiaomi 15T;
+    deep sapphire glass matches the approved OCEAN 4.0 design. */
+ .bottomnav{
+  width:min(100%,540px)!important;
+  padding:6px 7px 8px!important;
+  min-height:68px!important;
+  gap:2px!important;border-radius:21px 21px 0 0!important;
+  border:1.5px solid #5de7ff!important;border-bottom:0!important;
+  background:linear-gradient(157deg,#146a9cf9,#053b67fc 53%,#011c38fc)!important;
+  box-shadow:inset 0 1px #d9ffffbb,0 -3px 0 #0cb9e6,0 -8px 19px #00182c9e!important;
+  backdrop-filter:blur(12px);
+ }
+ .bottomnav .navitem{
+  min-height:54px!important;padding:6px 2px!important;
+  border-radius:15px!important;
+  color:#f3fcff!important;font-size:clamp(10px,2.5vw,12px)!important;
+  text-shadow:0 1px 3px #023256!important;font-weight:850!important;
+ }
+ .bottomnav .navitem svg{
+  width:30px!important;height:30px!important;
+  filter:drop-shadow(0 3px 2px #003d6eaa)!important;
+ }
+ .bottomnav .navitem.active{
+  border:1.5px solid #ffb6d0!important;
+  color:#fff!important;
+  background:linear-gradient(#ff6d9a,#ef1757 53%,#9e0c41)!important;
+  box-shadow:inset 0 1px #ffebf5,0 3px 0 #a40d40,0 0 11px #f63d7eae!important;
+ }
+ .bottomnav .navitem.active svg{filter:drop-shadow(0 3px 3px #801645)!important}
+
+ /* Secondary tabs: same sapphire/cyan 3D design language, readable and honest
+    upcoming modules, no counterfeit status checks or hidden PDF functions. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .wrap>header{
+  background:linear-gradient(132deg,#04335ef9,#056796e8 60%,#083760fc)!important;
+  border:1.5px solid #4ee4ff!important;
+  box-shadow:inset 0 1px #d8feff,0 4px #096997,0 8px 17px #001c3999!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy strong{
+  color:#fff!important;text-shadow:0 2px 4px #012944!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy small{color:#d6f9ff!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title{
+  min-height:102px!important;border:1.5px solid #7eeaff!important;
+  background:
+   linear-gradient(100deg,#04315df3,#065c87dd 74%,#0572a6c2),
+   url('./o40_hero.webp?v=4') 88% 49%/auto 180% no-repeat!important;
+  box-shadow:inset 0 2px #cfffff7b,0 4px #1273a5,0 9px 16px #0026409a!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title h2{
+  color:#f9ffff!important;font-size:clamp(22px,5.4vw,29px)!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title p{
+  color:#ecffff!important;font-size:clamp(11px,2.85vw,14px)!important;
+  text-shadow:0 2px 3px #032b49!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card{
+  border:1.5px solid #66e6ff!important;min-height:145px!important;
+  background:linear-gradient(149deg,#127cafea,#0a5e97ef 49%,#06416ee9)!important;
+  box-shadow:inset 0 2px #ddffff98,0 4px #085a86,0 8px 17px #001d4599,0 0 10px #00cfff31!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:nth-child(3n+2){
+  background:linear-gradient(148deg,#a12b67d9,#5e2a70e8 54%,#3b2856ee)!important;
+  border-color:#ff8dc4!important;
+  box-shadow:inset 0 2px #ffd4ea88,0 4px #773561,0 8px 17px #220e3099!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:nth-child(3n+3){
+  background:linear-gradient(148deg,#0e9d9fe2,#09748fef 58%,#075775ec)!important;
+  border-color:#79f9e9!important;
+  box-shadow:inset 0 2px #cbfff488,0 4px #087e80,0 8px 17px #002c4799!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card strong{
+  color:#fff!important;text-shadow:0 2px 3px #002b53!important;
+  font-size:clamp(13px,3.6vw,17px)!important;font-weight:900!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card small{
+  color:#e5faff!important;font-size:clamp(10px,2.8vw,12px)!important;
+  text-shadow:0 1px 3px #063355!important;font-weight:700!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card>.mss-ico{
+  width:69px!important;height:69px!important;
+  filter:drop-shadow(0 6px 5px #002144dd) saturate(1.22)!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future{
+  opacity:1!important;filter:none!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future:after{
+  color:#542e00!important;background:#fff0cd!important;
+  border-color:#ffd98d!important;font-size:9px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card .mss-arrow{
+  background:linear-gradient(#ff83ac,#db1558)!important;
+  color:#fff!important;border-color:#ffd1df!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app:after{
+  background:url('./o40_waves.webp?v=4') center bottom / 100% 100% no-repeat!important;
+  opacity:.76!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-message{
+  background:linear-gradient(142deg,#e9fcff,#b9e6f6)!important;
+  border-color:#71e6ff!important;
+ }
+}
+@media screen and (max-width:380px){
+ .cloudbar{padding:8px 7px!important}
+ .cloudtxt b{font-size:9.8px!important}
+ .cloudtxt small{font-size:8.7px!important}
+ .cloudbar .ocean-refresh-btn{padding:6px 7px!important;font-size:9.2px!important}
+ .metrics{gap:5px!important}
+ .metric{padding:7px 2px!important}
+ .metric label{font-size:8.4px!important}
+ .mss-heading h2{font-size:16px!important}
+ .mss-feature-grid{gap:7px!important}
+ .bottomnav .navitem{min-height:51px!important;font-size:9px!important}
+ .bottomnav .navitem svg{width:27px!important;height:27px!important}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ .mss-feature,.bottomnav .navitem,.mss-card{animation:none!important;transition:none!important}
+}
+@media print{
+ body:before,.approved-water-band,.bottomnav{display:none!important}
+}

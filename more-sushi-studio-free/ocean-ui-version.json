@@ -1,7 +1,7 @@
 {
-  "build": "ocean-3.4.0-all-tabs-polish-20261122",
-  "display": "OCEAN ULTRA 3D · 3.4",
+  "build": "ocean-4.0.0-approved-pixel-20261122",
+  "display": "OCEAN ULTRA · 4.0",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "All five mobile tabs: readable navy glass header and titles, sharper live HTML typography and scalable SVG icons, consistent 3D cards, sea backgrounds, softened hero image seam, and accessibility corrections. Photographic images are source-optimized and NOT true native 8K. Supabase, documents and PDF unchanged."
+  "details": "Homepage reconstructed from user-approved final image using separate optimized 2x WebP art regions on real functional links and buttons; live cloud counters, existing TTK/PDF unchanged. Dark sapphire glass style and accessible mobile menu across all five tabs. Does not claim genuine 8K photographic source."
 }
