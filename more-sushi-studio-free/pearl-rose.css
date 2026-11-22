@@ -272,3 +272,16 @@ html.pearl-home-fixed .wrap{height:calc(100dvh - 76px)!important;max-height:calc
  .mss-panel:not([hidden]) .mss-card:nth-child(6){animation-delay:320ms}
 }
 
+/* 8.4.1 — explicitly accessible instant replay, in this same active theme. */
+.edition-replay{cursor:pointer;min-height:36px;font-family:inherit;font-weight:800}
+.edition-replay:focus-visible,.mss-card-replay:focus-visible{outline:3px solid #be174f;outline-offset:3px}
+.mss-grid .mss-card-replay{background:linear-gradient(140deg,#fffdfd,#ffe6f0 75%,#fff2f7);border-color:#eaa4b9}
+.mss-grid .mss-card-replay strong{color:#9d1945}
+/* A user may explicitly choose animations even if Android requests reduced
+   motion. The default still respects that OS accessibility preference. */
+@media(prefers-reduced-motion:reduce){
+ html.premium-motion-optin #premiumBoot{display:grid!important;animation:premiumBootFallback 5s forwards!important}
+ html.premium-motion-optin .premium-boot-medal{animation:premiumMedal 2.8s ease-in-out infinite alternate!important}
+ html.premium-motion-optin .premium-boot-line>i{animation:premiumProgress 3.7s cubic-bezier(.1,.4,.25,1) forwards!important}
+ html.premium-motion-optin .premium-typing::after{display:inline!important;animation:premiumCaret 850ms steps(1,end) infinite!important}
+}
