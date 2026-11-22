@@ -49,18 +49,27 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(9,19,33));
-        getWindow().setNavigationBarColor(Color.rgb(9,19,33));
+        getWindow().setStatusBarColor(Color.rgb(6,14,27));
+        getWindow().setNavigationBarColor(Color.rgb(6,14,27));
+        // Android 15/16 enforces edge-to-edge windows for targetSdk >= 35.
+        // Let WebView receive system bar insets and explicitly keep its content clear.
+        getWindow().getDecorView().setSystemUiVisibility(0);
+        if(Build.VERSION.SDK_INT>=30) getWindow().setDecorFitsSystemWindows(false);
+        if(Build.VERSION.SDK_INT>=29) getWindow().setNavigationBarContrastEnforced(false);
         web=new WebView(this);
         web.setBackgroundColor(Color.rgb(9,19,33));
         web.setOnApplyWindowInsetsListener((v,insets)->{
             if(Build.VERSION.SDK_INT>=30){
-                android.graphics.Insets safe=insets.getInsets(WindowInsets.Type.statusBars()|WindowInsets.Type.navigationBars());
-                v.setPadding(safe.left,safe.top,safe.right,safe.bottom);
-            }else v.setPadding(0,insets.getSystemWindowInsetTop(),0,insets.getSystemWindowInsetBottom());
+                android.graphics.Insets top=insets.getInsets(WindowInsets.Type.statusBars()|WindowInsets.Type.displayCutout());
+                android.graphics.Insets bottom=insets.getInsets(WindowInsets.Type.navigationBars());
+                v.setPadding(top.left,top.top,top.right,bottom.bottom);
+            }else{
+                v.setPadding(0,insets.getSystemWindowInsetTop(),0,insets.getSystemWindowInsetBottom());
+            }
             return insets;
         });
         setContentView(web);
+        if(Build.VERSION.SDK_INT>=20) web.requestApplyInsets();
         WebSettings w=web.getSettings();
         w.setJavaScriptEnabled(true);
         w.setDomStorageEnabled(true);
@@ -77,7 +86,11 @@ public final class MainActivity extends Activity {
                 }
                 return false;
             }
-            @Override public void onPageFinished(WebView v,String url){showPendingStatus();}
+            @Override public void onPageFinished(WebView v,String url){
+                // CSS uses viewport-relative header and nav only after native insets apply.
+                v.evaluateJavascript("document.body.classList.add('native-insets')",null);
+                showPendingStatus();
+            }
         });
         web.addJavascriptInterface(new AndroidBridge(),"FarukhAndroid");
         try(InputStream input=getAssets().open("revision.html");
