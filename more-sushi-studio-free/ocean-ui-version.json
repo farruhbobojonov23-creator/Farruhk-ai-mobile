@@ -1,7 +1,7 @@
 {
-  "build": "chef-signature-7.0.0-20261122",
-  "display": "CHEF SIGNATURE ULTRA · 7.0",
-  "released": "2026-11-22",
+  "build": "pearl-rose-8.0.0-20261123",
+  "display": "PEARL ROSE ULTRA · 8.0",
+  "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "Approved concept #12 dark chef-signature UI. Old Ruby White mobile CSS and helper are replaced, not overlaid: one chef-signature.css and one chef-signature-ui.js with the three stable navigation/update/cloud scripts. Photos use existing optimized black-background sushi/chef/ingredient assets. Workspace replaces ruby-workspace.css with one dark signature theme while keeping base editor/A4 control sheets. Five tabs, live status, TTK/PDF/projects/auth/routes unchanged. No signed APK was built. Phone pixel-exact match and authenticated editor workflows still require on-device testing."
+  "details": "Approved final bright Pearl Rose Ultra concept replaces previous Chef Signature theme. One pearl-rose.css mobile stylesheet + one lightweight pearl-rose-ui.js; one pearl-rose-workspace.css for studio on top of required functional TTK/A4 core CSS only. Header, realistic sushi hero, blossom SVG, ruby CTA, four live counters, asymmetrical Create TTK / Catalog / PDF cards, continuation and 5-tab dock. Four optimized WebP crops of original approved mockup, no baked-in button text, all live TTK/PDF/projects/cloud routes retained, seven catalog/history actions remain marked 'soon'. No signed APK built, no 8K raster claim, in-app Xiaomi verification pending."
 }
