@@ -45,6 +45,9 @@
  }
  function fit(){
   scheduled=false;
+  // BLACK GOLD 5.x owns its own fit logic; do not apply the legacy Ocean
+  // height lock as well (it could crop cards or create a blank dock).
+  if(root.classList.contains('black-gold-ui')){clear();return;}
   if(root.dataset.mssTab!=='home'){
    clear();
    lastTab=root.dataset.mssTab||'';
