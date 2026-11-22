@@ -218,7 +218,22 @@ html.ocean-app .ocean-appbar .ocean-refresh-btn .refresh-symbol{font-size:23px;c
  display:inline-block;filter:drop-shadow(0 0 4px #fff0ab66)}
 html.ocean-app .ocean-appbar .ocean-refresh-btn.refreshing .refresh-symbol{animation:ocean-refresh-spin 1.1s linear infinite}
 html.ocean-app .ocean-appbar .ocean-refresh-btn:disabled{opacity:.8}
-html.ocean-app .ocean-refresh-toast{font-family:Manrope,Arial,sans-serif}
+html.ocean-app .ocean-refresh-toast{
+ position:fixed;z-index:210;left:50%;top:max(13px,env(safe-area-inset-top));
+ transform:translate(-50%,-140%);opacity:0;pointer-events:none;
+ width:max-content;max-width:calc(100vw - 25px);padding:11px 15px;
+ border:1px solid #8fe9ff;border-radius:13px;background:linear-gradient(135deg,#1689b8,#073b69);
+ color:#effdff;text-align:center;font:800 12px/1.4 Manrope,Arial,sans-serif;
+ box-shadow:0 10px 20px #04213fb0;
+ transition:transform .3s ease,opacity .3s ease;
+}
+html.ocean-app .ocean-refresh-toast.visible{transform:translate(-50%,4px);opacity:1}
+html.ocean-app .ocean-refresh-toast.error{background:linear-gradient(140deg,#ae2c56,#4e153c);border-color:#ffc7dc}
+@keyframes ocean-refresh-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+ html.ocean-app .ocean-refresh-toast{transition:none}
+ html.ocean-app .ocean-appbar .ocean-refresh-btn.refreshing .refresh-symbol{animation:none}
+}
 @media(max-width:500px){html.ocean-app .ocean-appbar .ocean-refresh-label,
  html.ocean-app .ocean-appbar .ocean-miniwhale{display:none}
  html.ocean-app .ocean-appbar .ocean-refresh-btn{margin-left:auto;padding:6px 11px}
