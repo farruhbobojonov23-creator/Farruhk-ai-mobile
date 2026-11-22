@@ -11,6 +11,7 @@
  }
  function show(tab,recordHistory=false){
    if(!keys.has(tab))tab='home';
+ document.documentElement.dataset.mssTab=tab;
    document.querySelectorAll('[data-mss-panel]').forEach(panel=>{
      panel.hidden=panel.dataset.mssPanel!==tab;
    });
