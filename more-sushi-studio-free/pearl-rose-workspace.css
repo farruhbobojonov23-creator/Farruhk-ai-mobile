@@ -107,50 +107,43 @@
  html.ocean-app .hero p{color:#45454c!important}
  html.ocean-app .stat b{color:#bc1232!important}
  html.ocean-app .toast{z-index:500}
- /* Floating studio navigation — same material and red selected state as mobile. */
- html.ocean-app .ocean-appbar{
-  position:sticky;top:0;z-index:95;display:flex;align-items:center;gap:9px;
-  padding:9px 12px;color:#24242a!important;
-  background:linear-gradient(150deg,#fff,#eeeeF2)!important;
-  border-bottom:1px solid #cfd0d6!important;box-shadow:0 3px 8px #29252f24!important;
+ /* ONE compact Pearl header. The real sidebar is the only workspace
+    navigation; the redundant legacy Ocean bottom dock has been removed. */
+ html.ocean-app .pearl-appbar{
+   box-sizing:border-box;position:relative;z-index:100;min-height:60px;
+   width:100%;display:flex;align-items:center;gap:11px;padding:8px 14px;
+   background:linear-gradient(145deg,#fffefd,#fff0f5);
+   border-bottom:1px solid #edb9ca;
+   color:#651b36;box-shadow:0 3px 10px #8e18421c;
  }
- html.ocean-app .ocean-appbar a{
-  display:flex;align-items:center;gap:5px;padding:8px 10px;
-  border:1px solid #efc5d0;border-radius:12px;text-decoration:none;
-  background:linear-gradient(#fff,#e6e7eb)!important;color:#b30b2e!important;
-  font-size:12px;font-weight:800;box-shadow:inset 0 1px #fff,0 3px 8px #3332;
+ html.ocean-app .pearl-appbar-back{
+   display:inline-flex;align-items:center;justify-content:center;gap:5px;
+   min-height:42px;min-width:90px;padding:7px 11px;
+   border:1px solid #e5b2c3;border-radius:13px;
+   background:linear-gradient(160deg,#fff,#ffecf3);
+   color:#971541;font-weight:850;font-size:13px;text-decoration:none;
+   box-shadow:inset 0 1px white,0 3px 7px #95214a1b;flex:none;
  }
- html.ocean-app .ocean-appbar strong{font-size:12px;letter-spacing:.02em;color:#28272e!important}
- html.ocean-app .ocean-appbar small{font-size:9px;color:#88858c!important}
- html.ocean-app .ocean-appbar .ocean-miniwhale{font-size:21px;color:#aa1541;margin-left:auto}
- html.ocean-app .ocean-appbar .ocean-refresh-btn{
-  min-height:36px;display:inline-flex;align-items:center;gap:5px;padding:7px 10px;
-  border:1px solid #ffd3dc;border-radius:13px;color:#fff!important;
-  background:linear-gradient(#ff647d,#d20831 60%,#9d041c)!important;
-  box-shadow:inset 0 1px #fff9,0 2px 0 #970a25,0 5px 10px #61091a35;
-  font-size:11px;font-weight:850;flex:none;
+ html.ocean-app .pearl-appbar-title{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+ html.ocean-app .pearl-appbar-title b{
+   font-size:clamp(11px,3.45vw,15px);line-height:1.14;font-weight:900;
+   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#651b36;
  }
- html.ocean-app .ocean-appbar .ocean-refresh-btn .refresh-symbol{font-size:20px;line-height:1;color:#fff}
- html.ocean-app .ocean-appbar .ocean-refresh-btn:disabled{opacity:.6}
- html.ocean-app .ocean-bottomnav{
-  position:fixed;z-index:120;bottom:0;left:50%;transform:translateX(-50%);
-  width:min(100%,600px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:4px;padding:6px 7px max(7px,env(safe-area-inset-bottom));
-  background:linear-gradient(#fff,#eeeef2);border:1px solid #c5c6cd;
-  border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -5px 17px #25222e32;
+ html.ocean-app .pearl-appbar-title small{
+   font-size:10px;line-height:1.2;color:#946478;
+   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
  }
- html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  border:1px solid transparent;border-radius:12px;background:transparent;
-  color:#29292e!important;font-size:10px;line-height:1.2;font-weight:780;
-  text-decoration:none!important;padding:5px 1px;min-width:0;min-height:51px;cursor:pointer;
+ html.ocean-app .pearl-appbar .ocean-refresh-btn{
+   display:inline-flex;justify-content:center;align-items:center;gap:5px;flex:none;
+   min-width:91px;min-height:42px;padding:7px 10px;
+   border:1px solid #ffb6c6;border-radius:13px;
+   color:#fff!important;font-size:12px;font-weight:840;
+   background:linear-gradient(160deg,#ff7293,#ec1b53 54%,#a40536)!important;
+   box-shadow:inset 0 1px #fff9,0 2px 0 #a40839,0 4px 8px #9e265344;
  }
- html.ocean-app .ocean-bottomnav .ocean-ico{font-size:22px;line-height:1.1}
- html.ocean-app .ocean-bottomnav .active{
-  color:#fff!important;background:linear-gradient(#ff627d,#d70b33 57%,#a30b25)!important;
-  border:1px solid #ffc3d2!important;box-shadow:inset 0 1px #fff7,0 3px 10px #9c15374a;
- }
- html.ocean-app #shell{padding-bottom:75px}
+ html.ocean-app .pearl-appbar .refresh-symbol{font-size:20px;line-height:1}
+ html.ocean-app .pearl-appbar .ocean-refresh-btn:disabled{opacity:.6}
+ html.ocean-app #shell{padding-bottom:0}
  html.ocean-app .side-nav button[onclick*="revision.html"]{display:none!important}
  html.ocean-app .appearance-switch,html.ocean-app .appearance-auth-switch{display:none!important}
  .ocean-refresh-toast{position:fixed;z-index:999;bottom:100px;left:50%;transform:translateX(-50%);
@@ -165,23 +158,35 @@
   html.ocean-app .auth-showcase .auth-points,.ocean-app .auth-line{display:none!important}
   html.ocean-app .auth-panel{padding:14px 13px 26px!important;display:block}
   html.ocean-app .auth-card{max-width:550px;margin:auto;padding:23px 20px!important}
-  html.ocean-app .sidebar{position:relative!important;padding:10px 13px!important}
+  html.ocean-app #shell:not([hidden]){display:block!important;min-width:0!important}
+  html.ocean-app .sidebar{position:relative!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;overflow:hidden!important;padding:5px 10px!important;border-radius:0!important}
   html.ocean-app .sidebar>.brand-lockup{display:none}
-  html.ocean-app .side-nav{gap:5px!important;overflow-x:auto}
-  html.ocean-app .side-nav .nav-btn{font-size:11px!important;min-height:37px}
-  html.ocean-app .content{padding:14px 12px 100px!important}
-  html.ocean-app .topbar{padding:12px 14px!important;min-height:65px}
+  html.ocean-app .sidebar .side-caption,html.ocean-app .sidebar .side-bottom{display:none!important}
+  html.ocean-app .side-nav{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:5px!important;overflow-x:auto!important;scrollbar-width:thin;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;min-width:0!important}
+  html.ocean-app .side-nav .nav-sep{display:none!important}
+  html.ocean-app .side-nav .nav-btn{flex:0 0 auto!important;width:auto!important;font-size:11px!important;min-height:37px!important;white-space:nowrap!important;padding:8px 12px!important;gap:5px!important}
+  html.ocean-app .content{padding:14px 12px 36px!important}
+  html.ocean-app .topbar{padding:11px 13px!important;min-height:59px!important;gap:8px!important}
   html.ocean-app .topbar .top-actions{max-width:100%}
   html.ocean-app .topbar .top-actions .btn{font-size:11px}
+  html.ocean-app .topbar h1{font-size:17px!important;line-height:1.2!important}
+  html.ocean-app .breadcrumb{font-size:8.5px!important;letter-spacing:.4px!important;overflow-wrap:anywhere!important}
  }
  @media(max-width:440px){
   html.ocean-app .auth-showcase{min-height:180px!important}
   html.ocean-app .auth-showcase h1{font-size:23px!important}
   html.ocean-app .auth-card{padding:22px 17px!important}
-  html.ocean-app .ocean-appbar{padding:8px 10px}
-  html.ocean-app .ocean-appbar strong{font-size:11px}
-  html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{font-size:9px}
+  html.ocean-app .pearl-appbar{gap:7px;padding:7px 9px}
+  html.ocean-app .pearl-appbar-back{min-width:67px;padding:7px 8px;font-size:12px}
+  html.ocean-app .pearl-appbar .ocean-refresh-btn{min-width:84px;padding:7px 8px;font-size:11px}
   html.ocean-app .page-head h2{font-size:21px}
+  html.ocean-app .topbar .breadcrumb{display:none!important}
+  html.ocean-app .topbar h1{font-size:14px!important}
+  html.ocean-app .topbar .top-actions{flex-shrink:0!important}
+  html.ocean-app .topbar .top-actions [data-command="newDoc"]{padding:7px 9px!important;font-size:10px!important;min-height:38px!important}
+  html.ocean-app .topbar .top-actions .top-avatar{display:none!important}
+  html.ocean-app .page-head{margin-bottom:12px!important}
+  html.ocean-app .page-head h2{font-size:25px!important;margin:2px 0!important}
  }
  @media(prefers-reduced-motion:reduce){html.ocean-app .auth-showcase:before,html.ocean-app .hero:before{animation:none!important}}
 }
