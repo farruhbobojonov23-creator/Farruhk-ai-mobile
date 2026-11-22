@@ -21,6 +21,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.view.WindowInsets;
+import android.widget.FrameLayout;
+import android.view.ViewGroup;
 import android.util.Base64;
 import android.util.Log;
 
@@ -56,9 +58,11 @@ public final class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(0);
         if(Build.VERSION.SDK_INT>=30) getWindow().setDecorFitsSystemWindows(false);
         if(Build.VERSION.SDK_INT>=29) getWindow().setNavigationBarContrastEnforced(false);
-        web=new WebView(this);
-        web.setBackgroundColor(Color.rgb(9,19,33));
-        web.setOnApplyWindowInsetsListener((v,insets)->{
+        // A padded root container prevents *all* WebView content (including CSS fixed
+        // navigation and header) from rendering behind Android 16's system bars.
+        FrameLayout root=new FrameLayout(this);
+        root.setBackgroundColor(Color.rgb(6,14,27));
+        root.setOnApplyWindowInsetsListener((v,insets)->{
             if(Build.VERSION.SDK_INT>=30){
                 android.graphics.Insets top=insets.getInsets(WindowInsets.Type.statusBars()|WindowInsets.Type.displayCutout());
                 android.graphics.Insets bottom=insets.getInsets(WindowInsets.Type.navigationBars());
@@ -68,8 +72,11 @@ public final class MainActivity extends Activity {
             }
             return insets;
         });
-        setContentView(web);
-        if(Build.VERSION.SDK_INT>=20) web.requestApplyInsets();
+        web=new WebView(this);
+        web.setBackgroundColor(Color.rgb(6,14,27));
+        root.addView(web,new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(root);
+        if(Build.VERSION.SDK_INT>=20) root.requestApplyInsets();
         WebSettings w=web.getSettings();
         w.setJavaScriptEnabled(true);
         w.setDomStorageEnabled(true);
