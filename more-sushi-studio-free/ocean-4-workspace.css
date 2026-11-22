@@ -1,0 +1,97 @@
+/* OCEAN ULTRA 4.0 — shared visual language for authenticated TTK workspace.
+   SCREEN ONLY: no A4 print/PDF changes, no auth/data/logic changes. */
+@media screen{
+ html.ocean-app body{
+  background:
+   radial-gradient(ellipse at 80% 3%,#078fc36b,transparent 43%),
+   radial-gradient(ellipse at 5% 82%,#0e6a9a70,transparent 48%),
+   linear-gradient(173deg,#031a39,#073f68 55%,#03294e)!important;
+ }
+ html.ocean-app .ocean-appbar{
+  background:linear-gradient(135deg,#052d56,#096b9f 69%,#033660)!important;
+  border-bottom:1.5px solid #43dfff!important;
+  box-shadow:inset 0 1px #b9ffff8f,0 3px 0 #055482,0 8px 15px #011b376d!important;
+  color:#fff!important;
+ }
+ html.ocean-app .ocean-appbar strong{
+  color:#f2ffff!important;font-size:12px!important;
+  text-shadow:0 1px 3px #01254b;
+ }
+ html.ocean-app .ocean-appbar small{color:#c6f5ff!important}
+ html.ocean-app .ocean-appbar a{
+  border:1px solid #ffb6d0!important;color:white!important;
+  background:linear-gradient(#ff819c,#e9215a 55%,#9a0c41)!important;
+  box-shadow:inset 0 1px #fff9,0 3px 0 #8e0b3e,0 5px 10px #55133b9a!important;
+ }
+ html.ocean-app .ocean-appbar .ocean-refresh-btn{
+  color:#fff!important;
+  background:linear-gradient(#ff89aa,#e52060 52%,#a00e4c)!important;
+  border-color:#ffc2d7!important;
+  box-shadow:inset 0 1px #fff9,0 3px 0 #9c1045,0 5px 11px #711b4d8d!important;
+ }
+ html.ocean-app .ocean-bottomnav{
+  background:linear-gradient(145deg,#0f6899f5,#06436ff9 65%,#031d3ffb)!important;
+  border:1.5px solid #64ebff!important;border-bottom:0!important;
+  box-shadow:inset 0 1px #ddffff98,0 -4px 0 #0e98cb,0 -8px 16px #001d3bc0!important;
+  padding:6px 7px 8px!important;
+  border-radius:19px 19px 0 0!important;
+ }
+ html.ocean-app .ocean-bottomnav a,
+ html.ocean-app .ocean-bottomnav button{
+  color:#e4f9ff!important;font-size:10px!important;
+  min-height:56px!important;text-shadow:0 1px 2px #03294c;
+ }
+ html.ocean-app .ocean-bottomnav .active{
+  color:#fff!important;border-color:#ffc3d4!important;
+  background:linear-gradient(#ff719a,#ed1c5b 55%,#9b0e44)!important;
+  box-shadow:inset 0 1px #fff8,0 3px 0 #911142,0 5px 10px #a40a4b77!important;
+ }
+ html.ocean-app .ocean-bottomnav .ocean-ico-3d{
+  filter:drop-shadow(0 3px 2px #001d3f96)!important;
+ }
+ html.ocean-app .auth-showcase{
+  background:
+   linear-gradient(118deg,#03284ae8,#075e80bc 67%,#054267a3),
+   url('./o40_hero.webp?v=4') center center/cover no-repeat!important;
+  border-right:1px solid #71e9ff!important;
+ }
+ html.ocean-app .auth-showcase .brand-name,
+ html.ocean-app .auth-showcase h1{color:#fff!important}
+ html.ocean-app .auth-showcase p{color:#ddf7ff!important}
+ html.ocean-app .auth-card{
+  border:1.5px solid #b5ecff!important;
+  box-shadow:inset 0 2px #fff,0 10px 27px #073c6a30!important;
+ }
+ html.ocean-app .auth-card .btn-primary{
+  color:#fff!important;border:1px solid #ffbdd1!important;
+  background:linear-gradient(#ff8dad,#e92b64 55%,#aa0d46)!important;
+  box-shadow:inset 0 1px #fff9,0 4px 0 #96093f,0 8px 15px #8e275a68!important;
+ }
+ html.ocean-app #viewDashboard .hero,
+ html.ocean-app .hero{
+  background:
+   linear-gradient(110deg,#03305ef4 0%,#075883c0 58%,#0d78b3ab),
+   url('./o40_hero.webp?v=4') center center/cover no-repeat!important;
+  border:1.5px solid #61f2ff!important;
+  box-shadow:inset 0 2px #d9ffffa8,0 5px 0 #057aa5,0 9px 18px #00385f8f!important;
+ }
+ html.ocean-app #viewDashboard .hero h2,
+ html.ocean-app #viewDashboard .hero h2 em,
+ html.ocean-app #viewDashboard .hero .mini-label,
+ html.ocean-app #viewDashboard .hero p{
+  color:#fff!important;text-shadow:0 2px 5px #03234f!important;
+ }
+ html.ocean-app .topbar{border-bottom:1px solid #b8e5fa!important}
+ html.ocean-app .topbar h1{color:#12466d!important}
+ html.ocean-app .content .surface,
+ html.ocean-app .content .editor-panel{
+  border:1px solid #b9e6f7!important;
+  box-shadow:inset 0 1px #fff,0 6px 14px #154d7330!important;
+ }
+ html.ocean-app .content .page h2{color:#124269!important}
+}
+@media screen and (max-width:390px){
+ html.ocean-app .ocean-appbar{gap:6px!important;padding:8px 9px!important}
+ html.ocean-app .ocean-appbar strong{font-size:11px!important}
+ html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{font-size:9px!important}
+}
