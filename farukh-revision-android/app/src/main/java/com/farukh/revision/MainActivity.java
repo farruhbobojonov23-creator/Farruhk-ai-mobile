@@ -195,17 +195,24 @@ public final class MainActivity extends Activity {
             PackageInstaller.SessionParams params=new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
             params.setAppPackageName(getPackageName());
             int sessionId=pi.createSession(params);
-            try(PackageInstaller.Session session=pi.openSession(sessionId);
-                FileInputStream in=new FileInputStream(apk);
-                OutputStream out=session.openWrite("base.apk",0,apk.length())){
-                byte[] buf=new byte[65536];int n;
-                while((n=in.read(buf))!=-1)out.write(buf,0,n);
-                session.fsync(out);
+            // PackageInstaller.commit() MUST run after every openWrite stream is closed.
+            // Otherwise Android rejects the install with "Files still open".
+            boolean committed=false;
+            try(PackageInstaller.Session session=pi.openSession(sessionId)){
+                try(FileInputStream in=new FileInputStream(apk);
+                    OutputStream out=session.openWrite("base.apk",0,apk.length())){
+                    byte[] buf=new byte[65536];int n;
+                    while((n=in.read(buf))!=-1)out.write(buf,0,n);
+                    session.fsync(out);
+                }
                 Intent intent=new Intent(MainActivity.this,UpdateReceiver.class).setAction("com.farukh.revision.UPDATE_STATUS");
                 int flags=PendingIntent.FLAG_UPDATE_CURRENT;
                 if(Build.VERSION.SDK_INT>=31)flags|=PendingIntent.FLAG_MUTABLE;
                 PendingIntent callback=PendingIntent.getBroadcast(MainActivity.this,sessionId,intent,flags);
                 session.commit(callback.getIntentSender());
+                committed=true;
+            }finally{
+                if(!committed)pi.abandonSession(sessionId);
             }
         }catch(Exception e){
             Log.e("FarukhRevision","Update failed",e);
