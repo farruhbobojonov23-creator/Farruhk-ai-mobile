@@ -95,11 +95,14 @@ async function detectLatestVersion(){
   try{
    const key="mss-auto-ui-target-v1";
    if(sessionStorage.getItem(key)!==data.build){
-    sessionStorage.setItem(key,data.build);
     setTimeout(()=>{
      if(document.visibilityState!=="visible")return;
      // Never auto-navigate out of TTK editor or a standalone Revision page.
      if(!document.getElementById("mssCategoryApp"))return;
+     try{
+      if(sessionStorage.getItem(key)===data.build)return;
+      sessionStorage.setItem(key,data.build);
+     }catch{ /* still attempt once even with storage disabled */ }
      const destination=new URL(location.href);
      destination.searchParams.set("_fresh",Date.now().toString());
      location.replace(destination.href);
