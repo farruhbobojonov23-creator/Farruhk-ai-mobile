@@ -1,0 +1,214 @@
+/* MORE SUSHI STUDIO PRO · BLACK GOLD 5.1 / Xiaomi 15T screenshot corrections
+   All changes are screen-only. No editor, Supabase, TTK PDF, or data logic.
+   Fixes confirmed on real screenshots 56336.jpg … 56340.jpg.
+*/
+@media screen {
+  /* The approved reference keeps headline, description and CTA in a vertical
+     text stack. Old Ocean CSS made <h1> and <p> position:absolute, causing
+     the button to overlap the letters on real Xiaomi Android WebView. */
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy {
+    position:absolute!important;
+    left:0!important;top:0!important;right:auto!important;bottom:0!important;
+    inset:auto!important;
+    width:54%!important;max-width:54%!important;
+    height:100%!important;box-sizing:border-box!important;
+    padding:10px 2px 11px 9px!important;
+    display:flex!important;flex-direction:column!important;
+    align-items:flex-start!important;justify-content:center!important;
+    gap:0!important;overflow:visible!important;
+    opacity:1!important;visibility:visible!important;
+    z-index:5!important;transform:none!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy > * {
+    position:static!important;top:auto!important;left:auto!important;
+    bottom:auto!important;right:auto!important;
+    transform:none!important;opacity:1!important;visibility:visible!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy .bg-gold-kicker {
+    order:1!important;font-size:clamp(7px,2.2vw,11px)!important;
+    letter-spacing:.18em!important;line-height:1.12!important;
+    white-space:nowrap!important;margin:0 0 2px!important;
+    color:#dfcfaf!important;-webkit-text-fill-color:#dfcfaf!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy h1 {
+    order:2!important;display:block!important;
+    position:static!important;inset:auto!important;
+    margin:0!important;padding:0!important;
+    width:auto!important;max-width:100%!important;
+    font-family:Georgia,serif!important;
+    font-size:clamp(52px,16vw,77px)!important;
+    font-weight:450!important;line-height:.99!important;
+    letter-spacing:-.045em!important;white-space:nowrap!important;
+    color:#f3d596!important;-webkit-text-fill-color:#f3d596!important;
+    text-shadow:0 2px 6px #000c!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy .bg-gold-hairline {
+    order:3!important;display:block!important;
+    margin:6px 0 8px!important;width:88px!important;height:1px!important;flex:none!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy p {
+    order:4!important;position:static!important;inset:auto!important;
+    max-width:100%!important;width:100%!important;
+    padding:0!important;margin:0 0 10px!important;
+    font-size:clamp(10px,2.7vw,12px)!important;line-height:1.35!important;
+    white-space:normal!important;overflow-wrap:normal!important;
+    color:#f6f2e9!important;-webkit-text-fill-color:#f6f2e9!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy .hero-stamp {
+    order:5!important;position:static!important;inset:auto!important;
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    flex:none!important;width:auto!important;max-width:100%!important;
+    height:auto!important;min-height:41px!important;
+    margin:0!important;padding:7px 15px!important;gap:9px!important;
+    white-space:nowrap!important;
+    font-size:clamp(11px,3.0vw,14px)!important;
+    line-height:1.15!important;z-index:7!important;
+    pointer-events:auto!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero:before {
+    content:""!important;display:block!important;position:absolute!important;
+    inset:0!important;z-index:2!important;pointer-events:none!important;
+    background:linear-gradient(90deg,#09090bf5 0%,#101011ec 23%,#111213af 43%,transparent 68%)!important;
+    opacity:1!important;animation:none!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .bg-gold-hero-art {
+    z-index:1!important;object-fit:cover!important;object-position:52% 50%!important;
+  }
+  /* Avoid a misleading success indicator or decorative graphic covering CTA. */
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-stamp:focus-visible {
+    outline:2px solid #fff0b8!important;outline-offset:3px!important;
+  }
+
+  /* Black/gold visual system must not inherit the bright cyan 'Ocean 4.0'
+     stripe after card groups. That strip was obvious on PDF/Catalog/TTK. */
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app::after,
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) #mssCategoryApp::after,
+  html.black-gold-ui .approved-water-band {
+    content:none!important;display:none!important;background:none!important;
+  }
+  html.black-gold-ui body::after {
+    background-image:url('./black-gold/bg-rock.webp?v=5.0')!important;
+    background-position:center bottom!important;
+    background-size:min(100%,540px) auto!important;
+    opacity:.25!important;
+  }
+
+  /* Old Ocean CSS fixed only minimum dock height; Android kept a 160px
+     nav and huge empty black area below five icons. Explicit dock height. */
+  html.black-gold-ui .bottomnav {
+    height:76px!important;min-height:76px!important;max-height:76px!important;
+    padding:5px 7px calc(5px + env(safe-area-inset-bottom))!important;
+    align-items:stretch!important;justify-content:space-around!important;
+    overflow:visible!important;gap:5px!important;
+  }
+  html.black-gold-ui .bottomnav .navitem {
+    height:63px!important;max-height:63px!important;
+    min-height:63px!important;
+    display:flex!important;flex-direction:column!important;align-items:center!important;
+    justify-content:center!important;gap:3px!important;
+    padding:3px 1px!important;flex:1 1 0!important;min-width:0!important;
+    line-height:1.15!important;
+  }
+  html.black-gold-ui .bottomnav .navitem svg {
+    width:27px!important;height:27px!important;flex:none!important;
+  }
+  html.black-gold-ui .wrap {
+    padding-bottom:91px!important;
+  }
+  html.black-gold-ui.bg-home-locked[data-mss-tab="home"] .wrap {
+    height:calc(100dvh - 76px)!important;
+    max-height:calc(100dvh - 76px)!important;
+  }
+
+  /* Cleaner internal section banners; short copy should not sit in a
+     150px-tall empty box in a 'minimalism-rich' interface. */
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title {
+    min-height:77px!important;height:auto!important;max-height:none!important;
+    padding:13px 16px!important;margin:5px 0 12px!important;
+    justify-content:center!important;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title h2 {
+    font-size:clamp(23px,6vw,29px)!important;
+    line-height:1.12!important;
+  }
+
+  /* Gold/black card title and helper never collide with the arrow. */
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid .mss-card small {
+    width:auto!important;max-width:calc(100% - 32px)!important;
+    margin:3px 0 0!important;box-sizing:border-box!important;
+    text-align:left!important;white-space:normal!important;
+    overflow-wrap:break-word!important;line-height:1.3!important;
+  }
+  /* A different icon for each concept is better than the same clipboard
+     photo 3 times or the same printer picture 3 times. Old links untouched. */
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid .mss-card.bg-gold-minimal {
+    min-height:155px!important;justify-content:flex-end!important;
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 29%,#342d1e50,transparent 76%),
+      linear-gradient(135deg,#202122,#111314 72%,#090b0d)!important;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.bg-gold-minimal::before {
+    content:"";display:block!important;position:absolute;z-index:0;inset:16px 26% 57px!important;
+    background:radial-gradient(ellipse,#b58b4133,transparent 70%)!important;
+    opacity:1!important;animation:none!important;pointer-events:none;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.bg-gold-minimal>.mss-ico {
+    display:block!important;position:absolute!important;top:19px!important;
+    left:calc(50% - 38px)!important;width:76px!important;height:72px!important;
+    margin:0!important;z-index:2!important;opacity:1!important;
+    filter:sepia(1) saturate(.6) brightness(1.24) drop-shadow(0 5px 4px #000a)!important;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.bg-gold-minimal>.bg-gold-inner-photo {
+    display:none!important;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.bg-gold-minimal>strong,
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.bg-gold-minimal>small {
+    position:relative!important;z-index:2!important;max-width:calc(100% - 22px)!important;
+  }
+  /* The full-width fifth TTK card is a horizontal icon + text row. */
+  html.black-gold-ui[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card.bg-gold-minimal:last-child:nth-child(odd) {
+    min-height:105px!important;
+    padding:15px 44px 15px 107px!important;
+    justify-content:center!important;
+  }
+  html.black-gold-ui[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card.bg-gold-minimal:last-child:nth-child(odd)>.mss-ico {
+    top:17px!important;left:17px!important;
+    width:70px!important;height:70px!important;
+  }
+  html.black-gold-ui[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card.bg-gold-minimal:last-child:nth-child(odd)>strong,
+  html.black-gold-ui[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card.bg-gold-minimal:last-child:nth-child(odd)>small {
+    margin:0!important;max-width:100%!important;
+  }
+
+  /* Keep 'soon' cards honest and intact, no fake enabled workflow. */
+  html.black-gold-ui .mss-card.mss-future:after {
+    color:#ecd09c!important;
+  }
+}
+@media screen and (max-width:374px) {
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy {
+    padding-left:7px!important;width:57%!important;max-width:57%!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy h1 {
+    font-size:53px!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy .hero-stamp {
+    font-size:11px!important;padding:6px 11px!important;
+  }
+  html.black-gold-ui[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid .mss-card.bg-gold-minimal {
+    min-height:145px!important;
+  }
+}
+@media screen and (max-height:700px) {
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy h1 {
+    font-size:clamp(43px,13vw,59px)!important;
+  }
+  html.black-gold-ui[data-mss-tab="home"] .wrap>.hero .hero-copy .bg-gold-hairline {
+    margin:3px 0 5px!important;
+  }
+}
+@media print {
+  html.black-gold-ui .bottomnav,html.black-gold-ui body::after {
+    display:none!important;
+  }
+}
