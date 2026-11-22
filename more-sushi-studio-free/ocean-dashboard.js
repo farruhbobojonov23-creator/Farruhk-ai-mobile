@@ -5,7 +5,7 @@
 "use strict";
 const SB="https://mhsmmssipligbmvfzkce.supabase.co";
 const KEY="sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0";
-const BUILD="ocean-3.0.0-approved-20261122";
+const BUILD="ocean-3.1.0-refined-20261122";
 const cloudName=document.getElementById("cloudName");
 const cloudDesc=document.getElementById("cloudDesc");
 const cloudDot=document.getElementById("syncDot");
