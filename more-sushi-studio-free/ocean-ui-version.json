@@ -1,7 +1,7 @@
 {
-  "build": "ocean-3.3.0-approved-ultra-20261122",
-  "display": "OCEAN ULTRA 3D · APPROVED",
+  "build": "ocean-3.3.1-hero-fix-20261122",
+  "display": "OCEAN ULTRA 3D · 3.3.1",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Approved pixel-matched photographic humpback whale and sea, real WebP marine textures and premium UI buttons; all working navigation, verified cloud metrics and TTK/PDF unchanged. Native Android APK signature not changed."
+  "details": "Fixed invisible photographic hero on Android: previous animation override retained opacity 0 on the approved whale banner. Whale, brand and CTA are now visible; TTK, PDF, cloud data unchanged."
 }
