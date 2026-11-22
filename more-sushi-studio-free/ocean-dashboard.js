@@ -5,7 +5,7 @@
 "use strict";
 const SB="https://mhsmmssipligbmvfzkce.supabase.co";
 const KEY="sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0";
-const BUILD="ocean-3.1.0-refined-20261122";
+const BUILD=document.querySelector('meta[name="mss-ui-build"]')?.content||"unknown";
 const cloudName=document.getElementById("cloudName");
 const cloudDesc=document.getElementById("cloudDesc");
 const cloudDot=document.getElementById("syncDot");
