@@ -207,6 +207,25 @@ html.ocean-app .appearance-switch,html.ocean-app .appearance-auth-switch{display
  html.ocean-app .auth-showcase:before,html.ocean-app .hero:before{animation:none!important}
 }
 }
+
+/* Ocean workspace updater: accessible from login and every working section */
+html.ocean-app .ocean-appbar .ocean-refresh-btn{min-height:37px;display:inline-flex;flex:none;gap:5px;align-items:center;
+ padding:7px 9px;border:1px solid #b4edff;border-radius:12px;
+ background:linear-gradient(145deg,#249dd5,#135a97 57%,#062f60);
+ color:#fff6d4;font-size:11px;font-weight:850;
+ box-shadow:inset 0 1px #ecffffa8,0 3px 0 #05284d,0 5px 8px #00172b9e}
+html.ocean-app .ocean-appbar .ocean-refresh-btn .refresh-symbol{font-size:23px;color:#ffe58e;line-height:1;
+ display:inline-block;filter:drop-shadow(0 0 4px #fff0ab66)}
+html.ocean-app .ocean-appbar .ocean-refresh-btn.refreshing .refresh-symbol{animation:ocean-refresh-spin 1.1s linear infinite}
+html.ocean-app .ocean-appbar .ocean-refresh-btn:disabled{opacity:.8}
+html.ocean-app .ocean-refresh-toast{font-family:Manrope,Arial,sans-serif}
+@media(max-width:500px){html.ocean-app .ocean-appbar .ocean-refresh-label,
+ html.ocean-app .ocean-appbar .ocean-miniwhale{display:none}
+ html.ocean-app .ocean-appbar .ocean-refresh-btn{margin-left:auto;padding:6px 11px}
+ html.ocean-app .ocean-appbar>div{min-width:0;flex:1}
+ html.ocean-app .ocean-appbar strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+}
+
 @media print{
  html.ocean-app .ocean-appbar,html.ocean-app .ocean-bottomnav{display:none!important}
  html.ocean-app #shell{padding:0!important}

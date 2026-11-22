@@ -43,7 +43,7 @@ function run(){
   const heading=hero.querySelector('h2');if(heading)heading.innerHTML='Профессиональная<br><em>кухня в твоих руках</em>';
  }
  const appbar=document.createElement('div');appbar.className='ocean-appbar';
- appbar.innerHTML='<a href="'+origin+'" aria-label="Вернуться на главный экран">‹ Назад</a><div><strong>MORE SUSHI STUDIO PRO</strong><br><small>Живой океан 3D · рабочий кабинет</small></div><span class="ocean-miniwhale" aria-hidden="true">🌊</span>';
+ appbar.innerHTML='<a href="'+origin+'" aria-label="Вернуться на главный экран">‹ Назад</a><div><strong>MORE SUSHI STUDIO PRO</strong><br><small>Живой океан 3D · рабочий кабинет</small></div><button type="button" class="ocean-refresh-btn" data-ocean-refresh aria-label="Обновить рабочую студию" title="Загрузить свежую версию веб-портала"><span class="refresh-symbol" aria-hidden="true">↻</span><span class="ocean-refresh-label">Обновить</span></button><span class="ocean-miniwhale" aria-hidden="true">🌊</span>';
  const auth=document.getElementById('auth');
  const shell=document.getElementById('shell');
  // Always keep a way back even before login; no repeat navigation through old dark landing.

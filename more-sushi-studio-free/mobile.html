@@ -74,6 +74,29 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 @media(max-width:360px){.wrap{padding-inline:9px}.brandcopy strong{font-size:15px}.tiles{gap:6px}.tile{padding-inline:4px;min-height:122px}.tile .icon{width:52px;height:51px}.tile em{font-size:9px}.hero h1{font-size:24px}.metrics{gap:5px}.metric b{font-size:12px}}
 @media(min-width:541px){.wrap{padding-top:25px}.hero{height:227px}.tiles{gap:12px}.tile{min-height:161px}.tile .icon{width:81px;height:76px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important;scroll-behavior:auto!important}.splash{display:none}.wrap{opacity:1!important}}
+
+/* One-tap manual update: a small premium 3D control in the cloud status bar. */
+.cloudtxt b,.cloudtxt small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cloudbar .dot{flex:none}
+.ocean-refresh-btn{min-height:33px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:4px 9px;
+ border-radius:11px;border:1px solid #b5eaff;color:#fff7ce;font-size:10px;line-height:1.2;font-weight:900;
+ background:linear-gradient(145deg,#298ac4,#114d87 62%,#0b2b54);
+ box-shadow:inset 0 1px #e6fdffae,0 3px 0 #063365,0 6px 10px #0006;text-shadow:0 1px 3px #0006}
+.ocean-refresh-btn .refresh-symbol{display:inline-block;color:#ffde82;font-size:21px;line-height:1;filter:drop-shadow(0 0 4px #ffcf79a2)}
+.ocean-refresh-btn:active{transform:translateY(2px);box-shadow:inset 0 1px #fff8,0 1px 0 #063365}
+.ocean-refresh-btn.refreshing .refresh-symbol{animation:ocean-refresh-spin 1.1s linear infinite}
+.ocean-refresh-btn:disabled{opacity:.8}
+@keyframes ocean-refresh-spin{to{transform:rotate(360deg)}}
+.ocean-refresh-toast{position:fixed;z-index:190;left:50%;top:max(12px,env(safe-area-inset-top));transform:translate(-50%,-130%);
+ width:max-content;max-width:calc(100vw - 26px);padding:11px 16px;text-align:center;border-radius:13px;
+ background:linear-gradient(130deg,#1477b1,#073b6c);border:1px solid #86e7ff;color:#f4fdff;
+ font-weight:800;font-size:12px;box-shadow:0 12px 20px #001e3fba;pointer-events:none;
+ opacity:0;transition:transform .3s ease,opacity .3s ease}
+.ocean-refresh-toast.visible{transform:translate(-50%,4px);opacity:1}
+.ocean-refresh-toast.error{background:linear-gradient(130deg,#b32b4c,#5a1a46);border-color:#ffb9cc}
+@media(max-width:390px){.ocean-refresh-btn{padding:4px 6px}.ocean-refresh-btn span:last-child{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.ocean-refresh-btn.refreshing .refresh-symbol{animation:none}.ocean-refresh-toast{transition:none}}
+
 </style></head><body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg"><defs>
  <linearGradient id="gold3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c5"/><stop offset=".25" stop-color="#ffcf57"/><stop offset=".48" stop-color="#bd6d1b"/><stop offset=".7" stop-color="#ffe491"/><stop offset="1" stop-color="#79410e"/></linearGradient>
@@ -105,7 +128,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 <svg class="hero-whale" viewBox="0 0 220 195" aria-hidden="true"><use href="#whale"/></svg>
 <div class="hero-bubbles" aria-hidden="true"><i style="--x:12%;--s:8px;--t:8s;--d:-2s"></i><i style="--x:48%;--s:12px;--t:10s;--d:-4s"></i><i style="--x:68%;--s:6px;--t:6s;--d:-3s"></i><i style="--x:89%;--s:10px;--t:11s;--d:-6s"></i></div>
 </section>
-<div class="cloudbar fadein" style="--in:.4s"><svg class="icon" viewBox="0 0 80 80"><use href="#cloud"/></svg><div class="cloudtxt"><b id="cloudName">MORE SUSHI · облачная система</b><small id="cloudDesc">Проверьте вход, чтобы работать с вашими ТТК</small></div><span class="dot" id="syncDot" aria-label="Статус облака"></span></div>
+<div class="cloudbar fadein" style="--in:.4s"><svg class="icon" viewBox="0 0 80 80"><use href="#cloud"/></svg><div class="cloudtxt"><b id="cloudName">MORE SUSHI · облачная система</b><small id="cloudDesc">Проверьте вход, чтобы работать с вашими ТТК</small></div><button type="button" class="ocean-refresh-btn" data-ocean-refresh title="Загрузить свежую версию сайта" aria-label="Обновить MORE SUSHI STUDIO PRO"><span class="refresh-symbol" aria-hidden="true">↻</span><span>Обновить</span></button><span class="dot" id="syncDot" aria-label="Статус облака"></span></div>
 <div class="metrics fadein" style="--in:.5s">
  <div class="metric"><svg viewBox="0 0 80 80"><use href="#ttk"/></svg><label>ТТК</label><b id="countTtk">—</b></div>
  <div class="metric"><svg viewBox="0 0 80 80"><use href="#pf"/></svg><label>ПФ</label><b>—</b></div>
@@ -128,6 +151,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 <p class="statusnote">MORE SUSHI STUDIO PRO · Живой океан 3D<br>Эффекты адаптируются к настройкам движения телефона</p>
 </main>
 <nav class="bottomnav" aria-label="Навигация"><a class="navitem active" href="./mobile.html"><svg viewBox="0 0 80 80"><use href="#home"/></svg>Главная</a><a class="navitem" href="./index.html?ocean=1&amp;view=editor"><svg viewBox="0 0 80 80"><use href="#ttk"/></svg>ТТК</a><a class="navitem" href="./index.html?ocean=1&amp;view=library"><svg viewBox="0 0 80 80"><use href="#food"/></svg>Каталог</a><a class="navitem" href="./index.html?ocean=1&amp;view=templates"><svg viewBox="0 0 80 80"><use href="#pdf"/></svg>PDF</a><a class="navitem" href="./index.html?ocean=1&amp;view=settings"><svg viewBox="0 0 80 80"><use href="#gear"/></svg>Ещё</a></nav>
+<script defer src="./ocean-updater.js?v=20261122-v1"></script>
 <script>
 (function(){
  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
