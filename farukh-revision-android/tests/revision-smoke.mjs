@@ -29,5 +29,5 @@ assert.match(html,/id="compactCloudTools"/);
 assert.match(html,/class="cloud-actions compact-tools-hidden" id="compactCloudTools"/);
 assert.match(html,/class="update-status compact-tools-hidden" id="appUpdateStatus"/);
 assert.match(html,/id="rev042CloudStatus"/);
-assert.match(html,/function toggleRevisionTools\\(\\)/);
+assert.ok(html.includes('function toggleRevisionTools()'));
 console.log('FARUKH REVISION PRO 0.4.2 compact cloud UI tests passed');
