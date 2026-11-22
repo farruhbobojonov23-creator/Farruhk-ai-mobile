@@ -1,7 +1,7 @@
 {
-  "build": "ocean-4.1.0-luxury-style1-20261122",
-  "display": "OCEAN ULTRA LUXURY 3D · 4.1",
+  "build": "black-gold-5.0.0-approved-20261122",
+  "display": "BLACK GOLD LUXURY · 5.0",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Selected concept #1: deep sapphire/cyan 3D glass color system on all 5 existing mobile tabs, eight original scalable vector 3D symbols for ingredients, prep, finished sushi, sauces, drinks, packaging, settings, and libraries. The authenticated studio dashboard matches. Fixed main home, working navigation, Supabase, existing TTK/PDF and APK are unchanged. This release does not claim pixel-exact image fidelity or native 8K photography."
+  "details": "Approved minimalist black/gold UI, separated photographic WebP artwork and live HTML cards, responsive home and five existing tabs. Mobile layout validated in isolated Chromium mock at six viewport sizes. No Supabase, TTK calculations, PDF or Android APK changes. Pixel-for-pixel Xiaomi match remains unverified."
 }
