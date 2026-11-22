@@ -1,7 +1,7 @@
 {
-  "build": "ocean-4.0.2-screenshot-polish-20261122",
-  "display": "OCEAN ULTRA · 4.0.2",
+  "build": "ocean-4.0.3-footer-qa-20261122",
+  "display": "OCEAN ULTRA · 4.0.3",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Screenshot-led visual fixes: cropped a stray horizontal line from decorative surf; replaced a poster containing duplicate words with clean whale artwork on TTK, Catalogue, PDF and workspace; improved bottom nav labels and workspace create-TTK contrast; balanced fifth TTK card. Home lock from 4.0.1 preserved. Web UI only; data, PDF templates, APK unchanged."
+  "details": "Screenshot QA of TTK, Catalog, PDF and More: ocean-wave footer no longer floats below differing card grids; graphic wave stays beside fixed navbar on interior tabs; PDF card text no longer collides with corner arrow; last full-width TTK card title and subtitle are grouped; catalogue heading shortened. Mobile home screen, cloud, database, PDF export and APK unchanged."
 }
