@@ -908,6 +908,48 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 .rev041-pf-tag{display:block;font-size:10px;color:#e8bb75;margin-top:5px;font-weight:700}
 #rev041SyncBtn,#rev041ImportBtn{min-height:45px}
 
+
+/* 0.4.2: compact cloud settings, always collapsed until the user opens it.
+   The dashboard and revision controls stay accessible without scrolling. */
+.revision-crimson #compactToolsButton{
+ display:flex!important;position:relative;width:100%!important;
+ min-height:48px!important;margin:8px 0 10px!important;
+ align-items:center!important;justify-content:space-between!important;gap:10px!important;
+ padding:7px 13px!important;border:1px solid #596b80!important;border-radius:14px!important;
+ color:#f9e5bb!important;background:linear-gradient(155deg,#1d3043,#0e192a 70%)!important;
+ box-shadow:inset 0 1px 0 #ffffff24,0 4px 14px #0005!important;
+ text-align:left!important;cursor:pointer;
+}
+.revision-crimson #compactToolsButton .rev042-heading{display:flex;align-items:center;gap:11px;min-width:0}
+.revision-crimson #compactToolsButton .rev042-gear{
+ flex:none;display:grid;place-items:center;width:31px;height:31px;border-radius:10px;
+ background:linear-gradient(145deg,#5c2937,#211728 78%);border:1px solid #b87c58;
+ color:#ffdf87;font-size:19px;text-shadow:0 0 7px #f4c35866;box-shadow:0 2px 9px #0009;
+}
+.revision-crimson #compactToolsButton .rev042-label{min-width:0;display:flex;flex-direction:column;gap:2px}
+.revision-crimson #compactToolsButton strong{font-size:12px;line-height:1.25;color:#faf0df;font-weight:800}
+.revision-crimson #compactToolsButton small{
+ display:block;color:#aab9ca;font-weight:600;font-size:10px;line-height:1.3;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.revision-crimson #compactToolsButton.cloud-online .rev042-gear{
+ border-color:#55ae8f;background:linear-gradient(145deg,#143f3b,#152c37);
+ color:#82f0c7;box-shadow:0 0 10px #37bf8855;
+}
+.revision-crimson #compactToolsButton.cloud-online small{color:#7ce5c0}
+.revision-crimson #compactToolsButton .rev042-chevron{color:#f6d482;font-size:19px;flex:none;line-height:1}
+.revision-crimson #compactCloudTools.compact-tools-hidden,
+.revision-crimson #appUpdateStatus.compact-tools-hidden{display:none!important}
+.revision-crimson #compactCloudTools:not(.compact-tools-hidden){
+ padding:12px!important;margin:0 0 9px!important;background:#0d1b2a!important;
+ border:1px solid #465366!important;border-radius:15px!important;
+}
+.revision-crimson #appUpdateStatus:not(.compact-tools-hidden){
+ margin:0 0 9px!important;font-size:11px!important;
+}
+@media(max-width:380px){.revision-crimson #compactToolsButton{padding:7px 9px!important}}
+@media print{.revision-crimson #compactToolsButton{display:none!important}}
+
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
@@ -931,7 +973,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
 <main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Склад + полуфабрикаты · контроль по 4 точкам</div></div><button type="button" class="theme-button" id="themeToggleRevision" onclick="showRevisionInfo()" aria-label="Информация о приложении" title="Информация">ⓘ</button></div>
-<button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false">⚙ Сервис и обновления <span>▾</span></button><div class="cloud-actions" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
+<button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false" aria-controls="compactCloudTools appUpdateStatus"><span class="rev042-heading"><span class="rev042-gear" aria-hidden="true">⚙</span><span class="rev042-label"><strong>Настройки и облако</strong><small id="rev042CloudStatus" aria-live="polite">Локально — без входа</small></span></span><span class="rev042-chevron" id="rev042Chevron" aria-hidden="true">▾</span></button><div class="cloud-actions compact-tools-hidden" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status compact-tools-hidden" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
 <div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
 <div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><div class="rev-summary-actions"><button type="button" class="btn rev-export-points" onclick="downloadPointsSummary()" aria-label="Скачать CSV-сводку по четырём точкам" title="Скачать CSV-сводку по четырём точкам"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>CSV</span></button><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="confirmClearDraft()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning" id="draftSaveInfo">Ввод сохраняется автоматически на этом устройстве. Учётные остатки вводятся вручную; облачная история доступна после входа.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
@@ -1142,7 +1184,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.4.1';
+const FARUKH_UI_RELEASE='0.4.2';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1179,14 +1221,15 @@ async function checkAppUpdate(){
 const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
-function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.4.1. Склад + ПФ, автосохранение черновиков и отчёты.')}
+function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.4.2. Склад + ПФ, автосохранение черновиков и отчёты.')}
 function toggleRevisionTheme(){showRevisionInfo()}
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
  const opening=panel.classList.contains('compact-tools-hidden');
- panel.classList.toggle('compact-tools-hidden',!opening);status.classList.toggle('compact-tools-hidden',!opening);
+ panel.classList.toggle('compact-tools-hidden',!opening);
+ status.classList.toggle('compact-tools-hidden',!opening);
  button.setAttribute('aria-expanded',String(opening));
- button.innerHTML=opening?'⚙ Свернуть сервис <span>▴</span>':'⚙ Сервис и обновления <span>▾</span>';
+ const arrow=$('rev042Chevron');if(arrow)arrow.textContent=opening?'▴':'▾';
 }
 function visibleRule(name){return Number(REVISION_LOSS_RULES[name]||0)}
 function pfAllowed(name){return REVISION_PF_ALLOWED[name]===true}
@@ -1712,6 +1755,17 @@ historyItem=function(r){
  }
  rev041DisplayStatus('Локальные ревизии остаются на этом устройстве до облачного входа.');
 })();
+// Reflect connection state in the compact header without hiding controls or sessions.
+const rev042PreviousBadge=setCloudBadge;
+setCloudBadge=function(txt,connected){
+ rev042PreviousBadge(txt,connected);
+ const button=$('compactToolsButton'),status=$('rev042CloudStatus');
+ if(button)button.classList.toggle('cloud-online',!!connected);
+ if(status){
+  const message=String(txt||'').replace(/^●\\s*/,'');
+  status.textContent=connected?'● Облако MORE SUSHI подключено':(message||'Локально — без входа');
+ }
+};
 // Resume shared website login or Android's own login only after sync overrides are initialized.
 tryResumeCloud();
 document.addEventListener('visibilitychange',()=>{

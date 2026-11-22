@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync('farukh-revision-android/app/src/main/assets/revision.html','utf8');
-for(const pattern of [/const FARUKH_UI_RELEASE='0\.4\.1'/,/rev040Snapshot/,/rev040Switch/,/downloadPointsSummary/,/onclick="confirmClearDraft\(\)"/,/revision-crimson/]) assert.match(html,pattern);
+for(const pattern of [/const FARUKH_UI_RELEASE='0\.4\.2'/,/rev040Snapshot/,/rev040Switch/,/downloadPointsSummary/,/onclick="confirmClearDraft\(\)"/,/revision-crimson/]) assert.match(html,pattern);
 const start=html.indexOf('function weightOf(name,v){');
 const end=html.indexOf('}\ngetDraft=function',start);
 assert.ok(start>0&&end>start,'Stock calculation not found');
@@ -25,4 +25,9 @@ new Script(js,{filename:'revision-inline.js'});
 for(const pattern of [/loadCloud=async function/,/rev041ImportLocal/,/rev041FlushPending/,
  /rev041Queue/,/rev041SyncNow/,/revision_products/,/revision_audits/,
  /ms_session/,/rev041Catalogue=new Map\(products.filter\(p=>p.active\)/]) assert.match(js,pattern);
-console.log('FARUKH REVISION PRO 0.4.1 syntax and inventory tests passed');
+assert.match(html,/id="compactCloudTools"/);
+assert.match(html,/class="cloud-actions compact-tools-hidden" id="compactCloudTools"/);
+assert.match(html,/class="update-status compact-tools-hidden" id="appUpdateStatus"/);
+assert.match(html,/id="rev042CloudStatus"/);
+assert.match(html,/function toggleRevisionTools\\(\\)/);
+console.log('FARUKH REVISION PRO 0.4.2 compact cloud UI tests passed');
