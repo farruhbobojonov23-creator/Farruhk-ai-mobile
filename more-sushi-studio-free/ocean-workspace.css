@@ -245,3 +245,7 @@ html.ocean-app .ocean-refresh-toast.error{background:linear-gradient(140deg,#ae2
  html.ocean-app .ocean-appbar,html.ocean-app .ocean-bottomnav{display:none!important}
  html.ocean-app #shell{padding:0!important}
 }
+/* New category system: retired horizontal navigation hidden only in Ocean app. */
+html.ocean-app .sidebar{display:none!important}html.ocean-app .workspace{width:100%!important}
+html.ocean-app .ocean-bottomnav{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media print{html.ocean-app .ocean-bottomnav{display:none!important}}

@@ -50,11 +50,11 @@ function run(){
  if(auth)auth.insertAdjacentElement('beforebegin',appbar);
  const nav=document.createElement('nav');nav.className='ocean-bottomnav';nav.setAttribute('aria-label','Мобильная навигация студии');
  nav.innerHTML=[
- '<a href="./mobile.html" aria-label="Главный экран"><span class="ocean-ico">🏠</span>Главная</a>',
- '<button class="nav-btn" data-nav="editor" type="button"><span class="ocean-ico">📋</span>ТТК</button>',
- '<button class="nav-btn" data-nav="library" type="button"><span class="ocean-ico">📚</span>Каталог</button>',
- '<button class="nav-btn" data-nav="templates" type="button"><span class="ocean-ico">📄</span>PDF</button>',
- '<button class="nav-btn" data-nav="settings" type="button"><span class="ocean-ico">⚙️</span>Ещё</button>'
+ '<a href="./mobile.html"><span class="ocean-ico">🏠</span>Главная</a>',
+ '<a href="./mobile.html#ttk"><span class="ocean-ico">📋</span>ТТК</a>',
+ '<a href="./mobile.html#catalog"><span class="ocean-ico">🥗</span>Каталог</a>',
+ '<a href="./mobile.html#pdf"><span class="ocean-ico">📄</span>PDF</a>',
+ '<a href="./mobile.html#more"><span class="ocean-ico">⚙️</span>Ещё</a>'
  ].join('');
  if(shell)shell.appendChild(nav);
  // Hide bottom navigation while the authentication form is visible.

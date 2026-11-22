@@ -1,0 +1,27 @@
+/* MORE SUSHI STUDIO PRO | Living Ocean category system v1 */
+.wrap [hidden],.mss-panel[hidden],.mss-message[hidden]{display:none!important}
+.mss-category-app{margin:12px 0 16px}.mss-panel{animation:mssRise .3s ease both}
+@keyframes mssRise{from{opacity:.15;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mss-main-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.mss-main-tile{min-width:0;font-family:inherit;cursor:pointer}
+.mss-main-tile .mss-ico{width:62px;height:57px;margin:auto auto 0;filter:drop-shadow(0 5px 4px #0008);animation:float 6s ease-in-out infinite}
+.mss-main-tile:focus-visible,.mss-card:focus-visible{outline:3px solid #ffe29f;outline-offset:3px}
+.mss-title{margin:22px 0 12px}.mss-title h2{font-size:20px;margin:0 0 5px;color:#f6fdff}.mss-title p{font-size:11px;line-height:1.5;color:#c8e8fb;margin:0}
+.mss-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mss-card{min-height:121px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;
+ min-width:0;padding:12px 6px;border-radius:17px;border:1px solid #9fe5ffab;color:#fff;text-decoration:none;text-align:center;
+ background:radial-gradient(ellipse at 50% -20%,#96e9ff65,transparent 70%),linear-gradient(155deg,#186da5,#0a3563 70%,#071f41);
+ box-shadow:inset 0 2px #d4faffb0,0 5px 0 #033155,0 9px 17px #0009;font-family:inherit;cursor:pointer}
+.mss-card:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(120deg,transparent 34%,#f1ffff2b 50%,transparent 65%);background-size:260% 100%;animation:mssShimmer 12s linear infinite}
+@keyframes mssShimmer{0%,30%{background-position:170% 0}65%,100%{background-position:-170% 0}}
+.mss-card>.mss-ico{width:51px;height:49px;filter:drop-shadow(0 4px 5px #00162c);animation:float 6s ease-in-out infinite}
+.mss-card strong{font-size:12px;line-height:1.22}.mss-card small{font-size:9px;line-height:1.35;color:#c5e9fc;max-width:95%}.mss-arrow{position:absolute;right:8px;bottom:5px;color:#ffe9a7;font-size:19px;font-weight:900}
+.mss-card:active{transform:translateY(4px);box-shadow:inset 0 1px #d4faffb0,0 1px 0 #033155,0 3px 9px #0007}
+.mss-future{background:linear-gradient(155deg,#315976,#163554 69%,#0a263f);border-color:#79a8c9}
+.mss-future:after{content:"СКОРО";position:absolute;right:7px;top:7px;font-size:7px;letter-spacing:.05em;font-weight:800;color:#ffdd9b;padding:3px 5px;border:1px solid #ffdd9b77;border-radius:7px}
+.mss-message{margin:20px 0;padding:15px;color:#f7fdff;background:linear-gradient(135deg,#0e6795,#0c2b4d);border:1px solid #87dfff;border-radius:17px;box-shadow:0 9px 20px #00152986}
+.mss-message p{font-size:11px;line-height:1.5;color:#c7eaff}.mss-message button{border-radius:11px;background:#0d5382;color:#fff;border:1px solid #9eeaff;padding:9px 15px}
+.mss-bottomnav .navitem{cursor:pointer}.mss-bottomnav .navitem.active{background:linear-gradient(135deg,#fc7895,#dd1c54 72%,#991041);border:1px solid #ffc6d8;box-shadow:inset 0 1px #fff7,0 0 12px #fc286b77;color:#fff}
+@media(min-width:540px){.mss-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:360px){.mss-main-grid,.mss-grid{gap:7px}.mss-card{min-height:108px}.mss-main-tile .mss-ico{width:49px;height:47px}}
+@media(prefers-reduced-motion:reduce){.mss-panel,.mss-card:before,.mss-card>.mss-ico,.mss-main-tile .mss-ico{animation:none!important}}
