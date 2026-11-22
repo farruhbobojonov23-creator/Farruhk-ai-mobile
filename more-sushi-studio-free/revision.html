@@ -949,6 +949,31 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 }
 @media(max-width:380px){.revision-crimson #compactToolsButton{padding:7px 9px!important}}
 @media print{.revision-crimson #compactToolsButton{display:none!important}}
+/* 0.4.3: Return to MORE SUSHI is a 42px control INSIDE the fixed
+   revision header, not an extra full-width row over the dashboard heading. */
+.revision-crimson .sidebar{isolation:isolate}
+.revision-crimson .sidebar .brand{padding-right:48px!important;min-width:0}
+.revision-crimson .sidebar .brandword{min-width:0!important;overflow:hidden}
+.revision-crimson .sidebar .revision-return{
+  display:grid!important;place-items:center!important;position:absolute!important;
+  top:9px!important;right:13px!important;z-index:4!important;
+  width:42px!important;height:42px!important;min-height:42px!important;
+  padding:0!important;border:1px solid #ffbacb!important;border-radius:13px!important;
+  color:#fff!important;background:linear-gradient(155deg,#ff688e,#d0134b 70%,#930b37)!important;
+  font-size:26px!important;font-weight:650!important;line-height:1!important;
+  text-decoration:none!important;
+  box-shadow:inset 0 1px #ffe3eb99,0 4px 9px #18050d70!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.revision-crimson .sidebar .revision-return:focus-visible{
+  outline:3px solid #ffd38b!important;outline-offset:2px!important;
+}
+@media(max-width:720px){
+  .revision-crimson .sidebar .revision-return{top:8px!important;right:13px!important}
+}
+@media print{.revision-crimson .sidebar .revision-return{display:none!important}}
+
+
 
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
@@ -971,7 +996,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 <symbol id="rev-save" viewBox="0 0 64 64"><path d="M10 7h39l7 7v43H10Z" fill="none" stroke="url(#revGold)" stroke-width="5" stroke-linejoin="round"/><path d="M20 9v20h26V9M17 57V39h32v18M34 41v14" fill="none" stroke="url(#revGold)" stroke-width="5"/></symbol>
 </defs></svg>
 
-<div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><a href="./mobile.html#more" aria-label="Вернуться в MORE SUSHI STUDIO PRO" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 13px;border-radius:12px;border:1px solid #ffc2d2;color:#fff;text-decoration:none;font-size:12px;font-weight:850;background:linear-gradient(145deg,#ff658c,#cc124d);box-shadow:0 4px 12px #0002">← Назад в MORE SUSHI</a><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
+<div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><a class="revision-return" href="./mobile.html#more" aria-label="Назад в MORE SUSHI STUDIO PRO" title="Назад в MORE SUSHI">←</a><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
 <main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Склад + полуфабрикаты · контроль по 4 точкам</div></div><button type="button" class="theme-button" id="themeToggleRevision" onclick="showRevisionInfo()" aria-label="Информация о приложении" title="Информация">ⓘ</button></div>
 <button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false" aria-controls="compactCloudTools appUpdateStatus"><span class="rev042-heading"><span class="rev042-gear" aria-hidden="true">⚙</span><span class="rev042-label"><strong>Настройки и облако</strong><small id="rev042CloudStatus" aria-live="polite">Локально — без входа</small></span></span><span class="rev042-chevron" id="rev042Chevron" aria-hidden="true">▾</span></button><div class="cloud-actions compact-tools-hidden" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status compact-tools-hidden" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
