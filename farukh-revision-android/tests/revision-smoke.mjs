@@ -19,10 +19,10 @@ assert.equal(weight('Лосось',{raw:'-1',pf:'0'}),null);
 assert.equal(weight('Лосось',{raw:'invalid',pf:'1'}),null);
 assert.equal(weight('Лосось',{raw:'',pf:''}),null);
 assert.equal((html.match(/<script>/g)||[]).length,1);
-assert.equal((html.match(/<\\/script>/g)||[]).length,1);
+assert.equal((html.match(/<\/script>/g)||[]).length,1);
 const js=html.slice(html.indexOf('<script>')+8,html.indexOf('</script>'));
 new Script(js,{filename:'revision-inline.js'});
 for(const pattern of [/loadCloud=async function/,/rev041ImportLocal/,/rev041FlushPending/,
  /rev041Queue/,/rev041SyncNow/,/revision_products/,/revision_audits/,
- /ms_session/,/rev041Catalogue=new Map\\(products.filter\\(p=>p.active\\)/]) assert.match(js,pattern);
+ /ms_session/,/rev041Catalogue=new Map\(products.filter\(p=>p.active\)/]) assert.match(js,pattern);
 console.log('FARUKH REVISION PRO 0.4.1 syntax and inventory tests passed');
