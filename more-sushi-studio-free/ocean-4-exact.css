@@ -83,7 +83,7 @@
 
  /* Ice-white cloud bar with real server-state indicator. */
  .cloudbar{
-  min-height:59px!important;margin:3px 2px 13px!important;
+  min-height:52px!important;margin:3px 2px 12px!important;
   border-radius:18px!important;
   background:linear-gradient(135deg,#e7f9ff,#9fd6ed 55%,#b4ebfc)!important;
   border:2px solid #bffaff!important;
@@ -100,10 +100,10 @@
  }
  .cloudbar .dot{border:2px solid #fff!important}
  .metrics{
-  gap:7px!important;margin:0 3px 15px!important;
+  gap:7px!important;margin:0 3px 11px!important;
  }
  .metric{
-  min-height:83px!important;border-radius:16px!important;
+  min-height:73px!important;border-radius:16px!important;
   padding:9px 3px 8px!important;
   border:1.5px solid #a6ecff!important;
   background:linear-gradient(155deg,#eaffff,#9fdff8 74%,#72c8e8)!important;
@@ -148,7 +148,7 @@
  }
  html[data-mss-tab="home"] .mss-heading h2{
   color:#f7feff!important;font-weight:950!important;
-  font-size:clamp(17px,4.5vw,22px)!important;
+  font-size:clamp(17px,4.2vw,21px)!important;
   text-shadow:0 2px 4px #001f3f!important;
  }
  html[data-mss-tab="home"] .mss-edition{
@@ -189,11 +189,11 @@
   transform:translateY(2px) scale(.994)!important;filter:brightness(1.12)!important;
  }
  html[data-mss-tab="home"] .mss-quick{
-  margin:13px 0 0!important;min-height:65px!important;
+  margin:13px 0 0!important;min-height:55px!important;
   background:linear-gradient(148deg,#ebffff,#b8e5f5 76%,#95d1e9)!important;
   border:1.5px solid #b6f8ff!important;border-radius:18px!important;
   box-shadow:inset 0 2px #fff,0 4px 0 #469cc5,0 7px 12px #023a6077!important;
-  padding:12px 15px!important;
+  padding:10px 13px!important;
  }
  html[data-mss-tab="home"] .mss-quick-label{
   color:#235772!important;font-size:clamp(9px,2.25vw,11px)!important;
@@ -211,7 +211,7 @@
   box-shadow:inset 0 1px #fff8,0 3px 0 #960b41,0 6px 11px #70134388!important;
  }
  html[data-mss-tab="home"] .approved-water-band{
-  height:clamp(54px,13vw,86px)!important;
+  height:clamp(48px,11.5vw,71px)!important;
   width:calc(100% + 18px)!important;
   margin:13px -9px 0!important;
   background:url('./o40_waves.webp?v=4') center center/100% 100% no-repeat!important;
