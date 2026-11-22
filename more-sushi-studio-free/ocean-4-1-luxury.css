@@ -1,0 +1,256 @@
+/* MORE SUSHI STUDIO PRO — OCEAN ULTRA 4.1 · CONCEPT 1
+   Approved visual direction: premium deep sapphire, cyan glass 3D, polished
+   ingredient/prep/roll/sauce icons. Structure stays 5 tabs; home remains
+   auto-fitted; original TTK/PDF/backend/APK remain unchanged.
+   Vector symbols are scalable, but never described as native 8K photography. */
+@media screen{
+ :root{--o41-sapphire:#031b35;--o41-deep:#052e52;--o41-ocean:#0773a7;--o41-cyan:#65efff;--o41-ice:#d6fcff}
+ html{background:#04172e!important}
+ body{
+   color:#f1fbff!important;
+   background:
+     radial-gradient(ellipse 84% 39% at 100% 6%,#089fc966,transparent 74%),
+     radial-gradient(ellipse 105% 51% at 5% 62%,#085e998c,transparent 75%),
+     linear-gradient(180deg,#03152c 0%,#04436a 42%,#02547a 68%,#011f3c 100%)!important;
+ }
+ body:before{
+   opacity:.23!important;
+   background:
+     linear-gradient(180deg,#041735a6 0%,#006cbb1c 51%,#02244499 100%),
+     url('./ocean-wave.jpg') center bottom / cover no-repeat!important;
+   mix-blend-mode:screen!important;
+ }
+ .wrap{color:#f2fcff!important}
+ .ocean-bg{opacity:.17!important}
+
+ /* Primary logo header remains readable against sapphire, with 3D icy edge. */
+ .wrap>header{
+   border:1.5px solid #54e7ff!important;
+   background:linear-gradient(126deg,#06375df7 0%,#064974ef 60%,#052a56f6)!important;
+   box-shadow:inset 0 1px #c4f9ffb8,0 3px 0 #095f92,0 9px 16px #00162b82!important;
+ }
+ .wrap>header .brandcopy strong{color:#fff!important;text-shadow:0 2px 4px #001426!important}
+ .wrap>header .brandcopy small{color:#caefff!important;text-shadow:0 1px 2px #001e39!important}
+ .wrap>header .circlebtn{
+   background:linear-gradient(155deg,#f5ffff,#a9deef 65%,#368abd)!important;
+   box-shadow:inset 0 1px #fff,0 3px 0 #0675aa,0 7px 13px #002b548c!important;
+ }
+
+ /* Approved photographic whale hero — keep actual live text and button. */
+ html[data-mss-tab="home"] .wrap>.hero{
+   border:2px solid #5ee9ff!important;
+   box-shadow:inset 0 2px #dcffff96,0 4px 0 #057caf,0 10px 18px #001b398c,0 0 18px #00bde22a!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero .hero-copy h1{
+   color:#fff!important;text-shadow:0 2px 6px #00152ed9!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero .hero-copy p{color:#e3f7ff!important}
+ html[data-mss-tab="home"] .wrap>.hero .hero-stamp{
+   background:linear-gradient(158deg,#ff8eae,#ed2a62 48%,#9a0b3c)!important;
+   border:1.5px solid #ffd0e3!important;
+   box-shadow:inset 0 1px #ffeef7,0 4px 0 #9f0c43,0 9px 17px #3e082bb8!important;
+ }
+ .cloudbar{
+   border:1.6px solid #6ceaff!important;
+   background:linear-gradient(105deg,#043255f8,#075078f5 70%,#093453ef)!important;
+   box-shadow:inset 0 1px #c5fbff8f,0 3px 0 #047c9f,0 8px 15px #0026439f!important;
+ }
+ .cloudtxt b{color:#f3fcff!important;font-weight:900!important;text-shadow:0 1px 3px #001f3f!important}
+ .cloudtxt small{color:#c6efff!important;font-weight:630!important}
+ .cloudbar .ocean-refresh-btn{
+   background:linear-gradient(160deg,#ff8aa9,#ee2e63 48%,#a50b40)!important;
+   border:1.5px solid #ffd8e9!important;
+   box-shadow:inset 0 1px #fff9,0 3px 0 #9e0d44,0 6px 10px #421337ad!important;
+   color:#fff!important;
+ }
+
+ /* Same 3D ocean material on all 4 KPI counters; correct counters stay live. */
+ html[data-mss-tab="home"] .metrics .metric{
+   border:1.5px solid #79eeff!important;
+   background:linear-gradient(150deg,#0a74a5 0%,#064672 47%,#032a57 100%)!important;
+   box-shadow:inset 0 1px #d9feff93,0 3px 0 #0372a4,0 8px 13px #001d39a8!important;
+   color:#fff!important;
+   filter:none!important;
+ }
+ html[data-mss-tab="home"] .metrics .metric:nth-child(2){
+   background:linear-gradient(150deg,#0c83ab,#105c87 58%,#063452)!important;
+ }
+ html[data-mss-tab="home"] .metrics .metric:nth-child(3){
+   background:linear-gradient(150deg,#076e87,#07545f 58%,#023e57)!important;
+ }
+ html[data-mss-tab="home"] .metrics .metric b{
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   text-shadow:0 2px 3px #002344!important;
+ }
+ html[data-mss-tab="home"] .metrics .metric label{
+   color:#d6f6ff!important;letter-spacing:.01em!important;
+   text-shadow:0 1px 2px #003659!important;
+ }
+ html[data-mss-tab="home"] .metrics .metric svg{
+   filter:drop-shadow(0 4px 4px #001a41b0) saturate(1.14)!important;
+ }
+ html[data-mss-tab="home"] .mss-heading h2{
+   color:#f6ffff!important;text-shadow:0 2px 5px #013457!important;
+ }
+ html[data-mss-tab="home"] .mss-eyebrow{color:#b9edff!important}
+ html[data-mss-tab="home"] .mss-edition{
+   background:linear-gradient(#f7feff,#b4e4f7)!important;
+   color:#8f103e!important;text-shadow:none!important;
+   border:1px solid #ffbfd4!important;
+ }
+ html[data-mss-tab="home"] .mss-feature{
+   border-color:#77e9ff!important;
+   box-shadow:inset 0 1px #e9ffff89,0 4px 0 #056fa7,0 10px 18px #001936a7!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-red{
+   border-color:#ffadd0!important;
+   box-shadow:inset 0 1px #fff7,0 4px 0 #910c43,0 12px 19px #4f1238bd!important;
+ }
+ html[data-mss-tab="home"] .mss-quick{
+   border:1.5px solid #7aeaff!important;
+   background:linear-gradient(125deg,#0c6493,#07507e 58%,#04345f)!important;
+   box-shadow:inset 0 1px #d9ffff98,0 4px 0 #05638b,0 8px 14px #001d37a9!important;
+ }
+ html[data-mss-tab="home"] .mss-quick-label{color:#c7f0ff!important}
+ html[data-mss-tab="home"] .mss-quick b{color:#fff!important;text-shadow:0 1px 3px #001b37!important}
+
+ /* All interior panels use the same sapphire-neon material as concept #1. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title{
+   border:1.5px solid #72eaff!important;
+   background-image:
+     linear-gradient(104deg,#032f59fa 0%,#064d75e5 55%,#064772aa 100%),
+     url('./ocean_hero_whale.webp?v=3.3')!important;
+   background-size:cover,auto 240%!important;
+   box-shadow:inset 0 2px #b7ffff80,0 4px 0 #076390,0 9px 18px #001a36a8!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title h2{
+   color:#faffff!important;text-shadow:0 2px 5px #00152d!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title p{
+   color:#d4f4ff!important;text-shadow:0 1px 3px #002442!important;
+ }
+
+ /* Rectangular, tactile, frosted-cobalt cards with vivid 3D illustrations.
+    The title and subtitle are true HTML, never baked into a bitmap. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card,
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card:nth-child(3n+2),
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card:nth-child(3n+3){
+   min-width:0;min-height:150px!important;
+   border-radius:21px!important;
+   border:1.5px solid #64e7ff!important;
+   background:
+     radial-gradient(ellipse 92% 79% at 18% 5%,#25b5e454,transparent 72%),
+     linear-gradient(146deg,#0a6c9e 0%,#07517c 46%,#052949 100%)!important;
+   box-shadow:inset 0 1px #baf7ffb0,0 4px 0 #05668e,0 10px 16px #00152caa,0 0 12px #1ecfff33!important;
+   opacity:1!important;filter:none!important;
+   color:#f4fdff!important;
+   overflow:hidden;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card:nth-child(3n+2){
+   background:
+     radial-gradient(ellipse 92% 82% at 18% 8%,#21d6d44d,transparent 72%),
+     linear-gradient(147deg,#097ca0,#06506e 55%,#033954)!important;
+   border-color:#82faff!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card:nth-child(3n+3){
+   background:
+     radial-gradient(ellipse at 25% 5%,#358adc5b,transparent 72%),
+     linear-gradient(145deg,#12669f,#073b71 62%,#042c58)!important;
+   border-color:#65cbff!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card::before{
+   background:linear-gradient(128deg,transparent 20%,#d4ffff1e 45%,transparent 64%)!important;
+   opacity:.5!important;pointer-events:none!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card>.mss-ico{
+   width:clamp(60px,17vw,78px)!important;
+   height:clamp(60px,17vw,76px)!important;
+   filter:drop-shadow(0 7px 5px #001729aa) saturate(1.17) contrast(1.04)!important;
+   opacity:1!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card[data-luxury-icon]>.mss-ico{
+   width:clamp(70px,19vw,90px)!important;
+   height:clamp(69px,19vw,89px)!important;
+   margin-bottom:1px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card strong{
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   text-shadow:0 2px 4px #001c34e0!important;
+   font-weight:950!important;
+   line-height:1.17!important;
+   max-width:100%!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card small{
+   color:#dbf8ff!important;
+   text-shadow:0 1px 3px #001d35!important;
+   font-size:clamp(10px,2.9vw,12.5px)!important;
+   line-height:1.34!important;
+   font-weight:660!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card .mss-arrow{
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   background:linear-gradient(#ff82a9,#e51d5b 58%,#a10942)!important;
+   border:1.5px solid #ffccdb!important;
+   box-shadow:inset 0 1px #fff9,0 3px 0 #a01141,0 6px 10px #00152a9c!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future:after{
+   color:#7d3d07!important;background:#fff1cf!important;
+   border:1px solid #ffd49c!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card:active{
+   transform:translateY(2px)!important;
+   box-shadow:inset 0 1px #baf7ffb0,0 1px 0 #05668e,0 4px 9px #00152caa!important;
+ }
+
+ /* Inside TTK, keep previous fifth-card full-width compact treatment. */
+ html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd){
+   min-height:110px!important;
+   padding:12px 18px!important;
+ }
+ html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>.mss-ico{
+   width:66px!important;height:66px!important;
+ }
+
+ /* Five navigation choices remain unchanged, dark 3D dock as in concept #1. */
+ .bottomnav{
+   border:1.5px solid #66eaff!important;border-bottom:0!important;
+   background:linear-gradient(154deg,#0b618ffa,#043858fc 57%,#02182ffc)!important;
+   box-shadow:inset 0 1px #ccfbffb3,0 -3px 0 #008fc4,0 -9px 19px #00152fb0!important;
+ }
+ .bottomnav .navitem,.bottomnav .navitem:not(.active){
+   color:#fff!important;-webkit-text-fill-color:#fff!important;
+   opacity:1!important;text-shadow:0 2px 3px #001e37!important;
+ }
+ .bottomnav .navitem.active{
+   background:linear-gradient(#ff7dab,#f12b67 54%,#9d0c41)!important;
+   border:1.5px solid #ffd0df!important;
+   box-shadow:inset 0 1px #fff8,0 3px 0 #8d0c3a,0 8px 15px #9a174c90!important;
+ }
+ .bottomnav .navitem svg{filter:drop-shadow(0 3px 3px #00162dba)!important}
+ .bottomnav .navitem:focus-visible,
+ .mss-card:focus-visible,
+ .mss-feature:focus-visible{
+   outline:3px solid #ffe69a!important;outline-offset:2px!important;
+ }
+}
+@media screen and (max-width:370px){
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{gap:8px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid>.mss-card{
+   min-height:137px!important;padding:11px 5px 15px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card[data-luxury-icon]>.mss-ico{
+   width:65px!important;height:65px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card strong{
+   font-size:clamp(12px,3.5vw,14px)!important;
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ html[data-mss-tab] .mss-card:before{animation:none!important}
+}
+@media print{
+ body:before,body:after,.bottomnav{display:none!important}
+}
