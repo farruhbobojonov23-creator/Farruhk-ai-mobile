@@ -1,0 +1,268 @@
+/* MORE SUSHI STUDIO PRO · OCEAN ULTRA 3.4 · QUALITY PASS
+   All five tabs; real DOM controls; no TTK, PDF or Supabase changes.
+   High-density HTML/SVG typography remains sharp at any pixel density.
+   Photographic whale/sea illustrations remain optimized source WebP/JPEG,
+   not misrepresented as native 8K imagery. */
+@media screen{
+ :root{--o34-ink:#073c60;--o34-deep:#022e53;--o34-cyan:#39dafa;--o34-rose:#e21b53}
+ html{background:#06365d!important}
+ body{
+  min-height:100vh;
+  color:var(--o34-ink)!important;
+  background:
+   radial-gradient(ellipse 90% 42% at 90% 25%,#95eaff8c,transparent 75%),
+   radial-gradient(ellipse 100% 43% at 5% 55%,#a1f5ff9c,transparent 80%),
+   linear-gradient(180deg,#03345f 0%,#0d76ad 24%,#7cdaed 50%,#33aad3 75%,#04385f 100%)!important;
+ }
+ body:before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+   linear-gradient(180deg,#032b59e6 0%,#008bd321 32%,#dbffff29 57%,#003b769a 100%),
+   url('./ocean-wave.jpg') center bottom / cover no-repeat;
+  opacity:.29;mix-blend-mode:soft-light;
+ }
+ body>.wrap{position:relative;z-index:1;isolation:isolate}
+ .ocean-bg{opacity:.38!important}
+ .ocean-bg:before{opacity:.16!important}
+ .ocean-bg:after{opacity:.11!important}
+ .wrap{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}
+ .wrap .cloudbar{position:relative;z-index:2}
+
+ /* Fix the visible photo-to-gradient straight seam on the approved whale art.
+    Keep image as decorative layer, text and CTA remain accessible live HTML. */
+ html[data-mss-tab="home"] .wrap>.hero.fadein{opacity:1!important;animation:none!important}
+ html[data-mss-tab="home"] .wrap>.hero{
+  background:
+   radial-gradient(ellipse at 75% 18%,#0587cb94,transparent 46%),
+   linear-gradient(115deg,#05355d 2%,#0865a4 59%,#023f72 100%)!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero .approved-hero-whale{
+  right:0!important;width:74%!important;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 22%,#000 100%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 22%,#000 100%);
+  image-rendering:auto;
+  filter:contrast(1.085) saturate(1.13)!important;
+ }
+ html[data-mss-tab="home"] .wrap>.hero:before{
+  background:
+   linear-gradient(90deg,#032e55f0 0%,#053965d3 25%,#064b728c 43%,transparent 68%),
+   linear-gradient(0deg,#023b6280,transparent 33%)!important;
+ }
+ html[data-mss-tab="home"] .approved-hero-brand strong{
+  color:#fff!important;text-shadow:0 2px 4px #002a50,0 0 10px #45cfff70!important;
+ }
+ html[data-mss-tab="home"] .approved-hero-professional{color:#effaff!important}
+ html[data-mss-tab="home"] .wrap>.hero .hero-copy h1{text-wrap:balance}
+ html[data-mss-tab="home"] .wrap>.hero .hero-stamp{min-width:0}
+ html[data-mss-tab="home"] .mss-feature{
+  filter:contrast(1.035) saturate(1.08);
+ }
+ html[data-mss-tab="home"] .mss-feature:active{filter:contrast(1.08) saturate(1.1) brightness(1.035)}
+
+ /* Legible brand header on all 4 internal pages; formerly navy on navy. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .wrap>header{
+  display:flex!important;align-items:center;
+  min-height:68px!important;margin:9px 0 13px!important;padding:8px 9px!important;
+  border-radius:18px;border:1px solid #84dfff!important;
+  background:linear-gradient(125deg,#063960f4,#0874a3ed 75%,#064673f2)!important;
+  box-shadow:inset 0 1px #d4faff9c,0 4px 0 #084e7d,0 9px 18px #0039616e!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy strong{
+  color:#fff!important;
+  font-size:clamp(13px,3.9vw,18px)!important;
+  text-shadow:0 1px 5px #032c4e!important;line-height:1.08!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy strong span:not(.pro){
+  color:#ffe2a0!important;text-shadow:0 1px 3px #16385d!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy small{
+  color:#daf3ff!important;
+  font-size:clamp(8px,2.13vw,10px)!important;
+  line-height:1.25!important;letter-spacing:.04em!important;
+  white-space:normal!important;
+  text-shadow:0 1px 2px #073d67;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandmark{
+  width:49px!important;height:49px!important;flex:none;
+  border-radius:15px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandmark svg{width:42px!important;height:42px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .circlebtn{
+  width:47px!important;height:47px!important;min-width:47px!important;min-height:47px!important;
+  border-radius:14px!important;
+  background:linear-gradient(152deg,#faffff,#b5e5fa 61%,#62b4d5)!important;
+  border:1px solid #e6ffff!important;box-shadow:inset 0 1px #fff,0 3px 0 #5b9fbe,0 7px 12px #00325585!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .cloudbar{
+  margin:0 0 12px!important;min-height:58px!important;
+  background:linear-gradient(150deg,#fff,#ddf5ff 75%,#c1e9f8)!important;
+  border:1.6px solid #f8ffff!important;
+  box-shadow:inset 0 1px #fff,0 4px 0 #96c8da,0 8px 15px #07497461!important;
+ }
+
+ /* Replace nearly invisible dark titles on saturated blue with an Arctic
+    photographic-glass section header on TTK/Catalog/PDF/More. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app{
+  margin:12px 0 0!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title{
+  position:relative;isolation:isolate;
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:94px;margin:3px 0 16px!important;
+  padding:15px 18px!important;border-radius:19px!important;
+  overflow:hidden;
+  background:
+   linear-gradient(106deg,#02345bf4 0%,#064b7be8 54%,#007caeb0 100%),
+   url('./ocean_hero_whale.webp') 100% 47%/auto 230% no-repeat!important;
+  border:1.5px solid #a6efff!important;
+  box-shadow:inset 0 2px #f2ffffa3,0 4px 0 #0a6997,0 10px 18px #00365d70!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title:before{
+  content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;
+  background:
+   radial-gradient(ellipse at 89% 8%,#81f4ff76,transparent 38%),
+   repeating-linear-gradient(150deg,transparent 0 36px,#c5faff0c 36px 38px,transparent 38px 92px);
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title h2{
+  color:#fff!important;text-shadow:0 2px 6px #001d3f!important;
+  font-size:clamp(21px,5.5vw,27px)!important;
+  font-weight:950!important;letter-spacing:-.025em;
+  line-height:1.13!important;margin:0 0 7px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title p{
+  color:#e1f7ff!important;font-size:clamp(11px,2.85vw,13px)!important;
+  line-height:1.38!important;font-weight:650!important;
+  max-width:96%;margin:0!important;text-shadow:0 1px 3px #003355!important;
+ }
+
+ /* Optically raised 3D glass cards: strong contrast, true vector SVG icons,
+    readable live text, no near-transparent disabled-looking panels. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;align-content:start!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card{
+  width:100%;min-width:0;min-height:147px!important;
+  padding:16px 9px 19px!important;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px!important;
+  border-radius:19px!important;border:1.5px solid #fff!important;
+  color:#093a60!important;opacity:1!important;filter:none!important;
+  background:
+   radial-gradient(ellipse at 20% 2%,#fff 0%,transparent 54%),
+   linear-gradient(157deg,#f5feff 3%,#d5f4ff 53%,#91d4ee 100%)!important;
+  box-shadow:inset 0 2px #fff,0 4px 0 #7dbad6,0 10px 17px #0648726a,0 0 0 1px #bdefff!important;
+  transition:transform .16s ease,filter .16s ease!important;
+  overflow:hidden;isolation:isolate;
+  -webkit-font-smoothing:antialiased;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:nth-child(3n+2){
+  background:
+   radial-gradient(ellipse at 25% 0%,#fff 0%,transparent 56%),
+   linear-gradient(158deg,#fff 0%,#ffeaf2 58%,#f7b8d3 100%)!important;
+  box-shadow:inset 0 2px #fff,0 4px 0 #daadc2,0 10px 17px #6b285774,0 0 0 1px #ffe0ec!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:nth-child(3n+3){
+  background:
+   radial-gradient(ellipse at 21% 0%,#fff 0%,transparent 60%),
+   linear-gradient(158deg,#f9fffc 0%,#d3fff4 58%,#7adcc9 100%)!important;
+  box-shadow:inset 0 2px #fff,0 4px 0 #83c9b8,0 10px 17px #005e6580,0 0 0 1px #c1ffed!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:before{
+  opacity:.22!important;animation-duration:20s!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card>.mss-ico{
+  width:67px!important;height:65px!important;min-height:0;
+  margin:0 0 2px!important;
+  filter:drop-shadow(0 3px 2px #ffffff) drop-shadow(0 7px 5px #39779e9e) saturate(1.35)!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card strong{
+  color:#07385b!important;font-size:clamp(14px,3.6vw,16px)!important;
+  font-weight:900!important;line-height:1.18!important;
+  letter-spacing:-.015em!important;text-shadow:0 1px #ffffffba!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card small{
+  color:#36657e!important;
+  font-size:clamp(10px,2.8vw,12px)!important;
+  font-weight:680!important;line-height:1.27!important;
+  max-width:95%;text-wrap:balance;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card .mss-arrow{
+  display:grid;place-items:center;
+  right:9px!important;bottom:9px!important;
+  width:24px!important;height:24px!important;
+  border-radius:50%;border:1px solid #ffd2df;
+  background:linear-gradient(165deg,#ff83a1,#e91c56 72%,#ad0b3b);
+  color:#fff!important;font-size:19px!important;line-height:1!important;
+  box-shadow:inset 0 1px #fff8,0 3px 0 #a21547,0 5px 9px #6a16404f!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future{
+  opacity:1!important;filter:none!important;cursor:pointer;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future:after{
+  content:"СКОРО";font-size:9px!important;font-weight:900!important;
+  color:#80500c!important;letter-spacing:.04em!important;
+  padding:4px 7px!important;right:8px!important;top:8px!important;
+  border:1px solid #e0ac55!important;border-radius:10px!important;
+  background:#fff6dc!important;box-shadow:0 2px 4px #825b1829!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card.mss-future .mss-arrow{
+  border-color:#c5cbd1;background:linear-gradient(#c3d1df,#849fb4);
+  box-shadow:inset 0 1px #fff8,0 3px 0 #688ca2!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:active{
+  transform:translateY(3px)!important;filter:brightness(1.04)!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-message{
+  background:linear-gradient(145deg,#fff,#d3f1ff)!important;
+  color:#0c3f60!important;border:1.5px solid #a8e7ff!important;
+  border-radius:16px!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-message p{
+  color:#245876!important;font-size:12px!important;line-height:1.48!important;
+ }
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-message button{
+  color:#fff!important;background:linear-gradient(#fa5b87,#ba134d)!important;
+ }
+
+ /* Realistic surf at the foot of every inner page, avoiding flat empty sea.
+    Presented behind the scrollable content, never overlaying navigation. */
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app:after{
+  content:"";display:block;width:calc(100% + 20px);
+  height:clamp(56px,14vw,100px);
+  margin:clamp(25px,6vh,52px) -10px 0;
+  background:url('./ocean_water_strip.webp') center bottom / 100% 100% no-repeat;
+  filter:saturate(1.14) contrast(1.12);
+  opacity:.88;pointer-events:none;
+ }
+ .bottomnav{
+  background:linear-gradient(145deg,#e8fafff5,#abe3f4ef 65%,#65bfdeef)!important;
+  box-shadow:inset 0 1px #fff,0 -5px 17px #003c6a70!important;
+ }
+ .bottomnav .navitem:not(.active){color:#073b62!important;font-weight:850!important}
+ .bottomnav .navitem svg{width:29px!important;height:29px!important;
+  filter:drop-shadow(0 2px 3px #004e8999)!important}
+ .bottomnav .navitem.active{color:#fff!important}
+ .bottomnav .navitem:focus-visible{outline:3px solid #ffcd58!important;outline-offset:1px}
+ .mss-edition{font-size:10px!important}
+}
+@media screen and (max-width:370px){
+ html[data-mss-tab]:not([data-mss-tab="home"]) .wrap>header{padding:8px 6px!important;gap:7px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy strong{font-size:13px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandcopy small{font-size:8px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .brandmark{width:46px!important;height:46px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{gap:9px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card{min-height:137px!important;padding:13px 5px 15px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card>.mss-ico{width:61px!important;height:59px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card strong{font-size:14px!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card small{font-size:10px!important}
+}
+@media screen and (min-width:540px){
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card{transition:none!important}
+ html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:before{animation:none!important}
+}
+@media print{
+ body:before,html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app:after{display:none!important}
+}

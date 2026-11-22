@@ -1,7 +1,7 @@
 {
-  "build": "ocean-3.3.1-hero-fix-20261122",
-  "display": "OCEAN ULTRA 3D · 3.3.1",
+  "build": "ocean-3.4.0-all-tabs-polish-20261122",
+  "display": "OCEAN ULTRA 3D · 3.4",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Fixed invisible photographic hero on Android: previous animation override retained opacity 0 on the approved whale banner. Whale, brand and CTA are now visible; TTK, PDF, cloud data unchanged."
+  "details": "All five mobile tabs: readable navy glass header and titles, sharper live HTML typography and scalable SVG icons, consistent 3D cards, sea backgrounds, softened hero image seam, and accessibility corrections. Photographic images are source-optimized and NOT true native 8K. Supabase, documents and PDF unchanged."
 }
