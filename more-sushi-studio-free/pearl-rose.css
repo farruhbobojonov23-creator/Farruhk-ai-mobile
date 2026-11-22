@@ -151,3 +151,24 @@ html.pearl-home-fixed .wrap{height:calc(100dvh - 76px)!important;max-height:calc
 .mss-card>img{filter:saturate(1.09) contrast(1.04)}
 .mss-card:focus-visible,.mss-feature:focus-visible{outline:3px solid #ce0d4a;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* PEARL ROSE 8.3 — Revision is a real module, not a decorative "coming soon"
+   category. Added to the CURRENT theme only; five dock tabs remain intact. */
+.revision-quickbar{min-height:51px;gap:5px;padding:6px 8px 6px 11px}
+.revision-quickbar .quickbar-label{display:flex;flex:1 1 auto;flex-direction:column;min-width:0}
+.revision-quickbar .quickbar-label b{font-size:clamp(10px,2.7vw,12px);line-height:1.15}
+.revision-quickbar .quickbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex:none;min-width:0}
+.revision-quickbar .quickbar-actions a{min-height:36px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;white-space:nowrap;border-radius:13px;line-height:1.15;font-weight:850;font-size:clamp(10px,2.4vw,12px)}
+.revision-quickbar .revision-button{padding:8px 11px;color:white;background:linear-gradient(155deg,#ff7898,#ee1c54 50%,#b00436);border:1px solid #ffbed0;box-shadow:inset 0 1px #fff8,0 2px 0 #aa0d36,0 5px 8px #a61f4c33}
+.revision-quickbar .continue-button{padding:8px 10px;background:linear-gradient(#fff,#ffeef4);color:#9b1640;border:1px solid #e6b3c3;box-shadow:inset 0 1px white,0 2px 5px #7d244124}
+.mss-grid .mss-card-revision{border-color:#f1a3b7;background:linear-gradient(115deg,#fffafc,#ffe8f0 67%,#fff2f5);box-shadow:inset 0 1px white,0 3px #edbdc9,0 5px 13px #7d23452a}
+.mss-grid .mss-card-revision>svg{color:#bd0c45;filter:drop-shadow(0 4px 4px #b8225240)}
+.mss-grid .mss-card-revision>strong{color:#8f103c}
+.mss-grid .mss-card-revision>small{color:#6b3e52}
+@media (max-width:370px){
+ .revision-quickbar{padding:5px 6px 5px 9px}
+ .revision-quickbar .quickbar-label small{font-size:7px;letter-spacing:0}
+ .revision-quickbar .quickbar-label b{font-size:10px}
+ .revision-quickbar .revision-button{padding:7px 7px}
+ .revision-quickbar .continue-button{padding:7px 7px}
+}
