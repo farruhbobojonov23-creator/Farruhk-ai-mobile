@@ -11,7 +11,12 @@
  const mobile=!revision&&Boolean(document.getElementById('mssCategoryApp'));
  const studio=!revision&&!mobile&&root.classList.contains('ocean-app');
  if(!revision&&!mobile&&!studio)return;
- const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ // Reduced-motion normally wins. A user's explicit «Повторить заставку»
+ // click may opt in for this browser session without changing Android settings.
+ let optedIn=false;
+ try{optedIn=sessionStorage.getItem('mss-explicit-motion-optin')==='1'}catch{}
+ if(optedIn)root.classList.add('premium-motion-optin');
+ const reduced=!optedIn&&window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
  const jobs=new Set(),queued=new Set();
  let generation=0,lastView='';
  const graphemes=value=>{
@@ -90,10 +95,10 @@
    lastView=view;
    if(mobile){
      if(view==='home'){
-       typeBatch(select('.hero-kicker,.hero-copy h1,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b,.bottomnav .navitem.active span'),{speed:59,stagger:115,cap:15});
+       typeBatch(select('.hero-kicker,.hero-copy h1,.hero-copy h1 em,.hero-copy p,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b,.bottomnav .navitem.active span'),{speed:82,stagger:120,cap:17});
      } else {
        const panel=document.getElementById('mss-'+view);
-       if(panel)typeBatch([...select('.bottomnav .navitem.active span'),...select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel)],{speed:60,stagger:110,cap:20});
+       if(panel)typeBatch([...select('.bottomnav .navitem.active span'),...select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel)],{speed:86,stagger:130,cap:20});
      }
      return;
    }
@@ -104,11 +109,11 @@
      if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname');
      if(view==='history')list=select('#view-history h2,#view-history .desc,#view-history .historyitem strong');
      if(view==='products')list=select('#view-products h2,#view-products .desc,#view-products #productsrows .itemname');
-     typeBatch([...heading,...list],{speed:69,stagger:120,cap:18});
+     typeBatch([...heading,...list],{speed:91,stagger:140,cap:18});
      return;
    }
    if(studio){
-     typeBatch(select('.topbar h1,.page-head h2,.page-head p,.card h2,.card h3,.empty-state strong').filter(el=>!el.closest('[hidden],.hide')),{speed:62,stagger:110,cap:12});
+     typeBatch(select('.topbar h1,.page-head h2,.page-head p,.card h2,.card h3,.empty-state strong').filter(el=>!el.closest('[hidden],.hide')),{speed:86,stagger:140,cap:12});
    }
  }
  function bootText(el,text,delay,speed){
@@ -124,6 +129,17 @@
    schedule(step,delay);
  }
  function start(){
+   // Replay from More > Effects; this also creates a fresh URL in Android WebView.
+   document.addEventListener('click',event=>{
+     const replay=event.target.closest?.('[data-premium-replay]');
+     if(!replay)return;
+     event.preventDefault();
+     try{sessionStorage.setItem('mss-explicit-motion-optin','1')}catch{}
+     const url=new URL(location.href);
+     url.searchParams.set('_replay',Date.now().toString());
+     if(mobile)url.hash='';
+     location.assign(url.href);
+   });
    if(revision){
      const oldGo=window.go;
      if(typeof oldGo==='function'&&!oldGo.__premiumWrapped){

@@ -89,6 +89,26 @@ async function detectLatestVersion(){
    const label=btn.querySelector("span:last-child");
    if(label)label.textContent="Новое!";
   }
+  // The mobile home has no editable form: safely self-update the old
+  // WebView page once per target build so splash/theme JS are actually loaded.
+  // An attempt marker prevents loops if a cache serves the old HTML again.
+  try{
+   const key="mss-auto-ui-target-v1";
+   if(sessionStorage.getItem(key)!==data.build){
+    setTimeout(()=>{
+     if(document.visibilityState!=="visible")return;
+     // Never auto-navigate out of TTK editor or a standalone Revision page.
+     if(!document.getElementById("mssCategoryApp"))return;
+     try{
+      if(sessionStorage.getItem(key)===data.build)return;
+      sessionStorage.setItem(key,data.build);
+     }catch{ /* still attempt once even with storage disabled */ }
+     const destination=new URL(location.href);
+     destination.searchParams.set("_fresh",Date.now().toString());
+     location.replace(destination.href);
+    },900);
+   }
+  }catch(e){} // private mode/storage disabled: keep manual «Новое!» button
  }catch(e){}finally{versionCheckRunning=false}
 }
 function check(){updateCounts();detectLatestVersion()}
