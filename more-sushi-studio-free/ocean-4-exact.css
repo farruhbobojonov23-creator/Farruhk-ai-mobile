@@ -73,6 +73,9 @@
   opacity:.23!important;outline:3px solid #fff4a3!important;
   outline-offset:-3px!important;border-radius:16px!important;
  }
+ html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero:focus-within{
+  outline:3px solid #ffe28a!important;outline-offset:-3px!important;
+ }
  html.ocean40-art-ready[data-mss-tab="home"] .wrap>.hero .hero-stamp:active{
   opacity:.17!important;transform:translateY(2px)!important;
  }
@@ -176,11 +179,27 @@
  html[data-mss-tab="home"] .mss-feature-pearl{background-image:url('./o40_pdf.webp?v=4')!important}
  html[data-mss-tab="home"] .mss-feature:before,
  html[data-mss-tab="home"] .mss-feature:after{display:none!important}
- html[data-mss-tab="home"] .mss-feature>.mss-feature-icon,
- html[data-mss-tab="home"] .mss-feature>strong,
- html[data-mss-tab="home"] .mss-feature>small,
- html[data-mss-tab="home"] .mss-feature>.mss-feature-arrow{
-  opacity:0!important;visibility:hidden!important;
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>.mss-feature-icon,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>strong,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>small,
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-ready>.mss-feature-arrow{
+  opacity:0!important;visibility:visible!important;
+ }
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>.mss-feature-icon,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>strong,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>small,
+ html[data-mss-tab="home"] .mss-feature:not(.ocean40-card-ready)>.mss-feature-arrow{
+  opacity:1!important;visibility:visible!important;
+ }
+ html[data-mss-tab="home"] .mss-feature.ocean40-card-failed{
+  background-image:none!important;
+  background:linear-gradient(135deg,#ff658c,#a90d45)!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-blue.ocean40-card-failed{
+  background:linear-gradient(135deg,#7ef5ff,#056a9d)!important;
+ }
+ html[data-mss-tab="home"] .mss-feature-pearl.ocean40-card-failed{
+  background:linear-gradient(135deg,#f5ffff,#8bdcf4)!important;
  }
  html[data-mss-tab="home"] .mss-feature:focus-visible{
   outline:3px solid #fff2a5!important;outline-offset:3px!important;
