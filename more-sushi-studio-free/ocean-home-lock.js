@@ -37,9 +37,10 @@
   viewportVariables.forEach(key=>root.style.removeProperty(key));
  }
  function shrink(state,key,min,needed,weight=1){
-  const value=state[key],removable=Math.max(0,(value-min)*weight);
+  const value=state[key],floor=Math.min(min,value);
+  const removable=Math.max(0,(value-floor)*weight);
   const use=Math.min(removable,needed);
-  state[key]=Math.max(min,value-use/weight);
+  state[key]=Math.max(floor,value-use/weight);
   return needed-use;
  }
  function fit(){
@@ -49,7 +50,7 @@
    lastTab=root.dataset.mssTab||'';
    return;
   }
-  if(lastTab!=='home')window.scrollTo(0,0);
+  if(lastTab!=='home')window.scrollTo({top:0,left:0,behavior:'instant'});
   lastTab='home';
   // Measure the unmodified approved design before calculating necessary changes.
   clear();
@@ -103,7 +104,7 @@
   if(fits){
    root.classList.add('ocean-home-locked');
    root.dataset.oceanHomeFit='locked';
-   if(window.scrollY)window.scrollTo(0,0);
+   if(window.scrollY)window.scrollTo({top:0,left:0,behavior:'instant'});
   }else{
    // Very short screens / large text: never conceal buttons beneath the dock.
    // Preserve scrolling for accessibility rather than silently clipping a CTA.
