@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#061b34"><meta name="description" content="MORE SUSHI STUDIO PRO — профессиональная мобильная система шеф-повара">
-<meta name="mss-ui-build" content="ocean-3.0.0-approved-20261122">
+<meta name="mss-ui-build" content="ocean-3.1.0-refined-20261122">
 <title>MORE SUSHI STUDIO PRO · Живой океан 3D</title>
 <style>
 :root{color-scheme:dark;--sea:#06182d;--blue:#078ce2;--cyan:#59d5ff;--gold:#f5d080;--gold2:#a76b18;--red:#ed335f;--ink:#effbff;--muted:#c7d9e8}
@@ -98,7 +98,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 @media(max-width:390px){.ocean-refresh-btn{padding:4px 6px}.ocean-refresh-btn span:last-child{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.ocean-refresh-btn.refreshing .refresh-symbol{animation:none}.ocean-refresh-toast{transition:none}}
 
-</style><link rel="stylesheet" href="./ocean-categories.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-polish.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-approved.css?v=approved-3.0.0"></head><body>
+</style><link rel="stylesheet" href="./ocean-categories.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-polish.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-approved.css?v=approved-3.0.0"><link rel="stylesheet" href="./ocean-refined.css?v=ocean-3.1.0"></head><body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg"><defs>
  <linearGradient id="gold3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c5"/><stop offset=".25" stop-color="#ffcf57"/><stop offset=".48" stop-color="#bd6d1b"/><stop offset=".7" stop-color="#ffe491"/><stop offset="1" stop-color="#79410e"/></linearGradient>
  <linearGradient id="blue3" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#faffff"/><stop offset=".2" stop-color="#79ecff"/><stop offset=".5" stop-color="#1588d5"/><stop offset=".77" stop-color="#073d8b"/><stop offset="1" stop-color="#7debff"/></linearGradient>
@@ -149,7 +149,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 <section class="mss-panel" data-mss-panel="home" id="mss-home">
 <div class="mss-heading">
   <div><div class="mss-eyebrow">MORE SUSHI · СТУДИЯ ШЕФ-ПОВАРА</div><h2>Все инструменты под рукой</h2></div>
-  <span class="mss-edition" aria-label="Новая версия оформления">OCEAN 3D ✦</span>
+  <span class="mss-edition" aria-label="Новая версия оформления">OCEAN 3D+ ✦</span>
 </div>
 <div class="mss-feature-grid" aria-label="Быстрый доступ">
  <a href="./index.html?ocean=1&amp;view=editor" class="mss-feature mss-feature-red mss-feature-primary">
@@ -205,6 +205,9 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
  document.getElementById('cloudDesc').textContent=active?'Сеанс активен · данные доступны в студии':'Войдите в рабочую студию для доступа к данным';
  document.getElementById('countCloud').textContent=active?'✓':'—';
  if(!active){const dot=document.getElementById('syncDot');dot.style.background='#f2bd5e';dot.style.boxShadow='0 0 8px #d8a047';dot.style.animation='none'}
- document.getElementById('appInfo').addEventListener('click',function(){alert('MORE SUSHI STUDIO PRO · Живой океан 3D\\nОтдельное Android-приложение для ТТК и рецептур.\\nРевизия склада остаётся в FARUKH REVISION PRO.\\nЧтобы продолжить работу, откройте раздел и войдите в свою учётную запись.')})
+ document.getElementById('appInfo').addEventListener('click',function(){
+   const more=document.querySelector('.bottomnav [data-mss-tab="more"]');
+   if(more)more.click();else window.location.hash='more';
+ });
 })();
-</script><script defer src="./ocean-categories.js?v=ocean-2.0.0"></script><script defer src="./ocean-dashboard.js?v=approved-3.0.0"></script></body></html>
+</script><script defer src="./ocean-categories.js?v=ocean-2.0.0"></script><script defer src="./ocean-dashboard.js?v=ocean-3.1.0"></script><script defer src="./ocean-refined.js?v=ocean-3.1.0"></script></body></html>
