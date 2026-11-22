@@ -1,7 +1,7 @@
 {
-  "build": "ocean-4.0.1-fixed-home-20261122",
-  "display": "OCEAN ULTRA · 4.0.1",
+  "build": "ocean-4.0.2-screenshot-polish-20261122",
+  "display": "OCEAN ULTRA · 4.0.2",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Home screen fixed without vertical swiping on mobile when all controls fit above the dock; real hero/cards/cloud links remain clickable. The other four tabs scroll normally. Very short displays retain accessibility scrolling to avoid clipping actions. No APK or TTK/PDF/data changes."
+  "details": "Screenshot-led visual fixes: cropped a stray horizontal line from decorative surf; replaced a poster containing duplicate words with clean whale artwork on TTK, Catalogue, PDF and workspace; improved bottom nav labels and workspace create-TTK contrast; balanced fifth TTK card. Home lock from 4.0.1 preserved. Web UI only; data, PDF templates, APK unchanged."
 }
