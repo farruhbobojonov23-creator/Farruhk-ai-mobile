@@ -249,3 +249,68 @@ html.ocean-app .ocean-refresh-toast.error{background:linear-gradient(140deg,#ae2
 html.ocean-app .sidebar{display:none!important}html.ocean-app .workspace{width:100%!important}
 html.ocean-app .ocean-bottomnav{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media print{html.ocean-app .ocean-bottomnav{display:none!important}}
+
+
+/* OCEAN 2.0 — interior parity with Pearl / Coral / Azure mobile dashboard.
+   Screen-only styling; original PDF/print remains unchanged. */
+@media screen{
+html.ocean-app body{background:linear-gradient(165deg,#e3f6ff,#f8feff 36%,#e7f6fc)!important}
+html.ocean-app .ocean-appbar{
+ background:linear-gradient(125deg,#fff,#e0f6ff 75%,#c4eaff)!important;
+ border-bottom:1px solid #b5ddec!important;color:#15486c!important;
+ box-shadow:0 3px 12px #296d9629!important}
+html.ocean-app .ocean-appbar a{
+ color:#fff!important;background:linear-gradient(155deg,#ff7e9d,#ed2b64 61%,#a70e49)!important;
+ border:1px solid #ffbbcc!important;box-shadow:inset 0 1px #fff7,0 3px 0 #a7134c,0 5px 10px #ab1b5550!important}
+html.ocean-app .ocean-appbar strong{color:#175279!important}
+html.ocean-app .ocean-appbar small{color:#628eaa!important}
+html.ocean-app .ocean-appbar .ocean-miniwhale{color:#1d92d1!important}
+html.ocean-app .ocean-appbar .ocean-refresh-btn{
+ color:#fff!important;border:1px solid #ffc4d4!important;
+ background:linear-gradient(150deg,#ff94aa,#e72962 60%,#ae104b)!important;
+ box-shadow:inset 0 1px #fff9,0 3px 0 #a8144e,0 5px 10px #d8266363!important}
+html.ocean-app .ocean-appbar .ocean-refresh-btn .refresh-symbol{color:#fff0c1}
+html.ocean-app .ocean-bottomnav{
+ background:linear-gradient(155deg,#fffffff7,#ecf9fff9)!important;
+ border:1px solid #c6e7f4!important;border-bottom:0!important;
+ box-shadow:0 -4px 16px #307da13d,inset 0 1px #fff!important}
+html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{
+ color:#5484a3!important;font-weight:850!important}
+html.ocean-app .ocean-bottomnav .ocean-ico{
+ filter:drop-shadow(0 2px 2px #2482a34d)!important;transform:translateZ(0)}
+html.ocean-app .ocean-bottomnav .active{
+ color:white!important;background:linear-gradient(145deg,#ff7f9d,#eb1f60 63%,#b60f47)!important;
+ border:1px solid #ffd0df!important;box-shadow:inset 0 1px #fff8,0 3px 0 #9c164c,0 5px 12px #ec295d52!important}
+html.ocean-app .ocean-bottomnav .active .ocean-ico{filter:drop-shadow(0 2px 3px #9e244f)!important}
+html.ocean-app #viewDashboard .hero,html.ocean-app .hero{
+ color:white!important;background:radial-gradient(ellipse at 89% 20%,#7df0ffc2,transparent 37%),
+ linear-gradient(145deg,#074470,#128acf 65%,#084b8c)!important;
+ box-shadow:inset 0 2px 3px #dafaff,0 4px 0 #1776af,0 10px 19px #195b8763!important}
+html.ocean-app #viewDashboard .hero .hero-copy,
+html.ocean-app #viewDashboard .hero .hero-copy *:not(.btn),
+html.ocean-app #viewDashboard .hero .hero-copy h2,
+html.ocean-app #viewDashboard .hero .hero-copy h2 *,
+html.ocean-app .hero .hero-copy h2 *{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ text-shadow:0 2px 5px #00376787!important}
+html.ocean-app #viewDashboard .hero .hero-copy h2 em{
+ color:#ffedb3!important;-webkit-text-fill-color:#ffedb3!important}
+html.ocean-app #viewDashboard .hero .hero-copy .mini-label{
+ color:#b9efff!important;-webkit-text-fill-color:#b9efff!important}
+html.ocean-app .btn-ghost{color:#fff!important;border-color:#b6e8ff!important}
+html.ocean-app .btn-primary{color:#fff!important}
+html.ocean-app .surface{border-radius:16px!important}
+html.ocean-app .topbar h1{color:#154b72!important;font-weight:900!important}
+html.ocean-app .topbar .breadcrumb{color:#548bad!important}
+html.ocean-app input:focus-visible,html.ocean-app select:focus-visible{
+ outline:2px solid #249fda!important;outline-offset:1px!important}
+html.ocean-app .page-head .mini-label{color:#288ab2!important}
+html.ocean-app .page-head h2{color:#134663!important}
+html.ocean-app .content{overflow-x:clip}
+@media(max-width:500px){
+ html.ocean-app .ocean-appbar{min-height:64px!important}
+ html.ocean-app .ocean-appbar strong{font-size:11px!important}
+ html.ocean-app .topbar{border-radius:0!important}
+ html.ocean-app .topbar .top-actions{gap:6px}
+}
+}
