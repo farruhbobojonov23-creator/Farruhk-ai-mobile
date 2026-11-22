@@ -86,15 +86,15 @@
    lastView=view;
    if(mobile){
      if(view==='home'){
-       typeBatch(select('.hero-kicker,.hero-copy h1,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b'),{speed:59,stagger:115,cap:14});
+       typeBatch(select('.hero-kicker,.hero-copy h1,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b,.bottomnav .navitem.active span'),{speed:59,stagger:115,cap:15});
      } else {
        const panel=document.getElementById('mss-'+view);
-       if(panel)typeBatch(select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel),{speed:60,stagger:110,cap:20});
+       if(panel)typeBatch([...select('.bottomnav .navitem.active span'),...select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel)],{speed:60,stagger:110,cap:20});
      }
      return;
    }
    if(revision){
-     const heading=select('.top h1');
+     const heading=select('.top h1,.menu button.active .menu-label,.kpi .label');
      let list=[];
      if(view==='summary')list=select('#view-summary .sectionheading h2,#view-summary .sectionheading .desc,#view-summary .summarytile strong,#view-summary .summarytile .hint');
      if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname');
