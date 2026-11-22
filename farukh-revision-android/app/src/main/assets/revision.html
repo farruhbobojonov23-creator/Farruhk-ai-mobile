@@ -497,7 +497,196 @@ body.revision-compact.theme-blue{--bg:#0d1a2c;background:#101b2d!important;color
 .revision-compact.theme-blue .rev-product-fields{border-color:#31475f}.revision-compact.theme-blue .rev-product-summary{background:#1a3550;color:#95c8ff}
 .revision-compact.theme-blue .summarytile .point-open{background:#203a54!important;color:#bcdfff!important;border-color:#496c90!important}
 
-</style></head><body class="android-premium revision-compact revision-white-red">
+/* FARUKH REVISION PRO 0.3.3 — approved 3rd concept: midnight / crimson / gold.
+   Theme-only overrides. Business logic, history keys and cloud API are unchanged. */
+html:has(body.revision-crimson),body.android-premium.revision-compact.revision-crimson{
+  background:#060d1a!important;color:#f8f8fc!important;color-scheme:dark;
+}
+body.android-premium.revision-compact.revision-crimson{
+  --ink:#f3f6ff;--sub:#a8b5c9;--blue:#e6c27c;--red:#ff496d;--green:#4fe3ae;
+  --bg:#081120;--line:#334153;--gold:#ebc77b;--shadow:0 10px 25px #01050cc2;
+  min-height:100dvh;padding-top:max(24px,env(safe-area-inset-top,0px));
+  padding-bottom:max(22px,env(safe-area-inset-bottom,0px));
+  background:radial-gradient(ellipse 250px 280px at 105% 8%,#a4002a33 0%,transparent 78%),
+             radial-gradient(ellipse 250px 320px at -25% 78%,#9d032b28 0%,transparent 80%),
+             linear-gradient(156deg,#081523,#050b16 58%,#0b111f)!important;
+}
+.revision-crimson .shell{background:transparent!important;min-height:100dvh!important}
+.revision-crimson main{background:transparent!important;max-width:1120px;padding:12px 14px 110px!important}
+.revision-crimson .sidebar{background:linear-gradient(110deg,#08131f 0%,#091725 68%,#260b19 100%)!important;border-color:#394253!important;
+  box-shadow:0 3px 18px #0008!important;position:relative;overflow:visible}
+.revision-crimson .sidebar:before{content:"";position:absolute;pointer-events:none;right:-2px;top:0;width:36%;height:100%;
+  background:linear-gradient(145deg,transparent 28%,#e40d3c38 50%,transparent 53%);opacity:.75}
+.revision-crimson .brand{position:relative;z-index:1}
+.revision-crimson .brand .brandicon{width:42px!important;height:42px!important;border:1px solid #f64160!important;border-radius:13px!important;
+  background:linear-gradient(150deg,#ff4564,#960620 60%,#370817)!important;
+  box-shadow:inset 0 1px 0 #ffbcc680,0 4px 0 #18060b,0 0 18px #eb1d465c!important}
+.revision-crimson .brand .brandicon .icon-3d{filter:drop-shadow(0 0 6px #ffce77)!important}
+.revision-crimson .brandword b,.revision-crimson .brandword em{color:#f7f9ff!important}
+.revision-crimson .brandword b{font-size:15px!important;letter-spacing:-.3px!important}
+.revision-crimson .brandword small{font-size:8px!important;letter-spacing:1.5px!important;color:#c6c8d3!important}
+.revision-crimson .brandword mark{background:linear-gradient(180deg,#ffb1ba,#e62d50 55%,#8d0b27)!important;color:white!important;
+  border-radius:7px;box-shadow:0 2px 7px #de22424b,inset 0 1px #fff8!important}
+.revision-crimson .top{margin:0 0 13px!important;align-items:center!important}
+.revision-crimson .top .eyebrow{font-size:10px!important;letter-spacing:1.35px!important;color:#ecc679!important}
+.revision-crimson .top h1{font-size:26px!important;letter-spacing:-.75px!important;line-height:1.13!important;margin:5px 0 5px!important;color:#fafbff!important}
+.revision-crimson .title-period{color:#ff2f59!important;text-shadow:0 0 12px #f42b66aa}
+.revision-crimson .top .muted{color:#abb9ce!important;font-size:11px!important}
+.revision-crimson .theme-button{background:linear-gradient(#351727,#130d1b)!important;color:#ffd38b!important;border-color:#bd3552!important;
+  box-shadow:inset 0 1px #ff8c9a46,0 3px 0 #14040a,0 0 12px #e42a5265!important;border-radius:13px!important}
+/* The four frequently-used actions are available immediately on Home. */
+.revision-crimson .compact-tools-button{display:none!important}
+.revision-crimson .cloud-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;margin:5px 0 12px!important}
+.revision-crimson .cloud-actions.compact-tools-hidden,.revision-crimson .update-status.compact-tools-hidden{display:none!important}
+.revision-crimson .cloud-indicator,.revision-crimson .cloud-actions .btn{
+  min-width:0;min-height:56px!important;border-radius:17px!important;padding:9px 10px!important;font-weight:800!important;
+  font-size:11px!important;line-height:1.25!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 #040914,0 7px 14px #0009!important;
+}
+.revision-crimson .cloud-indicator{background:linear-gradient(160deg,#27354a,#101a2c 66%,#0c1323)!important;
+  border:1px solid #73829b!important;color:#e8f0fa!important;text-align:left!important}
+.revision-crimson .cloud-indicator.online{border-color:#30866f!important}
+.revision-crimson .cloud-actions .btn .icon-3d,.revision-crimson .cloud-indicator .icon-3d{width:29px!important;height:29px!important;filter:drop-shadow(0 0 5px #ffc87566)}
+.revision-crimson #cloudLogin{grid-column:auto!important;grid-row:auto!important;background:linear-gradient(160deg,#ff5775,#c10b31 56%,#590922)!important;
+  border:1px solid #ff5574!important;color:#fff!important;text-shadow:0 1px 2px #40091c!important;
+  box-shadow:inset 0 1px #ffc1ccaa,0 4px 0 #470a1d,0 7px 17px #ba17415e,0 0 12px #9e103b50!important}
+.revision-crimson #cloudLogout{grid-column:auto!important;grid-row:auto!important;background:linear-gradient(#32222c,#1b1626)!important;color:#ffd3dc!important}
+.revision-crimson .cloud-actions>.btn[onclick="downloadHistory()"],.revision-crimson .update-btn{
+  grid-column:auto!important;grid-row:auto!important;background:linear-gradient(156deg,#222d40,#0b1423 74%,#0d1422)!important;
+  border:1px solid #68758b!important;color:#f5f6fa!important;text-shadow:none!important}
+.revision-crimson .update-btn{border-color:#9c5970!important}
+.revision-crimson .update-status{background:linear-gradient(100deg,#171827,#111b29)!important;border:1px solid #ad8451!important;
+  border-radius:14px!important;color:#ead5b1!important;min-height:37px!important;padding:8px 12px!important;
+  font-size:10px!important;line-height:1.35!important;margin:6px 0 12px!important;box-shadow:inset 0 1px #f9cc8544,0 0 12px #b6633513}
+.revision-crimson .update-status .icon-3d{height:19px!important;width:19px!important}
+/* View navigation keeps revision inputs high in the viewport. */
+.revision-crimson:not(.view-summary) .cloud-actions,.revision-crimson:not(.view-summary) .update-status{display:none!important}
+.revision-crimson .selectors{gap:8px!important;margin:0 0 9px!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.revision-crimson .selectors .control{width:100%!important;min-width:0!important;flex-basis:auto!important;height:43px!important;min-height:43px!important;
+  border-radius:13px!important;padding:9px 11px!important;font-size:12px!important;
+  background:linear-gradient(160deg,#1d2a3a,#101828)!important;color:#f2f5fc!important;border:1px solid #6a7184!important;
+  box-shadow:inset 0 1px #ffffff1d,0 3px 8px #0006!important}
+.revision-crimson #revisionSelectors #when{grid-column:1/-1!important;flex-basis:auto!important}
+.revision-crimson .selectors .control::placeholder{color:#90a1bb!important}
+.revision-crimson #operatorSelector{margin:0 0 11px!important;display:flex!important}
+.revision-crimson #operatorSelector.hide{display:none!important}
+.revision-crimson .kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:11px 0 17px!important}
+.revision-crimson .kpis.hide{display:none!important}
+.revision-crimson .kpi{border-radius:14px!important;border:1px solid #505d73!important;padding:12px 4px 11px!important;
+  background:linear-gradient(150deg,#243247,#101825 78%)!important;box-shadow:inset 0 1px #ffffff24,0 6px 14px #0006!important}
+.revision-crimson .kpi:first-child{background:linear-gradient(155deg,#38202f,#190e1c 85%)!important;border-color:#8b334b!important;box-shadow:0 0 12px #961c3926!important}
+.revision-crimson .kpi:nth-child(2){background:linear-gradient(155deg,#1a3c37,#0c2325 85%)!important;border-color:#34705c!important}
+.revision-crimson .kpi .label{font-size:10px!important;color:#d4d7e1!important;line-height:1.2!important;white-space:normal!important}
+.revision-crimson .kpi .number{font-size:15px!important;color:#f4f5fc!important;margin-top:6px!important;font-weight:900!important}
+.revision-crimson .kpi .red{color:#ff6783!important}.revision-crimson .kpi .green{color:#4fe5b5!important}
+.revision-crimson .kpi .blue{color:#f7d17d!important}
+.revision-crimson .card,.revision-crimson .summarytile,.revision-crimson .rev-product,.revision-crimson .auth-card{
+  color:#eef2ff!important;border:1px solid #536077!important;border-radius:18px!important;
+  background:linear-gradient(145deg,#202e42,#0b1625 67%,#171827)!important;
+  box-shadow:inset 0 1px #ffffff20,0 7px 16px #000a!important}
+.revision-crimson h2,.revision-crimson #view-summary h2,.revision-crimson .summarytile strong,.revision-crimson .product-heading strong{color:#f8f9ff!important}
+.revision-crimson .desc,.revision-crimson .hint,.revision-crimson .muted,.revision-crimson .kpi .note{color:#a8b5c9!important}
+.revision-crimson .eyebrow,.revision-crimson .section-count{color:#f5c979!important}
+.revision-crimson #view-summary>.card{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}
+.revision-crimson #view-summary .sectionheading{margin:2px 0 10px!important;padding:0 2px!important}
+.revision-crimson #view-summary h2{font-size:19px!important;line-height:1.1!important;margin:0 0 4px!important}
+.revision-crimson #view-summary .sectionheading .desc{font-size:10px!important}
+.revision-crimson #view-summary .section-count{color:#f6cc80!important;background:linear-gradient(#442a29,#231923)!important;border:1px solid #bb8354!important;border-radius:10px!important}
+.revision-crimson .refresh-summary{height:39px!important;width:39px!important;min-width:39px!important;border-radius:12px!important;
+  background:linear-gradient(145deg,#352c2a,#18161c)!important;border:1px solid #b48a52!important;
+  box-shadow:inset 0 1px #ffe0a84a,0 3px 0 #0c0c13,0 5px 10px #0008!important}
+.revision-crimson .summarycards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.revision-crimson .summarytile{min-width:0!important;min-height:157px!important;display:grid!important;
+  grid-template-columns:41px minmax(0,1fr)!important;grid-template-rows:auto auto 1fr!important;
+  align-content:start;align-items:start;gap:7px 8px!important;padding:11px!important;position:relative!important;overflow:hidden}
+.revision-crimson .summarytile:after{content:"";position:absolute;inset:auto 0 0 0;height:3px;
+  background:linear-gradient(90deg,transparent,#ee375a99,transparent);pointer-events:none}
+.revision-crimson .summarytile .point-icon{grid-column:1!important;grid-row:1!important;width:39px!important;height:39px!important;
+  border-radius:12px!important;border:1px solid #9d745b66!important;box-shadow:0 3px 8px #0008!important}
+.revision-crimson .summarytile .point-info{grid-column:2!important;grid-row:1 / span 2!important;min-width:0!important;width:auto!important;}
+.revision-crimson .summarytile strong{font-size:12px!important;line-height:1.17!important;letter-spacing:-.2px!important;min-height:auto!important;overflow-wrap:anywhere}
+.revision-crimson .summarytile .hint{font-size:9px!important;margin-top:2px!important;line-height:1.25!important;min-height:auto!important}
+.revision-crimson .summarytile .numbers{display:flex!important;gap:8px!important;margin:9px 0 0!important;flex-wrap:nowrap!important;justify-content:flex-start}
+.revision-crimson .summarytile .numbers span{font-size:9px!important;color:#d4d8e5!important;white-space:nowrap}
+.revision-crimson .summarytile .numbers b{font-size:12px!important;margin:3px 0 0!important;color:#f8f8ff!important}
+.revision-crimson .summarytile .numbers b.red{color:#ff557e!important}.revision-crimson .summarytile .numbers b.green{color:#51dcb0!important}
+.revision-crimson .summarytile .point-open{grid-column:1 / -1!important;grid-row:3!important;align-self:end!important;
+  width:100%!important;min-height:34px!important;padding:6px 4px!important;font-size:11px!important;font-weight:850!important;
+  border:1px solid #ed5d78!important;border-radius:10px!important;background:linear-gradient(#71283c,#360f20)!important;
+  color:#fff5f6!important;text-shadow:none!important;box-shadow:inset 0 1px #ffd0d488,0 2px 0 #180913,0 4px 10px #a8214655!important}
+.revision-crimson .btn,.revision-crimson .auth-card button{background:linear-gradient(155deg,#293449,#121b2b)!important;
+  border:1px solid #65718a!important;color:#f1d29e!important;border-radius:12px!important}
+.revision-crimson .btn.main{background:linear-gradient(160deg,#ff5978,#c71339 55%,#590e24)!important;color:#fff!important;border-color:#f25375!important;box-shadow:inset 0 1px #ffc5d1aa,0 4px 0 #3b0618,0 8px 16px #a40e3655!important}
+.revision-crimson .control,.revision-crimson .numinput,.revision-crimson .rev-field input{background:#0e1a2b!important;color:#f5f7fd!important;border-color:#4b596f!important}
+.revision-crimson .control::placeholder,.revision-crimson .numinput::placeholder,.revision-crimson .rev-field input::placeholder{color:#788da7!important}
+.revision-crimson .rev-product{background:linear-gradient(135deg,#202b40,#0e192a)!important;border-color:#4c5871!important;margin:0 0 8px!important}
+.revision-crimson .rev-product[open]{border-color:#ac3c57!important;box-shadow:0 4px 15px #a4143533!important}
+.revision-crimson .rev-product summary{min-height:59px!important}
+.revision-crimson .product-icon{background:linear-gradient(#392531,#1b1726)!important;border-color:#ad6270!important}
+.revision-crimson .product-heading small,.revision-crimson .product-total small{color:#acbad1!important}
+.revision-crimson .product-total{color:#ff607e!important}
+.revision-crimson .rev-product-fields{border-color:#404c63!important}
+.revision-crimson .rev-field label{color:#c1c9d8!important}
+.revision-crimson .rev-product-summary{background:#361b2e!important;color:#ffbbc9!important;border:1px solid #5e2c43}
+.revision-crimson .rev-advanced summary,.revision-crimson .rev-help summary{color:#f3bd82!important}
+.revision-crimson .warning,.revision-crimson .notearea{background:#292332!important;border-color:#725063!important;color:#e7c2cc!important}
+.revision-crimson .historyitem{background:linear-gradient(145deg,#273247,#152032)!important;border-color:#4c5970!important}
+.revision-crimson .auth-card input{background:#101b2c!important;color:#fff!important;border-color:#57677e!important}
+.revision-crimson .auth-card .shield{background:#123b33!important;color:#b9f1d7!important}
+.revision-crimson .toast{background:#54152c!important;color:#fff!important}
+.revision-crimson #view-history th,.revision-crimson #view-products th{background:#253247!important;color:#dfc39c!important}
+.revision-crimson #view-history td,.revision-crimson #view-products td{border-color:#344359!important}
+.revision-crimson .menu{background:linear-gradient(145deg,#111c2e,#070e1a)!important;border:1px solid #596175!important;
+  box-shadow:0 10px 25px #000d,inset 0 1px #ffffff1b!important;backdrop-filter:blur(14px)}
+.revision-crimson .menu button{color:#c3cede!important;border:1px solid transparent!important;border-radius:15px!important}
+.revision-crimson .menu button:not(.active) .icon-3d{filter:drop-shadow(0 0 5px #e6bd6866)!important}
+.revision-crimson .menu button.active{background:linear-gradient(155deg,#ff526d,#bc0d35 53%,#580b22)!important;
+  border-color:#ff6b85!important;color:white!important;
+  box-shadow:inset 0 1px #ffb7c3aa,0 3px 0 #55051a,0 5px 18px #be1d486e,0 0 9px #d41c4f80!important}
+.revision-crimson .menu button.active .menu-label{color:#fff!important}
+.revision-crimson .menu button.active .icon-3d{filter:drop-shadow(0 0 7px #ffe2a2)!important}
+@media(max-width:600px){
+ .revision-crimson .sidebar{padding:10px 13px 9px!important}
+ .revision-crimson .brand{gap:10px!important}
+ .revision-crimson main{padding:11px 13px 110px!important}
+ .revision-crimson .summarytile{min-height:166px!important;padding:10px!important}
+ .revision-crimson .summarytile .point-icon{width:38px!important;height:38px!important}
+ .revision-crimson .summarytile .point-info{min-width:0!important}
+ .revision-crimson .summarytile strong{font-size:11.5px!important}
+ .revision-crimson .summarytile .numbers{gap:7px!important}
+ .revision-crimson .summarytile .numbers span{font-size:8.5px!important}
+ .revision-crimson .summarytile .numbers b{font-size:11px!important}
+ .revision-crimson .cloud-actions .btn,.revision-crimson .cloud-indicator{min-height:58px!important;font-size:10.5px!important}
+ .revision-crimson .cloud-actions .btn .icon-3d{width:27px!important;height:27px!important}
+ .revision-crimson .menu{bottom:max(34px,calc(env(safe-area-inset-bottom,0px) + 8px))!important;left:9px!important;right:9px!important;padding:5px!important}
+ .revision-crimson .menu button{min-height:53px!important}
+ .revision-crimson #revisionSelectors .control{flex-basis:auto!important}
+ .revision-crimson #revisionSelectors #when{flex-basis:auto!important}
+ .revision-crimson #view-revision #rows tr{background:none!important;border:0!important;padding:0!important}
+ .revision-crimson #view-revision #rows td::before{display:none!important}
+}
+@media(max-width:360px){.revision-crimson .summarytile .numbers{display:block!important}.revision-crimson .summarytile{min-height:173px!important}.revision-crimson .brandword b{font-size:13px!important}}
+@media print{body.revision-crimson{background:#fff!important;color:#000!important}.revision-crimson .menu,.revision-crimson .cloud-actions,.revision-crimson .update-status,.revision-crimson .theme-button{display:none!important}}
+/* Final visual pass: exact four-action dashboard; avoid revealing hidden auth controls. */
+.revision-crimson #cloudLogin.hide,.revision-crimson #cloudLogout.hide{display:none!important}
+.revision-crimson.view-summary #revisionSelectors{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin-bottom:7px!important}
+.revision-crimson.view-summary #revisionSelectors .control{min-height:39px!important;height:39px!important;font-size:10.5px!important;padding:7px 7px!important}
+.revision-crimson.view-summary #revisionSelectors #when{grid-column:auto!important}
+.revision-crimson.view-summary .cloud-actions .btn,.revision-crimson.view-summary .cloud-indicator{min-height:52px!important;height:52px!important}
+.revision-crimson.view-summary .kpis{margin:9px 0 12px!important}
+.revision-crimson.view-summary .kpi{padding:9px 2px!important}
+.revision-crimson.view-summary .summarytile{min-height:144px!important;gap:5px 8px!important}
+.revision-crimson.view-summary .summarytile .point-open{min-height:32px!important}
+@media(max-width:600px){
+ .revision-crimson.view-summary #revisionSelectors #when{flex-basis:auto!important}
+ .revision-crimson.view-summary .summarytile{min-height:145px!important}
+ .revision-crimson.view-summary .summarytile .point-icon{width:34px!important;height:34px!important}
+ .revision-crimson.view-summary .summarytile{grid-template-columns:35px minmax(0,1fr)!important}
+}
+
+</style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
  <linearGradient id="revSilver" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset=".40" stop-color="#9daec8"/><stop offset=".7" stop-color="#546785"/><stop offset="1" stop-color="#cad7e9"/></linearGradient>
@@ -519,8 +708,8 @@ body.revision-compact.theme-blue{--bg:#0d1a2c;background:#101b2d!important;color
 </defs></svg>
 
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
-<main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Склад + полуфабрикаты · контроль по 4 точкам</div></div><button type="button" class="theme-button" id="themeToggleRevision" onclick="toggleRevisionTheme()" aria-label="Переключить бело-красную и тёмно-синюю темы" title="Сменить тему">◐</button></div>
-<button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false">⚙ Сервис и обновления <span>▾</span></button><div class="cloud-actions compact-tools-hidden" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status compact-tools-hidden" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
+<main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Склад + полуфабрикаты · контроль по 4 точкам</div></div><button type="button" class="theme-button" id="themeToggleRevision" onclick="toggleRevisionTheme()" aria-label="Переключить тёмную красную и белую темы" title="Сменить тему">◐</button></div>
+<button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false">⚙ Сервис и обновления <span>▾</span></button><div class="cloud-actions" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
 <div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
 <div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="clearForm()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning">Учётные значения вводятся вручную. Без входа в облако история остаётся только на этом устройстве.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
@@ -713,7 +902,7 @@ async function addProduct(){
  if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
  state.products.push(n);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
 }
-function go(view,button){active=view;$('revisionSelectors').classList.toggle('hide',view==='summary');$('operatorSelector').classList.toggle('hide',view==='summary');$('revisionKPIs').classList.toggle('hide',view==='summary');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
+function go(view,button){active=view;document.body.classList.toggle('view-summary',view==='summary');document.body.classList.toggle('view-revision',view==='revision');$('revisionSelectors').classList.toggle('hide',view==='history'||view==='products');$('operatorSelector').classList.toggle('hide',view!=='revision');$('revisionKPIs').classList.toggle('hide',view==='history'||view==='products');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
 function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
 function csvSave(data,name){const csv='\ufeff'+data.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');if(window.FarukhAndroid&&typeof window.FarukhAndroid.saveCsv==='function'){window.FarukhAndroid.saveCsv(name,btoa(unescape(encodeURIComponent(csv))));return}const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 function downloadHistory(){
@@ -731,7 +920,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.3.2';
+const FARUKH_UI_RELEASE='0.3.3';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -769,9 +958,9 @@ const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творо�
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
 function toggleRevisionTheme(){
- const dark=document.body.classList.toggle('theme-blue');
- document.body.classList.toggle('revision-white-red',!dark);
- try{localStorage.setItem('farukh-revision-compact-theme-v030',dark?'dark':'light')}catch{}
+ const light=document.body.classList.toggle('revision-white-red');
+ document.body.classList.toggle('revision-crimson',!light);
+ try{localStorage.setItem('farukh-revision-theme-v033',light?'light':'crimson')}catch{}
 }
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
@@ -885,7 +1074,7 @@ const exportAllHistory=()=>{
 downloadHistory=function(){const rows=exportAllHistory();if(rows.length===1){notice('История пока пустая');return}csvSave(rows,'farukh-revision-history.csv')};
 exportHistory=function(){const rows=exportAllHistory();const filtered=[rows[0],...rows.slice(1).filter(row=>row[0]===currentStore())];if(filtered.length===1){notice('История пока пустая');return}csvSave(filtered,'farukh-revision-history.csv')};
 // Switch theme persisted across app upgrades. Keep initial three items if legacy pilot had five.
-try{if(localStorage.getItem('farukh-revision-compact-theme-v030')==='dark'){document.body.classList.add('theme-blue');document.body.classList.remove('revision-white-red')}}catch{}
+try{if(localStorage.getItem('farukh-revision-theme-v033')==='light'){document.body.classList.add('revision-white-red');document.body.classList.remove('revision-crimson')}}catch{}
 try{if(!localStorage.getItem('farukh-revision-visible-products-v030'))state.products=DEFAULT_PRODUCTS.slice()}catch{state.products=DEFAULT_PRODUCTS.slice()}
 renderRows();renderSummary();
 
