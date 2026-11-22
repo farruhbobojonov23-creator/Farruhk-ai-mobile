@@ -1,18 +1,29 @@
-/* MORE SUSHI — one lightweight UI helper for the Ruby White theme.
-   Tab navigation, cloud and updates remain in their established modules. */
+/* MORE SUSHI — one lightweight Ruby White UI helper.
+   Full navigation, cloud auth and updates remain in their stable modules. */
 (()=>{
  'use strict';
- const openMore=document.getElementById('appInfo');
- openMore?.addEventListener('click',()=>{
+ document.getElementById('appInfo')?.addEventListener('click',()=>{
   document.querySelector('.bottomnav [data-mss-tab="more"]')?.click();
  });
- // Keeps active tab accessibility labels in sync with ocean-categories.js.
+ const home=document.getElementById('mss-home');
+ const grid=home?.querySelector('.mss-feature-grid');
  const nav=document.querySelector('.bottomnav');
- if(nav){nav.addEventListener('click',event=>{
-   const target=event.target.closest('[data-mss-tab]');
-   if(!target)return;
-   nav.querySelectorAll('[data-mss-tab]').forEach(el=>{
-     el.setAttribute('aria-pressed',String(el===target));
-   });
- });}
+ if(!home||!grid||!nav)return;
+ let pending=false;
+ function sync(){
+  pending=false;
+  document.documentElement.classList.remove('ruby-home-fixed');
+  if(home.hidden)return;
+  // Never clip the bottom row on small screens, large fonts or landscape.
+  const gap=nav.getBoundingClientRect().top-grid.getBoundingClientRect().bottom;
+  if(gap>=9&&innerHeight>=690){
+   document.documentElement.classList.add('ruby-home-fixed');
+  }
+ }
+ function schedule(){if(pending)return;pending=true;requestAnimationFrame(sync)}
+ new MutationObserver(schedule).observe(home,{attributes:true,attributeFilter:['hidden']});
+ addEventListener('resize',schedule,{passive:true});
+ addEventListener('orientationchange',schedule,{passive:true});
+ if(document.fonts?.ready)document.fonts.ready.then(schedule).catch(()=>{});
+ schedule();
 })();
