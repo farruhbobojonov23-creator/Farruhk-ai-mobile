@@ -1,0 +1,97 @@
+/* MORE SUSHI STUDIO PRO · OCEAN 4.0.3 · Mobile screenshot quality fixes
+ * The three screenshots show an in-flow wave strip floating halfway up the
+ * page on TTK, PDF, and MORE; it changes location with the card count.
+ * This file visually docks the sea to the bottom edge, and makes live text
+ * readable. Screen-only: existing TTK/PDF/cloud logic is untouched. */
+@media screen{
+  /* Remove the old content-flow wave. Its position depended on how many
+     category cards were shown and left a large empty ocean below. */
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app::after{
+    content:none!important;
+    display:none!important;
+  }
+  /* Continuous sea footer behind the fixed nav — one stable position in
+     TTK / Catalog / PDF / More, regardless of the category card count. */
+  html[data-mss-tab]:not([data-mss-tab="home"]) body::after{
+    content:"";
+    position:fixed;
+    z-index:0;
+    pointer-events:none;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:calc(65px + env(safe-area-inset-bottom));
+    width:min(100vw,540px);
+    height:clamp(66px,16vw,95px);
+    background:
+      url('./o40_waves.webp?v=4') center bottom / 100% 145% no-repeat;
+    opacity:.9;
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 36%,#000 100%);
+    mask-image:linear-gradient(to bottom,transparent 0%,#000 36%,#000 100%);
+  }
+  /* Keep actual content above the decorative sea. It remains scrollable
+     on the four interior tabs, unlike the fit-to-screen home tab. */
+  html[data-mss-tab]:not([data-mss-tab="home"]) body>.wrap{
+    position:relative;
+    z-index:1;
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app{
+    margin-bottom:0!important;
+  }
+  /* PDF subtitles were touching the red corner arrow. Do not make a
+     label look cut off or cramped: allow two lines and reserve padding. */
+  html[data-mss-tab="pdf"] #mss-pdf .mss-card{
+    min-height:158px!important;
+    padding-bottom:20px!important;
+  }
+  html[data-mss-tab="pdf"] #mss-pdf .mss-card small{
+    display:block!important;
+    box-sizing:border-box;
+    width:calc(100% - 42px)!important;
+    max-width:calc(100% - 42px)!important;
+    margin:2px auto 0!important;
+    padding:0 2px!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;
+    text-wrap:balance;
+    text-align:center!important;
+    line-height:1.3!important;
+  }
+  /* TTK "Шаблоны" is full width. The previous two auto-sized grid rows
+     expanded apart and made the title float far above its subtitle. */
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd){
+    grid-template-rows:min-content min-content!important;
+    row-gap:5px!important;
+    align-content:center!important;
+    align-items:center!important;
+    justify-items:start!important;
+    min-height:107px!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>strong{
+    align-self:end!important;
+    line-height:1.16!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>small{
+    align-self:start!important;
+    line-height:1.25!important;
+  }
+  /* Preserve a sober, readable footer on narrow screens as well. */
+  html[data-mss-tab]:not([data-mss-tab="home"]) .bottomnav{
+    z-index:25!important;
+  }
+}
+@media screen and (max-width:360px){
+  html[data-mss-tab="pdf"] #mss-pdf .mss-card small{
+    width:calc(100% - 32px)!important;
+    max-width:calc(100% - 32px)!important;
+    font-size:10px!important;
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) body::after{
+    bottom:calc(62px + env(safe-area-inset-bottom));
+  }
+}
+@media print{
+  html[data-mss-tab]:not([data-mss-tab="home"]) body::after{
+    content:none!important;
+    display:none!important;
+  }
+}
