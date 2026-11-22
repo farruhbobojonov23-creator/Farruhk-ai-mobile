@@ -1,91 +1,96 @@
-/* MORE SUSHI STUDIO PRO: manual refresh of web content inside the installed APK.
-   Refreshes HTML from Render without clearing credentials, locally saved content or
-   Supabase documents. Native Android binary updates require a separately signed APK. */
+/* MORE SUSHI STUDIO PRO · manual, version-verified WEB interface updates.
+   Never treats a plain reload as an update; never clears local data or credentials.
+   Native APK updates require a separate Android signed release. */
 (function(){
-  'use strict';
-  const KEY='more-sushi-web-refreshed-at-v1';
-  const MAX_MS=12000;
-  let busy=false;
-  let note=null;
+ 'use strict';
+ const STORAGE_KEY='more-sushi-refresh-result-v2';
+ const TIMEOUT=12000;
+ const BUILD=document.querySelector('meta[name="mss-ui-build"]')?.content||'unknown';
+ const VERSION_URL=new URL('./ocean-ui-version.json',document.baseURI);
+ let busy=false;
+ let note=null;
 
-  function toast(message,kind){
-    if(!note){
-      note=document.createElement('div');
-      note.className='ocean-refresh-toast';
-      note.setAttribute('role','status');
-      note.setAttribute('aria-live','polite');
-      document.body.appendChild(note);
-    }
-    note.classList.remove('error');
-    if(kind==='error')note.classList.add('error');
-    note.textContent=message;
-    note.classList.add('visible');
-    window.clearTimeout(note._tid);
-    note._tid=setTimeout(()=>note.classList.remove('visible'),3400);
-  }
+ function toast(message,isError=false){
+   if(!note){
+     note=document.createElement('div');
+     note.className='ocean-refresh-toast';
+     note.setAttribute('role','status');
+     note.setAttribute('aria-live','polite');
+     document.body.appendChild(note);
+   }
+   note.textContent=message;
+   note.classList.toggle('error',!!isError);
+   note.classList.add('visible');
+   clearTimeout(note._tid);
+   note._tid=setTimeout(()=>note.classList.remove('visible'),4000);
+ }
 
-  function updateButtons(working){
-    document.querySelectorAll('[data-ocean-refresh]').forEach(function(button){
-      button.disabled=working;
-      button.classList.toggle('refreshing',working);
-      button.setAttribute('aria-busy',String(working));
-    });
-  }
-
-  async function checkAndRefresh(){
-    if(busy)return;
-    busy=true;
-    updateButtons(true);
-    toast('Проверяем обновления на сервере…');
-    const next=new URL(window.location.href);
-    next.searchParams.set('_fresh',String(Date.now()));
-    const abort=new AbortController();
-    const timer=setTimeout(()=>abort.abort(),MAX_MS);
-    try{
-      const response=await fetch(next.href,{
-        cache:'no-store',
-        credentials:'same-origin',
-        redirect:'follow',
-        signal:abort.signal,
-        headers:{'Cache-Control':'no-cache'}
-      });
-      if(!response.ok || !response.headers.get('content-type')?.toLowerCase().includes('text/html'))
-        throw new Error('Сервер не вернул страницу');
-      // Never delete localStorage, cookies or the user's saved recipes.
-      // Existing editor beforeunload hook will warn about unsaved work.
-      sessionStorage.setItem(KEY,String(Date.now()));
-      toast('Обновление найдено. Загружаем свежую версию…');
-      window.location.assign(next.href);
-      // If user cancels an unsaved-changes navigation, keep the button operable.
-      setTimeout(function(){
-        busy=false;
-        updateButtons(false);
-      },2400);
-    }catch(error){
-      toast('Нет связи с сервером. Данные сохранены, попробуй позже.', 'error');
-      busy=false;
-      updateButtons(false);
-    }finally{
-      clearTimeout(timer);
-    }
-  }
-
-  document.addEventListener('click',function(event){
-    const btn=event.target.closest('[data-ocean-refresh]');
-    if(!btn)return;
-    event.preventDefault();
-    checkAndRefresh();
-  });
-
-  function showLastRefresh(){
-    try{
-      const last=Number(sessionStorage.getItem(KEY)||0);
-      if(last>0 && Date.now()-last<16000)toast('Готово! Загружена свежая версия MORE SUSHI STUDIO.');
-      if(last)sessionStorage.removeItem(KEY);
-    }catch{}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showLastRefresh);
-  else showLastRefresh();
-
-  window.MoreSushiWebRefresh=checkAndRefresh;
+ function controls(working){
+   document.querySelectorAll('[data-ocean-refresh]').forEach(btn=>{
+     btn.disabled=working;
+     btn.classList.toggle('refreshing',working);
+     btn.setAttribute('aria-busy',String(working));
+   });
+ }
+ async function latestBuild(signal){
+   const url=new URL(VERSION_URL.href);
+   url.searchParams.set('_check',String(Date.now()));
+   const response=await fetch(url,{cache:'no-store',signal,headers:{'Cache-Control':'no-cache'}});
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   const data=await response.json();
+   if(!data||typeof data.build!=='string'||!/^[a-z0-9][a-z0-9._-]{5,99}$/i.test(data.build))
+     throw new Error('Некорректная версия');
+   return data;
+ }
+ async function checkAndRefresh(){
+   if(busy)return;
+   busy=true;
+   controls(true);
+   const controller=new AbortController();
+   const timer=setTimeout(()=>controller.abort(),TIMEOUT);
+   toast('Проверяем новую версию студии…');
+   try{
+     const latest=await latestBuild(controller.signal);
+     if(latest.build===BUILD){
+       document.querySelectorAll('[data-ocean-refresh]').forEach(btn=>{
+         btn.classList.remove('update-available');
+         const label=btn.querySelector('.ocean-refresh-label')||btn.querySelector('.refresh-symbol + span');
+         if(label)label.textContent='Обновить';
+       });
+       toast('Установлена актуальная версия интерфейса ✓');
+       return;
+     }
+     // This is a web UI update, not a native Android APK installation.
+     toast('Новая версия найдена! Загружаем интерфейс…');
+     const next=new URL(location.href);
+     next.searchParams.set('_fresh',String(Date.now()));
+     try{sessionStorage.setItem(STORAGE_KEY,JSON.stringify({target:latest.build,time:Date.now()}))}catch{}
+     window.location.assign(next.href); // browser confirms if the editor has unsaved work
+   }catch(error){
+     toast('Не удалось проверить обновления. Проверь интернет.',true);
+   }finally{
+     clearTimeout(timer);
+     // If the user cancels a navigation confirmation, the button remains usable.
+     setTimeout(()=>{busy=false;controls(false)},850);
+   }
+ }
+ function showConfirmedRefresh(){
+   try{
+     const raw=sessionStorage.getItem(STORAGE_KEY);
+     if(!raw)return;
+     sessionStorage.removeItem(STORAGE_KEY);
+     const result=JSON.parse(raw);
+     if(result.target===BUILD&&Date.now()-result.time<120000)
+       toast('Интерфейс MORE SUSHI STUDIO обновлён ✓');
+   }catch{}
+ }
+ document.addEventListener('click',event=>{
+   const button=event.target.closest('[data-ocean-refresh]');
+   if(!button)return;
+   event.preventDefault();
+   checkAndRefresh();
+ });
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showConfirmedRefresh,{once:true});
+ else showConfirmedRefresh();
+ window.MoreSushiWebRefresh=checkAndRefresh;
 })();
