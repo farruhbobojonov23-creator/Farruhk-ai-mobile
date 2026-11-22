@@ -1,0 +1,128 @@
+/* MORE SUSHI STUDIO PRO — OCEAN 4.0.2 SCREEN HOTFIX
+   Based on actual Xiaomi screenshots 56328, 56326, 56325, 56324:
+   - remove straight horizontal line baked into ocean wave image
+   - remove duplicate ghost text from title backgrounds
+   - restore readable 3D nav labels
+   - balance odd number of TTK cards.
+   Screen-only: TTK data, authentication and A4/PDF untouched. */
+@media screen{
+  /* The source o40_waves.webp includes the border of a different card
+     at its upper edge. Crop that source edge by oversizing its background;
+     soften the new leading edge into the page rather than drawing a line. */
+  html[data-mss-tab="home"] .approved-water-band{
+    background-image:url('./o40_waves.webp?v=4')!important;
+    background-size:100% 145%!important;
+    background-position:center bottom!important;
+    background-repeat:no-repeat!important;
+    border:0!important;outline:0!important;
+    box-shadow:none!important;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 25%,#000 100%);
+    mask-image:linear-gradient(180deg,transparent 0%,#000 25%,#000 100%);
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app:after{
+    background-image:url('./o40_waves.webp?v=4')!important;
+    background-size:100% 145%!important;
+    background-position:center bottom!important;
+    background-repeat:no-repeat!important;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 100%);
+    mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 100%);
+    filter:saturate(1.04)!important;
+  }
+  /* The previous 4.0 title used the full screenshot-in-a-picture:
+     text 'Создавай идеальные ТТК' was visible behind the section title.
+     Swap ONLY that decorative background for whale-only art. */
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title{
+    background-image:
+      linear-gradient(99deg,#043259f7 0%,#064e7ce4 50%,#0759859e 100%),
+      url('./ocean_hero_whale.webp?v=3.3')!important;
+    background-repeat:no-repeat!important;
+    background-position:center,94% 52%!important;
+    background-size:cover,auto 270%!important;
+    isolation:isolate;
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title:before{
+    opacity:.29!important;pointer-events:none!important;
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title h2,
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-panel .mss-title p{
+    position:relative;z-index:1;color:#fff!important;
+    text-shadow:0 2px 4px #002c4f!important;
+  }
+  /* Navigation labels currently fade to navy on navy for inactive tabs. */
+  html[data-mss-tab] .bottomnav .navitem:not(.active){
+    opacity:1!important;filter:none!important;
+    color:#f0fbff!important;
+    -webkit-text-fill-color:#f0fbff!important;
+    text-shadow:0 1px 3px #011b35!important;
+  }
+  html[data-mss-tab] .bottomnav .navitem.active{
+    opacity:1!important;
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+    text-shadow:0 1px 3px #4b1130!important;
+  }
+  html[data-mss-tab] .bottomnav .navitem svg{
+    opacity:1!important;
+    filter:drop-shadow(0 2px 3px #00365fbb)!important;
+  }
+  /* The fifth TTK card was stranded in the left column while the
+     second half of the row stayed empty. Use a spacious full-width card. */
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd){
+    grid-column:1 / -1!important;
+    min-height:112px!important;
+    flex-direction:row!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    gap:15px!important;
+    padding:13px 22px!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>.mss-ico{
+    flex:none!important;margin:0!important;
+    width:72px!important;height:66px!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd) strong{
+    margin:0!important;
+    font-size:clamp(14px,3.8vw,17px)!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd) small{
+    margin:0!important;
+    font-size:clamp(10px,2.8vw,12px)!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd){
+    display:grid!important;
+    grid-template-columns:72px 1fr 28px;
+    grid-template-rows:auto auto;
+    align-content:center!important;
+    column-gap:14px!important;row-gap:3px!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>.mss-ico{
+    grid-column:1;grid-row:1 / span 2;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>strong{
+    grid-column:2;grid-row:1;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>small{
+    grid-column:2;grid-row:2;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>.mss-arrow{
+    grid-column:3;grid-row:1 / span 2;position:static!important;
+    justify-self:center;align-self:center;
+  }
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-card:focus-visible{
+    outline:3px solid #ffe6a5!important;outline-offset:3px!important;
+  }
+}
+@media screen and (max-width:360px){
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd){
+    grid-template-columns:58px 1fr 27px;
+    column-gap:9px!important;padding:10px 12px!important;
+  }
+  html[data-mss-tab="ttk"] #mss-ttk .mss-grid>.mss-card:last-child:nth-child(odd)>.mss-ico{
+    width:56px!important;height:55px!important;
+  }
+}
+@media print{
+  html[data-mss-tab="home"] .approved-water-band,
+  html[data-mss-tab]:not([data-mss-tab="home"]) .mss-category-app:after{
+    display:none!important;
+  }
+}
