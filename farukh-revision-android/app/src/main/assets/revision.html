@@ -393,7 +393,7 @@ body.android-premium{
 @media(prefers-reduced-motion:reduce){.android-premium *{transition:none!important;animation:none!important}}
 
 
-/* v0.3.0 FARUKH REVISION COMPACT — white/red premium, preserves all functional modules */
+/* v0.3.1 FARUKH REVISION COMPACT — white/red premium, preserves all functional modules */
 html,body,body.android-premium.revision-compact{background:#f6f4f5!important;color:#242431;color-scheme:light}
 body.revision-compact{--ink:#252633;--sub:#777782;--bg:#f6f4f5;--red:#d62d49;--green:#148762;--gold:#d62d49;font-size:13px;padding-top:max(30px,env(safe-area-inset-top,0px));padding-bottom:max(34px,env(safe-area-inset-bottom,0px))}
 .revision-compact .shell{background:transparent!important;min-height:calc(100dvh - 64px)!important}
@@ -639,10 +639,7 @@ const KEY='farukh-revision-demo-v1';
 let state;
 try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
 if(!state || !Array.isArray(state.products) || !Array.isArray(state.history)){state={products:DEFAULT_PRODUCTS.slice(),history:[]}}
-try{if(!sessionStorage.getItem('rev-compact-v030-session')){
-   state.products=JSON.parse(localStorage.getItem('farukh-revision-visible-products-v030')||'null')||DEFAULT_PRODUCTS.slice();
-   sessionStorage.setItem('rev-compact-v030-session','1');
- }}catch{state.products=DEFAULT_PRODUCTS.slice();}
+try{state.products=JSON.parse(localStorage.getItem('farukh-revision-visible-products-v030')||'null')||DEFAULT_PRODUCTS.slice()}catch{state.products=DEFAULT_PRODUCTS.slice()}
 let draft={}; let active='revision';
 const $=id=>document.getElementById(id), safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
@@ -734,7 +731,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.3.0';
+const FARUKH_UI_RELEASE='0.3.1';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
