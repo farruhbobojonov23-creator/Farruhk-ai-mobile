@@ -893,6 +893,16 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 }
 @media print{.revision-crimson .rev-empty-tracks{display:none!important}}
 
+
+/* FARUKH REVISION 0.4.0 — only functional workflow controls added; Crimson Premium unchanged. */
+.revision-crimson .rev-summary-actions{display:flex;gap:7px;align-items:center;flex-shrink:0}
+.revision-crimson .rev-export-points{width:55px;min-width:55px;justify-content:center}
+.revision-crimson .rev-export-points span{font-size:10px}
+.revision-crimson .rev-export-points{display:inline-flex!important;align-items:center!important;gap:7px!important;margin:0!important;padding:7px 13px!important;min-height:40px!important;border-radius:11px!important;font-size:11px!important;box-shadow:inset 0 1px #ffe7b23d,0 3px 0 #111827,0 6px 13px #0009!important}
+.revision-crimson .rev-export-points .icon-3d{height:21px!important;width:21px!important}
+.revision-crimson .rev-history-breakdown{font-size:10px;color:#aabbcf;margin-top:3px;line-height:1.35;display:block}
+@media(max-width:375px){.revision-crimson .rev-export-points{font-size:10px!important;min-height:38px!important}}
+@media print{.revision-crimson .rev-export-points{display:none!important}}
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
@@ -919,7 +929,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 <button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false">⚙ Сервис и обновления <span>▾</span></button><div class="cloud-actions" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
 <div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
-<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="clearForm()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning">Учётные значения вводятся вручную. Без входа в облако история остаётся только на этом устройстве.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
+<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><div class="rev-summary-actions"><button type="button" class="btn rev-export-points" onclick="downloadPointsSummary()" aria-label="Скачать CSV-сводку по четырём точкам" title="Скачать CSV-сводку по четырём точкам"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>CSV</span></button><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="confirmClearDraft()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning" id="draftSaveInfo">Ввод сохраняется автоматически на этом устройстве. Учётные остатки вводятся вручную; облачная история доступна после входа.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
 <aside><details class="card rightspace rev-help"><summary><strong>ⓘ Как проводить ревизию</strong></summary><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. Запиши эти же значения в учётной системе.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, сверь учётные остатки с фактическим весом.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></details><div class="card recent-audits"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
 <div class="card hide" id="view-history"><div class="sectionheading"><div><h2>История ревизий</h2><div class="desc">Для выбранной торговой точки, новые сверху</div></div><button class="btn soft" onclick="exportHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>Скачать историю CSV</button></div><div id="allhistory"></div></div>
 <div class="card hide" id="view-products"><h2>Основные контрольные продукты</h2><div class="desc">Продукты используются для всех четырёх точек. Ранее сохранённые ревизии не изменяются.</div><div class="tablewrap" style="margin-top:18px"><table style="min-width:400px"><thead><tr><th>Продукт</th><th>Учетная единица</th><th>Действие</th></tr></thead><tbody id="productsrows"></tbody></table></div><div class="row" style="margin-top:18px"><input id="newproduct" class="control" placeholder="Название продукта"><button class="btn main" onclick="addProduct()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-add"></use></svg>Добавить продукт</button></div></div>
@@ -1101,13 +1111,13 @@ function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?al
 function renderProducts(){$('productsrows').innerHTML=state.products.map(p=>`<tr><td class="itemname">${safe(p)}</td><td>килограмм (кг)</td><td><button class="btn danger" data-delete="${safe(p)}"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-trash"></use></svg>Удалить</button></td></tr>`).join('');document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Удалить продукт «'+b.dataset.delete+'» из будущих ревизий?'))return;deleteProduct(b.dataset.delete)})}
 async function deleteProduct(name){
  if(cloudEnabled){try{await rest('revision_products',{method:'PATCH',query:'?name=eq.'+encodeURIComponent(name),body:{active:false}})}catch(err){notice('Не удалено: '+err.message);return}}
- state.products=state.products.filter(p=>p!==name);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();clearForm();renderProducts();notice('Позиция скрыта для новых ревизий');
+ state.products=state.products.filter(p=>p!==name);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();renderRows();renderProducts();notice('Позиция скрыта для новых ревизий');
 }
 async function addProduct(){
  const n=$('newproduct').value.trim();if(n.length<2||n.length>60){notice('Название: от 2 до 60 символов');return}
  if(state.products.some(p=>p.toLowerCase()===n.toLowerCase())){notice('Такой продукт уже есть');return}
  if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
- state.products.push(n);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
+ state.products.push(n);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();$('newproduct').value='';renderProducts();renderRows();notice('Продукт добавлен');
 }
 function go(view,button){active=view;document.body.classList.toggle('view-summary',view==='summary');document.body.classList.toggle('view-revision',view==='revision');$('revisionSelectors').classList.toggle('hide',view==='history'||view==='products');$('operatorSelector').classList.toggle('hide',view!=='revision');$('revisionKPIs').classList.toggle('hide',view==='history'||view==='products');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary();window.scrollTo(0,0)}
 function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
@@ -1127,7 +1137,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.3.5';
+const FARUKH_UI_RELEASE='0.4.0';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1164,7 +1174,7 @@ async function checkAppUpdate(){
 const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
-function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.3.4. Склад, ПФ, ревизия, история.')}
+function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.4.0. Склад + ПФ, автосохранение черновиков и отчёты.')}
 function toggleRevisionTheme(){showRevisionInfo()}
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
@@ -1281,5 +1291,139 @@ exportHistory=function(){const rows=exportAllHistory();const filtered=[rows[0],.
 try{if(false && localStorage.getItem('farukh-revision-theme-v033')==='light'){document.body.classList.add('revision-white-red');document.body.classList.remove('revision-crimson')}}catch{}
 try{if(!localStorage.getItem('farukh-revision-visible-products-v030'))state.products=DEFAULT_PRODUCTS.slice()}catch{state.products=DEFAULT_PRODUCTS.slice()}
 renderRows();renderSummary();
+
+
+/* FARUKH REVISION PRO 0.4.0 — validated initial/weekly inventory, non-destructive drafts,
+   four-site report. Keep stored revisions and cloud tables unchanged. */
+const REV040_DRAFT_KEY='farukh-revision-drafts-v040';
+const REV040_CONTEXT_KEY='farukh-revision-last-context-v040';
+function rev040Key(){return encodeURIComponent(currentStore())+'|'+currentMode()}
+function rev040Cache(){
+ try{const parsed=JSON.parse(localStorage.getItem(REV040_DRAFT_KEY)||'{}');
+   return parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{};
+ }catch{return {}}
+}
+let rev040ActiveKey='';
+function rev040Snapshot(){
+ if(!rev040ActiveKey)return;
+ syncDraft();
+ const cache=rev040Cache();
+ const rows={};
+ for(const [name,v] of Object.entries(draft)){
+   if(!state.products.includes(name))continue;
+   const pick={};
+   for(const field of ['program','raw','pf','price'])pick[field]=typeof v[field]==='string'?v[field]:'';
+   rows[name]=pick;
+ }
+ cache[rev040ActiveKey]={products:rows,date:$('when').value,operator:$('operator').value,updatedAt:Date.now()};
+ try{localStorage.setItem(REV040_DRAFT_KEY,JSON.stringify(cache))}catch{}
+}
+function rev040Restore(key){
+ const saved=rev040Cache()[key];draft={};
+ if(saved&&saved.products&&typeof saved.products==='object'){
+   for(const name of state.products){
+     const row=saved.products[name];if(!row||typeof row!=='object')continue;
+     draft[name]={};
+     for(const field of ['program','raw','pf','price'])draft[name][field]=typeof row[field]==='string'?row[field]:'';
+   }
+ }
+ $('when').value=(saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved.date||''))?saved.date:today();
+ $('operator').value=(saved&&typeof saved.operator==='string')?saved.operator.slice(0,120):'';
+}
+function rev040Switch(){
+ rev040Snapshot();rev040ActiveKey=rev040Key();
+ rev040Restore(rev040ActiveKey);
+ try{localStorage.setItem(REV040_CONTEXT_KEY,JSON.stringify({store:currentStore(),mode:currentMode()}))}catch{}
+ renderRows();renderHistory();renderSummary();calculate();
+}
+// The old refresh() discarded partial weighing on each store/mode change.
+refresh=function(){rev040Switch()};
+changeMode=function(){rev040Switch()};
+// Every field change is already handled by the original renderRows() calculation;
+// add local persistence after the original listener without changing its business logic.
+const rev040RenderRows=renderRows;
+renderRows=function(){
+ rev040RenderRows();
+ for(const input of document.querySelectorAll('#rows input'))input.addEventListener('input',rev040Snapshot,{passive:true});
+};
+function rev040ClearCurrent(){
+ const cache=rev040Cache();delete cache[rev040Key()];
+ try{localStorage.setItem(REV040_DRAFT_KEY,JSON.stringify(cache))}catch{}
+ draft={};renderRows();calculate();
+}
+clearForm=function(){rev040ClearCurrent()};
+function confirmClearDraft(){
+ if(confirm('Очистить только введённые значения текущей ревизии? Сохранённая история не изменится.'))clearForm();
+}
+// Ensure free-form metadata is persisted too; no automatic network requests.
+$('when').addEventListener('change',rev040Snapshot);
+$('operator').addEventListener('input',rev040Snapshot);
+window.addEventListener('pagehide',rev040Snapshot);
+
+function rev040Latest(store){return state.history.filter(r=>r.store===store).sort((a,b)=>b.timestamp-a.timestamp)[0]||null}
+function downloadPointsSummary(){
+ const rows=[['Точка','Дата последней ревизии','Режим','Проверено позиций','Недостача кг','Излишек кг','Недостача ₽ (по указанным ценам)','Излишек ₽ (по указанным ценам)','Позиций без цены при расхождении']];
+ for(const store of DEFAULT_LOCATIONS){
+  const r=rev040Latest(store);
+  if(!r){rows.push([store,'Нет ревизий','','','','','','','']);continue}
+  let shKg=0,suKg=0,shRub=0,suRub=0,unpriced=0;
+  for(const p of r.products){
+   const d=Number(p.diff)||0;
+   if(d<0)shKg+=-d; else if(d>0)suKg+=d;
+   if(d!==0 && (p.price===null || p.price===undefined || !Number.isFinite(Number(p.price))))unpriced++;
+   else if(d<0)shRub+=-d*Number(p.price);
+   else if(d>0)suRub+=d*Number(p.price);
+  }
+  rows.push([store,r.date,r.type==='start'?'Начальная':'Повторная',r.products.length,
+    Math.round(shKg*1000)/1000,Math.round(suKg*1000)/1000,
+    Math.round(shRub*100)/100,Math.round(suRub*100)/100,unpriced]);
+ }
+ csvSave(rows,'farukh-revision-4-tochki-'+today()+'.csv');
+ notice('Отчёт по четырём точкам подготовлен');
+}
+// Show per-product warehouse/PF details for new records, but do not invent them
+// for old saved revisions that only had program/actual/diff.
+const rev040RenderHistory=renderHistory;
+renderHistory=function(){
+ rev040RenderHistory();
+ // Keep the original archived history as source of truth. Add detail lines to
+ // the product label only for records carrying the raw/PF breakdown.
+ const all=inStore();const groups=Array.from($('allhistory').querySelectorAll('.archive'));
+ groups.forEach((group,index)=>{
+  const record=all[index];if(!record)return;
+  const productCells=group.querySelectorAll('tbody tr td:first-child');
+  productCells.forEach((cell,i)=>{
+   const p=record.products[i];if(!p||p.raw===undefined||p.pf===undefined)return;
+   const detail=document.createElement('small');detail.className='rev-history-breakdown';
+   detail.textContent='Склад '+fmt(Number(p.raw)||0,3)+' кг · ПФ '+fmt(Number(p.pf)||0,3)+' кг'+(p.loss?(' · +'+Number(p.loss)+'%'):'');
+   cell.appendChild(detail);
+  });
+ });
+};
+// Do not show zero ruble totals as a complete result when some price is absent.
+const rev040Calculate=calculate;
+calculate=function(){
+ rev040Calculate();
+ if(currentMode()==='start')return;
+ let shortageUnpriced=false,surplusUnpriced=false;
+ for(const name of state.products){
+  const v=getDraft(name),actual=weightOf(name,v),program=v.program===''?null:number(v.program);
+  if(actual===null||program===null||v.price!=='')continue;
+  if(actual<program)shortageUnpriced=true;
+  else if(actual>program)surplusUnpriced=true;
+ }
+ if(shortageUnpriced)$('short').textContent='— ₽*';
+ if(surplusUnpriced)$('surplus').textContent='— ₽*';
+};
+// For old versions with the same selected store/mode, restore the draft without
+// touching saved history. Remember last selected context for the next app launch.
+try{
+ const prev=JSON.parse(localStorage.getItem(REV040_CONTEXT_KEY)||'null');
+ if(prev&&DEFAULT_LOCATIONS.includes(prev.store)&&['start','weekly'].includes(prev.mode)){
+  $('store').value=prev.store;$('mode').value=prev.mode;
+ }
+}catch{}
+rev040ActiveKey=rev040Key();rev040Restore(rev040ActiveKey);
+renderRows();renderSummary();renderHistory();
 
 </script></body></html>
