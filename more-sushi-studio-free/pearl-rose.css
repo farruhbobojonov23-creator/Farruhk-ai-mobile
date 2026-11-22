@@ -172,3 +172,103 @@ html.pearl-home-fixed .wrap{height:calc(100dvh - 76px)!important;max-height:calc
  .revision-quickbar .revision-button{padding:7px 7px}
  .revision-quickbar .continue-button{padding:7px 7px}
 }
+
+/* PREMIUM MOTION 8.4: ONE existing theme, no overlaying theme cascade.
+   Pure opacity/transform/caret effects; original text and links remain real. */
+.premium-typing{position:relative}
+.premium-typing::after{content:"▍";color:#e92960;opacity:.9;animation:premiumCaret 850ms steps(1,end) infinite}
+@keyframes premiumCaret{50%{opacity:0}}
+@keyframes premiumCardIn{from{opacity:.5;transform:translate3d(0,10px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+#premiumBoot{
+ --boot-text:#fffaee;--boot-accent:#ffe7a2;--boot-shadow:#060e1d;
+ position:fixed;z-index:2147480000;inset:0;width:100%;height:100dvh;
+ display:grid;place-items:center;overflow:hidden;isolation:isolate;
+ background:
+  radial-gradient(ellipse 85% 52% at 50% 8%,#8f274166,transparent 76%),
+  radial-gradient(ellipse 85% 56% at 100% 97%,#9b123c58,transparent 76%),
+  linear-gradient(153deg,#060f1d 0%,#132039 42%,#220c20 100%);
+ color:var(--boot-text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+ animation:premiumBootFallback 5s forwards;
+}
+#premiumBoot:before,#premiumBoot:after{content:"";position:absolute;inset:0;pointer-events:none}
+#premiumBoot:before{
+ background:repeating-linear-gradient(125deg,transparent 0 95px,#ffffff07 96px,#ffffff02 98px,transparent 99px 180px);
+ opacity:.55;
+}
+#premiumBoot:after{
+ inset:auto -20% 7% -20%;height:1px;
+ background:linear-gradient(90deg,transparent,#f9c96b8c,transparent);
+ box-shadow:0 0 27px 3px #fc456577;
+ transform:rotate(-8deg);
+}
+.premium-boot-content{
+ position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
+ width:min(92vw,480px);padding:22px 16px 28px;text-align:center;
+}
+.premium-boot-medal{
+ display:grid;place-items:center;width:108px;height:108px;position:relative;margin-bottom:33px;
+ border:2px solid #e6bc777d;border-radius:28px;
+ background:linear-gradient(135deg,#ff6379 0%,#d91851 28%,#64102f 68%,#240f22 100%);
+ box-shadow:inset 0 2px #ffeabfbb,inset 0 -5px 17px #25031aa1,0 4px 0 #6c2940,0 18px 38px #0008,0 0 36px #d8265555;
+ transform:rotate(-6deg);
+ animation:premiumMedal 2.8s ease-in-out infinite alternate;
+}
+.premium-boot-medal svg{width:70px;height:70px;filter:drop-shadow(0 4px 4px #351121)}
+.premium-boot-kicker{font-size:10px;font-weight:900;letter-spacing:.38em;color:var(--boot-accent);margin:0 0 17px}
+.premium-boot-title{
+ min-height:64px;max-width:100%;font-weight:950;font-size:clamp(27px,7.1vw,42px);
+ letter-spacing:-.035em;line-height:1.1;text-wrap:balance;
+ color:#fff9ed;text-shadow:0 4px 15px #0009;
+}
+.premium-boot-sub{
+ min-height:43px;margin:15px 0 0;max-width:94%;
+ color:#f5c5cf;font-size:clamp(10px,2.7vw,13px);font-weight:760;
+ letter-spacing:.14em;line-height:1.5;
+}
+.premium-boot-line{margin-top:28px;width:min(240px,66vw);height:5px;border-radius:99px;overflow:hidden;background:#ffffff24;border:1px solid #ffe2a733}
+.premium-boot-line>i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff427b,#ffe2a3,#fff);
+ box-shadow:0 0 10px #ff6d91;animation:premiumProgress 3.7s cubic-bezier(.1,.4,.25,1) forwards}
+.premium-boot-message{min-height:22px;color:#dec6c4;font-size:12px;margin-top:15px}
+.premium-boot-skip{
+ display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:120px;
+ margin-top:24px;padding:10px 17px;color:#fff0dc;background:#ffffff12;
+ border:1px solid #f3bfbb8c;border-radius:14px;font:inherit;font-size:12px;font-weight:800;
+ -webkit-tap-highlight-color:transparent;cursor:pointer;
+}
+.premium-boot-skip:focus-visible{outline:3px solid #ffe39a;outline-offset:3px}
+#premiumBoot[data-variant="rose"]{
+ --boot-text:#71233c;--boot-accent:#ad1643;--boot-shadow:#eacbd2;
+ background:
+ radial-gradient(ellipse 85% 54% at 90% 12%,#ff9ab35c,transparent 68%),
+ radial-gradient(ellipse 70% 50% at 0% 96%,#f8c6d6a0,transparent 79%),
+ linear-gradient(156deg,#fffefd,#fff4f8 50%,#fce3ee);
+}
+#premiumBoot[data-variant="rose"] .premium-boot-kicker{color:#be2458}
+#premiumBoot[data-variant="rose"] .premium-boot-title{color:#741b3d;text-shadow:0 3px 10px #bb7a9c33}
+#premiumBoot[data-variant="rose"] .premium-boot-sub{color:#b63a62}
+#premiumBoot[data-variant="rose"] .premium-boot-message{color:#8a5069}
+#premiumBoot[data-variant="rose"] .premium-boot-line{background:#cc7d9944}
+#premiumBoot[data-variant="rose"] .premium-boot-skip{color:#981440;background:#fff6f9;border-color:#dc98b0}
+#premiumBoot[data-variant="rose"] .premium-boot-medal{background:linear-gradient(150deg,#fff,#ffb6ce 22%,#fb3267 57%,#9d083d);border-color:#fff}
+#premiumBoot.is-leaving{animation:none;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 540ms ease,visibility 540ms ease}
+@keyframes premiumProgress{to{width:100%}}
+@keyframes premiumMedal{to{transform:rotate(4deg) translate3d(0,-6px,0)}}
+@keyframes premiumBootFallback{0%,94%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
+@media(prefers-reduced-motion:reduce){
+ #premiumBoot{display:none!important}
+ .premium-typing::after{display:none!important}
+ .premium-boot-medal,.premium-boot-line>i{animation:none!important}
+}
+
+@media screen and (prefers-reduced-motion:no-preference) {
+ .mss-panel:not([hidden]) .mss-card,
+ .mss-panel:not([hidden]) .mss-feature,
+ .metrics .metric {animation:premiumCardIn 560ms cubic-bezier(.18,.7,.23,1) both}
+ .mss-panel:not([hidden]) .mss-card:nth-child(2),
+ .mss-panel:not([hidden]) .mss-feature:nth-child(2),.metrics .metric:nth-child(2){animation-delay:75ms}
+ .mss-panel:not([hidden]) .mss-card:nth-child(3),.metrics .metric:nth-child(3){animation-delay:145ms}
+ .mss-panel:not([hidden]) .mss-card:nth-child(4),.metrics .metric:nth-child(4){animation-delay:205ms}
+ .mss-panel:not([hidden]) .mss-card:nth-child(5){animation-delay:265ms}
+ .mss-panel:not([hidden]) .mss-card:nth-child(6){animation-delay:320ms}
+}
+
