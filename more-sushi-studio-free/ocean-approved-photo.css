@@ -242,3 +242,21 @@
 @media(prefers-reduced-motion:reduce){
   .wrap>.hero,.mss-feature{animation:none!important;transition:none!important}
 }
+/* HOTFIX 2026-11-22: the approved .hero also has the .fadein class.
+   Earlier photo CSS disabled the animation, unintentionally preserving
+   .fadein { opacity:0 } forever. That hid the whale AND all its controls,
+   leaving a 390px tall empty ocean gradient on Xiaomi. Keep the approved
+   dimensions and art; make the hero visible immediately. */
+@media screen {
+ html[data-mss-tab="home"] .wrap > .hero.fadein {
+   opacity:1!important;
+   visibility:visible!important;
+   transform:none!important;
+   animation:none!important;
+ }
+ html[data-mss-tab="home"] .wrap > .hero.fadein .hero-copy,
+ html[data-mss-tab="home"] .wrap > .hero.fadein .approved-hero-whale {
+   visibility:visible!important;
+   opacity:1!important;
+ }
+}
