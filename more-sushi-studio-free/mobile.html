@@ -183,12 +183,18 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
   let idx=0;const type=setInterval(function(){p.textContent=words.slice(0,++idx);if(idx>=words.length)clearInterval(type)},38);
   setTimeout(function(){splash.classList.add('done');document.body.classList.add('ready');sessionStorage.setItem('more-sushi-intro-done-v1','1')},2750)
  }
- if(!reduced && !skip){
-   document.querySelectorAll('.tile em').forEach(function(el,i){
-    const label=el.textContent;el.setAttribute('aria-label',label);el.textContent='';
+ // Premium typing: heading first, then three primary 3D card titles.
+ // Repeat gently on page opening; the long whale intro plays once per WebView session.
+ if(!reduced){
+   const start=skip?220:3200;
+   document.querySelectorAll('.mss-heading h2, .mss-feature strong').forEach(function(el,i){
+    const label=el.textContent.trim();el.setAttribute('aria-label',label);el.textContent='';
     setTimeout(function(){
-     let n=0;const timer=setInterval(function(){el.textContent=label.slice(0,++n);if(n>=label.length)clearInterval(timer)},40);
-    },3500+i*145);
+     let n=0;const timer=setInterval(function(){
+       el.textContent=label.slice(0,++n);
+       if(n>=label.length)clearInterval(timer);
+     },i===0?24:42);
+    },start+i*180);
    });
  }
  let session=null;try{session=JSON.parse(localStorage.getItem('ms_session')||'null')}catch(e){}
