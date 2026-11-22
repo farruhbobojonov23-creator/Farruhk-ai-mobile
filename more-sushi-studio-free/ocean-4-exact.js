@@ -33,4 +33,28 @@
   art.addEventListener('load',success,{once:true});
   art.addEventListener('error',failure,{once:true});
  }
+
+ /* The three large cards are real links/buttons. Show baked high-detail art
+    only when each WebP has decoded; preserve readable live text on failure. */
+ const cardAssets=[
+  ['.mss-feature-red','./o40_ttk.webp?v=4'],
+  ['.mss-feature-blue','./o40_catalog.webp?v=4'],
+  ['.mss-feature-pearl','./o40_pdf.webp?v=4']
+ ];
+ cardAssets.forEach(([selector,url])=>{
+  const card=document.querySelector(selector);
+  if(!card)return;
+  const image=new Image();
+  image.decoding='async';
+  image.onload=()=>{
+   card.classList.add('ocean40-card-ready');
+   card.classList.remove('ocean40-card-failed');
+  };
+  image.onerror=()=>{
+   card.classList.remove('ocean40-card-ready');
+   card.classList.add('ocean40-card-failed');
+  };
+  image.src=url;
+  if(image.complete&&image.naturalWidth>0)image.onload();
+ });
 })();
