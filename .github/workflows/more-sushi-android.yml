@@ -1,0 +1,35 @@
+name: MORE SUSHI STUDIO PRO Android
+on:
+  push:
+    branches: [feature/more-sushi-android-ocean-20261122]
+    paths: ['more-sushi-studio-android/**','.github/workflows/more-sushi-android.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - name: Install Android platform tools
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path "*/bin/sdkmanager" -type f | sort -V | tail -1)"
+          test -x "$SDKMANAGER" || exit 1
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Check separate app ID and remote dashboard
+        run: |
+          grep -q 'com.moresushi.studio.pro' more-sushi-studio-android/app/build.gradle
+          grep -q 'more-sushi-studio.onrender.com/mobile.html' more-sushi-studio-android/app/src/main/java/com/moresushi/studio/MainActivity.java
+      - name: Compile release APK
+        working-directory: more-sushi-studio-android
+        run: gradle :app:assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: more-sushi-studio-pro-v1.0.0-unsigned
+          path: more-sushi-studio-android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
