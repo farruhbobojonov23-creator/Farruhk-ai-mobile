@@ -1,231 +1,91 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e6f7ff"><meta name="description" content="MORE SUSHI STUDIO PRO — профессиональная мобильная система шеф-повара">
-<meta name="mss-ui-build" content="ocean-3.2.1-original-restored-20261122">
-<title>MORE SUSHI STUDIO PRO · Живой океан 3D</title>
-<style>
-:root{color-scheme:dark;--sea:#06182d;--blue:#078ce2;--cyan:#59d5ff;--gold:#f5d080;--gold2:#a76b18;--red:#ed335f;--ink:#effbff;--muted:#c7d9e8}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(ellipse at 14% -5%,#197fd080,transparent 48%),radial-gradient(ellipse at 96% 35%,#028cce42,transparent 38%),linear-gradient(178deg,#041328 0%,#082c50 45%,#061b33 100%);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-a,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button{font:inherit;cursor:pointer}a:focus-visible,button:focus-visible{outline:3px solid #a5e8ff;outline-offset:3px}
-svg{display:block}.sprite{position:absolute;width:0;height:0;overflow:hidden}
-.ocean-bg{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
-.ocean-bg:before{content:"";position:absolute;inset:-15%;opacity:.55;background:radial-gradient(circle at 35% 10%,#1a8dc052,transparent 34%),repeating-linear-gradient(157deg,transparent 0 58px,#1ba6e50a 59px 60px,transparent 61px 160px);animation:breath 17s ease-in-out infinite alternate}
-.ocean-bg:after{content:"";position:absolute;bottom:-16%;left:-25%;width:150%;height:40%;background:repeating-radial-gradient(ellipse at 50% 100%,#44d0fc2c 0 1px,transparent 2px 34px);transform:rotate(-10deg);opacity:.35;animation:watermove 18s linear infinite}
-@keyframes breath{to{transform:scale(1.12) translate3d(3%,-2%,0);opacity:.8}}@keyframes watermove{to{transform:translateY(-30px) rotate(-10deg)}}
-.wrap{width:min(100%,540px);margin:auto;min-height:100vh;padding:18px 13px 122px}
-header{display:flex;align-items:center;gap:10px;padding:2px 2px 12px}
-.brand{flex:1;display:flex;gap:10px;align-items:center;min-width:0;text-decoration:none;color:inherit}
-.brandmark{position:relative;display:grid;place-items:center;width:52px;height:52px;flex:none;border-radius:17px;background:radial-gradient(circle at 30% 20%,#1246a2,#10274c 58%,#051326);border:1px solid #78dcffad;box-shadow:inset 0 2px 4px #ffffff5e,0 5px 18px #001325,0 0 14px #15bcff6b}
-.brandmark:before{content:"";position:absolute;inset:-3px;border-radius:18px;border:1px solid #25b6ff65}
-.brandmark svg{width:42px;height:42px;filter:drop-shadow(0 0 8px #62dfff)}
-.brandcopy{min-width:0}.brandcopy strong{font-size:17px;font-weight:900;line-height:1.07;letter-spacing:-.02em;display:block}.brandcopy strong span{color:#ffdf91}.brandcopy small{display:block;font-size:8.8px;letter-spacing:.16em;color:#a7d5f4;margin-top:4px;text-transform:uppercase;white-space:nowrap}
-.pro{background:linear-gradient(#fda1a5,#d81144 45%,#900832);border:1px solid #ffc1cf;box-shadow:inset 0 1px #ffecf1,0 2px 8px #f2266477;border-radius:6px;font-size:10px;padding:3px 5px;vertical-align:2px;color:white}
-.circlebtn{width:43px;height:43px;flex:none;border-radius:13px;border:1px solid #70a8d1;background:linear-gradient(140deg,#1c517e,#082344);box-shadow:inset 0 1px #d0f7ff5c,0 3px 12px #0006;display:grid;place-items:center;color:#f9d581}.circlebtn svg{width:23px;height:23px;filter:drop-shadow(0 2px 3px #0009)}
-.hero{isolation:isolate;position:relative;height:199px;border:1px solid #7bdcffc7;border-radius:23px;overflow:hidden;background:radial-gradient(circle at 74% 24%,#8ce8ffb9,transparent 19%),linear-gradient(145deg,#05315f 10%,#0966ae 61%,#021731);box-shadow:inset 0 2px 3px #c9f8ffac,0 17px 25px #0008,0 0 18px #078cfe5b}
-.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#060f29cb,transparent 68%),repeating-linear-gradient(155deg,transparent 0 20px,#edffff12 22px 23px,transparent 24px 70px)}
-.hero:after{content:"";position:absolute;inset:-10%;border-radius:40%;background:conic-gradient(from 130deg at 70% 45%,transparent 0 60%,#37d5ff40 68%,transparent 77%);animation:spinlight 18s linear infinite;z-index:-1}
-@keyframes spinlight{to{transform:rotate(360deg)}}
-.hero-sheen{position:absolute;inset:0;background:linear-gradient(112deg,transparent 30%,#e2faff37 47%,transparent 61%);background-size:240% 100%;animation:sheen 11s ease-in-out infinite}
-@keyframes sheen{0%,25%{background-position:180% 0}55%,100%{background-position:-110% 0}}
-.hero-copy{position:absolute;left:17px;top:27px;z-index:3;max-width:58%;text-shadow:0 2px 8px #000d}.hero-eyebrow{color:#b6eaff;font-size:10px;letter-spacing:.19em;font-weight:850}.hero h1{font-size:28px;line-height:1.09;margin:10px 0 9px;letter-spacing:-.04em}.hero h1 span{color:#ffe5a1}.hero p{font-size:11px;line-height:1.5;color:#d7eeff;margin:0}.hero-stamp{display:inline-flex;gap:6px;align-items:center;margin-top:12px;padding:5px 9px;font-size:10px;font-weight:700;background:#d6173cdd;border:1px solid #ffa0ac;border-radius:10px;box-shadow:0 0 14px #fe185a71}
-.hero-whale{position:absolute;width:57%;height:100%;right:-3%;top:0;z-index:2;animation:whalefloat 7s ease-in-out infinite;filter:drop-shadow(0 0 10px #aaf2ff77)}
-@keyframes whalefloat{50%{transform:translate3d(-3px,-7px,0) rotate(-2deg)}}.hero-bubbles{position:absolute;right:10%;bottom:4%;width:34%;height:62%;z-index:0}
-.hero-bubbles i{position:absolute;bottom:-10px;left:var(--x);width:var(--s);height:var(--s);border:1px solid #d6fbffbf;border-radius:50%;box-shadow:inset -2px -2px 6px #3faee7a8,0 0 6px #a4edff8c;animation:bubble var(--t) linear infinite;animation-delay:var(--d)}
-@keyframes bubble{0%{transform:translateY(20px) scale(.7);opacity:0}20%{opacity:.9}95%{opacity:.6}100%{transform:translateY(-160px) scale(1.14);opacity:0}}
-.cloudbar{margin:11px 0 13px;padding:9px 11px;display:flex;gap:8px;align-items:center;border:1px solid #4fbcffc9;border-radius:15px;background:linear-gradient(120deg,#174c7dc9,#0b2b51e6);box-shadow:inset 0 1px #cbf5ff80,0 5px 15px #001d3688}
-.cloudbar .icon{width:29px;height:29px}.cloudtxt{flex:1;min-width:0}.cloudtxt b{font-size:11px;display:block}.cloudtxt small{font-size:9px;color:#adddf6;display:block;margin-top:2px}.dot{width:8px;height:8px;background:#47e2aa;border-radius:50%;box-shadow:0 0 12px #47e2aa;animation:beacon 5s ease-in-out infinite}
-@keyframes beacon{0%,65%,100%{box-shadow:0 0 5px #47e2aa;opacity:.85}77%{box-shadow:0 0 18px 8px #47e2aa70;opacity:1}}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:14px}
-.metric{border:1px solid #65bff4ae;border-radius:14px;padding:9px 6px 8px;text-align:center;background:linear-gradient(155deg,#125084,#082546);box-shadow:inset 0 1px #d7f7ff7a,0 6px 10px #00142689;min-height:76px}
-.metric:nth-child(2){background:linear-gradient(150deg,#a72544,#4a1236);border-color:#ff688c}.metric:nth-child(3){background:linear-gradient(150deg,#0e8b81,#074247);border-color:#6fe4cb}
-.metric svg{width:23px;height:23px;margin:0 auto 4px;filter:drop-shadow(0 3px 4px #0009)}.metric label{display:block;font-size:8.4px;color:#c7e5f4;line-height:1.3}.metric b{display:block;font-size:15px;line-height:1.15;margin-top:3px;white-space:nowrap}
-.subhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 9px}
-.subhead strong{font-size:15px;letter-spacing:-.025em}.subhead small{font-size:9px;color:#aedbf3}.chips{font-size:9px;font-weight:800;padding:4px 7px;border-radius:8px;color:#d4faff;border:1px solid #52bdf6;background:#0b4a77}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-.tile{position:relative;isolation:isolate;min-height:137px;padding:10px 7px 10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-decoration:none;color:white;border-radius:17px;border:1px solid #7ad5ffbb;background:linear-gradient(150deg,#d9f5ff 0%,#71bce0 25%,#2170af 53%,#06305d 100%);box-shadow:inset 0 2px 0 #f4ffffcd,inset 0 -3px 6px #001d5d7a,0 8px 0 #032746,0 13px 18px #000a;overflow:hidden;transform:translateZ(0);transition:transform .28s ease,box-shadow .28s ease}
-.tile:before{content:"";position:absolute;z-index:-1;inset:1px;border-radius:16px;background:radial-gradient(ellipse at 45% 5%,#f3ffffae,transparent 37%),linear-gradient(155deg,#80d7fb36,transparent 60%)}
-.tile:after{content:"";position:absolute;top:-35%;left:-90%;height:190%;width:55%;transform:rotate(21deg);background:linear-gradient(90deg,transparent,#edffff77,transparent);animation:tileglint 9s ease-in-out infinite;animation-delay:var(--delay,0s);pointer-events:none}
-@keyframes tileglint{0%,52%{left:-110%}75%,100%{left:160%}}
-.tile.red{background:linear-gradient(155deg,#ffabb8 0%,#ff4f76 22%,#c21149 61%,#6c123a 100%);border-color:#ffc2dc}
-.tile.white{background:linear-gradient(150deg,#fffefa,#e6f9ff 25%,#8dc5ee 74%,#4c7ea7);border-color:#e6faff;color:#163f65}
-.tile em{font-style:normal;display:block;font-size:10px;font-weight:900;text-align:center;text-shadow:0 1px 3px #00112b87;margin-top:6px;line-height:1.18}
-.tile.white em{text-shadow:0 1px #fff}
-.tile small{display:block;font-size:8px;text-align:center;line-height:1.24;color:#e4f6ff;margin-top:3px;min-height:20px}
-.tile.white small{color:#205278}
-.tile .icon{position:relative;margin:auto auto 0;width:67px;height:60px;filter:drop-shadow(0 8px 5px #00274b85);animation:float 6s ease-in-out infinite;animation-delay:var(--delay,0s)}
-.tile .arrow{position:absolute;right:7px;bottom:7px;color:#ffe49c;font-size:14px;filter:drop-shadow(0 0 2px #111);font-weight:900}
-@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(2deg)}}
-.tile:active{transform:translateY(5px);box-shadow:inset 0 2px #fff8,0 3px 0 #032746,0 5px 12px #0006}
-.tray{margin:20px 0 0;padding:12px 12px 11px;border:1px solid #4dbaeb;border-radius:18px;background:linear-gradient(145deg,#1d65909c,#082746c9);box-shadow:inset 0 1px #c6f6ff73,0 7px 18px #0007}
-.tray-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.tray-head strong{font-size:13px}.tray-head small{font-size:10px;color:#b4d5e7}.action{display:flex;align-items:center;gap:11px;margin-top:10px;padding:10px 12px;width:100%;text-decoration:none;text-align:left;border-radius:13px;border:1px solid #fdb8c1;background:linear-gradient(160deg,#fe6481,#da1d52 60%,#97163c);box-shadow:inset 0 1px #ffefef,0 4px 0 #5f173a,0 9px 16px #09142d77;color:white;font-weight:800;font-size:12px}
-.action .icon{width:31px;height:31px}.action span{flex:1}.action:active{transform:translateY(3px)}
-.statusnote{margin:13px 0;text-align:center;color:#91cde9;font-size:10px;line-height:1.4}
-.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;width:min(100%,540px);padding:8px 8px max(12px,env(safe-area-inset-bottom));background:linear-gradient(175deg,#113c68f5,#061a31fb);border-top:1px solid #7ad4ffbb;box-shadow:0 -8px 26px #061c2d9c;backdrop-filter:blur(15px);border-radius:20px 20px 0 0}
-.navitem{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:52px;border:0;background:transparent;color:#b0cfe2;text-decoration:none;border-radius:12px;font-size:9px;font-weight:750}
-.navitem svg{width:24px;height:24px;filter:drop-shadow(0 2px 4px #000a)}.navitem.active{background:linear-gradient(150deg,#ff7389,#da174e 65%,#921a41);border:1px solid #ffbed2;color:white;box-shadow:inset 0 1px #fff7,0 0 14px #ea15578d}
-.splash{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:radial-gradient(ellipse at 55% 35%,#0d66a8,#061b3b 55%,#031225);transition:opacity .7s ease,visibility .7s ease}
-.splash.done{opacity:0;visibility:hidden;pointer-events:none}.splash-content{text-align:center;max-width:330px;padding:20px;position:relative}.splash-whale{width:200px;height:180px;margin:auto;filter:drop-shadow(0 0 22px #2fd8ff88);animation:whalefloat 5s ease-in-out infinite}
-.splash h2{font-size:30px;line-height:1.15;margin:8px 0 8px;letter-spacing:.07em;text-shadow:0 3px 7px #001a31}.splash h2 span{color:#ffc16f}
-.splash p{font-size:12px;color:#a7e2ff;letter-spacing:.10em;min-height:18px}
-.typed:after{content:"";display:inline-block;height:1em;border-right:2px solid #fbd58e;vertical-align:-.1em;margin-left:2px;animation:cursor 1s step-end infinite}
-@keyframes cursor{50%{opacity:0}}.loader{height:5px;border-radius:50px;background:#1b5b83;overflow:hidden;width:220px;margin:22px auto 8px;box-shadow:inset 0 1px 2px #000}
-.loader:before{content:"";display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#178fef,#82faff,#fff7c3);box-shadow:0 0 14px #36efff;animation:load 2.4s ease-out forwards}@keyframes load{to{width:100%}}
-.fadein{opacity:0;transform:translateY(13px);animation:appear .7s ease forwards;animation-delay:var(--in,0s)}
-.fadein{animation-play-state:paused}body.ready .fadein{animation-play-state:running}@keyframes appear{to{opacity:1;transform:translateY(0)}}
-body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .7s}
-@media(max-width:360px){.wrap{padding-inline:9px}.brandcopy strong{font-size:15px}.tiles{gap:6px}.tile{padding-inline:4px;min-height:122px}.tile .icon{width:52px;height:51px}.tile em{font-size:9px}.hero h1{font-size:24px}.metrics{gap:5px}.metric b{font-size:12px}}
-@media(min-width:541px){.wrap{padding-top:25px}.hero{height:227px}.tiles{gap:12px}.tile{min-height:161px}.tile .icon{width:81px;height:76px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important;scroll-behavior:auto!important}.splash{display:none}.wrap{opacity:1!important}}
-
-/* One-tap manual update: a small premium 3D control in the cloud status bar. */
-.cloudtxt b,.cloudtxt small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cloudbar .dot{flex:none}
-.ocean-refresh-btn{min-height:33px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:4px 9px;
- border-radius:11px;border:1px solid #b5eaff;color:#fff7ce;font-size:10px;line-height:1.2;font-weight:900;
- background:linear-gradient(145deg,#298ac4,#114d87 62%,#0b2b54);
- box-shadow:inset 0 1px #e6fdffae,0 3px 0 #063365,0 6px 10px #0006;text-shadow:0 1px 3px #0006}
-.ocean-refresh-btn .refresh-symbol{display:inline-block;color:#ffde82;font-size:21px;line-height:1;filter:drop-shadow(0 0 4px #ffcf79a2)}
-.ocean-refresh-btn:active{transform:translateY(2px);box-shadow:inset 0 1px #fff8,0 1px 0 #063365}
-.ocean-refresh-btn.refreshing .refresh-symbol{animation:ocean-refresh-spin 1.1s linear infinite}
-.ocean-refresh-btn:disabled{opacity:.8}
-@keyframes ocean-refresh-spin{to{transform:rotate(360deg)}}
-.ocean-refresh-toast{position:fixed;z-index:190;left:50%;top:max(12px,env(safe-area-inset-top));transform:translate(-50%,-130%);
- width:max-content;max-width:calc(100vw - 26px);padding:11px 16px;text-align:center;border-radius:13px;
- background:linear-gradient(130deg,#1477b1,#073b6c);border:1px solid #86e7ff;color:#f4fdff;
- font-weight:800;font-size:12px;box-shadow:0 12px 20px #001e3fba;pointer-events:none;
- opacity:0;transition:transform .3s ease,opacity .3s ease}
-.ocean-refresh-toast.visible{transform:translate(-50%,4px);opacity:1}
-.ocean-refresh-toast.error{background:linear-gradient(130deg,#b32b4c,#5a1a46);border-color:#ffb9cc}
-@media(max-width:390px){.ocean-refresh-btn{padding:4px 6px}.ocean-refresh-btn span:last-child{font-size:9px}}
-@media(prefers-reduced-motion:reduce){.ocean-refresh-btn.refreshing .refresh-symbol{animation:none}.ocean-refresh-toast{transition:none}}
-
-</style><link rel="stylesheet" href="./ocean-categories.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-polish.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-approved.css?v=approved-3.0.0"><link rel="stylesheet" href="./ocean-refined.css?v=ocean-3.1.0"><link rel="stylesheet" href="./ocean-ultimate.css?v=ocean-3.2.0"></head><body>
-<svg class="sprite" xmlns="http://www.w3.org/2000/svg"><defs>
- <linearGradient id="gold3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c5"/><stop offset=".25" stop-color="#ffcf57"/><stop offset=".48" stop-color="#bd6d1b"/><stop offset=".7" stop-color="#ffe491"/><stop offset="1" stop-color="#79410e"/></linearGradient>
- <linearGradient id="blue3" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#faffff"/><stop offset=".2" stop-color="#79ecff"/><stop offset=".5" stop-color="#1588d5"/><stop offset=".77" stop-color="#073d8b"/><stop offset="1" stop-color="#7debff"/></linearGradient>
- <linearGradient id="red3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff1f3"/><stop offset=".22" stop-color="#ff8da8"/><stop offset=".65" stop-color="#d3134f"/><stop offset="1" stop-color="#700e2e"/></linearGradient>
- <symbol id="whale" viewBox="0 0 220 195"><path d="M15 151q33-22 59-9 27 13 66-4 40-18 70-7" fill="none" stroke="#83edff" stroke-width="5" opacity=".75"/><path d="M28 121c30-10 43-41 51-68 17 8 30 24 34 51 19-32 38-43 73-43-5 36-23 53-59 67-21 8-37 18-49 42-3-27-16-43-50-49Z" fill="url(#blue3)" stroke="#c2f8ff" stroke-width="2.4"/><path d="M29 118c31-6 49-28 57-56M114 110c19-28 38-37 68-40" fill="none" stroke="#f4ffff" stroke-width="3" opacity=".7"/><circle cx="82" cy="155" r="5" fill="#a5f7ff"/><path d="M13 170q34-20 55-7m52 9q41-19 80-4" stroke="#3bb8fa" stroke-width="3" fill="none" opacity=".75"/></symbol>
- <symbol id="ttk" viewBox="0 0 80 80"><rect x="13" y="9" width="53" height="65" rx="9" fill="url(#gold3)" stroke="#fff8c8" stroke-width="2"/><rect x="20" y="18" width="39" height="49" rx="5" fill="#f1fbff" stroke="#a5a1a3"/><rect x="32" y="5" width="16" height="12" rx="5" fill="url(#gold3)" stroke="#fff6c7"/><path d="m24 33 4 4 7-9m-11 22 4 4 7-9M41 34h13M41 51h13" fill="none" stroke="#c21a46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
- <symbol id="pf" viewBox="0 0 80 80"><rect x="11" y="37" width="48" height="30" rx="6" fill="url(#blue3)" stroke="#e4faff" stroke-width="2"/><path d="M14 29h42a5 5 0 0 1 5 5v8H9v-8a5 5 0 0 1 5-5Z" fill="url(#gold3)" stroke="#ffe8ae" stroke-width="2"/><path d="M22 21h24l7 8H15Z" fill="#97dfff" stroke="#e5ffff" stroke-width="2"/><path d="M22 53h27" stroke="#f8ffff" stroke-width="3" opacity=".7"/><path d="M51 52c9-8 19-4 18 7" fill="none" stroke="#e3fffd" stroke-width="4"/><path d="m64 56 5 5 6-5" fill="none" stroke="#ffe1a3" stroke-width="3"/></symbol>
- <symbol id="food" viewBox="0 0 80 80"><path d="M8 45Q36 20 72 46L64 64Q38 76 14 61Z" fill="#2d6282" stroke="#ddffff" stroke-width="2"/><path d="M16 43c8-13 17-14 29-12 8 0 16 7 17 16-11 11-35 13-46-4Z" fill="#ff9053" stroke="#ffcf9d" stroke-width="3"/><path d="m20 41 25 11M23 34l31 15M32 31l24 13" stroke="#ffd0a3" stroke-width="3"/><path d="M15 52c6-10 11-9 17 0m11-24c4-12 10-13 15-8m-4 10c4-10 10-9 12-6" fill="none" stroke="#43d788" stroke-width="4" stroke-linecap="round"/><circle cx="62" cy="42" r="4" fill="#f9245c"/></symbol>
- <symbol id="book" viewBox="0 0 80 80"><path d="M11 19q14-8 28 0v45q-16-8-28 0Z" fill="url(#gold3)" stroke="#fff6b9" stroke-width="2"/><path d="M41 19q13-8 28 0v45q-15-8-28 0Z" fill="url(#blue3)" stroke="#e7fbff" stroke-width="2"/><path d="M40 19v48" stroke="#ffffff" stroke-width="3"/><path d="M18 30q6-2 15 1M18 42q7-1 15 2M49 30q7-2 13 0M49 42q7-2 13 1" fill="none" stroke="#0a3564" stroke-width="2"/></symbol>
- <symbol id="pdf" viewBox="0 0 80 80"><path d="M21 8h31l14 15v48H21a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6" fill="url(#gold3)" stroke="#fff2b5" stroke-width="2"/><path d="M52 8v17h14" fill="#fff4c0" stroke="#fff9db" stroke-width="1.8"/><path d="M24 33h32m-32 9h30m-30 9h25" stroke="#79401d" stroke-width="3"/><rect x="8" y="45" width="39" height="22" rx="5" fill="url(#red3)" stroke="#ffe0e3" stroke-width="1.5"/><text x="28" y="60" fill="white" font-size="12" font-weight="900" text-anchor="middle">PDF</text></symbol>
- <symbol id="chart" viewBox="0 0 80 80"><path d="M10 67h62" stroke="#fff0ae" stroke-width="4"/><rect x="15" y="49" width="12" height="18" rx="2" fill="url(#gold3)"/><rect x="34" y="34" width="12" height="33" rx="2" fill="url(#gold3)"/><rect x="53" y="20" width="12" height="47" rx="2" fill="url(#red3)"/><path d="m16 41 18-13 14 2 20-22" fill="none" stroke="#fff2ae" stroke-width="4" stroke-linecap="round"/><path d="m57 8 11 0v12" fill="none" stroke="#fff2ae" stroke-width="3"/></symbol>
- <symbol id="cloud" viewBox="0 0 80 80"><path d="M19 61C5 59 6 40 19 37c0-24 33-29 41-8 21-1 25 26 6 31Z" fill="url(#blue3)" stroke="#d7f9ff" stroke-width="2"/><path d="M40 57V34m0 0-12 11m12-11 12 11" fill="none" stroke="#fff9bd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
- <symbol id="gear" viewBox="0 0 80 80"><path d="m34 8 12 0 3 11 10 4 10-5 8 11-8 8 1 11 7 8-8 12-10-5-10 4-3 11H34l-3-11-10-4-10 5-8-12 8-8V37l-8-8 8-11 10 5 10-4Z" fill="url(#gold3)" stroke="#fff1ab" stroke-width="2"/><circle cx="40" cy="40" r="13" fill="#0a4977" stroke="#fff4b9" stroke-width="4"/></symbol>
- <symbol id="home" viewBox="0 0 80 80"><path d="M9 40 40 12 71 40H61v28H21V40Z" fill="url(#gold3)" stroke="#fff5bb" stroke-width="3" stroke-linejoin="round"/><rect x="34" y="48" width="13" height="20" rx="2" fill="#103f62"/></symbol>
-</defs></svg>
-<div class="ocean-bg" aria-hidden="true"></div>
-<div class="splash" id="splash" aria-live="polite"><div class="splash-content">
- <svg class="splash-whale" aria-label="Синий кит"><use href="#whale"></use></svg>
- <h2>MORE SUSHI<br><span>STUDIO PRO</span></h2><p class="typed" id="typeText"></p><div class="loader"></div><p style="font-size:10px;opacity:.8">Подключаем профессиональную систему...</p><button type="button" class="splash-skip" id="skipIntro">Пропустить ›</button>
-</div></div>
-<main class="wrap">
-<header class="fadein" style="--in:.1s">
-<a class="brand" href="./mobile.html"><span class="brandmark"><svg viewBox="0 0 220 195" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#tail"></use></svg></span><span class="brandcopy"><strong>MORE SUSHI<br>STUDIO <span>PRO</span> <span class="pro">3D</span></strong><small>Профессиональная система шеф-повара</small></span></a>
-<button class="circlebtn" id="appInfo" type="button" aria-label="Информация о приложении"><svg viewBox="0 0 80 80"><use href="#gear"/></svg></button>
-</header>
-<section class="hero fadein" style="--in:.25s" aria-label="Живой океан: студия шеф-повара">
-<div class="hero-sheen"></div><div class="ocean-sunburst" aria-hidden="true"></div>
-<svg class="ocean-waterline" viewBox="0 0 800 330" preserveAspectRatio="none" aria-hidden="true">
- <defs><linearGradient id="waterEdge" x1="0%" y1="0%" x2="0%" y2="100%"><stop stop-color="#fff"/><stop offset=".3" stop-color="#9afaff"/><stop offset=".7" stop-color="#2fc9fa"/><stop offset="1" stop-color="#025aa5"/></linearGradient></defs>
- <path d="M-20 282q115-45 225-13t167-4q127-55 240-12t232-29" fill="none" stroke="#00558c" stroke-width="22" opacity=".64"/>
- <path d="M-20 282q115-46 225-15t167-3q127-54 240-14t232-26" fill="none" stroke="url(#waterEdge)" stroke-width="6.5" opacity=".9"/>
- <path d="M-20 295q113-28 231-12t170 4q141-36 254-11t214-22" fill="none" stroke="#dcffff" stroke-width="2.7" opacity=".95"/>
- <path d="M-5 314q110-31 230-18t176 12q121-30 227-12t221-18" fill="none" stroke="#7aeaff" stroke-width="4.5" opacity=".62"/>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7"><meta name="mss-ui-build" content="ruby-white-6.0.0-20261122">
+<meta name="description" content="MORE SUSHI STUDIO PRO — профессиональная студия ТТК для шеф-повара">
+<title>MORE SUSHI STUDIO PRO · RUBY WHITE</title>
+<link rel="preload" href="./ruby-white/ruby-hero.webp" as="image" type="image/webp">
+<link rel="stylesheet" href="./ruby-white.css?v=6.0.0">
+</head><body>
+<svg class="defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><symbol id="i-tail" viewBox="0 0 64 64"><path d="M6 33c11 0 15-8 19-19 7 2 10 8 13 17 7-11 12-15 20-14-2 16-11 21-23 25-7 3-12 8-15 15-2-13-6-19-14-24Z" fill="currentColor"/><path d="M8 53q13-6 24-2 14-7 25-4" fill="none" stroke="currentColor" stroke-width="2.7"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/></symbol>
+<symbol id="i-ttk" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9ZM8 11l1.5 1.5L12 10m1 2h3m-8 4 1.5 1.5L12 15m1 2h3"/></symbol>
+<symbol id="i-catalog" viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4-8-4Zm0 5 8 4 8-4M4 18l8 4 8-4"/></symbol>
+<symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6V2Zm9 0v6h5M9 13h8M9 17h8"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.8"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="m10 2 .5 2.3 3 .4L15.5 3l2.4 1.3-.5 2.4 1.7 2 2.4.5v3l-2.4.5-1.7 2 .5 2.4-2.4 1.3-2-1.7-3 .4L10 20H7l-.5-2.4-2.8-1-.9 1.5L.8 16.4l.8-2.4-1.1-2.6L.2 10l2.6-1L4 6.6l-.3-2.5L6 3l1.7 1.6L10 4Z" transform="translate(1 1) scale(.93)"/><circle cx="11.4" cy="11.8" r="3.1"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M5.5 18a5.5 5.5 0 0 1-.8-10.9 7 7 0 0 1 13.6 2.2A4.6 4.6 0 1 1 18 18H5.5Zm6.5-9v10m-4-4 4 4 4-4"/></symbol>
+<symbol id="i-print" viewBox="0 0 24 24"><path d="M6 8V2h12v6M6 18H3V9h18v9h-3m-12-5h12v9H6v-9Zm12-1h.02"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m4 13 5 5L20 6"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5q-5-3-9-2v16q5-1 9 2 4-3 9-2V3q-4-1-9 2v16"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 21V11h4v10M10 21V7h4v14M16 21V3h4v18M2 21h20"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 </svg>
-<div class="hero-copy"><div class="hero-eyebrow">ЖИВОЙ ОКЕАН · PREMIUM 3D</div><h1>Создавай<br><span>идеальные</span> ТТК</h1><p>Рецептуры · ингредиенты<br>полуфабрикаты · PDF</p><a class="hero-stamp" href="./index.html?ocean=1&amp;view=dashboard" aria-label="Открыть рабочую студию">＋ Вся кухня в одном месте <span aria-hidden="true">›</span></a></div>
-<svg class="hero-whale" viewBox="0 0 220 195" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#tail"/></svg>
-<div class="hero-bubbles" aria-hidden="true"><i style="--x:12%;--s:8px;--t:8s;--d:-2s"></i><i style="--x:48%;--s:12px;--t:10s;--d:-4s"></i><i style="--x:68%;--s:6px;--t:6s;--d:-3s"></i><i style="--x:89%;--s:10px;--t:11s;--d:-6s"></i></div>
+<main class="wrap">
+<header class="ruby-header" aria-label="Заголовок студии">
+  <a href="./mobile.html" class="brand" aria-label="MORE SUSHI STUDIO PRO — главная"><span class="logo" aria-hidden="true"><svg class="tail"><use href="#i-tail"/></svg><i></i></span>
+   <span class="brandtext"><span class="brand-top">MORE SUSHI</span><span class="brand-mid">STUDIO <strong>PRO</strong><em>3D</em></span><small>ПРОФЕССИОНАЛЬНАЯ СИСТЕМА ШЕФ-ПОВАРА</small></span></a>
+  <button id="appInfo" class="settings-shortcut" type="button" aria-label="Настройки и раздел Ещё"><svg><use href="#i-settings"/></svg></button>
+</header>
+<section class="hero" aria-label="Профессиональная студия техкарт">
+ <img src="./ruby-white/ruby-hero.webp" alt="Ролл из лосося с икрой на каменной подставке" class="hero-photo" decoding="async" fetchpriority="high" width="601" height="397">
+ <div class="hero-copy"><span class="hero-kicker">ПРОФЕССИОНАЛЬНЫЕ</span><h1>ТТК<span>.</span></h1><p>Рецептуры <b>·</b> Технологии<br>КБЖУ <b>·</b> Контроль качества</p>
+ <a class="hero-stamp" href="./index.html?ocean=1&amp;view=editor">Создать ТТК <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
 </section>
-<div class="cloudbar fadein" style="--in:.4s"><svg class="icon" viewBox="0 0 80 80"><use href="#cloud"/></svg><div class="cloudtxt"><b id="cloudName">MORE SUSHI · облачная система</b><small id="cloudDesc">Проверьте вход, чтобы работать с вашими ТТК</small></div><button type="button" class="ocean-refresh-btn" data-ocean-refresh title="Загрузить свежую версию сайта" aria-label="Обновить MORE SUSHI STUDIO PRO"><span class="refresh-symbol" aria-hidden="true">↻</span><span>Обновить</span></button><span class="dot" id="syncDot" aria-label="Статус облака"></span></div>
-<div class="metrics fadein" style="--in:.5s">
- <div class="metric"><svg viewBox="0 0 80 80"><use href="#ttk"/></svg><label>ТТК</label><b id="countTtk">—</b></div>
- <div class="metric"><svg viewBox="0 0 180 180"><use href="./ocean-3d-art.svg?v=3#folder"/></svg><label>Проекты</label><b id="countProjects">—</b></div>
- <div class="metric"><svg viewBox="0 0 80 80"><use href="#chart"/></svg><label>Черновики</label><b id="countDrafts">—</b></div>
- <div class="metric"><svg viewBox="0 0 180 180"><use href="./ocean-3d-art.svg?v=3#cloudcheck"/></svg><label>Облако</label><b id="countCloud">—</b></div>
-</div>
-
+<div class="cloudbar" aria-live="polite"><span class="cloud-icon" aria-hidden="true"><svg><use href="#i-cloud"/></svg></span><div class="cloudtxt"><b id="cloudName">Проверяем облако MORE SUSHI…</b><small id="cloudDesc">Синхронизация и доступ к данным</small></div>
+<button type="button" class="ocean-refresh-btn" data-ocean-refresh aria-label="Проверить и загрузить новую версию веб-интерфейса"><span class="refresh-symbol" aria-hidden="true">↻</span><span>Обновить</span></button><span class="dot" id="syncDot" aria-label="Статус облака"></span></div>
 <div class="mss-category-app" id="mssCategoryApp">
 <section class="mss-panel" data-mss-panel="home" id="mss-home">
-<div class="mss-heading">
-  <div><div class="mss-eyebrow">MORE SUSHI · СТУДИЯ ШЕФ-ПОВАРА</div><h2>Все инструменты под рукой</h2></div>
-  <span class="mss-edition" aria-label="Новая версия оформления">OCEAN 3D+ ✦</span>
-</div>
-<div class="mss-feature-grid" aria-label="Быстрый доступ">
- <a href="./index.html?ocean=1&amp;view=editor" class="mss-feature mss-feature-red mss-feature-primary">
-   <span class="mss-feature-icon"><svg viewBox="0 0 180 180" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#clipboard"/></svg></span>
-   <strong>Создать ТТК</strong><small>Техкарта за несколько шагов</small><span class="mss-feature-arrow">↗</span>
- </a>
- <button type="button" class="mss-feature mss-feature-blue" data-mss-tab="catalog">
-   <span class="mss-feature-icon"><svg viewBox="0 0 180 180" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#nigiri"/></svg></span>
-   <strong>Каталог</strong><small>Ингредиенты и полуфабрикаты</small><span class="mss-feature-arrow">↗</span>
- </button>
- <button type="button" class="mss-feature mss-feature-pearl" data-mss-tab="pdf">
-   <span class="mss-feature-icon"><svg viewBox="0 0 180 180" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#printer"/></svg></span>
-   <strong>PDF / Печать</strong><small>Фирменные документы А4</small><span class="mss-feature-arrow">↗</span>
- </button>
-</div>
-<div class="mss-quick">
- <div><span class="mss-quick-label">ПРОДОЛЖИТЬ РАБОТУ</span><b>Ваша профессиональная студия</b></div>
- <a href="./index.html?ocean=1&amp;view=library" class="mss-quick-link">Все ТТК <span aria-hidden="true">→</span></a>
+<div class="mss-feature-grid">
+ <a href="./index.html?ocean=1&amp;view=editor" class="mss-feature"><img class="tile-photo" src="./ruby-white/ruby-ttk.webp" alt="" loading="eager"><strong>ТТК</strong><small>Создание и управление</small><span class="tile-arrow" aria-hidden="true">›</span></a>
+ <button type="button" class="mss-feature" data-mss-tab="catalog"><img class="tile-photo" src="./ruby-white/ruby-ingredients.webp" alt="" loading="eager"><strong>Ингредиенты</strong><small>Сырьё, состав и КБЖУ</small><span class="tile-arrow" aria-hidden="true">›</span></button>
+ <button type="button" class="mss-feature" data-mss-tab="catalog"><img class="tile-photo" src="./ruby-white/ruby-prep.webp" alt="" loading="eager"><strong>Полуфабрикаты</strong><small>Заготовки и потери</small><span class="tile-arrow" aria-hidden="true">›</span></button>
+ <button type="button" class="mss-feature" data-mss-tab="catalog"><img class="tile-photo" src="./ruby-white/ruby-roll.webp" alt="" loading="eager"><strong>Готовые блюда</strong><small>Роллы, суши и другое</small><span class="tile-arrow" aria-hidden="true">›</span></button>
+ <button type="button" class="mss-feature" data-mss-tab="catalog"><img class="tile-photo" src="./ruby-white/ruby-sauces.webp" alt="" loading="eager"><strong>Соусы</strong><small>Рецептуры и раскладки</small><span class="tile-arrow" aria-hidden="true">›</span></button>
+ <button type="button" class="mss-feature" data-mss-tab="pdf"><img class="tile-photo" src="./ruby-white/ruby-pdf.webp" alt="" loading="eager"><strong>PDF и печать</strong><small>Шаблоны и экспорт ТТК</small><span class="tile-arrow" aria-hidden="true">›</span></button>
 </div>
 </section>
-<section class="mss-panel" data-mss-panel="ttk" id="mss-ttk" hidden><div class="mss-title"><h2>📋 ТТК</h2><p>Создание, черновики, готовые карты и шаблоны.</p></div><div class="mss-grid"><a class="mss-card" href="./index.html?ocean=1&amp;view=editor"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#ttk"/></svg><strong>Новая ТТК</strong><small>Конструктор техкарт</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=library"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#book"/></svg><strong>Все ТТК</strong><small>Полная библиотека</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=library&amp;status=draft"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#ttk"/></svg><strong>Черновики</strong><small>Неутверждённые карты</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=library&amp;status=approved"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#chart"/></svg><strong>Готовые ТТК</strong><small>Утверждённые документы</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=templates"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pdf"/></svg><strong>Шаблоны ТТК</strong><small>Фирменные макеты А4</small><span class="mss-arrow">›</span></a></div></section>
-<section class="mss-panel" data-mss-panel="catalog" id="mss-catalog" hidden><div class="mss-title"><h2>🥗 Каталог</h2><p>Новая структура продуктов. Добавление и синхронизацию подключим отдельно, не затрагивая текущие ТТК.</p></div><div class="mss-grid"><button type="button" class="mss-card mss-future" data-mss-future="Ингредиенты"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#food"/></svg><strong>Ингредиенты</strong><small>Сырьё и КБЖУ</small><span class="mss-arrow">›</span></button><button type="button" class="mss-card mss-future" data-mss-future="Полуфабрикаты"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pf"/></svg><strong>Полуфабрикаты</strong><small>Заготовки и потери</small><span class="mss-arrow">›</span></button><button type="button" class="mss-card mss-future" data-mss-future="Готовые блюда"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#ttk"/></svg><strong>Готовые блюда</strong><small>Роллы, суши и другое</small><span class="mss-arrow">›</span></button><button type="button" class="mss-card mss-future" data-mss-future="Соусы"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pf"/></svg><strong>Соусы</strong><small>Рецептуры соусов</small><span class="mss-arrow">›</span></button><button type="button" class="mss-card mss-future" data-mss-future="Напитки"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#food"/></svg><strong>Напитки</strong><small>Морсы и лимонады</small><span class="mss-arrow">›</span></button><button type="button" class="mss-card mss-future" data-mss-future="Упаковка"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#book"/></svg><strong>Упаковка</strong><small>Тара и расходники</small><span class="mss-arrow">›</span></button></div><div class="mss-message" id="mssFutureMessage" hidden role="status"><b id="mssFutureName"></b><p>Категория создана в новой навигации. Её база и редактор пока не подключены. Существующие ТТК и ингредиенты не удаляются.</p><button type="button" id="mssFutureClose">Закрыть</button></div></section>
-<section class="mss-panel" data-mss-panel="pdf" id="mss-pdf" hidden><div class="mss-title"><h2>📄 PDF и печать</h2><p>Документы, оформление А4 и экспорт готовых ТТК.</p></div><div class="mss-grid"><a class="mss-card" href="./index.html?ocean=1&amp;view=templates"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pdf"/></svg><strong>Шаблоны А4</strong><small>Выбор фирменного оформления</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=library"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#book"/></svg><strong>Печать ТТК</strong><small>Выбери карту в библиотеке</small><span class="mss-arrow">›</span></a><button type="button" class="mss-card mss-future" data-mss-future="История PDF"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#chart"/></svg><strong>История PDF</strong><small>Журнал выгрузок</small><span class="mss-arrow">›</span></button></div></section>
-<section class="mss-panel" data-mss-panel="more" id="mss-more" hidden><div class="mss-title"><h2>⚙️ Ещё</h2><p>Бренды, настройки, облако и обновления.</p></div><div class="mss-grid"><a class="mss-card" href="./index.html?ocean=1&amp;view=projects"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#book"/></svg><strong>Бренды и проекты</strong><small>Твои заведения</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=settings"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#gear"/></svg><strong>Настройки студии</strong><small>Профиль и подписи</small><span class="mss-arrow">›</span></a><a class="mss-card" href="./index.html?ocean=1&amp;view=settings"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#cloud"/></svg><strong>Облако</strong><small>Вход и данные</small><span class="mss-arrow">›</span></a><button type="button" class="mss-card" data-ocean-refresh><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#gear"/></svg><strong>Обновить</strong><small>Свежая версия сайта</small><span class="mss-arrow">↻</span></button></div></section>
-</div>
-
-<p class="statusnote">MORE SUSHI STUDIO PRO · Живой океан 3D<br>Премиальный интерфейс · версии сайта обновляются без переустановки</p>
-</main>
-<nav class="bottomnav mss-bottomnav" aria-label="Разделы студии"><button type="button" class="navitem active" data-mss-tab="home" aria-current="page"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#home"/></svg>Главная</button><button type="button" class="navitem " data-mss-tab="ttk" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#ttk"/></svg>ТТК</button><button type="button" class="navitem " data-mss-tab="catalog" aria-current="false"><svg viewBox="0 0 180 180" class="mss-ico" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#nigiri"/></svg>Каталог</button><button type="button" class="navitem " data-mss-tab="pdf" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pdf"/></svg>PDF</button><button type="button" class="navitem " data-mss-tab="more" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#gear"/></svg>Ещё</button></nav>
+<section class="mss-panel" data-mss-panel="ttk" id="mss-ttk" hidden><div class="mss-title"><h2>Технологические карты</h2><p>Создание, черновики и библиотека ТТК</p></div><div class="mss-grid">
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=editor"><svg><use href="#i-ttk"/></svg><strong>Новая ТТК</strong><small>Конструктор техкарт</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=library"><svg><use href="#i-book"/></svg><strong>Все ТТК</strong><small>Полная библиотека</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=library&amp;status=draft"><svg><use href="#i-ttk"/></svg><strong>Черновики</strong><small>Неутверждённые карты</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=library&amp;status=approved"><svg><use href="#i-check"/></svg><strong>Готовые ТТК</strong><small>Утверждённые документы</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=templates"><svg><use href="#i-pdf"/></svg><strong>Шаблоны ТТК</strong><small>Фирменные макеты A4</small><span class="mss-arrow">›</span></a>
+ </div></section>
+<section class="mss-panel" data-mss-panel="catalog" id="mss-catalog" hidden><div class="mss-title"><h2>Каталог продуктов</h2><p>Единая база для рецептур и полуфабрикатов</p></div><div class="mss-grid">
+ <button type="button" class="mss-card mss-future" data-mss-future="Ингредиенты"><img src="./ruby-white/ruby-ingredients.webp" alt="" loading="lazy"><strong>Ингредиенты</strong><small>Сырьё и КБЖУ</small><span class="mss-arrow">›</span></button>
+ <button type="button" class="mss-card mss-future" data-mss-future="Полуфабрикаты"><img src="./ruby-white/ruby-prep.webp" alt="" loading="lazy"><strong>Полуфабрикаты</strong><small>Заготовки и потери</small><span class="mss-arrow">›</span></button>
+ <button type="button" class="mss-card mss-future" data-mss-future="Готовые блюда"><img src="./ruby-white/ruby-roll.webp" alt="" loading="lazy"><strong>Готовые блюда</strong><small>Роллы, суши и другое</small><span class="mss-arrow">›</span></button>
+ <button type="button" class="mss-card mss-future" data-mss-future="Соусы"><img src="./ruby-white/ruby-sauces.webp" alt="" loading="lazy"><strong>Соусы</strong><small>Рецептуры соусов</small><span class="mss-arrow">›</span></button>
+ <button type="button" class="mss-card mss-future" data-mss-future="Напитки"><svg><use href="#i-cloud"/></svg><strong>Напитки</strong><small>Морсы и лимонады</small><span class="mss-arrow">›</span></button>
+ <button type="button" class="mss-card mss-future" data-mss-future="Упаковка"><svg><use href="#i-catalog"/></svg><strong>Упаковка</strong><small>Тара и расходники</small><span class="mss-arrow">›</span></button>
+ </div><div class="mss-message" id="mssFutureMessage" hidden role="status"><b id="mssFutureName"></b><p>Раздел готовится. База и редактор пока не подключены; существующие ТТК сохранены.</p><button type="button" id="mssFutureClose">Закрыть</button></div></section>
+<section class="mss-panel" data-mss-panel="pdf" id="mss-pdf" hidden><div class="mss-title"><h2>PDF и печать</h2><p>Фирменные технологические карты формата А4</p></div><div class="mss-grid">
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=templates"><svg><use href="#i-pdf"/></svg><strong>Шаблоны А4</strong><small>Фирменное оформление</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=library"><svg><use href="#i-print"/></svg><strong>Печать ТТК</strong><small>Выбери карту в библиотеке</small><span class="mss-arrow">›</span></a>
+ <button type="button" class="mss-card mss-future" data-mss-future="История PDF"><svg><use href="#i-chart"/></svg><strong>История PDF</strong><small>Журнал выгрузок</small><span class="mss-arrow">›</span></button>
+ </div></section>
+<section class="mss-panel" data-mss-panel="more" id="mss-more" hidden><div class="mss-title"><h2>Студия и настройки</h2><p>Проекты, облако, доступ и обновления</p></div><div class="mss-grid">
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=projects"><svg><use href="#i-book"/></svg><strong>Бренды и проекты</strong><small>Твои заведения</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=settings"><svg><use href="#i-settings"/></svg><strong>Настройки студии</strong><small>Профиль и подписи</small><span class="mss-arrow">›</span></a>
+ <a class="mss-card" href="./index.html?ocean=1&amp;view=settings"><svg><use href="#i-cloud"/></svg><strong>Облако</strong><small>Вход и данные</small><span class="mss-arrow">›</span></a>
+ <button type="button" class="mss-card" data-ocean-refresh><svg><use href="#i-check"/></svg><strong>Обновить</strong><small>Свежая версия сайта</small><span class="mss-arrow">↻</span></button>
+ </div><div class="metrics" aria-label="Актуальные показатели студии">
+ <div class="metric"><svg><use href="#i-ttk"/></svg><label>ТТК</label><b id="countTtk">—</b></div>
+ <div class="metric"><svg><use href="#i-book"/></svg><label>Проекты</label><b id="countProjects">—</b></div>
+ <div class="metric"><svg><use href="#i-chart"/></svg><label>Черновики</label><b id="countDrafts">—</b></div>
+ <div class="metric"><svg><use href="#i-cloud"/></svg><label>Облако</label><b id="countCloud">—</b></div>
+ </div></section>
+</div></main>
+<nav class="bottomnav mss-bottomnav" aria-label="Разделы студии">
+ <button type="button" class="navitem active" data-mss-tab="home" aria-current="page"><svg><use href="#i-home"/></svg><span>Главная</span></button>
+ <button type="button" class="navitem" data-mss-tab="ttk"><svg><use href="#i-ttk"/></svg><span>ТТК</span></button>
+ <button type="button" class="navitem" data-mss-tab="catalog"><svg><use href="#i-catalog"/></svg><span>Каталог</span></button>
+ <button type="button" class="navitem" data-mss-tab="pdf"><svg><use href="#i-pdf"/></svg><span>PDF</span></button>
+ <button type="button" class="navitem" data-mss-tab="more"><svg><use href="#i-more"/></svg><span>Ещё</span></button>
+</nav>
 <script defer src="./ocean-updater.js?v=ocean-3.2.0"></script>
-<script>
-(function(){
- const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- const words='Загружаем мир профессиональной кухни';
- const p=document.getElementById('typeText'),splash=document.getElementById('splash');
- let introSeen=false;
- try{introSeen=localStorage.getItem('more-sushi-intro-done-v2')==='1'}catch(e){}
- const skip=introSeen||reduced;
- let finished=false, typeTimer=null, introTimer=null;
- function finishIntro(){
-   if(finished)return;
-   finished=true;
-   if(typeTimer)clearInterval(typeTimer);
-   if(introTimer)clearTimeout(introTimer);
-   splash.classList.add('done');
-   splash.setAttribute('aria-hidden','true');
-   document.body.classList.add('ready');
-   try{localStorage.setItem('more-sushi-intro-done-v2','1')}catch(e){}
- }
- document.getElementById('skipIntro').addEventListener('click',finishIntro);
- if(skip)finishIntro();
- else{
-   let idx=0;
-   typeTimer=setInterval(function(){
-     p.textContent=words.slice(0,++idx);
-     if(idx>=words.length)clearInterval(typeTimer);
-   },32);
-   introTimer=setTimeout(finishIntro,1950);
- }
- // Sequential reveal without blanking important text; works with accessibility.
- if(!reduced&&!skip){
-   document.querySelectorAll('.hero-copy h1, .mss-heading h2, .mss-feature strong').forEach(function(el,i){
-     el.classList.add('ocean-type-reveal');
-     el.style.setProperty('--reveal-delay',(i*140)+'ms');
-   });
- }
- let session=null;try{session=JSON.parse(localStorage.getItem('ms_session')||'null')}catch(e){}
- const expiry=Number(session?.expires_at||0);
- const active=Boolean(session?.access_token&&expiry>Math.floor(Date.now()/1000)+30);
- document.getElementById('cloudName').textContent=active?'Проверяем облако MORE SUSHI…':'Облако MORE SUSHI · требуется вход';
- document.getElementById('cloudDesc').textContent=active?'Сверяем данные с сервером':'Войдите в рабочую студию для доступа к данным';
- document.getElementById('countCloud').textContent='—';
- const dot=document.getElementById('syncDot');dot.style.background='#f2bd5e';dot.style.boxShadow='0 0 8px #d8a047';dot.style.animation='none';
- document.getElementById('appInfo').addEventListener('click',function(){
-   const more=document.querySelector('.bottomnav [data-mss-tab="more"]');
-   if(more)more.click();else window.location.hash='more';
- });
-})();
-</script><script defer src="./ocean-categories.js?v=ocean-3.2.0"></script><script defer src="./ocean-dashboard.js?v=ocean-3.2.0"></script><script defer src="./ocean-refined.js?v=ocean-3.1.0"></script></body></html>
+<script defer src="./ocean-categories.js?v=ocean-3.3.0"></script>
+<script defer src="./ocean-dashboard.js?v=ocean-3.2.0"></script>
+<script defer src="./ruby-ui.js?v=6.0.0"></script>
+</body></html>
