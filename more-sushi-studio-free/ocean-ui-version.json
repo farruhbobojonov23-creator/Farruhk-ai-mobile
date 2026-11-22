@@ -1,7 +1,7 @@
 {
-  "build": "ocean-3.2.1-original-restored-20261122",
-  "display": "OCEAN 3D · исходный дизайн",
+  "build": "ruby-white-6.0.0-20261122",
+  "display": "RUBY WHITE PREMIUM 3D · 6.0",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Restored the first working light-blue MORE SUSHI mobile UI from commit c5a602eb3c1d (OCEAN 3.2). Removed stacked 3.3–5.1 visual themes and runtime visual scripts from loaded HTML; original five tabs, real cloud, editor links, PDF links and current data remain intact. Restored studio workspace's original Ocean 3.2 style. This is a WEB interface update, not an Android APK update."
+  "details": "Single-active-theme replacement: clean Ruby White premium mobile HTML (one CSS file), seven independent optimized realistic sushi/chef/ingredient WebP visuals from the approved blend of concepts #1+#3, one Ruby White workspace theme replacing Ocean 3.2 workspace CSS. Five tabs, existing TTK/Projects/PDF editor routes, true cloud auth and update checker retained. Seven catalog/history areas remain marked as upcoming. This is a WEB interface release; no signed Android APK changes, no claim of native 8K raster fidelity or real-device pixel-perfect tests."
 }
