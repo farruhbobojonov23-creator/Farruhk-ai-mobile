@@ -11,7 +11,7 @@ scrollTo(0,0);
 }
 document.addEventListener("click",ev=>{const target=ev.target.closest("[data-mss-tab],[data-mss-future]");if(!target)return;
 if(target.dataset.mssTab){show(target.dataset.mssTab);return}
-const note=document.getElementById("mssFutureMessage"),name=document.getElementById("mssFutureName");if(note&&name){name.textContent=target.dataset.mssFuture;note.hidden=false;note.scrollIntoView({behavior:"smooth",block:"nearest"})}
+const note=document.getElementById("mssFutureMessage"),name=document.getElementById("mssFutureName");if(note&&name){const section=target.closest("[data-mss-panel]");if(section)section.appendChild(note);name.textContent=target.dataset.mssFuture;note.hidden=false;note.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"nearest"})}
 });
 const close=document.getElementById("mssFutureClose");if(close)close.addEventListener("click",()=>document.getElementById("mssFutureMessage").hidden=true);
 addEventListener("hashchange",()=>show(location.hash.slice(1)||"home",false));show(location.hash.slice(1)||"home",false);
