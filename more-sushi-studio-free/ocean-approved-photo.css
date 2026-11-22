@@ -1,0 +1,243 @@
+/* MORE SUSHI STUDIO PRO — approved reference reconstruction, 2026-11-22.
+   Premium photo assets are separated from the active HTML document.
+   Real cloud counters, links, five-tab navigation and TTK editor stay functional.
+   Screen-only: no PDF print styles, database schema, or user recipes are modified. */
+@media screen {
+  html[data-mss-tab="home"] .wrap>header{display:none!important}
+  body{
+    background:
+      radial-gradient(ellipse 110% 46% at 50% 48%,#d9f7ff 0%,#93d9f2 31%,transparent 75%),
+      radial-gradient(ellipse 80% 45% at 52% 100%,#074b83 1%,transparent 95%),
+      linear-gradient(180deg,#04315d 0%,#2885b6 22%,#98daf0 58%,#0b5383 91%,#032143 100%)!important;
+    color:#0c3458!important;
+  }
+  .ocean-bg:before{opacity:.16!important}
+  .ocean-bg:after{opacity:.10!important}
+  .wrap{
+    padding:0 10px calc(112px + env(safe-area-inset-bottom))!important;
+    width:min(100%,540px)!important;
+  }
+
+  /* A real clickable hero with a REAL humpback-whale image taken from
+     the specifically approved reference, not a generic whale icon. */
+  .wrap>.hero{
+    position:relative!important;
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:709 / 390!important;
+    margin:0 -10px 14px!important;
+    width:calc(100% + 20px)!important;
+    max-width:none!important;
+    border-radius:21px!important;
+    border:2px solid #c4faff!important;
+    isolation:isolate;
+    overflow:hidden!important;
+    background:linear-gradient(132deg,#04305c,#0768a5 62%,#06395d)!important;
+    box-shadow:inset 0 2px 3px #f4ffff,0 4px 0 #0774b3,0 8px 19px #013f7291,0 0 16px #41c6f7b0!important;
+    animation:none!important;
+  }
+  .wrap>.hero .approved-hero-whale{
+    position:absolute;z-index:1;right:0;top:0;
+    height:100%;width:65%;display:block;
+    object-fit:cover;object-position:center center;
+    filter:saturate(1.18) contrast(1.07);
+    pointer-events:none;
+  }
+  .wrap>.hero:before{
+    content:"";position:absolute;inset:0;z-index:2;
+    background:
+      linear-gradient(90deg,#03305ddc 0%,#063969d5 29%,#045085a0 44%,#044e7c38 59%,transparent 82%),
+      linear-gradient(0deg,#023b6c8a,transparent 27%);
+    pointer-events:none;animation:none!important;
+  }
+  .wrap>.hero:after,.wrap>.hero .ocean-waterline,
+  .wrap>.hero .hero-whale,.wrap>.hero .ocean-sunburst,
+  .wrap>.hero .hero-sheen,.wrap>.hero .hero-bubbles{display:none!important}
+  .wrap>.hero .hero-copy{
+    position:absolute!important;inset:0!important;
+    width:100%!important;max-width:none!important;
+    left:0!important;top:0!important;
+    z-index:3!important;
+    padding:0!important;
+    text-shadow:0 2px 4px #00385f;
+  }
+  .approved-hero-brand{
+    position:absolute;left:4.2%;top:5.2%;
+    display:flex;align-items:center;gap:5px;
+    color:#f2fcff;text-shadow:0 1px 2px #033c71,0 3px 5px #00294e;
+    line-height:.97;white-space:nowrap;
+  }
+  .approved-hero-brand svg{
+    display:block;width:clamp(35px,10.2vw,58px);height:clamp(34px,10vw,57px);
+    filter:drop-shadow(0 3px 4px #043858) drop-shadow(0 0 4px #86eaff);
+    flex:none;
+  }
+  .approved-hero-brand strong{
+    display:block;font-size:clamp(16px,4.5vw,24px);
+    font-weight:950;letter-spacing:.018em;font-style:normal;color:#fff;
+  }
+  .approved-hero-brand span{
+    display:block;margin-top:3px;
+    font-size:clamp(12px,3.55vw,18px);letter-spacing:.11em;
+    font-weight:600;color:#d7f1ff;
+  }
+  .approved-hero-brand span b{
+    display:inline-block;margin-left:2px;
+    padding:3px 6px;border-radius:6px;letter-spacing:.01em;
+    font-size:.8em;color:#fff;
+    background:linear-gradient(#ff96af,#ef275e 47%,#ad0f41);
+    box-shadow:inset 0 1px #fff9,0 2px 5px #7d0f478f;
+    border:1px solid #ffbdd6;
+  }
+  .approved-hero-professional{
+    position:absolute;left:5.2%;top:27.7%;
+    padding-left:8px;border-left:3px solid #23e2ff;
+    color:#f4faff;font-size:clamp(9px,2.55vw,13px);
+    font-weight:650;line-height:1.2;
+  }
+  .wrap>.hero .hero-copy h1{
+    position:absolute;left:4.25%;top:43.4%;
+    margin:0!important;padding:0;
+    font-size:clamp(18px,5.13vw,28px)!important;
+    line-height:1.05!important;font-weight:950!important;
+    letter-spacing:-.045em!important;
+    color:white!important;text-shadow:0 2px 4px #003051!important;
+  }
+  .wrap>.hero .hero-copy h1 span{
+    color:#ffe2a5!important;font-style:italic!important;
+    text-shadow:0 2px 4px #663e147c!important;
+  }
+  .wrap>.hero .hero-copy p{
+    position:absolute;top:63.3%;left:4.6%;
+    margin:0!important;padding:0!important;
+    font-size:clamp(9px,2.48vw,12.5px)!important;
+    font-weight:450;line-height:1.35!important;color:#e9faff!important;
+  }
+  .wrap>.hero .hero-stamp{
+    position:absolute;left:4.1%;bottom:6.6%;top:auto!important;
+    max-width:57%;margin:0!important;
+    min-height:clamp(31px,8.1vw,46px)!important;
+    padding:7px clamp(8px,2.2vw,13px)!important;
+    white-space:nowrap!important;display:flex!important;
+    align-items:center;justify-content:center;gap:6px;
+    border:1.5px solid #ffe2ed!important;border-radius:13px!important;
+    font-size:clamp(8.5px,2.42vw,12px)!important;
+    font-weight:900!important;line-height:1.2!important;
+    text-shadow:0 1px 2px #87123b;
+    color:#fff!important;
+    background:linear-gradient(#ff8ca5,#ff3867 45%,#c20d46 87%,#900d37)!important;
+    box-shadow:inset 0 1px #fff9,0 3px 0 #a40e45,0 7px 12px #5b143c9c!important;
+  }
+  .wrap>.hero .hero-stamp span{font-size:21px!important;color:white!important;line-height:.8}
+  .wrap>.hero .hero-stamp:active{transform:translateY(2px)!important}
+  .wrap>.hero .hero-stamp:focus-visible{outline:3px solid #ffe79b!important;outline-offset:3px!important}
+
+  /* Semi-frosted cards: all numbers are real values from the existing cloud code. */
+  .cloudbar{
+    min-height:55px!important;margin:2px 0 13px!important;
+    padding:8px 10px!important;border-radius:17px!important;
+    background:linear-gradient(150deg,#f6fdff,#d5f2fd 85%,#bce5f4)!important;
+    border:2px solid #fff!important;
+    box-shadow:inset 0 2px #fff,0 4px 0 #8bbbd1,0 8px 15px #064e7b52!important;
+  }
+  .cloudtxt b{color:#123a59!important;font-size:clamp(9.5px,2.52vw,12px)!important}
+  .cloudtxt small{color:#4e7a98!important;font-size:clamp(8px,2.23vw,10px)!important}
+  .cloudbar .ocean-refresh-btn{
+    min-height:43px!important;font-size:11px!important;
+    color:white!important;background:linear-gradient(#ff8fa4,#ee285c 55%,#9f0c41)!important;
+    border:1px solid #ffd0de!important;
+    box-shadow:inset 0 1px #fff9,0 3px #991341,0 5px 12px #a5235970!important;
+  }
+  .metrics{margin:0 0 13px!important;gap:8px!important}
+  .metric{min-height:78px!important;border-radius:16px!important}
+  .metric svg{width:27px!important;height:28px!important}
+  .metric label{font-size:9.2px!important;color:#184e70!important;font-weight:800}
+  .metric b{font-size:16px!important}
+  .mss-category-app{margin:12px 0 0!important}
+  .mss-heading h2{font-size:clamp(17px,4.3vw,21px)!important;font-weight:950!important;color:#073554!important}
+  .mss-heading .mss-eyebrow{font-size:clamp(8px,2.05vw,10px)!important;color:#2b6582!important}
+  .mss-edition{color:#b61243!important}
+
+  /* Art texture is the approved visual, while the original anchors/buttons remain
+     keyboard accessible, interactive and connect to the real application routes. */
+  .mss-feature-grid{
+    gap:8px!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:clamp(80px,23.5vw,127px) clamp(80px,23.5vw,127px)!important;
+  }
+  .mss-feature{
+    border:0!important;border-radius:20px!important;
+    padding:0!important;min-height:0!important;
+    background-position:center!important;
+    background-size:100% 100%!important;
+    background-repeat:no-repeat!important;
+    box-shadow:0 5px 14px #054f7770!important;
+    overflow:hidden!important;
+    transform:translateZ(0);
+    touch-action:manipulation;
+  }
+  .mss-feature-red{
+    background-image:url('./ocean_card_ttk.webp?v=1')!important;
+  }
+  .mss-feature-blue{
+    background-image:url('./ocean_card_catalog.webp?v=1')!important;
+  }
+  .mss-feature-pearl{
+    background-image:url('./ocean_card_pdf.webp?v=1')!important;
+  }
+  .mss-feature:before,.mss-feature:after{display:none!important}
+  .mss-feature>.mss-feature-icon,.mss-feature>strong,
+  .mss-feature>small,.mss-feature>.mss-feature-arrow{opacity:0!important}
+  .mss-feature:focus-visible{outline:3px solid #ffc44c!important;outline-offset:3px!important}
+  .mss-feature:active{transform:translateY(2px)!important;filter:brightness(1.04)}
+  .mss-quick{
+    margin:14px 0 0!important;border-radius:17px!important;
+    padding:12px!important;background:linear-gradient(#f9feff,#dcf4fd)!important;
+    box-shadow:inset 0 1px #fff,0 4px 12px #07567d56!important;
+  }
+  .mss-quick .mss-quick-link{
+    color:white!important;border-radius:12px!important;
+    background:linear-gradient(#ff84a0,#f32e62 56%,#ae1040)!important;
+    box-shadow:inset 0 1px #ffedfa,0 3px #a30e47,0 6px 9px #8d315258!important;
+  }
+  .approved-water-band{
+    width:calc(100% + 20px);height:clamp(42px,11vw,62px);
+    margin:15px -10px 0;
+    background:url('./ocean_water_strip.webp?v=1') center center / 100% 100% no-repeat;
+    filter:saturate(1.08) contrast(1.06);
+    pointer-events:none;
+  }
+  .bottomnav{
+    background:linear-gradient(160deg,#d8f8fffa,#98d6eefa 72%,#7fc7e5fa)!important;
+    border:2px solid #c8faff!important;
+    box-shadow:inset 0 1px #fff,0 -4px 0 #0876b3a0,0 -10px 19px #03466d59!important;
+    padding:6px 7px max(8px,env(safe-area-inset-bottom))!important;
+    border-radius:21px 21px 0 0!important;
+  }
+  .bottomnav .navitem{color:#113b5e!important;font-weight:900!important}
+  .bottomnav .navitem.active{
+    background:linear-gradient(#ff7898,#f1225b 57%,#9f123e)!important;
+    border:1.5px solid #ffd2e4!important;color:#fff!important;
+    box-shadow:inset 0 1px #fff7,0 3px #ab1351,0 5px 11px #e62b6988!important;
+  }
+  .bottomnav .navitem svg{width:27px!important;height:27px!important}
+  .bottomnav .navitem:focus-visible{outline:3px solid #f7c55d!important;outline-offset:-2px}
+}
+@media screen and (max-width:362px){
+  .approved-hero-brand{gap:3px}
+  .approved-hero-brand svg{width:36px;height:36px}
+  .approved-hero-brand strong{font-size:15px}
+  .approved-hero-brand span{font-size:11px}
+  .wrap>.hero .hero-copy h1{font-size:18px!important;top:42%!important}
+  .wrap>.hero .hero-copy p{font-size:9px!important;top:63%!important}
+  .approved-hero-professional{font-size:9px}
+  .cloudbar .ocean-refresh-btn{min-height:39px!important;font-size:9px!important}
+  .mss-feature-grid{gap:7px!important}
+}
+@media screen and (min-width:541px){
+  .mss-feature-grid{grid-template-rows:127px 127px!important}
+  .wrap>.hero .hero-stamp{font-size:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .wrap>.hero,.mss-feature{animation:none!important;transition:none!important}
+}
