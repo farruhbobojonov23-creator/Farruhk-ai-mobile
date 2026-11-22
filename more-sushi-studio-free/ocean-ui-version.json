@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.3.1-20261123",
-  "display": "PEARL ROSE ULTRA · 8.3.1 — Ревизия",
+  "build": "pearl-rose-8.4.0-20261123",
+  "display": "PEARL ROSE ULTRA · 8.4 — Плавная печать",
   "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "Fixed FARUKH REVISION PRO toolbar returning to MORE SUSHI: old full-width back button had expanded the fixed header, overlapping the stock dashboard heading on Xiaomi 15T. Button was REPLACED within revision.html with a compact accessible 42px in-header return control without altering revision data, cloud, inventory logic or dark-crimson theme. Existing Five-tab MORE SUSHI studio and revision routes unchanged. Source checks passed; visual Android WebView still unverified."
+  "details": "Restored skippable premium typewriter splash and progressive heading/card text in FARUKH REVISION PRO and MORE SUSHI mobile tabs, with a shared presentation-only motion helper. The authenticated TTK workspace gets the same lightweight typewriter text on headings. Respects reduced-motion preferences. No delay to data loading, changes to stock counts, Supabase, revision, TTK/PDF, login, or business logic. No new visual theme overlaid; existing pearl-rose CSS and inline revision style edited in place. Revision entry links bust WebView cache. Actual Xiaomi device and cloud workflows require manual verification."
 }
