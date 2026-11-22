@@ -1,7 +1,7 @@
 {
-  "build": "black-gold-5.0.0-approved-20261122",
-  "display": "BLACK GOLD LUXURY · 5.0",
+  "build": "black-gold-5.1.0-xiaomi-qa-20261122",
+  "display": "BLACK GOLD LUXURY · 5.1",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Approved minimalist black/gold UI, separated photographic WebP artwork and live HTML cards, responsive home and five existing tabs. Mobile layout validated in isolated Chromium mock at six viewport sizes. No Supabase, TTK calculations, PDF or Android APK changes. Pixel-for-pixel Xiaomi match remains unverified."
+  "details": "Xiaomi screenshot QA: repaired overlapping hero title/CTA by resetting old absolute Ocean text positions; removed cyan surf footer from black-gold tabs; compacted excessive bottom dock height; stopped repeating TTK/PDF photos with distinct SVG symbols; improved PDF helper alignment and all section heading spacing. Retains 5 tabs, existing TTK/PDF links and data. This is a verified source-code correction, not a confirmed exact pixel match on real Xiaomi."
 }
