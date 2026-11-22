@@ -27,7 +27,7 @@ function release() {
     const data = readFileSync(APK);
     const calculated = createHash('sha256').update(data).digest('hex');
     if (calculated !== meta.sha256.toLowerCase()) return null;
-    if (data.length < 100000 || data.slice(0, 2).toString() !== 'PK') return null;
+    if (data.length < 30000 || data.slice(0, 2).toString() !== 'PK') return null;
     return { ...meta, sha256:calculated, sizeBytes:data.length };
   } catch { return null; }
 }
