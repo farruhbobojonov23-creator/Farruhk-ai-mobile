@@ -144,7 +144,19 @@
  html.ocean-app .pearl-appbar .refresh-symbol{font-size:20px;line-height:1}
  html.ocean-app .pearl-appbar .ocean-refresh-btn:disabled{opacity:.6}
  html.ocean-app #shell{padding-bottom:0}
- html.ocean-app .side-nav button[onclick*="revision.html"]{display:none!important}
+ /* FARUKH REVISION PRO: existing separate web module is accessible from studio. */
+ html.ocean-app .side-nav .revision-workspace-link{
+   display:flex!important;align-items:center;justify-content:center;text-decoration:none!important;
+   color:#fff!important;border:1px solid #ffb8ce!important;
+   background:linear-gradient(140deg,#ff7699,#e91a52 48%,#a70039)!important;
+   box-shadow:inset 0 1px #fff8,0 4px 10px #8220413d!important;
+   font-weight:850!important;
+ }
+ html.ocean-app .side-nav .revision-workspace-link:hover,
+ html.ocean-app .side-nav .revision-workspace-link:focus-visible{
+   color:#fff!important;background:linear-gradient(140deg,#fd467b,#cf0e44)!important;
+ }
+
  html.ocean-app .appearance-switch,html.ocean-app .appearance-auth-switch{display:none!important}
  .ocean-refresh-toast{position:fixed;z-index:999;bottom:100px;left:50%;transform:translateX(-50%);
   max-width:95vw;padding:12px 15px;background:#27252d;color:#fff;border-radius:13px;

@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.2.0-20261123",
-  "display": "PEARL ROSE ULTRA · 8.2",
+  "build": "pearl-rose-8.3.0-20261123",
+  "display": "PEARL ROSE ULTRA · 8.3 — Ревизия",
   "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "Corrects a real Xiaomi screenshot defect in the authenticated workspace: old ocean-workspace.js was injecting the blue whale, 'Живой океан', oversized 180px icons and a duplicate five-item dock on top of Pearl Rose; replaced in-place with a compact Pearl Rose header and kept the original functional six-tab studio navigation. Removed competing DOM appearance attribute without altering saved preferences. Existing pearl-rose-workspace.css replaced in place, no added theme CSS. The five mobile tabs and working studio TTK/library/PDF/projects/cloud routes remain intact. No APK rebuild. Desktop/device visual QA not yet complete."
+  "details": "FARUKH REVISION PRO is once again accessible from MORE SUSHI: dedicated visible stock-audit quick action on home, a full-width Revision category in More, and a real link in the authenticated studio navigation. The separate revision.html module provides store selection, stock counts, differences and history; return link to MORE SUSHI added. Existing five mobile navigation tabs and TTK, PDF, projects, clouds and data paths retained. Revision's separate Android APK not modified. Frontpad requires manual entry; no API connection. One Pearl Rose mobile stylesheet edited in place; no additional theme."
 }
