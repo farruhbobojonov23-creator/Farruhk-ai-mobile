@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.0.0-20261123",
-  "display": "PEARL ROSE ULTRA · 8.0",
+  "build": "pearl-rose-8.1.0-20261123",
+  "display": "PEARL ROSE ULTRA · 8.1",
   "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "Approved final bright Pearl Rose Ultra concept replaces previous Chef Signature theme. One pearl-rose.css mobile stylesheet + one lightweight pearl-rose-ui.js; one pearl-rose-workspace.css for studio on top of required functional TTK/A4 core CSS only. Header, realistic sushi hero, blossom SVG, ruby CTA, four live counters, asymmetrical Create TTK / Catalog / PDF cards, continuation and 5-tab dock. Four optimized WebP crops of original approved mockup, no baked-in button text, all live TTK/PDF/projects/cloud routes retained, seven catalog/history actions remain marked 'soon'. No signed APK built, no 8K raster claim, in-app Xiaomi verification pending."
+  "details": "Focused clean polish of the single Pearl Rose mobile theme (existing CSS replaced in place, not layered): corrected harsh photo seams on hero/catalog/PDF cards and restored legible card text, compact fixed bottom dock, optimized card vertical spacing and brighter white surfaces. 14 distinct shaded vector illustrations for TTK, PDF, drink, packaging and settings; four catalog photography cards retain their real existing images, while seven unavailable features remain marked SOON. 5 routes and cloud/status/refresh logic preserved. No database, A4/TTK editor, native APK or cloud data modified. Desktop workspace theme unchanged. No pixel-perfect 8K or real-device speed claim."
 }
