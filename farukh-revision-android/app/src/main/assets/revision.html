@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light"><title>FARUKH REVISION • Модуль ревизии</title><style>
+:root{--ink:#15243b;--sub:#6b7990;--blue:#285dc9;--sea:#0e8293;--bg:#eef2f8;--line:#e2e8f3;--red:#d44957;--green:#169f78;--gold:#ba8e3d;--shadow:0 8px 28px rgba(27,48,88,.07)}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}button,input,select{font:inherit}button{cursor:pointer}main{max-width:1340px;margin:auto;padding:24px}.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.sidebar{padding:26px 18px;background:#111d33;color:#d7e3f5;display:flex;flex-direction:column;gap:30px}.brand{font-size:20px;font-weight:900;letter-spacing:.8px;color:white;line-height:1.18}.brand small{color:#91a8c7;font-size:10px;letter-spacing:2.5px;font-weight:600}.brand .brandicon{display:inline-grid;place-items:center;width:35px;height:35px;border:1px solid #667794;color:#f0c578;border-radius:10px;font-size:20px;margin-right:8px}.menu{display:flex;flex-direction:column;gap:7px}.menu button{border:0;border-radius:10px;text-align:left;padding:13px 15px;background:transparent;color:#b5c5df;font-weight:700}.menu button.active{background:#263956;color:#fff;box-shadow:inset 3px 0 #d6ad62}.sidebarfoot{margin-top:auto;font-size:12px;color:#8398b8;line-height:1.7}.muted{color:var(--sub)}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.eyebrow{color:#46719f;text-transform:uppercase;font-size:11px;letter-spacing:2.2px;font-weight:900}h1{font-size:31px;letter-spacing:-.8px;margin:4px 0 7px}h2{font-size:19px;letter-spacing:-.3px;margin:0 0 16px}h3{font-size:14px;margin:0}.pill{border-radius:30px;background:#e3f5f1;color:#168d76;padding:9px 13px;font-size:12px;font-weight:800}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.selectors{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}.control{background:#fff;border:1px solid #d8e2ef;border-radius:10px;padding:12px 14px;min-width:155px;color:#19314e;outline:none}.control:focus,input:focus{border-color:#3478ed;outline:3px solid #3478ed20}.card{background:#fff;border:1px solid #e3eaf4;border-radius:18px;padding:22px;box-shadow:var(--shadow)}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.kpi .label{color:var(--sub);font-size:12px;font-weight:800}.kpi .number{font-size:27px;font-weight:850;letter-spacing:-.8px;margin-top:10px}.kpi .note{color:#8490a2;font-size:12px;margin-top:7px}.red{color:var(--red)}.green{color:var(--green)}.blue{color:var(--blue)}.grid{display:grid;grid-template-columns:1.7fr .8fr;gap:18px}.desc{color:var(--sub);font-size:13px;line-height:1.6;margin-top:-5px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}.btn{padding:11px 15px;border-radius:10px;border:1px solid #d8e2ef;background:white;color:#1a3357;font-weight:800}.btn.main{background:#2458bf;border-color:#2458bf;color:white}.btn.soft{background:#eaf2ff;color:#2757ab;border-color:#dce8fa}.btn.danger{color:#bc334b;background:#fff7f8}.btn:disabled{opacity:.55;cursor:not-allowed}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:690px}th{text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#71829a;background:#f5f8fd;padding:12px 9px}td{padding:12px 9px;border-bottom:1px solid #edf1f7}tbody tr:last-child td{border:0}.itemname{font-weight:750}.hint{display:block;color:#94a1b3;font-size:11px;margin-top:3px}.numinput{width:113px;max-width:100%;padding:10px;border-radius:9px;border:1px solid #d9e2ed;background:white;text-align:right;font-weight:750}.numinput.price{width:93px}.delta{font-weight:900;white-space:nowrap}.tag{display:inline-block;padding:4px 9px;border-radius:7px;background:#edf4ff;color:#3561a1;font-weight:800;font-size:11px}.tag.start{background:#f8efd9;color:#a67a19}.notearea{margin-top:16px;background:#f7f9fd;border:1px dashed #d8e2ef;border-radius:12px;padding:13px;color:#7788a0;line-height:1.6}.history{display:grid;gap:9px}.historyitem{padding:13px;border-radius:12px;border:1px solid #e7edf5;display:flex;align-items:center;justify-content:space-between;gap:8px}.historyitem strong{display:block;margin-bottom:5px}.historyitem small{color:#7c8da5}.empty{padding:25px;text-align:center;color:#8d99ab}.foot{margin:20px 0 5px;color:#97a3b7;font-size:12px}.sectionheading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}.summarycards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.summarytile{border:1px solid #dfe8f2;border-radius:14px;background:#fbfcff;padding:17px}.summarytile strong{font-size:15px}.summarytile .numbers{display:flex;gap:15px;margin-top:14px;flex-wrap:wrap}.summarytile .numbers span{display:block;font-size:11px;color:#7c8da5}.summarytile .numbers b{display:block;margin-top:4px;font-size:22px}.summarytile button{margin-top:12px} @media(max-width:720px){.summarycards{grid-template-columns:1fr}}.archive{margin-top:18px}.rightspace{margin-bottom:18px}.warning{font-size:12px;color:#946412;background:#fff9ea;border:1px solid #fae8b3;border-radius:10px;padding:11px;margin-top:12px}.toast{position:fixed;bottom:20px;right:20px;background:#203552;color:#fff;padding:13px 18px;border-radius:10px;box-shadow:var(--shadow);z-index:3;display:none}.small{font-size:12px}.hide{display:none!important}@media(max-width:1030px){.shell{grid-template-columns:1fr}.sidebar{padding:15px 20px;gap:10px}.sidebarfoot{display:none}.brand{font-size:16px}.menu{flex-direction:row;flex-wrap:wrap}.menu button{padding:10px 12px}.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}@media(max-width:600px){main{padding:15px}.kpis{gap:8px}.card{padding:16px}.kpi .number{font-size:23px}.top{align-items:start}.pill{display:none}h1{font-size:25px}.selectors .control{flex:1;min-width:135px}}
+
+/* production pilot: clear connection states, accessible auth modal, print */
+.cloud-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:5px 0 16px}.cloud-indicator{font-size:12px;padding:8px 11px;border-radius:25px;background:#e7efff;color:#2558aa;font-weight:800}.cloud-indicator.online{background:#e0f5eb;color:#107b58}.auth-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,17,32,.72);z-index:20;padding:18px}.auth-overlay.open{display:flex}.auth-card{background:white;border-radius:20px;padding:28px;max-width:430px;width:100%;box-shadow:0 20px 70px #0003}.auth-card label{display:block;font-weight:800;font-size:12px;margin-top:14px}.auth-card input{width:100%;margin-top:6px}.auth-status{margin-top:12px;min-height:19px;font-size:12px}.eyeshow{font-size:11px;color:#7a8696}.kbd{display:inline-block;background:#f0f5fe;border-radius:7px;padding:2px 6px}.shield{border-left:4px solid #18a478;background:#f0fbf5;padding:12px 14px;border-radius:8px;color:#26745a;line-height:1.5;margin-top:12px;font-size:12px}
+@media print{.sidebar,.selectors,.cloud-actions,.top .pill,.toolbar .row,.warning,.sidebarfoot,.foot,.auth-overlay,.toast,.cloud-only{display:none!important}main{padding:0}.shell{display:block}.card{box-shadow:none;border:1px solid #ddd}.kpis{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:1fr}.numinput{border:0}.notearea{display:none}}
+
+@media(max-width:600px){
+  .tablewrap{overflow:visible}
+  #view-revision table{min-width:0;width:100%;display:block}
+  #view-revision thead{display:none}
+  #view-revision tbody{display:block}
+  #view-revision #rows tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;border:1px solid #e4ebf5;border-radius:14px;padding:12px;margin-bottom:10px;background:#fbfcff}
+  #view-revision #rows td{display:block;border:0;padding:4px 1px;min-width:0}
+  #view-revision #rows td:first-child{grid-column:1/-1;margin-bottom:4px}
+  #view-revision #rows td:nth-child(2)::before{content:'УЧЁТНЫЙ ОСТАТОК';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(3)::before{content:'ФАКТИЧЕСКИЙ ВЕС';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(4)::before{content:'РАСХОЖДЕНИЕ';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows td:nth-child(5)::before{content:'ЦЕНА ₽/КГ';display:block;color:#8290a6;font-weight:800;font-size:10px;letter-spacing:.5px;margin-bottom:5px}
+  #view-revision #rows .numinput{width:100%}
+  #view-revision #rows .numinput.price{width:100%}
+  #view-revision #rows .delta{padding-top:9px;font-size:15px}
+  .cloud-actions button{flex:1}
+  .selectors .control{font-size:13px}
+  .kpi .number{font-size:21px}
+}
+
+/* FARUKH REVISION PRO / Android Premium Black Gold Theme */
+.android-premium{--ink:#edf3ff;--sub:#9aaac6;--blue:#e7c27d;--sea:#c59c4a;--bg:#080e18;--line:#293348;--red:#ff6b79;--green:#4fe1aa;--gold:#dcb46c;--shadow:0 12px 30px rgba(0,0,0,.25);background:#080e18;color:#edf3ff}
+.android-premium .shell{background:#080e18}
+.android-premium .sidebar{background:linear-gradient(145deg,#101726,#080c14);border-bottom:1px solid #2f3340}
+.android-premium main{background:linear-gradient(150deg,#0b1422,#080e18)}
+.android-premium .card{background:linear-gradient(150deg,#151e2e,#111a28);border-color:#303a4d;color:#edf3ff}
+.android-premium .summarytile{background:#101927;border-color:#354157;color:#e9efff}
+.android-premium .control,.android-premium .numinput{background:#101927;color:#eef3fd;border-color:#3a485d}
+.android-premium .control::placeholder,.android-premium .numinput::placeholder{color:#71819a}
+.android-premium th{background:#1c293c;color:#bfcee4}
+.android-premium td{border-color:#28374d}
+.android-premium .btn{background:#1a283b;border-color:#38495c;color:#e5cf9f}
+.android-premium .btn.main{background:linear-gradient(140deg,#b98a3b,#f3d58a);color:#121a26;border-color:#d9b671;box-shadow:0 8px 24px #bd8a3633}
+.android-premium .btn.soft{background:#263043;border-color:#4f5765;color:#f0cb82}
+.android-premium .btn.danger{color:#ff8993;background:#2a1b29;border-color:#673444}
+.android-premium .eyebrow{color:#d1ad67}
+.android-premium .pill{color:#dcb46c;background:#242338}
+.android-premium .tag{background:#2e3444;color:#f5d18d}
+.android-premium .tag.start{background:#3d2d1f;color:#f4c882}
+.android-premium .cloud-indicator{background:#1b2a40;color:#acc5f2}
+.android-premium .cloud-indicator.online{background:#163e32;color:#71ddae}
+.android-premium .historyitem{background:#131d2b;border-color:#354055}
+.android-premium .notearea{background:#172336;border-color:#374964;color:#a7b8d3}
+.android-premium .summarytile .hint,.android-premium .kpi .note,.android-premium .historyitem small{color:#9cacc6}
+.android-premium .summarytile .numbers span{color:#91a1bc}
+.android-premium .auth-card{background:#152134;color:#edf3ff;border:1px solid #384459}
+.android-premium .auth-card input{background:#0c1624;color:#edf3ff;border-color:#3a485d}
+.android-premium .foot{color:#71809a}
+.android-premium .menu button.active{background:#322b28;color:#f7d08c;box-shadow:inset 3px 0 #eac17d}
+.android-premium .menu button{color:#a8bad6}
+.android-premium .warning{color:#e6c88a;background:#392c19;border-color:#77572d}
+@media(max-width:600px){.android-premium #view-revision #rows tr{background:#111c2c;border-color:#314058}.android-premium #view-revision #rows td::before{color:#93a3be!important}}
+
+/* FARUKH REVISION PRO / Android screen safe-area fix, v0.2.1 */
+html {background:#080e18;overflow-x:hidden}
+html,body {min-height:100%;}
+body.android-premium {
+   min-height:100vh;
+   min-height:100dvh;
+   overflow-x:hidden;
+   /* Xiaomi Android 16 WebView may draw behind transparent system bars,
+      even when CSS env() evaluates to zero. 36/56px provide safe fallback. */
+   padding-top:max(36px, env(safe-area-inset-top, 0px));
+   padding-bottom:max(58px, env(safe-area-inset-bottom, 0px));
+   background:#080e18;
+}
+.android-premium .shell {min-height:calc(100vh - 94px);min-height:calc(100dvh - 94px)}
+.android-premium .sidebar .brand{position:relative;min-height:80px;isolation:isolate}
+.android-premium .sidebar .brandicon {position:relative;vertical-align:top;flex-shrink:0}
+.android-premium .menu{align-items:stretch}
+.android-premium .menu button{white-space:normal;line-height:1.35;min-height:42px}
+.android-premium .auth-overlay{padding-top:max(44px, env(safe-area-inset-top, 0px));padding-bottom:max(62px, env(safe-area-inset-bottom, 0px));overflow-y:auto}
+.android-premium .toast{bottom:max(68px, calc(env(safe-area-inset-bottom, 0px) + 18px))}
+@media(max-width:600px){
+  .android-premium .sidebar{padding-top:18px;padding-bottom:15px}
+  .android-premium .brand{line-height:1.35;}
+  .android-premium main{padding-bottom:30px}
+  .android-premium .menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .android-premium .menu button{font-size:13px;padding:11px 10px;min-width:0}
+}
+@media print {body.android-premium{padding:0!important}.android-premium .shell{min-height:0!important}}
+
+/* PREMIUM REFRESH — v0.2.5 DESIGN PREVIEW / non-destructive */
+:root{color-scheme:dark}
+html,body{background:#080d17}
+body.android-premium{
+  --ink:#f4f6ff;--sub:#9eafc6;--bg:#090f1b;--line:#24354b;
+  --gold:#e3b86f;--green:#62e6b0;--red:#ff7c8b;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  font-size:14px;letter-spacing:-.12px;
+  background:radial-gradient(ellipse 120% 65% at 100% -10%,#16243c 0%,transparent 53%),#090f1b;
+}
+.android-premium .shell{background:transparent;min-height:calc(100dvh - 94px)}
+.android-premium main{background:transparent;max-width:1180px;padding:34px 30px 70px}
+.android-premium .sidebar{background:#0c1524;border-right:1px solid #25334a;border-bottom:0;padding:34px 16px;gap:28px;}
+.android-premium .brand{display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.2;min-height:unset!important;letter-spacing:0;margin-bottom:4px}
+.android-premium .brandword{min-width:0;display:flex;flex-direction:column;gap:7px;}
+.android-premium .brandword b{font-size:15px;font-weight:900;letter-spacing:.3px;color:#f8faff;white-space:nowrap}
+.android-premium .brandword em{font-style:normal;color:#f8faff}
+.android-premium .brandword mark{background:linear-gradient(120deg,#a87b34,#f0d18d);color:#182032;padding:3px 5px;border-radius:5px;margin-left:6px;font-size:10px;vertical-align:2px}
+.android-premium .brandword small{font-size:8px;font-weight:700;color:#899bb6;letter-spacing:1.05px;white-space:nowrap}
+.android-premium .brand .brandicon{display:grid;place-items:center;border:1px solid #876b43;background:linear-gradient(145deg,#2a271f,#161b27);box-shadow:inset 0 1px #ffffff12,0 4px 20px #bd8a3020;border-radius:14px;color:#efc77b;width:44px;height:44px;margin:0;}
+.android-premium .menu{gap:8px}
+.android-premium .menu button{display:flex;align-items:center;gap:11px;min-height:46px;padding:12px 14px;border:1px solid transparent;border-radius:12px;font-size:13px;font-weight:750;background:transparent;color:#aebed5;white-space:nowrap;text-align:left;transition:background .15s,border-color .15s}
+.android-premium .menu button.active{background:linear-gradient(110deg,#383022,#251f22);border-color:#6f5737;box-shadow:none;color:#f4d28f}
+.android-premium .menu button:focus-visible,.android-premium .btn:focus-visible,.android-premium .control:focus-visible{outline:2px solid #e9c987;outline-offset:3px}
+.android-premium .menu-icon{font-size:21px;width:24px;min-width:24px;text-align:center;line-height:1}
+.android-premium .top{margin:0 0 22px}
+.android-premium .top .eyebrow{font-size:10px;letter-spacing:2.0px;color:#e6bd76;opacity:.93;font-weight:850}
+.android-premium .eyebrow-sep{color:#5d728e;padding:0 4px}
+.android-premium h1{color:#f5f7ff;font-size:clamp(26px,3vw,37px);font-weight:830;letter-spacing:-1.3px;margin:8px 0 7px;line-height:1.1}
+.android-premium .title-period{color:#dfb776}
+.android-premium .top .muted{color:#a0b1ca;font-size:13px;line-height:1.45}
+.android-premium .pill{display:none}
+.android-premium .cloud-actions{margin:0 0 20px;gap:10px;align-items:stretch}
+.android-premium .cloud-indicator{display:inline-flex;align-items:center;padding:10px 14px;border:1px solid #344661;border-radius:12px;background:#14253b;font-size:12px;color:#b2c7e7;white-space:normal}
+.android-premium .cloud-indicator.online{background:#12382e;border-color:#24644e;color:#77e2b3}
+.android-premium .btn{border-radius:12px;padding:11px 15px;line-height:1.3;background:#1a293e;border:1px solid #364862;color:#e1ecfa;font-weight:770;box-shadow:none}
+.android-premium .btn.soft{background:#242b3b;border-color:#46536c;color:#ebc785}
+.android-premium .btn.main{background:linear-gradient(125deg,#c59245,#f0d38c);border-color:#f0d38c;color:#19202c;box-shadow:0 5px 23px #a97a2e40}
+.android-premium .btn:active{transform:translateY(1px)}
+.android-premium .card{background:linear-gradient(160deg,#162237,#111b2c);border:1px solid #2a3a51;border-radius:20px;box-shadow:0 15px 35px #00000017}
+.android-premium .summarycards{gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.android-premium .summarytile{position:relative;background:linear-gradient(160deg,#17263c,#0f1a2c);border:1px solid #30435b;border-radius:16px;padding:18px;box-shadow:0 7px 18px #00000014;min-width:0}
+.android-premium .summarytile:before{content:'▣';display:inline-grid;place-items:center;color:#e1b774;background:#44382440;border:1px solid #80613b77;width:34px;height:34px;border-radius:11px;margin-right:9px;font-size:18px;vertical-align:middle}
+.android-premium .summarytile strong{font-size:15px;color:#f5f7ff;vertical-align:middle;letter-spacing:-.1px}
+.android-premium .summarytile .hint{padding:7px 0 0 45px;color:#95a9c4;font-size:11px}
+.android-premium .summarytile .numbers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:19px 0 14px}
+.android-premium .summarytile .numbers>div{border-top:1px solid #304057;padding-top:12px;min-width:0}
+.android-premium .summarytile .numbers span{font-size:10px;letter-spacing:.2px;color:#9dafc8}
+.android-premium .summarytile .numbers b{font-size:21px;font-weight:830;margin-top:4px;letter-spacing:-.5px}
+.android-premium .summarytile button{width:100%;margin:0;text-align:center;background:#1d3045;border:1px solid #3a526c;color:#edcb8d;padding:11px 14px}
+.android-premium #view-summary>section.card{background:none;border:0;box-shadow:none;padding:0}
+.android-premium #view-summary .sectionheading{margin:4px 0 16px}
+.android-premium #view-summary h2{font-size:19px;color:#f0f3fa;margin-bottom:5px;letter-spacing:-.45px}
+.android-premium .section-count{font-size:11px;color:#d8b877;border:1px solid #5e513d;background:#42382055;padding:3px 7px;border-radius:8px;vertical-align:2px;margin-left:6px;font-weight:750}
+.android-premium #view-summary .sectionheading .desc{font-size:12px;color:#8ea2bd}
+.android-premium #view-summary .notearea{background:#101e2e;border:1px solid #2a3e57;border-radius:13px;padding:14px;color:#95adc9;line-height:1.65}
+.android-premium #view-summary .notearea strong{color:#e8c58b}
+.android-premium .kpis{gap:12px}
+.android-premium .kpi .label{color:#afc1d8;font-weight:750}
+.android-premium .kpi .number{font-size:26px}
+.android-premium .top h1,.android-premium h2{overflow-wrap:break-word}
+.android-premium .auth-card{border-radius:23px;background:#172237;border:1px solid #46546c;box-shadow:0 25px 90px #0008;padding:25px}
+.android-premium .auth-card input{min-height:48px}
+.android-premium .foot{font-size:11px}
+.android-premium .summarytile .red,.android-premium .red{color:#ff7c8b}
+.android-premium .summarytile .green,.android-premium .green{color:#58e1a5}
+@media(max-width:1030px){
+ .android-premium .sidebar{padding:14px 22px;border-bottom:1px solid #2c394f;flex-direction:column;gap:10px}
+ .android-premium .menu{flex-direction:row;gap:5px}
+ .android-premium .menu button{flex:1;justify-content:center;padding:11px;min-height:44px}
+ .android-premium main{padding:26px 22px 80px}
+}
+@media(max-width:600px){
+ body.android-premium{padding-top:max(36px,env(safe-area-inset-top,0px));padding-bottom:max(58px,env(safe-area-inset-bottom,0px));}
+ .android-premium .shell{min-height:calc(100dvh - 94px)}
+ .android-premium .sidebar{padding:12px 20px 11px;background:#0c1626;border-bottom:1px solid #28384e;gap:0}
+ .android-premium .brand{line-height:1.1;min-height:unset!important;gap:10px}
+ .android-premium .brand .brandicon{width:40px;height:40px;border-radius:12px;}
+ .android-premium .brandword b{font-size:14px}
+ .android-premium .brandword small{font-size:8px;letter-spacing:.6px}
+ .android-premium main{padding:18px 17px 108px}
+ .android-premium .top{margin-bottom:18px}
+ .android-premium .top .eyebrow{font-size:9px;letter-spacing:1.6px}
+ .android-premium h1{font-size:27px;margin:8px 0 7px;letter-spacing:-.9px}
+ .android-premium .top .muted{font-size:12px}
+ .android-premium .menu{position:fixed;z-index:12;left:10px;right:10px;bottom:max(62px,env(safe-area-inset-bottom,0px));background:linear-gradient(140deg,#121e30,#0b1423);border:1px solid #4a5c73;border-top:1px solid #ad8956;border-radius:20px;padding:7px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));box-shadow:0 7px 25px #0009;gap:3px;}
+ .android-premium .menu button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;min-width:0;min-height:58px;padding:6px 2px;background:transparent;border:1px solid transparent;border-radius:14px;color:#a3b6cf;line-height:1.1;font-size:10px;font-weight:730;text-align:center}
+ .android-premium .menu button.active{background:linear-gradient(160deg,#4b3823,#292622);border:1px solid #85613a;color:#f5d393;box-shadow:0 0 14px #d5a95919}
+ .android-premium .menu-icon{font-size:21px;line-height:1;width:auto;min-width:0}
+ .android-premium .cloud-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin:0 0 20px}
+ .android-premium .cloud-indicator{grid-column:1/3;padding:9px 11px;font-size:11px;min-height:35px}
+ .android-premium .cloud-actions .btn{min-height:43px;padding:10px 12px;font-size:12px}
+ .android-premium #cloudLogin,.android-premium #cloudLogout{grid-column:1}
+ .android-premium .cloud-actions>.btn:last-child{grid-column:2;}
+ .android-premium #view-summary .sectionheading{align-items:center;flex-wrap:nowrap;margin-bottom:13px}
+ .android-premium #view-summary h2{font-size:18px}
+ .android-premium #view-summary .desc{font-size:11px}
+ .android-premium #view-summary .sectionheading .btn{padding:10px 12px;min-height:40px}
+ .android-premium .refresh-label{display:none}
+ .android-premium .summarycards{grid-template-columns:1fr;gap:10px}
+ .android-premium .summarytile{padding:13px 15px;border-radius:15px}
+ .android-premium .summarytile:before{height:30px;width:30px;font-size:16px;margin-right:9px}
+ .android-premium .summarytile strong{font-size:14px}
+ .android-premium .summarytile .hint{padding:4px 0 0 39px;font-size:10px}
+ .android-premium .summarytile .numbers{margin:10px 0 12px;gap:11px}
+ .android-premium .summarytile .numbers>div{padding-top:9px}
+ .android-premium .summarytile .numbers span{font-size:10px}
+ .android-premium .summarytile .numbers b{font-size:19px;margin:2px 0 0}
+ .android-premium .summarytile button{padding:9px 12px;min-height:37px;font-size:12px}
+ .android-premium .card{padding:16px;border-radius:17px}
+ .android-premium .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .android-premium .kpi .number{font-size:20px}
+ .android-premium .selectors .control{min-width:0;flex:1 1 45%;}
+ .android-premium .selectors .control[type=date]{flex-basis:100%}
+ .android-premium .auth-overlay{z-index:30;padding:16px 14px 58px}
+ .android-premium .auth-card{padding:23px 18px}
+ .android-premium .auth-card .row{gap:8px}
+ .android-premium .auth-card .row .btn{flex:1;min-height:44px}
+ .android-premium .toast{bottom:max(146px,calc(env(safe-area-inset-bottom,0px) + 95px));left:16px;right:16px}
+ .android-premium .foot{display:none}
+}
+@media print{.android-premium .menu{display:none!important}body.android-premium{padding:0!important}.android-premium main{padding:0!important}}
+
+
+/* FARUKH REVISION PRO — tactile 3D interface. This deliberately does not alter business logic. */
+.android-premium .btn,
+.android-premium .menu button,
+.android-premium .summarytile button,
+.android-premium .auth-card button {
+  position:relative;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  transform:translateZ(0);
+  border:1px solid #546881;
+  background:linear-gradient(180deg,#33465f 0%,#273950 48%,#17293e 100%);
+  box-shadow:inset 0 1px 0 #ffffff3a,
+             inset 0 -2px 2px #00000080,
+             0 5px 0 #0a1423,
+             0 9px 14px #00000067;
+  text-shadow:0 1px 1px #030911b8;
+  border-radius:14px;
+  transition:transform .11s ease,box-shadow .11s ease,filter .11s ease;
+}
+.android-premium .btn::before,
+.android-premium .menu button::before,
+.android-premium .summarytile button::before {
+  content:'';position:absolute;inset:1px 1px 53%;pointer-events:none;
+  background:linear-gradient(180deg,#ffffff22,transparent);
+  border-radius:12px 12px 40% 40%;
+}
+.android-premium .btn:active,
+.android-premium .menu button:active,
+.android-premium .summarytile button:active {
+  transform:translateY(3px);
+  box-shadow:inset 0 1px 0 #ffffff25,inset 0 1px 5px #040910dd,0 2px 0 #0a1423,0 4px 7px #0006;
+}
+.android-premium .btn.main,
+.android-premium .menu button.active {
+  color:#28190a;
+  border:1px solid #f8d99f;
+  background:linear-gradient(180deg,#ffe8ae,#e4b96a 45%,#a77632 100%);
+  box-shadow:inset 0 2px 0 #fff5d0b9,inset 0 -2px 0 #7a4e20,0 5px 0 #68451e,0 9px 15px #000a;
+  text-shadow:0 1px #fff5c190;
+}
+.android-premium .menu button.active .menu-icon,
+.android-premium .menu button.active .menu-label{color:#28190a}
+.android-premium .btn.soft {
+  color:#f5d494;
+  border:1px solid #96754c;
+  background:linear-gradient(180deg,#4c4035 0%,#383128 50%,#272320 100%);
+  box-shadow:inset 0 1px 0 #ffffff36,inset 0 -2px #15120f,0 4px 0 #17130f,0 8px 12px #0007;
+}
+.android-premium .btn.danger{
+  color:#ffe0e2;border-color:#994754;
+  background:linear-gradient(180deg,#7f3949,#52232c);
+}
+.android-premium .menu button:not(.active){border-color:transparent;background:transparent;box-shadow:none}
+.android-premium .menu button:not(.active)::before{display:none}
+.android-premium .menu button:not(.active):active{background:#192739;border-color:#405168}
+.android-premium .summarytile button.btn.soft {color:#f7d794}
+.android-premium .update-btn{border-color:#4a8075;background:linear-gradient(180deg,#254d4b,#142b37);white-space:nowrap}
+.android-premium .update-glyph{display:inline-block;margin-right:5px;font-size:16px}
+.android-premium .update-status:empty{display:none}
+.android-premium .update-status{color:#b8cbe1;font-size:12px;line-height:1.55;margin:-7px 0 13px;padding:10px 13px;background:#17283a;border:1px solid #354d67;border-radius:11px}
+.android-premium .update-status[role='alert']{color:#f1cf90;border-color:#82643a}
+@media(max-width:600px){
+  .android-premium .cloud-actions{grid-template-columns:1fr 1fr;gap:12px 9px}
+  .android-premium .cloud-actions #cloudIndicator{grid-column:1/-1}
+  .android-premium .cloud-actions #cloudLogin,.android-premium .cloud-actions #cloudLogout{grid-column:1/-1}
+  .android-premium .cloud-actions>.btn:last-child{grid-column:1/-1}
+  .android-premium .cloud-actions .btn{min-height:45px;font-size:12px}
+  .android-premium .cloud-actions .update-btn{min-height:47px}
+  .android-premium .menu button{box-shadow:none!important}
+  .android-premium .menu button.active{box-shadow:inset 0 1px #ffffff80,0 3px 0 #68451e!important}
+}
+@media(prefers-reduced-motion:reduce){.android-premium .btn,.android-premium .menu button{transition:none}}
+@media print{.android-premium .update-status{display:none!important}}
+
+
+/* 0.2.6: compact tactile buttons with visible press state and safe touch size. */
+.android-premium button{touch-action:manipulation}
+.android-premium .btn,.android-premium .summarytile button{min-height:44px}
+.android-premium .btn:focus-visible,.android-premium .menu button:focus-visible{outline:2px solid #f9d68b;outline-offset:3px}
+.android-premium .update-btn{background:linear-gradient(180deg,#275650,#174039 52%,#102b2a)!important;border:1px solid #4e8a79!important;color:#e1fff2!important;box-shadow:inset 0 1px 0 #ffffff42,0 4px 0 #10302d,0 8px 16px #0008!important}
+.android-premium .update-btn:active{transform:translateY(3px);box-shadow:inset 0 1px 3px #04170c,0 1px 0 #10302d!important}
+.android-premium .cloud-indicator{font-weight:700}
+@media(max-width:600px){
+ body.android-premium{padding-top:max(33px,env(safe-area-inset-top,0px));padding-bottom:max(40px,env(safe-area-inset-bottom,0px))}
+ .android-premium .menu{bottom:max(48px,calc(env(safe-area-inset-bottom,0px) + 14px))}
+ .android-premium main{padding-bottom:116px}
+ .android-premium .update-btn{width:100%}
+ .android-premium .cloud-actions{grid-template-columns:1fr 1fr}
+ .android-premium #cloudLogin,.android-premium #cloudLogout{grid-column:1/-1}
+ .android-premium .cloud-actions>.btn:last-child{grid-column:1/-1}
+}
+
+/* 0.2.7 Approved 3D Gold — from selected first visual concept */
+
+.android-premium #view-revision .btn,.android-premium #view-history .btn,.android-premium #view-products .btn,.android-premium .auth-card .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:43px}
+.android-premium #view-revision .btn .icon-3d,.android-premium #view-history .btn .icon-3d,.android-premium #view-products .btn .icon-3d,.android-premium .auth-card .btn .icon-3d{height:20px;width:20px}
+
+.icon-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.icon-3d{width:30px;height:30px;display:inline-block;flex:none;overflow:visible;filter:drop-shadow(0 2px 1px rgba(10,8,4,.9)) drop-shadow(0 0 5px rgba(238,182,75,.30))}
+.android-premium{--premium-deep:#060d19;--premium-border:#33455e;--premium-gold:#f3d084;color:#f1f5ff;background:radial-gradient(ellipse 500px 310px at 105% -1%,rgba(169,117,35,.14),transparent 73%),linear-gradient(180deg,#08101e,#07101e 63%,#081322)!important;min-height:100dvh}
+.android-premium .sidebar{background:linear-gradient(135deg,#0c1625,#08111f);border-bottom:1px solid #3c4351;box-shadow:0 3px 18px #0004}
+.android-premium .brandicon{width:44px;height:44px;display:grid;place-items:center;border:1px solid #cfa558;border-radius:13px;background:linear-gradient(155deg,#30322e,#090f17 70%);box-shadow:inset 0 1px 1px #ffe6a166,0 3px 5px #000b,0 0 13px #a578282e}
+.android-premium .brandicon .icon-3d{width:32px;height:32px}
+.android-premium .brandword small{font-size:9px;letter-spacing:1.6px;color:#b5c0cf}
+.android-premium .brandword mark{background:linear-gradient(#ffe8a9,#d19b4e);color:#1a2028;border-radius:7px;box-shadow:inset 0 1px 0 #fff9d9;font-weight:900}
+.android-premium .top h1{font-weight:900;letter-spacing:-.6px}
+.android-premium .eyebrow{color:#e8c078;letter-spacing:2.2px}
+.android-premium .cloud-actions{gap:10px;margin-top:4px;margin-bottom:10px}
+.android-premium .cloud-actions .btn{display:flex;align-items:center;justify-content:center;text-align:left;gap:11px;border-radius:15px;font-weight:800;min-height:62px;padding:9px 12px;letter-spacing:-.1px;line-height:1.22;text-shadow:0 1px 2px #0008;box-shadow:inset 0 1px 0 #ffffff42,inset 0 -2px 0 #0006,0 3px 0 #030811,0 7px 12px #0008}
+.android-premium .cloud-actions .btn .icon-3d{width:34px;height:34px}
+.android-premium .cloud-actions .btn:active,.android-premium .summarytile button:active{transform:translateY(3px);box-shadow:inset 0 2px 8px #0009!important}
+.android-premium #cloudLogin{background:linear-gradient(165deg,#ffedb7,#d7a64d 60%,#94571b)!important;color:#151b24!important;border:1px solid #ffe7a4!important;text-shadow:none!important}
+.android-premium #cloudLogin .icon-3d{filter:drop-shadow(0 1px 1px #331c0780)}
+.android-premium .cloud-actions>.btn[onclick="downloadHistory()"]{background:linear-gradient(165deg,#243d58,#10233b 70%,#0c1b30);border:1px solid #55718c;color:#ecf2fb}
+.android-premium .update-btn{background:linear-gradient(165deg,#17695d,#084839 68%,#062c2d)!important;border:1px solid #478c70!important;color:#f1fff7!important}
+.android-premium .cloud-indicator{padding:9px 12px;min-height:35px;align-items:center;background:linear-gradient(150deg,#15263c,#101d31);border:1px solid #3c526e;border-radius:12px;color:#bed5ef;display:flex;font-size:11px}
+.android-premium .cloud-indicator:before{content:none!important;width:8px;height:8px;border-radius:50%;background:#98afd5;margin-right:8px;box-shadow:0 0 7px #a3caff70}
+.android-premium .cloud-indicator .icon-3d{height:31px;width:31px;flex-shrink:0}
+.android-premium .update-status{display:flex;gap:8px;align-items:center;min-height:0;background:linear-gradient(160deg,#152033,#101a28);border:1px solid #b08a48;border-radius:13px;color:#f5d89d;padding:8px 12px;line-height:1.4;font-size:11px;margin:2px 0 15px;box-shadow:inset 0 -2px 0 #bd8a4d22}
+.android-premium .update-status .icon-3d{height:25px;width:25px;flex-shrink:0}
+.android-premium #view-summary>.card{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+.android-premium #view-summary .sectionheading{padding:0 2px;margin-bottom:12px}
+.android-premium #view-summary h2{color:#f8f8fc;font-size:20px}
+.android-premium .refresh-summary{width:41px!important;height:41px!important;min-width:41px!important;padding:5px!important;display:grid;place-items:center;border:1px solid #ab854b!important;border-radius:12px!important;background:linear-gradient(150deg,#493d31,#1c1e23)!important;box-shadow:0 4px 0 #080c14,0 6px 9px #000b!important}
+.android-premium .refresh-summary .icon-3d{width:24px;height:24px}
+.android-premium .summarycards{display:grid;grid-template-columns:1fr;gap:9px}
+.android-premium .summarytile{display:grid;grid-template-columns:57px minmax(0,1fr) minmax(96px, 32%);gap:10px;align-items:center;border:1px solid #455770;background:linear-gradient(140deg,#1a2d43,#101d30 55%,#0f1b2e);border-radius:17px;padding:11px;min-width:0;box-shadow:inset 0 1px 0 #ffffff1c,0 6px 16px #0005;min-height:93px}
+.android-premium .summarytile:before{display:none!important;content:none!important}
+.android-premium .summarytile .point-icon{display:block;object-fit:cover;width:55px;height:55px;border-radius:12px;box-shadow:0 4px 8px #0008;border:1px solid #94713a45}
+.android-premium .summarytile .point-info{min-width:0}
+.android-premium .summarytile strong{color:#f8f9ff;font-size:14px;line-height:1.17;display:block;letter-spacing:-.2px}
+.android-premium .summarytile .hint{font-size:10px;padding:3px 0 0!important;margin:0!important;color:#a6b7d1}
+.android-premium .summarytile .numbers{display:flex;align-items:center;gap:12px!important;margin:8px 0 0!important}
+.android-premium .summarytile .numbers>div{border:0!important;min-width:0;padding:0!important;display:flex;flex-direction:column}
+.android-premium .summarytile .numbers span{font-size:10px!important;color:#c4cbd5}
+.android-premium .summarytile .numbers b{font-size:14px!important;font-weight:850;line-height:1.15;margin-top:2px!important}
+.android-premium .summarytile .numbers b.red{color:#ff6585}
+.android-premium .summarytile .numbers b.green{color:#4ee5b3}
+.android-premium .summarytile .point-open{font-size:11px!important;border-radius:12px!important;padding:9px 5px!important;min-width:0!important;min-height:41px!important;align-self:center;white-space:normal;line-height:1.16;background:linear-gradient(180deg,#6c5335,#332a25 52%,#231d1c)!important;color:#ffe4a0!important;border:1px solid #d1a355!important;box-shadow:inset 0 1px 0 #ffe5a455,0 3px 0 #0a0c14,0 5px 7px #0008!important}
+.android-premium .summarytile .point-open span{white-space:nowrap}
+.android-premium .menu{background:linear-gradient(150deg,#142338,#091322)!important;border:1px solid #546981!important;border-radius:19px!important;box-shadow:0 6px 17px #000c,inset 0 1px 0 #ffffff12!important}
+.android-premium .menu button{border-radius:13px!important;min-height:56px!important;gap:2px!important;font-size:11px!important}
+.android-premium .menu button.active{background:linear-gradient(150deg,#ffecb0,#d8aa53 62%,#a8732c)!important;border:1px solid #ffe4a4!important;color:#0d1825!important;box-shadow:inset 0 1px 0 #fffed2,0 3px 0 #6b491c,0 6px 7px #0008!important}
+.android-premium .menu button.active .icon-3d{filter:drop-shadow(0 2px 1px #946025)}
+.android-premium .menu button .icon-3d{height:25px;width:25px}
+.android-premium .menu .menu-icon{height:27px;display:inline-flex;align-items:center}
+.android-premium .notearea{border-color:#415675;background:#15253a;color:#bed0eb}
+@media(max-width:600px){
+ .android-premium .shell{display:block}
+ .android-premium .sidebar{padding:13px 13px 11px!important}
+ .android-premium .brand{display:flex;align-items:center;gap:11px}
+ .android-premium .brandword b{font-size:16px;white-space:nowrap;letter-spacing:-.2px}
+ .android-premium main{padding:11px 13px 126px!important}
+ .android-premium .top{margin-bottom:17px}
+ .android-premium .top h1{font-size:25px!important;margin:7px 0 4px}
+ .android-premium .top .muted{font-size:11px}
+ .android-premium .eyebrow{font-size:9px;white-space:nowrap}
+ .android-premium .cloud-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ .android-premium .cloud-indicator{grid-column:1!important;grid-row:1!important;min-height:58px!important;font-weight:800;gap:6px;background:linear-gradient(160deg,#20384f,#0f1e32);border:1px solid #4c647c;border-radius:15px;box-shadow:inset 0 1px 0 #ffffff33,0 3px 0 #08101a,0 6px 10px #0009}
+ .android-premium #cloudLogin,.android-premium #cloudLogout{grid-column:2!important;grid-row:1!important}
+ .android-premium .cloud-actions>.btn[onclick="downloadHistory()"]{grid-column:1!important;grid-row:2!important}
+ .android-premium .update-btn{grid-column:2!important;grid-row:2!important}
+ .android-premium .cloud-actions .btn{min-width:0!important;padding:8px!important;min-height:58px!important;font-size:11px!important;gap:4px!important}
+ .android-premium .cloud-actions .btn .icon-3d{width:30px;height:30px}
+ .android-premium .cloud-actions>.btn[onclick="downloadHistory()"]{grid-column:1!important}
+ .android-premium .cloud-actions #cloudLogout:not(.hide){grid-column:2!important;grid-row:1!important}
+ .android-premium .update-status{font-size:10px;line-height:1.25;margin-bottom:16px}
+ .android-premium .summarytile{grid-template-columns:55px minmax(0,1fr) minmax(91px,31%);gap:8px;min-height:92px;padding:9px}
+ .android-premium .summarytile strong{font-size:12.5px}
+ .android-premium .summarytile .hint{font-size:9.5px}
+ .android-premium .summarytile .numbers{gap:8px!important}
+ .android-premium .summarytile .numbers span{font-size:9px!important}
+ .android-premium .summarytile .numbers b{font-size:12px!important}
+ .android-premium .menu{position:fixed;left:9px!important;right:9px!important;bottom:max(45px,calc(env(safe-area-inset-bottom,0px) + 10px))!important;padding:6px!important;z-index:15}
+ .android-premium #view-summary .sectionheading h2{font-size:18px!important}
+ .android-premium #view-summary .sectionheading .desc{font-size:10px}
+}
+@media(max-width:360px){.android-premium .summarytile{grid-template-columns:48px minmax(0,1fr) 91px;gap:7px}.android-premium .summarytile .point-icon{width:47px;height:47px}.android-premium .summarytile strong{font-size:11.5px}.android-premium .cloud-actions .btn .icon-3d{width:25px;height:25px}}
+@media(prefers-reduced-motion:reduce){.android-premium *{transition:none!important;animation:none!important}}
+
+</style></head><body class="android-premium">
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+ <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
+ <linearGradient id="revSilver" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset=".40" stop-color="#9daec8"/><stop offset=".7" stop-color="#546785"/><stop offset="1" stop-color="#cad7e9"/></linearGradient>
+ <symbol id="rev-logo" viewBox="0 0 64 64"><path d="M32 5 59 32 32 59 5 32Z" fill="none" stroke="url(#revGold)" stroke-width="7" stroke-linejoin="round"/><path d="m19 32 10 10 18-20" fill="none" stroke="url(#revGold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="rev-home" viewBox="0 0 64 64"><path d="M8 29 32 9l24 20" fill="none" stroke="url(#revGold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 27v28h34V27M28 55V39h10v16" stroke="url(#revGold)" stroke-width="6" fill="none" stroke-linejoin="round"/></symbol>
+ <symbol id="rev-scales" viewBox="0 0 64 64"><path d="M32 7v46m-16 5h32M13 19h38" fill="none" stroke="url(#revGold)" stroke-width="5.5" stroke-linecap="round"/><circle cx="32" cy="13" r="5" fill="url(#revGold)"/><path d="M16 21 5 43h22L16 21ZM48 21 37 43h22L48 21Z" fill="none" stroke="url(#revGold)" stroke-width="4" stroke-linejoin="round"/><path d="M5 43q11 16 22 0m10 0q11 16 22 0" fill="none" stroke="url(#revGold)" stroke-width="4"/></symbol>
+ <symbol id="rev-clock" viewBox="0 0 64 64"><circle cx="32" cy="32" r="23" fill="none" stroke="url(#revGold)" stroke-width="7"/><path d="M32 16v18l13 8" fill="none" stroke="url(#revGold)" stroke-width="6" stroke-linecap="round"/></symbol>
+ <symbol id="rev-box" viewBox="0 0 64 64"><path d="m8 21 24-12 24 12v28L32 60 8 49Z" fill="none" stroke="url(#revGold)" stroke-width="5" stroke-linejoin="round"/><path d="m8 21 24 13 24-13M32 34v26M20 15l24 13" fill="none" stroke="url(#revGold)" stroke-width="5"/></symbol>
+ <symbol id="rev-cloud" viewBox="0 0 64 64"><path d="M15 49h36c8-2 11-12 5-18a13 13 0 0 0-12-4C41 10 18 12 16 28c-19 0-20 23-1 21Z" stroke="url(#revGold)" stroke-width="5.5" fill="none" stroke-linejoin="round"/><path d="M32 55V33m0 0-8 8m8-8 8 8" fill="none" stroke="url(#revGold)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="rev-laptop" viewBox="0 0 64 64"><rect x="10" y="8" width="44" height="33" rx="4" fill="none" stroke="url(#revGold)" stroke-width="5"/><path d="M7 49h50l5 8H2l5-8ZM12 42l-5 7m45-7 5 7M25 54h14" stroke="url(#revGold)" stroke-width="4" fill="none" stroke-linejoin="round"/></symbol>
+ <symbol id="rev-csv" viewBox="0 0 64 64"><path d="M14 4h25l13 14v42H14Z" stroke="url(#revGold)" stroke-width="5" stroke-linejoin="round" fill="none"/><path d="M39 4v15h13M20 29h26M20 39h26" fill="none" stroke="url(#revGold)" stroke-width="3.6"/><text x="32" y="53" font-size="12" text-anchor="middle" fill="#ffe69a" font-family="sans-serif" font-weight="900">CSV</text></symbol>
+ <symbol id="rev-update" viewBox="0 0 64 64"><path d="M52 25C47 9 21 6 12 21L6 33M12 39c5 16 30 18 40 4l6-12" stroke="url(#revGold)" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M6 15v18h18M58 49V31H40" stroke="url(#revGold)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="rev-wifi" viewBox="0 0 64 64"><path d="M7 25c14-14 36-14 50 0M15 35c10-10 24-10 34 0m-25 10c5-5 11-5 16 0" fill="none" stroke="url(#revGold)" stroke-width="5.5" stroke-linecap="round"/><circle cx="32" cy="53" r="4" fill="url(#revGold)"/></symbol>
+
+<symbol id="rev-print" viewBox="0 0 64 64"><rect x="12" y="7" width="40" height="22" rx="3" fill="none" stroke="url(#revGold)" stroke-width="5"/><path d="M9 28h46q5 0 5 5v16H48v8H16v-8H4V33q0-5 5-5Z" fill="none" stroke="url(#revGold)" stroke-width="5"/><path d="M19 43h26m-26 7h22" fill="none" stroke="url(#revGold)" stroke-width="3"/></symbol>
+<symbol id="rev-trash" viewBox="0 0 64 64"><path d="M15 18h34l-3 39H18L15 18ZM11 15h42M25 14V8h14v6M27 29v17m11-17v17" stroke="url(#revGold)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="rev-add" viewBox="0 0 64 64"><circle cx="32" cy="32" r="23" fill="none" stroke="url(#revGold)" stroke-width="5"/><path d="M32 18v28M18 32h28" fill="none" stroke="url(#revGold)" stroke-width="6" stroke-linecap="round"/></symbol>
+<symbol id="rev-save" viewBox="0 0 64 64"><path d="M10 7h39l7 7v43H10Z" fill="none" stroke="url(#revGold)" stroke-width="5" stroke-linejoin="round"/><path d="M20 9v20h26V9M17 57V39h32v18M34 41v14" fill="none" stroke="url(#revGold)" stroke-width="5"/></symbol>
+</defs></svg>
+
+<div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
+<main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Сверка учётных остатков с фактическим весом</div></div></div>
+<div class="cloud-actions"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
+<div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
+<div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
+<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Внеси учётный остаток и фактический вес, затем сохрани ревизию.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="clearForm()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning">Учётные значения вводятся вручную. Без входа в облако история остаётся только на этом устройстве.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
+<aside><div class="card rightspace"><div class="sectionheading"><h2 style="margin:0">Как это работает</h2></div><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. Запиши эти же значения в учётной системе.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, сверь учётные остатки с фактическим весом.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></div><div class="card"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
+<div class="card hide" id="view-history"><div class="sectionheading"><div><h2>История ревизий</h2><div class="desc">Для выбранной торговой точки, новые сверху</div></div><button class="btn soft" onclick="exportHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>Скачать историю CSV</button></div><div id="allhistory"></div></div>
+<div class="card hide" id="view-products"><h2>Основные контрольные продукты</h2><div class="desc">Продукты используются для всех четырёх точек. Ранее сохранённые ревизии не изменяются.</div><div class="tablewrap" style="margin-top:18px"><table style="min-width:400px"><thead><tr><th>Продукт</th><th>Учетная единица</th><th>Действие</th></tr></thead><tbody id="productsrows"></tbody></table></div><div class="row" style="margin-top:18px"><input id="newproduct" class="control" placeholder="Название продукта"><button class="btn main" onclick="addProduct()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-add"></use></svg>Добавить продукт</button></div></div>
+<div class="foot">FARUKH REVISION PRO · контроль остатков</div></main></div>
+<div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-label="Вход в облако"><div class="auth-card"><div class="eyebrow">FARUKH REVISION PRO</div><h2 style="margin:7px 0">Вход в облако</h2><div class="desc">Для сохранения ревизий в базе MORE SUSHI STUDIO войди под своей учётной записью.</div><form id="authForm" onsubmit="event.preventDefault();cloudLogin()"><label for="authEmail">Email</label><input id="authEmail" class="control" type="email" autocomplete="username" required><label for="authPassword">Пароль</label><input id="authPassword" class="control" type="password" autocomplete="current-password" required><div id="authStatus" class="auth-status" role="status"></div><div class="row" style="margin-top:16px"><button class="btn main" id="authSubmit" type="submit"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg>Войти</button><button class="btn" type="button" onclick="hideLogin()">Отмена</button></div></form><div class="shield">🔒 Сохраняем данные отдельно от каталога ТТК и полуфабрикатов. Без входа облачная отправка недоступна.</div></div></div>
+<div id="toast" class="toast" role="status"></div>
+<script>
+"use strict";
+const REVISION_STORE_ICONS=["data:image/webp;base64,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", "data:image/webp;base64,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", "data:image/webp;base64,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", "data:image/webp;base64,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"];
+// Supabase publishable key is intentionally public; access is protected by RLS and the user's session.
+const SUPABASE_URL='https://mhsmmssipligbmvfzkce.supabase.co';
+const SUPABASE_KEY='sb_publishable_JKA5HzoGDIkLxBnctT27hw_TBIqnoc0';
+const SESSION_KEY='farukh-revision-auth-v1';
+let cloudToken=null, cloudRefreshToken=null, cloudExpires=0, cloudEnabled=false, borrowedStudioSession=false;
+function showLogin(){document.getElementById('authOverlay').classList.add('open');document.getElementById('authEmail').focus()}
+function hideLogin(){document.getElementById('authOverlay').classList.remove('open');document.getElementById('authPassword').value=''}
+function setCloudBadge(txt,on){const el=document.getElementById('cloudIndicator');document.getElementById('cloudBadgeText').textContent=txt;el.classList.toggle('online',!!on);document.getElementById('cloudLogin').classList.toggle('hide',!!on);document.getElementById('cloudLogout').classList.toggle('hide',!on)}
+async function authRequest(path,method='POST',body=null,token=null){
+  const r=await fetch(SUPABASE_URL+'/auth/v1/'+path,{method,headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});
+  let data={};try{data=await r.json()}catch{}
+  if(!r.ok)throw new Error(data.msg||data.message||data.error_description||('Ошибка входа '+r.status));
+  return data;
+}
+async function ensureToken(){
+  if(!cloudToken)throw new Error('Выполни вход в облако');
+  if(Date.now()<cloudExpires-60000)return cloudToken;
+  const data=await authRequest('token?grant_type=refresh_token','POST',{refresh_token:cloudRefreshToken});
+  setTokens(data);return cloudToken;
+}
+function setTokens(data){
+  cloudToken=data.access_token;cloudRefreshToken=data.refresh_token;
+  cloudExpires=Date.now()+(Number(data.expires_in)||3600)*1000;
+  // Persist only short-lived access token and refresh token in the app's private WebView storage.
+  // The password is never saved. Refresh token rotation updates the saved value here too.
+  try{
+    localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:cloudToken,refresh_token:cloudRefreshToken,expires_at:cloudExpires}));
+    sessionStorage.removeItem(SESSION_KEY);
+  }catch{}
+}
+async function rest(table,{method='GET',query='',body=null}={}){
+  const token=await ensureToken();
+  const response=await fetch(SUPABASE_URL+'/rest/v1/'+table+query,{method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''},body:body===null?undefined:JSON.stringify(body)});
+  let data;try{data=await response.json()}catch{data=null}
+  if(!response.ok)throw new Error(data?.message||data?.details||('Сервер '+response.status));
+  return data;
+}
+async function cloudLogin(){
+  const e=document.getElementById('authEmail').value.trim(),p=document.getElementById('authPassword').value;
+  const btn=document.getElementById('authSubmit');const status=document.getElementById('authStatus');status.textContent='Проверяем вход…';btn.disabled=true;
+  try{const data=await authRequest('token?grant_type=password','POST',{email:e,password:p});borrowedStudioSession=false;try{localStorage.removeItem('farukh-revision-sso-optout')}catch{}setTokens(data);await loadCloud();hideLogin();notice('Облако подключено — история загружена')}
+  catch(err){status.textContent='Ошибка: '+err.message;setCloudBadge('● Не подключено',false)}
+  finally{btn.disabled=false}
+}
+async function cloudLogout(){try{if(cloudToken&&!borrowedStudioSession)await authRequest('logout','POST',null,cloudToken)}catch{}
+  borrowedStudioSession=false;try{localStorage.setItem('farukh-revision-sso-optout','1')}catch{}
+  cloudToken=null;cloudRefreshToken=null;cloudExpires=0;cloudEnabled=false;
+  try{localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}catch{}
+  try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch{state=null}
+  if(!state||!Array.isArray(state.products)||!Array.isArray(state.history))state={products:DEFAULT_PRODUCTS.slice(),history:[]};
+  setCloudBadge('● Локально — без входа',false);refresh();notice('Облачный режим выключен')}
+const DEFAULT_PRODUCTS=['Форель','Креветка','Сливочный сыр','Угорь','Краб'];
+const DEFAULT_LOCATIONS=['Баумана 18','Плазма','Героев Североморцев','Полярные Зори'];
+async function loadCloud(){
+  const [stores0,products0,audits0]=await Promise.all([
+    rest('revision_locations',{query:'?select=*&order=created_at.asc'}),
+    rest('revision_products',{query:'?select=*&order=created_at.asc'}),
+    rest('revision_audits',{query:'?select=*&order=created_at.desc&limit=500'})
+  ]);
+  let stores=stores0,products=products0;
+  if(stores.length===0)stores=await rest('revision_locations',{method:'POST',body:DEFAULT_LOCATIONS.map(name=>({name}))});
+  if(products.length===0)products=await rest('revision_products',{method:'POST',body:DEFAULT_PRODUCTS.map(name=>({name,unit:'кг'}))});
+  // Existing TTK ingredients and all recipes are not read or modified.
+  const selected=document.getElementById('store').value;
+  document.getElementById('store').innerHTML=stores.filter(s=>s.active).map(s=>'<option>'+safe(s.name)+'</option>').join('');
+  if(stores.some(s=>s.name===selected))document.getElementById('store').value=selected;
+  state={products:products.filter(p=>p.active).map(p=>p.name),history:audits0.map(r=>({id:r.id,timestamp:Date.parse(r.created_at),date:r.audit_date,store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name}))};
+  cloudEnabled=true;setCloudBadge('● Облако MORE SUSHI подключено',true);refresh();
+}
+async function tryResumeCloud(){
+  try{
+    // Previous test builds kept auth in sessionStorage, which can disappear
+    // whenever Android re-creates the WebView. Migrate it to persistent storage.
+    let t=null;
+    try{t=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{}
+    if(t?.access_token){
+      try{localStorage.setItem(SESSION_KEY,JSON.stringify(t));sessionStorage.removeItem(SESSION_KEY)}catch{}
+    }
+    if(!t?.access_token && location.hostname==='more-sushi-studio.onrender.com' && localStorage.getItem('farukh-revision-sso-optout')!=='1'){
+      // Reuse the private studio session only on the matching website origin.
+      const studio=JSON.parse(localStorage.getItem('ms_session')||'null');
+      if(studio?.access_token && studio?.refresh_token){
+        t={access_token:studio.access_token,refresh_token:studio.refresh_token,expires_at:Number(studio.expires_at||0)*1000};
+        borrowedStudioSession=true;
+      }
+    }
+    if(!t?.access_token || !t?.refresh_token)return;
+    cloudToken=t.access_token;cloudRefreshToken=t.refresh_token;cloudExpires=Number(t.expires_at)||0;
+    await loadCloud();
+  }catch(e){
+    borrowedStudioSession=false;cloudEnabled=false;cloudToken=null;
+    const message=String(e?.message||e).toLowerCase();
+    const expired=/invalid.refresh.token|refresh.token.not.found|invalid_grant|session.expired|jwt.expired/.test(message);
+    if(expired){
+      try{localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}catch{}
+      setCloudBadge('● Сессия истекла — войди снова',false);
+    }else{
+      // Network failures must NOT delete a valid session and cause repeated login.
+      setCloudBadge('● Нет связи — вход сохранён',false);
+    }
+  }
+}
+const KEY='farukh-revision-demo-v1';
+let state;
+try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+if(!state || !Array.isArray(state.products) || !Array.isArray(state.history)){state={products:['Форель','Креветка','Сливочный сыр','Угорь','Краб'],history:[]}}
+let draft={}; let active='revision';
+const $=id=>document.getElementById(id), safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const fmt=(n, digits=2)=>n.toLocaleString('ru-RU',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+const number=v=>{const s=String(v).trim().replace(',','.').replace(/\s/g,'');if(!/^(?:\d{1,9})(?:\.\d{1,3})?$/.test(s))return null;const n=Number(s);return Number.isFinite(n)&&n>=0?n:null};
+const currentStore=()=>$('store').value;
+const currentMode=()=>$('mode').value;
+const inStore=()=>state.history.filter(x=>x.store===currentStore()).sort((a,b)=>b.timestamp-a.timestamp);
+function notice(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',3000)}
+function getDraft(name){
+ if(draft[name])return draft[name];
+ const previous=state.history.filter(r=>r.store===currentStore()).sort((a,b)=>b.timestamp-a.timestamp).find(r=>r.products.some(p=>p.name===name&&p.price!==null));
+ const saved=previous?.products?.find(p=>p.name===name);
+ return {program:'',actual:'',price:saved?.price===undefined||saved?.price===null?'':String(saved.price)};
+}
+function syncDraft(){document.querySelectorAll('#rows tr[data-product]').forEach(tr=>{const name=tr.dataset.product;const e={};tr.querySelectorAll('input').forEach(el=>e[el.dataset.field]=el.value);draft[name]=e})}
+function clearForm(){draft={};renderRows();calculate()}
+function changeMode(){clearForm();renderRows();calculate()}
+function refresh(){clearForm();renderRows();renderHistory();renderSummary();calculate()}
+function renderRows(){const start=currentMode()==='start';$('formtitle').textContent=start?'Начальная ревизия':'Еженедельная сверка';$('formdesc').textContent=start?'Взвесь продукты и зафиксируй фактические остатки. Расхождения на старте не рассчитываются.':'Внеси остаток по учёту и фактический вес, чтобы увидеть разницу.';$('modebadge').textContent=start?'Начало контроля':'Сверка';$('modebadge').className=start?'tag start':'tag';$('programheading').textContent=start?'Учёт':'Учёт, кг';$('rows').innerHTML=state.products.map((p,i)=>{const v=getDraft(p);return `<tr data-product="${safe(p)}"><td><span class="itemname">${safe(p)}</span><span class="hint">Позиция ${i+1}</span></td><td>${start?'<span class="muted small">После ввода факта<br>установить вручную</span>':`<input class="numinput" data-field="program" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.program)}" aria-label="Остаток по учёту: ${safe(p)}">`}</td><td><input class="numinput" data-field="actual" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.actual)}" aria-label="Факт: ${safe(p)}"></td><td class="delta" id="delta-${i}">${start?'—':'Нет данных'}</td><td><input class="numinput price" data-field="price" type="text" inputmode="decimal" placeholder="₽/кг" value="${safe(v.price)}" aria-label="Цена за кг: ${safe(p)}"></td></tr>`}).join('');document.querySelectorAll('#rows input').forEach(el=>el.addEventListener('input',()=>{syncDraft();calculate()}));calculate()}
+function calculate(){const start=currentMode()==='start';let shortage=0,surplus=0,match=0,checked=0,unpriced=0;state.products.forEach((p,i)=>{const v=getDraft(p);const actual=v.actual===''?null:number(v.actual);const program=v.program===''?null:number(v.program);const price=v.price===''?null:number(v.price);const valid=actual!==null&&(start||program!==null);if(valid)checked++;const span=$('delta-'+i);if(!span)return;if(start){span.textContent='—';span.className='delta';return}if(!valid){span.textContent='Нет данных';span.className='delta muted';return}const diff=Math.round((actual-program)*1000)/1000;if(diff!==0&&price===null)unpriced++;if(diff<0)shortage+=-diff*(price??0);if(diff>0)surplus+=diff*(price??0);if(diff===0)match++;span.textContent=(diff>0?'+':'')+fmt(diff,3)+' кг';span.className='delta '+(diff>0?'green':diff<0?'red':'blue')});$('short').textContent=start?'—':fmt(shortage)+' ₽';$('surplus').textContent=start?'—':fmt(surplus)+' ₽';$('matches').textContent=start?'—':match+' / '+state.products.length;$('checked').textContent=checked+' / '+state.products.length;$('priceNote').classList.toggle('hide',start||unpriced===0)}
+let savingRevision=false;
+async function saveRevision(){
+ if(savingRevision)return;
+ syncDraft();const start=currentMode()==='start';const products=[];
+ for(const p of state.products){const v=getDraft(p);
+  if(v.actual===''){notice('Укажи фактический вес: '+p);return}
+  const actual=number(v.actual);if(actual===null){notice('Некорректный фактический вес: '+p);return}
+  const program=start?actual:(v.program===''?null:number(v.program));if(program===null){notice('Укажи остаток по учёту: '+p);return}
+  const price=v.price===''?null:number(v.price);if(price===null&&v.price!==''){notice('Некорректная цена: '+p);return}
+  products.push({name:p,program,actual,price,diff:Math.round((actual-program)*1000)/1000});
+ }
+ if(!state.products.length){notice('Добавь хотя бы один продукт');return}
+ if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?'))return;
+ const r={id:(crypto.randomUUID?.()||String(Date.now())),timestamp:Date.now(),date:$('when').value,store:currentStore(),type:start?'start':'weekly',products,operator:$('operator').value.trim()};
+ savingRevision=true;
+ if(cloudEnabled){
+  try{const created=await rest('revision_audits',{method:'POST',body:{location_name:r.store,audit_type:r.type,audit_date:r.date,operator_name:r.operator,items:products}});r.id=created[0].id;r.timestamp=Date.parse(created[0].created_at)}
+  catch(err){savingRevision=false;notice('Не сохранено в облаке: '+err.message);return}
+ }else{state.history.push(r);save()}
+ if(cloudEnabled)state.history.push(r);
+ clearForm();renderHistory();renderSummary();savingRevision=false;notice(cloudEnabled?'Ревизия сохранена в облаке':'Ревизия сохранена только в этом браузере');
+}
+function totals(r){let shortage=0,surplus=0;for(const p of r.products){const delta=p.diff*(p.price??0);if(delta<0)shortage+=-delta;else surplus+=delta}return {shortage,surplus}}
+function historyItem(r){const t=totals(r);return `<div class="historyitem"><div><strong>${r.type==='start'?'Начальная':'Повторная'} · ${safe(r.date)}</strong><small>${r.products.length} позиций · ${safe(r.store)}</small></div><div style="text-align:right"><strong class="${r.type==='start'?'blue':'red'}">${r.type==='start'?'База 0':('−'+fmt(t.shortage)+' ₽')}</strong><small>${r.type==='start'?'':('+'+fmt(t.surplus)+' ₽')}</small></div></div>`}
+function renderSummary(){
+ const names=Array.from($('store').options).map(x=>x.value);
+ const iconTiles=REVISION_STORE_ICONS;
+ const content=names.map((name,index)=>{
+  const latest=state.history.filter(x=>x.store===name&&x.type==='weekly').sort((a,b)=>b.timestamp-a.timestamp)[0];
+  const t=latest?totals(latest):null;
+  return `<div class="summarytile"><img class="point-icon" src="${iconTiles[index]||iconTiles[0]}" alt="" loading="lazy"><div class="point-info"><strong>${safe(name)}</strong><div class="hint">${latest?'Последняя ревизия: '+safe(latest.date):'Нет повторной ревизии'}</div><div class="numbers"><div><span>Недостача</span><b class="red">${t?'−'+fmt(t.shortage)+' ₽':'—'}</b></div><div><span>Излишек</span><b class="green">${t?'+'+fmt(t.surplus)+' ₽':'—'}</b></div></div></div><button class="btn soft point-open" data-summary-store="${safe(name)}">Открыть точку <span aria-hidden="true">→</span></button></div>`;
+ }).join('');
+ $('summaryCards').innerHTML=content;
+ document.querySelectorAll('[data-summary-store]').forEach(b=>b.onclick=()=>{
+  $('store').value=b.dataset.summaryStore;
+  const rev=document.querySelector('.menu button[onclick*="revision"]');
+  go('revision',rev);refresh();
+ });
+}
+function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?all.slice(0,4).map(historyItem).join(''):'<div class="empty">Пока нет сохранённых ревизий</div>';$('allhistory').innerHTML=all.length?all.map(r=>`<div class="archive">${historyItem(r)}<details style="margin:5px 0 0 14px"><summary class="muted" style="cursor:pointer;padding:8px">Показать продукты</summary><div class="tablewrap"><table><thead><tr><th>Продукт</th><th>Учёт</th><th>Факт</th><th>Разница, кг</th><th>Цена ₽/кг</th></tr></thead><tbody>${r.products.map(p=>`<tr><td>${safe(p.name)}</td><td>${fmt(p.program,3)}</td><td>${fmt(p.actual,3)}</td><td class="${p.diff<0?'red':p.diff>0?'green':''}">${fmt(p.diff,3)}</td><td>${p.price===null?'—':fmt(p.price)}</td></tr>`).join('')}</tbody></table></div></details></div>`).join(''):'<div class="empty">У этой точки пока нет сохранённых ревизий</div>'}
+function renderProducts(){$('productsrows').innerHTML=state.products.map(p=>`<tr><td class="itemname">${safe(p)}</td><td>килограмм (кг)</td><td><button class="btn danger" data-delete="${safe(p)}"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-trash"></use></svg>Удалить</button></td></tr>`).join('');document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Удалить продукт «'+b.dataset.delete+'» из будущих ревизий?'))return;deleteProduct(b.dataset.delete)})}
+async function deleteProduct(name){
+ if(cloudEnabled){try{await rest('revision_products',{method:'PATCH',query:'?name=eq.'+encodeURIComponent(name),body:{active:false}})}catch(err){notice('Не удалено: '+err.message);return}}
+ state.products=state.products.filter(p=>p!==name);if(!cloudEnabled)save();clearForm();renderProducts();notice('Позиция скрыта для новых ревизий');
+}
+async function addProduct(){
+ const n=$('newproduct').value.trim();if(n.length<2||n.length>60){notice('Название: от 2 до 60 символов');return}
+ if(state.products.some(p=>p.toLowerCase()===n.toLowerCase())){notice('Такой продукт уже есть');return}
+ if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
+ state.products.push(n);if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
+}
+function go(view,button){active=view;$('revisionSelectors').classList.toggle('hide',view==='summary');$('operatorSelector').classList.toggle('hide',view==='summary');$('revisionKPIs').classList.toggle('hide',view==='summary');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
+function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
+function csvSave(data,name){const csv='\ufeff'+data.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');if(window.FarukhAndroid&&typeof window.FarukhAndroid.saveCsv==='function'){window.FarukhAndroid.saveCsv(name,btoa(unescape(encodeURIComponent(csv))));return}const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function downloadHistory(){
+ const rows=[['Точка','Дата','Режим','Сотрудник','Продукт','Учёт, кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];
+ for(const r of state.history)for(const p of r.products){const d=p.diff,price=p.price;rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',r.operator||'',p.name,p.program,p.actual,d,price??'',price===null?'':Math.max(0,-d*price),price===null?'':Math.max(0,d*price)])}
+ if(rows.length===1){notice('История пока пустая');return}csvSave(rows,'farukh-revision-history.csv')
+}
+function exportCSV(){syncDraft();const rows=[['Точка','Дата','Тип','Продукт','Учёт, кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];const start=currentMode()==='start';for(const p of state.products){const v=getDraft(p),actual=v.actual===''?null:number(v.actual),program=start?actual:(v.program===''?null:number(v.program)),price=v.price===''?null:number(v.price);if(actual===null||program===null)continue;const diff=Math.round((actual-program)*1000)/1000;rows.push([currentStore(),$('when').value,start?'Начальная':'Повторная',p,program,actual,diff,price??'',price===null?'':Math.max(0,-diff*price),price===null?'':Math.max(0,diff*price)])}if(rows.length===1){notice('Заполни хотя бы одну позицию');return}csvSave(rows,'farukh-revision-'+$('when').value+'.csv')}
+function exportHistory(){const rows=[['Точка','Дата','Тип','Продукт','Учёт, кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];for(const r of inStore())for(const p of r.products){rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',p.name,p.program,p.actual,p.diff,p.price??'',p.price===null?'':Math.max(0,-p.diff*p.price),p.price===null?'':Math.max(0,p.diff*p.price)])}if(rows.length===1){notice('Нет сохранённых ревизий');return}csvSave(rows,'farukh-revision-history.csv')}
+$('when').value=today();go('summary',document.querySelector('.menu button'));renderRows();renderHistory();renderSummary();tryResumeCloud();
+
+/* A manifest-based updater interface: ready for a native installer bridge and deployment.
+ * Current APK is a prototype and does not claim it can install itself.
+ * Server manifest example: {"versionCode":206,"versionName":"0.2.6","apkUrl":"https://.../app.apk","sha256":"..."}.
+ * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
+ */
+const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
+const FARUKH_UI_RELEASE='0.2.8';
+async function checkAppUpdate(){
+  const b=document.getElementById('appUpdateBtn');
+  const status=document.getElementById('appUpdateStatus');
+  if(!b||!status)return;
+  b.disabled=true;
+  status.removeAttribute('role');status.textContent='Проверяем доступность обновлений…';
+  try {
+    const response=await fetch(FARUKH_UPDATES_MANIFEST+'?t='+Date.now(),{cache:'no-store',mode:'cors'});
+    if(!response.ok)throw new Error('manifest unavailable');
+    const version=await response.json();
+    if(version.available===false){status.textContent=version.message||'Новая версия пока не опубликована.';return;}
+    const apk=typeof version.apkUrl==='string'?version.apkUrl:'';
+    if(!/^https:\/\//.test(apk) || !/^[a-f\d]{64}$/i.test(String(version.sha256||'')))throw new Error('manifest invalid');
+    const newVersion=String(version.versionName||'');
+    const currentNative=(window.FarukhAndroid&&typeof window.FarukhAndroid.getInstalledVersionCode==='function')? Number(window.FarukhAndroid.getInstalledVersionCode()) : null;
+    const newer=(a,b)=>{const aa=a.split('.').map(Number),bb=b.split('.').map(Number);return aa.some((v,i)=>v>(bb[i]||0)&&aa.slice(0,i).every((n,j)=>n===(bb[j]||0)))};
+    if((currentNative!==null && Number(version.versionCode)<=currentNative) || (currentNative===null && !newer(newVersion,FARUKH_UI_RELEASE))){status.textContent='Установлена актуальная версия.';return;}
+    // This bridge must be implemented on the Android side; a WebView cannot silently install APKs.
+    if(window.FarukhAndroid&&typeof window.FarukhAndroid.installVerifiedUpdate==='function'){
+      status.textContent='Доступна версия '+newVersion+'. Подготавливаем установку…';
+      window.FarukhAndroid.installVerifiedUpdate(apk,String(version.sha256).toLowerCase());
+    }else{
+      status.setAttribute('role','alert');
+      status.textContent='Доступна версия '+newVersion+', но автоматическая установка в этой сборке ещё не подключена. Данные ревизий сохранены.';
+    }
+  }catch(error){
+    status.setAttribute('role','alert');
+    status.textContent='Пока нет связи с сервером обновлений. Ревизии продолжают работать.';
+  }finally{b.disabled=false}
+}
+
+</script></body></html>
