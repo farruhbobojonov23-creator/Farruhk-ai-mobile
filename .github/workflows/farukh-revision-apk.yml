@@ -1,0 +1,34 @@
+name: Build FARUKH REVISION PRO Android
+on:
+  push:
+    branches:
+      - feature/farukh-revision-updater-20261122
+    paths:
+      - 'farukh-revision-android/**'
+      - '.github/workflows/farukh-revision-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile APK without signing key
+        working-directory: farukh-revision-android
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revision-0.2.8-unsigned
+          path: farukh-revision-android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
