@@ -392,7 +392,112 @@ body.android-premium{
 @media(max-width:360px){.android-premium .summarytile{grid-template-columns:48px minmax(0,1fr) 91px;gap:7px}.android-premium .summarytile .point-icon{width:47px;height:47px}.android-premium .summarytile strong{font-size:11.5px}.android-premium .cloud-actions .btn .icon-3d{width:25px;height:25px}}
 @media(prefers-reduced-motion:reduce){.android-premium *{transition:none!important;animation:none!important}}
 
-</style></head><body class="android-premium">
+
+/* v0.3.0 FARUKH REVISION COMPACT — white/red premium, preserves all functional modules */
+html,body,body.android-premium.revision-compact{background:#f6f4f5!important;color:#242431;color-scheme:light}
+body.revision-compact{--ink:#252633;--sub:#777782;--bg:#f6f4f5;--red:#d62d49;--green:#148762;--gold:#d62d49;font-size:13px;padding-top:max(30px,env(safe-area-inset-top,0px));padding-bottom:max(34px,env(safe-area-inset-bottom,0px))}
+.revision-compact .shell{background:transparent!important;min-height:calc(100dvh - 64px)!important}
+.revision-compact main{background:transparent!important;max-width:1080px;padding:12px 14px 95px!important}
+.revision-compact .sidebar{background:#fff!important;border-bottom:1px solid #f0dce0!important;box-shadow:0 3px 16px #9012280d!important}
+.revision-compact .brand .brandicon{background:linear-gradient(150deg,#ff99aa,#e52e4a 55%,#aa1734)!important;border-color:#da4961!important;box-shadow:inset 0 1px 0 #fff8,0 4px 14px #c4224a2e!important}
+.revision-compact .brand .brandicon .icon-3d{filter:brightness(0) invert(1) drop-shadow(0 1px 0 #fff7)}
+.revision-compact .brandword b,.revision-compact .brandword em{color:#222431!important}
+.revision-compact .brandword small{color:#a68b95!important;letter-spacing:.8px!important}
+.revision-compact .brandword mark{background:linear-gradient(#ff899b,#d82947)!important;color:white!important}
+.revision-compact .top{gap:10px;margin:0 0 8px!important;align-items:center}
+.revision-compact .top .eyebrow{font-size:9px!important;letter-spacing:1px!important;color:#c23a52!important}
+.revision-compact .top h1{font-size:23px!important;line-height:1.15!important;margin:3px 0 3px!important;color:#1d2430!important}
+.revision-compact .title-period{color:#d82d48!important}
+.revision-compact .top .muted{font-size:11px!important;color:#8e8e99!important;line-height:1.32!important}
+.theme-button{width:39px;height:39px;flex-shrink:0;border-radius:13px;border:1px solid #eecbd3;color:#c32c47;background:linear-gradient(#fff,#ffe7eb);font-size:22px;box-shadow:0 3px 8px #9c17351a}
+.compact-tools-button{width:100%;display:flex;justify-content:space-between;align-items:center;border:1px solid #f0dce0;background:#fff;color:#9a4354;padding:9px 13px;border-radius:13px;min-height:40px;font-weight:800;margin:9px 0 9px;box-shadow:0 3px 12px #9c17350b}
+.compact-tools-hidden{display:none!important}
+.revision-compact .cloud-actions{margin:0 0 11px!important;gap:8px!important;grid-template-columns:1fr 1fr!important}
+.revision-compact .cloud-actions .btn{min-height:49px!important;font-size:11px!important;border-radius:13px!important}
+.revision-compact .cloud-actions .btn .icon-3d{width:23px!important;height:23px!important}
+.revision-compact .cloud-indicator{border-radius:13px!important;background:#fff!important;color:#956273!important;border:1px solid #ecd7df!important;min-height:47px!important}
+.revision-compact .cloud-indicator .icon-3d{height:25px!important;width:25px!important}
+.revision-compact .update-status{background:#fff8fa!important;color:#a74456!important;border-color:#f2cbd4!important;margin:4px 0 9px!important}
+.revision-compact .card,.revision-compact .summarytile{background:#fff!important;border:1px solid #f0e5e8!important;color:#292935!important;box-shadow:0 7px 20px #7c1d350c!important;border-radius:16px!important}
+.revision-compact .eyebrow,.revision-compact .section-count{color:#c82e49!important}
+.revision-compact h2,.revision-compact #view-summary h2,.revision-compact .summarytile strong{color:#252633!important}
+.revision-compact .desc,.revision-compact .muted,.revision-compact .hint,.revision-compact .summarytile .hint,.revision-compact .kpi .note{color:#858590!important}
+.revision-compact .summarycards{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+.revision-compact .summarytile{display:flex!important;flex-direction:column;align-items:stretch;gap:3px!important;padding:10px!important;min-height:150px!important;position:relative}
+.revision-compact .summarytile .point-icon{width:36px!important;height:36px!important;border-radius:10px!important;border:1px solid #f2cbd4!important;box-shadow:0 3px 7px #63122e20!important}
+.revision-compact .summarytile .point-info{width:100%;flex:1}
+.revision-compact .summarytile strong{font-size:12px!important;font-weight:850!important;min-height:15px}
+.revision-compact .summarytile .hint{font-size:9px!important;line-height:1.2;min-height:12px}
+.revision-compact .summarytile .numbers{margin:5px 0 0!important;gap:7px!important;flex-wrap:wrap}
+.revision-compact .summarytile .numbers span{font-size:9px!important;color:#8b8e98!important}
+.revision-compact .summarytile .numbers b{font-size:11px!important}
+.revision-compact .summarytile .point-open{width:100%!important;align-self:end!important;min-height:30px!important;padding:5px!important;border:1px solid #f0aebb!important;border-radius:9px!important;background:linear-gradient(180deg,#fff8fa,#ffe4e9)!important;color:#ba2c45!important;font-size:10px!important;text-shadow:none!important;box-shadow:0 2px 0 #f2bbc5!important}
+.revision-compact #view-summary>.card{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+.revision-compact #view-summary .sectionheading{margin:8px 0 10px!important}
+.revision-compact #view-summary h2{font-size:18px!important}
+.revision-compact #view-summary .section-count{background:#fff3f5!important;border-color:#f1cfda!important}
+.revision-compact .btn,.revision-compact .menu button,.revision-compact .auth-card button{color:#4a3940;background:linear-gradient(#fff,#f9e9ed);border-color:#f0ccd4;box-shadow:inset 0 1px #fff,0 2px 0 #e8bcc5,0 4px 10px #8a244015;text-shadow:none}
+.revision-compact .btn.main,.revision-compact .menu button.active{background:linear-gradient(165deg,#ff91a1 0%,#df2c4a 60%,#b61a39)!important;border-color:#df617a!important;color:white!important;text-shadow:0 1px #b91a36!important;box-shadow:inset 0 1px #ffdadf,0 3px 0 #8f1330,0 7px 13px #b2153528!important}
+.revision-compact .menu button.active .menu-label,.revision-compact .menu button.active .menu-icon{color:white!important}
+.revision-compact .icon-3d{filter:drop-shadow(0 1px 2px #af37534d)}
+.revision-compact .menu{background:#fff!important;border:1px solid #f0d7dd!important;box-shadow:0 7px 20px #7f183224!important}
+.revision-compact .menu button:not(.active){color:#8a909c!important}
+.revision-compact .menu button:not(.active) .icon-3d{filter:grayscale(1) opacity(.68)}
+.revision-compact .control,.revision-compact .numinput{color:#313743!important;background:#fff!important;border:1px solid #efdae0!important;border-radius:12px}
+.revision-compact .control::placeholder,.revision-compact .numinput::placeholder{color:#a3a1ab!important}
+.revision-compact .selectors{margin-bottom:10px!important;gap:8px!important}
+.revision-compact .selectors .control{padding:9px 11px!important;min-height:42px!important}
+.revision-compact #operatorSelector{margin-top:0!important}
+.revision-compact .kpis{gap:7px!important;margin-bottom:10px!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.revision-compact .kpi{padding:9px 6px!important;text-align:center;min-width:0}
+.revision-compact .kpi .label{font-size:10px!important;color:#8d8590!important}
+.revision-compact .kpi .number{font-size:14px!important;margin-top:5px!important;letter-spacing:-.2px}
+.revision-compact .kpi .note{display:none}
+.revision-compact .red{color:#d52b4d!important}.revision-compact .green{color:#118865!important}.revision-compact .blue{color:#bf3751!important}
+.revision-compact #view-revision .grid{display:flex;flex-direction:column;gap:9px!important}
+.revision-compact #view-revision .card{padding:12px!important}
+.revision-compact #view-revision h2{margin:0 0 4px!important;font-size:17px!important}
+.revision-compact #view-revision .desc{font-size:11px!important;line-height:1.35!important}
+.revision-compact .rev-product{border:1px solid #efdde2;background:#fff;border-radius:14px;margin:0 0 8px;padding:0;overflow:hidden;box-shadow:0 2px 9px #9a23500d}
+.revision-compact .rev-product summary{display:flex;cursor:pointer;align-items:center;gap:9px;padding:10px 11px;list-style:none;min-height:56px}
+.revision-compact .rev-product summary::-webkit-details-marker{display:none}
+.revision-compact .product-icon{width:33px;height:33px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,#fff6f8,#ffe0e6);border:1px solid #f1c9d2;font-size:19px}
+.revision-compact .product-heading{flex:1;min-width:0}.revision-compact .product-heading strong{display:block;font-size:13px;color:#232835}.revision-compact .product-heading small{font-size:10px;color:#91929e}
+.revision-compact .product-total{text-align:right;color:#cf3450;font-weight:850;font-size:15px;white-space:nowrap}.revision-compact .product-total small{display:block;font-size:9px;font-weight:600;color:#9f9faa}
+.revision-compact .rev-product[open]{border-color:#eeb7c3;box-shadow:0 4px 15px #b92b4b1a}
+.revision-compact .rev-product-fields{border-top:1px solid #f4e4e8;padding:11px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.revision-compact .rev-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.revision-compact .rev-field label{font-size:10px;font-weight:750;color:#93919a}.revision-compact .rev-field input{width:100%;min-width:0;font-size:16px;font-weight:750;color:#2a2b38;background:#fbf9fa;border:1px solid #efdce2;border-radius:10px;min-height:42px;padding:8px 10px;outline:none}
+.revision-compact .rev-field input:focus{border-color:#df3656;box-shadow:0 0 0 2px #e13b5620}
+.revision-compact .rev-product-summary{grid-column:1/-1;padding:9px 11px;border-radius:10px;background:#fff1f4;color:#b62e49;font-size:12px;font-weight:800;line-height:1.4}
+.revision-compact .rev-advanced{grid-column:1/-1}.revision-compact .rev-advanced summary{padding:4px 0;min-height:0;font-size:11px;color:#bd6a7c}.revision-compact .rev-advanced .rev-field{margin-top:5px}
+.revision-compact .rev-help{padding:12px 14px!important}.revision-compact .rev-help summary{cursor:pointer;color:#c52d49;font-size:12px}
+.revision-compact .recent-audits{padding:12px!important}.revision-compact .recent-audits h2{font-size:13px!important}
+.revision-compact .warning{font-size:10px!important;color:#a55b6a!important;border-color:#f4d8de!important;background:#fff8fa!important;padding:8px!important}
+.revision-compact #view-products,.revision-compact #view-history{padding:15px!important}.revision-compact #view-products th,.revision-compact #view-history th{background:#fff3f5;color:#ab6573}
+.revision-compact #view-products td,.revision-compact #view-history td{border-color:#f5e8eb}
+.revision-compact .historyitem{background:#fff!important;border-color:#f0dce0!important}
+.revision-compact .auth-card{background:white!important;color:#262833!important;border:1px solid #eebcc7!important}.revision-compact .auth-card input{background:#fff!important;color:#333!important;border-color:#f0dae0!important}
+.revision-compact .auth-card .shield{background:#f0fbf6;color:#137457}
+.revision-compact .toast{background:#ac2944;color:#fff}
+@media(min-width:650px){.revision-compact .summarytile{min-height:158px!important}}
+@media(max-width:600px){.revision-compact .sidebar{padding:8px 13px 9px!important}.revision-compact .brand{gap:8px}.revision-compact .brand .brandicon{width:37px!important;height:37px!important}.revision-compact .brandword b{font-size:14px!important}.revision-compact .brandword small{font-size:8px!important}.revision-compact .menu{bottom:max(35px,calc(env(safe-area-inset-bottom,0px) + 9px))!important;left:9px!important;right:9px!important;padding:5px!important}.revision-compact .menu button{min-height:54px!important}.revision-compact .summarytile{grid-template-columns:unset!important;min-height:154px!important}.revision-compact #view-revision #rows tr{display:block!important;border:0!important;background:none!important;padding:0!important;margin:0!important}.revision-compact #view-revision #rows td{display:block;padding:0!important}.revision-compact #view-revision #rows td::before{display:none!important}.revision-compact main{padding-bottom:105px!important}.revision-compact .kpi .number{font-size:13px!important}.revision-compact #revisionSelectors .control{flex-basis:42%!important}.revision-compact #revisionSelectors .control[type=date]{flex-basis:100%!important}}
+@media print{body.revision-compact{background:white!important;padding:0!important}.revision-compact .menu,.revision-compact .compact-tools-button,.revision-compact .theme-button{display:none!important}.revision-compact main{padding:0!important}}
+.revision-compact .cloud-actions.compact-tools-hidden,.revision-compact .update-status.compact-tools-hidden{display:none!important}
+.revision-compact #cloudLogin{background:linear-gradient(165deg,#ff99a6,#d72d4b 60%,#a31b36)!important;border-color:#ed8093!important;color:white!important}
+.revision-compact .cloud-actions>.btn[onclick="downloadHistory()"]{background:linear-gradient(#fff,#f4e7eb)!important;color:#ac3e57!important;border-color:#e9c0cb!important}
+.revision-compact .update-btn{background:linear-gradient(#fff,#f9e2e8)!important;color:#bd3150!important;border-color:#edafbf!important}
+/* Optional dark-blue alternative toggled from header; no business-logic changes */
+body.revision-compact.theme-blue{--bg:#0d1a2c;background:#101b2d!important;color:#edf3ff;color-scheme:dark}
+.revision-compact.theme-blue .shell,.revision-compact.theme-blue main{background:#101b2d!important}
+.revision-compact.theme-blue .sidebar,.revision-compact.theme-blue .menu,.revision-compact.theme-blue .card,.revision-compact.theme-blue .summarytile,.revision-compact.theme-blue .rev-product,.revision-compact.theme-blue .auth-card,.revision-compact.theme-blue .compact-tools-button{background:#17263b!important;border-color:#31475f!important;color:#ecf3ff!important}
+.revision-compact.theme-blue .brandword b,.revision-compact.theme-blue .brandword em,.revision-compact.theme-blue .top h1,.revision-compact.theme-blue h2,.revision-compact.theme-blue .summarytile strong,.revision-compact.theme-blue .product-heading strong{color:#f3f7ff!important}
+.revision-compact.theme-blue .top .muted,.revision-compact.theme-blue .desc,.revision-compact.theme-blue .hint{color:#a4b7cc!important}
+.revision-compact.theme-blue .control,.revision-compact.theme-blue .numinput,.revision-compact.theme-blue .rev-field input{background:#111f34!important;color:#eff7ff!important;border-color:#304963!important}
+.revision-compact.theme-blue .rev-product-fields{border-color:#31475f}.revision-compact.theme-blue .rev-product-summary{background:#1a3550;color:#95c8ff}
+.revision-compact.theme-blue .summarytile .point-open{background:#203a54!important;color:#bcdfff!important;border-color:#496c90!important}
+
+</style></head><body class="android-premium revision-compact revision-white-red">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
  <linearGradient id="revSilver" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset=".40" stop-color="#9daec8"/><stop offset=".7" stop-color="#546785"/><stop offset="1" stop-color="#cad7e9"/></linearGradient>
@@ -414,12 +519,12 @@ body.android-premium{
 </defs></svg>
 
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="brandicon" aria-hidden="true"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-logo"></use></svg></span><span class="brandword"><b>FARUKH <em>REVISION</em><mark>PRO</mark></b><small>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</small></span></div><nav class="menu" aria-label="Навигация по разделам"><button class="active" onclick="go('summary',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-home"></use></svg></span><span class="menu-label">Главная</span></button><button onclick="go('revision',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-scales"></use></svg></span><span class="menu-label">Ревизия</span></button><button onclick="go('history',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></span><span class="menu-label">История</span></button><button onclick="go('products',this)"><span class="menu-icon"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-box"></use></svg></span><span class="menu-label">Товары</span></button></nav><div class="sidebarfoot">MORE SUSHI STUDIO<br>Модуль синхронизируется с<br>MORE SUSHI STUDIO после входа.</div></aside>
-<main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Сверка учётных остатков с фактическим весом</div></div></div>
-<div class="cloud-actions"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
+<main><div class="top"><div><div class="eyebrow">ПАНЕЛЬ ШЕФ-ПОВАРА <span class="eyebrow-sep">/</span> 4 ТОЧКИ</div><h1>Контроль склада<span class="title-period">.</span></h1><div class="muted">Склад + полуфабрикаты · контроль по 4 точкам</div></div><button type="button" class="theme-button" id="themeToggleRevision" onclick="toggleRevisionTheme()" aria-label="Переключить бело-красную и тёмно-синюю темы" title="Сменить тему">◐</button></div>
+<button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false">⚙ Сервис и обновления <span>▾</span></button><div class="cloud-actions compact-tools-hidden" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status compact-tools-hidden" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
 <div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
-<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Внеси учётный остаток и фактический вес, затем сохрани ревизию.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="clearForm()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning">Учётные значения вводятся вручную. Без входа в облако история остаётся только на этом устройстве.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
-<aside><div class="card rightspace"><div class="sectionheading"><h2 style="margin:0">Как это работает</h2></div><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. Запиши эти же значения в учётной системе.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, сверь учётные остатки с фактическим весом.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></div><div class="card"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
+<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="clearForm()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning">Учётные значения вводятся вручную. Без входа в облако история остаётся только на этом устройстве.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
+<aside><details class="card rightspace rev-help"><summary><strong>ⓘ Как проводить ревизию</strong></summary><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. Запиши эти же значения в учётной системе.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, сверь учётные остатки с фактическим весом.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></details><div class="card recent-audits"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
 <div class="card hide" id="view-history"><div class="sectionheading"><div><h2>История ревизий</h2><div class="desc">Для выбранной торговой точки, новые сверху</div></div><button class="btn soft" onclick="exportHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>Скачать историю CSV</button></div><div id="allhistory"></div></div>
 <div class="card hide" id="view-products"><h2>Основные контрольные продукты</h2><div class="desc">Продукты используются для всех четырёх точек. Ранее сохранённые ревизии не изменяются.</div><div class="tablewrap" style="margin-top:18px"><table style="min-width:400px"><thead><tr><th>Продукт</th><th>Учетная единица</th><th>Действие</th></tr></thead><tbody id="productsrows"></tbody></table></div><div class="row" style="margin-top:18px"><input id="newproduct" class="control" placeholder="Название продукта"><button class="btn main" onclick="addProduct()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-add"></use></svg>Добавить продукт</button></div></div>
 <div class="foot">FARUKH REVISION PRO · контроль остатков</div></main></div>
@@ -479,7 +584,7 @@ async function cloudLogout(){try{if(cloudToken&&!borrowedStudioSession)await aut
   try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch{state=null}
   if(!state||!Array.isArray(state.products)||!Array.isArray(state.history))state={products:DEFAULT_PRODUCTS.slice(),history:[]};
   setCloudBadge('● Локально — без входа',false);refresh();notice('Облачный режим выключен')}
-const DEFAULT_PRODUCTS=['Форель','Креветка','Сливочный сыр','Угорь','Краб'];
+const DEFAULT_PRODUCTS=['Лосось','Сыр творожный','Угорь'];
 const DEFAULT_LOCATIONS=['Баумана 18','Плазма','Героев Североморцев','Полярные Зори'];
 async function loadCloud(){
   const [stores0,products0,audits0]=await Promise.all([
@@ -494,7 +599,7 @@ async function loadCloud(){
   const selected=document.getElementById('store').value;
   document.getElementById('store').innerHTML=stores.filter(s=>s.active).map(s=>'<option>'+safe(s.name)+'</option>').join('');
   if(stores.some(s=>s.name===selected))document.getElementById('store').value=selected;
-  state={products:products.filter(p=>p.active).map(p=>p.name),history:audits0.map(r=>({id:r.id,timestamp:Date.parse(r.created_at),date:r.audit_date,store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name}))};
+  state={products:JSON.parse(localStorage.getItem('farukh-revision-visible-products-v030')||'null')||DEFAULT_PRODUCTS.slice(),history:audits0.map(r=>({id:r.id,timestamp:Date.parse(r.created_at),date:r.audit_date,store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name}))};
   cloudEnabled=true;setCloudBadge('● Облако MORE SUSHI подключено',true);refresh();
 }
 async function tryResumeCloud(){
@@ -533,7 +638,11 @@ async function tryResumeCloud(){
 const KEY='farukh-revision-demo-v1';
 let state;
 try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
-if(!state || !Array.isArray(state.products) || !Array.isArray(state.history)){state={products:['Форель','Креветка','Сливочный сыр','Угорь','Краб'],history:[]}}
+if(!state || !Array.isArray(state.products) || !Array.isArray(state.history)){state={products:DEFAULT_PRODUCTS.slice(),history:[]}}
+try{if(!sessionStorage.getItem('rev-compact-v030-session')){
+   state.products=JSON.parse(localStorage.getItem('farukh-revision-visible-products-v030')||'null')||DEFAULT_PRODUCTS.slice();
+   sessionStorage.setItem('rev-compact-v030-session','1');
+ }}catch{state.products=DEFAULT_PRODUCTS.slice();}
 let draft={}; let active='revision';
 const $=id=>document.getElementById(id), safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
@@ -599,13 +708,13 @@ function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?al
 function renderProducts(){$('productsrows').innerHTML=state.products.map(p=>`<tr><td class="itemname">${safe(p)}</td><td>килограмм (кг)</td><td><button class="btn danger" data-delete="${safe(p)}"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-trash"></use></svg>Удалить</button></td></tr>`).join('');document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Удалить продукт «'+b.dataset.delete+'» из будущих ревизий?'))return;deleteProduct(b.dataset.delete)})}
 async function deleteProduct(name){
  if(cloudEnabled){try{await rest('revision_products',{method:'PATCH',query:'?name=eq.'+encodeURIComponent(name),body:{active:false}})}catch(err){notice('Не удалено: '+err.message);return}}
- state.products=state.products.filter(p=>p!==name);if(!cloudEnabled)save();clearForm();renderProducts();notice('Позиция скрыта для новых ревизий');
+ state.products=state.products.filter(p=>p!==name);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();clearForm();renderProducts();notice('Позиция скрыта для новых ревизий');
 }
 async function addProduct(){
  const n=$('newproduct').value.trim();if(n.length<2||n.length>60){notice('Название: от 2 до 60 символов');return}
  if(state.products.some(p=>p.toLowerCase()===n.toLowerCase())){notice('Такой продукт уже есть');return}
  if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
- state.products.push(n);if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
+ state.products.push(n);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
 }
 function go(view,button){active=view;$('revisionSelectors').classList.toggle('hide',view==='summary');$('operatorSelector').classList.toggle('hide',view==='summary');$('revisionKPIs').classList.toggle('hide',view==='summary');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
 function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
@@ -625,7 +734,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.2.8';
+const FARUKH_UI_RELEASE='0.3.0';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -656,5 +765,131 @@ async function checkAppUpdate(){
     status.textContent='Пока нет связи с сервером обновлений. Ревизии продолжают работать.';
   }finally{b.disabled=false}
 }
+
+
+/* v0.3.0 compact audited inventory: weighed semi-finished product is multiplied by (1 + configured add-on/100) */
+const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
+const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
+const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
+function toggleRevisionTheme(){
+ const dark=document.body.classList.toggle('theme-blue');
+ document.body.classList.toggle('revision-white-red',!dark);
+ try{localStorage.setItem('farukh-revision-compact-theme-v030',dark?'dark':'light')}catch{}
+}
+function toggleRevisionTools(){
+ const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
+ const opening=panel.classList.contains('compact-tools-hidden');
+ panel.classList.toggle('compact-tools-hidden',!opening);status.classList.toggle('compact-tools-hidden',!opening);
+ button.setAttribute('aria-expanded',String(opening));
+ button.innerHTML=opening?'⚙ Свернуть сервис <span>▴</span>':'⚙ Сервис и обновления <span>▾</span>';
+}
+function visibleRule(name){return Number(REVISION_LOSS_RULES[name]||0)}
+function pfAllowed(name){return REVISION_PF_ALLOWED[name]===true}
+function weightOf(name,v){
+ let raw=v.raw===''?null:number(v.raw),pf=pfAllowed(name)?(v.pf===''?null:number(v.pf)):0;
+ if((v.raw!==''&&raw===null)||(pfAllowed(name)&&v.pf!==''&&pf===null))return null;
+ if(raw===null && (!pfAllowed(name)||pf===null))return null;
+ return Math.round(((raw||0)+(pf||0)*(1+visibleRule(name)/100))*1000)/1000;
+}
+getDraft=function(name){
+ if(draft[name])return draft[name];
+ const previous=state.history.filter(r=>r.store===currentStore()).sort((a,b)=>b.timestamp-a.timestamp).find(r=>r.products.some(p=>p.name===name&&p.price!==null));
+ const saved=previous?.products?.find(p=>p.name===name);
+ return {program:'',raw:'',pf:'',price:saved?.price==null?'':String(saved.price)};
+};
+// Every row is a compact accordion. Original saved historical records and auth stay untouched.
+syncDraft=function(){document.querySelectorAll('#rows tr[data-product]').forEach(tr=>{
+ const name=tr.dataset.product,e={};
+ tr.querySelectorAll('input').forEach(el=>e[el.dataset.field]=el.value);
+ draft[name]=e;
+});};
+renderRows=function(){
+ const start=currentMode()==='start';
+ $('formtitle').textContent=start?'Начальная ревизия':'Повторная ревизия';
+ $('formdesc').textContent=start?'Взвесь склад и полуфабрикаты отдельно.':'Склад и полуфабрикаты отдельно, разница рассчитывается автоматически.';
+ $('modebadge').textContent=start?'Начальная':'Сверка';
+ $('modebadge').className=start?'tag start':'tag';
+ $('rows').innerHTML=state.products.map((name,i)=>{
+   const v=getDraft(name),loss=visibleRule(name),pf=pfAllowed(name);
+   const field=(label,key,val,placeholder='0,000')=>`<div class="rev-field"><label for="rev-${i}-${key}">${label}</label><input id="rev-${i}-${key}" data-field="${key}" type="text" inputmode="decimal" placeholder="${placeholder}" value="${safe(val||'')}" aria-label="${label}: ${safe(name)}"></div>`;
+   return `<tr data-product="${safe(name)}"><td colspan="5"><details class="rev-product" ${i===0?'open':''}>
+     <summary><span class="product-icon">${REVISION_ICON_MAP[name]||'📦'}</span><span class="product-heading"><strong>${safe(name)}</strong><small>${pf?'Склад + ПФ · +'+loss+'% к ПФ':'Склад · без потерь'}</small></span><span class="product-total"><span id="weight-${i}">— кг</span><small>Общий факт · открыть ▾</small></span></summary>
+     <div class="rev-product-fields">${!start?field('Учёт по программе, кг','program',v.program):''}${field('На складе, кг','raw',v.raw)}${pf?field('Полуфабрикат, кг','pf',v.pf):''}
+     <div class="rev-product-summary" id="delta-${i}">${start?'Введи остатки':'Разница: пока нет данных'}</div>
+     <details class="rev-advanced"><summary>Цена за кг ▾</summary>${field('Цена ₽/кг','price',v.price,'₽/кг')}</details>
+     </div></details></td></tr>`;
+ }).join('');
+ document.querySelectorAll('#rows input').forEach(el=>el.addEventListener('input',()=>{syncDraft();calculate()}));
+ calculate();
+};
+calculate=function(){
+ const start=currentMode()==='start';let shortage=0,surplus=0,match=0,checked=0,unpriced=0;
+ state.products.forEach((name,i)=>{
+   const v=getDraft(name),actual=weightOf(name,v),program=v.program===''?null:number(v.program),price=v.price===''?null:number(v.price);
+   const valid=actual!==null&&(start||program!==null);
+   if(valid)checked++;
+   const d=$('delta-'+i),w=$('weight-'+i);
+   if(w)w.textContent=actual===null?'— кг':fmt(actual,3)+' кг';
+   if(!d)return;
+   if(start){d.textContent=actual===null?'Введи остатки':'Итого по складу: '+fmt(actual,3)+' кг';return}
+   if(!valid){d.textContent='Разница: пока нет данных';d.className='rev-product-summary';return}
+   const diff=Math.round((actual-program)*1000)/1000;
+   if(diff!==0&&price===null)unpriced++;
+   if(diff<0)shortage+=-diff*(price??0);else if(diff>0)surplus+=diff*(price??0);else match++;
+   d.textContent='Итого '+fmt(actual,3)+' кг · '+(diff>0?'Излишек +':diff<0?'Недостача ':'Совпадение ')+fmt(diff,3)+' кг';
+   d.className='rev-product-summary '+(diff>0?'green':diff<0?'red':'blue');
+ });
+ $('short').textContent=start?'—':fmt(shortage)+' ₽';
+ $('surplus').textContent=start?'—':fmt(surplus)+' ₽';
+ $('matches').textContent=start?'—':match+' / '+state.products.length;
+ $('checked').textContent=checked+' / '+state.products.length;
+ $('priceNote').classList.toggle('hide',start||unpriced===0);
+};
+saveRevision=async function(){
+ if(savingRevision)return;
+ syncDraft();const start=currentMode()==='start',products=[];
+ for(const name of state.products){const v=getDraft(name);
+   const actual=weightOf(name,v);
+   if(actual===null){notice('Введи склад или полуфабрикат: '+name);return}
+   const program=start?actual:v.program===''?null:number(v.program);
+   if(program===null){notice('Укажи учётный остаток: '+name);return}
+   const price=v.price===''?null:number(v.price);
+   if(price===null&&v.price!==''){notice('Некорректная цена: '+name);return}
+   const raw=v.raw===''?0:number(v.raw),pf=pfAllowed(name)?(v.pf===''?0:number(v.pf)):0;
+   products.push({name,program,actual,raw,pf,loss:visibleRule(name),price,diff:Math.round((actual-program)*1000)/1000});
+ }
+ if(!state.products.length){notice('Добавь хотя бы один продукт');return}
+ if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?'))return;
+ const r={id:(crypto.randomUUID?.()||String(Date.now())),timestamp:Date.now(),date:$('when').value,store:currentStore(),type:start?'start':'weekly',products,operator:$('operator').value.trim()};
+ savingRevision=true;
+ if(cloudEnabled){
+   try{const created=await rest('revision_audits',{method:'POST',body:{location_name:r.store,audit_type:r.type,audit_date:r.date,operator_name:r.operator,items:products}});r.id=created[0].id;r.timestamp=Date.parse(created[0].created_at)}
+   catch(err){savingRevision=false;notice('Не сохранено в облаке: '+err.message);return}
+ }else{state.history.push(r);save()}
+ if(cloudEnabled)state.history.push(r);
+ clearForm();renderHistory();renderSummary();savingRevision=false;
+ notice(cloudEnabled?'Ревизия сохранена в облаке':'Ревизия сохранена на телефоне');
+};
+exportCSV=function(){
+ syncDraft();const rows=[['Точка','Дата','Режим','Продукт','Учёт кг','Склад кг','ПФ кг','Добавка к ПФ %','Факт всего кг','Разница кг','Цена ₽/кг']];
+ const start=currentMode()==='start';
+ for(const name of state.products){const v=getDraft(name),actual=weightOf(name,v),program=start?actual:v.program===''?null:number(v.program),price=v.price===''?null:number(v.price);
+ if(actual===null||program===null)continue;
+ rows.push([currentStore(),$('when').value,start?'Начальная':'Повторная',name,program,number(v.raw)||0,pfAllowed(name)?number(v.pf)||0:0,visibleRule(name),actual,Math.round((actual-program)*1000)/1000,price??'']);
+ }
+ if(rows.length===1){notice('Заполни хотя бы одну позицию');return}csvSave(rows,'farukh-revision-'+$('when').value+'.csv');
+};
+const exportAllHistory=()=>{
+ const rows=[['Точка','Дата','Тип','Продукт','Учёт кг','Склад кг','ПФ кг','Добавка %','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];
+ for(const r of state.history)for(const p of r.products){let d=Number(p.diff)||0,price=p.price;
+   rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',p.name,p.program,p.raw??'',p.pf??'',p.loss??'',p.actual,d,price??'',price==null?'':Math.max(0,-d*price),price==null?'':Math.max(0,d*price)])
+ }return rows;
+};
+downloadHistory=function(){const rows=exportAllHistory();if(rows.length===1){notice('История пока пустая');return}csvSave(rows,'farukh-revision-history.csv')};
+exportHistory=function(){const rows=exportAllHistory();const filtered=[rows[0],...rows.slice(1).filter(row=>row[0]===currentStore())];if(filtered.length===1){notice('История пока пустая');return}csvSave(filtered,'farukh-revision-history.csv')};
+// Switch theme persisted across app upgrades. Keep initial three items if legacy pilot had five.
+try{if(localStorage.getItem('farukh-revision-compact-theme-v030')==='dark'){document.body.classList.add('theme-blue');document.body.classList.remove('revision-white-red')}}catch{}
+try{if(!localStorage.getItem('farukh-revision-visible-products-v030'))state.products=DEFAULT_PRODUCTS.slice()}catch{state.products=DEFAULT_PRODUCTS.slice()}
+renderRows();renderSummary();
 
 </script></body></html>
