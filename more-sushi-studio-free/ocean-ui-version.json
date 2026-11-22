@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.3.0-20261123",
-  "display": "PEARL ROSE ULTRA · 8.3 — Ревизия",
+  "build": "pearl-rose-8.3.1-20261123",
+  "display": "PEARL ROSE ULTRA · 8.3.1 — Ревизия",
   "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "FARUKH REVISION PRO is once again accessible from MORE SUSHI: dedicated visible stock-audit quick action on home, a full-width Revision category in More, and a real link in the authenticated studio navigation. The separate revision.html module provides store selection, stock counts, differences and history; return link to MORE SUSHI added. Existing five mobile navigation tabs and TTK, PDF, projects, clouds and data paths retained. Revision's separate Android APK not modified. Frontpad requires manual entry; no API connection. One Pearl Rose mobile stylesheet edited in place; no additional theme."
+  "details": "Fixed FARUKH REVISION PRO toolbar returning to MORE SUSHI: old full-width back button had expanded the fixed header, overlapping the stock dashboard heading on Xiaomi 15T. Button was REPLACED within revision.html with a compact accessible 42px in-header return control without altering revision data, cloud, inventory logic or dark-crimson theme. Existing Five-tab MORE SUSHI studio and revision routes unchanged. Source checks passed; visual Android WebView still unverified."
 }
