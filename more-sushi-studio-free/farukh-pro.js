@@ -92,7 +92,7 @@ async function loadAll(){
 async function enter(){
  $('auth').hidden=true;$('shell').hidden=false;
  $('sideEmail').textContent=session?.user?.email||'Закрытый аккаунт';
- try{await loadAll();navigate('dashboard',true)}catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
+ try{await loadAll();const req=new URLSearchParams(location.search).get('view');navigate(['dashboard','projects','library','editor','templates','settings'].includes(req)?req:'dashboard',true)}catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
 }
 const pageTitle={dashboard:'Обзор студии',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
 function navigate(view,force=false){
