@@ -23,7 +23,9 @@
    job.done=true;
    clearTimeout(job.timer);
    const {el,node,full,priorHeight,hadLabel,oldLabel}=job;
-   if(node&&node.isConnected)node.nodeValue=full;
+   // If the real application changed this node (mode switch, cloud refresh),
+   // NEVER restore our old decorative copy over the updated business text.
+   if(node&&node.isConnected&&node.nodeValue===job.lastWritten)node.nodeValue=full;
    if(el&&el.isConnected){
      el.classList.remove('premium-typing');
      if(priorHeight)el.style.minHeight=priorHeight;else el.style.removeProperty('min-height');
@@ -56,18 +58,20 @@
    const measured=Math.ceil(el.getBoundingClientRect().height);
    if(measured>0)el.style.minHeight=measured+'px';
    if(!hadLabel)el.setAttribute('aria-label',text);
-   const job={el,node,full,priorHeight,hadLabel,oldLabel,timer:null,done:false};
+   const job={el,node,full,priorHeight,hadLabel,oldLabel,lastWritten:leading,timer:null,done:false};
    jobs.add(job);
    node.nodeValue=leading;
    el.classList.add('premium-typing');
    let idx=0;
    const step=()=>{
      if(job.done)return;
+     if(node.nodeValue!==job.lastWritten){release(job);return;}
      if(gen!==generation||!el.isConnected||el.closest('[hidden],.hide')||document.hidden){
        release(job);return;
      }
      idx=Math.min(chars.length,idx+1);
      node.nodeValue=leading+chars.slice(0,idx).join('')+trailing;
+     job.lastWritten=node.nodeValue;
      if(idx===chars.length){release(job);return;}
      job.timer=setTimeout(step,speed);
    };
@@ -157,7 +161,8 @@
      finished=true;
      overlay.classList.add('is-leaving');
      const finish=()=>{overlay.remove();runView(revision?'summary':mobile?(root.dataset.mssTab||'home'):'studio')};
-     schedule(finish,560);
+     // Splash cleanup must not be cancelled by a background visibility event.
+     setTimeout(finish,560);
    };
    const closeTimer=setTimeout(close,3650);
    overlay.querySelector('[data-boot-skip]')?.addEventListener('click',()=>{
