@@ -5,6 +5,9 @@
   'use strict';
   if(!document.documentElement.classList.contains('ocean-app')) return;
   function mount(){
+    // The studio's legacy theme switcher must not override the approved Pearl palette.
+    // Keep user preferences in storage; only disable the competing DOM style selection.
+    document.documentElement.removeAttribute('data-studio-theme');
     document.title='MORE SUSHI STUDIO PRO · PEARL ROSE ULTRA';
     const theme=document.querySelector('meta[name="theme-color"]');
     if(theme) theme.content='#fff4f7';
