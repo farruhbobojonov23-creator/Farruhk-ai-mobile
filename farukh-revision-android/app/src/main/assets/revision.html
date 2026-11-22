@@ -814,6 +814,85 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
   .revision-crimson .summarytile .numbers{display:flex!important;flex-wrap:nowrap!important}
 }
 
+
+/* FARUKH REVISION PRO 0.3.5 — approved crimson polish, no inventory-model changes.
+   Prioritize compact touch targets, clear entry contrast, truthful history empty-state,
+   balanced products actions and a safe native-insets navigation area. */
+.revision-crimson .top{margin-bottom:9px!important}
+.revision-crimson .theme-button,.revision-crimson .refresh-summary{box-shadow:inset 0 1px #ffe0ad44,0 3px 12px #8f12394b,0 0 13px #8a143d30!important}
+.revision-crimson .cloud-actions .btn{border-color:#71849b!important;box-shadow:inset 0 1px #ffffff35,0 3px 8px #0009!important}
+.revision-crimson #cloudLogin{border-color:#ff637c!important;box-shadow:inset 0 1px #ffe9da66,0 3px 0 #6e0b26,0 5px 16px #ab174f70!important}
+.revision-crimson .btn:focus-visible,.revision-crimson .control:focus-visible{outline:2px solid #ffcc85!important;outline-offset:2px!important}
+/* Four figures: compact without losing legibility or touch space. */
+.revision-crimson .kpis{gap:7px!important;margin:8px 0 13px!important}
+.revision-crimson .kpi{min-height:51px!important;padding:6px 5px!important;column-gap:5px!important;row-gap:3px!important}
+.revision-crimson .kpi::before{width:19px!important;height:25px!important;font-size:18px!important}
+.revision-crimson .kpi .label{font-size:9px!important}
+.revision-crimson .kpi .number{font-size:13px!important}
+.revision-crimson #view-summary .sectionheading .refresh-summary{min-width:39px!important;width:39px!important;height:39px!important;min-height:39px!important;padding:7px!important;border-radius:12px!important}
+.revision-crimson.view-summary .summarytile{min-height:109px!important;padding:8px!important;gap:3px 7px!important;grid-template-rows:minmax(52px,auto) auto!important}
+.revision-crimson .summarytile .point-icon{width:37px!important;height:37px!important;object-fit:contain!important}
+.revision-crimson .summarytile .point-open{height:29px!important;min-height:29px!important;padding:3px 7px!important;font-size:10.2px!important}
+.revision-crimson .summarytile .numbers{margin:5px 0 0!important}
+.revision-crimson .summarytile{box-shadow:inset 0 1px #ffffff26,0 5px 14px #0008,0 2px 8px #900f3a24!important}
+/* Revision: consistent 3-filter bar when phone is wide enough. */
+.revision-crimson.view-revision #revisionSelectors{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin-bottom:8px!important}
+.revision-crimson.view-revision #revisionSelectors .control{min-width:0!important;max-width:none!important;width:100%!important;flex-basis:auto!important;font-size:10.7px!important;padding:8px 7px!important;height:40px!important;min-height:40px!important}
+.revision-crimson.view-revision #revisionSelectors #when{grid-column:auto!important}
+.revision-crimson #operatorSelector .control{height:41px!important;min-height:41px!important}
+.revision-crimson #view-revision .card{padding:12px!important}
+.revision-crimson #view-revision .rev-product summary{min-height:49px!important;padding:8px 9px!important}
+.revision-crimson #view-revision .rev-product-fields{gap:7px!important;padding:9px!important}
+.revision-crimson #view-revision .rev-field label{font-size:10px!important;font-weight:750!important;color:#e3e9f2!important}
+.revision-crimson #view-revision .rev-field input{height:42px!important;min-height:42px!important;padding:8px 10px!important;background:linear-gradient(180deg,#0b1729,#112238)!important;border:1px solid #7588a4!important;color:#f8fbff!important;box-shadow:inset 0 2px 5px #0008,0 1px #ffffff15!important}
+.revision-crimson #view-revision .rev-field input:focus{border-color:#ff8da6!important;box-shadow:0 0 0 2px #ff4d7155,inset 0 2px 5px #0006!important;outline:none!important}
+.revision-crimson #view-revision .rev-product-summary{min-height:36px!important;padding:8px 10px!important;border-radius:10px!important}
+.revision-crimson #view-revision .rev-product .rev-advanced > summary{min-height:24px!important;height:24px!important;padding:2px 0!important;display:flex!important;align-items:center!important;color:#f2c78d!important;font-size:11px!important;line-height:1.2!important}
+.revision-crimson #view-revision .rev-product .rev-advanced[open] > summary{margin-bottom:2px!important}
+.revision-crimson #view-revision .rev-product{margin-bottom:7px!important;box-shadow:0 6px 13px #0007!important}
+.revision-crimson #view-revision .rev-product[open]{border-color:#ed436d!important;box-shadow:0 0 0 1px #ef50784a,0 6px 19px #af143955!important}
+.revision-crimson #view-revision .product-heading strong{font-size:12.5px!important}
+.revision-crimson #view-revision .product-heading small{font-size:9.5px!important}
+/* History: no invented revisions; a polished, honest empty state only when empty. */
+.revision-crimson #view-history{min-height:270px!important;padding:17px!important;border-radius:19px!important}
+.revision-crimson #view-history h2{font-size:20px!important}
+.revision-crimson #view-history .desc{margin-top:4px!important;font-size:11px!important;line-height:1.4!important}
+.revision-crimson #view-history .btn.main{margin-top:12px!important;min-height:44px!important;padding:8px 16px!important}
+.revision-crimson .rev-empty-state{text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;padding:20px 12px 16px!important;max-width:410px;margin:8px auto 0!important}
+.revision-crimson .rev-empty-orb{width:67px;height:67px;display:grid;place-items:center;border:1px solid #ac5b66;border-radius:50%;background:radial-gradient(circle at 40% 27%,#593345,#1a2031 67%,#101725);box-shadow:0 5px 18px #0009,0 0 24px #af1e4855,inset 0 1px #ffe2ba55}
+.revision-crimson .rev-empty-orb .icon-3d{width:42px!important;height:42px!important;filter:drop-shadow(0 3px 4px #000b)}
+.revision-crimson .rev-empty-state strong{font-size:12px!important;color:#f4f5fc!important;line-height:1.45!important}
+.revision-crimson .rev-empty-state p{font-size:11px!important;color:#b9c5d8!important;margin:0!important}
+.revision-crimson .rev-empty-tracks{width:100%;max-width:270px;margin-top:3px;display:grid;gap:6px;opacity:.7}
+.revision-crimson .rev-empty-tracks span{height:9px;border-radius:99px;background:linear-gradient(90deg,#233249 0 75%,#0d1627 75%);box-shadow:inset 0 1px #aec5eb1b}
+.revision-crimson .rev-empty-tracks span:nth-child(2){width:87%;margin-left:auto}
+.revision-crimson .rev-empty-tracks span:nth-child(3){width:94%}
+/* Products: compact accessible controls instead of bulky buttons and squeezed input. */
+.revision-crimson #view-products{padding:14px!important}
+.revision-crimson #view-products h2{font-size:20px!important;line-height:1.2!important}
+.revision-crimson #view-products .desc{font-size:11px!important;line-height:1.4!important;margin-top:6px!important}
+.revision-crimson #view-products .tablewrap{margin-top:12px!important;overflow-x:auto!important}
+.revision-crimson #view-products table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+.revision-crimson #view-products th{font-size:10px!important;padding:10px 7px!important;letter-spacing:.3px!important}
+.revision-crimson #view-products th:first-child{width:34%!important}
+.revision-crimson #view-products th:nth-child(2){width:33%!important}
+.revision-crimson #view-products th:nth-child(3){width:33%!important}
+.revision-crimson #view-products td{padding:7px 6px!important;font-size:11px!important;overflow-wrap:anywhere!important;vertical-align:middle!important}
+.revision-crimson #view-products td:first-child{font-weight:750!important}
+.revision-crimson #view-products [data-delete]{height:35px!important;min-height:35px!important;padding:4px 7px!important;gap:4px!important;width:100%!important;font-size:10px!important;border-radius:9px!important;line-height:1!important}
+.revision-crimson #view-products [data-delete] .icon-3d{height:18px!important;width:18px!important;flex:0 0 18px!important}
+.revision-crimson #view-products > .row{display:grid!important;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr)!important;gap:9px!important;margin-top:14px!important;align-items:stretch!important}
+.revision-crimson #view-products #newproduct{min-width:0!important;width:100%!important;max-width:none!important;min-height:44px!important;padding:8px 10px!important;font-size:11px!important}
+.revision-crimson #view-products > .row .btn.main{width:100%!important;min-height:44px!important;justify-content:center!important;padding:7px!important;gap:5px!important;font-size:10.7px!important;white-space:normal!important}
+.revision-crimson #view-products > .row .btn .icon-3d{width:18px!important;height:18px!important;flex:0 0 18px!important}
+@media(max-width:375px){
+ .revision-crimson.view-revision #revisionSelectors{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .revision-crimson.view-revision #revisionSelectors #mode{grid-column:1/-1!important}
+ .revision-crimson #view-products [data-delete]{font-size:9px!important;padding:3px!important}
+ .revision-crimson #view-products #newproduct{font-size:10px!important}
+}
+@media print{.revision-crimson .rev-empty-tracks{display:none!important}}
+
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
@@ -1018,7 +1097,7 @@ function renderSummary(){
   go('revision',rev);refresh();
  });
 }
-function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?all.slice(0,4).map(historyItem).join(''):'<div class="empty">Пока нет сохранённых ревизий</div>';$('allhistory').innerHTML=all.length?all.map(r=>`<div class="archive">${historyItem(r)}<details style="margin:5px 0 0 14px"><summary class="muted" style="cursor:pointer;padding:8px">Показать продукты</summary><div class="tablewrap"><table><thead><tr><th>Продукт</th><th>Учёт</th><th>Факт</th><th>Разница, кг</th><th>Цена ₽/кг</th></tr></thead><tbody>${r.products.map(p=>`<tr><td>${safe(p.name)}</td><td>${fmt(p.program,3)}</td><td>${fmt(p.actual,3)}</td><td class="${p.diff<0?'red':p.diff>0?'green':''}">${fmt(p.diff,3)}</td><td>${p.price===null?'—':fmt(p.price)}</td></tr>`).join('')}</tbody></table></div></details></div>`).join(''):'<div class="empty">У этой точки пока нет сохранённых ревизий</div>'}
+function renderHistory(){const all=inStore();$('recent').innerHTML=all.length?all.slice(0,4).map(historyItem).join(''):'<div class="empty">Пока нет сохранённых ревизий</div>';$('allhistory').innerHTML=all.length?all.map(r=>`<div class="archive">${historyItem(r)}<details style="margin:5px 0 0 14px"><summary class="muted" style="cursor:pointer;padding:8px">Показать продукты</summary><div class="tablewrap"><table><thead><tr><th>Продукт</th><th>Учёт</th><th>Факт</th><th>Разница, кг</th><th>Цена ₽/кг</th></tr></thead><tbody>${r.products.map(p=>`<tr><td>${safe(p.name)}</td><td>${fmt(p.program,3)}</td><td>${fmt(p.actual,3)}</td><td class="${p.diff<0?'red':p.diff>0?'green':''}">${fmt(p.diff,3)}</td><td>${p.price===null?'—':fmt(p.price)}</td></tr>`).join('')}</tbody></table></div></details></div>`).join(''):`<div class="rev-empty-state" role="status"><div class="rev-empty-orb"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-clock"></use></svg></div><strong>У этой точки пока нет сохранённых ревизий</strong><p>После первой сверки история появится здесь</p><div class="rev-empty-tracks" aria-hidden="true"><span></span><span></span><span></span></div></div>`}
 function renderProducts(){$('productsrows').innerHTML=state.products.map(p=>`<tr><td class="itemname">${safe(p)}</td><td>килограмм (кг)</td><td><button class="btn danger" data-delete="${safe(p)}"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-trash"></use></svg>Удалить</button></td></tr>`).join('');document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Удалить продукт «'+b.dataset.delete+'» из будущих ревизий?'))return;deleteProduct(b.dataset.delete)})}
 async function deleteProduct(name){
  if(cloudEnabled){try{await rest('revision_products',{method:'PATCH',query:'?name=eq.'+encodeURIComponent(name),body:{active:false}})}catch(err){notice('Не удалено: '+err.message);return}}
@@ -1030,7 +1109,7 @@ async function addProduct(){
  if(cloudEnabled){try{await rest('revision_products',{method:'POST',body:{name:n,unit:'кг'}})}catch(err){notice('Не добавлен: '+err.message);return}}
  state.products.push(n);localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products));if(!cloudEnabled)save();$('newproduct').value='';renderProducts();clearForm();notice('Продукт добавлен');
 }
-function go(view,button){active=view;document.body.classList.toggle('view-summary',view==='summary');document.body.classList.toggle('view-revision',view==='revision');$('revisionSelectors').classList.toggle('hide',view==='history'||view==='products');$('operatorSelector').classList.toggle('hide',view!=='revision');$('revisionKPIs').classList.toggle('hide',view==='history'||view==='products');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary()}
+function go(view,button){active=view;document.body.classList.toggle('view-summary',view==='summary');document.body.classList.toggle('view-revision',view==='revision');$('revisionSelectors').classList.toggle('hide',view==='history'||view==='products');$('operatorSelector').classList.toggle('hide',view!=='revision');$('revisionKPIs').classList.toggle('hide',view==='history'||view==='products');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));button.classList.add('active');['summary','revision','history','products'].forEach(v=>$('view-'+v).classList.toggle('hide',v!==view));if(view==='history')renderHistory();if(view==='products')renderProducts();if(view==='summary')renderSummary();window.scrollTo(0,0)}
 function doPrint(){if(window.FarukhAndroid&&typeof window.FarukhAndroid.print==='function')window.FarukhAndroid.print();else window.print()}
 function csvSave(data,name){const csv='\ufeff'+data.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');if(window.FarukhAndroid&&typeof window.FarukhAndroid.saveCsv==='function'){window.FarukhAndroid.saveCsv(name,btoa(unescape(encodeURIComponent(csv))));return}const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 function downloadHistory(){
@@ -1048,7 +1127,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.3.4';
+const FARUKH_UI_RELEASE='0.3.5';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
