@@ -41,6 +41,6 @@ jobs:
         run: gradle :app:assembleRelease --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: revision-0.4.0-unsigned
+          name: revision-0.4.1-unsigned
           path: farukh-revision-android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error

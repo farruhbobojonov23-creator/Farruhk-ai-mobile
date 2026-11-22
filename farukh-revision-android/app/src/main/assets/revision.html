@@ -903,6 +903,11 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 .revision-crimson .rev-history-breakdown{font-size:10px;color:#aabbcf;margin-top:3px;line-height:1.35;display:block}
 @media(max-width:375px){.revision-crimson .rev-export-points{font-size:10px!important;min-height:38px!important}}
 @media print{.revision-crimson .rev-export-points{display:none!important}}
+
+/* Shared cloud sync small additions: approved Crimson visual style intact */
+.rev041-pf-tag{display:block;font-size:10px;color:#e8bb75;margin-top:5px;font-weight:700}
+#rev041SyncBtn,#rev041ImportBtn{min-height:45px}
+
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
@@ -1129,7 +1134,7 @@ function downloadHistory(){
 }
 function exportCSV(){syncDraft();const rows=[['Точка','Дата','Тип','Продукт','Учёт, кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];const start=currentMode()==='start';for(const p of state.products){const v=getDraft(p),actual=v.actual===''?null:number(v.actual),program=start?actual:(v.program===''?null:number(v.program)),price=v.price===''?null:number(v.price);if(actual===null||program===null)continue;const diff=Math.round((actual-program)*1000)/1000;rows.push([currentStore(),$('when').value,start?'Начальная':'Повторная',p,program,actual,diff,price??'',price===null?'':Math.max(0,-diff*price),price===null?'':Math.max(0,diff*price)])}if(rows.length===1){notice('Заполни хотя бы одну позицию');return}csvSave(rows,'farukh-revision-'+$('when').value+'.csv')}
 function exportHistory(){const rows=[['Точка','Дата','Тип','Продукт','Учёт, кг','Факт кг','Разница кг','Цена ₽/кг','Недостача ₽','Излишек ₽']];for(const r of inStore())for(const p of r.products){rows.push([r.store,r.date,r.type==='start'?'Начальная':'Повторная',p.name,p.program,p.actual,p.diff,p.price??'',p.price===null?'':Math.max(0,-p.diff*p.price),p.price===null?'':Math.max(0,p.diff*p.price)])}if(rows.length===1){notice('Нет сохранённых ревизий');return}csvSave(rows,'farukh-revision-history.csv')}
-$('when').value=today();go('summary',document.querySelector('.menu button'));renderRows();renderHistory();renderSummary();tryResumeCloud();
+$('when').value=today();go('summary',document.querySelector('.menu button'));renderRows();renderHistory();renderSummary();/* Cloud initialization is handled by v0.4.1 after sync overrides. */
 
 /* A manifest-based updater interface: ready for a native installer bridge and deployment.
  * Current APK is a prototype and does not claim it can install itself.
@@ -1137,7 +1142,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.4.0';
+const FARUKH_UI_RELEASE='0.4.1';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1174,7 +1179,7 @@ async function checkAppUpdate(){
 const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
-function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.4.0. Склад + ПФ, автосохранение черновиков и отчёты.')}
+function showRevisionInfo(){notice('FARUKH REVISION PRO · версия 0.4.1. Склад + ПФ, автосохранение черновиков и отчёты.')}
 function toggleRevisionTheme(){showRevisionInfo()}
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
@@ -1425,5 +1430,294 @@ try{
 }catch{}
 rev040ActiveKey=rev040Key();rev040Restore(rev040ActiveKey);
 renderRows();renderSummary();renderHistory();
+
+
+/* FARUKH REVISION PRO 0.4.1 — same cloud data source for website + Android.
+   No TTK/ingredients tables, local history or drafts are overwritten. */
+const REV041_QUEUE_PREFIX='farukh-revision-pending-v041-';
+const REV041_LOCAL_IMPORT_MAP='farukh-revision-import-map-v041';
+let rev041Catalogue=new Map(), rev041LastSync=0,rev041Busy=false;
+function rev041Account(){
+ try{
+  if(!cloudToken)return '';
+  const raw=cloudToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+  const payload=JSON.parse(atob(raw.padEnd(Math.ceil(raw.length/4)*4,'=')));
+  return typeof payload.sub==='string' && /^[a-f0-9-]{36}$/i.test(payload.sub)?payload.sub:'';
+ }catch{return ''}
+}
+function rev041Queue(){
+ const uid=rev041Account();if(!uid)return [];
+ try{const r=JSON.parse(localStorage.getItem(REV041_QUEUE_PREFIX+uid)||'[]');
+ return Array.isArray(r)?r.filter(x=>x&&Array.isArray(x.products)&&typeof x.id==='string'):[];
+ }catch{return []}
+}
+function rev041SaveQueue(queue){
+ const uid=rev041Account();if(!uid)throw Error('Нет активного облачного аккаунта');
+ localStorage.setItem(REV041_QUEUE_PREFIX+uid,JSON.stringify(queue));
+}
+function rev041CloudRecord(r){
+ return {id:r.id,timestamp:Date.parse(r.created_at)||Date.now(),date:r.audit_date,
+ store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name||''};
+}
+function rev041SaveCloudCache(){
+ const uid=rev041Account();if(!uid)return;
+ try{
+  localStorage.setItem('farukh-revision-cloud-cache-v041-'+uid,
+   JSON.stringify({products:state.products,history:state.history.filter(r=>!r.pendingSync),
+    catalogue:[...rev041Catalogue],savedAt:Date.now()}));
+ }catch{}
+}
+function rev041DisplayStatus(message){
+ const area=$('cloudIndicator');if(area)area.title=message;
+ const btn=$('rev041SyncBtn');if(btn)btn.classList.toggle('hide',!cloudEnabled);
+ const move=$('rev041ImportBtn');if(move){
+  let count=0;try{count=(JSON.parse(localStorage.getItem(KEY)||'null')?.history||[]).length}catch{}
+  move.classList.toggle('hide',!cloudEnabled||count===0);
+ }
+}
+async function rev041FlushPending(cloudIds){
+ let queue=rev041Queue();if(!queue.length)return {done:0,remaining:0};
+ const remaining=[];let done=0;
+ for(const r of queue){
+  if(cloudIds.has(r.id)){done++;continue}
+  try{
+   const result=await rest('revision_audits',{method:'POST',body:{
+    id:r.id,location_name:r.store,audit_type:r.type,audit_date:r.date,
+    operator_name:r.operator||'',items:r.products}});
+   const uploaded=rev041CloudRecord(result[0]);
+   state.history=state.history.filter(x=>x.id!==r.id).concat(uploaded);
+   cloudIds.add(r.id);done++;
+  }catch(e){
+   // A request may have reached the server before the connection dropped.
+   // Keep the exact id for an idempotent next attempt; never delete a local pending record here.
+   remaining.push(r);
+  }
+ }
+ rev041SaveQueue(remaining);
+ return {done,remaining:remaining.length};
+}
+const rev041OldSetTokens=setTokens;
+setTokens=function(data){
+ rev041OldSetTokens(data);
+ // Refresh-token rotation must also update the site's own session if we borrowed it,
+ // otherwise returning to the TTK workspace would silently log the user out.
+ if(borrowedStudioSession && location.hostname==='more-sushi-studio.onrender.com'){
+  try{
+   const studio=JSON.parse(localStorage.getItem('ms_session')||'null');
+   if(studio && studio.access_token){
+    const next={...studio,...data,
+      expires_at:Math.floor(Date.now()/1000)+(Number(data.expires_in)||3600)};
+    localStorage.setItem('ms_session',JSON.stringify(next));
+   }
+  }catch{}
+ }
+};
+const rev041OldRule=visibleRule,rev041OldPf=pfAllowed;
+visibleRule=function(name){
+ const item=rev041Catalogue.get(name);
+ return item ? Number(item.pf_add_percent||0) : rev041OldRule(name);
+};
+pfAllowed=function(name){
+ const item=rev041Catalogue.get(name);
+ return item ? item.has_semi_finished===true : rev041OldPf(name);
+};
+loadCloud=async function(){
+ if(rev041Busy)return;rev041Busy=true;
+ try{
+  // Preserve the phone's unsent draft BEFORE switching to a cloud snapshot.
+  if(typeof rev040Snapshot==='function')rev040Snapshot();
+  let [stores,products,audits]=await Promise.all([
+   rest('revision_locations',{query:'?select=*&order=created_at.asc'}),
+   rest('revision_products',{query:'?select=*&order=created_at.asc'}),
+   rest('revision_audits',{query:'?select=*&order=created_at.desc&limit=500'})
+  ]);
+  if(!stores.length)stores=await rest('revision_locations',{method:'POST',
+   body:DEFAULT_LOCATIONS.map(name=>({name}))});
+  if(!products.length)products=await rest('revision_products',{method:'POST',
+   body:DEFAULT_PRODUCTS.map(name=>({name,unit:'кг',
+    has_semi_finished:name!=='Сыр творожный',
+    pf_add_percent:name==='Сыр творожный'?0:20}))});
+  const live=products.filter(p=>p.active).map(p=>p.name);
+  if(!live.length)throw Error('Все товары в облаке выключены — проверь каталог');
+  const store=$('store').value;
+  const activeStores=stores.filter(x=>x.active).map(x=>x.name);
+  if(!activeStores.length)throw Error('В облаке нет активных точек');
+  $('store').innerHTML=activeStores.map(name=>'<option value="'+safe(name)+'">'+safe(name)+'</option>').join('');
+  $('store').value=activeStores.includes(store)?store:activeStores[0];
+  rev041Catalogue=new Map(products.filter(p=>p.active).map(p=>[p.name,p]));
+  const cloudRecords=audits.map(rev041CloudRecord),ids=new Set(cloudRecords.map(r=>r.id));
+  cloudEnabled=true;
+  state={products:live,history:cloudRecords.concat(rev041Queue().filter(r=>!ids.has(r.id)).map(r=>({...r,pendingSync:true})))};
+  setCloudBadge('● Облако MORE SUSHI подключено',true);
+  const flushed=await rev041FlushPending(ids);
+  rev041LastSync=Date.now();
+  rev041SaveCloudCache();
+  // Do not save cloud catalogue into the LOCAL override key; it belongs to Supabase.
+  if(typeof rev040Switch==='function')rev040Switch();
+  else {renderRows();renderHistory();renderSummary()}
+  renderProducts();
+  rev041DisplayStatus(flushed.remaining
+    ?'Часть ревизий ожидает синхронизации: '+flushed.remaining
+    :'Синхронизировано: '+new Date(rev041LastSync).toLocaleTimeString('ru-RU'));
+  if(flushed.remaining)notice('Есть несинхронизированные ревизии: '+flushed.remaining);
+ }finally{rev041Busy=false}
+};
+tryResumeCloud=async function(){
+ try{
+  let t=null;borrowedStudioSession=false;
+  if(location.hostname==='more-sushi-studio.onrender.com' && localStorage.getItem('farukh-revision-sso-optout')!=='1'){
+   const studio=JSON.parse(localStorage.getItem('ms_session')||'null');
+   if(studio?.access_token&&studio?.refresh_token){
+    t={access_token:studio.access_token,refresh_token:studio.refresh_token,
+       expires_at:Number(studio.expires_at||0)*1000};
+    borrowedStudioSession=true;
+   }
+  }
+  if(!t){t=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}
+  if(!t?.access_token||!t?.refresh_token)return;
+  cloudToken=t.access_token;cloudRefreshToken=t.refresh_token;
+  cloudExpires=Number(t.expires_at)||0;
+  await loadCloud();
+ }catch(e){
+  // Never delete local records or the owner's Studio session on a network failure.
+  cloudEnabled=false;
+  setCloudBadge('● Нет связи — локальные данные сохранены',false);
+  rev041DisplayStatus('Проверь интернет и войди снова; история не удалена');
+ }
+};
+async function rev041SyncNow(){
+ if(!cloudEnabled){showLogin();return}
+ try{await loadCloud();notice('Данные синхронизированы')}catch(e){
+  notice('Не удалось обновить облако: '+String(e.message||e));
+ }
+}
+function rev041ImportUuid(r){
+ const valid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+ if(valid.test(String(r.id||'')))return r.id;
+ let map={};try{map=JSON.parse(localStorage.getItem(REV041_LOCAL_IMPORT_MAP)||'{}')||{}}catch{}
+ const key=String(r.id||'')+'|'+String(r.timestamp||'')+'|'+String(r.store||'');
+ if(!valid.test(map[key]||'')){
+  map[key]=crypto.randomUUID();
+  localStorage.setItem(REV041_LOCAL_IMPORT_MAP,JSON.stringify(map));
+ }
+ return map[key];
+}
+async function rev041ImportLocal(){
+ if(!cloudEnabled){notice('Сначала войди в облако');return}
+ let local=null;try{local=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
+ const rows=Array.isArray(local?.history)?local.history:[];
+ if(!rows.length){notice('Локальных ревизий для переноса нет');return}
+ if(!confirm('Перенести '+rows.length+' локальных ревизий в облако? Локальные копии сохранятся. Уже перенесённые записи повторно не создаются.'))return;
+ let ok=0,failed=0,ids=new Set(state.history.map(x=>x.id));
+ for(const r of rows){
+  if(!r||!Array.isArray(r.products)||!r.products.length){failed++;continue}
+  const id=rev041ImportUuid(r);
+  if(ids.has(id)){ok++;continue}
+  try{
+   await rest('revision_audits',{method:'POST',body:{
+    id,location_name:r.store,audit_type:r.type,audit_date:r.date,
+    operator_name:(r.operator||'').slice(0,120),items:r.products}});
+   ids.add(id);ok++;
+  }catch(e){
+   // For retried requests: a 409 can mean an earlier successful commit.
+   if(/409|duplicate|unique/i.test(String(e.message||e))){
+    const prior=await rest('revision_audits',{query:'?id=eq.'+id+'&select=id'}).catch(()=>[]);
+    if(prior.some(p=>p.id===id)){ok++;ids.add(id);continue}
+   }
+   failed++;
+  }
+ }
+ try{await loadCloud()}catch{}
+ notice('Перенесено/уже было: '+ok+'; требует проверки: '+failed);
+}
+const rev041PreviousSave=saveRevision;
+saveRevision=async function(){
+ if(!cloudEnabled)return rev041PreviousSave();
+ if(savingRevision)return;
+ syncDraft();const start=currentMode()==='start',products=[];
+ for(const name of state.products){
+  const v=getDraft(name),actual=weightOf(name,v);
+  if(actual===null){notice('Укажи склад или ПФ: '+name);return}
+  const program=start?actual:(v.program===''?null:number(v.program));
+  if(program===null){notice('Укажи остаток по учёту: '+name);return}
+  const price=v.price===''?null:number(v.price);
+  if(price===null&&v.price!==''){notice('Некорректная цена: '+name);return}
+  products.push({name,actual,program,price,
+   raw:v.raw===''?0:number(v.raw),pf:pfAllowed(name)?(v.pf===''?0:number(v.pf)):0,
+   loss:visibleRule(name),diff:Math.round((actual-program)*1000)/1000});
+ }
+ if(!products.length){notice('Добавь хотя бы один продукт');return}
+ if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию для «'+currentStore()+'»?'))return;
+ const r={id:crypto.randomUUID(),timestamp:Date.now(),date:$('when').value,store:currentStore(),
+  type:start?'start':'weekly',operator:$('operator').value.trim(),products};
+ savingRevision=true;
+ try{
+  const resp=await rest('revision_audits',{method:'POST',body:{
+   id:r.id,location_name:r.store,audit_type:r.type,audit_date:r.date,
+   operator_name:r.operator,items:r.products}});
+  const saved=rev041CloudRecord(resp[0]);state.history.push(saved);
+  rev041SaveCloudCache();clearForm();renderHistory();renderSummary();
+  notice('Ревизия синхронизирована с MORE SUSHI STUDIO');
+ }catch(e){
+  try{
+   const queue=rev041Queue();queue.push({...r,pendingSync:true});rev041SaveQueue(queue);
+   state.history.push({...r,pendingSync:true});
+   clearForm();renderHistory();renderSummary();
+   notice('Сохранено на устройстве. Ожидает синхронизации с облаком.');
+  }catch(storeError){notice('Ошибка облака и локального сохранения. Не закрывай экран: '+String(storeError.message||storeError))}
+ }finally{savingRevision=false}
+};
+const rev041OldRenderProducts=renderProducts;
+renderProducts=function(){
+ rev041OldRenderProducts();
+ if(!cloudEnabled)return;
+ for(const tr of $('productsrows').querySelectorAll('tr')){
+  const name=tr.querySelector('td')?.textContent?.trim();
+  const p=rev041Catalogue.get(name);
+  if(!p)continue;
+  const tag=document.createElement('small');tag.className='rev041-pf-tag';
+  tag.textContent=p.has_semi_finished?('ПФ +'+Number(p.pf_add_percent||0)+'%'):'Без потерь';
+  tr.querySelector('td')?.appendChild(tag);
+ }
+};
+const rev041OldAdd=addProduct;
+addProduct=async function(){
+ await rev041OldAdd();
+ if(cloudEnabled)await loadCloud().catch(()=>{});
+};
+const rev041OldDelete=deleteProduct;
+deleteProduct=async function(name){
+ await rev041OldDelete(name);
+ if(cloudEnabled)await loadCloud().catch(()=>{});
+};
+const rev041OldHistory=historyItem;
+historyItem=function(r){
+ const html=rev041OldHistory(r);
+ return r.pendingSync?html.replace('class="historyitem"','class="historyitem" title="Ожидает синхронизации"'):html;
+};
+(function rev041AddSyncControls(){
+ const actions=$('compactCloudTools');
+ if(!actions)return;
+ const sync=document.createElement('button');
+ sync.id='rev041SyncBtn';sync.type='button';sync.className='btn soft hide';
+ sync.innerHTML='☁ Обновить данные из облака';sync.onclick=rev041SyncNow;
+ actions.appendChild(sync);
+ const imp=document.createElement('button');
+ imp.id='rev041ImportBtn';imp.type='button';imp.className='btn soft hide';
+ imp.textContent='⇧ Перенести локальные ревизии';imp.onclick=rev041ImportLocal;
+ actions.appendChild(imp);
+ if(!window.FarukhAndroid){
+  const update=$('appUpdateBtn');
+  if(update){update.textContent='↻ Обновить веб-панель';update.onclick=()=>location.reload()}
+ }
+ rev041DisplayStatus('Локальные ревизии остаются на этом устройстве до облачного входа.');
+})();
+// Resume shared website login or Android's own login only after sync overrides are initialized.
+tryResumeCloud();
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible' && cloudEnabled && Date.now()-rev041LastSync>45000){
+  rev041SyncNow();
+ }
+});
 
 </script></body></html>
