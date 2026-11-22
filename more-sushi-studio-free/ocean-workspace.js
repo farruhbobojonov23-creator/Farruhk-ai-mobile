@@ -43,19 +43,40 @@ function run(){
   const heading=hero.querySelector('h2');if(heading)heading.innerHTML='Профессиональная<br><em>кухня в твоих руках</em>';
  }
  const appbar=document.createElement('div');appbar.className='ocean-appbar';
- appbar.innerHTML='<a href="'+origin+'" aria-label="Вернуться на главный экран">‹ Назад</a><div><strong>MORE SUSHI STUDIO PRO</strong><br><small>Живой океан 3D · рабочий кабинет</small></div><button type="button" class="ocean-refresh-btn" data-ocean-refresh aria-label="Обновить рабочую студию" title="Загрузить свежую версию веб-портала"><span class="refresh-symbol" aria-hidden="true">↻</span><span class="ocean-refresh-label">Обновить</span></button><span class="ocean-miniwhale" aria-hidden="true">🌊</span>';
+ appbar.innerHTML='<a href="'+origin+'" aria-label="Вернуться на главный экран">‹ Назад</a><div><strong>MORE SUSHI STUDIO PRO</strong><br><small>Живой океан 3D · рабочий кабинет</small></div><button type="button" class="ocean-refresh-btn" data-ocean-refresh aria-label="Обновить рабочую студию" title="Загрузить свежую версию веб-портала"><span class="refresh-symbol" aria-hidden="true">↻</span><span class="ocean-refresh-label">Обновить</span></button><svg class="ocean-miniwhale" viewBox="0 0 180 180" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#tail"></use></svg>';
  const auth=document.getElementById('auth');
  const shell=document.getElementById('shell');
  // Always keep a way back even before login; no repeat navigation through old dark landing.
  if(auth)auth.insertAdjacentElement('beforebegin',appbar);
  const nav=document.createElement('nav');nav.className='ocean-bottomnav';nav.setAttribute('aria-label','Мобильная навигация студии');
- nav.innerHTML=[
- '<a href="./mobile.html"><span class="ocean-ico">🏠</span>Главная</a>',
- '<a href="./mobile.html#ttk"><span class="ocean-ico">📋</span>ТТК</a>',
- '<a href="./mobile.html#catalog"><span class="ocean-ico">🥗</span>Каталог</a>',
- '<a href="./mobile.html#pdf"><span class="ocean-ico">📄</span>PDF</a>',
- '<a href="./mobile.html#more"><span class="ocean-ico">⚙️</span>Ещё</a>'
- ].join('');
+
+ const items=[
+  ['home','./mobile.html','tail','Главная'],
+  ['ttk','./mobile.html#ttk','clipboard','ТТК'],
+  ['catalog','./mobile.html#catalog','nigiri','Каталог'],
+  ['pdf','./mobile.html#pdf','printer','PDF'],
+  ['more','./mobile.html#more','cloudcheck','Ещё']
+ ];
+ nav.innerHTML=items.map(([key,href,icon,label])=>
+  '<a href="'+href+'" data-ocean-nav="'+key+'" aria-label="'+label+'">'+
+  '<svg class="ocean-ico-3d" viewBox="0 0 180 180" aria-hidden="true">'+
+  '<use href="./ocean-3d-art.svg?v=3#'+icon+'"></use></svg><span>'+label+'</span></a>'
+ ).join('');
+ function setNavState(){
+  const open=document.querySelector('.page:not([hidden])')?.dataset.view||'dashboard';
+  const current=({dashboard:'home',editor:'ttk',library:'ttk',templates:'pdf',projects:'more',settings:'more'})[open]||'home';
+  nav.querySelectorAll('[data-ocean-nav]').forEach(link=>{
+   const selected=link.dataset.oceanNav===current;
+   link.classList.toggle('active',selected);
+   if(selected)link.setAttribute('aria-current','page');
+   else link.removeAttribute('aria-current');
+  });
+ }
+ document.querySelectorAll('.page[data-view]').forEach(page=>
+  new MutationObserver(setNavState).observe(page,{attributes:true,attributeFilter:['hidden']})
+ );
+ setNavState();
+
  if(shell)shell.appendChild(nav);
  // Hide bottom navigation while the authentication form is visible.
  const show=()=>{if(nav)nav.hidden=!!(shell?.hidden)};

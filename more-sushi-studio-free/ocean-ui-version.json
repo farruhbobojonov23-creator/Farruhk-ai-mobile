@@ -1,7 +1,7 @@
 {
-  "build": "ocean-3.1.0-refined-20261122",
-  "display": "OCEAN 3D+ · PREMIUM",
+  "build": "ocean-3.2.0-perfect-20261122",
+  "display": "OCEAN 3D+ · PREMIUM 3.2",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Polished 3D approved ocean style: improved contrast and tap targets, calm water animation, refined card hierarchy and bottom toast, unified settings button; all data unchanged"
+  "details": "Accurate web update check, preserved logins and drafts, faster skippable intro, consistent premium 3D navigation, better mobile contrast and Android back history; TTK PDFs and data unchanged"
 }

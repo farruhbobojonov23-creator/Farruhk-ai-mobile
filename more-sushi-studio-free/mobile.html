@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#061b34"><meta name="description" content="MORE SUSHI STUDIO PRO — профессиональная мобильная система шеф-повара">
-<meta name="mss-ui-build" content="ocean-3.1.0-refined-20261122">
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e6f7ff"><meta name="description" content="MORE SUSHI STUDIO PRO — профессиональная мобильная система шеф-повара">
+<meta name="mss-ui-build" content="ocean-3.2.0-perfect-20261122">
 <title>MORE SUSHI STUDIO PRO · Живой океан 3D</title>
 <style>
 :root{color-scheme:dark;--sea:#06182d;--blue:#078ce2;--cyan:#59d5ff;--gold:#f5d080;--gold2:#a76b18;--red:#ed335f;--ink:#effbff;--muted:#c7d9e8}
@@ -98,7 +98,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 @media(max-width:390px){.ocean-refresh-btn{padding:4px 6px}.ocean-refresh-btn span:last-child{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.ocean-refresh-btn.refreshing .refresh-symbol{animation:none}.ocean-refresh-toast{transition:none}}
 
-</style><link rel="stylesheet" href="./ocean-categories.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-polish.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-approved.css?v=approved-3.0.0"><link rel="stylesheet" href="./ocean-refined.css?v=ocean-3.1.0"></head><body>
+</style><link rel="stylesheet" href="./ocean-categories.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-polish.css?v=ocean-2.0.0"><link rel="stylesheet" href="./ocean-approved.css?v=approved-3.0.0"><link rel="stylesheet" href="./ocean-refined.css?v=ocean-3.1.0"><link rel="stylesheet" href="./ocean-ultimate.css?v=ocean-3.2.0"></head><body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg"><defs>
  <linearGradient id="gold3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c5"/><stop offset=".25" stop-color="#ffcf57"/><stop offset=".48" stop-color="#bd6d1b"/><stop offset=".7" stop-color="#ffe491"/><stop offset="1" stop-color="#79410e"/></linearGradient>
  <linearGradient id="blue3" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#faffff"/><stop offset=".2" stop-color="#79ecff"/><stop offset=".5" stop-color="#1588d5"/><stop offset=".77" stop-color="#073d8b"/><stop offset="1" stop-color="#7debff"/></linearGradient>
@@ -117,7 +117,7 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 <div class="ocean-bg" aria-hidden="true"></div>
 <div class="splash" id="splash" aria-live="polite"><div class="splash-content">
  <svg class="splash-whale" aria-label="Синий кит"><use href="#whale"></use></svg>
- <h2>MORE SUSHI<br><span>STUDIO PRO</span></h2><p class="typed" id="typeText"></p><div class="loader"></div><p style="font-size:10px;opacity:.8">Подключаем профессиональную систему...</p>
+ <h2>MORE SUSHI<br><span>STUDIO PRO</span></h2><p class="typed" id="typeText"></p><div class="loader"></div><p style="font-size:10px;opacity:.8">Подключаем профессиональную систему...</p><button type="button" class="splash-skip" id="skipIntro">Пропустить ›</button>
 </div></div>
 <main class="wrap">
 <header class="fadein" style="--in:.1s">
@@ -179,17 +179,35 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
 <p class="statusnote">MORE SUSHI STUDIO PRO · Живой океан 3D<br>Премиальный интерфейс · версии сайта обновляются без переустановки</p>
 </main>
 <nav class="bottomnav mss-bottomnav" aria-label="Разделы студии"><button type="button" class="navitem active" data-mss-tab="home" aria-current="page"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#home"/></svg>Главная</button><button type="button" class="navitem " data-mss-tab="ttk" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#ttk"/></svg>ТТК</button><button type="button" class="navitem " data-mss-tab="catalog" aria-current="false"><svg viewBox="0 0 180 180" class="mss-ico" aria-hidden="true"><use href="./ocean-3d-art.svg?v=3#nigiri"/></svg>Каталог</button><button type="button" class="navitem " data-mss-tab="pdf" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#pdf"/></svg>PDF</button><button type="button" class="navitem " data-mss-tab="more" aria-current="false"><svg viewBox="0 0 80 80" class="mss-ico" aria-hidden="true"><use href="#gear"/></svg>Ещё</button></nav>
-<script defer src="./ocean-updater.js?v=ocean-2.0.0"></script>
+<script defer src="./ocean-updater.js?v=ocean-3.2.0"></script>
 <script>
 (function(){
  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  const words='Загружаем мир профессиональной кухни';
  const p=document.getElementById('typeText'),splash=document.getElementById('splash');
- const skip=sessionStorage.getItem('more-sushi-intro-done-v1')==='1'||reduced;
- if(skip){splash.classList.add('done');document.body.classList.add('ready')}
+ let introSeen=false;
+ try{introSeen=localStorage.getItem('more-sushi-intro-done-v2')==='1'}catch(e){}
+ const skip=introSeen||reduced;
+ let finished=false, typeTimer=null, introTimer=null;
+ function finishIntro(){
+   if(finished)return;
+   finished=true;
+   if(typeTimer)clearInterval(typeTimer);
+   if(introTimer)clearTimeout(introTimer);
+   splash.classList.add('done');
+   splash.setAttribute('aria-hidden','true');
+   document.body.classList.add('ready');
+   try{localStorage.setItem('more-sushi-intro-done-v2','1')}catch(e){}
+ }
+ document.getElementById('skipIntro').addEventListener('click',finishIntro);
+ if(skip)finishIntro();
  else{
-  let idx=0;const type=setInterval(function(){p.textContent=words.slice(0,++idx);if(idx>=words.length)clearInterval(type)},38);
-  setTimeout(function(){splash.classList.add('done');document.body.classList.add('ready');sessionStorage.setItem('more-sushi-intro-done-v1','1')},2750)
+   let idx=0;
+   typeTimer=setInterval(function(){
+     p.textContent=words.slice(0,++idx);
+     if(idx>=words.length)clearInterval(typeTimer);
+   },32);
+   introTimer=setTimeout(finishIntro,1950);
  }
  // Sequential reveal without blanking important text; works with accessibility.
  if(!reduced&&!skip){
@@ -201,13 +219,13 @@ body:not(.ready) .wrap{opacity:0}body.ready .wrap{opacity:1;transition:opacity .
  let session=null;try{session=JSON.parse(localStorage.getItem('ms_session')||'null')}catch(e){}
  const expiry=Number(session?.expires_at||0);
  const active=Boolean(session?.access_token&&expiry>Math.floor(Date.now()/1000)+30);
- document.getElementById('cloudName').textContent=active?'Облако MORE SUSHI подключено':'Облако MORE SUSHI · требуется вход';
- document.getElementById('cloudDesc').textContent=active?'Сеанс активен · данные доступны в студии':'Войдите в рабочую студию для доступа к данным';
- document.getElementById('countCloud').textContent=active?'✓':'—';
- if(!active){const dot=document.getElementById('syncDot');dot.style.background='#f2bd5e';dot.style.boxShadow='0 0 8px #d8a047';dot.style.animation='none'}
+ document.getElementById('cloudName').textContent=active?'Проверяем облако MORE SUSHI…':'Облако MORE SUSHI · требуется вход';
+ document.getElementById('cloudDesc').textContent=active?'Сверяем данные с сервером':'Войдите в рабочую студию для доступа к данным';
+ document.getElementById('countCloud').textContent='—';
+ const dot=document.getElementById('syncDot');dot.style.background='#f2bd5e';dot.style.boxShadow='0 0 8px #d8a047';dot.style.animation='none';
  document.getElementById('appInfo').addEventListener('click',function(){
    const more=document.querySelector('.bottomnav [data-mss-tab="more"]');
    if(more)more.click();else window.location.hash='more';
  });
 })();
-</script><script defer src="./ocean-categories.js?v=ocean-2.0.0"></script><script defer src="./ocean-dashboard.js?v=ocean-3.1.0"></script><script defer src="./ocean-refined.js?v=ocean-3.1.0"></script></body></html>
+</script><script defer src="./ocean-categories.js?v=ocean-3.2.0"></script><script defer src="./ocean-dashboard.js?v=ocean-3.2.0"></script><script defer src="./ocean-refined.js?v=ocean-3.1.0"></script></body></html>
