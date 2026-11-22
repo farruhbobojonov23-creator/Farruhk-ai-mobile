@@ -77,4 +77,21 @@
 <path d="M9 167q35-15 69 1t77-9q30-15 53-8M10 182q41-12 70 3" fill="none" stroke="#70dcff" stroke-width="3" opacity=".73"/>
 <circle cx="184" cy="36" r="5" stroke="#fff" fill="none"/><circle cx="194" cy="81" r="3" stroke="#fff" fill="none"/>
 </symbol>
+
+<symbol id="folder" viewBox="0 0 180 180">
+<ellipse cx="91" cy="151" rx="71" ry="9" fill="#274259" opacity=".24" filter="url(#soft)"/>
+<path d="M25 58q0-9 9-9h45l13 13h52q10 0 10 11v70H25Z" fill="#065089" stroke="#baf4ff" stroke-width="3"/>
+<path d="M35 43h82q10 0 10 11v17H35Z" fill="url(#paper)" stroke="#e7fcff" stroke-width="2"/>
+<path d="M30 77h129l-11 59q-2 13-14 13H38q-12 0-14-12Z" fill="url(#blue)" stroke="#e4ffff" stroke-width="3"/>
+<path d="M30 87h120" fill="none" stroke="#fff" stroke-width="4" opacity=".7"/>
+<path d="m29 109 119 0" fill="none" stroke="#e4fcff" stroke-width="2.5" opacity=".8"/>
+<path d="M28 123h114" fill="none" stroke="#002e70" stroke-width="4" opacity=".2"/>
+</symbol>
+<symbol id="cloudcheck" viewBox="0 0 180 180">
+<ellipse cx="88" cy="146" rx="63" ry="9" fill="#1c5d7d" opacity=".17" filter="url(#soft)"/>
+<path d="M36 132C7 128 14 92 38 87q5-49 53-47 29-1 43 26 39 1 40 31 0 36-40 35Z" fill="url(#blue)" stroke="#e8ffff" stroke-width="4"/>
+<path d="M34 108q8-18 26-13 10-35 42-37" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".84"/>
+<circle cx="112" cy="104" r="27" fill="url(#blue)" stroke="#e2ffff" stroke-width="2.8"/>
+<path d="m96 103 12 12 22-26" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
 </svg>
