@@ -22,8 +22,12 @@
        svg.style.removeProperty('display');
        svg.setAttribute('aria-hidden','true');
        if(use){
-         use.setAttribute('href','#'+symbol);
-         use.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+symbol);
+         // The printer art is an external SVG symbol; it is not present in
+         // the inline 80x80 sprite. Other symbols are defined inline.
+         const href=symbol==='printer'?'./ocean-3d-art.svg?v=3#printer':'#'+symbol;
+         if(symbol==='printer')svg.setAttribute('viewBox','0 0 180 180');
+         use.setAttribute('href',href);
+         use.setAttributeNS('http://www.w3.org/1999/xlink','href',href);
        }
      }
      card.classList.add('bg-gold-minimal');
