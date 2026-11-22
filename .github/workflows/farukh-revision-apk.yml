@@ -6,6 +6,11 @@ on:
     paths:
       - 'farukh-revision-android/**'
       - '.github/workflows/farukh-revision-apk.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'farukh-revision-android/**'
+      - '.github/workflows/farukh-revision-apk.yml'
   workflow_dispatch:
 permissions:
   contents: read
