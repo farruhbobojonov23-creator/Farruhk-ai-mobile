@@ -1,0 +1,213 @@
+/* MORE SUSHI STUDIO PRO · Living Ocean 3D · app-only workspace theme.
+   Applied exclusively when ?ocean=1. Never alters printed TTK templates. */
+@media screen{
+html.ocean-app,html.ocean-app[data-studio-theme]{
+ --ui-bg:#071d38;--ui-panel:#f5fbff;--ui-raised:#e2f5ff;--ui-nav:#07335d;
+ --ui-text:#163856;--ui-muted:#476c84;--ui-line:#aed7ee;--ui-accent:#cf144c;
+ --ui-accent-hover:#e92f63;--ui-on-accent:#fff;--ui-soft:#d8f1fc;
+ --ui-highlight:#127bb1;--ui-shadow:0 8px 18px #06192d26;
+ --ui-radius:19px;--ui-button-radius:13px;--ui-stage:#dcefff;
+ --ink:#14344d;--mute:#55788d;--line:#b4daea;--teal:#057faf;
+ --teal-light:#d6eefb;--gold:#dda54e;--shadow:0 8px 18px #06192d26;
+ color-scheme:light!important;background:#e5f4ff!important;color:#183c57!important;
+}
+html.ocean-app body{
+ background:radial-gradient(ellipse at 10% 0%,#a8e7ff 0%,transparent 45%),
+ linear-gradient(175deg,#e5f8ff,#ecf7fc 40%,#e0f0fc);color:#183d58;
+}
+html.ocean-app .auth{
+ min-height:100dvh;background:linear-gradient(162deg,#073961 0%,#0a6aa3 39%,#d3efff 39.1%,#edf9ff 100%)!important;
+ color:#183b58!important;
+}
+html.ocean-app .auth-showcase{
+ background:radial-gradient(ellipse at 90% 25%,#70e6ff55,transparent 45%),
+ linear-gradient(128deg,#051d41,#0565ac 65%,#0f8bc4)!important;
+ color:#f6fbff!important;isolation:isolate;overflow:hidden;
+}
+html.ocean-app .auth-showcase:before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:repeating-radial-gradient(ellipse at 80% 110%,#a8f7ff50 0 1px,transparent 2px 31px);
+ opacity:.48;animation:oceanAuthWave 14s linear infinite;
+}
+@keyframes oceanAuthWave{to{transform:translate3d(-15px,-25px,0)}}
+html.ocean-app .auth-showcase:after{
+ content:"";position:absolute;z-index:-1;left:auto;right:-125px;top:-100px;
+ width:330px;height:330px;border-radius:50%;border:1px solid #a2edff66;
+ box-shadow:0 0 0 38px #7de4ff18,0 0 0 90px #74d6fb0d;
+}
+html.ocean-app .auth .brand-mark,html.ocean-app .sidebar .brand-mark{
+ background:linear-gradient(145deg,#c2fcff,#168cdc 45%,#034176)!important;
+ border:1px solid #b2f7ff!important;box-shadow:inset 0 2px #ffffff99,0 6px 18px #00162c8c,0 0 13px #4ccfff99!important;
+}
+html.ocean-app .brand-lockup .brand-mark svg{
+ stroke:#d0fbff!important;fill:transparent;filter:drop-shadow(0 0 6px #f7feffcc);
+}
+html.ocean-app .brand-name{color:#fff!important;font-weight:900!important;font-size:16px}
+html.ocean-app .brand-name span{color:#ffdd92!important}
+html.ocean-app .brand-sub{color:#bcefff!important;letter-spacing:.10em}
+html.ocean-app .auth-showcase h1{
+ font-family:Manrope,"Segoe UI",sans-serif!important;color:#fff!important;
+ font-size:clamp(24px,3.8vw,48px)!important;font-weight:900!important;letter-spacing:-.055em!important;
+ text-shadow:0 2px 10px #001c4a75;
+}
+html.ocean-app .auth-showcase h1 em{color:#ffe39b!important}
+html.ocean-app .auth-showcase p{color:#d6f3ff!important;line-height:1.55!important}
+html.ocean-app .auth-showcase .mini-label{color:#9af1ff!important}
+html.ocean-app .auth-points{color:#b9f1ff!important}
+html.ocean-app .auth-line{background:#66c5ee5e}
+html.ocean-app .auth-card{
+ background:linear-gradient(150deg,#fff,#ecfaff 55%,#d9f2ff)!important;
+ color:#14344f!important;border:1px solid #b5e4f7!important;
+ box-shadow:inset 0 1px #ffffff,0 18px 37px #003a7270,0 0 12px #79d8ff44!important;
+ position:relative;overflow:hidden;
+}
+html.ocean-app .auth-card:before{
+ content:"";position:absolute;height:4px;top:0;left:0;right:0;
+ background:linear-gradient(90deg,#5bcfff,#f7e7a9,#ff5080,#53caff);
+}
+html.ocean-app .auth-card .overline{color:#0878b3!important;font-size:10px}
+html.ocean-app .auth-card h2{color:#0a375d!important;font-weight:900}
+html.ocean-app .auth-card>p{color:#4a718b!important;line-height:1.4}
+html.ocean-app .auth-card .label{color:#245879!important}
+html.ocean-app .auth-card .control{
+ color:#153d5d!important;background:linear-gradient(#fff,#f3fbff)!important;
+ border:1px solid #95cdea!important;border-radius:13px!important;
+ box-shadow:inset 0 2px 5px #1b759914;
+}
+html.ocean-app .auth-card .control:focus{box-shadow:0 0 0 3px #5bc8ff50!important}
+html.ocean-app .btn-primary,html.ocean-app .btn-dark{
+ color:white!important;background:linear-gradient(145deg,#ff698d,#e82662 45%,#990e41)!important;
+ border:1px solid #ff8eb0!important;box-shadow:inset 0 1px #fff7,0 4px 0 #781039,0 8px 15px #35163350!important;
+ font-weight:850!important;text-shadow:0 1px #6b0c35;
+}
+html.ocean-app .btn-primary:active,html.ocean-app .btn-dark:active{
+ transform:translateY(3px);box-shadow:inset 0 1px #fff7,0 1px 0 #781039!important;
+}
+html.ocean-app .auth-card .btn-primary{width:100%;min-height:53px;font-size:15px!important;border-radius:15px!important}
+html.ocean-app .auth-footer{color:#6c899d!important}
+html.ocean-app .workspace{
+ background:radial-gradient(ellipse at 100% 0%,#b3e4ff80,transparent 39%),linear-gradient(#e5f6ff,#f2fbff)!important;
+ color:#173950;
+}
+html.ocean-app .sidebar{
+ color:#fff!important;background:linear-gradient(170deg,#0a4c84,#062a52 70%,#061c39)!important;
+ border-color:#67b8e2!important;box-shadow:0 7px 20px #00365d35;
+}
+html.ocean-app .side-caption,html.ocean-app .side-user span{color:#afdfff!important}
+html.ocean-app .side-user b{color:#fff!important}
+html.ocean-app .sidebar .nav-btn{color:#d8efff!important}
+html.ocean-app .sidebar .nav-btn.active{
+ background:linear-gradient(135deg,#ff8aa5,#e51d5b 60%,#a20d42)!important;
+ color:#fff!important;border:1px solid #ffc4d4!important;
+ box-shadow:inset 0 1px #fff7,0 4px 12px #9c174b99!important;
+}
+html.ocean-app .topbar{
+ background:linear-gradient(145deg,#e8f9ff,#d3f0ff)!important;color:#173b57!important;
+ border-color:#8dcced!important;box-shadow:0 3px 9px #26679824;
+}
+html.ocean-app .topbar h1{font-family:Manrope,"Segoe UI",sans-serif!important;font-weight:900!important}
+html.ocean-app .breadcrumb{color:#2479a5!important}
+html.ocean-app .top-avatar{background:linear-gradient(145deg,#75e2ff,#0d67af)!important;color:#fff!important;border:1px solid #f9e8a9}
+html.ocean-app .content .surface,html.ocean-app .editor-panel,html.ocean-app .doc-row{
+ background:linear-gradient(145deg,#fff,#f0faff)!important;
+ color:#18415e!important;border:1px solid #b4dcea!important;
+ box-shadow:inset 0 1px #fff,0 6px 16px #023c6423!important;
+}
+html.ocean-app .content .page h2,html.ocean-app .content .page h3{color:#113e5b!important}
+html.ocean-app .content .muted,html.ocean-app .content .page p{color:#567489}
+html.ocean-app .content .mini-label{color:#087baa!important}
+html.ocean-app .hero{
+ background:radial-gradient(ellipse at 88% 32%,#72d8ff7a,transparent 45%),linear-gradient(120deg,#052b55,#096ba8 60%,#137ab4)!important;
+ border:1px solid #7be0ff!important;
+ box-shadow:inset 0 2px #ccfaffb8,0 9px 21px #174a7e52!important;position:relative;overflow:hidden;
+}
+html.ocean-app .hero:before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:repeating-linear-gradient(154deg,transparent 0 30px,#9ceeff14 31px 32px,transparent 34px 100px);
+ animation:oceanAuthWave 17s linear infinite;
+}
+html.ocean-app .hero h2,html.ocean-app .hero h2 em{color:#fff1b4!important}
+html.ocean-app .hero .mini-label,html.ocean-app .hero p{color:#c8f1ff!important}
+html.ocean-app .btn-light{
+ background:linear-gradient(#fff,#e7f7ff)!important;color:#146092!important;
+ border-color:#8cc6e9!important;
+}
+html.ocean-app .control,html.ocean-app textarea,html.ocean-app select{
+ color:#17425f!important;background:#f7fcff!important;border-color:#a8d1e7!important;
+}
+html.ocean-app .stat b{color:#0a7ebc!important}
+html.ocean-app .toast{z-index:500}
+html.ocean-app .ocean-appbar{
+ position:sticky;top:0;z-index:95;display:flex;align-items:center;gap:8px;
+ padding:10px 13px;background:linear-gradient(112deg,#072a51,#0d6da4)!important;
+ color:#effbff!important;border-bottom:1px solid #6bdcffbb;
+ box-shadow:0 4px 14px #001c3280;
+}
+html.ocean-app .ocean-appbar a{
+ display:flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #7dd7ff;
+ border-radius:12px;color:#e7faff!important;font-size:12px;font-weight:800;
+ background:linear-gradient(#146dab,#084172);text-decoration:none;
+ box-shadow:inset 0 1px #d7ffff70,0 4px 9px #061a3299;
+}
+html.ocean-app .ocean-appbar strong{font-size:12px;letter-spacing:.04em}
+html.ocean-app .ocean-appbar small{font-size:9px;color:#a8e4ff}
+html.ocean-app .ocean-appbar .ocean-miniwhale{font-size:23px;filter:drop-shadow(0 0 4px #6aeaff);margin-left:auto}
+html.ocean-app .ocean-bottomnav{
+ position:fixed;z-index:120;bottom:0;left:50%;transform:translateX(-50%);
+ width:min(100%,600px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ padding:6px 7px max(10px,env(safe-area-inset-bottom));gap:3px;
+ background:linear-gradient(155deg,#0c4979f5,#031a32fc);
+ border:1px solid #8adfff;border-bottom:0;border-radius:18px 18px 0 0;
+ box-shadow:0 -6px 19px #001b3580;
+}
+html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{
+ display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;
+ border-radius:12px;border:1px solid transparent;background:transparent;
+ color:#c5e8f8!important;font-size:10px;line-height:1.2;font-weight:800;
+ text-decoration:none!important;padding:6px 1px;min-width:0;min-height:51px;cursor:pointer;
+}
+html.ocean-app .ocean-bottomnav .ocean-ico{font-size:22px;line-height:1.15;filter:drop-shadow(0 2px 2px #001e42)}
+html.ocean-app .ocean-bottomnav .active{
+ background:linear-gradient(155deg,#ff7d9c,#e32664 65%,#ae1152)!important;
+ border:1px solid #ffcadb!important;color:#fff!important;
+ box-shadow:inset 0 1px #fff7,0 0 15px #eb388082;
+}
+html.ocean-app #shell{padding-bottom:75px}
+html.ocean-app .side-nav button[onclick*="revision.html"]{display:none!important}
+html.ocean-app .appearance-switch,html.ocean-app .appearance-auth-switch{display:none!important}
+@media(max-width:910px){
+ html.ocean-app .auth{grid-template-columns:1fr!important}
+ html.ocean-app .auth-showcase{padding:17px 20px 12px!important;min-height:205px!important;gap:9px}
+ html.ocean-app .auth-showcase h1{font-size:26px!important;margin:13px 0 6px!important}
+ html.ocean-app .auth-showcase p{font-size:11px!important;margin:0!important}
+ html.ocean-app .auth-showcase .auth-points,.ocean-app .auth-line{display:none!important}
+ html.ocean-app .auth-panel{padding:14px 13px 26px!important;display:block}
+ html.ocean-app .auth-card{max-width:550px;margin:auto;padding:24px 20px!important}
+ html.ocean-app .auth-card h2{font-size:25px!important;margin:6px 0!important}
+ html.ocean-app .auth-card>p{margin:0 0 15px!important}
+ html.ocean-app .sidebar{position:relative!important;padding:10px 13px!important}
+ html.ocean-app .sidebar>.brand-lockup{display:none}
+ html.ocean-app .side-nav{gap:6px!important;overflow-x:auto}
+ html.ocean-app .side-nav .nav-btn{font-size:11px!important;min-height:37px}
+ html.ocean-app .content{padding:14px 12px 100px!important}
+ html.ocean-app .topbar{padding:12px 14px!important;min-height:65px}
+ html.ocean-app .topbar .top-actions{max-width:100%}
+ html.ocean-app .topbar .top-actions .btn{font-size:11px}
+}
+@media(max-width:440px){
+ html.ocean-app .auth-showcase{min-height:190px!important}
+ html.ocean-app .auth-showcase h1{font-size:23px!important}
+ html.ocean-app .auth-card{padding:22px 17px!important}
+ html.ocean-app .ocean-appbar{padding:8px 10px}
+ html.ocean-app .ocean-appbar strong{font-size:11px}
+ html.ocean-app .ocean-bottomnav a,html.ocean-app .ocean-bottomnav button{font-size:9px}
+ html.ocean-app .page-head h2{font-size:21px}
+}
+@media(prefers-reduced-motion:reduce){
+ html.ocean-app .auth-showcase:before,html.ocean-app .hero:before{animation:none!important}
+}
+}
+@media print{
+ html.ocean-app .ocean-appbar,html.ocean-app .ocean-bottomnav{display:none!important}
+ html.ocean-app #shell{padding:0!important}
+}
