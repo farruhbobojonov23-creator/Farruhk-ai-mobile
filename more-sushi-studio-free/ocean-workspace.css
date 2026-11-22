@@ -314,3 +314,35 @@ html.ocean-app .content{overflow-x:clip}
  html.ocean-app .topbar .top-actions{gap:6px}
 }
 }
+
+/* OCEAN 3.2 — 3D icon navigation inside authenticated studio; screen only. */
+@media screen{
+ html.ocean-app .ocean-bottomnav .ocean-ico-3d{
+  width:32px;height:32px;flex:none;display:block;
+  filter:drop-shadow(0 3px 3px #1d6d9f5a);
+  transition:transform .2s ease,filter .2s ease;
+ }
+ html.ocean-app .ocean-bottomnav [data-ocean-nav]{
+  min-height:67px!important;gap:2px!important;font-size:10px!important;
+  touch-action:manipulation;text-align:center;
+ }
+ html.ocean-app .ocean-bottomnav .active .ocean-ico-3d{
+  transform:translateY(-2px);
+  filter:drop-shadow(0 3px 2px #801342a8) brightness(1.11);
+ }
+ html.ocean-app .ocean-bottomnav [data-ocean-nav]:focus-visible{
+  outline:3px solid #ffd27d!important;outline-offset:-2px!important;
+ }
+ html.ocean-app .ocean-appbar .ocean-miniwhale{
+  width:34px;height:34px;flex:none;margin-left:auto;
+  filter:drop-shadow(0 2px 3px #1f77a76b);
+ }
+ html.ocean-app #shell{padding-bottom:92px!important}
+}
+@media(max-width:390px){
+ html.ocean-app .ocean-bottomnav [data-ocean-nav]{font-size:9px!important}
+ html.ocean-app .ocean-bottomnav .ocean-ico-3d{width:29px;height:29px}
+}
+@media(prefers-reduced-motion:reduce){
+ html.ocean-app .ocean-bottomnav .ocean-ico-3d{transition:none!important}
+}
