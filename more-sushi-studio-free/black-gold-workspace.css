@@ -1,0 +1,83 @@
+/* MORE SUSHI STUDIO PRO · BLACK GOLD 5.0 · authenticated workspace.
+   Screen-only theme of the shell/dashboard. Editor forms and A4 print retain
+   high-contrast document surfaces and do not change calculations or data. */
+@media screen {
+ html.ocean-app .ocean-appbar {
+   border:0!important;border-bottom:1px solid #c3a576!important;
+   background:linear-gradient(128deg,#17191c,#080a0c 72%,#191815)!important;
+   color:#fff!important;
+   box-shadow:inset 0 1px #ffe7b13d,0 4px 11px #0007!important;
+ }
+ html.ocean-app .ocean-appbar strong{color:#f8f4ec!important;-webkit-text-fill-color:#f8f4ec!important}
+ html.ocean-app .ocean-appbar small{color:#d7c29c!important;-webkit-text-fill-color:#d7c29c!important}
+ html.ocean-app .ocean-bottomnav{
+   border:1px solid #be9a5e!important;border-bottom:0!important;
+   background:linear-gradient(#232526,#080a0b 72%)!important;
+   box-shadow:inset 0 1px #ffe9b556,0 -5px 12px #0008!important;
+ }
+ html.ocean-app .ocean-bottomnav [data-ocean-nav]{
+   color:#f0e5d4!important;-webkit-text-fill-color:#f0e5d4!important;
+   opacity:1!important;text-shadow:none!important;
+ }
+ html.ocean-app .ocean-bottomnav [data-ocean-nav].active{
+   background:linear-gradient(#f3dca4,#b68b47 61%,#725028)!important;
+   border:1px solid #ffeabb!important;color:#111!important;-webkit-text-fill-color:#111!important;
+   text-shadow:none!important;box-shadow:inset 0 1px #fff7,0 3px 6px #0008!important;
+ }
+ html.ocean-app .ocean-bottomnav .ocean-ico-3d{filter:sepia(1) saturate(.8) hue-rotate(351deg) brightness(1.27)!important}
+ html.ocean-app #viewDashboard .hero,
+ html.ocean-app .auth-showcase{
+   background:
+     linear-gradient(99deg,#080a0bf5 0%,#111313d9 46%,#0a0c0d33 88%,#00000000 100%),
+     url('./black-gold/bg-hero.webp?v=5') right center/auto 115% no-repeat!important;
+   border:1px solid #a98b5dc4!important;border-radius:20px!important;
+   box-shadow:inset 0 1px #fff4,0 5px 15px #0009!important;
+ }
+ html.ocean-app #viewDashboard .hero .hero-copy h2,
+ html.ocean-app .auth-showcase h1{
+   color:#f1d39d!important;-webkit-text-fill-color:#f1d39d!important;
+   text-shadow:0 2px 6px #000b!important;
+ }
+ html.ocean-app #viewDashboard .hero .hero-copy .mini-label,
+ html.ocean-app .auth-showcase .mini-label{color:#dcc495!important;-webkit-text-fill-color:#dcc495!important}
+ html.ocean-app #viewDashboard .hero .hero-copy p,
+ html.ocean-app .auth-showcase p{color:#f0e8da!important;-webkit-text-fill-color:#f0e8da!important}
+ html.ocean-app #viewDashboard .hero .hero-copy .btn-light,
+ html.ocean-app #viewDashboard .hero .hero-copy .btn-ghost,
+ html.ocean-app .auth-showcase .btn-light{
+   color:#17110c!important;-webkit-text-fill-color:#17110c!important;
+   background:linear-gradient(#ffebbd,#e0b86d 55%,#ac7d38)!important;
+   border:1px solid #ffe6b0!important;
+   box-shadow:inset 0 1px #fff9,0 3px 0 #795126,0 7px 12px #000a!important;
+   text-shadow:none!important;font-weight:850!important;
+ }
+ html.ocean-app #viewDashboard .hero .hero-copy .btn-light *,
+ html.ocean-app #viewDashboard .hero .hero-copy .btn-ghost *{
+   color:#17110c!important;-webkit-text-fill-color:#17110c!important;
+ }
+ html.ocean-app #viewDashboard .stats .stat{
+   border:1px solid #c0a171!important;border-radius:16px!important;
+   background:linear-gradient(#242626,#121415 75%,#0b0c0d)!important;
+   box-shadow:inset 0 1px #ffffff24,0 5px 13px #0006!important;
+ }
+ html.ocean-app #viewDashboard .stats .stat small,
+ html.ocean-app #viewDashboard .stats .stat .stat-note{
+   color:#dbcbb3!important;-webkit-text-fill-color:#dbcbb3!important;
+ }
+ html.ocean-app #viewDashboard .stats .stat b{
+   color:#f4d394!important;-webkit-text-fill-color:#f4d394!important;
+   text-shadow:none!important;
+ }
+ html.ocean-app .auth{background:linear-gradient(145deg,#0e1113,#292c2d 42%,#e9eef0 42.3%)!important}
+ html.ocean-app .auth-card{
+   border:1px solid #bea16c!important;border-radius:20px!important;
+   background:linear-gradient(#fff,#f7f4ed)!important;
+   box-shadow:inset 0 1px #fff,0 15px 35px #0006!important;
+ }
+ html.ocean-app .auth-card::before{background:linear-gradient(90deg,#7e5a28,#e9cb87,#9d7538)!important}
+ html.ocean-app .auth-card .btn-primary{background:linear-gradient(#f5db9e,#b88d4b)!important;color:#19150f!important;border-color:#f2d9a1!important}
+}
+@media print{
+ html.ocean-app #viewDashboard .stats .stat{background:#fff!important;color:#111!important;border-color:#ddd!important;box-shadow:none!important}
+ html.ocean-app #viewDashboard .stats .stat *{color:#111!important;-webkit-text-fill-color:#111!important}
+}
