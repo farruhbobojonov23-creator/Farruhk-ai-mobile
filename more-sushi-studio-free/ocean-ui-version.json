@@ -1,7 +1,7 @@
 {
-  "build": "black-gold-5.1.0-xiaomi-qa-20261122",
-  "display": "BLACK GOLD LUXURY · 5.1",
+  "build": "ocean-3.2.1-original-restored-20261122",
+  "display": "OCEAN 3D · исходный дизайн",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Xiaomi screenshot QA: repaired overlapping hero title/CTA by resetting old absolute Ocean text positions; removed cyan surf footer from black-gold tabs; compacted excessive bottom dock height; stopped repeating TTK/PDF photos with distinct SVG symbols; improved PDF helper alignment and all section heading spacing. Retains 5 tabs, existing TTK/PDF links and data. This is a verified source-code correction, not a confirmed exact pixel match on real Xiaomi."
+  "details": "Restored the first working light-blue MORE SUSHI mobile UI from commit c5a602eb3c1d (OCEAN 3.2). Removed stacked 3.3–5.1 visual themes and runtime visual scripts from loaded HTML; original five tabs, real cloud, editor links, PDF links and current data remain intact. Restored studio workspace's original Ocean 3.2 style. This is a WEB interface update, not an Android APK update."
 }
