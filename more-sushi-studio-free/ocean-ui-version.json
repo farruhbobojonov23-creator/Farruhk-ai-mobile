@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.1.0-20261123",
-  "display": "PEARL ROSE ULTRA · 8.1",
+  "build": "pearl-rose-8.2.0-20261123",
+  "display": "PEARL ROSE ULTRA · 8.2",
   "released": "2026-11-23",
   "kind": "web-ui",
-  "details": "Focused clean polish of the single Pearl Rose mobile theme (existing CSS replaced in place, not layered): corrected harsh photo seams on hero/catalog/PDF cards and restored legible card text, compact fixed bottom dock, optimized card vertical spacing and brighter white surfaces. 14 distinct shaded vector illustrations for TTK, PDF, drink, packaging and settings; four catalog photography cards retain their real existing images, while seven unavailable features remain marked SOON. 5 routes and cloud/status/refresh logic preserved. No database, A4/TTK editor, native APK or cloud data modified. Desktop workspace theme unchanged. No pixel-perfect 8K or real-device speed claim."
+  "details": "Corrects a real Xiaomi screenshot defect in the authenticated workspace: old ocean-workspace.js was injecting the blue whale, 'Живой океан', oversized 180px icons and a duplicate five-item dock on top of Pearl Rose; replaced in-place with a compact Pearl Rose header and kept the original functional six-tab studio navigation. Removed competing DOM appearance attribute without altering saved preferences. Existing pearl-rose-workspace.css replaced in place, no added theme CSS. The five mobile tabs and working studio TTK/library/PDF/projects/cloud routes remain intact. No APK rebuild. Desktop/device visual QA not yet complete."
 }
