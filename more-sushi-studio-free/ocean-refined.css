@@ -164,3 +164,21 @@ body.ready .mss-feature-pearl{animation:refined-rise .66s cubic-bezier(.18,.86,.
  .mss-feature:after,.ocean-sunburst{animation:none!important}
  .mss-feature,.ocean-refresh-toast{transition:none!important}
 }
+/* Tactile water-light feedback and power-aware animation suspension. */
+.mss-feature,.mss-card,.ocean-refresh-btn,.hero-stamp,.mss-quick-link,.bottomnav .navitem{position:relative;isolation:isolate}
+.ocean-touch-wave{
+ pointer-events:none;z-index:6;position:absolute;
+ left:var(--tap-x,50%);top:var(--tap-y,50%);
+ width:22px;height:22px;border:1px solid #faffffc9;border-radius:50%;
+ background:radial-gradient(circle,#fff7,transparent 75%);
+ transform:translate(-50%,-50%) scale(.2);opacity:.85;
+ animation:ocean-tap-wave .65s ease-out forwards;
+}
+@keyframes ocean-tap-wave{from{transform:translate(-50%,-50%) scale(.2);opacity:.7}to{transform:translate(-50%,-50%) scale(8);opacity:0}}
+html.ocean-idle .hero-whale,html.ocean-idle .hero:after,
+html.ocean-idle .hero-stamp:after,html.ocean-idle .hero-sheen,
+html.ocean-idle .ocean-waterline,html.ocean-idle .ocean-sunburst,
+html.ocean-idle .mss-feature-icon,html.ocean-idle .mss-feature:after,
+html.ocean-idle .ocean-bg:before,html.ocean-idle .ocean-bg:after,
+html.ocean-idle .dot{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.ocean-touch-wave{display:none}}
