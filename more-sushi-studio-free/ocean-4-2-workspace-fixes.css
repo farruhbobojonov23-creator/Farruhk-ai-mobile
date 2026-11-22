@@ -1,0 +1,94 @@
+/* MORE SUSHI STUDIO PRO · 4.0.2 SCREEN-ONLY WORKSPACE FIXES
+   Screenshot 56324: repeated invisible "MORE SUSHI" and tagline inside
+   dashboard hero came from using the entire OCEAN 4.0 mockup as wallpaper.
+   This CSS only changes visuals; original TTK, auth, data and A4 untouched. */
+@media screen{
+  /* Use the clean whale-only illustration instead of an image containing
+     its own headline and button. Actual text and actions remain HTML. */
+  html.ocean-app #viewDashboard .hero,
+  html.ocean-app .auth-showcase{
+    background-image:
+      linear-gradient(110deg,#042e55f5 0%,#064775db 45%,#075c8c96 100%),
+      url('./ocean_hero_whale.webp?v=3.3')!important;
+    background-position:center,right center!important;
+    background-size:cover,auto 120%!important;
+    background-repeat:no-repeat!important;
+  }
+  html.ocean-app #viewDashboard .hero{
+    isolation:isolate;overflow:hidden;
+    border:1.5px solid #63edff!important;
+    box-shadow:inset 0 2px #bff7ff8a,0 4px 0 #076391,0 8px 17px #06335384!important;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy{
+    position:relative;z-index:2;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy .mini-label,
+  html.ocean-app #viewDashboard .hero .hero-copy h2,
+  html.ocean-app #viewDashboard .hero .hero-copy p{
+    color:#f6fdff!important;
+    -webkit-text-fill-color:#f6fdff!important;
+    text-shadow:0 2px 5px #001b37!important;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy h2 em{
+    color:#ffebaf!important;-webkit-text-fill-color:#ffebaf!important;
+  }
+  /* The main 'Создать ТТК' CTA was white-on-white on Xiaomi due to
+     inherited white text in the new ocean hero, so make it readable pink. */
+  html.ocean-app #viewDashboard .hero .hero-copy .btn-light{
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+    background:linear-gradient(152deg,#ff8ca8 0%,#ed2b64 49%,#aa1048 100%)!important;
+    border:1px solid #ffd1e2!important;
+    box-shadow:inset 0 1px #fffad5,0 3px 0 #9f0d46,0 7px 12px #440e317d!important;
+    text-shadow:0 1px 2px #74113b!important;
+    font-weight:900!important;
+    min-height:48px!important;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy .btn-light *,
+  html.ocean-app #viewDashboard .hero .hero-copy .btn-light .icon{
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+    text-shadow:0 1px 2px #74113b!important;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy .btn-ghost{
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+    border:1.5px solid #b6f3ff!important;
+    background:linear-gradient(155deg,#236a98a8,#062e52ce)!important;
+    box-shadow:inset 0 1px #d8fbff45,0 4px 9px #04264372!important;
+    font-weight:850!important;
+    min-height:48px!important;
+  }
+  html.ocean-app #viewDashboard .hero .hero-copy .btn-ghost *{
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+  }
+  /* The 5 workspace links appear in navy on sapphire, including inactive
+     item labels; keep the whale and nigiri icons but use high-contrast text. */
+  html.ocean-app .ocean-bottomnav [data-ocean-nav]{
+    color:#f0fbff!important;-webkit-text-fill-color:#f0fbff!important;
+    opacity:1!important;filter:none!important;
+    text-shadow:0 1px 3px #001c37!important;
+  }
+  html.ocean-app .ocean-bottomnav [data-ocean-nav]:not(.active){
+    background:transparent!important;
+  }
+  html.ocean-app .ocean-bottomnav [data-ocean-nav].active{
+    color:#fff!important;-webkit-text-fill-color:#fff!important;
+    text-shadow:0 1px 2px #66133b!important;
+  }
+  html.ocean-app .ocean-bottomnav .ocean-ico-3d{
+    opacity:1!important;filter:drop-shadow(0 3px 4px #002e5899)!important;
+  }
+  html.ocean-app .ocean-bottomnav [data-ocean-nav]:focus-visible{
+    outline:3px solid #ffe69d!important;outline-offset:2px!important;
+  }
+}
+@media screen and (max-width:400px){
+  html.ocean-app #viewDashboard .hero,
+  html.ocean-app .auth-showcase{
+    background-size:cover,auto 105%!important;
+  }
+}
+@media print{
+  html.ocean-app #viewDashboard .hero,
+  html.ocean-app .auth-showcase{
+    background-image:none!important;
+  }
+}
