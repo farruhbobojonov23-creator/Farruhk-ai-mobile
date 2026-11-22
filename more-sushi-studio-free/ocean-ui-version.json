@@ -1,7 +1,7 @@
 {
-  "build": "ruby-white-6.0.0-20261122",
-  "display": "RUBY WHITE PREMIUM 3D · 6.0",
+  "build": "chef-signature-7.0.0-20261122",
+  "display": "CHEF SIGNATURE ULTRA · 7.0",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Single-active-theme replacement: clean Ruby White premium mobile HTML (one CSS file), seven independent optimized realistic sushi/chef/ingredient WebP visuals from the approved blend of concepts #1+#3, one Ruby White workspace theme replacing Ocean 3.2 workspace CSS. Five tabs, existing TTK/Projects/PDF editor routes, true cloud auth and update checker retained. Seven catalog/history areas remain marked as upcoming. This is a WEB interface release; no signed Android APK changes, no claim of native 8K raster fidelity or real-device pixel-perfect tests."
+  "details": "Approved concept #12 dark chef-signature UI. Old Ruby White mobile CSS and helper are replaced, not overlaid: one chef-signature.css and one chef-signature-ui.js with the three stable navigation/update/cloud scripts. Photos use existing optimized black-background sushi/chef/ingredient assets. Workspace replaces ruby-workspace.css with one dark signature theme while keeping base editor/A4 control sheets. Five tabs, live status, TTK/PDF/projects/auth/routes unchanged. No signed APK was built. Phone pixel-exact match and authenticated editor workflows still require on-device testing."
 }
