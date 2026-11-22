@@ -1,0 +1,57 @@
+/* MORE SUSHI STUDIO PRO · OCEAN 3.2 finishing pass.
+   Mobile-only readability, accessible tap targets, clean loading experience.
+   Does not affect the A4 document, print/PDF layouts or saved recipes. */
+@media screen{
+ .splash-skip{
+   display:inline-flex;align-items:center;justify-content:center;
+   min-height:44px;margin:13px auto 0;padding:8px 19px;border-radius:14px;
+   background:linear-gradient(155deg,#c0f1ff,#278cce 57%,#06508d);
+   border:1px solid #b7faff;color:#fff;font-size:12px;font-weight:850;
+   box-shadow:inset 0 1px #fff9,0 3px 0 #02436b,0 8px 17px #0018328a;
+   text-shadow:0 1px 2px #05375c;
+ }
+ .splash-skip:focus-visible{outline:3px solid #ffeaa7;outline-offset:4px}
+ .splash.done{display:none}
+ .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important}
+ .cloudbar{gap:9px!important}
+ .cloudtxt{min-width:0}
+ .cloudtxt b{white-space:normal!important;line-height:1.22!important}
+ .cloudtxt small{white-space:normal!important;line-height:1.23!important}
+ .ocean-refresh-btn{min-height:44px!important;padding:8px 9px!important;white-space:nowrap}
+ .hero-stamp{min-height:42px!important;max-width:100%;white-space:normal!important}
+ .metric label{overflow-wrap:anywhere}
+ .mss-feature strong{max-width:100%;text-wrap:balance}
+ .mss-feature small{max-width:100%;text-wrap:balance}
+ .mss-feature:focus-visible,.mss-card:focus-visible,
+ .mss-quick-link:focus-visible,.bottomnav .navitem:focus-visible{
+   outline:3px solid #f6bb50!important;outline-offset:3px!important;
+ }
+ .mss-panel .mss-card{transition:transform .18s ease,filter .18s ease;
+   -webkit-tap-highlight-color:transparent;min-height:128px!important}
+ .mss-panel .mss-card:active{transform:translateY(2px);filter:brightness(1.025)}
+ .mss-panel .mss-card strong{line-height:1.23}
+ .mss-panel .mss-card small{line-height:1.3!important}
+ .bottomnav .navitem{min-height:59px!important;touch-action:manipulation}
+ .bottomnav .navitem[aria-current="page"]{font-weight:900!important}
+ .mss-message button{min-height:44px}
+ .mss-edition{white-space:nowrap}
+}
+@media(max-width:350px){
+ .brandcopy small{font-size:7.8px!important}
+ .cloudbar{padding:7px 8px!important;gap:6px!important}
+ .cloudtxt b{font-size:10px!important}
+ .cloudtxt small{font-size:8.3px!important}
+ .ocean-refresh-btn{min-width:44px;padding:6px!important}
+ .ocean-refresh-btn span:last-child{display:none}
+ .hero-stamp{font-size:8.5px!important;max-width:100%}
+ .metrics{gap:5px!important}
+ .metric label{font-size:8.3px!important}
+ .mss-feature-grid{gap:7px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .splash{display:none!important}
+ .splash-skip,.mss-panel .mss-card{transition:none!important}
+}
+@media print{
+ .splash,.splash-skip,.bottomnav{display:none!important}
+}
