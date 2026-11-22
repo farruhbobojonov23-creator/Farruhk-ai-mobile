@@ -1,7 +1,7 @@
 {
-  "build": "ocean-4.0.0-approved-pixel-20261122",
-  "display": "OCEAN ULTRA · 4.0",
+  "build": "ocean-4.0.1-fixed-home-20261122",
+  "display": "OCEAN ULTRA · 4.0.1",
   "released": "2026-11-22",
   "kind": "web-ui",
-  "details": "Homepage reconstructed from user-approved final image using separate optimized 2x WebP art regions on real functional links and buttons; live cloud counters, existing TTK/PDF unchanged. Dark sapphire glass style and accessible mobile menu across all five tabs. Does not claim genuine 8K photographic source."
+  "details": "Home screen fixed without vertical swiping on mobile when all controls fit above the dock; real hero/cards/cloud links remain clickable. The other four tabs scroll normally. Very short displays retain accessibility scrolling to avoid clipping actions. No APK or TTK/PDF/data changes."
 }
