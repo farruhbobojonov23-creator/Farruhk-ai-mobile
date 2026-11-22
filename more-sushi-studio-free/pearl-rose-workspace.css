@@ -202,3 +202,19 @@
  }
  @media(prefers-reduced-motion:reduce){html.ocean-app .auth-showcase:before,html.ocean-app .hero:before{animation:none!important}}
 }
+
+/* PEARL ROSE 8.4: text reveal only, no additional workspace theme or scroll locks. */
+.premium-typing{position:relative}
+.premium-typing::after{content:"▍";color:#e82b66;opacity:.9;animation:premiumWorkspaceCaret 850ms steps(1,end) infinite}
+@keyframes premiumWorkspaceCaret{50%{opacity:0}}
+@media screen and (prefers-reduced-motion:no-preference){
+ html.ocean-app .card:not([hidden]){animation:premiumWorkspaceCardEnter 500ms cubic-bezier(.16,.7,.2,1) both}
+}
+@keyframes premiumWorkspaceCardEnter{
+ from{opacity:.6;transform:translate3d(0,8px,0)}
+ to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+ .premium-typing::after{display:none!important}
+ html.ocean-app .card{animation:none!important}
+}
