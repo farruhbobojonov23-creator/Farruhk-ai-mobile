@@ -1090,7 +1090,82 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 .revision-crimson .premium-replay-revision{min-width:40px!important;padding:7px 8px!important;font-size:19px!important}
 @media print{.revision-crimson .premium-replay-revision{display:none!important}}
 
-</style><link rel="icon" type="image/svg+xml" href="./farukh-revision-logo.svg?v=neon-1"><link rel="stylesheet" href="./revision-neon-boot.css?v=neon-1"></head><body class="android-premium revision-compact revision-crimson view-summary">
+</style><link rel="icon" type="image/svg+xml" href="./farukh-revision-logo.svg?v=neon-1"><link rel="stylesheet" href="./revision-neon-boot.css?v=neon-1"><style id="rev044-style">/* FARUKH REVISION 0.4.4 — safe mobile actions, approved Black Ice crimson UI preserved */
+@keyframes rev044Appear{from{opacity:.84}to{opacity:1}}
+.rev044-next{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:12px;padding:12px 14px;border-radius:17px;
+  border:1px solid #344a66;background:linear-gradient(135deg,#12233a,#091629);
+  box-shadow:0 8px 24px #02081442;
+}
+.rev044-next-copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+.rev044-next-title{font-size:12px;font-weight:850;letter-spacing:.02em;color:#f1f5ff}
+.rev044-next-sub{font-size:10px;color:#99a9c2;line-height:1.25}
+.rev044-next .btn{min-height:40px!important;flex-shrink:0;white-space:nowrap;font-size:11px!important;line-height:1.15!important}
+@media screen and (max-width:720px){
+  .revision-crimson.view-revision #view-revision .card{
+    animation:rev044Appear 480ms ease both!important;transform:none!important;
+  }
+  .revision-crimson.view-revision #view-revision .tablewrap + .row{
+    position:fixed!important;z-index:48!important;
+    left:10px!important;right:10px!important;
+    width:auto!important;min-height:66px!important;
+    bottom:max(145px,calc(env(safe-area-inset-bottom,0px) + 145px))!important;
+    display:grid!important;grid-template-columns:1.52fr .88fr .88fr 1.12fr!important;
+    gap:6px!important;align-items:stretch!important;
+    margin:0!important;padding:8px!important;border:1px solid #526889!important;
+    border-radius:18px!important;
+    background:linear-gradient(135deg,rgba(25,41,64,.98),rgba(7,17,35,.98))!important;
+    box-shadow:0 -4px 22px #02050bcc,0 0 0 1px #ffffff0d inset!important;
+    backdrop-filter:blur(14px)!important;
+  }
+  .revision-crimson.native-insets.view-revision #view-revision .tablewrap + .row{
+    bottom:94px!important;
+  }
+  .revision-crimson.view-revision #view-revision .tablewrap + .row button.btn{
+    width:100%!important;min-width:0!important;min-height:48px!important;height:50px!important;
+    padding:5px 3px!important;margin:0!important;
+    display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:2px!important;
+    font-size:10px!important;line-height:1.05!important;text-align:center!important;
+    white-space:normal!important;overflow-wrap:normal!important;
+  }
+  .revision-crimson.view-revision #view-revision .tablewrap + .row button.btn .icon-3d{
+    width:22px!important;height:22px!important;flex:0 0 22px!important;
+  }
+  .revision-crimson.view-revision main{
+    padding-bottom:max(225px,calc(env(safe-area-inset-bottom,0px) + 225px))!important;
+  }
+  .revision-crimson.native-insets.view-revision main{
+    padding-bottom:170px!important;
+  }
+  .revision-crimson.view-revision #view-revision .card>.warning{
+    margin-top:16px!important;
+  }
+  .revision-crimson.view-revision #view-revision .tablewrap{scroll-margin-bottom:190px}
+  .revision-crimson.view-revision #view-revision input:focus{
+    scroll-margin-bottom:180px;
+  }
+  .revision-crimson.view-revision #view-revision button:focus-visible,
+  .rev044-next button:focus-visible{outline:2px solid #40e3fc!important;outline-offset:2px!important}
+}
+@media screen and (max-width:350px){
+  .revision-crimson.view-revision #view-revision .tablewrap + .row{gap:3px!important;padding:6px!important}
+  .revision-crimson.view-revision #view-revision .tablewrap + .row button.btn{font-size:9px!important}
+  .rev044-next{gap:7px;padding:10px}
+  .rev044-next .btn{padding:7px!important;font-size:10px!important}
+}
+@media print{
+  .revision-crimson.view-revision #view-revision .tablewrap + .row{position:static!important;display:none!important}
+  .rev044-next{display:none!important}
+}
+
+@media screen and (max-width:720px){
+ .revision-crimson.view-revision #view-revision .tablewrap + .row button.btn{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ .revision-crimson.view-revision:has(#view-revision input:focus) #view-revision .tablewrap + .row,
+ .revision-crimson.view-revision:has(#view-revision input:focus) .menu{display:none!important}
+}
+@media screen and (max-height:760px){.rev044-next{display:none!important}}
+</style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <div id="premiumBoot" data-variant="revision" role="status" aria-label="Заставка FARUKH REVISION PRO">
  <div class="premium-boot-content">
   <div class="premium-boot-medal" aria-hidden="true"><img src="./farukh-revision-logo.svg?v=neon-1" alt=""></div>
@@ -1132,7 +1207,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 <button type="button" id="compactToolsButton" class="compact-tools-button" onclick="toggleRevisionTools()" aria-expanded="false" aria-controls="compactCloudTools appUpdateStatus"><span class="rev042-heading"><span class="rev042-gear" aria-hidden="true">⚙</span><span class="rev042-label"><strong>Настройки и облако</strong><small id="rev042CloudStatus" aria-live="polite">Локально — без входа</small></span></span><span class="rev042-chevron" id="rev042Chevron" aria-hidden="true">▾</span></button><div class="cloud-actions compact-tools-hidden" id="compactCloudTools"><span id="cloudIndicator" class="cloud-indicator"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-laptop"></use></svg><span id="cloudBadgeText">Локально — без входа</span></span><button class="btn soft" id="cloudLogin" onclick="showLogin()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-cloud"></use></svg><span>Войти и включить облако</span></button><button class="btn hide" id="cloudLogout" onclick="cloudLogout()">Выйти из облака</button><button class="btn" onclick="downloadHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>История CSV</span></button><button class="btn update-btn" id="appUpdateBtn" onclick="checkAppUpdate()" title="Проверить наличие новой версии"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg><span>Обновить приложение</span></button></div><div class="update-status compact-tools-hidden" id="appUpdateStatus" aria-live="polite"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-wifi"></use></svg><span>Обновления приложения проверяются вручную. Ревизии работают и без сервера обновлений.</span></div>
 <div class="selectors" id="revisionSelectors"><select id="store" class="control" onchange="refresh()"><option>Баумана 18</option><option>Плазма</option><option>Героев Североморцев</option><option>Полярные Зори</option></select><select id="mode" class="control" onchange="changeMode()"><option value="weekly">Повторная ревизия</option><option value="start">Начальная ревизия</option></select><input id="when" class="control" type="date" aria-label="Дата ревизии"></div>
 <div class="selectors" id="operatorSelector" style="margin-top:-8px"><input id="operator" class="control" placeholder="Кто проводит ревизию (необязательно)" maxlength="120" style="flex:1"></div><section class="kpis" id="revisionKPIs"><div class="card kpi"><div class="label">Недостача</div><div class="number red" id="short">—</div><div class="note">Факт меньше остатка</div></div><div class="card kpi"><div class="label">Излишек</div><div class="number green" id="surplus">—</div><div class="note">Факт больше остатка</div></div><div class="card kpi"><div class="label">Совпадений</div><div class="number blue" id="matches">—</div><div class="note">Продуктов без расхождения</div></div><div class="card kpi"><div class="label">Проверено</div><div class="number" id="checked">0 / 5</div><div class="note">Контрольных позиций</div></div></section>
-<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><div class="rev-summary-actions"><button type="button" class="btn soft premium-replay-revision" data-premium-replay aria-label="Повторить заставку и анимации" title="Повторить заставку и анимации">✨</button><button type="button" class="btn rev-export-points" onclick="downloadPointsSummary()" aria-label="Скачать CSV-сводку по четырём точкам" title="Скачать CSV-сводку по четырём точкам"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>CSV</span></button><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div></div><div id="summaryCards" class="summarycards"></div></section></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить ревизию</button><button class="btn soft" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV-отчёт</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" onclick="confirmClearDraft()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить ввод</button></div><div class="warning" id="draftSaveInfo">Ввод сохраняется автоматически на этом устройстве. Учётные остатки вводятся вручную; облачная история доступна после входа.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
+<div id="view-summary"><section class="card"><div class="sectionheading"><div><h2>Обзор точек <span class="section-count">04</span></h2><div class="desc">Результаты последней сохранённой ревизии</div></div><div class="rev-summary-actions"><button type="button" class="btn soft premium-replay-revision" data-premium-replay aria-label="Повторить заставку и анимации" title="Повторить заставку и анимации">✨</button><button type="button" class="btn rev-export-points" onclick="downloadPointsSummary()" aria-label="Скачать CSV-сводку по четырём точкам" title="Скачать CSV-сводку по четырём точкам"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg><span>CSV</span></button><button class="btn soft refresh-summary" onclick="renderSummary()" aria-label="Обновить сводку"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg></button></div></div><div id="summaryCards" class="summarycards"></div></section><div class="rev044-next" aria-label="Быстрый переход к ревизии"><div class="rev044-next-copy"><b class="rev044-next-title">Следующая ревизия</b><span class="rev044-next-sub">Проверьте фактические остатки на точке</span></div><button type="button" class="btn main" onclick="go('revision',document.querySelectorAll('.menu button')[1])">Начать →</button></div></div><div id="view-revision" class="hide"><div class="grid"><section class="card"><div class="toolbar"><div><h2 id="formtitle">Еженедельная сверка</h2><div class="desc" id="formdesc">Взвесь сырьё и полуфабрикаты отдельно.</div></div><span class="tag" id="modebadge">Сверка</span></div><div class="tablewrap"><table><thead><tr><th>Продукт</th><th id="programheading">Учёт, кг</th><th>Факт, кг</th><th>Разница</th><th>Цена ₽/кг</th></tr></thead><tbody id="rows"></tbody></table></div><div class="row" style="margin-top:18px"><button class="btn main" aria-label="Сохранить ревизию" onclick="saveRevision()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-save"></use></svg>Сохранить</button><button class="btn soft" aria-label="Скачать CSV-отчёт" onclick="exportCSV()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>CSV</button><button class="btn" onclick="doPrint()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-print"></use></svg>Печать</button><button class="btn" aria-label="Очистить ввод" onclick="confirmClearDraft()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-update"></use></svg>Очистить</button></div><div class="warning" id="draftSaveInfo">Ввод сохраняется автоматически на этом устройстве. Учётные остатки вводятся вручную; облачная история доступна после входа.</div><div id="priceNote" class="warning hide">Без цены за кг сумма расхождений в рублях будет неполной. Весовая разница рассчитывается всегда.</div></section>
 <aside><details class="card rightspace rev-help"><summary><strong>ⓘ Как проводить ревизию</strong></summary><div class="desc">1. Выбери точку.<br><br>2. При <b>начальной ревизии</b> введи фактический вес. Запиши эти же значения в учётной системе.<br><br>3. Через неделю выбери <b>повторную ревизию</b>, сверь учётные остатки с фактическим весом.<br><br>4. Сохрани результаты, чтобы сравнивать недели.</div></details><div class="card recent-audits"><h2>Последние ревизии</h2><div class="history" id="recent"></div></div></aside></div></div>
 <div class="card hide" id="view-history"><div class="sectionheading"><div><h2>История ревизий</h2><div class="desc">Для выбранной торговой точки, новые сверху</div></div><button class="btn soft" onclick="exportHistory()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-csv"></use></svg>Скачать историю CSV</button></div><div id="allhistory"></div></div>
 <div class="card hide" id="view-products"><h2>Основные контрольные продукты</h2><div class="desc">Продукты используются для всех четырёх точек. Ранее сохранённые ревизии не изменяются.</div><div class="tablewrap" style="margin-top:18px"><table style="min-width:400px"><thead><tr><th>Продукт</th><th>Учетная единица</th><th>Действие</th></tr></thead><tbody id="productsrows"></tbody></table></div><div class="row" style="margin-top:18px"><input id="newproduct" class="control" placeholder="Название продукта"><button class="btn main" onclick="addProduct()"><svg class="icon-3d" viewBox="0 0 64 64" aria-hidden="true"><use href="#rev-add"></use></svg>Добавить продукт</button></div></div>
@@ -1340,7 +1415,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.4.2';
+const FARUKH_UI_RELEASE='0.4.4';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1930,4 +2005,4 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 
-</script><script defer src="./premium-motion.js?v=8.4.1"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
+</script><script defer src="./premium-motion.js?v=8.4.4"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
