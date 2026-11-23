@@ -35,7 +35,7 @@ function toast(message){
 }
 function normalizeUrl(raw){
  try{const u=new URL(String(raw).trim(),document.baseURI);
- if(u.protocol!=='https:'&&!(u.protocol==='http:'&&u.hostname==='localhost'))return null;
+ if(u.protocol!=='https:'&&!(u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname)))return null;
  return u.href;
  }catch{return null}
 }
