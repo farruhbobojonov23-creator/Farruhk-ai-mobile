@@ -41,7 +41,7 @@ jobs:
         run: gradle :app:assembleRelease --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: revision-0.4.3-unsigned
+          name: revision-0.4.4-unsigned
           path: farukh-revision-android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
       - name: Build separate TEST APK (debug-signed, not an in-place update)
@@ -50,6 +50,6 @@ jobs:
       - name: Upload installable TEST APK for optional device testing
         uses: actions/upload-artifact@v4
         with:
-          name: revision-0.4.3-TEST-debug-signed-not-update
+          name: revision-0.4.4-TEST-debug-signed-not-update
           path: farukh-revision-android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
