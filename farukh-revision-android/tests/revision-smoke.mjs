@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync('farukh-revision-android/app/src/main/assets/revision.html','utf8');
-for(const pattern of [/const FARUKH_UI_RELEASE='0\.4\.2'/,/rev040Snapshot/,/rev040Switch/,/downloadPointsSummary/,/onclick="confirmClearDraft\(\)"/,/revision-crimson/]) assert.match(html,pattern);
+for(const pattern of [/const FARUKH_UI_RELEASE='0\.4\.3'/,/rev040Snapshot/,/rev040Switch/,/downloadPointsSummary/,/onclick="confirmClearDraft\(\)"/,/revision-crimson/]) assert.match(html,pattern);
 const start=html.indexOf('function weightOf(name,v){');
 const end=html.indexOf('}\ngetDraft=function',start);
 assert.ok(start>0&&end>start,'Stock calculation not found');
@@ -19,7 +19,7 @@ assert.equal(weight('Лосось',{raw:'-1',pf:'0'}),null);
 assert.equal(weight('Лосось',{raw:'invalid',pf:'1'}),null);
 assert.equal(weight('Лосось',{raw:'',pf:''}),null);
 // One core-business script and two independent cosmetic scripts.
-const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]);
+const scripts=html.split('<script>').slice(1).map(x=>x.split('</script>')[0]);
 assert.equal(scripts.length,3);
 for(const [index,src] of scripts.entries())new Script(src,{filename:'revision-inline-'+index+'.js'});
 const js=scripts[0];
