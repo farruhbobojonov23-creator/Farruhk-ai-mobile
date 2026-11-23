@@ -1,0 +1,108 @@
+/* FARUKH REVISION PRO — approved cyan/violet entrance only. Does not alter inventory styles or data. */
+#premiumBoot[data-variant="revision"]{
+ --neon-cyan:#08eaff;--neon-purple:#a14dff;
+ background:
+   radial-gradient(ellipse 70% 45% at 2% 13%,rgba(0,199,255,.19),transparent 72%),
+   radial-gradient(ellipse 70% 48% at 110% 48%,rgba(147,62,255,.22),transparent 69%),
+   radial-gradient(ellipse 78% 40% at 50% 103%,rgba(10,80,190,.27),transparent 68%),
+   linear-gradient(160deg,#020716 0%,#06142d 53%,#080a25 100%);
+ color:#effaff;
+ animation:premiumBootFallback 5s forwards;
+}
+#premiumBoot[data-variant="revision"]::before{
+ opacity:.8;
+ background:
+   linear-gradient(135deg,transparent 9%,rgba(5,208,255,.17) 10%,transparent 10.5%,transparent 78%,rgba(122,50,238,.2) 78.8%,transparent 79.4%),
+   repeating-linear-gradient(90deg,rgba(65,172,255,.055) 0 1px,transparent 1px 78px);
+}
+#premiumBoot[data-variant="revision"]::after{
+ inset:auto -18% -8% -18%;height:25%;
+ transform:perspective(220px) rotateX(55deg);
+ background-image:radial-gradient(circle,rgba(41,198,255,.56) 1.2px,transparent 1.9px);
+ background-size:18px 18px;box-shadow:none;
+ mask-image:linear-gradient(transparent 3%,#000 75%);
+}
+#premiumBoot[data-variant="revision"] .premium-boot-content{
+ width:min(94vw,425px);padding:18px 15px 24px;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-medal{
+ width:116px;height:116px;margin:0 0 13px;border:0;border-radius:28px;
+ background:none;box-shadow:0 13px 38px rgba(11,14,45,.66);
+ transform:none;animation:revNeonFloat 3s ease-in-out infinite alternate;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-medal img{
+ width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 17px rgba(9,232,255,.4));
+}
+#premiumBoot[data-variant="revision"] .premium-boot-kicker{
+ color:#8ad7ff;font-size:9px;letter-spacing:.33em;margin:0 0 12px;opacity:.86;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-title{
+ font-size:clamp(25px,6.7vw,38px);line-height:1.08;min-height:49px;
+ color:#f8fcff;font-weight:900;letter-spacing:-.035em;
+ text-shadow:0 0 22px rgba(24,193,255,.38);
+}
+#premiumBoot[data-variant="revision"] .premium-boot-sub{
+ min-height:20px;margin:8px 0 0;color:#98c5f2;font-size:10px;letter-spacing:.12em;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial{
+ margin-top:22px;width:152px;height:152px;border-radius:50%;padding:9px;
+ background:conic-gradient(from -90deg,var(--neon-cyan) 0%,#5fb5ff 35%,var(--neon-purple) var(--rev-progress,0%),rgba(74,99,155,.25) 0%);
+ box-shadow:0 0 0 1px rgba(102,200,255,.25),0 0 22px rgba(0,238,255,.22),0 0 33px rgba(124,50,255,.22);
+ position:relative;display:grid;place-items:center;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial::before{
+ content:"";position:absolute;inset:-9px;border:1px dashed rgba(106,169,255,.28);border-radius:50%;
+ animation:revDialRotate 16s linear infinite;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial-inner{
+ background:radial-gradient(circle at 48% 32%,#12254b,#050d1e 72%);
+ border-radius:50%;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ box-shadow:inset 0 0 18px rgba(4,179,255,.1);
+}
+#premiumBoot[data-variant="revision"] .rev-boot-percent{font-size:35px;font-weight:850;letter-spacing:-.06em;color:#f6ffff;line-height:1.1;}
+#premiumBoot[data-variant="revision"] .rev-boot-pct-label{font-size:9px;letter-spacing:.28em;color:#a3bfe7;margin-top:8px;font-weight:800;}
+#premiumBoot[data-variant="revision"] .premium-boot-message{
+ margin-top:17px;min-height:24px;color:#e2f5ff;font-size:15px;font-weight:800;text-shadow:0 0 12px #2679fe88;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stages{
+ margin-top:12px;width:min(100%,350px);display:grid;gap:7px;text-align:left;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage{
+ min-height:35px;border:1px solid rgba(83,125,217,.28);background:rgba(9,27,62,.67);border-radius:11px;
+ padding:8px 12px;display:flex;gap:8px;align-items:center;box-shadow:inset 0 1px rgba(255,255,255,.025);
+ color:#8ba8d6;transition:color .3s,border-color .3s,box-shadow .3s;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage[data-state="active"]{
+ color:#f3f9ff;border-color:rgba(153,89,255,.85);box-shadow:0 0 13px rgba(115,60,255,.17);
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage[data-state="done"]{color:#8ceef3;border-color:rgba(13,215,255,.4);}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-icon{width:23px;text-align:center;font-size:17px;color:#5acfff;}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-text{flex:1;font-size:11px;font-weight:750;letter-spacing:.02em;}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-state{font-size:12px;color:#70b1ec;min-width:14px;text-align:right;}
+#premiumBoot[data-variant="revision"] .premium-boot-line{margin-top:15px;height:3px;width:min(280px,74vw);border:0;background:#243761;}
+#premiumBoot[data-variant="revision"] .premium-boot-line>i{
+ background:linear-gradient(90deg,#08eaff,#6d85ff,#b158ff);box-shadow:0 0 9px #2fcefa;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-skip{
+ margin-top:14px;border:1px solid rgba(74,174,255,.45);background:rgba(17,39,89,.7);color:#d4e9ff;
+ border-radius:14px;min-height:40px;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-skip:focus-visible{outline-color:#10eaff;}
+@keyframes revNeonFloat{to{transform:translate3d(0,-6px,0)}}
+@keyframes revDialRotate{to{transform:rotate(360deg)}}
+@media(max-height:730px){
+ #premiumBoot[data-variant="revision"] .premium-boot-medal{width:85px;height:85px;margin-bottom:6px}
+ #premiumBoot[data-variant="revision"] .premium-boot-kicker{margin-bottom:6px}
+ #premiumBoot[data-variant="revision"] .rev-boot-dial{margin-top:10px;width:116px;height:116px}
+ #premiumBoot[data-variant="revision"] .rev-boot-percent{font-size:28px}
+ #premiumBoot[data-variant="revision"] .rev-boot-stages{gap:4px;margin-top:6px}
+ #premiumBoot[data-variant="revision"] .rev-boot-stage{min-height:29px;padding:5px 9px}
+ #premiumBoot[data-variant="revision"] .premium-boot-message{margin-top:10px}
+ #premiumBoot[data-variant="revision"] .premium-boot-line{margin-top:9px}
+ #premiumBoot[data-variant="revision"] .premium-boot-skip{margin-top:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ #premiumBoot[data-variant="revision"] .premium-boot-medal,
+ #premiumBoot[data-variant="revision"] .rev-boot-dial::before{animation:none}
+}
+@media print{#premiumBoot{display:none!important}}
