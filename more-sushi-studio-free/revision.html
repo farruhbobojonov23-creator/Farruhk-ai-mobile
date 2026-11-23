@@ -1165,6 +1165,42 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
  .revision-crimson.view-revision:has(#view-revision input:focus) .menu{display:none!important}
 }
 @media screen and (max-height:760px){.rev044-next{display:none!important}}
+
+/* Revision UI 0.5.2: mobile settings and stock cards must never be covered by navigation.
+   Existing F branding, theme, inventory maths, cloud IDs, history and PDF printing stay intact. */
+@media screen and (max-width:720px){
+  /* Navigation is a dock when the workspace is active. When settings expand,
+     hide the dock so the four outlet cards and action buttons stay unobscured. */
+  body.revision-crimson:has(#compactCloudTools:not(.compact-tools-hidden)) .menu{
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+    transform:translateY(calc(100% + 24px))!important;
+  }
+  body.revision-crimson #compactToolsButton[aria-expanded="true"]{
+    position:sticky!important;
+    top:68px!important;
+    z-index:46!important;
+    border-color:#29b9c8!important;
+    box-shadow:0 5px 24px rgba(2,11,23,.8),0 0 0 1px rgba(49,223,227,.18) inset!important;
+  }
+  /* The last store tile can scroll completely clear of the fixed tab bar. */
+  body.revision-crimson.view-summary:not(:has(#compactCloudTools:not(.compact-tools-hidden))) main{
+    padding-bottom:max(170px,calc(env(safe-area-inset-bottom,0px) + 170px))!important;
+  }
+  body.revision-crimson.view-summary:has(#compactCloudTools:not(.compact-tools-hidden)) main{
+    padding-bottom:max(42px,calc(env(safe-area-inset-bottom,0px) + 42px))!important;
+  }
+  body.revision-crimson.view-history main,
+  body.revision-crimson.view-products main{
+    padding-bottom:max(168px,calc(env(safe-area-inset-bottom,0px) + 168px))!important;
+  }
+}
+@media print{
+  body.revision-crimson #compactToolsButton[aria-expanded="true"]{
+    position:static!important;box-shadow:none!important;
+  }
+}
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
 <div id="premiumBoot" data-variant="revision" role="status" aria-label="Заставка FARUKH REVISION PRO">
  <div class="premium-boot-content">
@@ -1415,7 +1451,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.5.1';
+const FARUKH_UI_RELEASE='0.5.2';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1463,7 +1499,7 @@ async function checkAppUpdate(){
 const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
-function showRevisionInfo(){notice('FARUKH REVISION PRO · интерфейс 0.5.1. Обновление получено через кнопку без новой APK. Склад + ПФ, черновики и отчёты сохранены.')}
+function showRevisionInfo(){notice('FARUKH REVISION PRO · интерфейс 0.5.2. Исправлена нижняя панель при открытых настройках. Обновление через кнопку без новой APK. Склад + ПФ, черновики и отчёты сохранены.')}
 function toggleRevisionTheme(){showRevisionInfo()}
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
@@ -1472,6 +1508,7 @@ function toggleRevisionTools(){
  status.classList.toggle('compact-tools-hidden',!opening);
  button.setAttribute('aria-expanded',String(opening));
  const arrow=$('rev042Chevron');if(arrow)arrow.textContent=opening?'▴':'▾';
+ button.setAttribute('title',opening?'Свернуть настройки и открыть нижнее меню':'Открыть настройки и обновления');
 }
 function visibleRule(name){return Number(REVISION_LOSS_RULES[name]||0)}
 function pfAllowed(name){return REVISION_PF_ALLOWED[name]===true}
