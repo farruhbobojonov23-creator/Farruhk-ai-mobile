@@ -18,10 +18,15 @@ assert.equal(weight('Лосось',{raw:'0',pf:'0'}),0);
 assert.equal(weight('Лосось',{raw:'-1',pf:'0'}),null);
 assert.equal(weight('Лосось',{raw:'invalid',pf:'1'}),null);
 assert.equal(weight('Лосось',{raw:'',pf:''}),null);
-assert.equal((html.match(/<script>/g)||[]).length,1);
-assert.equal((html.match(/<\/script>/g)||[]).length,1);
-const js=html.slice(html.indexOf('<script>')+8,html.indexOf('</script>'));
-new Script(js,{filename:'revision-inline.js'});
+// One core-business script and two independent cosmetic scripts.
+const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]);
+assert.equal(scripts.length,3);
+for(const [index,src] of scripts.entries())new Script(src,{filename:'revision-inline-'+index+'.js'});
+const js=scripts[0];
+assert.match(scripts[1],/premium-typing/);
+assert.match(scripts[2],/data-rev-boot-percent/);
+assert.match(html,/id="premiumBoot"/);
+assert.equal((html.match(/class="rev-boot-stage"/g)||[]).length,3);
 for(const pattern of [/loadCloud=async function/,/rev041ImportLocal/,/rev041FlushPending/,
  /rev041Queue/,/rev041SyncNow/,/revision_products/,/revision_audits/,
  /ms_session/,/rev041Catalogue=new Map\(products.filter\(p=>p.active\)/]) assert.match(js,pattern);
@@ -30,4 +35,4 @@ assert.match(html,/class="cloud-actions compact-tools-hidden" id="compactCloudTo
 assert.match(html,/class="update-status compact-tools-hidden" id="appUpdateStatus"/);
 assert.match(html,/id="rev042CloudStatus"/);
 assert.ok(html.includes('function toggleRevisionTools()'));
-console.log('FARUKH REVISION PRO 0.4.2 compact cloud UI tests passed');
+console.log('FARUKH REVISION PRO 0.4.3 neon boot + compact cloud UI tests passed');
