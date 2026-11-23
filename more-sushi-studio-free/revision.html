@@ -1424,6 +1424,8 @@ async function checkAppUpdate(){
   status.removeAttribute('role');status.textContent='Проверяем доступность обновлений…';
   const refreshVisual=()=>{
     if(window.FarukhAndroid&&typeof window.FarukhAndroid.refreshWebUi==='function'){
+      // Persist unfinished weighing inputs before replacing the HTML.
+      try{if(typeof rev040Snapshot==='function')rev040Snapshot()}catch(e){}
       status.textContent='Проверяем новую версию интерфейса…';
       window.FarukhAndroid.refreshWebUi();
       return true;
