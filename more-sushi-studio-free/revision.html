@@ -1422,17 +1422,25 @@ async function checkAppUpdate(){
   if(!b||!status)return;
   b.disabled=true;
   status.removeAttribute('role');status.textContent='Проверяем доступность обновлений…';
+  const refreshVisual=()=>{
+    if(window.FarukhAndroid&&typeof window.FarukhAndroid.refreshWebUi==='function'){
+      status.textContent='Проверяем новую версию интерфейса…';
+      window.FarukhAndroid.refreshWebUi();
+      return true;
+    }
+    return false;
+  };
   try {
     const response=await fetch(FARUKH_UPDATES_MANIFEST+'?t='+Date.now(),{cache:'no-store',mode:'cors'});
     if(!response.ok)throw new Error('manifest unavailable');
     const version=await response.json();
-    if(version.available===false){status.textContent=version.message||'Новая версия пока не опубликована.';return;}
+    if(version.available===false){if(refreshVisual())return;status.textContent=version.message||'Новая версия пока не опубликована.';return;}
     const apk=typeof version.apkUrl==='string'?version.apkUrl:'';
     if(!/^https:\/\//.test(apk) || !/^[a-f\d]{64}$/i.test(String(version.sha256||'')))throw new Error('manifest invalid');
     const newVersion=String(version.versionName||'');
     const currentNative=(window.FarukhAndroid&&typeof window.FarukhAndroid.getInstalledVersionCode==='function')? Number(window.FarukhAndroid.getInstalledVersionCode()) : null;
     const newer=(a,b)=>{const aa=a.split('.').map(Number),bb=b.split('.').map(Number);return aa.some((v,i)=>v>(bb[i]||0)&&aa.slice(0,i).every((n,j)=>n===(bb[j]||0)))};
-    if((currentNative!==null && Number(version.versionCode)<=currentNative) || (currentNative===null && !newer(newVersion,FARUKH_UI_RELEASE))){status.textContent='Установлена актуальная версия.';return;}
+    if((currentNative!==null && Number(version.versionCode)<=currentNative) || (currentNative===null && !newer(newVersion,FARUKH_UI_RELEASE))){if(refreshVisual())return;status.textContent='Установлена актуальная версия.';return;}
     // This bridge must be implemented on the Android side; a WebView cannot silently install APKs.
     if(window.FarukhAndroid&&typeof window.FarukhAndroid.installVerifiedUpdate==='function'){
       status.textContent='Доступна версия '+newVersion+'. Подготавливаем установку…';
@@ -1443,6 +1451,7 @@ async function checkAppUpdate(){
     }
   }catch(error){
     status.setAttribute('role','alert');
+    if(refreshVisual())return;
     status.textContent='Пока нет связи с сервером обновлений. Ревизии продолжают работать.';
   }finally{b.disabled=false}
 }
