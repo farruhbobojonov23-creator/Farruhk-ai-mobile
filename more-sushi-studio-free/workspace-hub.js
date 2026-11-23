@@ -216,6 +216,7 @@ function startSplash(){
  const splash=$('#hubSplash');if(!splash)return;
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  let replay=false;try{replay=sessionStorage.getItem('hub-replay')==='1';sessionStorage.removeItem('hub-replay')}catch{}
+ if(replay)root.classList.add('hub-explicit-motion');
  const shouldPlay=!reduced||replay;
  if(!shouldPlay){splash.remove();return}
  const line=$('#hubSplashText'),full='FARRUH WORKSPACE PRO';
@@ -235,7 +236,7 @@ function startSplash(){
 }
 let heroTypedOnce=false;
 function typeHeroOnce(){
- if(heroTypedOnce||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ if(heroTypedOnce||(window.matchMedia('(prefers-reduced-motion: reduce)').matches&&!root.classList.contains('hub-explicit-motion')))return;
  heroTypedOnce=true;
  const heading=$('#hubHeroHeading');if(!heading)return;
  const plain=Array.from(heading.childNodes).find(n=>n.nodeType===3&&n.nodeValue.trim());

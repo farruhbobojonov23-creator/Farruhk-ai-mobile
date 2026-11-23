@@ -204,3 +204,11 @@ html.hub-motion .hub-panel:not([hidden]) .hub-appear{animation:hubReveal .62s cu
  .hub-splash{display:none!important}.hub-appear{opacity:1!important;transform:none!important}
 }
 @media print{.bottomnav,.hub-splash,.head-buttons{display:none!important}body{background:#fff}}
+/* Opt-in only: the Effects button may replay the intro under reduced-motion.
+   It does not globally re-enable motion for accessibility-sensitive screens. */
+@media(prefers-reduced-motion:reduce){
+ html.hub-explicit-motion .hub-splash{display:grid!important;animation:splashFallback 4.6s forwards!important}
+ html.hub-explicit-motion .hub-splash-icon{animation:splashIconFloat 2.4s ease-in-out infinite alternate!important}
+ html.hub-explicit-motion .splash-track i{animation:splashProgress 2.6s linear forwards!important}
+ html.hub-explicit-motion .hub-splash.is-leaving{animation:none!important;transition:opacity .45s,visibility .45s!important}
+}
