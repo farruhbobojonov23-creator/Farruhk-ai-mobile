@@ -18,7 +18,7 @@
  if(optedIn)root.classList.add('premium-motion-optin');
  const reduced=!optedIn&&window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
  const jobs=new Set(),queued=new Set();
- let generation=0,lastView='';
+ let generation=0,lastView='',homeTypedOnce=false;
  const graphemes=value=>{
    try{return Array.from(new Intl.Segmenter('ru',{granularity:'grapheme'}).segment(value),s=>s.segment)}
    catch{return Array.from(value)}
@@ -90,15 +90,36 @@
    elements.forEach((el,i)=>schedule(()=>animateNode(el,gen,i<2?Math.max(speed,75):speed),Math.min(i*stagger,1050)));
  }
  const select=(query,scope=document)=>Array.from(scope.querySelectorAll(query));
+ // Presentation-only stagger: never changes text, data, click handlers or DOM hierarchy.
+ function fadeBatch(targets,{start=0,stagger=90,cap=20}={}){
+   if(reduced)return;
+   const elements=[...new Set(targets)].filter(el=>el?.isConnected&&!el.closest('[hidden],.hide')).slice(0,cap);
+   for(const [i,el] of elements.entries()){
+     el.classList.remove('mss-cinema-visible');
+     el.classList.add('mss-cinema-reveal');
+     el.style.setProperty('--mss-cinema-delay',Math.min(start+i*stagger,1250)+'ms');
+     // Restart the entrance if a user returns to a tab; no layout dimensions change.
+     void el.offsetWidth;
+     el.classList.add('mss-cinema-visible');
+   }
+ }
  function runView(view){
    if(reduced)return;
    lastView=view;
    if(mobile){
+     // Film-like typewriter is reserved for the FIRST part of the home screen.
+     // Revisiting Home, and every other tab, never types labels or card text.
      if(view==='home'){
-       typeBatch(select('.hero-kicker,.hero-copy h1,.hero-copy h1 em,.hero-copy p,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b,.bottomnav .navitem.active span'),{speed:82,stagger:120,cap:17});
-     } else {
+       if(!homeTypedOnce){
+         homeTypedOnce=true;
+         typeBatch(select('.brand-top,.brand-mid,.brandtext>small,.hero-kicker,.hero-copy h1,.hero-copy h1 em,.hero-copy h1 .hero-ttk,.hero-copy p,.hero-copy p .hero-pdf-line'),{speed:69,stagger:150,cap:9});
+       }else cancel();
+       fadeBatch(select('.ruby-header .logo,.ruby-header .settings-shortcut,.hero .hero-photo,.hero .hero-stamp'),{start:50,stagger:135,cap:4});
+       fadeBatch([...select('.cloudbar'),...select('#mss-home .metrics .metric'),...select('#mss-home .home-heading'),...select('#mss-home .mss-feature'),...select('#mss-home .continue-work')],{start:420,stagger:90,cap:18});
+     }else{
+       cancel();
        const panel=document.getElementById('mss-'+view);
-       if(panel)typeBatch([...select('.bottomnav .navitem.active span'),...select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel)],{speed:86,stagger:130,cap:20});
+       if(panel)fadeBatch([...select('.mss-title',panel),...select('.mss-card',panel)],{start:30,stagger:105,cap:18});
      }
      return;
    }
@@ -132,6 +153,7 @@
    schedule(step,delay);
  }
  function start(){
+   if(mobile&&!reduced)root.classList.add('mss-cinematic-mode');
    // Replay from More > Effects; this also creates a fresh URL in Android WebView.
    document.addEventListener('click',event=>{
      const replay=event.target.closest?.('[data-premium-replay]');
@@ -157,10 +179,10 @@
    }else if(mobile){
      document.addEventListener('click',event=>{
        const tab=event.target.closest?.('[data-mss-tab]')?.dataset?.mssTab;
-       if(tab)schedule(()=>runView(tab),75);
+       if(tab)runView(tab);
      });
-     window.addEventListener('hashchange',()=>schedule(()=>runView(root.dataset.mssTab||'home'),85));
-     window.addEventListener('popstate',()=>schedule(()=>runView(root.dataset.mssTab||'home'),85));
+     window.addEventListener('hashchange',()=>runView(root.dataset.mssTab||'home'));
+     window.addEventListener('popstate',()=>runView(root.dataset.mssTab||'home'));
    }else if(studio){
      document.addEventListener('click',event=>{
        if(event.target.closest?.('[data-nav]'))schedule(()=>runView('studio'),115);

@@ -285,3 +285,21 @@ html.pearl-home-fixed .wrap{height:calc(100dvh - 76px)!important;max-height:calc
  html.premium-motion-optin .premium-boot-line>i{animation:premiumProgress 3.7s cubic-bezier(.1,.4,.25,1) forwards!important}
  html.premium-motion-optin .premium-typing::after{display:inline!important;animation:premiumCaret 850ms steps(1,end) infinite!important}
 }
+
+/* CINEMATIC ROSE 8.5 — motion only; keeps the single approved Pearl Rose 3D theme.
+   Header and hero TYPE; below-the-fold Home and all other tabs REVEAL, never type.
+   GPU-friendly opacity/transform only: no layout or slow filter animations. */
+html.mss-cinematic-mode .mss-panel:not([hidden]) .mss-card,
+html.mss-cinematic-mode .mss-panel:not([hidden]) .mss-feature,
+html.mss-cinematic-mode .metrics .metric{animation:none!important}
+html.mss-cinematic-mode .mss-cinema-reveal.mss-cinema-visible{
+ animation:mssCinemaReveal .82s cubic-bezier(.2,.82,.18,1) both!important;
+ animation-delay:var(--mss-cinema-delay,0ms)!important;
+}
+@keyframes mssCinemaReveal{
+ from{opacity:0;transform:translate3d(0,16px,0) scale(.986)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ html:not(.premium-motion-optin) .mss-cinema-reveal{animation:none!important;opacity:1!important;transform:none!important}
+}

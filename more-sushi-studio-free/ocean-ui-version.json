@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.4.1-20261123",
-  "display": "PEARL ROSE ULTRA · 8.4.1 — Эффекты и автообновление",
-  "released": "2026-11-23",
+  "build": "pearl-rose-8.5.0-20261124",
+  "display": "PEARL ROSE ULTRA · 8.5.0 — Кинематографическая анимация",
+  "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "The user's screenshot displayed 'Новое!' in the cloud updater, proving a stale 8.3 page had not loaded the 8.4 intro. Future mobile homes self-refresh once per detected new build (with cache-busting query), avoiding reload loops and leaving editors untouched. Added visible 'Эффекты' replay controls on home/More and Revision, slow typing refined to headings, category cards, and active nav. A manual tap opts into requested animations even if Android reduced-motion is enabled; default retains accessibility preference. No changes to inventory, cloud data, TTK, PDF, projects or native APK. Visual Android WebView confirmation outstanding."
+  "details": "First section of the MORE SUSHI mobile home types its original branding and hero text slowly after a skippable intro. The cloud status, statistics, home cards, and all other categories only fade/slide in sequentially; their labels are never typed. Returning to home does not replay typewriter. Single Pearl Rose visual theme and original photos, buttons, navigation, cloud, PDF and TTK functionality unchanged. Motion-only code, respects reduced-motion except explicit user replay. Signed native Android APK is not rebuilt."
 }
