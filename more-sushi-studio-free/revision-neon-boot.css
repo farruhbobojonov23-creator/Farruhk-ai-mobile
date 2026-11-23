@@ -46,7 +46,7 @@
 }
 #premiumBoot[data-variant="revision"] .rev-boot-dial{
  margin-top:22px;width:152px;height:152px;border-radius:50%;padding:9px;
- background:conic-gradient(from -90deg,var(--neon-cyan) 0%,#5fb5ff 35%,var(--neon-purple) var(--rev-progress,0%),rgba(74,99,155,.25) 0%);
+ background:conic-gradient(from -90deg,var(--neon-cyan) 0%,var(--neon-purple) var(--rev-progress,0%),rgba(74,99,155,.25) var(--rev-progress,0%) 100%);
  box-shadow:0 0 0 1px rgba(102,200,255,.25),0 0 22px rgba(0,238,255,.22),0 0 33px rgba(124,50,255,.22);
  position:relative;display:grid;place-items:center;
 }
@@ -106,3 +106,11 @@
  #premiumBoot[data-variant="revision"] .rev-boot-dial::before{animation:none}
 }
 @media print{#premiumBoot{display:none!important}}
+
+/* Unified in-app brand mark. Other themes and sections are unchanged. */
+body.revision-crimson .sidebar .brand .brandicon{
+ width:44px!important;height:44px!important;border-radius:13px!important;
+ border:0!important;background:#050d21 url("./farukh-revision-logo.svg?v=neon-1") center/cover no-repeat!important;
+ box-shadow:0 0 15px rgba(9,234,255,.23),0 0 8px rgba(170,55,255,.15)!important;
+}
+body.revision-crimson .sidebar .brand .brandicon svg{display:none!important}
