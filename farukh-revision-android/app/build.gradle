@@ -10,7 +10,16 @@ android {
     versionName '0.4.3'
   }
   buildTypes {
-    release { minifyEnabled false; shrinkResources false }
+    // A separate APK for safe visual testing. Never overwrites the user's existing app.
+    debug {
+      applicationIdSuffix '.test'
+      manifestPlaceholders = [appLabel: 'FARUKH REVISION TEST']
+    }
+    release {
+      minifyEnabled false
+      shrinkResources false
+      manifestPlaceholders = [appLabel: 'FARUKH REVISION PRO']
+    }
   }
   compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
