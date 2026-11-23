@@ -1,0 +1,118 @@
+/* FARRUH WORKSPACE · studio companion theme v1.0.1
+   The previous Pearl Rose workspace theme is not imported.
+   Existing FARUKH TTK editor layout, A4 design assets, and data logic stay intact. */
+@media screen {
+ html.ocean-app{
+   --ui-bg:#f4f4f7;--ui-panel:#fff;--ui-raised:#eeeef3;--ui-nav:#292631;
+   --ui-text:#252530;--ui-muted:#6e6c77;--ui-line:#e0dce4;
+   --ui-accent:#ca1047;--ui-accent-hover:#a50734;--ui-on-accent:#fff;
+   --ui-soft:#fff0f5;--ui-highlight:#d01146;
+   --ui-shadow:0 6px 18px #2615261b;
+   --ui-radius:17px;--ui-button-radius:12px;--ui-stage:#f4f4f7;
+   --ink:#272530;--mute:#6e6c77;--line:#e1dce3;--teal:#c81047;
+   --teal-light:#fff1f5;--gold:#d01049;--shadow:0 7px 19px #2c27301b;
+   background:#f4f4f7!important;color:#292633!important;color-scheme:light;
+ }
+ html.ocean-app body{background:#f4f4f7!important;color:#282630}
+ html.ocean-app .auth{background:#f4f4f7!important;color:#282630}
+ html.ocean-app .auth-showcase{
+   isolation:isolate;position:relative;color:#fff!important;
+   background:linear-gradient(92deg,#191921ed,#231722c4 46%,#22131e40 100%),url('./pearl-rose/pearl-hero.webp') center right/cover no-repeat!important;
+ }
+ html.ocean-app .auth-showcase:after{display:none!important}
+ html.ocean-app .auth-showcase h1{color:#fff!important;text-shadow:0 3px 14px #0005}
+ html.ocean-app .auth-showcase h1 em{color:#ff648b!important}
+ html.ocean-app .auth-showcase p,.ocean-app .auth-points{color:#f0e6eb!important}
+ html.ocean-app .auth-card{background:#fff!important;border:1px solid #e4c8d2!important;border-radius:19px;box-shadow:0 12px 32px #25162722}
+ html.ocean-app .auth-card h2{color:#29242d}
+ html.ocean-app .auth-card .overline{color:#b41142}
+ html.ocean-app .brand-name{color:#fff;font-weight:950!important}
+ html.ocean-app .brand-name span{color:#ff7194}
+ html.ocean-app .brand-sub{color:#c8b3c0}
+ html.ocean-app .auth .brand-mark,html.ocean-app .sidebar .brand-mark{
+   background:linear-gradient(145deg,#ff7299,#bb0b45 55%,#490f26)!important;
+   border:1px solid #ffafc6!important;color:white;
+   box-shadow:inset 0 1px #fff8,0 5px 9px #0004!important
+ }
+ html.ocean-app .sidebar{background:linear-gradient(172deg,#34303b,#171821 83%)!important;color:#fff;border-color:#bd8299}
+ html.ocean-app .sidebar .brand-name{color:#fff}
+ html.ocean-app .sidebar .side-caption{color:#e3b2c6!important}
+ html.ocean-app .sidebar .nav-btn{color:#eee6ee!important}
+ html.ocean-app .sidebar .nav-btn.active{
+   background:linear-gradient(130deg,#ec4473,#b30945)!important;color:#fff!important;
+   border:1px solid #ff88ac;box-shadow:0 3px 8px #b01a4566
+ }
+ html.ocean-app .sidebar .nav-btn.active:before{background:#ffd8e3!important}
+ html.ocean-app .sidebar .nav-btn.active .icon{color:#fff!important}
+ html.ocean-app .workspace{background:#f3f2f6!important}
+ html.ocean-app .topbar{background:linear-gradient(#fff,#f4f3f6)!important;border-bottom:1px solid #e3d7e0!important;color:#282630;box-shadow:0 2px 6px #0001}
+ html.ocean-app .topbar h1{color:#29242c!important;font-weight:950}
+ html.ocean-app .breadcrumb{color:#a31544!important}
+ html.ocean-app .top-avatar{background:linear-gradient(#ef5982,#a70b40)!important;color:#fff}
+ html.ocean-app .content .surface,html.ocean-app .editor-panel,html.ocean-app .doc-row{
+   background:#fff!important;border-color:#e5d9e2!important;color:#2c2832!important;
+   box-shadow:0 5px 14px #29223013!important
+ }
+ html.ocean-app .content .page h2,html.ocean-app .content .page h3{color:#2a2530!important}
+ html.ocean-app .content .mini-label{color:#b80a43!important}
+ html.ocean-app .content .muted,html.ocean-app .content .page p{color:#65606c!important}
+ html.ocean-app .hero{
+   background:linear-gradient(90deg,#161720ee 5%,#201923dc 47%,#20101942),url('./pearl-rose/pearl-hero.webp') center right/cover no-repeat!important;
+   border:1px solid #8f6274!important;box-shadow:0 7px 17px #25233342!important;color:#fff!important
+ }
+ html.ocean-app .hero:before,html.ocean-app .hero:after{display:none!important}
+ html.ocean-app .hero h2{color:#fff!important}
+ html.ocean-app .hero h2 em{color:#ff5a8c!important}
+ html.ocean-app .hero p{color:#ddd3dc!important}
+ html.ocean-app .hero .mini-label{color:#ff9ab7!important}
+ html.ocean-app .hero .btn-light{background:linear-gradient(#fff,#e9e7ed)!important;color:#a00736!important}
+ html.ocean-app .btn-primary,html.ocean-app .btn-dark{
+   background:linear-gradient(#fa5b85,#bb0b42)!important;border:1px solid #fda3bd!important;
+   color:#fff!important;font-weight:860;box-shadow:inset 0 1px #fff8,0 3px 0 #8d0a35,0 6px 12px #a00a4633!important
+ }
+ html.ocean-app .btn-light{background:linear-gradient(#fff,#eeebf1)!important;color:#9c1645!important;border:1px solid #dfd4dc!important}
+ html.ocean-app .btn-ghost{color:#c5114a!important;border-color:#ce2b58!important}
+ html.ocean-app .stat b{color:#b60e44!important}
+ html.ocean-app .control,html.ocean-app input,html.ocean-app select,html.ocean-app textarea{accent-color:#c10b42}
+ html.ocean-app .control:focus{border-color:#d51e58;box-shadow:0 0 0 3px #ed3c6a29!important}
+ html.ocean-app .workspace-appbar{
+   position:relative;z-index:100;min-height:59px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;
+   background:linear-gradient(155deg,#fafafa,#eeeaf0);border-bottom:1px solid #dec9d4;
+   box-shadow:0 2px 9px #27202e1b;
+ }
+ html.ocean-app .workspace-appbar-back{display:inline-flex;min-height:41px;align-items:center;justify-content:center;border:1px solid #e1bdcc;border-radius:11px;background:#fff;color:#982248;font-weight:850;padding:9px 11px;white-space:nowrap;text-decoration:none}
+ html.ocean-app .workspace-appbar-name{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;text-align:center}
+ html.ocean-app .workspace-appbar-name b{font-size:clamp(11px,2.9vw,15px);font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ html.ocean-app .workspace-appbar-name small{font-size:10px;color:#8b7180;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ html.ocean-app .workspace-appbar-update{border:1px solid #ffb0c2;border-radius:11px;background:linear-gradient(#f4527f,#a80a3f);min-height:41px;color:#fff;padding:9px 11px;font-size:12px;font-weight:850;white-space:nowrap}
+ html.ocean-app .ocean-refresh-toast{position:fixed;z-index:999;left:50%;bottom:95px;transform:translateX(-50%);max-width:95vw;color:#fff;background:#29212d;border-radius:12px;padding:13px 16px;opacity:0;pointer-events:none;transition:opacity .15s}
+ html.ocean-app .ocean-refresh-toast.visible{opacity:1}
+ html.ocean-app .appearance-switch,html.ocean-app .appearance-auth-switch{display:none!important}
+ html.ocean-app .side-nav .revision-workspace-link{background:linear-gradient(#ee5b82,#ab0c42);border:1px solid #e88bab;color:#fff!important}
+ @media(max-width:910px){
+   html.ocean-app .auth-showcase{min-height:230px;padding:22px}
+   html.ocean-app .auth-showcase h1{font-size:28px;margin:17px 0 8px}
+   html.ocean-app .auth-showcase p{font-size:11px}
+   html.ocean-app .auth-panel{padding:15px 12px 26px}
+   html.ocean-app .sidebar{position:relative!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;padding:8px 10px!important;overflow:hidden!important}
+   html.ocean-app #shell:not([hidden]){display:block!important}
+   html.ocean-app .sidebar>.brand-lockup,html.ocean-app .sidebar .side-caption,html.ocean-app .sidebar .side-bottom{display:none!important}
+   html.ocean-app .side-nav{flex-wrap:nowrap!important;overflow-x:auto!important;display:flex!important;gap:5px!important}
+   html.ocean-app .side-nav .nav-sep{display:none!important}
+   html.ocean-app .side-nav .nav-btn{flex:0 0 auto;white-space:nowrap;width:auto;min-width:max-content}
+   html.ocean-app .content{padding:15px 12px 35px!important}
+   html.ocean-app .topbar{padding:11px 12px!important}
+   html.ocean-app .topbar h1{font-size:17px!important}
+   html.ocean-app .hero{padding:20px 15px!important;min-height:186px}
+   html.ocean-app .hero h2{font-size:26px!important}
+ }
+ @media(max-width:440px){
+   html.ocean-app .workspace-appbar{padding:7px 8px;gap:5px}
+   html.ocean-app .workspace-appbar-name b{font-size:11px}
+   html.ocean-app .workspace-appbar-name small{font-size:9px}
+   html.ocean-app .workspace-appbar-back{font-size:11px;padding:7px 8px;min-height:38px}
+   html.ocean-app .workspace-appbar-update{font-size:11px;padding:7px 8px;min-height:38px}
+   html.ocean-app .topbar h1{font-size:15px!important}
+ }
+}
+@media(prefers-reduced-motion:reduce){html.ocean-app *{scroll-behavior:auto!important}}

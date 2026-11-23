@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.0.0-20261124",
-  "display": "FARRUH WORKSPACE PRO 3D · Chef Command Center 1.0",
+  "build": "farruh-workspace-1.0.1-20261124",
+  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.0.1",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "A full replacement of MORE SUSHI mobile launcher with a single clean light-platinum/black/ruby CHEF COMMAND CENTER UI. 7 linked projects, tool navigation, in-app iframe with fallback link, local-only add/edit/favorites, cloud counters only from authenticated MORE SUSHI Supabase, manual update, 5-tab navigation, skippable cinematic splash. No prior Pearl/Ocean/Ruby CSS is loaded by mobile.html. Separate TTK/Revision app logic and data remain unchanged. Signed Android APK not rebuilt."
+  "details": "Complete replacement of mobile launcher with a single standalone platinum/charcoal/ruby theme. Matching separate new workspace theme for the MORE SUSHI TTK studio (Pearl Rose theme removed from index.html). Seven project links, editable local-only custom links, favorites, iframe viewer with regular navigation fallback, five tabs, cloud status from authenticated MORE SUSHI Supabase, manual web updater, skippable cinematic splash and first hero typewriter. No changes to TTK, PDF, authentication, Revision records, signed Android APK or native app build."
 }
