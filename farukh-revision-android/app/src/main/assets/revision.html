@@ -950,7 +950,256 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
 @media(max-width:380px){.revision-crimson #compactToolsButton{padding:7px 9px!important}}
 @media print{.revision-crimson #compactToolsButton{display:none!important}}
 
+
+/* PREMIUM MOTION 8.4: ONE existing theme, no overlaying theme cascade.
+   Pure opacity/transform/caret effects; original text and links remain real. */
+.premium-typing{position:relative}
+.premium-typing::after{content:"▍";color:#e92960;opacity:.9;animation:premiumCaret 850ms steps(1,end) infinite}
+@keyframes premiumCaret{50%{opacity:0}}
+@keyframes premiumCardIn{from{opacity:.5;transform:translate3d(0,10px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+#premiumBoot{
+ --boot-text:#fffaee;--boot-accent:#ffe7a2;--boot-shadow:#060e1d;
+ position:fixed;z-index:2147480000;inset:0;width:100%;height:100dvh;
+ display:grid;place-items:center;overflow:hidden;isolation:isolate;
+ background:
+  radial-gradient(ellipse 85% 52% at 50% 8%,#8f274166,transparent 76%),
+  radial-gradient(ellipse 85% 56% at 100% 97%,#9b123c58,transparent 76%),
+  linear-gradient(153deg,#060f1d 0%,#132039 42%,#220c20 100%);
+ color:var(--boot-text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+ animation:premiumBootFallback 5s forwards;
+}
+#premiumBoot:before,#premiumBoot:after{content:"";position:absolute;inset:0;pointer-events:none}
+#premiumBoot:before{
+ background:repeating-linear-gradient(125deg,transparent 0 95px,#ffffff07 96px,#ffffff02 98px,transparent 99px 180px);
+ opacity:.55;
+}
+#premiumBoot:after{
+ inset:auto -20% 7% -20%;height:1px;
+ background:linear-gradient(90deg,transparent,#f9c96b8c,transparent);
+ box-shadow:0 0 27px 3px #fc456577;
+ transform:rotate(-8deg);
+}
+.premium-boot-content{
+ position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
+ width:min(92vw,480px);padding:22px 16px 28px;text-align:center;
+}
+.premium-boot-medal{
+ display:grid;place-items:center;width:108px;height:108px;position:relative;margin-bottom:33px;
+ border:2px solid #e6bc777d;border-radius:28px;
+ background:linear-gradient(135deg,#ff6379 0%,#d91851 28%,#64102f 68%,#240f22 100%);
+ box-shadow:inset 0 2px #ffeabfbb,inset 0 -5px 17px #25031aa1,0 4px 0 #6c2940,0 18px 38px #0008,0 0 36px #d8265555;
+ transform:rotate(-6deg);
+ animation:premiumMedal 2.8s ease-in-out infinite alternate;
+}
+.premium-boot-medal svg{width:70px;height:70px;filter:drop-shadow(0 4px 4px #351121)}
+.premium-boot-kicker{font-size:10px;font-weight:900;letter-spacing:.38em;color:var(--boot-accent);margin:0 0 17px}
+.premium-boot-title{
+ min-height:64px;max-width:100%;font-weight:950;font-size:clamp(27px,7.1vw,42px);
+ letter-spacing:-.035em;line-height:1.1;text-wrap:balance;
+ color:#fff9ed;text-shadow:0 4px 15px #0009;
+}
+.premium-boot-sub{
+ min-height:43px;margin:15px 0 0;max-width:94%;
+ color:#f5c5cf;font-size:clamp(10px,2.7vw,13px);font-weight:760;
+ letter-spacing:.14em;line-height:1.5;
+}
+.premium-boot-line{margin-top:28px;width:min(240px,66vw);height:5px;border-radius:99px;overflow:hidden;background:#ffffff24;border:1px solid #ffe2a733}
+.premium-boot-line>i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff427b,#ffe2a3,#fff);
+ box-shadow:0 0 10px #ff6d91;animation:premiumProgress 3.7s cubic-bezier(.1,.4,.25,1) forwards}
+.premium-boot-message{min-height:22px;color:#dec6c4;font-size:12px;margin-top:15px}
+.premium-boot-skip{
+ display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:120px;
+ margin-top:24px;padding:10px 17px;color:#fff0dc;background:#ffffff12;
+ border:1px solid #f3bfbb8c;border-radius:14px;font:inherit;font-size:12px;font-weight:800;
+ -webkit-tap-highlight-color:transparent;cursor:pointer;
+}
+.premium-boot-skip:focus-visible{outline:3px solid #ffe39a;outline-offset:3px}
+#premiumBoot[data-variant="rose"]{
+ --boot-text:#71233c;--boot-accent:#ad1643;--boot-shadow:#eacbd2;
+ background:
+ radial-gradient(ellipse 85% 54% at 90% 12%,#ff9ab35c,transparent 68%),
+ radial-gradient(ellipse 70% 50% at 0% 96%,#f8c6d6a0,transparent 79%),
+ linear-gradient(156deg,#fffefd,#fff4f8 50%,#fce3ee);
+}
+#premiumBoot[data-variant="rose"] .premium-boot-kicker{color:#be2458}
+#premiumBoot[data-variant="rose"] .premium-boot-title{color:#741b3d;text-shadow:0 3px 10px #bb7a9c33}
+#premiumBoot[data-variant="rose"] .premium-boot-sub{color:#b63a62}
+#premiumBoot[data-variant="rose"] .premium-boot-message{color:#8a5069}
+#premiumBoot[data-variant="rose"] .premium-boot-line{background:#cc7d9944}
+#premiumBoot[data-variant="rose"] .premium-boot-skip{color:#981440;background:#fff6f9;border-color:#dc98b0}
+#premiumBoot[data-variant="rose"] .premium-boot-medal{background:linear-gradient(150deg,#fff,#ffb6ce 22%,#fb3267 57%,#9d083d);border-color:#fff}
+#premiumBoot.is-leaving{animation:none;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 540ms ease,visibility 540ms ease}
+@keyframes premiumProgress{to{width:100%}}
+@keyframes premiumMedal{to{transform:rotate(4deg) translate3d(0,-6px,0)}}
+@keyframes premiumBootFallback{0%,94%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
+@media(prefers-reduced-motion:reduce){
+ #premiumBoot{display:none!important}
+ .premium-typing::after{display:none!important}
+ .premium-boot-medal,.premium-boot-line>i{animation:none!important}
+}
+
+/* Animated entry on real section/card mounts, not a loading delay. */
+@media screen and (prefers-reduced-motion:no-preference) {
+ .revision-crimson #view-summary:not(.hide) .summarytile,
+ .revision-crimson #view-revision:not(.hide) .card,
+ .revision-crimson #view-history:not(.hide) .historyitem,
+ .revision-crimson #view-products:not(.hide) .card,
+ .revision-crimson .kpi {animation:premiumCardIn 620ms cubic-bezier(.18,.7,.23,1) both}
+ .revision-crimson #view-summary .summarytile:nth-child(2),
+ .revision-crimson .kpi:nth-child(2){animation-delay:90ms}
+ .revision-crimson #view-summary .summarytile:nth-child(3),
+ .revision-crimson .kpi:nth-child(3){animation-delay:160ms}
+ .revision-crimson #view-summary .summarytile:nth-child(4),
+ .revision-crimson .kpi:nth-child(4){animation-delay:230ms}
+}
+
+
+/* A deliberate tap of «Эффекты» opts in to the requested animation,
+   even when OS-level reduced-motion is active. */
+@media(prefers-reduced-motion:reduce){
+ html.premium-motion-optin #premiumBoot{display:grid!important;animation:premiumBootFallback 5s forwards!important}
+ html.premium-motion-optin .premium-boot-medal{animation:premiumMedal 2.8s ease-in-out infinite alternate!important}
+ html.premium-motion-optin .premium-boot-line>i{animation:premiumProgress 3.7s cubic-bezier(.1,.4,.25,1) forwards!important}
+ html.premium-motion-optin .premium-typing::after{display:inline!important;animation:premiumCaret 850ms steps(1,end) infinite!important}
+}
+.revision-crimson .premium-replay-revision{min-width:40px!important;padding:7px 8px!important;font-size:19px!important}
+@media print{.revision-crimson .premium-replay-revision{display:none!important}}
+
+
+/* FARUKH REVISION PRO — approved cyan/violet entrance only. Does not alter inventory styles or data. */
+#premiumBoot[data-variant="revision"]{
+ --neon-cyan:#08eaff;--neon-purple:#a14dff;
+ background:
+   radial-gradient(ellipse 70% 45% at 2% 13%,rgba(0,199,255,.19),transparent 72%),
+   radial-gradient(ellipse 70% 48% at 110% 48%,rgba(147,62,255,.22),transparent 69%),
+   radial-gradient(ellipse 78% 40% at 50% 103%,rgba(10,80,190,.27),transparent 68%),
+   linear-gradient(160deg,#020716 0%,#06142d 53%,#080a25 100%);
+ color:#effaff;
+ animation:premiumBootFallback 5s forwards;
+}
+#premiumBoot[data-variant="revision"]::before{
+ opacity:.8;
+ background:
+   linear-gradient(135deg,transparent 9%,rgba(5,208,255,.17) 10%,transparent 10.5%,transparent 78%,rgba(122,50,238,.2) 78.8%,transparent 79.4%),
+   repeating-linear-gradient(90deg,rgba(65,172,255,.055) 0 1px,transparent 1px 78px);
+}
+#premiumBoot[data-variant="revision"]::after{
+ inset:auto -18% -8% -18%;height:25%;
+ transform:perspective(220px) rotateX(55deg);
+ background-image:radial-gradient(circle,rgba(41,198,255,.56) 1.2px,transparent 1.9px);
+ background-size:18px 18px;box-shadow:none;
+ mask-image:linear-gradient(transparent 3%,#000 75%);
+}
+#premiumBoot[data-variant="revision"] .premium-boot-content{
+ width:min(94vw,425px);padding:18px 15px 24px;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-medal{
+ width:116px;height:116px;margin:0 0 13px;border:0;border-radius:28px;
+ background:none;box-shadow:0 13px 38px rgba(11,14,45,.66);
+ transform:none;animation:revNeonFloat 3s ease-in-out infinite alternate;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-medal img{
+ width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 17px rgba(9,232,255,.4));
+}
+#premiumBoot[data-variant="revision"] .premium-boot-kicker{
+ color:#8ad7ff;font-size:9px;letter-spacing:.33em;margin:0 0 12px;opacity:.86;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-title{
+ font-size:clamp(25px,6.7vw,38px);line-height:1.08;min-height:49px;
+ color:#f8fcff;font-weight:900;letter-spacing:-.035em;
+ text-shadow:0 0 22px rgba(24,193,255,.38);
+}
+#premiumBoot[data-variant="revision"] .premium-boot-sub{
+ min-height:20px;margin:8px 0 0;color:#98c5f2;font-size:10px;letter-spacing:.12em;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial{
+ margin-top:22px;width:152px;height:152px;border-radius:50%;padding:9px;
+ background:conic-gradient(from -90deg,var(--neon-cyan) 0%,var(--neon-purple) var(--rev-progress,0%),rgba(74,99,155,.25) var(--rev-progress,0%) 100%);
+ box-shadow:0 0 0 1px rgba(102,200,255,.25),0 0 22px rgba(0,238,255,.22),0 0 33px rgba(124,50,255,.22);
+ position:relative;display:grid;place-items:center;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial::before{
+ content:"";position:absolute;inset:-9px;border:1px dashed rgba(106,169,255,.28);border-radius:50%;
+ animation:revDialRotate 16s linear infinite;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-dial-inner{
+ background:radial-gradient(circle at 48% 32%,#12254b,#050d1e 72%);
+ border-radius:50%;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ box-shadow:inset 0 0 18px rgba(4,179,255,.1);
+}
+#premiumBoot[data-variant="revision"] .rev-boot-percent{font-size:35px;font-weight:850;letter-spacing:-.06em;color:#f6ffff;line-height:1.1;}
+#premiumBoot[data-variant="revision"] .rev-boot-pct-label{font-size:9px;letter-spacing:.28em;color:#a3bfe7;margin-top:8px;font-weight:800;}
+#premiumBoot[data-variant="revision"] .premium-boot-message{
+ margin-top:17px;min-height:24px;color:#e2f5ff;font-size:15px;font-weight:800;text-shadow:0 0 12px #2679fe88;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stages{
+ margin-top:12px;width:min(100%,350px);display:grid;gap:7px;text-align:left;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage{
+ min-height:35px;border:1px solid rgba(83,125,217,.28);background:rgba(9,27,62,.67);border-radius:11px;
+ padding:8px 12px;display:flex;gap:8px;align-items:center;box-shadow:inset 0 1px rgba(255,255,255,.025);
+ color:#8ba8d6;transition:color .3s,border-color .3s,box-shadow .3s;
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage[data-state="active"]{
+ color:#f3f9ff;border-color:rgba(153,89,255,.85);box-shadow:0 0 13px rgba(115,60,255,.17);
+}
+#premiumBoot[data-variant="revision"] .rev-boot-stage[data-state="done"]{color:#8ceef3;border-color:rgba(13,215,255,.4);}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-icon{width:23px;text-align:center;font-size:17px;color:#5acfff;}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-text{flex:1;font-size:11px;font-weight:750;letter-spacing:.02em;}
+#premiumBoot[data-variant="revision"] .rev-boot-stage-state{font-size:12px;color:#70b1ec;min-width:14px;text-align:right;}
+#premiumBoot[data-variant="revision"] .premium-boot-line{margin-top:15px;height:3px;width:min(280px,74vw);border:0;background:#243761;}
+#premiumBoot[data-variant="revision"] .premium-boot-line>i{
+ background:linear-gradient(90deg,#08eaff,#6d85ff,#b158ff);box-shadow:0 0 9px #2fcefa;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-skip{
+ margin-top:14px;border:1px solid rgba(74,174,255,.45);background:rgba(17,39,89,.7);color:#d4e9ff;
+ border-radius:14px;min-height:40px;
+}
+#premiumBoot[data-variant="revision"] .premium-boot-skip:focus-visible{outline-color:#10eaff;}
+@keyframes revNeonFloat{to{transform:translate3d(0,-6px,0)}}
+@keyframes revDialRotate{to{transform:rotate(360deg)}}
+@media(max-height:730px){
+ #premiumBoot[data-variant="revision"] .premium-boot-medal{width:85px;height:85px;margin-bottom:6px}
+ #premiumBoot[data-variant="revision"] .premium-boot-kicker{margin-bottom:6px}
+ #premiumBoot[data-variant="revision"] .rev-boot-dial{margin-top:10px;width:116px;height:116px}
+ #premiumBoot[data-variant="revision"] .rev-boot-percent{font-size:28px}
+ #premiumBoot[data-variant="revision"] .rev-boot-stages{gap:4px;margin-top:6px}
+ #premiumBoot[data-variant="revision"] .rev-boot-stage{min-height:29px;padding:5px 9px}
+ #premiumBoot[data-variant="revision"] .premium-boot-message{margin-top:10px}
+ #premiumBoot[data-variant="revision"] .premium-boot-line{margin-top:9px}
+ #premiumBoot[data-variant="revision"] .premium-boot-skip{margin-top:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ #premiumBoot[data-variant="revision"] .premium-boot-medal,
+ #premiumBoot[data-variant="revision"] .rev-boot-dial::before{animation:none}
+}
+@media print{#premiumBoot{display:none!important}}
+
+/* Unified in-app brand mark. Other themes and sections are unchanged. */
+body.revision-crimson .sidebar .brand .brandicon{
+ width:44px!important;height:44px!important;border-radius:13px!important;
+ border:0!important;background:#050d21 url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%20role%3D%22img%22%20aria-label%3D%22Farukh%20Revision%20%E2%80%94%20F%22%3E%0A%3Cdefs%3E%0A%20%3ClinearGradient%20id%3D%22edge%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2316f6ff%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%2348aaff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23bf42ff%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22metal%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22.75%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%23eaf5ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2391a8e2%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22cyan%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23a8ffff%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%2300eaff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23236bd7%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22orbit%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23b73cff%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%238f3dff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff86ff%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2312345b%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%2307142d%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%231f0a42%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3Cfilter%20id%3D%22halo%22%20x%3D%22-45%25%22%20y%3D%22-45%25%22%20width%3D%22190%25%22%20height%3D%22190%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%229%22%2F%3E%3C%2Ffilter%3E%0A%3C%2Fdefs%3E%0A%3Crect%20x%3D%2215%22%20y%3D%2215%22%20width%3D%22482%22%20height%3D%22482%22%20rx%3D%22108%22%20fill%3D%22%23070e28%22%2F%3E%0A%3Crect%20x%3D%2219%22%20y%3D%2219%22%20width%3D%22474%22%20height%3D%22474%22%20rx%3D%22106%22%20fill%3D%22url(%23bg)%22%20stroke%3D%22url(%23edge)%22%20stroke-width%3D%228%22%2F%3E%0A%3Cpath%20d%3D%22M79%2058Q140%2022%20322%2039%22%20stroke%3D%22%23c5faff%22%20stroke-width%3D%2211%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.23%22%20fill%3D%22none%22%2F%3E%0A%3Cpath%20d%3D%22M450%20300Q477%20404%20401%20459%22%20stroke%3D%22%23ed65ff%22%20stroke-width%3D%2215%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.18%22%20fill%3D%22none%22%2F%3E%0A%3Cellipse%20cx%3D%22264%22%20cy%3D%22285%22%20rx%3D%22187%22%20ry%3D%2272%22%20transform%3D%22rotate(-22%20264%20285)%22%20fill%3D%22none%22%20stroke%3D%22%23a83bff%22%20stroke-width%3D%2226%22%20opacity%3D%22.36%22%20filter%3D%22url(%23halo)%22%2F%3E%0A%3Cpath%20d%3D%22M131%20351C55%20341%2048%20299%20106%20258c61-44%20203-72%20303-77%2034-2%2057%208%2061%2025%209%2038-91%20116-236%20156-48%2013-85%2013-103-11%22%20fill%3D%22none%22%20stroke%3D%22url(%23orbit)%22%20stroke-width%3D%2218%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22M165%20382%20244%20127q9-30%2042-30h137l-38%2049H288l-24%2072h112l-33%2049H250l-38%20115z%22%20fill%3D%22url(%23metal)%22%20stroke%3D%22%23d4e8ff%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22m212%20382%2038-115h93l33-49H264l-24%2073z%22%20fill%3D%22url(%23cyan)%22%20opacity%3D%22.95%22%2F%3E%0A%3Cpath%20d%3D%22M79%20351q85%2056%20286-30%22%20fill%3D%22none%22%20stroke%3D%22%23c33cff%22%20stroke-width%3D%228%22%20opacity%3D%22.95%22%2F%3E%0A%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22472%22%20height%3D%22472%22%20rx%3D%22105%22%20fill%3D%22none%22%20stroke%3D%22%2342e5ff%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%224%22%2F%3E%0A%3C%2Fsvg%3E") center/cover no-repeat!important;
+ box-shadow:0 0 15px rgba(9,234,255,.23),0 0 8px rgba(170,55,255,.15)!important;
+}
+body.revision-crimson .sidebar .brand .brandicon svg{display:none!important}
+
 </style></head><body class="android-premium revision-compact revision-crimson view-summary">
+<div id="premiumBoot" data-variant="revision" role="status" aria-label="Заставка FARUKH REVISION PRO">
+ <div class="premium-boot-content">
+  <div class="premium-boot-medal" aria-hidden="true"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%20role%3D%22img%22%20aria-label%3D%22Farukh%20Revision%20%E2%80%94%20F%22%3E%0A%3Cdefs%3E%0A%20%3ClinearGradient%20id%3D%22edge%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2316f6ff%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%2348aaff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23bf42ff%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22metal%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22.75%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%23eaf5ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2391a8e2%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22cyan%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23a8ffff%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%2300eaff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23236bd7%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22orbit%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23b73cff%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%238f3dff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff86ff%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2312345b%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%2307142d%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%231f0a42%22%2F%3E%3C%2FlinearGradient%3E%0A%20%3Cfilter%20id%3D%22halo%22%20x%3D%22-45%25%22%20y%3D%22-45%25%22%20width%3D%22190%25%22%20height%3D%22190%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%229%22%2F%3E%3C%2Ffilter%3E%0A%3C%2Fdefs%3E%0A%3Crect%20x%3D%2215%22%20y%3D%2215%22%20width%3D%22482%22%20height%3D%22482%22%20rx%3D%22108%22%20fill%3D%22%23070e28%22%2F%3E%0A%3Crect%20x%3D%2219%22%20y%3D%2219%22%20width%3D%22474%22%20height%3D%22474%22%20rx%3D%22106%22%20fill%3D%22url(%23bg)%22%20stroke%3D%22url(%23edge)%22%20stroke-width%3D%228%22%2F%3E%0A%3Cpath%20d%3D%22M79%2058Q140%2022%20322%2039%22%20stroke%3D%22%23c5faff%22%20stroke-width%3D%2211%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.23%22%20fill%3D%22none%22%2F%3E%0A%3Cpath%20d%3D%22M450%20300Q477%20404%20401%20459%22%20stroke%3D%22%23ed65ff%22%20stroke-width%3D%2215%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.18%22%20fill%3D%22none%22%2F%3E%0A%3Cellipse%20cx%3D%22264%22%20cy%3D%22285%22%20rx%3D%22187%22%20ry%3D%2272%22%20transform%3D%22rotate(-22%20264%20285)%22%20fill%3D%22none%22%20stroke%3D%22%23a83bff%22%20stroke-width%3D%2226%22%20opacity%3D%22.36%22%20filter%3D%22url(%23halo)%22%2F%3E%0A%3Cpath%20d%3D%22M131%20351C55%20341%2048%20299%20106%20258c61-44%20203-72%20303-77%2034-2%2057%208%2061%2025%209%2038-91%20116-236%20156-48%2013-85%2013-103-11%22%20fill%3D%22none%22%20stroke%3D%22url(%23orbit)%22%20stroke-width%3D%2218%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22M165%20382%20244%20127q9-30%2042-30h137l-38%2049H288l-24%2072h112l-33%2049H250l-38%20115z%22%20fill%3D%22url(%23metal)%22%20stroke%3D%22%23d4e8ff%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22m212%20382%2038-115h93l33-49H264l-24%2073z%22%20fill%3D%22url(%23cyan)%22%20opacity%3D%22.95%22%2F%3E%0A%3Cpath%20d%3D%22M79%20351q85%2056%20286-30%22%20fill%3D%22none%22%20stroke%3D%22%23c33cff%22%20stroke-width%3D%228%22%20opacity%3D%22.95%22%2F%3E%0A%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22472%22%20height%3D%22472%22%20rx%3D%22105%22%20fill%3D%22none%22%20stroke%3D%22%2342e5ff%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%224%22%2F%3E%0A%3C%2Fsvg%3E" alt=""></div>
+  <div class="premium-boot-kicker">CHEF EDITION · STOCK CONTROL</div>
+  <div class="premium-boot-title" data-boot-title>FARUKH REVISION PRO</div>
+  <div class="premium-boot-sub" data-boot-sub>КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ</div>
+  <div class="rev-boot-dial" role="presentation"><div class="rev-boot-dial-inner"><span class="rev-boot-percent" data-rev-boot-percent>0%</span><span class="rev-boot-pct-label">ЗАГРУЗКА</span></div></div>
+  <div class="premium-boot-message" data-boot-message>Подготовка системы...</div>
+  <div class="rev-boot-stages" aria-hidden="true">
+   <div class="rev-boot-stage" data-state="waiting"><span class="rev-boot-stage-icon">▤</span><span class="rev-boot-stage-text">Подготовка интерфейса…</span><span class="rev-boot-stage-state">·</span></div>
+   <div class="rev-boot-stage" data-state="waiting"><span class="rev-boot-stage-icon">▥</span><span class="rev-boot-stage-text">Загрузка разделов…</span><span class="rev-boot-stage-state">·</span></div>
+   <div class="rev-boot-stage" data-state="waiting"><span class="rev-boot-stage-icon">◈</span><span class="rev-boot-stage-text">Открытие рабочего экрана…</span><span class="rev-boot-stage-state">·</span></div>
+  </div>
+  <div class="premium-boot-line" aria-hidden="true"><i></i></div>
+  <button class="premium-boot-skip" type="button" data-boot-skip>Пропустить ›</button>
+ </div></div>
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <linearGradient id="revGold" x1="0" y1="0" x2="0.24" y2="1"><stop stop-color="#fff8d1"/><stop offset=".24" stop-color="#ffe28b"/><stop offset=".53" stop-color="#dba445"/><stop offset=".77" stop-color="#86581d"/><stop offset="1" stop-color="#ffdb75"/></linearGradient>
  <linearGradient id="revSilver" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset=".40" stop-color="#9daec8"/><stop offset=".7" stop-color="#546785"/><stop offset="1" stop-color="#cad7e9"/></linearGradient>
@@ -1773,5 +2022,252 @@ document.addEventListener('visibilitychange',()=>{
   rev041SyncNow();
  }
 });
+
+</script><script>
+/* MORE SUSHI & FARUKH REVISION — premium entry + slow typing effects.
+ * PRESENTATION ONLY: does not read or change cloud, tables, balances, drafts,
+ * authentication, update/install, or navigation data.
+ * All original text nodes are restored; buttons remain clickable.
+ */
+(()=>{
+ 'use strict';
+ const root=document.documentElement,body=document.body;
+ if(!body)return;
+ const revision=body.classList.contains('revision-crimson');
+ const mobile=!revision&&Boolean(document.getElementById('mssCategoryApp'));
+ const studio=!revision&&!mobile&&root.classList.contains('ocean-app');
+ if(!revision&&!mobile&&!studio)return;
+ // Reduced-motion normally wins. A user's explicit «Повторить заставку»
+ // click may opt in for this browser session without changing Android settings.
+ let optedIn=false;
+ try{optedIn=sessionStorage.getItem('mss-explicit-motion-optin')==='1'}catch{}
+ if(optedIn)root.classList.add('premium-motion-optin');
+ const reduced=!optedIn&&window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ const jobs=new Set(),queued=new Set();
+ let generation=0,lastView='';
+ const graphemes=value=>{
+   try{return Array.from(new Intl.Segmenter('ru',{granularity:'grapheme'}).segment(value),s=>s.segment)}
+   catch{return Array.from(value)}
+ };
+ function release(job){
+   if(job.done)return;
+   job.done=true;
+   clearTimeout(job.timer);
+   const {el,node,full,priorHeight,hadLabel,oldLabel}=job;
+   // If the real application changed this node (mode switch, cloud refresh),
+   // NEVER restore our old decorative copy over the updated business text.
+   if(node&&node.isConnected&&node.nodeValue===job.lastWritten)node.nodeValue=full;
+   if(el&&el.isConnected){
+     el.classList.remove('premium-typing');
+     if(priorHeight)el.style.minHeight=priorHeight;else el.style.removeProperty('min-height');
+     if(hadLabel)el.setAttribute('aria-label',oldLabel);else el.removeAttribute('aria-label');
+   }
+   jobs.delete(job);
+ }
+ function cancel(){
+   generation++;
+   queued.forEach(clearTimeout);queued.clear();
+   for(const job of [...jobs])release(job);
+ }
+ function schedule(fn,delay){
+   const id=setTimeout(()=>{queued.delete(id);fn()},delay);
+   queued.add(id);
+   return id;
+ }
+ function animateNode(el,gen,speed){
+   if(gen!==generation||!el?.isConnected||el.closest('[hidden],.hide'))return;
+   if(el.matches('input,button,select,textarea,[contenteditable], [aria-live]'))return;
+   const node=Array.from(el.childNodes).find(n=>n.nodeType===3&&n.nodeValue.trim().length>=3);
+   if(!node)return;
+   const full=node.nodeValue;
+   const match=full.match(/^(\s*)([\s\S]*?)(\s*)$/);
+   if(!match)return;
+   const [,leading,text,trailing]=match,chars=graphemes(text);
+   if(chars.length<3||chars.length>75)return;
+   const hadLabel=el.hasAttribute('aria-label'),oldLabel=el.getAttribute('aria-label');
+   const priorHeight=el.style.minHeight;
+   const measured=Math.ceil(el.getBoundingClientRect().height);
+   if(measured>0)el.style.minHeight=measured+'px';
+   if(!hadLabel)el.setAttribute('aria-label',text);
+   const job={el,node,full,priorHeight,hadLabel,oldLabel,lastWritten:leading,timer:null,done:false};
+   jobs.add(job);
+   node.nodeValue=leading;
+   el.classList.add('premium-typing');
+   let idx=0;
+   const step=()=>{
+     if(job.done)return;
+     if(node.nodeValue!==job.lastWritten){release(job);return;}
+     if(gen!==generation||!el.isConnected||el.closest('[hidden],.hide')||document.hidden){
+       release(job);return;
+     }
+     idx=Math.min(chars.length,idx+1);
+     node.nodeValue=leading+chars.slice(0,idx).join('')+trailing;
+     job.lastWritten=node.nodeValue;
+     if(idx===chars.length){release(job);return;}
+     job.timer=setTimeout(step,speed);
+   };
+   step();
+ }
+ function typeBatch(targets,{speed=63,stagger=95,cap=19}={}){
+   cancel();
+   if(reduced)return;
+   const gen=generation;
+   const elements=[...new Set(targets)].filter(el=>el&&el.isConnected&&!el.closest('[hidden],.hide')).slice(0,cap);
+   elements.forEach((el,i)=>schedule(()=>animateNode(el,gen,i<2?Math.max(speed,75):speed),Math.min(i*stagger,1050)));
+ }
+ const select=(query,scope=document)=>Array.from(scope.querySelectorAll(query));
+ function runView(view){
+   if(reduced)return;
+   lastView=view;
+   if(mobile){
+     if(view==='home'){
+       typeBatch(select('.hero-kicker,.hero-copy h1,.hero-copy h1 em,.hero-copy p,#mss-home .home-heading h2,#mss-home .mss-feature strong,#mss-home .mss-feature small,#mss-home .continue-work b,.bottomnav .navitem.active span'),{speed:82,stagger:120,cap:17});
+     } else {
+       const panel=document.getElementById('mss-'+view);
+       if(panel)typeBatch([...select('.bottomnav .navitem.active span'),...select('.mss-title h2,.mss-title p,.mss-card strong,.mss-card small',panel)],{speed:86,stagger:130,cap:20});
+     }
+     return;
+   }
+   if(revision){
+     const heading=select('.top h1,.menu button.active .menu-label,.kpi .label');
+     let list=[];
+     if(view==='summary')list=select('#view-summary .sectionheading h2,#view-summary .sectionheading .desc,#view-summary .summarytile strong,#view-summary .summarytile .hint,#view-summary .summarytile .numbers span');
+     if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname,#view-revision .card h2,#view-revision .card .desc');
+     if(view==='history')list=select('#view-history h2,#view-history h3,#view-history .desc,#view-history .historyitem strong,#view-history .historyitem small');
+     if(view==='products')list=select('#view-products h2,#view-products h3,#view-products .desc,#view-products #productsrows .itemname');
+     // Intentional gradual typewriter across visible categories and cards.
+     // Never animate inputs/buttons; avoid delaying user interaction.
+     typeBatch([...heading,...list],{speed:115,stagger:160,cap:28});
+     return;
+   }
+   if(studio){
+     typeBatch(select('.topbar h1,.page-head h2,.page-head p,.card h2,.card h3,.empty-state strong').filter(el=>!el.closest('[hidden],.hide')),{speed:86,stagger:140,cap:12});
+   }
+ }
+ function bootText(el,text,delay,speed){
+   if(!el)return;
+   const chars=graphemes(text);
+   el.textContent='';
+   let i=0;
+   const step=()=>{
+     if(!el.isConnected||!document.getElementById('premiumBoot'))return;
+     el.textContent=chars.slice(0,++i).join('');
+     if(i<chars.length)schedule(step,speed);
+   };
+   schedule(step,delay);
+ }
+ function start(){
+   // Replay from More > Effects; this also creates a fresh URL in Android WebView.
+   document.addEventListener('click',event=>{
+     const replay=event.target.closest?.('[data-premium-replay]');
+     if(!replay)return;
+     event.preventDefault();
+     try{sessionStorage.setItem('mss-explicit-motion-optin','1')}catch{}
+     const url=new URL(location.href);
+     url.searchParams.set('_replay',Date.now().toString());
+     if(mobile)url.hash='';
+     location.assign(url.href);
+   });
+   if(revision){
+     const oldGo=window.go;
+     if(typeof oldGo==='function'&&!oldGo.__premiumWrapped){
+       const wrapped=function(view,button){
+         const result=oldGo.apply(this,arguments);
+         // Data has already been rendered by the original app. Effects are non-blocking.
+         schedule(()=>runView(view),90);
+         return result;
+       };
+       wrapped.__premiumWrapped=true;window.go=wrapped;
+     }
+   }else if(mobile){
+     document.addEventListener('click',event=>{
+       const tab=event.target.closest?.('[data-mss-tab]')?.dataset?.mssTab;
+       if(tab)schedule(()=>runView(tab),75);
+     });
+     window.addEventListener('hashchange',()=>schedule(()=>runView(root.dataset.mssTab||'home'),85));
+     window.addEventListener('popstate',()=>schedule(()=>runView(root.dataset.mssTab||'home'),85));
+   }else if(studio){
+     document.addEventListener('click',event=>{
+       if(event.target.closest?.('[data-nav]'))schedule(()=>runView('studio'),115);
+     });
+   }
+   const initial=revision?'summary':mobile?(root.dataset.mssTab||'home'):'studio';
+   const overlay=document.getElementById('premiumBoot');
+   if(!overlay||reduced){
+     overlay?.remove();
+     schedule(()=>runView(initial),170);
+     return;
+   }
+   // The splash is cosmetic, skippable, and not a fake cloud verification.
+   let finished=false;
+   const close=()=>{
+     if(finished)return;
+     finished=true;
+     overlay.classList.add('is-leaving');
+     const finish=()=>{overlay.remove();runView(revision?'summary':mobile?(root.dataset.mssTab||'home'):'studio')};
+     // Splash cleanup must not be cancelled by a background visibility event.
+     setTimeout(finish,560);
+   };
+   const closeTimer=setTimeout(close,3650);
+   overlay.querySelector('[data-boot-skip]')?.addEventListener('click',()=>{
+     clearTimeout(closeTimer);
+     close();
+   },{once:true});
+   bootText(overlay.querySelector('[data-boot-title]'),revision?'FARUKH REVISION PRO':'MORE SUSHI STUDIO PRO',180,75);
+   bootText(overlay.querySelector('[data-boot-sub]'),revision?'КОНТРОЛЬ ОСТАТКОВ НА СКЛАДЕ':'ПРОФЕССИОНАЛЬНАЯ СТУДИЯ ШЕФ-ПОВАРА',430,51);
+   bootText(overlay.querySelector('[data-boot-message]'),'Подготавливаем рабочий экран...',1600,48);
+   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(closeTimer);close();cancel()}},{passive:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+ else start();
+})();
+
+</script><script>
+/* FARUKH REVISION splash presentation. Purely cosmetic. Never touches stock or cloud state. */
+(()=>{
+ 'use strict';
+ const start=()=>{
+   const boot=document.querySelector('#premiumBoot[data-variant="revision"]');
+   if(!boot)return;
+   const explicit=document.documentElement.classList.contains('premium-motion-optin');
+   if(!explicit&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+   const ring=boot.querySelector('.rev-boot-dial');
+   const percent=boot.querySelector('[data-rev-boot-percent]');
+   const stages=[...boot.querySelectorAll('.rev-boot-stage')];
+   const labels=['Подготовка интерфейса…','Загрузка разделов…','Открытие рабочего экрана…'];
+   const timers=[];
+   let alive=true;
+   const queue=(fn,delay)=>{const t=setTimeout(()=>{if(alive&&boot.isConnected)fn()},delay);timers.push(t)};
+   const write=(el,msg,speed=60)=>{
+     if(!el)return;
+     const chars=Array.from(msg);
+     let i=0;el.textContent='';
+     const step=()=>{if(!alive||!boot.isConnected)return;el.textContent=chars.slice(0,++i).join('');if(i<chars.length)queue(step,speed)};
+     step();
+   };
+   const startAt=performance.now(),duration=3250;
+   const tick=(now)=>{
+     if(!alive||!boot.isConnected)return;
+     const t=Math.min(1,(now-startAt)/duration);
+     // This is entrance-animation progress; it is not cloud/print connectivity.
+     const eased=t<.82?(.82*(1-Math.pow(1-t/.82,2))):(.82+.18*((t-.82)/.18));
+     const v=Math.min(100,Math.round(eased*100));
+     if(ring)ring.style.setProperty('--rev-progress',v+'%');
+     if(percent)percent.textContent=v+'%';
+     if(t<1)requestAnimationFrame(tick);
+   };
+   requestAnimationFrame(tick);
+   stages.forEach((row,i)=>{
+     const delay=i===0?270:i===1?1150:2150;
+     queue(()=>{row.dataset.state='active';write(row.querySelector('.rev-boot-stage-text'),labels[i],47)},delay);
+     queue(()=>{row.dataset.state='done';const mark=row.querySelector('.rev-boot-stage-state');if(mark)mark.textContent='✓'},delay+920);
+   });
+   const cleanup=new MutationObserver(()=>{
+     if(!boot.isConnected){alive=false;timers.forEach(clearTimeout);cleanup.disconnect()}
+   });
+   cleanup.observe(document.body,{childList:true});
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
 
 </script></body></html>
