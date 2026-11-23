@@ -1,0 +1,55 @@
+name: Build FARUKH REVISION PRO Android
+on:
+  push:
+    branches:
+      - feature/farukh-revision-updater-20261122
+    paths:
+      - 'farukh-revision-android/**'
+      - '.github/workflows/farukh-revision-apk.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'farukh-revision-android/**'
+      - '.github/workflows/farukh-revision-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Use Android SDK preinstalled on GitHub runner
+        shell: bash
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          SDKMANAGER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools" -path "*/bin/sdkmanager" -type f | sort -V | tail -1)"
+          test -x "$SDKMANAGER" || { echo "sdkmanager not found"; exit 1; }
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Validate revision calculations and data safety
+        run: node farukh-revision-android/tests/revision-smoke.mjs
+      - name: Compile APK without signing key
+        working-directory: farukh-revision-android
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revision-0.5.0-unsigned
+          path: farukh-revision-android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+      - name: Build separate TEST APK (debug-signed, not an in-place update)
+        working-directory: farukh-revision-android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Upload installable TEST APK for optional device testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: revision-0.5.0-DEV-debug-signed-not-update
+          path: farukh-revision-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

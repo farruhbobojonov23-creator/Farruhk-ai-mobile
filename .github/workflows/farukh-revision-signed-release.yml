@@ -1,0 +1,111 @@
+name: FARUKH REVISION PRO stable signed update
+on:
+  push:
+    branches: [feature/farukh-revision-updater-20261122]
+    paths:
+      - 'farukh-revision-android/**'
+      - '.github/workflows/farukh-revision-signed-release.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: farukh-revision-signed-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check permanent signing secrets
+        id: secrets
+        shell: bash
+        env:
+          PKCS12_B64: ${{ secrets.FARUKH_REVISION_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_REVISION_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_REVISION_KEY_ALIAS }}
+        run: |
+          if [ -n "$PKCS12_B64" ] && [ -n "$STORE_PASS" ] && [ -n "$KEY_ALIAS" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Signing secrets are not configured. Do not ship unsigned or ephemeral debug APKs as updates."
+          fi
+      - uses: actions/setup-java@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          gradle-version: '8.9'
+      - name: Prepare Android SDK and verify calculations
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -path "*/bin/sdkmanager" -type f | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+          node farukh-revision-android/tests/revision-smoke.mjs
+      - name: Build APK
+        if: steps.secrets.outputs.ready == 'true'
+        working-directory: farukh-revision-android
+        run: gradle :app:assembleRelease --no-daemon
+      - name: Sign and verify with Android SDK
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        env:
+          PKCS12_B64: ${{ secrets.FARUKH_REVISION_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_REVISION_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_REVISION_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          BIN="$SDK_ROOT/build-tools/35.0.0"
+          STORE="$RUNNER_TEMP/revision-release.p12"
+          printf '%s' "$PKCS12_B64" | base64 -d > "$STORE"
+          chmod 600 "$STORE"
+          SRC="farukh-revision-android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -s "$SRC"
+          mkdir -p farukh-revision-update-server/releases
+          APK="farukh-revision-update-server/releases/revision-pro.apk"
+          # zipalign runs *before* signing; editing a signed APK invalidates its signature.
+          "$BIN/zipalign" -f -p 4 "$SRC" "$RUNNER_TEMP/revision-aligned.apk"
+          "$BIN/apksigner" sign --ks "$STORE" --ks-type PKCS12 --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:STORE_PASS --key-pass env:STORE_PASS \
+            --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true \
+            --out "$APK" "$RUNNER_TEMP/revision-aligned.apk"
+          "$BIN/apksigner" verify --verbose --print-certs "$APK"
+          test "$("$BIN/aapt" dump badging "$APK" | grep "^package: " | sed -n "s/.*name='\\([^']*\\)'.*/\\1/p")" = "com.farukh.revision"
+          CERT="$("$BIN/apksigner" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)"
+          CERT="${CERT,,}"
+          test "${#CERT}" -eq 64
+          OLD_META="farukh-revision-update-server/releases/release.json"
+          if [ -s "$OLD_META" ]; then
+            OLD_CERT="$(node -e "const r=require('./$OLD_META'); console.log(r.certSha256||'')")"
+            OLD_CODE="$(node -e "const r=require('./$OLD_META'); console.log(r.versionCode||0)")"
+            [ -z "$OLD_CERT" ] || [ "$OLD_CERT" = "$CERT" ] || { echo "::error::Signing certificate changed"; exit 1; }
+          else
+            OLD_CODE=0
+          fi
+          CODE="$(grep -E '^[[:space:]]*versionCode[[:space:]]+[0-9]+' farukh-revision-android/app/build.gradle | awk '{print $2}' | head -1)"
+          NAME="$(grep -E '^[[:space:]]*versionName[[:space:]]+' farukh-revision-android/app/build.gradle | awk '{print $2}' | tr -d "\047" | head -1)"
+          test "$CODE" -gt "$OLD_CODE" || { echo "::error::versionCode must increase"; exit 1; }
+          HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
+          export CODE NAME HASH CERT
+          node -e "require('fs').writeFileSync('$OLD_META',JSON.stringify({versionCode:+process.env.CODE,versionName:process.env.NAME,sha256:process.env.HASH,certSha256:process.env.CERT},null,2)+'\\n')"
+          rm -f "$STORE"
+      - name: Publish matching APK and metadata to update server branch
+        if: steps.secrets.outputs.ready == 'true' && github.ref == 'refs/heads/feature/farukh-revision-updater-20261122'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add farukh-revision-update-server/releases/revision-pro.apk farukh-revision-update-server/releases/release.json
+          git diff --cached --quiet && exit 0
+          git commit -m "release(revision): publish verified stable APK and SHA-256 manifest [skip ci]"
+          git push origin "HEAD:feature/farukh-revision-updater-20261122"
