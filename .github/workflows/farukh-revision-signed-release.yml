@@ -91,8 +91,8 @@ jobs:
           else
             OLD_CODE=0
           fi
-          CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\\([0-9]*\\).*/\\1/p' farukh-revision-android/app/build.gradle | head -1)"
-          NAME="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*'\\([^']*\\)'.*/\\1/p" farukh-revision-android/app/build.gradle | head -1)"
+          CODE="$(grep -E '^[[:space:]]*versionCode[[:space:]]+[0-9]+' farukh-revision-android/app/build.gradle | awk '{print $2}' | head -1)"
+          NAME="$(grep -E '^[[:space:]]*versionName[[:space:]]+' farukh-revision-android/app/build.gradle | awk '{print $2}' | tr -d "\047" | head -1)"
           test "$CODE" -gt "$OLD_CODE" || { echo "::error::versionCode must increase"; exit 1; }
           HASH="$(sha256sum "$APK" | cut -d' ' -f1)"
           export CODE NAME HASH CERT
