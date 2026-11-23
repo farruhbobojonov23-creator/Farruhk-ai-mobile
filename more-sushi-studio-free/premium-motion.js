@@ -105,11 +105,13 @@
    if(revision){
      const heading=select('.top h1,.menu button.active .menu-label,.kpi .label');
      let list=[];
-     if(view==='summary')list=select('#view-summary .sectionheading h2,#view-summary .sectionheading .desc,#view-summary .summarytile strong,#view-summary .summarytile .hint');
-     if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname');
-     if(view==='history')list=select('#view-history h2,#view-history .desc,#view-history .historyitem strong');
-     if(view==='products')list=select('#view-products h2,#view-products .desc,#view-products #productsrows .itemname');
-     typeBatch([...heading,...list],{speed:91,stagger:140,cap:18});
+     if(view==='summary')list=select('#view-summary .sectionheading h2,#view-summary .sectionheading .desc,#view-summary .summarytile strong,#view-summary .summarytile .hint,#view-summary .summarytile .numbers span');
+     if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname,#view-revision .card h2,#view-revision .card .desc');
+     if(view==='history')list=select('#view-history h2,#view-history h3,#view-history .desc,#view-history .historyitem strong,#view-history .historyitem small');
+     if(view==='products')list=select('#view-products h2,#view-products h3,#view-products .desc,#view-products #productsrows .itemname');
+     // Intentional gradual typewriter across visible categories and cards.
+     // Never animate inputs/buttons; avoid delaying user interaction.
+     typeBatch([...heading,...list],{speed:115,stagger:160,cap:28});
      return;
    }
    if(studio){
