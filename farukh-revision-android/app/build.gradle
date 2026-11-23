@@ -3,17 +3,17 @@ android {
   namespace 'com.farukh.revision'
   compileSdk 35
   defaultConfig {
-    applicationId 'com.farukh.revision.preview'
+    applicationId 'com.farukh.revision'
     minSdk 26
     targetSdk 35
-    versionCode 20
-    versionName '0.4.4'
+    versionCode 21
+    versionName '0.5.0'
   }
   buildTypes {
     // A separate APK for safe visual testing. Never overwrites the user's existing app.
     debug {
-      applicationIdSuffix '.test044'
-      manifestPlaceholders = [appLabel: 'REVISION 0.4.4 TEST']
+      applicationIdSuffix '.test'
+      manifestPlaceholders = [appLabel: 'REVISION DEV TEST']
     }
     release {
       minifyEnabled false
