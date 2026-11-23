@@ -92,7 +92,17 @@ public final class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest req){
                 Uri uri=req.getUrl();
-                if(req.isForMainFrame() && !ORIGIN.equals(uri.toString())) {
+                if(req.isForMainFrame() && "https".equalsIgnoreCase(uri.getScheme())
+                    && "appassets.androidplatform.net".equalsIgnoreCase(uri.getHost())){
+                    // Replay/effects links only re-open the current offline/cached HTML,
+                    // never navigate to an unreachable appassets URL over the network.
+                    if(!ORIGIN.equals(uri.toString())){
+                        reloadCurrentUi();
+                        return true;
+                    }
+                    return false;
+                }
+                if(req.isForMainFrame()){
                     try{startActivity(new Intent(Intent.ACTION_VIEW,uri));}
                     catch(Exception e){notice("Не удалось открыть внешнюю ссылку.");}
                     return true;
@@ -127,6 +137,15 @@ public final class MainActivity extends Activity {
     }
     private void loadUi(String html){
         if(web!=null)web.loadDataWithBaseURL(ORIGIN,html,"text/html","UTF-8",null);
+    }
+    private void reloadCurrentUi(){
+        try{
+            File cache=new File(getFilesDir(),UI_CACHE);
+            loadUi(readSmall(cache.exists()?new FileInputStream(cache):getAssets().open("revision.html"),MAX_UI_BYTES));
+        }catch(Exception e){
+            try{loadUi(readSmall(getAssets().open("revision.html"),MAX_UI_BYTES));}
+            catch(Exception ex){notice("Не удалось повторить заставку.");}
+        }
     }
     private static String normalizeTrustedHtml(String html)throws Exception{
         if(!html.contains("<title>FARUKH REVISION")||
