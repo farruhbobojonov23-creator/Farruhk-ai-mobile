@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Farukh Revision — F">
+<defs>
+ <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#16f6ff"/><stop offset=".45" stop-color="#48aaff"/><stop offset="1" stop-color="#bf42ff"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2=".75" y2="1"><stop stop-color="#fff"/><stop offset=".46" stop-color="#eaf5ff"/><stop offset="1" stop-color="#91a8e2"/></linearGradient>
+ <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a8ffff"/><stop offset=".42" stop-color="#00eaff"/><stop offset="1" stop-color="#236bd7"/></linearGradient>
+ <linearGradient id="orbit" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b73cff"/><stop offset=".55" stop-color="#8f3dff"/><stop offset="1" stop-color="#ff86ff"/></linearGradient>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#12345b"/><stop offset=".46" stop-color="#07142d"/><stop offset="1" stop-color="#1f0a42"/></linearGradient>
+ <filter id="halo" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<rect x="15" y="15" width="482" height="482" rx="108" fill="#070e28"/>
+<rect x="19" y="19" width="474" height="474" rx="106" fill="url(#bg)" stroke="url(#edge)" stroke-width="8"/>
+<path d="M79 58Q140 22 322 39" stroke="#c5faff" stroke-width="11" stroke-linecap="round" opacity=".23" fill="none"/>
+<path d="M450 300Q477 404 401 459" stroke="#ed65ff" stroke-width="15" stroke-linecap="round" opacity=".18" fill="none"/>
+<ellipse cx="264" cy="285" rx="187" ry="72" transform="rotate(-22 264 285)" fill="none" stroke="#a83bff" stroke-width="26" opacity=".36" filter="url(#halo)"/>
+<path d="M131 351C55 341 48 299 106 258c61-44 203-72 303-77 34-2 57 8 61 25 9 38-91 116-236 156-48 13-85 13-103-11" fill="none" stroke="url(#orbit)" stroke-width="18" stroke-linecap="round"/>
+<path d="M165 382 244 127q9-30 42-30h137l-38 49H288l-24 72h112l-33 49H250l-38 115z" fill="url(#metal)" stroke="#d4e8ff" stroke-width="1.5"/>
+<path d="m212 382 38-115h93l33-49H264l-24 73z" fill="url(#cyan)" opacity=".95"/>
+<path d="M79 351q85 56 286-30" fill="none" stroke="#c33cff" stroke-width="8" opacity=".95"/>
+<rect x="20" y="20" width="472" height="472" rx="105" fill="none" stroke="#42e5ff" stroke-opacity=".22" stroke-width="4"/>
+</svg>
