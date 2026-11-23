@@ -6,14 +6,14 @@ android {
     applicationId 'com.farukh.revision.preview'
     minSdk 26
     targetSdk 35
-    versionCode 19
-    versionName '0.4.3'
+    versionCode 20
+    versionName '0.4.4'
   }
   buildTypes {
     // A separate APK for safe visual testing. Never overwrites the user's existing app.
     debug {
-      applicationIdSuffix '.test'
-      manifestPlaceholders = [appLabel: 'FARUKH REVISION TEST']
+      applicationIdSuffix '.test044'
+      manifestPlaceholders = [appLabel: 'REVISION 0.4.4 TEST']
     }
     release {
       minifyEnabled false
