@@ -1,7 +1,7 @@
 {
-  "build": "pearl-rose-8.5.0-20261124",
-  "display": "PEARL ROSE ULTRA · 8.5.0 — Кинематографическая анимация",
+  "build": "farruh-workspace-1.0.0-20261124",
+  "display": "FARRUH WORKSPACE PRO 3D · Chef Command Center 1.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "First section of the MORE SUSHI mobile home types its original branding and hero text slowly after a skippable intro. The cloud status, statistics, home cards, and all other categories only fade/slide in sequentially; their labels are never typed. Returning to home does not replay typewriter. Single Pearl Rose visual theme and original photos, buttons, navigation, cloud, PDF and TTK functionality unchanged. Motion-only code, respects reduced-motion except explicit user replay. Signed native Android APK is not rebuilt."
+  "details": "A full replacement of MORE SUSHI mobile launcher with a single clean light-platinum/black/ruby CHEF COMMAND CENTER UI. 7 linked projects, tool navigation, in-app iframe with fallback link, local-only add/edit/favorites, cloud counters only from authenticated MORE SUSHI Supabase, manual update, 5-tab navigation, skippable cinematic splash. No prior Pearl/Ocean/Ruby CSS is loaded by mobile.html. Separate TTK/Revision app logic and data remain unchanged. Signed Android APK not rebuilt."
 }
