@@ -42,6 +42,12 @@ import java.util.concurrent.Executors;
 public final class MainActivity extends Activity {
     private static final String ORIGIN="https://appassets.androidplatform.net/";
     private static final String UPDATE_HOST="farukh-revision-updates.onrender.com";
+    // The trusted static site publishes visual-only changes; APK binaries remain signed separately.
+    private static final String UI_HOST="more-sushi-studio.onrender.com";
+    private static final String UI_URL="https://"+UI_HOST+"/revision.html";
+    private static final int MAX_UI_BYTES=3*1024*1024;
+    private static final String UI_CACHE="revision-ui-cache-v1.html";
+
     private static final long MAX_APK_SIZE=120L*1024L*1024L;
     private static final int CSV_REQUEST=701;
     private WebView web;
@@ -100,12 +106,76 @@ public final class MainActivity extends Activity {
             }
         });
         web.addJavascriptInterface(new AndroidBridge(),"FarukhAndroid");
-        try(InputStream input=getAssets().open("revision.html");
-            ByteArrayOutputStream out=new ByteArrayOutputStream()){
-            byte[] buffer=new byte[32768];int n;
-            while((n=input.read(buffer))!=-1)out.write(buffer,0,n);
-            web.loadDataWithBaseURL(ORIGIN,out.toString("UTF-8"),"text/html","UTF-8",null);
-        }catch(Exception e){web.loadDataWithBaseURL(ORIGIN,"<h1>Ошибка загрузки интерфейса</h1>","text/html","UTF-8",null);}
+        try{
+            File cache=new File(getFilesDir(),UI_CACHE);
+            String html=readSmall(cache.exists()?new FileInputStream(cache):getAssets().open("revision.html"),MAX_UI_BYTES);
+            loadUi(html);
+        }catch(Exception e){
+            try{loadUi(readSmall(getAssets().open("revision.html"),MAX_UI_BYTES));}
+            catch(Exception second){loadUi("<h1>Ошибка загрузки интерфейса</h1>");}
+        }
+    }
+    private static String readSmall(InputStream input,int limit)throws Exception{
+        try(InputStream in=input;ByteArrayOutputStream out=new ByteArrayOutputStream()){
+            byte[] bytes=new byte[32768];int n;
+            while((n=in.read(bytes))!=-1){
+                if(out.size()+n>limit)throw new SecurityException("UI too large");
+                out.write(bytes,0,n);
+            }
+            return out.toString("UTF-8");
+        }
+    }
+    private void loadUi(String html){
+        if(web!=null)web.loadDataWithBaseURL(ORIGIN,html,"text/html","UTF-8",null);
+    }
+    private static String normalizeTrustedHtml(String html)throws Exception{
+        if(!html.contains("<title>FARUKH REVISION")||
+           !html.contains("id=\"compactCloudTools\"")||
+           !html.contains("id=\"view-revision\"")||
+           !html.contains("checkAppUpdate()")||
+           !html.contains("function weightOf("))
+            throw new SecurityException("UI structure invalid");
+        // Keep the same HTTPS origin across revisions, so localStorage never changes.
+        // Link external visual assets explicitly to the trusted static site.
+        return html.replace("src=\"./","src=\"https://"+UI_HOST+"/")
+                   .replace("href=\"./","href=\"https://"+UI_HOST+"/");
+    }
+    private void refreshVisualUi(){
+        io.execute(()->{
+            try{
+                notice("Проверяем обновление интерфейса…");
+                HttpURLConnection c=(HttpURLConnection)new URL(UI_URL+"?native_check="+System.currentTimeMillis()).openConnection();
+                c.setConnectTimeout(9000);c.setReadTimeout(12000);
+                c.setInstanceFollowRedirects(false);c.setUseCaches(false);
+                String html;
+                try{
+                    if(c.getResponseCode()!=200)throw new IllegalStateException("HTTP "+c.getResponseCode());
+                    html=normalizeTrustedHtml(readSmall(c.getInputStream(),MAX_UI_BYTES));
+                }finally{c.disconnect();}
+                byte[] bytes=html.getBytes("UTF-8");
+                byte[] digest=MessageDigest.getInstance("SHA-256").digest(bytes);
+                StringBuilder hash=new StringBuilder();
+                for(byte x:digest)hash.append(String.format(Locale.ROOT,"%02x",x&255));
+                String previous=getSharedPreferences("farukh-ui-update",MODE_PRIVATE).getString("sha256","");
+                if(hash.toString().equals(previous)){
+                    notice("Интерфейс актуален. Все данные сохранены.");
+                    return;
+                }
+                File tmp=new File(getFilesDir(),UI_CACHE+".tmp");
+                File destination=new File(getFilesDir(),UI_CACHE);
+                try(FileOutputStream out=new FileOutputStream(tmp)){
+                    out.write(bytes);out.getFD().sync();
+                }
+                if(!tmp.renameTo(destination))throw new IllegalStateException("UI cache unavailable");
+                getSharedPreferences("farukh-ui-update",MODE_PRIVATE).edit().putString("sha256",hash.toString()).apply();
+                getSharedPreferences("farukh-update-status",MODE_PRIVATE).edit()
+                    .putString("last-status","Интерфейс обновлён. Данные ревизий сохранены.").apply();
+                ui.post(()->loadUi(html));
+            }catch(Exception e){
+                Log.w("FarukhRevision","Visual UI refresh failed",e);
+                notice("Не удалось обновить интерфейс. Данные в безопасности; попробуй позже.");
+            }
+        });
     }
     private void notice(String msg){
         ui.post(()->{
@@ -135,6 +205,7 @@ public final class MainActivity extends Activity {
     }
     public final class AndroidBridge {
         @JavascriptInterface public long getInstalledVersionCode(){return ownVersion();}
+        @JavascriptInterface public void refreshWebUi(){refreshVisualUi();}
         @JavascriptInterface public void print(){
             ui.post(()->{
                 PrintManager manager=(PrintManager)getSystemService(PRINT_SERVICE);
