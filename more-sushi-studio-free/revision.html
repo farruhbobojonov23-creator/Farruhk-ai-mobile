@@ -2341,7 +2341,7 @@ document.addEventListener('DOMContentLoaded',function(){
  '@media print{.rev060-save,.rev060-more,.rev060-popup,.rev060-edit{display:none!important}}'
  ].join('\n');
  document.head.appendChild(style);
- const row=$('view-revision')?.querySelector('.tablewrap + .row');
+ const row=$('view-revision')?.querySelector('button[onclick="saveRevision()"]')?.closest('.row');
  const saveButton=row?.querySelector('button[onclick="saveRevision()"]');
  if(!row||!saveButton)return;
  const result=document.createElement('section');result.id='rev060Report';result.className='rev060-report';
