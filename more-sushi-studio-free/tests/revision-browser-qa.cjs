@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.6'),'new interface release badge displayed');
+ verify(badge.includes('0.6.7'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -313,6 +313,86 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v065-chef-dashboard-mobile.png'),fullPage:true});
 
 
+
+
+ // Admin PRO: fully mocked cloud (zero production writes), versioned edit/trash/restore.
+ await page.evaluate(()=>{
+  const owner=rev041Account();
+  const chosen=state.history.filter(r=>r.store==='Плазма'&&r.type==='weekly')
+    .sort((a,b)=>b.timestamp-a.timestamp)[0];
+  chosen.ownerId=owner;chosen.revisionNo=1;chosen.notes='';
+  window.__adminTestId=chosen.id;
+  window.__adminServer={
+   id:chosen.id,owner_id:owner,location_name:chosen.store,audit_type:chosen.type,
+   audit_date:chosen.date,operator_name:chosen.operator||'',notes:'',items:structuredClone(chosen.products),
+   revision_no:1,created_at:new Date(chosen.timestamp).toISOString(),
+   updated_at:new Date().toISOString(),deleted_at:null
+  };
+  window.__adminEvents=[];
+  rest=async function(table,opts={}){
+   if(table==='revision_audits'&&opts.method==='PATCH'){
+    const row=window.__adminServer;
+    if(!opts.query.includes('id=eq.'+row.id)||
+       !opts.query.includes('revision_no=eq.'+row.revision_no))return [];
+    const before=structuredClone(row);
+    Object.assign(row,opts.body);
+    row.revision_no++;row.updated_at=new Date().toISOString();
+    window.__adminEvents.unshift({operation:before.deleted_at==null&&row.deleted_at!=null?'trash':
+      before.deleted_at!=null&&row.deleted_at==null?'restore':'edit',
+      revision_no:row.revision_no,actor_id:row.owner_id,
+      before_record:before,after_record:structuredClone(row),changed_at:new Date().toISOString()});
+    return [structuredClone(row)];
+   }
+   if(table==='revision_audits'&&opts.query?.includes('deleted_at=not.is.null'))
+    return window.__adminServer.deleted_at?[structuredClone(window.__adminServer)]:[];
+   if(table==='revision_audit_events')return structuredClone(window.__adminEvents);
+   throw Error('Unexpected admin test query '+table+' '+(opts.method||'GET'));
+  };
+  document.querySelector('#store').value='Плазма';
+  renderHistory();
+ });
+ await page.locator('.menu button[onclick*="history"]').click();
+ await page.locator('.rev067-history-actions button').first().waitFor({state:'visible'});
+ verify(await page.locator('#rev067TrashButton:visible').count()===1,'owner sees 30-day bin button');
+ verify(await page.locator('.rev067-history-actions button').count()===1,
+   'only owner-owned saved audit displays management control');
+ await page.locator('.rev067-history-actions button').first().click();
+ await page.locator('.rev067-panel button').filter({hasText:'Редактировать'}).click();
+ await page.locator('.rev067-editline').first().locator('input').first().fill('8');
+ await page.locator('.rev067-panel button[type="submit"]').click();
+ await page.waitForFunction(()=>window.__adminServer.revision_no===2,{timeout:7000});
+ const edited=await page.evaluate(()=>({
+  revision:window.__adminServer.revision_no,
+  diff:window.__adminServer.items[0].diff,
+  historicalPrice:window.__adminServer.items[0].price,
+  events:window.__adminEvents.map(e=>e.operation),
+  visible:state.history.some(r=>r.id===window.__adminTestId)
+ }));
+ verify(edited.revision===2&&edited.diff===-2&&edited.historicalPrice===null,
+   'editing recomputes deficit and preserves original historical purchase price');
+ verify(edited.events.join(',')==='edit'&&edited.visible,
+   'edit persists new version without losing or duplicating saved audit');
+ await page.locator('.rev067-history-actions button').first().click();
+ await page.locator('.rev067-panel button').filter({hasText:'История изменений'}).click();
+ await page.locator('.rev067-event').first().waitFor();
+ verify((await page.locator('.rev067-event').innerText()).includes('версия 2'),
+  'history panel displays server-authored revision number');
+ await page.locator('.rev067-panel .rev067-close').click();
+ await page.locator('.rev067-history-actions button').first().click();
+ await page.locator('.rev067-panel button').filter({hasText:'Переместить в корзину'}).click();
+ await page.locator('.rev067-panel button').filter({hasText:'Да, в корзину'}).click();
+ await page.waitForFunction(()=>window.__adminServer.revision_no===3,{timeout:7000});
+ verify(await page.evaluate(()=>!state.history.some(r=>r.id===window.__adminTestId)),
+  'trashed audit disappears from active history and dashboard');
+ await page.locator('#rev067TrashButton').click();
+ await page.locator('.rev067-binitem button').filter({hasText:'Восстановить'}).click();
+ await page.waitForFunction(()=>window.__adminServer.revision_no===4,{timeout:7000});
+ verify(await page.evaluate(()=>state.history.some(r=>r.id===window.__adminTestId)),
+  'restored audit returns to live history');
+ verify((await page.evaluate(()=>window.__adminEvents.map(x=>x.operation))).join(',')==='restore,trash,edit',
+  'audit event log records edit, trash and restoration in exact order');
+ await page.locator('.rev067-panel .rev067-close').click();
+ await page.screenshot({path:path.join(out,'revision-v067-audit-admin-mobile.png'),fullPage:true});
 
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
  await context.close();
