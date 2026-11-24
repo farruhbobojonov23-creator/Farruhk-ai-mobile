@@ -389,6 +389,13 @@ body{
 .project-card.p-blue{--brand-shade:#cbdbe7}
 .project-card.p-gold{--brand-shade:#f4d8c5}
 .project-card.p-feature{--brand-shade:#f6bbd4}
+/* Override legacy high-specificity colored card backgrounds. All seven
+   cards must use the same light pearl surface, never inherited dark gradients. */
+.project-card.p-ruby,.project-card.p-charcoal,.project-card.p-green,
+.project-card.p-blue,.project-card.p-gold,.project-card.p-feature{
+ border-color:#ffffffd9;
+ background:linear-gradient(138deg,#fffdfcf5 0%,#f8edf0f4 61%,var(--brand-shade) 150%)
+}
 .project-card:before{
  content:"";position:absolute;inset:0;z-index:0;
  background:radial-gradient(ellipse 70% 90% at 100% 0%,var(--brand-shade),transparent 79%);
