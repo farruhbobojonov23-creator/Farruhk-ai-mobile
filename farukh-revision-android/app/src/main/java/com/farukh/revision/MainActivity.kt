@@ -101,8 +101,16 @@ class MainActivity : Activity() {
         // The top-level WebView is restricted to one trusted HTTPS document.
         webView.addJavascriptInterface(Bridge(), "FarukhAndroid")
         if (savedInstanceState != null) {
-            started = true
             webView.restoreState(savedInstanceState)
+            val restoredUrl = webView.url ?: ""
+            // Never keep a restored obsolete appassets (pre-0.6.8) WebView.
+            if (restoredUrl.startsWith("https://$trustedHost/revision.html")) {
+                started = true
+            } else if (prefs.getBoolean("legacy_checked", false)) {
+                openRemote()
+            } else {
+                inspectLegacyStorage()
+            }
         } else if (prefs.getBoolean("legacy_checked", false)) {
             openRemote()
         } else {
@@ -152,6 +160,11 @@ class MainActivity : Activity() {
                     legacyProbe?.destroy()
                     legacyProbe = null
                     openRemote()
+                    // In case the probe's fallback timer started the site
+                    // first, still copy old local inventory when it finishes.
+                    if (started && webView.url?.startsWith("https://$trustedHost/revision.html") == true) {
+                        importLegacyToRemote()
+                    }
                 }
             }
         }
