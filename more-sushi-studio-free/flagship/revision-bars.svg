@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 190" role="img" aria-hidden="true"><defs>
+<radialGradient id="halo"><stop stop-color="#08d69e" stop-opacity=".42"/><stop offset=".68" stop-color="#08d69e" stop-opacity=".12"/><stop offset="1" stop-color="#08d69e" stop-opacity="0"/></radialGradient>
+<linearGradient id="steel" x1=".1" y1=".1" x2=".95" y2="1"><stop stop-color="#dcfff6"/><stop offset=".33" stop-color="#7df5cb"/><stop offset=".72" stop-color="#08d69e"/><stop offset="1" stop-color="#10131c"/></linearGradient>
+<linearGradient id="trim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c8"/><stop offset=".38" stop-color="#7df5cb"/><stop offset=".72" stop-color="#dcfff6"/><stop offset="1" stop-color="#9b5c19"/></linearGradient>
+<filter id="g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4"/></filter>
+<filter id="ds" x="-30%" y="-35%" width="165%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity=".68"/></filter>
+</defs>
+<ellipse cx="127" cy="98" rx="118" ry="86" fill="url(#halo)"/>
+<ellipse cx="123" cy="170" rx="92" ry="12" fill="#08d69e" opacity=".33" filter="url(#g)"/>
+<path d="M30 153C70 124 168 126 220 140" fill="none" stroke="#08d69e" stroke-width="2" opacity=".48"/>
+<path d="M19 168C89 145 159 151 231 169" fill="none" stroke="#7df5cb" stroke-width="1" opacity=".4"/>
+<g filter="url(#ds)">
+<path d="M38 152V118L65 112V152Z" fill="url(#steel)" stroke="#9bfff0" stroke-width="2"/>
+<path d="M72 152V96L99 88V152Z" fill="url(#steel)" stroke="#9bfff0" stroke-width="2"/>
+<path d="M106 152V75L135 67V152Z" fill="url(#steel)" stroke="#9bfff0" stroke-width="2"/>
+<path d="M144 152V50L178 42V152Z" fill="url(#steel)" stroke="#9bfff0" stroke-width="2"/>
+<path d="M38 153L177 153L200 165L55 165Z" fill="#063c33" stroke="#9bfff0"/>
+</g><path d="M35 104L76 88L118 66L177 30" fill="none" stroke="#fcce71" stroke-width="6" filter="url(#g)"/>
+<path d="M35 104L76 88L118 66L177 30" fill="none" stroke="#ffe19a" stroke-width="2.8"/>
+<path d="M164 32L181 27L176 44" stroke="#ffe19a" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>

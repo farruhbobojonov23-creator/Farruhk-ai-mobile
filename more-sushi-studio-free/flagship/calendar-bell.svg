@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 190" role="img" aria-hidden="true"><defs>
+<radialGradient id="halo"><stop stop-color="#147af0" stop-opacity=".42"/><stop offset=".68" stop-color="#147af0" stop-opacity=".12"/><stop offset="1" stop-color="#147af0" stop-opacity="0"/></radialGradient>
+<linearGradient id="steel" x1=".1" y1=".1" x2=".95" y2="1"><stop stop-color="#e8fbff"/><stop offset=".33" stop-color="#8bd5ff"/><stop offset=".72" stop-color="#147af0"/><stop offset="1" stop-color="#10131c"/></linearGradient>
+<linearGradient id="trim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6c8"/><stop offset=".38" stop-color="#8bd5ff"/><stop offset=".72" stop-color="#e8fbff"/><stop offset="1" stop-color="#9b5c19"/></linearGradient>
+<filter id="g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4"/></filter>
+<filter id="ds" x="-30%" y="-35%" width="165%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity=".68"/></filter>
+</defs>
+<ellipse cx="127" cy="98" rx="118" ry="86" fill="url(#halo)"/>
+<ellipse cx="123" cy="170" rx="92" ry="12" fill="#147af0" opacity=".33" filter="url(#g)"/>
+<path d="M30 153C70 124 168 126 220 140" fill="none" stroke="#147af0" stroke-width="2" opacity=".48"/>
+<path d="M19 168C89 145 159 151 231 169" fill="none" stroke="#8bd5ff" stroke-width="1" opacity=".4"/>
+<g transform="rotate(5 129 104)" filter="url(#ds)">
+<rect x="55" y="38" width="131" height="122" rx="11" fill="#102538" stroke="url(#trim)" stroke-width="3"/>
+<rect x="60" y="47" width="121" height="26" rx="5" fill="#1a648b" stroke="#8aeeff" stroke-width="1"/>
+<g stroke="#d7faff" stroke-width="2" fill="none"><path d="M90 28v33M151 28v33"/><path d="M90 25Q80 17 80 36M151 25Q161 17 161 36"/></g>
+<g stroke="#66b9e0" opacity=".6" stroke-width="1.5"><path d="M80 90h85M80 114h85M80 138h85M105 83v67M140 83v67"/></g>
+<path d="m112 111 13 12 29-30" fill="none" stroke="#ffca66" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g><g filter="url(#ds)">
+<path d="M188 133Q184 119 192 109Q197 102 200 103Q210 113 209 133L215 141H183Z" fill="url(#trim)" stroke="#ffe9b9" stroke-width="2"/>
+<ellipse cx="199" cy="141" rx="21" ry="5" fill="#ddae59" stroke="#fff0cc" stroke-width="2"/>
+<circle cx="199" cy="149" r="5" fill="#e4ab54"/>
+</g></svg>

@@ -41,6 +41,15 @@ async function runView(browser,{width,height,label}){
  await page.waitForTimeout(500);
  assert(await page.locator('.bottomnav [data-mss-tab]').count()===5,label+' — пять кнопок меню');
  assert(await page.locator('#hubFeaturedProjects .project-card').count()===7,label+' — семь проектов на главной');
+ const artVisible=await page.locator('#hubFeaturedProjects .project-illustration img').evaluateAll(items=>
+  items.length===7&&items.every(img=>img.complete&&img.naturalWidth>0));
+ assert(artVisible,label+' — все семь премиальных иллюстраций загрузились');
+ const theme=await page.locator('body').evaluate(el=>({
+   bg:getComputedStyle(el).backgroundImage,
+   fg:getComputedStyle(el).color
+ }));
+ assert(theme.bg.includes('linear-gradient')&&theme.fg==='rgb(255, 243, 236)',label+' — новая тёмная Ultra Premium тема активна');
+
  assert(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ruby').trim())==='#d61045',label+' — новая единая тема');
  const sheets=await page.locator('link[rel=stylesheet]').evaluateAll(links=>links.map(x=>new URL(x.href).pathname));
  assert(sheets.length===1&&sheets[0]==='/workspace-command.css',label+' — одна активная CSS тема без старых накладок');

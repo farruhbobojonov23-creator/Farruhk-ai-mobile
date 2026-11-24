@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.5.1-20261124",
-  "display": "FARRUH WORKSPACE PRO 1.5.1 · улучшенная навигация",
+  "build": "farruh-workspace-1.6.0-20261124",
+  "display": "FARRUH WORKSPACE PRO · ULTRA PREMIUM 3D 1.6.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "For a dedicated Android FARRUH WORKSPACE shell, navigate all seven projects as top-level HTTPS sites inside one persistent native WebView; original web/PWA still respects external sites' cross-origin iframe restrictions. No proxy, no cookie interception, original apps remain installed. Android debug test APK only; stable production signing not yet verified. Native Android 1.1.0 now includes a unified Update action: reload web content, fetch signed release metadata, confirm download, verify APK SHA-256 and ask Android Package Installer. Release manifest starts disabled until permanent production signing and verified release are published. Compact pinned mobile navigation and greater bottom clearance so final project cards are visible above navigation. In the native Android shell, the web update tile requests an internally handled native update with no JS bridge."
+  "details": "Approved Ultra Premium flagship implemented on the actual web UI, with one CSS theme, dark luxury backdrop, gold/chrome framed cards, distinct accessible fixed local project artwork, neon magenta/cyan/emerald accents, new system/quick tool styling and slim 5-tab navigation. Does not alter routes, stored projects, cloud data, recipes, TTK, Android APK or authentication; web-only refresh."
 }
