@@ -68,6 +68,11 @@ async function runView(browser,{width,height,label}){
  });
  assert(cardTheme.nameColor==='rgb(67, 35, 53)'&&cardTheme.height<=190&&cardTheme.width>110,
     label+' — компактная светлая премиальная карточка и чёткий тёмный текст '+JSON.stringify(cardTheme));
+ const cardSurfaces=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').evaluateAll(items=>
+  items.map(card=>({background:getComputedStyle(card).backgroundImage,
+    color:getComputedStyle(card.querySelector('.project-title')).color})));
+ assert(cardSurfaces.length===6&&cardSurfaces.every(x=>x.background.includes('255, 253, 252')&&x.color==='rgb(67, 35, 53)'),
+  label+' — все шесть обычных карточек светлые, а не старые тёмные варианты');
  const theme=await page.locator('body').evaluate(el=>({
    bg:getComputedStyle(el).backgroundImage,
    fg:getComputedStyle(el).color
