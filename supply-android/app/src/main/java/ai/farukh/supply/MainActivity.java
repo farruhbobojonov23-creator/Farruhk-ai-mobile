@@ -16,15 +16,30 @@ public class MainActivity extends Activity {
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
  web=new WebView(this); web.setBackgroundColor(Color.rgb(7,24,44));
- setContentView(web);
- web.setOnApplyWindowInsetsListener((v,insets)->{
+ android.widget.FrameLayout root=new android.widget.FrameLayout(this);
+ root.setBackgroundColor(Color.rgb(6,22,36));
  if(android.os.Build.VERSION.SDK_INT>=30){
- android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());
- v.setPadding(i.left,i.top,i.right,i.bottom);
- }else{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());}
- return insets;
+   getWindow().setDecorFitsSystemWindows(false);
+   getWindow().getInsetsController().setSystemBarsAppearance(0,android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+ }else{
+   getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+ }
+ if(android.os.Build.VERSION.SDK_INT>=29){getWindow().setNavigationBarContrastEnforced(false);getWindow().setStatusBarContrastEnforced(false);}
+ getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);
+ getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+ root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));
+ root.setOnApplyWindowInsetsListener((v,insets)->{
+   if(android.os.Build.VERSION.SDK_INT>=30){
+     android.graphics.Insets safe=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout()|WindowInsets.Type.ime());
+     v.setPadding(safe.left,safe.top,safe.right,safe.bottom);
+     return WindowInsets.CONSUMED;
+   }else{
+     v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());
+     return insets.consumeSystemWindowInsets();
+   }
  });
- web.requestApplyInsets();
+ setContentView(root);
+ root.requestApplyInsets();
  WebSettings s=web.getSettings(); s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);
  WebViewAssetLoader loader=new WebViewAssetLoader.Builder().addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
  web.setWebViewClient(new WebViewClient(){
