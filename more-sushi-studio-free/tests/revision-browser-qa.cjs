@@ -89,6 +89,70 @@ async function test(browser){
  const reloaded=await page.evaluate(()=>({count:state.history.filter(r=>r.store==='Плазма').length,price:localStorage.getItem('farukh-revision-catalogue-prices-v060')}));
  verify(reloaded.count===1,'saved audit persists across reload');
  verify(reloaded.price.includes('750.5'),'catalogue purchase price persists across reload');
+
+ // Cloud success and failed-network queue are simulated inside the browser.
+ // They never connect to or write a real Supabase account.
+ await page.evaluate(()=>{
+  cloudEnabled=true;
+  cloudToken='x.'+btoa(JSON.stringify({sub:'00000000-0000-4000-8000-000000000061'}))+'.x';
+  window.__fakeAuditWrites=0;window.__fakeCloudProducts=[];
+  rest=async function(table,opts={}){
+   if(table==='revision_products' && opts.method==='POST'){
+    const item={id:crypto.randomUUID(),name:opts.body.name,unit:'кг',
+      price_per_unit_rub:opts.body.price_per_unit_rub,
+      has_semi_finished:false,pf_add_percent:0,active:true};
+    window.__fakeCloudProducts.push(item);return [item];
+   }
+   if(table==='revision_products' && opts.query?.startsWith('?id=eq.'))return [window.__fakeCloudProducts.at(-1)];
+   if(table==='revision_audits'&&opts.method==='POST'){
+    window.__fakeAuditWrites++;
+    return [{id:opts.body.id,created_at:new Date().toISOString()}];
+   }
+   throw Error('Unexpected fake cloud call: '+table);
+  };
+ });
+ await page.locator('.menu button[onclick*="products"]').click();
+ await page.locator('#newproduct').fill('Тестовый облачный продукт');
+ await page.locator('#rev061NewPrice').fill('1390');
+ await page.locator('button[onclick="addProduct()"]').click();
+ await page.waitForFunction(()=>state.products.includes('Тестовый облачный продукт'));
+ verify((await page.locator('#productsrows tr').filter({hasText:'Тестовый облачный продукт'}).innerText()).includes('1 390'),'cloud product price stored and shown');
+ await page.locator('.menu button[onclick*="revision"]').click();
+ await page.locator('#store').selectOption({label:'Героев Североморцев'});
+ await page.locator('#mode').selectOption('start');
+ await page.evaluate(()=>{
+  document.querySelectorAll('#rows tr[data-product]').forEach((tr,i)=>{
+   const raw=tr.querySelector('input[data-field="raw"]');
+   if(raw){raw.value=String(i+2);raw.dispatchEvent(new Event('input',{bubbles:true}))}
+  });
+ });
+ await page.locator('button[onclick="saveRevision()"]').click();
+ await page.locator('.rev060-popup .btn.main').click();
+ await page.waitForFunction(()=>document.querySelector('#rev060Save')?.dataset.status==='success',{timeout:10000});
+ verify(await page.evaluate(()=>window.__fakeAuditWrites)===1,'cloud saves exactly once (no overlapping old handlers)');
+ verify(await page.evaluate(()=>state.history.filter(r=>r.store==='Героев Североморцев'&&r.type==='start').length)===1,
+  'cloud success appears once in selected outlet');
+ verify(await page.evaluate(()=>state.history.find(r=>r.store==='Героев Североморцев')?.products.find(p=>p.name==='Тестовый облачный продукт')?.price)===1390,
+  'cloud price reused in revision without re-entering it');
+ if(await page.locator('.rev060-popup').count())await page.locator('.rev060-popup .btn').first().click();
+ // Now make the mocked network fail: the record must go only to a durable local queue.
+ await page.evaluate(()=>{
+  rest=async function(table,opts){if(table==='revision_audits'&&opts?.method==='POST')throw Error('Test simulated network outage');throw Error('Unexpected request')}
+ });
+ await page.locator('#store').selectOption({label:'Полярные Зори'});
+ await page.locator('#mode').selectOption('start');
+ await page.evaluate(()=>{
+  document.querySelectorAll('#rows tr[data-product]').forEach((tr,i)=>{
+   const raw=tr.querySelector('input[data-field="raw"]');
+   if(raw){raw.value=String(i+3);raw.dispatchEvent(new Event('input',{bubbles:true}))}
+  });
+ });
+ await page.locator('button[onclick="saveRevision()"]').click();
+ await page.locator('.rev060-popup .btn.main').click();
+ await page.waitForFunction(()=>document.querySelector('#rev060Save')?.dataset.status==='pending',{timeout:10000});
+ const queueCheck=await page.evaluate(()=>({queue:rev041Queue().length,marked:state.history.filter(r=>r.store==='Полярные Зори'&&r.pendingSync).length}));
+ verify(queueCheck.queue===1&&queueCheck.marked===1,'cloud outage retains exactly one queued local audit');
+
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
  await context.close();
 }
