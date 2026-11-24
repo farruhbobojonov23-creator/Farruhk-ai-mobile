@@ -1451,7 +1451,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.5.2';
+const FARUKH_UI_RELEASE='0.5.3';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1499,7 +1499,7 @@ async function checkAppUpdate(){
 const REVISION_LOSS_RULES={'Лосось':20,'Угорь':20,'Сыр творожный':0};
 const REVISION_ICON_MAP={'Лосось':'🐟','Угорь':'🍣','Сыр творожный':'🧀'};
 const REVISION_PF_ALLOWED={'Лосось':true,'Угорь':true,'Сыр творожный':false};
-function showRevisionInfo(){notice('FARUKH REVISION PRO · интерфейс 0.5.2. Исправлена нижняя панель при открытых настройках. Обновление через кнопку без новой APK. Склад + ПФ, черновики и отчёты сохранены.')}
+function showRevisionInfo(){notice('FARUKH REVISION PRO · интерфейс 0.5.3. Сводки по сохранённым ревизиям отделены от черновиков, неполные цены обозначены, история и фильтры улучшены. Данные сохранены.')}
 function toggleRevisionTheme(){showRevisionInfo()}
 function toggleRevisionTools(){
  const panel=$('compactCloudTools'),status=$('appUpdateStatus'),button=$('compactToolsButton');
