@@ -2248,15 +2248,16 @@ document.addEventListener('DOMContentLoaded',function(){
  function localPrices(){try{return JSON.parse(localStorage.getItem(localPriceKey)||'{}')||{}}catch{return {}}}
  function priceFor(name){
   const remote=typeof rev041Catalogue==='object'&&rev041Catalogue?.get(name);
-  const raw=remote?.price_per_unit_rub;
-  if(raw!==null&&raw!==undefined&&raw!==''&&Number.isFinite(Number(raw))&&Number(raw)>=0)return Number(raw);
-  // Preserve prices already typed in unfinished drafts until the owner saves them
-  // to the shared product catalogue; never silently discard weighing work.
+  if(cloudEnabled && remote){
+   const raw=remote.price_per_unit_rub;
+   return raw===null||raw===undefined||raw===''||!Number.isFinite(Number(raw))||Number(raw)<0?null:Number(raw);
+  }
+  // In offline mode, the one-time product catalogue overrides old audit drafts.
+  const local=localPrices()[name];
+  if(local!==undefined&&local!==null&&local!==''&&Number.isFinite(Number(local))&&Number(local)>=0)return Number(local);
   const old=draft?.[name]?.price;
   if(old!==''&&old!==undefined&&old!==null&&Number.isFinite(Number(old))&&Number(old)>=0)return Number(old);
-  if(cloudEnabled && remote)return null;
-  const local=localPrices()[name];
-  return local===null||local===undefined||local===''||!Number.isFinite(Number(local))?null:Number(local);
+  return null;
  }
  function getValues(name){
   const v=getDraft(name)||{};
@@ -2325,6 +2326,7 @@ document.addEventListener('DOMContentLoaded',function(){
  ' #view-products #rev061NewPrice{min-height:46px;border:1px solid #526b87;border-radius:12px;background:#0e1e32;color:#f6f9ff;min-width:0;padding:10px;font-size:14px}',
  '#rev057SaveBanner,#rev057HistoryReceipt,#rev058SaveState,#rev058HistoryState{display:none!important}',
  '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small,#view-revision .grid aside{display:none!important}',
+ ' #view-products #rev054CatalogIntro{display:none!important}',
  '#view-summary .rev054-three,#view-summary .rev054-explain,#view-summary .rev054-guide-status,#view-summary .rev044-next{display:none!important}',
  '#view-summary .rev054-guide{padding:13px 14px!important}',
  '#view-summary .rev054-guide h2{font-size:15px!important;margin:4px 0 10px!important}',
@@ -2704,7 +2706,7 @@ document.addEventListener('DOMContentLoaded',function(){
  const headerBrand=document.querySelector('.brandword > b');
  if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
- showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.0. Цены товаров сохраняются один раз, результаты по продуктам, надёжное сохранение с подтверждением.');};
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.1. Единая цена для 4 точек, быстрое заполнение и проверенное сохранение.');};
 });
 
 </script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
