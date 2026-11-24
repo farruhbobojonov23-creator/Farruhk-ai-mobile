@@ -248,6 +248,12 @@ function startSplash(){
  const splash=$('#hubSplash');if(!splash)return;
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  let replay=false;try{replay=sessionStorage.getItem('hub-replay')==='1';sessionStorage.removeItem('hub-replay')}catch{}
+ // A 2.65s cinematic intro is welcome on first entrance but must never
+ // delay every project return / refresh. "Repeat intro" remains available.
+ let seen=false;
+ try{seen=sessionStorage.getItem('hub-splash-seen-v1')==='1'}catch{}
+ if(seen&&!replay){splash.remove();return}
+ try{sessionStorage.setItem('hub-splash-seen-v1','1')}catch{}
  if(replay)root.classList.add('hub-explicit-motion');
  const shouldPlay=!reduced||replay;
  if(!shouldPlay){splash.remove();return}
