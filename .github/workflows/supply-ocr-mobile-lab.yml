@@ -31,11 +31,28 @@ jobs:
           java -cp /tmp/supply-row-test InvoiceRowsTest
       - name: Prepare Cyrillic models for offline SDK
         run: bash ocr-mobile-lab/prepare.sh upstream-paddle/deploy/ppocr-android
+      - name: Add synthetic Android runtime test
+        run: cp ocr-mobile-lab/SupplyInvoiceSmokeTest.kt upstream-paddle/deploy/ppocr-android/ppocr-sdk/src/androidTest/java/com/paddle/ocr/benchmark/
       - name: Compile Android OCR library
-        run: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:assembleRelease --no-daemon
+        run: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:assembleRelease :ppocr-sdk:assembleDebugAndroidTest --no-daemon
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run synthetic Cyrillic invoice on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          script: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.paddle.ocr.benchmark.SupplyInvoiceSmokeTest --no-daemon
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: supply-paddle-sdk-lab
-          path: upstream-paddle/deploy/ppocr-android/ppocr-sdk/build/outputs/aar/*.aar
+          path: |
+            upstream-paddle/deploy/ppocr-android/ppocr-sdk/build/outputs/aar/*.aar
+            upstream-paddle/deploy/ppocr-android/ppocr-sdk/build/outputs/androidTest-results/
           if-no-files-found: error
           retention-days: 7
