@@ -1,0 +1,11 @@
+<resources>
+ <style name="WorkspaceBase" parent="@android:style/Theme.Material.Light.NoActionBar">
+  <item name="android:windowBackground">@drawable/start_window</item>
+  <item name="android:colorBackground">#F6ECDD</item>
+  <item name="android:windowLightStatusBar">true</item>
+  <item name="android:windowLightNavigationBar">true</item>
+  <item name="android:statusBarColor">#F6ECDD</item>
+  <item name="android:navigationBarColor">#F6ECDD</item>
+ </style>
+ <style name="WorkspaceTheme" parent="WorkspaceBase"/>
+</resources>
