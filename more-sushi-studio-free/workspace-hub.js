@@ -82,7 +82,7 @@ function renderCard(p,{wide=false,edit=false}={}){
   card.dataset.art=p.id;
   const illustration=document.createElement('img');
   illustration.className='collection-art';
-  illustration.src='./alabaster/full/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp';
+  illustration.src='./alabaster/full/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp?v=1.9.5';
   illustration.alt='';
   illustration.draggable=false;
   card.appendChild(illustration);
@@ -93,7 +93,7 @@ function renderCard(p,{wide=false,edit=false}={}){
    const img=document.createElement('img');img.src=p.logo;img.alt='';logo.appendChild(img);
  }else if(edit && defaults.some(project=>project.id===p.id)){
    const img=document.createElement('img');
-   img.src='./alabaster/full/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp';
+   img.src='./alabaster/full/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp?v=1.9.5';
    img.alt='';
    logo.classList.add('art-logo');
    logo.appendChild(img);

@@ -706,7 +706,7 @@ body{
 /* Alabaster collection. The photographed objects and live labels scale separately. */
 :root{--ruby:#91632f;--ruby-dark:#55361e}
 body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#392613}
-.alabaster-mark{object-fit:contain;mix-blend-mode:multiply}
+.alabaster-mark{object-fit:contain;mix-blend-mode:normal}
 .wordmark{font:500 clamp(21px,5vw,32px)/1 Georgia,serif;letter-spacing:.095em;color:#412e20;border-left:1px solid #ab8858;padding-left:12px}
 .wordmark small{display:block;font:650 9px/1.8 system-ui,sans-serif;letter-spacing:.27em}
 .app-head,.bottomnav{background:#f6ecdf;color:#492f18;border:1px solid #c5aa86;box-shadow:0 2px 8px #51371722}
@@ -765,9 +765,9 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
 }
 .action-card .arrow,.settings-row>svg,.metric b,.system-text strong,.recipe-info strong{color:#604322}
 .action-card[data-title="Ревизия склада"] .action-icon,.action-card[data-title="FARUKH PRINT"] .action-icon,.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{width:72px;background-size:contain;background-repeat:no-repeat;background-position:center}
-.action-card[data-title="Ревизия склада"] .action-icon{background-image:url('./alabaster/full/revision.webp')}
-.action-card[data-title="FARUKH PRINT"] .action-icon{background-image:url('./alabaster/full/print.webp')}
-.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{background-image:url('./alabaster/full/kitchen-book.webp')}
+.action-card[data-title="Ревизия склада"] .action-icon{background-image:url('./alabaster/full/revision.webp?v=1.9.5')}
+.action-card[data-title="FARUKH PRINT"] .action-icon{background-image:url('./alabaster/full/print.webp?v=1.9.5')}
+.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{background-image:url('./alabaster/full/kitchen-book.webp?v=1.9.5')}
 .action-card:is([data-title="Ревизия склада"],[data-title="FARUKH PRINT"],[data-title="FARUKH KITCHEN"],[data-title="Библиотека ТТК"]) .action-icon svg{visibility:hidden}
 .search-projects,.project-dialog,.viewer-dialog,.viewer-head,.recipe-info-note,.metric,.recipe-readonly-row,.recipe-state,.viewer-help{
  background:var(--paper);border-color:var(--line);color:var(--ink)
@@ -785,14 +785,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .full-grid .art-logo img,.project-logo img{object-fit:contain;object-position:center}
 
 /* Keep each illustration in its own flexible space above its permanent label. */
-.utility-art{display:block;object-fit:contain;object-position:center;mix-blend-mode:multiply;pointer-events:none}
+.utility-art{display:block;object-fit:contain;object-position:center;mix-blend-mode:normal;pointer-events:none}
 .action-card>.utility-art{width:100%;height:clamp(82px,23vw,135px);margin:0 auto 8px}
 .action-card:has(.utility-art){justify-content:flex-start;gap:3px;padding-bottom:28px}
 .settings-row>.utility-art{flex:none;width:clamp(46px,12vw,62px);height:clamp(46px,12vw,62px)}
 .quick-tool>.utility-art{width:42px;height:42px}
 #hubAllProjects .project-top{position:relative;display:block}
 #hubAllProjects .project-top .art-logo{display:block;width:100%;height:clamp(86px,24vw,136px);border:none;box-shadow:none;background:transparent!important;overflow:visible}
-#hubAllProjects .art-logo img{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply}
+#hubAllProjects .art-logo img{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;mix-blend-mode:normal}
 #hubAllProjects .project-fav{position:absolute;inset:0 0 auto auto}
 #hubAllProjects .add-project-tile svg{display:none}
-#hubAllProjects .add-project-tile::before{content:"";display:block;width:72px;height:72px;margin:0 auto 5px;background:url('./alabaster/actions/add.webp') center/contain no-repeat;mix-blend-mode:multiply}
+#hubAllProjects .add-project-tile::before{content:"";display:block;width:72px;height:72px;margin:0 auto 5px;background:url('./alabaster/actions/add.webp?v=1.9.5') center/contain no-repeat;mix-blend-mode:normal}
