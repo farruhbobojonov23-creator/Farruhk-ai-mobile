@@ -60,7 +60,15 @@
  function captureHistoryReceipt(){
   const id=(()=>{try{return sessionStorage.getItem(storageKey)}catch{return null}})();
   const found=id?state.history.find(r=>String(r.id)===id):null;
-  if(found)showReceipt(found);
+  if(found && found.store===el('store')?.value)showReceipt(found);
+  else {historyBanner.className='rev057-history-receipt';historyBanner.innerHTML='';}
+ }
+ function resetDraftReceipt(){
+  if(pending)return;
+  if(banner.classList.contains('is-success')||banner.classList.contains('is-pending')){
+   banner.className='rev057-save-banner';
+   banner.innerHTML='<strong>Текущая ревизия — черновик</strong><small>Последняя сохранённая запись находится в «Истории». Новые значения сохраняются отдельно.</small>';
+  }
  }
  const dialog=$create('dialog','rev057-confirm');
  dialog.id='rev057Confirm';
@@ -131,6 +139,16 @@
  renderHistory=function(){
   formerHistory();
   captureHistoryReceipt();
+ };
+ const inputs=el('rows');
+ inputs?.addEventListener('input',resetDraftReceipt);
+ el('store')?.addEventListener('change',resetDraftReceipt);
+ el('mode')?.addEventListener('change',resetDraftReceipt);
+ const originalGo=go;
+ go=function(view,button){
+  const result=originalGo(view,button);
+  if(view==='revision')resetDraftReceipt();
+  return result;
  };
  captureHistoryReceipt();
 })();
