@@ -11,6 +11,8 @@ const tabs=new Set(['home','projects','ttk','tools','more']);
 // WebView using top-level navigation (cross-origin iframe restrictions remain).
 const insideNative=/\bFarruhWorkspaceNative\/1\.\d+\b/.test(navigator.userAgent);
 
+root.classList.toggle('workspace-webview',insideNative);
+
 const defaults=[
  {id:'more',name:'MORE SUSHI STUDIO',desc:'ТТК · Рецептуры · Каталог · PDF',url:'./index.html?ocean=1',color:'ruby',symbol:'wc-fish'},
  {id:'ai',name:'FARRUH AI',desc:'ИИ-помощник шеф-повара',url:'https://farruhk-ai-mobile.onrender.com/',color:'charcoal',symbol:'wc-a'},

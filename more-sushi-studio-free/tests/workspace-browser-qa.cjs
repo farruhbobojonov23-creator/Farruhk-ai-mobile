@@ -57,6 +57,23 @@ async function runView(browser,{width,height,label}){
  assert(sheets.length===1&&sheets[0]==='/workspace-command.css',label+' — одна активная CSS тема без старых накладок');
  const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
  assert(scrollWidth<=width+1,label+' — нет горизонтальной прокрутки, ширина '+scrollWidth);
+ if(width<=480){
+  for(const tab of ['home','projects','ttk','tools','more']){
+   await page.locator('.bottomnav [data-mss-tab="'+tab+'"]').click();
+   const panel=page.locator('#mss-'+tab);
+   await panel.waitFor({state:'visible'});
+   const geometry=await panel.evaluate(async el=>{
+    const region=document.querySelector('#hubScrollRegion');
+    region.scrollTo({top:region.scrollHeight,behavior:'instant'});
+    await new Promise(requestAnimationFrame);
+    const dock=document.querySelector('.bottomnav').getBoundingClientRect();
+    const end=el.getBoundingClientRect().bottom;
+    return {gap:Math.round(innerHeight-dock.bottom),clearance:Math.round(dock.top-end),overflow:region.scrollWidth-region.clientWidth};
+   });
+   assert(geometry.gap>=0&&geometry.gap<=5&&geometry.clearance>=0&&geometry.overflow<=1,label+' dock '+tab+' '+JSON.stringify(geometry));
+  }
+  await page.locator('.bottomnav [data-mss-tab="home"]').click();
+ }
  const navRect=await page.locator('.bottomnav').boundingBox();
  if(width<=480){
   const menuHeight=await page.locator('.bottomnav').evaluate(el=>el.getBoundingClientRect().height);
