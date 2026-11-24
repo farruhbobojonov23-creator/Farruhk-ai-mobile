@@ -12,6 +12,30 @@ const money=n=>num(n,2)+' ₽';
 const status=msg=>{if(typeof notice==='function')notice(msg)};
 const owner=()=>{try{return cloudEnabled&&rev041Account()?rev041Account():null}catch{return null}};
 let roleCheckedFor=null,adminVerified=false;
+let lastBinHintCheck=0;
+function refreshBinHint(force=false){
+ const target=$('view-summary'),user=owner();
+ const old=$('rev068TrashNotice');
+ if(!adminVerified||!user||!target){old?.remove();return}
+ if(!force&&Date.now()-lastBinHintCheck<15000)return;
+ lastBinHintCheck=Date.now();
+ void rest('revision_audits',{query:'?deleted_at=not.is.null&select=id&limit=150'})
+ .then(rows=>{
+  if(!adminVerified||owner()!==user)return;
+  const count=Array.isArray(rows)?rows.length:0;
+  if(count===0){$('rev068TrashNotice')?.remove();return}
+  let element=$('rev068TrashNotice');
+  if(!element){
+   element=el('div','rev068-trash-alert');element.id='rev068TrashNotice';
+   const board=$('rev065Dashboard');
+   if(board)board.before(element);else target.prepend(element);
+  }
+  element.replaceChildren(
+   el('span','','🗑 В корзине '+count+' ревизий. Они не потеряны и могут быть восстановлены.'),
+   btn('Открыть корзину',()=>trashList(),'main')
+  );
+ }).catch(err=>console.warn('Recycle bin count unavailable',err));
+}
 function checkAdminRole(){
  const id=owner();
  if(!id){roleCheckedFor=null;adminVerified=false;return}
@@ -22,6 +46,7 @@ function checkAdminRole(){
   if(owner()!==id)return;
   adminVerified=Array.isArray(rows)&&rows.length===1&&rows[0].user_id===id;
   renderHistory();
+  refreshBinHint(true);
  }).catch(err=>{
   if(owner()===id)roleCheckedFor=null;
   console.warn('Audit admin permission check unavailable',err);
@@ -61,7 +86,7 @@ function fail(panel,error){
 function storeRecord(server){return rev041CloudRecord(server)}
 function updateUi(){
  try{rev041SaveCloudCache()}catch(error){console.warn('Audit cache refresh failed',error)}
- try{renderHistory();renderSummary()}catch(error){console.warn('Audit list refresh failed',error)}
+ try{renderHistory();renderSummary();refreshBinHint(true)}catch(error){console.warn('Audit list refresh failed',error)}
 }
 async function patch(r,body){
  if(!currentOwner(r))throw Error('Изменения доступны только владельцу облачного аккаунта');
