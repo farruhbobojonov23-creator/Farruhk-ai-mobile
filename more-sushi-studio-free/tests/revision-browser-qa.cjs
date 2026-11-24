@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.1'),'new interface release badge displayed');
+ verify(badge.includes('0.6.2'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -154,6 +154,44 @@ async function test(browser){
  await page.waitForFunction(()=>document.querySelector('#rev060Save')?.dataset.status==='pending',{timeout:10000});
  const queueCheck=await page.evaluate(()=>({queue:rev041Queue().length,marked:state.history.filter(r=>r.store==='Полярные Зори'&&r.pendingSync).length}));
  verify(queueCheck.queue===1&&queueCheck.marked===1,'cloud outage retains exactly one queued local audit');
+
+ // Saved weekly data only; never display drafts or overwrite stored audit snapshots.
+ await page.evaluate(()=>{
+   state.history.push({
+    id:crypto.randomUUID(),store:'Плазма',type:'weekly',date:'2026-11-24',timestamp:Date.now()+1000,
+    products:[
+     {name:'Лосось',diff:-1.5,price:null,program:10,actual:8.5},
+     {name:'Угорь',diff:4.25,price:800,program:4,actual:8.25},
+     {name:'Сыр',diff:0,price:250,program:5,actual:5},
+     {name:'Мидии',diff:-0.5,price:1000,program:3,actual:2.5},
+     {name:'Краб',diff:2,price:700,program:2,actual:4}
+    ]
+   });
+   renderSummary();
+ });
+ await page.locator('.menu button[onclick*="summary"]').click();
+ const plasma=page.locator('.rev053-store-card[data-rev053-store="Плазма"]');
+ const mini=plasma.locator('.rev062-mini');
+ await mini.waitFor();
+ verify((await mini.innerText()).includes('Лосось')&&(await mini.innerText()).includes('нет цены'),'saved shortage with missing historical price is honest');
+ verify((await mini.innerText()).includes('Угорь')&&(await mini.innerText()).includes('3 400'),'saved surplus shows price multiplied by quantity');
+ verify(await plasma.locator('.rev062-line').count()===4,'all four discrepancies available in this outlet');
+ verify(await plasma.locator('.rev062-line:visible').count()===3,'compact preview shows three mismatched products');
+ verify(await page.locator('.rev053-store-card[data-rev053-store="Баумана 18"] .rev062-mini').count()===0,
+  'no product data leaked from Плазма to another outlet without a weekly audit');
+ const beforeView=await page.locator('.menu button.active').innerText();
+ await plasma.locator('.rev062-toggle').click();
+ verify(await plasma.locator('.rev062-line:visible').count()===4,'show-all toggle expands table without navigating');
+ verify((await page.locator('.menu button.active').innerText())===beforeView,'table expansion does not open a new revision');
+ const boxes=await plasma.evaluate(card=>({
+  table:card.querySelector('.rev062-mini')?.getBoundingClientRect().toJSON(),
+  button:card.querySelector('.point-open')?.getBoundingClientRect().toJSON(),
+  card:card.getBoundingClientRect().toJSON()
+ }));
+ verify(boxes.table.bottom<=boxes.button.top+1,'mini table does not overlap open-point action');
+ verify(boxes.button.bottom<=boxes.card.bottom+1,'mini table and action fit inside the outlet card');
+ await page.screenshot({path:path.join(out,'revision-v062-minitable-mobile.png'),fullPage:true});
+
 
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
  await context.close();
