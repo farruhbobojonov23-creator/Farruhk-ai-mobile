@@ -40,6 +40,7 @@ jobs:
           cp ocr-mobile-lab/SupplyPaddleBridge.kt upstream-paddle/deploy/ppocr-android/ppocr-sdk/src/main/java/com/paddle/ocr/
           # Prefer official Maven repositories rather than slow third-party mirrors in CI.
           sed -i '/maven.aliyun.com/d' upstream-paddle/deploy/ppocr-android/settings.gradle.kts
+          sed -i 's/opencv = "4.5.3"/opencv = "4.10.0"/; s/group = "com.quickbirdstudios", name = "opencv"/group = "org.opencv", name = "opencv"/' upstream-paddle/deploy/ppocr-android/gradle/libs.versions.toml
       - name: Compile Android OCR library
         run: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:assembleRelease :ppocr-sdk:assembleDebugAndroidTest --no-daemon
       - name: Enable emulator acceleration

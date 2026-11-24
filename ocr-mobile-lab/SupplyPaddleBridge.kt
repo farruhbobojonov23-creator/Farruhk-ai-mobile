@@ -22,7 +22,7 @@ object SupplyPaddleBridge {
         }
     }
     @JvmStatic fun read(context: Context, bitmap: Bitmap): Scan = runBlocking {
-        OpenCVUtils.init(context.applicationContext)
+        check(OpenCVUtils.init(context.applicationContext)) { "OpenCV native library failed to initialize" }
         val engine = PaddleOCR.create(context.applicationContext,
             PaddleOCRConfig(detLimitSideLen=1280, detLimitType="max"), EngineConfig())
         try {

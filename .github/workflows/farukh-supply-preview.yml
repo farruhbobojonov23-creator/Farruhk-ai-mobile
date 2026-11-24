@@ -76,6 +76,7 @@ jobs:
           cp ocr-mobile-lab/SupplyPaddleBridge.kt "$base/ppocr-sdk/src/main/java/com/paddle/ocr/"
           cp ocr-mobile-lab/SupplyInvoiceSmokeTest.kt "$base/ppocr-sdk/src/androidTest/java/com/paddle/ocr/benchmark/"
           sed -i '/maven.aliyun.com/d' "$base/settings.gradle.kts"
+          sed -i 's/opencv = "4.5.3"/opencv = "4.10.0"/; s/group = "com.quickbirdstudios", name = "opencv"/group = "org.opencv", name = "opencv"/' "$base/gradle/libs.versions.toml"
           gradle -p "$base" :ppocr-sdk:assembleRelease :ppocr-sdk:assembleDebugAndroidTest --no-daemon
           mkdir -p supply-android/app/libs
           cp "$base/ppocr-sdk/build/outputs/aar/ppocr-sdk-release.aar" supply-android/app/libs/supply-paddle.aar
