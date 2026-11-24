@@ -376,6 +376,25 @@ async function runSplashOnce(browser){
  await ctx.close();
 }
 
+
+async function runDeleteOffline(browser){
+ const ctx=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
+ await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',r=>r.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
+ const page=await ctx.newPage();page.on('dialog',d=>d.accept());
+ await page.goto('http://127.0.0.1:8898/mobile.html#projects',{waitUntil:'domcontentloaded'});
+ await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.locator('#mss-projects [data-hub-add]').click();
+ await page.fill('#hubEditName','Удаляемый ярлык QA');
+ await page.fill('#hubEditUrl','https://example.com/');
+ await page.locator('#hubProjectForm button[type=submit]').click();
+ assert(await page.locator('#hubAllProjects .project-card').count()===8,'Delete — custom link created');
+ await page.locator('#hubAllProjects .project-card').filter({hasText:'Удаляемый ярлык QA'}).locator('.project-remove').click();
+ assert(await page.locator('#hubAllProjects .project-card').count()===7,'Delete — custom link removed with confirmation');
+ await page.reload({waitUntil:'domcontentloaded'});
+ assert(await page.locator('#hubAllProjects .project-card').count()===7,'Delete — removal persists after refresh');
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -391,6 +410,7 @@ async function main(){
   try{await runRecipeImport(browser)}catch(e){assert(false,'Recipe import — runtime '+e.message)}
   try{await runBackup(browser)}catch(e){assert(false,'Backup — runtime '+e.message)}
   try{await runSplashOnce(browser)}catch(e){assert(false,'Splash — runtime '+e.message)}
+  try{await runDeleteOffline(browser)}catch(e){assert(false,'Delete — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();

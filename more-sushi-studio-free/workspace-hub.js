@@ -91,6 +91,24 @@ function renderCard(p,{wide=false,edit=false}={}){
  if(edit){
  const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='project-edit';editBtn.textContent='Изменить';
  editBtn.addEventListener('click',()=>editProject(p));card.appendChild(editBtn);
+ const builtIn=defaults.some(x=>x.id===p.id);
+ const overridden=builtIn&&custom.some(x=>x.id===p.id&&x.override);
+ if(!builtIn||overridden){
+  const remove=document.createElement('button');
+  remove.type='button';remove.className='project-remove';
+  remove.textContent=builtIn?'Вернуть стандартную ссылку':'Удалить';
+  remove.setAttribute('aria-label',(builtIn?'Сбросить настройки ':'Удалить проект ')+p.name);
+  remove.addEventListener('click',()=>{
+   const question=builtIn?
+    'Восстановить стандартную карточку «'+p.name+'»?':
+    'Убрать ярлык «'+p.name+'» из Workspace? Сам сайт и его данные не будут удалены.';
+   if(!confirm(question))return;
+   custom=custom.filter(x=>x.id!==p.id);
+   favorites=favorites.filter(id=>id!==p.id);
+   save();renderProjects();toast(builtIn?'Стандартная ссылка восстановлена ✓':'Ярлык удалён ✓');
+  });
+  card.appendChild(remove);
+ }
  }
  card.addEventListener('click',e=>{
  if(e.target.closest('button'))return;

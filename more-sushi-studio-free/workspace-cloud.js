@@ -100,6 +100,9 @@ function scopedTo(id){
 function mergeCloud(remote,local,remoteUpdatedAt,localTime){
  const time=new Date(remoteUpdatedAt||0).getTime()||0;
  const localsNewer=localTime>time+500;
+ // A newer complete local snapshot is authoritative: never resurrect
+ // intentionally deleted shortcuts or overwrite an offline restore.
+ if(localsNewer)return cleanArray(local);
  const byId=new Map();
  for(const item of remote.projects)if(item?.id&&typeof item.id==='string')byId.set(item.id,item);
  for(const item of local.projects)if(item?.id&&typeof item.id==='string'){
