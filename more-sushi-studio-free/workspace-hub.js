@@ -7,6 +7,9 @@ const root=document.documentElement;
 const app=document.getElementById('mssCategoryApp');
 if(!app)return;
 const tabs=new Set(['home','projects','ttk','tools','more']);
+// The standalone Android shell keeps all HTTPS projects in the SAME native
+// WebView using top-level navigation (cross-origin iframe restrictions remain).
+const insideNative=/\bFarruhWorkspaceNative\/1\.\d+\b/.test(navigator.userAgent);
 const defaults=[
  {id:'more',name:'MORE SUSHI STUDIO',desc:'ТТК · Рецептуры · Каталог · PDF',url:'./index.html?ocean=1',color:'ruby',symbol:'wc-fish'},
  {id:'ai',name:'FARRUH AI',desc:'ИИ-помощник шеф-повара',url:'https://farruhk-ai-mobile.onrender.com/',color:'charcoal',symbol:'wc-a'},
@@ -67,7 +70,7 @@ function canEmbed(p,url){
 }
 function directIcon(p){
  const url=normalizeUrl(p.url);
- return url&&!canEmbed(p,url)?'wc-external':'wc-arrow';
+ return url&&!insideNative&&!canEmbed(p,url)?'wc-external':'wc-arrow';
 }
 function byFavorite(list){return [...list].sort((a,b)=>Number(favorites.includes(b.id))-Number(favorites.includes(a.id)))}
 function renderCard(p,{wide=false,edit=false}={}){
@@ -187,7 +190,7 @@ function openProject(p){
  // Open non-frameable destinations as real pages, not in a frame. Android
  // users can return using the hardware/system Back button; browser history
  // has a Workspace entry immediately before the external destination.
- if(!canEmbed(p,url)){
+ if(insideNative||!canEmbed(p,url)){
    dismissViewer();
    try{sessionStorage.setItem('farruh-workspace-external-return-v1',JSON.stringify({
     project:p.id,back:location.href,savedAt:Date.now()

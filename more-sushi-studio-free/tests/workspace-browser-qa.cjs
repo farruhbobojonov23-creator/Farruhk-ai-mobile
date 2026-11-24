@@ -402,6 +402,48 @@ async function runDeleteOffline(browser){
  await ctx.close();
 }
 
+
+async function runNativeSingleWebView(browser){
+ const base='http://127.0.0.1:8898/mobile.html#home';
+ const context=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true,
+  userAgent:'Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/135 Mobile Safari/537.36 FarruhWorkspaceNative/1.0'});
+ const entries=[
+  {name:'MORE SUSHI STUDIO',prefix:'http://127.0.0.1:8898/index.html'},
+  {name:'FARRUH AI',prefix:'https://farruhk-ai-mobile.onrender.com/'},
+  {name:'FARUKH REVISION',prefix:'http://127.0.0.1:8898/revision.html'},
+  {name:'FARUKH PRINT',prefix:'https://farruhk-ai-mobile.onrender.com/farukh-print/staff/'},
+  {name:'FARUKH KITCHEN',prefix:'https://chefaka.onrender.com/'},
+  {name:'SHEF51',prefix:'https://shef51.onrender.com/'},
+  {name:'СУШИ БЕРИ',prefix:'https://sushi-beri.ru/murmansk'}
+ ];
+ await context.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>
+  route.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
+ for(const origin of ['https://farruhk-ai-mobile.onrender.com/**',
+  'https://chefaka.onrender.com/**','https://shef51.onrender.com/**','https://sushi-beri.ru/**']){
+  await context.route(origin,route=>route.fulfill({status:200,contentType:'text/html',
+   body:'<!doctype html><html lang="ru"><title>Проект внутри Android WebView</title><body>Наш проект открыт</body></html>'}));
+ }
+ const page=await context.newPage();const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ for(const entry of entries){
+  await page.goto(base,{waitUntil:'domcontentloaded'});
+  await page.locator('#hubSkipSplash').click().catch(()=>{});
+  const card=page.locator('#hubFeaturedProjects .project-card').filter({hasText:entry.name});
+  await card.locator('.project-go').click();
+  await page.waitForURL(url=>url.href.startsWith(entry.prefix),{timeout:15000});
+  assert(page.url().startsWith(entry.prefix),
+   'Native WebView — '+entry.name+' navigates top-level, not external tab/iframe');
+  if(page.url().startsWith('http://127.0.0.1:8898/')){
+   assert(!page.url().includes('/mobile.html#open-'),
+    'Native WebView — '+entry.name+' does not open an iframe modal');
+  }
+  await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>{});
+  await page.goto(base,{waitUntil:'domcontentloaded'});
+ }
+ assert(errors.length===0,'Native WebView — zero Workspace JavaScript errors');
+ await context.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -424,6 +466,7 @@ async function main(){
   try{await runBackup(browser)}catch(e){assert(false,'Backup — runtime '+e.message)}
   try{await runSplashOnce(browser)}catch(e){assert(false,'Splash — runtime '+e.message)}
   try{await runDeleteOffline(browser)}catch(e){assert(false,'Delete — runtime '+e.message)}
+  try{await runNativeSingleWebView(browser)}catch(e){assert(false,'Native WebView — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();

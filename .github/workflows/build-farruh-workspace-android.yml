@@ -1,0 +1,39 @@
+name: Build FARRUH WORKSPACE PRO Android
+on:
+  push:
+    branches: [more-sushi-studio-free]
+    paths:
+      - 'farruh-workspace-android/**'
+      - '.github/workflows/build-farruh-workspace-android.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  debug-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK 35
+        run: |
+          set -e
+          SDKMANAGER="$(command -v sdkmanager || find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Compile test APK
+        working-directory: farruh-workspace-android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Archive debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FARRUH-WORKSPACE-PRO-TEST-APK
+          path: farruh-workspace-android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
