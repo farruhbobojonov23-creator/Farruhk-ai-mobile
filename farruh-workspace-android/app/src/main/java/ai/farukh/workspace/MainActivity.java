@@ -28,6 +28,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.webkit.CookieManager;
 import android.webkit.PermissionRequest;
 import android.webkit.SslErrorHandler;
@@ -62,7 +63,7 @@ import java.util.Set;
  */
 public final class MainActivity extends Activity {
     private static final String HOME = "https://more-sushi-studio.onrender.com/mobile.html";
-    private static final String UA = "FarruhWorkspaceNative/1.0";
+    private static final String UA = "FarruhWorkspaceNative/1.0 FarruhWorkspaceUpdate/1.0";
     private static final String UPDATE_JSON = "https://more-sushi-studio.onrender.com/workspace-android-update.json";
     private static final String TRUSTED_APK_PREFIX = "https://more-sushi-studio.onrender.com/android-updates/";
     private static final String APK_MIME = "application/vnd.android.package-archive";
@@ -72,6 +73,8 @@ public final class MainActivity extends Activity {
       "chefaka.onrender.com","shef51.onrender.com","sushi-beri.ru","www.sushi-beri.ru"
     ));
     private WebView browser;
+    private LinearLayout outerLayout;
+    private LinearLayout nativeBar;
     private TextView caption;
     private ProgressBar progress;
     private ValueCallback<Uri[]> filePicker;
@@ -86,7 +89,8 @@ public final class MainActivity extends Activity {
         super.onCreate(savedState);
         getWindow().setStatusBarColor(Color.rgb(30,26,35));
         getWindow().setNavigationBarColor(Color.rgb(30,26,35));
-        LinearLayout root=new LinearLayout(this);
+        outerLayout=new LinearLayout(this);
+        LinearLayout root=outerLayout;
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.WHITE);
         root.setOnApplyWindowInsetsListener((v,insets)->{
@@ -99,11 +103,12 @@ public final class MainActivity extends Activity {
             }
             return insets;
         });
-        LinearLayout bar=new LinearLayout(this);
+        nativeBar=new LinearLayout(this);
+        LinearLayout bar=nativeBar;
         bar.setGravity(Gravity.CENTER_VERTICAL);bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setPadding(dp(6),dp(4),dp(6),dp(4));
         bar.setBackgroundColor(Color.rgb(37,34,46));
-        root.addView(bar,new LinearLayout.LayoutParams(-1,dp(52)));
+        root.addView(bar,new LinearLayout.LayoutParams(-1,dp(47)));
         Button home=button("‹ Проекты",12);
         home.setOnClickListener(v->browser.loadUrl(HOME));
         bar.addView(home,new LinearLayout.LayoutParams(dp(96),dp(42)));
@@ -124,14 +129,17 @@ public final class MainActivity extends Activity {
         browser=new WebView(this);browser.setBackgroundColor(Color.WHITE);
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1f));
         setContentView(root);
+        updateChrome(HOME); // Hide duplicate native bar on our main Workspace screen.
         setupBrowser();
         IntentFilter downloads=new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         if(Build.VERSION.SDK_INT>=33)
             registerReceiver(downloadReceiver,downloads,Context.RECEIVER_EXPORTED);
         else registerReceiver(downloadReceiver,downloads);
         downloadReceiverActive=true;
-        if(savedState!=null)browser.restoreState(savedState);
-        else browser.loadUrl(HOME);
+        if(savedState!=null){
+            browser.restoreState(savedState);
+            updateChrome(browser.getUrl());
+        }else browser.loadUrl(HOME);
     }
     private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+0.5f);}
     private Button button(String title,int textSize){
@@ -160,7 +168,27 @@ public final class MainActivity extends Activity {
             catch(ActivityNotFoundException ex){toast("Для этой ссылки нет подходящего приложения.");}
         }else toast("Открытие разрешено только для защищённых HTTPS-сайтов.");
     }
+    private void updateChrome(String url){
+        boolean workspaceHome=isHome(url);
+        if(nativeBar!=null)nativeBar.setVisibility(workspaceHome?View.GONE:View.VISIBLE);
+        int backdrop=workspaceHome?Color.rgb(248,248,250):Color.rgb(37,34,46);
+        if(outerLayout!=null)outerLayout.setBackgroundColor(backdrop);
+        getWindow().setStatusBarColor(backdrop);
+        getWindow().setNavigationBarColor(workspaceHome?Color.rgb(244,243,248):Color.rgb(37,34,46));
+        if(Build.VERSION.SDK_INT>=30){
+            WindowInsetsController c=getWindow().getInsetsController();
+            if(c!=null){
+                int mask=WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    |WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                c.setSystemBarsAppearance(workspaceHome?mask:0,mask);
+            }
+        }else{
+            getWindow().getDecorView().setSystemUiVisibility(
+              workspaceHome?(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR):0);
+        }
+    }
     private void updateCaption(String url){
+        updateChrome(url);
         if(isHome(url)){caption.setText("FARRUH WORKSPACE PRO");return;}
         if(url==null){caption.setText("ПРОЕКТ");return;}
         String host=Uri.parse(url).getHost();
@@ -186,7 +214,16 @@ public final class MainActivity extends Activity {
         browser.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){
                 if(!request.isForMainFrame())return false;
-                if(safeHttps(request.getUrl()))return false; // SAME Android WebView, not Chrome.
+                // Only the trusted Workspace HOME (not third-party projects)
+                // can trigger an APK update from its existing web Update tile.
+                Uri target=request.getUrl();
+                if("farruhworkspace".equalsIgnoreCase(target.getScheme())){
+                    if("update".equalsIgnoreCase(target.getHost()) && isHome(view.getUrl()))
+                        checkForUpdates();
+                    else toast("Обновление доступно только из главного меню.");
+                    return true;
+                }
+                if(safeHttps(target))return false; // SAME Android WebView, not Chrome.
                 handleOther(request.getUrl());
                 return true;
             }
