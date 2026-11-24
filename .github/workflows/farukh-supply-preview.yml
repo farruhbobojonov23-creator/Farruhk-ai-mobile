@@ -6,6 +6,9 @@ on:
       - 'supply-android/**'
       - 'supply/**'
       - '.github/workflows/farukh-supply-preview.yml'
+concurrency:
+  group: farukh-supply-stable
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -98,7 +101,15 @@ jobs:
           code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
           [[ "$code" =~ ^[0-9]+$ ]]
           out="$RUNNER_TEMP/supply-release"; mkdir -p "$out"
+          tag=farukh-supply-current
+          old=0
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+            old=$(jq -er .versionCode "$out/previous.json")
+            if [ "$code" -lt "$old" ]; then echo "::error::Native downgrade"; exit 1; fi
+          fi
           apk="FARUKH-SUPPLY-$code.apk"
+          if [ "$code" -gt "$old" ]; then
           gradle -p supply-android :app:assembleRelease --no-daemon
           signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$signer" sign --ks "$key" --ks-key-alias "$KEY_ALIAS" --ks-pass env:STORE_PASS --key-pass env:KEY_PASS --out "$out/$apk" supply-android/app/build/outputs/apk/release/app-release-unsigned.apk
@@ -118,3 +129,28 @@ jobs:
           else
             gh release create "$tag" "$out/$apk" "$out/update.json" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY" --title "FARUKH SUPPLY AI" --notes "Stable signed update channel" --prerelease
           fi
+          else
+            cert=$(jq -er .cert "$out/previous.json")
+            echo "Native APK unchanged; publishing web components only."
+          fi
+          webroot=supply-android/app/src/main/assets
+          revision=$(tr -d '[:space:]' < "$webroot/web-version.txt")
+          [[ "$revision" =~ ^[1-9][0-9]*$ ]]
+          if gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/web-previous.json" 2>/dev/null; then
+            previous_native=$(jq -r .payload "$out/web-previous.json" | base64 -d | jq -er .nativeVersion)
+            previous_revision=$(jq -r .payload "$out/web-previous.json" | base64 -d | jq -er .revision)
+            if [ "$previous_native" -eq "$code" ] && [ "$previous_revision" -ge "$revision" ]; then
+              echo "Web revision unchanged; increment web-version.txt for UI-only updates."
+              exit 0
+            fi
+          fi
+          python3 - "$webroot" "$code" "$revision" "$out/web-payload.json" <<'PY'
+          import base64,json,pathlib,sys
+          root,code,rev,out=sys.argv[1:]
+          names=['index.html','app.js','analytics.js','invoice-parser.js']
+          files={n:base64.b64encode((pathlib.Path(root)/n).read_bytes()).decode('ascii') for n in names}
+          pathlib.Path(out).write_text(json.dumps({'package':'ai.farukh.supply','nativeVersion':int(code),'revision':int(rev),'files':files},separators=(',',':')),encoding='utf-8')
+          PY
+          java supply-android/SignWeb.java "$key" "$KEY_ALIAS" "$out/web-payload.json" "$out/web-current.json" "$cert" "$revision"
+          test "$(wc -c < "$out/web-current.json")" -lt 1048576
+          gh release upload "$tag" "$out/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber

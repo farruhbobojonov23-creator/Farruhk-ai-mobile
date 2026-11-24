@@ -23,29 +23,27 @@ final class SupplyUpdater {
  private static final String BASE="https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/download/farukh-supply-current/";
  private static final long MAX_APK=100L*1024*1024;
  private final Activity activity;
+ private final WebUpdates webUpdates;
+ private final Runnable reload;
+ private android.app.ProgressDialog progress;
  private final ExecutorService worker=Executors.newSingleThreadExecutor();
  private boolean busy=false;
- SupplyUpdater(Activity a){activity=a;}
- void close(){worker.shutdownNow();}
+ SupplyUpdater(Activity a,WebUpdates w,Runnable r){activity=a;webUpdates=w;reload=r;}
+ void close(){worker.shutdownNow();if(progress!=null)progress.dismiss();}
  private void notice(String s){activity.runOnUiThread(()->{if(!activity.isDestroyed())Toast.makeText(activity,s,Toast.LENGTH_LONG).show();});}
  void check(){
   if(busy)return;
-  if(!activity.getPackageManager().canRequestPackageInstalls()){
-   new AlertDialog.Builder(activity).setTitle("Обновления").setMessage("Разрешите установку обновлений из FARUKH SUPPLY AI в настройках Android. Затем вернитесь и нажмите «Обновить».").setNegativeButton("Отмена",null).setPositiveButton("Настройки",(d,w)->{
-    try{activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:"+activity.getPackageName())));}catch(Exception e){notice("Откройте разрешение установки в настройках Android.");}
-   }).show();return;
-  }
-  busy=true;notice("Проверяем обновление…");
+  busy=true;progress=new android.app.ProgressDialog(activity);progress.setMessage("Проверяем обновление…");progress.setCancelable(false);progress.show();
   worker.execute(()->{
    try{downloadAndCheck();}
    catch(FileNotFoundException e){notice("Стабильная версия для обновления пока не опубликована.");}
    catch(SecurityException e){notice("Обновление отклонено: подпись или контрольная сумма не совпадает.");}
    catch(Exception e){notice("Не удалось проверить обновление. Проверьте интернет и попробуйте снова.");}
-   finally{activity.runOnUiThread(()->busy=false);}
+   finally{activity.runOnUiThread(()->{busy=false;if(progress!=null){progress.dismiss();progress=null;}});}
   });
  }
  private static HttpsURLConnection connect(String name)throws IOException{
-  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name+("update.json".equals(name)?"?check="+System.currentTimeMillis():"")).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setRequestProperty("Cache-Control","no-cache, no-store, max-age=0");c.setRequestProperty("Pragma","no-cache");c.setInstanceFollowRedirects(true);
+  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name+(name.endsWith(".json")?"?check="+System.currentTimeMillis():"")).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setRequestProperty("Cache-Control","no-cache, no-store, max-age=0");c.setRequestProperty("Pragma","no-cache");c.setInstanceFollowRedirects(true);
   int code=c.getResponseCode();if(code==404){c.disconnect();throw new FileNotFoundException(name);}if(code!=200){c.disconnect();throw new IOException("HTTP "+code);}return c;
  }
  private static byte[] manifest()throws IOException{
@@ -61,7 +59,22 @@ final class SupplyUpdater {
   if(!"ai.farukh.supply".equals(m.getString("package"))||!name.equals("FARUKH-SUPPLY-"+code+".apk")||!hash.matches("[0-9a-fA-F]{64}"))throw new SecurityException("manifest");
   PackageManager pm=activity.getPackageManager();int flags=Build.VERSION.SDK_INT>=28?PackageManager.GET_SIGNING_CERTIFICATES:PackageManager.GET_SIGNATURES;
   PackageInfo installed=pm.getPackageInfo(activity.getPackageName(),flags);
-  if(code<=version(installed)){notice("Версия на телефоне: "+installed.versionName+" (сборка "+version(installed)+"). На сервере: "+code+".");return;}
+  if(code<=version(installed)){
+   if(code<version(installed)){notice("Установлена более новая версия Android-модуля.");return;}
+   HttpsURLConnection web;
+   try{web=connect("web-current.json");}catch(FileNotFoundException e){notice("Новых обновлений нет.");return;}
+   boolean changed;
+   try(InputStream in=web.getInputStream()){changed=webUpdates.install(WebUpdates.read(in,1024*1024));}finally{web.disconnect();}
+   if(changed)activity.runOnUiThread(()->{if(!activity.isDestroyed()){reload.run();notice("Быстрое обновление установлено.");}});
+   else notice("Актуальная версия · интерфейс "+webUpdates.revision());
+   return;
+  }
+  if(!pm.canRequestPackageInstalls()){
+   activity.runOnUiThread(()->{if(activity.isDestroyed())return;
+    new AlertDialog.Builder(activity).setTitle("Обновление Android").setMessage("Для обновления встроенного модуля разрешите установку APK. Затем нажмите «Обновить» ещё раз.").setNegativeButton("Отмена",null).setPositiveButton("Настройки",(d,w)->{
+     try{activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:"+activity.getPackageName())));}catch(Exception e){notice("Откройте разрешение установки в настройках Android.");}
+    }).show();});return;
+  }
   notice("Найдено обновление: сборка "+code+". Скачиваем…");
   File dir=new File(activity.getCacheDir(),"updates");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("cache");
   File apk=new File(dir,name),tmp=new File(dir,name+".part");MessageDigest digest=MessageDigest.getInstance("SHA-256");

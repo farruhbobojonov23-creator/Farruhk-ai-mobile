@@ -15,9 +15,11 @@ public class MainActivity extends Activity {
  private long scanSequence=0;
  private Uri lastScan;
  private SupplyUpdater updater;
+ private WebUpdates webUpdates;
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
- updater=new SupplyUpdater(this);
+ webUpdates=new WebUpdates(this);
+ updater=new SupplyUpdater(this,webUpdates,()->{scanSequence++;lastScan=null;web.clearCache(false);web.loadUrl("https://appassets.androidplatform.net/assets/index.html");});
  web=new WebView(this); web.setBackgroundColor(Color.rgb(7,24,44));
  android.widget.FrameLayout root=new android.widget.FrameLayout(this);
  root.setBackgroundColor(Color.rgb(6,22,36));
@@ -46,7 +48,7 @@ public class MainActivity extends Activity {
  WebSettings s=web.getSettings(); s.setCacheMode(WebSettings.LOAD_NO_CACHE);s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);
  WebViewAssetLoader loader=new WebViewAssetLoader.Builder().addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
  web.setWebViewClient(new WebViewClient(){
- @Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return loader.shouldInterceptRequest(r.getUrl());}
+ @Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){Uri u=r.getUrl();if("https".equals(u.getScheme())&&"appassets.androidplatform.net".equals(u.getHost())&&u.getPath()!=null&&u.getPath().startsWith("/assets/")){WebResourceResponse local=webUpdates.asset(u.getPath().substring(8));if(local!=null)return local;}return loader.shouldInterceptRequest(u);}
  @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){if(r.isForMainFrame() && "https://appassets.androidplatform.net/update".equals(r.getUrl().toString())){updater.check();return true;}
  if(r.isForMainFrame()&&"https://appassets.androidplatform.net/rescan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,true);return true;}
  return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
