@@ -1,0 +1,37 @@
+name: Supply offline Android OCR SDK lab
+on:
+  push:
+    branches: ['feature/farukh-supply-ai']
+    paths: ['ocr-mobile-lab/**', '.github/workflows/supply-ocr-mobile-lab.yml']
+permissions:
+  contents: read
+jobs:
+  sdk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: PaddlePaddle/PaddleOCR
+          ref: dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf
+          path: upstream-paddle
+          persist-credentials: false
+          sparse-checkout: deploy/ppocr-android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Prepare Cyrillic models for offline SDK
+        run: bash ocr-mobile-lab/prepare.sh upstream-paddle/deploy/ppocr-android
+      - name: Compile Android OCR library
+        run: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supply-paddle-sdk-lab
+          path: upstream-paddle/deploy/ppocr-android/ppocr-sdk/build/outputs/aar/*.aar
+          if-no-files-found: error
+          retention-days: 7

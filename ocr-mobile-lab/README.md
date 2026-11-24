@@ -1,0 +1,4 @@
+# Android OCR build experiment
+Separate from production: build the official PaddleOCR SDK with PP-OCRv5 mobile detection and Cyrillic recognition models. Upstream SDK pinned to dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf. Downloads public model weights only; no invoices, secrets, service endpoints, or cloud inference.
+Official SDK uses ONNX Runtime and returns positioned text boxes; it is not full PP-StructureV3. A successful AAR build only establishes compilation, not Cyrillic model compatibility, table accuracy, or Xiaomi performance. Next gate: Android runtime and reconstruction of table columns using bounding boxes, followed by private real invoice tests. Do not replace production OCR until these gates pass. Review licenses and pin verified model checksums before release.
+Reference: https://www.paddleocr.ai/latest/en/version3.x/inference_deployment/cross_platform/android_deployment.html
