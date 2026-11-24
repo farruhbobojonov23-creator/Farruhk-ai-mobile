@@ -74,7 +74,7 @@ async function runView(browser,{width,height,label}){
  }));
  assert(theme.bg.includes('linear-gradient')&&theme.fg==='rgb(255, 244, 248)',label+' — новая винно-розовая минимальная тема активна');
 
- assert(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ruby').trim())==='#d61045',label+' — новая единая тема');
+ assert(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ruby').trim())==='#b73b6a',label+' — единая тема Rosé Atelier');
  const sheets=await page.locator('link[rel=stylesheet]').evaluateAll(links=>links.map(x=>new URL(x.href).pathname));
  assert(sheets.length===1&&sheets[0]==='/workspace-command.css',label+' — одна активная CSS тема без старых накладок');
  const img=await page.locator('.hero-photo').evaluate(el=>el.complete&&el.naturalWidth>0);
