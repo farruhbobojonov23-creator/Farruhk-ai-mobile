@@ -96,7 +96,7 @@ function renderCard(p,{wide=false,edit=false}={}){
   card.dataset.art=p.id;
   const illustration=document.createElement('img');
   illustration.className='collection-art';
-  illustration.src='./alabaster/'+p.id+'.webp';
+  illustration.src='./alabaster/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp';
   illustration.alt='';
   illustration.draggable=false;
   card.appendChild(illustration);

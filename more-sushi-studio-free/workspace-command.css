@@ -738,3 +738,7 @@ body:has(#mss-home:not([hidden])){background:linear-gradient(115deg,#f8f2e9,#ead
 .hub-splash-icon{background:linear-gradient(135deg,#f5e7ce,#927349);border-color:#c2a376;box-shadow:0 6px 25px #20160f66}
 .hub-splash-kicker,.hub-splash p{color:#e9d3b3}
 @media(min-width:700px){#hubFeaturedProjects{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#hubFeaturedProjects [data-art="more"]{aspect-ratio:4.8}}
+@media(min-width:700px){
+ #hubFeaturedProjects [data-art="more"]{aspect-ratio:3.7}
+ [data-art="more"] .collection-art{width:auto;max-width:74%;object-fit:contain}
+}
