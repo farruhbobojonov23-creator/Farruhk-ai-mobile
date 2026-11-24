@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.5'),'new interface release badge displayed');
+ verify(badge.includes('0.6.6'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -189,6 +189,35 @@ async function test(browser){
  await page.waitForFunction(()=>document.querySelector('#rev060Save')?.dataset.status==='pending',{timeout:10000});
  const queueCheck=await page.evaluate(()=>({queue:rev041Queue().length,marked:state.history.filter(r=>r.store==='Полярные Зори'&&r.pendingSync).length}));
  verify(queueCheck.queue===1&&queueCheck.marked===1,'cloud outage retains exactly one queued local audit');
+
+ // Simulate a lost POST acknowledgement: the first request actually committed,
+ // but the client only receives a duplicate-key rejection on retry.
+ // A GET by identical UUID must turn the yellow queued receipt into a synced one.
+ const retry=await page.evaluate(async()=>{
+  const queued=rev041Queue()[0];
+  window.__retryRequests=[];
+  rest=async(table,opts={})=>{
+   window.__retryRequests.push({table,method:opts.method||'GET',query:opts.query||''});
+   if(table==='revision_audits'&&opts.method==='POST')
+    throw Error('duplicate key value violates unique constraint revision_audits_pkey');
+   if(table==='revision_audits'&&opts.query?.includes('id=eq.'+queued.id)){
+    return [{id:queued.id,location_name:queued.store,audit_type:queued.type,
+      audit_date:queued.date,operator_name:queued.operator||'',
+      items:queued.products,created_at:new Date().toISOString()}];
+   }
+   throw Error('Unexpected local test request');
+  };
+  const result=await rev041FlushPending(new Set());
+  return {result,queue:rev041Queue().length,
+    copies:state.history.filter(x=>x.id===queued.id).length,
+    pending:state.history.find(x=>x.id===queued.id)?.pendingSync===true,
+    sent:window.__retryRequests.map(x=>x.method)};
+ });
+ verify(retry.result.done===1&&retry.result.remaining===0&&retry.queue===0,
+   'server-side committed audit is recovered by its exact UUID and clears pending queue');
+ verify(retry.copies===1&&!retry.pending&&retry.sent.join(',')==='POST,GET',
+   'cloud acknowledgement replaces one local pending row without duplication');
+
 
  if(await page.locator('.rev060-popup').count())await page.locator('.rev060-popup .btn').first().click();
  // Saved weekly data only; never display drafts or overwrite stored audit snapshots.
