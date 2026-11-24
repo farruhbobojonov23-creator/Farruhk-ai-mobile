@@ -57,9 +57,17 @@ async function runView(browser,{width,height,label}){
  assert(geometry.glass&&geometry.frosted&&geometry.captionIsCalm&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow&&geometry.fitsScreen,
   label+' — Rosé Glass: матовое стекло, читабельность, нет тяжёлого текстового блока '+JSON.stringify(geometry));
 
- const artVisible=await page.locator('#hubFeaturedProjects .project-illustration img').evaluateAll(items=>
-  items.length===7&&items.every(img=>img.complete&&img.naturalWidth>0));
- assert(artVisible,label+' — все семь премиальных иллюстраций загрузились');
+ const artHidden=await page.locator('#hubFeaturedProjects .project-card .project-illustration').evaluateAll(items=>
+  items.length===7&&items.every(el=>getComputedStyle(el).display==='none'));
+ assert(artHidden,label+' — Rosé Atelier: декоративные картинки скрыты');
+ const cardTheme=await page.locator('#hubFeaturedProjects .project-card').first().evaluate(el=>{
+  const title=el.querySelector('.project-title');
+  const nameColor=getComputedStyle(title).color;
+  const box=el.getBoundingClientRect();
+  return {nameColor,height:box.height,width:box.width};
+ });
+ assert(cardTheme.nameColor==='rgb(67, 35, 53)'&&cardTheme.height<=190&&cardTheme.width>110,
+    label+' — компактная светлая премиальная карточка и чёткий тёмный текст '+JSON.stringify(cardTheme));
  const theme=await page.locator('body').evaluate(el=>({
    bg:getComputedStyle(el).backgroundImage,
    fg:getComputedStyle(el).color

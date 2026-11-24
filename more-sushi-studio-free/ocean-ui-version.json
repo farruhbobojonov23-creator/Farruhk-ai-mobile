@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.7.0-20261124",
-  "display": "FARRUH WORKSPACE PRO · ROSÉ GLASS MINIMAL 1.7.0",
+  "build": "farruh-workspace-1.8.0-20261124",
+  "display": "FARRUH WORKSPACE PRO · ROSÉ ATELIER MINIMAL 1.8.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "User approved concept #3 (wine-rose glass minimalism) for the deployed MORE SUSHI Workspace. Replaced the former neon/gold/illustration-heavy theme with a single restrained burgundy and smoked-pink frosted-glass visual system. Soft ambient gradients, translucent project cards, rose-metal edges, readable sans-serif typography, subdued artwork, minimalist status blocks and a calm five-tab dock. Same seven project links, authentications, recipes, TTK, PDF, REVISION, storage, cloud access and update mechanics. Three project columns on tablets, two on narrow phones for readability. Native Android top bar comes from installed APK and cannot be removed by a website update."
+  "details": "Correction to actual Xiaomi screenshot: previous Rosé Glass was muddy/dark and retained distracting giant 3D product artwork. Replaced single active CSS theme by true high-contrast Rosé Atelier: bright pearl-frosted project cards, dark wine texts, restrained rose accents, crisp icon tiles, matte buttons and compact cream dock that never covers content. Decorative oversized art hidden on cards. Project links, custom logos, favorites, CRUD, cloud, REVISION, TTK, PDF, authentication, native Android code and data unchanged. Native dark Projects/PDF bar and Android white status area still belong to installed APK; cannot be hidden by web update."
 }
