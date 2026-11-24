@@ -20,7 +20,26 @@ jobs:
         with:
           gradle-version: '8.10.2'
       - name: Install Android SDK
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+        shell: bash
+        run: |
+          set -e
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -d "$SDK_ROOT/platforms/android-35" ] || [ ! -d "$SDK_ROOT/build-tools/35.0.0" ]; then
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
+            if [ -z "$SDKMANAGER" ]; then
+              curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/supply-android-tools.zip
+              unzip -q /tmp/supply-android-tools.zip -d /tmp/supply-android-tools
+              sudo mkdir -p "$SDK_ROOT/cmdline-tools/latest"
+              sudo cp -R /tmp/supply-android-tools/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
+              SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+            fi
+            yes | sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+            sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'platforms;android-35' 'build-tools;35.0.0'
+          fi
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/supply-android-user"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/supply-android-user" >> "$GITHUB_ENV"
       - name: Test price analytics
         run: node --test supply/analytics.test.js
       - name: Check preview JavaScript
