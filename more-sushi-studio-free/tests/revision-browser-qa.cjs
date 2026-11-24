@@ -116,7 +116,9 @@ async function test(browser){
  await page.locator('#rev061NewPrice').fill('1390');
  await page.locator('button[onclick="addProduct()"]').click();
  await page.waitForFunction(()=>state.products.includes('Тестовый облачный продукт'));
- verify((await page.locator('#productsrows tr').filter({hasText:'Тестовый облачный продукт'}).innerText()).includes('1 390'),'cloud product price stored and shown');
+ const cloudRowText=await page.locator('#productsrows tr').filter({hasText:'Тестовый облачный продукт'}).innerText();
+ console.log('Cloud catalogue row:',JSON.stringify(cloudRowText));
+ verify(/1[\s\u00a0\u202f]*390/.test(cloudRowText),'cloud product price stored and shown');
  await page.locator('.menu button[onclick*="revision"]').click();
  await page.locator('#store').selectOption({label:'Героев Североморцев'});
  await page.locator('#mode').selectOption('start');
