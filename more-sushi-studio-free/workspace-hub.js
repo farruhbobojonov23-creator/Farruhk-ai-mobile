@@ -13,7 +13,10 @@ const insideNative=/\bFarruhWorkspaceNative\/1\.\d+\b/.test(navigator.userAgent)
 
 // Android FARRUH WORKSPACE has ONE update button in its main screen.
 // Only our own /mobile.html may ask the native shell to check the APK.
-if(insideNative){
+// Only the NEW native Android build advertises the update URI handler.
+// Older installed WebViews keep their existing web-only Update behavior.
+const nativeUpdateSupported=/\bFarruhWorkspaceUpdate\/1\.\d+\b/.test(navigator.userAgent);
+if(nativeUpdateSupported){
  document.addEventListener('click',event=>{
   const button=event.target.closest('[data-ocean-refresh]');
   if(!button||!app.contains(button))return;
