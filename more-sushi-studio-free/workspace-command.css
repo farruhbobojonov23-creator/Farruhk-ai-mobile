@@ -52,7 +52,7 @@ button,input,select{font:inherit}button,a{-webkit-tap-highlight-color:transparen
 .project-card.p-gold .project-logo{background:linear-gradient(140deg,#f5d18b,#b86c26 70%,#563015)}
 .project-card.p-charcoal .project-logo{background:linear-gradient(140deg,#9da5b5,#505469 70%,#262936)}
 .project-logo svg{width:35px;height:35px;color:#fff;stroke-width:1.6}
-.project-logo img{display:block;width:100%;height:100%;object-fit:cover}
+.project-logo img{display:block;width:100%;height:100%;object-fit:contain}
 .project-fav{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;border:1px solid #ffffff4d;background:#080a136b;color:#e1dcd6;z-index:4;flex:none;position:relative}
 .project-fav svg{width:16px;height:16px;stroke-width:2}
 .project-fav.is-favorite{color:#ffc76d;background:#553f1b}
@@ -421,7 +421,7 @@ body{
  box-shadow:inset 0 1px #fff,0 3px 7px #473a291b
 }
 .project-logo svg{width:27px;height:27px;color:#756149;stroke-width:1.65}
-.project-logo img{width:100%;height:100%;object-fit:cover}
+.project-logo img{width:100%;height:100%;object-fit:contain}
 .project-fav,.project-card .project-fav{
  position:relative;z-index:5;display:grid;place-items:center;flex:none;
  width:28px;height:28px;border:1px solid #ddd5cc;border-radius:10px;
@@ -718,9 +718,9 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
 #hubFeaturedProjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 #hubFeaturedProjects [data-art]{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:1.36;min-height:0;padding:0;border:1px solid #bca07d;border-radius:12px;background:linear-gradient(125deg,#e8d4be,#f5e8d7 62%,#d0b599);box-shadow:inset 0 0 0 1px #fff8,0 2px 4px #61452830}
 #hubFeaturedProjects [data-art]::before,#hubFeaturedProjects [data-art]::after{display:none}
-.collection-art{position:absolute;inset:auto 0 0;width:100%;height:74%;object-fit:cover;object-position:50% 75%;mask-image:linear-gradient(transparent,#000 18%)}
+.collection-art{object-fit:contain;object-position:center;pointer-events:none}
 #hubFeaturedProjects [data-art="more"]{grid-column:1/-1;aspect-ratio:2.65}
-[data-art="more"] .collection-art{inset:0 0 0 auto;width:71%;height:100%;object-position:center;mask-image:linear-gradient(to right,transparent,#000 18%)}
+[data-art="more"] .collection-art{position:absolute;inset:3% 2% auto auto;width:60%;height:94%}
 #hubFeaturedProjects [data-art] .project-copy{position:absolute;inset:8px auto auto 10px;display:block;width:calc(100% - 42px);padding:0;margin:0;pointer-events:none}
 #hubFeaturedProjects [data-art] .project-title{font:500 clamp(15px,3.8vw,26px)/1.03 Georgia,serif;color:#402911;text-shadow:0 1px 3px #ffefdc;max-width:11ch}
 #hubFeaturedProjects [data-art="more"] .project-copy{top:50%;transform:translateY(-50%);width:35%}
@@ -739,7 +739,7 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
 @media(min-width:700px){#hubFeaturedProjects{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#hubFeaturedProjects [data-art="more"]{aspect-ratio:4.8}}
 @media(min-width:700px){
  #hubFeaturedProjects [data-art="more"]{aspect-ratio:3.7}
- [data-art="more"] .collection-art{width:auto;max-width:74%;object-fit:contain}
+
 }
 
 /* Shared collection surfaces used by every Workspace panel and dialog. */
@@ -756,7 +756,7 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
 .full-grid .project-card .project-copy{padding-right:0}
 .full-grid .project-card .project-remove{position:relative;margin-left:0}
 .full-grid .project-card .art-logo{width:66px;height:44px;overflow:hidden;border-radius:9px;border:1px solid var(--line)}
-.full-grid .project-logo.art-logo img{object-fit:cover}
+.full-grid .project-logo.art-logo img{object-fit:contain}
 .full-grid .project-title,.action-card strong,.ttk-stat-card h3,.recipe-browser-heading h3,.settings-row strong,.about-hub b{font-family:Georgia,serif;color:var(--ink);font-weight:600}
 .full-grid .project-card .project-copy .project-title{font-family:Georgia,serif;color:var(--ink)}
 .action-card small,.settings-row small,.system-text small,.ttk-stat-card p,.recipe-browser-message,.recipe-row-foot,.recipe-info small{color:var(--muted)}
@@ -764,10 +764,10 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
  background:linear-gradient(135deg,#fffbef,#ead4ad);border:1px solid #c3a273;color:#67481f;box-shadow:inset 0 1px #fff9
 }
 .action-card .arrow,.settings-row>svg,.metric b,.system-text strong,.recipe-info strong{color:#604322}
-.action-card[data-title="Ревизия склада"] .action-icon,.action-card[data-title="FARUKH PRINT"] .action-icon,.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{width:72px;background-size:cover;background-position:center}
-.action-card[data-title="Ревизия склада"] .action-icon{background-image:url('./alabaster/revision.webp')}
-.action-card[data-title="FARUKH PRINT"] .action-icon{background-image:url('./alabaster/print.webp')}
-.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{background-image:url('./alabaster/kitchen-book.webp')}
+.action-card[data-title="Ревизия склада"] .action-icon,.action-card[data-title="FARUKH PRINT"] .action-icon,.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{width:72px;background-size:contain;background-repeat:no-repeat;background-position:center}
+.action-card[data-title="Ревизия склада"] .action-icon{background-image:url('./alabaster/full/revision.webp')}
+.action-card[data-title="FARUKH PRINT"] .action-icon{background-image:url('./alabaster/full/print.webp')}
+.action-card[data-title="FARUKH KITCHEN"] .action-icon,.action-card[data-title="Библиотека ТТК"] .action-icon{background-image:url('./alabaster/full/kitchen-book.webp')}
 .action-card:is([data-title="Ревизия склада"],[data-title="FARUKH PRINT"],[data-title="FARUKH KITCHEN"],[data-title="Библиотека ТТК"]) .action-icon svg{visibility:hidden}
 .search-projects,.project-dialog,.viewer-dialog,.viewer-head,.recipe-info-note,.metric,.recipe-readonly-row,.recipe-state,.viewer-help{
  background:var(--paper);border-color:var(--line);color:var(--ink)
@@ -778,3 +778,8 @@ body{background:linear-gradient(115deg,#f8f2e9,#eadbc9 55%,#f9f2e9);color:#39261
 .project-edit,.project-remove,.viewer-back,.viewer-external,.btn-secondary,.icon-close,.recipe-reload,.recipe-import-button,.small-update{color:#603f1b;background:#fff6e6;border-color:#bda17d}
 .project-dialog::backdrop,.viewer-dialog::backdrop{background:#302218a8}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline-color:#79551f}
+
+#hubFeaturedProjects [data-art]:not([data-art="more"]){display:flex;flex-direction:column;gap:2px;padding:8px 8px 4px;min-height:132px}
+#hubFeaturedProjects [data-art]:not([data-art="more"]) .project-copy{position:static;width:calc(100% - 26px);flex:none;order:0}
+#hubFeaturedProjects [data-art]:not([data-art="more"]) .collection-art{order:1;flex:1 1 0;min-height:0;width:100%;height:0}
+.full-grid .art-logo img,.project-logo img{object-fit:contain;object-position:center}
