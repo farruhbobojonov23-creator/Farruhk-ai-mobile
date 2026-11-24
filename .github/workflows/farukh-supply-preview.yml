@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -64,3 +64,44 @@ jobs:
           name: FARUKH-SUPPLY-AI-preview
           path: supply-android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publish stable signed update when dedicated secrets are configured
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$STORE_B64" ] || [ -z "$STORE_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
+            echo "::notice::Stable Supply signing is not configured. Debug artifact only; no public update published."
+            exit 0
+          fi
+          key="$RUNNER_TEMP/supply-release.jks"
+          trap 'rm -f "$key"' EXIT
+          umask 077
+          printf '%s' "$STORE_B64" | base64 --decode > "$key"
+          code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
+          [[ "$code" =~ ^[0-9]+$ ]]
+          out="$RUNNER_TEMP/supply-release"; mkdir -p "$out"
+          apk="FARUKH-SUPPLY-$code.apk"
+          gradle -p supply-android :app:assembleRelease --no-daemon
+          signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          "$signer" sign --ks "$key" --ks-key-alias "$KEY_ALIAS" --ks-pass env:STORE_PASS --key-pass env:KEY_PASS --out "$out/$apk" supply-android/app/build/outputs/apk/release/app-release-unsigned.apk
+          cert=$("$signer" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
+          [[ "$cert" =~ ^[0-9a-fA-F]{64}$ ]]
+          hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
+          jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
+          tag=farukh-supply-current
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+            test "$(jq -r .cert "$out/previous.json")" = "$cert" || { echo "::error::Signing certificate changed"; exit 1; }
+            old=$(jq -er .versionCode "$out/previous.json")
+            if [ "$code" -le "$old" ]; then echo "Keeping existing version"; exit 0; fi
+            gh release upload "$tag" "$out/$apk" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$tag" "$out/update.json" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$tag" "$out/$apk" "$out/update.json" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY" --title "FARUKH SUPPLY AI" --notes "Stable signed update channel" --prerelease
+          fi

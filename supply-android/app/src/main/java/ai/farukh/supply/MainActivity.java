@@ -13,8 +13,10 @@ public class MainActivity extends Activity {
  private ValueCallback<Uri[]> pending;
  private final java.util.concurrent.ExecutorService ocrExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
  private long scanSequence=0;
+ private SupplyUpdater updater;
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
+ updater=new SupplyUpdater(this);
  web=new WebView(this); web.setBackgroundColor(Color.rgb(7,24,44));
  android.widget.FrameLayout root=new android.widget.FrameLayout(this);
  root.setBackgroundColor(Color.rgb(6,22,36));
@@ -44,7 +46,8 @@ public class MainActivity extends Activity {
  WebViewAssetLoader loader=new WebViewAssetLoader.Builder().addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
  web.setWebViewClient(new WebViewClient(){
  @Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return loader.shouldInterceptRequest(r.getUrl());}
- @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
+ @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){if(r.isForMainFrame() && "https://appassets.androidplatform.net/update".equals(r.getUrl().toString())){updater.check();return true;}
+ return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
  });
  web.setWebChromeClient(new WebChromeClient(){
  @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> cb,FileChooserParams p){
@@ -63,5 +66,5 @@ public class MainActivity extends Activity {
  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
  ocrExecutor.execute(()->{String result="",error="";try{result=InvoiceOcr.read(this,uri);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error="Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
  }
- @Override protected void onDestroy(){ocrExecutor.shutdownNow();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
+ @Override protected void onDestroy(){ocrExecutor.shutdownNow();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }
