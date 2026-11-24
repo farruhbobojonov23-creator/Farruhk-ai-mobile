@@ -7,6 +7,8 @@
  const TIMEOUT=12000;
  const BUILD=document.querySelector('meta[name="mss-ui-build"]')?.content||'unknown';
  const VERSION_URL=new URL('./ocean-ui-version.json',document.baseURI);
+ const workspace=Boolean(document.getElementById('mssCategoryApp'));
+ const version=workspace ? BUILD.match(/workspace-([\d.]+)-/)?.[1] : null;
  let busy=false;
  let note=null;
 
@@ -57,7 +59,7 @@
          const label=btn.querySelector('.ocean-refresh-label')||btn.querySelector('.refresh-symbol + span');
          if(label)label.textContent='Обновить';
        });
-       toast('Установлена актуальная версия интерфейса ✓');
+       toast(version ? 'Workspace '+version+' · актуальная версия ✓' : 'Установлена актуальная версия интерфейса ✓');
        return;
      }
      // This is a web UI update, not a native Android APK installation.
@@ -65,7 +67,7 @@
      const next=new URL(location.href);
      next.searchParams.set('_fresh',String(Date.now()));
      try{sessionStorage.setItem(STORAGE_KEY,JSON.stringify({target:latest.build,time:Date.now()}))}catch{}
-     window.location.assign(next.href); // browser confirms if the editor has unsaved work
+     window.location.replace(next.href); // browser confirms if the editor has unsaved work
    }catch(error){
      toast('Не удалось проверить обновления. Проверь интернет.',true);
    }finally{
@@ -81,7 +83,9 @@
      sessionStorage.removeItem(STORAGE_KEY);
      const result=JSON.parse(raw);
      if(result.target===BUILD&&Date.now()-result.time<120000)
-       toast('Интерфейс MORE SUSHI STUDIO обновлён ✓');
+       toast(version ? 'Workspace обновлён до '+version+' ✓' : 'Интерфейс MORE SUSHI STUDIO обновлён ✓');
+     else if(result.target!==BUILD && Date.now()-result.time<120000)
+       toast('Новая версия ещё загружается на сервер. Попробуй обновить чуть позже.',true);
    }catch{}
  }
  document.addEventListener('click',event=>{
@@ -92,5 +96,8 @@
  });
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showConfirmedRefresh,{once:true});
  else showConfirmedRefresh();
+ // The original Android toolbar reloads its WebView. Honour that gesture too.
+ if(workspace && /FarruhWorkspaceNative\//.test(navigator.userAgent) && performance.getEntriesByType('navigation')[0]?.type==='reload')
+   checkAndRefresh();
  window.MoreSushiWebRefresh=checkAndRefresh;
 })();

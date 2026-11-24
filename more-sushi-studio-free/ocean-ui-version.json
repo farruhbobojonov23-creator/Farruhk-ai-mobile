@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.9.1-20261124",
-  "display": "FARRUH WORKSPACE PRO · Алебастр и золото 1.9.1",
+  "build": "farruh-workspace-1.9.2-20261124",
+  "display": "FARRUH WORKSPACE PRO · Алебастр и золото 1.9.2",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Алебастр и золото во всех пяти разделах Workspace, в поиске, формах проектов и окне просмотра."
+  "details": "Обновление интерфейса Workspace одним нажатием."
 }
