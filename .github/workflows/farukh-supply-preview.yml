@@ -1,0 +1,36 @@
+name: FARUKH SUPPLY AI preview APK
+on:
+  push:
+    branches: ['feature/farukh-supply-ai']
+    paths:
+      - 'supply-android/**'
+      - '.github/workflows/farukh-supply-preview.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Test price analytics
+        run: node --test supply/analytics.test.js
+      - name: Check preview JavaScript
+        run: |
+          node --check supply-android/app/src/main/assets/app.js
+          node --check supply-android/app/src/main/assets/analytics.js
+      - name: Build test APK
+        run: gradle -p supply-android :app:assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-SUPPLY-AI-preview
+          path: supply-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
