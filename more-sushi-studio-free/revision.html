@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.6.5';
+const FARUKH_UI_RELEASE='0.6.6';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1816,9 +1816,21 @@ async function rev041FlushPending(cloudIds){
    state.history=state.history.filter(x=>x.id!==r.id).concat(uploaded);
    cloudIds.add(r.id);done++;
   }catch(e){
-   // A request may have reached the server before the connection dropped.
-   // Keep the exact id for an idempotent next attempt; never delete a local pending record here.
-   remaining.push(r);
+   // A mobile connection may drop AFTER Supabase committed the insert. In that
+   // case a retry returns a unique-key conflict even though the audit exists.
+   // Verify the exact UUID by reading it back before calling it synced.
+   let confirmed=null;
+   try{
+    const matches=await rest('revision_audits',{query:'?id=eq.'+encodeURIComponent(r.id)+'&select=*'});
+    if(Array.isArray(matches)&&matches.length===1&&matches[0].id===r.id)confirmed=matches[0];
+   }catch(verifyError){console.warn('Offline audit confirmation unavailable',verifyError)}
+   if(confirmed){
+    state.history=state.history.filter(x=>x.id!==r.id).concat(rev041CloudRecord(confirmed));
+    cloudIds.add(r.id);done++;
+   }else{
+    // Never discard unconfirmed mobile data or fabricate a server receipt.
+    remaining.push(r);
+   }
   }
  }
  rev041SaveQueue(remaining);
@@ -2057,6 +2069,13 @@ document.addEventListener('visibilitychange',()=>{
  if(document.visibilityState==='visible' && cloudEnabled && Date.now()-rev041LastSync>45000){
   rev041SyncNow();
  }
+});
+window.addEventListener('online',()=>{
+ // On Android the network can return without an Activity pause/resume.
+ // Retry ONLY the device's own queued audits; avoid redundant full reloads.
+ try{
+  if(cloudEnabled&&!rev041Busy&&rev041Queue().length)void rev041SyncNow();
+ }catch(error){console.warn('Deferred offline sync',error)}
 });
 
 
@@ -2702,11 +2721,11 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
- const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.5';
+ const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.6';
  const headerBrand=document.querySelector('.brandword > b');
  if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
- showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.5. Общая сводка по четырём точкам, последние ревизии, проблемные продукты и неполные цены.');};
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.6. Надёжная повторная отправка ревизий после возвращения связи и защита от дублирования.');};
 });
 
 </script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
