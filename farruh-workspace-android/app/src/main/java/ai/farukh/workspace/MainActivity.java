@@ -43,6 +43,8 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONObject;
@@ -72,7 +74,9 @@ public final class MainActivity extends Activity {
       "more-sushi-studio.onrender.com","farruhk-ai-mobile.onrender.com",
       "chefaka.onrender.com","shef51.onrender.com","sushi-beri.ru","www.sushi-beri.ru"
     ));
+    private static final int IVORY = Color.rgb(246,236,221);
     private WebView browser;
+    private View launchCover;
     private LinearLayout outerLayout;
     private LinearLayout nativeBar;
     private TextView caption;
@@ -89,12 +93,12 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle savedState) {
         super.onCreate(savedState);
-        getWindow().setStatusBarColor(Color.rgb(30,26,35));
-        getWindow().setNavigationBarColor(Color.rgb(30,26,35));
+        getWindow().setStatusBarColor(IVORY);
+        getWindow().setNavigationBarColor(IVORY);
         outerLayout=new LinearLayout(this);
         LinearLayout root=outerLayout;
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(IVORY);
         root.setOnApplyWindowInsetsListener((v,insets)->{
             if(Build.VERSION.SDK_INT>=30){
                 android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());
@@ -128,8 +132,19 @@ public final class MainActivity extends Activity {
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);progress.setVisibility(View.GONE);
         root.addView(progress,new LinearLayout.LayoutParams(-1,dp(3)));
-        browser=new WebView(this);browser.setBackgroundColor(Color.WHITE);
-        root.addView(browser,new LinearLayout.LayoutParams(-1,0,1f));
+        FrameLayout content=new FrameLayout(this);
+        root.addView(content,new LinearLayout.LayoutParams(-1,0,1f));
+        browser=new WebView(this);
+        browser.setBackgroundColor(IVORY);
+        content.addView(browser,new FrameLayout.LayoutParams(-1,-1));
+        FrameLayout cover=new FrameLayout(this);
+        cover.setBackgroundColor(IVORY);
+        ImageView mark=new ImageView(this);
+        mark.setImageResource(R.drawable.workspace_porcelain);
+        mark.setContentDescription("FARRUH Workspace");
+        cover.addView(mark,new FrameLayout.LayoutParams(dp(112),dp(112),Gravity.CENTER));
+        content.addView(cover,new FrameLayout.LayoutParams(-1,-1));
+        launchCover=cover;
         setContentView(root);
         updateChrome(HOME); // Hide duplicate native bar on our main Workspace screen.
         setupBrowser();
@@ -139,9 +154,14 @@ public final class MainActivity extends Activity {
         else registerReceiver(downloadReceiver,downloads);
         downloadReceiverActive=true;
         if(savedState!=null){
-            browser.restoreState(savedState);
+            if(browser.restoreState(savedState)==null)browser.loadUrl(HOME);
             updateChrome(browser.getUrl());
         }else browser.loadUrl(HOME);
+    }
+    private void revealContent(){
+        if(launchCover==null)return;
+        ((ViewGroup)launchCover.getParent()).removeView(launchCover);
+        launchCover=null;
     }
     private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+0.5f);}
     private Button button(String title,int textSize){
@@ -173,10 +193,10 @@ public final class MainActivity extends Activity {
     private void updateChrome(String url){
         boolean workspaceHome=isHome(url);
         if(nativeBar!=null)nativeBar.setVisibility(workspaceHome?View.GONE:View.VISIBLE);
-        int backdrop=workspaceHome?Color.rgb(248,248,250):Color.rgb(37,34,46);
+        int backdrop=workspaceHome?IVORY:Color.rgb(37,34,46);
         if(outerLayout!=null)outerLayout.setBackgroundColor(backdrop);
         getWindow().setStatusBarColor(backdrop);
-        getWindow().setNavigationBarColor(workspaceHome?Color.rgb(244,243,248):Color.rgb(37,34,46));
+        getWindow().setNavigationBarColor(workspaceHome?IVORY:Color.rgb(37,34,46));
         if(Build.VERSION.SDK_INT>=30){
             WindowInsetsController c=getWindow().getInsetsController();
             if(c!=null){
@@ -230,21 +250,28 @@ public final class MainActivity extends Activity {
                 return true;
             }
             @Override public void onPageStarted(WebView v,String url,android.graphics.Bitmap icon){
-                progress.setVisibility(View.VISIBLE);updateCaption(url);
+                progress.setVisibility(isHome(url)||launchCover!=null?View.GONE:View.VISIBLE);updateCaption(url);
+            }
+            @Override public void onPageCommitVisible(WebView v,String url){
+                revealContent();
             }
             @Override public void onPageFinished(WebView v,String url){
                 progress.setVisibility(View.GONE);updateCaption(url);
+                if(launchCover!=null)v.postVisualStateCallback(0,new WebView.VisualStateCallback(){
+                    @Override public void onComplete(long id){revealContent();}
+                });
             }
             @Override public void onReceivedError(WebView v,WebResourceRequest request,WebResourceError error){
+                if(request.isForMainFrame())revealContent();
                 if(request.isForMainFrame())toast("Не удалось открыть сайт. Проверь интернет и нажми ↻.");
             }
             @Override public void onReceivedSslError(WebView v,SslErrorHandler h,SslError err){
-                h.cancel();toast("Страница с небезопасным сертификатом заблокирована.");
+                h.cancel();revealContent();toast("Страница с небезопасным сертификатом заблокирована.");
             }
         });
         browser.setWebChromeClient(new WebChromeClient(){
             @Override public void onProgressChanged(WebView v,int n){
-                progress.setProgress(n);progress.setVisibility(n>=100?View.GONE:View.VISIBLE);
+                progress.setProgress(n);progress.setVisibility(n>=100||launchCover!=null||isHome(v.getUrl())?View.GONE:View.VISIBLE);
             }
             @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(filePicker!=null)filePicker.onReceiveValue(null);
