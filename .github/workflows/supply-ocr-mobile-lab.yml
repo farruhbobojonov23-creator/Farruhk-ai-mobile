@@ -3,6 +3,9 @@ on:
   push:
     branches: ['feature/farukh-supply-ai']
     paths: ['ocr-mobile-lab/**', '.github/workflows/supply-ocr-mobile-lab.yml']
+concurrency:
+  group: supply-ocr-mobile-lab
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -32,7 +35,11 @@ jobs:
       - name: Prepare Cyrillic models for offline SDK
         run: bash ocr-mobile-lab/prepare.sh upstream-paddle/deploy/ppocr-android
       - name: Add synthetic Android runtime test
-        run: cp ocr-mobile-lab/SupplyInvoiceSmokeTest.kt upstream-paddle/deploy/ppocr-android/ppocr-sdk/src/androidTest/java/com/paddle/ocr/benchmark/
+        run: |
+          cp ocr-mobile-lab/SupplyInvoiceSmokeTest.kt upstream-paddle/deploy/ppocr-android/ppocr-sdk/src/androidTest/java/com/paddle/ocr/benchmark/
+          cp ocr-mobile-lab/SupplyPaddleBridge.kt upstream-paddle/deploy/ppocr-android/ppocr-sdk/src/main/java/com/paddle/ocr/
+          # Prefer official Maven repositories rather than slow third-party mirrors in CI.
+          sed -i '/maven.aliyun.com/d' upstream-paddle/deploy/ppocr-android/settings.gradle.kts
       - name: Compile Android OCR library
         run: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:assembleRelease :ppocr-sdk:assembleDebugAndroidTest --no-daemon
       - name: Enable emulator acceleration

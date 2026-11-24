@@ -6,21 +6,15 @@ import android.graphics.Color
 import android.graphics.Paint
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.paddle.ocr.PaddleOCR
-import com.paddle.ocr.PaddleOCRConfig
-import com.paddle.ocr.EngineConfig
-import com.paddle.ocr.util.OpenCVUtils
-import kotlinx.coroutines.runBlocking
+import com.paddle.ocr.SupplyPaddleBridge
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SupplyInvoiceSmokeTest {
-    @Test fun recognizesRussianInvoiceOffline() = runBlocking {
+    @Test fun recognizesRussianInvoiceOffline() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        OpenCVUtils.init(context)
-        val ocr = PaddleOCR.create(context, PaddleOCRConfig(detLimitSideLen=960,detLimitType="max"), EngineConfig())
         val bitmap = Bitmap.createBitmap(1400, 660, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(bitmap)
@@ -33,15 +27,16 @@ class SupplyInvoiceSmokeTest {
                 listOf("Соус рисовый","шт","2,000","300,00","600,00"))
             val xs = listOf(50f,480f,610f,865f,1100f)
             rows.forEachIndexed { i,row -> row.forEachIndexed { j,value -> canvas.drawText(value,xs[j],150f+i*95f,paint) } }
-            val result=ocr.recognize(bitmap)
-            val text=result.results.joinToString(" ") { it.text }
+            val result=SupplyPaddleBridge.read(context, bitmap)
+            val text=result.plainText()
             println("SUPPLY_SYNTHETIC_OCR: $text")
-            println("SUPPLY_SYNTHETIC_MS: ${result.totalTimeMs}")
-            assertTrue("Text boxes missing",result.results.isNotEmpty())
+            println("SUPPLY_SYNTHETIC_MS: ${result.elapsedMs}")
+            assertTrue("Text boxes missing",result.rows.isNotEmpty())
             assertTrue("Russian item not recognized",text.contains("Рис",ignoreCase=true))
             val compact=text.replace(" ","")
             assertTrue("Numeric field not recognized",compact.contains("2500"))
-            assertTrue("No positioned boxes",result.results.all { it.box.points.size==4 })
-        } finally { bitmap.recycle(); ocr.release() }
+            assertTrue("No positioned boxes",result.rows.flatten().all { it.right > it.left })
+            assertTrue("Rice quantity not on same row",result.rows.any { row -> row.any { it.text.contains("Рис",ignoreCase=true) } && row.any { it.text.contains("25") } })
+        } finally { bitmap.recycle() }
     }
 }
