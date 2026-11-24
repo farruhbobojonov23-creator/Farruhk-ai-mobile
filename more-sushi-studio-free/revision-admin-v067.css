@@ -41,3 +41,13 @@
 @media print{.rev067-overlay,.rev067-history-actions,#rev067TrashBar{display:none!important}}
 .android-premium .rev068-trash-alert{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;padding:11px 13px;margin:0 0 12px!important;background:linear-gradient(125deg,#392b30,#1e2941)!important;border:1px solid #8e5e61!important;border-radius:13px!important;color:#f5d5ad!important;font-size:11px!important;font-weight:750!important;line-height:1.45!important}
 .android-premium .rev068-trash-alert button{min-height:35px!important;height:auto!important;width:auto!important;min-width:110px!important;margin:0!important;padding:8px 11px!important;white-space:normal!important;font-size:11px!important;border:1px solid #a6816d!important;border-radius:10px!important;background:#5d3741!important;color:#fff5dc!important;box-shadow:none!important}
+
+@media screen and (max-width: 720px) {
+  body.revision-crimson.workspace-insets .sidebar { top: 0 !important; }
+  body.revision-crimson.workspace-insets .menu {
+    inset: auto 0 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    background-color: #0a1422 !important;
+  }
+}

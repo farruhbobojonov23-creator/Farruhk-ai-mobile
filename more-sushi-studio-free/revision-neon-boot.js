@@ -1,6 +1,10 @@
 /* FARUKH REVISION splash presentation. Purely cosmetic. Never touches stock or cloud state. */
 (()=>{
  'use strict';
+ // Workspace has already reserved space for both Android system bars.
+ if (navigator.userAgent.includes('FarruhWorkspaceNative/')) {
+   document.body.classList.add('native-insets', 'workspace-insets');
+ }
  const start=()=>{
    const boot=document.querySelector('#premiumBoot[data-variant="revision"]');
    if(!boot)return;
