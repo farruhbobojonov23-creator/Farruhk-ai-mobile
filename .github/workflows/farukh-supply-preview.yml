@@ -104,7 +104,7 @@ jobs:
           tag=farukh-supply-current
           old=0
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --clobber --output "$out/previous.json"
             old=$(jq -er .versionCode "$out/previous.json")
             if [ "$code" -lt "$old" ]; then echo "::error::Native downgrade"; exit 1; fi
           fi
