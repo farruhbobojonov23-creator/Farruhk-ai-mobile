@@ -814,3 +814,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 }
 
 @media screen and (max-width:380px){.system-row{grid-template-columns:minmax(0,1fr)}.system-text small{overflow-wrap:anywhere}}
+
+@media screen and (max-width:380px){#hubFeaturedProjects [data-art]:not([data-art="more"]){width:100%;min-width:0;min-height:0}}
