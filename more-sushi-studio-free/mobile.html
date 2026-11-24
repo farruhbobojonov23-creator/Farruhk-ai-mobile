@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eee3d3">
-<meta name="mss-ui-build" content="farruh-workspace-1.9.6-20261124">
+<meta name="mss-ui-build" content="farruh-workspace-1.9.7-20261124">
 <meta name="description" content="FARRUH WORKSPACE PRO — единое рабочее пространство шеф-повара">
 <title>FARRUH WORKSPACE PRO — Главная</title>
 <link rel="icon" type="image/webp" sizes="512x512" href="./alabaster/workspace-porcelain.webp">
 <link rel="preload" as="image" href="./alabaster/full/more.webp?v=1.9.5" type="image/webp">
-<link rel="stylesheet" href="./workspace-command.css?v=1.9.5">
+<link rel="stylesheet" href="./workspace-command.css?v=1.9.7">
 </head>
 <body>
 <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -124,12 +124,12 @@
      <a href="./index.html?ocean=1" data-hub-open data-hub-login id="hubCloudLogin" data-title="Войти в MORE SUSHI" class="settings-row" hidden><img class="utility-art" src="./alabaster/actions/login.webp?v=1.9.5" alt="" decoding="async"><span><strong>Войти в MORE SUSHI</strong><small>Для личного облака проектов</small></span><svg><use href="#wc-arrow"/></svg></a>
      <button type="button" class="settings-row" data-ocean-refresh><img class="utility-art" src="./alabaster/actions/update.webp?v=1.9.5" alt="" decoding="async"><span><strong>Обновить</strong><small>Интерфейс Workspace</small></span><svg><use href="#wc-arrow"/></svg></button>
      <a href="https://farukh-print-labels.onrender.com/" data-hub-open data-title="Старый каталог FARUKH PRINT" class="settings-row"><img class="utility-art" src="./alabaster/actions/archive.webp?v=1.9.5" alt="" decoding="async"><span><strong>Старый каталог FARUKH PRINT</strong><small>Скачать резервную копию старых этикеток перед переносом</small></span><svg><use href="#wc-arrow"/></svg></a>
-     <button type="button" class="settings-row" id="hubBackupExport"><img class="utility-art" src="./alabaster/actions/export.webp?v=1.9.5" alt="" decoding="async"><span><strong>Скачать резервную копию</strong><small>Экспорт ссылок, логотипов и избранного в JSON</small></span><svg><use href="#wc-arrow"/></svg></button>
+     <button type="button" class="settings-row" id="hubBackupExport"><img class="utility-art" src="./alabaster/actions/export.webp?v=1.9.5" alt="" decoding="async"><span><strong>Сохранить резервную копию</strong><small>Экспорт ссылок, логотипов и избранного в JSON</small></span><svg><use href="#wc-arrow"/></svg></button>
      <button type="button" class="settings-row" id="hubBackupImport"><img class="utility-art" src="./alabaster/actions/import.webp?v=1.9.5" alt="" decoding="async"><span><strong>Восстановить резервную копию</strong><small>Выбрать сохранённый файл, проверить и подтвердить</small></span><svg><use href="#wc-arrow"/></svg></button>
      <input id="hubBackupFile" type="file" accept="application/json,.json" hidden aria-label="Выбрать файл резервной копии">
      <button type="button" class="settings-row" id="hubReplay"><img class="utility-art" src="./alabaster/actions/replay.webp?v=1.9.5" alt="" decoding="async"><span><strong>Повторить кинозаставку</strong><small>Плавное появление и печать названия</small></span><svg><use href="#wc-arrow"/></svg></button>
     </div>
-    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.9.6</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
+    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.9.7</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
   </section>
  </main>
  </div><!-- /workspace-scrollregion -->
@@ -141,6 +141,14 @@
   <button type="button" class="navitem" data-mss-tab="more"><svg><use href="#wc-more"/></svg><span>Ещё</span></button>
  </nav>
 </div>
+<dialog id="hubExportDialog" class="project-dialog" aria-labelledby="hubExportTitle">
+ <form method="dialog">
+  <div class="dialog-head"><h2 id="hubExportTitle">Резервная копия проектов</h2><button class="icon-close" aria-label="Закрыть">×</button></div>
+  <p id="hubExportStatus" role="status"></p>
+  <textarea id="hubExportText" aria-label="Текст резервной копии JSON" readonly rows="4" spellcheck="false"></textarea>
+  <div class="dialog-actions"><button type="button" class="btn-primary" id="hubCopyBackup">Скопировать</button><button type="button" class="btn-secondary" id="hubShareBackup" hidden>Поделиться файлом</button><button type="button" class="btn-secondary" id="hubSaveBackup">Скачать JSON</button></div>
+ </form>
+</dialog>
 <dialog class="project-dialog" id="hubProjectDialog" aria-labelledby="hubDialogTitle">
  <form id="hubProjectForm" method="dialog">
   <div class="dialog-head"><div><small>FARRUH WORKSPACE</small><h2 id="hubDialogTitle">Добавить проект</h2></div><button type="button" class="icon-close" data-hub-close-dialog aria-label="Закрыть"><svg><use href="#wc-close"/></svg></button></div>
@@ -160,9 +168,9 @@
  <div class="viewer-help">В этом окне открываются только совместимые сайты. Для остальных используется прямой переход; назад — кнопкой телефона.</div>
 </dialog>
 <div id="hubToast" class="hub-toast" hidden role="status" aria-live="polite"></div>
-<script defer src="./workspace-hub.js?v=1.9.5"></script>
+<script defer src="./workspace-hub.js?v=1.9.7"></script>
 <script defer src="./workspace-cloud.js?v=1.4.3"></script>
-<script defer src="./ocean-updater.js?v=workspace-1.9.6"></script>
+<script defer src="./ocean-updater.js?v=workspace-1.9.7"></script>
 <script defer src="./ocean-dashboard.js?v=workspace-1.3.0"></script>
 <script defer src="./workspace-recipes.js?v=1.4.0"></script>
 </body></html>

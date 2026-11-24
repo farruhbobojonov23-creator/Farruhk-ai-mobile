@@ -361,18 +361,43 @@ function backupPayload(){
   favorites:[...favorites]
  };
 }
-function downloadBackup(){
- try{
-  const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json;charset=utf-8'});
-  if(blob.size>200000)throw new Error('Резервная копия слишком большая');
-  const href=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=href;
-  a.download='FARRUH_WORKSPACE_Backup_'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.append(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(href),1000);
-  toast('Резервная копия ссылок подготовлена ✓');
- }catch(error){toast(error.message||'Не удалось создать копию')}
+const backupDialog=$('#hubExportDialog');
+const backupText=$('#hubExportText');
+const backupStatus=$('#hubExportStatus');
+function backupFile(){
+ return new File([backupText.value],'FARRUH_WORKSPACE_Backup_'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'});
 }
+function downloadBackup(){
+ const data=backupPayload();
+ backupText.value=JSON.stringify(data,null,2);
+ backupStatus.textContent=data.projects.length||data.favorites.length
+  ? 'Свои и изменённые проекты: '+data.projects.length+' · Избранное: '+data.favorites.length
+  : 'Своих и изменённых проектов пока нет. Избранное пусто. Встроенные проекты уже есть в Workspace.';
+ let share=false;
+ try{share=!!navigator.canShare?.({files:[backupFile()]})}catch{}
+ $('#hubShareBackup').hidden=!share;
+ $('#hubSaveBackup').hidden=insideNative;
+ backupDialog.showModal();
+}
+$('#hubCopyBackup').addEventListener('click',async()=>{
+ try{
+  await navigator.clipboard.writeText(backupText.value);
+ }catch{
+  backupText.focus();backupText.select();backupText.setSelectionRange(0,backupText.value.length);
+  let copied=false;try{copied=document.execCommand('copy')}catch{}
+  if(!copied){backupStatus.textContent='Текст выделен. Удерживай его и выбери «Копировать».';return}
+ }
+ backupStatus.textContent='Скопировано. Вставь текст в заметку и сохрани её.';
+});
+$('#hubShareBackup').addEventListener('click',async()=>{
+ try{await navigator.share({files:[backupFile()]})}
+ catch(err){if(err.name!=='AbortError')backupStatus.textContent='Передать файл не удалось. Используй «Скопировать».')}
+});
+$('#hubSaveBackup').addEventListener('click',()=>{
+ const file=backupFile(), url=URL.createObjectURL(file);
+ const a=document.createElement('a');a.href=url;a.download=file.name;
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+});
 function validateBackup(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!==backupVersion)
   throw Error('Неверный формат резервной копии Workspace');
@@ -406,7 +431,7 @@ function validateBackup(raw){
 }
 async function restoreBackup(file){
  try{
-  if(!file||file.size>250000)throw Error('Файл резервной копии должен быть меньше 250 КБ');
+  if(!file||file.size>12000000)throw Error('Файл резервной копии должен быть меньше 12 МБ');
   const raw=JSON.parse(await file.text());
   const next=validateBackup(raw);
   const ok=confirm('Восстановить '+next.projects.length+' дополнительных/изменённых проектов и '+next.favorites.length+

@@ -796,3 +796,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 #hubAllProjects .project-fav{position:absolute;inset:0 0 auto auto}
 #hubAllProjects .add-project-tile svg{display:none}
 #hubAllProjects .add-project-tile::before{content:"";display:block;width:72px;height:72px;margin:0 auto 5px;background:url('./alabaster/actions/add.webp?v=1.9.5') center/contain no-repeat;mix-blend-mode:normal}
+
+#hubExportDialog textarea{width:100%;box-sizing:border-box;resize:vertical}#hubExportDialog .dialog-actions{display:flex;flex-wrap:wrap}#hubExportDialog [hidden]{display:none!important}
