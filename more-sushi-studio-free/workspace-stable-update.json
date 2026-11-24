@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "packageName": "ai.farukh.workspace",
-  "versionCode": 6,
-  "versionName": "1.3.2",
-  "apkUrl": "https://more-sushi-studio.onrender.com/android-updates/workspace-v6.apk",
-  "sha256": "d80cb6dd00426384c0034fffe72b2383a53bd5ec0614bf15d367751739e1b98b",
-  "notes": "Первая версия с постоянной подписью и золотым ярлыком."
+  "versionCode": 7,
+  "versionName": "1.3.3",
+  "apkUrl": "https://more-sushi-studio.onrender.com/android-updates/workspace-v7.apk",
+  "sha256": "cb9aaef163f767f79ed580ec491fcd3e64f595bf3fc3c9df25eb503af8c233d2",
+  "notes": "Фарфоровый экран с золотой A с начала запуска."
 }
