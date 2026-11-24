@@ -132,6 +132,7 @@ async function test(browser){
   cloudToken='x.'+btoa(JSON.stringify({sub:'00000000-0000-4000-8000-000000000061'}))+'.x';
   window.__fakeAuditWrites=0;window.__fakeCloudProducts=[];
   rest=async function(table,opts={}){
+   if(table==='revision_audit_admins')return [{user_id:rev041Account()}];
    if(table==='revision_products' && opts.method==='POST'){
     const item={id:crypto.randomUUID(),name:opts.body.name,unit:'кг',
       price_per_unit_rub:opts.body.price_per_unit_rub,
@@ -330,6 +331,7 @@ async function test(browser){
   };
   window.__adminEvents=[];
   rest=async function(table,opts={}){
+   if(table==='revision_audit_admins')return [{user_id:rev041Account()}];
    if(table==='revision_audits'&&opts.method==='PATCH'){
     const row=window.__adminServer;
     if(!opts.query.includes('id=eq.'+row.id)||
