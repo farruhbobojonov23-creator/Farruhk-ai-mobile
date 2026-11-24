@@ -212,3 +212,13 @@ html.hub-motion .hub-panel:not([hidden]) .hub-appear{animation:hubReveal .62s cu
  html.hub-explicit-motion .splash-track i{animation:splashProgress 2.6s linear forwards!important}
  html.hub-explicit-motion .hub-splash.is-leaving{animation:none!important;transition:opacity .45s,visibility .45s!important}
 }
+
+/* Cloud-sync diagnostics added to the existing Command Center theme. */
+.workspace-cloud-card{min-width:0}
+.workspace-cloud-card .hub-cloud-action{flex:none;min-width:36px;min-height:33px;font-weight:900;border-radius:10px}
+.workspace-cloud-card[data-state="ok"] .system-icon{background:#dff5eb;border-color:#abe5c9;color:#15845c}
+.workspace-cloud-card[data-state="ok"] .hub-cloud-action{background:#dff5eb;border-color:#8dd4b1;color:#08794d}
+.workspace-cloud-card[data-state="login"] .system-icon{background:#f9edcf;border-color:#ead391;color:#956919}
+.workspace-cloud-card[data-state="error"] .system-icon{background:#ffeded;border-color:#eec0c0;color:#aa3a3a}
+.workspace-cloud-card[data-state="sync"] .system-icon{background:#ecf0fc;border-color:#cfdbf4;color:#446ba9}
+.settings-row[hidden]{display:none!important}

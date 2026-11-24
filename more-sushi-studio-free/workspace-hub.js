@@ -1,6 +1,6 @@
-/* FARRUH WORKSPACE PRO v1 — one launcher, no former appearance layers.
-   Standalone navigation and external-project viewing; no cloud writes.
-   Catalog of links is local-only and sanitized; separate service authentication is unchanged. */
+/* FARRUH WORKSPACE PRO v1.1 · independent project launcher. 
+   All user-owned changes save locally first and send a scoped cloud-sync event.
+   Login/session data are managed by the existing MORE SUSHI studio. */
 (function(){
 'use strict';
 const root=document.documentElement;
@@ -28,7 +28,8 @@ if(!Array.isArray(custom))custom=[];
 custom=custom.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&typeof p.url==='string').slice(0,60);
 let favorites=load(favoritesKey,[]);
 if(!Array.isArray(favorites))favorites=[];
-const save=()=>{try{localStorage.setItem(key,JSON.stringify(custom));localStorage.setItem(favoritesKey,JSON.stringify(favorites))}catch{toast('Не удалось сохранить: память устройства заполнена')}};
+const persistLocal=()=>{try{localStorage.setItem(key,JSON.stringify(custom));localStorage.setItem(favoritesKey,JSON.stringify(favorites))}catch{toast('Не удалось сохранить: память устройства заполнена')}};
+const save=()=>{persistLocal();window.dispatchEvent(new CustomEvent('hub:local-saved',{detail:{reason:'user-edit'}}))};
 function toast(message){
  const el=$('#hubToast');if(!el)return;
  el.textContent=message;el.hidden=false;clearTimeout(el._timer);el._timer=setTimeout(()=>{el.hidden=true},3600);
@@ -264,5 +265,16 @@ $('#hubReplay')?.addEventListener('click',()=>{
  location.reload();
 });
 $('#hubNotifications')?.addEventListener('click',()=>toast('Уведомления пока не подключены — события проектов здесь не отображаются.'));
+$('#hubCloudSyncSettings')?.addEventListener('click',()=>window.WorkspaceCloud?.syncNow());
+window.FarruhWorkspace={
+ snapshot:()=>({projects:custom.map(x=>({...x})),favorites:[...favorites]}),
+ applyCloud(value){
+  if(!value||typeof value!=='object')return;
+  custom=Array.isArray(value.projects)?value.projects.filter(p=>p&&typeof p.id==='string'&&p.id.length<90&&typeof p.name==='string'&&p.name.length<=70&&typeof p.url==='string'&&p.url.length<2000&&!!normalizeUrl(p.url)).slice(0,80).map(p=>({...p})):custom;
+  favorites=Array.isArray(value.favorites)?value.favorites.filter(s=>typeof s==='string'&&s.length<90).slice(0,150):favorites;
+  persistLocal();renderProjects();
+ },
+ safeProjectCount:()=>allProjects().length
+};
 renderProjects();showTab(tabFromHash(),false,false);startSplash();
 })();
