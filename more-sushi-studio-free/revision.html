@@ -2322,7 +2322,7 @@ document.addEventListener('DOMContentLoaded',function(){
  '.rev060-edit{font-size:12px!important;min-height:39px!important;min-width:85px!important;padding:6px 10px!important}',
  '.rev060-product-price{display:block;margin:6px 0;color:#e4c481!important;font-size:12px;font-weight:750}',
  '#rev057SaveBanner,#rev057HistoryReceipt,#rev058SaveState,#rev058HistoryState{display:none!important}',
- '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small{display:none!important}',
+ '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small,#view-revision .grid aside{display:none!important}',
  '#view-summary .rev054-three,#view-summary .rev054-explain,#view-summary .rev054-guide-status,#view-summary .rev044-next{display:none!important}',
  '#view-summary .rev054-guide{padding:13px 14px!important}',
  '#view-summary .rev054-guide h2{font-size:15px!important;margin:4px 0 10px!important}',
@@ -2513,7 +2513,7 @@ document.addEventListener('DOMContentLoaded',function(){
      stateType==='pending'?'🟡 СОХРАНЕНО НА ТЕЛЕФОНЕ':'✅ РЕВИЗИЯ СОХРАНЕНА НА ТЕЛЕФОНЕ';
    const info=audit.store+' · '+audit.date+' · '+audit.products.length+' позиций';
    indicate(stateType==='pending'?'pending':'success',message,info+(stateType==='pending'?' · Ожидает отправки в облако':''));
-   const done=await modal({title:'Ревизия сохранена!',body:info+(stateType==='pending'?' · Пока только на телефоне, ждёт облака.':''),
+   const done=await modal({title:stateType==='pending'?'Сохранено на телефоне':'Ревизия сохранена!',body:info+(stateType==='pending'?' · Пока только на телефоне, ждёт облака.':''),
      acceptText:'Открыть историю'});
    if(done){go('history',document.querySelectorAll('.menu button')[2]);}
   }catch(err){
@@ -2560,6 +2560,14 @@ document.addEventListener('DOMContentLoaded',function(){
      // PATCH by immutable id; a name match could unexpectedly edit several records.
      await rest('revision_products',{method:'PATCH',query:'?id=eq.'+encodeURIComponent(found.id),
       body:{price_per_unit_rub:newPrice,has_semi_finished:usePf,pf_add_percent:usePf?pc:0}});
+     // PATCH may succeed with zero affected rows under RLS. Re-read before showing success.
+     const confirmed=await rest('revision_products',{query:'?id=eq.'+encodeURIComponent(found.id)+
+      '&select=id,price_per_unit_rub,has_semi_finished,pf_add_percent'});
+     if(!Array.isArray(confirmed)||confirmed.length!==1||
+        (confirmed[0].price_per_unit_rub===null?null:Number(confirmed[0].price_per_unit_rub))!==newPrice||
+        Boolean(confirmed[0].has_semi_finished)!==usePf||
+        Number(confirmed[0].pf_add_percent)!==(usePf?pc:0))
+      throw Error('Сервер не подтвердил сохранение товара. Повтори попытку.');
      rev041Catalogue.set(name,{...found,price_per_unit_rub:newPrice,
        has_semi_finished:usePf,pf_add_percent:usePf?pc:0});
     }else{
