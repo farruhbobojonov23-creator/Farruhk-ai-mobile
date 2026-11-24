@@ -367,7 +367,35 @@ const backupStatus=$('#hubExportStatus');
 function backupFile(){
  return new File([backupText.value],'FARRUH_WORKSPACE_Backup_'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'});
 }
+function revisionMigrationStatus(storage){
+ const read=(key,fallback)=>JSON.parse(storage.getItem(key)||JSON.stringify(fallback));
+ const drafts=read('farukh-revision-drafts-v040',{});
+ const demo=read('farukh-revision-demo-v1',{history:[]});
+ if(!drafts||typeof drafts!=='object'||Array.isArray(drafts)||!Array.isArray(demo.history))throw Error('Неверный формат данных ревизии');
+ let pending=0;
+ for(let i=0;i<storage.length;i++){
+  const key=storage.key(i);
+  if(!key?.startsWith('farukh-revision-pending-v041-'))continue;
+  const queue=read(key,[]);
+  if(!Array.isArray(queue))throw Error('Не удалось прочитать очередь');
+  pending+=queue.length;
+ }
+ const count=Object.values(drafts).filter(d=>{
+  if(!d?.products||typeof d.products!=='object')throw Error('Не удалось прочитать черновик');
+  return Boolean(d.operator?.trim())||Object.values(d.products).some(row=>['program','raw','pf','price'].some(field=>String(row?.[field]??'').trim()!==''));
+ }).length;
+ return {drafts:count,pending,history:demo.history.length};
+}
+function showRevisionMigrationStatus(){
+ const target=$('#hubLocalRevisionStatus');
+ try{
+  const s=revisionMigrationStatus(localStorage);
+  target.textContent='Ревизии на этом устройстве. Черновики: '+s.drafts+' · В очереди: '+s.pending+' · Локальная история: '+s.history+'. '+
+   (s.drafts||s.pending||s.history?'Сохрани приложение до переноса этих записей.':'В этих трёх разделах локальных записей нет.');
+ }catch{target.textContent='Не удалось проверить ревизии на этом устройстве. Сохрани установленное приложение.'}
+}
 function downloadBackup(){
+ showRevisionMigrationStatus();
  const data=backupPayload();
  backupText.value=JSON.stringify(data,null,2);
  backupStatus.textContent=data.projects.length||data.favorites.length
