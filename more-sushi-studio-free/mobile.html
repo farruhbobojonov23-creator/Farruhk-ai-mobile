@@ -3,16 +3,22 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eee3d3">
-<meta name="mss-ui-build" content="farruh-workspace-1.10.0-20261124">
+<meta name="mss-ui-build" content="farruh-workspace-1.10.1-20261124">
 <meta name="description" content="FARRUH WORKSPACE PRO — единое рабочее пространство шеф-повара">
 <title>FARRUH WORKSPACE PRO — Главная</title>
 <link rel="icon" type="image/webp" sizes="512x512" href="./alabaster/workspace-porcelain.webp">
 <link rel="preload" as="image" href="./alabaster/full/more.webp?v=1.9.5" type="image/webp">
 <link rel="stylesheet" href="./workspace-command.css?v=1.9.9.2">
 <style>
-#hubSplash{background:#f6ecdc url("./alabaster/workspace-porcelain.webp") center 26%/min(25vw,120px) auto no-repeat;animation:porcelainFailsafe 12s step-end forwards}
-#hubSplash .porcelain-film{display:block;width:100%;height:100%;min-height:0;object-fit:contain;background:#f6ecdc}
-#hubSplash .porcelain-film:not([src]){visibility:hidden}
+#hubSplash{background:radial-gradient(ellipse at 35% 20%,#fff9ef,#f4eadb 67%,#eee1cf);color:#483424;animation:porcelainFailsafe 12s step-end forwards}
+#hubSplash .pc-layout{width:min(84vw,390px);height:min(84%,750px);display:grid;grid-template-rows:minmax(0,1.35fr) auto minmax(0,.9fr) auto;align-items:center;justify-items:center;gap:min(1.8vh,14px);margin-bottom:42px}
+.pc-mark{width:100%;height:100%;object-fit:contain;animation:pcReveal 2.5s ease-out both}
+@keyframes pcReveal{from{transform:scale(1.14)}to{transform:scale(1)}}
+.pc-name{text-align:center;height:2.2em;font:clamp(24px,5.8vw,39px)/1 Georgia,serif;letter-spacing:.14em}
+.pc-name small{display:block;margin-top:8px;font:600 11px/1.2 system-ui;letter-spacing:.24em}
+.pc-dial{width:auto;height:100%;max-width:35vw;max-height:130px;overflow:visible}.pc-dial text{fill:#493423;font-family:Georgia,serif}
+.pc-steps{list-style:none;width:100%;padding:0;margin:0}.pc-steps li{display:grid;grid-template-columns:24px 1fr 16px;align-items:center;gap:7px;min-height:clamp(30px,5vh,42px);border-bottom:1px solid #d4c3aa;text-align:left;font:500 clamp(13px,3.5vw,17px)/1.25 system-ui}
+.pc-steps small,.pc-steps b{color:#8a632f;font-size:12px}.pc-steps b{visibility:hidden}.pc-steps li.done b{visibility:visible}
 #hubSkipSplash{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);min-height:44px;border:0;background:#f6ecdc;color:#644a31;padding:0 16px;border-radius:22px;font:inherit}
 @keyframes porcelainFailsafe{to{visibility:hidden;pointer-events:none}}
 html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end forwards!important}
@@ -43,7 +49,10 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
  <symbol id="wc-external" viewBox="0 0 24 24"><path d="M12 4h8v8M20 4 10 14M20 15v5H4V4h6"/></symbol>
 </svg>
 <div id="hubSplash" class="hub-splash" role="dialog" aria-label="Заставка FARRUH WORKSPACE PRO">
- <img class="porcelain-film" alt="">
+ <div class="pc-layout" aria-hidden="true"><img class="pc-mark" data-src="./porcelain-mark-hq.svg?v=1" alt=""><div class="pc-name"><span></span><small></small></div>
+<svg class="pc-dial" viewBox="0 0 120 120"><circle cx="60" cy="60" r="57" fill="none" stroke="#bfa682" stroke-width="2" stroke-dasharray="0.7 5.27"/><circle cx="60" cy="60" r="50" fill="none" stroke="#d6c6ac"/>
+<circle class="pc-arc" cx="60" cy="60" r="50" fill="none" stroke="#a47940" stroke-width="2.2" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 60 60)"/>
+<text x="60" y="62" text-anchor="middle" font-size="25">0%</text><text x="60" y="77" text-anchor="middle" font-size="6" letter-spacing="1">ЗАГРУЗКА</text></svg><ol class="pc-steps"><li><small>01</small><span data-label="Подготовка интерфейса"></span><b>✓</b></li><li><small>02</small><span data-label="Загрузка разделов"></span><b>✓</b></li><li><small>03</small><span data-label="Открытие рабочего экрана"></span><b>✓</b></li></ol></div>
  <button type="button" id="hubSkipSplash">Перейти к работе →</button>
 </div>
 <div class="workspace-root" id="mssCategoryApp">
@@ -71,7 +80,7 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
     </div>
     <div class="system-row">
       <div class="cloudbar system-card"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="cloudName">Проверяем облако MORE SUSHI…</strong><small id="cloudDesc">Подключение к данным студии ТТК</small></span><span class="system-dot" id="syncDot" aria-label="Состояние облака"></span></div>
-      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.10.0 · Алебастр и золото</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
+      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.10.1 · Алебастр и золото</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
     </div>
   </section>
   <section class="hub-panel" data-mss-panel="projects" id="mss-projects" hidden>
@@ -130,7 +139,7 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
      <input id="hubBackupFile" type="file" accept="application/json,.json" hidden aria-label="Выбрать файл резервной копии">
      <button type="button" class="settings-row" id="hubReplay"><img class="utility-art" src="./alabaster/actions/replay.webp?v=1.9.5" alt="" decoding="async"><span><strong>Повторить кинозаставку</strong><small>Плавное появление и печать названия</small></span><svg><use href="#wc-arrow"/></svg></button>
     </div>
-    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.10.0</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
+    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.10.1</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
   </section>
  </main>
  </div><!-- /workspace-scrollregion -->
@@ -170,9 +179,9 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
  <div class="viewer-help">В этом окне открываются только совместимые сайты. Для остальных используется прямой переход; назад — кнопкой телефона.</div>
 </dialog>
 <div id="hubToast" class="hub-toast" hidden role="status" aria-live="polite"></div>
-<script defer src="./workspace-hub.js?v=1.10.0"></script>
+<script defer src="./workspace-hub.js?v=1.10.1"></script>
 <script defer src="./workspace-cloud.js?v=1.4.3"></script>
-<script defer src="./ocean-updater.js?v=workspace-1.10.0"></script>
+<script defer src="./ocean-updater.js?v=workspace-1.10.1"></script>
 <script defer src="./ocean-dashboard.js?v=workspace-1.3.0"></script>
 <script defer src="./workspace-recipes.js?v=1.4.0"></script>
 </body></html>
