@@ -3,6 +3,7 @@ import argparse, json, time, re
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from html.parser import HTMLParser
+from review import review_table
 
 class Cells(HTMLParser):
     def __init__(self):
@@ -74,7 +75,13 @@ def main():
     if expected:
         for exp in expected:
             if any([normalize(x) for x in row]==[normalize(x) for x in exp] for row in actual): matches+=1
-    report={"engine":"PP-StructureV3 / Cyrillic PP-OCRv5","initialization_s":round(initialization,2),
+    reviewed=[row for table in tables for row in review_table(table)]
+    numeric_matches=0
+    if expected:
+        for exp in expected:
+            if any(len(row)==5 and [normalize(row[i]) for i in (0,2,3,4)]==[normalize(exp[i]) for i in (0,2,3,4)] for row in actual):
+                numeric_matches+=1
+    report={"reviewed_rows":reviewed,"name_and_numeric_matches":numeric_matches if expected else None,"engine":"PP-StructureV3 / Cyrillic PP-OCRv5","initialization_s":round(initialization,2),
             "inference_s":round(time.monotonic()-start,2),"tables":tables,
             "exact_rows":matches if expected else None,"expected_rows":len(expected) if expected else None,
             "scope":"CPU experiment, not Android validation"}
