@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.1.1-20261124",
-  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.1.1",
+  "build": "farruh-workspace-1.2.0-20261124",
+  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.2.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Private per-user RLS-protected cloud sync for launcher links, 3D icon images and favorites via existing MORE SUSHI Supabase Auth; preserve local/offline edits, sign-in call to action, authenticated account owner isolation and status. All seven project links are recognized, five tabs remain, TTK and Revision logic unchanged. No Android APK update. UI cloud action button remains enabled after successful/failed sync; network failures do not cause tight retry loops."
+  "details": "External site navigation fix after Xiaomi screenshots: AI, Print and Sushi-Beri no longer load in iframes (X-Frame-Options: DENY or unstable embedded Next.js). Use same-tab top-level navigation with Android Back to return. Print opens canonical cloud staff app; old local print migration/catalog preserved via Settings link. Internal MORE SUSHI, Revision and verified iframe-safe SHEF51/KITCHEN retain embedded Back UI. Fix wide sushi card favorite icon overlapping logo and headline spacing. No TTK, warehouse or APK code changed."
 }

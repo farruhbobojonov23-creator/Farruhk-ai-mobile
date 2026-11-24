@@ -222,3 +222,8 @@ html.hub-motion .hub-panel:not([hidden]) .hub-appear{animation:hubReveal .62s cu
 .workspace-cloud-card[data-state="error"] .system-icon{background:#ffeded;border-color:#eec0c0;color:#aa3a3a}
 .workspace-cloud-card[data-state="sync"] .system-icon{background:#ecf0fc;border-color:#cfdbf4;color:#446ba9}
 .settings-row[hidden]{display:none!important}
+
+/* 1.2.0 Navigation polish: wide project favorite stays at upper RIGHT,
+   not on top of the logo. The headline needs readable word spacing. */
+@media(max-width:699px){.projects-grid .project-card.wide-project .project-top{justify-content:flex-end}}
+.hero h1{letter-spacing:-.025em;word-spacing:.04em}

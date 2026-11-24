@@ -169,6 +169,40 @@ async function runCloud(browser){
  await secondContext.close();
 }
 
+
+async function runHandoff(browser){
+ const ctx=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
+ const p=await ctx.newPage();
+ const errors=[];
+ p.on('pageerror',e=>errors.push(e.message));
+ const targets=[
+  {name:'FARRUH AI',pattern:'https://farruhk-ai-mobile.onrender.com/',path:'/'},
+  {name:'FARUKH PRINT',pattern:'https://farruhk-ai-mobile.onrender.com/farukh-print/staff/',path:'/farukh-print/staff/'},
+  {name:'СУШИ БЕРИ',pattern:'https://sushi-beri.ru/murmansk',path:'/murmansk'}
+ ];
+ await p.route('https://farruhk-ai-mobile.onrender.com/**',route=>route.fulfill({
+  status:200,contentType:'text/html',body:'<!doctype html><title>Direct external app</title><h1>Direct app loaded</h1>'
+ }));
+ await p.route('https://sushi-beri.ru/**',route=>route.fulfill({
+  status:200,contentType:'text/html',body:'<!doctype html><title>Direct Sushi Beri</title><h1>Delivery loaded</h1>'
+ }));
+ await p.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>route.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
+ for(const item of targets){
+  await p.goto('http://127.0.0.1:8898/mobile.html#home',{waitUntil:'domcontentloaded'});
+  await p.locator('#hubSkipSplash').click().catch(()=>{});
+  const card=p.locator('#hubFeaturedProjects .project-card').filter({hasText:item.name});
+  await card.locator('.project-go').click();
+  await p.waitForURL(u=>u.href.startsWith(item.pattern),{timeout:10000});
+  assert(p.url().startsWith(item.pattern),'External handoff '+item.name+' — top-level navigation, not iframe');
+  assert(await p.locator('#hubViewer').count()===0,'External handoff '+item.name+' — old modal not visible in destination');
+  await p.goBack({waitUntil:'domcontentloaded'});
+  await p.locator('#hubFeaturedProjects .project-card').first().waitFor({state:'attached',timeout:10000});
+  assert(new URL(p.url()).pathname==='/mobile.html','External handoff '+item.name+' — system Back restores Workspace');
+ }
+ assert(errors.length===0,'External handoff — no JavaScript runtime errors');
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -179,6 +213,7 @@ async function main(){
   }
   try{await runStorage(browser)}catch(e){assert(false,'CRUD/storage — runtime '+e.message)}
   try{await runCloud(browser)}catch(e){assert(false,'Cloud sync — runtime '+e.message)}
+  try{await runHandoff(browser)}catch(e){assert(false,'External handoff — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();
