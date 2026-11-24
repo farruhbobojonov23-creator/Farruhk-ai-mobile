@@ -11,6 +11,8 @@ import androidx.webkit.WebViewAssetLoader;
 public class MainActivity extends Activity {
  private WebView web;
  private ValueCallback<Uri[]> pending;
+ private final java.util.concurrent.ExecutorService ocrExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
+ private long scanSequence=0;
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
  web=new WebView(this); web.setBackgroundColor(Color.rgb(7,24,44));
@@ -39,7 +41,12 @@ public class MainActivity extends Activity {
  }
  @Override protected void onActivityResult(int request,int result,Intent data){
  super.onActivityResult(request,result,data);
- if(request==41&&pending!=null){pending.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result,data));pending=null;}
+ if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1)scan(chosen[0]);}
  }
- @Override protected void onDestroy(){if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
+ private void scan(Uri uri){
+ final long id=++scanSequence;
+ web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
+ ocrExecutor.execute(()->{String result="",error="";try{result=InvoiceOcr.read(this,uri);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error="Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
+ }
+ @Override protected void onDestroy(){ocrExecutor.shutdownNow();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }
