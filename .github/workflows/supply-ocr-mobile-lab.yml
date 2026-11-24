@@ -25,6 +25,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Test positioned OCR row reconstruction
+        run: |
+          javac -d /tmp/supply-row-test ocr-mobile-lab/src/*.java
+          java -cp /tmp/supply-row-test InvoiceRowsTest
       - name: Prepare Cyrillic models for offline SDK
         run: bash ocr-mobile-lab/prepare.sh upstream-paddle/deploy/ppocr-android
       - name: Compile Android OCR library
