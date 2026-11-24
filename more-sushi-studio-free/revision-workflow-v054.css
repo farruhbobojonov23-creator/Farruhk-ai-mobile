@@ -1,0 +1,199 @@
+/* FARUKH REVISION PRO 0.5.4 — usability layer on approved Black Ice / crimson / gold. */
+.android-premium.revision-crimson .rev054-guide,
+.android-premium.revision-crimson .rev054-flow,
+.android-premium.revision-crimson .rev054-final{
+ color:#eff5ff;
+ border:1px solid #405775;
+ background:linear-gradient(153deg,#1a2a40,#0e1a2d 75%,#16182a);
+ border-radius:20px;
+ box-shadow:inset 0 1px #ffffff1b,0 12px 26px #0004;
+}
+.android-premium .rev054-guide{padding:18px;margin:0 0 18px}
+.android-premium .rev054-eyebrow,.android-premium .rev054-flow-eyebrow{
+ font-size:10px;font-weight:850;letter-spacing:1.6px;color:#e7c084;
+}
+.android-premium .rev054-guide h2{font-size:21px;line-height:1.12;margin:8px 0 14px;color:#fbfbff}
+.android-premium .rev054-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.android-premium .rev054-three span{
+ min-height:78px;border:1px solid #354b66;border-radius:13px;background:#111f32;
+ display:flex;flex-direction:column;gap:6px;padding:11px 8px;font-size:11px;color:#dbe5f5;line-height:1.25;
+}
+.android-premium .rev054-three b{
+ display:inline-grid;place-items:center;border-radius:9px;
+ width:25px;height:25px;background:linear-gradient(#f24c77,#961735);
+ color:#fff;font-size:13px;box-shadow:0 2px 8px #dc315866
+}
+.android-premium .rev054-guide-status{
+ margin:15px 0;color:#b9cbdd;font-size:12px;line-height:1.5
+}
+.android-premium .rev054-guide-status strong{color:#f6d38d}
+.android-premium .rev054-main-action{
+ width:100%;min-height:49px;border-radius:14px!important;
+ font-size:15px!important;font-weight:850!important;
+ display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.android-premium .rev054-explain{
+ margin-top:12px;border-top:1px solid #35445c;padding-top:12px;font-size:12px;
+}
+.android-premium .rev054-explain summary{color:#d8bd87;cursor:pointer;font-weight:750}
+.android-premium .rev054-explain p{line-height:1.6;color:#c1cee1;margin:10px 0 0}
+.android-premium .rev054-flow{padding:17px 18px;margin:0 0 14px;scroll-margin-top:115px}
+.android-premium .rev054-flow-top{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px
+}
+.android-premium .rev054-flow-top>strong{font-size:13px;color:#f0d39c}
+.android-premium .rev054-flow h2{font-size:19px;color:#fff;margin:10px 0 6px;line-height:1.3}
+.android-premium .rev054-flow p{font-size:12px;line-height:1.5;color:#bdcce2;margin:0 0 12px}
+.android-premium .rev054-progress-meta{display:flex;justify-content:space-between;font-size:12px;color:#d0ddef;margin-bottom:6px}
+.android-premium .rev054-progress-meta b{color:#f2d08e}
+.android-premium .rev054-progress-track{
+ border-radius:40px;height:9px;background:#0c1424;
+ box-shadow:inset 0 1px 4px #000a;overflow:hidden;border:1px solid #31445d;
+}
+.android-premium .rev054-progress-track span{
+ display:block;height:100%;border-radius:40px;
+ background:linear-gradient(90deg,#d73765,#ff9a60,#f2d08c);
+ transition:width .18s ease;
+}
+.android-premium .rev054-flow-tools{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.android-premium .rev054-flow-tools button{
+ flex:1;min-height:41px;border-radius:12px;font-size:12px!important;white-space:normal
+}
+.android-premium .rev054-item-n{
+ display:block;font-size:9px;font-weight:900;color:#e7bf88;letter-spacing:1.1px;margin-bottom:2px
+}
+.android-premium.revision-crimson #view-revision .rev-product.rev054-filled:not([open]){
+ border-color:#4a6475!important
+}
+.android-premium.revision-crimson #view-revision .rev-product.rev054-match{border-color:#286b69!important}
+.android-premium.revision-crimson #view-revision .rev-product.rev054-surplus{border-color:#298a74!important}
+.android-premium.revision-crimson #view-revision .rev-product.rev054-shortage{border-color:#d94e69!important}
+.android-premium.revision-crimson #view-revision .rev-product.rev054-missing{border-color:#53637b!important}
+.android-premium .rev054-product-status{font-size:10px!important;font-weight:800!important;color:#e8c588!important;margin-top:2px}
+.android-premium .rev054-surplus .rev054-product-status,.android-premium .rev054-match .rev054-product-status{color:#72e5c3!important}
+.android-premium .rev054-shortage .rev054-product-status{color:#ff8faa!important}
+.android-premium .rev054-price-tip{display:block;margin:8px 0 0;font-size:11px;color:#c7d1df;line-height:1.4}
+.android-premium .rev054-final{
+ padding:16px 18px;margin:15px 0 12px;scroll-margin-top:180px
+}
+.android-premium .rev054-result-title{
+ font-size:16px;font-weight:850;line-height:1.35;color:#f1d496;margin-bottom:8px
+}
+.android-premium .rev054-final p{
+ color:#b9cadf;line-height:1.55;font-size:12px;margin:7px 0 11px
+}
+.android-premium .rev054-final .rev054-notice{font-size:12px;line-height:1.5;color:#c7d5e6;margin:8px 0 13px}
+.android-premium .rev054-final .rev054-notice b{color:#fff}
+.android-premium .rev054-final button{width:100%;margin:4px 0 2px}
+.android-premium .rev054-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.android-premium .rev054-results>div{
+ padding:12px;border:1px solid #3e516a;border-radius:13px;background:#101d30;min-width:0
+}
+.android-premium .rev054-results small{display:block;font-size:11px;color:#becce0}
+.android-premium .rev054-results strong{display:block;font-size:20px;margin:5px 0;color:#f6f8ff;white-space:normal}
+.android-premium .rev054-results span{color:#d9bfd2;font-size:12px}
+.android-premium .rev054-result-line{
+ display:flex;justify-content:space-between;gap:12px;
+ color:#bdc9d9;font-size:12px;padding:8px 0;border-top:1px solid #3a4860
+}
+.android-premium .rev054-result-line b{color:#f5d49d}
+.android-premium .rev054-price-warning{color:#f6c67c!important}
+.android-premium .rev054-save-note{border-top:1px solid #344760;padding-top:9px;font-size:11px!important}
+/* Catalogue: names must never clip or require horizontal scrolling on phones. */
+.android-premium .rev054-catalog-intro{
+ font-size:12px;color:#c1d0e3;line-height:1.55;
+ border-radius:12px;border:1px solid #334763;background:#102037;padding:12px;margin:12px 0
+}
+.android-premium .rev054-catalog-intro strong{font-size:13px;color:#f3d298}
+.android-premium .rev054-catalog-intro p{margin:5px 0 0}
+.android-premium #view-products table{min-width:0!important;width:100%;table-layout:auto}
+.android-premium #view-products #productsrows .rev054-edit-pf{
+ display:block;font-size:11px!important;line-height:1.2;
+ padding:7px 9px!important;min-height:32px!important;margin:7px 0 0;width:auto
+}
+.android-premium #view-products #productsrows td:first-child{font-weight:800}
+.android-premium #view-products #productsrows td{overflow-wrap:anywhere}
+.android-premium #view-products .row #newproduct{min-width:0}
+.rev054-dialog{
+ background:linear-gradient(150deg,#1d3047,#0b172a)!important;
+ color:#eff6ff!important;border:1px solid #607692!important;border-radius:22px!important;
+ max-width:min(95vw,420px);width:calc(100vw - 32px);padding:22px;box-shadow:0 28px 100px #000b
+}
+.rev054-dialog::backdrop{background:rgba(1,6,14,.78)}
+.rev054-dialog h2{color:#fff;font-size:21px;line-height:1.2;margin:0 0 13px}
+.rev054-dialog strong{color:#efd198;font-size:15px}
+.rev054-dialog p,.rev054-dialog small{font-size:12px;color:#c7d4e7;line-height:1.5}
+.rev054-dialog label{display:block;font-size:12px;color:#dde8f9;margin:14px 0}
+.rev054-dialog .rev054-check{display:flex;align-items:center;gap:10px}
+.rev054-dialog input[type="checkbox"]{width:20px;height:20px;accent-color:#f04771}
+.rev054-dialog input[type="number"]{display:block;width:100%;min-height:45px;margin-top:7px;
+ border:1px solid #5a718f;border-radius:12px;background:#0b1b2d;color:#fff;
+ padding:9px 12px;font-size:17px}
+.rev054-dialog .rev054-dialog-actions{display:flex;gap:10px;margin-top:20px}
+.rev054-dialog .rev054-dialog-actions .btn{flex:1;min-width:0;min-height:43px;white-space:normal}
+.rev054-dialog .rev054-import-list{display:grid;gap:6px;margin:10px 0;max-height:36vh;overflow-y:auto}
+.rev054-dialog .rev054-import-list div{display:flex;justify-content:space-between;gap:12px;padding:9px;
+ border:1px solid #3d516b;border-radius:10px;font-size:12px}
+.rev054-dialog .rev054-import-list strong{font-size:12px;white-space:nowrap}
+/* Buttons cannot cover the last product while weighing. No fixed toolbar over the keyboard. */
+@media(max-width:720px){
+ .android-premium .rev054-guide{padding:14px;margin:0 0 14px}
+ .android-premium .rev054-guide h2{font-size:19px}
+ .android-premium .rev054-three{gap:5px}
+ .android-premium .rev054-three span{padding:9px 7px;min-height:79px;font-size:10px;line-height:1.28}
+ .android-premium .rev054-flow{padding:13px 14px}
+ .android-premium .rev054-flow-tools button{font-size:11px!important}
+ .android-premium .rev054-results strong{font-size:17px}
+ body.revision-crimson.view-revision #view-revision .tablewrap + .row{
+  position:static!important;left:auto!important;right:auto!important;bottom:auto!important;
+  z-index:auto!important;min-height:0!important;width:100%!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  padding:0!important;margin:14px 0 5px!important;backdrop-filter:none!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;
+ }
+ body.revision-crimson.view-revision #view-revision .tablewrap + .row .btn{
+  height:48px!important;min-height:48px!important;min-width:0!important;width:100%!important;
+  flex-direction:row!important;justify-content:center!important;gap:6px!important;
+  font-size:11px!important;padding:8px 4px!important;
+  white-space:normal!important;overflow:visible!important;
+ }
+ body.revision-crimson.view-revision #view-revision .tablewrap + .row .btn:first-child{
+  grid-column:1/-1;background:linear-gradient(180deg,#fe557d,#b81843)!important;
+  font-size:14px!important;min-height:52px!important;
+ }
+ body.revision-crimson.view-revision #view-revision .tablewrap + .row .btn .icon-3d{
+  width:21px!important;height:21px!important;flex:0 0 21px!important
+ }
+ body.revision-crimson.view-revision main{
+  padding-bottom:max(130px,calc(env(safe-area-inset-bottom,0px) + 130px))!important
+ }
+ body.revision-crimson.view-revision #view-revision .card>.warning{margin-top:10px!important}
+ body.revision-crimson.rev054-products #revisionSelectors{display:none!important}
+ .android-premium #view-products .tablewrap{overflow:visible!important}
+ .android-premium #view-products table{display:block!important;min-width:0!important}
+ .android-premium #view-products thead{display:none!important}
+ .android-premium #view-products tbody{display:block!important}
+ .android-premium #view-products #productsrows tr{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  gap:5px 10px!important;margin-bottom:9px!important;padding:13px!important;
+  border-radius:14px!important;border:1px solid #3c506a!important;
+  background:linear-gradient(130deg,#1c2b42,#101d32)!important
+ }
+ .android-premium #view-products #productsrows td{border:0!important;padding:0!important}
+ .android-premium #view-products #productsrows td:nth-child(1){grid-column:1;grid-row:1 / span 2}
+ .android-premium #view-products #productsrows td:nth-child(2){grid-column:1;grid-row:3;font-size:11px!important;color:#a8bdd8}
+ .android-premium #view-products #productsrows td:nth-child(3){
+  grid-column:2;grid-row:1 / span 3;align-self:center
+ }
+ .android-premium #view-products #productsrows td:nth-child(3) button{
+  min-width:85px!important;min-height:40px!important;padding:6px!important;font-size:11px!important
+ }
+ .android-premium #view-products #productsrows .rev054-edit-pf{white-space:normal!important}
+ .android-premium #view-products>.row{display:grid!important;grid-template-columns:1fr!important;gap:10px}
+ .android-premium #view-products>.row input,
+ .android-premium #view-products>.row button{width:100%!important}
+}
+@media print{
+ .rev054-guide,.rev054-flow,.rev054-final,.rev054-dialog,.rev054-catalog-intro,.rev054-edit-pf{display:none!important}
+ body.revision-crimson.view-revision #view-revision .tablewrap + .row{display:none!important}
+}
