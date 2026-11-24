@@ -42,11 +42,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/supply-android-user"
           echo "ANDROID_USER_HOME=$RUNNER_TEMP/supply-android-user" >> "$GITHUB_ENV"
       - name: Test price analytics
-        run: node --test supply/analytics.test.js
+        run: node --test supply/analytics.test.js supply/invoice-parser.test.js
       - name: Check preview JavaScript
         run: |
           node --check supply-android/app/src/main/assets/app.js
           node --check supply-android/app/src/main/assets/analytics.js
+          node --check supply-android/app/src/main/assets/invoice-parser.js
       - name: Include offline Russian and English OCR models
         run: |
           set -e
