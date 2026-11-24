@@ -1,0 +1,4 @@
+# Supply OCR experiment
+Free open-source model evaluation, independent of the signed Android release. No real invoices or credentials may enter this public repository or CI.
+Run on a private machine with Python 3.11: pip install -r ocr-lab/requirements.txt; python ocr-lab/benchmark.py --input /private/invoice.jpg --out /private/result.
+CI generates a fictional Russian invoice and checks exact table rows. Passing is not proof of accuracy on real photographs. Evaluate rotated, blurred and compressed examples privately before selecting a deployment. PP-StructureV3's Python pipeline is not a drop-in Android library. Native port or private CPU host is a separate decision; no hosted endpoint or paid API configured. Keep Tesseract as fallback and preserve manual confirmation and gross amount checks.

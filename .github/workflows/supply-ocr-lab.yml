@@ -1,0 +1,27 @@
+name: Supply OCR lab (synthetic)
+on:
+  push:
+    branches: ['feature/farukh-supply-ai']
+    paths: ['ocr-lab/**', '.github/workflows/supply-ocr-lab.yml']
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU OCR dependencies
+        run: |
+          python -m pip install -r ocr-lab/requirements.txt
+      - name: Evaluate synthetic Russian invoice
+        run: python ocr-lab/benchmark.py --out ocr-result
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: supply-ocr-synthetic-report
+          path: ocr-result/
+          retention-days: 7
