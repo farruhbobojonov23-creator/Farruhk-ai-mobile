@@ -126,7 +126,7 @@ public final class MainActivity extends Activity {
         more.setOnClickListener(v->{
             android.widget.PopupMenu menu=new android.widget.PopupMenu(this,more);
             menu.getMenu().add("PDF").setOnMenuItemClickListener(item->{saveAsPdf();return true;});
-            menu.getMenu().add("Обновить").setOnMenuItemClickListener(item->{checkForUpdates();return true;});
+            menu.getMenu().add("Обновить").setOnMenuItemClickListener(item->{refreshPage();return true;});
             menu.show();
         });
         bar.addView(more,new LinearLayout.LayoutParams(dp(48),-1));
@@ -264,7 +264,10 @@ public final class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setUseWideViewPort(true);
         if(Build.VERSION.SDK_INT>=26)settings.setSafeBrowsingEnabled(true);
-        settings.setUserAgentString(settings.getUserAgentString()+" "+UA);
+        String versionTag="";
+        try{versionTag=" FarruhApkCode/"+getPackageManager().getPackageInfo(getPackageName(),0).getLongVersionCode();}
+        catch(PackageManager.NameNotFoundException ignored){}
+        settings.setUserAgentString(settings.getUserAgentString()+" "+UA+versionTag);
         WebView.setWebContentsDebuggingEnabled(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(browser,false);
@@ -370,9 +373,7 @@ public final class MainActivity extends Activity {
     /* Web content refreshes in-place. A new NATIVE APK can only replace the
      * installed version when the package ID AND signing certificate match.
      * Never clear cookies or local storage during either update. */
-    private void checkForUpdates(){
-        if(checkingUpdate || pendingDownload >= 0)return;
-        checkingUpdate=true;
+    private void refreshPage(){
         // Web changes apply immediately even if no native APK update is offered.
         if(browser!=null){
             // WebView reload otherwise races the pagehide event on Android and
@@ -381,6 +382,10 @@ public final class MainActivity extends Activity {
               "(function(){try{if(typeof rev040Snapshot==='function')rev040Snapshot();return true}catch(e){return false}})()",
               ignored->browser.reload());
         }
+    }
+    private void checkForUpdates(){
+        if(checkingUpdate || pendingDownload >= 0)return;
+        checkingUpdate=true;
         new Thread(()->{
             try{
                 HttpURLConnection c=(HttpURLConnection)new URL(UPDATE_JSON+"?t="+System.currentTimeMillis()).openConnection();
@@ -403,7 +408,7 @@ public final class MainActivity extends Activity {
                 int published=json.optInt("versionCode",0);
                 int installed=(int)getPackageManager().getPackageInfo(getPackageName(),0).getLongVersionCode();
                 if(published<=installed){
-                    runOnUiThread(()->toast("Веб-интерфейс обновлён. Новых обновлений APK нет."));
+                    runOnUiThread(()->toast("Установлена актуальная версия приложения."));
                     return;
                 }
                 String url=json.optString("apkUrl","");
@@ -412,7 +417,7 @@ public final class MainActivity extends Activity {
                     throw new Exception("Не опубликована проверенная подписанная APK");
                 runOnUiThread(()->downloadUpdate(url,sha,published));
             }catch(Exception e){
-                runOnUiThread(()->toast("Веб-страница обновлена. Проверка APK недоступна."));
+                runOnUiThread(()->toast("Не удалось проверить версию приложения."));
             }
             finally{runOnUiThread(()->checkingUpdate=false);}
         },"FarruhAPKVersionCheck").start();

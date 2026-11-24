@@ -88,15 +88,42 @@
        toast('Новая версия ещё загружается на сервер. Попробуй обновить чуть позже.',true);
    }catch{}
  }
+ const apkButton=document.getElementById('workspaceApkUpdate');
+ function installedVersionCeiling(ua){
+   if(!/FarruhWorkspaceUpdate\//.test(ua))return null;
+   const exact=ua.match(/\bFarruhApkCode\/(\d+)\b/);
+   if(exact)return Number(exact[1]);
+   // Legacy builds share a UA. Offer an APK only when newer than every
+   // possible build with that identifier (local entrance: 8–9, earlier: <=7).
+   return ua.includes('FarruhLocalIntro/') ? 9 : 7;
+ }
+ let checkingApk=false;
+ async function updateApkOffer(){
+   const ceiling=installedVersionCeiling(navigator.userAgent);
+   if(!workspace||!apkButton||ceiling===null||checkingApk)return;
+   checkingApk=true;
+   const controller=new AbortController();
+   const timer=setTimeout(()=>controller.abort(),TIMEOUT);
+   try{
+     const res=await fetch(new URL('./workspace-stable-update.json',document.baseURI),{cache:'no-store',signal:controller.signal});
+     if(!res.ok)throw new Error('APK manifest');
+     const release=await res.json();
+     const newer=release.packageName==='ai.farukh.workspace'&&Number.isSafeInteger(release.versionCode)&&release.versionCode>ceiling;
+     apkButton.hidden=!newer;
+     if(newer)apkButton.querySelector('small').textContent='Android · версия '+release.versionName;
+   }catch{apkButton.hidden=true}
+   finally{clearTimeout(timer);checkingApk=false}
+ }
+ apkButton?.addEventListener('click',()=>{
+   if(!apkButton.hidden && installedVersionCeiling(navigator.userAgent)!==null)
+     window.location.assign('farruhworkspace://update');
+ });
+ updateApkOffer();
  document.addEventListener('click',event=>{
-   const button=event.target.closest('[data-ocean-refresh]');
-   if(!button)return;
+   if(!event.target.closest('[data-ocean-refresh]'))return;
    event.preventDefault();
-   if(workspace && /FarruhWorkspaceUpdate\//.test(navigator.userAgent)){
-     window.location.assign("farruhworkspace://update");
-     return;
-   }
    checkAndRefresh();
+   updateApkOffer();
  });
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showConfirmedRefresh,{once:true});
  else showConfirmedRefresh();
