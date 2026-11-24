@@ -2406,14 +2406,14 @@ document.addEventListener('DOMContentLoaded',function(){
   return promise;
  }
  function rowsForReport(){
-  let missingPrice=0,shortKg=0,longKg=0,shortRub=0,longRub=0,checked=0,matches=0;
+  let missingShort=0,missingSurplus=0,shortKg=0,longKg=0,shortRub=0,longRub=0,checked=0,matches=0;
   const lines=allValues().map(v=>{
    if(v.valid){checked++;if(v.diff===0)matches++}
-   if(v.diff<0){shortKg+=-v.diff;if(v.price===null)missingPrice++;else shortRub+=-v.diff*v.price}
-   if(v.diff>0){longKg+=v.diff;if(v.price===null)missingPrice++;else longRub+=v.diff*v.price}
+   if(v.diff<0){shortKg+=-v.diff;if(v.price===null)missingShort++;else shortRub+=-v.diff*v.price}
+   if(v.diff>0){longKg+=v.diff;if(v.price===null)missingSurplus++;else longRub+=v.diff*v.price}
    return v;
   });
-  return {lines,missingPrice,shortKg,longKg,shortRub,longRub,checked,matches};
+  return {lines,missingShort,missingSurplus,shortKg,longKg,shortRub,longRub,checked,matches};
  }
  function renderReport(){
   const d=rowsForReport(),start=isStart();
@@ -2423,16 +2423,16 @@ document.addEventListener('DOMContentLoaded',function(){
   d.lines.map(v=>{
    const css=v.diff<0?'red':v.diff>0?'green':'muted';
    const sign=v.diff>0?'+':'';
-   const amount=v.diff===null?'—':v.price===null?'нет цены':(sign+money(v.diff*v.price));
+   const amount=v.diff===null?'—':v.diff===0?money(0):v.price===null?'нет цены':(sign+money(v.diff*v.price));
    return '<tr><td><b>'+esc(v.name)+'</b></td><td>'+(start?'—':v.program===null?'—':kg(v.program))+
    '</td><td>'+(v.actual===null?'—':kg(v.actual))+'</td><td class="'+css+'">'+
    (start?'—':v.diff===null?'—':sign+kg(v.diff))+'</td><td>'+(v.price===null?'—':money(v.price))+
    '</td><td class="'+css+'">'+(start?'—':amount)+'</td></tr>';
   }).join('')+'</tbody></table></div>'+
   (start?'':'<div class="rev060-total"><div>🔴 Недостача<b class="red">− '+kg(d.shortKg)+'</b>'+
-  (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.shortRub)+'</small>')+'</div>'+
+  (d.missingShort?'<small>Цена не для всех</small>':'<small>'+money(d.shortRub)+'</small>')+'</div>'+
   '<div>🟢 Излишек<b class="green">+ '+kg(d.longKg)+'</b>'+
-  (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.longRub)+'</small>')+'</div></div>');
+  (d.missingSurplus?'<small>Цена не для всех</small>':'<small>'+money(d.longRub)+'</small>')+'</div></div>');
   result.querySelectorAll('tbody tr').forEach(tr=>{
    [...tr.querySelectorAll('td')].forEach((td,i)=>td.dataset.label=['Товар','Учёт','Факт','± кг','Цена/кг','± ₽'][i]);
   });
@@ -2448,7 +2448,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // Switch to list mode so the missing product is visible.
   if(typeof document.getElementById('rev056All')?.click==='function')$('rev056All').click();
   r.scrollIntoView({block:'center',behavior:'smooth'});
-  r.querySelector('input[data-field="raw"]')?.focus();
+  r.querySelector('input[data-field="'+(!isStart()&&getDraft(name)?.program===''?'program':'raw')+'"]')?.focus();
  }
  function prepare(){
   syncDraft();
@@ -2617,7 +2617,7 @@ document.addEventListener('DOMContentLoaded',function(){
    const body=(record.products||[]).map(p=>{
     const diff=Number(p.diff);
     const price=p.price==null?null:Number(p.price);
-    const sum=Number.isFinite(diff)&&price!==null&&Number.isFinite(price)?diff*price:null;
+    const sum=diff===0?0:Number.isFinite(diff)&&price!==null&&Number.isFinite(price)?diff*price:null;
     const colored=diff<0?'red':diff>0?'green':'muted';
     return '<tr><td>'+esc(p.name)+'</td><td>'+kg(p.program)+'</td><td>'+kg(p.actual)+'</td>'+
       '<td class="'+colored+'">'+(diff>0?'+':'')+kg(diff)+'</td>'+
