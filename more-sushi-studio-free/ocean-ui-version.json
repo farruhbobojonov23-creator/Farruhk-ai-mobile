@@ -3,5 +3,5 @@
   "display": "FARRUH WORKSPACE PRO 1.5.0 · единственное Android-окно",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "For a dedicated Android FARRUH WORKSPACE shell, navigate all seven projects as top-level HTTPS sites inside one persistent native WebView; original web/PWA still respects external sites' cross-origin iframe restrictions. No proxy, no cookie interception, original apps remain installed. Android debug test APK only; stable production signing not yet verified."
+  "details": "For a dedicated Android FARRUH WORKSPACE shell, navigate all seven projects as top-level HTTPS sites inside one persistent native WebView; original web/PWA still respects external sites' cross-origin iframe restrictions. No proxy, no cookie interception, original apps remain installed. Android debug test APK only; stable production signing not yet verified. Native Android 1.1.0 now includes a unified Update action: reload web content, fetch signed release metadata, confirm download, verify APK SHA-256 and ask Android Package Installer. Release manifest starts disabled until permanent production signing and verified release are published."
 }
