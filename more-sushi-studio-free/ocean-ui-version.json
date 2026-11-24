@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.9.3-20261124",
-  "display": "FARRUH WORKSPACE PRO · Алебастр и золото 1.9.3",
+  "build": "farruh-workspace-1.9.4-20261124",
+  "display": "FARRUH WORKSPACE PRO · Алебастр и золото 1.9.4",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Полные иллюстрации в карточках проектов и категорий."
+  "details": "Предметные иллюстрации в проектах, инструментах, ТТК и настройках."
 }
