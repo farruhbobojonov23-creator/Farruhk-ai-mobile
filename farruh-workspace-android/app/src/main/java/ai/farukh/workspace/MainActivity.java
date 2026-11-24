@@ -2,7 +2,7 @@ package ai.farukh.workspace;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -79,6 +79,8 @@ public final class MainActivity extends Activity {
     private ProgressBar progress;
     private ValueCallback<Uri[]> filePicker;
     private PermissionRequest pendingMedia;
+    private boolean checkingUpdate;
+    private static final int INSTALL_PERMISSION_REQUEST = 7634;
     private long pendingDownload = -1L;
     private String pendingHash = null;
     private Uri verifiedInstallUri = null;
@@ -302,6 +304,8 @@ public final class MainActivity extends Activity {
      * installed version when the package ID AND signing certificate match.
      * Never clear cookies or local storage during either update. */
     private void checkForUpdates(){
+        if(checkingUpdate || pendingDownload >= 0)return;
+        checkingUpdate=true;
         // Web changes apply immediately even if no native APK update is offered.
         if(browser!=null){
             // WebView reload otherwise races the pagehide event on Android and
@@ -339,21 +343,16 @@ public final class MainActivity extends Activity {
                 String sha=json.optString("sha256","").toLowerCase(Locale.ROOT);
                 if(!url.startsWith(TRUSTED_APK_PREFIX)||!url.endsWith(".apk")||!sha.matches("[a-f0-9]{64}"))
                     throw new Exception("Не опубликована проверенная подписанная APK");
-                final String safeUrl=url;final String safeHash=sha;final int code=published;
-                runOnUiThread(()->new AlertDialog.Builder(this)
-                    .setTitle("Доступно обновление APK")
-                    .setMessage("Найдена новая версия "+code+". Скачать и обновить приложение без удаления? Android попросит подтвердить установку. Данные останутся, если подпись совпадает.")
-                    .setNegativeButton("Позже",null)
-                    .setPositiveButton("Скачать", (dialog,which)->downloadUpdate(safeUrl,safeHash,code))
-                    .show());
+                runOnUiThread(()->downloadUpdate(url,sha,published));
             }catch(Exception e){
                 runOnUiThread(()->toast("Веб-страница обновлена. Проверка APK недоступна."));
             }
+            finally{runOnUiThread(()->checkingUpdate=false);}
         },"FarruhAPKVersionCheck").start();
     }
     private void downloadUpdate(String source,String sha,int code){
         try{
-            String name="FARRUH_WORKSPACE_PRO_"+code+".apk";
+            String name="FARRUH_WORKSPACE_PRO_"+code+"_"+System.currentTimeMillis()+".apk";
             DownloadManager.Request r=new DownloadManager.Request(Uri.parse(source));
             r.setTitle("Обновление FARRUH WORKSPACE PRO");
             r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
@@ -387,12 +386,7 @@ public final class MainActivity extends Activity {
                     if(!expected.equals(hex.toString()))throw new Exception("Контрольная сумма APK не совпала");
                     runOnUiThread(()->{
                         verifiedInstallUri=uri;
-                        new AlertDialog.Builder(thisActivity())
-                          .setTitle("APK проверена")
-                          .setMessage("Файл скачан и SHA-256 совпадает. Перейти к стандартной установке Android?")
-                          .setNegativeButton("Позже",null)
-                          .setPositiveButton("Установить",(dialog,which)->installVerified())
-                          .show();
+                        installVerified();
                     });
                 }catch(Exception e){
                     runOnUiThread(()->toast("APK не прошла проверку. Установка отменена."));
@@ -400,14 +394,13 @@ public final class MainActivity extends Activity {
             },"FarruhAPKDigest").start();
         }
     };
-    private MainActivity thisActivity(){return this;}
     private void installVerified(){
         if(verifiedInstallUri==null)return;
         if(Build.VERSION.SDK_INT>=26&&!getPackageManager().canRequestPackageInstalls()){
             toast("Разреши обновление из этого приложения в настройках Android.");
             Intent i=new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                 Uri.parse("package:"+getPackageName()));
-            try{startActivity(i);}catch(Exception e){toast("Не удалось открыть настройки установки");}
+            try{startActivityForResult(i,INSTALL_PERMISSION_REQUEST);}catch(Exception e){toast("Не удалось открыть настройки установки");}
             return;
         }
         try{
@@ -461,6 +454,10 @@ public final class MainActivity extends Activity {
     }
     @Override @Deprecated protected void onActivityResult(int req,int status,Intent data){
         super.onActivityResult(req,status,data);
+        if(req==INSTALL_PERMISSION_REQUEST){
+            if(getPackageManager().canRequestPackageInstalls())installVerified();
+            return;
+        }
         if(req==PICK_FILE){
             ValueCallback<Uri[]> c=filePicker;filePicker=null;
             if(c!=null)c.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(status,data));

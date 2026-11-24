@@ -92,6 +92,10 @@
    const button=event.target.closest('[data-ocean-refresh]');
    if(!button)return;
    event.preventDefault();
+   if(workspace && /FarruhWorkspaceUpdate\//.test(navigator.userAgent)){
+     window.location.assign("farruhworkspace://update");
+     return;
+   }
    checkAndRefresh();
  });
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showConfirmedRefresh,{once:true});
