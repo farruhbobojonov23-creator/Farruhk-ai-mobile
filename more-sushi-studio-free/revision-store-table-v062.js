@@ -4,6 +4,9 @@
 (()=>{
  'use strict';
  const STYLES=[
+ '.revision-crimson .summarytile[data-rev062-mini="yes"]{grid-template-rows:minmax(52px,auto) auto auto!important}',
+ '.revision-crimson .summarytile[data-rev062-mini="yes"] .rev062-mini{grid-row:2!important}',
+ '.revision-crimson .summarytile[data-rev062-mini="yes"] .point-open{grid-column:1/-1!important;grid-row:3!important}',
  '.revision-crimson .rev062-mini{grid-column:1/-1!important;grid-row:auto!important;min-width:0!important;width:100%!important;margin-top:4px!important;padding:8px!important;border:1px solid #364e68;border-radius:11px;background:#0a1729a8;box-sizing:border-box;position:relative;z-index:1}',
  '.revision-crimson .rev053-store-card[data-rev062-mini="yes"] .rev053-store-kg{display:none!important}',
  '.revision-crimson .rev062-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;margin-bottom:3px;padding:0 1px 6px;border-bottom:1px solid #324962;color:#d2b57f;font-weight:750;font-size:9.5px;line-height:1.2}',
