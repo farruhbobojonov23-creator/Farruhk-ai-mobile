@@ -303,7 +303,13 @@ public final class MainActivity extends Activity {
      * Never clear cookies or local storage during either update. */
     private void checkForUpdates(){
         // Web changes apply immediately even if no native APK update is offered.
-        if(browser!=null)browser.reload();
+        if(browser!=null){
+            // WebView reload otherwise races the pagehide event on Android and
+            // can lose a half-filled inventory. Snapshot BEFORE navigation.
+            browser.evaluateJavascript(
+              "(function(){try{if(typeof rev040Snapshot==='function')rev040Snapshot();return true}catch(e){return false}})()",
+              ignored->browser.reload());
+        }
         new Thread(()->{
             try{
                 HttpURLConnection c=(HttpURLConnection)new URL(UPDATE_JSON+"?t="+System.currentTimeMillis()).openConnection();
