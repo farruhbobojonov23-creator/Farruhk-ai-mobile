@@ -218,4 +218,6 @@
  });
  window.addEventListener('pagehide',saveSnapshot);
  enhanceRows();
+ // Version shown in the existing information button; never report a native APK release.
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · веб-интерфейс 0.5.6. Быстрый ввод по продуктам, явный ноль, сохранение черновика после ввода. APK не переустанавливается.');};
 })();
