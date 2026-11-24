@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.2'),'new interface release badge displayed');
+ verify(badge.includes('0.6.3'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -172,27 +172,39 @@ async function test(browser){
  });
  await page.locator('.menu button[onclick*="summary"]').click();
  const plasma=page.locator('.rev053-store-card[data-rev053-store="Плазма"]');
- const mini=plasma.locator('.rev062-mini');
+ const mini=plasma.locator('.rev063-mini');
  await mini.waitFor();
  verify((await mini.innerText()).includes('Лосось')&&(await mini.innerText()).includes('нет цены'),'saved shortage with missing historical price is honest');
  const miniText=await mini.innerText();
  verify(miniText.includes('Угорь')&&/3[\s\u00a0\u202f]*400/.test(miniText),'saved surplus shows price multiplied by quantity');
- verify(await plasma.locator('.rev062-line').count()===4,'all four discrepancies available in this outlet');
- verify(await plasma.locator('.rev062-line:visible').count()===3,'compact preview shows three mismatched products');
- verify(await page.locator('.rev053-store-card[data-rev053-store="Баумана 18"] .rev062-mini').count()===0,
-  'no product data leaked from Плазма to another outlet without a weekly audit');
- const beforeView=await page.locator('.menu button.active').innerText();
- await plasma.locator('.rev062-toggle').click();
- verify(await plasma.locator('.rev062-line:visible').count()===4,'show-all toggle expands table without navigating');
- verify((await page.locator('.menu button.active').innerText())===beforeView,'table expansion does not open a new revision');
+ verify(await plasma.locator('.rev063-row').count()===5,'all five saved products included (including matches)');
+ verify(await plasma.locator('.rev063-row:visible').count()===5,'all five products visible without expansion');
+ verify((await page.locator('.rev053-store-card[data-rev053-store="Баумана 18"] .rev063-mini').innerText()).includes('После первой ревизии'),
+  'no product data leaked from Плазма to an outlet with no saved audit');
+ verify((await mini.innerText()).includes('Сыр')&&(await mini.innerText()).includes('0 ₽'),
+   'matching product shows zero kilograms and rubles');
+ verify(await plasma.locator('.rev062-toggle').count()===0,'no extra expand button required');
  const boxes=await plasma.evaluate(card=>({
-  table:card.querySelector('.rev062-mini')?.getBoundingClientRect().toJSON(),
+  table:card.querySelector('.rev063-mini')?.getBoundingClientRect().toJSON(),
   button:card.querySelector('.point-open')?.getBoundingClientRect().toJSON(),
   card:card.getBoundingClientRect().toJSON()
  }));
  verify(boxes.table.bottom<=boxes.button.top+1,'mini table does not overlap open-point action');
  verify(boxes.button.bottom<=boxes.card.bottom+1,'mini table and action fit inside the outlet card');
- await page.screenshot({path:path.join(out,'revision-v062-minitable-mobile.png'),fullPage:true});
+ const other=page.locator('.rev053-store-card[data-rev053-store="Баумана 18"]');
+ const heights=await Promise.all([plasma,other].map(async tile=>tile.evaluate(node=>({
+  card:node.getBoundingClientRect().toJSON(),
+  button:node.querySelector('.point-open').getBoundingClientRect().toJSON()
+ }))));
+ verify(Math.abs(heights[0].button.top-heights[1].button.top)<=1,
+  'first row outlet actions share the same vertical baseline');
+ verify(Math.abs(heights[0].card.bottom-heights[1].card.bottom)<=1,
+  'first row cards have equal bottom edge');
+ verify(await page.locator('.rev053-store-card[data-rev053-store="Героев Североморцев"] .rev063-row').count()>0,
+  'saved initial revision lists all stock products without invented plus/minus');
+ verify(await page.locator('.rev053-store-card[data-rev053-store="Полярные Зори"] .rev063-row').count()>0,
+  'offline initial revision lists its saved stock products');
+ await page.screenshot({path:path.join(out,'revision-v063-full-table-mobile.png'),fullPage:true});
 
 
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
