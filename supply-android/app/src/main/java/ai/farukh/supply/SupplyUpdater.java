@@ -45,7 +45,7 @@ final class SupplyUpdater {
   });
  }
  private static HttpsURLConnection connect(String name)throws IOException{
-  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setInstanceFollowRedirects(true);
+  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name+("update.json".equals(name)?"?check="+System.currentTimeMillis():"")).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setRequestProperty("Cache-Control","no-cache, no-store, max-age=0");c.setRequestProperty("Pragma","no-cache");c.setInstanceFollowRedirects(true);
   int code=c.getResponseCode();if(code==404){c.disconnect();throw new FileNotFoundException(name);}if(code!=200){c.disconnect();throw new IOException("HTTP "+code);}return c;
  }
  private static byte[] manifest()throws IOException{
@@ -61,7 +61,8 @@ final class SupplyUpdater {
   if(!"ai.farukh.supply".equals(m.getString("package"))||!name.equals("FARUKH-SUPPLY-"+code+".apk")||!hash.matches("[0-9a-fA-F]{64}"))throw new SecurityException("manifest");
   PackageManager pm=activity.getPackageManager();int flags=Build.VERSION.SDK_INT>=28?PackageManager.GET_SIGNING_CERTIFICATES:PackageManager.GET_SIGNATURES;
   PackageInfo installed=pm.getPackageInfo(activity.getPackageName(),flags);
-  if(code<=version(installed)){notice("Установлена актуальная версия.");return;}
+  if(code<=version(installed)){notice("Версия на телефоне: "+installed.versionName+" (сборка "+version(installed)+"). На сервере: "+code+".");return;}
+  notice("Найдено обновление: сборка "+code+". Скачиваем…");
   File dir=new File(activity.getCacheDir(),"updates");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("cache");
   File apk=new File(dir,name),tmp=new File(dir,name+".part");MessageDigest digest=MessageDigest.getInstance("SHA-256");
   HttpsURLConnection c=connect(name);
