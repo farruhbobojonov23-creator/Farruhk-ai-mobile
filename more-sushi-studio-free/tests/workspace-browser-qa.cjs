@@ -358,6 +358,24 @@ async function runBackup(browser){
  await ctx.close();
 }
 
+
+async function runSplashOnce(browser){
+ const ctx=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
+ await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',r=>r.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
+ const page=await ctx.newPage();
+ await page.goto('http://127.0.0.1:8898/mobile.html',{waitUntil:'domcontentloaded'});
+ assert(await page.locator('#hubSplash').count()===1,'Splash — intro exists at initial launch');
+ await page.locator('#hubSkipSplash').click();
+ await page.locator('#hubSplash').waitFor({state:'detached',timeout:3000});
+ await page.reload({waitUntil:'domcontentloaded'});
+ assert(await page.locator('#hubSplash').count()===0,'Splash — returning/refreshing skips cinematic delay');
+ await page.locator('.bottomnav [data-mss-tab="more"]').click();
+ await page.locator('#hubReplay').click();
+ await page.locator('#hubSplash').waitFor({state:'visible',timeout:7000});
+ assert(await page.locator('#hubSplash').count()===1,'Splash — user can still replay cinematic intro');
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -372,6 +390,7 @@ async function main(){
   try{await runRecipeCatalog(browser)}catch(e){assert(false,'Recipe catalog — runtime '+e.message)}
   try{await runRecipeImport(browser)}catch(e){assert(false,'Recipe import — runtime '+e.message)}
   try{await runBackup(browser)}catch(e){assert(false,'Backup — runtime '+e.message)}
+  try{await runSplashOnce(browser)}catch(e){assert(false,'Splash — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();

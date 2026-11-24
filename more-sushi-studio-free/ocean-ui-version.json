@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.4.1-20261124",
-  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.4.1",
+  "build": "farruh-workspace-1.4.2-20261124",
+  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.4.2",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Authenticated on-demand source recipe to NEW unsaved TTK draft handoff. Read-only from recipes, recipe_lines, ingredients and prefab names. Map original process, masses, storage, allergens, quality, scope and nutrition text without invented verification, leave approval blank. Explicit manual review and Save required before any ttk_documents write. Originals unchanged, no schema or source mutations. Version 1.4.0. A secure manual local JSON backup/export and confirmed restore for links/logos/favorites (no credentials, TTK or inventory data)."
+  "details": "Authenticated on-demand source recipe to NEW unsaved TTK draft handoff. Read-only from recipes, recipe_lines, ingredients and prefab names. Map original process, masses, storage, allergens, quality, scope and nutrition text without invented verification, leave approval blank. Explicit manual review and Save required before any ttk_documents write. Originals unchanged, no schema or source mutations. Version 1.4.0. A secure manual local JSON backup/export and confirmed restore for links/logos/favorites (no credentials, TTK or inventory data). Cinematic splash only on first open per session, not on every refresh or return, with manual replay. Browser regression added."
 }
