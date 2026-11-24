@@ -81,7 +81,7 @@ public final class MainActivity extends Activity {
     private final Runnable introComplete=()->{introElapsed=true;finishEntranceIfReady();};
     private LinearLayout outerLayout;
     private LinearLayout nativeBar;
-    private TextView caption;
+    private int navigationGeneration;
     private ProgressBar progress;
     private ValueCallback<Uri[]> filePicker;
     private PermissionRequest pendingMedia;
@@ -117,20 +117,19 @@ public final class MainActivity extends Activity {
         bar.setPadding(dp(6),dp(4),dp(6),dp(4));
         bar.setBackgroundColor(Color.rgb(37,34,46));
         root.addView(bar,new LinearLayout.LayoutParams(-1,dp(47)));
-        Button home=button("‹ Проекты",12);
+        Button home=button("‹ К проектам",15);
         home.setOnClickListener(v->browser.loadUrl(HOME));
-        bar.addView(home,new LinearLayout.LayoutParams(dp(96),dp(42)));
-        caption=new TextView(this);caption.setText("FARRUH WORKSPACE");
-        caption.setTextColor(Color.WHITE);caption.setTextSize(11);
-        caption.setTypeface(Typeface.DEFAULT,Typeface.BOLD);caption.setGravity(Gravity.CENTER);
-        caption.setSingleLine(true);caption.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        bar.addView(caption,new LinearLayout.LayoutParams(0,dp(42),1f));
-        Button pdf=button("PDF",12);
-        pdf.setOnClickListener(v->saveAsPdf());
-        bar.addView(pdf,new LinearLayout.LayoutParams(dp(47),dp(42)));
-        Button reload=button("Обновить",11);
-        reload.setOnClickListener(v->checkForUpdates());
-        bar.addView(reload,new LinearLayout.LayoutParams(dp(84),dp(42)));
+        bar.addView(home,new LinearLayout.LayoutParams(dp(112),-1));
+        bar.addView(new View(this),new LinearLayout.LayoutParams(0,1,1f));
+        Button more=button("⋮",23);
+        more.setContentDescription("Ещё");
+        more.setOnClickListener(v->{
+            android.widget.PopupMenu menu=new android.widget.PopupMenu(this,more);
+            menu.getMenu().add("PDF").setOnMenuItemClickListener(item->{saveAsPdf();return true;});
+            menu.getMenu().add("Обновить").setOnMenuItemClickListener(item->{checkForUpdates();return true;});
+            menu.show();
+        });
+        bar.addView(more,new LinearLayout.LayoutParams(dp(48),-1));
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);progress.setVisibility(View.GONE);
         root.addView(progress,new LinearLayout.LayoutParams(-1,dp(3)));
@@ -187,7 +186,7 @@ public final class MainActivity extends Activity {
         Button b=new Button(this);
         b.setAllCaps(false);b.setText(title);b.setTextSize(textSize);
         b.setTextColor(Color.WHITE);b.setPadding(0,0,0,0);
-        b.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(176,20,76)));
+        b.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         return b;
     }
     private boolean safeHttps(Uri uri){
@@ -210,30 +209,47 @@ public final class MainActivity extends Activity {
         }else toast("Открытие разрешено только для защищённых HTTPS-сайтов.");
     }
     private void updateChrome(String url){
-        boolean workspaceHome=isHome(url);
-        if(nativeBar!=null)nativeBar.setVisibility(workspaceHome?View.GONE:View.VISIBLE);
-        int backdrop=workspaceHome?IVORY:Color.rgb(37,34,46);
+        nativeBar.setVisibility(View.GONE);
+        paintChrome(isHome(url)?IVORY:Color.rgb(7,19,39));
+    }
+    private void paintChrome(int backdrop){
+        boolean light=(299*Color.red(backdrop)+587*Color.green(backdrop)+114*Color.blue(backdrop))>148000;
+        nativeBar.setBackgroundColor(backdrop);
+        for(int i=0;i<nativeBar.getChildCount();i++){
+            View child=nativeBar.getChildAt(i);
+            if(child instanceof Button)((Button)child).setTextColor(light?Color.BLACK:Color.WHITE);
+        }
         if(outerLayout!=null)outerLayout.setBackgroundColor(backdrop);
         getWindow().setStatusBarColor(backdrop);
-        getWindow().setNavigationBarColor(workspaceHome?IVORY:Color.rgb(37,34,46));
+        getWindow().setNavigationBarColor(backdrop);
         if(Build.VERSION.SDK_INT>=30){
             WindowInsetsController c=getWindow().getInsetsController();
             if(c!=null){
                 int mask=WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                     |WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
-                c.setSystemBarsAppearance(workspaceHome?mask:0,mask);
+                c.setSystemBarsAppearance(light?mask:0,mask);
             }
         }else{
             getWindow().getDecorView().setSystemUiVisibility(
-              workspaceHome?(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR):0);
+              light?(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR):0);
         }
     }
-    private void updateCaption(String url){
-        updateChrome(url);
-        if(isHome(url)){caption.setText("FARRUH WORKSPACE PRO");return;}
-        if(url==null){caption.setText("ПРОЕКТ");return;}
-        String host=Uri.parse(url).getHost();
-        caption.setText(host==null?"ПРОЕКТ":host.replace(".onrender.com","").toUpperCase(Locale.ROOT));
+    private void inspectProject(String url,int generation){
+        if(generation!=navigationGeneration||isHome(url)||!url.equals(browser.getUrl())||isDestroyed())return;
+        String probe="(function(){var shown=function(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width&&r.height&&c.visibility!=='hidden'&&c.display!=='none'&&Number(c.opacity)>0};"
+            +"var splash=Array.from(document.querySelectorAll('#premiumBoot,#hubSplash,[id*=splash i],[class*=splash i],[id*=intro i],[class*=intro i]')).some(function(e){var r=e.getBoundingClientRect();return shown(e)&&r.top<=12&&r.bottom>=innerHeight*.85&&r.width>=innerWidth*.85});"
+            +"if(splash)return 'loading';var e=document.elementFromPoint(innerWidth/2,2);while(e){var c=getComputedStyle(e).backgroundColor,m=c.match(/^rgb[(]([0-9]+), *([0-9]+), *([0-9]+)[)]$/);if(m)return '#'+m.slice(1).map(function(x){return ('0'+Number(x).toString(16)).slice(-2)}).join('');e=e.parentElement}var t=document.querySelector('meta[name=theme-color]');return t?t.content:'#ffffff'})()";
+        browser.evaluateJavascript(probe,result->{
+            if(generation!=navigationGeneration||!url.equals(browser.getUrl())||isDestroyed())return;
+            if("\"loading\"".equals(result)){
+                browser.postDelayed(()->inspectProject(url,generation),250);
+                return;
+            }
+            int color=Color.WHITE;
+            if(result!=null&&result.matches("\"#[0-9a-fA-F]{6}\""))color=Color.parseColor(result.substring(1,8));
+            paintChrome(color);
+            nativeBar.setVisibility(View.VISIBLE);
+        });
     }
     private void setupBrowser(){
         WebSettings settings=browser.getSettings();
@@ -269,19 +285,24 @@ public final class MainActivity extends Activity {
                 return true;
             }
             @Override public void onPageStarted(WebView v,String url,android.graphics.Bitmap icon){
-                progress.setVisibility(isHome(url)||launchCover!=null?View.GONE:View.VISIBLE);updateCaption(url);
+                navigationGeneration++;updateChrome(url);
+                progress.setVisibility(View.GONE);
             }
             @Override public void onPageCommitVisible(WebView v,String url){
                 pageReady=true;finishEntranceIfReady();
             }
             @Override public void onPageFinished(WebView v,String url){
-                progress.setVisibility(View.GONE);updateCaption(url);
+                progress.setVisibility(View.GONE);
+                if(url!=null&&!isHome(url))inspectProject(url,navigationGeneration);
                 if(launchCover!=null)v.postVisualStateCallback(0,new WebView.VisualStateCallback(){
                     @Override public void onComplete(long id){pageReady=true;finishEntranceIfReady();}
                 });
             }
             @Override public void onReceivedError(WebView v,WebResourceRequest request,WebResourceError error){
-                if(request.isForMainFrame())revealContent();
+                if(request.isForMainFrame()){
+                    revealContent();
+                    if(!isHome(request.getUrl().toString()))nativeBar.setVisibility(View.VISIBLE);
+                }
                 if(request.isForMainFrame())toast("Не удалось открыть сайт. Проверь интернет и нажми ↻.");
             }
             @Override public void onReceivedSslError(WebView v,SslErrorHandler h,SslError err){
@@ -290,7 +311,7 @@ public final class MainActivity extends Activity {
         });
         browser.setWebChromeClient(new WebChromeClient(){
             @Override public void onProgressChanged(WebView v,int n){
-                progress.setProgress(n);progress.setVisibility(n>=100||launchCover!=null||isHome(v.getUrl())?View.GONE:View.VISIBLE);
+                progress.setProgress(n);
             }
             @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(filePicker!=null)filePicker.onReceiveValue(null);
