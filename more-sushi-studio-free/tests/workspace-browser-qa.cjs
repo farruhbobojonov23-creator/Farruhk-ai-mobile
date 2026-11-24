@@ -41,6 +41,16 @@ async function runView(browser,{width,height,label}){
  await page.waitForTimeout(500);
  assert(await page.locator('.bottomnav [data-mss-tab]').count()===5,label+' — пять кнопок меню');
  assert(await page.locator('#hubFeaturedProjects .project-card').count()===7,label+' — семь проектов на главной');
+ const tileMeasure=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{
+  const logo=card.querySelector('.project-logo').getBoundingClientRect();
+  const label=card.querySelector('.project-title').getBoundingClientRect();
+  const desc=card.querySelector('.project-desc').getBoundingClientRect();
+  const frame=card.getBoundingClientRect();
+  return {gap:label.top-logo.bottom,height:frame.height,descBottom:desc.bottom,cardBottom:frame.bottom};
+ });
+ if(width<=699)assert(tileMeasure.gap<=16&&tileMeasure.height<155&&tileMeasure.descBottom<=tileMeasure.cardBottom,
+  label+' — компактные карточки без огромной пустоты, текст полностью виден '+JSON.stringify(tileMeasure));
+
  const copyPanels=await page.locator('#hubFeaturedProjects .project-card .project-copy').count();
  assert(copyPanels===7,label+' — все семь карточек имеют отдельный читабельный текстовый блок');
  const geometry=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{

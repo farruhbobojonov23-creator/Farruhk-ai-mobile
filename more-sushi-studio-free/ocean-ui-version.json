@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.8.1-20261124",
-  "display": "FARRUH WORKSPACE PRO · ROSÉ ATELIER MINIMAL 1.8.1",
+  "build": "farruh-workspace-1.8.2-20261124",
+  "display": "FARRUH WORKSPACE PRO · COMPACT ROSÉ ATELIER 1.8.2",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Correction to actual Xiaomi screenshot: previous Rosé Glass was muddy/dark and retained distracting giant 3D product artwork. Replaced single active CSS theme by true high-contrast Rosé Atelier: bright pearl-frosted project cards, dark wine texts, restrained rose accents, crisp icon tiles, matte buttons and compact cream dock that never covers content. Decorative oversized card art removed from DOM entirely, saving seven image requests. Project links, custom logos, favorites, CRUD, cloud, REVISION, TTK, PDF, authentication, native Android code and data unchanged. Native dark Projects/PDF bar and Android white status area still belong to installed APK; cannot be hidden by web update."
+  "details": "Correction to actual Xiaomi screenshot: previous Rosé Glass was muddy/dark and retained distracting giant 3D product artwork. Replaced single active CSS theme by true high-contrast Rosé Atelier: bright pearl-frosted project cards, dark wine texts, restrained rose accents, crisp icon tiles, matte buttons and compact cream dock that never covers content. Decorative oversized card art removed from DOM entirely, saving seven image requests. Project links, custom logos, favorites, CRUD, cloud, REVISION, TTK, PDF, authentication, native Android code and data unchanged. Native dark Projects/PDF bar and Android white status area still belong to installed APK; cannot be hidden by web update. Compact card fix from actual Xiaomi screenshot: former premium pearl tiles had a large dead blank region between logo and label. Card height reduced ~17%, logo/title separated by 7px instead of auto flex spacing; labels, descriptions and buttons remain full and readable. Taller CRUD/edit tiles retained. No project data, APK signing or navigation modified."
 }
