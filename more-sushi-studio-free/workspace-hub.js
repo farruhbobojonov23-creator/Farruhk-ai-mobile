@@ -297,6 +297,79 @@ $('#hubReplay')?.addEventListener('click',()=>{
 });
 $('#hubNotifications')?.addEventListener('click',()=>toast('Уведомления пока не подключены — события проектов здесь не отображаются.'));
 $('#hubCloudSyncSettings')?.addEventListener('click',()=>window.WorkspaceCloud?.syncNow());
+
+/* BACKUP: only data from Workspace project shortcuts, never auth credentials,
+ * recipes, TTK, inventory or private tokens. Save is explicit and local first. */
+const backupVersion='farruh-workspace-links-v1';
+function backupPayload(){
+ return {
+  format:backupVersion,
+  exported_at:new Date().toISOString(),
+  project_count:custom.length,
+  projects:custom.map(p=>({...p})),
+  favorites:[...favorites]
+ };
+}
+function downloadBackup(){
+ try{
+  const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json;charset=utf-8'});
+  if(blob.size>200000)throw new Error('Резервная копия слишком большая');
+  const href=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=href;
+  a.download='FARRUH_WORKSPACE_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(href),1000);
+  toast('Резервная копия ссылок подготовлена ✓');
+ }catch(error){toast(error.message||'Не удалось создать копию')}
+}
+function validateBackup(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!==backupVersion)
+  throw Error('Неверный формат резервной копии Workspace');
+ if(!Array.isArray(raw.projects)||!Array.isArray(raw.favorites)||raw.projects.length>80||raw.favorites.length>150)
+  throw Error('Файл содержит слишком много записей или неверные данные');
+ const ids=new Set();
+ const projects=raw.projects.map(p=>{
+  if(!p||typeof p!=='object'||Array.isArray(p))throw Error('Повреждена карточка проекта');
+  if(typeof p.id!=='string'||!/^([a-z0-9][a-z0-9-_]{0,79})$/i.test(p.id)||ids.has(p.id))throw Error('Недопустимый или повторяющийся ID проекта');
+  ids.add(p.id);
+  if(typeof p.name!=='string'||!p.name.trim()||p.name.length>70)throw Error('Некорректное название проекта');
+  if(typeof p.url!=='string'||p.url.length>2000||!normalizeUrl(p.url))throw Error('Недопустимая ссылка проекта');
+  if(p.color!==undefined&&!safeColors.has(p.color))throw Error('Недопустимый цвет карточки');
+  if(p.logo!==undefined&&p.logo!==''&&!(typeof p.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(p.logo)&&p.logo.length<140000))
+   throw Error('Недопустимое изображение');
+  if(p.desc!==undefined&&(typeof p.desc!=='string'||p.desc.length>180))throw Error('Недопустимое описание');
+  const isDefault=defaults.some(x=>x.id===p.id);
+  if(isDefault&&!p.override)throw Error('Некорректная карточка встроенного проекта');
+  if(!isDefault&&p.override)throw Error('Некорректная карточка пользователя');
+  const clean={id:p.id,name:p.name.trim(),url:normalizeUrl(p.url),desc:p.desc||'',color:p.color||'ruby'};
+  if(p.logo)clean.logo=p.logo;
+  if(isDefault)clean.override=true;
+  return clean;
+ });
+ const fav=new Set();
+ for(const id of raw.favorites){
+  if(typeof id!=='string'||!/^([a-z0-9][a-z0-9-_]{0,79})$/i.test(id))throw Error('Некорректное избранное');
+  fav.add(id);
+ }
+ return {projects,favorites:[...fav]};
+}
+async function restoreBackup(file){
+ try{
+  if(!file||file.size>250000)throw Error('Файл резервной копии должен быть меньше 250 КБ');
+  const raw=JSON.parse(await file.text());
+  const next=validateBackup(raw);
+  const ok=confirm('Восстановить '+next.projects.length+' дополнительных/изменённых проектов и '+next.favorites.length+
+   ' избранных?\nТекущий список ссылок будет заменён, затем синхронизирован с облаком. Исходные ТТК, рецептуры и ревизии не затрагиваются.');
+  if(!ok){toast('Восстановление отменено');return}
+  custom=next.projects;favorites=next.favorites;save();renderProjects();
+  toast('Резервная копия восстановлена ✓');
+ }catch(e){toast('Не удалось восстановить: '+(e?.message||'ошибка файла'))}
+ finally{const input=$('#hubBackupFile');if(input)input.value=''}
+}
+$('#hubBackupExport')?.addEventListener('click',downloadBackup);
+$('#hubBackupImport')?.addEventListener('click',()=>$('#hubBackupFile')?.click());
+$('#hubBackupFile')?.addEventListener('change',e=>restoreBackup(e.target.files?.[0]));
+
 window.FarruhWorkspace={
  snapshot:()=>({projects:custom.map(x=>({...x})),favorites:[...favorites]}),
  applyCloud(value){
@@ -305,7 +378,9 @@ window.FarruhWorkspace={
   favorites=Array.isArray(value.favorites)?value.favorites.filter(s=>typeof s==='string'&&s.length<90).slice(0,150):favorites;
   persistLocal();renderProjects();
  },
- safeProjectCount:()=>allProjects().length
+ safeProjectCount:()=>allProjects().length,
+ exportBackup:backupPayload,
+ validateBackup
 };
 renderProjects();showTab(tabFromHash(),false,false);startSplash();
 })();

@@ -291,6 +291,47 @@ async function runRecipeImport(browser){
  await ctx.close();
 }
 
+
+async function runBackup(browser){
+ const ctx=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
+ await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',r=>r.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
+ const page=await ctx.newPage();
+ await page.goto('http://127.0.0.1:8898/mobile.html#more',{waitUntil:'domcontentloaded'});
+ await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.locator('#hubBackupExport').waitFor({state:'visible'});
+ const pkg=await page.evaluate(()=>window.FarruhWorkspace.exportBackup());
+ assert(pkg.format==='farruh-workspace-links-v1','Backup — format is versioned');
+ assert(!JSON.stringify(pkg).includes('access_token'),'Backup — no bearer tokens exported');
+ assert(!JSON.stringify(pkg).includes('ms_session'),'Backup — no session exported');
+ const obj=await page.evaluate(()=>window.FarruhWorkspace.validateBackup({
+  format:'farruh-workspace-links-v1',
+  projects:[{id:'added-chef',name:'CHEF QA',url:'https://example.com/',color:'blue'}],
+  favorites:['more','added-chef']
+ }));
+ assert(obj.projects.length===1&&obj.favorites.length===2,'Backup — safe restore is parsed');
+ const rejected=await page.evaluate(()=>{
+  try{
+   window.FarruhWorkspace.validateBackup({format:'farruh-workspace-links-v1',
+    projects:[{id:'evil',name:'X',url:'javascript:alert(1)'}],favorites:[]});
+   return false;
+  }catch{return true}
+ });
+ assert(rejected,'Backup — rejects JavaScript protocol');
+ const modalRejected=await page.evaluate(()=>{
+  try{
+   window.FarruhWorkspace.validateBackup({format:'farruh-workspace-links-v1',
+    projects:[{id:'more',name:'False default override',url:'https://example.com'}],favorites:[]});
+   return false;
+  }catch{return true}
+ });
+ assert(modalRejected,'Backup — blocks improper default override');
+ const download=page.waitForEvent('download',{timeout:7000});
+ await page.locator('#hubBackupExport').click();
+ const dl=await download;
+ assert(dl.suggestedFilename().startsWith('FARRUH_WORKSPACE_Backup_'),'Backup — browser downloads a JSON file');
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -304,6 +345,7 @@ async function main(){
   try{await runHandoff(browser)}catch(e){assert(false,'External handoff — runtime '+e.message)}
   try{await runRecipeCatalog(browser)}catch(e){assert(false,'Recipe catalog — runtime '+e.message)}
   try{await runRecipeImport(browser)}catch(e){assert(false,'Recipe import — runtime '+e.message)}
+  try{await runBackup(browser)}catch(e){assert(false,'Backup — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();
