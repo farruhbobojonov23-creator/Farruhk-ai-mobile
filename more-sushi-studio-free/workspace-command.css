@@ -601,3 +601,118 @@ body{
  .project-card{transition:none}
  .project-card:hover,.project-card:focus-within{transform:none}
 }
+
+
+/* 1.6.1 — flagship readability and physical layout correction.
+   Keep the approved 3D flagship artwork and ONE CSS theme.
+   Large illustrations cannot sit directly under headings or action text. */
+.project-card{
+ display:flex;flex-direction:column;align-items:stretch;
+ min-height:196px;
+}
+.project-card .project-top{position:relative;z-index:4;flex:0 0 auto;margin-bottom:auto}
+.project-card .project-copy{
+ position:relative;z-index:3;
+ display:flex;flex-direction:column;justify-content:center;
+ margin-top:auto;margin-bottom:0;
+ width:100%;max-width:100%;
+ min-height:61px;
+ padding:10px 45px 10px 10px;
+ border-left:2px solid var(--edge);
+ border-radius:11px;
+ background:linear-gradient(90deg,rgba(7,8,17,.97) 0%,rgba(8,9,18,.93) 65%,rgba(7,9,17,.64) 100%);
+ box-shadow:inset 1px 1px #fff2,0 3px 13px #0004;
+}
+.project-card .project-copy .project-title{
+ margin:0;max-width:100%;display:block;
+ font-size:clamp(13px,3.15vw,18px);
+ line-height:1.12;letter-spacing:-.015em;
+ overflow-wrap:normal;word-break:normal;hyphens:auto;
+ text-shadow:0 2px 5px #000f;
+}
+.project-card .project-copy .project-desc{
+ margin:5px 0 0;max-width:100%;min-height:0;
+ font-size:clamp(9px,2.2vw,11px);
+ line-height:1.3;color:#eee9ef;
+ text-shadow:0 1px 4px #000f;
+}
+.project-card .project-go{
+ position:absolute;z-index:5;
+ left:auto;right:11px;bottom:15px;
+ width:32px;height:32px;
+}
+/* 3D artwork is displayed in its own upper-right zone and is softly masked
+   under the copy panel. It remains large but must not occlude the title. */
+.project-card .project-illustration{
+ top:6px;right:-8px;bottom:auto;left:auto;
+ width:79%;height:74%;opacity:.95;
+ -webkit-mask-image:linear-gradient(90deg,transparent 1%,#000 33%);
+ mask-image:linear-gradient(90deg,transparent 1%,#000 33%);
+}
+.project-card[data-flagship-art="ai"] .project-illustration,
+.project-card[data-flagship-art="revision"] .project-illustration,
+.project-card[data-flagship-art="kitchen"] .project-illustration,
+.project-card[data-flagship-art="shef51"] .project-illustration,
+.project-card[data-flagship-art="sushiberi"] .project-illustration,
+.project-card[data-flagship-art="more"] .project-illustration,
+.project-card[data-flagship-art="print"] .project-illustration{
+ top:6px;right:-7px;bottom:auto;left:auto;
+ width:78%;height:75%;opacity:.96
+}
+/* Seventh feature tile uses a horizontal layout without double margin.
+   The fish shopping bag stays on the RIGHT, title stays at left. */
+.projects-grid .project-card.wide-project{
+ min-height:145px;
+ padding:13px 12px 14px;
+}
+.projects-grid .project-card.wide-project .project-top{
+ margin-bottom:0;
+}
+.projects-grid .project-card.wide-project .project-copy{
+ width:60%;max-width:60%;
+ min-height:0;margin:9px 0 0 69px;padding:9px 10px;
+ background:linear-gradient(90deg,#0c0a16f5,#190b19d9 84%,#100b1588)
+}
+.projects-grid .project-card.wide-project .project-copy .project-title,
+.projects-grid .project-card.wide-project .project-copy .project-desc{
+ margin-left:0;max-width:100%;
+}
+.projects-grid .project-card.wide-project .project-illustration{
+ right:0;top:4px;bottom:auto;
+ height:96%;width:47%;
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 28%);
+ mask-image:linear-gradient(90deg,transparent,#000 28%);
+}
+.projects-grid .project-card.wide-project .project-go{bottom:12px;right:12px}
+.full-grid .project-card .project-copy{padding-right:46px}
+.full-grid .project-card{min-height:206px}
+/* A full card should not be covered on reaching the final screenful. */
+.workspace-root{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+@media (max-width:480px){
+ .project-card{min-height:192px;padding:11px 10px 13px}
+ .project-card .project-top{margin-bottom:auto}
+ .project-card .project-copy{padding:9px 41px 10px 9px;min-height:62px}
+ .project-card .project-copy .project-title{font-size:clamp(13px,3.15vw,15px)}
+ .project-card .project-copy .project-desc{font-size:10px}
+ .project-card .project-illustration{width:82%;height:74%}
+ .projects-grid .project-card.wide-project{min-height:144px}
+ .projects-grid .project-card.wide-project .project-copy{margin-left:64px;width:55%;max-width:55%;padding:8px 9px}
+ .projects-grid .project-card.wide-project .project-copy .project-title{font-size:15px}
+ .full-grid .project-card{min-height:204px}
+ .workspace-root{padding-bottom:calc(177px + env(safe-area-inset-bottom))}
+}
+@media(max-width:360px){
+ .project-card .project-copy .project-title{font-size:12px}
+ .project-card .project-copy .project-desc{font-size:9px}
+ .project-card .project-copy{padding-right:39px}
+ .projects-grid .project-card.wide-project .project-copy{margin-left:58px;width:53%;max-width:53%}
+}
+@media(min-width:700px){
+ .project-card{min-height:204px}
+ .projects-grid .project-card.wide-project{min-height:204px}
+ .projects-grid .project-card.wide-project .project-copy{
+  width:100%;max-width:100%;margin:0;padding:10px 45px 10px 10px
+ }
+ .projects-grid .project-card.wide-project .project-top{margin-bottom:auto}
+ .projects-grid .project-card.wide-project .project-illustration{width:78%;height:75%;right:-7px;top:6px}
+}

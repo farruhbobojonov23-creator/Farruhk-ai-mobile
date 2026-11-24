@@ -124,7 +124,11 @@ function renderCard(p,{wide=false,edit=false}={}){
  const name=document.createElement('strong');name.className='project-title';name.textContent=p.name;
  const desc=document.createElement('small');desc.className='project-desc';desc.textContent=p.desc;
  const go=document.createElement('button');go.type='button';go.className='project-go';go.setAttribute('aria-label','Открыть '+p.name);go.appendChild(icon(directIcon(p)));go.addEventListener('click',()=>openProject(p));
- card.append(top,name,desc,go);
+ // A real text panel separates lettering from 3D product artwork;
+ // preserving existing links, favorites, edit and click behavior.
+ const copy=document.createElement('div');copy.className='project-copy';
+ copy.append(name,desc);
+ card.append(top,copy,go);
  if(edit){
  const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='project-edit';editBtn.textContent='Изменить';
  editBtn.addEventListener('click',()=>editProject(p));card.appendChild(editBtn);

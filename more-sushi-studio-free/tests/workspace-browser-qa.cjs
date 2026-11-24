@@ -41,6 +41,19 @@ async function runView(browser,{width,height,label}){
  await page.waitForTimeout(500);
  assert(await page.locator('.bottomnav [data-mss-tab]').count()===5,label+' — пять кнопок меню');
  assert(await page.locator('#hubFeaturedProjects .project-card').count()===7,label+' — семь проектов на главной');
+ const copyPanels=await page.locator('#hubFeaturedProjects .project-card .project-copy').count();
+ assert(copyPanels===7,label+' — все семь карточек имеют отдельный читабельный текстовый блок');
+ const geometry=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{
+  const copy=card.querySelector('.project-copy'),title=card.querySelector('.project-title'),arrow=card.querySelector('.project-go');
+  const panel=copy.getBoundingClientRect(),text=title.getBoundingClientRect(),button=arrow.getBoundingClientRect();
+  const bg=getComputedStyle(copy).backgroundImage;
+  return {glass:bg.includes('gradient'),textInside:text.left>=panel.left&&text.right<=panel.right+1,
+   arrowAtRight:button.left>panel.left+panel.width/2,
+   titleAboveArrow:text.bottom<button.bottom+1,cardHeight:card.getBoundingClientRect().height};
+ });
+ assert(geometry.glass&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow,
+  label+' — текст отделён от 3D-объекта, кнопка справа, читабельность '+JSON.stringify(geometry));
+
  const artVisible=await page.locator('#hubFeaturedProjects .project-illustration img').evaluateAll(items=>
   items.length===7&&items.every(img=>img.complete&&img.naturalWidth>0));
  assert(artVisible,label+' — все семь премиальных иллюстраций загрузились');
