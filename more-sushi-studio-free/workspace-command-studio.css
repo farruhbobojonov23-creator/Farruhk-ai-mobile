@@ -119,3 +119,6 @@
 
 /* 1.4: safety banner for imported, unsaved source recipe */
 html.ocean-app .recipe-import-banner{margin:5px 0 14px;padding:12px 15px;border-radius:12px;border:1px solid #d7ab60;background:#fff3d9;color:#59390e;font-size:12px;line-height:1.45;font-weight:720}
+
+/* Imported-source provenance warning is for the editor, never part of the printed A4. */
+@media print{#recipeImportedBanner,.recipe-import-banner{display:none!important}}

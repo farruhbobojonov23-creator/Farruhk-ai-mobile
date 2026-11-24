@@ -295,6 +295,9 @@ async function runRecipeImport(browser){
  assert(errors.length===0,'Import — zero JavaScript errors'+(errors.length?': '+errors.slice(0,2).join(' / '):''));
  // Render the actual studio's print CSS to a browser-generated A4 PDF.
  // The saved artifact contains MOCK recipe data only and no real user records.
+ await page.emulateMedia({media:'print'});
+ assert(await page.locator('#recipeImportedBanner').isHidden(),'Print — editor-only provenance warning is not printed');
+ await page.emulateMedia({media:'screen'});
  const pdf=await page.pdf({printBackground:true,preferCSSPageSize:true,format:'A4'});
  fs.writeFileSync(path.join(out,'TTK-Philadelphia-MOCK-A4.pdf'),pdf);
  const pdfText=pdf.toString('latin1');
