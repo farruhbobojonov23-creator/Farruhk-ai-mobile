@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.6.4';
+const FARUKH_UI_RELEASE='0.6.5';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -2702,11 +2702,11 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
- const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.4';
+ const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.5';
  const headerBrand=document.querySelector('.brandword > b');
  if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
- showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.4. История ревизий отображается без горизонтальной прокрутки, все шесть показателей видны в каждом товаре.');};
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.5. Общая сводка по четырём точкам, последние ревизии, проблемные продукты и неполные цены.');};
 });
 
-</script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
+</script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
