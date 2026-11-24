@@ -1383,7 +1383,10 @@ function refresh(){clearForm();renderRows();renderHistory();renderSummary();calc
 function renderRows(){const start=currentMode()==='start';$('formtitle').textContent=start?'Начальная ревизия':'Еженедельная сверка';$('formdesc').textContent=start?'Взвесь продукты и зафиксируй фактические остатки. Расхождения на старте не рассчитываются.':'Внеси остаток по учёту и фактический вес, чтобы увидеть разницу.';$('modebadge').textContent=start?'Начало контроля':'Сверка';$('modebadge').className=start?'tag start':'tag';$('programheading').textContent=start?'Учёт':'Учёт, кг';$('rows').innerHTML=state.products.map((p,i)=>{const v=getDraft(p);return `<tr data-product="${safe(p)}"><td><span class="itemname">${safe(p)}</span><span class="hint">Позиция ${i+1}</span></td><td>${start?'<span class="muted small">После ввода факта<br>установить вручную</span>':`<input class="numinput" data-field="program" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.program)}" aria-label="Остаток по учёту: ${safe(p)}">`}</td><td><input class="numinput" data-field="actual" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.actual)}" aria-label="Факт: ${safe(p)}"></td><td class="delta" id="delta-${i}">${start?'—':'Нет данных'}</td><td><input class="numinput price" data-field="price" type="text" inputmode="decimal" placeholder="₽/кг" value="${safe(v.price)}" aria-label="Цена за кг: ${safe(p)}"></td></tr>`}).join('');document.querySelectorAll('#rows input').forEach(el=>el.addEventListener('input',()=>{syncDraft();calculate()}));calculate()}
 function calculate(){const start=currentMode()==='start';let shortage=0,surplus=0,match=0,checked=0,unpriced=0;state.products.forEach((p,i)=>{const v=getDraft(p);const actual=v.actual===''?null:number(v.actual);const program=v.program===''?null:number(v.program);const price=v.price===''?null:number(v.price);const valid=actual!==null&&(start||program!==null);if(valid)checked++;const span=$('delta-'+i);if(!span)return;if(start){span.textContent='—';span.className='delta';return}if(!valid){span.textContent='Нет данных';span.className='delta muted';return}const diff=Math.round((actual-program)*1000)/1000;if(diff!==0&&price===null)unpriced++;if(diff<0)shortage+=-diff*(price??0);if(diff>0)surplus+=diff*(price??0);if(diff===0)match++;span.textContent=(diff>0?'+':'')+fmt(diff,3)+' кг';span.className='delta '+(diff>0?'green':diff<0?'red':'blue')});$('short').textContent=start?'—':fmt(shortage)+' ₽';$('surplus').textContent=start?'—':fmt(surplus)+' ₽';$('matches').textContent=start?'—':match+' / '+state.products.length;$('checked').textContent=checked+' / '+state.products.length;$('priceNote').classList.toggle('hide',start||unpriced===0)}
 async function confirmSaveRevision(message){
- return typeof window.rev057Confirm==='function'?await window.rev057Confirm(message):window.confirm(message);
+ // Android WebView may suppress the native JavaScript confirm dialog.
+ // Use a visible, accessible in-page confirmation instead.
+ if(typeof window.rev058Confirm==='function')return await window.rev058Confirm(message);
+ return false;
 }
 let savingRevision=false;
 async function saveRevision(){
@@ -1454,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.5.7';
+const FARUKH_UI_RELEASE='0.5.8';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -2056,4 +2059,175 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 
-</script><script defer src="./revision-integrity-v053.js?v=0.5.5"></script><script defer src="./revision-workflow-v054.js?v=0.5.5"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-save-feedback-v057.js?v=0.5.7-r2"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
+
+/* FARUKH REVISION 0.5.8: save feedback lives in the core page.
+   It must work even if a deferred optional UI script fails to load. */
+document.addEventListener('DOMContentLoaded',function(){
+ 'use strict';
+ const root=document.getElementById('view-revision');
+ const buttons=root?.querySelector('.tablewrap + .row');
+ const saveButton=buttons?.querySelector('button[onclick="saveRevision()"]');
+ const history=document.getElementById('view-history');
+ if(!root||!saveButton||!history)return;
+ const sheetStyle=document.createElement('style');
+ sheetStyle.id='rev058-core-save-style';
+ sheetStyle.textContent=[
+ '.rev058-save-state,.rev058-history-state{border:1px solid #73849f;background:linear-gradient(145deg,#192e45,#101c30);border-radius:17px;padding:14px 16px;margin:14px 0;color:#f5f8fd;line-height:1.5;box-shadow:0 4px 18px #0005}',
+ '.rev058-save-state strong,.rev058-history-state strong{display:block;font-size:16px;color:#f5d58e}',
+ '.rev058-save-state small,.rev058-history-state small{display:block;color:#cbd5e8;font-size:12px;margin-top:5px}',
+ '.rev058-save-state[data-state=success],.rev058-history-state[data-state=success]{border-color:#4bcd9d;background:linear-gradient(130deg,#153b37,#122134)}',
+ '.rev058-save-state[data-state=success] strong,.rev058-history-state[data-state=success] strong{color:#72f0b6}',
+ '.rev058-save-state[data-state=pending],.rev058-history-state[data-state=pending]{border-color:#e9b866}',
+ '.rev058-save-state[data-state=error]{border-color:#ec5477;background:linear-gradient(140deg,#3c1d32,#192238)}',
+ '.rev058-save-state[data-state=error] strong{color:#ff9ab0}',
+ '.rev058-history-state{display:none}',
+ '.rev058-history-state[data-state=success],.rev058-history-state[data-state=pending]{display:block}',
+ '.rev058-overlay{position:fixed!important;inset:0!important;z-index:99999!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(2,7,17,.9)!important;padding:16px!important;box-sizing:border-box!important}',
+ '.rev058-panel{width:min(100%,440px);max-height:calc(100dvh - 32px);overflow-y:auto;padding:22px 19px;border-radius:22px;border:1px solid #647f9d;background:linear-gradient(145deg,#22374f,#0c192e);color:#fff;box-shadow:0 22px 75px #000e}',
+ '.rev058-panel h2{font-size:24px!important;line-height:1.25!important;color:#fff!important;margin:8px 0 13px!important}',
+ '.rev058-panel p{font-size:13px!important;line-height:1.6!important;color:#c8d5e6!important}',
+ '.rev058-panel .rev058-big{font-size:40px;line-height:1.1}',
+ '.rev058-panel .rev058-detail{padding:13px 14px;border:1px solid #4e627e;border-radius:12px;background:#112239;color:#f3d69d;font-size:13px;line-height:1.65;margin:13px 0 17px}',
+ '.rev058-overlay-buttons{display:grid;grid-template-columns:1fr 1.2fr;gap:9px;margin-top:15px}',
+ '.rev058-overlay-buttons .btn{width:100%!important;min-height:47px!important;font-size:13px!important;white-space:normal!important;border-radius:12px!important}',
+ '.rev058-overlay-buttons .btn.main{color:#fff!important;background:linear-gradient(180deg,#f84b7b,#ac1640)!important;border-color:#ef7296!important}',
+ '.rev058-panel[data-mode=success] .rev058-big{color:#70eac2}',
+ '.rev058-panel[data-mode=pending] .rev058-big{color:#f4c778}',
+ '@media print{.rev058-save-state,.rev058-history-state,.rev058-overlay{display:none!important}}'
+ ].join('');
+ document.head.appendChild(sheetStyle);
+ const status=document.createElement('section');
+ status.className='rev058-save-state';status.id='rev058SaveState';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ buttons.before(status);
+ const archived=document.createElement('section');
+ archived.className='rev058-history-state';archived.id='rev058HistoryState';archived.setAttribute('role','status');
+ history.querySelector('.sectionheading')?.after(archived);
+ let busy=false;
+ let lastId=null;
+ let decision='not-asked';
+ const make=(tag,klass,text)=>{const n=document.createElement(tag);if(klass)n.className=klass;if(text!==undefined)n.textContent=text;return n};
+ function writeState(element,kind,title,details){
+   element.dataset.state=kind;element.replaceChildren(make('strong','',title),make('small','',details));
+ }
+ function draftState(){
+   if(busy)return;
+   writeState(status,'draft','📝 Черновик — ещё не сохранено','Заполни продукты, затем нажми «Сохранить». Только после подтверждения ревизия попадёт в историю.');
+ }
+ function sheet({mode,icon,title,description,details,buttons:onButtons}){
+  const outer=make('div','rev058-overlay');outer.setAttribute('role','presentation');
+  const panel=make('div','rev058-panel');panel.dataset.mode=mode;
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',title);
+  panel.append(make('div','rev058-big',icon),make('h2','',title),make('p','',description));
+  if(details)panel.append(make('div','rev058-detail',details));
+  const bar=make('div','rev058-overlay-buttons');
+  for(const info of onButtons){
+   const btn=make('button','btn'+(info.primary?' main':''),info.text);
+   btn.type='button';
+   btn.addEventListener('click',info.action,{once:true});
+   bar.append(btn);
+  }
+  panel.append(bar);outer.append(panel);document.body.append(outer);
+  panel.querySelector('.btn.main')?.focus();
+  return {outer,panel,close:()=>outer.remove()};
+ }
+ window.rev058Confirm=function(message){
+  decision='not-accepted';
+  return new Promise(function(resolve){
+   let finished=false;
+   let box;
+   function complete(answer){
+    if(finished)return;
+    finished=true;decision=answer?'accepted':'canceled';
+    box?.close();
+    document.removeEventListener('keydown',onKey);
+    resolve(answer);
+   }
+   function onKey(ev){if(ev.key==='Escape'){ev.preventDefault();complete(false)}}
+   const store=document.getElementById('store')?.value||'';
+   const date=document.getElementById('when')?.value||'';
+   const mode=document.getElementById('mode')?.value==='start'?'Начальная':'Повторная';
+   box=sheet({mode:'confirm',icon:'💾',title:'Сохранить ревизию?',
+     description:'Проверь точку и дату. После подтверждения запись появится в истории или будет отмечена как ожидающая синхронизации.',
+     details:mode+' · '+store+' · '+date+' · '+state.products.length+' позиций',
+     buttons:[
+       {text:'Вернуться',action:()=>complete(false)},
+       {text:'Да, сохранить',primary:true,action:()=>complete(true)}
+     ]});
+   document.addEventListener('keydown',onKey);
+  });
+ };
+ function receipt(record){
+  const queue=record.pendingSync===true;
+  const label=queue?'🟡 Сохранено на телефоне · ожидает отправки в облако':
+    cloudEnabled?'✅ Ревизия сохранена в облаке':'✅ Ревизия сохранена на телефоне';
+  const kind=queue?'pending':'success';
+  const desc=record.store+' · '+(record.type==='start'?'Начальная':'Повторная')+
+    ' ревизия · '+record.date+' · '+(record.products?.length||0)+' позиций';
+  lastId=String(record.id);
+  writeState(status,kind,label,desc);
+  writeState(archived,kind,label,desc);
+  function viewHistory(){
+    go('history',document.querySelectorAll('.menu button')[2]);
+  }
+  const box=sheet({mode:kind,icon:queue?'🟡':'✅',
+    title:queue?'Сохранено на устройстве':'Ревизия сохранена!',
+    description:queue?'Результат есть на телефоне и в локальной истории. Ожидает синхронизации с облаком.':
+      'Запись создана и отображается в истории ревизий.',
+    details:desc,
+    buttons:[
+     {text:'Закрыть',action:()=>box.close()},
+     {text:'Посмотреть историю',primary:true,action:()=>{box.close();viewHistory()}}
+    ]
+   });
+ }
+ // Keep the original validated save path: no synthetic records, no table writes here.
+ const previousSave=saveRevision;
+ saveRevision=async function(){
+   if(busy||savingRevision)return;
+   busy=true;decision='not-asked';
+   const originalLabel=saveButton.innerHTML;
+   saveButton.disabled=true;
+   saveButton.textContent='Сохранение…';
+   const known=new Set(state.history.map(r=>String(r.id)));
+   writeState(status,'working','⏳ Подтверждение сохранения','Проверь данные в появившемся окне. Новая ревизия пока не записана.');
+   try{
+     await previousSave();
+     const newRecord=state.history.find(r=>r&&r.id&&!known.has(String(r.id)));
+     if(newRecord)receipt(newRecord);
+     else if(decision==='canceled'){
+       writeState(status,'draft','Сохранение отменено','Это по-прежнему черновик. Записи в истории не добавлено.');
+     }else{
+       writeState(status,'error','❌ Ревизия НЕ сохранена','Новой записи в истории нет. Проверь обязательные поля или сообщение об ошибке. Не очищай черновик.');
+       status.scrollIntoView({behavior:'smooth',block:'center'});
+     }
+   }catch(error){
+     writeState(status,'error','❌ Ошибка сохранения',String(error?.message||error||'Неизвестная ошибка')+'. Черновик сохранён отдельно.');
+     status.scrollIntoView({behavior:'smooth',block:'center'});
+   }finally{
+     saveButton.disabled=false;saveButton.innerHTML=originalLabel;busy=false;
+   }
+ };
+ // History must not claim that a record exists in the currently selected outlet if it does not.
+ document.getElementById('store')?.addEventListener('change',function(){
+   if(!busy)draftState();
+   archived.dataset.state='draft';
+ });
+ document.getElementById('mode')?.addEventListener('change',draftState);
+ document.getElementById('rows')?.addEventListener('input',draftState);
+ const previousHistory=renderHistory;
+ renderHistory=function(){
+   previousHistory();
+   if(lastId){
+     const rec=state.history.find(r=>String(r.id)===lastId);
+     if(rec&&rec.store===document.getElementById('store')?.value){
+       const queue=rec.pendingSync===true;
+       writeState(archived,queue?'pending':'success',
+         queue?'🟡 Сохранено на устройстве':'✅ Сохранено',
+         rec.store+' · '+rec.date+' · '+(rec.products?.length||0)+' позиций');
+     }else archived.dataset.state='draft';
+   }
+ };
+ draftState();
+});
+
+</script><script defer src="./revision-integrity-v053.js?v=0.5.5"></script><script defer src="./revision-workflow-v054.js?v=0.5.5"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
