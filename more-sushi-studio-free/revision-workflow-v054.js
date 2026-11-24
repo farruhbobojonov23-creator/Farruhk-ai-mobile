@@ -225,7 +225,15 @@
    notice('Сначала проверь все продукты: '+d.done+' из '+d.total);
    progress();finalBox.scrollIntoView({block:'center',behavior:'smooth'});return;
   }
-  return oldSave();
+  const previousIds=new Set(state.history.map(record=>record.id));
+  await oldSave();
+  const created=state.history.find(record=>!previousIds.has(record.id));
+  if(created){
+   go('history',menus()[2]);
+   notice(created.pendingSync
+    ?'Сохранено на устройстве. Отправится в облако после синхронизации.'
+    :'Ревизия сохранена. Результат открыт в истории.');
+  }
  };
  // Hide confusing filters on the product catalogue. All outlets use the same products.
  const priorProducts=renderProducts;
