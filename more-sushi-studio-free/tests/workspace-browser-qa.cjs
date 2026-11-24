@@ -45,14 +45,17 @@ async function runView(browser,{width,height,label}){
  assert(copyPanels===7,label+' — все семь карточек имеют отдельный читабельный текстовый блок');
  const geometry=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{
   const copy=card.querySelector('.project-copy'),title=card.querySelector('.project-title'),arrow=card.querySelector('.project-go');
-  const panel=copy.getBoundingClientRect(),text=title.getBoundingClientRect(),button=arrow.getBoundingClientRect();
-  const bg=getComputedStyle(copy).backgroundImage;
-  return {glass:bg.includes('gradient'),textInside:text.left>=panel.left&&text.right<=panel.right+1,
-   arrowAtRight:button.left>panel.left+panel.width/2,
-   titleAboveArrow:text.bottom<button.bottom+1,cardHeight:card.getBoundingClientRect().height};
+  const panel=copy.getBoundingClientRect(),txt=title.getBoundingClientRect(),btn=arrow.getBoundingClientRect();
+  const cardCSS=getComputedStyle(card),copyCSS=getComputedStyle(copy);
+  return {frosted:cardCSS.backdropFilter.includes('blur'),glass:cardCSS.backgroundImage.includes('gradient'),
+   captionIsCalm:copyCSS.backgroundColor==='rgba(0, 0, 0, 0)'&&copyCSS.boxShadow==='none',
+   textInside:txt.left>=panel.left-1&&txt.right<=panel.right+1,
+   arrowAtRight:btn.left>panel.left+panel.width/2,
+   titleAboveArrow:txt.bottom<=btn.bottom+3,
+   fitsScreen:card.getBoundingClientRect().width>110};
  });
- assert(geometry.glass&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow,
-  label+' — текст отделён от 3D-объекта, кнопка справа, читабельность '+JSON.stringify(geometry));
+ assert(geometry.glass&&geometry.frosted&&geometry.captionIsCalm&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow&&geometry.fitsScreen,
+  label+' — Rosé Glass: матовое стекло, читабельность, нет тяжёлого текстового блока '+JSON.stringify(geometry));
 
  const artVisible=await page.locator('#hubFeaturedProjects .project-illustration img').evaluateAll(items=>
   items.length===7&&items.every(img=>img.complete&&img.naturalWidth>0));
@@ -61,7 +64,7 @@ async function runView(browser,{width,height,label}){
    bg:getComputedStyle(el).backgroundImage,
    fg:getComputedStyle(el).color
  }));
- assert(theme.bg.includes('linear-gradient')&&theme.fg==='rgb(255, 243, 236)',label+' — новая тёмная Ultra Premium тема активна');
+ assert(theme.bg.includes('linear-gradient')&&theme.fg==='rgb(255, 244, 248)',label+' — новая винно-розовая минимальная тема активна');
 
  assert(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ruby').trim())==='#d61045',label+' — новая единая тема');
  const sheets=await page.locator('link[rel=stylesheet]').evaluateAll(links=>links.map(x=>new URL(x.href).pathname));
