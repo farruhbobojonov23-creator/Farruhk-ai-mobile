@@ -175,7 +175,8 @@ async function test(browser){
  const mini=plasma.locator('.rev062-mini');
  await mini.waitFor();
  verify((await mini.innerText()).includes('Лосось')&&(await mini.innerText()).includes('нет цены'),'saved shortage with missing historical price is honest');
- verify((await mini.innerText()).includes('Угорь')&&(await mini.innerText()).includes('3 400'),'saved surplus shows price multiplied by quantity');
+ const miniText=await mini.innerText();
+ verify(miniText.includes('Угорь')&&/3[\\s\\u00a0\\u202f]*400/.test(miniText),'saved surplus shows price multiplied by quantity');
  verify(await plasma.locator('.rev062-line').count()===4,'all four discrepancies available in this outlet');
  verify(await plasma.locator('.rev062-line:visible').count()===3,'compact preview shows three mismatched products');
  verify(await page.locator('.rev053-store-card[data-rev053-store="Баумана 18"] .rev062-mini').count()===0,
