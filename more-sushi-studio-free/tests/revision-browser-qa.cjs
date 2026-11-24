@@ -256,7 +256,7 @@ async function test(browser){
    'chef dashboard does not claim complete ruble totals with missing archived prices');
  verify(/4[\s\u00a0\u202f]*800,00/.test(dtext)&&/500,00/.test(dtext),
    'priced portions are summed while historical missing price remains unknown');
- const issueNames=await dashboard.locator('.rev065-issue .rev065-name b').allTextContents();
+ const issueNames=await dashboard.locator('.rev065-item .rev065-name b').allTextContents();
  verify(issueNames.join('|')==='Угорь|Краб|Лосось',
    'top-three discrepancies sorted by physical weight, not price');
  await page.evaluate(()=>{
