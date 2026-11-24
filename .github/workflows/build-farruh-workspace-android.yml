@@ -37,3 +37,15 @@ jobs:
           path: farruh-workspace-android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error
+      - name: Prepare unsigned release for offline signing
+        working-directory: farruh-workspace-android
+        run: |
+          gradle :app:assembleRelease --no-daemon
+          mkdir -p ../offline-workspace
+          cp app/build/outputs/apk/release/app-release-unsigned.apk ../offline-workspace/
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" ../offline-workspace/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARRUH-WORKSPACE-OFFLINE-SIGNING
+          path: offline-workspace/
+          retention-days: 7
