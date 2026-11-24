@@ -196,6 +196,7 @@ async function test(browser){
   card:node.getBoundingClientRect().toJSON(),
   button:node.querySelector('.point-open').getBoundingClientRect().toJSON()
  }))));
+ console.log('Aligned-card geometry',JSON.stringify(heights));
  verify(Math.abs(heights[0].button.top-heights[1].button.top)<=1,
   'first row outlet actions share the same vertical baseline');
  verify(Math.abs(heights[0].card.bottom-heights[1].card.bottom)<=1,
