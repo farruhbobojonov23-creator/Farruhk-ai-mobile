@@ -26,3 +26,18 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
+
+// Pin the project's existing section controls in the Android Workspace.
+if (navigator.userAgent.includes('FarruhWorkspaceNative/')) {
+  const style = document.createElement('style');
+  style.textContent = `@media screen and (max-width: 960px) {
+    html.ocean-app .workspace-appbar { position: sticky; top: 0; }
+    html.ocean-app #shell > .sidebar {
+      position: fixed !important; inset: auto 0 0; z-index: 75;
+      box-sizing: border-box; padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    }
+    html.ocean-app #shell .content { padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important; }
+ 
+  }`;
+  document.head.append(style);
+}
