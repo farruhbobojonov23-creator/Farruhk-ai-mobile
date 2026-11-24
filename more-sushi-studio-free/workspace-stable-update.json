@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "packageName": "ai.farukh.workspace",
-  "versionCode": 7,
-  "versionName": "1.3.3",
-  "apkUrl": "https://more-sushi-studio.onrender.com/android-updates/workspace-v7.apk",
-  "sha256": "cb9aaef163f767f79ed580ec491fcd3e64f595bf3fc3c9df25eb503af8c233d2",
-  "notes": "Фарфоровый экран с золотой A с начала запуска."
+  "versionCode": 8,
+  "versionName": "1.3.4",
+  "apkUrl": "https://more-sushi-studio.onrender.com/android-updates/workspace-v8.apk",
+  "sha256": "eb417735aec5525012b83f2fd0cdff3d034ea274255fe1e5d2e716bfb66407fd",
+  "notes": "Анимация Светлый фарфор встроена в приложение и запускается во время загрузки главной."
 }
