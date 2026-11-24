@@ -248,6 +248,8 @@ async function test(browser){
  verify((await mini.innerText()).includes('Сыр')&&(await mini.innerText()).includes('0 ₽'),
    'matching product shows zero kilograms and rubles');
  verify(await plasma.locator('.rev062-toggle').count()===0,'no extra expand button required');
+ // Cards enter with staggered premium-motion transforms; measure their final layout.
+ await page.waitForTimeout(950);
  const boxes=await plasma.evaluate(card=>({
   table:card.querySelector('.rev063-mini')?.getBoundingClientRect().toJSON(),
   button:card.querySelector('.point-open')?.getBoundingClientRect().toJSON(),
