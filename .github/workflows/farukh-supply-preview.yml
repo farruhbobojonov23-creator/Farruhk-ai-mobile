@@ -69,12 +69,23 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          SIGNING_BUNDLE: ${{ secrets.FARUKH_SUPPLY_SIGNING_BUNDLE }}
           STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
           STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          if [ -n "$SIGNING_BUNDLE" ]; then
+            STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
+            STORE_PASS=$(jq -er .password <<< "$SIGNING_BUNDLE")
+            KEY_ALIAS=$(jq -er .alias <<< "$SIGNING_BUNDLE")
+            KEY_PASS="$STORE_PASS"
+            echo "::add-mask::$STORE_PASS"
+            echo "::add-mask::$STORE_B64"
+            export STORE_PASS KEY_PASS
+            unset SIGNING_BUNDLE
+          fi
           if [ -z "$STORE_B64" ] || [ -z "$STORE_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
             echo "::notice::Stable Supply signing is not configured. Debug artifact only; no public update published."
             exit 0
