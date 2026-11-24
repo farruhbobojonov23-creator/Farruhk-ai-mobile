@@ -295,18 +295,37 @@ function startSplash(){
  const splash=$('#hubSplash');if(!splash)return;
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  let replay=false;try{replay=sessionStorage.getItem('hub-replay')==='1';sessionStorage.removeItem('hub-replay')}catch{}
- const seenKey='hub-porcelain-intro-1';
+ const seenKey='hub-porcelain-intro-hq-1';
  let seen=false;
  try{seen=sessionStorage.getItem(seenKey)==='1'}catch{}
  if((seen||reduced)&&!replay){splash.remove();return}
  try{sessionStorage.setItem(seenKey,'1')}catch{}
  if(replay)root.classList.add('hub-explicit-motion');
- const film=splash.querySelector('.porcelain-film');
- let done=false;
- let timeout=setTimeout(finish,4000);
+ const mark=splash.querySelector('.pc-mark');
+ const title=splash.querySelector('.pc-name span'), sub=splash.querySelector('.pc-name small');
+ const percent=splash.querySelector('.pc-dial text'), arc=splash.querySelector('.pc-arc');
+ const rows=Array.from(splash.querySelectorAll('[data-label]'));
+ const start=performance.now();
+ let frame,done=false;
+ const timeout=setTimeout(finish,6000);
+ function write(el,text,length){
+  const next=text.slice(0,Math.max(0,Math.floor(length)));
+  if(el.textContent!==next)el.textContent=next;
+ }
+ function paint(now){
+  const t=(now-start)/1000,v=Math.min(1,t/4.8),progress=v*v*(3-2*v)*100;
+  percent.textContent=Math.round(progress)+'%';arc.setAttribute('stroke-dashoffset',100-progress);
+  write(title,'FARRUH',t*5.3);write(sub,'WORKSPACE PRO',(t-.9)*12.5);
+  rows.forEach((el,i)=>{
+   const elapsed=t-.38-i*1.3;
+   write(el,el.dataset.label,elapsed*26+1);
+   el.parentElement.classList.toggle('done',elapsed>=1.12);
+  });
+  if(!done&&v<1)frame=requestAnimationFrame(paint);
+ }
  function finish(){
   if(done)return;
-  done=true;clearTimeout(timeout);
+  done=true;clearTimeout(timeout);cancelAnimationFrame(frame);
   document.removeEventListener('visibilitychange',onVisibility);
   splash.classList.add('is-leaving');
   setTimeout(()=>{splash.remove();animateVisible(activeTab);if(activeTab==='home')typeHeroOnce()},470);
@@ -314,14 +333,8 @@ function startSplash(){
  function onVisibility(){if(document.hidden)finish()}
  $('#hubSkipSplash')?.addEventListener('click',finish,{once:true});
  document.addEventListener('visibilitychange',onVisibility);
- film.addEventListener('load',()=>{
-  if(done)return;
-  clearTimeout(timeout);timeout=setTimeout(finish,6000);
- },{once:true});
- film.addEventListener('error',finish,{once:true});
- import('./workspace-porcelain-film.js?v=1.10.0').then(({default:src})=>{
-  if(!done)film.src=src;
- }).catch(finish);
+ mark.src=mark.dataset.src;
+ frame=requestAnimationFrame(paint);
 }
 let heroTypedOnce=false;
 function typeHeroOnce(){
