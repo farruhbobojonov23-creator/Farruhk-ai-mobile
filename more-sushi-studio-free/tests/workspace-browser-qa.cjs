@@ -250,9 +250,14 @@ async function runRecipeImport(browser){
   access_token:'qa-import-token',refresh_token:'qa-token',expires_at:Math.floor(Date.now()/1000)+3600,
   user:{id:uid,email:'qa@example.test'}
  })),{uid});
- const writes=[];
+ const writes=[],submitted=[];
  await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>{
   const req=route.request(),url=new URL(req.url()),path=url.pathname;
+  if(req.method()==='POST'&&path.endsWith('/ttk_documents')){
+   const data=req.postDataJSON();submitted.push(data);
+   return route.fulfill({status:201,contentType:'application/json',headers:{'access-control-allow-origin':'*'},
+    body:JSON.stringify([{...data,id:'00000000-0000-4000-a000-000000000044',version:1,owner_id:uid}])});
+  }
   if(req.method()!=='GET'&&path.startsWith('/rest/v1/')){
    writes.push(path);return route.fulfill({status:403,body:'{"error":"No writes in QA"}',headers:{'access-control-allow-origin':'*'}});
   }
@@ -288,6 +293,27 @@ async function runRecipeImport(browser){
  assert(await page.locator('#fApproved').inputValue()==='','Import — no automatic approval');
  assert(writes.length===0,'Import — no database writes until explicit Save');
  assert(errors.length===0,'Import — zero JavaScript errors'+(errors.length?': '+errors.slice(0,2).join(' / '):''));
+ // Render the actual studio's print CSS to a browser-generated A4 PDF.
+ // The saved artifact contains MOCK recipe data only and no real user records.
+ const pdf=await page.pdf({printBackground:true,preferCSSPageSize:true,format:'A4'});
+ fs.writeFileSync(path.join(out,'TTK-Philadelphia-MOCK-A4.pdf'),pdf);
+ const pdfText=pdf.toString('latin1');
+ const pages=(pdfText.match(/\/Type\s*\/Page(?!s)\b/g)||[]).length;
+ assert(pdf.subarray(0,5).toString()==='%PDF-','PDF — generated file has a valid PDF header');
+ assert(pages===1,'PDF — print layout contains exactly 1 A4 sheet (actual '+pages+')');
+ const media=pdfText.match(/\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/);
+ const a4=!!media&&Math.abs(Number(media[1])-595.28)<2&&Math.abs(Number(media[2])-841.89)<2;
+ assert(a4,'PDF — document media box is A4 210 × 297 mm'+(media?' '+media[1]+'×'+media[2]:' (unknown)'));
+ assert(pdf.length>4000,'PDF — rendered content is not empty');
+ // Explicit Save is the only event allowed to write a document.
+ await page.locator('#saveDoc').click();
+ await page.locator('#editorDuplicate').waitFor({state:'visible',timeout:7000});
+ assert(submitted.length===1,'TTK Save — exactly one document INSERT after Save click');
+ assert(submitted[0]?.status==='Черновик','TTK Save — stored document remains a draft');
+ assert(submitted[0]?.fields?.source_recipe_id===30,'TTK Save — provenance preserved');
+ assert(submitted[0]?.fields?.approved==='','TTK Save — approval is not fabricated');
+ assert(submitted[0]?.lines?.length===2,'TTK Save — both ingredient rows preserved');
+ assert(writes.length===0,'TTK Save — no unintended source or storage mutation');
  await ctx.close();
 }
 
