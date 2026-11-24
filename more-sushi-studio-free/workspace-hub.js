@@ -106,7 +106,7 @@ function renderCard(p,{wide=false,edit=false}={}){
  if(artwork[p.id]){
   card.dataset.flagshipArt=p.id;
   const art=document.createElement('span');art.className='project-illustration';art.setAttribute('aria-hidden','true');
-  const image=document.createElement('img');image.src=artwork[p.id];image.alt='';image.loading='lazy';image.decoding='async';
+  const image=document.createElement('img');image.src=artwork[p.id];image.alt='';image.loading='eager';image.decoding='async';
   art.append(image);card.append(art);
  }
 
