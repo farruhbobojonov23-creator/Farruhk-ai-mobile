@@ -92,24 +92,8 @@ function renderCard(p,{wide=false,edit=false}={}){
  const card=document.createElement('article');
  card.className='project-card p-'+(safeColors.has(p.color)?p.color:'ruby')+(wide?' wide-project':'');
 
- // Fixed, bundled visual artwork — never loaded from user-provided URLs.
- // These illustrate the approved flagship design, not source app data.
- const artwork={
-  more:'./pearl-rose/pearl-nigiri.webp',
-  ai:'./flagship/chef-ai.svg',
-  revision:'./flagship/revision-bars.svg',
-  print:'./pearl-rose/pearl-printer.webp',
-  kitchen:'./flagship/chef-kitchen.svg',
-  shef51:'./flagship/calendar-bell.svg',
-  sushiberi:'./flagship/sushi-bag.svg'
- };
- if(artwork[p.id]){
-  card.dataset.flagshipArt=p.id;
-  const art=document.createElement('span');art.className='project-illustration';art.setAttribute('aria-hidden','true');
-  const image=document.createElement('img');image.src=artwork[p.id];image.alt='';image.loading='eager';image.decoding='async';
-  art.append(image);card.append(art);
- }
-
+ // Rosé Atelier: no decorative image nodes; only authentic project logo,
+ // readable name and description. Avoid downloading seven unused artworks.
  const top=document.createElement('div');top.className='project-top';
  const logo=document.createElement('span');logo.className='project-logo';
  if(typeof p.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(p.logo)&&p.logo.length<140000){

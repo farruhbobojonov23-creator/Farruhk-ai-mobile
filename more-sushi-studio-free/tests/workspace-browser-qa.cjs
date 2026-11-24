@@ -57,9 +57,8 @@ async function runView(browser,{width,height,label}){
  assert(geometry.glass&&geometry.frosted&&geometry.captionIsCalm&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow&&geometry.fitsScreen,
   label+' — Rosé Glass: матовое стекло, читабельность, нет тяжёлого текстового блока '+JSON.stringify(geometry));
 
- const artHidden=await page.locator('#hubFeaturedProjects .project-card .project-illustration').evaluateAll(items=>
-  items.length===7&&items.every(el=>getComputedStyle(el).display==='none'));
- assert(artHidden,label+' — Rosé Atelier: декоративные картинки скрыты');
+ assert(await page.locator('#hubFeaturedProjects .project-card .project-illustration').count()===0,
+  label+' — Rosé Atelier: ни один декоративный 3D-элемент не загружается');
  const cardTheme=await page.locator('#hubFeaturedProjects .project-card').first().evaluate(el=>{
   const title=el.querySelector('.project-title');
   const nameColor=getComputedStyle(title).color;
