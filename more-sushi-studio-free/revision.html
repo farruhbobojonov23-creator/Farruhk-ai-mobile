@@ -1285,7 +1285,7 @@ function setTokens(data){
 }
 async function rest(table,{method='GET',query='',body=null}={}){
   const token=await ensureToken();
-  const response=await fetch(SUPABASE_URL+'/rest/v1/'+table+query,{method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''},body:body===null?undefined:JSON.stringify(body)});
+  const response=await fetch(SUPABASE_URL+'/rest/v1/'+table+query,{method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':['POST','PATCH','DELETE'].includes(method)?'return=representation':''},body:body===null?undefined:JSON.stringify(body)});
   let data;try{data=await response.json()}catch{data=null}
   if(!response.ok)throw new Error(data?.message||data?.details||('Сервер '+response.status));
   return data;
@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.6.6';
+const FARUKH_UI_RELEASE='0.6.7';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1785,7 +1785,9 @@ function rev041SaveQueue(queue){
 }
 function rev041CloudRecord(r){
  return {id:r.id,timestamp:Date.parse(r.created_at)||Date.now(),date:r.audit_date,
- store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name||''};
+ store:r.location_name,type:r.audit_type,products:r.items,operator:r.operator_name||'',
+ notes:r.notes||'',ownerId:r.owner_id||null,deletedAt:r.deleted_at||null,
+ revisionNo:Number(r.revision_no||1),updatedAt:r.updated_at||r.created_at};
 }
 function rev041SaveCloudCache(){
  const uid=rev041Account();if(!uid)return;
@@ -1885,7 +1887,7 @@ loadCloud=async function(){
   $('store').innerHTML=activeStores.map(name=>'<option value="'+safe(name)+'">'+safe(name)+'</option>').join('');
   $('store').value=activeStores.includes(store)?store:activeStores[0];
   rev041Catalogue=new Map(products.filter(p=>p.active).map(p=>[p.name,p]));
-  const cloudRecords=audits.map(rev041CloudRecord),ids=new Set(cloudRecords.map(r=>r.id));
+  const cloudRecords=audits.filter(r=>!r.deleted_at).map(rev041CloudRecord),ids=new Set(audits.map(r=>r.id));
   cloudEnabled=true;
   state={products:live,history:cloudRecords.concat(rev041Queue().filter(r=>!ids.has(r.id)).map(r=>({...r,pendingSync:true})))};
   setCloudBadge('● Облако MORE SUSHI подключено',true);
@@ -2721,11 +2723,11 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
- const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.6';
+ const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.7';
  const headerBrand=document.querySelector('.brandword > b');
  if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
- showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.6. Надёжная повторная отправка ревизий после возвращения связи и защита от дублирования.');};
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.7. Редактирование ревизий, история изменений и корзина с восстановлением 30 дней.');};
 });
 
 </script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
