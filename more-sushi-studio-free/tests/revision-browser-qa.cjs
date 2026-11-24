@@ -396,6 +396,39 @@ async function test(browser){
  await page.locator('.rev067-panel .rev067-close').click();
  await page.screenshot({path:path.join(out,'revision-v067-audit-admin-mobile.png'),fullPage:true});
 
+ // Several user-owned revisions in the recycle bin require an EXPLICIT
+ // confirmation before restoring them in bulk.
+ await page.evaluate(()=>{
+  const base=window.__adminServer;
+  window.__bulkArchives=[
+   {...structuredClone(base),id:crypto.randomUUID(),revision_no:2,deleted_at:new Date().toISOString()},
+   {...structuredClone(base),id:crypto.randomUUID(),revision_no:3,deleted_at:new Date().toISOString()}
+  ];
+  rest=async(table,opts={})=>{
+   if(table==='revision_audit_admins')return [{user_id:rev041Account()}];
+   if(table==='revision_audits'&&opts.query?.includes('deleted_at=not.is.null'))
+     return window.__bulkArchives.filter(x=>x.deleted_at!==null).map(x=>structuredClone(x));
+   if(table==='revision_audits'&&opts.method==='PATCH'){
+     const item=window.__bulkArchives.find(x=>opts.query.includes('id=eq.'+x.id));
+     if(!item||!opts.query.includes('revision_no=eq.'+item.revision_no))return [];
+     item.deleted_at=null;item.revision_no++;
+     return [structuredClone(item)];
+   }
+   throw Error('Unexpected bulk restore request');
+  };
+ });
+ await page.locator('#rev067TrashButton').click();
+ await page.locator('.rev067-panel button').filter({hasText:'Восстановить все (2)'}).click();
+ verify((await page.locator('.rev067-panel h2').innerText()).includes('Восстановить 2'),
+   'bulk restore always demands explicit approval and displays record count');
+ await page.locator('.rev067-panel label input').fill('ВОССТАНОВИТЬ');
+ await page.locator('.rev067-panel button').filter({hasText:'Восстановить все'}).click();
+ await page.waitForFunction(()=>window.__bulkArchives.every(x=>!x.deleted_at),null,{timeout:9000});
+ verify(await page.evaluate(()=>window.__bulkArchives.every(r=>state.history.some(x=>x.id===r.id))),
+   'confirmed bulk restore returns both distinct records without overwriting archived values');
+ await page.locator('.rev067-panel .rev067-close').click();
+
+
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
 
  // New QA: real service worker offline reload + OWNER-SCOPED cached catalog.
