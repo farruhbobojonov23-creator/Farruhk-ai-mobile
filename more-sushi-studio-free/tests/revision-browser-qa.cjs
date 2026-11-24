@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.3'),'new interface release badge displayed');
+ verify(badge.includes('0.6.4'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -89,6 +89,41 @@ async function test(browser){
  const reloaded=await page.evaluate(()=>({count:state.history.filter(r=>r.store==='Плазма').length,price:localStorage.getItem('farukh-revision-catalogue-prices-v060')}));
  verify(reloaded.count===1,'saved audit persists across reload');
  verify(reloaded.price.includes('750.5'),'catalogue purchase price persists across reload');
+
+ // History must show EVERY product field in portrait mode without swiping sideways.
+ await page.locator('.menu button[onclick*="history"]').click();
+ await page.locator('#store').selectOption({label:'Плазма'});
+ await page.locator('#allhistory .rev053-history-details > summary').first().click();
+ const historyFirst=page.locator('#allhistory .rev060-history-table tbody tr').first();
+ await historyFirst.waitFor({state:'visible'});
+ verify(await historyFirst.locator('td').count()===6,
+  'saved product history contains all six data fields');
+ const geometry=await historyFirst.evaluate(tr=>{
+  const wrap=tr.closest('.rev060-history-table');
+  const bounds=wrap.getBoundingClientRect();
+  const cells=[...tr.querySelectorAll('td')];
+  return {
+   rowDisplay:getComputedStyle(tr).display,
+   width:wrap.clientWidth,scroll:wrap.scrollWidth,
+   bounds:{left:bounds.left,right:bounds.right},
+   cellBounds:cells.map(td=>{
+    const r=td.getBoundingClientRect();
+    return {left:r.left,right:r.right,width:r.width,display:getComputedStyle(td).display};
+   }),
+   labels:cells.map(td=>getComputedStyle(td,'::before').content),
+   viewportOverflow:document.documentElement.scrollWidth-innerWidth
+  };
+ });
+ console.log('History portrait geometry:',JSON.stringify(geometry));
+ verify(geometry.rowDisplay==='grid','saved product row uses stacked mobile grid');
+ verify(geometry.scroll<=geometry.width+2,'no horizontal scrolling inside history table');
+ verify(geometry.cellBounds.every(c=>c.left>=geometry.bounds.left-1&&c.right<=geometry.bounds.right+1),
+  'all six historical product fields fit within the visible card');
+ verify(geometry.labels.slice(1).every(label=>label!=='none'&&label!=='normal'),
+  'all numerical history fields display their own labels');
+ verify(geometry.viewportOverflow<=2,'history does not widen the overall screen');
+ await page.screenshot({path:path.join(out,'revision-v064-history-fullwidth-mobile.png'),fullPage:true});
+
 
  // Cloud success and failed-network queue are simulated inside the browser.
  // They never connect to or write a real Supabase account.
