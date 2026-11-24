@@ -205,7 +205,7 @@
   el('revisionSelectors')?.classList.toggle('hide',view==='products'||view==='summary' ? view==='products':false);
   document.body.classList.toggle('rev054-products',view==='products');
   document.body.classList.toggle('rev054-revision',view==='revision');
-  if(view==='summary'){updateGuide();renderSummary()}
+  if(view==='summary')updateGuide()
   if(view==='revision')progress();
   return result;
  };
