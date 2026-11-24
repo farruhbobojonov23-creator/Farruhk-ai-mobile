@@ -399,6 +399,12 @@
  choose?.addEventListener('change',()=>{if(active==='summary')updateGuide()});
  const header=el('view-history')?.querySelector('.sectionheading .desc');
  if(header)header.textContent='Сохранённые проверки по выбранной точке. Нажми на запись, чтобы увидеть продукты.';
+ const historyNote=el('view-history')?.querySelector('.sectionheading');
+ if(historyNote&&!el('rev055HistoryNote')){
+  const n=$create('p','rev055-history-note');n.id='rev055HistoryNote';
+  n.textContent='Если написано «нет цены», при сохранении этой ревизии не указали закупочную цену за кг. Цена из нового черновика не меняет старую запись.';
+  historyNote.after(n);
+ }
  const help=el('view-revision')?.querySelector('.rev-help .desc');
  if(help)help.innerHTML='<b>Начальная ревизия:</b> внеси фактические остатки, сохрани и выровняй их во Frontpad.<br><br>'+
   '<b>Повторная:</b> введи учёт из Frontpad и фактический вес. Сохрани — и результат попадёт в историю.<br><br>'+
