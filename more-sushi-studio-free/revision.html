@@ -2764,7 +2764,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script><script>
 (function(){
- if(!('serviceWorker' in navigator)||location.protocol!=='https:')return;
+ if(!('serviceWorker' in navigator)||!(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))return;
  const install=()=>navigator.serviceWorker.register('./revision-sw-v068.js?v=0.6.8',{scope:'./'}).catch(e=>console.warn('Offline shell unavailable',e));
  if('requestIdleCallback' in window)requestIdleCallback(install,{timeout:1800});
  else setTimeout(install,350);
