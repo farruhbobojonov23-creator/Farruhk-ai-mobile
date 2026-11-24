@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.5.8';
+const FARUKH_UI_RELEASE='0.6.0';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -2229,6 +2229,376 @@ document.addEventListener('DOMContentLoaded',function(){
  };
  draftState();
  showRevisionInfo=function(){notice('FARUKH REVISION PRO · веб-интерфейс 0.5.8. Сохранение с видимым подтверждением и проверкой записи в истории.');};
+});
+
+
+/* FARUKH REVISION 0.6.0 — one accountable save handler, catalogue-only prices, short audit table.
+   This replaces layered save handlers. It never creates or changes demo audit records. */
+document.addEventListener('DOMContentLoaded',function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const money=n=>Number(n||0).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';
+ const kg=n=>Number(n||0).toLocaleString('ru-RU',{minimumFractionDigits:3,maximumFractionDigits:3})+' кг';
+ const esc=v=>safe(String(v===null||v===undefined?'':v));
+ const products=()=>Array.isArray(state.products)?state.products:[];
+ const store=()=>$('store')?.value||'';
+ const isStart=()=>$('mode')?.value==='start';
+ const localPriceKey='farukh-revision-catalogue-prices-v060';
+ let currentEdit='',isBusy=false, lastSaved=null,saveStatus='draft';
+ function localPrices(){try{return JSON.parse(localStorage.getItem(localPriceKey)||'{}')||{}}catch{return {}}}
+ function priceFor(name){
+  const remote=typeof rev041Catalogue==='object'&&rev041Catalogue?.get(name);
+  const raw=remote?.price_per_unit_rub;
+  if(raw!==null&&raw!==undefined&&raw!==''&&Number.isFinite(Number(raw))&&Number(raw)>=0)return Number(raw);
+  const local=localPrices()[name];
+  return local===null||local===undefined||local===''||!Number.isFinite(Number(local))?null:Number(local);
+ }
+ function getValues(name){
+  const v=getDraft(name)||{};
+  const actual=weightOf(name,v);
+  const program=isStart()?actual:(v.program===''?null:number(v.program));
+  const diff=actual!==null&&program!==null?Math.round((actual-program)*1000)/1000:null;
+  const price=priceFor(name);
+  return {name,actual,program,diff,price,valid:actual!==null&&program!==null,raw:v.raw===''?0:number(v.raw),pf:pfAllowed(name)?(v.pf===''?0:number(v.pf)):0,loss:visibleRule(name)};
+ }
+ function allValues(){return products().map(getValues)}
+ // Authoritative price lives in Products, not a previously opened draft.
+ const oldGet=getDraft;
+ getDraft=function(name){
+  const v=oldGet(name)||{program:'',raw:'',pf:'',price:''};
+  const price=priceFor(name);
+  v.price=price===null?'':String(price);
+  return v;
+ };
+ const style=document.createElement('style');style.id='rev060-style';
+ style.textContent=[
+ '#view-revision .rev-advanced,#view-revision .rev054-price-tip,#view-revision .rev-help,#view-revision #draftSaveInfo,#view-revision #priceNote{display:none!important}',
+ '.rev060-report{margin:14px 0;padding:14px;border:1px solid #3b5470;border-radius:17px;background:linear-gradient(140deg,#192b43,#101c30);color:#f7f9ff}',
+ '.rev060-report h3{font-size:17px!important;margin:0 0 4px!important;color:#f4d199}',
+ '.rev060-report .sub{font-size:11px;color:#aebed4;line-height:1.45;margin:0 0 10px}',
+ '.rev060-table{overflow-x:auto;border-radius:10px;max-width:100%}',
+ '.rev060-table table{width:100%!important;min-width:0!important;border-collapse:collapse!important;font-size:12px;table-layout:auto!important;display:table!important}',
+ '.rev060-table thead{display:table-header-group!important}',
+ '.rev060-table tbody{display:table-row-group!important}',
+ '.rev060-table tr{display:table-row!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important}',
+ '.rev060-table th,.rev060-table td{display:table-cell!important;padding:9px 4px!important;text-align:right;border-bottom:1px solid #364c65!important;vertical-align:middle;overflow-wrap:anywhere}',
+ '.rev060-table th:first-child,.rev060-table td:first-child{text-align:left;width:27%}',
+ '.rev060-table th{font-size:10px!important;color:#d0b581;line-height:1.25}',
+ '.rev060-table td{font-size:11px;color:#e3edfa;line-height:1.35}',
+ '.rev060-table .red{color:#ff8298!important;font-weight:800}',
+ '.rev060-table .green{color:#65e3b3!important;font-weight:800}',
+ '.rev060-table .muted{color:#97a8bd!important}',
+ '.rev060-total{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 0}',
+ '.rev060-total>div{padding:10px;border:1px solid #435774;border-radius:11px;background:#0c192c;display:grid;gap:5px;font-size:11px}',
+ '.rev060-total b{font-size:16px!important;overflow-wrap:anywhere}',
+ '.rev060-total .red{color:#ff8298}.rev060-total .green{color:#6ee3b4}',
+ '.rev060-save{padding:16px;margin:12px 0!important;border-radius:15px;border:1px solid #536e8b;background:#1b2b42;color:#f7f8fb}',
+ '.rev060-save strong{display:block;font-size:16px;line-height:1.35}',
+ '.rev060-save small{display:block;font-size:12px;color:#c3d2e6;margin-top:5px;line-height:1.55}',
+ '.rev060-save[data-status=success]{border-color:#47d0a6;background:linear-gradient(130deg,#163e34,#13243b)}',
+ '.rev060-save[data-status=success] strong{color:#69ebbb}',
+ '.rev060-save[data-status=pending]{border-color:#f4c279}',
+ '.rev060-save[data-status=error]{border-color:#ff5978;background:#3e1f35}',
+ '.rev060-save[data-status=error] strong{color:#ff8298}',
+ '.rev060-actions{margin:12px 0!important}',
+ '.rev060-more{border:1px solid #30475f;border-radius:13px;margin:11px 0;background:#122137;color:#dfc496}',
+ '.rev060-more>summary{padding:11px 14px;font-weight:750;font-size:12px;cursor:pointer}',
+ '.rev060-extra{padding:0 10px 10px;display:grid;gap:7px;grid-template-columns:repeat(3,minmax(0,1fr))}',
+ '.rev060-extra>.btn{min-height:42px!important;min-width:0!important;padding:8px 3px!important;font-size:11px!important;box-shadow:none!important}',
+ '.rev060-popup{position:fixed!important;inset:0!important;z-index:2147483640!important;display:grid!important;place-items:center!important;background:#030813e8!important;padding:15px!important;box-sizing:border-box!important}',
+ '.rev060-box{width:min(100%,440px);max-height:calc(100dvh - 30px);overflow:auto;background:linear-gradient(145deg,#243b56,#0b182c);border:1px solid #7388a3;border-radius:21px;padding:22px 18px;color:#f7faff;box-shadow:0 20px 70px #000c}',
+ '.rev060-box h2{font-size:22px!important;margin:6px 0 10px!important;color:#fff}',
+ '.rev060-box p{color:#c6d3e3;font-size:13px;line-height:1.5}',
+ '.rev060-box input{display:block;box-sizing:border-box;width:100%;background:#0b1c32;color:#fff;font-size:19px;padding:11px;border:1px solid #74869d;border-radius:11px;min-height:46px;margin:8px 0 12px}',
+ '.rev060-box label{display:block;margin:11px 0;font-size:13px}',
+ '.rev060-box .actions{display:flex;gap:9px;margin-top:15px}',
+ '.rev060-box .actions button{flex:1!important;min-width:0!important;min-height:47px!important;font-size:13px!important}',
+ '.rev060-box .note{font-size:12px;color:#f0ca86}',
+ '.rev060-edit{font-size:12px!important;min-height:39px!important;min-width:85px!important;padding:6px 10px!important}',
+ '.rev060-product-price{display:block;margin:6px 0;color:#e4c481!important;font-size:12px;font-weight:750}',
+ '#rev057SaveBanner,#rev057HistoryReceipt,#rev058SaveState,#rev058HistoryState{display:none!important}',
+ '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small{display:none!important}',
+ '#view-summary .rev054-three,#view-summary .rev054-explain,#view-summary .rev054-guide-status,#view-summary .rev044-next{display:none!important}',
+ '#view-summary .rev054-guide{padding:13px 14px!important}',
+ '#view-summary .rev054-guide h2{font-size:15px!important;margin:4px 0 10px!important}',
+ '#view-revision #revisionKPIs{display:none!important}',
+ '.view-revision #revisionKPIs{display:none!important}',
+ '#view-revision .rev054-flow p{display:none!important}',
+ '#view-history #rev055HistoryNote{display:none!important}',
+ '.rev060-history-table{margin:9px 0 4px;overflow-x:auto}',
+ '.rev060-history-table table{width:100%;border-collapse:collapse;font-size:11px}',
+ '.rev060-history-table th,.rev060-history-table td{padding:8px 4px;border-bottom:1px solid #33465d;text-align:right}',
+ '.rev060-history-table td:first-child,.rev060-history-table th:first-child{text-align:left}',
+ '@media(max-width:720px){.rev060-table th{font-size:9px!important}.rev060-table td{font-size:10px!important}.rev060-report{padding:11px}.rev060-total b{font-size:14px!important}}',
+ '@media print{.rev060-save,.rev060-more,.rev060-popup,.rev060-edit{display:none!important}}'
+ ].join('\n');
+ document.head.appendChild(style);
+ const row=$('view-revision')?.querySelector('.tablewrap + .row');
+ const saveButton=row?.querySelector('button[onclick="saveRevision()"]');
+ if(!row||!saveButton)return;
+ const result=document.createElement('section');result.id='rev060Report';result.className='rev060-report';
+ row.before(result);
+ const indicator=document.createElement('section');indicator.id='rev060Save';indicator.className='rev060-save';
+ indicator.setAttribute('role','status');indicator.setAttribute('aria-live','polite');
+ row.before(indicator);
+ const extras=[...row.querySelectorAll('button')].filter(b=>b!==saveButton);
+ const more=document.createElement('details');more.className='rev060-more';more.innerHTML='<summary>Дополнительно · CSV / печать / очистка</summary>';
+ const extraBox=document.createElement('div');extraBox.className='rev060-extra';
+ for(const b of extras){extraBox.appendChild(b)}
+ more.append(extraBox);row.after(more);row.classList.add('rev060-actions');
+ saveButton.textContent='💾 Сохранить ревизию';
+ saveButton.style.width='100%';
+ function indicate(kind,title,desc){
+  saveStatus=kind;indicator.dataset.status=kind;indicator.replaceChildren();
+  const strong=document.createElement('strong');strong.textContent=title;
+  const small=document.createElement('small');small.textContent=desc;
+  indicator.append(strong,small);
+ }
+ function modal({title,body,inputs=[],acceptText='Подтвердить',onAccept,extra=null}){
+  let resolve;
+  const promise=new Promise(r=>resolve=r);
+  const wrap=document.createElement('div');wrap.className='rev060-popup';
+  const box=document.createElement('section');box.className='rev060-box';
+  box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label',title);
+  const h=document.createElement('h2');h.textContent=title;box.append(h);
+  if(body){const p=document.createElement('p');p.textContent=body;box.append(p)}
+  const refs={};
+  for(const spec of inputs){
+   const l=document.createElement('label');l.textContent=spec.label;
+   const inp=document.createElement('input');inp.type=spec.type||'text';inp.inputMode=spec.mode||'decimal';
+   inp.min=spec.min??'0';inp.step=spec.step||'0.01';inp.value=spec.value??'';inp.id='rev060-input-'+spec.id;
+   if(spec.type==='checkbox')inp.checked=Boolean(spec.value);
+   refs[spec.id]=inp;l.append(inp);box.append(l);
+  }
+  if(extra){const note=document.createElement('p');note.className='note';note.textContent=extra;box.append(note)}
+  const acts=document.createElement('div');acts.className='actions';
+  const cancel=document.createElement('button');cancel.type='button';cancel.className='btn soft';cancel.textContent='Отмена';
+  const yes=document.createElement('button');yes.type='button';yes.className='btn main';yes.textContent=acceptText;
+  const close=value=>{wrap.remove();document.removeEventListener('keydown',escClose);resolve(value)};
+  const escClose=e=>{if(e.key==='Escape'){e.preventDefault();close(false)}};
+  cancel.onclick=()=>close(false);
+  yes.onclick=async()=>{
+   if(onAccept){yes.disabled=true;try{const res=await onAccept(refs,box);if(res!==false)close(true)}catch(err){const msg=document.createElement('p');msg.className='note';msg.textContent=String(err?.message||err);box.append(msg)}finally{yes.disabled=false}}
+   else close(true)
+  };
+  acts.append(cancel,yes);box.append(acts);wrap.append(box);document.body.append(wrap);
+  document.addEventListener('keydown',escClose);yes.focus();
+  return promise;
+ }
+ function rowsForReport(){
+  let missingPrice=0,shortKg=0,longKg=0,shortRub=0,longRub=0,checked=0,matches=0;
+  const lines=allValues().map(v=>{
+   if(v.valid){checked++;if(v.diff===0)matches++}
+   if(v.diff<0){shortKg+=-v.diff;if(v.price===null)missingPrice++;else shortRub+=-v.diff*v.price}
+   if(v.diff>0){longKg+=v.diff;if(v.price===null)missingPrice++;else longRub+=v.diff*v.price}
+   return v;
+  });
+  return {lines,missingPrice,shortKg,longKg,shortRub,longRub,checked,matches};
+ }
+ function renderReport(){
+  const d=rowsForReport(),start=isStart();
+  result.innerHTML='<h3>'+(start?'Начальные остатки':'Расхождения по продуктам')+'</h3>'+
+  '<p class="sub">'+esc(store())+' · Проверено '+d.checked+' из '+d.lines.length+' · Цены задаются во вкладке «Товары»</p>'+
+  '<div class="rev060-table"><table><thead><tr><th>Продукт</th><th>Учёт</th><th>Факт</th><th>± кг</th><th>Цена/кг</th><th>± ₽</th></tr></thead><tbody>'+
+  d.lines.map(v=>{
+   const css=v.diff<0?'red':v.diff>0?'green':'muted';
+   const sign=v.diff>0?'+':'';
+   const amount=v.diff===null?'—':v.price===null?'нет цены':(sign+money(v.diff*v.price));
+   return '<tr><td><b>'+esc(v.name)+'</b></td><td>'+(start?'—':v.program===null?'—':kg(v.program))+
+   '</td><td>'+(v.actual===null?'—':kg(v.actual))+'</td><td class="'+css+'">'+
+   (start?'—':v.diff===null?'—':sign+kg(v.diff))+'</td><td>'+(v.price===null?'—':money(v.price))+
+   '</td><td class="'+css+'">'+(start?'—':amount)+'</td></tr>';
+  }).join('')+'</tbody></table></div>'+
+  (start?'':'<div class="rev060-total"><div>🔴 Недостача<b class="red">− '+kg(d.shortKg)+'</b>'+
+  (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.shortRub)+'</small>')+'</div>'+
+  '<div>🟢 Излишек<b class="green">+ '+kg(d.longKg)+'</b>'+
+  (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.longRub)+'</small>')+'</div></div>');
+ }
+ function resetState(){
+  if(isBusy)return;
+  indicate('draft','📝 Черновик · не сохранено','После заполнения нажми «Сохранить ревизию».');
+ }
+ function focusMissing(name){
+  const r=[...document.querySelectorAll('#rows tr[data-product]')].find(x=>x.dataset.product===name);
+  if(!r)return;
+  const details=r.querySelector('details');if(details)details.open=true;
+  // Switch to list mode so the missing product is visible.
+  if(typeof document.getElementById('rev056All')?.click==='function')$('rev056All').click();
+  r.scrollIntoView({block:'center',behavior:'smooth'});
+  r.querySelector('input[data-field="raw"]')?.focus();
+ }
+ function prepare(){
+  syncDraft();
+  const list=allValues();
+  if(!list.length)throw Error('Добавь продукты в разделе «Товары».');
+  const bad=list.find(v=>!v.valid||v.raw===null||v.pf===null);
+  if(bad){focusMissing(bad.name);throw Error('Не заполнен или некорректен вес продукта «'+bad.name+'».');}
+  const date=$('when')?.value||'';
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>today())throw Error('Проверь дату ревизии.');
+  const lines=list.map(v=>({
+   name:v.name,actual:v.actual,program:v.program,diff:v.diff,
+   raw:v.raw,pf:v.pf,loss:v.loss,price:v.price
+  }));
+  return {store:store(),date,type:isStart()?'start':'weekly',operator:($('operator')?.value||'').trim().slice(0,120),products:lines};
+ }
+ async function saveAudit(){
+  if(isBusy)return;
+  isBusy=true;
+  saveButton.disabled=true;saveButton.textContent='Сохранение…';
+  try{
+   const input=prepare();
+   const ok=await modal({title:'Сохранить '+(isStart()?'начальные остатки?':'ревизию?'),
+     body:input.store+' · '+input.date+' · '+input.products.length+' позиций. Это создаст новую запись в истории.',
+     acceptText:'Да, сохранить'});
+   if(!ok){indicate('draft','Отменено · черновик сохранён','Данные не отправлены. Можно продолжить работу.');return;}
+   indicate('working','⏳ Сохраняю ревизию','Проверяю запись в истории.');
+   const audit={id:crypto.randomUUID(),timestamp:Date.now(),date:input.date,store:input.store,
+     type:input.type,operator:input.operator,products:input.products};
+   let stateType='local',failure=null;
+   if(cloudEnabled){
+    try{
+     const result=await rest('revision_audits',{method:'POST',body:{
+      id:audit.id,location_name:audit.store,audit_type:audit.type,audit_date:audit.date,
+      operator_name:audit.operator,items:audit.products
+     }});
+     if(!Array.isArray(result)||!result[0]||String(result[0].id)!==audit.id)throw Error('Сервер не подтвердил запись');
+     audit.timestamp=Date.parse(result[0].created_at)||audit.timestamp;
+     stateType='cloud';
+     state.history.push(audit);
+     try{rev041SaveCloudCache()}catch{}
+    }catch(error){
+     failure=error;
+     // Only declare device saved once the user's queue has actually persisted.
+     try{
+      const queue=rev041Queue();
+      if(!queue.some(rec=>rec.id===audit.id))rev041SaveQueue([...queue,{...audit,pendingSync:true}]);
+      audit.pendingSync=true;state.history.push(audit);stateType='pending';
+     }catch(localError){
+      throw Error('Нет облачного подтверждения и не удалось сохранить очередь на телефоне: '+String(localError.message||localError)+'. '+String(error.message||error));
+     }
+    }
+   }else{
+    state.history.push(audit);
+    try{save()}catch(err){state.history=state.history.filter(r=>r.id!==audit.id);throw Error('Не удалось записать локальную историю: '+String(err.message||err));}
+    stateType='local';
+   }
+   lastSaved=audit;
+   // Preserve old history. Wipe only the just-saved draft, never before durable saving.
+   try{clearForm()}catch(err){console.warn('Could not clear draft after save',err)}
+   try{renderHistory();renderSummary();renderRows()}catch(err){console.warn('Saved but UI refresh failed',err)}
+   const message=stateType==='cloud'?'✅ РЕВИЗИЯ СОХРАНЕНА В ОБЛАКЕ':
+     stateType==='pending'?'🟡 СОХРАНЕНО НА ТЕЛЕФОНЕ':'✅ РЕВИЗИЯ СОХРАНЕНА НА ТЕЛЕФОНЕ';
+   const info=audit.store+' · '+audit.date+' · '+audit.products.length+' позиций';
+   indicate(stateType==='pending'?'pending':'success',message,info+(stateType==='pending'?' · Ожидает отправки в облако':''));
+   const done=await modal({title:'Ревизия сохранена!',body:info+(stateType==='pending'?' · Пока только на телефоне, ждёт облака.':''),
+     acceptText:'Открыть историю'});
+   if(done){go('history',document.querySelectorAll('.menu button')[2]);}
+  }catch(err){
+   indicate('error','❌ НЕ СОХРАНЕНО',String(err.message||err));
+   indicator.scrollIntoView({behavior:'smooth',block:'center'});
+  }finally{
+   isBusy=false;saveButton.disabled=false;saveButton.textContent='💾 Сохранить ревизию';
+  }
+ }
+ // Capture before the old onclick and any previous stacked JS save wrappers.
+ document.addEventListener('click',function(event){
+  const target=event.target?.closest?.('button[onclick="saveRevision()"]');
+  if(!target||!$('view-revision')?.contains(target))return;
+  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  void saveAudit();
+ },true);
+ const catalogForm=document.createElement('div');catalogForm.id='rev060ProductModal';
+ function editProduct(name){
+  currentEdit=name;
+  const entry=rev041Catalogue.get(name);
+  const price=priceFor(name);
+  const percent=Number(entry?.pf_add_percent??visibleRule(name))||0;
+  const pf=entry?Boolean(entry.has_semi_finished):pfAllowed(name);
+  void modal({
+   title:'Товар · '+name,
+   body:'Закупочная цена вводится один раз и применяется для всех новых ревизий.',
+   inputs:[
+    {id:'price',label:'Цена за 1 кг, ₽',type:'number',mode:'decimal',value:price??'',step:'0.01'},
+    {id:'pf',label:'Учитывать полуфабрикаты',type:'checkbox',value:pf},
+    {id:'percent',label:'Добавка к весу ПФ, %',type:'number',value:percent,step:'0.1'}
+   ],
+   acceptText:'Сохранить товар',
+   onAccept:async refs=>{
+    const s=refs.price.value.trim().replace(',','.');
+    if(s!==''&&(!/^\d+(?:\.\d{1,2})?$/.test(s)||Number(s)>10000000))throw Error('Цена должна быть неотрицательным числом с точностью до копеек');
+    const newPrice=s===''?null:Number(s);
+    const usePf=refs.pf.checked;
+    const pc=Number(refs.percent.value);
+    if(!Number.isFinite(pc)||pc<0||pc>100)throw Error('Добавка к ПФ: от 0 до 100%');
+    if(cloudEnabled){
+     const found=rev041Catalogue.get(name);
+     if(!found?.id)throw Error('Товар не найден в облаке. Обнови каталог.');
+     // PATCH by immutable id; a name match could unexpectedly edit several records.
+     await rest('revision_products',{method:'PATCH',query:'?id=eq.'+encodeURIComponent(found.id),
+      body:{price_per_unit_rub:newPrice,has_semi_finished:usePf,pf_add_percent:usePf?pc:0}});
+     rev041Catalogue.set(name,{...found,price_per_unit_rub:newPrice,
+       has_semi_finished:usePf,pf_add_percent:usePf?pc:0});
+    }else{
+     const storePrices=localPrices();
+     if(newPrice===null)delete storePrices[name];else storePrices[name]=newPrice;
+     localStorage.setItem(localPriceKey,JSON.stringify(storePrices));
+    }
+    // Inputs currently on screen are draft values, and must remain intact.
+    try{rev040Snapshot()}catch{}
+    renderProducts();renderRows();renderReport();
+    indicate('draft','✅ Цена товара сохранена','Новые ревизии будут рассчитываться по указанной цене. Текущая ревизия пока черновик.');
+   }
+  });
+ }
+ const oldProducts=renderProducts;
+ renderProducts=function(){
+  oldProducts();
+  for(const [i,tr] of [...document.querySelectorAll('#productsrows tr')].entries()){
+   const name=products()[i];if(!name)continue;
+   tr.querySelectorAll('.rev054-edit-pf').forEach(b=>b.remove());
+   const first=tr.querySelector('td:first-child'),actions=tr.querySelector('td:last-child');
+   if(!first||!actions)continue;
+   const price=document.createElement('small');price.className='rev060-product-price';
+   price.textContent='Цена: '+(priceFor(name)===null?'не указана':money(priceFor(name))+'/кг');
+   first.append(price);
+   actions.replaceChildren();
+   const btn=document.createElement('button');btn.className='btn soft rev060-edit';
+   btn.type='button';btn.textContent='✎ Изменить';btn.addEventListener('click',()=>editProduct(name));
+   actions.append(btn);
+  }
+ };
+ const oldRows=renderRows;
+ renderRows=function(){oldRows();renderReport()};
+ const oldCalculate=calculate;
+ calculate=function(){oldCalculate();if(active==='revision')renderReport()};
+ const oldHistory=renderHistory;
+ renderHistory=function(){
+  oldHistory();
+  const records=inStore();
+  const articles=[...document.querySelectorAll('#allhistory .rev053-history-card')];
+  articles.forEach((article,i)=>{
+   const record=records[i];
+   if(!record)return;
+   const target=article.querySelector('.rev053-products');
+   if(!target)return;
+   const body=(record.products||[]).map(p=>{
+    const diff=Number(p.diff);
+    const price=p.price==null?null:Number(p.price);
+    const sum=Number.isFinite(diff)&&price!==null&&Number.isFinite(price)?diff*price:null;
+    const colored=diff<0?'red':diff>0?'green':'muted';
+    return '<tr><td>'+esc(p.name)+'</td><td>'+kg(p.program)+'</td><td>'+kg(p.actual)+'</td>'+
+      '<td class="'+colored+'">'+(diff>0?'+':'')+kg(diff)+'</td>'+
+      '<td>'+(price===null?'—':money(price))+'</td>'+
+      '<td class="'+colored+'">'+(sum===null?'нет цены':(sum>0?'+':'')+money(sum))+'</td></tr>';
+   }).join('');
+   target.innerHTML='<div class="rev060-history-table"><table><thead><tr><th>Товар</th><th>Учёт</th><th>Факт</th><th>± кг</th><th>₽/кг</th><th>± ₽</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+  });
+ };
+ document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();renderReport()}});
+ document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
+ document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
+ renderProducts();renderRows();renderHistory();renderReport();resetState();
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.0. Цены товаров сохраняются один раз, результаты по продуктам, надёжное сохранение с подтверждением.');};
 });
 
 </script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
