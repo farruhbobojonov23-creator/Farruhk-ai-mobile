@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.os.PowerManager;
 import android.provider.Settings;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
@@ -65,7 +64,7 @@ public final class MainActivity extends Activity {
     private static final String HOME = "https://more-sushi-studio.onrender.com/mobile.html";
     private static final String UA = "FarruhWorkspaceNative/1.0";
     private static final String UPDATE_JSON = "https://more-sushi-studio.onrender.com/workspace-android-update.json";
-    private static final String TRUSTED_APK_PREFIX = "https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/download/";
+    private static final String TRUSTED_APK_PREFIX = "https://more-sushi-studio.onrender.com/android-updates/";
     private static final String APK_MIME = "application/vnd.android.package-archive";
     private static final int PICK_FILE = 801, MEDIA_REQUEST = 802;
     private static final Set<String> MEDIA_HOSTS = new HashSet<>(Arrays.asList(
