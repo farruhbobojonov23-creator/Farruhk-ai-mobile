@@ -118,12 +118,8 @@ jobs:
           [[ "$cert" =~ ^[0-9a-fA-F]{64}$ ]]
           hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
           jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
-          tag=farukh-supply-current
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+          if [ "$old" -gt 0 ]; then
             test "$(jq -r .cert "$out/previous.json")" = "$cert" || { echo "::error::Signing certificate changed"; exit 1; }
-            old=$(jq -er .versionCode "$out/previous.json")
-            if [ "$code" -le "$old" ]; then echo "Keeping existing version"; exit 0; fi
             gh release upload "$tag" "$out/$apk" --repo "$GITHUB_REPOSITORY" --clobber
             gh release upload "$tag" "$out/update.json" --repo "$GITHUB_REPOSITORY" --clobber
           else
