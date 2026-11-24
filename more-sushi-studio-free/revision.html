@@ -1201,7 +1201,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
     position:static!important;box-shadow:none!important;
   }
 }
-</style><link rel="stylesheet" href="./revision-integrity-v053.css?v=0.5.3"><link rel="stylesheet" href="./revision-workflow-v054.css?v=0.5.5"><link rel="stylesheet" href="./revision-fast-entry-v056.css?v=0.5.6"><link rel="stylesheet" href="./revision-save-feedback-v057.css?v=0.5.7"><link rel="stylesheet" href="./revision-history-v064.css?v=0.6.4"></head><body class="android-premium revision-compact revision-crimson view-summary">
+</style><link rel="stylesheet" href="./revision-integrity-v053.css?v=0.5.3"><link rel="stylesheet" href="./revision-workflow-v054.css?v=0.5.5"><link rel="stylesheet" href="./revision-fast-entry-v056.css?v=0.5.6"><link rel="stylesheet" href="./revision-save-feedback-v057.css?v=0.5.7"><link rel="stylesheet" href="./revision-history-v064.css?v=0.6.4"><link rel="stylesheet" href="./revision-admin-v067.css?v=0.6.7"></head><body class="android-premium revision-compact revision-crimson view-summary">
 <div id="premiumBoot" data-variant="revision" role="status" aria-label="Заставка FARUKH REVISION PRO">
  <div class="premium-boot-content">
   <div class="premium-boot-medal" aria-hidden="true"><img src="./farukh-revision-logo.svg?v=neon-1" alt=""></div>
@@ -2510,7 +2510,7 @@ document.addEventListener('DOMContentLoaded',function(){
       operator_name:audit.operator,items:audit.products
      }});
      if(!Array.isArray(result)||!result[0]||String(result[0].id)!==audit.id)throw Error('Сервер не подтвердил запись');
-     audit.timestamp=Date.parse(result[0].created_at)||audit.timestamp;
+     Object.assign(audit,rev041CloudRecord(result[0]));
      stateType='cloud';
      state.history.push(audit);
      try{rev041SaveCloudCache()}catch{}
@@ -2730,4 +2730,4 @@ document.addEventListener('DOMContentLoaded',function(){
  showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.7. Редактирование ревизий, история изменений и корзина с восстановлением 30 дней.');};
 });
 
-</script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
+</script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./revision-admin-v067.js?v=0.6.7"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
