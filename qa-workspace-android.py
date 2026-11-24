@@ -18,6 +18,15 @@ def locate(label, timeout=40, bottom=False):
         except (subprocess.SubprocessError, ValueError, ET.ParseError):
             time.sleep(1)
             continue
+        if b"Pixel Launcher isn" in xml:
+            for action in ET.fromstring(xml).iter("node"):
+                if action.get("text")=="Close app":
+                    x,y,r,b=map(int,re.findall(r"\d+",action.get("bounds")))
+                    adb("shell","input","tap",str((x+r)//2),str((y+b)//2))
+                    time.sleep(2)
+                    adb("shell","am","start","-n","ai.farukh.workspace/.MainActivity")
+                    break
+            continue
         nodes=[n for n in ET.fromstring(xml).iter("node") if label in (n.get("text"), n.get("content-desc"))]
         if nodes:
             return (nodes[-1] if bottom else nodes[0]),xml
