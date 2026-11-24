@@ -1,0 +1,39 @@
+name: FARUKH REVISION Mobile Save QA
+on:
+  push:
+    branches: [more-sushi-studio-free]
+    paths:
+      - 'more-sushi-studio-free/revision.html'
+      - 'more-sushi-studio-free/revision-*.js'
+      - 'more-sushi-studio-free/revision-*.css'
+      - 'more-sushi-studio-free/tests/revision-browser-qa.cjs'
+      - '.github/workflows/farukh-revision-mobile-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: revision-mobile-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  save-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright browser testing runtime
+        run: |
+          npm install --prefix .revision-qa --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            .revision-qa/node_modules/.bin/playwright install --with-deps chromium
+          fi
+      - name: Verify real mobile save, product price, history, reload
+        run: NODE_PATH="$PWD/.revision-qa/node_modules" node more-sushi-studio-free/tests/revision-browser-qa.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: farukh-revision-mobile-save-qa
+          path: more-sushi-studio-free/tests/qa-results/revision-v061-*
+          if-no-files-found: warn
