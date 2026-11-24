@@ -297,6 +297,7 @@ async function runRecipeImport(browser){
  // The saved artifact contains MOCK recipe data only and no real user records.
  await page.emulateMedia({media:'print'});
  assert(await page.locator('#recipeImportedBanner').isHidden(),'Print — editor-only provenance warning is not printed');
+ assert(await page.locator('.workspace-appbar').isHidden(),'Print — workspace header hidden, does not add a second A4 sheet');
  await page.emulateMedia({media:'screen'});
  const pdf=await page.pdf({printBackground:true,preferCSSPageSize:true,format:'A4'});
  fs.writeFileSync(path.join(out,'TTK-Philadelphia-MOCK-A4.pdf'),pdf);

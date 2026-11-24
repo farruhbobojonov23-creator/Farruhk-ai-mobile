@@ -122,3 +122,6 @@ html.ocean-app .recipe-import-banner{margin:5px 0 14px;padding:12px 15px;border-
 
 /* Imported-source provenance warning is for the editor, never part of the printed A4. */
 @media print{#recipeImportedBanner,.recipe-import-banner{display:none!important}}
+
+/* Paper-only A4: do not paginate the Workspace header as an extra sheet. */
+@media print{html.ocean-app body>.workspace-appbar{display:none!important}}
