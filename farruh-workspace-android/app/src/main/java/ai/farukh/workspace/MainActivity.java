@@ -2,6 +2,12 @@ package ai.farukh.workspace;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -39,6 +45,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import org.json.JSONObject;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -52,6 +64,9 @@ import java.util.Set;
 public final class MainActivity extends Activity {
     private static final String HOME = "https://more-sushi-studio.onrender.com/mobile.html";
     private static final String UA = "FarruhWorkspaceNative/1.0";
+    private static final String UPDATE_JSON = "https://more-sushi-studio.onrender.com/workspace-android-update.json";
+    private static final String TRUSTED_APK_PREFIX = "https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/download/";
+    private static final String APK_MIME = "application/vnd.android.package-archive";
     private static final int PICK_FILE = 801, MEDIA_REQUEST = 802;
     private static final Set<String> MEDIA_HOSTS = new HashSet<>(Arrays.asList(
       "more-sushi-studio.onrender.com","farruhk-ai-mobile.onrender.com",
@@ -62,6 +77,10 @@ public final class MainActivity extends Activity {
     private ProgressBar progress;
     private ValueCallback<Uri[]> filePicker;
     private PermissionRequest pendingMedia;
+    private long pendingDownload = -1L;
+    private String pendingHash = null;
+    private Uri verifiedInstallUri = null;
+    private boolean downloadReceiverActive = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override public void onCreate(Bundle savedState) {
@@ -97,9 +116,9 @@ public final class MainActivity extends Activity {
         Button pdf=button("PDF",12);
         pdf.setOnClickListener(v->saveAsPdf());
         bar.addView(pdf,new LinearLayout.LayoutParams(dp(47),dp(42)));
-        Button reload=button("↻",20);
-        reload.setOnClickListener(v->browser.reload());
-        bar.addView(reload,new LinearLayout.LayoutParams(dp(42),dp(42)));
+        Button reload=button("Обновить",11);
+        reload.setOnClickListener(v->checkForUpdates());
+        bar.addView(reload,new LinearLayout.LayoutParams(dp(84),dp(42)));
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);progress.setVisibility(View.GONE);
         root.addView(progress,new LinearLayout.LayoutParams(-1,dp(3)));
@@ -107,6 +126,11 @@ public final class MainActivity extends Activity {
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1f));
         setContentView(root);
         setupBrowser();
+        IntentFilter downloads=new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        if(Build.VERSION.SDK_INT>=33)
+            registerReceiver(downloadReceiver,downloads,Context.RECEIVER_EXPORTED);
+        else registerReceiver(downloadReceiver,downloads);
+        downloadReceiverActive=true;
         if(savedState!=null)browser.restoreState(savedState);
         else browser.loadUrl(HOME);
     }
@@ -237,6 +261,126 @@ public final class MainActivity extends Activity {
             }catch(Exception ex){toast("Загрузка недоступна. Попробуй кнопку PDF.");}
         });
     }
+
+    /* Web content refreshes in-place. A new NATIVE APK can only replace the
+     * installed version when the package ID AND signing certificate match.
+     * Never clear cookies or local storage during either update. */
+    private void checkForUpdates(){
+        // Web changes apply immediately even if no native APK update is offered.
+        if(browser!=null)browser.reload();
+        new Thread(()->{
+            try{
+                HttpURLConnection c=(HttpURLConnection)new URL(UPDATE_JSON+"?t="+System.currentTimeMillis()).openConnection();
+                c.setConnectTimeout(9000);
+                c.setReadTimeout(9000);
+                c.setInstanceFollowRedirects(false);
+                c.setRequestProperty("Accept","application/json");
+                if(c.getResponseCode()!=200)throw new Exception("HTTP "+c.getResponseCode());
+                ByteArrayOutputStream out=new ByteArrayOutputStream();
+                try(InputStream input=c.getInputStream()){
+                    byte[] buf=new byte[1024];int n;
+                    while((n=input.read(buf))!=-1){
+                        out.write(buf,0,n);
+                        if(out.size()>8000)throw new Exception("Слишком большой ответ");
+                    }
+                }finally{c.disconnect();}
+                JSONObject json=new JSONObject(out.toString("UTF-8"));
+                if(!getPackageName().equals(json.optString("packageName")))
+                    throw new Exception("Несовместимый пакет");
+                int published=json.optInt("versionCode",0);
+                int installed=(int)getPackageManager().getPackageInfo(getPackageName(),0).getLongVersionCode();
+                if(published<=installed){
+                    runOnUiThread(()->toast("Веб-интерфейс обновлён. Новых обновлений APK нет."));
+                    return;
+                }
+                String url=json.optString("apkUrl","");
+                String sha=json.optString("sha256","").toLowerCase(Locale.ROOT);
+                if(!url.startsWith(TRUSTED_APK_PREFIX)||!url.endsWith(".apk")||!sha.matches("[a-f0-9]{64}"))
+                    throw new Exception("Не опубликована проверенная подписанная APK");
+                final String safeUrl=url;final String safeHash=sha;final int code=published;
+                runOnUiThread(()->new AlertDialog.Builder(this)
+                    .setTitle("Доступно обновление APK")
+                    .setMessage("Найдена новая версия "+code+". Скачать и обновить приложение без удаления? Android попросит подтвердить установку. Данные останутся, если подпись совпадает.")
+                    .setNegativeButton("Позже",null)
+                    .setPositiveButton("Скачать", (dialog,which)->downloadUpdate(safeUrl,safeHash,code))
+                    .show());
+            }catch(Exception e){
+                runOnUiThread(()->toast("Веб-страница обновлена. Проверка APK недоступна."));
+            }
+        },"FarruhAPKVersionCheck").start();
+    }
+    private void downloadUpdate(String source,String sha,int code){
+        try{
+            String name="FARRUH_WORKSPACE_PRO_"+code+".apk";
+            DownloadManager.Request r=new DownloadManager.Request(Uri.parse(source));
+            r.setTitle("Обновление FARRUH WORKSPACE PRO");
+            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            r.setMimeType(APK_MIME);
+            r.setDestinationInExternalFilesDir(this,Environment.DIRECTORY_DOWNLOADS,name);
+            pendingHash=sha;
+            pendingDownload=((DownloadManager)getSystemService(DOWNLOAD_SERVICE)).enqueue(r);
+            toast("APK скачивается. Установку подтвердит Android.");
+        }catch(Exception e){toast("Не удалось скачать обновление. Текущая версия сохранена.");}
+    }
+    private final BroadcastReceiver downloadReceiver=new BroadcastReceiver(){
+        @Override public void onReceive(Context context,Intent intent){
+            if(!DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction()))return;
+            long id=intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID,-1L);
+            if(id!=pendingDownload||id<0)return;
+            final String expected=pendingHash;
+            pendingDownload=-1L;pendingHash=null;
+            new Thread(()->{
+                try{
+                    DownloadManager dm=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+                    Uri uri=dm.getUriForDownloadedFile(id);
+                    if(uri==null||expected==null)throw new Exception("Скачивание не завершено");
+                    MessageDigest digest=MessageDigest.getInstance("SHA-256");
+                    try(InputStream input=getContentResolver().openInputStream(uri)){
+                        if(input==null)throw new Exception("Файл не доступен");
+                        byte[] chunk=new byte[32768];int n;
+                        while((n=input.read(chunk))!=-1)digest.update(chunk,0,n);
+                    }
+                    StringBuilder hex=new StringBuilder();
+                    for(byte b:digest.digest())hex.append(String.format(Locale.ROOT,"%02x",b&255));
+                    if(!expected.equals(hex.toString()))throw new Exception("Контрольная сумма APK не совпала");
+                    runOnUiThread(()->{
+                        verifiedInstallUri=uri;
+                        new AlertDialog.Builder(thisActivity())
+                          .setTitle("APK проверена")
+                          .setMessage("Файл скачан и SHA-256 совпадает. Перейти к стандартной установке Android?")
+                          .setNegativeButton("Позже",null)
+                          .setPositiveButton("Установить",(dialog,which)->installVerified())
+                          .show();
+                    });
+                }catch(Exception e){
+                    runOnUiThread(()->toast("APK не прошла проверку. Установка отменена."));
+                }
+            },"FarruhAPKDigest").start();
+        }
+    };
+    private MainActivity thisActivity(){return this;}
+    private void installVerified(){
+        if(verifiedInstallUri==null)return;
+        if(Build.VERSION.SDK_INT>=26&&!getPackageManager().canRequestPackageInstalls()){
+            toast("Разреши обновление из этого приложения в настройках Android.");
+            Intent i=new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                Uri.parse("package:"+getPackageName()));
+            try{startActivity(i);}catch(Exception e){toast("Не удалось открыть настройки установки");}
+            return;
+        }
+        try{
+            Intent i=new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(verifiedInstallUri,APK_MIME);
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        }catch(Exception e){toast("Не удалось запустить установку APK");}
+    }
+    @Override protected void onResume(){
+        super.onResume();
+        // User may have returned from Android "Install unknown apps" permission page.
+        // Never trigger a silent install: ask for confirmation again.
+    }
+
     private void saveAsPdf(){
         if(browser==null||browser.getUrl()==null){toast("Сначала открой документ.");return;}
         try{
@@ -289,6 +433,7 @@ public final class MainActivity extends Activity {
         else super.onBackPressed();
     }
     @Override protected void onDestroy(){
+        if(downloadReceiverActive){unregisterReceiver(downloadReceiver);downloadReceiverActive=false;}
         if(filePicker!=null){filePicker.onReceiveValue(null);filePicker=null;}
         if(pendingMedia!=null){pendingMedia.deny();pendingMedia=null;}
         browser.stopLoading();browser.destroy();
