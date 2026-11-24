@@ -9,11 +9,29 @@ android {
         applicationId = "com.farukh.revision"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.6.8"
+    }
+    signingConfigs {
+        create("releasePermanent") {
+            val signingPath = System.getenv("REVISION_KEYSTORE_PATH")
+            if (!signingPath.isNullOrBlank()) {
+                storeFile = file(signingPath)
+                storePassword = System.getenv("REVISION_STORE_PASS")
+                keyAlias = System.getenv("REVISION_KEY_ALIAS")
+                keyPassword = System.getenv("REVISION_KEY_PASS")
+            }
+        }
     }
     buildTypes {
-        getByName("release") { isMinifyEnabled = false }
+        getByName("release") {
+            isMinifyEnabled = false
+            // Release APK is only distributable when the ORIGINAL certificate
+            // is available. Never silently replace the signing identity.
+            if (!System.getenv("REVISION_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("releasePermanent")
+            }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
