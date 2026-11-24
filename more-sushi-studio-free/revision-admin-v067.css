@@ -1,0 +1,41 @@
+/* FARUKH REVISION PRO 0.6.7 — admin-only record actions, immutable history, 30-day bin. */
+.android-premium .rev067-history-actions{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin:0;padding:0 12px 11px}
+.android-premium .rev067-history-actions button{font-size:12px!important;line-height:1.2;min-width:35px!important;min-height:32px!important;height:32px!important;padding:5px 10px!important;border:1px solid #5d6f8c!important;border-radius:9px!important;background:linear-gradient(140deg,#233650,#111d31)!important;color:#e8c58e!important;box-shadow:none!important}
+.android-premium .rev067-history-actions button:focus-visible{outline:2px solid #f5ce8b!important;outline-offset:2px}
+.android-premium #rev067TrashButton{height:39px!important;min-height:39px!important;padding:8px 12px!important;font-size:12px!important;width:auto!important;border-radius:10px!important;box-shadow:none!important}
+.android-premium #rev067TrashBar{display:flex;justify-content:flex-end;padding:3px 0 12px}
+.rev067-overlay{position:fixed!important;inset:0!important;z-index:2147483643!important;background:#030917ed!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:12px!important;box-sizing:border-box!important}
+.rev067-overlay .rev067-panel{width:min(100%,540px);max-height:calc(100dvh - 25px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;border-radius:20px;border:1px solid #637b96;background:linear-gradient(145deg,#223550,#0b182c 80%);color:#f4f7fc;padding:18px 16px 20px;box-shadow:0 18px 95px #000c}
+.rev067-panel h2{font-size:21px!important;line-height:1.25!important;color:#f3f7ff!important;margin:0 26px 10px 0!important;overflow-wrap:anywhere}
+.rev067-panel .rev067-close{position:absolute;right:7px;top:7px;border:0;border-radius:9px!important;min-height:33px!important;min-width:34px!important;color:#d8e5f6!important;background:#1f314b!important;font-size:18px!important;padding:4px!important}
+.rev067-panel .rev067-heading{position:relative;min-height:31px}
+.rev067-panel .rev067-sub{font-size:12px;line-height:1.55;color:#c5d3e3;margin:0 0 12px}
+.rev067-panel .rev067-buttons{display:grid;gap:8px;margin-top:13px}
+.rev067-panel .rev067-buttons button{width:100%!important;min-height:45px!important;border-radius:11px!important;font-size:13px!important;padding:10px 12px!important;line-height:1.25!important;white-space:normal!important}
+.rev067-panel .rev067-buttons .rev067-danger{color:#ffe4ea!important;border-color:#da4a72!important;background:linear-gradient(145deg,#81304a,#481e34)!important}
+.rev067-panel .rev067-meta{padding:9px 11px;background:#11233b;border:1px solid #394f69;border-radius:10px;margin:9px 0;color:#efd29c;font-size:12px;line-height:1.6}
+.rev067-panel .rev067-form{display:grid;gap:10px}
+.rev067-panel label{display:grid;gap:5px;min-width:0;font-size:11px;color:#c3d0e5;font-weight:750}
+.rev067-panel input,.rev067-panel textarea{color:#f8fbff!important;background:#0c1b2f!important;border:1px solid #617591!important;border-radius:10px!important;padding:10px 11px!important;font-size:15px!important;box-sizing:border-box!important;min-width:0;width:100%!important;min-height:40px!important;outline-offset:2px}
+.rev067-panel input:focus,.rev067-panel textarea:focus{outline:2px solid #dfb988}
+.rev067-panel input[readonly]{color:#b9c9da!important;opacity:.85}
+.rev067-panel .rev067-editline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;background:#101e32;border:1px solid #364b65;border-radius:12px;padding:12px}
+.rev067-panel .rev067-editname{grid-column:1/-1;font-size:14px;font-weight:850;color:#fff;overflow-wrap:anywhere}
+.rev067-panel .rev067-editline .rev067-totals{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:5px;font-size:11px;color:#c5d3e8;line-height:1.5}
+.rev067-panel .rev067-editline .rev067-totals b{font-size:12px;color:#f1d39c}
+.rev067-panel .rev067-readonly{font-size:10px;color:#bcad8c;grid-column:1/-1}
+.rev067-panel .rev067-form-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:6px}
+.rev067-panel .rev067-form-actions button{width:100%!important;min-height:47px!important;font-size:12px!important;border-radius:11px!important;white-space:normal!important}
+.rev067-panel .rev067-error{display:none;padding:11px;border-radius:10px;border:1px solid #e25171;background:#481e32;color:#ffb5c4;font-size:12px;line-height:1.5}
+.rev067-panel .rev067-error:not(:empty){display:block}
+.rev067-panel .rev067-binitem,.rev067-panel .rev067-event{border:1px solid #3e5672;background:#102238;border-radius:12px;padding:12px;margin:9px 0}
+.rev067-panel .rev067-binitem strong{display:block;font-size:13px;color:#fff;margin-bottom:4px}
+.rev067-panel .rev067-binitem small,.rev067-panel .rev067-event small{font-size:11px;line-height:1.5;color:#b9c8dc}
+.rev067-panel .rev067-binitem .rev067-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+.rev067-panel .rev067-binitem .rev067-buttons button{min-height:41px!important;font-size:11px!important;padding:7px!important}
+.rev067-panel .rev067-event strong{font-size:12px;color:#f3ce90}
+.rev067-panel .rev067-event summary{cursor:pointer;font-size:12px;font-weight:750;color:#e9d1a3;margin-top:7px}
+.rev067-panel .rev067-event pre{font-size:11px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;background:#071321;border:1px solid #283c53;border-radius:10px;padding:10px;max-height:290px;overflow:auto}
+.rev067-panel .rev067-warning{border:1px solid #8c654b;border-radius:10px;background:#4b2b2450;color:#f4d49b;font-size:12px;line-height:1.5;padding:10px;margin:10px 0}
+@media(max-width:400px){.rev067-overlay .rev067-panel{padding:14px 11px 16px}.rev067-panel h2{font-size:19px!important}.rev067-panel .rev067-editline{gap:7px;padding:9px}.rev067-panel input{font-size:14px!important}}
+@media print{.rev067-overlay,.rev067-history-actions,#rev067TrashBar{display:none!important}}
