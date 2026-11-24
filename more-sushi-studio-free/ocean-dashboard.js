@@ -9,7 +9,7 @@ const BUILD=document.querySelector('meta[name="mss-ui-build"]')?.content||"unkno
 const cloudName=document.getElementById("cloudName");
 const cloudDesc=document.getElementById("cloudDesc");
 const cloudDot=document.getElementById("syncDot");
-const counters=["countTtk","countProjects","countDrafts"];
+const counters=["countTtk","countProjects","countDrafts","countRecipes","countProducts","countPrefabs","countIngredients"];
 let loading=false,lastCheck=0;
 
 function setCloud(title,description,connected){
@@ -62,11 +62,15 @@ async function updateCounts(){
   const stats=await Promise.all([
    countRows("ttk_documents",session.access_token),
    countRows("ttk_projects",session.access_token),
-   countRows("ttk_documents",session.access_token,["status","eq.Черновик"])
+   countRows("ttk_documents",session.access_token,["status","eq.Черновик"]),
+   countRows("recipes",session.access_token),
+   countRows("recipes",session.access_token,["kind","eq.product"]),
+   countRows("recipes",session.access_token,["kind","eq.prefab"]),
+   countRows("ingredients",session.access_token)
   ]);
   stats.forEach((value,index)=>{const el=document.getElementById(counters[index]);
    if(el)el.textContent=Number.isFinite(value)?String(value):"—";});
-  setCloud("Облако MORE SUSHI подключено","Синхронизация активна · показатели проверены",true);
+  setCloud("База MORE SUSHI доступна","Проверены документы, рецептуры и ингредиенты",true);
  }catch(e){
   clearCounters();setCloud("Облако · данные пока недоступны",
    "Вход сохранён · проверь интернет или открой студию",false);

@@ -227,3 +227,30 @@ html.hub-motion .hub-panel:not([hidden]) .hub-appear{animation:hubReveal .62s cu
    not on top of the logo. The headline needs readable word spacing. */
 @media(max-width:699px){.projects-grid .project-card.wide-project .project-top{justify-content:flex-end}}
 .hero h1{letter-spacing:-.025em;word-spacing:.04em}
+
+/* 1.3.0 · TTK and Recipes are distinct, read-only information blocks */
+.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+.metric{min-height:91px}
+.metric label{display:block;line-height:1.2}
+.recipe-browser{margin-top:17px;padding:17px;background:linear-gradient(145deg,#fff,#f8f7fa);border:1px solid #e1dce4;border-radius:19px;box-shadow:0 5px 12px #24202d16}
+.recipe-browser-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.recipe-browser-heading small{color:#ab2450;font-weight:850;letter-spacing:.11em;font-size:9px}
+.recipe-browser-heading h3{font-size:19px;letter-spacing:-.025em;margin:6px 0 0}
+.recipe-reload{background:linear-gradient(#fff,#f5edf2);color:#92153c;border:1px solid #e3b5c9;padding:9px 11px;min-height:38px;border-radius:11px;font-weight:850;font-size:11px;white-space:nowrap}
+.recipe-reload:disabled{opacity:.55}
+.recipe-info-note{font-size:12px;line-height:1.55;color:#605761;background:#fff5f8;border:1px solid #f0d6df;padding:11px 12px;border-radius:12px}
+.recipe-controls{display:grid;grid-template-columns:1.6fr 1fr;gap:9px}
+.recipe-controls label{display:flex;flex-direction:column;gap:5px;color:#625e68;font-size:11px;font-weight:850}
+.recipe-controls input,.recipe-controls select{width:100%;min-width:0;min-height:39px;border:1px solid #d8d1dc;background:#fff;color:#26232e;border-radius:10px;padding:8px 10px;font-size:13px}
+.recipe-browser-message{color:#736b78;font-size:11px;line-height:1.4;margin:15px 2px 8px}
+.recipe-readonly-list{display:grid;gap:8px;max-height:560px;overflow:auto;overscroll-behavior:contain}
+.recipe-readonly-row{background:#f4f2f6;border:1px solid #e3dfe6;border-radius:13px;padding:11px}
+.recipe-row-top{display:flex;align-items:center;gap:10px;min-width:0}
+.recipe-symbol{height:38px;min-width:38px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(#fff,#f5dae5);border:1px solid #e7bed0;color:#a30f40;font-size:12px;font-weight:900}
+.recipe-info{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.recipe-info strong{font-size:13px;line-height:1.25;color:#302833;overflow-wrap:anywhere}
+.recipe-info small{font-size:10px;color:#726d77;line-height:1.25}
+.recipe-state{flex:none;max-width:85px;white-space:normal;text-align:center;font-size:10px;line-height:1.2;color:#9d3652;font-weight:800;background:#f8e6ee;padding:6px 7px;border-radius:8px}
+.recipe-row-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#66616c;font-size:10px;font-weight:700}
+.recipe-empty{color:#766c77;font-size:12px;text-align:center;padding:12px}
+@media(max-width:520px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{min-height:75px}}

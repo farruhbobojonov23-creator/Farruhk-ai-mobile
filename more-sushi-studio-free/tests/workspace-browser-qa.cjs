@@ -203,6 +203,45 @@ async function runHandoff(browser){
  await ctx.close();
 }
 
+
+async function runRecipeCatalog(browser){
+ const uid='00000000-0000-4000-a000-000000000011';
+ const ctx=await browser.newContext({viewport:{width:393,height:852},hasTouch:true,isMobile:true});
+ await ctx.addInitScript(({uid})=>{
+  localStorage.setItem('ms_session',JSON.stringify({access_token:'qa-auth-token',refresh_token:'qa-refresh-token',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:uid,email:'qa@example.test'}}));
+ },{uid});
+ const requests=[];
+ await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>{
+  const req=route.request(),u=new URL(req.url()),method=req.method();
+  if(u.pathname==='/rest/v1/recipes'&&method==='GET'){
+   requests.push({method,url:u.pathname});
+   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},
+    body:JSON.stringify([
+     {id:1,code:'PF-01',name:'Спайси',kind:'prefab',category:'Соусы',status:'Черновик',yield_g:125,version:1},
+     {id:2,code:'P-01',name:'Филадельфия',kind:'product',category:'Холодные роллы',status:'Черновик',yield_g:220,version:1},
+     {id:3,code:'P-02',name:'Запечённый краб',kind:'product',category:'Запечённые',status:'Тест',yield_g:210,version:1}
+    ])});
+  }
+  if(u.pathname.startsWith('/rest/v1/'))return route.fulfill({status:200,body:'',headers:{'content-range':'0-0/0','access-control-allow-origin':'*','access-control-expose-headers':'content-range'}});
+  return route.fulfill({status:401,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'{}'});
+ });
+ const page=await ctx.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:8898/mobile.html#ttk',{waitUntil:'domcontentloaded'});
+ await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.waitForFunction(()=>document.querySelectorAll('.recipe-readonly-row').length===3,{timeout:8000});
+ assert(await page.locator('.recipe-readonly-row').count()===3,'Recipe browser — fetches 3 authenticated records');
+ assert(await page.locator('#hubRecipeList').getByText('Спайси').count()===1,'Recipe browser — prefab displayed');
+ await page.selectOption('#hubRecipeKind','product');
+ assert(await page.locator('.recipe-readonly-row').count()===2,'Recipe browser — product kind filter');
+ await page.fill('#hubRecipeSearch','Филадельфия');
+ assert(await page.locator('.recipe-readonly-row').count()===1,'Recipe browser — Russian search');
+ assert(await page.locator('.recipe-readonly-row').first().getByText('Черновик').count()===1,'Recipe browser — draft not marked approved');
+ assert(requests.length===1,'Recipe browser — exactly one read-only GET');
+ assert(errors.length===0,'Recipe browser — no uncaught runtime errors');
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -214,6 +253,7 @@ async function main(){
   try{await runStorage(browser)}catch(e){assert(false,'CRUD/storage — runtime '+e.message)}
   try{await runCloud(browser)}catch(e){assert(false,'Cloud sync — runtime '+e.message)}
   try{await runHandoff(browser)}catch(e){assert(false,'External handoff — runtime '+e.message)}
+  try{await runRecipeCatalog(browser)}catch(e){assert(false,'Recipe catalog — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();

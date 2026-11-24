@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.2.0-20261124",
-  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.2.0",
+  "build": "farruh-workspace-1.3.0-20261124",
+  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.3.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "External site navigation fix after Xiaomi screenshots: AI, Print and Sushi-Beri no longer load in iframes (X-Frame-Options: DENY or unstable embedded Next.js). Use same-tab top-level navigation with Android Back to return. Print opens canonical cloud staff app; old local print migration/catalog preserved via Settings link. Internal MORE SUSHI, Revision and verified iframe-safe SHEF51/KITCHEN retain embedded Back UI. Fix wide sushi card favorite icon overlapping logo and headline spacing. No TTK, warehouse or APK code changed."
+  "details": "Clarify documents TTK vs raw recipes and semi-finished items. Authenticated Supabase read-only counters for docs, recipes, products, prefab, ingredients, projects and TTK drafts. Searchable read-only recipe catalog inside Workspace TTK tab; no automatic conversion, edits, or migration. Existing TTK studio, Revision, PDF and other app data unchanged. Requires existing account login for visibility."
 }
