@@ -11,7 +11,23 @@ const num=(n,d=3)=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:0,max
 const money=n=>num(n,2)+' ₽';
 const status=msg=>{if(typeof notice==='function')notice(msg)};
 const owner=()=>{try{return cloudEnabled&&rev041Account()?rev041Account():null}catch{return null}};
-const currentOwner=r=>owner()&&r.ownerId===owner()&&!r.pendingSync&&!r.deletedAt;
+let roleCheckedFor=null,adminVerified=false;
+function checkAdminRole(){
+ const id=owner();
+ if(!id){roleCheckedFor=null;adminVerified=false;return}
+ if(roleCheckedFor===id)return;
+ roleCheckedFor=id;adminVerified=false;
+ void rest('revision_audit_admins',{query:'?user_id=eq.'+encodeURIComponent(id)+'&select=user_id'})
+ .then(rows=>{
+  if(owner()!==id)return;
+  adminVerified=Array.isArray(rows)&&rows.length===1&&rows[0].user_id===id;
+  renderHistory();
+ }).catch(err=>{
+  if(owner()===id)roleCheckedFor=null;
+  console.warn('Audit admin permission check unavailable',err);
+ });
+}
+const currentOwner=r=>adminVerified&&owner()&&r.ownerId===owner()&&!r.pendingSync&&!r.deletedAt;
 const norm=r=>({id:r.id,rev:Number(r.revisionNo||1)});
 const valid=v=>{const s=String(v??'').trim().replace(',','.');if(!/^(?:0|[1-9]\d{0,8})(?:\.\d{1,3})?$/.test(s))throw Error('Вес должен быть числом от 0, до трёх знаков после запятой');return Number(s)};
 const rounded=v=>Math.round((Number(v)+Number.EPSILON)*1000)/1000;
@@ -215,7 +231,7 @@ async function openEvents(id){
  }catch(error){fail(panel,error)}
 }
 async function trashList(){
- if(!owner()){status('Для корзины нужно подключить облако с правами владельца');return}
+ if(!owner()||!adminVerified){status('Для корзины нужен доступ администратора');return}
  const {panel}=overlay('Корзина ревизий');
  subtitle(panel,'Ревизии скрыты из отчётов. Восстановление доступно 30 дней, после этого можно удалить запись навсегда.');
  const loading=el('p','rev067-sub','Загружаю корзину…');panel.append(loading);
@@ -269,6 +285,7 @@ function purgeConfirm(r){
  },'rev067-danger'));panel.append(buttons);
 }
 function enhanceHistory(){
+ checkAdminRole();
  const host=$('allhistory');if(!host)return;
  const archives=[...host.querySelectorAll('.rev053-history-card')];
  const records=typeof inStore==='function'?inStore():[];
@@ -290,7 +307,7 @@ function enhanceHistory(){
   const section=history.querySelector('.sectionheading');
   if(section)section.after(bar);else history.prepend(bar);
  }
- if($('rev067TrashBar'))$('rev067TrashBar').hidden=!owner();
+ if($('rev067TrashBar'))$('rev067TrashBar').hidden=!adminVerified;
 }
 function install(){
  if(typeof renderHistory!=='function')return;
