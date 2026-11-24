@@ -24,7 +24,7 @@
  const text=v=>safe(v===null||v===undefined?'':v);
  const isStart=r=>r.type==='start';
  const stats=rev053Stats;
- const badge=(rub,unpriced,zeroKg)=>unpriced?'— ₽':num(rub)+' ₽';
+ const badge=(rub,unpriced,zeroKg)=>unpriced?'нет цены':num(rub)+' ₽';
  const note=(kg,missing)=>num(kg,3)+' кг'+(missing?' · нет цены: '+missing:'');
  const status=r=>r.pendingSync?' · Ожидает облака':'';
  const time=r=>{
@@ -75,8 +75,8 @@
   const heading=(isStart(r)?'Начальные остатки':'Повторная ревизия')+' · '+text(r.date);
   const info=s.total+' позиций · '+text(r.store)+(time(r)?' · '+time(r):'')+status(r);
   const right=isStart(r)?'<b class="rev053-base">База остатков</b>':
-   '<b class="red">− '+badge(s.shortageRub,s.missingShort,s.shortageKg)+'</b>'+
-   '<small>+'+badge(s.surplusRub,s.missingSurplus,s.surplusKg)+'</small>';
+   '<b class="red">'+(s.missingShort?'Недостача: нет цены':'− '+badge(s.shortageRub,0,s.shortageKg))+'</b>'+
+   '<small>'+(s.missingSurplus?'Излишек: нет цены':'+'+badge(s.surplusRub,0,s.surplusKg))+'</small>';
   const bottom=isStart(r)?'Без расчёта расхождений':
     'Недостача '+note(s.shortageKg,s.missingShort)+' · Излишек '+note(s.surplusKg,s.missingSurplus);
   return '<div class="historyitem rev053-history-item"><div class="rev053-record-copy"><strong>'+heading+
