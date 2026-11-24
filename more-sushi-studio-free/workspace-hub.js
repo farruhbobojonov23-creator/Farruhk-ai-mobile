@@ -391,7 +391,7 @@ $('#hubCopyBackup').addEventListener('click',async()=>{
 });
 $('#hubShareBackup').addEventListener('click',async()=>{
  try{await navigator.share({files:[backupFile()]})}
- catch(err){if(err.name!=='AbortError')backupStatus.textContent='Передать файл не удалось. Используй «Скопировать».')}
+ catch(err){if(err.name!=='AbortError')backupStatus.textContent='Передать файл не удалось. Используй «Скопировать».'}
 });
 $('#hubSaveBackup').addEventListener('click',()=>{
  const file=backupFile(), url=URL.createObjectURL(file);
