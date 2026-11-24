@@ -83,7 +83,11 @@ async function runView(browser,{width,height,label}){
  await page.locator('#mss-projects').waitFor({state:'visible'});
  assert(await page.locator('#hubAllProjects .project-card').count()===7,label+' — вкладка Проекты загружает все 7');
  assert(await page.locator('#mss-home').isHidden(),label+' — предыдущая вкладка скрыта');
- await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
+ await page.evaluate(()=>{
+  const region=document.querySelector('#hubScrollRegion');
+  if(region&&getComputedStyle(region).overflowY==='auto')region.scrollTop=region.scrollHeight;
+  else window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'});
+ });
  await page.waitForTimeout(100);
  const clearance=await page.evaluate(()=>{
   const last=document.querySelector('#hubAllProjects .add-project-tile')?.getBoundingClientRect();
@@ -91,6 +95,18 @@ async function runView(browser,{width,height,label}){
   return {lastBottom:last?.bottom,navTop:nav?.top};
  });
  assert(clearance.lastBottom<=clearance.navTop-6,label+' — последняя карточка и добавление не скрыты за меню ('+Math.round(clearance.lastBottom)+' / '+Math.round(clearance.navTop)+')');
+ if(width<=699){
+  const dock=await page.evaluate(()=>{
+   const region=document.querySelector('#hubScrollRegion'),nav=document.querySelector('.bottomnav');
+   const content=region.getBoundingClientRect(),menu=nav.getBoundingClientRect();
+   return {scrollable:region.scrollHeight>region.clientHeight,
+     clear:content.bottom<=menu.top-4,flow:getComputedStyle(nav).position!=='fixed',
+     visible:menu.bottom<=window.innerHeight+1,
+     contentBottom:content.bottom,menuTop:menu.top};
+  });
+  assert(dock.scrollable&&dock.clear&&dock.flow&&dock.visible,
+   label+' — меню всегда вне прокрутки и НЕ перекрывает проекты '+JSON.stringify(dock));
+ }
  await page.screenshot({path:path.join(out,label+'-projects.png'),fullPage:true});
  await page.locator('.bottomnav [data-mss-tab="ttk"]').click();
  await page.locator('#mss-ttk').waitFor({state:'visible'});

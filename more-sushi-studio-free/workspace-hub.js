@@ -278,7 +278,10 @@ function showTab(tab,record=false,withMotion=true){
  });
  if(record)history.pushState({hubTab:tab},'',tab==='home'?'#home':'#'+tab);
  if(!record&&location.hash.startsWith('#open-'))return;
- window.scrollTo({top:0,behavior:'instant'});
+ const scrollRegion=$('#hubScrollRegion');
+ if(scrollRegion&&getComputedStyle(scrollRegion).overflowY==='auto')
+  scrollRegion.scrollTo({top:0,behavior:'instant'});
+ else window.scrollTo({top:0,behavior:'instant'});
  if(withMotion)animateVisible(tab);
 }
 function animateVisible(tab){
