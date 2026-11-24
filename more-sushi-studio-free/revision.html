@@ -2321,6 +2321,7 @@ document.addEventListener('DOMContentLoaded',function(){
  '.rev060-box .note{font-size:12px;color:#f0ca86}',
  '.rev060-edit{font-size:12px!important;min-height:39px!important;min-width:85px!important;padding:6px 10px!important}',
  '.rev060-product-price{display:block;margin:6px 0;color:#e4c481!important;font-size:12px;font-weight:750}',
+ ' #view-products #rev061NewPrice{min-height:46px;border:1px solid #526b87;border-radius:12px;background:#0e1e32;color:#f6f9ff;min-width:0;padding:10px;font-size:14px}',
  '#rev057SaveBanner,#rev057HistoryReceipt,#rev058SaveState,#rev058HistoryState{display:none!important}',
  '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small,#view-revision .grid aside{display:none!important}',
  '#view-summary .rev054-three,#view-summary .rev054-explain,#view-summary .rev054-guide-status,#view-summary .rev044-next{display:none!important}',
@@ -2582,6 +2583,62 @@ document.addEventListener('DOMContentLoaded',function(){
    }
   });
  }
+
+ // One-time purchase price when adding a product. This input is part of the
+ // catalogue, not of an audit, and is shared across all four locations.
+ const nameInput=$('newproduct');
+ const createButton=$('view-products')?.querySelector('button[onclick="addProduct()"]');
+ const priceInput=document.createElement('input');
+ priceInput.id='rev061NewPrice';
+ priceInput.className='numinput';
+ priceInput.type='text';
+ priceInput.inputMode='decimal';
+ priceInput.autocomplete='off';
+ priceInput.placeholder='Цена за 1 кг, ₽';
+ priceInput.setAttribute('aria-label','Закупочная цена за килограмм нового товара');
+ if(nameInput){nameInput.after(priceInput)}
+ const createNewProduct=async function(){
+  const name=nameInput?.value?.trim()||'';
+  const raw=priceInput.value.trim().replace(/\s/g,'').replace(',','.');
+  if(name.length<2||name.length>60){notice('Название товара: от 2 до 60 символов');nameInput?.focus();return}
+  if(products().some(p=>p.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){
+   notice('Этот товар уже существует');nameInput?.focus();return
+  }
+  if(raw!==''&&!/^\d{1,8}(?:\.\d{1,2})?$/.test(raw)){
+   notice('Некорректная цена за кг. Например: 1450 или 1450,50');priceInput.focus();return
+  }
+  const price=raw===''?null:Number(raw);
+  if(createButton)createButton.disabled=true;
+  try{
+   if(cloudEnabled){
+    const created=await rest('revision_products',{method:'POST',
+      body:{name,unit:'кг',price_per_unit_rub:price}});
+    if(!Array.isArray(created)||!created[0]?.id)throw Error('Сервер не подтвердил создание товара');
+    const id=created[0].id;
+    const confirmed=await rest('revision_products',{query:'?id=eq.'+encodeURIComponent(id)+
+      '&select=id,name,unit,price_per_unit_rub,has_semi_finished,pf_add_percent,active'});
+    if(!Array.isArray(confirmed)||confirmed.length!==1||confirmed[0].name!==name||
+      (confirmed[0].price_per_unit_rub===null?null:Number(confirmed[0].price_per_unit_rub))!==price)
+      throw Error('Товар записан, но цена не подтверждена сервером. Проверь каталог.');
+    rev041Catalogue.set(name,confirmed[0]);
+   }else{
+    const cache=localPrices();
+    if(price!==null)cache[name]=price;
+    // localStorage write may throw (private mode/quota). Don't promise saved price if it fails.
+    localStorage.setItem(localPriceKey,JSON.stringify(cache));
+   }
+   // Reuse the existing product list; never modify old audit snapshots.
+   if(!products().includes(name))state.products.push(name);
+   if(!cloudEnabled)save();
+   try{localStorage.setItem('farukh-revision-visible-products-v030',JSON.stringify(state.products))}catch{}
+   nameInput.value='';priceInput.value='';
+   renderProducts();renderRows();
+   notice(cloudEnabled?'✅ Товар и цена сохранены в облаке':'✅ Товар и цена сохранены на телефоне');
+  }catch(err){
+   notice('Не удалось добавить товар: '+String(err?.message||err));
+  }finally{if(createButton)createButton.disabled=false}
+ };
+ addProduct=createNewProduct;
  const oldProducts=renderProducts;
  renderProducts=function(){
   oldProducts();
@@ -2600,10 +2657,22 @@ document.addEventListener('DOMContentLoaded',function(){
    actions.append(btn);
   }
  };
+ let reportFrame=0,calcFrame=0;
+ const scheduleReport=()=>{
+  if(reportFrame)return;
+  reportFrame=requestAnimationFrame(()=>{reportFrame=0;if(active==='revision')renderReport()});
+ };
  const oldRows=renderRows;
- renderRows=function(){oldRows();renderReport()};
+ renderRows=function(){oldRows();scheduleReport()};
  const oldCalculate=calculate;
- calculate=function(){oldCalculate();if(active==='revision')renderReport()};
+ calculate=function(){
+  if(calcFrame)return;
+  calcFrame=requestAnimationFrame(()=>{
+   calcFrame=0;
+   oldCalculate();
+   scheduleReport();
+  });
+ };
  const oldHistory=renderHistory;
  renderHistory=function(){
   oldHistory();
@@ -2627,7 +2696,7 @@ document.addEventListener('DOMContentLoaded',function(){
    target.innerHTML='<div class="rev060-history-table"><table><thead><tr><th>Товар</th><th>Учёт</th><th>Факт</th><th>± кг</th><th>₽/кг</th><th>± ₽</th></tr></thead><tbody>'+body+'</tbody></table></div>';
   });
  };
- document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();renderReport()}});
+ document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
  renderProducts();renderRows();renderHistory();renderReport();resetState();
