@@ -2510,7 +2510,13 @@ document.addEventListener('DOMContentLoaded',function(){
       operator_name:audit.operator,items:audit.products
      }});
      if(!Array.isArray(result)||!result[0]||String(result[0].id)!==audit.id)throw Error('Сервер не подтвердил запись');
-     Object.assign(audit,rev041CloudRecord(result[0]));
+     // Keep the locally verified stock snapshot unchanged: a partial POST
+     // response must not erase names, weights, outlet or prices.
+     audit.timestamp=Date.parse(result[0].created_at)||audit.timestamp;
+     audit.ownerId=result[0].owner_id||rev041Account()||null;
+     audit.revisionNo=Number(result[0].revision_no||1);
+     audit.updatedAt=result[0].updated_at||result[0].created_at||null;
+     audit.deletedAt=result[0].deleted_at||null;
      stateType='cloud';
      state.history.push(audit);
      try{rev041SaveCloudCache()}catch{}
