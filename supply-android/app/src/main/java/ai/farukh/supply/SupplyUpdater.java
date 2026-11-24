@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 
 final class SupplyUpdater {
  private static final String BASE="https://github.com/farruhbobojonov23-creator/Farruhk-ai-mobile/releases/download/farukh-supply-current/";
- private static final long MAX_APK=100L*1024*1024;
+ private static final long MAX_APK=512L*1024*1024;
  private final Activity activity;
  private final WebUpdates webUpdates;
  private final Runnable reload;
@@ -38,7 +38,8 @@ final class SupplyUpdater {
    try{downloadAndCheck();}
    catch(FileNotFoundException e){notice("Стабильная версия для обновления пока не опубликована.");}
    catch(SecurityException e){notice("Обновление отклонено: подпись или контрольная сумма не совпадает.");}
-   catch(Exception e){notice("Не удалось проверить обновление. Проверьте интернет и попробуйте снова.");}
+   catch(IOException e){if("APK too large".equals(e.getMessage()))notice("Размер APK превышает допустимый лимит. Требуется ручное обновление.");else if("Not enough space".equals(e.getMessage()))notice("Недостаточно свободного места для обновления.");else notice("Не удалось скачать обновление. Проверьте соединение и свободное место.");}
+   catch(Exception e){notice("Не удалось проверить обновление. Попробуйте снова.");}
    finally{activity.runOnUiThread(()->{busy=false;if(progress!=null){progress.dismiss();progress=null;}});}
   });
  }
@@ -79,8 +80,11 @@ final class SupplyUpdater {
   File dir=new File(activity.getCacheDir(),"updates");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("cache");
   File apk=new File(dir,name),tmp=new File(dir,name+".part");MessageDigest digest=MessageDigest.getInstance("SHA-256");
   HttpsURLConnection c=connect(name);
+  long expected=c.getContentLengthLong();
+  if(expected>MAX_APK){c.disconnect();throw new IOException("APK too large");}
+  if(expected>0&&dir.getUsableSpace()<expected+32L*1024*1024){c.disconnect();throw new IOException("Not enough space");}
   try(InputStream in=c.getInputStream();OutputStream out=new FileOutputStream(tmp)){
-   byte[] buf=new byte[32768];long size=0;int n;while((n=in.read(buf))!=-1){if(Thread.currentThread().isInterrupted())throw new IOException("cancelled");size+=n;if(size>MAX_APK)throw new IOException("APK too large");digest.update(buf,0,n);out.write(buf,0,n);}
+   byte[] buf=new byte[32768];long size=0;int n;while((n=in.read(buf))!=-1){if(Thread.currentThread().isInterrupted())throw new IOException("cancelled");size+=n;if(size>MAX_APK)throw new IOException("APK too large");digest.update(buf,0,n);out.write(buf,0,n);if(size/1048576!=(size-n)/1048576){final long done=size;activity.runOnUiThread(()->{if(progress!=null&&!activity.isDestroyed())progress.setMessage("Скачиваем обновление: "+(done/1048576)+" МБ"+(expected>0?" из "+((expected+1048575)/1048576)+" МБ":""));});}}
   }catch(Exception e){tmp.delete();throw e;}finally{c.disconnect();}
   StringBuilder hex=new StringBuilder();for(byte b:digest.digest())hex.append(String.format(java.util.Locale.ROOT,"%02x",b&255));
   if(!hash.equalsIgnoreCase(hex.toString())){tmp.delete();throw new SecurityException("hash");}
