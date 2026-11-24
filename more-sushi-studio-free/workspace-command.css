@@ -812,3 +812,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
  .settings-row{min-height:62px;gap:11px;padding:9px 12px}
  .settings-row>.utility-art{width:clamp(34px,9vw,42px);height:clamp(34px,9vw,42px)}
 }
+
+@media screen and (max-width:380px){.system-row{grid-template-columns:minmax(0,1fr)}.system-text small{overflow-wrap:anywhere}}

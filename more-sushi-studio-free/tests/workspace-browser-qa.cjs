@@ -138,7 +138,7 @@ async function runStorage(browser){
  await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>route.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
  const p=await ctx.newPage();
  await p.goto('http://127.0.0.1:8898/mobile.html#projects',{waitUntil:'domcontentloaded'});
- await p.locator('#hubSkipSplash').click().catch(()=>{});
+ await p.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
  await p.locator('#mss-projects').waitFor({state:'visible'});
  await p.locator('#mss-projects [data-hub-add]').click();
  await p.locator('#hubProjectDialog').waitFor({state:'visible'});
@@ -192,7 +192,7 @@ async function runCloud(browser){
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:8898/mobile.html#projects',{waitUntil:'domcontentloaded'});
-  await page.locator('#hubSkipSplash').click().catch(()=>{});
+  await page.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
   await page.waitForFunction(()=>document.querySelector('#hubCloudState')?.dataset.state==='ok',{timeout:8000});
   assert(await page.locator('#hubCloudSyncNow').isEnabled(),'Cloud — after read, refresh button is enabled');
   return {page,errors};
@@ -243,7 +243,7 @@ async function runHandoff(browser){
  await p.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>route.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
  for(const item of targets){
   await p.goto('http://127.0.0.1:8898/mobile.html#home',{waitUntil:'domcontentloaded'});
-  await p.locator('#hubSkipSplash').click().catch(()=>{});
+  await p.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
   const card=p.locator('#hubFeaturedProjects .project-card').filter({hasText:item.name});
   await card.locator('.project-go').click();
   await p.waitForURL(u=>u.href.startsWith(item.pattern),{timeout:10000});
@@ -282,7 +282,7 @@ async function runRecipeCatalog(browser){
  const page=await ctx.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8898/mobile.html#ttk',{waitUntil:'domcontentloaded'});
- await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
  await page.waitForFunction(()=>document.querySelectorAll('.recipe-readonly-row').length===3,{timeout:8000});
  assert(await page.locator('.recipe-readonly-row').count()===3,'Recipe browser — fetches 3 authenticated records');
  assert(await page.locator('#hubRecipeList').getByText('Спайси').count()===1,'Recipe browser — prefab displayed');
@@ -384,7 +384,7 @@ async function runBackup(browser){
  await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',r=>r.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
  const page=await ctx.newPage();
  await page.goto('http://127.0.0.1:8898/mobile.html#more',{waitUntil:'domcontentloaded'});
- await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
  await page.locator('#hubBackupExport').waitFor({state:'visible'});
  const pkg=await page.evaluate(()=>window.FarruhWorkspace.exportBackup());
  assert(pkg.format==='farruh-workspace-links-v1','Backup — format is versioned');
@@ -412,8 +412,9 @@ async function runBackup(browser){
   }catch{return true}
  });
  assert(modalRejected,'Backup — blocks improper default override');
- const download=page.waitForEvent('download',{timeout:7000});
  await page.locator('#hubBackupExport').click();
+ const download=page.waitForEvent('download',{timeout:7000});
+ await page.locator('#hubSaveBackup').click();
  const dl=await download;
  assert(dl.suggestedFilename().startsWith('FARRUH_WORKSPACE_Backup_'),'Backup — browser downloads a JSON file');
  await ctx.close();
@@ -443,7 +444,7 @@ async function runDeleteOffline(browser){
  await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',r=>r.fulfill({status:401,body:'{}',headers:{'access-control-allow-origin':'*'}}));
  const page=await ctx.newPage();page.on('dialog',d=>d.accept());
  await page.goto('http://127.0.0.1:8898/mobile.html#projects',{waitUntil:'domcontentloaded'});
- await page.locator('#hubSkipSplash').click().catch(()=>{});
+ await page.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
  await page.locator('#mss-projects [data-hub-add]').click();
  await page.fill('#hubEditName','Удаляемый ярлык QA');
  await page.fill('#hubEditUrl','https://example.com/');
@@ -481,7 +482,7 @@ async function runNativeSingleWebView(browser){
  page.on('pageerror',e=>errors.push(e.message));
  for(const entry of entries){
   await page.goto(base,{waitUntil:'domcontentloaded'});
-  await page.locator('#hubSkipSplash').click().catch(()=>{});
+  await page.locator('#hubSkipSplash').click({timeout:1500}).catch(()=>{});
   const card=page.locator('#hubFeaturedProjects .project-card').filter({hasText:entry.name});
   await card.locator('.project-go').click();
   await page.waitForURL(url=>url.href.startsWith(entry.prefix),{timeout:15000});
