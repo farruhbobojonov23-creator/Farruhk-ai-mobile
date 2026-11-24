@@ -399,7 +399,13 @@ async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
  try{
-  browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+  try{
+   browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+   console.log('Browser QA: using runner preinstalled Google Chrome');
+  }catch(error){
+   browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+   console.log('Browser QA: fallback to Playwright Chromium');
+  }
   for(const v of [{width:393,height:852,label:'phone-393'},{width:360,height:700,label:'phone-360'},{width:768,height:1024,label:'tablet-768'}]){
    try{await runView(browser,v)}catch(e){assert(false,v.label+' — runtime '+e.message)}
   }

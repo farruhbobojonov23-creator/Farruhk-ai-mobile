@@ -31,7 +31,12 @@ jobs:
       - name: Install isolated browser tooling
         run: |
           npm install --prefix .qa-tool --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
-          .qa-tool/node_modules/.bin/playwright install --with-deps chromium
+          if command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "Using Chromium-compatible preinstalled Google Chrome for fast real-browser QA."
+          else
+            echo "Google Chrome unavailable; installing Playwright Chromium."
+            .qa-tool/node_modules/.bin/playwright install --with-deps chromium
+          fi
       - name: Check actual browser behavior and responsive appearance
         run: NODE_PATH="$PWD/.qa-tool/node_modules" node more-sushi-studio-free/tests/workspace-browser-qa.cjs
       - name: Check live URLs without credentials
