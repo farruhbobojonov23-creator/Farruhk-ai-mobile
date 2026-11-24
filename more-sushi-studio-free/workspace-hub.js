@@ -92,8 +92,15 @@ function renderCard(p,{wide=false,edit=false}={}){
  const card=document.createElement('article');
  card.className='project-card p-'+(safeColors.has(p.color)?p.color:'ruby')+(wide?' wide-project':'');
 
- // Rosé Atelier: no decorative image nodes; only authentic project logo,
- // readable name and description. Avoid downloading seven unused artworks.
+ if(!edit && !p.logo && defaults.some(project=>project.id===p.id)){
+  card.dataset.art=p.id;
+  const illustration=document.createElement('img');
+  illustration.className='collection-art';
+  illustration.src='./alabaster/'+p.id+'.webp';
+  illustration.alt='';
+  illustration.draggable=false;
+  card.appendChild(illustration);
+ }
  const top=document.createElement('div');top.className='project-top';
  const logo=document.createElement('span');logo.className='project-logo';
  if(typeof p.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(p.logo)&&p.logo.length<140000){
@@ -148,7 +155,7 @@ function renderProjects(){
  const featured=$('#hubFeaturedProjects'),full=$('#hubAllProjects');
  if(featured){
   featured.replaceChildren();
-  list.slice(0,7).forEach((p,i)=>featured.appendChild(renderCard(p,{wide:i===6})));
+  list.slice(0,7).forEach(p=>featured.appendChild(renderCard(p,{wide:p.id==='more'})));
  }
  if(full){
   full.replaceChildren();

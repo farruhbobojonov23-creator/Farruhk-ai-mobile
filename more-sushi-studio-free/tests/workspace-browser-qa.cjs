@@ -41,58 +41,20 @@ async function runView(browser,{width,height,label}){
  await page.waitForTimeout(500);
  assert(await page.locator('.bottomnav [data-mss-tab]').count()===5,label+' — пять кнопок меню');
  assert(await page.locator('#hubFeaturedProjects .project-card').count()===7,label+' — семь проектов на главной');
- const tileMeasure=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{
-  const logo=card.querySelector('.project-logo').getBoundingClientRect();
-  const label=card.querySelector('.project-title').getBoundingClientRect();
-  const desc=card.querySelector('.project-desc').getBoundingClientRect();
+ const artworks=page.locator('#hubFeaturedProjects .collection-art');
+ assert(await artworks.count()===7,label+' — семь иллюстраций коллекции');
+ await artworks.evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
+ const hero=await page.locator('#hubFeaturedProjects [data-art="more"]').boundingBox();
+ const grid=await page.locator('#hubFeaturedProjects').boundingBox();
+ assert(Math.abs(hero.width-grid.width)<2,label+' — кит занимает полную ширину сетки');
+ const fit=await page.locator('#hubFeaturedProjects .project-card').evaluateAll(cards=>cards.every(card=>{
   const frame=card.getBoundingClientRect();
-  return {gap:label.top-logo.bottom,height:frame.height,descBottom:desc.bottom,cardBottom:frame.bottom};
- });
- if(width<=699)assert(tileMeasure.gap<=16&&tileMeasure.height<155&&tileMeasure.descBottom<=tileMeasure.cardBottom,
-  label+' — компактные карточки без огромной пустоты, текст полностью виден '+JSON.stringify(tileMeasure));
-
- const copyPanels=await page.locator('#hubFeaturedProjects .project-card .project-copy').count();
- assert(copyPanels===7,label+' — все семь карточек имеют отдельный читабельный текстовый блок');
- const geometry=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').first().evaluate(card=>{
-  const copy=card.querySelector('.project-copy'),title=card.querySelector('.project-title'),arrow=card.querySelector('.project-go');
-  const panel=copy.getBoundingClientRect(),txt=title.getBoundingClientRect(),btn=arrow.getBoundingClientRect();
-  const cardCSS=getComputedStyle(card),copyCSS=getComputedStyle(copy);
-  return {frosted:cardCSS.backdropFilter.includes('blur'),glass:cardCSS.backgroundImage.includes('gradient'),
-   captionIsCalm:copyCSS.backgroundColor==='rgba(0, 0, 0, 0)'&&copyCSS.boxShadow==='none',
-   textInside:txt.left>=panel.left-1&&txt.right<=panel.right+1,
-   arrowAtRight:btn.left>panel.left+panel.width/2,
-   titleAboveArrow:txt.bottom<=btn.bottom+3,
-   fitsScreen:card.getBoundingClientRect().width>110};
- });
- assert(geometry.glass&&geometry.frosted&&geometry.captionIsCalm&&geometry.textInside&&geometry.arrowAtRight&&geometry.titleAboveArrow&&geometry.fitsScreen,
-  label+' — Rosé Glass: матовое стекло, читабельность, нет тяжёлого текстового блока '+JSON.stringify(geometry));
-
- assert(await page.locator('#hubFeaturedProjects .project-card .project-illustration').count()===0,
-  label+' — Rosé Atelier: ни один декоративный 3D-элемент не загружается');
- const cardTheme=await page.locator('#hubFeaturedProjects .project-card').first().evaluate(el=>{
-  const title=el.querySelector('.project-title');
-  const nameColor=getComputedStyle(title).color;
-  const box=el.getBoundingClientRect();
-  return {nameColor,height:box.height,width:box.width};
- });
- assert(cardTheme.nameColor==='rgb(67, 35, 53)'&&cardTheme.height<=190&&cardTheme.width>110,
-    label+' — компактная светлая премиальная карточка и чёткий тёмный текст '+JSON.stringify(cardTheme));
- const cardSurfaces=await page.locator('#hubFeaturedProjects .project-card:not(.wide-project)').evaluateAll(items=>
-  items.map(card=>({background:getComputedStyle(card).backgroundImage,
-    color:getComputedStyle(card.querySelector('.project-title')).color})));
- assert(cardSurfaces.length===6&&cardSurfaces.every(x=>x.background.includes('255, 253, 252')&&x.color==='rgb(67, 35, 53)'),
-  label+' — все шесть обычных карточек светлые, а не старые тёмные варианты');
- const theme=await page.locator('body').evaluate(el=>({
-   bg:getComputedStyle(el).backgroundImage,
-   fg:getComputedStyle(el).color
+  const title=card.querySelector('.project-title').getBoundingClientRect();
+  return title.left>=frame.left && title.right<=frame.right+1 && title.bottom<=frame.bottom;
  }));
- assert(theme.bg.includes('linear-gradient')&&theme.fg==='rgb(255, 244, 248)',label+' — новая винно-розовая минимальная тема активна');
-
- assert(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--ruby').trim())==='#b73b6a',label+' — единая тема Rosé Atelier');
+ assert(fit,label+' — все названия внутри соответствующих карточек');
  const sheets=await page.locator('link[rel=stylesheet]').evaluateAll(links=>links.map(x=>new URL(x.href).pathname));
  assert(sheets.length===1&&sheets[0]==='/workspace-command.css',label+' — одна активная CSS тема без старых накладок');
- const img=await page.locator('.hero-photo').evaluate(el=>el.complete&&el.naturalWidth>0);
- assert(img,label+' — главное фото действительно загрузилось');
  const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
  assert(scrollWidth<=width+1,label+' — нет горизонтальной прокрутки, ширина '+scrollWidth);
  const navRect=await page.locator('.bottomnav').boundingBox();

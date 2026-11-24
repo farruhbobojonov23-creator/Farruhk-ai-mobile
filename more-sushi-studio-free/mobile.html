@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#604054">
-<meta name="mss-ui-build" content="farruh-workspace-1.8.2-20261124">
+<meta name="theme-color" content="#eee3d3">
+<meta name="mss-ui-build" content="farruh-workspace-1.9.0-20261124">
 <meta name="description" content="FARRUH WORKSPACE PRO — единое рабочее пространство шеф-повара">
 <title>FARRUH WORKSPACE PRO — Главная</title>
-<link rel="preload" as="image" href="./pearl-rose/pearl-hero.webp" type="image/webp">
-<link rel="stylesheet" href="./workspace-command.css?v=1.8.2">
+<link rel="preload" as="image" href="./alabaster/more.webp" type="image/webp">
+<link rel="stylesheet" href="./workspace-command.css?v=1.9.0">
 </head>
 <body>
 <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -37,7 +37,7 @@
  <div class="hub-splash-glow" aria-hidden="true"></div>
  <div class="hub-splash-inner">
    <div class="hub-splash-icon"><svg><use href="#wc-a"/></svg></div>
-   <div class="hub-splash-kicker">FARRUH WORKSPACE · ROSÉ ATELIER</div>
+   <div class="hub-splash-kicker">FARRUH WORKSPACE · АЛЕБАСТР И ЗОЛОТО</div>
    <h1 id="hubSplashText" aria-label="FARRUH WORKSPACE PRO">FARRUH WORKSPACE PRO</h1>
    <p>ЕДИНОЕ РАБОЧЕЕ ПРОСТРАНСТВО ШЕФ-ПОВАРА</p>
    <div class="splash-track" aria-hidden="true"><i></i></div>
@@ -48,8 +48,7 @@
  <div class="workspace-scrollregion" id="hubScrollRegion">
  <header class="app-head">
   <div class="brand-identity">
-   <span class="brand-icon"><svg><use href="#wc-a"/></svg></span>
-   <span class="brand-copy"><b>FARRUH <em>WORKSPACE PRO</em></b><span><i>PRO</i><small>ЕДИНОЕ РАБОЧЕЕ ПРОСТРАНСТВО</small></span></span>
+   <img class="alabaster-mark" src="./alabaster/mark.webp" alt="" width="52" height="46"><span class="wordmark">FARRUH<small>WORKSPACE PRO</small></span>
   </div>
   <div class="head-buttons">
    <button type="button" class="head-button" id="hubNotifications" aria-label="Уведомления"><svg><use href="#wc-bell"/></svg></button>
@@ -58,14 +57,7 @@
  </header>
  <main class="hub-main" id="hubMain">
   <section class="hub-panel" data-mss-panel="home" id="mss-home">
-    <div class="hero" aria-label="Центр управления проектами">
-      <img class="hero-photo" src="./pearl-rose/pearl-hero.webp" alt="Авторский ролл с лососем и икрой" decoding="async" width="886" height="762">
-      <div class="hero-shade"></div>
-      <div class="hero-copy"><div class="hero-brow">CHEF AKA / COMMAND CENTER</div><h1 id="hubHeroHeading">Центр управления<br><em>всеми проектами</em></h1><p>Создавай · Управляй · Контролируй</p>
-       <button class="hero-action" type="button" data-mss-tab="projects">Открыть проекты <svg><use href="#wc-arrow"/></svg></button>
-      </div>
-    </div>
-    <div class="section-heading home-project-heading"><div><span class="section-line"></span><div><small>ЕДИНАЯ ЭКОСИСТЕМА</small><h2>Мои проекты</h2></div></div><button class="section-action" type="button" data-mss-tab="projects">Все проекты →</button></div>
+    <h1 class="collection-title" id="hubHeroHeading">Мои проекты</h1>
     <div class="projects-grid" id="hubFeaturedProjects" aria-label="Быстрый доступ к проектам"></div>
     <div class="section-heading tools-title"><div><span class="section-line"></span><div><small>БЫСТРЫЙ ДОСТУП</small><h2>Рабочие инструменты</h2></div></div></div>
     <div class="quick-tools">
@@ -77,7 +69,7 @@
     </div>
     <div class="system-row">
       <div class="cloudbar system-card"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="cloudName">Проверяем облако MORE SUSHI…</strong><small id="cloudDesc">Подключение к данным студии ТТК</small></span><span class="system-dot" id="syncDot" aria-label="Состояние облака"></span></div>
-      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.8.2 · Rosé Atelier</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
+      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.9.0 · Алебастр и золото</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
     </div>
   </section>
   <section class="hub-panel" data-mss-panel="projects" id="mss-projects" hidden>
@@ -136,7 +128,7 @@
      <input id="hubBackupFile" type="file" accept="application/json,.json" hidden aria-label="Выбрать файл резервной копии">
      <button type="button" class="settings-row" id="hubReplay"><span class="settings-emblem">✦</span><span><strong>Повторить кинозаставку</strong><small>Плавное появление и печать названия</small></span><svg><use href="#wc-arrow"/></svg></button>
     </div>
-    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.8.2</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p><p class="muted">Новая тема заменяет прежний интерфейс главного экрана. Данные проектов и внутренняя логика сервисов не изменены.</p></div>
+    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.9.0</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p><p class="muted">Новая тема заменяет прежний интерфейс главного экрана. Данные проектов и внутренняя логика сервисов не изменены.</p></div>
   </section>
  </main>
  </div><!-- /workspace-scrollregion -->
@@ -167,7 +159,7 @@
  <div class="viewer-help">В этом окне открываются только совместимые сайты. Для остальных используется прямой переход; назад — кнопкой телефона.</div>
 </dialog>
 <div id="hubToast" class="hub-toast" hidden role="status" aria-live="polite"></div>
-<script defer src="./workspace-hub.js?v=1.8.1"></script>
+<script defer src="./workspace-hub.js?v=1.9.0"></script>
 <script defer src="./workspace-cloud.js?v=1.4.3"></script>
 <script defer src="./ocean-updater.js?v=workspace-1.2.0"></script>
 <script defer src="./ocean-dashboard.js?v=workspace-1.3.0"></script>
