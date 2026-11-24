@@ -138,9 +138,11 @@ async function push(){
  if(!ready||!token||!userId)return;
  busy=true;status('sync',message('Сохраняем проекты…','Отправляем изменения в личное облако'));
  const generation=localGeneration;
+ let succeeded=false;
  try{
   await putRemote(snapshot());
   try{localStorage.setItem(cachePrefix+userId,JSON.stringify(snapshot()));localStorage.setItem(changedKey,'0')}catch{}
+  succeeded=true;
   dirty=localGeneration!==generation;
   status('ok',message('Проекты синхронизированы ✓','Сохранено в личном облаке MORE SUSHI'));
  }catch(e){
@@ -148,7 +150,10 @@ async function push(){
   status('error',message('Сохранено локально','Облако недоступно · повтори синхронизацию'));
  }finally{
   busy=false;
-  if(dirty&&needsRetry&&navigator.onLine){needsRetry=false;schedulePush()}
+  const button=$('#hubCloudSyncNow');if(button)button.disabled=false;
+  // On connectivity failure leave local changes queued until explicit retry,
+  // visibility change or a real 'online' event. Never hammer the endpoint.
+  if(succeeded&&dirty&&navigator.onLine){needsRetry=false;schedulePush()}
  }
 }
 async function syncNow(force=false){
@@ -189,6 +194,7 @@ async function syncNow(force=false){
   status('error',message('Сохранено локально','Не удалось проверить облако · данные не потеряны'));
  }finally{
   busy=false;
+  const button=$('#hubCloudSyncNow');if(button)button.disabled=false;
   if(needsRetry&&ready){needsRetry=false;schedulePush()}
  }
 }

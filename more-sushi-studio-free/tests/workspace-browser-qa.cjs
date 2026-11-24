@@ -103,6 +103,72 @@ async function runStorage(browser){
  assert(await p.locator('#hubAllProjects .project-card .project-fav.is-favorite').count()===1,'Favorites — избранное работает');
  await ctx.close();
 }
+
+async function runCloud(browser){
+ const uid='00000000-0000-4000-a000-000000000011';
+ const fake={owner_id:uid,projects:[],favorites:[],updated_at:new Date(Date.now()-10000).toISOString()};
+ const writes=[];
+ const cloudRoute=async(route)=>{
+  const u=new URL(route.request().url());
+  const method=route.request().method();
+  if(u.pathname.endsWith('/auth/v1/user')){
+   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({id:uid,email:'qa@example.test'})});
+  }
+  if(u.pathname.endsWith('/rest/v1/workspace_hub_settings')){
+   if(method==='GET'){
+    return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(fake.updated_at?[fake]:[])});
+   }
+   if(method==='POST'){
+    const json=route.request().postDataJSON();writes.push(json);
+    Object.assign(fake,json);
+    return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'apikey,authorization,content-type,prefer','access-control-allow-methods':'GET,POST,OPTIONS'}});
+   }
+  }
+  return route.fulfill({status:401,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'{}'});
+ };
+ async function createUserPage(context){
+  await context.addInitScript(({uid})=>{
+   localStorage.setItem('ms_session',JSON.stringify({
+    access_token:'qa-auth-token',refresh_token:'qa-refresh-token',
+    expires_at:Math.floor(Date.now()/1000)+3600,user:{id:uid,email:'qa@example.test'}
+   }));
+  },{uid});
+  await context.route('https://mhsmmssipligbmvfzkce.supabase.co/**',cloudRoute);
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:8898/mobile.html#projects',{waitUntil:'domcontentloaded'});
+  await page.locator('#hubSkipSplash').click().catch(()=>{});
+  await page.waitForFunction(()=>document.querySelector('#hubCloudState')?.dataset.state==='ok',{timeout:8000});
+  assert(await page.locator('#hubCloudSyncNow').isEnabled(),'Cloud — after read, refresh button is enabled');
+  return {page,errors};
+ }
+ let ctx=await browser.newContext({viewport:{width:393,height:852}});
+ const first=await createUserPage(ctx);
+ const p=first.page;
+ await p.locator('#mss-projects [data-hub-add]').click();
+ await p.fill('#hubEditName','ОБЛАКО QA');
+ await p.fill('#hubEditUrl','https://example.org/');
+ await p.fill('#hubEditDescription','Тест синхронизации');
+ await p.locator('#hubProjectForm button[type=submit]').click();
+ await p.waitForFunction(()=>document.querySelector('#hubCloudState')?.dataset.state==='ok'
+  &&document.querySelector('#hubCloudSyncNow')?.disabled===false,{timeout:12000});
+ await p.waitForTimeout(1200);
+ assert(writes.some(x=>Array.isArray(x.projects)&&x.projects.some(y=>y.name==='ОБЛАКО QA')),
+  'Cloud — after local edit, payload uploaded to private table');
+ assert(writes.every(x=>x.owner_id===uid),'Cloud — payload owner must match authenticated user');
+ assert(first.errors.length===0,'Cloud — zero JS runtime errors');
+ await ctx.close();
+ // A new browser/device does not have the first browser's localStorage.
+ const secondContext=await browser.newContext({viewport:{width:393,height:852}});
+ const second=await createUserPage(secondContext);
+ await second.page.locator('#hubAllProjects').getByText('ОБЛАКО QA').waitFor({state:'visible',timeout:7000});
+ assert(await second.page.locator('#hubAllProjects .project-card').count()===8,
+  'Cloud — project restored on a second browser without local cache');
+ assert(second.errors.length===0,'Cloud second device — zero JS runtime errors');
+ await secondContext.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -112,6 +178,7 @@ async function main(){
    try{await runView(browser,v)}catch(e){assert(false,v.label+' — runtime '+e.message)}
   }
   try{await runStorage(browser)}catch(e){assert(false,'CRUD/storage — runtime '+e.message)}
+  try{await runCloud(browser)}catch(e){assert(false,'Cloud sync — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();
