@@ -242,6 +242,55 @@ async function runRecipeCatalog(browser){
  await ctx.close();
 }
 
+
+async function runRecipeImport(browser){
+ const uid='00000000-0000-4000-a000-000000000011',project='00000000-0000-4000-a000-000000000022';
+ const ctx=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
+ await ctx.addInitScript(({uid})=>localStorage.setItem('ms_session',JSON.stringify({
+  access_token:'qa-import-token',refresh_token:'qa-token',expires_at:Math.floor(Date.now()/1000)+3600,
+  user:{id:uid,email:'qa@example.test'}
+ })),{uid});
+ const writes=[];
+ await ctx.route('https://mhsmmssipligbmvfzkce.supabase.co/**',route=>{
+  const req=route.request(),url=new URL(req.url()),path=url.pathname;
+  if(req.method()!=='GET'&&path.startsWith('/rest/v1/')){
+   writes.push(path);return route.fulfill({status:403,body:'{"error":"No writes in QA"}',headers:{'access-control-allow-origin':'*'}});
+  }
+  let result=[];
+  if(path.endsWith('/ttk_projects'))result=[{id:project,name:'Море Суши',is_archived:false,accent:'#e23267'}];
+  else if(path.endsWith('/ttk_documents'))result=[];
+  else if(path.endsWith('/ttk_preferences'))result=[{owner_id:uid,chef_name:'Шеф',auto_presets:{}}];
+  else if(path.endsWith('/recipe_lines'))result=[
+    {ingredient_id:8,prefab_id:null,gross_g:3,net_g:3,seq:0},
+    {ingredient_id:null,prefab_id:9,gross_g:125,net_g:125,seq:1}
+  ];
+  else if(path.endsWith('/ingredients'))result=[{id:8,name:'Нори'}];
+  else if(path.endsWith('/recipes'))result=url.searchParams.get('kind')==='eq.prefab'
+   ?[{id:9,name:'Рис подготовленный',kind:'prefab'}]
+   :[{id:30,name:'Филадельфия Северная',kind:'product',code:'МС-ХР-001',status:'Черновик',category:'Холодные роллы',yield_g:247,version:1,
+    scope:'Пример',raw_requirements:'Проверить сырье',process:'Сформовать ролл',serving:'8 частей',
+    storage:'Не утверждено',quality:'Без дефектов',allergens:'Не подтверждены',nutrition:{text:''}}];
+  else if(path.endsWith('/auth/v1/user'))result={id:uid};
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result),
+   headers:{'access-control-allow-origin':'*','content-range':'0-1/2','access-control-expose-headers':'content-range'}});
+ });
+ const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:8898/index.html?ocean=1&view=editor&from_recipe=30&from_kind=product',{waitUntil:'domcontentloaded',timeout:20000});
+ await page.locator('#recipeImportedBanner').waitFor({state:'visible',timeout:12000});
+ assert(await page.locator('#eTitle').inputValue()==='Филадельфия Северная','Import — title copied');
+ assert(await page.locator('#eProject').inputValue()===project,'Import — project auto-selected');
+ assert(await page.locator('#eStatus').inputValue()==='Черновик','Import — forced unapproved draft');
+ assert(await page.locator('#eYield').inputValue()==='247','Import — yield matches source');
+ const lineNames=await page.locator('tr[data-line] input[data-line-field="name"]').evaluateAll(x=>x.map(y=>y.value));
+ assert(lineNames.join('|')==='Нори|Рис подготовленный','Import — ingredient and prefab lookup');
+ assert(await page.locator('#fProcess').inputValue()==='Сформовать ролл','Import — process copied');
+ assert((await page.locator('#recipeImportedBanner').innerText()).includes('НЕ СОХРАНЁН'),'Import — safe unsaved warning');
+ assert(await page.locator('#fApproved').inputValue()==='','Import — no automatic approval');
+ assert(writes.length===0,'Import — no database writes until explicit Save');
+ assert(errors.length===0,'Import — zero JavaScript errors'+(errors.length?': '+errors.slice(0,2).join(' / '):''));
+ await ctx.close();
+}
+
 async function main(){
  await new Promise((ok,fail)=>server.listen(8898,'127.0.0.1',e=>e?fail(e):ok()));
  let browser;
@@ -254,6 +303,7 @@ async function main(){
   try{await runCloud(browser)}catch(e){assert(false,'Cloud sync — runtime '+e.message)}
   try{await runHandoff(browser)}catch(e){assert(false,'External handoff — runtime '+e.message)}
   try{await runRecipeCatalog(browser)}catch(e){assert(false,'Recipe catalog — runtime '+e.message)}
+  try{await runRecipeImport(browser)}catch(e){assert(false,'Recipe import — runtime '+e.message)}
  }finally{
   if(browser)await browser.close();
   server.close();

@@ -53,7 +53,13 @@ function card(row){
  const type=document.createElement('span');type.textContent=row.kind==='prefab'?'Полуфабрикат':'Изделие / ролл';
  const weight=document.createElement('span');weight.textContent=(Number.isFinite(Number(row.yield_g))&&Number(row.yield_g)>0?'Выход '+Number(row.yield_g)+' г':'Выход не указан');
  foot.append(type,weight);
- root.append(top,foot);return root;
+ root.append(top,foot);
+ const link=document.createElement('a');link.className='recipe-import-button';
+ link.dataset.hubOpen='';link.dataset.title='Создать ТТК: '+String(row.name||'');
+ link.href='./index.html?'+new URLSearchParams({ocean:'1',view:'editor',from_recipe:String(row.id),from_kind:row.kind});
+ link.textContent='Создать черновик ТТК ↗';
+ link.setAttribute('aria-label','Создать черновик ТТК из '+String(row.name||''));
+ root.append(link);return root;
 }
 function render(){
  list.replaceChildren();
@@ -62,7 +68,7 @@ function render(){
  const filter=kind?.value||'all';
  const shown=recipes.filter(x=>(filter==='all'||x.kind===filter) && (!q||[x.name,x.code,x.category,x.status].some(v=>String(v||'').toLocaleLowerCase('ru').includes(q))));
  const total=recipes.length;
- status('Показано '+shown.length+' из '+total+' рецептур · только просмотр');
+ status('Показано '+shown.length+' из '+total+' исходных рецептур · оригиналы только для чтения');
  if(!shown.length){
   const empty=document.createElement('p');empty.className='recipe-empty';empty.textContent='По этому запросу рецептур нет.';
   list.appendChild(empty);return;

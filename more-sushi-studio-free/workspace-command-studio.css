@@ -116,3 +116,6 @@
  }
 }
 @media(prefers-reduced-motion:reduce){html.ocean-app *{scroll-behavior:auto!important}}
+
+/* 1.4: safety banner for imported, unsaved source recipe */
+html.ocean-app .recipe-import-banner{margin:5px 0 14px;padding:12px 15px;border-radius:12px;border:1px solid #d7ab60;background:#fff3d9;color:#59390e;font-size:12px;line-height:1.45;font-weight:720}

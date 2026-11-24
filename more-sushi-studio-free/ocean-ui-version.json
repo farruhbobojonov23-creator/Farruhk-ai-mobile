@@ -1,7 +1,7 @@
 {
-  "build": "farruh-workspace-1.3.0-20261124",
-  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.3.0",
+  "build": "farruh-workspace-1.4.0-20261124",
+  "display": "FARRUH WORKSPACE PRO · CHEF COMMAND CENTER 1.4.0",
   "released": "2026-11-24",
   "kind": "web-ui",
-  "details": "Clarify documents TTK vs raw recipes and semi-finished items. Authenticated Supabase read-only counters for docs, recipes, products, prefab, ingredients, projects and TTK drafts. Searchable read-only recipe catalog inside Workspace TTK tab; no automatic conversion, edits, or migration. Existing TTK studio, Revision, PDF and other app data unchanged. Requires existing account login for visibility."
+  "details": "Authenticated on-demand source recipe to NEW unsaved TTK draft handoff. Read-only from recipes, recipe_lines, ingredients and prefab names. Map original process, masses, storage, allergens, quality, scope and nutrition text without invented verification, leave approval blank. Explicit manual review and Save required before any ttk_documents write. Originals unchanged, no schema or source mutations. Version 1.4.0."
 }

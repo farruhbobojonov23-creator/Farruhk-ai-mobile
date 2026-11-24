@@ -254,3 +254,6 @@ html.hub-motion .hub-panel:not([hidden]) .hub-appear{animation:hubReveal .62s cu
 .recipe-row-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#66616c;font-size:10px;font-weight:700}
 .recipe-empty{color:#766c77;font-size:12px;text-align:center;padding:12px}
 @media(max-width:520px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{min-height:75px}}
+
+/* 1.4: Recipe → TTK draft action; does not change the active Command Center theme */
+.recipe-import-button{display:inline-flex;align-items:center;justify-content:center;min-height:37px;margin-top:11px;padding:9px 12px;background:linear-gradient(#fff,#ffe9f2);border:1px solid #df9db9;color:#8c1640;border-radius:10px;font-size:11px;font-weight:870;box-shadow:0 2px 0 #e1b8c5}

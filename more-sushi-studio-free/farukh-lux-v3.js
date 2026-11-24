@@ -89,6 +89,76 @@ async function loadAll(){
  prefs=Array.isArray(pref)&&pref[0]?pref[0]:{studio_name:'FARUKH TTK PRO',title:'Студия технико-технологических карт',chef_name:'',auto_presets:{}};
  renderAll();window.FARUKH_TTK_AUTO?.onReady();
 }
+
+/* Workspace 1.4: copy a recipe into an independent UNSAVED draft. All GETs
+   remain on authenticated RLS tables; database mutations happen only after
+   the user reviews the document and presses its existing Save button. */
+async function importRecipeDraftFromWorkspace(rawId,requestedKind){
+ const id=String(rawId||'');
+ if(!/^[1-9]\d{0,12}$/.test(id))throw Error('Неверный номер рецептуры');
+ if(requestedKind&&!['product','prefab'].includes(requestedKind))throw Error('Неверный тип рецептуры');
+ const options=projects.filter(p=>!p.is_archived);
+ if(!options.length)throw Error('Для ТТК нужен хотя бы один активный проект');
+ const chosen=options.find(p=>/море.?суши|more.?sushi/i.test(p.name))||options[0];
+ const [sourceRows,rows,ingredients,prefabs]=await Promise.all([
+  api('/rest/v1/recipes?select=*&id=eq.'+id+'&limit=1'),
+  api('/rest/v1/recipe_lines?select=ingredient_id,prefab_id,gross_g,net_g,seq&recipe_id=eq.'+id+'&order=seq.asc&limit=101'),
+  api('/rest/v1/ingredients?select=id,name&limit=1000'),
+  api('/rest/v1/recipes?select=id,name,kind&kind=eq.prefab&limit=1000')
+ ]);
+ const source=Array.isArray(sourceRows)?sourceRows[0]:null;
+ if(!source||!['product','prefab'].includes(source.kind))throw Error('Исходная рецептура недоступна');
+ if(requestedKind&&source.kind!==requestedKind)throw Error('Тип рецептуры изменился, обновите каталог');
+ if(!Array.isArray(rows)||!rows.length||rows.length>100)throw Error('Количество строк рецептуры должно быть от 1 до 100');
+ if(!Array.isArray(ingredients)||!Array.isArray(prefabs))throw Error('Не получен справочник компонентов');
+ const ingredientNames=new Map(ingredients.map(x=>[String(x.id),String(x.name||'').trim()]));
+ const prefabNames=new Map(prefabs.filter(p=>p.kind==='prefab').map(x=>[String(x.id),String(x.name||'').trim()]));
+ const lines=rows.map(x=>({
+  name:x.prefab_id!=null?(prefabNames.get(String(x.prefab_id))||''):(ingredientNames.get(String(x.ingredient_id))||''),
+  gross_g:n(x.gross_g),net_g:n(x.net_g)
+ }));
+ if(lines.some(x=>!x.name||x.gross_g==null||x.net_g==null||x.gross_g<0||x.net_g<0)){
+  throw Error('Не все компоненты и массы подтверждены: перенос остановлен');
+ }
+ if(!String(source.name||'').trim())throw Error('Название рецептуры не заполнено');
+ const blank=blankDoc(chosen.id),txt=x=>typeof x==='string'?x:'';
+ blank.title=String(source.name).trim().slice(0,180);
+ blank.category=txt(source.category)||'Блюда';
+ blank.yield_g=n(source.yield_g)>0?n(source.yield_g):null;
+ blank.lines=lines;
+ blank.fields={...blank.fields,
+  scope:txt(source.scope),raw:txt(source.raw_requirements),
+  process:txt(source.process),serving:txt(source.serving),
+  storage:txt(source.storage),quality:txt(source.quality),
+  allergens:txt(source.allergens),nutrition:txt(source.nutrition?.text),
+  developed:txt(source.developed_by)||blank.fields.developed||'',
+  approved:'',date:'',verified:'no',
+  source_recipe_id:Number(id),source_recipe_code:txt(source.code),
+  source_recipe_kind:source.kind,source_recipe_version:Number(source.version)||1,
+  source_recipe_name:txt(source.name),source_imported_at:new Date().toISOString()
+ };
+ blank.status='Черновик';blank.photo_data=null;
+ draft=blank;workingId=null;dirty=true;editorTab='main';
+ fillEditor();navigate('editor',true);
+ let banner=$('recipeImportedBanner');
+ if(!banner){
+  banner=document.createElement('div');banner.id='recipeImportedBanner';
+  banner.className='recipe-import-banner';banner.setAttribute('role','status');
+  document.querySelector('.page[data-view="editor"]')?.prepend(banner);
+ }
+ banner.textContent='ЧЕРНОВИК ИЗ РЕЦЕПТУРЫ '+(source.code||'#'+id)+
+  ' · '+lines.length+' ингредиентов/ПФ. Не утверждён и НЕ СОХРАНЁН. '+
+  'Проверь состав, брутто/нетто, выход, техпроцесс, аллергены, КБЖУ, безопасность и условия хранения. '+
+  'Добавь оригинальную фотографию и выбери нужный проект. Источник сохранён без изменений.';
+ try{
+  const url=new URL(location.href);
+  url.searchParams.delete('from_recipe');url.searchParams.delete('from_kind');
+  history.replaceState(history.state,'',url.href);
+ }catch{}
+ tell('Новый несохранённый черновик ТТК заполнен по исходной рецептуре.');
+ return true;
+}
+
 async function enter(){
  $('auth').hidden=true;$('shell').hidden=false;
  $('sideEmail').textContent=session?.user?.email||'Закрытый аккаунт';
@@ -102,7 +172,12 @@ async function enter(){
     const status=statuses[query.get('status')];
     if(status){$('docStatus').value=status;renderLibrary();}
   }
-  navigate(view,true);
+  let imported=false;
+  if(query.has('from_recipe')){
+   try{imported=await importRecipeDraftFromWorkspace(query.get('from_recipe'),query.get('from_kind')||'')}
+   catch(e){tell('Перенос не выполнен: '+errText(e),true)}
+  }
+  if(!imported)navigate(view,true);
  }catch(e){tell('Не удалось загрузить базу: '+errText(e),true);navigate('dashboard',true)}
 }
 const pageTitle={dashboard:'Обзор студии',projects:'Мои проекты',library:'Библиотека ТТК',editor:'Конструктор ТТК',templates:'Шаблоны документов',settings:'Настройки студии'};
