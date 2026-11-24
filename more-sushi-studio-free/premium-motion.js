@@ -124,16 +124,10 @@
      return;
    }
    if(revision){
-     const heading=[]; // Critical header, nav and KPI labels stay fully legible at all times
-     let list=[];
-     if(view==='summary')list=select('#view-summary .sectionheading h2,#view-summary .sectionheading .desc,#view-summary .summarytile strong,#view-summary .summarytile .hint,#view-summary .summarytile .numbers span');
-     if(view==='revision')list=select('#view-revision #formtitle,#view-revision #formdesc,#view-revision #rows .itemname,#view-revision .card h2,#view-revision .card .desc');
-     if(view==='history')list=select('#view-history h2,#view-history h3,#view-history .desc,#view-history .historyitem strong,#view-history .historyitem small');
-     if(view==='products')list=select('#view-products h2,#view-products h3,#view-products .desc,#view-products #productsrows .itemname');
-     // Intentional gradual typewriter across visible categories and cards.
-     // Never animate inputs/buttons; avoid delaying user interaction.
-     typeBatch([...heading,...list],{speed:83,stagger:120,cap:24});
-     schedule(()=>{for(const job of [...jobs])release(job)},2150);
+     // Inventory reports must be readable instantly. The slow typewriter made product
+     // names, dates and currency totals temporarily appear truncated on Android.
+     // Preserve the approved cinematic launch screen, but never type live work data.
+     cancel();
      return;
    }
    if(studio){
