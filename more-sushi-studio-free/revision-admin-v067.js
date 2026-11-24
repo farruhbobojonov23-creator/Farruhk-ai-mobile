@@ -230,6 +230,47 @@ async function openEvents(id){
   }
  }catch(error){fail(panel,error)}
 }
+function restoreAllConfirm(records){
+ const owned=records.filter(raw=>raw.owner_id===owner()&&raw.deleted_at&&
+   Date.now()-Date.parse(raw.deleted_at)<30*86400000);
+ if(!owned.length)return status('В корзине нет доступных для восстановления ревизий');
+ const {panel,close}=overlay('Восстановить '+owned.length+' ревизий?');
+ subtitle(panel,'Все выбранные ревизии вернутся в историю и появятся в отчётах. Уже выполненные действия не будут повторяться.');
+ panel.append(el('div','rev067-warning','Подтверди массовое восстановление. Данные продуктов и цены не будут изменены.'));
+ const confirmation=field('Напиши ВОССТАНОВИТЬ','text','');
+ panel.append(confirmation.label);
+ const error=el('div','rev067-error');panel.append(error);
+ const buttons=el('div','rev067-form-actions'),cancel=btn('Отмена',close);
+ const submit=btn('♻ Восстановить все',async()=>{
+  error.textContent='';
+  if(confirmation.input.value.trim()!=='ВОССТАНОВИТЬ'){
+   error.textContent='Для подтверждения напиши ВОССТАНОВИТЬ';return
+  }
+  submit.disabled=true;cancel.disabled=true;
+  let completed=0,failed=0;
+  for(const raw of owned){
+   try{
+    const result=await rest('revision_audits',{
+      method:'PATCH',
+      query:'?id=eq.'+encodeURIComponent(raw.id)+'&revision_no=eq.'+
+          encodeURIComponent(raw.revision_no)+'&select=*',
+      body:{deleted_at:null}
+    });
+    if(!Array.isArray(result)||result.length!==1||result[0].id!==raw.id||result[0].deleted_at)
+       throw Error('Сервер не подтвердил восстановление');
+    const updated=storeRecord(result[0]);
+    state.history=state.history.filter(x=>x.id!==raw.id).concat([updated]);
+    completed++;
+   }catch(e){failed++;console.warn('Could not restore audit',raw.id,e)}
+  }
+  if(completed)updateUi();
+  close();
+  status('Восстановлено '+completed+' ревизий'+(failed?'; требует проверки: '+failed:''));
+  void trashList();
+ },'main');
+ buttons.append(cancel,submit);panel.append(buttons);
+}
+
 async function trashList(){
  if(!owner()||!adminVerified){status('Для корзины нужен доступ администратора');return}
  const {panel}=overlay('Корзина ревизий');
@@ -239,6 +280,10 @@ async function trashList(){
   const list=await rest('revision_audits',{query:'?deleted_at=not.is.null&select=*&order=deleted_at.desc&limit=100'});
   loading.remove();
   if(!Array.isArray(list)||list.length===0){panel.append(el('div','rev067-meta','Корзина пуста.'));return}
+  const accessible=list.filter(raw=>raw.owner_id===owner()&&raw.deleted_at&&Date.now()-Date.parse(raw.deleted_at)<30*86400000);
+  if(accessible.length>1){
+    const area=el('div','rev067-buttons');area.append(btn('♻ Восстановить все ('+accessible.length+')',()=>restoreAllConfirm(accessible),'main'));panel.append(area);
+  }
   for(const raw of list){
    if(raw.owner_id!==owner())continue;
    const r=storeRecord(raw),block=el('article','rev067-binitem');
