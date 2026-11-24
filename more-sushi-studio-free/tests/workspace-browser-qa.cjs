@@ -71,6 +71,10 @@ async function runView(browser,{width,height,label}){
  const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
  assert(scrollWidth<=width+1,label+' — нет горизонтальной прокрутки, ширина '+scrollWidth);
  const navRect=await page.locator('.bottomnav').boundingBox();
+ if(width<=480){
+  const menuHeight=await page.locator('.bottomnav').evaluate(el=>el.getBoundingClientRect().height);
+  assert(menuHeight<=71,label+' — мобильное меню компактное ('+menuHeight.toFixed(1)+'px)');
+ }
  checkWithinWidth(navRect,width,label+' — нижнее меню в пределах экрана');
  const logoRect=await page.locator('.brand-identity').boundingBox();
  checkWithinWidth(logoRect,width,label+' — шапка не обрезана');

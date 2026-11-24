@@ -716,3 +716,27 @@ body{
  .projects-grid .project-card.wide-project .project-top{margin-bottom:auto}
  .projects-grid .project-card.wide-project .project-illustration{width:78%;height:75%;right:-7px;top:6px}
 }
+
+/* 1.6.2 — refinement from actual Android screenshots.
+   The Android native bar at the very top belongs to the installed APK,
+   and cannot be deleted from web CSS. Only the website's OWN nav is sized.
+   Keep all five existing buttons, icons and click handlers. */
+@media(max-width:480px){
+ .bottomnav{
+  min-height:56px;width:calc(100% - 18px);
+  bottom:max(4px,env(safe-area-inset-bottom));
+  padding:3px;gap:3px;border-radius:18px;
+ }
+ .navitem{
+  min-height:49px;padding:4px 1px;gap:1px;
+  border-radius:14px;font-size:10px;
+ }
+ .navitem svg{width:20px;height:20px}
+ .navitem span{font-size:9px;line-height:1.15}
+ .workspace-root{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
+ .project-card .project-copy{border-left-width:2px}
+}
+@media(max-width:360px){
+ .bottomnav{width:calc(100% - 10px)}
+ .navitem span{font-size:8.5px}
+}
