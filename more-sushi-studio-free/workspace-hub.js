@@ -10,6 +10,18 @@ const tabs=new Set(['home','projects','ttk','tools','more']);
 // The standalone Android shell keeps all HTTPS projects in the SAME native
 // WebView using top-level navigation (cross-origin iframe restrictions remain).
 const insideNative=/\bFarruhWorkspaceNative\/1\.\d+\b/.test(navigator.userAgent);
+
+// Android FARRUH WORKSPACE has ONE update button in its main screen.
+// Only our own /mobile.html may ask the native shell to check the APK.
+if(insideNative){
+ document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-ocean-refresh]');
+  if(!button||!app.contains(button))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  location.assign('farruhworkspace://update');
+ },true);
+}
+
 const defaults=[
  {id:'more',name:'MORE SUSHI STUDIO',desc:'ТТК · Рецептуры · Каталог · PDF',url:'./index.html?ocean=1',color:'ruby',symbol:'wc-fish'},
  {id:'ai',name:'FARRUH AI',desc:'ИИ-помощник шеф-повара',url:'https://farruhk-ai-mobile.onrender.com/',color:'charcoal',symbol:'wc-a'},
