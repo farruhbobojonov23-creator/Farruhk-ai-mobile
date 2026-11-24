@@ -105,6 +105,12 @@ function renderCard(p,{wide=false,edit=false}={}){
  const logo=document.createElement('span');logo.className='project-logo';
  if(typeof p.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(p.logo)&&p.logo.length<140000){
    const img=document.createElement('img');img.src=p.logo;img.alt='';logo.appendChild(img);
+ }else if(edit && defaults.some(project=>project.id===p.id)){
+   const img=document.createElement('img');
+   img.src='./alabaster/'+(p.id==='kitchen'?'kitchen-book':p.id)+'.webp';
+   img.alt='';
+   logo.classList.add('art-logo');
+   logo.appendChild(img);
  }else if(p.symbol){logo.appendChild(icon(p.symbol))}
  else {logo.textContent=p.label||p.name.slice(0,2).toUpperCase()}
  const fav=document.createElement('button');fav.type='button';fav.className='project-fav'+(favorites.includes(p.id)?' is-favorite':'');
