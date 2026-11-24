@@ -139,7 +139,7 @@
  function progress(){
   if(!el('rev054Flow'))return;
   const d=inspectDraft(),pct=d.total?Math.round(100*d.done/d.total):0,first=d.start;
-  const header=first?'Шаг 1. Зафиксируй начальные остатки':'Шаг 2. Сверь Frontpad со складом';
+  const header=first?'Шаг 1. Зафиксируй начальные остатки':'Шаг 3. Сверь Frontpad со складом';
   flow.innerHTML='<div class="rev054-flow-top"><span class="rev054-flow-eyebrow">'+
    (first?'НАЧАЛЬНАЯ РЕВИЗИЯ':'ПОВТОРНАЯ РЕВИЗИЯ')+' · ЧЕРНОВИК</span>'+
    '<strong>'+esc(selection())+'</strong></div>'+
@@ -403,6 +403,8 @@
  if(help)help.innerHTML='<b>Начальная ревизия:</b> внеси фактические остатки, сохрани и выровняй их во Frontpad.<br><br>'+
   '<b>Повторная:</b> введи учёт из Frontpad и фактический вес. Сохрани — и результат попадёт в историю.<br><br>'+
   '<b>ПФ +20%:</b> процент прибавляется только к весу полуфабрикатов, когда правило включено для продукта.';
+ const tip=el('draftSaveInfo');
+ if(tip)tip.textContent='Черновик сохраняется на этом устройстве. Чтобы добавить результаты в историю, нажми «Сохранить». Учёт Frontpad вводится вручную или из CSV.';
  const toolbar=el('view-revision')?.querySelector('.tablewrap + .row');
  const saveButton=toolbar?.querySelector('button[onclick="saveRevision()"]');
  if(saveButton)saveButton.lastChild.textContent='Проверить и сохранить';
@@ -410,7 +412,7 @@
  if(clearButton)clearButton.title='Очищает только незавершённый ввод, не историю';
  const oldInfo=showRevisionInfo;
  showRevisionInfo=function(){
-  notice('FARUKH REVISION PRO 0.5.4 · Пошаговая ревизия, ясные итоги, CSV-учёт, настройки ПФ. Заставка сохранена, рабочие названия больше не печатаются по буквам.');
+  notice('FARUKH REVISION PRO 0.5.5 · Пошаговая ревизия, ясные итоги, CSV-учёт, настройки ПФ. Заставка сохранена, рабочие названия больше не печатаются по буквам.');
  };
  if(el('view-summary'))renderSummary();
  if(el('view-products'))renderProducts();
