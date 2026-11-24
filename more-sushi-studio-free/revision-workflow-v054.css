@@ -206,3 +206,17 @@
 .android-premium.revision-crimson #view-revision .product-heading small{font-size:10px!important;line-height:1.35!important}
 .android-premium.revision-crimson #view-revision .rev-field label{font-size:11px!important}
 .android-premium.revision-crimson #view-revision .product-total{font-size:15px!important}
+
+/* Revision 0.5.5: history belongs to the History tab, not below the edit form. */
+.android-premium #view-revision .recent-audits{display:none!important}
+.android-premium .rev055-history-note{
+ font-size:12px;line-height:1.55;color:#d9c3a3;
+ background:#1b2636;border:1px solid #5c4d43;border-radius:12px;
+ padding:10px 13px;margin:6px 0 12px;
+}
+.android-premium .rev053-money{max-width:42%;overflow-wrap:break-word}
+.android-premium .rev053-money b{line-height:1.5}
+@media (max-width:720px){
+ .android-premium #view-revision .grid aside{margin-top:9px}
+ .android-premium #view-revision .rev-help{margin-bottom:0!important}
+}
