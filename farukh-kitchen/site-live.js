@@ -90,3 +90,24 @@ window.addEventListener('pagehide',async()=>{
  }
 });
 applySiteConfig().catch(()=>console.warn('CHEF AKA: public site config offline, existing design preserved'));
+
+// Pin the project's existing section controls in the Android Workspace.
+if (navigator.userAgent.includes('FarruhWorkspaceNative/')) {
+  const style = document.createElement('style');
+  style.textContent = `@media screen and (max-width: 960px) {
+    body:has(#fkMenuLinks) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    .fk-nav:has(#fkMenuLinks) {
+      position: sticky; top: 0; backdrop-filter: none; -webkit-backdrop-filter: none; background: #091c29;
+    }
+    .fk-nav:has(#fkMenuLinks) .fk-menu { display: none; }
+    .fk-nav #fkMenuLinks {
+      position: fixed; inset: auto 0 0; width: 100%; max-width: none; box-sizing: border-box;
+      display: flex; flex-flow: row nowrap; align-items: center; justify-content: flex-start;
+      gap: 8px; overflow-x: auto; padding: 6px 12px max(6px, env(safe-area-inset-bottom));
+      margin: 0; background: #091c29; border-top: 1px solid var(--fk-line); z-index: 25;
+    }
+    .fk-nav #fkMenuLinks > a { flex: none; margin: 0; padding: 13px 10px; white-space: nowrap; border-bottom: 0; }
+ 
+  }`;
+  document.head.append(style);
+}
