@@ -62,12 +62,17 @@ self.addEventListener('fetch',event=>{
     return offlineFallback(cache,request,url);
    }finally{clearTimeout(timer)}
   }
-  const saved=await cache.match(request);
-  if(saved)return saved;
+  // Code and CSS change during development even when filenames stay the
+  // same. Always prefer FRESH network assets; use cached copy only offline.
+  // A cache-first policy would silently keep obsolete save/delete handlers.
+  if(self.navigator?.onLine===false)return offlineFallback(cache,request,url);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),1500);
   try{
-   const res=await fetch(request);
-   if(res.ok)await cache.put(request,res.clone()).catch(()=>{});
+   const res=await fetch(request,{signal:controller.signal});
+   if(!res.ok)throw Error('HTTP '+res.status);
+   await cache.put(request,res.clone()).catch(()=>{});
    return res;
   }catch{return offlineFallback(cache,request,url)}
+  finally{clearTimeout(timer)}
  })());
 });
