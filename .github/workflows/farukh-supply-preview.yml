@@ -4,6 +4,7 @@ on:
     branches: ['feature/farukh-supply-ai']
     paths:
       - 'supply-android/**'
+      - 'supply/**'
       - '.github/workflows/farukh-supply-preview.yml'
 jobs:
   build:
