@@ -197,3 +197,12 @@
  .rev054-guide,.rev054-flow,.rev054-final,.rev054-dialog,.rev054-catalog-intro,.rev054-edit-pf{display:none!important}
  body.revision-crimson.view-revision #view-revision .tablewrap + .row{display:none!important}
 }
+
+/* Positive balance must not look like a red shortage. */
+.android-premium.revision-crimson #view-revision .rev054-surplus .product-total,
+.android-premium.revision-crimson #view-revision .rev054-match .product-total{color:#6de2b4!important}
+.android-premium.revision-crimson #view-revision .rev054-shortage .product-total{color:#ff7896!important}
+.android-premium.revision-crimson #view-revision .product-heading strong{font-size:14px!important;line-height:1.25!important}
+.android-premium.revision-crimson #view-revision .product-heading small{font-size:10px!important;line-height:1.35!important}
+.android-premium.revision-crimson #view-revision .rev-field label{font-size:11px!important}
+.android-premium.revision-crimson #view-revision .product-total{font-size:15px!important}
