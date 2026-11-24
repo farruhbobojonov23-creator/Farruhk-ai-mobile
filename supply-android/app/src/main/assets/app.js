@@ -39,3 +39,6 @@ $('ocrApply').onclick=()=>{const r=window.supplyInvoiceParser.parse($('ocrText')
 
 // A WebView reload must never silently discard a form being edited.
 document.querySelector('.update').addEventListener('click',e=>{if(!$('entry').classList.contains('hide')&&!window.confirm('Несохранённая накладная может быть потеряна при обновлении. Продолжить?'))e.preventDefault();});
+
+// Avoid discarding unsaved invoice edits when an update reloads the interface.
+document.querySelector('a.update').addEventListener('click',e=>{if(!$('entry').classList.contains('hide')&&!window.confirm('Обновление закроет текущую форму. Несохранённые изменения будут потеряны. Продолжить?'))e.preventDefault();});
