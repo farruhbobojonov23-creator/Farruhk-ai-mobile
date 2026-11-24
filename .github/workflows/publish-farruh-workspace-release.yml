@@ -58,7 +58,8 @@ jobs:
         run: |
           set -euo pipefail
           APK=farruh-workspace-android/app/build/outputs/apk/release/app-release.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/workspace-cert.txt"
+          grep -Fx 'Signer #1 certificate SHA-256 digest: a4e2fd788924de47bc2a439671b25835064fc74ec76e6031a2b3cc94a35c84d8' "$RUNNER_TEMP/workspace-cert.txt"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep "package: name='ai.farukh.workspace'"
       - name: Publish signed APK and update manifest on the same secure host
         run: |
@@ -81,13 +82,13 @@ jobs:
             apkUrl:'https://more-sushi-studio.onrender.com/android-updates/'+basename,
             sha256:sha,notes:'Подписанная APK проверена. Установка поверх предыдущей релизной версии требует подтверждения Android.'
           };
-          fs.writeFileSync('more-sushi-studio-free/workspace-android-update.json',JSON.stringify(manifest,null,2)+'\n');
+          fs.writeFileSync('more-sushi-studio-free/workspace-stable-update.json',JSON.stringify(manifest,null,2)+'\n');
           console.log('Prepared native release version '+version+' ('+code+') with SHA256 digest; secret keystore not published.');
           NODE
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f more-sushi-studio-free/android-updates/workspace-v*.apk
-          git add more-sushi-studio-free/workspace-android-update.json
+          git add more-sushi-studio-free/workspace-stable-update.json
           git commit -m "release(android): publish signed Workspace APK and version manifest"
           git push origin HEAD:more-sushi-studio-free
       - name: Archive verified signed APK
