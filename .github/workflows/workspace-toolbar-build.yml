@@ -1,7 +1,8 @@
 name: Build Workspace toolbar update
 on:
-  push:
-    branches: [workspace-project-toolbar-1.3.5]
+  pull_request:
+    branches: [more-sushi-studio-free]
+    paths: [farruh-workspace-android/**, .github/workflows/workspace-toolbar-build.yml]
 permissions:
   contents: read
 jobs:
