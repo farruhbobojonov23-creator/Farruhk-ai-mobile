@@ -11,9 +11,9 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 import java.io.*;
 import java.util.Locale;
 final class InvoiceOcr {
- private static final int MAX_SIDE=2400, MAX_PAGES=10;
+ private static final int MAX_SIDE=3200, MAX_PAGES=10;
  private static File prepare(Context context)throws IOException{
-  File base=new File(context.getFilesDir(),"ocr-v1"),data=new File(base,"tessdata");
+  File base=new File(context.getFilesDir(),"ocr-v2"),data=new File(base,"tessdata");
   if(!data.isDirectory()&&!data.mkdirs())throw new IOException("OCR directory");
   for(String lang:new String[]{"rus","eng"}){
    File dst=new File(data,lang+".traineddata");
@@ -45,10 +45,41 @@ final class InvoiceOcr {
     opt.inJustDecodeBounds=false;try(InputStream in=context.getContentResolver().openInputStream(uri)){image=BitmapFactory.decodeStream(in,null,opt);}
    }
    if(image==null)throw new IOException("Image");
-   try{return text(tess,image);}finally{image.recycle();}
+   try{
+    Bitmap prepared=prepareImage(image);
+    try{return text(tess,prepared);}finally{if(prepared!=image)prepared.recycle();}
+   }finally{image.recycle();}
   }finally{tess.recycle();}
  }
- private static String text(TessBaseAPI tess,Bitmap b){tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
+ private static String text(TessBaseAPI tess,Bitmap b){tess.setVariable("preserve_interword_spaces","1");tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
+ // Remove dark screenshot margins only if a broad, continuous white document region is found.
+ private static Bitmap prepareImage(Bitmap image){
+  int w=image.getWidth(),h=image.getHeight(),start=-1,bestStart=0,bestEnd=h,bestLength=0;
+  for(int y=0;y<h;y+=4){
+   int white=0,samples=0;
+   for(int x=w/10;x<w-w/10;x+=Math.max(1,w/70)){
+    int c=image.getPixel(x,y);if(android.graphics.Color.red(c)>190&&android.graphics.Color.green(c)>190&&android.graphics.Color.blue(c)>190)white++;samples++;
+   }
+   boolean paper=samples>0&&white>=samples*.72;
+   if(paper&&start<0)start=y;
+   if((!paper||y+4>=h)&&start>=0){int end=Math.min(h,y+4);if(end-start>bestLength){bestLength=end-start;bestStart=start;bestEnd=end;}start=-1;}
+  }
+  // Keep the full image unless the likely paper spans most of its height.
+  Bitmap region=image;
+  if(bestLength>h*.85&&bestLength<h*.94){
+   int top=Math.max(0,bestStart-24),bottom=Math.min(h,bestEnd+24);
+   region=Bitmap.createBitmap(image,0,top,w,bottom-top);
+  }
+  float scale=Math.min(2f,Math.max(1f,2800f/Math.max(region.getWidth(),region.getHeight())));
+  Bitmap gray=Bitmap.createBitmap(Math.round(region.getWidth()*scale),Math.round(region.getHeight()*scale),Bitmap.Config.ARGB_8888);
+  android.graphics.Canvas canvas=new android.graphics.Canvas(gray);canvas.drawColor(android.graphics.Color.WHITE);
+  android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
+  android.graphics.ColorMatrix matrix=new android.graphics.ColorMatrix();matrix.setSaturation(0);
+  android.graphics.ColorMatrix contrast=new android.graphics.ColorMatrix(new float[]{1.18f,0,0,0,-22,0,1.18f,0,0,-22,0,0,1.18f,0,-22,0,0,0,1,0});matrix.postConcat(contrast);
+  paint.setColorFilter(new android.graphics.ColorMatrixColorFilter(matrix));
+  canvas.drawBitmap(region,null,new android.graphics.Rect(0,0,gray.getWidth(),gray.getHeight()),paint);
+  if(region!=image)region.recycle();return gray;
+ }
  private static String pdf(Context context,Uri uri,TessBaseAPI tess)throws IOException{
   ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,"r");if(fd==null)throw new IOException("PDF");
   PdfRenderer renderer;try{renderer=new PdfRenderer(fd);}catch(Exception e){fd.close();throw new IOException("PDF renderer",e);}

@@ -54,10 +54,10 @@ jobs:
           dest=supply-android/app/src/main/assets/tessdata
           mkdir -p "$dest"
           for lang in rus eng; do
-            curl --retry 3 -fsSL "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/$lang.traineddata" -o "$dest/$lang.traineddata"
+            curl --retry 3 -fsSL "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/$lang.traineddata" -o "$dest/$lang.traineddata"
             test "$(wc -c < "$dest/$lang.traineddata")" -gt 100000
           done
-          curl --retry 3 -fsSL https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/LICENSE -o "$dest/LICENSE"
+          curl --retry 3 -fsSL https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/LICENSE -o "$dest/LICENSE"
       - name: Build test APK
         run: gradle -p supply-android :app:assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
