@@ -1,3 +1,5 @@
+(()=>{
+'use strict';
 const module={exports:{}};
 'use strict';
 // Confirmed invoice lines only. Monetary totals are gross (including VAT).
@@ -75,3 +77,5 @@ function potentialSaving(current,best,qty) {
 module.exports={quantity,linePrice,invoiceKey,observations,changes,compare,potentialSaving};
 
 window.supplyAnalytics=module.exports;
+
+})();
