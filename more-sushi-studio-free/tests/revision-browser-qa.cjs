@@ -155,6 +155,7 @@ async function test(browser){
  const queueCheck=await page.evaluate(()=>({queue:rev041Queue().length,marked:state.history.filter(r=>r.store==='Полярные Зори'&&r.pendingSync).length}));
  verify(queueCheck.queue===1&&queueCheck.marked===1,'cloud outage retains exactly one queued local audit');
 
+ if(await page.locator('.rev060-popup').count())await page.locator('.rev060-popup .btn').first().click();
  // Saved weekly data only; never display drafts or overwrite stored audit snapshots.
  await page.evaluate(()=>{
    state.history.push({
