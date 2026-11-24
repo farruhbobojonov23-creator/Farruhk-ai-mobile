@@ -13,7 +13,7 @@ if (navigator.userAgent.includes('FarruhWorkspaceNative/')) {
     html, body { overflow-x: clip; }
     body:has(.mobileQuickTabs) { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
     header:has(.mobileQuickTabs) {
-      position: sticky; top: 0; backdrop-filter: none; -webkit-backdrop-filter: none; background: #090909;
+      position: sticky; top: 0; contain: none; backdrop-filter: none; -webkit-backdrop-filter: none; background: #090909;
     }
     header .mobileQuickTabs {
       position: fixed; inset: auto 0 0; box-sizing: border-box;
