@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.6.0';
+const FARUKH_UI_RELEASE='0.6.1';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -2036,7 +2036,7 @@ historyItem=function(r){
  actions.appendChild(imp);
  if(!window.FarukhAndroid){
   const update=$('appUpdateBtn');
-  if(update){update.textContent='↻ Обновить веб-панель';update.onclick=()=>location.reload()}
+  if(update){update.textContent='↻ Обновить веб-панель';update.onclick=()=>{try{rev040Snapshot()}catch{}const u=new URL(location.href);u.searchParams.set('v',FARUKH_UI_RELEASE);u.searchParams.set('fresh',String(Date.now()));location.replace(u.toString())}}
  }
  rev041DisplayStatus('Локальные ревизии остаются на этом устройстве до облачного входа.');
 })();
@@ -2321,6 +2321,7 @@ document.addEventListener('DOMContentLoaded',function(){
  '.rev060-box .note{font-size:12px;color:#f0ca86}',
  '.rev060-edit{font-size:12px!important;min-height:39px!important;min-width:85px!important;padding:6px 10px!important}',
  '.rev060-product-price{display:block;margin:6px 0;color:#e4c481!important;font-size:12px;font-weight:750}',
+ ' .rev061-version{display:inline-block;margin-left:6px;padding:2px 4px;border:1px solid #526b89;border-radius:5px;color:#e6ce9b;font:700 9px/1.2 system-ui;vertical-align:middle;letter-spacing:0}',
  ' #view-products #rev061NewPrice{min-height:46px;border:1px solid #526b87;border-radius:12px;background:#0e1e32;color:#f6f9ff;min-width:0;padding:10px;font-size:14px}',
  '#rev057SaveBanner,#rev057HistoryReceipt,#rev058SaveState,#rev058HistoryState{display:none!important}',
  '#view-revision #rev054Final,#view-revision .rev054-flow-tools,#view-revision .rev056-switch-copy small,#view-revision .grid aside{display:none!important}',
@@ -2699,6 +2700,9 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
+ const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.1';
+ const headerBrand=document.querySelector('.brandword > b');
+ if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
  showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.0. Цены товаров сохраняются один раз, результаты по продуктам, надёжное сохранение с подтверждением.');};
 });
