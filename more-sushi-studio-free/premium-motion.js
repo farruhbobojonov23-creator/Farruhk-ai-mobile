@@ -184,7 +184,14 @@
    }
    const initial=revision?'summary':mobile?(root.dataset.mssTab||'home'):'studio';
    const overlay=document.getElementById('premiumBoot');
-   if(!overlay||reduced){
+   // Preserve the approved cinematic welcome on the FIRST entry only.
+   // An app switching back from another section should not block work for 4 sec.
+   let alreadySeen=false;
+   if(revision){
+     try{alreadySeen=sessionStorage.getItem('farukh-revision-boot-seen-v068')==='1'}catch{}
+   }
+   const replay=revision&&new URL(location.href).searchParams.has('_replay');
+   if(!overlay||reduced||(revision&&alreadySeen&&!replay)){
      overlay?.remove();
      schedule(()=>runView(initial),170);
      return;
@@ -194,6 +201,7 @@
    const close=()=>{
      if(finished)return;
      finished=true;
+     if(revision)try{sessionStorage.setItem('farukh-revision-boot-seen-v068','1')}catch{}
      overlay.classList.add('is-leaving');
      const finish=()=>{overlay.remove();runView(revision?'summary':mobile?(root.dataset.mssTab||'home'):'studio')};
      // Splash cleanup must not be cancelled by a background visibility event.
