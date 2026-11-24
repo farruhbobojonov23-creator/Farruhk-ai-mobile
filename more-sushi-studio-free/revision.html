@@ -1201,7 +1201,7 @@ body.android-premium.revision-compact.revision-crimson.native-insets{padding-top
     position:static!important;box-shadow:none!important;
   }
 }
-</style><link rel="stylesheet" href="./revision-integrity-v053.css?v=0.5.3"><link rel="stylesheet" href="./revision-workflow-v054.css?v=0.5.5"><link rel="stylesheet" href="./revision-fast-entry-v056.css?v=0.5.6"></head><body class="android-premium revision-compact revision-crimson view-summary">
+</style><link rel="stylesheet" href="./revision-integrity-v053.css?v=0.5.3"><link rel="stylesheet" href="./revision-workflow-v054.css?v=0.5.5"><link rel="stylesheet" href="./revision-fast-entry-v056.css?v=0.5.6"><link rel="stylesheet" href="./revision-save-feedback-v057.css?v=0.5.7"></head><body class="android-premium revision-compact revision-crimson view-summary">
 <div id="premiumBoot" data-variant="revision" role="status" aria-label="Заставка FARUKH REVISION PRO">
  <div class="premium-boot-content">
   <div class="premium-boot-medal" aria-hidden="true"><img src="./farukh-revision-logo.svg?v=neon-1" alt=""></div>
@@ -1382,6 +1382,9 @@ function changeMode(){clearForm();renderRows();calculate()}
 function refresh(){clearForm();renderRows();renderHistory();renderSummary();calculate()}
 function renderRows(){const start=currentMode()==='start';$('formtitle').textContent=start?'Начальная ревизия':'Еженедельная сверка';$('formdesc').textContent=start?'Взвесь продукты и зафиксируй фактические остатки. Расхождения на старте не рассчитываются.':'Внеси остаток по учёту и фактический вес, чтобы увидеть разницу.';$('modebadge').textContent=start?'Начало контроля':'Сверка';$('modebadge').className=start?'tag start':'tag';$('programheading').textContent=start?'Учёт':'Учёт, кг';$('rows').innerHTML=state.products.map((p,i)=>{const v=getDraft(p);return `<tr data-product="${safe(p)}"><td><span class="itemname">${safe(p)}</span><span class="hint">Позиция ${i+1}</span></td><td>${start?'<span class="muted small">После ввода факта<br>установить вручную</span>':`<input class="numinput" data-field="program" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.program)}" aria-label="Остаток по учёту: ${safe(p)}">`}</td><td><input class="numinput" data-field="actual" type="text" inputmode="decimal" placeholder="0,000" value="${safe(v.actual)}" aria-label="Факт: ${safe(p)}"></td><td class="delta" id="delta-${i}">${start?'—':'Нет данных'}</td><td><input class="numinput price" data-field="price" type="text" inputmode="decimal" placeholder="₽/кг" value="${safe(v.price)}" aria-label="Цена за кг: ${safe(p)}"></td></tr>`}).join('');document.querySelectorAll('#rows input').forEach(el=>el.addEventListener('input',()=>{syncDraft();calculate()}));calculate()}
 function calculate(){const start=currentMode()==='start';let shortage=0,surplus=0,match=0,checked=0,unpriced=0;state.products.forEach((p,i)=>{const v=getDraft(p);const actual=v.actual===''?null:number(v.actual);const program=v.program===''?null:number(v.program);const price=v.price===''?null:number(v.price);const valid=actual!==null&&(start||program!==null);if(valid)checked++;const span=$('delta-'+i);if(!span)return;if(start){span.textContent='—';span.className='delta';return}if(!valid){span.textContent='Нет данных';span.className='delta muted';return}const diff=Math.round((actual-program)*1000)/1000;if(diff!==0&&price===null)unpriced++;if(diff<0)shortage+=-diff*(price??0);if(diff>0)surplus+=diff*(price??0);if(diff===0)match++;span.textContent=(diff>0?'+':'')+fmt(diff,3)+' кг';span.className='delta '+(diff>0?'green':diff<0?'red':'blue')});$('short').textContent=start?'—':fmt(shortage)+' ₽';$('surplus').textContent=start?'—':fmt(surplus)+' ₽';$('matches').textContent=start?'—':match+' / '+state.products.length;$('checked').textContent=checked+' / '+state.products.length;$('priceNote').classList.toggle('hide',start||unpriced===0)}
+async function confirmSaveRevision(message){
+ return typeof window.rev057Confirm==='function'?await window.rev057Confirm(message):window.confirm(message);
+}
 let savingRevision=false;
 async function saveRevision(){
  if(savingRevision)return;
@@ -1394,7 +1397,7 @@ async function saveRevision(){
   products.push({name:p,program,actual,price,diff:Math.round((actual-program)*1000)/1000});
  }
  if(!state.products.length){notice('Добавь хотя бы один продукт');return}
- if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?'))return;
+ if(!(await confirmSaveRevision('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?')))return;
  const r={id:(crypto.randomUUID?.()||String(Date.now())),timestamp:Date.now(),date:$('when').value,store:currentStore(),type:start?'start':'weekly',products,operator:$('operator').value.trim()};
  savingRevision=true;
  if(cloudEnabled){
@@ -1451,7 +1454,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.5.6';
+const FARUKH_UI_RELEASE='0.5.7';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1586,7 +1589,7 @@ saveRevision=async function(){
    products.push({name,program,actual,raw,pf,loss:visibleRule(name),price,diff:Math.round((actual-program)*1000)/1000});
  }
  if(!state.products.length){notice('Добавь хотя бы один продукт');return}
- if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?'))return;
+ if(!(await confirmSaveRevision('Сохранить '+(start?'начальную':'повторную')+' ревизию по точке «'+currentStore()+'»?')))return;
  const r={id:(crypto.randomUUID?.()||String(Date.now())),timestamp:Date.now(),date:$('when').value,store:currentStore(),type:start?'start':'weekly',products,operator:$('operator').value.trim()};
  savingRevision=true;
  if(cloudEnabled){
@@ -1969,7 +1972,7 @@ saveRevision=async function(){
    loss:visibleRule(name),diff:Math.round((actual-program)*1000)/1000});
  }
  if(!products.length){notice('Добавь хотя бы один продукт');return}
- if(!confirm('Сохранить '+(start?'начальную':'повторную')+' ревизию для «'+currentStore()+'»?'))return;
+ if(!(await confirmSaveRevision('Сохранить '+(start?'начальную':'повторную')+' ревизию для «'+currentStore()+'»?')))return;
  const r={id:crypto.randomUUID(),timestamp:Date.now(),date:$('when').value,store:currentStore(),
   type:start?'start':'weekly',operator:$('operator').value.trim(),products};
  savingRevision=true;
@@ -2053,4 +2056,4 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 
-</script><script defer src="./revision-integrity-v053.js?v=0.5.5"></script><script defer src="./revision-workflow-v054.js?v=0.5.5"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
+</script><script defer src="./revision-integrity-v053.js?v=0.5.5"></script><script defer src="./revision-workflow-v054.js?v=0.5.5"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-save-feedback-v057.js?v=0.5.7"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
