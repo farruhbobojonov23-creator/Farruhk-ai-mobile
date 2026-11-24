@@ -1457,7 +1457,7 @@ $('when').value=today();go('summary',document.querySelector('.menu button'));ren
  * Native side must download to app cache, verify the hash, and invoke Android PackageInstaller.
  */
 const FARUKH_UPDATES_MANIFEST='https://farukh-revision-updates.onrender.com/revision-app/latest.json';
-const FARUKH_UI_RELEASE='0.6.7';
+const FARUKH_UI_RELEASE='0.6.8';
 async function checkAppUpdate(){
   const b=document.getElementById('appUpdateBtn');
   const status=document.getElementById('appUpdateStatus');
@@ -1921,10 +1921,36 @@ tryResumeCloud=async function(){
   cloudExpires=Number(t.expires_at)||0;
   await loadCloud();
  }catch(e){
-  // Never delete local records or the owner's Studio session on a network failure.
-  cloudEnabled=false;
-  setCloudBadge('● Нет связи — локальные данные сохранены',false);
-  rev041DisplayStatus('Проверь интернет и войди снова; история не удалена');
+  // Restore the owner's previously synced catalogue from THIS device,
+  // not somebody else's account, and retain the account-bound upload queue.
+  // Otherwise a cold offline start would silently switch to local-only mode,
+  // trapping audits outside the automatic cloud synchronization flow.
+  let resumedOffline=false;
+  const uid=rev041Account();
+  if(uid){
+   try{
+    const cached=JSON.parse(localStorage.getItem('farukh-revision-cloud-cache-v041-'+uid)||'null');
+    if(cached&&Array.isArray(cached.products)&&cached.products.length&&
+       Array.isArray(cached.history)&&Array.isArray(cached.catalogue)){
+     const history=cached.history.filter(x=>x&&!x.deletedAt&&Array.isArray(x.products));
+     const present=new Set(history.map(x=>x.id));
+     const pending=rev041Queue().filter(x=>!present.has(x.id)).map(x=>({...x,pendingSync:true}));
+     state={products:cached.products,history:history.concat(pending)};
+     rev041Catalogue=new Map(cached.catalogue);
+     cloudEnabled=true;resumedOffline=true;
+     setCloudBadge('● Офлайн — сохранение в очередь',false);
+     rev041DisplayStatus('Нет сети: новые ревизии будут сохранены в очередь пользователя');
+     if(typeof rev040Switch==='function')rev040Switch();
+     else{renderRows();renderHistory();renderSummary()}
+     renderProducts();
+    }
+   }catch(cacheError){console.warn('Offline cache was not readable',cacheError)}
+  }
+  if(!resumedOffline){
+   cloudEnabled=false;
+   setCloudBadge('● Нет связи — локальный режим',false);
+   rev041DisplayStatus('Проверь интернет. Облачный каталог пока недоступен');
+  }
  }
 };
 async function rev041SyncNow(){
@@ -2729,11 +2755,18 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('rows')?.addEventListener('input',()=>{if(!isBusy){resetState();scheduleReport()}});
  document.getElementById('store')?.addEventListener('change',()=>{resetState();renderReport()});
  document.getElementById('mode')?.addEventListener('change',()=>{resetState();renderReport()});
- const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.7';
+ const buildTag=document.createElement('span');buildTag.className='rev061-version';buildTag.textContent='UI 0.6.8';
  const headerBrand=document.querySelector('.brandword > b');
  if(headerBrand&&!headerBrand.querySelector('.rev061-version'))headerBrand.appendChild(buildTag);
  renderProducts();renderRows();renderHistory();renderReport();resetState();
- showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.7. Редактирование ревизий, история изменений и корзина с восстановлением 30 дней.');};
+ showRevisionInfo=function(){notice('FARUKH REVISION PRO · интерфейс 0.6.8. Быстрый повторный запуск, офлайн-режим с очередью и редактирование с защитой данных.');};
 });
 
+</script><script>
+(function(){
+ if(!('serviceWorker' in navigator)||location.protocol!=='https:')return;
+ const install=()=>navigator.serviceWorker.register('./revision-sw-v068.js?v=0.6.8',{scope:'./'}).catch(e=>console.warn('Offline shell unavailable',e));
+ if('requestIdleCallback' in window)requestIdleCallback(install,{timeout:1800});
+ else setTimeout(install,350);
+})();
 </script><script defer src="./revision-integrity-v053.js?v=0.5.8"></script><script defer src="./revision-workflow-v054.js?v=0.5.8"></script><script defer src="./revision-fast-entry-v056.js?v=0.5.6"></script><script defer src="./revision-store-table-v063.js?v=0.6.3"></script><script defer src="./revision-chef-overview-v065.js?v=0.6.5"></script><script defer src="./revision-admin-v067.js?v=0.6.7"></script><script defer src="./premium-motion.js?v=8.4.5"></script><script defer src="./revision-neon-boot.js?v=neon-1"></script></body></html>
