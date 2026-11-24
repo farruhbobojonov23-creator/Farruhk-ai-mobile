@@ -2250,6 +2250,11 @@ document.addEventListener('DOMContentLoaded',function(){
   const remote=typeof rev041Catalogue==='object'&&rev041Catalogue?.get(name);
   const raw=remote?.price_per_unit_rub;
   if(raw!==null&&raw!==undefined&&raw!==''&&Number.isFinite(Number(raw))&&Number(raw)>=0)return Number(raw);
+  // Preserve prices already typed in unfinished drafts until the owner saves them
+  // to the shared product catalogue; never silently discard weighing work.
+  const old=draft?.[name]?.price;
+  if(old!==''&&old!==undefined&&old!==null&&Number.isFinite(Number(old))&&Number(old)>=0)return Number(old);
+  if(cloudEnabled && remote)return null;
   const local=localPrices()[name];
   return local===null||local===undefined||local===''||!Number.isFinite(Number(local))?null:Number(local);
  }
@@ -2330,6 +2335,7 @@ document.addEventListener('DOMContentLoaded',function(){
  '.rev060-history-table th,.rev060-history-table td{padding:8px 4px;border-bottom:1px solid #33465d;text-align:right}',
  '.rev060-history-table td:first-child,.rev060-history-table th:first-child{text-align:left}',
  '@media(max-width:720px){.rev060-table th{font-size:9px!important}.rev060-table td{font-size:10px!important}.rev060-report{padding:11px}.rev060-total b{font-size:14px!important}}',
+ "\n@media(max-width:720px){\n #view-revision .rev060-table thead{display:none!important}\n #view-revision .rev060-table tbody{display:block!important}\n #view-revision .rev060-table tr{\n  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;\n  gap:2px 8px!important;margin:0 0 9px!important;\n  background:#111d30!important;border:1px solid #3b4e67!important;\n  border-radius:11px!important;padding:9px!important\n }\n #view-revision .rev060-table td{\n  display:block!important;text-align:left!important;min-width:0!important;\n  border-bottom:0!important;padding:3px!important;font-size:11px!important\n }\n #view-revision .rev060-table td:first-child{grid-column:1 / -1;width:100%!important;font-size:13px!important}\n #view-revision .rev060-table td:nth-child(2),#view-revision .rev060-table td:nth-child(3){grid-column:span 2}\n #view-revision .rev060-table td:nth-child(4),#view-revision .rev060-table td:nth-child(5),#view-revision .rev060-table td:nth-child(6){grid-column:span 1}\n #view-revision .rev060-table td:nth-child(6){grid-column:span 2;font-weight:900}\n #view-revision .rev060-table td:not(:first-child):before{\n  content:attr(data-label);display:block;color:#9db1c9;font-size:9px;line-height:1.35;margin-bottom:2px\n }\n}\n",
  '@media print{.rev060-save,.rev060-more,.rev060-popup,.rev060-edit{display:none!important}}'
  ].join('\n');
  document.head.appendChild(style);
@@ -2354,7 +2360,7 @@ document.addEventListener('DOMContentLoaded',function(){
   const small=document.createElement('small');small.textContent=desc;
   indicator.append(strong,small);
  }
- function modal({title,body,inputs=[],acceptText='Подтвердить',onAccept,extra=null}){
+ function modal({title,body,inputs=[],acceptText='Подтвердить',onAccept,extra=null,onDelete=null}){
   let resolve;
   const promise=new Promise(r=>resolve=r);
   const wrap=document.createElement('div');wrap.className='rev060-popup';
@@ -2381,7 +2387,21 @@ document.addEventListener('DOMContentLoaded',function(){
    if(onAccept){yes.disabled=true;try{const res=await onAccept(refs,box);if(res!==false)close(true)}catch(err){const msg=document.createElement('p');msg.className='note';msg.textContent=String(err?.message||err);box.append(msg)}finally{yes.disabled=false}}
    else close(true)
   };
-  acts.append(cancel,yes);box.append(acts);wrap.append(box);document.body.append(wrap);
+  acts.append(cancel,yes);box.append(acts);
+  if(onDelete){
+   const danger=document.createElement('button');danger.type='button';danger.className='btn soft';
+   danger.textContent='⋯ Убрать товар из новых ревизий';
+   danger.style.cssText='margin-top:15px;width:100%;font-size:11px;opacity:.75';
+   danger.addEventListener('click',async()=>{
+    const accepted=await modal({title:'Убрать товар?',body:'Товар будет скрыт только в будущих ревизиях. Старая история сохранится.',acceptText:'Да, убрать'});
+    if(!accepted)return;
+    try{await onDelete();close(true)}catch(error){
+     const note=document.createElement('p');note.className='note';note.textContent='Не удалено: '+String(error.message||error);box.append(note);
+    }
+   });
+   box.append(danger);
+  }
+  wrap.append(box);document.body.append(wrap);
   document.addEventListener('keydown',escClose);yes.focus();
   return promise;
  }
@@ -2413,6 +2433,9 @@ document.addEventListener('DOMContentLoaded',function(){
   (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.shortRub)+'</small>')+'</div>'+
   '<div>🟢 Излишек<b class="green">+ '+kg(d.longKg)+'</b>'+
   (d.missingPrice?'<small>Цена не для всех</small>':'<small>'+money(d.longRub)+'</small>')+'</div></div>');
+  result.querySelectorAll('tbody tr').forEach(tr=>{
+   [...tr.querySelectorAll('td')].forEach((td,i)=>td.dataset.label=['Товар','Учёт','Факт','± кг','Цена/кг','± ₽'][i]);
+  });
  }
  function resetState(){
   if(isBusy)return;
@@ -2523,6 +2546,7 @@ document.addEventListener('DOMContentLoaded',function(){
     {id:'percent',label:'Добавка к весу ПФ, %',type:'number',value:percent,step:'0.1'}
    ],
    acceptText:'Сохранить товар',
+   onDelete:async()=>{await deleteProduct(name)},
    onAccept:async refs=>{
     const s=refs.price.value.trim().replace(',','.');
     if(s!==''&&(!/^\d+(?:\.\d{1,2})?$/.test(s)||Number(s)>10000000))throw Error('Цена должна быть неотрицательным числом с точностью до копеек');
@@ -2559,7 +2583,8 @@ document.addEventListener('DOMContentLoaded',function(){
    const first=tr.querySelector('td:first-child'),actions=tr.querySelector('td:last-child');
    if(!first||!actions)continue;
    const price=document.createElement('small');price.className='rev060-product-price';
-   price.textContent='Цена: '+(priceFor(name)===null?'не указана':money(priceFor(name))+'/кг');
+   price.textContent='Цена: '+(priceFor(name)===null?'не указана':money(priceFor(name))+'/кг')+
+     (rev041Catalogue.get(name)?.price_per_unit_rub==null&&draft?.[name]?.price?' · из черновика':'');
    first.append(price);
    actions.replaceChildren();
    const btn=document.createElement('button');btn.className='btn soft rev060-edit';
