@@ -1,6 +1,6 @@
 <resources>
  <style name="WorkspaceTheme" parent="WorkspaceBase">
   <item name="android:windowSplashScreenBackground">#F6ECDD</item>
-  <item name="android:windowSplashScreenAnimatedIcon">@mipmap/workspace_launcher</item>
+  <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
  </style>
 </resources>

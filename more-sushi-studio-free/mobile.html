@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eee3d3">
-<meta name="mss-ui-build" content="farruh-workspace-1.10.1-20261124">
+<meta name="mss-ui-build" content="farruh-workspace-1.10.2-20261124">
 <meta name="description" content="FARRUH WORKSPACE PRO — единое рабочее пространство шеф-повара">
 <title>FARRUH WORKSPACE PRO — Главная</title>
 <link rel="icon" type="image/webp" sizes="512x512" href="./alabaster/workspace-porcelain.webp">
 <link rel="preload" as="image" href="./alabaster/full/more.webp?v=1.9.5" type="image/webp">
 <link rel="stylesheet" href="./workspace-command.css?v=1.9.9.2">
-<style>
+<script>try{if(navigator.userAgent.includes('FarruhLocalIntro/1')&&sessionStorage.getItem('hub-replay')!=='1')document.documentElement.classList.add('native-entrance')}</script>
+<style>.native-entrance #hubSplash{display:none!important}
 #hubSplash{background:radial-gradient(ellipse at 35% 20%,#fff9ef,#f4eadb 67%,#eee1cf);color:#483424;animation:porcelainFailsafe 12s step-end forwards}
 #hubSplash .pc-layout{width:min(84vw,390px);height:min(84%,750px);display:grid;grid-template-rows:minmax(0,1.35fr) auto minmax(0,.9fr) auto;align-items:center;justify-items:center;gap:min(1.8vh,14px);margin-bottom:42px}
 .pc-mark{width:100%;height:100%;object-fit:contain;animation:pcReveal 2.5s ease-out both}
@@ -80,7 +81,7 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
     </div>
     <div class="system-row">
       <div class="cloudbar system-card"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="cloudName">Проверяем облако MORE SUSHI…</strong><small id="cloudDesc">Подключение к данным студии ТТК</small></span><span class="system-dot" id="syncDot" aria-label="Состояние облака"></span></div>
-      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.10.1 · Алебастр и золото</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
+      <div class="system-card workspace-cloud-card" id="hubCloudState" data-state="login"><span class="system-icon"><svg><use href="#wc-cloud"/></svg></span><span class="system-text"><strong id="hubCloudTitle">Облако проектов</strong><small id="hubCloudDetail">Проверяем синхронизацию…</small></span><button type="button" class="small-update hub-cloud-action" id="hubCloudSyncNow" title="Сохранить проекты в облако">↻</button></div><div class="system-card update-card"><span class="system-icon"><svg><use href="#wc-refresh"/></svg></span><span class="system-text"><strong>Обновления</strong><small>Версия 1.10.2 · Алебастр и золото</small></span><button type="button" class="small-update ocean-refresh-btn" data-ocean-refresh><span class="refresh-symbol">↻</span><span class="ocean-refresh-label">Обновить</span></button></div>
     </div>
   </section>
   <section class="hub-panel" data-mss-panel="projects" id="mss-projects" hidden>
@@ -139,7 +140,7 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
      <input id="hubBackupFile" type="file" accept="application/json,.json" hidden aria-label="Выбрать файл резервной копии">
      <button type="button" class="settings-row" id="hubReplay"><img class="utility-art" src="./alabaster/actions/replay.webp?v=1.9.5" alt="" decoding="async"><span><strong>Повторить кинозаставку</strong><small>Плавное появление и печать названия</small></span><svg><use href="#wc-arrow"/></svg></button>
     </div>
-    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.10.1</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
+    <div class="about-hub"><b>FARRUH WORKSPACE PRO · 1.10.2</b><p>Единая оболочка для твоих проектов. Сервисы продолжают работать независимо и могут запрашивать собственный вход.</p></div>
   </section>
  </main>
  </div><!-- /workspace-scrollregion -->
@@ -179,9 +180,9 @@ html.hub-explicit-motion #hubSplash{animation:porcelainFailsafe 12s step-end for
  <div class="viewer-help">В этом окне открываются только совместимые сайты. Для остальных используется прямой переход; назад — кнопкой телефона.</div>
 </dialog>
 <div id="hubToast" class="hub-toast" hidden role="status" aria-live="polite"></div>
-<script defer src="./workspace-hub.js?v=1.10.1"></script>
+<script defer src="./workspace-hub.js?v=1.10.2"></script>
 <script defer src="./workspace-cloud.js?v=1.4.3"></script>
-<script defer src="./ocean-updater.js?v=workspace-1.10.1"></script>
+<script defer src="./ocean-updater.js?v=workspace-1.10.2"></script>
 <script defer src="./ocean-dashboard.js?v=workspace-1.3.0"></script>
 <script defer src="./workspace-recipes.js?v=1.4.0"></script>
 </body></html>

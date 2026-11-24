@@ -44,7 +44,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONObject;
@@ -65,7 +65,7 @@ import java.util.Set;
  */
 public final class MainActivity extends Activity {
     private static final String HOME = "https://more-sushi-studio.onrender.com/mobile.html";
-    private static final String UA = "FarruhWorkspaceNative/1.0 FarruhWorkspaceUpdate/1.0";
+    private static final String UA = "FarruhWorkspaceNative/1.0 FarruhWorkspaceUpdate/1.0 FarruhLocalIntro/1";
     private static final String UPDATE_JSON = "https://more-sushi-studio.onrender.com/workspace-stable-update.json";
     private static final String TRUSTED_APK_PREFIX = "https://more-sushi-studio.onrender.com/android-updates/";
     private static final String APK_MIME = "application/vnd.android.package-archive";
@@ -76,7 +76,9 @@ public final class MainActivity extends Activity {
     ));
     private static final int IVORY = Color.rgb(246,236,221);
     private WebView browser;
-    private View launchCover;
+    private WebView launchCover;
+    private boolean pageReady, introElapsed;
+    private final Runnable introComplete=()->{introElapsed=true;finishEntranceIfReady();};
     private LinearLayout outerLayout;
     private LinearLayout nativeBar;
     private TextView caption;
@@ -137,14 +139,27 @@ public final class MainActivity extends Activity {
         browser=new WebView(this);
         browser.setBackgroundColor(IVORY);
         content.addView(browser,new FrameLayout.LayoutParams(-1,-1));
-        FrameLayout cover=new FrameLayout(this);
-        cover.setBackgroundColor(IVORY);
-        ImageView mark=new ImageView(this);
-        mark.setImageResource(R.drawable.workspace_porcelain);
-        mark.setContentDescription("FARRUH Workspace");
-        cover.addView(mark,new FrameLayout.LayoutParams(dp(112),dp(112),Gravity.CENTER));
-        content.addView(cover,new FrameLayout.LayoutParams(-1,-1));
-        launchCover=cover;
+        if(savedState==null && android.animation.ValueAnimator.areAnimatorsEnabled()){
+            launchCover=new WebView(this);
+            launchCover.setBackgroundColor(IVORY);
+            launchCover.getSettings().setJavaScriptEnabled(true);
+            launchCover.getSettings().setAllowContentAccess(false);
+            launchCover.getSettings().setBlockNetworkLoads(true);
+            launchCover.setWebViewClient(new WebViewClient(){
+                @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest request){
+                    if("workspace-intro://skip".equals(request.getUrl().toString()))revealContent();
+                    return true;
+                }
+                @Override public void onPageFinished(WebView v,String url){
+                    if(launchCover==v)handler.postDelayed(introComplete,5800);
+                }
+                @Override public void onReceivedError(WebView v,WebResourceRequest req,WebResourceError err){
+                    if(req.isForMainFrame())revealContent();
+                }
+            });
+            content.addView(launchCover,new FrameLayout.LayoutParams(-1,-1));
+            launchCover.loadUrl("file:///android_asset/entrance.html");
+        }
         setContentView(root);
         updateChrome(HOME); // Hide duplicate native bar on our main Workspace screen.
         setupBrowser();
@@ -158,10 +173,14 @@ public final class MainActivity extends Activity {
             updateChrome(browser.getUrl());
         }else browser.loadUrl(HOME);
     }
+    private void finishEntranceIfReady(){if(pageReady && introElapsed)revealContent();}
     private void revealContent(){
         if(launchCover==null)return;
-        ((ViewGroup)launchCover.getParent()).removeView(launchCover);
+        WebView cover=launchCover;
         launchCover=null;
+        handler.removeCallbacks(introComplete);
+        ((ViewGroup)cover.getParent()).removeView(cover);
+        cover.destroy();
     }
     private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+0.5f);}
     private Button button(String title,int textSize){
@@ -253,12 +272,12 @@ public final class MainActivity extends Activity {
                 progress.setVisibility(isHome(url)||launchCover!=null?View.GONE:View.VISIBLE);updateCaption(url);
             }
             @Override public void onPageCommitVisible(WebView v,String url){
-                revealContent();
+                pageReady=true;finishEntranceIfReady();
             }
             @Override public void onPageFinished(WebView v,String url){
                 progress.setVisibility(View.GONE);updateCaption(url);
                 if(launchCover!=null)v.postVisualStateCallback(0,new WebView.VisualStateCallback(){
-                    @Override public void onComplete(long id){revealContent();}
+                    @Override public void onComplete(long id){pageReady=true;finishEntranceIfReady();}
                 });
             }
             @Override public void onReceivedError(WebView v,WebResourceRequest request,WebResourceError error){
@@ -502,7 +521,7 @@ public final class MainActivity extends Activity {
         if(downloadReceiverActive){unregisterReceiver(downloadReceiver);downloadReceiverActive=false;}
         if(filePicker!=null){filePicker.onReceiveValue(null);filePicker=null;}
         if(pendingMedia!=null){pendingMedia.deny();pendingMedia=null;}
-        browser.stopLoading();browser.destroy();
+        revealContent();browser.stopLoading();browser.destroy();
         super.onDestroy();
     }
 }

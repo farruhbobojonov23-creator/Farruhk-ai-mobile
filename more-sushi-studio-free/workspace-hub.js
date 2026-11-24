@@ -298,7 +298,7 @@ function startSplash(){
  const seenKey='hub-porcelain-intro-hq-1';
  let seen=false;
  try{seen=sessionStorage.getItem(seenKey)==='1'}catch{}
- if((seen||reduced)&&!replay){splash.remove();return}
+ if((seen||reduced||navigator.userAgent.includes('FarruhLocalIntro/1'))&&!replay){splash.remove();return}
  try{sessionStorage.setItem(seenKey,'1')}catch{}
  if(replay)root.classList.add('hub-explicit-motion');
  const mark=splash.querySelector('.pc-mark');
