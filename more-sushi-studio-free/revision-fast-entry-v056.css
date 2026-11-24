@@ -1,0 +1,122 @@
+/* FARUKH REVISION 0.5.6 — fast weighing on a phone, compatible with Black Ice. */
+.android-premium .rev056-switcher{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+ padding:12px;margin:0 0 14px;border:1px solid #455974;border-radius:15px;
+ background:linear-gradient(135deg,#192b42,#0f1b2f);
+ box-shadow:inset 0 1px rgba(255,255,255,.1);
+}
+.android-premium .rev056-switch-copy{display:grid;gap:3px;flex:1;min-width:150px}
+.android-premium .rev056-switch-copy strong{color:#f5d38e;font-size:13px}
+.android-premium .rev056-switch-copy small{color:#becce0;font-size:11px;line-height:1.4}
+.android-premium .rev056-switch-buttons{display:flex;gap:6px;width:auto}
+.android-premium .rev056-switch-buttons button{
+ padding:9px 12px!important;min-height:42px!important;border-radius:11px!important;
+ font-size:12px!important;white-space:nowrap
+}
+.android-premium .rev056-switch-buttons [aria-pressed="true"]{
+ background:linear-gradient(155deg,#f74d78,#ab153c)!important;
+ border-color:#fe83a3!important;color:#fff!important;
+ box-shadow:0 3px 13px #df2b5570!important
+}
+.android-premium #view-revision .rev-field{position:relative}
+.android-premium #view-revision .rev-field input[data-field="program"],
+.android-premium #view-revision .rev-field input[data-field="raw"],
+.android-premium #view-revision .rev-field input[data-field="pf"]{
+ padding-right:58px!important;font-size:19px!important;letter-spacing:.2px;
+ font-variant-numeric:tabular-nums;
+}
+.android-premium #view-revision .rev-field .rev056-zero{
+ position:absolute;right:5px;bottom:5px;z-index:2;
+ min-width:45px;height:33px;min-height:33px!important;padding:0 7px!important;
+ font-size:15px!important;font-weight:900;color:#eac88d!important;
+ background:linear-gradient(160deg,#303d51,#18243a)!important;
+ border:1px solid #65738b!important;border-radius:9px!important;
+ box-shadow:inset 0 1px #ffffff29,0 2px 4px #0006!important
+}
+.android-premium #view-revision .rev-field .rev056-zero:focus-visible{
+ outline:2px solid #facb75;outline-offset:2px;
+}
+.android-premium .rev056-nav{
+ padding:13px;border-radius:16px;border:1px solid #435c78;
+ background:linear-gradient(135deg,#15273d,#111d30);margin:12px 0 8px;
+ box-shadow:inset 0 1px #ffffff14,0 6px 16px #0004;
+}
+.android-premium .rev056-nav[hidden]{display:none!important}
+.android-premium .rev056-nav-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
+.android-premium .rev056-nav-top strong{font-size:15px;color:#f6f9ff;line-height:1.35;min-width:0;overflow-wrap:anywhere}
+.android-premium .rev056-nav-top span{
+ font-size:11px;white-space:nowrap;color:#f4d293;border:1px solid #655441;
+ border-radius:99px;padding:4px 9px;background:#3c302f50
+}
+.android-premium .rev056-nav-buttons{display:grid;grid-template-columns:.85fr 1fr 1.5fr;gap:7px}
+.android-premium .rev056-nav-buttons .btn{
+ min-width:0!important;min-height:45px!important;border-radius:12px!important;
+ font-size:12px!important;padding:9px 5px!important;line-height:1.2!important;
+ white-space:normal!important;overflow-wrap:anywhere
+}
+.android-premium .rev056-nav-buttons .btn.main{
+ font-weight:850!important;
+ background:linear-gradient(180deg,#fb527a,#a91740)!important;
+ border-color:#f56d91!important
+}
+.android-premium .rev056-nav-buttons .btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none!important}
+.android-premium #rev056Notice{
+ margin:0!important;padding:0!important;min-height:0;font-size:12px;color:#ffca9f;
+ line-height:1.45
+}
+.android-premium #rev056Notice:not(:empty){margin-top:10px!important}
+.android-premium .rev056-nav.rev056-current-done .rev056-nav-top strong:before{
+ content:'✓';color:#65e9b9;margin-right:7px
+}
+.android-premium .rev056-no-items .rev056-switch-buttons{opacity:.55}
+@media(max-width:720px){
+ .android-premium .rev056-switcher{padding:10px;gap:9px;margin:0 0 10px}
+ .android-premium .rev056-switch-copy{flex:1 1 100%;min-width:0}
+ .android-premium .rev056-switch-copy small{font-size:10px}
+ .android-premium .rev056-switch-buttons{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .android-premium .rev056-switch-buttons button{min-height:41px!important}
+ body.rev056-quick #view-revision .tablewrap{overflow:visible!important}
+ body.rev056-quick #view-revision table,
+ body.rev056-quick #view-revision tbody{min-width:0!important;width:100%!important;display:block!important}
+ body.rev056-quick #view-revision thead{display:none!important}
+ body.rev056-quick #view-revision #rows tr[data-product]:not(.rev056-active){display:none!important}
+ body.rev056-quick #view-revision #rows tr[data-product].rev056-active{
+  display:block!important;padding:0!important;margin:0!important;border:0!important;
+  background:transparent!important;box-shadow:none!important;min-width:0!important;width:100%!important
+ }
+ body.rev056-quick #view-revision #rows tr.rev056-active td{
+  padding:0!important;display:block!important;border:0!important;min-width:0!important;width:100%!important
+ }
+ body.rev056-quick #view-revision #rows tr.rev056-active .rev-product{
+  margin:0!important;width:100%;border-radius:15px!important
+ }
+ body.rev056-quick #view-revision .rev-product-fields{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;padding:12px!important
+ }
+ body.rev056-quick #view-revision .rev-product-fields .rev-field:has(input[data-field="program"]){
+  grid-column:1/-1
+ }
+ body.rev056-quick #view-revision .rev-product-fields .rev-field:has(input[data-field="raw"]):not(:has(~ .rev-field input[data-field="pf"])){
+  grid-column:1/-1
+ }
+ body.rev056-quick #view-revision .rev-product-fields .rev-field input{
+  min-height:49px!important;height:49px!important
+ }
+ body.rev056-quick #view-revision .rev-field .rev056-zero{bottom:7px!important;height:35px!important}
+ body.rev056-quick #view-revision .rev-product summary{min-height:68px!important}
+ body.rev056-quick #view-revision .product-heading strong{font-size:15px!important}
+ body.rev056-quick #view-revision #rows tr.rev056-active{scroll-margin-top:200px!important}
+ body.rev056-quick #view-revision #rows input{scroll-margin-top:210px!important;scroll-margin-bottom:135px!important}
+ .android-premium .rev056-nav{margin:10px 0}
+ .android-premium .rev056-nav-buttons .btn{font-size:11px!important}
+}
+@media(max-width:360px){
+ .android-premium .rev056-nav-buttons{grid-template-columns:.9fr .9fr 1.3fr;gap:5px}
+ .android-premium .rev056-nav-buttons .btn{font-size:10px!important;padding:7px 4px!important}
+}
+@media print{
+ .rev056-switcher,.rev056-nav,.rev056-zero{display:none!important}
+ body.rev056-quick #view-revision #rows tr[data-product]{display:table-row!important}
+ body.rev056-quick #view-revision #rows tr[data-product] td{display:table-cell!important}
+}
