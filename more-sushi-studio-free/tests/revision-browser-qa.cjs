@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.7'),'new interface release badge displayed');
+ verify(badge.includes('0.6.8'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -397,6 +397,61 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v067-audit-admin-mobile.png'),fullPage:true});
 
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
+
+ // New QA: real service worker offline reload + OWNER-SCOPED cached catalog.
+ // The network is physically disabled in Playwright; no production DB touched.
+ const offlineCtx=await browser.newContext({
+   viewport:{width:393,height:852},isMobile:true,hasTouch:true,serviceWorkers:'allow'
+ });
+ const offlinePage=await offlineCtx.newPage();
+ await offlinePage.goto('http://127.0.0.1:8899/revision.html',{waitUntil:'domcontentloaded'});
+ await offlinePage.waitForFunction(async()=>{
+   if(!('serviceWorker' in navigator))return false;
+   const reg=await navigator.serviceWorker.ready;
+   const c=await caches.open('farukh-revision-offline-0.6.8');
+   return Boolean(reg.active && await c.match(location.origin+'/revision.html'));
+ },null,{timeout:17000});
+ verify(true,'service worker installed offline revision shell without cloud data');
+ const account='00000000-0000-4000-8000-000000000068';
+ await offlinePage.evaluate(uid=>{
+   const token='x.'+btoa(JSON.stringify({sub:uid}))+'.x';
+   localStorage.setItem('farukh-revision-auth-v1',JSON.stringify({
+     access_token:token,refresh_token:'offline-test',expires_at:Date.now()+7200000}));
+   localStorage.setItem('farukh-revision-cloud-cache-v041-'+uid,JSON.stringify({
+     products:['Лосось'],catalogue:[['Лосось',{
+       name:'Лосось',price_per_unit_rub:2000,active:true,
+       has_semi_finished:false,pf_add_percent:0}]],history:[],savedAt:Date.now()
+   }));
+   sessionStorage.setItem('farukh-revision-boot-seen-v068','1');
+ },account);
+ await offlineCtx.setOffline(true);
+ await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+ await offlinePage.locator('.rev061-version').waitFor({timeout:9000});
+ await offlinePage.waitForFunction(()=>cloudEnabled&&state.products.includes('Лосось'),null,{timeout:9000});
+ const offlineBadge=await offlinePage.locator('#cloudBadgeText').innerText();
+ verify(offlineBadge.includes('Офлайн')&&offlineBadge.includes('очередь'),
+   'cold offline start restores previously synced catalogue and keeps cloud upload queue');
+ verify(await offlinePage.locator('#premiumBoot:visible').count()===0,
+   're-entering revision skips expensive 4-second welcome animation');
+ await offlinePage.locator('.menu button[onclick*="revision"]').click();
+ await offlinePage.locator('#mode').selectOption('start');
+ await offlinePage.locator('#rows tr[data-product] input[data-field="raw"]').first().fill('1.375');
+ await offlinePage.locator('button[onclick="saveRevision()"]').click();
+ await offlinePage.locator('.rev060-popup .btn.main').click();
+ await offlinePage.waitForFunction(()=>document.querySelector('#rev060Save')?.dataset.status==='pending',{timeout:9000});
+ let stored=await offlinePage.evaluate(()=>({queue:rev041Queue().length,
+   stock:rev041Queue()[0]?.products[0]?.actual,price:rev041Queue()[0]?.products[0]?.price}));
+ verify(stored.queue===1&&stored.stock===1.375&&stored.price===2000,
+   'offline save persists weight and once-only price to owner-scoped durable queue');
+ await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+ await offlinePage.waitForFunction(()=>cloudEnabled&&state.history.some(r=>r.pendingSync),null,{timeout:9000});
+ stored=await offlinePage.evaluate(()=>({queue:rev041Queue().length,
+   pending:state.history.filter(r=>r.pendingSync).length}));
+ verify(stored.queue===1&&stored.pending===1,
+   'pending offline inventory survives Android-like WebView reload without duplication');
+ await offlinePage.screenshot({path:path.join(out,'revision-v068-offline-cold-restart.png'),fullPage:true});
+ await offlineCtx.close();
+
  await context.close();
 }
 (async()=>{
