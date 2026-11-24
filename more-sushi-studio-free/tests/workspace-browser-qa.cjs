@@ -236,7 +236,7 @@ async function runRecipeCatalog(browser){
  assert(await page.locator('.recipe-readonly-row').count()===2,'Recipe browser — product kind filter');
  await page.fill('#hubRecipeSearch','Филадельфия');
  assert(await page.locator('.recipe-readonly-row').count()===1,'Recipe browser — Russian search');
- assert(await page.locator('.recipe-readonly-row').first().getByText('Черновик').count()===1,'Recipe browser — draft not marked approved');
+ assert((await page.locator('.recipe-readonly-row .recipe-state').first().textContent())?.trim()==='Черновик','Recipe browser — draft not marked approved');
  assert(requests.length===1,'Recipe browser — exactly one read-only GET');
  assert(errors.length===0,'Recipe browser — no uncaught runtime errors');
  await ctx.close();
