@@ -51,6 +51,23 @@ final class InvoiceOcr {
    }finally{image.recycle();}
   }finally{tess.recycle();}
  }
+ static String readPaddle(Context context,Uri uri)throws IOException{
+  if("application/pdf".equals(context.getContentResolver().getType(uri)))throw new IOException("Photo only");
+  Bitmap image;
+  if(Build.VERSION.SDK_INT>=28){
+   image=ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.getContentResolver(),uri),(decoder,info,src)->{
+    int w=info.getSize().getWidth(),h=info.getSize().getHeight();float ratio=Math.min(1f,3200f/Math.max(w,h));
+    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);decoder.setTargetSize(Math.max(1,Math.round(w*ratio)),Math.max(1,Math.round(h*ratio)));
+   });
+  }else{
+   BitmapFactory.Options opt=new BitmapFactory.Options();opt.inJustDecodeBounds=true;
+   try(InputStream in=context.getContentResolver().openInputStream(uri)){BitmapFactory.decodeStream(in,null,opt);}
+   opt.inSampleSize=1;while(Math.max(opt.outWidth,opt.outHeight)/opt.inSampleSize>3200)opt.inSampleSize*=2;
+   opt.inJustDecodeBounds=false;try(InputStream in=context.getContentResolver().openInputStream(uri)){image=BitmapFactory.decodeStream(in,null,opt);}
+  }
+  if(image==null)throw new IOException("Image");
+  try{return com.paddle.ocr.SupplyPaddleBridge.read(context,image).plainText();}finally{image.recycle();}
+ }
  private static String text(TessBaseAPI tess,Bitmap b){tess.setVariable("preserve_interword_spaces","1");tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
  // Remove dark screenshot margins only if a broad, continuous white document region is found.
  private static Bitmap prepareImage(Bitmap image,boolean focused){

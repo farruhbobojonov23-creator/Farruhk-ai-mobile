@@ -16,6 +16,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: PaddlePaddle/PaddleOCR
+          ref: dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf
+          path: upstream-paddle
+          persist-credentials: false
+          sparse-checkout: deploy/ppocr-android
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -61,6 +68,17 @@ jobs:
             test "$(wc -c < "$dest/$lang.traineddata")" -gt 100000
           done
           curl --retry 3 -fsSL https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/LICENSE -o "$dest/LICENSE"
+      - name: Build offline Paddle SDK and Android test
+        run: |
+          set -euo pipefail
+          base=upstream-paddle/deploy/ppocr-android
+          bash ocr-mobile-lab/prepare.sh "$base"
+          cp ocr-mobile-lab/SupplyPaddleBridge.kt "$base/ppocr-sdk/src/main/java/com/paddle/ocr/"
+          cp ocr-mobile-lab/SupplyInvoiceSmokeTest.kt "$base/ppocr-sdk/src/androidTest/java/com/paddle/ocr/benchmark/"
+          sed -i '/maven.aliyun.com/d' "$base/settings.gradle.kts"
+          gradle -p "$base" :ppocr-sdk:assembleRelease :ppocr-sdk:assembleDebugAndroidTest --no-daemon
+          mkdir -p supply-android/app/libs
+          cp "$base/ppocr-sdk/build/outputs/aar/ppocr-sdk-release.aar" supply-android/app/libs/supply-paddle.aar
       - name: Build test APK
         run: gradle -p supply-android :app:assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
@@ -69,6 +87,18 @@ jobs:
           path: supply-android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Gate publication on offline Android OCR smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          script: gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.paddle.ocr.benchmark.SupplyInvoiceSmokeTest --no-daemon
       - name: Publish stable signed update when dedicated secrets are configured
         shell: bash
         env:

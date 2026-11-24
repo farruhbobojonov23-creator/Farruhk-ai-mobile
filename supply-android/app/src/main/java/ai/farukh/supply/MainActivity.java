@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
  web.setWebViewClient(new WebViewClient(){
  @Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){Uri u=r.getUrl();if("https".equals(u.getScheme())&&"appassets.androidplatform.net".equals(u.getHost())&&u.getPath()!=null&&u.getPath().startsWith("/assets/")){WebResourceResponse local=webUpdates.asset(u.getPath().substring(8));if(local!=null)return local;}return loader.shouldInterceptRequest(u);}
  @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){if(r.isForMainFrame() && "https://appassets.androidplatform.net/update".equals(r.getUrl().toString())){updater.check();return true;}
+ if(r.isForMainFrame()&&"https://appassets.androidplatform.net/paddle-scan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,false,true);return true;}
  if(r.isForMainFrame()&&"https://appassets.androidplatform.net/rescan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,true);return true;}
  return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
  });
@@ -66,10 +67,11 @@ public class MainActivity extends Activity {
  super.onActivityResult(request,result,data);
  if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1){lastScan=chosen[0];scan(lastScan,false);}}
  }
- private void scan(Uri uri,boolean focused){
+ private void scan(Uri uri,boolean focused){scan(uri,focused,false);}
+ private void scan(Uri uri,boolean focused,boolean paddle){
  final long id=++scanSequence;
  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
- ocrExecutor.execute(()->{String result="",error="";try{result=InvoiceOcr.read(this,uri,focused);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error="Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
+ ocrExecutor.execute(()->{String result="",error="";try{result=paddle?InvoiceOcr.readPaddle(this,uri):InvoiceOcr.read(this,uri,focused);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error=paddle?"Новый OCR не смог обработать фото. Используйте обычное распознавание или выберите фото заново.":"Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
  }
  @Override protected void onDestroy(){ocrExecutor.shutdownNow();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }
