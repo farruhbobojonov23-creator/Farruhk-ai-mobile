@@ -34,7 +34,7 @@ async function test(browser){
  await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
  await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
- verify(badge.includes('0.6.4'),'new interface release badge displayed');
+ verify(badge.includes('0.6.5'),'new interface release badge displayed');
  await page.waitForTimeout(300);
  // Skip intro by using its existing skip button, when available.
  const skip=page.locator('#premiumBoot [data-boot-skip]');
@@ -241,6 +241,46 @@ async function test(browser){
  verify(await page.locator('.rev053-store-card[data-rev053-store="Полярные Зори"] .rev063-row').count()>0,
   'offline initial revision lists its saved stock products');
  await page.screenshot({path:path.join(out,'revision-v063-full-table-mobile.png'),fullPage:true});
+
+ // Chef dashboard uses ONLY the last SAVED repeat audit from each outlet.
+ // It must ignore old audits, unsaved drafts, and unpriced financial gaps.
+ const dashboard=page.locator('#rev065Dashboard');
+ await dashboard.waitFor({state:'visible'});
+ const dtext=await dashboard.innerText();
+ verify(dtext.includes('Общая сводка')&&dtext.includes('1 / 4'),
+   'chef dashboard shows actual last-saved coverage per outlet');
+ const metrics=await dashboard.locator('.rev065-metric strong').allTextContents();
+ verify(metrics.length===4 && metrics[0].includes('2 кг') && metrics[1].includes('6,25 кг'),
+   'chef dashboard separates shortage kilograms from surplus kilograms');
+ verify(dtext.includes('Без цены: 1') && dtext.includes('Суммы в ₽ неполные'),
+   'chef dashboard does not claim complete ruble totals with missing archived prices');
+ verify(/4[\s\u00a0\u202f]*800,00/.test(dtext)&&/500,00/.test(dtext),
+   'priced portions are summed while historical missing price remains unknown');
+ const issueNames=await dashboard.locator('.rev065-issue .rev065-name b').allTextContents();
+ verify(issueNames.join('|')==='Угорь|Краб|Лосось',
+   'top-three discrepancies sorted by physical weight, not price');
+ await page.evaluate(()=>{
+   state.history.push({
+     id:crypto.randomUUID(),store:'Плазма',type:'weekly',
+     date:'2026-11-20',timestamp:Date.now()-86400000,
+     products:[{name:'Старый товар',diff:999,price:9999}]
+   });
+   renderSummary();
+ });
+ verify(!(await dashboard.innerText()).includes('Старый товар')&&
+   (await dashboard.innerText()).includes('6,25 кг'),
+   'an older weekly revision cannot change the aggregate');
+ await page.evaluate(()=>renderSummary());
+ verify(await page.locator('#rev065Dashboard').count()===1,
+   'repeated render never duplicates the chef dashboard');
+ const horizontal=await dashboard.evaluate(node=>({
+   viewport:document.documentElement.scrollWidth-innerWidth,
+   board:node.scrollWidth-node.clientWidth
+ }));
+ verify(horizontal.viewport<=2&&horizontal.board<=2,
+   'chef dashboard does not add horizontal scrolling on phone');
+ await page.screenshot({path:path.join(out,'revision-v065-chef-dashboard-mobile.png'),fullPage:true});
+
 
 
  verify(errors.length===0,'no uncaught page errors: '+errors.join(' | ').slice(0,300));
