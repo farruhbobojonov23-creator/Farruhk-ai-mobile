@@ -1,0 +1,98 @@
+name: Publish signed FARRUH WORKSPACE Android update
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_release:
+        description: 'I have configured the permanent signing secrets and approve publishing a new signed APK'
+        required: true
+        type: boolean
+permissions:
+  contents: write
+concurrency:
+  group: farruh-workspace-signed-release
+  cancel-in-progress: false
+jobs:
+  sign-and-publish:
+    if: ${{ github.event.inputs.confirm_release == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WORKSPACE_KEYSTORE_B64: ${{ secrets.WORKSPACE_KEYSTORE_B64 }}
+      WORKSPACE_STORE_PASS: ${{ secrets.WORKSPACE_STORE_PASS }}
+      WORKSPACE_KEY_ALIAS: ${{ secrets.WORKSPACE_KEY_ALIAS }}
+      WORKSPACE_KEY_PASS: ${{ secrets.WORKSPACE_KEY_PASS }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: more-sushi-studio-free
+          persist-credentials: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Ensure release signing is configured
+        run: |
+          set -euo pipefail
+          for name in WORKSPACE_KEYSTORE_B64 WORKSPACE_STORE_PASS WORKSPACE_KEY_ALIAS WORKSPACE_KEY_PASS; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Permanent release signing secret $name not configured. Nothing published."
+              exit 1
+            fi
+          done
+          printf '%s' "$WORKSPACE_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/workspace-release.jks"
+          chmod 600 "$RUNNER_TEMP/workspace-release.jks"
+          echo "WORKSPACE_KEYSTORE_PATH=$RUNNER_TEMP/workspace-release.jks" >> "$GITHUB_ENV"
+      - name: Prepare Android SDK
+        run: |
+          set -e
+          SDKMANAGER="$(command -v sdkmanager || find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build a permanently signed release APK
+        working-directory: farruh-workspace-android
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+      - name: Verify APK certificate and application ID
+        run: |
+          set -euo pipefail
+          APK=farruh-workspace-android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep "package: name='ai.farukh.workspace'"
+      - name: Publish signed APK and update manifest on the same secure host
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs'),crypto=require('crypto'),path=require('path');
+          const gradle=fs.readFileSync('farruh-workspace-android/app/build.gradle','utf8');
+          const code=Number(gradle.match(/versionCode\s+(\d+)/)?.[1]);
+          const version=gradle.match(/versionName\s+'([^']+)'/)?.[1];
+          if(!Number.isInteger(code)||code<1||!version)throw new Error('No valid version code/name');
+          const apk='farruh-workspace-android/app/build/outputs/apk/release/app-release.apk';
+          const basename='workspace-v'+code+'.apk';
+          const dest=path.join('more-sushi-studio-free','android-updates',basename);
+          if(fs.existsSync(dest))throw new Error('Refusing to replace already released APK '+basename);
+          fs.mkdirSync(path.dirname(dest),{recursive:true});
+          fs.copyFileSync(apk,dest);
+          const sha=crypto.createHash('sha256').update(fs.readFileSync(dest)).digest('hex');
+          const manifest={
+            schema:1,packageName:'ai.farukh.workspace',versionCode:code,versionName:version,
+            apkUrl:'https://more-sushi-studio.onrender.com/android-updates/'+basename,
+            sha256:sha,notes:'Подписанная APK проверена. Установка поверх предыдущей релизной версии требует подтверждения Android.'
+          };
+          fs.writeFileSync('more-sushi-studio-free/workspace-android-update.json',JSON.stringify(manifest,null,2)+'\n');
+          console.log('Prepared native release version '+version+' ('+code+') with SHA256 digest; secret keystore not published.');
+          NODE
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f more-sushi-studio-free/android-updates/workspace-v*.apk
+          git add more-sushi-studio-free/workspace-android-update.json
+          git commit -m "release(android): publish signed Workspace APK and version manifest"
+          git push origin HEAD:more-sushi-studio-free
+      - name: Archive verified signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FARRUH-WORKSPACE-PERMANENTLY-SIGNED-APK
+          path: farruh-workspace-android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
