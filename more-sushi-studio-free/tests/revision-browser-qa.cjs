@@ -28,7 +28,11 @@ async function test(browser){
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8899/revision.html',{waitUntil:'domcontentloaded'});
- await page.locator('.rev061-version').waitFor({timeout:15000});
+ await page.waitForTimeout(1500);
+ const diagnostics=await page.evaluate(()=>({ready:document.readyState,brand:document.querySelector('.brandword')?.outerHTML?.slice(0,330),versionCount:document.querySelectorAll('.rev061-version').length,priceInputCount:document.querySelectorAll('#rev061NewPrice').length,activeView:document.querySelector('.menu button.active')?.textContent?.trim()}));
+ console.log('Revision boot diagnostics:',JSON.stringify(diagnostics),'JS errors:',JSON.stringify(errors));
+ await page.screenshot({path:path.join(out,'revision-v061-debug-initial.png'),fullPage:true});
+ await page.locator('.rev061-version').waitFor({state:'attached',timeout:5000});
  const badge=(await page.locator('.rev061-version').innerText()).trim();
  verify(badge.includes('0.6.1'),'new interface release badge displayed');
  await page.waitForTimeout(300);
