@@ -237,7 +237,7 @@ public final class MainActivity extends Activity {
     private void inspectProject(String url,int generation){
         if(generation!=navigationGeneration||isHome(url)||!url.equals(browser.getUrl())||isDestroyed())return;
         String probe="(function(){var shown=function(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width&&r.height&&c.visibility!=='hidden'&&c.display!=='none'&&Number(c.opacity)>0};"
-            +"var splash=Array.from(document.querySelectorAll('[id*=splash i],[class*=splash i],[id*=intro i],[class*=intro i]')).some(function(e){var r=e.getBoundingClientRect();return shown(e)&&r.top<=12&&r.bottom>=innerHeight*.85&&r.width>=innerWidth*.85});"
+            +"var splash=Array.from(document.querySelectorAll('#premiumBoot,#hubSplash,[id*=splash i],[class*=splash i],[id*=intro i],[class*=intro i]')).some(function(e){var r=e.getBoundingClientRect();return shown(e)&&r.top<=12&&r.bottom>=innerHeight*.85&&r.width>=innerWidth*.85});"
             +"if(splash)return 'loading';var e=document.elementFromPoint(innerWidth/2,2);while(e){var c=getComputedStyle(e).backgroundColor,m=c.match(/^rgb[(]([0-9]+), *([0-9]+), *([0-9]+)[)]$/);if(m)return '#'+m.slice(1).map(function(x){return ('0'+Number(x).toString(16)).slice(-2)}).join('');e=e.parentElement}var t=document.querySelector('meta[name=theme-color]');return t?t.content:'#ffffff'})()";
         browser.evaluateJavascript(probe,result->{
             if(generation!=navigationGeneration||!url.equals(browser.getUrl())||isDestroyed())return;
@@ -299,7 +299,10 @@ public final class MainActivity extends Activity {
                 });
             }
             @Override public void onReceivedError(WebView v,WebResourceRequest request,WebResourceError error){
-                if(request.isForMainFrame())revealContent();
+                if(request.isForMainFrame()){
+                    revealContent();
+                    if(!isHome(request.getUrl().toString()))nativeBar.setVisibility(View.VISIBLE);
+                }
                 if(request.isForMainFrame())toast("Не удалось открыть сайт. Проверь интернет и нажми ↻.");
             }
             @Override public void onReceivedSslError(WebView v,SslErrorHandler h,SslError err){
