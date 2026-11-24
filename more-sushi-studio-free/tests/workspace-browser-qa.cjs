@@ -298,8 +298,11 @@ async function runRecipeImport(browser){
  await page.emulateMedia({media:'print'});
  assert(await page.locator('#recipeImportedBanner').isHidden(),'Print — editor-only provenance warning is not printed');
  assert(await page.locator('.workspace-appbar').isHidden(),'Print — workspace header hidden, does not add a second A4 sheet');
- await page.emulateMedia({media:'screen'});
+ // Playwright's page.pdf() honours the explicitly emulated CSS media.
+ // Do NOT switch to screen before PDF: that paginates the editor UI (2 sheets)
+ // rather than the actual @media print A4 document.
  const pdf=await page.pdf({printBackground:true,preferCSSPageSize:true,format:'A4'});
+ await page.emulateMedia({media:'screen'});
  fs.writeFileSync(path.join(out,'TTK-Philadelphia-MOCK-A4.pdf'),pdf);
  const pdfText=pdf.toString('latin1');
  const pages=(pdfText.match(/\/Type\s*\/Page(?!s)\b/g)||[]).length;
