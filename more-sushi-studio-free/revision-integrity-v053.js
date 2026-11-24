@@ -90,10 +90,10 @@
    const r=latestWeekly(name),s=r?stats(r):null;
    const prior=state.history.some(v=>v.store===name&&v.type==='start');
    const heading=r?'Сохранено: '+text(r.date)+(r.pendingSync?' · Ожидает облака':''):
-    (prior?'Есть начальные остатки':'Нет повторной ревизии');
+    (prior?'Начальная ревизия есть · сверка ещё не проводилась':'Начальная ревизия ещё не проведена');
    const shortage=s?badge(s.shortageRub,s.missingShort,s.shortageKg):'—';
    const surplus=s?badge(s.surplusRub,s.missingSurplus,s.surplusKg):'—';
-   const extra=s?('<div class="rev053-store-kg">− '+note(s.shortageKg,s.missingShort)+'<br>+ '+note(s.surplusKg,s.missingSurplus)+'</div>'):'';
+   const extra=s?('<div class="rev053-store-kg">− '+note(s.shortageKg,s.missingShort)+'<br>+ '+note(s.surplusKg,s.missingSurplus)+'</div>'):'<div class="rev053-store-kg">'+(prior?'Готово к следующей сверке':'Нужно сначала зафиксировать фактические остатки')+'</div>';
    return '<div class="summarytile rev053-store-card" data-rev053-store="'+text(name)+'">'+
     '<img class="point-icon" src="'+(REVISION_STORE_ICONS[index]||REVISION_STORE_ICONS[0])+'" alt="" loading="lazy">'+
     '<div class="point-info"><strong>'+text(name)+'</strong><div class="hint">'+heading+'</div>'+
