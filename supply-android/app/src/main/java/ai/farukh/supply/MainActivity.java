@@ -13,6 +13,7 @@ public class MainActivity extends Activity {
  private ValueCallback<Uri[]> pending;
  private final java.util.concurrent.ExecutorService ocrExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
  private long scanSequence=0;
+ private Uri lastScan;
  private SupplyUpdater updater;
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
@@ -47,6 +48,7 @@ public class MainActivity extends Activity {
  web.setWebViewClient(new WebViewClient(){
  @Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return loader.shouldInterceptRequest(r.getUrl());}
  @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){if(r.isForMainFrame() && "https://appassets.androidplatform.net/update".equals(r.getUrl().toString())){updater.check();return true;}
+ if(r.isForMainFrame()&&"https://appassets.androidplatform.net/rescan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,true);return true;}
  return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
  });
  web.setWebChromeClient(new WebChromeClient(){
@@ -60,12 +62,12 @@ public class MainActivity extends Activity {
  }
  @Override protected void onActivityResult(int request,int result,Intent data){
  super.onActivityResult(request,result,data);
- if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1)scan(chosen[0]);}
+ if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1){lastScan=chosen[0];scan(lastScan,false);}}
  }
- private void scan(Uri uri){
+ private void scan(Uri uri,boolean focused){
  final long id=++scanSequence;
  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
- ocrExecutor.execute(()->{String result="",error="";try{result=InvoiceOcr.read(this,uri);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error="Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
+ ocrExecutor.execute(()->{String result="",error="";try{result=InvoiceOcr.read(this,uri,focused);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error="Не удалось распознать документ. Проверьте формат и качество снимка.";} final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
  }
  @Override protected void onDestroy(){ocrExecutor.shutdownNow();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }

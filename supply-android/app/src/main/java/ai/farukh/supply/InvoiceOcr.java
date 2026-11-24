@@ -26,7 +26,7 @@ final class InvoiceOcr {
   }
   return base;
  }
- static String read(Context context,Uri uri)throws IOException{
+ static String read(Context context,Uri uri,boolean focused)throws IOException{
   TessBaseAPI tess=new TessBaseAPI();
   try{
    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
@@ -46,14 +46,14 @@ final class InvoiceOcr {
    }
    if(image==null)throw new IOException("Image");
    try{
-    Bitmap prepared=prepareImage(image);
+    Bitmap prepared=prepareImage(image,focused);
     try{return text(tess,prepared);}finally{if(prepared!=image)prepared.recycle();}
    }finally{image.recycle();}
   }finally{tess.recycle();}
  }
  private static String text(TessBaseAPI tess,Bitmap b){tess.setVariable("preserve_interword_spaces","1");tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
  // Remove dark screenshot margins only if a broad, continuous white document region is found.
- private static Bitmap prepareImage(Bitmap image){
+ private static Bitmap prepareImage(Bitmap image,boolean focused){
   int w=image.getWidth(),h=image.getHeight(),start=-1,bestStart=0,bestEnd=h,bestLength=0;
   for(int y=0;y<h;y+=4){
    int white=0,samples=0;
@@ -66,7 +66,12 @@ final class InvoiceOcr {
   }
   // Keep the full image unless the likely paper spans most of its height.
   Bitmap region=image;
-  if(bestLength>h*.85&&bestLength<h*.94){
+  if(focused){
+   int top=bestLength>h*.35?Math.max(0,bestStart-12):0;
+   int end=bestLength>h*.35?bestEnd:h;
+   int bottom=Math.min(h,top+Math.round((end-top)*.62f));
+   if(bottom-top>h*.2)region=Bitmap.createBitmap(image,0,top,w,bottom-top);
+  }else if(bestLength>h*.85&&bestLength<h*.94){
    int top=Math.max(0,bestStart-24),bottom=Math.min(h,bestEnd+24);
    region=Bitmap.createBitmap(image,0,top,w,bottom-top);
   }
