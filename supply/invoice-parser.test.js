@@ -10,3 +10,6 @@ test('ambiguous textual date not guessed',()=>{const r=parse('9693 17 ноябр
 test('VAT with unit code and excise marker',()=>{const r=parse('1 Товар тестовый 796 шт 4,000 100,00 400,00 без акциза 20% 80,00 480,00');a.equal(r.items.length,1);a.equal(r.items[0].grossTotal,480);a.equal(r.items[0].quantity,4);});
 test('VAT inconsistent row rejected',()=>{const r=parse('Товар тестовый шт 4,000 100,00 490,00 без акциза 20% 80,00 480,00');a.equal(r.items.length,0);});
 test('uncertain amount is hint only',()=>{const r=parse('Сыр тестовый 4,900 w == 3 644,00');a.equal(r.fragments[0].amountHint,3644);a.equal(r.fragments[0].grossTotal,undefined);});
+
+test('quantity is a review hint only on incomplete numeric row',()=>{const r=parse('Соус тестовый 1.000 100.00 22.00 122.00');a.equal(r.items.length,0);a.equal(r.fragments[0].quantityHint,1);a.equal(r.fragments[0].quantity,undefined);a.equal(r.fragments[0].grossTotal,undefined);});
+test('a separate package continuation is merged as a review suggestion only',()=>{const r=parse('Рис тестовый 5:000 100.00 500.00\nЛЕБЕДИ СУШИ меш/25кг');a.equal(r.fragments.length,1);a.equal(r.fragments[0].joinedHint,true);a.equal(r.fragments[0].quantityHint,5);a.equal(r.fragments[0].unit,undefined);});

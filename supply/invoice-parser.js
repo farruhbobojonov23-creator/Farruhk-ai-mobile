@@ -44,7 +44,14 @@ function parse(text){
  if(!out.items.length)out.warnings.push('Табличные строки не распознаны надёжно. Обрежьте скриншот до самой накладной или заполните по оригиналу.');
  // Preserve legible product fragments as editable suggestions only; never infer quantities, units or prices from damaged OCR.
  out.fragments=[];
- for(const l of lines){if(out.items.some(x=>x.source===l))continue;const m=l.match(/^\s*[|│]?\s*(?:\d{1,3}[.)]\s*)?((?:рис|лебеди|соус|сыр|креветк\w*|майонез|форель|лосось|угорь|нори|имбирь|васаби|кунжут|краб\w*|маскарпоне|сливки|омлет|куриц\w*)[а-яёa-z0-9% .,/()\-]{2,100})/iu);if(!m)continue;let name=m[1].split(/\s+\d+[,.]\d{2,}|\s+[;|│]|\s+-\s+/)[0].trim();if(name.length>=4&&!out.fragments.some(x=>x.productId===name)){const tail=l.match(new RegExp('('+money+')\\s*[|│]?\\s*$'));out.fragments.push({productId:name,source:l,amountHint:tail?number(tail[1]):null});}}
+ const quantityHintRe=/(?:^|\s)(\d{1,6}[.,:]\d{3})\s+\d+[.,]\d{2}(?:\s|$)/;
+
+ for(const l of lines){if(out.items.some(x=>x.source===l))continue;const m=l.match(/^\s*[|│]?\s*(?:\d{1,3}[.)]\s*)?((?:рис|лебеди|соус|сыр|креветк\w*|майонез|форель|лосось|угорь|нори|имбирь|васаби|кунжут|краб\w*|маскарпоне|сливки|омлет|куриц\w*)[а-яёa-z0-9% .,/()\-]{2,100})/iu);if(!m)continue;let name=m[1].split(/\s+\d+[,.]\d{2,}|\s+[;|│]|\s+-\s+/)[0].trim();if(name.length>=4&&!out.fragments.some(x=>x.productId===name)){const tail=l.match(new RegExp('('+money+')\\s*[|│]?\\s*$'));const qm=l.match(quantityHintRe);const qHint=qm?number(qm[1].replace(':','.')):null;
+ const previous=out.fragments[out.fragments.length-1];
+ const continuation=/^(?:[А-ЯЁA-Z]+\s+){1,5}(?:меш(?:ок)?|уп(?:ак)?|кор(?:об)?)\s*[/\\-]?\s*\d+\s*(?:кг|г|л|мл|шт)\.?$/iu.test(l)&&!tail&&!qHint;
+ if(continuation&&previous&&previous.amountHint&&lines.indexOf(l)===lines.indexOf(previous.source)+1&&/^(?:рис|сыр|соус|мука|сахар)\s/i.test(previous.productId)){
+   previous.productId+=' '+l;previous.source+=' / '+l;previous.joinedHint=true;
+ }else{out.fragments.push({productId:name,source:l,amountHint:tail?number(tail[1]):null,quantityHint:qHint});}}}
  if(out.fragments.length)out.warnings.push('Найдены неполные названия: количество и цены оставлены пустыми.');
  if(out.items.some(x=>['уп','кор'].includes(x.unit)))out.warnings.push('Уточните фасовку упаковок.');
  if(out.items.length&&out.total!==null&&Math.abs(out.items.reduce((s,x)=>s+x.grossTotal,0)-out.total)>.02)out.warnings.push('Сумма предложенных строк не совпадает с итогом: возможны пропущенные строки.');
