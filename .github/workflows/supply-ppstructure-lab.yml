@@ -2,6 +2,7 @@ name: Free full PP-StructureV3 photo benchmark (isolated)
 on:
   push:
     branches: ['experiment/supply-ppstructure-v3']
+    paths: ['supply/experimental/ppstructure_lab.py', '.github/workflows/supply-ppstructure-lab.yml']
 permissions:
   contents: read
 jobs:
