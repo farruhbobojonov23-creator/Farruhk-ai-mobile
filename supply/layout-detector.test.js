@@ -1,7 +1,10 @@
 
 'use strict';
 const assert=require('node:assert/strict');
-const api=require('../supply-android/app/src/main/assets/layout-detector.js');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+// Load the same classic script as Android WebView, independently of root ESM settings.
+const context={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../supply-android/app/src/main/assets/layout-detector.js'),'utf8'),context);
+const api=context.supplySpatial;assert.equal(typeof api?.spatialLines,'function');
 const box=(text,left,right,top,bottom=top+10,confidence=.98)=>({text,left,right,top,bottom,confidence});
 const head=[box('Наименование',0,100,10),box('Ед',150,165,10),box('Количество',200,260,10),box('Цена',320,350,10),box('Сумма',420,460,10)];
 const row=(name,q,p,t,y)=>[box(name,0,105,y),box('шт',150,165,y),box(q,215,240,y),box(p,315,355,y),box(t,415,465,y)];
