@@ -59,3 +59,30 @@ function parse(text){
 }
 const api={parse};if(typeof module==='object'&&module.exports)module.exports=api;else root.supplyInvoiceParser=api;
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const clean=s=>String(s||'').replace(/[\u00a0\u202f]/g,' ').trim();
+const val=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+function parseSimple(text){
+ const rows=String(text||'').split(/\r?\n/).map(clean).filter(Boolean),legacy=api.parse(text);
+ const explicit=[...new Set(rows.map(l=>l.match(/^(?:поставщик|продавец)\s*[:=]\s*(.+)$/i)).filter(Boolean).map(m=>m[1].split(/(?:[,;]\s*|\s+)(?:ИНН|КПП|адрес|ОГРН)(?:\s|:)/iu)[0].trim()))];
+ const supplier=explicit.length===1?explicit[0]:explicit.length?'':legacy.supplier||'';
+ const items=[],seen=new Set();
+ function add(name,price,source){name=clean(name);if(!name)return;const key=name.toLowerCase()+'|'+(price??'')+'|'+source;if(seen.has(key))return;seen.add(key);items.push({name,price,source,uncertain:true});}
+ for(const x of legacy.items){
+   const vat=x.source.match(/(\d{1,2})\s*%/);
+   const price=Math.round(x.grossTotal/x.quantity/(vat?1+Number(vat[1])/100:1)*100)/100;
+   add(x.productId+' / '+x.unit+(vat?' (без НДС)':''),price,x.source);
+ }
+ const header=rows.some(l=>/(?:товар|наименование)/i.test(l)&&/цен[аы]/i.test(l)&&!/(?:сумм|количеств|ндс|стоимост)/i.test(l))&&!rows.some(l=>/(?:товар|наименование)/i.test(l)&&/(?:сумм|количеств|ндс|стоимост)/i.test(l));
+ if(header)for(const l of rows){
+   if(legacy.items.some(x=>x.source===l)||/^(?:итого|всего|ндс|сумма|цена|количество|поставщик|продавец|накладная|номер|дата|товар\s*цена)/i.test(l))continue;
+   const m=l.replace(/[|│]/g,' ').trim().match(/^(?:\d{1,3}[.)]?\s+)?([^\d].*?)\s+((?:\d{1,3}(?: \d{3})+|\d+)[,.]\d{2})\s*(?:₽|руб\.?)?$/i);
+   if(m&&/[а-яёa-z]/i.test(m[1])&&!/(?:ИНН|КПП|ОГРН)/i.test(m[1]))add(m[1],val(m[2]),l);
+ }
+ for(const x of legacy.fragments||[])if(!items.some(y=>y.source===x.source||y.name.toLowerCase().startsWith(x.productId.toLowerCase())))add(x.productId,null,x.source);
+ return {supplier,items};
+}
+api.parseSimple=parseSimple;
+})(globalThis);
