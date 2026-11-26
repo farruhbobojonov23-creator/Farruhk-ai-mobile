@@ -1180,7 +1180,7 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  }
  const rotations=a=>[...new Map(a.map((_,i)=>{const b=[...a.slice(i),...a.slice(0,i)];return [b.join('|'),b]})).values()];
  function readColumns(lines){
-  const codeLine=lines.find(l=>/код/i.test(l)&&[...l.matchAll(/(?<!\d)\d{8,12}(?!\d)/g)].length>=3);
+  const codeLine=lines.find((l,i)=>/код/i.test([l,lines[i+1]||''].join(' '))&&[...l.matchAll(/(?<!\d)\d{8,12}(?!\d)/g)].length>=3);
   if(!codeLine)return null;
   const codes=[...codeLine.matchAll(/(?<!\d)\d{8,12}(?!\d)/g)].map(m=>knownCode(m[0]));
   if(codes.length<3||codes.length>100||codes.some(x=>!x))return null;
