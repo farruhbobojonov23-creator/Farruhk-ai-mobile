@@ -1,0 +1,126 @@
+name: Supply local OCR feasibility (isolated; no publication)
+on:
+  push:
+    branches: ['experiment/supply-local-vision-benchmark']
+    paths: ['.github/workflows/supply-local-vision-experiment.yml']
+permissions:
+  contents: read
+jobs:
+  browser-cyrillic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser OCR runtime in temporary directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/ocr-lab/public/models" "$RUNNER_TEMP/ocr-lab/public/wasm"
+          cd "$RUNNER_TEMP/ocr-lab"
+          npm init -y
+          npm install --no-audit --no-fund @paddleocr/paddleocr-js vite playwright
+          npm ls @paddleocr/paddleocr-js onnxruntime-web
+          npx playwright install chromium
+          cp node_modules/onnxruntime-web/dist/*.wasm node_modules/onnxruntime-web/dist/*.mjs public/wasm/
+      - name: Obtain official open model assets, never send a document to a provider
+        run: |
+          cd "$RUNNER_TEMP/ocr-lab"
+          for model in PP-OCRv5_mobile_det cyrillic_PP-OCRv5_mobile_rec; do
+            mkdir -p "models/$model"
+            for file in inference.onnx inference.yml; do
+              curl --fail --location --retry 2 --max-time 120 "https://huggingface.co/PaddlePaddle/$(printf '%s' "$model")_onnx/resolve/main/$file" -o "models/$model/$file"
+            done
+            tar --format=ustar -cf "public/models/$model.tar" -C "models/$model" inference.onnx inference.yml
+            sha256sum "models/$model/"*
+          done
+      - name: Exercise local browser runtime with new synthetic Cyrillic text
+        run: |
+          cd "$RUNNER_TEMP/ocr-lab"
+          cat > index.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><script type="module" src="/main.js"></script>
+          EOF
+          cat > main.js <<'EOF'
+          import { PaddleOCR } from '@paddleocr/paddleocr-js';
+          window.runProbe=async()=>{
+            const model=name=>({url:location.origin+'/models/'+name+'.tar'});
+            const ocr=await PaddleOCR.create({
+              textDetectionModelName:'PP-OCRv5_mobile_det',
+              textDetectionModelAsset:model('PP-OCRv5_mobile_det'),
+              textRecognitionModelName:'cyrillic_PP-OCRv5_mobile_rec',
+              textRecognitionModelAsset:model('cyrillic_PP-OCRv5_mobile_rec'),
+              worker:false,
+              ortOptions:{backend:'wasm',numThreads:1,wasmPaths:location.origin+'/wasm/'}
+            });
+            try{
+              const canvas=document.createElement('canvas');canvas.width=1120;canvas.height=420;
+              const c=canvas.getContext('2d');c.fillStyle='white';c.fillRect(0,0,1120,420);c.fillStyle='black';c.font='38px Arial';
+              const values=['Тестовый поставщик','Мука пшеничная 5 кг','Количество 3','Цена 124,50','Сумма 373,50'];
+              values.forEach((v,i)=>c.fillText(v,45,65+i*72));
+              const [r]=await ocr.predict(canvas,{textDetLimitSideLen:1536,textDetLimitType:'max'});
+              return {values,items:r.items.map(x=>({text:x.text,score:x.score,poly:x.poly})),metrics:r.metrics,runtime:r.runtime};
+            } finally {ocr.dispose();}
+          };
+          EOF
+          cat > probe.mjs <<'EOF'
+          import {chromium} from 'playwright';
+          import assert from 'node:assert/strict';
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          try{
+            const page=await browser.newPage();
+            await page.route('**/*',route=>new URL(route.request().url()).origin==='http://127.0.0.1:4173'?route.continue():route.abort());
+            page.on('console',m=>console.log(m.type(),m.text()));
+            page.on('pageerror',e=>console.error(e));
+            await page.goto('http://127.0.0.1:4173');
+            await page.waitForFunction(()=>typeof window.runProbe==='function',{},{timeout:90000});
+            const r=await page.evaluate(()=>window.runProbe());
+            console.log(JSON.stringify(r,null,2));
+            const normalize=s=>s.toLowerCase().replace(/\s/g,'').replace(/[.,]/g,',');
+            const actual=normalize(r.items.map(x=>x.text).join(' '));
+            for(const line of r.values)assert.ok(actual.includes(normalize(line)),'Missing or inaccurate text: '+line);
+            assert.ok(r.items.every(x=>x.poly&&x.score>=0&&x.score<=1),'No usable text geometry');
+          } finally {await browser.close();}
+          EOF
+          npx vite --host 127.0.0.1 --port 4173 > vite.log 2>&1 &
+          trap 'cat vite.log' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          node probe.mjs
+  table-structure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install open local CPU model runtime
+        run: |
+          python -m pip install 'paddlepaddle>=3.2,<4' 'paddleocr>=3.3,<4' pillow
+          python -m pip show paddleocr paddlepaddle
+      - name: Run SLANet plus on a generated table (not user invoices)
+        env:
+          PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
+        run: |
+          python - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont
+          from paddleocr import TableStructureRecognition
+          import json,os
+          im=Image.new('RGB',(960,300),'white')
+          d=ImageDraw.Draw(im)
+          font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',24)
+          xs=[10,490,630,790,950]
+          ys=[10,65,120,175,230,285]
+          for x in xs:d.line((x,ys[0],x,ys[-1]),fill='black',width=2)
+          for y in ys:d.line((xs[0],y,xs[-1],y),fill='black',width=2)
+          for i,row in enumerate([['Товар','Кол-во','Цена','Сумма'],['Рис тестовый','3','124,50','373,50'],['Сыр тестовый','2','199,00','398,00'],['Мука тестовая','5','80,00','400,00'],['Итого','','','1171,50']]):
+            for j,text in enumerate(row):d.text((xs[j]+9,ys[i]+10),text,font=font,fill='black')
+          path=os.path.join(os.environ['RUNNER_TEMP'],'synthetic-table.png')
+          im.save(path)
+          model=TableStructureRecognition(model_name='SLANet_plus',device='cpu')
+          result=list(model.predict(input=path,batch_size=1))
+          assert len(result)==1
+          output=result[0].json
+          print(json.dumps(output,ensure_ascii=False,default=str))
+          data=output.get('res',output)
+          structure=''.join(data.get('structure',[]))
+          assert structure.count('<tr>')==5, 'Table row count differs from the generated table'
+          assert structure.count('<td')==20, 'Table cell count differs from the generated table'
+          PY
