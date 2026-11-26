@@ -232,9 +232,9 @@ function addLine(data={}){
  f.append(a.wrap,del,w.wrap,q.wrap,weight.box,p.wrap,kgPrice.box,total.box,badge);if(suggestion)f.append(suggestion);$('lines').append(f);fillMissingPack();recalc();catalogBadge(f);f.addEventListener('change',()=>catalogBadge(f));
 }
 function showPreview(file){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('preview').classList.add('hide');if(file&&file.type?.startsWith('image/')){previewUrl=URL.createObjectURL(file);$('preview').src=previewUrl;$('preview').classList.remove('hide')}}
-function reset(){scanStartedAt=0;stageStartedAt=0;scanTrace=[];$('scanProgress').replaceChildren();pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();status('')}
+function reset(){scanStartedAt=0;stageStartedAt=0;scanTrace=[];$('scanProgress').replaceChildren();pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();showInvoiceIntegrity();status('')}
 $('supplier').addEventListener('change',()=>{for(const f of $('lines').children)catalogBadge(f)});
-$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';scanStartedAt=performance.now();scanTrace=[];document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
+$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';scanStartedAt=performance.now();scanTrace=[];document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
 
 function pageStatus(){
  const label=$('fileLabel');if(label)label.textContent=pages.length?'＋ Добавить страницу':'▣ Выбрать фото или PDF';
@@ -263,13 +263,47 @@ function purchaseDate(d){return d.documentDate||d.pages?.find(p=>p.documentDate)
 function purchaseDay(d){return String(purchaseDate(d)).slice(0,10)}
 function dailyPurchases(records){return [...grouped(records,purchaseDay).entries()].map(([day,items])=>({day,count:items.length,total:items.flatMap(linesOf).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100})).sort((a,b)=>b.day.localeCompare(a.day))}
 function sameDocument(a,b){return !!(a.documentNumber&&b.documentNumber&&norm(a.documentNumber).replace(/\s+/g,'')===norm(b.documentNumber).replace(/\s+/g,'')&&supplierKey(a.supplierId)===supplierKey(b.supplierId)&&(!a.documentDate||!b.documentDate||a.documentDate===b.documentDate))}
+// Independent control total: only an explicit UPD footer with consistent net, VAT and gross.
+function updEvidence(raw){
+ const text=String(raw||''),structured=/сч[её]т\s*[-– ]?\s*фактура|универсальный\s+передаточный\s+документ/i.test(text);
+ const totals=new Set();
+ if(structured)for(const part of text.split(/\r?\n\s*---\s*\r?\n/)){
+  const lines=part.split(/\r?\n/);
+  for(let i=0;i<lines.length;i++){
+   if(!/^\s*всего\s+к\s+оплате/i.test(lines[i]))continue;
+   let tail=lines[i].replace(/^\s*всего\s+к\s+оплате\s*(?:\(\s*9\s*\))?\s*/i,'');
+   if(!tail.trim()&&/^[\d.,\sхx–—-]+$/i.test(lines[i+1]||''))tail=lines[i+1];
+   const values=[...tail.replace(/[\u00a0\u202f]/g,' ').matchAll(/(?<![\d.,])(?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2}(?![\d.,])/g)].map(m=>Math.round(Number(m[0].replace(/\s/g,'').replace(',','.'))*100));
+   if(values.length===3&&values[0]>0&&values[1]>=0&&values[0]+values[1]===values[2])totals.add(values[2]);
+  }
+ }
+ return {structured,printedTotal:totals.size===1?[...totals][0]/100:null,conflictingTotals:totals.size>1};
+}
+function invoiceIntegrity(lines,records,raw,date){
+ const pending=updEvidence(raw);
+ const structured=records.some(p=>p.structured)||pending.structured;
+ if(!structured)return {message:'',error:false};
+ if(!date)return {message:'Укажите дату накладной по оригиналу.',error:true};
+ if(lines.some(l=>!l.name||!(l.quantity>0)||!(l.price>0)||!l.unit))return {message:'УПД: заполните количество, единицу и цену каждой строки.',error:true};
+ if(pending.conflictingTotals||records.some(p=>p.conflictingTotals))return {message:'OCR прочитал разные итоги. Сверьте оригинал и загрузите чёткое фото.',error:true};
+ const checks=records.filter(p=>p.structured&&p.printedTotal!=null).map(p=>({expected:p.printedTotal,lines:lines.filter(l=>l.pageKey===p.key)}));
+ if(pending.structured&&pending.printedTotal!=null&&!records.length)checks.push({expected:pending.printedTotal,lines});
+ for(const c of checks){const actual=c.lines.reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;
+  if(Math.abs(actual-c.expected)>.01)return {message:'Итог строк '+rub(actual)+' ≠ итогу УПД '+rub(c.expected)+'. Проверьте все товары.',error:true};}
+ return {message:checks.length?'✓ Итог строк совпадает с УПД.':'Итог УПД не распознан — сверка по оригиналу обязательна.',error:false,verified:checks.length>0};
+}
+function showInvoiceIntegrity(){
+ const el=$('invoiceCheck');if(!el)return;
+ const result=invoiceIntegrity([...$('lines').children].map(lineData),pages,pendingPhoto?photoPassTexts.join('\n---\n'):'',$('documentDate').value);
+ el.textContent=result.message;el.className=result.message?(result.error?'up':result.verified?'down':'warn'):'hide';
+}
 function pageMeta(r,raw){
  const text=String(raw||'');
  const header=invoiceHeader(text);
  const page=text.match(/(?:стр\.|страница|cmp\.)\s*([1-9]\d*|I)\s*(?:из|u3)\s*(\d+)/i);
  const number=r.pageInfo?.page|| (page?(page[1].toUpperCase()==='I'?1:Number(page[1])):null);
  const expected=r.pageInfo?.pages|| (page?Number(page[2]):null);
- return {...header,number,expected};
+ return {...header,...updEvidence(text),number,expected};
 }
 function pageFingerprint(items){
  return JSON.stringify(items.map(l=>[norm(l.name),l.quantity??null,l.price??null,l.invoiceTotal??null]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
@@ -301,7 +335,7 @@ function acceptPage(r,raw){
  for(const [i,l] of r.items.entries())addLine({...l,ocrOriginalName:l.name,ocrOriginalArticle:l.article||undefined,pageKey:key,sourceRow:r.documentVerified&&l.article?String(i+1):undefined});
  const record={...meta,key,file,identity,fingerprint,expectedTotal:r.documentVerified&&r.items.every(l=>numeric(l.invoiceTotal))?r.items.reduce((s,l)=>s+Math.round(l.invoiceTotal*100),0)/100:null,reviewRequired:!r.documentVerified&&!r.pageVerified};
  if(previous)pages=pages.map(p=>p.key===key?record:p);else pages.push(record);
- activePage=key;pendingPhoto=null;pageStatus();return true;
+ activePage=key;pendingPhoto=null;pageStatus();showInvoiceIntegrity();return true;
 }
 
 function numeric(s){const n=Number(String(s).replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null}
@@ -583,9 +617,9 @@ if(compare){renderMatchCandidates(last);$('offers').replaceChildren();for(const 
  if(home){renderDashboard(obs,last);renderVision(obs,last);}
 }
 $('orderProduct').onchange=()=>renderOrderAdvice(latest(observations()));$('orderQuantity').oninput=()=>renderOrderAdvice(latest(observations()));$('compareSearch').oninput=()=>render('compare');$('invoiceSearch').oninput=()=>render('invoices');$('search').oninput=() => render('products');$('categoryFilter').onchange=() => render('products');$('favoriteFilter').onchange=() => render('products');$('period').onchange=() => render('home');for(const id of ['visionProduct','visionBasis','trendSelect','reportPoint','alertThreshold'])$(id).onchange=() => render('home');
-function edit(d){reset();editing=d.id;pages=Array.isArray(d.pages)?d.pages.slice():d.original?[{key:'legacy',file:d.original,identity:photoFingerprint(d.original),fingerprint:pageFingerprint(d.lines)}]:[];$('supplier').value=d.supplierId;$('documentNumber').value=d.documentNumber||pages.find(p=>p.documentNumber)?.documentNumber||'';$('documentDate').value=d.documentDate||pages.find(p=>p.documentDate)?.documentDate||'';$('invoicePoint').value=Object.prototype.hasOwnProperty.call(POINTS,d.pointId)?d.pointId:'';$('lines').replaceChildren();for(const l of d.lines)addLine({...l,pageKey:l.pageKey||(pages.length===1?pages[0].key:undefined)});showPreview(pages.at(-1)?.file||d.original);pageStatus();go('entry')}
+function edit(d){reset();editing=d.id;pages=Array.isArray(d.pages)?d.pages.slice():d.original?[{key:'legacy',file:d.original,identity:photoFingerprint(d.original),fingerprint:pageFingerprint(d.lines)}]:[];$('supplier').value=d.supplierId;$('documentNumber').value=d.documentNumber||pages.find(p=>p.documentNumber)?.documentNumber||'';$('documentDate').value=d.documentDate||pages.find(p=>p.documentDate)?.documentDate||'';$('invoicePoint').value=Object.prototype.hasOwnProperty.call(POINTS,d.pointId)?d.pointId:'';$('lines').replaceChildren();for(const l of d.lines)addLine({...l,pageKey:l.pageKey||(pages.length===1?pages[0].key:undefined)});showPreview(pages.at(-1)?.file||d.original);pageStatus();showInvoiceIntegrity();go('entry')}
 let savingInvoice=false;
-$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy||savingInvoice)return;savingInvoice=true;try{const next=e.submitter?.id==='saveNext',supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены с НДС');const duplicates=grouped(lines,l=>JSON.stringify([norm(l.name),l.pageKey||'']));for(const group of duplicates.values())if(group.length>1&&(!group.every(l=>l.article&&l.sourceRow&&l.pageKey&&l.article===group[0].article)||new Set(group.map(l=>l.sourceRow)).size!==group.length))throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(pages.some(pg=>pg.reviewRequired)&&!confirm('Не все строки накладной автоматически сверены. Сравните количество позиций и общую сумму с оригиналом. Сохранить?'))return;for(const pg of pages){if(pg.expectedTotal==null)continue;const actual=lines.filter(l=>l.pageKey===pg.key).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;if(Math.abs(actual-pg.expectedTotal)>.01&&!confirm('Сумма страницы '+rub(actual)+' отличается от сверенного итога '+rub(pg.expectedTotal)+'. Сохранить изменённые данные?'))return;}if(pendingPhoto&&!confirm('Последнее фото ещё не добавлено. Сохранить только обработанные товары?'))return;if(partialPage&&!confirm('Документ содержит '+partialPage.pages+' страниц. Добавлено '+partialPage.page+'. Сохранить только эту часть?'))return;if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,documentNumber:norm($('documentNumber').value).replace(/\s+/g,'')||null,documentDate:$('documentDate').value||null,pointId:$('invoicePoint').value||null,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:pages[0]?.file||(!pendingPhoto?$('file').files[0]:null)||prior?.original||null,pages:pages.slice()};if(docs.some(d=>d.id!==editing&&sameDocument({...d,documentNumber:d.documentNumber||d.pages?.find(p=>p.documentNumber)?.documentNumber},doc)))throw Error('Накладная с этим номером уже сохранена. Откройте её в архиве.');if(!editing&&!doc.documentNumber&&docs.some(d=>d.simpleVersion===1&&supplierKey(d.supplierId)===supplierKey(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;supplierFilter=null;await refresh();await autoBackup();if(next){reset();$('supplier').value=supplier;go('entry');status('✓ Накладная сохранена. Добавьте фото следующей.',true)}else{go('invoices');status('✓ Накладная сохранена',true)}}catch(err){status(err.message)}finally{savingInvoice=false}};
+$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy||savingInvoice)return;savingInvoice=true;try{const next=e.submitter?.id==='saveNext',supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены с НДС');const integrity=invoiceIntegrity(lines,pages,pendingPhoto?photoPassTexts.join('\n---\n'):'',$('documentDate').value);if(integrity.error){showInvoiceIntegrity();throw Error(integrity.message);}const duplicates=grouped(lines,l=>JSON.stringify([norm(l.name),l.pageKey||'']));for(const group of duplicates.values())if(group.length>1&&(!group.every(l=>l.article&&l.sourceRow&&l.pageKey&&l.article===group[0].article)||new Set(group.map(l=>l.sourceRow)).size!==group.length))throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(pages.some(pg=>pg.reviewRequired)&&!confirm('Не все строки накладной автоматически сверены. Сравните количество позиций и общую сумму с оригиналом. Сохранить?'))return;for(const pg of pages){if(pg.expectedTotal==null)continue;const actual=lines.filter(l=>l.pageKey===pg.key).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;if(Math.abs(actual-pg.expectedTotal)>.01&&!confirm('Сумма страницы '+rub(actual)+' отличается от сверенного итога '+rub(pg.expectedTotal)+'. Сохранить изменённые данные?'))return;}if(pendingPhoto&&!pages.length&&updEvidence(photoPassTexts.join('\n---\n')).structured){if(!confirm('Сохранить вручную сверенные строки вместе с оригиналом УПД?'))return;const meta=pageMeta({},photoPassTexts.join('\n---\n')),key=crypto.randomUUID();for(const l of lines)l.pageKey=key;pages=[{...meta,key,file:pendingPhoto,identity:photoFingerprint(pendingPhoto),fingerprint:pageFingerprint(lines),reviewRequired:true}];pendingPhoto=null;}else if(pendingPhoto&&!confirm('Последнее фото ещё не добавлено. Сохранить только обработанные товары?'))return;if(partialPage&&!confirm('Документ содержит '+partialPage.pages+' страниц. Добавлено '+partialPage.page+'. Сохранить только эту часть?'))return;if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,documentNumber:norm($('documentNumber').value).replace(/\s+/g,'')||null,documentDate:$('documentDate').value||null,pointId:$('invoicePoint').value||null,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:pages[0]?.file||(!pendingPhoto?$('file').files[0]:null)||prior?.original||null,pages:pages.slice()};if(docs.some(d=>d.id!==editing&&sameDocument({...d,documentNumber:d.documentNumber||d.pages?.find(p=>p.documentNumber)?.documentNumber},doc)))throw Error('Накладная с этим номером уже сохранена. Откройте её в архиве.');if(!editing&&!doc.documentNumber&&docs.some(d=>d.simpleVersion===1&&supplierKey(d.supplierId)===supplierKey(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;supplierFilter=null;await refresh();await autoBackup();if(next){reset();$('supplier').value=supplier;go('entry');status('✓ Накладная сохранена. Добавьте фото следующей.',true)}else{go('invoices');status('✓ Накладная сохранена',true)}}catch(err){status(err.message)}finally{savingInvoice=false}};
 function scanLabel(){return scanPass===0?'Распознавание фото':scanPass===1?'Быстрая проверка Paddle OCR':'Углублённая проверка таблицы';}
 function showScanProgress(){const el=$('scanProgress');el.replaceChildren();for(const s of scanTrace)el.append(node('div',(s.failed?'⚠ ':'✓ ')+s.label+' · '+fmt(s.seconds)+' с',s.failed?'scan-step':'scan-step done'));if(scanBusy&&stageStartedAt)el.append(node('div','● '+scanLabel()+' · '+fmt(Math.round((performance.now()-stageStartedAt)/100)/10)+' с','scan-step active'));if(!scanBusy&&scanTrace.length)el.append(node('div','Проверьте результат по оригиналу','scan-step'));}
 setInterval(()=>{if(scanBusy)showScanProgress();},500);
@@ -637,14 +671,14 @@ function acceptPdf(text,parseStarted){
   const key=crypto.randomUUID();
   if(!r.items.length){missing++;continue;}
   if(!r.documentVerified&&!r.pageVerified||r.items.some(x=>x.price==null||x.quantity==null))review++;
-  records.push({key,number:i+1,expected:source.length,documentNumber:ids[0]||null,file:i===0?file:null,identity:photoFingerprint(file)+'#'+(i+1),fingerprint:pageFingerprint(r.items)});
+  records.push({...updEvidence(source[i]),documentDate:invoiceHeader(source[i]).documentDate,key,number:i+1,expected:source.length,documentNumber:ids[0]||null,file:i===0?file:null,identity:photoFingerprint(file)+'#'+(i+1),fingerprint:pageFingerprint(r.items)});
   for(const item of r.items)rows.push({...item,pageKey:key});
  }
  if(!rows.length)throw Error('В PDF не найдены товарные строки');
  if(!records.some(p=>p.file))records[0].file=file;
  if(pages.length&&!confirm('Заменить результаты этого PDF?'))return;
  $('lines').replaceChildren();$('supplier').value=supplier;$('documentNumber').value=ids[0]||'';$('documentDate').value=source.map(s=>invoiceHeader(s).documentDate).find(Boolean)||'';pages=records;activePage=null;pendingPhoto=null;
- for(const row of rows)addLine(row);pageStatus();dirty=true;
+ for(const row of rows)addLine(row);pageStatus();showInvoiceIntegrity();dirty=true;
  scanTrace.push({label:'Распределение товаров и сверка',seconds:Math.round((performance.now()-parseStarted)/100)/10});scanStartedAt=0;showScanProgress();
  $('ocrState').textContent='PDF: '+source.length+' стр. · '+rows.length+' позиций. '+(missing?'Не прочитано страниц: '+missing+'. ':'')+(review?'Требуют сверки: '+review+' стр. ':'')+'Сверьте с оригиналом.';
  if(missing||review)scanDiagnostic(source.map((s,i)=>'Страница '+(i+1)+'\n'+s).join('\n---\n'));
@@ -688,7 +722,7 @@ window.supplyOcrFinish=(id,text,error)=>{
   const diagnostic=photoPassTexts.join('\n---\n');scanTrace.push({label:'Распределение товаров и сверка',seconds:Math.round((performance.now()-parseStarted)/100)/10,failed:!r.items.some(x=>x.price!=null)});const elapsed=(performance.now()-scanStartedAt)/1000;scanStartedAt=0;showScanProgress();scanCandidates=[];scanPass=0;
   if(r.items.length&&r.items.some(x=>x.price!=null)){try{if(!acceptPage(r,diagnostic))return;}catch(err){$('ocrState').textContent=err.message;scanDiagnostic(diagnostic);return;}}
   else if(!pages.length){if(r.supplier)$('supplier').value=r.supplier;const header=invoiceHeader(diagnostic);if(header.documentNumber&&!$('documentNumber').value)$('documentNumber').value=header.documentNumber.toUpperCase();if(header.documentDate&&!$('documentDate').value)$('documentDate').value=header.documentDate;if(r.items.length){$('lines').replaceChildren();for(const l of r.items)addLine(l)}}
-  dirty=true;const priced=r.items.filter(x=>x.price!=null).length;
+  dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(best.error||'Товарная таблица не прочитана. Выберите более чёткое фото или крупный снимок таблицы.');
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);
   if(Number.isFinite(elapsed))$('ocrState').textContent+=' · '+fmt(Math.round(elapsed*10)/10)+' с';
