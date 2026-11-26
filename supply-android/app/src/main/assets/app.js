@@ -1205,3 +1205,138 @@ function backupDialog(){
 $('backupOpen').onclick=backupDialog;
 
 reset();const req=indexedDB.open('farukh-supply-preview',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('invoices'))req.result.createObjectStore('invoices',{keyPath:'id'})};req.onsuccess=async()=>{db=req.result;try{const recovered=await recoverInterruptedRestore();backupReady=true;await refresh();if(recovered)status('✓ Прежняя база восстановлена после прерывания',true)}catch(e){status('Резервное хранилище недоступно: '+e.message);if(!backupReady)await refresh().catch(err=>status(err.message));}};req.onerror=()=>status('Не удалось открыть локальную базу');
+
+(function(){
+// Experimental local-only model-pack bootstrap. No invoice bytes are sent to any endpoint.
+// The signed web code pins each asset by exact size + SHA-256. Cache is separate from invoices.
+const version='ocr5-cyrillic-ort1.31.1';
+const npm='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
+const hf='https://huggingface.co/PaddlePaddle/';
+const MODEL_PACK=Object.freeze({
+ 'ort.wasm.min.mjs':{url:npm+'ort.wasm.min.mjs',size:53725,sha256:'c21d9c326d453a4a61398270c804d5979e118540597cb0c07f7b3d64e6098234'},
+ 'ort-wasm-simd-threaded.mjs':{url:npm+'ort-wasm-simd-threaded.mjs',size:24738,sha256:'30ed0b5cd1182ede931fea448afb567d4dc705ec957af09f108a2be5f770dac3'},
+ 'ort-wasm-simd-threaded.wasm':{url:npm+'ort-wasm-simd-threaded.wasm',size:14848852,sha256:'4b884c203b0fa48d057be3332c65513ff85aa3c5bddd6946acc0fab7ecda001d'},
+ 'det.onnx':{url:hf+'PP-OCRv5_mobile_det_onnx/resolve/main/inference.onnx',size:4826518,sha256:'a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d'},
+ 'rec.onnx':{url:hf+'cyrillic_PP-OCRv5_mobile_rec_onnx/resolve/main/inference.onnx',size:8048799,sha256:'5371ee1ddaa7983cc62d0818d99e982b6804638c85e4f960d59a574094e172e5'},
+ 'rec.yml':{url:hf+'cyrillic_PP-OCRv5_mobile_rec_onnx/resolve/main/inference.yml',size:6991,sha256:'5c76cc91fa98410178a09f498db10050d0ec1634a660053d3005ab7be581f501'}
+});
+const MODEL_PACK_BYTES=Object.values(MODEL_PACK).reduce((a,b)=>a+b.size,0);
+const hex=buf=>Array.from(new Uint8Array(buf),b=>b.toString(16).padStart(2,'0')).join('');
+async function verifyAsset(name,bytes){
+ const spec=MODEL_PACK[name];if(!spec||bytes.byteLength!==spec.size||hex(await crypto.subtle.digest('SHA-256',bytes))!==spec.sha256)throw Error('Неверная контрольная сумма модели: '+name);
+ return bytes;
+}
+async function readModelPack({progress=()=>{},fetchAsset=(name,spec)=>fetch(spec.url,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'}),offline=false}={}){
+ if(!globalThis.crypto?.subtle||!globalThis.WebAssembly)throw Error('WebView не поддерживает защищённую загрузку моделей');
+ const cache=await caches.open('farukh-supply-models-'+version);const result={};let loaded=0;
+ for(const [name,spec] of Object.entries(MODEL_PACK)){
+  const key=new Request(new URL('/__farukh_models__/'+version+'/'+name,location.origin));
+  let bytes;const saved=await cache.match(key);
+  if(saved){try{bytes=await verifyAsset(name,await saved.arrayBuffer())}catch{await cache.delete(key)}}
+  if(!bytes){if(offline)throw Error('Модель ещё не установлена: '+name);const res=await fetchAsset(name,spec);if(!res.ok)throw Error('Загрузка модели: '+name+' HTTP '+res.status);bytes=await verifyAsset(name,await res.arrayBuffer());await cache.put(key,new Response(bytes));}
+  result[name]=bytes;loaded+=spec.size;progress({name,loaded,total:MODEL_PACK_BYTES});
+ }
+ return result;
+}
+async function openModelSessions(pack){
+ for(const [name,bytes] of Object.entries(pack))await verifyAsset(name,bytes);
+ if(Object.keys(MODEL_PACK).some(n=>!pack[n]))throw Error('Неполный комплект моделей');
+ const urls=[];const url=(name,mime)=>{const u=URL.createObjectURL(new Blob([pack[name]],{type:mime}));urls.push(u);return u;};
+ try{
+  const ort=await import(url('ort.wasm.min.mjs','text/javascript'));
+  ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;ort.env.logLevel='error';
+  ort.env.wasm.wasmPaths={mjs:url('ort-wasm-simd-threaded.mjs','text/javascript')};
+  ort.env.wasm.wasmBinary=pack['ort-wasm-simd-threaded.wasm'];
+  const options={executionProviders:['wasm'],logSeverityLevel:3};
+  let det,rec;try{det=await ort.InferenceSession.create(new Uint8Array(pack['det.onnx']),options);rec=await ort.InferenceSession.create(new Uint8Array(pack['rec.onnx']),options)}catch(e){if(det)await det.release();throw e;}
+  return{ort,det,rec,dictionaryYaml:new TextDecoder().decode(pack['rec.yml']),dispose:async()=>{try{await Promise.all([det.release(),rec.release()])}finally{urls.forEach(u=>URL.revokeObjectURL(u))}}};
+ }catch(e){urls.forEach(u=>URL.revokeObjectURL(u));throw e;}
+}
+
+// Experimental source-only layout recovery. No product, price or invoice constants.
+const B=items=>items.filter(b=>b.text?.trim()&&Array.isArray(b.poly)&&b.poly.length===4).map(b=>{let xs=b.poly.map(p=>p[0]),ys=b.poly.map(p=>p[1]);return {t:b.text.trim(),x:xs.reduce((a,b)=>a+b)/4,y:ys.reduce((a,b)=>a+b)/4,l:Math.min(...xs),r:Math.max(...xs),top:Math.min(...ys),bottom:Math.max(...ys),score:b.score??0}});
+// Match duplicate OCR header digits by ordered positions, not overwrite by recognition order.
+function orderedHeader(boxes,anchor,keys,dy){const m={'9':anchor},at=keys.indexOf('9'),near=boxes.filter(b=>Math.abs(b.y-anchor.y)<dy);let x=anchor.x;for(let i=at-1;i>=0;i--){const a=near.filter(b=>b.t===keys[i]&&b.x<x).sort((a,b)=>b.x-a.x)[0];if(!a)return null;m[keys[i]]=a;x=a.x;}x=anchor.x;for(let i=at+1;i<keys.length;i++){const a=near.filter(b=>b.t===keys[i]&&b.x>x).sort((a,b)=>a.x-b.x)[0];if(!a)return null;m[keys[i]]=a;x=a.x;}return m;}
+const norm=t=>t.replace(/\s/g,'').replace(',','.');
+const cash=t=>/^\d+\.\d{2}$/.test(norm(t))?Math.round(Number(norm(t))*100):null;
+const qty=t=>/^\d+(?:\.\d{1,3})?$/.test(norm(t))?Number(norm(t)):null;
+const letters=t=>/[а-яёa-z]/i.test(t), order=(a,b)=>a.y-b.y||a.x-b.x;
+const sum=rs=>rs.reduce((s,r)=>s+(r.total??0),0);
+const row=(parts,q,p,t,extra={})=>({name:parts.map(b=>b.t).join(' ').trim(),quantity:q,price:p==null?null:p/100,total:t==null?null:t/100,nameReview:!parts.length||parts.some(b=>b.score<.92),rawName:parts.map(b=>b.t),...extra});
+function marr(boxes,inherited){
+ const header=[];for(const n of boxes.filter(b=>/^Наименование$/i.test(b.t))){const h=boxes.filter(b=>Math.abs(b.y-n.y)<30),get=re=>h.find(b=>re.test(b.t));const c=get(/^код$/i),p=get(/^цена$/i),q=get(/^кол-?во$/i),u=get(/^[ЕE]д\.?$/i),t=get(/^[СC][уy][мm][мm][аa]$/i),w=get(/^[ВB][еe][сc]$/i);if(c&&p&&q&&u&&t&&w)header.push({n,layout:{code:c.x,name:n.x,unit:u.x,qty:q.x,weight:w.x,price:p.x,total:t.x}})}
+ const layout=header.length===1?header[0].layout:header.length===0?inherited:null;if(!layout)return null;
+ const start=header.length===1?header[0].n.y+25:0;const foot=boxes.filter(b=>b.y>start&&/^итого:?$/i.test(b.t)).sort(order)[0],end=foot?foot.y-20:Infinity;
+ const anchors=boxes.filter(b=>b.y>start&&b.y<end&&Math.abs(b.x-layout.code)<75&&/^(?:\d{1,2}\s*\|\s*\d{8,12}|\d{8,14})$/.test(b.t)).sort(order);if(!anchors.length)return null;
+ let prev=start;const rows=[];for(const a of anchors){const parts=boxes.filter(b=>b.y>prev+10&&b.y<=a.y+15&&b.l>layout.code+25&&b.r<layout.unit-18&&letters(b.t)&&!/Место хранения/i.test(b.t)).sort(order);const near=boxes.filter(b=>b.y>a.y-28&&b.y<=a.y+20);const pick=(key,fn,shift,limit)=>near.filter(b=>Math.abs(b.x-layout[key]-shift)<limit&&fn(b.t)!=null).sort((b,c)=>Math.abs(b.x-layout[key]-shift)+Math.abs(b.y-a.y)*.2-Math.abs(c.x-layout[key]-shift)-Math.abs(c.y-a.y)*.2)[0];let pb=pick('price',cash,10,40),tb=pick('total',cash,35,65),p=pb&&pb!==tb?cash(pb.t):null,t=tb?cash(tb.t):null;if(p==null){const b=near.find(b=>/^\d+[.,]\d{3}\d+[.,]\d{2}$/.test(b.t.replace(/ /g,''))&&Math.abs(b.x-(layout.weight+layout.price)/2)<65);if(b){const m=b.t.replace(/ /g,'').match(/^(\d+[.,]\d{3})(\d+[.,]\d{2})$/);p=cash(m[2])}}const qb=pick('qty',s=>/^\d{1,4}$/.test(s)?Number(s):null,30,36),rawQ=qb?Number(qb.t):null,estimate=p>0&&t>0?t/p:null,derived=estimate!=null&&Math.abs(estimate-Math.round(estimate))<.0001?Math.round(estimate):null,q=rawQ&&(derived==null||rawQ===derived)?rawQ:derived;rows.push(row(parts,q,p,t,{articleRaw:a.t,quantityDerived:q!==rawQ||rawQ==null,arithmeticOK:q>0&&p>0&&t>0&&Math.abs(q*p-t)<=1}));prev=a.y}
+ return {kind:'marr',rows,layout,continuation:!header.length,printedTotal:foot?boxes.filter(b=>Math.abs(b.y-foot.y)<25&&Math.abs(b.x-layout.total-35)<70&&cash(b.t)!=null).sort((a,b)=>Math.abs(a.y-foot.y)-Math.abs(b.y-foot.y)).map(b=>cash(b.t)/100)[0]??null:null};
+}
+function act(boxes){const hs=[];for(const b of boxes.filter(b=>b.t==='9')){const keys=['2','3','4','8','9','10','12','13','14','15'],m=orderedHeader(boxes,b,keys,8);if(m)hs.push({b,m})}if(hs.length!==1)return null;const {b,m}=hs[0],x=k=>m[k].x,sp=x('10')-x('9'),nameMin=(x('2')+x('3'))/2,nameMax=(x('3')+x('4'))/2;const prices=boxes.filter(a=>a.y>b.y&&Math.abs(a.x-x('9')-sp*.16)<sp*.39&&cash(a.t)>0).sort(order);const rows=[];for(let i=0;i<prices.length;i++){const p=prices[i],totals=boxes.filter(a=>Math.abs(a.y-p.y)<10&&Math.abs(a.x-x('10')-sp*.22)<sp*.4&&cash(a.t)>0);if(totals.length!==1)continue;const pc=cash(p.t),tc=cash(totals[0].t),q=tc/pc;if(Math.abs(q-Math.round(q))>1e-8)continue;const shift=.7*(m['3'].y-b.y),upper=(i?(prices[i-1].y+p.y)/2:(b.y+p.y)/2)+shift,lower=(i+1<prices.length?(prices[i+1].y+p.y)/2:p.y+(i?(p.y-prices[i-1].y)/2:10))+shift;const parts=boxes.filter(a=>a.y>upper&&a.y<=lower&&a.r<x('4')-10&&a.r>nameMin&&a.x<nameMax&&letters(a.t)).sort(order).map(a=>({...a,t:a.t.replace(/^\s*(?:\d{1,3}\s+)?\d{8,14}\s*/,'')}));const match=boxes.some(a=>Math.abs(a.y-p.y)<8&&a.x>x('10')+sp*.75&&a.x<x('12')-sp*.32&&qty(a.t)===q);rows.push(row(parts,Math.round(q),pc,tc,{quantityDerived:!match,arithmeticOK:true,nameBounds:[Math.round(x('2')+(x('3')-x('2'))*.19),Math.round(upper),Math.round(x('4')-20),Math.round(lower)]}))}return rows.length?{kind:'act',rows,printedTotal:null,expectedRows:prices.length}:null;}
+function upd(boxes){const hs=[],direct=boxes.filter(b=>b.t==='9'),virtual=[];for(const a of boxes.filter(b=>b.t==='8'))for(const c of boxes.filter(b=>b.t==='10')){const gap=c.x-a.x;if(gap<50||gap>180||Math.abs(c.y-a.y)>12||direct.some(b=>Math.abs(b.y-(a.y+c.y)/2)<12&&b.x>a.x&&b.x<c.x))continue;virtual.push({t:'9',x:(a.x+c.x)/2,y:(a.y+c.y)/2,inferred:true});}for(const b of [...direct,...virtual]){const keys=['2','3','8','9','10'],m=orderedHeader(boxes,b,keys,17);if(!m)continue;const sp=m['9'].x-m['8'].x;if(m['3'].x-m['2'].x>.5*sp&&m['3'].x-m['2'].x<2*sp)hs.push({b,m,sp})}if(hs.length!==1)return null;const {b,m,sp}=hs[0],x=k=>m[k].x,start=b.y+7;let foot=boxes.filter(a=>a.y>start&&a.x<x('2')&&/(?:всего|[bвdсs][cс]его|[bвdсs][cс]ero)\s+.{0,12}(?:оплат|[oо]nnат|[oо]nnaт)/i.test(a.t));if(!foot.length)foot=boxes.filter(a=>a.y>start&&a.x<x('2')&&/руководитель|главный бухгалтер/i.test(a.t));if(!foot.length)return null;const end=Math.min(...foot.map(a=>a.y))+4,gross=boxes.filter(a=>a.y>start&&a.y<end&&Math.abs(a.x-x('9')-sp*.15)<sp*.47&&cash(a.t)!=null).sort(order);if(gross.length<2)return null;const control=gross.pop();const near=(g,center,fn,width,dy=12)=>boxes.filter(a=>Math.abs(a.x-center)<sp*width&&Math.abs(a.y-g.y)<=dy&&fn(a.t)!=null).sort((a,b)=>Math.abs(a.x-center)+Math.abs(a.y-g.y)*.5-Math.abs(b.x-center)-Math.abs(b.y-g.y)*.5)[0];const rows=gross.map((g,i)=>{const lo=g.y-2,hi=(gross[i+1]??control).y-2,parts=boxes.filter(a=>a.y>lo&&a.y<hi&&a.l>x('2')-sp*4.6&&a.r<x('2')-sp*.35&&/[а-яa-z]{2}/i.test(a.t)).sort(order);const qfn=s=>/^\d+\.\d{1,3}$|^\d{1,2}$/.test(norm(s))?Number(norm(s)):null,qb=near(g,x('3')+sp*.07,qfn,.38,15),nb=near(g,x('9')-sp*3.1,cash,.52),ub=near(g,x('9')-sp*4.2,cash,.50);let q=qb?qfn(qb.t):null,derived=false;const net=nb?cash(nb.t):null,unit=ub?cash(ub.t):null,rates=[...new Set(boxes.filter(a=>Math.abs(a.y-g.y)<9&&a.x>x('9')-sp*2.7&&a.x<x('9')-sp*1.6).flatMap(a=>[...a.t.matchAll(/(?:^|\s)(\d{1,2})\s*%/g)].map(m=>Number(m[1]))).filter(v=>[0,5,7,10,20,22].includes(v)))],rate=rates.length===1?rates[0]:null,t=cash(g.t);if(q==null&&unit>0&&rate!=null){const guess=t*100/(unit*(100+rate));if(Math.round(guess)>0&&Math.abs(guess-Math.round(guess))<.005){q=Math.round(guess);derived=true}}const p=q>0?Math.round(t/q):null,conflicts=[];if(unit&&rate!=null&&p&&Math.abs(unit*(100+rate)/100-p)>2)conflicts.push('net-unit');if(net&&rate!=null&&Math.abs(net*(100+rate)/100-t)>2)conflicts.push('net-row');return row(parts,q,p,t,{rate,quantityDerived:derived,arithmeticOK:q>0&&p>0&&Math.abs(p*q-t)<=1,conflicts})});return{kind:'upd',rows,printedTotal:cash(control.t)/100,headerInferred:!!b.inferred};}
+function extractLayout(items,options={}){const boxes=B(items);const candidates=[marr(boxes,options.continuationLayout),act(boxes),upd(boxes)].filter(Boolean);if(candidates.length!==1)return{rows:[],error:'Не удалось однозначно определить таблицу'};const r=candidates[0];r.sum=Math.round(sum(r.rows)*100)/100;r.totalOK=r.printedTotal!=null&&Math.round(r.printedTotal*100)===Math.round(r.sum*100);r.reviewRequired=true;return r;}
+
+// Local OCR engine: use a verified model pack, never send a photo to an API.
+
+
+let sessionPromise=null;
+function dictionary(yaml){const lines=yaml.split(/\r?\n/),i=lines.findIndex(x=>/^\s+character_dict:\s*$/.test(x));if(i<0)throw Error('Missing character dictionary');const a=[];for(const line of lines.slice(i+1)){const m=line.match(/^  - (.*)$/);if(!m)break;let v=m[1];if(v.startsWith("'")&&v.endsWith("'"))v=v.slice(1,-1).replace(/''/g,"'");else if(v.startsWith('"')&&v.endsWith('"'))v=JSON.parse(v);if([...v].length!==1)throw Error('Invalid character');a.push(v);}if(a.length!==850)throw Error('Incorrect character count');return ['',...a,' '];}
+async function load(progress,offline){if(!sessionPromise)sessionPromise=readModelPack({progress:v=>progress('Модели '+Math.round(v.loaded*100/v.total)+'%'),offline}).then(openModelSessions).then(s=>({...s,chars:dictionary(s.dictionaryYaml)})).catch(e=>{sessionPromise=null;throw e;});return sessionPromise;}
+const cross=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+function hull(points){points.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const l=[],u=[];for(const p of points){while(l.length>1&&cross(l.at(-2),l.at(-1),p)<=0)l.pop();l.push(p);}for(let i=points.length-1;i>=0;i--){const p=points[i];while(u.length>1&&cross(u.at(-2),u.at(-1),p)<=0)u.pop();u.push(p);}return [...l.slice(0,-1),...u.slice(0,-1)];}
+function minRect(points){const h=hull(points);if(h.length<3)return null;let best=null;for(let i=0;i<h.length;i++){const a=h[i],b=h[(i+1)%h.length],len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(!len)continue;const ux=(b[0]-a[0])/len,uy=(b[1]-a[1])/len;let l=Infinity,r=-Infinity,t=Infinity,bt=-Infinity;for(const p of h){const x=p[0]*ux+p[1]*uy,y=-p[0]*uy+p[1]*ux;l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);bt=Math.max(bt,y);}const w=r-l,ht=bt-t,area=w*ht;if(!best||area<best.area)best={ux,uy,l,r,t,bt,w,ht,area};}return best;}
+function polys(map,w,h,ow,oh){const seen=new Uint8Array(w*h),queue=new Int32Array(w*h),out=[];for(let start=0;start<map.length;start++){if(seen[start]||map[start]<=.3)continue;let head=0,tail=1,score=0;queue[0]=start;seen[start]=1;const edges=[];while(head<tail){const k=queue[head++],x=k%w,y=Math.floor(k/w);score+=map[k];let boundary=false;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const xx=x+dx,yy=y+dy;if(xx<0||xx>=w||yy<0||yy>=h){boundary=true;continue;}const j=yy*w+xx;if(map[j]<=.3){boundary=true;continue;}if(!seen[j]){seen[j]=1;queue[tail++]=j;}}if(boundary)edges.push([x,y]);}if(tail<12||score/tail<.5||edges.length<3)continue;const a=minRect(edges);if(!a||Math.min(a.w,a.ht)<2)continue;const d=1.35*a.w*a.ht/(2*(a.w+a.ht));const xy=(x,y)=>[(x*a.ux-y*a.uy)*ow/w,(x*a.uy+y*a.ux)*oh/h];const p=[xy(a.l-d,a.t-d),xy(a.r+d,a.t-d),xy(a.r+d,a.bt+d),xy(a.l-d,a.bt+d)].sort((a,b)=>a[0]-b[0]);const left=p.slice(0,2).sort((a,b)=>a[1]-b[1]),right=p.slice(2).sort((a,b)=>a[1]-b[1]);out.push([left[0],right[0],right[1],left[1]]);}return out;}
+function sample(im,x,y,ch){const w=im.width,h=im.height,d=im.data; x=Math.min(w-1,Math.max(0,x));y=Math.min(h-1,Math.max(0,y));const l=Math.floor(x),t=Math.floor(y),r=Math.min(w-1,l+1),b=Math.min(h-1,t+1),u=x-l,v=y-t;const c=2-ch;return (d[(t*w+l)*4+c]*(1-u)+d[(t*w+r)*4+c]*u)*(1-v)+(d[(b*w+l)*4+c]*(1-u)+d[(b*w+r)*4+c]*u)*v;}
+function imageTensor(im,w,h,normalize){const n=w*h,a=new Float32Array(3*n);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let sx=(x+.5)*im.width/w-.5,sy=(y+.5)*im.height/h-.5;for(let j=0;j<3;j++)a[j*n+y*w+x]=normalize(Math.round(sample(im,sx,sy,j)),j);}return a;}
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function crop(im,p){let [tl,tr,br,bl]=p;let w=Math.max(2,Math.floor(Math.max(dist(tl,tr),dist(bl,br)))),h=Math.max(2,Math.floor(Math.max(dist(tl,bl),dist(tr,br))));if(h>w*1.5){[tl,tr,br,bl]=[tr,br,bl,tl];[w,h]=[h,w];}const actual=Math.min(640,Math.ceil(48*w/h)),width=Math.min(640,Math.max(64,Math.ceil((48*w/h+16)/64)*64));const n=48*width,buf=new Float32Array(n*3);for(let y=0;y<48;y++)for(let x=0;x<Math.min(actual,width);x++){const u=Math.max(0,Math.min(w-1,(x+.5)*w/actual-.5))/(w-1),v=Math.max(0,Math.min(h-1,(y+.5)*h/48-.5))/(h-1),sx=(tl[0]*(1-u)+tr[0]*u)*(1-v)+(bl[0]*(1-u)+br[0]*u)*v,sy=(tl[1]*(1-u)+tr[1]*u)*(1-v)+(bl[1]*(1-u)+br[1]*u)*v;for(let j=0;j<3;j++)buf[j*n+y*width+x]=Math.round(sample(im,sx,sy,j))/127.5-1;}return{buf,width};}
+let busy=false;
+async function scanPhoto(file,options={}){if(!file||!file.type?.startsWith('image/'))throw Error('Выберите фотографию');const im=await createImageBitmap(file);try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);return await scanRaster(ctx.getImageData(0,0,im.width,im.height),options);}finally{im.close();}}
+async function scanRaster(im,{progress=()=>{},continuationLayout=null,offline=false,sessions=null}={}){if(busy)throw Error('Дождитесь окончания распознавания');busy=true;try{const t=performance.now();progress('Загрузка моделей');const {ort,det,rec,chars}=sessions||await load(progress,offline);const ow=im.width,oh=im.height,scale=Math.min(1,3200/Math.max(ow,oh)),w=Math.max(32,Math.round(ow*scale/32)*32),h=Math.max(32,Math.round(oh*scale/32)*32),mean=[.485,.456,.406],std=[.229,.224,.225];progress('Распознавание областей');const x=imageTensor(im,w,h,(v,j)=>(v/255-mean[j])/std[j]);const ds=await det.run({[det.inputNames[0]]:new ort.Tensor('float32',x,[1,3,h,w])}),o=Object.values(ds)[0];const boxes=polys(o.data,o.dims.at(-1),o.dims.at(-2),ow,oh);o.dispose?.();const groups={};for(const p of boxes){const c=crop(im,p);if(c)(groups[c.width]??=[]).push({...c,p});}const items=[];let done=0;for(const [widthStr,g] of Object.entries(groups)){const width=Number(widthStr);for(let i=0;i<g.length;i+=8){const batch=g.slice(i,i+8),n=3*48*width,v=new Float32Array(batch.length*n);batch.forEach((c,j)=>v.set(c.buf,j*n));const r=await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',v,[batch.length,3,48,width])}),y=Object.values(r)[0],T=y.dims[1],C=y.dims[2];if(C!==chars.length)throw Error('Model dictionary mismatch');for(let j=0;j<batch.length;j++){let text='',prev=-1,conf=[];for(let k=0;k<T;k++){let off=(j*T+k)*C,max=-Infinity,best=-1;for(let c=0;c<C;c++){const a=y.data[off+c];if(a>max){max=a;best=c;}}if(best!==prev&&best!==0){text+=chars[best]||'?';conf.push(max);}prev=best;}if(text.trim())items.push({text,score:conf.length?conf.reduce((a,b)=>a+b)/conf.length:0,poly:batch[j].p});}y.dispose?.();done+=batch.length;progress('Текст: '+done+' / '+boxes.length);}}const result=extractLayout(items,{continuationLayout});return {items,result,seconds:(performance.now()-t)/1000};}finally{busy=false;}}
+
+window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
+})();
+
+(function(){
+ const retry=$('retry'),smart=button('SMART SCAN · тест',()=>runSmart());
+ smart.type='button';smart.id='smartScan';retry.append(smart);
+ let running=false;
+ function rawText(items){
+  const words=items.map(x=>({t:x.text,x:x.poly.reduce((s,p)=>s+p[0],0)/4,y:x.poly.reduce((s,p)=>s+p[1],0)/4})).sort((a,b)=>a.y-b.y||a.x-b.x);
+  const lines=[];for(const w of words){const a=lines.at(-1);if(a&&Math.abs(a.y-w.y)<7)a.words.push(w);else lines.push({y:w.y,words:[w]});}
+  return lines.map(l=>l.words.sort((a,b)=>a.x-b.x).map(w=>w.t).join(' ')).join('\n');
+ }
+ function propose(result,raw){
+  const p=window.supplyInvoiceParser,old=photoPassTexts.map(t=>p.parseSimple(t)),parsed=p.parseSimple(raw);
+  const names=new Map([parsed,...old].filter(x=>x.supplier).map(x=>[supplierKey(x.supplier),x.supplier]));
+  const supplier=names.size===1?[...names.values()][0]:$('supplier').value.trim();
+  const prior=[...old.flatMap(x=>x.items),...parsed.items];
+  const rows=result.rows.map((r,i)=>{
+   const matches=prior.filter(x=>x.quantity===r.quantity&&Math.abs(grossRow(x).price-r.price)<.011&&x.unit&&x.name&&norm(x.name).includes(norm(r.name).slice(0,Math.min(12,r.name.length))));
+   const units=[...new Set(matches.map(x=>x.unit))],unit=units.length===1?units[0]:'';
+   return {name:r.name,price:r.price,quantity:r.quantity,invoiceTotal:r.total,unit,packKg:p.packWeight(r.name),packL:p.packVolume(r.name),uncertain:true,sourceRow:i+1};
+  });
+  return {supplier,items:rows,documentVerified:false,pageVerified:false};
+ }
+ async function runSmart(){
+  if(running||scanBusy)return;
+  const file=pendingPhoto||$('file').files[0];
+  if(!file?.type?.startsWith('image/')){status('Выберите фотографию');return;}
+  if(!confirm('SMART SCAN — экспериментальное распознавание. При первом запуске загрузятся модели (около 28 МБ). Фото остаётся на устройстве. Результат нужно сверить. Продолжить?'))return;
+  running=true;scanBusy=true;smart.disabled=true;$('rescan').disabled=true;$('save').disabled=true;$('saveNext').disabled=true;$('file').disabled=true;
+  const original=file,started=performance.now();let message='';
+  try{
+   const output=await window.supplySmartScan.scanPhoto(file,{progress:v=>{$('ocrState').textContent='SMART SCAN: '+v;}});
+   if(pendingPhoto!==original||$('entry').classList.contains('hide'))return;
+   const r=output.result,raw=rawText(output.items);
+   if(!r.rows.length)throw Error(r.error||'Таблица не распознана');
+   if(r.rows.some(x=>!x.name||!(x.quantity>0)||!(x.price>0)||!(x.total>0)||!x.arithmeticOK||x.conflicts?.length)||r.expectedRows&&r.expectedRows!==r.rows.length||r.printedTotal!=null&&!r.totalOK)throw Error('Не все строки прошли проверку; старые данные сохранены.');
+   const candidate=propose(r,raw);if(!candidate.supplier)throw Error('Поставщик не подтверждён; старые данные сохранены.');
+   const preview=r.rows.map((x,i)=>(i+1)+'. '+x.name+' — '+x.quantity+' × '+rub(x.price)+' = '+rub(x.total)).join('\n');
+   scanDiagnostic(raw);
+   if(!confirm('SMART SCAN: '+candidate.supplier+' · '+r.rows.length+' строк, сумма '+rub(r.sum)+'. '+(r.totalOK?'Итог совпал.':'Итог документа не подтверждён.')+'\nНазвания и единицы требуют проверки. Заменить строки на этой странице?\n\n'+preview.slice(0,1500)))return;
+   if(!acceptPage(candidate,raw))return;
+   dirty=true;showInvoiceIntegrity();message='SMART SCAN (тест): '+r.rows.length+' строк · '+rub(r.sum)+' · '+fmt(Math.round((performance.now()-started)/100)/10)+' с. Сверьте поставщика, названия, единицы и суммы с фото.';
+  }catch(e){message='SMART SCAN: '+(e.message||'Ошибка распознавания')+' Старое распознавание доступно.';}
+  finally{running=false;scanBusy=false;smart.disabled=false;$('rescan').disabled=false;$('save').disabled=false;$('saveNext').disabled=false;$('file').disabled=false;if(message)$('ocrState').textContent=message;}
+ }
+})();
