@@ -168,3 +168,42 @@ api.parseSimple=function(text){
  return {supplier:base.supplier,items};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSimple;
+const positive=v=>{const n=Number(String(v??'').replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null};
+const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+function packWeight(name){
+ const product=String(name||'').replace(/\s*\/\s*(?:кг|г|л|мл|шт|уп|кор)(?:\s+\(без НДС\))?$/i,'');
+ if(/\d\s*[xх×*]\s*\d/i.test(product))return null;
+ const matches=[...product.matchAll(/(?:^|[^\d.,])(\d+(?:[,.]\d+)?)\s*(кг|г)(?=$|[^а-яёa-z0-9])/gi)];
+ if(matches.length!==1)return null;
+ const amount=positive(matches[0][1]);return amount?amount/(matches[0][2].toLowerCase()==='г'?1000:1):null;
+}
+function lineMetrics(row){
+ const quantity=positive(row.quantity),price=positive(row.price),packKg=positive(row.packKg),unit=row.unit||'';
+ const kgPerUnit=unit==='кг'?1:unit==='г'?.001:['шт','уп','кор'].includes(unit)?packKg:null;
+ const kg=quantity&&kgPerUnit?Math.round(quantity*kgPerUnit*1000000)/1000000:null;
+ return {totalKg:kg,pricePerKg:price&&kgPerUnit?round(price/kgPerUnit):null,totalPrice:quantity&&price?round(quantity*price):null};
+}
+api.packWeight=packWeight;api.lineMetrics=lineMetrics;
+api.parseSimple=function(text){
+ const result=previous(text);
+ for(const item of result.items){
+  const unitMatch=item.name.match(/\s*\/\s*(кг|г|л|мл|шт|уп|кор)(?:\s+\(без НДС\))?$/i);
+  if(!unitMatch)continue;
+  item.unit=unitMatch[1].toLowerCase();
+  if(['шт','уп','кор'].includes(item.unit))item.packKg=packWeight(item.name);
+  if(item.price==null)continue;
+  const source=String(item.source||'').replace(/[|│]/g,' ').replace(/\s+/g,' ');
+  const row=source.match(/(?:^|\s)(кг|г|л|мл|шт|уп|кор)\.?\s+(\d+(?:[,.]\d{1,5})?)\s+((?:\d{1,3}(?: \d{3})+|\d+)[,.]\d{2})(?=\s|$)/gi);
+  if(row&&row.length===1){
+   const p=row[0].trim().match(/^(кг|г|л|мл|шт|уп|кор)\.?\s+(\d+(?:[,.]\d{1,5})?)\s+(.+)$/i);
+   if(p&&p[1].toLowerCase()===item.unit&&Math.abs(positive(p[3])-item.price)<.011)item.quantity=positive(p[2]);
+  }
+  Object.assign(item,lineMetrics(item));
+ }
+ return result;
+};
+})(globalThis);

@@ -67,6 +67,15 @@ jobs:
             await page.locator('#archive').waitFor({state:'visible'});
             await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('сохранена'));
           }
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate(()=>{window.supplyOcrStart(90);window.supplyOcrFinish(90,'Поставщик: Восток-Запад\nНаименование товара Количество Цена Сумма\n1 Сыр творожный (фасовка 10кг) шт 3 4 500,00 13 500,00','');});
+          assert.equal(await page.locator('[data-field=packKg]').inputValue(),'10');
+          assert.equal(await page.locator('[data-field=quantity]').inputValue(),'3');
+          assert.equal(await page.locator('[data-field=unit]').inputValue(),'шт');
+          assert.ok((await page.locator('.line-summary').innerText()).includes('30 кг'));
+          await page.locator('[data-field=quantity]').fill('4');
+          assert.ok((await page.locator('.line-summary').innerText()).includes('40 кг'));
+          await page.locator('nav button[data-go=home]').click();
           await invoice('Поставщик А',135,1,true);
           await invoice('Поставщик Б',150,2,false);
           await invoice('Поставщик А',125,3,false);
