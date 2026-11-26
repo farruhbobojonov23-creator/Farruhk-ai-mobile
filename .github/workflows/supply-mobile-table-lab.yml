@@ -1,0 +1,94 @@
+name: Mobile OCR + SLANet plus 30-60 MB feasibility
+on:
+  push:
+    branches: ['experiment/supply-mobile-table-79']
+permissions:
+  contents: read
+jobs:
+  photo-table:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install open local models runtime
+        run: |
+          python -m pip install 'paddlepaddle>=3.2,<4' 'paddleocr>=3.3,<4' 'rapid-table==3.0.0' onnxruntime pillow
+          python -m pip show paddleocr paddlepaddle
+      - name: Create fictional invoice photo with camera shadows and perspective
+        run: |
+          mkdir -p "$RUNNER_TEMP/pp-lab"
+          python - <<'PY'
+          import os, json
+          from pathlib import Path
+          import cv2, numpy as np
+          from PIL import Image,ImageDraw,ImageFont
+          root=Path(os.environ['RUNNER_TEMP'])/'pp-lab'
+          im=Image.new('RGB',(1800,1270),'white')
+          d=ImageDraw.Draw(im)
+          font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',25)
+          title=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',35)
+          d.text((70,40),'Накладная № ТЕСТ-105 от 20.11.2026',font=title,fill='black')
+          d.text((70,100),'Поставщик: ООО Учебный склад',font=font,fill='black')
+          d.text((70,150),'Документ для испытания. Не является реальной накладной.',font=font,fill='black')
+          products=['Мука пшеничная 5 кг','Сыр сливочный 400 г','Рис круглозёрный 25 кг','Соус томатный 1 л','Масло растительное 5 л','Крахмал кукурузный 1 кг','Сахар белый 10 кг','Какао порошок 500 г','Соль пищевая 1 кг','Огурцы маринованные 3 кг','Фасоль красная 800 г']
+          quantities=[3,12,2,8,4,5,1,6,10,3,7]
+          prices=[12450,25190,263400,19732,82165,14670,93623,63918,5678,32214,17895]
+          fmt=lambda v:f'{v//100},{v%100:02}'
+          rows=[['№','Наименование товара','Ед.','Количество','Цена с НДС','Сумма']]
+          rows += [[str(i+1),p,'шт',str(q),fmt(v),fmt(q*v)] for i,(p,q,v) in enumerate(zip(products,quantities,prices))]
+          rows += [['','Итого','','','',fmt(sum(q*v for q,v in zip(quantities,prices)))]]
+          xs=[60,135,870,990,1200,1460,1740]
+          ys=[220+i*70 for i in range(len(rows)+1)]
+          for x in xs:d.line((x,ys[0],x,ys[-1]),fill='black',width=2)
+          for y in ys:d.line((xs[0],y,xs[-1],y),fill='black',width=2)
+          for i,row in enumerate(rows):
+              for j,v in enumerate(row):d.text((xs[j]+9,ys[i]+20),v,font=font,fill='black')
+          im.save(root/'clean.png')
+          rgb=np.array(im)
+          x,y=np.meshgrid(np.linspace(0,1,1800),np.linspace(0,1,1270))
+          shade=1-.47*np.exp(-((x-.59)**2/.020+(y-.69)**2/.055))
+          rgb=np.clip(rgb*shade[...,None],0,255).astype('uint8')
+          M=cv2.getPerspectiveTransform(np.float32([[0,0],[1799,0],[1799,1269],[0,1269]]),np.float32([[34,18],[1730,47],[1795,1253],[10,1229]]))
+          rgb=cv2.warpPerspective(rgb,M,(1800,1270),borderValue=(210,210,210))
+          rgb=cv2.GaussianBlur(rgb,(3,3),.65)
+          cv2.imwrite(str(root/'photo.jpg'),cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR),[cv2.IMWRITE_JPEG_QUALITY,75])
+          (root/'expected.json').write_text(json.dumps(rows,ensure_ascii=False),encoding='utf-8')
+          PY
+      - name: Measure mobile model pack including WASM runtime
+        run: |
+          mkdir -p "$RUNNER_TEMP/pp-lab/mobile-pack"
+          cd "$RUNNER_TEMP/pp-lab/mobile-pack"
+          for model in PP-OCRv5_mobile_det cyrillic_PP-OCRv5_mobile_rec; do
+            curl -fL --retry 2 --max-time 120 "https://huggingface.co/PaddlePaddle/$(printf '%s' "$model")_onnx/resolve/main/inference.onnx" -o "$model.onnx"
+          done
+          curl -fL --retry 2 --max-time 120 https://huggingface.co/PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_onnx/resolve/main/inference.yml -o rec.yml
+          for name in ort.wasm.min.mjs ort-wasm-simd-threaded.mjs ort-wasm-simd-threaded.wasm; do
+            curl -fL --retry 2 --max-time 120 "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/$name" -o "$name"
+          done
+          python - <<'PY'
+          import rapid_table, pathlib, shutil
+          models=list(pathlib.Path(rapid_table.__file__).parent.rglob('slanet-plus.onnx'))
+          assert len(models)==1,models
+          shutil.copyfile(models[0],"slanet-plus.onnx")
+          PY
+          sha256sum * > SHA256SUMS
+          wc -c *
+          python - <<'PY'
+          from pathlib import Path
+          size=sum(p.stat().st_size for p in Path('.').iterdir() if p.name!='SHA256SUMS')
+          print("MOBILE_MODEL_PACK_BYTES",size)
+          assert 30_000_000 <= size <= 60_000_000
+          PY
+      - name: Benchmark reduced pipeline with genuine inference
+        env:
+          PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
+        run: python supply/experimental/mobile_table_lab.py "$RUNNER_TEMP/pp-lab"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-table-benchmark
+          path: ${{ runner.temp }}/pp-lab
+          retention-days: 7
