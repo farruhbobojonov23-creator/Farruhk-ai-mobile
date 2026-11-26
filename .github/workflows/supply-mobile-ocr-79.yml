@@ -1,0 +1,35 @@
+name: Mobile OCR 79 budget and table inference
+on:
+  push:
+    branches: ['experiment/supply-mobile-ocr-79']
+permissions:
+  contents: read
+jobs:
+  mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check preprocessing and layout syntax
+        run: |
+          node --check supply/smart-scan-engine.mjs
+          node supply/smart-scan-layout.test.mjs
+      - name: Prepare official lightweight table model and shared WASM runtime
+        run: |
+          mkdir -p "$RUNNER_TEMP/mobile-lab"
+          cp supply/smart-scan-{engine,models,layout}.mjs supply/experimental/mobile-table-lab.mjs "$RUNNER_TEMP/mobile-lab/"
+          cd "$RUNNER_TEMP/mobile-lab"
+          npm init -y
+          npm install --no-audit --no-fund playwright yaml
+          npx playwright install chromium
+          curl --fail --location --retry 2 --max-time 120 https://huggingface.co/PaddlePaddle/SLANet_plus_onnx/resolve/main/inference.onnx -o table.onnx
+          curl --fail --location --retry 2 --max-time 120 https://huggingface.co/PaddlePaddle/SLANet_plus_onnx/resolve/main/inference.yml -o table.yml
+          wc -c table.onnx table.yml
+          sha256sum table.onnx table.yml
+      - name: Execute actual mobile-sized offline table and shadow test in browser
+        run: |
+          cd "$RUNNER_TEMP/mobile-lab"
+          node mobile-table-lab.mjs
