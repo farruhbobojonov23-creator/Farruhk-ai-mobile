@@ -84,6 +84,32 @@ jobs:
           trap 'cat vite.log' EXIT
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
           node probe.mjs
+      - name: Package model files and standalone local benchmark runtime
+        run: |
+          cd "$RUNNER_TEMP/ocr-lab"
+          mkdir -p public
+          cat > index.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><title>Offline Supply OCR lab</title><input type="file" accept="image/*" multiple id="files"><button id="run">Run locally</button><pre id="result"></pre><script type="module" src="/main.js"></script>
+          EOF
+          cat >> main.js <<'EOF'
+          let engine;
+          window.runPhoto=async(blob)=>{
+            if(!engine){const model=name=>({url:location.origin+'/models/'+name+'.tar'});engine=await PaddleOCR.create({textDetectionModelName:'PP-OCRv5_mobile_det',textDetectionModelAsset:model('PP-OCRv5_mobile_det'),textRecognitionModelName:'cyrillic_PP-OCRv5_mobile_rec',textRecognitionModelAsset:model('cyrillic_PP-OCRv5_mobile_rec'),worker:false,ortOptions:{backend:'wasm',numThreads:1,wasmPaths:location.origin+'/wasm/'}});}
+            const bitmap=await createImageBitmap(blob),canvas=document.createElement('canvas');
+            canvas.width=bitmap.width;canvas.height=bitmap.height;canvas.getContext('2d').drawImage(bitmap,0,0);bitmap.close();
+            const [r]=await engine.predict(canvas,{textDetLimitSideLen:Math.min(3200,Math.max(canvas.width,canvas.height)),textDetLimitType:'max'});
+            return {items:r.items.map(x=>({text:x.text,score:x.score,poly:x.poly})),metrics:r.metrics,runtime:r.runtime};
+          };
+          const run=document.getElementById('run');
+          if(run)run.onclick=async()=>{const result=document.getElementById('result');let out=[];for(const f of document.getElementById('files').files){try{out.push({file:f.name,...await window.runPhoto(f)});}catch(e){out.push({file:f.name,error:String(e)});}result.textContent=JSON.stringify(out,null,2);}};
+          EOF
+          npx vite build
+          du -sh dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supply-local-browser-ocr-lab
+          path: ${{ runner.temp }}/ocr-lab/dist
+          retention-days: 7
   table-structure:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
