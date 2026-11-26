@@ -194,7 +194,16 @@ final class InvoiceOcr {
   }
   return score+Math.min(rows,12)*180-Math.min(columns,8)*150;
  }
- // Probe a reduced image in all cardinal directions; full OCR uses the winning orientation.
+ // A clear, correctly ordered invoice is strong evidence for the default orientation.
+ // Keep all four probes for rotated, incomplete or low-confidence documents.
+ static boolean canSkipOtherOrientations(String text,int confidence){
+  if(confidence<85||layoutScore(text)<700)return false;
+  String s=text.toLowerCase(Locale.ROOT);
+  return s.contains("наименование")&&(s.contains("количество")||s.contains("стоимость"))&&
+    (s.contains("поставщик")||s.contains("продавец"))&&
+    (s.contains("всего к оплате")||s.contains("итого к оплате")||s.contains("итого по накладной"));
+ }
+ // Probe the default direction first; use all cardinal directions if evidence is weak.
  static Bitmap orient(TessBaseAPI tess,Bitmap image){
   float scale=Math.min(1f,1600f/Math.max(image.getWidth(),image.getHeight()));
   Bitmap small=scale<1?Bitmap.createScaledBitmap(image,Math.max(1,Math.round(image.getWidth()*scale)),Math.max(1,Math.round(image.getHeight()*scale)),true):image;
@@ -207,8 +216,9 @@ final class InvoiceOcr {
     Bitmap probe=rotate(straight,degrees);
     try{
      tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
-     String recognized=text(tess,probe);int score=orientationScore(recognized,tess.meanConfidence());
-     if(score>bestScore){bestScore=score;best=degrees;}
+     String recognized=text(tess,probe);int confidence=tess.meanConfidence();int score=orientationScore(recognized,confidence);
+      if(score>bestScore){bestScore=score;best=degrees;}
+      if(degrees==0&&canSkipOtherOrientations(recognized,confidence))break;
     }finally{if(probe!=straight)probe.recycle();}
    }
    tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
