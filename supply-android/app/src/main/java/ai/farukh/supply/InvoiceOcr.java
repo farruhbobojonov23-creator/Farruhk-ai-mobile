@@ -11,7 +11,7 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 import java.io.*;
 import java.util.Locale;
 final class InvoiceOcr {
- private static final int MAX_SIDE=3200, MAX_PAGES=10;
+ private static final int MAX_SIDE=3200;
  private static File prepare(Context context)throws IOException{
   File base=new File(context.getFilesDir(),"ocr-v2"),data=new File(base,"tessdata");
   if(!data.isDirectory()&&!data.mkdirs())throw new IOException("OCR directory");
@@ -338,17 +338,16 @@ final class InvoiceOcr {
   ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,"r");if(fd==null)throw new IOException("PDF");
   PdfRenderer renderer;try{renderer=new PdfRenderer(fd);}catch(Exception e){fd.close();throw new IOException("PDF renderer",e);}
   try(PdfRenderer pdf=renderer){
-   StringBuilder out=new StringBuilder();int pages=Math.min(pdf.getPageCount(),MAX_PAGES);
+   org.json.JSONArray out=new org.json.JSONArray();int pages=pdf.getPageCount();
    for(int i=0;i<pages;i++){
     if(Thread.currentThread().isInterrupted())throw new IOException("Cancelled");
     try(PdfRenderer.Page page=pdf.openPage(i)){
      float ratio=(float)MAX_SIDE/Math.max(page.getWidth(),page.getHeight());
      Bitmap bitmap=Bitmap.createBitmap(Math.max(1,Math.round(page.getWidth()*ratio)),Math.max(1,Math.round(page.getHeight()*ratio)),Bitmap.Config.ARGB_8888);
-     try{bitmap.eraseColor(android.graphics.Color.WHITE);page.render(bitmap,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);out.append("\n--- Страница ").append(i+1).append(" ---\n").append(text(tess,bitmap));}finally{bitmap.recycle();}
+     try{bitmap.eraseColor(android.graphics.Color.WHITE);page.render(bitmap,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);out.put(text(tess,bitmap));}finally{bitmap.recycle();}
     }
    }
-   if(pdf.getPageCount()>MAX_PAGES)out.append("\nРаспознаны только первые 10 страниц. Остальные проверьте вручную.");
-   return out.toString();
+   return "FARUKH_PDF_PAGES_V1\n"+out.toString();
   }
  }
 }
