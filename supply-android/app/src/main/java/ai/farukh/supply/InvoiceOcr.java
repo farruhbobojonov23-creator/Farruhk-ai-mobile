@@ -26,12 +26,27 @@ final class InvoiceOcr {
   }
   return base;
  }
- static String read(Context context,Uri uri,boolean focused)throws IOException{
-  TessBaseAPI tess=new TessBaseAPI();
-  try{
-   if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
-   String mime=context.getContentResolver().getType(uri);
-   if("application/pdf".equals(mime))return pdf(context,uri,tess);
+ // Worker-thread-only cache, keyed by a new token for each selected photo.
+ static final class PhotoSession implements AutoCloseable {
+  private Bitmap oriented;
+  private Uri uri;
+  private long token=Long.MIN_VALUE;
+  private int preparations;
+  int preparations(){return preparations;}
+  void select(Uri next,long nextToken){
+   if(nextToken!=token||!java.util.Objects.equals(next,uri)){close();uri=next;token=nextToken;}
+  }
+  Bitmap get(Context context,Uri next,long nextToken,TessBaseAPI tess)throws IOException{
+   select(next,nextToken);
+   if(oriented!=null&&!oriented.isRecycled())return oriented;
+   long started=android.os.SystemClock.elapsedRealtime();
+   Bitmap image=decode(context,next);
+   try{oriented=orient(tess,image);preparations++;android.util.Log.i("SupplyOCR","Photo preparation ms="+(android.os.SystemClock.elapsedRealtime()-started));return oriented;}
+   finally{if(oriented!=image)image.recycle();}
+  }
+  @Override public void close(){if(oriented!=null){oriented.recycle();oriented=null;}uri=null;token=Long.MIN_VALUE;}
+ }
+ private static Bitmap decode(Context context,Uri uri)throws IOException{
    Bitmap image;
    if(Build.VERSION.SDK_INT>=28){
     image=ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.getContentResolver(),uri),(decoder,info,src)->{
@@ -45,51 +60,45 @@ final class InvoiceOcr {
     opt.inJustDecodeBounds=false;try(InputStream in=context.getContentResolver().openInputStream(uri)){image=BitmapFactory.decodeStream(in,null,opt);}
    }
    if(image==null)throw new IOException("Image");
-   try{
-    Bitmap oriented=orient(tess,image);
-    try{
-    Bitmap prepared=prepareImage(oriented,focused);
-    try{
-     if(!focused)return text(tess,prepared);
-     Bitmap improved=null;
-     try{
-      improved=enhanceTable(oriented);
-      if(improved!=null){
-       tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
-       String result=text(tess,improved);
-       if(result.trim().length()>60)return result;
-      }
-     }catch(RuntimeException|LinkageError ignored){
-      // Retain the tested legacy path if OpenCV cannot initialize or the image is unsuitable.
-     }finally{if(improved!=null)improved.recycle();}
-     tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
-     return text(tess,prepared);
-    }finally{if(prepared!=oriented)prepared.recycle();}
-    }finally{if(oriented!=image)oriented.recycle();}
-   }finally{image.recycle();}
-  }finally{tess.recycle();}
+
+  return image;
  }
- static String readPaddle(Context context,Uri uri)throws IOException{
-  if("application/pdf".equals(context.getContentResolver().getType(uri)))throw new IOException("Photo only");
-  Bitmap image;
-  if(Build.VERSION.SDK_INT>=28){
-   image=ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.getContentResolver(),uri),(decoder,info,src)->{
-    int w=info.getSize().getWidth(),h=info.getSize().getHeight();float ratio=Math.min(1f,3200f/Math.max(w,h));
-    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);decoder.setTargetSize(Math.max(1,Math.round(w*ratio)),Math.max(1,Math.round(h*ratio)));
-   });
-  }else{
-   BitmapFactory.Options opt=new BitmapFactory.Options();opt.inJustDecodeBounds=true;
-   try(InputStream in=context.getContentResolver().openInputStream(uri)){BitmapFactory.decodeStream(in,null,opt);}
-   opt.inSampleSize=1;while(Math.max(opt.outWidth,opt.outHeight)/opt.inSampleSize>3200)opt.inSampleSize*=2;
-   opt.inJustDecodeBounds=false;try(InputStream in=context.getContentResolver().openInputStream(uri)){image=BitmapFactory.decodeStream(in,null,opt);}
-  }
-  if(image==null)throw new IOException("Image");
+ static String read(Context context,Uri uri,boolean focused,PhotoSession session,long token)throws IOException{
+  session.select(uri,token);
   TessBaseAPI tess=new TessBaseAPI();
   try{
    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
-   Bitmap oriented=orient(tess,image);
-   try{return com.paddle.ocr.SupplyPaddleBridge.read(context,oriented).plainText();}finally{if(oriented!=image)oriented.recycle();}
-  }finally{tess.recycle();image.recycle();}
+   if("application/pdf".equals(context.getContentResolver().getType(uri)))return pdf(context,uri,tess);
+   Bitmap oriented=session.get(context,uri,token,tess);
+   if(focused){
+    Bitmap improved=null;
+    try{
+     improved=enhanceTable(oriented);
+     if(improved!=null){
+      tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
+      String result=text(tess,improved);
+      if(result.trim().length()>60)return result;
+     }
+    }catch(RuntimeException|LinkageError ignored){}
+    finally{if(improved!=null)improved.recycle();}
+   }
+   tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
+   Bitmap prepared=prepareImage(oriented,focused);
+   try{return text(tess,prepared);}finally{if(prepared!=oriented)prepared.recycle();}
+  }finally{tess.recycle();}
+ }
+ static String readPaddle(Context context,Uri uri,PhotoSession session,long token)throws IOException{
+  session.select(uri,token);
+  if("application/pdf".equals(context.getContentResolver().getType(uri)))throw new IOException("Photo only");
+  Bitmap oriented=session.oriented;
+  if(oriented==null){
+   TessBaseAPI tess=new TessBaseAPI();
+   try{
+    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
+    oriented=session.get(context,uri,token,tess);
+   }finally{tess.recycle();}
+  }
+  return com.paddle.ocr.SupplyPaddleBridge.read(context,oriented).plainText();
  }
 
  // Rotations are applied only to a working copy, never to the original.

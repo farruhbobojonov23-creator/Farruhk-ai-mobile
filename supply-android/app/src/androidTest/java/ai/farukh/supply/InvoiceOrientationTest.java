@@ -23,4 +23,30 @@ public class InvoiceOrientationTest {
   }
   source.recycle();
  }
+
+ @Test public void reusesOrientationOnlyForSameSelection() throws Exception {
+  android.content.Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+  java.io.File file=new java.io.File(context.getCacheDir(),"supply-ocr-session-test.png");
+  android.net.Uri uri=android.net.Uri.fromFile(file);
+  Bitmap image=Bitmap.createBitmap(1500,900,Bitmap.Config.ARGB_8888);
+  Canvas canvas=new Canvas(image);Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(Color.BLACK);paint.setTextSize(48);
+  try(InvoiceOcr.PhotoSession session=new InvoiceOcr.PhotoSession()){
+   for(int i=0;i<2;i++){
+    canvas.drawColor(Color.WHITE);
+    canvas.drawText("ТОВАРНАЯ НАКЛАДНАЯ",60,110,paint);
+    canvas.drawText("Поставщик: ООО Учебный",60,230,paint);
+    canvas.drawText("Наименование товара Количество Цена",60,350,paint);
+    canvas.drawText(i==0?"Итого 12345.00":"Итого 67890.00",60,500,paint);
+    try(java.io.FileOutputStream out=new java.io.FileOutputStream(file)){assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,out));}
+    String first=InvoiceOcr.read(context,uri,false,session,i+1);
+    assertTrue(first,first.contains(i==0?"12345":"67890"));
+    assertEquals(i+1,session.preparations());
+    if(i==0){
+     String repeated=InvoiceOcr.read(context,uri,false,session,1);
+     assertTrue(repeated,repeated.contains("12345"));
+     assertEquals("Repeated OCR must not repeat orientation",1,session.preparations());
+    }else assertFalse(first,first.contains("12345"));
+   }
+  }finally{image.recycle();file.delete();}
+ }
 }
