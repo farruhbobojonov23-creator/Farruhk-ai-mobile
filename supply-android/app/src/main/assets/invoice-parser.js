@@ -119,3 +119,41 @@ api.parseSimple=function(text){
  return {supplier:base.supplier,items:all.filter(x=>x.price!=null||!priced.some(y=>y.source.startsWith(x.source+' ')||y.source===x.source||y.name.toLowerCase().startsWith(x.name.toLowerCase())))};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSimple;
+const money='(?:\\d{1,3}(?: \\d{3})+|\\d+)[,.]\\d{2}';
+const n=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+const stop=/^(?:итого|всего|ндс|сумма|стоимость|цена|количество|поставщик|продавец|покупатель|грузо|накладная|адрес|инн|кпп|основание|подпись|руководитель|бухгалтер|счет|счёт|наименование)/i;
+api.parseSimple=function(text){
+ const normalized=String(text||'').replace(/[\u00a0\u202f]/g,' ').replace(/[ \t]+/g,' ')
+ .replace(/(?:^|\s)(?:упак(?:овка)?|пач(?:ка)?|пак(?:ет)?)\.?(?=\s+\d)/gi,' уп')
+ .replace(/(?:^|\s)(?:короб(?:ка)?|ящик)\.?(?=\s+\d)/gi,' кор')
+ .replace(/(?:^|\s)(?:штук(?:а)?|ед(?:иница)?)\.?(?=\s+\d)/gi,' шт');
+ const base=previous(normalized), lines=normalized.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+ const items=base.items.slice();
+ const head=lines.findIndex((l,i)=>/(?:наименование|товар)/i.test(l)&&/цен[аы]/i.test(lines.slice(i,i+5).join(' ')));
+ if(head<0)return base;
+ const exact=new RegExp('^(?:\\d{1,4}[.)]?\\s+)?(.{3,180}?)\\s+(?:\\d{3}\\s+)?(кг|мл|г|л|шт|уп|кор)\\.?\\s+(\\d+(?:[,.]\\d{1,5})?)\\s+('+money+')\\s+('+money+')(?:\\s+(?:без акциза|без ндс|[-–—xх]))?\\s*$', 'i');
+ const incomplete=new RegExp('^\\s*(?:\\d{1,4}[.)]?\\s+)?(.{3,180}?)\\s+(?:\\d{3}\\s+)?(кг|мл|г|л|шт|уп|кор)\\.?\\s+(\\d+(?:[,.]\\d{1,5})?)(?:\\s|$)','i');
+ function add(name,price,source){
+  name=name.trim().replace(/\s+/g,' ');
+  if(!/[а-яёa-z]{2}/i.test(name)||stop.test(name))return;
+  const key=name.toLowerCase();
+  if(items.some(x=>x.source===source&&x.price!=null||x.name.toLowerCase()===key&&x.price!=null))return;
+  for(let i=items.length-1;i>=0;i--)if(items[i].price==null&&(items[i].source===source||items[i].name.toLowerCase()===key))items.splice(i,1);
+  if(!items.some(x=>x.name.toLowerCase()===key&&x.price===price))items.push({name,price,source,uncertain:true});
+ }
+ for(let i=head+1;i<lines.length;i++){
+   const l=lines[i].replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+   if(/^(?:всего к оплате|итого|всего по|руководитель|бухгалтер|подпись)/i.test(l))break;
+   if(stop.test(l))continue;
+   const m=l.match(exact);
+   if(m){const q=n(m[3]),p=n(m[4]),total=n(m[5]);if(q>0&&p>0&&Math.abs(q*p-total)<=Math.max(.02,q*.005+.01)){add(m[1]+' / '+m[2].toLowerCase(),p,l);continue;}}
+   const f=l.match(incomplete);
+   if(f&&!items.some(x=>x.source===l||x.name.toLowerCase().startsWith(f[1].toLowerCase())))add(f[1]+' / '+f[2].toLowerCase(),null,l);
+ }
+ return {supplier:base.supplier,items};
+};
+})(globalThis);
