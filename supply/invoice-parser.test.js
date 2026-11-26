@@ -21,3 +21,6 @@ test('simple two-column invoice fills supplier, names and prices',()=>{const r=p
 test('product percentage is not VAT',()=>{const r=parseSimple('Майонез 67% кг 2 135,00 270,00');a.equal(r.items[0].price,135);a.ok(!r.items[0].name.includes('без НДС'));});
 test('VAT price is marked separately',()=>{const r=parseSimple('Рис кг 2 135,00 270,00 20% 54,00 324,00');a.equal(r.items[0].price,135);a.ok(r.items[0].name.includes('без НДС'));});
 test('unreliable row must not populate price',()=>{const r=parseSimple('Сыр тестовый 4,900 w == 3 644,00');a.ok(r.items.every(x=>x.price===null));});
+
+test('split row and unit code: exact price without incomplete duplicate',()=>{const r=parseSimple('Восток-Запад\nРис для суши 166 кг\n2,000 135,00 270,00');a.equal(r.supplier,'Восток-Запад');a.equal(r.items.length,1);a.equal(r.items[0].price,135);});
+test('split row with mismatched total is not priced',()=>{const r=parseSimple('Восток-Запад\nРис для суши кг\n2,000 135,00 300,00');a.ok(r.items.every(x=>x.price===null));});
