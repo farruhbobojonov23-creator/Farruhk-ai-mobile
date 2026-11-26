@@ -355,9 +355,35 @@ function renderPriceAlerts(trends){
  for(const {a,b,s} of changes)row(el,catalogTitle(b),b.supplier+' · '+historyPrice(a)+' → '+historyPrice(b),node('strong','+'+fmt(Math.round(s.change*10)/10)+'%','up'));
  if(!changes.length)empty(el,'Нет подтверждённого роста выше выбранного порога за период.');
 }
+function reportRecords(){
+ const days=Number($('period').value)||0,now=new Date(),today=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ const cutoff=new Date(now.getTime()-now.getTimezoneOffset()*60000);cutoff.setUTCDate(cutoff.getUTCDate()-Math.max(0,days-1));const start=cutoff.toISOString().slice(0,10),point=$('reportPoint').value;
+ return docs.filter(d=>{const day=purchaseDay(d);return (!days||(day>=start&&day<=today))&&(!point||(point==='unassigned'?pointLabel(d)==='Не указана':d.pointId===point));});
+}
+function reportTable(records){
+ const rows=[['Дата','Накладная','Точка','Поставщик','Товар','Количество','Ед.','Цена с НДС за сопоставимую ед.','Ед. цены','Сумма с НДС']];
+ for(const d of records)for(const r of linesOf(d)){const total=grossMetrics(r).totalPrice;rows.push([purchaseDay(d),d.documentNumber||'',pointLabel(d),d.supplierId||'',r.name,r.quantity??'',r.unit||'',quotePrice(r)??'',quoteUnit(r),total??'']);}
+ return rows;
+}
+// CSV fields from invoices are not trusted spreadsheet formulas.
+function reportCsv(rows){
+ const cell=v=>{let s=typeof v==='number'?String(v).replace('.',','):String(v??'');if(typeof v!=='number'&&/^[\s\uFEFF]*[=+\-@\t\r\n]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+ return '\uFEFF'+rows.map(r=>r.map(cell).join(';')).join('\r\n');
+}
+function reportDialog(){
+ const records=reportRecords();if(!records.length){status('Нет накладных для отчёта');return;}
+ const rows=reportTable(records),known=records.flatMap(linesOf).map(r=>grossMetrics(r).totalPrice).filter(v=>v!=null),total=known.reduce((s,v)=>s+Math.round(v*100),0)/100;
+ const dlg=node('dialog',null,'catalog-dialog'),summary=['FARUKH SUPPLY — отчёт по закупкам','Период: '+$('period').selectedOptions[0].textContent,'Точка: '+$('reportPoint').selectedOptions[0].textContent,'Накладных: '+records.length,'Позиций: '+(rows.length-1),'Сумма с НДС: '+(known.length?rub(total):'не определена'),'Без суммы: '+(rows.length-1-known.length),'',...Array.from(grouped(records,d=>d.supplierId||'Без поставщика'),([name,ds])=>{const v=ds.flatMap(linesOf).map(r=>grossMetrics(r).totalPrice).filter(x=>x!=null);return name+' — '+(v.length?rub(v.reduce((s,x)=>s+Math.round(x*100),0)/100):'сумма не определена');})].join('\n');
+ dlg.append(node('h2','Отчёт по закупкам'));const area=node('textarea');area.readOnly=true;area.value=summary;area.rows=12;area.style.cssText='width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px';dlg.append(area,button('Выделить текст',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);}));
+ if(location.origin!=='https://appassets.androidplatform.net'){
+  dlg.append(button('Скачать CSV для Excel',()=>{const url=URL.createObjectURL(new Blob([reportCsv(rows)],{type:'text/csv;charset=utf-8'})),a=node('a');a.href=url;a.download='FARUKH-SUPPLY-report.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}));
+ }else dlg.append(node('small','Текст можно скопировать. Сохранение файлов и системная печать PDF на Android требуют обновления встроенного модуля.','muted'));
+ dlg.append(button('Закрыть',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
+}
+$('reportOpen').onclick=reportDialog;
 function renderPurchaseReport(history){
  const el=$('purchaseReport');el.replaceChildren();const point=$('reportPoint').value;
- const records=history.filter(d=>!point||(point==='unassigned'?pointLabel(d)==='Не указана':d.pointId===point));
+ const records=reportRecords();
  const lines=records.flatMap(linesOf),known=lines.map(r=>grossMetrics(r).totalPrice).filter(x=>x!=null);
  const total=known.reduce((s,x)=>s+Math.round(x*100),0)/100;
  row(el,'Сумма с НДС',records.length+' накладных · '+lines.length+' позиций',node('strong',known.length?rub(total):'—','price'));
@@ -488,7 +514,7 @@ $('offers').replaceChildren();for(const list of products.values()){const c=node(
 $('orderProduct').onchange=()=>renderOrderAdvice(latest(observations()));$('orderQuantity').oninput=()=>renderOrderAdvice(latest(observations()));$('search').oninput=render;$('categoryFilter').onchange=render;$('favoriteFilter').onchange=render;$('period').onchange=render;for(const id of ['visionProduct','visionBasis','trendSelect','reportPoint','alertThreshold'])$(id).onchange=render;
 function edit(d){reset();editing=d.id;pages=Array.isArray(d.pages)?d.pages.slice():d.original?[{key:'legacy',file:d.original,identity:photoFingerprint(d.original),fingerprint:pageFingerprint(d.lines)}]:[];$('supplier').value=d.supplierId;$('documentNumber').value=d.documentNumber||pages.find(p=>p.documentNumber)?.documentNumber||'';$('documentDate').value=d.documentDate||pages.find(p=>p.documentDate)?.documentDate||'';$('invoicePoint').value=Object.prototype.hasOwnProperty.call(POINTS,d.pointId)?d.pointId:'';$('lines').replaceChildren();for(const l of d.lines)addLine({...l,pageKey:l.pageKey||(pages.length===1?pages[0].key:undefined)});showPreview(pages.at(-1)?.file||d.original);pageStatus();go('entry')}
 let savingInvoice=false;
-$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy||savingInvoice)return;savingInvoice=true;try{const next=e.submitter?.id==='saveNext',supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены с НДС');const duplicates=grouped(lines,l=>JSON.stringify([norm(l.name),l.pageKey||'']));for(const group of duplicates.values())if(group.length>1&&(!group.every(l=>l.article&&l.sourceRow&&l.pageKey&&l.article===group[0].article)||new Set(group.map(l=>l.sourceRow)).size!==group.length))throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(pages.some(pg=>pg.reviewRequired)&&!confirm('Не все строки накладной автоматически сверены. Сравните количество позиций и общую сумму с оригиналом. Сохранить?'))return;for(const pg of pages){if(pg.expectedTotal==null)continue;const actual=lines.filter(l=>l.pageKey===pg.key).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;if(Math.abs(actual-pg.expectedTotal)>.01&&!confirm('Сумма страницы '+rub(actual)+' отличается от сверенного итога '+rub(pg.expectedTotal)+'. Сохранить изменённые данные?'))return;}if(pendingPhoto&&!confirm('Последнее фото ещё не добавлено. Сохранить только обработанные товары?'))return;if(partialPage&&!confirm('Документ содержит '+partialPage.pages+' страниц. Добавлено '+partialPage.page+'. Сохранить только эту часть?'))return;if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,documentNumber:norm($('documentNumber').value).replace(/\s+/g,'')||null,documentDate:$('documentDate').value||null,pointId:$('invoicePoint').value||null,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:pages[0]?.file||(!pendingPhoto?$('file').files[0]:null)||prior?.original||null,pages:pages.slice()};if(docs.some(d=>d.id!==editing&&sameDocument({...d,documentNumber:d.documentNumber||d.pages?.find(p=>p.documentNumber)?.documentNumber},doc)))throw Error('Накладная с этим номером уже сохранена. Откройте её в архиве.');if(!editing&&!doc.documentNumber&&docs.some(d=>d.simpleVersion===1&&supplierKey(d.supplierId)===supplierKey(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;supplierFilter=null;await refresh();if(next){reset();$('supplier').value=supplier;go('entry');status('✓ Накладная сохранена. Добавьте фото следующей.',true)}else{go('invoices');status('✓ Накладная сохранена',true)}}catch(err){status(err.message)}finally{savingInvoice=false}};
+$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy||savingInvoice)return;savingInvoice=true;try{const next=e.submitter?.id==='saveNext',supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены с НДС');const duplicates=grouped(lines,l=>JSON.stringify([norm(l.name),l.pageKey||'']));for(const group of duplicates.values())if(group.length>1&&(!group.every(l=>l.article&&l.sourceRow&&l.pageKey&&l.article===group[0].article)||new Set(group.map(l=>l.sourceRow)).size!==group.length))throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(pages.some(pg=>pg.reviewRequired)&&!confirm('Не все строки накладной автоматически сверены. Сравните количество позиций и общую сумму с оригиналом. Сохранить?'))return;for(const pg of pages){if(pg.expectedTotal==null)continue;const actual=lines.filter(l=>l.pageKey===pg.key).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;if(Math.abs(actual-pg.expectedTotal)>.01&&!confirm('Сумма страницы '+rub(actual)+' отличается от сверенного итога '+rub(pg.expectedTotal)+'. Сохранить изменённые данные?'))return;}if(pendingPhoto&&!confirm('Последнее фото ещё не добавлено. Сохранить только обработанные товары?'))return;if(partialPage&&!confirm('Документ содержит '+partialPage.pages+' страниц. Добавлено '+partialPage.page+'. Сохранить только эту часть?'))return;if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,documentNumber:norm($('documentNumber').value).replace(/\s+/g,'')||null,documentDate:$('documentDate').value||null,pointId:$('invoicePoint').value||null,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:pages[0]?.file||(!pendingPhoto?$('file').files[0]:null)||prior?.original||null,pages:pages.slice()};if(docs.some(d=>d.id!==editing&&sameDocument({...d,documentNumber:d.documentNumber||d.pages?.find(p=>p.documentNumber)?.documentNumber},doc)))throw Error('Накладная с этим номером уже сохранена. Откройте её в архиве.');if(!editing&&!doc.documentNumber&&docs.some(d=>d.simpleVersion===1&&supplierKey(d.supplierId)===supplierKey(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;supplierFilter=null;await refresh();await autoBackup();if(next){reset();$('supplier').value=supplier;go('entry');status('✓ Накладная сохранена. Добавьте фото следующей.',true)}else{go('invoices');status('✓ Накладная сохранена',true)}}catch(err){status(err.message)}finally{savingInvoice=false}};
 function scanLabel(){return scanPass===0?'Распознавание фото':scanPass===1?'Быстрая проверка Paddle OCR':'Углублённая проверка таблицы';}
 function showScanProgress(){const el=$('scanProgress');el.replaceChildren();for(const s of scanTrace)el.append(node('div',(s.failed?'⚠ ':'✓ ')+s.label+' · '+fmt(s.seconds)+' с',s.failed?'scan-step':'scan-step done'));if(scanBusy&&stageStartedAt)el.append(node('div','● '+scanLabel()+' · '+fmt(Math.round((performance.now()-stageStartedAt)/100)/10)+' с','scan-step active'));if(!scanBusy&&scanTrace.length)el.append(node('div','Проверьте результат по оригиналу','scan-step'));}
 setInterval(()=>{if(scanBusy)showScanProgress();},500);
@@ -606,7 +632,7 @@ document.querySelector('a.update').addEventListener('click',e=>{if(dirty&&!confi
 
 // Local recovery copies and portable, checksummed backups. No network calls.
 const BACKUP_FORMAT='farukh-supply-backup-v1',BACKUP_LIMIT=64*1024*1024;
-let backupDbPromise=null,backupBusy=false,backupReady=false;
+let backupDbPromise=null,backupBusy=false,backupReady=false,autoBackupBusy=false;
 function openBackupDb(){
  if(!backupDbPromise)backupDbPromise=new Promise((resolve,reject)=>{
   const r=indexedDB.open('farukh-supply-backups-v1',1);
@@ -636,6 +662,17 @@ function validateBackup(v){
  for(const [k,x] of Object.entries(v.catalog.aliases))if(!k||!x||!products.has(x.productId)||typeof x.variantId!=='string')throw Error('Повреждены связи товаров');
  for(const x of Object.values(v.catalog.quality))if(!x||typeof x!=='object'||x.rating!=null&&(!Number.isFinite(x.rating)||x.rating<1||x.rating>10)||x.yieldPct!=null&&(!Number.isFinite(x.yieldPct)||x.yieldPct<=0||x.yieldPct>100)||['glazePct','thawPct','trimPct'].some(k=>x[k]!=null&&(!Number.isFinite(x[k])||x[k]<0||x[k]>=100))||x.note!=null&&(typeof x.note!=='string'||x.note.length>500)||x.favorite!=null&&typeof x.favorite!=='boolean')throw Error('Повреждены оценки товаров');
  return v;
+}
+async function autoBackup(){
+ if(!backupReady||backupBusy||autoBackupBusy||catalogStorageError)return;
+ autoBackupBusy=true;
+ try{
+  const previous=await getCopy('automatic'),now=new Date(),day=now.toLocaleDateString('sv-SE');
+  if(previous&&new Date(previous.createdAt).toLocaleDateString('sv-SE')===day)return;
+  const snapshot=await captureBackup();if(!snapshot.invoices.length)return;
+  await putCopy('automatic',snapshot);
+ }catch(e){console.warn('Automatic local backup failed',e.message);}
+ finally{autoBackupBusy=false;}
 }
 async function captureBackup(){
  if(catalogStorageError)throw Error(catalogStorageError);
@@ -745,15 +782,15 @@ function backupDialog(){
  };
  const describe=v=>dateLabel(v.createdAt)+' · '+new Date(v.createdAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+' · '+v.invoices.length+' накладных';
  async function showCopies(){
-  const local=await getCopy('manual'),undo=await getCopy('before-restore');
-  info.textContent='Локальная копия: '+(local?describe(local):'нет')+'. До восстановления: '+(undo?describe(undo):'нет')+'.';
+  const local=await getCopy('manual'),undo=await getCopy('before-restore'),automatic=await getCopy('automatic');
+  info.textContent='Локальная копия: '+(local?describe(local):'нет')+'. Автоматическая: '+(automatic?describe(automatic):'нет')+'. До восстановления: '+(undo?describe(undo):'нет')+'.';
  }
  async function recover(key){const copy=await getCopy(key);if(!copy)throw Error('Копия не найдена');if(!confirm('Восстановить '+describe(copy)+'? Текущая база будет сохранена отдельно перед заменой.')){msg.textContent='Отменено';return;}await restoreBackup(copy);await showCopies();msg.textContent='✓ База восстановлена';}
  const local=button('Создать локальную копию',()=>run(async()=>{
   const old=await getCopy('manual');if(old&&!confirm('Заменить предыдущую локальную копию?')){msg.textContent='Отменено';return;}
   const v=await captureBackup();await putCopy('manual',v);await showCopies();msg.textContent='✓ Локальная копия создана';
  }));local.classList.add('primary');
- controls=[local,button('Восстановить локальную копию',()=>run(()=>recover('manual'))),button('Вернуть базу до восстановления',()=>run(()=>recover('before-restore')))];
+ controls=[local,button('Восстановить локальную копию',()=>run(()=>recover('manual'))),button('Восстановить автоматическую копию',()=>run(()=>recover('automatic'))),button('Вернуть базу до восстановления',()=>run(()=>recover('before-restore')))];
  if(!native){
   controls.push(button('Скачать файл копии',()=>run(async()=>{
    const json=await encodeBackup(await captureBackup()),url=URL.createObjectURL(new Blob([json],{type:'application/json'}));

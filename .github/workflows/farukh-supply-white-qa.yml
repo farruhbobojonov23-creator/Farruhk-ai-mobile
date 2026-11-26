@@ -327,6 +327,11 @@ jobs:
           await page.locator('#reportPoint').selectOption('baumana');
           assert.ok((await page.locator('#purchaseReport').innerText()).includes('0 накладных'));
           await page.locator('#reportPoint').selectOption('');
+          await page.locator('#reportOpen').click();
+          assert.ok((await page.locator('.catalog-dialog textarea').inputValue()).includes('Накладных: 3'));
+          assert.ok(await page.evaluate(()=>reportCsv([['=1+1',12.5]]).includes("'=1+1")&&reportCsv([['=1+1',12.5]]).includes('12,5')));
+          await page.locator('.catalog-dialog').getByRole('button',{name:'Закрыть',exact:true}).click();
+          await page.locator('.catalog-dialog').waitFor({state:'detached'});
           assert.equal(await page.evaluate(()=>pointLabel({})==='Не указана'&&pointLabel({pointId:'baumana'})==='Баумана 18'),true);
           assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
           await page.screenshot({path:'qa-results/05-vision-analytics.png',fullPage:true});
@@ -351,7 +356,7 @@ jobs:
           assert.equal(await matchPage.locator('#matchList button').count(),1);
           assert.equal(await matchPage.evaluate(()=>Object.keys(catalogState.aliases).length),0);
           await matchPage.getByRole('button',{name:'Проверить и связать'}).click();
-          assert.ok(await matchPage.locator('.catalog-dialog select').inputValue());
+          assert.ok(await matchPage.getByLabel('Ингредиент',{exact:true}).inputValue());
           await matchPage.getByRole('button',{name:'Отмена',exact:true}).click();
           await matchPage.locator('.catalog-dialog').waitFor({state:'detached'});
           assert.equal(await matchPage.evaluate(()=>Object.keys(catalogState.aliases).length),0);
@@ -432,6 +437,8 @@ jobs:
             await refresh();
           });
           await bp.locator('nav button[data-go=invoices]').click();
+          await bp.evaluate(()=>autoBackup());
+          assert.equal(await bp.evaluate(async()=>(await getCopy('automatic')).invoices[0].id),'backup-test');
           await bp.locator('#backupOpen').click();
           await bp.getByRole('button',{name:'Создать локальную копию'}).click();
           await bp.getByText('✓ Локальная копия создана',{exact:true}).waitFor();
