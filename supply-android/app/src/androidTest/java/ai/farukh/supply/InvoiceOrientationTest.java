@@ -41,12 +41,26 @@ public class InvoiceOrientationTest {
     String first=InvoiceOcr.read(context,uri,false,session,i+1);
     assertTrue(first,first.contains(i==0?"12345":"67890"));
     assertEquals(i+1,session.preparations());
+    org.json.JSONArray boxes=new org.json.JSONArray(session.wordBoxes);
+    assertTrue("Missing word coordinates",boxes.length()>0);
+    String expected=i==0?"12345":"67890",previous=i==0?"67890":"12345";
+    boolean found=false;
+    for(int j=0;j<boxes.length();j++){
+     org.json.JSONObject box=boxes.getJSONObject(j);
+     assertTrue(box.getDouble("right")>box.getDouble("left"));
+     assertTrue(box.getDouble("bottom")>box.getDouble("top"));
+     assertTrue(box.getDouble("confidence")>=0&&box.getDouble("confidence")<=1);
+     assertFalse("Previous photo leaked into new OCR result",box.getString("text").contains(previous));
+     if(box.getString("text").contains(expected))found=true;
+    }
+    assertTrue("Current invoice amount missing from spatial evidence",found);
     if(i==0){
      String repeated=InvoiceOcr.read(context,uri,false,session,1);
      assertTrue(repeated,repeated.contains("12345"));
      assertEquals("Repeated OCR must not repeat orientation",1,session.preparations());
     }else assertFalse(first,first.contains("12345"));
    }
+   session.close();assertEquals("[]",session.wordBoxes);
   }finally{image.recycle();file.delete();}
  }
 
