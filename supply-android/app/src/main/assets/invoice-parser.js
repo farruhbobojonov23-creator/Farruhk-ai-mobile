@@ -1414,3 +1414,87 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
   return candidate?[...result,candidate]:result;
  };
 })(globalThis);
+
+;(function(root){
+ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+ const prior=api.parseSimple,passes=api.parseSamePhotoPasses;
+ const fold=s=>s.toLowerCase().replace(/[abcehkmoptxy]/g,c=>({a:'а',b:'в',c:'с',e:'е',h:'н',k:'к',m:'м',o:'о',p:'р',t:'т',x:'х',y:'у'})[c]);
+ const split=ts=>ts.flatMap(t=>String(t||'').split(/\r?\n\s*---\s*\r?\n/));
+ const lines=t=>String(t).split(/\r?\n/).map(s=>s.replace(/[|│\u00a0]/g,' ').replace(/[ \t]+/g,' ').trim()).filter(Boolean);
+ const money=s=>[...s.replace(/\d{1,2}\.\d{1,2}\.\d{4}/g,' ').matchAll(/(?<![\d.,])(?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2}(?![\d.,])/g)].map(m=>Math.round(Number(m[0].replace(/\s/g,'').replace(',','.'))*100));
+ const dec=s=>[...s.matchAll(/(?<![\d.,])\d+[.,]\d{3}(?![\d.,])/g)].map(m=>Math.round(Number(m[0].replace(',','.'))*1000));
+ const sum=a=>a.reduce((s,v)=>s+v,0);
+ const mh=t=>/(?:официальное\s+наименование|поставщик)\s*:\s*(?:ооо\s*)?["«]?\s*марр\s+руссия/i.test(fold(t));
+ const ah=t=>/акт\s+при[её]ма\s*[-–]\s*передачи\s+по\s+упд/i.test(t)&&/алиди\s+проф/i.test(t);
+ const unitOf=s=>/^уп/i.test(s)?'уп':/^кор/i.test(s)?'кор':s.toLowerCase();
+ function make(name,article,unit,q,p,t,w){
+  const packKg=['шт','уп','кор'].includes(unit)?api.packWeight(name):null;
+  const item={name:name+' / '+unit,article,unit,quantity:q,price:p/100,invoiceTotal:t/100,packKg,packL:!packKg&&['шт','уп','кор'].includes(unit)?api.packVolume(name):null,uncertain:true,source:name};
+  if(w!=null)item.invoiceWeightKg=w/1000;
+  return {...item,...api.lineMetrics(item)};
+ }
+ const quantities=(p,a)=>a.map((v,i)=>Math.round(v/p[i]*1000)/1000);
+ const valid=(p,a,q)=>p.every((v,i)=>v>0&&q[i]>0&&Math.round(v*q[i])===a[i]);
+ function distinct(out,supplier,verified){
+  const unique=new Map(out.map(a=>[JSON.stringify(a.map(x=>[x.article,x.name,x.quantity,x.price,x.invoiceTotal])),a]));
+  return unique.size===1?{supplier,items:[...unique.values()][0],documentVerified:verified,pageVerified:verified,columnRecovered:true}:null;
+ }
+ function marr(ts){
+  if(!ts.some(mh))return null;
+  const names=new Map(),conflicts=new Set(),out=[];
+  // Explicit code, name and unit from the same photo, not a saved product list.
+  for(const t of ts)for(const l of lines(t)){
+   const m=l.match(/^(?:\d{1,3}[.)]?\s+)?(\d{8,12})\s+(.+?)\s+(упак(?:овка)?|уп|шт|кор(?:обка)?|кг)\.?(?:\s+\d+(?:[.,]\d+)?\s+\d+[.,]\d{3}\s+.+)?$/i);
+   if(!m||!/[а-яёa-z]{3}/i.test(m[2]))continue;
+   const x={name:m[2].trim(),unit:unitOf(m[3])},old=names.get(m[1]);
+   if(old&&JSON.stringify(old)!==JSON.stringify(x))conflicts.add(m[1]);else names.set(m[1],x);
+  }
+  for(const k of conflicts)names.delete(k);
+  for(const t of ts){
+   const ls=lines(t),joined=fold(ls.join('\n')),gm=joined.match(/итого\s+сумма\s*:\s*((?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2})/u),qm=joined.match(/итого\s+количество\s*:\s*(\d+)/u);
+   if(!gm||!qm)continue;
+   const grand=money(gm[1])[0],grandQ=Number(qm[1]);
+   const cl=ls.filter((l,i)=>/код/u.test(fold(l+' '+(ls[i+1]||'')))&&[...l.matchAll(/(?<!\d)\d{8,12}(?!\d)/g)].length>=1);
+   if(cl.length!==1)continue;
+   const codes=[...cl[0].matchAll(/(?<!\d)\d{8,12}(?!\d)/g)].map(m=>m[0]),n=codes.length;
+   if(n<1||n>100||codes.some(c=>!names.has(c)))continue;
+   const wi=ls.findIndex(l=>/вес\s*$/u.test(fold(l))&&dec(l).length===n),pi=ls.findIndex(l=>/цена/u.test(fold(l))&&money(l.slice(0,fold(l).indexOf('цена'))).length===n),ti=ls.findIndex(l=>/^сумма(?:\s|$)/u.test(fold(l)));
+   if(wi<1||pi<0||ti<1)continue;
+   const w=dec(ls[wi]),gw=dec(ls[wi-1]),p=money(ls[pi].slice(0,fold(ls[pi]).indexOf('цена'))),a=money(ls[ti+1]||''),footer=money(ls[ti-1]);
+   if(gw.length!==1||sum(w)!==gw[0]||footer.length!==1||footer[0]!==grand||a.length!==n||sum(a)!==grand)continue;
+   const q=quantities(p,a);
+   if(!valid(p,a,q)||q.some((v,i)=>names.get(codes[i]).unit==='кг'?Math.round(v*1000)!==w[i]:!Number.isInteger(v))||Math.abs(sum(q)-grandQ)>.000001)continue;
+   out.push(codes.map((c,i)=>{const x=names.get(c);return make(x.name,c,x.unit,q[i],p[i],a[i],w[i])}).reverse());
+  }
+  return distinct(out,'ООО «МАРР РУССИЯ»',true);
+ }
+ function alidi(ts){
+  if(!ts.some(ah))return null;
+  const out=[];
+  for(const t of ts){
+   const ls=lines(t),pc=ls.filter(l=>/за\s*еи/i.test(l)&&money(l).length>=2),tc=ls.filter(l=>/общая/i.test(l)&&money(l).length>=2);
+   if(pc.length!==1||tc.length!==1)continue;
+   const p=money(pc[0]),a=money(tc[0]),n=p.length,q=quantities(p,a);
+   if(a.length!==n||n>100||!valid(p,a,q))continue;
+   const target=p.map((v,i)=>[v,a[i]]).reverse();
+   if(!ts.some(other=>{if(other===t)return false;let k=0;for(const l of lines(other)){const v=money(l);if(v.length===2&&k<n&&v[0]===target[k][0]&&v[1]===target[k][1])k++;}return k===n;}))continue;
+   const nl=ls.filter(l=>/наименование товара/i.test(l)&&/\[\s*\d+\s*\]/.test(l)),ul=ls.filter(l=>/единица измерения/i.test(l)&&/(?:шт|кг)/i.test(fold(l)));
+   if(nl.length!==1||ul.length!==1)continue;
+   const names=nl[0].split(/работ,\s*оказанных услуг|наименование товара/i)[0],blocks=[...names.matchAll(/([^\[\]]+?)\[\s*(\d+)\s*\]/g)];
+   if(blocks.length!==n||names.slice(blocks[n-1].index+blocks[n-1][0].length).trim())continue;
+   const units=[...fold(ul[0].split(/единица измерения/i)[0]).matchAll(/(?:^|\s)(шт|кг|уп|л|кор)(?=\s|$)/g)].map(m=>m[1]);
+   if(units.length!==n||q.some((v,i)=>!['кг','л'].includes(units[i])&&!Number.isInteger(v)))continue;
+   const result=[];
+   for(let i=0;i<n;i++){
+    const m=blocks[i][1].trim().match(/^(?:\d{1,3}\s+)?(\d{8,14})\s+(.+)$/),name=m?m[2].trim():'';
+    if(!name||name.length>240||!/[а-яёa-z]{3}/i.test(name)){result.length=0;break;}
+    result.push(make(name+' ['+blocks[i][2]+']',m[1],units[i],q[i],p[i],a[i],null));
+   }
+   if(result.length===n)out.push(result.reverse());
+  }
+  return distinct(out,'ООО «АЛИДИ ПРОФ»',false);
+ }
+ function extra(ts){const source=split(ts);return [marr(source),alidi(source)].filter(Boolean);}
+ api.parseSamePhotoPasses=ts=>[...passes(ts),...extra(ts)];
+ api.parseSimple=t=>{const b=prior(t);if(b.documentVerified||b.pageVerified)return b;return extra([t]).find(r=>r.items.length>b.items.filter(x=>x.price!=null).length)||b;};
+})(globalThis);
