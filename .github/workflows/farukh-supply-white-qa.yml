@@ -90,7 +90,7 @@ jobs:
           await page.locator('[data-field=quantity]').fill('4');
           assert.ok((await page.locator('.line-summary').innerText()).includes('40 кг'));
           assert.ok((await page.locator('.kg-price').innerText()).includes('450,00'));
-          assert.ok((await page.locator('.line-total').innerText()).replace(/\s/g,'').includes('13500,00'), 'Original invoice total must remain unchanged when derived metrics update');
+          assert.ok((await page.locator('.line-total').innerText()).replace(/\s/g,'').includes('18000,00'), 'Editing invoice quantity must recompute payable total');
           await page.evaluate(()=>{
             const history=[{simpleVersion:1,supplierId:'Поставщик тест',lines:[{name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт',packKg:9.4}]}];
             const product={name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт'};
@@ -121,15 +121,34 @@ jobs:
           await page.evaluate(()=>{
             addLine({name:'Сироп учебный 1л / шт (без НДС)',unit:'шт',quantity:2,price:590.98,invoiceTotal:1442});
             const el=$('lines').lastElementChild,data=lineData(el);
-            if(data.packL!==1||data.packKg!==null||el.querySelector('[data-field=packMeasure]').value!=='л')throw Error('Volume not populated');
-            if(!el.querySelector('.line-summary').textContent.includes('2 л')||!el.querySelector('.kg-price').textContent.includes('590,98'))throw Error('Volume metrics not shown');
+            if(data.price!==721||data.netPrice!==590.98||data.packL!==1||data.packKg!==null||el.querySelector('[data-field=packMeasure]').value!=='л')throw Error('Volume not populated');
+            if(!el.querySelector('.line-summary').textContent.includes('2 л')||!el.querySelector('.kg-price').textContent.includes('721,00'))throw Error('Gross volume metrics not shown');
             if(!el.querySelector('.line-total').textContent.replace(/\s/g,'').includes('1442,00'))throw Error('Invoice total changed');
-            if(!el.querySelector('[data-field=price]').getAttribute('aria-label').includes('без НДС'))throw Error('VAT basis missing');
+            if(!el.querySelector('[data-field=price]').getAttribute('aria-label').includes('с НДС'))throw Error('Gross VAT basis missing');
             el.remove();
             addLine({name:'Сироп учебный',unit:'шт',quantity:2,price:590.98,packL:1,invoiceTotal:1442});
             const saved=$('lines').lastElementChild;
             if(lineData(saved).packL!==1||lineData(saved).packKg!==null)throw Error('Saved volume was lost');
             saved.remove();
+          });
+          await page.evaluate(()=>{
+            const sample=[
+              {name:'Рис учебный 25 кг (без НДС)',unit:'уп',quantity:3,price:2454.55,invoiceTotal:8100,packKg:25},
+              {name:'Сироп учебный 1 л (без НДС)',unit:'уп',quantity:1,price:590.98,invoiceTotal:721,packL:1},
+              {name:'Креветка учебная 1.8 кг (без НДС)',unit:'уп',quantity:6,price:1954.55,invoiceTotal:12900,packKg:1.8},
+              {name:'Крабовые палочки учебные 500 г (без НДС)',unit:'уп',quantity:12,price:227.27,invoiceTotal:3000,packKg:.5}
+            ];
+            const expected=[108,721,1194.44,500],packs=[2700,721,2150,250];
+            let total=0;
+            sample.forEach((raw,i)=>{
+              const r=grossRow(raw);if(r.price!==packs[i]||r.netPrice!==raw.price||quotePrice(r)!==expected[i]||quotePrice(raw)!==expected[i]||grossRow(r).price!==r.price)throw Error('Gross price or historical conversion failed');
+              addLine(raw);const el=$('lines').lastElementChild,l=lineData(el);
+              if(l.price!==packs[i]||l.netPrice!==raw.price||quotePrice(l)!==expected[i])throw Error('Gross form price failed');
+              total+=grossMetrics(l).totalPrice;el.remove();
+            });
+            if(total!==24721)throw Error('Invoice payable total changed');
+            if(grossRow({name:'Неизвестный товар (без НДС)',price:100}).price!==null)throw Error('Unknown VAT guessed');
+            if(quotePrice({name:'Без налога',unit:'кг',quantity:2,price:100,invoiceTotal:200})!==100)throw Error('VAT-free amount changed');
           });
           await page.setViewportSize({width:320,height:740});
           for(let i=0;i<29;i++)await page.locator('#addLine').click();
