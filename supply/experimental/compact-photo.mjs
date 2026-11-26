@@ -52,3 +52,39 @@ export function decodeStructure(outputs,dict){
  }
  const html=tokens.join('');return{html,rows:(html.match(/<tr>/g)||[]).length,cells:(html.match(/<td(?:>| )/g)||[]).length,score:scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0};
 }
+
+
+// Independent evidence from long ruled lines. Reject incomplete grids rather than
+// trusting a high-confidence neural prediction that silently loses rows or columns.
+export function ruledGrid(im){
+ const {width:w,height:h,data}=im,rows=new Uint32Array(h),cols=new Uint32Array(w);
+ const mask=new Uint8Array(w*h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const p=(y*w+x)*4;mask[y*w+x]=(.299*data[p]+.587*data[p+1]+.114*data[p+2])<110?1:0;
+ }
+ for(let y=0;y<h;y++){let start=-1,last=-1;for(let x=0;x<w;x++){if(mask[y*w+x]){if(start<0||x-last>5)start=x;last=x;rows[y]=Math.max(rows[y],x-start+1)}}}
+ const peaks=(v,min)=>{const a=[];for(let i=0;i<v.length;i++){if(v[i]<min)continue;let j=i;while(j+1<v.length&&v[j+1]>=min)j++;a.push(Math.round((i+j)/2));i=j;}return a.filter((x,i)=>i===0||x-a[i-1]>5);};
+ const ys=peaks(rows,w*.55);if(ys.length<3)return null;
+ const top=ys[0],bottom=ys.at(-1),height=bottom-top;
+ for(let x=0;x<w;x++){let start=-1,last=-1;for(let y=top;y<=bottom;y++){if(mask[y*w+x]){if(start<0||y-last>5)start=y;last=y;cols[x]=Math.max(cols[x],y-start+1)}}}
+ const xs=peaks(cols,height*.75);
+ if(xs.length<4||xs.at(-1)-xs[0]<w*.55)return null;
+ if(ys.slice(1).some((y,i)=>y-ys[i]<12)||xs.slice(1).some((x,i)=>x-xs[i]<12))return null;
+ return{xs,ys,rows:ys.length-1,cols:xs.length-1};
+}
+export function assignGridText(grid,items){
+ const {xs,ys}=grid;
+ const out=Array.from({length:ys.length-1},()=>Array.from({length:xs.length-1},()=>[]));let ambiguous=0;
+ for(const i of items){
+  if(!i.poly?.length||!i.text)continue;
+  const x=i.poly.reduce((s,p)=>s+p[0],0)/i.poly.length,y=i.poly.reduce((s,p)=>s+p[1],0)/i.poly.length;
+  const c=xs.findIndex((v,k)=>k>0&&x>xs[k-1]&&x<v)-1,r=ys.findIndex((v,k)=>k>0&&y>ys[k-1]&&y<v)-1;
+  if(c<0||r<0)continue;
+  const left=Math.min(...i.poly.map(p=>p[0])),right=Math.max(...i.poly.map(p=>p[0]));
+  const top=Math.min(...i.poly.map(p=>p[1])),bottom=Math.max(...i.poly.map(p=>p[1]));
+  const coverage=Math.max(0,Math.min(right,xs[c+1])-Math.max(left,xs[c]))*Math.max(0,Math.min(bottom,ys[r+1])-Math.max(top,ys[r]));
+  if(coverage<.85*Math.max(1,(right-left)*(bottom-top))){ambiguous++;continue;}
+  out[r][c].push({x,y,text:i.text});
+ }
+ return{rows:out.map(row=>row.map(cell=>cell.sort((a,b)=>Math.abs(a.y-b.y)>8?a.y-b.y:a.x-b.x).map(i=>i.text).join(' '))),ambiguous};
+}
