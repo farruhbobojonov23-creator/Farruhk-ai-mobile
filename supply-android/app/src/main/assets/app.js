@@ -108,18 +108,18 @@ function spatialSimple(lines){
 }
 function candidate(boxes,raw,base,parser,upd){
  const lines=spatialLines(boxes);
- if(!lines.length||!base?.supplier||base.documentVerified||base.pageVerified)return null;
+ if(!lines.length||!base||base.documentVerified||base.pageVerified)return null;
  if(upd?.structured){
   // Use the original text's independent VAT-inclusive footer, never a guessed tax rate.
   if(upd.conflictingTotals||!(upd.printedTotal>0))return null;
   const reflow=lines.map(l=>l.text).join('\n');
   const r=parser.parseSimple(reflow);
-  if(!r.documentVerified||!r.supplier||r.supplier.toLowerCase()!==base.supplier.toLowerCase()||!r.items.length||r.items.some(x=>!(x.quantity>0&&x.price>0&&x.invoiceTotal>0)||!x.unit))return null;
+  if(!r.documentVerified||!r.supplier||(base.supplier&&r.supplier.toLowerCase()!==base.supplier.toLowerCase())||!r.items.length||r.items.some(x=>!(x.quantity>0&&x.price>0&&x.invoiceTotal>0)||!x.unit))return null;
   if(Math.round(r.items.reduce((s,x)=>s+x.invoiceTotal,0)*100)!==Math.round(upd.printedTotal*100))return null;
   return {...r,spatialVerified:true};
  }
  // VAT/transport layouts must not be interpreted as a simple price × quantity table.
- if(/НДС|товарно[- ]транспортная|сч[её]т[- –]фактура/i.test(raw))return null;
+ if(!base.supplier||/НДС|товарно[- ]транспортная|сч[её]т[- –]фактура/i.test(raw))return null;
  const result=spatialSimple(lines);
  if(!result)return null;
  const items=result.items.map(x=>{
@@ -779,11 +779,9 @@ function scanNextPass(pass,current,complete,evidence){
  const verified=evidence.filter(x=>x.documentVerified&&scanFieldsComplete(x));
  const agree=verified.length>0&&verified.every(x=>!scanConflicts(x,verified[0])&&x.items.length===verified[0].items.length&&pageFingerprint(x.items)===pageFingerprint(verified[0].items));
  if(agree)return null;
- if(evidence.some(x=>supplierKey(x.supplier)==='ооо марр руссия'))return pass===0?'paddle-scan':'rescan';
- // Re-use the existing on-device Paddle route before the costly focused Tesseract retry.
- if(pass===0)return complete&&!evidence.some(x=>scanConflicts(x,current))?null:'paddle-scan';
- if(complete&&!evidence.some(x=>scanConflicts(x,current)))return null;
- return 'rescan';
+ // A complete-looking but unreconciled result can hide missing rows or tax errors.
+ // Use the existing native OCR routes until a complete, reconciled result agrees.
+ return pass===0?'paddle-scan':'rescan';
 }
 
 function nextScan(path,message){
