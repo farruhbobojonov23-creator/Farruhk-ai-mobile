@@ -3,8 +3,15 @@ on:
   push:
     branches: ['feature/farukh-supply-simple-white']
     paths:
+      # Web-only updates are signed and published by farukh-supply-white-qa.yml.
+      # Keep the native OCR APK/version unchanged for these changes.
       - 'supply-android/**'
-      - 'supply/**'
+      - '!supply-android/app/src/main/assets/index.html'
+      - '!supply-android/app/src/main/assets/app.js'
+      - '!supply-android/app/src/main/assets/analytics.js'
+      - '!supply-android/app/src/main/assets/invoice-parser.js'
+      - '!supply-android/app/src/main/assets/web-version.txt'
+      - 'ocr-mobile-lab/**'
       - '.github/workflows/farukh-supply-white-test.yml'
 concurrency:
   group: farukh-supply-white-test
