@@ -91,7 +91,7 @@ function acceptPage(r,raw){
  const supplier=$('supplier').value.trim(),meta=pageMeta(r,raw);
  const file=pendingPhoto||previous?.file||$('file').files[0]||null;
  const identity=photoFingerprint(file),fingerprint=pageFingerprint(r.items);
- if(others.length&&r.supplier&&supplier&&supplierKey(r.supplier)!==norm(supplier))throw Error('Другой поставщик. Страница не добавлена.');
+ if(others.length&&r.supplier&&supplier&&supplierKey(r.supplier)!==supplierKey(supplier))throw Error('Другой поставщик. Страница не добавлена.');
  if(others.some(p=>meta.documentNumber&&p.documentNumber&&meta.documentNumber!==p.documentNumber))throw Error('Другой номер накладной. Страница не добавлена.');
  if(others.some(p=>meta.expected&&p.expected&&meta.expected!==p.expected))throw Error('Не совпадает число страниц. Страница не добавлена.');
  if(others.some(p=>(meta.number&&p.number===meta.number)||(identity&&p.identity===identity)||(fingerprint===p.fingerprint&&!(meta.number&&p.number&&meta.number!==p.number))))throw Error('Эта страница уже добавлена.');
@@ -101,8 +101,8 @@ function acceptPage(r,raw){
  if(previous&&existing.length&&!confirm('Заменить распознанные товары только на этой странице?'))return false;
  if(!others.length&&!previous&&existing.length&&!existing.every(x=>x.price==null&&x.quantity==null)&&!confirm('Заменить текущие строки распознанными?'))return false;
  if(!others.length&&!previous)$('lines').replaceChildren();
- else if(previous)for(const el of [...$('lines').children])if(el.dataset.pageKey===key)el.remove();
- else for(const el of [...$('lines').children])if(!lineData(el).name)el.remove();
+ else if(previous){for(const el of [...$('lines').children])if(el.dataset.pageKey===key)el.remove();}
+ else {for(const el of [...$('lines').children])if(!lineData(el).name)el.remove();}
  if(r.supplier)$('supplier').value=r.supplier;
  for(const l of r.items)addLine({...l,pageKey:key});
  const record={...meta,key,file,identity,fingerprint};
