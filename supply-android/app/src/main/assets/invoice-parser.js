@@ -674,3 +674,55 @@ function recover(text,b){
 }
 api.parseSimple=text=>recover(text,previous(text));
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSimple,passes=api.parseSamePhotoPasses;
+const cash='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}',qty='\\d+[.,]\\d{3}';
+const n=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+const near=(a,b,t=.021)=>Math.abs(a-b)<=t;
+const clean=s=>s.normalize('NFKC').replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+const row=new RegExp('^(.*?)\\b(796|778|990|166)\\s+(?:(?:шт|упак|уп|меш|кг|[wшuу][tт]|ynak)\\s+)?('+cash+')\\s+('+cash+')\\s+(?:(?:[б65]е[з3])\\s+)?(\\d{1,2})%\\s+('+cash+')\\s+('+cash+')$','i');
+const footer=new RegExp('^('+cash+')\\s+[xх–—-]\\s+('+cash+')\\s+('+cash+')$','i');
+const quant=new RegExp('(?:^|\\s)('+qty+')(?=\\s|$)','g');
+const nameClean=s=>s.replace(/^\s*\d{1,3}[.)]?\s*/,'').replace(/\s*(?:акциза|без акциза)$/i,'').replace(/(?:^|\s)(?:yn|уп|п)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(кг|г|л|мл)/ig,' уп/$1$2').replace(/\s+[EЕ]$/,'').trim();
+const sellerClean=s=>s.toUpperCase().replace(/[ABCEHKMOPTXY]/g,c=>({A:'А',B:'В',C:'С',E:'Е',H:'Н',K:'К',M:'М',O:'О',P:'Р',T:'Т',X:'Х',Y:'У'})[c]);
+function recover(text,b){
+ const lines=String(text||'').split(/\r?\n/).map(clean).filter(Boolean);
+ const doc=lines.findIndex(l=>/счет[- ]фактура|универсальный\s+передаточный/i.test(l));
+ if(doc<0)return b;
+ const header=lines.slice(doc,doc+18);let supplier=b.supplier;
+ for(const l of header){
+  const m=l.match(/^(?:продавец\s*:\s*)?["«]?([А-ЯЁA-Z][А-ЯЁA-Z -]{1,45})["»]\s*\(2\)/i);
+  if(m){const token=sellerClean(m[1].trim()),legal=header.some(h=>/общество с ограниченной ответственностью/i.test(h)),known=api.parse('ООО '+token).supplier;if(known||legal)supplier=known||'ООО «'+token+'»';}
+ }
+ const head=lines.findIndex((l,i)=>i>doc&&/наименование товара/i.test(l)&&/стоимость|налог|цена/i.test(lines.slice(Math.max(0,i-5),i+6).join(' ')));
+ const end=lines.findIndex((l,i)=>i>head&&/^всего\s+к\s+оплате\s*\(?9\)?/i.test(l));
+ if(head<0||end<0||!supplier)return b;
+ const foot=lines[end-1]?.match(footer);if(!foot)return b;
+ const totals=foot.slice(1).map(n);if(!near(totals[0]+totals[1],totals[2]))return b;
+ const anchors=[];for(let i=head+1;i<end-1;i++){const m=lines[i].match(row);if(m)anchors.push({i,m});}
+ if(!anchors.length)return b;
+ const items=[],checks=[];
+ for(let k=0;k<anchors.length;k++){
+  const {i,m}=anchors[k],next=anchors[k+1]?.i??end-1;
+  const [price,net,rate,tax,gross]=m.slice(3).map(n);
+  if(![0,5,7,10,20,22].includes(rate)||!(price>0&&net>0&&gross>=net)||!near(net+tax,gross)||!near(net*rate/100,tax))return b;
+  const rest=lines.slice(i+1,next),qs=[...rest.join(' ').matchAll(quant)].map(v=>n(v[1]));
+  const q=[...new Set(qs)].filter(v=>v>0&&near(v*price,net,Math.max(.02,v*.005+.011)));if(q.length!==1)return b;
+  const name=[m[1],...rest.map(l=>l.replace(quant,' '))].map(nameClean).filter(l=>/[а-яёa-z]{2}/i.test(l)).join(' ').trim();
+  if(!name||/всего к оплате|руководитель организации/i.test(name))return b;
+  const unit=({'796':'шт','778':'уп','990':'уп','166':'кг'})[m[2]];
+  const x={name:name+' / '+unit+' (без НДС)',unit,quantity:q[0],price,packKg:unit==='кг'?null:api.packWeight(name),invoiceTotal:gross,uncertain:true,source:lines.slice(i,next).join('\n')};
+  Object.assign(x,api.lineMetrics(x));items.push(x);checks.push([net,tax,gross]);
+ }
+ if(!totals.every((v,j)=>near(v,checks.reduce((s,x)=>s+x[j],0))))return b;
+ return {supplier,items,documentVerified:true};
+}
+api.parseSimple=text=>{
+ const r=recover(text,previous(text));
+ if(!r.documentVerified&&/счет[- ]фактура|универсальный\s+передаточный/i.test(String(text||'')))return {...r,items:r.items.map(x=>x.quantity==null&&x.price!=null?{...x,price:null,pricePerKg:null,totalPrice:null}:x)};
+ return r;
+};
+api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
+})(globalThis);
