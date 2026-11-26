@@ -91,6 +91,41 @@ jobs:
           assert len(reports)==2
           assert max(reports[1][k]['all_fields'] for k in ('original','normalized'))==11,'All eleven simulated photo rows must match exactly'
           PY
+      - name: Package relocatable offline CPU runtime for private real-photo tests
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pp-offline" "$RUNNER_TEMP/pp-parts"
+          # The installed standalone runtime and downloaded open models are the only exported assets.
+          # Real invoices are never part of the CI job or artifacts.
+          prefix=$(python -c 'import sys;print(sys.prefix)')
+          cp -a "$prefix" "$RUNNER_TEMP/pp-offline/python"
+          mkdir -p "$RUNNER_TEMP/pp-offline/home/.paddlex"
+          cp -a "$HOME/.paddlex/official_models" "$RUNNER_TEMP/pp-offline/home/.paddlex/"
+          cp supply/experimental/ppstructure_lab.py "$RUNNER_TEMP/pp-offline/"
+          cat > "$RUNNER_TEMP/pp-offline/run.sh" <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          root="$(cd "$(dirname "$0")" && pwd)"
+          export PYTHONHOME="$root/python"
+          export LD_LIBRARY_PATH="$root/python/lib:\${LD_LIBRARY_PATH:-}"
+          export HOME="$root/home"
+          export PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True
+          export PYTHONDONTWRITEBYTECODE=1
+          exec "$root/python/bin/python3.11" "$root/ppstructure_lab.py" "$@"
+          SH
+          # Remove caches unrelated to runtime, not model files or licenses.
+          find "$RUNNER_TEMP/pp-offline/python" -type d -name __pycache__ -prune -exec rm -rf {} +
+          chmod +x "$RUNNER_TEMP/pp-offline/run.sh"
+          bash "$RUNNER_TEMP/pp-offline/run.sh" --help
+          du -sh "$RUNNER_TEMP/pp-offline/"*
+          tar -C "$RUNNER_TEMP" -cf - pp-offline | zstd -T0 -3 | split -b 90m -d -a 3 - "$RUNNER_TEMP/pp-parts/pp-offline.zst.part"
+          (cd "$RUNNER_TEMP/pp-parts" && sha256sum pp-offline.zst.part* > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ppstructure-offline-runtime-parts
+          path: ${{ runner.temp }}/pp-parts
+          compression-level: 0
+          retention-days: 3
       - uses: actions/upload-artifact@v4
         if: always()
         with:
