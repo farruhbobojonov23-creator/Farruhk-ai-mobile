@@ -1498,3 +1498,63 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  api.parseSamePhotoPasses=ts=>[...passes(ts),...extra(ts)];
  api.parseSimple=t=>{const b=prior(t);if(b.documentVerified||b.pageVerified)return b;return extra([t]).find(r=>r.items.length>b.items.filter(x=>x.price!=null).length)||b;};
 })(globalThis);
+
+;(function(root){
+ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+ const prior=api.parseSimple,passes=api.parseSamePhotoPasses;
+ // Reconcile damaged UPD quantity cells using independently printed net, tax and gross.
+ const cash='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}';
+ const cents=s=>Math.round(Number(String(s).replace(/\s/g,'').replace(',','.'))*100);
+ const clean=s=>s.normalize('NFKC').replace(/[|│✓✔]/g,' ').replace(/\s+/g,' ').trim();
+ const seller=t=>{
+  const head=t.split(/наименование\s+товара|код\s+товара/i)[0];
+  const m=head.match(/общество с ограниченной ответственностью\s*(?:[^\n]{0,140}\n){0,3}\s*продавец\s*:\s*["«]([^"»\n]{2,80})["»]/i);
+  return m?'ООО «'+m[1].trim()+'»':'';
+ };
+ const start=/^(.*?\S)\s+(796|778|990|166)\s+(.+)$/i;
+ const tail=new RegExp('^(?:([0-9]+(?:[.,][0-9]{3})?)\\s+)?('+cash+')\\s+('+cash+'|\\d{4,12})\\s*(.*?)\\s+('+cash+')\\s+('+cash+')(?:\\s+[-–—]+)*$','i');
+ const totalRe=new RegExp('('+cash+')\\s+[xх×]\\s+('+cash+')\\s+('+cash+')','i');
+ const units=/^(?:шт|[weу][tт]|упак|ynak|уп|меш(?:ок)?|кг|кор)\.?\s+/i;
+ function recover(raw,base){
+  if(!/сч[её]т[- ]фактура/i.test(raw))return base;
+  const supplier=seller(raw);if(!supplier)return base;
+  const ls=raw.split(/\r?\n/).map(clean).filter(Boolean);
+  const a=ls.findIndex(x=>/наименование\s+товара/i.test(x)),b=ls.findIndex((x,i)=>i>a&&/^всего\s+к\s+оплате/i.test(x));
+  if(a<0||b<=a)return {...base,supplier};
+  const f=ls[b].match(totalRe);if(!f)return {...base,supplier};
+  const grand=f.slice(1).map(cents);if(grand[0]+grand[1]!==grand[2])return base;
+  let rows=[];
+  for(let i=a+1;i<b;i++){
+   const m=ls[i].match(start);if(!m)continue;
+   const code=m[2],unit=({'796':'шт','778':'уп','990':'уп','166':'кг'})[code];
+   const r=m[3].replace(units,'').match(tail);if(!r)return base;
+   const [,printed,priceStr,netStr,marker,taxStr,grossStr]=r;
+   const p=cents(priceStr),n=/^\d+$/.test(netStr)?Number(netStr):cents(netStr),tax=cents(taxStr),g=cents(grossStr);
+   if(!(p>0&&n>0&&g>0&&tax>=0)||n+tax!==g)return base;
+   const rates=[0,5,7,10,20,22].filter(v=>Math.abs(Math.round(n*v/100)-tax)<=1);
+   const explicit=marker.match(/(\d{1,2})\s*%/);
+   if(rates.length!==1||explicit&&Number(explicit[1])!==rates[0])return base;
+   const q=unit==='кг'?Number(String(printed||'').replace(',','.')):Math.round(n/p);
+   if(!(q>0)||Math.abs(q*p-n)>Math.max(1,q*.5+.01))return base;
+   if(printed&&(/[.,]/.test(printed)||/^[1-9]\d?$/.test(printed))&&Math.abs(Number(printed.replace(',','.'))-q)>.00001)return base;
+   if(unit==='кг'&&(!printed||!/[.,]/.test(printed)&&printed.length>2))return base;
+   let name=m[1].replace(/^\d{1,3}[.)]?\s*(?=[а-яёa-z])/i,'').trim();
+   let j=i+1;
+   while(j<b&&j<=i+4&&!start.test(ls[j])){
+    const part=ls[j];
+    if(/^(?:[аa3]кциза|без акциза)$/i.test(part)){j++;continue;}
+    if(!/[а-яёa-z]{2}/i.test(part)||/^\d{1,3}[.)]?\s*(?=[а-яёa-z])/i.test(part)&&!/^\d+\s*[шw][тt](?:\s|\)|$)/i.test(part)||new RegExp(cash).test(part))break;
+    name+=' '+part;j++;
+   }
+   if(!/[а-яёa-z]{3}/i.test(name)||name.length>300)return base;
+   const packKg=unit==='кг'?null:api.packWeight(name);
+   const item={name:name+' / '+unit+' (без НДС)',unit,quantity:q,price:p/100,netPrice:p/100,invoiceTotal:g/100,packKg,packL:unit==='кг'||packKg?null:api.packVolume(name),uncertain:true,source:ls.slice(i,j).join('\n')};
+   rows.push({item:{...item,...api.lineMetrics(item)},n,tax,g});i=j-1;
+  }
+  if(!rows.length||[0,1,2].some(v=>rows.reduce((s,r)=>s+[r.n,r.tax,r.g][v],0)!==grand[v]))return base;
+  if(base.documentVerified&&base.items.length===rows.length&&base.items.every((x,i)=>x.quantity===rows[i].item.quantity&&x.invoiceTotal===rows[i].item.invoiceTotal))return {...base,supplier};
+  return {...base,supplier,items:rows.map(r=>r.item),documentVerified:true,pageVerified:true};
+ }
+ api.parseSimple=t=>{const raw=String(t||'');return recover(raw,prior(raw));};
+ api.parseSamePhotoPasses=ts=>[...passes(ts),...ts.flatMap(t=>String(t||'').split(/\r?\n\s*---\s*\r?\n/)).map(api.parseSimple).filter(x=>x.documentVerified)];
+})(globalThis);
