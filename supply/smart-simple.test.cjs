@@ -1,6 +1,8 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const p=require('../supply-android/app/src/main/assets/invoice-parser.js');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../supply-android/app/src/main/assets/invoice-parser.js'),'utf8');
+const browser={};vm.runInNewContext(source,browser);const p=browser.supplyInvoiceParser;
 const head='Поставщик: Тестовый поставщик\nНаименование товара Количество Цена с НДС Сумма\n';
 test('minimal fields and derived prices',()=>{
  const r=p.parsePurchaseFields(head+'1 Рис 25 кг уп 3 2700,00 8100,00\n2 Масаго 500 г 6 шт 570,00\nИтого: 11520,00');
