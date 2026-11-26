@@ -1,6 +1,6 @@
 'use strict';
 // Experimental offline spatial table extraction. Column and row boundaries must be verified by the native layout detector. Prices and totals must use the same tax basis. Never infer missing cells.
-function extractTable(boxes, columns, bands) {
+function extractTable(boxes, columns, bands, expectedTotal = null) {
   const roles = new Set(["name","quantity","price","total","vat","unit","code","ignore"]);
   if (!Array.isArray(columns)||!Array.isArray(bands)||!Array.isArray(boxes)) throw Error("Invalid layout");
   function checkIntervals(values, a, b) {
@@ -42,6 +42,9 @@ function extractTable(boxes, columns, bands) {
     else if(Math.abs(Math.round(quantity*price*100)-Math.round(total*100))>1)row.issues.push("Quantity × price differs from row total");
     return {name:fields.name,quantity,price,total,vat:fields.vat||null,unit:fields.unit||null,code:fields.code||null,issues:[...new Set(row.issues)]};
   });
-  return {items,issues,verified:items.length>0&&!issues.length&&items.every(x=>!x.issues.length)};
+  const rowsVerified=items.length>0&&!issues.length&&items.every(x=>!x.issues.length);
+  const totalCents=items.every(x=>x.total!==null)?items.reduce((sum,x)=>sum+Math.round(x.total*100),0):null;
+  if(expectedTotal!==null&&(!Number.isFinite(expectedTotal)||expectedTotal<0||totalCents!==Math.round(expectedTotal*100)))issues.push('Document total differs from extracted rows');
+  return {items,issues,verified:rowsVerified&&!issues.length,documentVerified:rowsVerified&&!issues.length&&expectedTotal!==null,total:totalCents===null?null:totalCents/100};
 }
 module.exports={extractTable};
