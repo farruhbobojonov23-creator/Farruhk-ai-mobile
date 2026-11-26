@@ -279,3 +279,46 @@ api.parseSimple=function(text){
  return {supplier,items};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const old=api.parseSimple;
+const num=s=>{s=String(s).replace(/\s/g,'');if(/,\d{3}\.\d{2}$/.test(s))s=s.replace(/,/g,'');else if(/\.\d{3},\d{2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+const cash='(?:\\d{1,3}(?:[, .]\\d{3})+[.,]\\d{2}|\\d+[.,]\\d{2})',dec='\\d+(?:[.,]\\d{1,3})?';
+const rx=new RegExp('(\\d{7,12})\\s+([а-яёa-z]{1,5})\\s+(796|166|778)\\s+('+dec+')\\s*[°%]?\\s+('+cash+')\\s+('+dec+')\\s+('+dec+')(?:\\s|$)','i');
+const stop=/^(?:итого|всего|в том числе|подпись|масса|наименование|порядков|товар|измерения|количество|код|характеристики|отгрузки|непринятое)/i;
+const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+api.parseSimple=function(text){
+ const raw=String(text||''),flat=raw.replace(/[|│]/g,' ').replace(/\s+/g,' ');
+ const b=old(raw);
+ // Use the OKEI unit code to recover a damaged unit glyph, but only on this known TTN table layout.
+ const known=/восток\s*[-–]?\s*запад/i.test(flat)||b.supplier==='Восток-Запад';
+ const table=/сумма\s*с\s*ндс/i.test(flat)&&/брутто/i.test(flat)&&/(?:океи|оке[мй]|товарно[-–\s]*транспортная|товарный раздел)/i.test(flat);
+ if(!known||!table)return b;
+ const lines=raw.split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+ const items=[];
+ for(let i=0;i<lines.length;i++){
+  const l=lines[i],m=l.match(rx);if(!m)continue;
+  const unit=({'796':'шт','166':'кг','778':'уп'})[m[3]],rate=num(m[4]),total=num(m[5]),quantity=num(m[6]),gross=num(m[7]);
+  if(![0,5,7,10,20,22].includes(rate)||!(total>0&&quantity>0&&gross>=quantity))continue;
+  let name=l.slice(0,m.index).replace(/^\s*\d{1,3}[.)]?\s+/,'').replace(/[—–]+\s*$/,'').trim();
+  const prev=lines[i-1]||'',next=lines[i+1]||'';
+  if(prev&&/[а-яёa-z]{3}/i.test(prev)&&!stop.test(prev)&&!rx.test(prev)&&!/\d{5,}/.test(prev)&&/^(?:майонез|форель|сыр|рис|креветк|соус|масло|мука|лосось|угорь)/i.test(prev)&&!/^(?:майонез|форель|сыр|рис|креветк|соус|масло|мука|лосось|угорь)/i.test(name))name=prev+' '+name;
+  const pack=next.match(/^\s*(\d+(?:[.,]\d+)?)\s*к[гт]\s*\/\s*([0-9ОоO]+)\s*л(?:\s|$)/i);
+  if(pack&&!api.packWeight(name))name+=' '+pack[1].replace('.',',')+'кг/'+pack[2].replace(/[ОоO]/g,'0')+'л';
+  else if(/^(?:[A-Z]{1,3}\s+)?соленая пищевая рыбная продукция/i.test(next))name+=' соленая пищевая рыбная продукция';
+  if(!/[а-яёa-z]{3}/i.test(name)||stop.test(name))continue;
+  const packKg=unit==='кг'?null:api.packWeight(name);
+  if(packKg&&gross+.001<quantity*packKg)continue;
+  const x={name:name+' / '+unit+' (с НДС)',price:round(total/quantity),quantity,unit,packKg,uncertain:true,source:l,invoiceTotal:total,priceDerived:true,article:m[1]};
+  Object.assign(x,api.lineMetrics(x));x.totalPrice=total;
+  if(!items.some(y=>y.article===x.article))items.push(x);
+ }
+ if(!items.length)return b;
+ const totalMatch=flat.match(new RegExp('всего\\s+к\\s+оплате\\s*[:=]?\\s*('+cash+')','i'));
+ if(totalMatch&&Math.abs(items.reduce((s,x)=>s+x.invoiceTotal,0)-num(totalMatch[1]))>.02){for(const x of items){x.price=null;x.pricePerKg=null;x.totalPrice=null;}}
+ // Keep a previous complete result if this stricter rescue found fewer valid rows.
+ if(b.items.filter(x=>x.price!=null).length>items.filter(x=>x.price!=null).length)return b;
+ return {supplier:'Восток-Запад',items};
+};
+})(globalThis);

@@ -77,7 +77,7 @@ window.supplyOcrFinish=(id,text,error)=>{
  try{
   const current=window.supplyInvoiceParser.parseSimple(text||'');scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
-  const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit);
+  const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)&&!current.items.some(x=>x.priceDerived&&['шт','уп','кор'].includes(x.unit)&&!x.packKg);
   if(native&&scanPass<2&&!complete){
    scanPass++;nextScan(scanPass===1?'rescan':'paddle-scan',scanPass===1?'Повторная проверка товарной таблицы…':'Проверка другим OCR-модулем…');return;
   }
