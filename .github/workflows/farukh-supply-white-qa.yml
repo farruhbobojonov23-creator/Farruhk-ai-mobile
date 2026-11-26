@@ -208,8 +208,19 @@ jobs:
           assert.equal(await page.locator('#productCount').textContent(),'2');
           assert.equal(await page.locator('#supplierCount').textContent(),'2');
           assert.ok((await page.locator('#changes').innerText()).includes('10'));
+          // Explicit alias and quality must survive reload without rewriting the original invoice.
+          await page.locator('nav button[data-go=products]').click();
+          await page.locator('#productList .card').filter({has:page.locator('h2',{hasText:'Рис Tamaki'})}).getByRole('button',{name:'Связать / разделить · качество'}).first().click();
+          await page.locator('.catalog-dialog').waitFor({state:'visible'});
+          await page.locator('.catalog-dialog input[type=number]').nth(0).fill('9.5');
+          await page.locator('.catalog-dialog input[type=number]').nth(1).fill('80');
+          await page.locator('.catalog-dialog').getByRole('button',{name:'Подтвердить'}).click();
+          await page.locator('.catalog-dialog').waitFor({state:'detached'});
           await page.reload();
           await page.waitForFunction(()=>document.querySelector('#productCount').textContent==='2');
+          assert.ok((await page.locator('#qualityRank').innerText()).includes('9,5'));
+          assert.ok(await page.evaluate(()=>Object.keys(catalogState.aliases).length===1&&docs.length===3));
+
           assert.equal(await page.locator('#supplierCount').textContent(),'2');
           await page.locator('nav button[data-go=products]').click();
           await page.locator('#search').fill('Нори');

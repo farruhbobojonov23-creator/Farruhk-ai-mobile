@@ -979,7 +979,7 @@ function recover(forward,backward,supplier){
   if(i>head+1&&/[а-яё]{3}/i.test(prev)&&!packEnd.test(prev)&&!/\d+[.,]\d{2}(?!\d)|наименование товара|код товара|стоимость/i.test(prev))names.push(normalize(prev+' '+lead));
   else names.push(normalize(lead));
  }
- const N=names.length;if(N<2||N>20)return null;
+ const N=names.length;if(N<2)return null;
  // A column-order read must independently contain the same product anchors
  // in reverse order. Never align unrelated documents or a missing product.
  const flat=b.join(' ').toLowerCase();let cursor=0;

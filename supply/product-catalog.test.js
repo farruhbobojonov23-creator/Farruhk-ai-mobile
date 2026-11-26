@@ -1,6 +1,6 @@
 const test=require('node:test');
 const a=require('node:assert/strict');
-const m=require('../supply-android/app/src/main/assets/product-catalog.js');
+const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/product-catalog.js'),'utf8');const mod={exports:{}};new Function('module',source)(mod);const m=mod.exports;
 const catalog=[{id:'shrimp',name:'Креветка очищенная 16/20'},{id:'raw',name:'Креветка неочищенная 16/20'}];
 const row={name:'Креветка в/м 16/20',article:'A100',price:1200};
 test('similar names require confirmation; a new supplier cannot inherit aliases',()=>{
