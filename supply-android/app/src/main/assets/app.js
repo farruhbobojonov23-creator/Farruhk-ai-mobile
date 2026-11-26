@@ -25,7 +25,7 @@ function knownPack(data,supplier,history=docs){
 }
 function lineData(f){
  const value=k=>f.querySelector('[data-field='+k+']').value;
- return {name:value('name').trim(),price:numeric(value('price')),quantity:numeric(value('quantity')),unit:value('unit'),packKg:numeric(value('packKg')),article:f.dataset.article||undefined};
+ return {name:value('name').trim(),price:numeric(value('price')),quantity:numeric(value('quantity')),unit:value('unit'),packKg:numeric(value('packKg')),article:f.dataset.article||undefined,invoiceTotal:numeric(f.dataset.invoiceTotal)};
 }
 const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:6});
 function lineSummary(l){
@@ -38,7 +38,7 @@ function lineSummary(l){
  return parts.join(' · ');
 }
 function addLine(data={}){
- const f=node('div',null,'line');if(data.uncertain)f.classList.add('uncertain');if(data.article)f.dataset.article=String(data.article);
+ const f=node('div',null,'line');if(data.uncertain)f.classList.add('uncertain');if(data.article)f.dataset.article=String(data.article);if(numeric(data.invoiceTotal))f.dataset.invoiceTotal=String(numeric(data.invoiceTotal));
  function field(key,title,value,placeholder){const wrap=node('label',title),i=node('input');i.dataset.field=key;i.placeholder=placeholder||'';i.value=value==null?'':String(value);if(key!=='name')i.inputMode='decimal';i.setAttribute('aria-label',title);wrap.append(i);return {wrap,i}}
  const a=field('name','Название товара',data.name,'Название товара'),p=field('price','Цена за уп., ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг',data.packKg,'—');
  a.i.value=data.name||'';a.i.required=p.i.required=true;
@@ -48,7 +48,7 @@ function addLine(data={}){
  const del=button('×',()=>{f.remove();dirty=true});del.setAttribute('aria-label','Удалить товар');del.classList.add('line-delete');
  function computed(title,cls){const box=node('div',null,'computed-cell '+cls),out=node('output','—');box.append(node('span',title,'cell-caption'),out);return {box,out}}
  const weight=computed('Общий вес','line-summary'),kgPrice=computed('Цена за кг','kg-price'),total=computed('Общая стоимость','line-total');
- function recalc(){const l=lineData(f),m=window.supplyInvoiceParser.lineMetrics(l),pack=['шт','уп','кор'].includes(l.unit);w.i.disabled=!pack;w.wrap.style.background=pack&&!l.packKg?'#fff1b8':'';p.wrap.firstChild.nodeValue=pack?'Цена за уп., ₽':l.unit==='кг'?'Цена за кг, ₽':'Цена за ед., ₽';p.i.setAttribute('aria-label',p.wrap.firstChild.nodeValue);weight.out.textContent=m.totalKg==null?'—':fmt(m.totalKg)+' кг';kgPrice.out.textContent=m.pricePerKg==null?'—':rub(m.pricePerKg);total.out.textContent=m.totalPrice==null?'—':rub(m.totalPrice)}
+ function recalc(){const l=lineData(f),m=window.supplyInvoiceParser.lineMetrics(l),pack=['шт','уп','кор'].includes(l.unit);w.i.disabled=!pack;w.wrap.style.background=pack&&!l.packKg?'#fff1b8':'';p.wrap.firstChild.nodeValue=pack?'Цена за уп., ₽':l.unit==='кг'?'Цена за кг, ₽':'Цена за ед., ₽';p.i.setAttribute('aria-label',p.wrap.firstChild.nodeValue);weight.out.textContent=m.totalKg==null?'—':fmt(m.totalKg)+' кг';kgPrice.out.textContent=m.pricePerKg==null?'—':rub(m.pricePerKg);total.out.textContent=m.totalPrice==null?'—':rub(m.totalPrice);total.out.title=l.invoiceTotal?'Сумма из накладной, не пересчитывается':'Расчёт по количеству и цене';}
  function fillMissingPack(){if(!packUnits.includes(u.value)||numeric(w.i.value))return;const direct=window.supplyInvoiceParser.packWeight(a.i.value),saved=knownPack(lineData(f),$('supplier').value);if(direct||saved){w.i.value=direct||saved;w.i.title=direct?'Из названия товара':'Из ранее подтверждённой накладной';}}
  a.i.addEventListener('change',()=>{delete f.dataset.article;fillMissingPack();recalc()});
  u.addEventListener('change',()=>{fillMissingPack();recalc()});

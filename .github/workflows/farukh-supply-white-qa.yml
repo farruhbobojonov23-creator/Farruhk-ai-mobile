@@ -94,6 +94,16 @@ jobs:
              last.remove();
             }finally{docs=original;$('supplier').value='Восток-Запад';}
           });
+          await page.evaluate(()=>{
+            const row={name:'Майонез учебный / шт (с НДС)',unit:'шт',quantity:4,price:1906.86,invoiceTotal:7627.45};
+            addLine(row);const el=$('lines').lastElementChild;
+            const total=el.querySelector('.line-total output').textContent;
+            const pack=el.querySelector('[data-field=packKg]');pack.value='9.4';pack.dispatchEvent(new Event('input',{bubbles:true}));
+            if(el.querySelector('.line-total output').textContent!==total||!total.replace(/\s/g,'').includes('7627,45'))throw Error('Original total changed');
+            const data=lineData(el),m=window.supplyInvoiceParser.lineMetrics(data);
+            if(data.quantity!==4||data.price!==1906.86||data.invoiceTotal!==7627.45||m.totalKg!==37.6||m.pricePerKg!==202.86)throw Error('Invoice values or derived values changed incorrectly');
+            el.remove();
+          });
           await page.setViewportSize({width:320,height:740});
           for(let i=0;i<29;i++)await page.locator('#addLine').click();
           assert.equal(await page.locator('#lines .line').count(),30);

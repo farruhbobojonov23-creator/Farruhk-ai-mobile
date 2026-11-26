@@ -185,7 +185,7 @@ function lineMetrics(row){
  const quantity=positive(row.quantity),price=positive(row.price),packKg=positive(row.packKg),unit=row.unit||'';
  const kgPerUnit=unit==='кг'?1:unit==='г'?.001:['шт','уп','кор'].includes(unit)?packKg:null;
  const kg=quantity&&kgPerUnit?Math.round(quantity*kgPerUnit*1000000)/1000000:null;
- return {totalKg:kg,pricePerKg:price&&kgPerUnit?round(price/kgPerUnit):null,totalPrice:quantity&&price?round(quantity*price):null};
+ return {totalKg:kg,pricePerKg:price&&kgPerUnit?round(price/kgPerUnit):null,totalPrice:positive(row.invoiceTotal)??(quantity&&price?round(quantity*price):null)};
 }
 api.packWeight=packWeight;api.lineMetrics=lineMetrics;
 api.parseSimple=function(text){
@@ -473,4 +473,19 @@ function enrich(r,texts){
 }
 api.parseSimple=text=>enrich(parse(text),[text]);
 api.parseSamePhotoPasses=texts=>passes(texts).map(r=>enrich(r,texts));
+})(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const old=api.parseSimple;
+// Keep the original line total where a separately validated source row matches.
+api.parseSimple=function(text){
+ const r=old(text), verified=api.parse(text).items;
+ for(const x of r.items){
+  if(x.invoiceTotal!=null||x.price==null||x.quantity==null)continue;
+  const matches=verified.filter(y=>y.source===x.source&&y.unit===x.unit&&Math.abs(y.quantity-x.quantity)<0.000001);
+  if(matches.length===1){x.invoiceTotal=matches[0].grossTotal;Object.assign(x,api.lineMetrics(x));}
+ }
+ return r;
+};
 })(globalThis);
