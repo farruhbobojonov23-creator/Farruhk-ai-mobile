@@ -65,6 +65,11 @@ jobs:
           assert.equal(await page.locator('header').evaluate(e=>getComputedStyle(e).position),'sticky');
           assert.equal(await page.locator('nav').evaluate(e=>getComputedStyle(e).position),'fixed');
           assert.ok(await page.locator('a.update').getAttribute('href')==='https://appassets.androidplatform.net/update');
+          for(const width of [320,360,393,430,740]){
+            await page.setViewportSize({width,height:873});
+            assert.ok(await page.evaluate(()=>{const a=document.querySelector('.hero-copy').getBoundingClientRect(),b=document.querySelector('.hero-art').getBoundingClientRect(),h=document.querySelector('.hero h1').getBoundingClientRect();return a.right<=b.left+1&&h.right<=b.left+1&&document.documentElement.scrollWidth<=innerWidth}), 'Hero content must not overlap at '+width);
+          }
+          await page.setViewportSize({width:393,height:873});
           await page.screenshot({path:'qa-results/01-home.png',fullPage:true});
           await page.evaluate(()=>{
             const full={supplier:'Тест',documentVerified:true,items:[{name:'Рис',price:100,quantity:2,unit:'уп'}]};
