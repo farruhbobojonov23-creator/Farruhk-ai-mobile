@@ -2,7 +2,7 @@ name: Supply local OCR feasibility (isolated; no publication)
 on:
   push:
     branches: ['experiment/supply-local-vision-benchmark']
-    paths: ['.github/workflows/supply-local-vision-experiment.yml']
+    paths: ['.github/workflows/supply-local-vision-experiment.yml', 'supply/smart-scan/**']
 permissions:
   contents: read
 jobs:
@@ -10,15 +10,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify the new layout engine on up to 500 generated rows
+        run: node --test supply/smart-scan/layout.test.cjs
       - name: Install browser OCR runtime in temporary directory
         run: |
           mkdir -p "$RUNNER_TEMP/ocr-lab/public/models" "$RUNNER_TEMP/ocr-lab/public/wasm"
           cd "$RUNNER_TEMP/ocr-lab"
           npm init -y
-          npm install --no-audit --no-fund @paddleocr/paddleocr-js vite playwright
+          npm install --no-audit --no-fund @paddleocr/paddleocr-js@0.4.2 vite playwright onnxruntime-web@1.31.1
           npm ls @paddleocr/paddleocr-js onnxruntime-web
           npx playwright install chromium
           cp node_modules/onnxruntime-web/dist/*.wasm node_modules/onnxruntime-web/dist/*.mjs public/wasm/
@@ -88,8 +91,9 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/ocr-lab"
           mkdir -p public
+          cp "$GITHUB_WORKSPACE/supply/smart-scan/layout.cjs" public/layout.js
           cat > index.html <<'EOF'
-          <!doctype html><meta charset="utf-8"><title>Offline Supply OCR lab</title><input type="file" accept="image/*" multiple id="files"><button id="run">Run locally</button><pre id="result"></pre><script type="module" src="/main.js"></script>
+          <!doctype html><meta charset="utf-8"><title>Offline Supply SMART SCAN lab</title><script src="/layout.js"></script><input type="file" accept="image/*" multiple id="files"><button id="run">Run locally</button><pre id="result"></pre><script type="module" src="/main.js"></script>
           EOF
           cat >> main.js <<'EOF'
           let engine;
@@ -100,11 +104,47 @@ jobs:
             const [r]=await engine.predict(canvas,{textDetLimitSideLen:Math.min(3200,Math.max(canvas.width,canvas.height)),textDetLimitType:'max'});
             return {items:r.items.map(x=>({text:x.text,score:x.score,poly:x.poly})),metrics:r.metrics,runtime:r.runtime};
           };
+          // Real OCR polygons are parsed in a separate experimental pipeline.
+          // No application database is opened or changed, and all results need review.
+          window.runSmartScan=async(blob,options={})=>{
+            const raw=await window.runPhoto(blob);
+            const table=window.supplySmartLayout.parse(raw.items,options);
+            return {raw,table};
+          };
           const run=document.getElementById('run');
-          if(run)run.onclick=async()=>{const result=document.getElementById('result');let out=[];for(const f of document.getElementById('files').files){try{out.push({file:f.name,...await window.runPhoto(f)});}catch(e){out.push({file:f.name,error:String(e)});}result.textContent=JSON.stringify(out,null,2);}};
+          if(run)run.onclick=async()=>{const result=document.getElementById('result');let out=[];for(const f of document.getElementById('files').files){try{out.push({file:f.name,...await window.runSmartScan(f)});}catch(e){out.push({file:f.name,error:String(e)});}result.textContent=JSON.stringify(out,null,2);}};
           EOF
           npx vite build
           du -sh dist
+          cat > integration.mjs <<'EOF'
+          import {chromium} from 'playwright';
+          import assert from 'node:assert/strict';
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          try{
+            const page=await browser.newPage();
+            await page.route('**/*',r=>new URL(r.request().url()).origin==='http://127.0.0.1:4174'?r.continue():r.abort());
+            await page.goto('http://127.0.0.1:4174');
+            await page.waitForFunction(()=>typeof window.runSmartScan==='function',{},{timeout:90000});
+            const result=await page.evaluate(async()=>{
+              const c=document.createElement('canvas');c.width=1080;c.height=380;
+              const g=c.getContext('2d');g.fillStyle='white';g.fillRect(0,0,c.width,c.height);g.fillStyle='black';g.textAlign='center';g.textBaseline='middle';g.font='18px Arial';
+              const marks=[['2',400],['3',480],['4',548],['5',606],['6',660],['7',700],['8',755],['9',820],['10',870],['11',980]];
+              for(const [t,x] of marks)g.fillText(t,x,100);
+              const rows=[['Мука 5 кг','2,000','100.00','200.00','10%','220.00'],['Рис 10 кг','3,000','200.00','600.00','10%','660.00'],['Сыр 1 кг','1,000','300.00','300.00','10%','330.00']];
+              for(let i=0;i<rows.length;i++){const y=142+i*48;for(let j=0;j<6;j++)g.fillText(rows[i][j],[235,484,548,619,690,830][j],y);}
+              g.fillText('Всего к оплате',175,286);g.fillText('1210.00',830,286);
+              const blob=await new Promise(r=>c.toBlob(r,'image/png'));return await window.runSmartScan(blob);
+            });
+            console.log(JSON.stringify(result.table));
+            assert.equal(result.table.rows.length,3);
+            assert.deepEqual(result.table.rows.map(r=>[r.quantity,r.price,r.total]),[[2,110,220],[3,220,660],[1,330,330]]);
+            assert.equal(result.table.totalOk,true);
+          }finally{await browser.close();}
+          EOF
+          npx vite preview --host 127.0.0.1 --port 4174 > preview.log 2>&1 &
+          trap 'cat preview.log' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4174 >/dev/null && break; sleep 1; done
+          node integration.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: supply-local-browser-ocr-lab
