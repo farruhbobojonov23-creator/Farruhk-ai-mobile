@@ -76,7 +76,7 @@ jobs:
           await page.locator('[data-field=quantity]').fill('4');
           assert.ok((await page.locator('.line-summary').innerText()).includes('40 кг'));
           assert.ok((await page.locator('.kg-price').innerText()).includes('450,00'));
-          assert.ok((await page.locator('.line-total').innerText()).replace(/\s/g,'').includes('18000,00'));
+          assert.ok((await page.locator('.line-total').innerText()).replace(/\s/g,'').includes('13500,00'), 'Original invoice total must remain unchanged when derived metrics update');
           await page.evaluate(()=>{
             const history=[{simpleVersion:1,supplierId:'Поставщик тест',lines:[{name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт',packKg:9.4}]}];
             const product={name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт'};
