@@ -66,6 +66,18 @@ jobs:
           assert.equal(await page.locator('nav').evaluate(e=>getComputedStyle(e).position),'fixed');
           assert.ok(await page.locator('a.update').getAttribute('href')==='https://appassets.androidplatform.net/update');
           await page.screenshot({path:'qa-results/01-home.png',fullPage:true});
+          await page.evaluate(()=>{
+            const full={supplier:'Тест',documentVerified:true,items:[{name:'Рис',price:100,quantity:2,unit:'уп'}]};
+            const weak={supplier:'Тест',items:[{name:'Рис',price:100,quantity:null,unit:'уп'}]};
+            const wrong={...full,items:[{...full.items[0],price:110}]};
+            if(scanNextPass(0,weak,false,[weak])!=='paddle-scan')throw Error('Paddle must precede focused retry');
+            if(scanNextPass(1,full,false,[weak,full])!==null)throw Error('Verified amount must not require another OCR for pack alone');
+            if(scanNextPass(1,weak,false,[weak])!=='rescan')throw Error('Incomplete results need focused fallback');
+            if(scanNextPass(1,wrong,true,[full,wrong])!=='rescan')throw Error('Conflicting verified totals must not skip retry');
+            if(scanNextPass(2,weak,false,[weak])!==null)throw Error('Retry bound');
+            if(scanNextPass(0,full,true,[full])!==null)throw Error('Verified initial result must not retry');
+          });
+
           async function invoice(supplier,price,id,withPhoto){
             await page.locator('button[data-go=entry]:visible').first().click();
             if(withPhoto){
@@ -305,7 +317,7 @@ jobs:
 
   publish-web:
     needs: mobile-ui
-    if: github.ref == 'refs/heads/feature/farukh-supply-simple-white'
+    if: github.ref == 'refs/heads/feature/farukh-supply-premium-pro'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -323,7 +335,7 @@ jobs:
           java-version: '17'
       - name: Verify all regression tests
         run: |
-          node --test supply/analytics.test.js supply/invoice-parser.test.js
+          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
           node --check supply-android/app/src/main/assets/app.js
           node --check supply-android/app/src/main/assets/invoice-parser.js
       - name: Sign and publish small web update, preserve installed Android version
@@ -338,7 +350,7 @@ jobs:
         run: |
           set -euo pipefail
           # Do not publish superseded commits.
-          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)
           if [ "$latest" != "$GITHUB_SHA" ]; then echo "Superseded commit; skipping publication."; exit 0; fi
           if [ -n "$SIGNING_BUNDLE" ]; then
             STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
@@ -379,7 +391,7 @@ jobs:
           mkdir "$out/new"
           java supply-android/SignWeb.java "$out/key.jks" "$KEY_ALIAS" "$out/payload.json" "$out/new/web-current.json" "$cert" "$revision"
           test "$(wc -c < "$out/new/web-current.json")" -lt 1048576
-          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)
           test "$latest" = "$GITHUB_SHA"
           gh release upload "$tag" "$out/new/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified.json"
