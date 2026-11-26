@@ -1,0 +1,32 @@
+name: Supply vision model benchmark
+on:
+  push:
+    branches: ['feature/supply-vision-benchmark']
+    paths: ['vision-lab/**', '.github/workflows/supply-vision-benchmark.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [paddle, qwen]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU inference
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install 'transformers>=5.0,<6' accelerate pillow beautifulsoup4
+      - name: Compare model on anonymized simulated invoices
+        run: python vision-lab/benchmark.py --model ${{ matrix.model }} --out vision-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vision-${{ matrix.model }}-results
+          path: vision-results/
