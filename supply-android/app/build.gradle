@@ -8,7 +8,8 @@ android {
  targetSdk 35
  versionCode 10
  versionName '0.9.1'
+ testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
  }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
-dependencies { implementation files('libs/supply-paddle.aar'); implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.21.1'; implementation 'org.opencv:opencv:4.10.0'; implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'; implementation 'androidx.core:core-ktx:1.15.0'; implementation 'androidx.webkit:webkit:1.13.0'; implementation 'cz.adaptech.tesseract4android:tesseract4android:4.9.0' }
+dependencies { androidTestImplementation 'androidx.test.ext:junit:1.2.1'; androidTestImplementation 'androidx.test:runner:1.6.2'; implementation files('libs/supply-paddle.aar'); implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.21.1'; implementation 'org.opencv:opencv:4.10.0'; implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'; implementation 'androidx.core:core-ktx:1.15.0'; implementation 'androidx.webkit:webkit:1.13.0'; implementation 'cz.adaptech.tesseract4android:tesseract4android:4.9.0' }

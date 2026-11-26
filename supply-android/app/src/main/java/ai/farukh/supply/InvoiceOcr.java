@@ -46,12 +46,14 @@ final class InvoiceOcr {
    }
    if(image==null)throw new IOException("Image");
    try{
-    Bitmap prepared=prepareImage(image,focused);
+    Bitmap oriented=orient(tess,image);
+    try{
+    Bitmap prepared=prepareImage(oriented,focused);
     try{
      if(!focused)return text(tess,prepared);
      Bitmap improved=null;
      try{
-      improved=enhanceTable(image);
+      improved=enhanceTable(oriented);
       if(improved!=null){
        tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
        String result=text(tess,improved);
@@ -62,7 +64,8 @@ final class InvoiceOcr {
      }finally{if(improved!=null)improved.recycle();}
      tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
      return text(tess,prepared);
-    }finally{if(prepared!=image)prepared.recycle();}
+    }finally{if(prepared!=oriented)prepared.recycle();}
+    }finally{if(oriented!=image)oriented.recycle();}
    }finally{image.recycle();}
   }finally{tess.recycle();}
  }
@@ -81,7 +84,92 @@ final class InvoiceOcr {
    opt.inJustDecodeBounds=false;try(InputStream in=context.getContentResolver().openInputStream(uri)){image=BitmapFactory.decodeStream(in,null,opt);}
   }
   if(image==null)throw new IOException("Image");
-  try{return com.paddle.ocr.SupplyPaddleBridge.read(context,image).plainText();}finally{image.recycle();}
+  TessBaseAPI tess=new TessBaseAPI();
+  try{
+   if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
+   Bitmap oriented=orient(tess,image);
+   try{return com.paddle.ocr.SupplyPaddleBridge.read(context,oriented).plainText();}finally{if(oriented!=image)oriented.recycle();}
+  }finally{tess.recycle();image.recycle();}
+ }
+
+ // Rotations are applied only to a working copy, never to the original.
+ static Bitmap rotate(Bitmap source,float degrees){
+  if(Math.abs(degrees)<.05f)return source;
+  android.graphics.Matrix m=new android.graphics.Matrix();m.setRotate(degrees);
+  android.graphics.RectF bounds=new android.graphics.RectF(0,0,source.getWidth(),source.getHeight());
+  m.mapRect(bounds);m.postTranslate(-bounds.left,-bounds.top);
+  Bitmap result=Bitmap.createBitmap(Math.max(1,(int)Math.ceil(bounds.width()-.001)),Math.max(1,(int)Math.ceil(bounds.height()-.001)),Bitmap.Config.ARGB_8888);
+  android.graphics.Canvas canvas=new android.graphics.Canvas(result);canvas.drawColor(android.graphics.Color.WHITE);
+  canvas.drawBitmap(source,m,new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG));return result;
+ }
+ // Estimate small or diagonal tilt modulo 90 degrees from long table rules.
+ // A reliable consensus is required; arbitrary photographs stay unmodified.
+ private static float tilt(Bitmap image){
+  org.opencv.core.Mat rgba=new org.opencv.core.Mat(),gray=new org.opencv.core.Mat(),edges=new org.opencv.core.Mat(),segments=new org.opencv.core.Mat();
+  try{
+   if(!org.opencv.android.OpenCVLoader.initLocal())return 0;
+   org.opencv.android.Utils.bitmapToMat(image,rgba);
+   org.opencv.imgproc.Imgproc.cvtColor(rgba,gray,org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY);
+   org.opencv.imgproc.Imgproc.Canny(gray,edges,50,140);
+   double side=Math.min(gray.cols(),gray.rows());
+   org.opencv.imgproc.Imgproc.HoughLinesP(edges,segments,1,Math.PI/720,Math.max(35,(int)(side*.10)),side*.25,side*.025);
+   java.util.ArrayList<double[]> votes=new java.util.ArrayList<>();
+   for(int i=0;i<segments.rows();i++){
+    double[] line=segments.get(i,0);if(line==null||line.length<4)continue;
+    double dx=line[2]-line[0],dy=line[3]-line[1],len=Math.hypot(dx,dy);
+    if(len<side*.25)continue;
+    double angle=Math.toDegrees(Math.atan2(dy,dx));
+    angle=((angle+225)%90)-45;votes.add(new double[]{angle,len});
+   }
+   double best=0,weight=0,total=0;int support=0;
+   for(double[] v:votes)total+=v[1];
+   for(double[] v:votes){double sum=0,weighted=0;int count=0;
+    for(double[] x:votes){double delta=x[0]-v[0];if(delta>45)delta-=90;if(delta< -45)delta+=90;if(Math.abs(delta)<=2.5){sum+=x[1];weighted+=(v[0]+delta)*x[1];count++;}}
+    if(sum>weight){weight=sum;best=weighted/sum;support=count;}
+   }
+   if(support<4||weight<total*.65||Math.abs(best)<.7)return 0;
+   best=((best+225)%90)-45;return (float)-best;
+  }catch(RuntimeException|LinkageError ignored){return 0;}
+  finally{rgba.release();gray.release();edges.release();segments.release();}
+ }
+ private static final String[] WORDS={"накладная","накладной","поставщик","продавец","покупатель","наименование","товара","количество","стоимость","оплате","отгружено","передачи","документ","сумма","цена","акциза","единица","измерения","итого","фактура"};
+ static int orientationScore(String text,int confidence){
+  String s=text.toLowerCase(Locale.ROOT);
+  int hits=0;for(String word:WORDS)if(s.contains(word))hits++;
+  java.util.regex.Matcher matcher=java.util.regex.Pattern.compile("[а-яё]{4,}").matcher(s);
+  int words=0;while(matcher.find())words++;
+  java.util.regex.Matcher amounts=java.util.regex.Pattern.compile("\\d+[,.]\\d{2}(?!\\d)").matcher(s);
+  int numbers=0;while(amounts.find())numbers++;
+  return hits*80+Math.min(words,180)*2+Math.min(numbers,60)*3+Math.max(0,confidence)*3;
+ }
+ // Probe a reduced image in all cardinal directions; full OCR uses the winning orientation.
+ static Bitmap orient(TessBaseAPI tess,Bitmap image){
+  float scale=Math.min(1f,1600f/Math.max(image.getWidth(),image.getHeight()));
+  Bitmap small=scale<1?Bitmap.createScaledBitmap(image,Math.max(1,Math.round(image.getWidth()*scale)),Math.max(1,Math.round(image.getHeight()*scale)),true):image;
+  Bitmap straight=small;
+  try{
+   float correction=tilt(small);straight=rotate(small,correction);
+   int best=0,bestScore=Integer.MIN_VALUE;
+   for(int degrees:new int[]{0,90,180,270}){
+    if(Thread.currentThread().isInterrupted())break;
+    Bitmap probe=rotate(straight,degrees);
+    try{
+     tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
+     String recognized=text(tess,probe);int score=orientationScore(recognized,tess.meanConfidence());
+     if(score>bestScore){bestScore=score;best=degrees;}
+    }finally{if(probe!=straight)probe.recycle();}
+   }
+   tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
+   return rotate(image,correction+best);
+  }finally{if(straight!=small)straight.recycle();if(small!=image)small.recycle();}
+ }
+ static String readOrientedForTest(Context context,Bitmap image)throws IOException{
+  TessBaseAPI tess=new TessBaseAPI();
+  try{
+   if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
+   Bitmap rotated=orient(tess,image);
+   try{return text(tess,rotated);}finally{if(rotated!=image)rotated.recycle();}
+  }finally{tess.recycle();}
  }
  private static String text(TessBaseAPI tess,Bitmap b){tess.setVariable("preserve_interword_spaces","1");tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
  // Remove dark screenshot margins only if a broad, continuous white document region is found.
