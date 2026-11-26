@@ -33,6 +33,7 @@ final class InvoiceOcr {
   private long token=Long.MIN_VALUE;
   private int preparations;
   private boolean weakLayout;
+  String wordBoxes="[]";
   int preparations(){return preparations;}
   void select(Uri next,long nextToken){
    if(nextToken!=token||!java.util.Objects.equals(next,uri)){close();uri=next;token=nextToken;}
@@ -66,6 +67,7 @@ final class InvoiceOcr {
  }
  static String read(Context context,Uri uri,boolean focused,PhotoSession session,long token)throws IOException{
   session.select(uri,token);
+  session.wordBoxes="[]";
   TessBaseAPI tess=new TessBaseAPI();
   try{
    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
@@ -100,18 +102,19 @@ final class InvoiceOcr {
      if(improved!=null){
       tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
       String result=text(tess,improved);
-      if(result.trim().length()>60)return result;
+      if(result.trim().length()>60){session.wordBoxes=wordBoxes(tess);return result;}
      }
     }catch(RuntimeException|LinkageError ignored){}
     finally{if(improved!=null)improved.recycle();}
    }
    tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
    Bitmap prepared=prepareImage(oriented,focused);
-   try{String result=text(tess,prepared);if(!focused)session.weakLayout=layoutScore(result)<=0;return result;}finally{if(prepared!=oriented)prepared.recycle();}
+   try{String result=text(tess,prepared);if(!focused)session.weakLayout=layoutScore(result)<=0;session.wordBoxes=wordBoxes(tess);return result;}finally{if(prepared!=oriented)prepared.recycle();}
   }finally{tess.recycle();}
  }
  static String readPaddle(Context context,Uri uri,PhotoSession session,long token)throws IOException{
   session.select(uri,token);
+  session.wordBoxes="[]";
   if("application/pdf".equals(context.getContentResolver().getType(uri)))throw new IOException("Photo only");
   Bitmap oriented=session.oriented;
   if(oriented==null){
@@ -232,6 +235,30 @@ final class InvoiceOcr {
    Bitmap rotated=orient(tess,image);
    try{return text(tess,rotated);}finally{if(rotated!=image)rotated.recycle();}
   }finally{tess.recycle();}
+ }
+ // Spatial evidence is local to the exact bitmap recognized by this pass.
+ // An unavailable iterator must never prevent the existing text fallback.
+ private static String wordBoxes(TessBaseAPI tess){
+  org.json.JSONArray words=new org.json.JSONArray();
+  com.googlecode.tesseract.android.ResultIterator iterator=null;
+  try{
+   iterator=tess.getResultIterator();
+   if(iterator==null)return "[]";
+   final int level=TessBaseAPI.PageIteratorLevel.RIL_WORD;
+   iterator.begin();
+   do{
+    String value=iterator.getUTF8Text(level);
+    android.graphics.Rect rect=iterator.getBoundingRect(level);
+    float confidence=iterator.confidence(level);
+    if(value==null||value.trim().isEmpty()||rect==null||rect.width()<=0||rect.height()<=0||!Float.isFinite(confidence)||confidence<0||confidence>100)continue;
+    org.json.JSONObject word=new org.json.JSONObject();
+    word.put("text",value);word.put("left",rect.left);word.put("top",rect.top);word.put("right",rect.right);word.put("bottom",rect.bottom);word.put("confidence",confidence/100.0);
+    words.put(word);
+    if(words.length()>=12000)return "[]";
+   }while(iterator.next(level));
+   return words.toString();
+  }catch(Exception|LinkageError e){return "[]";}
+  finally{if(iterator!=null)try{iterator.delete();}catch(RuntimeException|LinkageError ignored){}}
  }
  private static String text(TessBaseAPI tess,Bitmap b){tess.setVariable("preserve_interword_spaces","1");tess.setImage(b);String s=tess.getUTF8Text();return s==null?"":s;}
  // Remove dark screenshot margins only if a broad, continuous white document region is found.
