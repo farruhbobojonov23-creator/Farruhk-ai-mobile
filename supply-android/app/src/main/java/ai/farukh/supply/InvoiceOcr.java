@@ -46,7 +46,7 @@ final class InvoiceOcr {
    try{oriented=orient(tess,image);preparations++;android.util.Log.i("SupplyOCR","Photo preparation ms="+(android.os.SystemClock.elapsedRealtime()-started));return oriented;}
    finally{if(oriented!=image)image.recycle();}
   }
-  @Override public void close(){if(oriented!=null){oriented.recycle();oriented=null;}uri=null;token=Long.MIN_VALUE;weakLayout=false;}
+  @Override public void close(){if(oriented!=null){oriented.recycle();oriented=null;}uri=null;token=Long.MIN_VALUE;weakLayout=false;wordBoxes="[]";}
  }
  private static Bitmap decode(Context context,Uri uri)throws IOException{
    Bitmap image;
@@ -77,7 +77,7 @@ final class InvoiceOcr {
     // A low-quality full read can mean the orientation probe selected a
     // sideways document. Re-evaluate cardinal alternatives at full size.
     // Keep the best candidate for the following Paddle pass.
-    String best="";int bestScore=Integer.MIN_VALUE;Bitmap chosen=oriented;
+    String best="",bestBoxes="[]";int bestScore=Integer.MIN_VALUE;Bitmap chosen=oriented;
     try{
      for(int degrees:new int[]{0,90,180,270}){
       Bitmap candidate=rotate(oriented,degrees);
@@ -87,12 +87,12 @@ final class InvoiceOcr {
        try{tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);recognized=text(tess,prepared);}
        finally{if(prepared!=candidate)prepared.recycle();}
        int score=orientationScore(recognized,tess.meanConfidence());
-       if(score>bestScore){if(chosen!=oriented)chosen.recycle();chosen=candidate;candidate=null;bestScore=score;best=recognized;}
+       if(score>bestScore){if(chosen!=oriented)chosen.recycle();chosen=candidate;candidate=null;bestScore=score;best=recognized;bestBoxes=wordBoxes(tess);}
       }finally{if(candidate!=null&&candidate!=oriented)candidate.recycle();}
      }
      if(chosen!=oriented){session.oriented=chosen;oriented.recycle();oriented=chosen;}
      session.weakLayout=false;
-     if(layoutScore(best)>0)return best;
+     if(layoutScore(best)>0){session.wordBoxes=bestBoxes;return best;}
     }finally{if(chosen!=session.oriented&&chosen!=oriented&&!chosen.isRecycled())chosen.recycle();}
    }
    if(focused){
@@ -124,7 +124,21 @@ final class InvoiceOcr {
     oriented=session.get(context,uri,token,tess);
    }finally{tess.recycle();}
   }
-  return com.paddle.ocr.SupplyPaddleBridge.read(context,oriented).plainText();
+  com.paddle.ocr.SupplyPaddleBridge.Scan scan=com.paddle.ocr.SupplyPaddleBridge.read(context,oriented);
+  org.json.JSONArray words=new org.json.JSONArray();
+  try{
+   for(java.util.List<com.paddle.ocr.SupplyPaddleBridge.Cell> row:scan.getRows()){
+    for(com.paddle.ocr.SupplyPaddleBridge.Cell cell:row){
+     float confidence=cell.getConfidence();
+     if(!Float.isFinite(confidence)||confidence<0||confidence>1)continue;
+     org.json.JSONObject word=new org.json.JSONObject();
+     word.put("text",cell.getText());word.put("left",cell.getLeft());word.put("right",cell.getRight());word.put("top",cell.getTop());word.put("bottom",cell.getBottom());word.put("confidence",confidence);
+     words.put(word);
+    }
+   }
+   if(words.length()<=12000)session.wordBoxes=words.toString();
+  }catch(org.json.JSONException|RuntimeException ignored){session.wordBoxes="[]";}
+  return scan.plainText();
  }
 
  // Rotations are applied only to a working copy, never to the original.
