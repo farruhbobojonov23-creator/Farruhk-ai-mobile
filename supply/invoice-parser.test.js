@@ -99,3 +99,19 @@ test('reversed OCR columns recover 5, 10, 20, 50 and 100 distinct product rows',
 };for(const n of [5,10,20,50,100]){const {first,second,gross}=generate(n),r=mod.exports.parseSamePhotoPasses([first,second]).find(x=>x.documentVerified&&x.items.length===n);a.ok(r,'row count '+n);a.deepEqual(r.items.map(x=>x.invoiceTotal),gross);}});
 
 test('manual retry crop from real screenshot recovers same-article name and net pack without altering amounts',()=>{const first="Поставщик: Восток-Запад\nзапекания с массовой долей жирности 67% 500002158 ШТ\n22.00 7,627.44 4 39.2\nВ том числе НДС 1,375.44",crop="Майонез \"EFKO FOOD special\" для\nзапекания с массовой долей жирности 67% 500002158 | ШТ 796\n7,627.44 39.2\n9,4кг/10л\nВ том числе НДС 1,375.44\nТоварная накладная имеет продолжение на\nлистах, на бланках за №\nи содержит Один\nпорядковых номеров записей";const result=browserParser.parseSamePhotoPasses([first,crop]).flatMap(r=>r.items).find(x=>x.packKg===9.4&&x.name.includes('EFKO FOOD special'));a.ok(result);a.deepEqual([result.article,result.quantity,result.price,result.totalKg,result.pricePerKg,result.invoiceTotal],['500002158',4,1906.86,37.6,202.86,7627.44]);a.ok(browserParser.parseSamePhotoPasses([first,crop.replace('500002158','500002159')]).every(r=>r.items.every(x=>!x.name.includes('EFKO FOOD special')&&!x.packKg)));});
+
+test('MARR official header, wrapped rows, separate weight and quantity, repeated article',()=>{
+ const input='Официальное наименование: "МАРР РУССИЯ" 000\nНаименование Код Кол-во Вес Цена Сумма\n1 0903309716 ()(Креветки)\nКреветки учебные 1 кг упак 2 2,000 100,00 200,00\n2 0903309716 Креветки учебные 1 кг упак 3 3,000 100,00 300,00\n3 2520140121 Картофель учебный 2,5 кг шт 1 2,570 80,00 80,00\nИтого: 6 7,570 580,00';
+ const r=browserParser.parseSimple(input);a.equal(r.supplier,'ООО «МАРР РУССИЯ»');a.equal(r.documentVerified,true);a.deepEqual(r.items.map(x=>[x.article,x.quantity,x.packKg,x.price,x.invoiceTotal]),[['0903309716',2,1,100,200],['0903309716',3,1,100,300],['2520140121',1,2.57,80,80]]);
+ a.ok(!browserParser.parseSimple(input.replace('580,00','581,00')).documentVerified);
+ a.ok(!browserParser.parseSimple(input.replace('300,00','301,00')).documentVerified);
+});
+test('MARR reversed OCR columns, wrapped numeric columns, duplicate SKU, checked total',()=>{
+ const input='Официальное наименование: "МАРР РУССИЯ" 000\n1420043011 2934401710 0903309716 0903309716 0945053074 Код\n8,860 0,860 3,000 1,000 2,000 M Bec\n2,000\n200,00 300,00 300,00 50,00 Цена\n100,00\n1 800,00 200,00 900,00 300,00 200,00 Сумма\n200,00';
+ const r=browserParser.parseSimple(input);a.equal(r.supplier,'ООО «МАРР РУССИЯ»');a.equal(r.documentVerified,true);
+ a.deepEqual(r.items.map(x=>[x.article,x.quantity,x.price]),[['0945053074',4,50],['0903309716',1,300],['0903309716',3,300],['2934401710',1,200],['1420043011',2,100]]);
+ a.ok(!browserParser.parseSimple(input.replace('1 800,00','1 801,00')).documentVerified);
+});
+test('a new seller in explicit official-name header is not confused with customer',()=>{
+ const r=browserParser.parseSimple('Официальное наименование: "НОВЫЙ УЧЕБНЫЙ" ООО\nНаименование контрагента: ООО Покупатель');a.equal(r.supplier,'ООО «НОВЫЙ УЧЕБНЫЙ»');
+});

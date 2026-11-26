@@ -340,7 +340,10 @@ function needsPack(x){const p=window.supplyInvoiceParser;return packUnits.includ
 function scanFieldsComplete(r){return !!r.supplier&&r.items.length>0&&r.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)}
 function scanConflicts(a,b){
  if(a.supplier&&b.supplier&&supplierKey(a.supplier)!==supplierKey(b.supplier))return true;
- return a.items.some(x=>x.price!=null&&b.items.some(y=>((x.article&&y.article&&String(x.article)===String(y.article))||norm(y.name)===norm(x.name))&&y.price!=null&&(Math.abs(y.price-x.price)>.01||(x.quantity!=null&&y.quantity!=null&&Math.abs(x.quantity-y.quantity)>.00001))));
+ if(a===b||pageFingerprint(a.items)===pageFingerprint(b.items))return false;
+ const same=(x,y)=>!!((x.article&&y.article&&String(x.article)===String(y.article))||norm(y.name)===norm(x.name));
+ const agrees=(x,y)=>Math.abs(x.price-y.price)<=.01&&(x.quantity==null||y.quantity==null||Math.abs(x.quantity-y.quantity)<=.00001);
+ return a.items.some(x=>{if(x.price==null)return false;const matches=b.items.filter(y=>y.price!=null&&same(x,y));return matches.length>0&&!matches.some(y=>agrees(x,y));})||b.items.some(y=>{if(y.price==null)return false;const matches=a.items.filter(x=>x.price!=null&&same(x,y));return matches.length>0&&!matches.some(x=>agrees(x,y));});
 }
 function scanNextPass(pass,current,complete,evidence){
  if(pass>=2)return null;
@@ -421,7 +424,7 @@ window.supplyOcrFinish=(id,text,error)=>{
   let r=best.r;const suppliers=[...new Set(ranked.map(x=>x.r.supplier).filter(Boolean))];
   if(!r.supplier&&suppliers.length===1)r={...r,supplier:suppliers[0]};
   const comparable=r.documentVerified?ranked.filter(x=>x.r.documentVerified):ranked;
-  const ambiguous=new Set(comparable.map(x=>x.r.supplier).filter(Boolean)).size>1||comparable.some(other=>other!==best&&other.r.items.some(x=>x.price!=null&&r.items.some(y=>norm(y.name)===norm(x.name)&&y.price!=null&&(Math.abs(y.price-x.price)>.01||(x.quantity!=null&&y.quantity!=null&&Math.abs(x.quantity-y.quantity)>.00001)))));
+  const ambiguous=new Set(comparable.map(x=>x.r.supplier).filter(Boolean)).size>1||comparable.some(other=>other!==best&&scanConflicts(r,other.r));
   const diagnostic=photoPassTexts.join('\n---\n');scanTrace.push({label:'Распределение товаров и сверка',seconds:Math.round((performance.now()-parseStarted)/100)/10,failed:!r.items.some(x=>x.price!=null)});const elapsed=(performance.now()-scanStartedAt)/1000;scanStartedAt=0;showScanProgress();scanCandidates=[];scanPass=0;
   if(r.items.length&&r.items.some(x=>x.price!=null)){try{if(!acceptPage(r,diagnostic))return;}catch(err){$('ocrState').textContent=err.message;scanDiagnostic(diagnostic);return;}}
   else if(!pages.length){if(r.supplier)$('supplier').value=r.supplier;if(r.items.length){$('lines').replaceChildren();for(const l of r.items)addLine(l)}}
