@@ -92,6 +92,9 @@ jobs:
             assert.equal(await page.locator('[data-field=name]').first().inputValue(),'Рис Tamaki');
             assert.equal(Number((await page.locator('[data-field=price]').first().inputValue()).replace(',','.')),price);
             assert.equal(await page.locator('#lines .line').count(),2);
+            // Explicit units make cross-supplier prices comparable; unknown units must not be guessed.
+            await page.locator('[data-field=unit]').nth(0).selectOption('кг');
+            await page.locator('[data-field=unit]').nth(1).selectOption('шт');
             await page.screenshot({path:'qa-results/02-invoice.png',fullPage:true});
             await page.locator('#save').click();
             await page.locator('#archive').waitFor({state:'visible'});
