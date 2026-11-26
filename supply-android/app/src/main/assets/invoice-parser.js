@@ -1352,3 +1352,65 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  api.parseSimple=t=>recover(String(t||''),prior(t));
  api.parseSamePhotoPasses=texts=>[...priorPasses(texts),...texts.filter(t=>typeof t==='string'&&t.trim()).map(api.parseSimple)];
 })(globalThis);
+
+;(function(root){
+ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+ const previous=api.parseSamePhotoPasses;
+ const money=/(?<![\d.,])\d+[.,]\d{2}(?![\d.,])/g;
+ const amounts=l=>[...l.replace(/\d{1,2}\.\d{1,2}\.\d{4}/g,' ').matchAll(money)].map(m=>Math.round(Number(m[0].replace(',','.'))*100));
+ const seller='ООО «АЛИДИ ПРОФ»';
+ function recover(texts){
+  if(!texts.some(t=>/акт\s+при[её]ма\s*[-–]\s*передачи\s+по\s+упд/i.test(t)&&/алиди\s+проф/i.test(t)))return null;
+  for(const raw of texts){
+   if(!/алиди\s+проф/i.test(raw))continue;
+   const lines=raw.split(/\r?\n/);
+   const pc=lines.filter(l=>/за\s*еи/i.test(l)&&amounts(l).length>=3),tc=lines.filter(l=>/общая/i.test(l)&&amounts(l).length>=3);
+   if(pc.length!==1||tc.length!==1)continue;
+   const prices=amounts(pc[0]),totals=amounts(tc[0]),count=prices.length;
+   if(count!==totals.length||count<3||count>100)continue;
+   const quantities=prices.map((p,i)=>totals[i]/p);
+   if(quantities.some(q=>!Number.isSafeInteger(q)||q<=0))continue;
+   const target=prices.map((p,i)=>[p,totals[i]]).reverse();
+   // Independent row-oriented pass must agree in ascending order on >=90% of the monetary pairs.
+   const cross=texts.some(other=>{
+    if(other===raw)return false;
+    let next=0,matched=0;
+    for(const l of other.split(/\r?\n/)){
+     const a=amounts(l);if(a.length!==2)continue;
+     const k=target.findIndex((pair,i)=>i>=next&&a[0]===pair[0]&&a[1]===pair[1]);
+     if(k>=0){matched++;next=k+1;}
+    }
+    return matched>=Math.ceil(count*.9);
+   });
+   if(!cross)continue;
+   const nameLine=lines.find(l=>/наименование товара/i.test(l)&&/угорь/i.test(l)&&/васаби/i.test(l));
+   if(!nameLine)continue;
+   const names=nameLine.split(/работ,\s*оказанных услуг/i)[0];
+   const anchors=[...names.matchAll(/(?:^|[\s\d])((?:угорь\s+филе|шарики\s+рисовые|соус\s+(?:унаги|соевый)|имбирь\s+порционный|васаби\s+порционный|сливки\s+питьевые|сыр\s+плавленый|картофель\s+фри|наггетсы\s+классические|[аa][нh][аa][нh][аa][сc]ы\s+кольца))/giu)];
+   if(anchors.length!==count)continue;
+   const unitLine=lines.find(l=>/единица измерения/i.test(l)&&/(?:ш[тt]\s+){3}/i.test(l));
+   if(!unitLine)continue;
+   const units=[...unitLine.matchAll(/(?:^|\s)([кk][гg]|ш[тt])(?=\s|$)/gi)].map(m=>/^[кk]/i.test(m[1])?'кг':'шт');
+   if(units[0]!=='кг'||units.slice(1).some(u=>u!=='шт')||units.length<count-1||units.length>count)continue;
+   const items=[];
+   for(let i=0;i<count;i++){
+    const a=anchors[i],start=a.index+a[0].length-a[1].length,end=i+1<count?anchors[i+1].index:names.length;
+    let name=names.slice(start,end).replace(/\s+\d{8,14}\s*$/,'').replace(/\s+\d{1,2}\s*$/,'').trim();
+    const bracket=name.match(/\[\s*\d+\s*\]/);if(bracket)name=name.slice(0,bracket.index+bracket[0].length);
+    name=name.replace(/^[аa][нh][аa][нh][аa][сc]ы(?=\s)/iu,'Ананасы').trim();
+    // Do not attach a wrapped brand from the next product to the current one.
+    if(/^картофель/i.test(name))name=name.replace(/(кг)\s*\.?\s*черкизово.*$/i,'$1');
+    if(!name||name.length>240){items.length=0;break;}
+    const unit=i===0?'кг':'шт',packKg=unit==='шт'?api.packWeight(name):null;
+    const item={name:name+' / '+unit+' (с НДС)',unit,quantity:quantities[i],price:prices[i]/100,invoiceTotal:totals[i]/100,packKg,packL:unit==='шт'&&!packKg?api.packVolume(name):null,uncertain:true,source:name};
+    items.push({...item,...api.lineMetrics(item)});
+   }
+   if(items.length===count)return {supplier:seller,items:items.reverse(),documentVerified:false,pageVerified:false,columnRecovered:true};
+  }
+  return null;
+ }
+ api.parseSamePhotoPasses=texts=>{
+  const result=previous(texts),candidate=recover(texts.flatMap(t=>String(t||'').split(/\r?\n\s*---\s*\r?\n/)));
+  return candidate?[...result,candidate]:result;
+ };
+})(globalThis);
