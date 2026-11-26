@@ -24,3 +24,6 @@ test('unreliable row must not populate price',()=>{const r=parseSimple('Сыр �
 
 test('split row and unit code: exact price without incomplete duplicate',()=>{const r=parseSimple('Восток-Запад\nРис для суши 166 кг\n2,000 135,00 270,00');a.equal(r.supplier,'Восток-Запад');a.equal(r.items.length,1);a.equal(r.items[0].price,135);});
 test('split row with mismatched total is not priced',()=>{const r=parseSimple('Восток-Запад\nРис для суши кг\n2,000 135,00 300,00');a.ok(r.items.every(x=>x.price===null));});
+
+test('arbitrary products, packaging and no VAT',()=>{const r=parseSimple('Поставщик: Восток-Запад\nНаименование товара Количество Цена Сумма\n1 Масло подсолнечное упак. 2 150,00 300,00\n2 Салфетки бумажные шт 3 100,00 300,00 без НДС');a.deepEqual(r.items.map(x=>x.price),[150,100]);});
+test('unknown raw ingredient remains visible but wrong price is not guessed',()=>{const r=parseSimple('Поставщик: Восток-Запад\nНаименование товара Количество Цена Сумма\n1 Мука пшеничная кг 5 50,00 999,00');a.equal(r.items.length,1);a.equal(r.items[0].price,null);});
