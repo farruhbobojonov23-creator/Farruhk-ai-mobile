@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -154,7 +155,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Publish tested native OCR speed upgrade
-        if: github.ref == 'refs/heads/feature/farukh-supply-simple-white'
+        if: github.ref == 'refs/heads/feature/farukh-supply-simple-white' || github.ref == 'refs/heads/feature/supply-offline-layout-core'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -166,8 +167,23 @@ jobs:
         run: |
           set -euo pipefail
           code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
-          test "$code" = 13 || { echo "No approved native upgrade"; exit 0; }
-          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          expected_old=12
+          if [ "$GITHUB_REF_NAME" = "feature/supply-offline-layout-core" ]; then
+            test "$code" = 15
+            expected_old=14
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)" = "6cb2f52fe529c19b7a5f1c5736bc2729bfb39c73"
+            # Only release the exact revision which has passed both browser and native checks.
+            for attempt in $(seq 1 60); do
+              qa=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/farukh-supply-white-qa.yml/runs?head_sha=$GITHUB_SHA" --jq '.workflow_runs[0].conclusion // ""')
+              if [ "$qa" = success ]; then break; fi
+              if [ -n "$qa" ]; then echo "Functional QA did not pass: $qa"; exit 1; fi
+              sleep 10
+            done
+            test "$qa" = success
+          else
+            test "$code" = 13 || { echo "No approved native upgrade"; exit 0; }
+          fi
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha)
           test "$latest" = "$GITHUB_SHA" || { echo "Superseded native build"; exit 0; }
           out=$(mktemp -d)
           trap 'rm -rf "$out"' EXIT
@@ -175,7 +191,7 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
           old=$(jq -er .versionCode "$out/previous.json")
           if [ "$old" -ge "$code" ]; then echo "Native upgrade already published"; exit 0; fi
-          test "$old" = 12
+          test "$old" = "$expected_old"
           test "$(jq -er .package "$out/previous.json")" = ai.farukh.supply
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/previous-web.json"
           jq -er .payload "$out/previous-web.json" | base64 -d > "$out/previous-payload.json"
@@ -189,7 +205,7 @@ jobs:
           cert=$("$signer" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
           test "$cert" = "$(jq -er .cert "$out/previous.json")"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$out/$apk" > "$out/badging.txt"
-          grep -F "package: name='ai.farukh.supply' versionCode='13'" "$out/badging.txt"
+          grep -F "package: name='ai.farukh.supply' versionCode='$code'" "$out/badging.txt"
           hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
           jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
           if [ -n "$SIGNING_BUNDLE" ]; then
@@ -214,8 +230,11 @@ jobs:
           PY
           java supply-android/SignWeb.java "$out/key.jks" "$KEY_ALIAS" "$out/payload.json" "$out/web-current.json" "$cert" "$revision"
           test "$(wc -c < "$out/web-current.json")" -lt 1048576
-          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha)
           test "$latest" = "$GITHUB_SHA"
+          if [ "$code" = 15 ]; then
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)" = "6cb2f52fe529c19b7a5f1c5736bc2729bfb39c73"
+          fi
           gh release upload "$tag" "$out/$apk" --repo "$GITHUB_REPOSITORY" --clobber
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$apk" --output "$out/verified.apk"
           test "$(sha256sum "$out/verified.apk" | cut -d' ' -f1)" = "$hash"
