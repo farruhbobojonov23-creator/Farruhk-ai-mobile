@@ -89,27 +89,3 @@ export function assignGridText(grid,items){
  return{rows:out.map(row=>row.map(cell=>cell.sort((a,b)=>Math.abs(a.y-b.y)>8?a.y-b.y:a.x-b.x).map(i=>i.text).join(' '))),ambiguous};
 }
 
-// Independently detect the visible grid. The neural structure is advisory when
-// the actual printed rules prove a different row/column count.
-export function ruledGrid(im){
- const {width:w,height:h,data}=im,px=new Uint32Array(w),py=new Uint32Array(h);
- for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-  const p=(y*w+x)*4;if((data[p]+data[p+1]+data[p+2])/3<85){px[x]++;py[y]++;}
- }
- const peaks=(arr,min)=>{const a=[];let start=-1;for(let i=0;i<=arr.length;i++){
-  if(i<arr.length&&arr[i]>=min){if(start<0)start=i;}else if(start>=0){a.push(Math.round((start+i-1)/2));start=-1;}
- }return a;};
- const xs=peaks(px,h*.65),ys=peaks(py,w*.65);
- if(xs.length<3||ys.length<3||xs.length>80||ys.length>502||xs.some((v,i)=>i&&v-xs[i-1]<12)||ys.some((v,i)=>i&&v-ys[i-1]<12))return null;
- return {xs,ys,rows:ys.length-1,cols:xs.length-1};
-}
-export function assignGrid(items,grid){
- const {xs,ys,rows,cols}=grid;
- const cells=Array.from({length:rows},()=>Array.from({length:cols},()=>[]));let outside=0;
- for(const item of items){
-  const x=item.poly.reduce((s,p)=>s+p[0],0)/item.poly.length,y=item.poly.reduce((s,p)=>s+p[1],0)/item.poly.length;
-  const col=xs.findIndex((v,i)=>i>0&&x>xs[i-1]&&x<v)-1,row=ys.findIndex((v,i)=>i>0&&y>ys[i-1]&&y<v)-1;
-  if(row<0||col<0){outside++;continue;}cells[row][col].push({x,y,text:item.text,score:item.score});
- }
- return {rows:cells.map(row=>row.map(cell=>cell.sort((a,b)=>a.y-b.y||a.x-b.x).map(i=>i.text).join(' '))),outside};
-}
