@@ -105,9 +105,9 @@ final class InvoiceOcr {
  // Estimate small or diagonal tilt modulo 90 degrees from long table rules.
  // A reliable consensus is required; arbitrary photographs stay unmodified.
  private static float tilt(Bitmap image){
+  try{if(!org.opencv.android.OpenCVLoader.initLocal())return 0;}catch(RuntimeException|LinkageError ignored){return 0;}
   org.opencv.core.Mat rgba=new org.opencv.core.Mat(),gray=new org.opencv.core.Mat(),edges=new org.opencv.core.Mat(),segments=new org.opencv.core.Mat();
   try{
-   if(!org.opencv.android.OpenCVLoader.initLocal())return 0;
    org.opencv.android.Utils.bitmapToMat(image,rgba);
    org.opencv.imgproc.Imgproc.cvtColor(rgba,gray,org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY);
    org.opencv.imgproc.Imgproc.Canny(gray,edges,50,140);
