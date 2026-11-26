@@ -59,6 +59,14 @@ jobs:
           await page.goto('http://127.0.0.1:8765/index.html');
           await page.waitForFunction(()=>document.querySelector('#changes').textContent.includes('Изменения'));
           const startupMs=Date.now()-started;
+          assert.deepEqual(await page.evaluate(()=>invoiceHeader('Счет-фактура № 8049 от 09 ноября 2026 г.')),{documentNumber:'8049',documentDate:'2026-11-09'});
+          assert.deepEqual(await page.evaluate(()=>invoiceHeader('Счёт-фактура № 8049 от 09 ноября 2026 г.\nУПД № 8049 от 10 ноября 2026 г.')),{documentNumber:'8049',documentDate:null});
+          await page.evaluate(()=>{
+            const source='Счет-фактура № 123 от 09 ноября 2026 г.\nПоставщик: ООО «Веста»\nНаименование товара Стоимость товаров\n1 Сыр плавленый ломтевой 778 упак 3,000 828,18 2 484,55 без акциза 10% 248,45 2 733,00\nЧеддер уп/1,107 кг (90 шт) HOCHLAND\n2 Сухари панировочные 796 шт 4,000 233,64 934,55 без акциза 10% 93,45 1 028,00\nПанко Premium 1кг\nВсего к оплате (9) 3 419,10 341,90 3 761,00';
+            const r=window.supplyInvoiceParser.parseSimple(source);
+            if(!r.documentVerified||r.items.length!==2||r.items[0].quantity!==3||r.items[1].quantity!==4||r.items[0].invoiceTotal!==2733||r.items[1].invoiceTotal!==1028||!r.items[0].name.includes('HOCHLAND'))throw Error('UPD multiline reconciliation failed: '+JSON.stringify(r));
+            if(window.supplyInvoiceParser.parseSimple(source.replace('3 761,00','3 761,10')).documentVerified)throw Error('UPD accepted inconsistent total');
+          });
           assert.equal(await page.locator('#productCount').textContent(),'0');
           assert.equal(await page.locator('#supplierCount').textContent(),'0');
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
