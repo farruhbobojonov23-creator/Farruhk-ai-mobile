@@ -251,8 +251,8 @@ final class InvoiceOcr {
   if(focused){
    int top=bestLength>h*.35?Math.max(0,bestStart-12):0;
    int end=bestLength>h*.35?bestEnd:h;
-   int bottom=Math.min(h,top+Math.round((end-top)*.62f));
-   if(bottom-top>h*.2)region=Bitmap.createBitmap(image,0,top,w,bottom-top);
+   int bottom=Math.min(h,end+24);
+   if(bestLength>h*.85&&bottom-top>h*.85)region=Bitmap.createBitmap(image,0,top,w,bottom-top);
   }else if(bestLength>h*.85&&bestLength<h*.94){
    int top=Math.max(0,bestStart-24),bottom=Math.min(h,bestEnd+24);
    region=Bitmap.createBitmap(image,0,top,w,bottom-top);
@@ -298,7 +298,7 @@ final class InvoiceOcr {
     int left=Math.max(0,table.x-w/60),right=Math.min(w,table.x+table.width+w/60);
     int top=Math.max(0,table.y-h/45),bottom=Math.min(h,table.y+table.height+h/35);
     roi=rotated.submat(top,bottom,left,right);
-   }else roi=rotated.submat(0,Math.max(1,(int)(h*.65)),0,w);
+   }else roi=rotated.submat(0,h,0,w);
    double sigma=Math.max(12,w/70.0);
    org.opencv.imgproc.Imgproc.GaussianBlur(roi,background,new org.opencv.core.Size(0,0),sigma);
    org.opencv.core.Core.divide(roi,background,normalized,235);
@@ -315,7 +315,7 @@ final class InvoiceOcr {
  // Detect the connected ruled table instead of enlarging the whole page.
  // Reject narrow barcodes, page borders and isolated decorative lines.
  private static org.opencv.core.Rect findTable(org.opencv.core.Mat gray){
-  int w=gray.cols(),h=gray.rows(),top=(int)(h*.12),bottom=(int)(h*.70);
+  int w=gray.cols(),h=gray.rows(),top=(int)(h*.06),bottom=(int)(h*.96);
   org.opencv.core.Mat band=gray.submat(top,bottom,0,w),binary=new org.opencv.core.Mat(),closed=new org.opencv.core.Mat(),hierarchy=new org.opencv.core.Mat(),kernel=null;
   java.util.ArrayList<org.opencv.core.MatOfPoint> contours=new java.util.ArrayList<>();
   try{
@@ -328,7 +328,7 @@ final class InvoiceOcr {
    for(org.opencv.core.MatOfPoint contour:contours){
     org.opencv.core.Rect b=org.opencv.imgproc.Imgproc.boundingRect(contour);
     double area=org.opencv.imgproc.Imgproc.contourArea(contour);
-    if(b.width<w*.56||b.height<h*.055||b.height>h*.45||b.width>4.0*b.height*3||area<b.area()*.30)continue;
+    if(b.width<w*.56||b.height<h*.055||b.height>h*.82||b.width>4.0*b.height*3||area<b.area()*.30)continue;
     if(area>score){score=area;best=new org.opencv.core.Rect(b.x,b.y+top,b.width,b.height);}
    }
    return best;

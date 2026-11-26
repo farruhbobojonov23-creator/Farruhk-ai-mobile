@@ -20,3 +20,5 @@ test('cannot confirm unknown product or missing variant',()=>{
 });
 
 test('packaging change cannot silently reuse an alias',()=>{const r={...row,unit:'уп',packKg:1.8};const aliases=m.confirm(r,'ООО Тест','shrimp','brand1',catalog,{});a.equal(m.resolve({...r,packKg:2},'ООО Тест',catalog,aliases).status,'review');a.equal(m.resolve({...r,unit:'кг'},'ООО Тест',catalog,aliases).status,'review');});
+
+test('embedded app matching module equals the tested source',()=>{const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');a.ok(app.includes(source));});
