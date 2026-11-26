@@ -70,6 +70,9 @@ jobs:
             assert.ok(await page.evaluate(()=>{const a=document.querySelector('.hero-copy').getBoundingClientRect(),b=document.querySelector('.hero-art').getBoundingClientRect(),h=document.querySelector('.hero h1').getBoundingClientRect();return a.right<=b.left+1&&h.right<=b.left+1&&document.documentElement.scrollWidth<=innerWidth}), 'Hero content must not overlap at '+width);
           }
           await page.setViewportSize({width:393,height:873});
+          assert.equal(await page.locator('[data-home-panel]:visible').count(),1);
+          assert.equal(await page.locator('.vision-kpis .kpi').count(),4);
+          assert.ok(await page.evaluate(()=>document.querySelector('.subnav').getBoundingClientRect().bottom<innerHeight-60));
           await page.screenshot({path:'qa-results/01-home.png',fullPage:true});
           await page.evaluate(()=>{
             const full={supplier:'Тест',documentVerified:true,items:[{name:'Рис',price:100,quantity:2,unit:'уп'}]};
@@ -285,6 +288,7 @@ jobs:
           await invoice('Поставщик Б',150,2,false);
           await invoice('Поставщик А',125,3,false);
           await page.locator('nav button[data-go=compare]').click();
+          await page.locator('[data-compare=offers]').click();
           assert.ok((await page.locator('#offers').innerText()).includes('Лучшая цена'));
           assert.ok((await page.locator('#offers').innerText()).includes('125'));
           await page.screenshot({path:'qa-results/03-compare.png',fullPage:true});
@@ -294,6 +298,7 @@ jobs:
           assert.ok((await page.locator('#changes').innerText()).includes('10'));
           // Explicit alias and quality must survive reload without rewriting the original invoice.
           await page.locator('nav button[data-go=products]').click();
+          await page.locator('#productList .card').filter({has:page.locator('h2',{hasText:'Рис Tamaki'})}).locator('summary').click();
           await page.locator('#productList .card').filter({has:page.locator('h2',{hasText:'Рис Tamaki'})}).getByRole('button',{name:'Связать / разделить · качество'}).first().click();
           await page.locator('.catalog-dialog').waitFor({state:'visible'});
           await page.locator('.catalog-dialog input[type=number]').nth(0).fill('9.5');
@@ -312,6 +317,7 @@ jobs:
           assert.equal(await page.locator('#productList .card').count(),1);
           await page.locator('#favoriteFilter').selectOption('');
           await page.locator('nav button[data-go=compare]').click();
+          await page.locator('[data-compare=order]').click();
           await page.locator('#orderQuantity').fill('10');
           assert.ok((await page.locator('#orderAdvice').innerText()).includes('Разница с самым дорогим'));
           await page.locator('#orderAdd').click();
@@ -332,12 +338,14 @@ jobs:
           assert.ok((await page.locator('#supplierQuality').innerText()).includes('9,5/10'));
           assert.equal(await page.locator('#visionProduct option').count()>0,true);
           assert.ok((await page.locator('#visionOffers').innerText()).includes('Лучшая из известных цен'));
+          await page.locator('[data-panel=prices]').click();
           await page.locator('#visionBasis').selectOption('yield');
           assert.ok((await page.locator('#visionOffers').innerText()).includes('Нужны подтверждённые значения выхода'));
           await page.locator('#visionBasis').selectOption('purchase');
           assert.ok((await page.locator('#priceStats').innerText()).includes('Средняя цена'));
           assert.ok(await page.evaluate(()=>{const x=[{price:100,unit:'кг'},{price:125,unit:'кг'}],s=priceStats(x);return s.min===100&&s.max===125&&s.mean===112.5&&s.change===25&&priceStats([{price:100,unit:'кг'},{price:125,unit:'шт'}])===null;}));
           assert.ok((await page.locator('#purchaseReport').innerText()).includes('3 накладных'));
+          await page.locator('[data-panel=reports]').click();
           await page.locator('#reportPoint').selectOption('baumana');
           assert.ok((await page.locator('#purchaseReport').innerText()).includes('0 накладных'));
           await page.locator('#reportPoint').selectOption('');
@@ -367,6 +375,7 @@ jobs:
           await matchPage.locator('#categoryFilter').selectOption('Рис, лапша и нори');
           assert.equal(await matchPage.locator('#productList .card').count(),2);
           await matchPage.locator('#categoryFilter').selectOption('');
+          await matchPage.locator('#matchCard summary').click();
           assert.equal(await matchPage.locator('#matchList button').count(),1);
           assert.equal(await matchPage.evaluate(()=>Object.keys(catalogState.aliases).length),0);
           await matchPage.getByRole('button',{name:'Проверить и связать'}).click();
