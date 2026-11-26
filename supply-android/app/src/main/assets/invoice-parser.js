@@ -890,7 +890,8 @@ api.purchaseMetrics=row=>{
  const m=api.lineMetrics(row),name=String(row.name||''),u=row.unit,pack=['шт','уп','кор'].includes(u);
  const explicit=count(name.match(/(?:^|[\s(])(\d+)\s*(?:шт(?:ук[аи]?)?\.?|пакетик(?:ов|а)?)(?=$|[\s,;)\]])/i)?.[1]);
  const portion=/порцион|индивидуальн\w*\s+упаков/i.test(name);
- const discrete=portion||/салфет|контейнер|палочк|зубочист|стакан|крышк|перчат|пакет(?:ы|ов)?\s+(?:бумаж|фасов|майк)/i.test(name)||explicit>1;
+ const mass=!!(row.packKg||row.packL||api.packWeight(name)||api.packVolume(name));
+ const discrete=portion||/салфет|контейнер|палочк\w*\s+(?:для еды|для суши)|зубочист|стакан|крышк|перчат|пакет(?:ы|ов)?\s+(?:бумаж|фасов|майк)/i.test(name)||(!mass&&explicit>1);
  const per=count(row.piecesPerPack)||explicit||(portion?count(name.match(/\[\s*(\d+)\s*\]/)?.[1]):null);
  const piece=pack&&(discrete||(!row.packKg&&!row.packL&&!api.packWeight(name)&&!api.packVolume(name)&&u==='шт'));
  const q=positive(row.quantity),p=positive(row.price);
@@ -951,4 +952,75 @@ function recover(text,b){
 }
 api.parseSimple=text=>recover(text,prior(text));
 api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
+})(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const earlier=api.parseSamePhotoPasses;
+const clean=s=>String(s||'').normalize('NFKC').replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+const money=/(?:^|\s)((?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2})(?=\s|$)/g;
+const number=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+const amounts=s=>[...s.matchAll(money)].map(m=>number(m[1]));
+const near=(a,b,t=.021)=>Math.abs(a-b)<=t;
+const sum=a=>a.reduce((s,x)=>s+x,0);
+const footer=/^(?:всего|сего|cero|вcего)\s+к\s+оплате/i;
+const packEnd=/\d+(?:[.,]\d+)?\s*(?:кг|г|л|мл|n|kr|r)(?:\s+[А-ЯЁA-Z][А-ЯЁA-Z -]{1,45})?$/i;
+const normalize=s=>s.replace(/(\d)\s*kr\b/ig,'$1 кг').replace(/(\d)\s*r\b/ig,'$1 г').replace(/(\d)\s*n\b/ig,'$1 л').replace(/\s+/g,' ').trim();
+function recover(forward,backward,supplier){
+ const a=forward.split(/\r?\n/).map(clean).filter(Boolean),b=backward.split(/\r?\n/).map(clean).filter(Boolean);
+ const head=a.findIndex(l=>/наименование товара/i.test(l)),end=a.findIndex((l,i)=>i>head&&footer.test(l));
+ if(head<0||end<0||!supplier||!/сч[её]т[- ]фактура/i.test(forward)||!/сч[её]т[- ]фактура/i.test(backward))return null;
+ const totals=amounts(a[end]);if(!totals.length)return null;const total=totals.at(-1);
+ const names=[];
+ for(let i=head+1;i<end;i++){
+  const l=a[i];if(!packEnd.test(l)||!/[а-яё]{2}/i.test(l))continue;
+  const prev=a[i-1],lead=l.replace(/^[a-z]{1,4}\s+(?=[а-яё])/i,'');
+  // Only join a separate label line immediately before the explicit pack size.
+  if(i>head+1&&/[а-яё]{3}/i.test(prev)&&!packEnd.test(prev)&&!/\d+[.,]\d{2}(?!\d)|наименование товара|код товара|стоимость/i.test(prev))names.push(normalize(prev+' '+lead));
+  else names.push(normalize(lead));
+ }
+ const N=names.length;if(N<2||N>20)return null;
+ // A column-order read must independently contain the same product anchors
+ // in reverse order. Never align unrelated documents or a missing product.
+ const flat=b.join(' ').toLowerCase();let cursor=0;
+ for(const name of names.slice().reverse()){
+  const token=name.match(/^[а-яё]{3,}/i)?.[0]?.toLowerCase();if(!token)return null;
+  const at=flat.indexOf(token,cursor);if(at<0)return null;
+  if(flat.indexOf(token,at+token.length)>=0)return null;
+  cursor=at+token.length;
+ }
+ const qs=[];
+ for(let i=0;i<b.length;i++){
+  const q=[...b[i].matchAll(/(?:^|\s)(\d+[.,]\d{3})(?=\s|$)/g)].map(m=>number(m[1]));
+  if(q.length===N&&q.every(x=>Number.isSafeInteger(x)&&x>0))qs.push({i,q});
+ }
+ const result=[];
+ for(const {i,q} of qs){
+  const candidates=b.slice(i+1).map((l,j)=>({j:i+1+j,v:amounts(l)}));
+  for(const gross of candidates.filter(c=>c.v.length===N+1&&near(c.v[0],total)&&near(sum(c.v.slice(1)),total))){
+   for(const price of candidates.filter(c=>c.j<gross.j&&c.v.length===N)){
+    for(const tax of candidates.filter(c=>c.j>price.j&&c.j<gross.j&&c.v.length===N+1&&near(sum(c.v.slice(1)),c.v[0]))){
+     const g=gross.v.slice(1),vat=tax.v.slice(1);
+     if(!q.every((v,k)=>{const net=g[k]-vat[k];return price.v[k]>0&&net>0&&near(v*price.v[k],net,Math.max(.021,v*.005+.011))&&[0,5,7,10,20,22].some(rate=>near(net*rate/100,vat[k]));}))continue;
+     const items=names.map((name,k)=>{const j=N-1-k,packKg=api.packWeight(name),packL=packKg?null:api.packVolume(name);const x={name:name+' / уп (без НДС)',unit:'уп',quantity:q[j],price:price.v[j],invoiceTotal:g[j],packKg,packL,uncertain:true,source:name+'; восстановлено из столбцов, единица нормализована до упаковки'};Object.assign(x,api.lineMetrics(x));return x;});
+     if(items.every(x=>x.packKg||x.packL))result.push(items);
+    }
+   }
+  }
+ }
+ const distinct=[...new Map(result.map(x=>[JSON.stringify(x),x])).values()];
+ if(distinct.length!==1)return null;
+ return {supplier,items:distinct[0],documentVerified:true};
+}
+api.parseSamePhotoPasses=texts=>{
+ const original=earlier(texts);
+ const suppliers=[...new Set(original.map(x=>x.supplier).filter(Boolean))];
+ if(suppliers.length!==1||original.some(x=>x.documentVerified))return original;
+ const recovered=[];
+ for(let i=0;i<texts.length;i++)for(let j=0;j<texts.length;j++)if(i!==j){
+  const x=recover(String(texts[i]||''),String(texts[j]||''),suppliers[0]);if(x)recovered.push(x);
+ }
+ const unique=[...new Map(recovered.map(x=>[JSON.stringify(x.items),x])).values()];
+ return unique.length===1?[unique[0],...original]:original;
+};
 })(globalThis);
