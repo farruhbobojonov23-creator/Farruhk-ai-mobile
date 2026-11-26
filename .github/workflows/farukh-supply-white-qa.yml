@@ -68,6 +68,7 @@ jobs:
           for(const width of [320,360,393,430,740]){
             await page.setViewportSize({width,height:873});
             assert.ok(await page.evaluate(()=>{const a=document.querySelector('.hero-copy').getBoundingClientRect(),b=document.querySelector('.hero-art').getBoundingClientRect(),h=document.querySelector('.hero h1').getBoundingClientRect();return a.right<=b.left+1&&h.right<=b.left+1&&document.documentElement.scrollWidth<=innerWidth}), 'Hero content must not overlap at '+width);
+            assert.ok(await page.evaluate(()=>[...document.querySelectorAll('nav button')].every(b=>b.scrollWidth<=b.clientWidth&&getComputedStyle(b).whiteSpace==='nowrap')), 'Navigation labels must fit at '+width);
           }
           await page.setViewportSize({width:393,height:873});
           assert.equal(await page.locator('[data-home-panel]:visible').count(),1);
@@ -291,6 +292,10 @@ jobs:
           await page.locator('[data-compare=offers]').click();
           assert.ok((await page.locator('#offers').innerText()).includes('Лучшая цена'));
           assert.ok((await page.locator('#offers').innerText()).includes('125'));
+          await page.locator('#compareSearch').fill('Нори');
+          assert.equal(await page.locator('#offers .card').count(),1);
+          assert.ok((await page.locator('#offers').innerText()).includes('Нори Gold'));
+          await page.locator('#compareSearch').fill('');
           await page.screenshot({path:'qa-results/03-compare.png',fullPage:true});
           await page.locator('nav button[data-go=home]').click();
           assert.equal(await page.locator('#productCount').textContent(),'2');
