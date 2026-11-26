@@ -56,4 +56,11 @@ public class InvoiceOrientationTest {
   assertTrue(InvoiceOcr.layoutScore(upright)>InvoiceOcr.layoutScore(sideways));
   assertTrue(InvoiceOcr.layoutScore(sideways)<0);
  }
+ @Test public void fastOrientationRequiresOrderedHeaderFooterAndHighConfidence(){
+  String good="Товарная накладная\nПоставщик: ООО Учебный\nНаименование товара Количество Цена\nРис учебный 3,000 100,00 300,00\nВсего к оплате 300,00";
+  assertTrue(InvoiceOcr.canSkipOtherOrientations(good,95));
+  assertFalse(InvoiceOcr.canSkipOtherOrientations(good,70));
+  assertFalse(InvoiceOcr.canSkipOtherOrientations("Всего к оплате 300,00\n"+good.replace("Всего к оплате 300,00",""),95));
+  assertFalse(InvoiceOcr.canSkipOtherOrientations(good.replace("Поставщик: ООО Учебный",""),95));
+ }
 }
