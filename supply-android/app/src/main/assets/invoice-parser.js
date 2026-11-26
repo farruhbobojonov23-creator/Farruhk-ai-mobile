@@ -116,6 +116,6 @@ api.parseSimple=function(text){
   }
  }
  const priced=all.filter(x=>x.price!=null);
- return {supplier:base.supplier,items:all.filter(x=>x.price!=null||!priced.some(y=>y.name.toLowerCase().startsWith(x.name.toLowerCase())))};
+ return {supplier:base.supplier,items:all.filter(x=>x.price!=null||!priced.some(y=>y.source.startsWith(x.source+' ')||y.source===x.source||y.name.toLowerCase().startsWith(x.name.toLowerCase())))};
 };
 })(globalThis);
