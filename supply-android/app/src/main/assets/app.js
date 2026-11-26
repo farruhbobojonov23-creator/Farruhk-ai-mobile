@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),norm=s=>String(s||'').normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' '),rub=n=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽',sections=['home','entry','invoices','products','suppliers','compare'];
-let autoRetried=false,firstScan=null;let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false;
+let scanPass=0,scanCandidates=[];let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false;
 function node(tag,txt,cls){const n=document.createElement(tag);if(txt!=null)n.textContent=txt;if(cls)n.className=cls;return n}
 function status(s,ok=false){$('status').textContent=s;$('status').classList.toggle('ok',ok)}
 function button(txt,fn){const n=node('button',txt);n.type='button';n.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));return n}
@@ -40,8 +40,8 @@ function addLine(data={}){
  f.append(a.wrap,del,q.wrap,ul,w.wrap,p.wrap,summary);$('lines').append(f);recalc();
 }
 function showPreview(file){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('preview').classList.add('hide');if(file&&file.type?.startsWith('image/')){previewUrl=URL.createObjectURL(file);$('preview').src=previewUrl;$('preview').classList.remove('hide')}}
-function reset(){autoRetried=false;firstScan=null;document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;status('')}
-$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{autoRetried=false;firstScan=null;document.getElementById('ocrDiagnostic')?.remove();showPreview($('file').files[0]);dirty=true});
+function reset(){scanPass=0;scanCandidates=[];document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;status('')}
+$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{scanPass=0;scanCandidates=[];document.getElementById('ocrDiagnostic')?.remove();showPreview($('file').files[0]);dirty=true});
 function numeric(s){const n=Number(String(s).replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null}
 function dateLabel(d){const v=new Date(d);return Number.isFinite(v.getTime())?v.toLocaleDateString('ru-RU'):''}
 function linesOf(d){if(d.simpleVersion===1)return Array.isArray(d.lines)?d.lines:[];if(d.status!=='confirmed')return [];return (d.lines||[]).flatMap(l=>{try{const p=window.supplyAnalytics.linePrice(l);return [{name:l.productId+' / '+p.unit+' (с НДС)',price:p.price}]}catch{return []}})}
@@ -63,7 +63,39 @@ function edit(d){reset();editing=d.id;$('supplier').value=d.supplierId;$('lines'
 $('form').onsubmit=async e=>{e.preventDefault();if(scanBusy)return;try{const supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!['шт','уп','кор'].includes(l.unit))l.packKg=null;return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены');if(new Set(lines.map(l=>norm(l.name))).size!==lines.length)throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:$('file').files[0]||prior?.original||null};if(!editing&&docs.some(d=>d.simpleVersion===1&&norm(d.supplierId)===norm(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;await refresh();go('invoices');status('✓ Накладная сохранена',true)}catch(err){status(err.message)}};
 window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId=id;scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent='Распознаём фото…'};
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';d.append(p);$('retry').after(d)}
-window.supplyOcrFinish=(id,text,error)=>{if(id!==ocrId||$('entry').classList.contains('hide'))return;scanBusy=false;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');try{let r=window.supplyInvoiceParser.parseSimple(text||'');if(r.supplier)$('supplier').value=r.supplier;const count=r.items.filter(x=>x.price!=null).length;if(!count&&!autoRetried&&$('file').files.length&&navigator.userAgent.includes('; wv)')){autoRetried=true;firstScan={r,text};scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('ocrState').textContent='Проверяем таблицу вторым способом…';location.href='https://appassets.androidplatform.net/paddle-scan';return;}if(firstScan){if(!r.supplier)r.supplier=firstScan.r.supplier;if(!r.items.length)r.items=firstScan.r.items;text=[firstScan.text,text].filter(Boolean).join('\n---\n');firstScan=null;}if(r.supplier)$('supplier').value=r.supplier;if(r.items.length){if([...$('lines').children].some(f=>f.querySelector('[data-field=name]').value)&&!confirm('Заменить текущие строки распознанными?'))return;$('lines').replaceChildren();for(const l of r.items)addLine(l)}dirty=true;const priced=r.items.filter(x=>x.price!=null).length;$('ocrState').textContent=priced?'Найдено цен: '+priced+'. Сверьте строки с фото.':(error||'Цены не распознаны. Откройте распознанный текст или выберите более чёткое фото.');if(!priced)scanDiagnostic(text);else document.getElementById('ocrDiagnostic')?.remove();}catch(e){$('ocrState').textContent='Не удалось обработать текст. Проверьте фото.';scanDiagnostic(text);}};
-$('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите фото');return}location.href='https://appassets.androidplatform.net/paddle-scan'};
+function scanScore(r){
+ const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
+ return priced.length*1000+complete.length*100+r.items.length*10+(r.supplier?1:0);
+}
+function nextScan(path,message){
+ scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent=message;
+ location.href='https://appassets.androidplatform.net/'+path;
+}
+window.supplyOcrFinish=(id,text,error)=>{
+ if(id!==ocrId||$('entry').classList.contains('hide'))return;
+ scanBusy=false;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');
+ try{
+  const current=window.supplyInvoiceParser.parseSimple(text||'');scanCandidates.push({r:current,text,error});
+  const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
+  const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit);
+  if(native&&scanPass<2&&!complete){
+   scanPass++;nextScan(scanPass===1?'rescan':'paddle-scan',scanPass===1?'Повторная проверка товарной таблицы…':'Проверка другим OCR-модулем…');return;
+  }
+  const ranked=scanCandidates.slice().sort((a,b)=>scanScore(b.r)-scanScore(a.r)),best=ranked[0];
+  let r=best.r;const suppliers=[...new Set(ranked.map(x=>x.r.supplier).filter(Boolean))];
+  if(!r.supplier&&suppliers.length===1)r={...r,supplier:suppliers[0]};
+  const ambiguous=suppliers.length>1||ranked.some(other=>other!==best&&other.r.items.some(x=>x.price!=null&&r.items.some(y=>norm(y.name)===norm(x.name)&&y.price!=null&&(Math.abs(y.price-x.price)>.01||(x.quantity!=null&&y.quantity!=null&&Math.abs(x.quantity-y.quantity)>.00001)))));
+  const diagnostic=ranked.map(x=>x.text).filter(Boolean).join('\n---\n');scanCandidates=[];scanPass=0;
+  if(r.supplier)$('supplier').value=r.supplier;
+  if(r.items.length){
+   if([...$('lines').children].some(f=>f.querySelector('[data-field=name]').value)&&!confirm('Заменить текущие строки распознанными?'))return;
+   $('lines').replaceChildren();for(const l of r.items)addLine(l)
+  }
+  dirty=true;const priced=r.items.filter(x=>x.price!=null).length;
+  $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(best.error||'Товарная таблица не прочитана. Выберите более чёткое фото или крупный снимок таблицы.');
+  if(!priced||ambiguous||priced<r.items.length)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
+ }catch(e){scanCandidates=[];scanPass=0;$('ocrState').textContent='Не удалось обработать текст. Проверьте фото.';scanDiagnostic(text);}
+};
+$('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите фото');return}scanCandidates=[];scanPass=1;nextScan('rescan','Повторная проверка товарной таблицы…')};
 document.querySelector('a.update').addEventListener('click',e=>{if(dirty&&!confirm('Обновление закроет несохранённую форму. Продолжить?'))e.preventDefault()});
 reset();const req=indexedDB.open('farukh-supply-preview',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('invoices'))req.result.createObjectStore('invoices',{keyPath:'id'})};req.onsuccess=()=>{db=req.result;refresh().catch(e=>status(e.message))};req.onerror=()=>status('Не удалось открыть локальную базу');
