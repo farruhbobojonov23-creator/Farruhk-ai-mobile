@@ -64,3 +64,20 @@ test('volume is not mass; preserve printed invoice total and reject ambiguous pa
 test('shipment act uses shipped units rather than cartons and retains page count',()=>{const s="АКТ ПРИЕМА-ПЕРЕДАЧИ по УПД № 100\nПродавец ООО \"Учебный поставщик\"\nНаименование товара Единица измерения В одном месте Полных упаковок В неполной упаковке НДС Цена Сумма Отгружено количество\n1 1234567890123 Креветки учебные 1 кг ШТ 10 0 2 10 1100.00 2200.00 2 06.05.2028\n2 1234567890124 Васаби порционный 5 гр. [168] ШТ 168 4 0 22 5.94 3991.68 672 08.02.2027\n3 1234567890125 Соус учебный 1,8 л ШТ 6 0 4 22 593.54 2374.16 4 17.03.2028\nстр. 1 из 2";const r=parseSimple(s);a.equal(r.pageVerified,true);a.deepEqual(r.pageInfo,{page:1,pages:2});a.deepEqual(r.items.map(x=>[x.quantity,x.price,x.invoiceTotal]),[[2,1100,2200],[672,5.94,3991.68],[4,593.54,2374.16]]);a.equal(r.items[1].packKg,.005);a.equal(r.items[2].packL,1.8);a.ok(!parseSimple(s.replace('3991.68','3992.68')).pageVerified);a.ok(!parseSimple(s.replace('168 4 0','168 3 0')).pageVerified);});
 
 test('shipment act recovers OCR glued row numbers and wrapped product names without inventing prices',()=>{const s="АКТ ПРИЕМА-ПЕРЕДАЧИ по УПД № 100\nПродавец ООО \"Учебный поставщик\"\nКоличество\nСтои- Опру- При-\nНалorо- Общая Сроки НЯТО\n№ Код Наименование товара(описание выполненных вая с HДС СТОИМОСТЬ КОЛИ- гОДНОСТИ покупа-\nставка за ЕИ, с НДС, чество\n3 4 5 6 7 8 9 10 11 12 13 14 15\n1. 2\n1234567890123 КРЕВЕТКИ учебные сырые в панировке ШТ 10 0 2 10 1100.00 2200.00 2 06.05.2028\n]\nторпедо с/м 1 кг. VICI [1]\n2 01234567890124 ВАСАБИ порционный 5 гр. [168] ШТ 168 4 0 22 5.94 3991.68 672 08.02.2027\n31234567890125 ИМБИРЬ порционный белый 25 гр. [168] ШТ 168 4 0 22 10.43 7008.96 672 07.04.2027\n41234567890126 СОУС соевый порционный Black 30 гр. [168] ШТ 168 4 0 22 8.45 5678.40 672 12.04.2027\n5 1234567890127COУС Унаги 1,8 л. Tamaki [1] ШТ 6 0 4 22 593.54 2374.16 4 17.03.2028\ncmp. 1 u3 2";const r=parseSimple(s);a.equal(r.pageVerified,true);a.deepEqual(r.pageInfo,{page:1,pages:2});a.deepEqual(r.items.map(x=>[x.quantity,x.price,x.invoiceTotal,x.packKg,x.packL]),[[2,1100,2200,1,null],[672,5.94,3991.68,.005,null],[672,10.43,7008.96,.025,null],[672,8.45,5678.4,.03,null],[4,593.54,2374.16,null,1.8]]);a.equal(r.items[2].article,'1234567890125');a.ok(!parseSimple(s.replace('7008.96','7009.96')).pageVerified);});
+
+test('automatic purchase display distinguishes portions, pieces, mass and liquids',()=>{
+ const p=browserParser.purchaseMetrics;
+ const g=p({name:'Имбирь порционный 25 гр. [168]',unit:'шт',quantity:672,price:10.43,packKg:.025,invoiceTotal:7008.96});
+ a.deepEqual([g.basis,g.piecesPerPack,g.totalPieces,g.pricePerPiece,g.totalPrice],['шт',168,672,10.43,7008.96]);
+ const v=p({name:'Васаби порционный 5 г [168]',unit:'шт',quantity:672,price:5.94,packKg:.005});
+ a.deepEqual([v.basis,v.totalPieces,v.pricePerPiece],['шт',672,5.94]);
+ const c=p({name:'Контейнеры 200 шт',unit:'кор',quantity:3,price:1000});
+ a.deepEqual([c.basis,c.totalPieces,c.pricePerPiece,c.totalPrice],['шт',600,5,3000]);
+ a.equal(p({name:'Контейнеры',unit:'кор',quantity:3,price:1000}).totalPieces,null);
+ const k=p({name:'Креветки 1 кг',unit:'шт',quantity:2,price:1100,packKg:1});
+ a.deepEqual([k.basis,k.totalKg,k.pricePerKg],['кг',2,1100]);
+ const l=p({name:'Соус Унаги 1,8 л',unit:'шт',quantity:4,price:593.54,packL:1.8});
+ a.deepEqual([l.basis,l.totalL,l.pricePerL],['л',7.2,329.74]);
+ const s=p({name:'Соус соевый порционный 30 г [168]',unit:'шт',quantity:672,price:8.45,packKg:.03,invoiceTotal:5678.4});
+ a.deepEqual([s.basis,s.totalPieces,s.pricePerPiece,s.totalPrice],['шт',672,8.45,5678.4]);
+});

@@ -880,3 +880,22 @@ function act(text,base){
 api.parseSimple=text=>act(text,prior(text));
 api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const positive=v=>{const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null};
+const round=(v,d=2)=>Math.round((v+Number.EPSILON)*10**d)/10**d;
+const count=v=>{const n=positive(v);return Number.isSafeInteger(n)?n:null};
+api.purchaseMetrics=row=>{
+ const m=api.lineMetrics(row),name=String(row.name||''),u=row.unit,pack=['шт','уп','кор'].includes(u);
+ const explicit=count(name.match(/(?:^|[\s(])(\d+)\s*(?:шт(?:ук[аи]?)?\.?|пакетик(?:ов|а)?)(?=$|[\s,;)\]])/i)?.[1]);
+ const portion=/порцион|индивидуальн\w*\s+упаков/i.test(name);
+ const discrete=portion||/салфет|контейнер|палочк|зубочист|стакан|крышк|перчат|пакет(?:ы|ов)?\s+(?:бумаж|фасов|майк)/i.test(name)||explicit>1;
+ const per=count(row.piecesPerPack)||explicit||(portion?count(name.match(/\[\s*(\d+)\s*\]/)?.[1]):null);
+ const piece=pack&&(discrete||(!row.packKg&&!row.packL&&!api.packWeight(name)&&!api.packVolume(name)&&u==='шт'));
+ const q=positive(row.quantity),p=positive(row.price);
+ const factor=u==='шт'?1:per;
+ return {...m,basis:piece?'шт':m.totalL!=null||m.pricePerL!=null||['л','мл'].includes(u)||!!row.packL?'л':m.totalKg!=null||m.pricePerKg!=null||['кг','г'].includes(u)||!!row.packKg?'кг':null,
+ piecesPerPack:piece?per:null,totalPieces:piece&&q&&factor&&Number.isSafeInteger(q*factor)?q*factor:null,pricePerPiece:piece&&p&&factor?round(p/factor):null};
+};
+})(globalThis);
