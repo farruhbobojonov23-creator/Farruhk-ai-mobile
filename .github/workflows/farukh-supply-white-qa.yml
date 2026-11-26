@@ -372,7 +372,9 @@ jobs:
 
           assert.equal(await page.locator('#supplierCount').textContent(),'2');
           await page.locator('nav button[data-go=products]').click();
+          await page.evaluate(()=>{window.qaArchiveNode=document.querySelector('#archive').firstElementChild;window.qaHomeNode=document.querySelector('#changes').firstElementChild;});
           await page.locator('#search').fill('Нори');
+          assert.ok(await page.evaluate(()=>window.qaArchiveNode===document.querySelector('#archive').firstElementChild&&window.qaHomeNode===document.querySelector('#changes').firstElementChild),'Product search must not rebuild hidden views');
           assert.ok((await page.locator('#productList').innerText()).includes('Нори Gold'));
           assert.ok(!(await page.locator('#productList').innerText()).includes('Рис Tamaki'));
           await page.locator('nav button[data-go=suppliers]').click();
