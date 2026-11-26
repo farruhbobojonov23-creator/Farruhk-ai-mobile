@@ -382,6 +382,13 @@ jobs:
           await matchPage.reload();
           await matchPage.waitForFunction(()=>docs.length===2);
           assert.equal(await matchPage.evaluate(()=>new Set(observations().map(productKey)).size),1);
+          assert.ok(await matchPage.evaluate(()=>{
+            const history=[{simpleVersion:1,supplierId:'Тест А',lines:[{ocrOriginalName:'Рнс',ocrOriginalArticle:'A1',name:'Рис'}]}];
+            return correctionFor('Рнс','Тест А','A1',history)==='Рис'&&correctionFor('Рнс','Тест Б','A1',history)===null&&correctionFor('Рнс','Тест А','A2',history)===null&&correctionFor('Рнс','Тест А','A1',[...history,{...history[0],lines:[{ocrOriginalName:'Рнс',ocrOriginalArticle:'A1',name:'Рис другой'}]}])===null;
+          }));
+          await matchPage.locator('nav button[data-go=invoices]').click();
+          await matchPage.locator('#invoiceSearch').fill('Тест А');
+          assert.equal(await matchPage.locator('#archive .card').count(),1);
           await matchPage.close();
 
           assert.equal(await page.locator('#supplierCount').textContent(),'2');
@@ -575,7 +582,7 @@ jobs:
           java supply-android/SignWeb.java "$out/key.jks" "$KEY_ALIAS" "$out/payload.json" "$out/new/web-current.json" "$cert" "$revision"
           test "$(wc -c < "$out/new/web-current.json")" -lt 1048576
           latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)
-          test "$latest" = "$GITHUB_SHA"
+          if [ "$latest" != "$GITHUB_SHA" ]; then echo "Superseded before upload; skipping publication."; exit 0; fi
           gh release upload "$tag" "$out/new/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified.json"
           cmp "$out/new/web-current.json" "$out/verified.json"
