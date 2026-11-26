@@ -207,3 +207,25 @@ api.parseSimple=function(text){
  return result;
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const original=api.parseSimple;
+// Accept a common invoice order: quantity then unit (3 шт or 3шт).
+// Normalize only a row ending in two monetary columns; the existing arithmetic gate remains.
+api.parseSimple=function(text){
+ const normalized=String(text||'').split(/\r?\n/).map(line=>{
+  const s=line.replace(/[|│]/g,' ').replace(/[ \t]+/g,' ').trim();
+  const m=s.match(/^(.{3,180}?)\s+(\d+(?:[,.]\d{1,5})?)\s*(шт|уп|кор|кг|г|л|мл)\.?\s+((?:\d{1,3}(?: \d{3})+|\d+)[,.]\d{2})\s+((?:\d{1,3}(?: \d{3})+|\d+)[,.]\d{2})$/i);
+  if(!m)return line;
+  const standard=original(s);
+  if(standard.items.some(x=>x.price!=null))return line;
+  if(!/[а-яёa-z]/i.test(m[1])||/^(?:итого|всего|ндс|сумма|цена|количество)/i.test(m[1]))return line;
+  const n=v=>Number(v.replace(/\s/g,'').replace(',','.'));
+  const q=n(m[2]),price=n(m[4]),total=n(m[5]);
+  if(q<=0||price<=0||Math.abs(q*price-total)>Math.max(.02,q*.005+.01))return line;
+  return [m[1],m[3],m[2],m[4],m[5]].join(' ');
+ }).join('\n');
+ return original(normalized);
+};
+})(globalThis);
