@@ -106,7 +106,108 @@ function spatialSimple(lines){
  if(!result.documentVerified||result.items.some(x=>!(x.price>0&&x.total>0)||!/\p{L}{2}/u.test(x.name)||!x.unit||! /^(кг|г|л|мл|шт|уп|кор)$/.test(unitName(x.unit))))return null;
  return result;
 }
+
+/* Recover table cells from each OCR pass independently, without a list of known products. */
+function spatialInvoiceTable(boxes,raw,base,parser){
+ const ls=spatialLines(boxes);if(!ls.length)return null;
+ const fold=s=>String(s).normalize('NFKC').toLowerCase().replace(/ё/g,'е').trim();
+ const mark=s=>fold(s).replace(/[.\s]/g,'').replace(/а/g,'a').replace(/б/g,'b');
+ const cx=b=>(b.left+b.right)/2;
+ const amount=s=>{const t=String(s).replace(/\s/g,'').replace(',','.');return /^\d+\.\d{2}$/.test(t)?Math.round(Number(t)*100):null;};
+ const quantity=s=>{const t=String(s).replace(/[\s✓✔]/g,'').replace(',','.');return /^\d+(?:\.\d{1,3})?$/.test(t)?Number(t):null;};
+ const definitions=[
+ ['upd',['1','1a','2','2a','3','4','5','7','8','9'],['row','name','unitcode','unit','quantity','price','net','rate','tax','total']],
+ ['act',['1','2','3','4','5','6','7','8','9','10','11','12','13'],['row','code','name','unit','ignore','ignore','ignore','rate','price','total','quantity','ignore','ignore']]
+ ];
+ const candidates=[];
+ for(const l of ls){
+  const marks=l.boxes.map(b=>mark(b.text));
+  for(const [kind,keys,roles] of definitions){
+   if(kind==='act'&&marks.includes('1a'))continue;
+   const inds=keys.map(m=>marks.indexOf(m));
+   if(inds.some((v,i)=>v<0||i>0&&v<=inds[i-1]))continue;
+   const map=new Map(inds.map((i,j)=>[i,roles[j]]));
+   candidates.push({kind,header:l,cols:l.boxes.map((b,i)=>({x:cx(b),role:map.get(i)||'ignore'}))});
+  }
+  const roles=l.boxes.map(b=>{const t=fold(b.text);if(t==='№')return 'row';if(t==='код')return 'code';if(t==='наименование')return 'name';if(/^ед\.?(?:\s*изм\.?)?$/.test(t))return 'unit';if(t==='мест')return 'ignore';if(/^(кол[- ]?во|количество)$/.test(t))return 'quantity';if(/^вес(?:\s*кг)?$/.test(t))return 'weight';if(t==='цена')return 'price';if(t==='сумма')return 'total';return null;});
+  if(['row','code','name','unit','quantity','weight','price','total'].every(k=>roles.filter(x=>x===k).length===1))candidates.push({kind:'marr',header:l,cols:l.boxes.flatMap((b,i)=>roles[i]?[{x:cx(b),role:roles[i]}]:[])});
+ }
+ if(candidates.length!==1)return null;
+ const {kind,header,cols}=candidates[0];
+ const reflow=ls.map(l=>l.text).join('\n'),parsed=parser.parseSimple(reflow),supplier=base.supplier||parsed.supplier;
+ if(!supplier)return null;
+ if(base.supplier&&parsed.supplier&&fold(base.supplier)!==fold(parsed.supplier))return null;
+ const footer=ls.find(l=>l.y>header.y&&/^(?:всего\s+к\s+оплате|итого(?:\s*:|\s|$))/i.test(l.text));
+ const stop=ls.find(l=>l.y>header.y&&/^(?:руководитель|документ\s+составлен|основание\s+передачи|товар\s+\(груз\)|главный\s+бухгалтер|комментарий|автор)/i.test(l.text));
+ const end=Math.min(footer?.top??Infinity,stop?.top??Infinity);
+ const body=ls.filter(l=>l.top>=header.bottom&&l.y<end&&!/^(?:место\s+хранения|изм\.?|кг)$/i.test(l.text)&&!/^место\s+хранения/i.test(l.text));
+ if(!body.length||body.length>400)return null;
+ const bounds=cols.map((c,i)=>i===0?-Infinity:(cols[i-1].x+c.x)/2);bounds.push(Infinity);
+ const role=b=>{const i=bounds.findIndex((v,i)=>i<cols.length&&cx(b)>=v&&cx(b)<bounds[i+1]);return cols[i]?.role||'ignore';};
+ const data=body.map(l=>({l,fields:new Map()}));
+ for(const d of data)for(const b of d.l.boxes){const k=role(b);if(k==='ignore')continue;const a=d.fields.get(k)||[];a.push(b);d.fields.set(k,a);}
+ const get=(d,k)=>(d.fields.get(k)||[]).map(b=>b.text).join(' ').trim();
+ const anchors=data.map((d,i)=>({i,n:/^\d{1,3}$/.test(get(d,'row'))?Number(get(d,'row')):null})).filter(a=>a.n>0);
+ if(!anchors.length||anchors.length>200||new Set(anchors.map(a=>a.n)).size!==anchors.length)return null;
+ let starts=anchors.map(a=>a.i);
+ if(kind==='marr'){
+  const cats=data.map((d,i)=>({i,s:get(d,'name')})).filter(x=>/^[0()]+\s*\([^)]{2,100}\)/.test(x.s)).map(x=>x.i);
+  if(cats.length===anchors.length&&cats.every((v,i)=>v<=anchors[i].i&&(i===0||v>anchors[i-1].i)))starts=cats;
+ }
+ if(starts[0]!==0)return null;
+ const rows=[];
+ for(let i=0;i<anchors.length;i++){
+  const group=data.slice(starts[i],starts[i+1]??data.length);
+  const values=k=>group.flatMap(d=>d.fields.get(k)||[]);
+  const cell=k=>values(k).map(b=>b.text).join(' ').trim();
+  const read=(k,fn)=>{const a=values(k);return !a.length||a.some(b=>b.confidence<.60)?null:fn(cell(k));};
+  const sourceRow=String(anchors[i].n);
+  let name=cell('name').replace(/^[0()]+\s*\([^)]{2,100}\)\s*/,'').trim();
+  if(!/\p{L}{3}/u.test(name)||name.length>300||values('name').some(b=>b.confidence<.45))return null;
+  let unit=unitName(cell('unit')),q=read('quantity',quantity),p=read('price',amount),t=read('total',amount);
+  const article=cell('code').replace(/\s/g,'')||undefined;
+  let n=null,tax=null,w=null;
+  if(kind==='upd'){
+   unit=({'796':'шт','778':'уп','990':'уп','166':'кг','112':'л'})[cell('unitcode').replace(/\s/g,'')]||unit;
+   n=read('net',amount);tax=read('tax',amount);
+   if(!(p>0&&n>0&&t>0&&tax!==null&&tax>=0&&n+tax===t))return null;
+   // Recover an unreadable quantity only from independently printed price and net sum.
+   if(q===null&&['шт','уп','кор'].includes(unit))q=Math.round(n/p);
+   if(!(q>0)||Math.abs(q*p-n)>Math.max(1,q*.5+.01))return null;
+   const rates=[0,5,7,10,20,22].filter(v=>Math.abs(Math.round(n*v/100)-tax)<=1);
+   const rate=cell('rate').replace(/\s/g,'').match(/^(\d{1,2})%$/);
+   if(rates.length!==1||rate&&Number(rate[1])!==rates[0])return null;
+  }else{
+   if(!(p>0&&t>0)||!article||!/^\d{8,14}$/.test(article))return null;
+   if(kind==='act'&&q===null&&Number.isInteger(t/p))q=t/p;
+   if(!(q>0)||Math.abs(Math.round(q*p)-t)>1)return null;
+   if(kind==='marr'){w=read('weight',quantity);if(!(w>0)||unit==='кг'&&Math.abs(q-w)>.001)return null;}
+  }
+  if(!/^(шт|уп|кор|кг|л)$/.test(unit))return null;
+  const x={name:name+' / '+unit+(kind==='upd'?' (без НДС)':kind==='act'?' (с НДС)':''),unit,article,quantity:q,price:p/100,invoiceTotal:t/100,sourceRow,uncertain:true,source:name,packKg:unit==='кг'?null:parser.packWeight(name),packL:unit==='кг'?null:parser.packVolume(name)};
+  if(w!==null)x.invoiceWeightKg=w;if(n!==null)x.netPrice=p/100;
+  rows.push({...x,...parser.lineMetrics(x),_net:n,_tax:tax});
+ }
+ const total=rows.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0);
+ const foot=(k,fn)=>fn((footer?.boxes||[]).filter(b=>role(b)===k).map(b=>b.text).join(' '));
+ let verified=false;
+ if(kind==='upd'){
+  if(!footer)return null;
+  const n=foot('net',amount),tax=foot('tax',amount),g=foot('total',amount);
+  if(n===null||tax===null||g===null||n+tax!==g||g!==total||rows.reduce((s,x)=>s+x._net,0)!==n||rows.reduce((s,x)=>s+x._tax,0)!==tax)return null;
+  verified=true;
+ }else if(kind==='marr'&&footer){
+  const g=foot('total',amount),q=foot('quantity',quantity),w=foot('weight',quantity);
+  if(g===null||q===null||w===null)return null;
+  verified=total===g&&Math.abs(rows.reduce((s,x)=>s+x.quantity,0)-q)<.00001&&rows.reduce((s,x)=>s+Math.round(x.invoiceWeightKg*1000),0)===Math.round(w*1000);
+  if(!verified&&(total>=g||rows.reduce((s,x)=>s+x.quantity,0)>=q))return null;
+ }
+ const items=rows.map(({_net,_tax,...x})=>x);
+ return {...base,supplier,items,documentVerified:verified,pageVerified:verified,spatialVerified:verified,spatialRecovered:true};
+}
+
 function candidate(boxes,raw,base,parser,upd){
+ if(base&&!base.documentVerified&&!base.pageVerified){const table=spatialInvoiceTable(boxes,raw,base,parser);if(table&&(table.documentVerified||table.items.length>base.items.filter(x=>x.price!=null).length))return table;}
  const lines=spatialLines(boxes);
  if(!lines.length||!base||base.documentVerified||base.pageVerified)return null;
  if(upd?.structured){
@@ -129,7 +230,7 @@ function candidate(boxes,raw,base,parser,upd){
  });
  return {...base,items,documentVerified:true,spatialVerified:true};
 }
-const api={extractTable,spatialLines,spatialSimple,candidate};
+const api={extractTable,spatialLines,spatialSimple,spatialInvoiceTable,candidate};
 if(typeof module==='object'&&module.exports)module.exports=api;else globalThis.supplySpatial=api;
 
 })();
