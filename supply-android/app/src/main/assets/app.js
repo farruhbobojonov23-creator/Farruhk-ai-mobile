@@ -106,7 +106,9 @@ window.supplyOcrFinish=(id,text,error)=>{
   }
   dirty=true;const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(best.error||'Товарная таблица не прочитана. Выберите более чёткое фото или крупный снимок таблицы.');
-  if(!priced||ambiguous||priced<r.items.length)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
+  const missingPack=r.items.some(x=>['шт','уп','кор'].includes(x.unit)&&!x.packKg);
+  if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана.';
+  if(!priced||ambiguous||priced<r.items.length||missingPack)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
  }catch(e){scanCandidates=[];scanPass=0;$('ocrState').textContent='Не удалось обработать текст. Проверьте фото.';scanDiagnostic(text);}
 };
 $('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите фото');return}scanCandidates=[];scanPass=1;nextScan('rescan','Повторная проверка товарной таблицы…')};

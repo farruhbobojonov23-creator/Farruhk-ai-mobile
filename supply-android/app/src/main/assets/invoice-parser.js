@@ -435,3 +435,42 @@ api.parseSamePhotoPasses=function(texts){
  });
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const parse=api.parseSimple,passes=api.parseSamePhotoPasses;
+const key=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+function enrich(r,texts){
+ if(r.supplier!=='Восток-Запад')return r;
+ const result={...r,items:r.items.map(x=>{
+  if(x.packKg||!['шт','уп','кор'].includes(x.unit)||!x.article||x.price==null)return x;
+  const evidence=[];
+  for(const raw of texts){
+   const lines=String(raw||'').split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+   for(let i=0;i<lines.length;i++){
+    if(!new RegExp('(?:^|\\D)'+x.article+'(?:\\D|$)').test(lines[i]))continue;
+    const before=lines[i].split(x.article)[0],near=[before];
+    for(let j=i+1;j<=Math.min(i+3,lines.length-1);j++){
+     if(/^(?:итого|всего|в том числе|масса|подпись|товарная)/i.test(lines[j])||/\d{7,12}/.test(lines[j]))break;
+     if(/^\d+(?:[.,]\d+)?\s*(?:кг|кт|г)(?:\s*\/\s*\d+[0-9ОоO]*\s*л)?\s*$/i.test(lines[j])||/^(?:запекания|для запекания|с массовой долей жирности)/i.test(lines[j]))near.push(lines[j]);
+    }
+    for(const s of near){
+     const normalized=s.replace(/(\d)\s*кт(?=\s*\/|\s*$)/ig,'$1кг').replace(/[ОоO](?=л)/g,'0');
+     const kg=api.packWeight(normalized);
+     if(kg)evidence.push({kg,text:normalized});
+    }
+   }
+  }
+  const weights=[...new Set(evidence.map(z=>z.kg))];if(weights.length!==1)return x;
+  const kg=weights[0],next={...x,packKg:kg};
+  if(!api.packWeight(next.name)){
+   const suffix=evidence.find(z=>z.kg===kg).text.match(/\d+(?:[.,]\d+)?\s*(?:кг|г)(?:\s*\/\s*\d+\s*л)?/i)?.[0];
+   if(suffix)next.name=next.name.replace(/(?:\s*\/\s*(?:шт|уп|кор)(?:\s+\(с НДС\))?)$/i,m=>' '+suffix+m);
+  }
+  Object.assign(next,api.lineMetrics(next));if(x.invoiceTotal!=null)next.totalPrice=x.invoiceTotal;
+  return next;
+ })};return result;
+}
+api.parseSimple=text=>enrich(parse(text),[text]);
+api.parseSamePhotoPasses=texts=>passes(texts).map(r=>enrich(r,texts));
+})(globalThis);
