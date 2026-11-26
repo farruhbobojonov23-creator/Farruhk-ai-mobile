@@ -1319,14 +1319,14 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
  }
  async function runSmart(){
   if(running||scanBusy)return;
-  const file=pendingPhoto||$('file').files[0];
+  const file=pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0];
   if(!file?.type?.startsWith('image/')){status('Выберите фотографию');return;}
   if(!confirm('SMART SCAN — экспериментальное распознавание. При первом запуске загрузятся модели (около 28 МБ). Фото остаётся на устройстве. Результат нужно сверить. Продолжить?'))return;
   running=true;scanBusy=true;smart.disabled=true;$('rescan').disabled=true;$('save').disabled=true;$('saveNext').disabled=true;$('file').disabled=true;
   const original=file,started=performance.now();let message='';
   try{
    const output=await window.supplySmartScan.scanPhoto(file,{progress:v=>{$('ocrState').textContent='SMART SCAN: '+v;}});
-   if(pendingPhoto!==original||$('entry').classList.contains('hide'))return;
+   if((pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0])!==original||$('entry').classList.contains('hide'))return;
    const r=output.result,raw=rawText(output.items);
    if(!r.rows.length)throw Error(r.error||'Таблица не распознана');
    if(r.rows.some(x=>!x.name||!(x.quantity>0)||!(x.price>0)||!(x.total>0)||!x.arithmeticOK||x.conflicts?.length)||r.expectedRows&&r.expectedRows!==r.rows.length||r.printedTotal!=null&&!r.totalOK)throw Error('Не все строки прошли проверку; старые данные сохранены.');
