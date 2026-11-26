@@ -117,6 +117,19 @@ jobs:
             if(data.quantity!==4||data.price!==1906.86||data.invoiceTotal!==7627.45||m.totalKg!==37.6||m.pricePerKg!==202.86)throw Error('Invoice values or derived values changed incorrectly');
             el.remove();
           });
+          await page.evaluate(()=>{
+            addLine({name:'Сироп учебный 1л / шт (без НДС)',unit:'шт',quantity:2,price:590.98,invoiceTotal:1442});
+            const el=$('lines').lastElementChild,data=lineData(el);
+            if(data.packL!==1||data.packKg!==null||el.querySelector('[data-field=packMeasure]').value!=='л')throw Error('Volume not populated');
+            if(!el.querySelector('.line-summary').textContent.includes('2 л')||!el.querySelector('.kg-price').textContent.includes('590,98'))throw Error('Volume metrics not shown');
+            if(!el.querySelector('.line-total').textContent.replace(/\s/g,'').includes('1442,00'))throw Error('Invoice total changed');
+            if(!el.querySelector('[data-field=price]').getAttribute('aria-label').includes('без НДС'))throw Error('VAT basis missing');
+            el.remove();
+            addLine({name:'Сироп учебный',unit:'шт',quantity:2,price:590.98,packL:1,invoiceTotal:1442});
+            const saved=$('lines').lastElementChild;
+            if(lineData(saved).packL!==1||lineData(saved).packKg!==null)throw Error('Saved volume was lost');
+            saved.remove();
+          });
           await page.setViewportSize({width:320,height:740});
           for(let i=0;i<29;i++)await page.locator('#addLine').click();
           assert.equal(await page.locator('#lines .line').count(),30);
