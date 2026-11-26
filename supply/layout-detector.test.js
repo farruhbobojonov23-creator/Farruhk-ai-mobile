@@ -1,0 +1,28 @@
+
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+// Load the same classic script as Android WebView, independently of root ESM settings.
+const context={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../supply-android/app/src/main/assets/layout-detector.js'),'utf8'),context);
+const api=context.supplySpatial;assert.equal(typeof api?.spatialLines,'function');
+const box=(text,left,right,top,bottom=top+10,confidence=.98)=>({text,left,right,top,bottom,confidence});
+const head=[box('Наименование',0,100,10),box('Ед',150,165,10),box('Количество',200,260,10),box('Цена',320,350,10),box('Сумма',420,460,10)];
+const row=(name,q,p,t,y)=>[box(name,0,105,y),box('шт',150,165,y),box(q,215,240,y),box(p,315,355,y),box(t,415,465,y)];
+const foot=(sum,y)=>[box('Итого',0,60,y),box(sum,415,465,y)];
+const a=[...head,...row('Новый товар','3','2700,00','8100,00',40),...row('Другой товар','2','950,00','1900,00',65),...foot('10000,00',95)];
+const b=[...head,...row('Новая партия','4','750,00','3000,00',40),...foot('3000,00',70)];
+let r=api.spatialSimple(api.spatialLines(a.slice().reverse()));assert.equal(r.documentVerified,true);assert.equal(r.items.length,2);assert.equal(r.total,10000);
+r=api.spatialSimple(api.spatialLines(b));assert.equal(r.documentVerified,true);assert.equal(r.items.length,1);assert.equal(r.total,3000);
+assert.equal(api.spatialSimple(api.spatialLines(a.filter(x=>x.text!=='Другой товар'))),null);
+assert.equal(api.spatialSimple(api.spatialLines(a.map(x=>x.text==='10000,00'?{...x,text:'9999,00'}:x))),null);
+assert.equal(api.spatialSimple(api.spatialLines(a.map(x=>x.text==='3'?{...x,confidence:.1}:x))),null);
+assert.equal(api.spatialSimple(api.spatialLines(a.filter(x=>x.text!=='Количество'))),null);
+const parser={packWeight:()=>null,packVolume:()=>null,lineMetrics:x=>({totalPrice:x.invoiceTotal}),parseSimple:()=>({supplier:'Поставщик',documentVerified:true,items:[{quantity:1,price:100,invoiceTotal:122,unit:'шт'}]})};
+const base={supplier:'Поставщик',items:[]};
+assert.equal(api.candidate(a,'Поставщик',base,parser,{}).items[0].name,'Новый товар / шт');
+assert.equal(api.candidate(a,'НДС',base,parser,{}),null);
+assert.equal(api.candidate(a,'УПД',base,parser,{structured:true,printedTotal:122}).spatialVerified,true);
+assert.equal(api.candidate(a,'УПД',base,parser,{structured:true,printedTotal:121}),null);
+assert.equal(api.candidate(a,'УПД',base,parser,{structured:true,printedTotal:122,conflictingTotals:true}),null);
+assert.equal(api.candidate(a,'Поставщик',{...base,documentVerified:true},parser,{}),null);
+console.log('Spatial detector assertions passed');

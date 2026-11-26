@@ -576,6 +576,7 @@ jobs:
       - name: Verify all regression tests
         run: |
           node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
+          node --test supply/layout-core.test.js supply/layout-detector.test.js
           node --check supply-android/app/src/main/assets/app.js
           node --check supply-android/app/src/main/assets/invoice-parser.js
       - name: Sign and publish small web update, preserve installed Android version
@@ -612,7 +613,9 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --dir "$out"
           code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
           test "$(jq -er .package "$out/update.json")" = ai.farukh.supply
-          test "$(jq -er .versionCode "$out/update.json")" = "$code"
+          published=$(jq -er .versionCode "$out/update.json")
+          if [ "$published" -lt "$code" ]; then echo "Native upgrade requires Android release gate; web publication deferred."; exit 0; fi
+          test "$published" = "$code"
           cert=$(jq -er .cert "$out/update.json")
           webroot=supply-android/app/src/main/assets
           revision=$(tr -d '[:space:]' < "$webroot/web-version.txt")
