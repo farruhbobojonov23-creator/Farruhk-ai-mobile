@@ -684,7 +684,7 @@ function acceptPdf(text,parseStarted){
  if(missing||review)scanDiagnostic(source.map((s,i)=>'Страница '+(i+1)+'\n'+s).join('\n---\n'));
 }
 
-window.supplyOcrFinish=(id,text,error)=>{
+window.supplyOcrFinish=(id,text,error,spatialJson)=>{
  if(id!==ocrId||$('entry').classList.contains('hide'))return;
  if(stageStartedAt)scanTrace.push({label:scanLabel(),seconds:Math.round((performance.now()-stageStartedAt)/100)/10,failed:!!error||!String(text||'').trim()});stageStartedAt=0;const parseStarted=performance.now();scanBusy=false;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');
  try{
@@ -700,7 +700,14 @@ window.supplyOcrFinish=(id,text,error)=>{
   }
   if(current.supplier&&!photoSupplier)photoSupplier=current.supplier;
   if(text&&String(text).trim()&&!photoPassTexts.includes(text))photoPassTexts.push(text);
-  scanCandidates.push({r:current,text,error});
+  // Each OCR pass has its own coordinate frame; never merge word boxes
+  // from different photographs, orientations, crops or OCR engines.
+  let layoutBoxes=[];
+  try{
+   const raw=typeof spatialJson==='string'?JSON.parse(spatialJson):[];
+   if(Array.isArray(raw)&&raw.length<=12000&&raw.every(b=>b&&typeof b.text==='string'&&[b.left,b.top,b.right,b.bottom,b.confidence].every(Number.isFinite)&&b.right>b.left&&b.bottom>b.top&&b.confidence>=0&&b.confidence<=1))layoutBoxes=raw;
+  }catch{}
+  scanCandidates.push({r:current,text,error,layoutBoxes});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   // A missing pack weight alone is not a reason to scan a reconciled invoice again.
   // Preserve the original amount and request an explicit pack weight if unknown.
