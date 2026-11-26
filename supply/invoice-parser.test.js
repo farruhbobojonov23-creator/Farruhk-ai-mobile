@@ -14,7 +14,9 @@ test('uncertain amount is hint only',()=>{const r=parse('Сыр тестовый
 test('quantity is a review hint only on incomplete numeric row',()=>{const r=parse('Соус тестовый 1.000 100.00 22.00 122.00');a.equal(r.items.length,0);a.equal(r.fragments[0].quantityHint,1);a.equal(r.fragments[0].quantity,undefined);a.equal(r.fragments[0].grossTotal,undefined);});
 test('a separate package continuation is merged as a review suggestion only',()=>{const r=parse('Рис тестовый 5:000 100.00 500.00\nЛЕБЕДИ СУШИ меш/25кг');a.equal(r.fragments.length,1);a.equal(r.fragments[0].joinedHint,true);a.equal(r.fragments[0].quantityHint,5);a.equal(r.fragments[0].unit,undefined);});
 
-const {parseSimple}=require('../supply-android/app/src/main/assets/invoice-parser.js');
+const parserCode=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/invoice-parser.js'),'utf8');
+const browserParser=new Function('module', 'globalThis',parserCode+'\nreturn globalThis.supplyInvoiceParser;')(undefined,{});
+const {parseSimple}=browserParser;
 test('simple two-column invoice fills supplier, names and prices',()=>{const r=parseSimple('Поставщик: ООО «Тест»\nТовар Цена\n1 Рис 135,00\n2 Нори 850,00\nИтого 985,00');a.equal(r.supplier,'ООО «Тест»');a.deepEqual(r.items.map(x=>[x.name,x.price]),[['Рис',135],['Нори',850]]);});
 test('product percentage is not VAT',()=>{const r=parseSimple('Майонез 67% кг 2 135,00 270,00');a.equal(r.items[0].price,135);a.ok(!r.items[0].name.includes('без НДС'));});
 test('VAT price is marked separately',()=>{const r=parseSimple('Рис кг 2 135,00 270,00 20% 54,00 324,00');a.equal(r.items[0].price,135);a.ok(r.items[0].name.includes('без НДС'));});
