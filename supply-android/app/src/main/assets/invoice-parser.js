@@ -443,18 +443,39 @@ const key=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
 function enrich(r,texts){
  if(r.supplier!=='Восток-Запад')return r;
  const result={...r,items:r.items.map(x=>{
-  if(x.packKg||!['шт','уп','кор'].includes(x.unit)||!x.article||x.price==null)return x;
+  if(x.packKg||!['шт','уп','кор'].includes(x.unit)||x.price==null)return x;
   const evidence=[];
+  const amount=s=>Number(String(s).replace(/\s/g,'').replace(',','.'));
+  const money=s=>{s=s.replace(/\s/g,'');if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf('.')>s.lastIndexOf(',')?s.replace(/,/g,''):s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+  const identity=key(x.name.replace(/\s*\/\s*(?:шт|уп|кор)(?:\s+\(с НДС\))?$/i,''));
+  const article=x.article&&/^\d{7,12}$/.test(String(x.article))?new RegExp('(?:^|\\D)'+x.article+'(?:\\D|$)'):null;
   for(const raw of texts){
    const lines=String(raw||'').split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+   const totals=lines.map(l=>l.match(/^всего\s+к\s+оплате\s*[:=]?\s+([\d ,.]+)\s*$/i)).filter(Boolean).map(m=>money(m[1]));
+   const singleVerified=r.items.length===1&&x.invoiceTotal>0&&totals.length>0&&totals.every(v=>Math.abs(v-x.invoiceTotal)<.011);
    for(let i=0;i<lines.length;i++){
-    if(!new RegExp('(?:^|\\D)'+x.article+'(?:\\D|$)').test(lines[i]))continue;
-    const before=lines[i].split(x.article)[0],near=[before];
-    for(let j=i+1;j<=Math.min(i+3,lines.length-1);j++){
-     if(/^(?:итого|всего|в том числе|масса|подпись|товарная)/i.test(lines[j])||/\d{7,12}/.test(lines[j]))break;
-     if(/^\d+(?:[.,]\d+)?\s*(?:кг|кт|г)(?:\s*\/\s*\d+[0-9ОоO]*\s*л)?\s*$/i.test(lines[j])||/^(?:запекания|для запекания|с массовой долей жирности)/i.test(lines[j]))near.push(lines[j]);
+    const byArticle=article&&article.test(lines[i]);
+    const byName=singleVerified&&identity.length>=8&&key(lines[i].replace(/^\d{1,3}[.)]?\s+/,'' )).startsWith(identity);
+    if(!byArticle&&!byName)continue;
+    const before=byArticle?lines[i].split(String(x.article))[0]:lines[i];
+    const near=[before];
+    for(let j=i+1;j<=Math.min(i+7,lines.length-1);j++){
+     const line=lines[j];
+     if(/^(?:итого|всего|в том числе|масса|подпись|товарная|поставщик|грузо|наименование)/i.test(line)||/\d{7,12}/.test(line))break;
+     // A continuation may also include the shipping count, gross weight and unused columns.
+     const mixed=line.match(/^(\d+(?:[.,]\d+)?\s*к[гт]\s*\/\s*[0-9ОоO]+\s*л)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)(?:\s+[xх\-–—]+)*\s*$/i);
+     if(mixed){
+      const normalized=mixed[1].replace(/кт/ig,'кг').replace(/[ОоO](?=л)/g,'0');
+      const kg=api.packWeight(normalized),qty=amount(mixed[2]),gross=amount(mixed[3]);
+      if(kg&&qty===x.quantity&&gross+.001>=kg*qty)evidence.push({kg,text:normalized});
+      continue;
+     }
+     if(byArticle&&/^\d+(?:[.,]\d+)?\s*(?:кг|кт|г)(?:\s*\/\s*[0-9ОоO]+\s*л)?\s*$/i.test(line))near.push(line);
+     else if(byArticle&&/^(?:запекания|для запекания|с массовой долей жирности)/i.test(line))near.push(line);
+     else if(/^(?:\d{1,3}[.)]?\s+)?(?:майонез|сыр|рис|форель|лосось|креветк|соус|масло|мука|нори|угорь|сливки)\s/i.test(line))break;
     }
     for(const s of near){
+     if(!byArticle)continue;
      const normalized=s.replace(/(\d)\s*кт(?=\s*\/|\s*$)/ig,'$1кг').replace(/[ОоO](?=л)/g,'0');
      const kg=api.packWeight(normalized);
      if(kg)evidence.push({kg,text:normalized});
