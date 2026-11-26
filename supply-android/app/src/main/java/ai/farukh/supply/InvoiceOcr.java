@@ -47,7 +47,22 @@ final class InvoiceOcr {
    if(image==null)throw new IOException("Image");
    try{
     Bitmap prepared=prepareImage(image,focused);
-    try{return text(tess,prepared);}finally{if(prepared!=image)prepared.recycle();}
+    try{
+     if(!focused)return text(tess,prepared);
+     Bitmap improved=null;
+     try{
+      improved=enhanceTable(image);
+      if(improved!=null){
+       tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
+       String result=text(tess,improved);
+       if(result.trim().length()>60)return result;
+      }
+     }catch(RuntimeException|LinkageError ignored){
+      // Retain the tested legacy path if OpenCV cannot initialize or the image is unsuitable.
+     }finally{if(improved!=null)improved.recycle();}
+     tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
+     return text(tess,prepared);
+    }finally{if(prepared!=image)prepared.recycle();}
    }finally{image.recycle();}
   }finally{tess.recycle();}
  }
@@ -101,6 +116,45 @@ final class InvoiceOcr {
   paint.setColorFilter(new android.graphics.ColorMatrixColorFilter(matrix));
   canvas.drawBitmap(region,null,new android.graphics.Rect(0,0,gray.getWidth(),gray.getHeight()),paint);
   if(region!=image)region.recycle();return gray;
+ }
+ 
+ // Experimental focused path: straighten long table rules and suppress uneven illumination.
+ // Never alter the original photo. This path is only used by the existing /rescan route.
+ private static Bitmap enhanceTable(Bitmap image){
+  if(!org.opencv.android.OpenCVLoader.initLocal())return null;
+  org.opencv.core.Mat rgba=new org.opencv.core.Mat(),gray=new org.opencv.core.Mat(),edges=new org.opencv.core.Mat(),segments=new org.opencv.core.Mat(),rotated=new org.opencv.core.Mat(),background=new org.opencv.core.Mat(),normalized=new org.opencv.core.Mat(),up=new org.opencv.core.Mat(),matrix=null,roi=null;
+  try{
+   org.opencv.android.Utils.bitmapToMat(image,rgba);
+   org.opencv.imgproc.Imgproc.cvtColor(rgba,gray,org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY);
+   int w=gray.cols(),h=gray.rows();
+   if(w<300||h<300)return null;
+   org.opencv.imgproc.Imgproc.Canny(gray,edges,45,125);
+   org.opencv.imgproc.Imgproc.HoughLinesP(edges,segments,1,Math.PI/1800,Math.max(45,w/14),w*.32,Math.max(15,w*.03));
+   java.util.ArrayList<Double> angles=new java.util.ArrayList<>();
+   for(int i=0;i<segments.rows();i++){
+    double[] line=segments.get(i,0);if(line==null||line.length<4)continue;
+    double dx=line[2]-line[0],dy=line[3]-line[1],cy=(line[1]+line[3])/2;
+    if(cy<h*.16||cy>h*.62||Math.abs(dx)<w*.30)continue;
+    double a=Math.toDegrees(Math.atan2(dy,dx));if(a>90)a-=180;if(a< -90)a+=180;
+    if(Math.abs(a)<=12)angles.add(a);
+   }
+   java.util.Collections.sort(angles);
+   double angle=angles.size()>=3?angles.get(angles.size()/2):0;
+   matrix=org.opencv.imgproc.Imgproc.getRotationMatrix2D(new org.opencv.core.Point(w/2.0,h/2.0),angle,1);
+   org.opencv.imgproc.Imgproc.warpAffine(gray,rotated,matrix,new org.opencv.core.Size(w,h),org.opencv.imgproc.Imgproc.INTER_CUBIC,org.opencv.core.Core.BORDER_CONSTANT,new org.opencv.core.Scalar(255));
+   // Keep the header, all columns and the total on TTN-style documents. Full original is a separate OCR pass.
+   roi=rotated.submat(0,Math.max(1,(int)(h*.65)),0,w);
+   double sigma=Math.max(12,w/70.0);
+   org.opencv.imgproc.Imgproc.GaussianBlur(roi,background,new org.opencv.core.Size(0,0),sigma);
+   org.opencv.core.Core.divide(roi,background,normalized,235);
+   double scale=Math.max(1,Math.min(2,3000.0/w));
+   org.opencv.imgproc.Imgproc.resize(normalized,up,new org.opencv.core.Size(),scale,scale,org.opencv.imgproc.Imgproc.INTER_CUBIC);
+   Bitmap out=Bitmap.createBitmap(up.cols(),up.rows(),Bitmap.Config.ARGB_8888);
+   org.opencv.android.Utils.matToBitmap(up,out);return out;
+  }finally{
+   if(roi!=null)roi.release();if(matrix!=null)matrix.release();
+   for(org.opencv.core.Mat m:new org.opencv.core.Mat[]{rgba,gray,edges,segments,rotated,background,normalized,up})m.release();
+  }
  }
  private static String pdf(Context context,Uri uri,TessBaseAPI tess)throws IOException{
   ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,"r");if(fd==null)throw new IOException("PDF");
