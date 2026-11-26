@@ -412,13 +412,14 @@ jobs:
           const supplierA=page.locator('#supplierList .card').filter({has:page.locator('h2',{hasText:'Поставщик А'})});
           assert.equal(await supplierA.count(),1);
           assert.ok((await supplierA.innerText()).includes('2 накладных'));
-          const history=supplierA.locator('details').filter({hasText:'Рис Tamaki'});
+          await supplierA.locator('.list-detail > summary').click();
+          const history=supplierA.locator('details.supplier-history').filter({hasText:'Рис Tamaki'});
           assert.equal(await history.count(),1);
           await history.locator('summary').click();
           assert.ok((await history.innerText()).includes('Снижение'));
           assert.ok((await history.innerText()).includes('135,00'));
           assert.ok((await history.innerText()).includes('125,00'));
-          const noriHistory=supplierA.locator('details').filter({hasText:'Нори Gold'});
+          const noriHistory=supplierA.locator('details.supplier-history').filter({hasText:'Нори Gold'});
           await noriHistory.locator('summary').click();
           assert.ok((await noriHistory.innerText()).includes('Цена без изменений'));
           await supplierA.getByRole('button',{name:'Накладные поставщика'}).click();
