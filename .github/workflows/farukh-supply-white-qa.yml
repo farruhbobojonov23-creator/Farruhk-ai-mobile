@@ -295,6 +295,14 @@ jobs:
           await page.reload();
           await page.waitForFunction(()=>document.querySelector('#productCount').textContent==='2');
           assert.ok((await page.locator('#qualityRank').innerText()).includes('9,5'));
+          assert.ok((await page.locator('#supplierQuality').innerText()).includes('9,5/10'));
+          assert.equal(await page.locator('#visionProduct option').count()>0,true);
+          assert.ok((await page.locator('#visionOffers').innerText()).includes('Лучшая из известных цен'));
+          await page.locator('#visionBasis').selectOption('yield');
+          assert.ok((await page.locator('#visionOffers').innerText()).includes('Нужны подтверждённые значения выхода'));
+          await page.locator('#visionBasis').selectOption('purchase');
+          assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+          await page.screenshot({path:'qa-results/05-vision-analytics.png',fullPage:true});
           assert.ok(await page.evaluate(()=>Object.keys(catalogState.aliases).length===1&&docs.length===3));
 
           assert.equal(await page.locator('#supplierCount').textContent(),'2');
