@@ -322,3 +322,54 @@ api.parseSimple=function(text){
  return {supplier:'Восток-Запад',items};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const prior=api.parseSimple;
+const cash='(?:\\d{1,3}(?:[, .]\\d{3})+[.,]\\d{2}|\\d+[.,]\\d{2})',dec='\\d+(?:[.,]\\d{1,3})?';
+const num=s=>{s=String(s).replace(/\s/g,'');if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf('.')>s.lastIndexOf(',')?s.replace(/,/g,''):s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+const anchor=/^(.*\S)\s+(\d{7,12})\s+(кг|шт|уп|кор)(?:\s+(166|796|778))?\.?\s*$/i;
+const values=new RegExp('^('+dec+')\\s*%?\\s+('+cash+')\\s+('+dec+')\\s+('+dec+')(?:\\s+[A-ZА-Я]-\\d+)?\\s*$','i');
+const vatRe=new RegExp('^в\\s+том\\s+числе\\s+ндс\\s*[:=]?\\s+('+cash+')\\s*$','i');
+const totalRe=new RegExp('^всего\\s+к\\s+оплате\\s*[:=]?\\s+('+cash+')\\s*$','i');
+const stop=/^(?:поставщик|плательщик|грузо|товарная|товарно|накладная|наименование|количество|итого|всего|в том числе|подпись|масса|код|ставка|основание|покупатель)/i;
+api.parseSimple=function(text){
+ const raw=String(text||''),b=prior(raw);
+ if(b.supplier!=='Восток-Запад'&&!/восток\s*[-–]?\s*запад/i.test(raw))return b;
+ const lines=raw.split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+ const items=[];
+ for(let i=0;i<lines.length-1;i++){
+  const m=lines[i].match(anchor),n=lines[i+1].match(values);if(!m||!n)continue;
+  const unit=m[3].toLowerCase(),code=m[4],rate=num(n[1]),amount=num(n[2]),quantity=num(n[3]),gross=num(n[4]);
+  if(code&&({кг:'166',шт:'796',уп:'778'})[unit]!==code)continue;
+  if(![0,5,7,10,20,22].includes(rate)||!(amount>0&&quantity>0&&gross>0))continue;
+  if(unit==='кг'&&gross+.001<quantity)continue;
+  if(unit!=='кг'&&!Number.isInteger(quantity))continue;
+  let name=m[1].replace(/^\d{1,3}[.)]?\s+/,'').trim();
+  const prev=lines[i-1]||'',next=lines[i+2]||'';
+  // Only join a preceding product name already identified by the earlier parser.
+  if(prev&&!stop.test(prev)&&b.items.some(x=>x.name===prev||x.name.startsWith(prev+' /'))&&!name.toLowerCase().startsWith(prev.toLowerCase()))name=prev+' '+name;
+  if(/^сол[её]ная пищевая рыбная продукция$/i.test(next))name+=' '+next;
+  else if(/^\d+(?:[.,]\d+)?\s*кг\s*\/\s*\d+\s*л$/i.test(next)&&!api.packWeight(name))name+=' '+next;
+  if(!/[а-яёa-z]{3}/i.test(name)||stop.test(name))continue;
+  const packKg=unit==='кг'?null:api.packWeight(name);
+  if(packKg&&gross+.001<packKg*quantity)continue;
+  if(items.some(x=>x.article===m[2]))continue;
+  const x={name:name+' / '+unit+' (с НДС)',price:round(amount/quantity),unit,quantity,packKg,invoiceTotal:amount,priceDerived:true,uncertain:true,article:m[2],source:lines.slice(Math.max(0,i-1),i+3).join('\n')};
+  Object.assign(x,api.lineMetrics(x));x.totalPrice=amount;items.push({x,vat:round(amount*rate/(100+rate))});
+ }
+ if(!items.length)return b;
+ // When the heading or OKEI column is missing, validate against the independent
+ // VAT total or the document payment total before using any recovered numbers.
+ const vats=lines.map(l=>l.match(vatRe)).filter(Boolean).map(m=>num(m[1]));
+ const totals=lines.map(l=>l.match(totalRe)).filter(Boolean).map(m=>num(m[1]));
+ const amount=items.reduce((s,z)=>s+z.x.invoiceTotal,0),tax=items.reduce((s,z)=>s+z.vat,0);
+ const vatOK=vats.length===1&&Math.abs(vats[0]-tax)<=.02;
+ const totalOK=totals.length===1&&Math.abs(totals[0]-amount)<=.02;
+ if((vats.length&&!vatOK)||(totals.length&&!totalOK)||(!vatOK&&!totalOK))return b;
+ const recovered=items.map(z=>z.x);
+ if(b.items.filter(x=>x.price!=null).length>=recovered.length)return b;
+ return {supplier:'Восток-Запад',items:recovered};
+};
+})(globalThis);

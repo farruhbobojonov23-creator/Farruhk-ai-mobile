@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),norm=s=>String(s||'').normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' '),rub=n=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽',sections=['home','entry','invoices','products','suppliers','compare'];
-let scanPass=0,scanCandidates=[];let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false;
+let scanPass=0,scanCandidates=[],photoSupplier='';let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false;
 function node(tag,txt,cls){const n=document.createElement(tag);if(txt!=null)n.textContent=txt;if(cls)n.className=cls;return n}
 function status(s,ok=false){$('status').textContent=s;$('status').classList.toggle('ok',ok)}
 function button(txt,fn){const n=node('button',txt);n.type='button';n.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));return n}
@@ -40,8 +40,8 @@ function addLine(data={}){
  f.append(a.wrap,del,q.wrap,ul,w.wrap,p.wrap,summary);$('lines').append(f);recalc();
 }
 function showPreview(file){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('preview').classList.add('hide');if(file&&file.type?.startsWith('image/')){previewUrl=URL.createObjectURL(file);$('preview').src=previewUrl;$('preview').classList.remove('hide')}}
-function reset(){scanPass=0;scanCandidates=[];document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;status('')}
-$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{scanPass=0;scanCandidates=[];document.getElementById('ocrDiagnostic')?.remove();showPreview($('file').files[0]);dirty=true});
+function reset(){scanPass=0;scanCandidates=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;status('')}
+$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{scanPass=0;scanCandidates=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();showPreview($('file').files[0]);dirty=true});
 function numeric(s){const n=Number(String(s).replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null}
 function dateLabel(d){const v=new Date(d);return Number.isFinite(v.getTime())?v.toLocaleDateString('ru-RU'):''}
 function linesOf(d){if(d.simpleVersion===1)return Array.isArray(d.lines)?d.lines:[];if(d.status!=='confirmed')return [];return (d.lines||[]).flatMap(l=>{try{const p=window.supplyAnalytics.linePrice(l);return [{name:l.productId+' / '+p.unit+' (с НДС)',price:p.price}]}catch{return []}})}
@@ -78,11 +78,12 @@ window.supplyOcrFinish=(id,text,error)=>{
   let current=window.supplyInvoiceParser.parseSimple(text||'');
   // A focused table crop can omit the header. Carry forward a unique supplier
   // already read from the same photo; never fill one from a preset or a previous invoice.
-  const earlierSuppliers=[...new Set(scanCandidates.map(x=>x.r.supplier).filter(Boolean))];
+  const earlierSuppliers=[...new Set([photoSupplier,...scanCandidates.map(x=>x.r.supplier)].filter(Boolean))];
   if(!current.supplier&&earlierSuppliers.length===1&&text){
    const contextual=window.supplyInvoiceParser.parseSimple('Поставщик: '+earlierSuppliers[0]+'\n'+text);
    if(scanScore(contextual)>scanScore(current))current=contextual;
   }
+  if(current.supplier&&!photoSupplier)photoSupplier=current.supplier;
   scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)&&!current.items.some(x=>x.priceDerived&&['шт','уп','кор'].includes(x.unit)&&!x.packKg);
@@ -96,7 +97,9 @@ window.supplyOcrFinish=(id,text,error)=>{
   const diagnostic=ranked.map(x=>x.text).filter(Boolean).join('\n---\n');scanCandidates=[];scanPass=0;
   if(r.supplier)$('supplier').value=r.supplier;
   if(r.items.length){
-   if([...$('lines').children].some(f=>f.querySelector('[data-field=name]').value)&&!confirm('Заменить текущие строки распознанными?'))return;
+   const existing=[...$('lines').children].map(lineData).filter(x=>x.name);
+   const safeUpgrade=existing.length>0&&existing.every(x=>x.price==null&&x.quantity==null&&r.items.some(y=>y.price!=null&&norm(y.name).startsWith(norm(x.name))));
+   if(existing.length&&!safeUpgrade&&!confirm('Заменить текущие строки распознанными?'))return;
    $('lines').replaceChildren();for(const l of r.items)addLine(l)
   }
   dirty=true;const priced=r.items.filter(x=>x.price!=null).length;

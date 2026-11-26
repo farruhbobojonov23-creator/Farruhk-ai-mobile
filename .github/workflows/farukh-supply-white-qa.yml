@@ -76,6 +76,12 @@ jobs:
           await page.locator('[data-field=quantity]').fill('4');
           assert.ok((await page.locator('.line-summary').innerText()).includes('40 кг'));
           await page.locator('nav button[data-go=home]').click();
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate((s)=>{window.supplyOcrStart(91);window.supplyOcrFinish(91,s,'');},"Поставщик: Восток-Запад\nФорель тестовая филе с кожей\nмороженая, Trim C 1,8кг+ 123456789 КГ\n10.00 85,680.00 47.60 51.20\nсоленая пищевая рыбная продукция\nВ том числе НДС 7,789.09");
+          assert.equal(await page.locator('[data-field=quantity]').inputValue(),'47.6');
+          assert.equal(await page.locator('[data-field=price]').inputValue(),'1800');
+          assert.equal(await page.locator('[data-field=unit]').inputValue(),'кг');
+          await page.locator('nav button[data-go=home]').click();
           await invoice('Поставщик А',135,1,true);
           await invoice('Поставщик Б',150,2,false);
           await invoice('Поставщик А',125,3,false);
