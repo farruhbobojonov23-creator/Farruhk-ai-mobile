@@ -129,8 +129,24 @@ function spatialInvoiceTable(boxes,raw,base,parser){
    const map=new Map(inds.map((i,j)=>[i,roles[j]]));
    candidates.push({kind,header:l,cols:l.boxes.map((b,i)=>({x:cx(b),role:map.get(i)||'ignore'}))});
   }
-  const roles=l.boxes.map(b=>{const t=fold(b.text);if(t==='№')return 'row';if(t==='код')return 'code';if(t==='наименование')return 'name';if(/^ед\.?(?:\s*изм\.?)?$/.test(t))return 'unit';if(t==='мест')return 'ignore';if(/^(кол[- ]?во|количество)$/.test(t))return 'quantity';if(/^вес(?:\s*кг)?$/.test(t))return 'weight';if(t==='цена')return 'price';if(t==='сумма')return 'total';return null;});
+  const roles=l.boxes.map(b=>{const t=fold(b.text);if(t==='№'||t==='no')return 'row';if(t==='код')return 'code';if(t==='наименование')return 'name';if(/^ед\.?(?:\s*изм\.?)?$/.test(t))return 'unit';if(t==='мест')return 'ignore';if(/^(кол[- ]?во|количество)$/.test(t))return 'quantity';if(/^вес(?:\s*кг)?$/.test(t))return 'weight';if(t==='цена')return 'price';if(t==='сумма')return 'total';return null;});
   if(['row','code','name','unit','quantity','weight','price','total'].every(k=>roles.filter(x=>x===k).length===1))candidates.push({kind:'marr',header:l,cols:l.boxes.flatMap((b,i)=>roles[i]?[{x:cx(b),role:roles[i]}]:[])});
+ }
+ // A headerless continuation is accepted only with the MARR supplier already
+ // recognized in the current document and an independently recognizable row.
+ if(!candidates.length&&/марр\s+руссия/i.test(base.supplier||'')){
+  const rows=ls.flatMap(l=>{
+   const b=l.boxes,code=b.findIndex(x=>/^\d{8,12}$/.test(x.text.trim()));
+   if(code!==1||!/^\d{1,3}$/.test(b[0].text.trim()))return [];
+   const u=b.findIndex((x,i)=>i>code+1&&/^(?:упак|уп|шт|кор|кг)\.?$/i.test(x.text.trim()));
+   if(u<0||b.length!==u+5||quantity(b[u+1].text)===null||quantity(b[u+2].text)===null||amount(b[u+3].text)===null||amount(b[u+4].text)===null)return [];
+   const nameX=(b[code].right+b[u].left)/2;
+   return [[{role:'row',x:cx(b[0])},{role:'code',x:cx(b[code])},{role:'name',x:nameX},{role:'unit',x:cx(b[u])},{role:'quantity',x:cx(b[u+1])},{role:'weight',x:cx(b[u+2])},{role:'price',x:cx(b[u+3])},{role:'total',x:cx(b[u+4])}]];
+  });
+  // Require two complete rows supporting the same column geometry.
+  if(rows.length>=2&&rows.every(r=>r.every((c,i)=>Math.abs(c.x-rows[0][i].x)<Math.max(3,(rows[0][i+1]?.x-c.x||30)*.25)))){
+   candidates.push({kind:'marr',header:{y:ls[0].top-2,bottom:ls[0].top-1},cols:rows[0]});
+  }
  }
  if(candidates.length!==1)return null;
  const {kind,header,cols}=candidates[0];
