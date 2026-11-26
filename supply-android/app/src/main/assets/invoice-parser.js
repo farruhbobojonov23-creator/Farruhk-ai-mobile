@@ -985,8 +985,10 @@ function recover(forward,backward,supplier){
  const flat=b.join(' ').toLowerCase();let cursor=0;
  for(const name of names.slice().reverse()){
   const token=name.match(/^[а-яё]{3,}/i)?.[0]?.toLowerCase();if(!token)return null;
-  const at=flat.indexOf(token,cursor);if(at<0)return null;
-  if(flat.indexOf(token,at+token.length)>=0)return null;
+  const matches=[...flat.matchAll(new RegExp('(?:^|[^а-яёa-z])('+token+')(?=$|[^а-яёa-z])','giu'))];
+  if(matches.length!==1)return null;
+  const at=matches[0].index+matches[0][0].length-token.length;
+  if(at<cursor)return null;
   cursor=at+token.length;
  }
  const qs=[];
