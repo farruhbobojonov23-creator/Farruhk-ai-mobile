@@ -315,19 +315,26 @@ jobs:
           // Similar different labels must remain separate until explicit confirmation.
           const matchPage=await browser.newPage({viewport:{width:393,height:873},isMobile:true});
           await matchPage.goto('http://127.0.0.1:8765/index.html');
-          await matchPage.waitForFunction(()=>typeof db!=='undefined'&&db);
+          await matchPage.waitForFunction(()=>backupReady);
           await matchPage.evaluate(async()=>{
             const entry=(id,supplier,name,price)=>({id,simpleVersion:1,supplierId:supplier,documentDate:'2026-11-20',savedAt:'2026-11-20T10:00:00Z',lines:[{name,price,unit:'кг',quantity:2}]});
-            await tx('readwrite',s=>{s.put(entry('m1','Тест А','Рис Tamaki',100));s.put(entry('m2','Тест Б','Рис Premium',120));});
+            await tx('readwrite',s=>{s.put(entry('m1','Тест А','Рис Tamaki',100));return s.put(entry('m2','Тест Б','Рис Premium',120));});
             await refresh();
           });
           await matchPage.locator('nav button[data-go=products]').click();
           await matchPage.locator('#matchCard').waitFor({state:'visible'});
+          assert.equal(await matchPage.evaluate(()=>categoryFor('Креветка очищенная 16/20')),'Рыба и морепродукты');
+          assert.equal(await matchPage.evaluate(()=>categoryFor('Рис Tamaki')),'Рис, лапша и нори');
+          assert.equal(await matchPage.evaluate(()=>categoryFor('Неизвестный товар')),'Прочее');
+          await matchPage.locator('#categoryFilter').selectOption('Рис, лапша и нори');
+          assert.equal(await matchPage.locator('#productList .card').count(),2);
+          await matchPage.locator('#categoryFilter').selectOption('');
           assert.equal(await matchPage.locator('#matchList button').count(),1);
           assert.equal(await matchPage.evaluate(()=>Object.keys(catalogState.aliases).length),0);
           await matchPage.getByRole('button',{name:'Проверить и связать'}).click();
           assert.ok(await matchPage.locator('.catalog-dialog select').inputValue());
           await matchPage.getByRole('button',{name:'Отмена',exact:true}).click();
+          await matchPage.locator('.catalog-dialog').waitFor({state:'detached'});
           assert.equal(await matchPage.evaluate(()=>Object.keys(catalogState.aliases).length),0);
           await matchPage.getByRole('button',{name:'Проверить и связать'}).click();
           await matchPage.getByRole('button',{name:'Подтвердить',exact:true}).click();
