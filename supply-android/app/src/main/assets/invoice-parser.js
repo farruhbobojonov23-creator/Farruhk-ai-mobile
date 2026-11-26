@@ -1083,3 +1083,40 @@ function recover(text,b){
 api.parseSimple=text=>recover(text,prior(text));
 api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const parse=api.parseSimple,passes=api.parseSamePhotoPasses;
+const key=s=>String(s||'').toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
+function recoverName(r,texts){
+ if(!r.supplier)return r;
+ return {...r,items:r.items.map(x=>{
+  if(!/^\d{7,12}$/.test(String(x.article||'')))return x;
+  const suffix=x.name.match(/\s*\/\s*(?:шт|уп|кор|кг)(?:\s+\((?:с|без) НДС\))?$/i)?.[0]||'';
+  const body=suffix?x.name.slice(0,-suffix.length):x.name;
+  const pack=body.match(/\s+\d+(?:[.,]\d+)?\s*к[гт]\s*\/\s*[0-9ОоO]+\s*л$/i)?.[0]||'';
+  const core=pack?body.slice(0,-pack.length):body;
+  if(!/^(?:запекания|для запекания|с массовой долей жирности|малосоленая|мороженая|охлажденная)\b|^(?:запекания|для запекания|с массовой долей жирности|малосоленая|мороженая|охлажденная)(?:\s|,)/i.test(core))return x;
+  const names=new Map();
+  for(const raw of texts){
+   const supplier=parse(raw).supplier;
+   if(supplier&&key(supplier)!==key(r.supplier))continue;
+   const lines=String(raw||'').split(/\r?\n/).map(s=>s.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim());
+   for(let i=1;i<lines.length;i++){
+    const m=lines[i].match(new RegExp('^(.*?)\\s+'+x.article+'(?:\\s|$)'));
+    if(!m)continue;
+    const tail=m[1].replace(/^\d{1,3}[.)]?\s+/,'').trim();
+    if(key(tail)!==key(core))continue;
+    const prev=lines[i-1].replace(/^\d{1,3}[.)]?\s+/,'').trim();
+    if(!/^(?:майонез|форель|сыр|рис|креветк\w*|соус|масло|мука|лосось|угорь|сливки)(?:\s|$)/i.test(prev)||/\d{7,}|(?:итого|всего к оплате)/i.test(prev))continue;
+    const name=prev+' '+tail;
+    names.set(key(name),name);
+   }
+  }
+  if(names.size!==1)return x;
+  return {...x,name:[...names.values()][0]+pack+suffix};
+ })};
+}
+api.parseSimple=text=>recoverName(parse(text),[text]);
+api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
+})(globalThis);

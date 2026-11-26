@@ -211,6 +211,24 @@ jobs:
           await page.locator('nav button[data-go=invoices]').click();
           await page.locator('#archive button').filter({hasText:'Удалить'}).click();
           await page.waitForFunction(()=>docs.length===0);
+          // Real OCR screenshot transcription: a manual retry must preserve the first pass.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.locator('#file').setInputFiles({name:'efko.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB1sAAAAASUVORK5CYII=','base64')});
+          await page.evaluate(()=>{window.supplyOcrStart(291);window.supplyOcrFinish(291,"Поставщик: Восток-Запад\nзапекания с массовой долей жирности 67% 500002158 ШТ\n22.00 7,627.44 4 39.2\nВ том числе НДС 1,375.44",'');});
+          assert.equal(await page.locator('[data-field=packKg]').inputValue(),'');
+          await page.evaluate(()=>{scanCandidates=photoPassTexts.map(text=>({r:window.supplyInvoiceParser.parseSimple(text),text,error:''}));scanPass=2;window.supplyOcrStart(292);window.supplyOcrFinish(292,"Майонез \"EFKO FOOD special\" для\nзапекания с массовой долей жирности 67% 500002158 | ШТ 796\n7,627.44 39.2\n9,4кг/10л\nВ том числе НДС 1,375.44\nТоварная накладная имеет продолжение на\nлистах, на бланках за №\nи содержит Один\nпорядковых номеров записей",'');});
+          assert.equal(await page.locator('#lines .line').count(),1);
+          assert.equal(await page.locator('[data-field=packKg]').inputValue(),'9.4');
+          assert.ok((await page.locator('[data-field=name]').inputValue()).includes('EFKO FOOD special'));
+          assert.equal(await page.locator('[data-field=quantity]').inputValue(),'4');
+          assert.equal(await page.locator('[data-field=price]').inputValue(),'1906.86');
+          assert.ok((await page.locator('.line-summary').innerText()).includes('37,6 кг'));
+          assert.ok((await page.locator('.kg-price').innerText()).includes('202,86'));
+          assert.equal(await page.evaluate(()=>pages.length),1);
+          await page.locator('nav button[data-go=home]').click();
+          await page.locator('button[data-go=entry]:visible').first().click();
+          assert.equal(await page.evaluate(()=>photoPassTexts.length),0);
+          await page.locator('nav button[data-go=home]').click();
           // PDF pages must be parsed separately; all 11 must survive one save.
           await page.locator('button[data-go=entry]:visible').first().click();
           await page.locator('#file').setInputFiles({name:'eleven.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 test fixture')});
