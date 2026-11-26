@@ -212,7 +212,9 @@ function invoiceHeader(raw){
  const dates=[...new Set(found.filter(m=>m[4]).map(m=>m[4]+'-'+m[3].padStart(2,'0')+'-'+m[2].padStart(2,'0')).filter(d=>Number.isFinite(Date.parse(d))&&new Date(d).toISOString().slice(0,10)===d))];
  return {documentNumber:ids.length===1?ids[0]:null,documentDate:dates.length===1?dates[0]:null};
 }
-function purchaseDate(d){return d.documentDate||d.date||d.savedAt||''}
+function purchaseDate(d){return d.documentDate||d.pages?.find(p=>p.documentDate)?.documentDate||d.date||d.savedAt||''}
+function purchaseDay(d){return String(purchaseDate(d)).slice(0,10)}
+function dailyPurchases(records){return [...grouped(records,purchaseDay).entries()].map(([day,items])=>({day,count:items.length,total:items.flatMap(linesOf).reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100})).sort((a,b)=>b.day.localeCompare(a.day))}
 function sameDocument(a,b){return !!(a.documentNumber&&b.documentNumber&&norm(a.documentNumber).replace(/\s+/g,'')===norm(b.documentNumber).replace(/\s+/g,'')&&supplierKey(a.supplierId)===supplierKey(b.supplierId)&&(!a.documentDate||!b.documentDate||a.documentDate===b.documentDate))}
 function pageMeta(r,raw){
  const text=String(raw||'');
@@ -255,7 +257,7 @@ function acceptPage(r,raw){
 }
 
 function numeric(s){const n=Number(String(s).replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null}
-function dateLabel(d){const v=new Date(d);return Number.isFinite(v.getTime())?v.toLocaleDateString('ru-RU'):''}
+function dateLabel(d){const iso=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(iso)return iso[3]+'.'+iso[2]+'.'+iso[1];const v=new Date(d);return Number.isFinite(v.getTime())?v.toLocaleDateString('ru-RU'):''}
 function linesOf(d){if(d.simpleVersion===1)return Array.isArray(d.lines)?d.lines.map(grossRow):[];if(d.status!=='confirmed')return [];return (d.lines||[]).flatMap(l=>{try{const p=window.supplyAnalytics.linePrice(l);return [{name:l.productId+' / '+p.unit+' (с НДС)',price:p.price}]}catch{return []}})}
 function supplierKey(s){
  return norm(s).replace(/^общество с ограниченной ответственностью\s+/, 'ооо ').replace(/[«»"“”]/g,'').replace(/\s+/g,' ').trim();
@@ -327,6 +329,7 @@ $('supplierList').replaceChildren();
 for(const [key,list] of [...suppliers.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ru'))){
  const c=node('div',null,'card'),purchases=ordered.filter(d=>supplierKey(d.supplierId)===key),all=obs.filter(r=>supplierKey(r.supplier)===key),histories=grouped(all,variantKey);
  c.append(node('h2',purchases[0]?.supplierId||list[0].supplier),node('p',list.length+' товаров · '+purchases.length+' накладных','muted'),button('Накладные поставщика',()=>{supplierFilter=key;go('invoices')}));
+ const daily=node('details');daily.append(node('summary','Закупки по дням'));for(const d of dailyPurchases(purchases))row(daily,dateLabel(d.day)||'Дата не указана',d.count+' накл.',node('strong',rub(d.total),'price'));c.append(daily);
  for(const r of list.sort((a,b)=>a.name.localeCompare(b.name,'ru'))){
   row(c,r.name,offerDetail(r),node('strong',historyPrice(r),'price'));
   supplierHistory(c,histories.get(variantKey(r))||[r]);
