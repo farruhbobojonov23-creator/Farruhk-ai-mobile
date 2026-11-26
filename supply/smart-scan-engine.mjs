@@ -12,6 +12,41 @@ function sample(im,x,y,ch){const w=im.width,h=im.height,d=im.data; x=Math.min(w-
 function imageTensor(im,w,h,normalize){const n=w*h,a=new Float32Array(3*n);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let sx=(x+.5)*im.width/w-.5,sy=(y+.5)*im.height/h-.5;for(let j=0;j<3;j++)a[j*n+y*w+x]=normalize(Math.round(sample(im,sx,sy,j)),j);}return a;}
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 function crop(im,p){let [tl,tr,br,bl]=p;let w=Math.max(2,Math.floor(Math.max(dist(tl,tr),dist(bl,br)))),h=Math.max(2,Math.floor(Math.max(dist(tl,bl),dist(tr,br))));if(h>w*1.5){[tl,tr,br,bl]=[tr,br,bl,tl];[w,h]=[h,w];}const actual=Math.min(640,Math.ceil(48*w/h)),width=Math.min(640,Math.max(64,Math.ceil((48*w/h+16)/64)*64));const n=48*width,buf=new Float32Array(n*3);for(let y=0;y<48;y++)for(let x=0;x<Math.min(actual,width);x++){const u=Math.max(0,Math.min(w-1,(x+.5)*w/actual-.5))/(w-1),v=Math.max(0,Math.min(h-1,(y+.5)*h/48-.5))/(h-1),sx=(tl[0]*(1-u)+tr[0]*u)*(1-v)+(bl[0]*(1-u)+br[0]*u)*v,sy=(tl[1]*(1-u)+tr[1]*u)*(1-v)+(bl[1]*(1-u)+br[1]*u)*v;for(let j=0;j<3;j++)buf[j*n+y*width+x]=Math.round(sample(im,sx,sy,j))/127.5-1;}return{buf,width};}
+// Estimate paper illumination at reduced resolution, then apply at native resolution.
+// The original image remains untouched. No thresholding that could delete small digits.
+export function normalizePaper(im){
+ const {width:w,height:h,data}=im;
+ const step=Math.max(2,Math.ceil(Math.max(w,h)/320)),bw=Math.ceil(w/step),bh=Math.ceil(h/step);
+ const bg=new Uint8Array(bw*bh),tmp=new Uint8Array(bg.length),closed=new Uint8Array(bg.length);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const i=(y*w+x)*4,k=Math.floor(y/step)*bw+Math.floor(x/step);
+  const v=Math.round((data[i]+data[i+1]+data[i+2])/3);
+  if(v>bg[k])bg[k]=v;
+ }
+ const r=Math.max(2,Math.round(Math.min(bw,bh)/45));
+ // Morphological closing approximates the bright background behind print.
+ for(const dilate of [true,false]){
+  for(let y=0;y<bh;y++)for(let x=0;x<bw;x++){
+   let v=dilate?0:255;for(let j=Math.max(0,x-r);j<=Math.min(bw-1,x+r);j++)v=dilate?Math.max(v,bg[y*bw+j]):Math.min(v,bg[y*bw+j]);tmp[y*bw+x]=v;
+  }
+  for(let y=0;y<bh;y++)for(let x=0;x<bw;x++){
+   let v=dilate?0:255;for(let j=Math.max(0,y-r);j<=Math.min(bh-1,y+r);j++)v=dilate?Math.max(v,tmp[j*bw+x]):Math.min(v,tmp[j*bw+x]);closed[y*bw+x]=v;
+  }
+  bg.set(closed);
+ }
+ // Smooth block edges, then bilinearly interpolate illumination.
+ for(let y=0;y<bh;y++)for(let x=0;x<bw;x++){let v=0,n=0;for(let j=Math.max(0,y-r);j<=Math.min(bh-1,y+r);j++)for(let k=Math.max(0,x-r);k<=Math.min(bw-1,x+r);k++){v+=bg[j*bw+k];n++;}tmp[y*bw+x]=Math.round(v/n);}
+ const out=new Uint8ClampedArray(data.length);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const gx=Math.max(0,Math.min(bw-1,(x+.5)/step-.5)),gy=Math.max(0,Math.min(bh-1,(y+.5)/step-.5)),a=Math.floor(gx),b=Math.floor(gy),c=Math.min(bw-1,a+1),d=Math.min(bh-1,b+1),u=gx-a,v=gy-b;
+  const light=(tmp[b*bw+a]*(1-u)+tmp[b*bw+c]*u)*(1-v)+(tmp[d*bw+a]*(1-u)+tmp[d*bw+c]*u)*v;
+  const gain=245/Math.max(90,light),i=(y*w+x)*4;
+  for(let k=0;k<3;k++)out[i+k]=Math.round(data[i+k]*gain);
+  out[i+3]=data[i+3];
+ }
+ return {width:w,height:h,data:out};
+}
+
 let busy=false;
 export async function scanPhoto(file,options={}){if(!file||!file.type?.startsWith('image/'))throw Error('Выберите фотографию');const im=await createImageBitmap(file);try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);return await scanRaster(ctx.getImageData(0,0,im.width,im.height),options);}finally{im.close();}}
-export async function scanRaster(im,{progress=()=>{},continuationLayout=null,offline=false,sessions=null}={}){if(busy)throw Error('Дождитесь окончания распознавания');busy=true;try{const t=performance.now();progress('Загрузка моделей');const {ort,det,rec,chars}=sessions||await load(progress,offline);const ow=im.width,oh=im.height,scale=Math.min(1,3200/Math.max(ow,oh)),w=Math.max(32,Math.round(ow*scale/32)*32),h=Math.max(32,Math.round(oh*scale/32)*32),mean=[.485,.456,.406],std=[.229,.224,.225];progress('Распознавание областей');const x=imageTensor(im,w,h,(v,j)=>(v/255-mean[j])/std[j]);const ds=await det.run({[det.inputNames[0]]:new ort.Tensor('float32',x,[1,3,h,w])}),o=Object.values(ds)[0];const boxes=polys(o.data,o.dims.at(-1),o.dims.at(-2),ow,oh);o.dispose?.();const groups={};for(const p of boxes){const c=crop(im,p);if(c)(groups[c.width]??=[]).push({...c,p});}const items=[];let done=0;for(const [widthStr,g] of Object.entries(groups)){const width=Number(widthStr);for(let i=0;i<g.length;i+=8){const batch=g.slice(i,i+8),n=3*48*width,v=new Float32Array(batch.length*n);batch.forEach((c,j)=>v.set(c.buf,j*n));const r=await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',v,[batch.length,3,48,width])}),y=Object.values(r)[0],T=y.dims[1],C=y.dims[2];if(C!==chars.length)throw Error('Model dictionary mismatch');for(let j=0;j<batch.length;j++){let text='',prev=-1,conf=[];for(let k=0;k<T;k++){let off=(j*T+k)*C,max=-Infinity,best=-1;for(let c=0;c<C;c++){const a=y.data[off+c];if(a>max){max=a;best=c;}}if(best!==prev&&best!==0){text+=chars[best]||'?';conf.push(max);}prev=best;}if(text.trim())items.push({text,score:conf.length?conf.reduce((a,b)=>a+b)/conf.length:0,poly:batch[j].p});}y.dispose?.();done+=batch.length;progress('Текст: '+done+' / '+boxes.length);}}const result=extractLayout(items,{continuationLayout});return {items,result,seconds:(performance.now()-t)/1000};}finally{busy=false;}}
+export async function scanRaster(im,{progress=()=>{},continuationLayout=null,offline=false,sessions=null,normalize=true}={}){if(busy)throw Error('Дождитесь окончания распознавания');busy=true;try{const t=performance.now();if(normalize){progress('Устранение теней');im=normalizePaper(im);}progress('Загрузка моделей');const {ort,det,rec,chars}=sessions||await load(progress,offline);const ow=im.width,oh=im.height,scale=Math.min(1,3200/Math.max(ow,oh)),w=Math.max(32,Math.round(ow*scale/32)*32),h=Math.max(32,Math.round(oh*scale/32)*32),mean=[.485,.456,.406],std=[.229,.224,.225];progress('Распознавание областей');const x=imageTensor(im,w,h,(v,j)=>(v/255-mean[j])/std[j]);const ds=await det.run({[det.inputNames[0]]:new ort.Tensor('float32',x,[1,3,h,w])}),o=Object.values(ds)[0];const boxes=polys(o.data,o.dims.at(-1),o.dims.at(-2),ow,oh);o.dispose?.();const groups={};for(const p of boxes){const c=crop(im,p);if(c)(groups[c.width]??=[]).push({...c,p});}const items=[];let done=0;for(const [widthStr,g] of Object.entries(groups)){const width=Number(widthStr);for(let i=0;i<g.length;i+=8){const batch=g.slice(i,i+8),n=3*48*width,v=new Float32Array(batch.length*n);batch.forEach((c,j)=>v.set(c.buf,j*n));const r=await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',v,[batch.length,3,48,width])}),y=Object.values(r)[0],T=y.dims[1],C=y.dims[2];if(C!==chars.length)throw Error('Model dictionary mismatch');for(let j=0;j<batch.length;j++){let text='',prev=-1,conf=[];for(let k=0;k<T;k++){let off=(j*T+k)*C,max=-Infinity,best=-1;for(let c=0;c<C;c++){const a=y.data[off+c];if(a>max){max=a;best=c;}}if(best!==prev&&best!==0){text+=chars[best]||'?';conf.push(max);}prev=best;}if(text.trim())items.push({text,score:conf.length?conf.reduce((a,b)=>a+b)/conf.length:0,poly:batch[j].p});}y.dispose?.();done+=batch.length;progress('Текст: '+done+' / '+boxes.length);}}const result=extractLayout(items,{continuationLayout});return {items,result,seconds:(performance.now()-t)/1000};}finally{busy=false;}}
