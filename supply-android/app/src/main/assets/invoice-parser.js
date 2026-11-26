@@ -555,3 +555,68 @@ function reconcile(r,texts){
 api.parseSimple=text=>reconcile(parse(text),[text]);
 api.parseSamePhotoPasses=texts=>passes(texts).map(r=>reconcile(r,texts));
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSimple;
+const money='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}';
+const number=s=>Number(String(s).replace(/\s/g,'').replace(',','.'));
+const round=x=>Math.round((x+Number.EPSILON)*100)/100;
+const amounts=s=>[...s.matchAll(new RegExp('(?:^|\\s)('+money+')(?=\\s|$)','g'))].map(m=>({n:number(m[1]),at:m.index+m[0].indexOf(m[1])}));
+const quantity=s=>[...s.matchAll(/(?:^|\s)(\d+[.,]\d{3})(?=\s|$)/g)].map(m=>number(m[1]));
+const rates=[0,5,7,10,20,22];
+const close=(a,b,tol=.021)=>Math.abs(a-b)<=tol;
+const unitWord='(?:меш(?:ок)?|упак(?:овка)?|уп|шт|кор|кг|г|л|мл|yna)';
+const unitSuffix=new RegExp('(?:\\s+(\\d{2,3}))?\\s+('+unitWord+')\\.?$','i');
+const unitAliases={'меш':'уп','мешок':'уп','упак':'уп','упаковка':'уп','yna':'уп'};
+const clean=s=>s.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+// Recover displaced columns of a Russian UPD only when all printed document
+// totals and row arithmetic independently agree. Preserve the printed net unit
+// price and VAT-inclusive line total separately.
+function upd(text,b){
+ const lines=String(text||'').split(/\r?\n/).map(clean).filter(Boolean);
+ const head=lines.findIndex((l,i)=>/наименование товара/i.test(l)&&/налог|стоимость|цена/i.test(lines.slice(Math.max(0,i-5),i+6).join(' ')));
+ const end=lines.findIndex((l,i)=>i>head&&/^всего\s+к\s+оплате\s*\(?9\)?/i.test(l));
+ if(head<0||end<0||!b.supplier)return b;
+ let stop=end,totals=amounts(lines[end]).map(v=>v.n);
+ if(totals.length===1&&end>head&&amounts(lines[end-1]).length===2&&!/[а-яёa-z]/i.test(lines[end-1])){
+  totals.push(...amounts(lines[end-1]).map(v=>v.n));stop--;
+ }
+ if(totals.length!==3||!close(totals[0]+totals[1],totals[2]))return b;
+ const rows=[];
+ for(let i=head+1;i<stop;i++){
+  const a=amounts(lines[i]);if(a.length!==3&&a.length!==4)continue;
+  const [price,net]=a.map(v=>v.n),gross=a[a.length-1].n,tax=a.length===4?a[2].n:round(gross-net);
+  if(!(price>0&&net>0&&gross>=net&&tax>=0&&close(net+tax,gross)))continue;
+  const printedRate=lines[i].match(/(?:^|\s)(\d{1,2})\s*%/);
+  const possible=rates.filter(r=>close(net*r/100,tax));
+  if(!possible.length||printedRate&&!possible.includes(Number(printedRate[1])))continue;
+  rows.push({i,prefix:lines[i].slice(0,a[0].at).trim(),price,net,tax,gross});
+ }
+ if(!rows.length||!close(rows.reduce((s,x)=>s+x.net,0),totals[0])||!close(rows.reduce((s,x)=>s+x.tax,0),totals[1])||!close(rows.reduce((s,x)=>s+x.gross,0),totals[2]))return b;
+ const items=[];
+ for(let k=0;k<rows.length;k++){
+  const row=rows[k],next=rows[k+1]?.i??stop;
+  const rest=lines.slice(row.i+1,next),qs=[...quantity(row.prefix),...rest.flatMap(quantity)];
+  const q=[...new Set(qs)].filter(v=>v>0&&close(v*row.price,row.net,Math.max(.02,v*.005+.011)));
+  if(q.length!==1)return b;
+  const stripQty=s=>s.replace(/(?:^|\s)\d+[.,]\d{3}(?=\s|$)/g,' ').trim();
+  let first=stripQty(row.prefix),unit='',code='';
+  const parts=rest.filter(s=>/[а-яёa-z]{2}/i.test(s)&&!amounts(s).length);
+  if(!/[а-яёa-z]{2}/i.test(first))first=stripQty(parts.shift()||'');
+  const u=first.match(unitSuffix);
+  if(u){unit=unitAliases[u[2].toLowerCase()]||u[2].toLowerCase();code=u[1]||'';first=first.slice(0,u.index).trim();}
+  else {const c=first.match(/\s+(?:796|778|990|96)$/);if(c){code=c[0].trim();first=first.slice(0,c.index).trim();}}
+  first=first.replace(/^\d{1,3}[.)]?\s+/,'').trim();
+  if(!/[а-яёa-z]{3}/i.test(first))return b;
+  const name=[first,...parts.map(stripQty)].join(' ').trim();
+  // Unit aliases and a damaged 796 code are review suggestions only.
+  if(!unit)unit=({'796':'шт','96':'шт','778':'уп','990':'уп'})[code]||(/\d/.test(name)&&/(?:блок|мешок|меш\s*\/|упаковка)/i.test(name)&&Number.isInteger(q[0])?'шт':'');
+  const packKg=['шт','уп','кор'].includes(unit)?api.packWeight(name):null;
+  const x={name:name+(unit?' / '+unit:'')+' (без НДС)',unit,quantity:q[0],price:row.price,packKg,invoiceTotal:row.gross,uncertain:true,source:[lines[row.i],...rest].join('\n')};
+  Object.assign(x,api.lineMetrics(x));items.push(x);
+ }
+ return {...b,items};
+}
+api.parseSimple=function(text){const b=previous(text);return upd(text,b)};
+})(globalThis);
