@@ -510,3 +510,48 @@ api.parseSimple=function(text){
  return r;
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const parse=api.parseSimple,passes=api.parseSamePhotoPasses;
+const num=s=>{s=String(s).replace(/\s/g,'');if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf('.')>s.lastIndexOf(',')?s.replace(/,/g,''):s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+const money='(?:\\d{1,3}(?:[, .]\\d{3})+[.,]\\d{2}|\\d+[.,]\\d{2})',dec='\\d+(?:[.,]\\d{1,3})?';
+const footer=new RegExp('^всего\\s+по\\s+накладной\\s*[:=]?\\s*('+money+')\\s+('+dec+')\\s+('+dec+')(?:\\s+[xх–—-]+)*\\s*$','i');
+const payable=new RegExp('^всего\\s+к\\s+оплате\\s*[:=]?\\s*('+money+')\\s*$','i');
+const pack=/^(\d+(?:[.,]\d+)?)\s*к[гт]\s*\/\s*([0-9ОоO]+)\s*л\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)(?:\s+[xх–—-]+)*\s*$/i;
+// A single-item TTN can be independently reconciled using its document
+// total, shipment count and gross mass, even if the OCR crop lost the article.
+function reconcile(r,texts){
+ if(r.supplier!=='Восток-Запад'||r.items.length!==1)return r;
+ const x=r.items[0];
+ if(x.packKg||!['шт','уп','кор'].includes(x.unit)||!Number.isInteger(x.quantity)||!(x.quantity>0&&x.price>0&&x.invoiceTotal>0))return r;
+ const candidates=[],allTotals=[];
+ for(const raw of texts){
+  const lines=String(raw||'').split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+  for(const line of lines){
+   const f=line.match(footer),v=line.match(payable);
+   if(f)allTotals.push(num(f[1]));
+   if(v)allTotals.push(num(v[1]));
+  }
+  for(let i=0;i<lines.length;i++){
+   const m=lines[i].match(pack);if(!m)continue;
+   const kg=num(m[1]),qty=num(m[3]),gross=num(m[4]);
+   if(!(kg>0&&qty===x.quantity&&gross+.001>=kg*qty))continue;
+   const after=lines.slice(i+1,i+5);
+   // No intervening product name or unrelated data: only totals may follow.
+   const f=after.find(l=>footer.test(l));
+   if(!f||!after.slice(0,after.indexOf(f)).every(l=>/^итого\b|^итого\s*:/i.test(l)))continue;
+   const v=f.match(footer);
+   if(Math.abs(num(v[1])-x.invoiceTotal)>.011||num(v[2])!==qty||Math.abs(num(v[3])-gross)>.001)continue;
+   candidates.push({kg,suffix:m[1]+'кг/'+m[2].replace(/[ОоO]/g,'0')+'л'});
+  }
+ }
+ if(!allTotals.length||allTotals.some(v=>Math.abs(v-x.invoiceTotal)>.011)||new Set(candidates.map(z=>z.kg)).size!==1)return r;
+ const evidence=candidates[0],next={...x,packKg:evidence.kg};
+ next.name=x.name.replace(/(\s*\/\s*(?:шт|уп|кор)(?:\s+\(с НДС\))?)$/i,m=>' '+evidence.suffix+m);
+ Object.assign(next,api.lineMetrics(next));
+ return {...r,items:[next]};
+}
+api.parseSimple=text=>reconcile(parse(text),[text]);
+api.parseSamePhotoPasses=texts=>passes(texts).map(r=>reconcile(r,texts));
+})(globalThis);
