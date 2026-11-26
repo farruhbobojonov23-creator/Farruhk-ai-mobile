@@ -16,11 +16,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore pinned Playwright and npm downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.npm
+          key: supply-qa-ubuntu24-${{ runner.arch }}-playwright-1.56.1-v1
       - name: Install browser test tools
         run: |
+          set -e
           mkdir -p /tmp/supply-qa
-          npm install --prefix /tmp/supply-qa playwright@1.56.1
-          /tmp/supply-qa/node_modules/.bin/playwright install --with-deps chromium
+          npm install --prefix /tmp/supply-qa --prefer-offline --no-audit --no-fund playwright@1.56.1
+          /tmp/supply-qa/node_modules/.bin/playwright install chromium
+          # Avoid apt installation on runners that already have all browser libraries.
+          # A real launch, not a cache hit, determines whether the fallback is needed.
+          if ! node -e "const {chromium}=require('/tmp/supply-qa/node_modules/playwright'); (async()=>{const b=await chromium.launch({headless:true}); await b.close()})().catch(e=>{console.error(e);process.exit(1)})"; then
+            /tmp/supply-qa/node_modules/.bin/playwright install --with-deps chromium
+          fi
       - name: Run mobile UI and persistence QA
         run: |
           set -e
