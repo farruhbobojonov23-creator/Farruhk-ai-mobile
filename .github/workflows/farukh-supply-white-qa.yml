@@ -309,6 +309,13 @@ jobs:
           await page.locator('#visionBasis').selectOption('yield');
           assert.ok((await page.locator('#visionOffers').innerText()).includes('Нужны подтверждённые значения выхода'));
           await page.locator('#visionBasis').selectOption('purchase');
+          assert.ok((await page.locator('#priceStats').innerText()).includes('Средняя цена'));
+          assert.ok(await page.evaluate(()=>{const x=[{price:100,unit:'кг'},{price:125,unit:'кг'}],s=priceStats(x);return s.min===100&&s.max===125&&s.mean===112.5&&s.change===25&&priceStats([{price:100,unit:'кг'},{price:125,unit:'шт'}])===null;}));
+          assert.ok((await page.locator('#purchaseReport').innerText()).includes('3 накладных'));
+          await page.locator('#reportPoint').selectOption('baumana');
+          assert.ok((await page.locator('#purchaseReport').innerText()).includes('0 накладных'));
+          await page.locator('#reportPoint').selectOption('');
+          assert.equal(await page.evaluate(()=>pointLabel({})==='Не указана'&&pointLabel({pointId:'baumana'})==='Баумана 18'),true);
           assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
           await page.screenshot({path:'qa-results/05-vision-analytics.png',fullPage:true});
           assert.ok(await page.evaluate(()=>Object.keys(catalogState.aliases).length===1&&docs.length===3));
@@ -376,8 +383,10 @@ jobs:
           assert.equal(await page.locator('#archive .card').count(),3);
           await page.locator('#archive button').filter({hasText:'Редактировать'}).first().click();
           await page.locator('[data-field=price]').first().fill('120');
+          await page.locator('#invoicePoint').selectOption('baumana');
           await page.locator('#save').click();
           await page.locator('#archive').waitFor({state:'visible'});
+          assert.ok(await page.evaluate(()=>docs.some(d=>d.pointId==='baumana')));
           await page.locator('#archive button').filter({hasText:'Удалить'}).first().click();
           await page.waitForFunction(()=>document.querySelectorAll('#archive .card').length===2);
           assert.deepEqual(errors,[]);
