@@ -292,6 +292,7 @@ jobs:
           await page.locator('[data-compare=offers]').click();
           assert.ok((await page.locator('#offers').innerText()).includes('Лучшая цена'));
           assert.ok((await page.locator('#offers').innerText()).includes('125'));
+          assert.equal(await page.evaluate(()=>categoryFor('Десерт Тарталетка Лимонная')),'Десерты');
           await page.locator('#compareSearch').fill('Нори');
           assert.equal(await page.locator('#offers .card').count(),1);
           assert.ok((await page.locator('#offers').innerText()).includes('Нори Gold'));
@@ -416,6 +417,7 @@ jobs:
           assert.ok((await page.locator('#supplierList').innerText()).includes('Поставщик Б'));
           const supplierA=page.locator('#supplierList .card').filter({has:page.locator('h2',{hasText:'Поставщик А'})});
           assert.equal(await supplierA.count(),1);
+          assert.ok(await supplierA.evaluate(e=>e.getBoundingClientRect().height<160),'Collapsed supplier must be compact');
           assert.ok((await supplierA.innerText()).includes('2 накладных'));
           await supplierA.locator('.list-detail > summary').click();
           const history=supplierA.locator('details.supplier-history').filter({hasText:'Рис Tamaki'});
@@ -436,6 +438,9 @@ jobs:
           assert.equal(await page.evaluate(()=>supplierKey('ООО АЛИДИ ПРОФ')===supplierKey('ИП АЛИДИ ПРОФ')),false);
           await page.locator('nav button[data-go=invoices]').click();
           assert.equal(await page.locator('#archive .card').count(),3);
+          assert.equal(await page.locator('#archive .compact-head').count(),3);
+          assert.equal(await page.locator('#archive details[open]').count(),0);
+          assert.ok(await page.evaluate(()=>[...document.querySelectorAll('#archive .card')].every(e=>e.getBoundingClientRect().height<180)),'Collapsed invoices must be compact');
           await page.locator('#archive button').filter({hasText:'Редактировать'}).first().click();
           await page.locator('[data-field=price]').first().fill('120');
           await page.locator('#invoicePoint').selectOption('baumana');
