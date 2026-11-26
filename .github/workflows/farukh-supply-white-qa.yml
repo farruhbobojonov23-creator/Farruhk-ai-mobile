@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
@@ -116,10 +116,29 @@ jobs:
             if(scanNextPass(2,weak,false,[weak])!==null)throw Error('Retry bound');
             if(scanNextPass(0,full,true,[full])!==null)throw Error('Verified initial result must not retry');
             const plausible={...full,documentVerified:false};
-            if(scanNextPass(0,plausible,true,[plausible])!=='paddle-scan')throw Error('Unverified complete-looking rows must retry');
-            if(scanNextPass(1,plausible,true,[plausible])!=='rescan')throw Error('Unverified Paddle result must retry');
+            if(scanNextPass(0,plausible,true,[plausible])!==null)throw Error('v47 complete non-conflicting scan should be shown for review');
+            if(scanNextPass(1,plausible,true,[plausible])!==null)throw Error('v47 complete Paddle scan should be shown for review');
+            const marr={...plausible,supplier:'ООО «МАРР РУССИЯ»'};
+            if(scanNextPass(0,marr,true,[marr])!=='paddle-scan'||scanNextPass(1,marr,true,[marr])!=='rescan')throw Error('MARR review retries must remain');
             if(scanNextPass(2,plausible,true,[plausible])!==null)throw Error('Bounded retries');
           });
+
+          // Simulated native callbacks: never let an earlier empty OCR hide a later nonempty diagnostic.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate(()=>{
+            let calls=0;const original=window.supplySpatial.candidate;
+            window.supplySpatial.candidate=()=>{calls++;throw Error('disabled path used')};
+            try{
+              const empty=window.supplyInvoiceParser.parseSimple('');
+              scanCandidates=[{r:empty,text:'',error:'Текст не найден.'}];scanPass=2;
+              window.supplyOcrStart(900);
+              window.supplyOcrFinish(900,'Неразборчивый фрагмент документа','',JSON.stringify([{text:'фрагмент',left:0,top:0,right:10,bottom:10,confidence:.95}]));
+              if(calls!==0)throw Error('Spatial recovery should not be called in restored pipeline');
+              if(!$('ocrState').textContent.includes('Текст прочитан, но товары и цены не извлечены'))throw Error('Wrong OCR failure diagnosis: '+$('ocrState').textContent);
+              if(!document.querySelector('#ocrDiagnostic textarea').value.includes('Неразборчивый'))throw Error('Lost OCR diagnostic');
+            }finally{window.supplySpatial.candidate=original;reset();}
+          });
+          await page.locator('nav button[data-go=home]').click();
 
           async function invoice(supplier,price,id,withPhoto){
             await page.locator('button[data-go=entry]:visible').first().click();
