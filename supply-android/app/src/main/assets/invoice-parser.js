@@ -818,6 +818,68 @@ const n=s=>Number(s.replace(/\s/g,'').replace(',','.'));
 const cash='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}';
 const number='\\d+(?:[.,]\\d{1,3})?';
 const tail=new RegExp('^(.+?)\\s+(шт|уп|кг|г|л|мл|кор)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d{1,2})%?\\s+('+cash+')\\s+('+cash+')\\s+('+number+')\\s+(\\d{2}\\.\\d{2}\\.\\d{4})$','i');
+const weightTail=new RegExp('^(.+?)\\s+(кг|г|л|мл)\\s+(0)\\s+(0)\\s+(\\d{1,2})%?\\s+('+cash+')\\s+('+cash+')\\s+('+number+')\\s+(\\d{2}\\.\\d{2}\\.\\d{4})
+ if(!isAct(text))return base;
+ const lines=String(text).split(/\r?\n/).map(clean).filter(Boolean);
+ const doc=lines.findIndex(isAct),header=lines.slice(doc,doc+40);
+ let supplier=base.supplier;
+ for(const l of header){const m=l.match(/(?:продавец\s*:?\s*)?(?:общество с ограниченной ответственностью|ООО)\s*["«]([^"»]{2,80})["»]/i);if(m){supplier='ООО «'+m[1].trim()+'»';break;}}
+ const page=String(text).match(/(?:стр\.|страница|cmp\.)\s*([1-9]\d*|I)\s*(?:из|u3)\s*(\d+)/i);
+ const pageInfo=page?{page:page[1].toUpperCase()==='I'?1:Number(page[1]),pages:Number(page[2])}:null;
+ const unknown={...base,supplier,items:base.items.map(x=>({...x,price:null,invoiceTotal:null,totalPrice:null,pricePerKg:null})),pageInfo};
+ const head=lines.findIndex((l,i)=>i>doc&&/наименование товара/i.test(l));
+ const headings=lines.slice(Math.max(doc,head-7),head+15).join(' ');
+ if(head<0||!supplier||!(/отгружено|отгру[\s-]*жено/i.test(headings)||(/общая/i.test(headings)&&/ставка/i.test(headings)&&/количество/i.test(headings)&&/годности/i.test(headings)&&/\b8 9 10 11 12\b/.test(headings))))return unknown;
+ const rows=[];
+ // The printed line number can be missing or glued to the barcode.
+ // Prefer an explicit number; recover a glued number only if it is the next
+ // consecutive row and leaves an 8–14 digit product code.
+ for(let i=head+1;i<lines.length;i++){
+  const l=lines[i],m=actMatch(l);if(!m)continue;
+  let label=m[1],index=null,article=null;
+  const expected=rows.length?rows[rows.length-1].index+1:pageInfo?.page===1?1:null;
+  const explicit=label.match(/^(\d{1,3})[.)]?\s+(\d{8,14})\s*(?=[а-яёa-z])/i);
+  const fused=label.match(/^(\d{9,17})\s*(?=[а-яёa-z])/i);
+  if(explicit){index=+explicit[1];article=explicit[2];label=label.slice(explicit[0].length);}
+  else if(fused){
+   const digits=fused[1],prefix=String(expected??'');
+   if(expected!==null&&digits.startsWith(prefix)&&digits.length-prefix.length>=8&&digits.length-prefix.length<=14&&digits.length>13){index=expected;article=digits.slice(prefix.length);}
+   else if(digits.length>=8&&digits.length<=14){index=expected??1;article=digits;}
+   else return unknown;
+   label=label.slice(fused[0].length);
+  }else{
+   const code=label.match(/^(\d{8,14})\s*(?=[а-яёa-z])/i);
+   if(!code)return unknown;
+   index=expected??1;article=code[1];label=label.slice(code[0].length);
+  }
+  if(expected!==null&&index!==expected)return unknown;
+  // The end of a product name can be below the numeric cells (wrapped line).
+  let j=i+1;
+  while(j<lines.length&&j<=i+3){
+   const next=lines[j];
+   if(/^[\[\]|]+$/.test(next)){j++;continue;}
+   if(/^\d|^(?:итого|всего|стр\.|cmp\.|страница|подпись)/i.test(next)||actMatch(next))break;
+   if(!/[а-яёa-z]/i.test(next)||!/(?:\d+(?:[.,]\d+)?\s*(?:кг|гр?\.?|л|мл)(?![а-яёa-z])|\[\d+\])/i.test(next))break;
+   label+=' '+next;j++;
+  }
+  label=label.replace(/\[\s*(\d(?:\s*\d)+)\s*\]/g,(_,v)=>'['+v.replace(/\s/g,'')+']').trim();
+  const [per,full,part,rate,price,total,shipped]=m.slice(3,10).map(n);
+  const unit=m[2].toLowerCase();
+  const weightOnly=['кг','г','л','мл'].includes(unit)&&per===0&&full===0&&part===0;
+  if(![0,5,7,10,20,22].includes(rate)||!(full>=0&&part>=0&&price>0&&shipped>0)||!weightOnly&&(!(per>0)||part>=per||Math.abs(per*full+part-shipped)>.00001)||Math.abs(price*shipped-total)>.021)return unknown;
+  const pack=['шт','уп','кор'].includes(unit),packKg=pack?api.packWeight(label):null;
+  const x={name:label+' / '+unit+' (с НДС)',article,unit,quantity:shipped,price,invoiceTotal:total,packKg,packL:pack&&!packKg?api.packVolume(label):null,uncertain:true,source:lines.slice(i,j).join('\n')};
+  Object.assign(x,api.lineMetrics(x));rows.push({index,x});i=j-1;
+ }
+ if(!rows.length||rows.some((r,i)=>i>0&&r.index!==rows[i-1].index+1)||pageInfo?.page===1&&rows[0].index!==1)return unknown;
+ // If a row-like line was missed, do not claim verification.
+ const table=lines.slice(head+1);
+ const anchors=table.filter(l=>/^\d{1,3}[.)]?\s+\d{8,14}\s*(?=[а-яёa-z])|^\d{12,17}\s*(?=[а-яёa-z])/i.test(l));
+ if(anchors.length!==rows.length)return unknown;
+ return {supplier,items:rows.map(r=>r.x),pageVerified:true,pageInfo};
+}
+,'i');
+function actMatch(l){const m=l.match(tail);if(m)return m;const w=l.match(weightTail);return w?[w[0],w[1],w[2],'0',...w.slice(3)]:null;}
 function act(text,base){
  if(!isAct(text))return base;
  const lines=String(text).split(/\r?\n/).map(clean).filter(Boolean);
@@ -1151,13 +1213,13 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  const decimals=t=>[...tidy(t).matchAll(/(?<![\d.,])\d+[.,]\d{3}(?![\d.,])/g)].map(m=>num(m[0]));
  const same=(a,b)=>Math.abs(a-b)<=.000001;
  const rowEnd=new RegExp('(?:^|\\s)(упак(?:овка)?|уп|шт|кор(?:обка)?|кг)\\.?\\s+(\\d+(?:[.,]\\d{1,3})?)\\s+(\\d+[.,]\\d{3})\\s+('+money+')\\s+('+money+')\\s*$','i');
- const rowStart=/^(?:\d{1,3}[.)]?\s+)?(\d{8,12})\s+(.*)$/;
+ const rowStart=/^(?:(\d{1,3})[.)]?\s+)?(\d{8,12})\s+(.*)$/;
  const category=/^\s*[0()]+\s*\([^)]{2,100}\)\s*/;
  const totalLine=/^итого\s*[:=]?\s+(\d+)\s+(\d+[.,]\d{3})\s+(.+)$/iu;
  function make(article,name,unit,q,w,p,t,source,nominal){
   // The separate invoice weight column is not proof of manufacturer net pack size.
   const packKg=['шт','уп','кор'].includes(unit)?(api.packWeight(name)||nominal||null):null;
-  const r={article,name:name+' / '+unit,unit,quantity:q,price:p,invoiceTotal:t,packKg,nominalPackKg:packKg,invoiceWeightKg:w,uncertain:true,source};
+  const r={article,name:name+' / '+unit,unit,quantity:q,price:p,invoiceTotal:t,packKg,packL:packKg?null:api.packVolume(name),nominalPackKg:packKg,invoiceWeightKg:w,uncertain:true,source};
   return {...r,...api.lineMetrics(r)};
  }
  function readRows(lines){
@@ -1165,7 +1227,7 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
   for(const l of lines){
    const f=l.match(totalLine);if(f){const sums=cash(f[3]);if(sums.length===1)footer=[num(f[1]),num(f[2]),sums[0]];pending=null;continue;}
    if(/^место хранения|^наименование|^код\s/i.test(l)){pending=null;continue;}
-   const m=l.match(rowStart);if(m){pending={article:m[1],parts:[m[2]]};}
+   const m=l.match(rowStart);if(m){pending={index:m[1]||null,article:m[2],parts:[m[3]]};}
    else if(pending&&pending.parts.length<5)pending.parts.push(l);
    else continue;
    const s=pending.parts.join(' '),end=s.match(rowEnd);if(!end)continue;
@@ -1174,7 +1236,7 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
    if(!/[а-яёa-z]{3}/i.test(name)&&catalog[article])name=catalog[article][0];
    const unit=/^уп/i.test(end[1])?'уп':/^кор/i.test(end[1])?'кор':end[1].toLowerCase();
    if(/[а-яёa-z]{3}/i.test(name)&&q>0&&w>0&&p>0&&t>0&&Math.abs(cents(q*p)-cents(t))<=1&&(unit!=='кг'||same(q,w)))
-    items.push(make(article,name,unit,q,w,p,t,s,api.packWeight(name)));
+    items.push({...make(article,name,unit,q,w,p,t,s,api.packWeight(name)),sourceRow:pending.index||undefined});
    pending=null;
   }
   const verified=!!footer&&items.length>0&&same(items.reduce((s,x)=>s+x.quantity,0),footer[0])&&items.reduce((s,x)=>s+grams(x.invoiceWeightKg),0)===grams(footer[1])&&items.reduce((s,x)=>s+cents(x.invoiceTotal),0)===cents(footer[2]);
