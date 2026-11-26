@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -141,3 +141,76 @@ jobs:
           name: FARUKH-SUPPLY-WHITE-signed-test
           path: ${{ runner.temp }}/supply-white-test/*.apk
           if-no-files-found: warn
+
+      - name: Publish tested native orientation upgrade
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_BUNDLE: ${{ secrets.FARUKH_SUPPLY_SIGNING_BUNDLE }}
+          STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
+          test "$code" = 11 || { echo "No approved native upgrade"; exit 0; }
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          test "$latest" = "$GITHUB_SHA" || { echo "Superseded native build"; exit 0; }
+          out=$(mktemp -d)
+          trap 'rm -rf "$out"' EXIT
+          tag=farukh-supply-current
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+          old=$(jq -er .versionCode "$out/previous.json")
+          if [ "$old" -ge "$code" ]; then echo "Native upgrade already published"; exit 0; fi
+          test "$old" = 10
+          test "$(jq -er .package "$out/previous.json")" = ai.farukh.supply
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/previous-web.json"
+          jq -er .payload "$out/previous-web.json" | base64 -d > "$out/previous-payload.json"
+          webroot=supply-android/app/src/main/assets
+          revision=$(tr -d '[:space:]' < "$webroot/web-version.txt")
+          test "$revision" -ge "$(jq -er .revision "$out/previous-payload.json")"
+          apk="FARUKH-SUPPLY-$code.apk"
+          cp "$RUNNER_TEMP/supply-white-test/FARUKH-SUPPLY-WHITE-TEST.apk" "$out/$apk"
+          signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          "$signer" verify --verbose "$out/$apk"
+          cert=$("$signer" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
+          test "$cert" = "$(jq -er .cert "$out/previous.json")"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$out/$apk" > "$out/badging.txt"
+          grep -F "package: name='ai.farukh.supply' versionCode='11'" "$out/badging.txt"
+          hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
+          jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
+          if [ -n "$SIGNING_BUNDLE" ]; then
+            STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
+            STORE_PASS=$(jq -er .password <<< "$SIGNING_BUNDLE")
+            KEY_ALIAS=$(jq -er .alias <<< "$SIGNING_BUNDLE")
+            KEY_PASS="$STORE_PASS"
+            echo "::add-mask::$STORE_PASS"
+            echo "::add-mask::$STORE_B64"
+            export STORE_PASS KEY_PASS
+            unset SIGNING_BUNDLE
+          fi
+          test -n "$STORE_B64" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS"
+          umask 077
+          printf '%s' "$STORE_B64" | base64 --decode > "$out/key.jks"
+          python3 - "$webroot" "$code" "$revision" "$out/payload.json" <<'PY'
+          import base64,json,pathlib,sys
+          root,code,rev,out=sys.argv[1:]
+          names=['index.html','app.js','analytics.js','invoice-parser.js']
+          files={n:base64.b64encode((pathlib.Path(root)/n).read_bytes()).decode('ascii') for n in names}
+          pathlib.Path(out).write_text(json.dumps({'package':'ai.farukh.supply','nativeVersion':int(code),'revision':int(rev),'files':files},separators=(',',':')),encoding='utf-8')
+          PY
+          java supply-android/SignWeb.java "$out/key.jks" "$KEY_ALIAS" "$out/payload.json" "$out/web-current.json" "$cert" "$revision"
+          test "$(wc -c < "$out/web-current.json")" -lt 1048576
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          test "$latest" = "$GITHUB_SHA"
+          gh release upload "$tag" "$out/$apk" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$apk" --output "$out/verified.apk"
+          test "$(sha256sum "$out/verified.apk" | cut -d' ' -f1)" = "$hash"
+          gh release upload "$tag" "$out/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified-web.json"
+          cmp "$out/web-current.json" "$out/verified-web.json"
+          gh release upload "$tag" "$out/update.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/verified-manifest.json"
+          cmp "$out/update.json" "$out/verified-manifest.json"
+          echo "Published and verified native upgrade $code with embedded web revision $revision."
