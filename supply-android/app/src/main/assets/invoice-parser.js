@@ -71,7 +71,7 @@ function parseSimple(text){
  const items=[],seen=new Set();
  function add(name,price,source){name=clean(name);if(!name)return;const key=name.toLowerCase()+'|'+(price??'')+'|'+source;if(seen.has(key))return;seen.add(key);items.push({name,price,source,uncertain:true});}
  for(const x of legacy.items){
-   const vat=x.source.match(/(\d{1,2})\s*%/);
+   const vat=x.source.match(/(?:^|\s)(\d{1,2})\s*%\s+(?:\d[\d ]*[,.]\d{2})\s+(?:\d[\d ]*[,.]\d{2})\s*$/);
    const price=Math.round(x.grossTotal/x.quantity/(vat?1+Number(vat[1])/100:1)*100)/100;
    add(x.productId+' / '+x.unit+(vat?' (без НДС)':''),price,x.source);
  }
