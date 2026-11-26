@@ -89,7 +89,8 @@ jobs:
                 const o=await e.scanRaster(fixed,{sessions:{...s,chars:e.dictionary(s.dictionaryYaml)},offline:true});
                 const raw=o.items.map(i=>i.text).join(' ');
                 const grid=c.ruledGrid(fixed),assigned=grid?c.assignGridText(grid,o.items):null;
-                return {decoded,shapes,raw,grid,assigned,seconds:o.seconds,expected:rows.slice(1,-1)};
+                const verified=grid?await c.verifyGridCells(fixed,grid,assigned,{...s,chars:e.dictionary(s.dictionaryYaml)}):null;
+                return {decoded,shapes,raw,grid,assigned,verified,seconds:o.seconds,expected:rows.slice(1,-1)};
               }finally{await table.release();await s.dispose();}
             },dict);
             console.log(JSON.stringify(result));
@@ -99,7 +100,8 @@ jobs:
             assert.equal(result.assigned.ambiguous,0,'Text crosses cell borders');
             const norm=s=>s.toLowerCase().replace(/\s/g,'').replace(/\./g,',');
             const numeric=(s)=>/^\d+(?:[,.]\d+)?$/.test(s.replace(/\s/g,''))?Number(s.replace(/\s/g,'').replace(',','.')):NaN;
-            const cells=result.assigned.rows.slice(1,-1);
+            assert.ok(result.verified,'No independent cell readings');
+            const cells=result.verified.rows.slice(1,-1);
             let exactNames=0;
             for(let i=0;i<result.expected.length;i++){
               const wanted=result.expected[i],actual=cells[i];
@@ -108,6 +110,7 @@ jobs:
             }
             console.log('SLANet predicted rows:',result.decoded.rows,'independent grid:',result.grid.rows,'exact names:',exactNames,'/',result.expected.length);
             assert.equal(exactNames,result.expected.length,'Product names must also match exactly');
+            assert.equal(result.verified.verified,true,JSON.stringify(result.verified.review));
           }finally{await browser.close();server.close();}
           EOF
           node test.mjs
