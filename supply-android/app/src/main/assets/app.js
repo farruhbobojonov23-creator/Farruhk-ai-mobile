@@ -99,7 +99,7 @@ function productLinkDialog(getRow,getSupplier,onSaved=()=>{},suggestedId=null){
    if(rating!==null&&(!Number.isFinite(rating)||rating<1||rating>10)||yieldPct!==null&&(!Number.isFinite(yieldPct)||yieldPct<=0||yieldPct>100))throw Error('Проверьте оценку и выход');
    const aliases=catalogAPI.confirm(r,supplier,id,vid,products,catalogState.aliases);
    const measured={};for(const [key,input] of Object.entries(losses)){const value=input.value===''?null:Number(input.value);if(value!==null&&(!Number.isFinite(value)||value<0||value>=100))throw Error('Потери должны быть от 0 до 99,9%');measured[key]=value;}
-   saveCatalog({products,aliases,quality:{...catalogState.quality,[vid]:{...existing,rating,yieldPct,...measured,note:note.value.trim(),favorite:fav.value==='yes'}}});dlg.close();onSaved();
+   saveCatalog({...catalogState,products,aliases,quality:{...catalogState.quality,[vid]:{...existing,rating,yieldPct,...measured,note:note.value.trim(),favorite:fav.value==='yes'}}});dlg.close();onSaved();
   }catch(e){error.textContent=e.message;}
  });save.classList.add('primary');dlg.append(save,button('Отмена',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
 }
@@ -481,16 +481,45 @@ function renderMatchCandidates(last){
  }
  if(filtered.length>12)list.append(node('small','Показаны первые 12. Для остальных используйте поиск.','muted'));
 }
+function supplierProfile(key){return Object.prototype.hasOwnProperty.call(catalogState.suppliers||{},key)?catalogState.suppliers[key]:{};}
+function supplierDialog(key,name){
+ const previous=supplierProfile(key),dlg=node('dialog',null,'catalog-dialog');dlg.append(node('h2',name));const fields={};
+ for(const [id,label,limit] of [['contact','Контакт / телефон',150],['schedule','Дни и время поставок',200],['minimum','Минимальный заказ, ₽',30],['note','Комментарий',500]]){
+  const input=node('input');input.maxLength=limit;input.value=previous[id]??'';if(id==='minimum'){input.type='number';input.min='0';input.step='.01';}const l=node('label',label);l.append(input);dlg.append(l);fields[id]=input;
+ }
+ const error=node('p','','up');dlg.append(error,button('Сохранить карточку',()=>{
+  try{const minimum=fields.minimum.value===''?null:Number(fields.minimum.value);if(minimum!==null&&(!Number.isFinite(minimum)||minimum<0))throw Error('Проверьте сумму заказа');
+   const profile={contact:fields.contact.value.trim(),schedule:fields.schedule.value.trim(),minimum,note:fields.note.value.trim()};
+   saveCatalog({...catalogState,suppliers:{...catalogState.suppliers,[key]:profile}});dlg.close();render('suppliers');
+  }catch(e){error.textContent=e.message;}
+ }),button('Отмена',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
+}
+function plannedOrders(){return Array.isArray(catalogState.orders)?catalogState.orders:[];}
+function renderOrderList(){
+ const el=$('orderList');el.replaceChildren();const orders=plannedOrders();if(!orders.length)return;
+ el.append(node('h2','Список закупок'),node('small','Цены зафиксированы при добавлении. Перед заказом уточните актуальность.'));
+ for(const [supplier,items] of grouped(orders,x=>x.supplier)){
+  const group=node('div',null,'tip');group.append(node('strong',supplier));let total=0;
+  for(const x of items){const sum=Math.round(x.quantity*x.price*100)/100;total+=sum;row(group,x.name,fmt(x.quantity)+' '+x.unit+' · '+rub(sum),button('Удалить',()=>{saveCatalog({...catalogState,orders:plannedOrders().filter(o=>o.id!==x.id)});renderOrderList();}));}
+  group.append(node('p','Итого: '+rub(total)));const minimum=supplierProfile(supplierKey(supplier)).minimum;if(minimum!=null&&total<minimum)group.append(node('small','До минимального заказа: '+rub(minimum-total),'up'));el.append(group);
+ }
+ const total=orders.reduce((s,x)=>s+Math.round(x.quantity*x.price*100),0)/100;el.append(node('strong','Общая сумма: '+rub(total)),button('Текст заказа',()=>{
+  const dlg=node('dialog',null,'catalog-dialog'),area=node('textarea');area.readOnly=true;area.rows=12;area.style.width='100%';area.value=Array.from(grouped(orders,x=>x.supplier),([s,items])=>s+'\n'+items.map(x=>x.name+' — '+fmt(x.quantity)+' '+x.unit).join('\n')).join('\n\n');dlg.append(node('h2','Список для поставщиков'),area,button('Выделить текст',()=>{area.focus();area.select();}),button('Закрыть',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
+ }));
+}
 function renderOrderAdvice(last){
  const groups=[...grouped(last,productKey).entries()].filter(([,rows])=>new Set(rows.map(r=>supplierKey(r.supplier))).size>=2&&rows.every(r=>quoteUnit(r)&&quoteUnit(r)===quoteUnit(rows[0])&&quotePrice(r)>0));
  visionOptions($('orderProduct'),groups.map(([key,rows])=>[key,catalogTitle(rows[0])+' · '+quoteUnit(rows[0])]));
- const el=$('orderAdvice');el.replaceChildren();const rows=groups.find(([key])=>key===$('orderProduct').value)?.[1]||[];
+ const el=$('orderAdvice'),add=$('orderAdd');el.replaceChildren();add.classList.add('hide');add.onclick=null;renderOrderList();const rows=groups.find(([key])=>key===$('orderProduct').value)?.[1]||[];
  const qty=Number($('orderQuantity').value);
  if(!rows.length){empty(el,'Нужны сопоставимые цены двух поставщиков.');return;}
  if(!(qty>0&&Number.isFinite(qty))){empty(el,'Введите количество для расчёта.');return;}
  const sorted=rows.slice().sort((a,b)=>quotePrice(a)-quotePrice(b));
  for(const r of sorted)row(el,r.supplier,r.name+' · '+dateLabel(r.date),node('strong',rub(quotePrice(r)*qty),'price '+(r===sorted[0]?'down':'')));
- const best=sorted[0],worst=sorted.at(-1);row(el,'Разница с самым дорогим',fmt(qty)+' '+quoteUnit(best),node('strong',rub((quotePrice(worst)-quotePrice(best))*qty),'down'));
+ const best=sorted[0],worst=sorted.at(-1);add.classList.remove('hide');add.onclick=()=>{
+  try{const entry={id:crypto.randomUUID(),name:best.name,supplier:best.supplier,unit:quoteUnit(best),price:quotePrice(best),quantity:qty,date:best.date||''};saveCatalog({...catalogState,orders:[...plannedOrders(),entry]});renderOrderList();}
+  catch(e){status(e.message);}
+ };row(el,'Разница с самым дорогим',fmt(qty)+' '+quoteUnit(best),node('strong',rub((quotePrice(worst)-quotePrice(best))*qty),'down'));
  el.append(node('small','Расчёт по последним известным ценам с НДС, без доставки и минимальных партий. Уточните наличие и цены перед заказом.','muted'));
 }
 function render(scope='all'){const obs=observations(),last=latest(obs),products=grouped(last,productKey),suppliers=grouped(last,r=>supplierKey(r.supplier));
@@ -509,6 +538,7 @@ const docsBySupplier=grouped(ordered,d=>supplierKey(d.supplierId)),obsBySupplier
 for(const [key,list] of [...suppliers.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ru'))){
  const c=node('div',null,'card'),purchases=docsBySupplier.get(key)||[],all=obsBySupplier.get(key)||[],histories=grouped(all,variantKey);
  c.append(node('h2',purchases[0]?.supplierId||list[0].supplier),node('p',list.length+' товаров · '+purchases.length+' накладных','muted'),button('Накладные поставщика',()=>{supplierFilter=key;go('invoices')}));
+ const profile=supplierProfile(key);if(profile.contact||profile.schedule||profile.minimum!=null||profile.note)c.append(node('p',[profile.contact,profile.schedule,profile.minimum!=null?'Мин. заказ '+rub(profile.minimum):'',profile.note].filter(Boolean).join(' · '),'muted'));c.append(button('Карточка поставщика',()=>supplierDialog(key,purchases[0]?.supplierId||list[0].supplier)));
  const daily=node('details');daily.append(node('summary','Закупки по дням'));for(const d of dailyPurchases(purchases))row(daily,dateLabel(d.day)||'Дата не указана',d.count+' накл.',node('strong',rub(d.total),'price'));c.append(daily);
  for(const r of list.sort((a,b)=>a.name.localeCompare(b.name,'ru'))){
   row(c,r.name,offerDetail(r),node('strong',historyPrice(r),'price'));
@@ -671,6 +701,8 @@ function validateBackup(v){
  for(const p of v.catalog.products){if(!p||typeof p.id!=='string'||!p.id||products.has(p.id)||typeof p.name!=='string')throw Error('Повреждён справочник');products.add(p.id);}
  for(const [k,x] of Object.entries(v.catalog.aliases))if(!k||!x||!products.has(x.productId)||typeof x.variantId!=='string')throw Error('Повреждены связи товаров');
  for(const x of Object.values(v.catalog.quality))if(!x||typeof x!=='object'||x.rating!=null&&(!Number.isFinite(x.rating)||x.rating<1||x.rating>10)||x.yieldPct!=null&&(!Number.isFinite(x.yieldPct)||x.yieldPct<=0||x.yieldPct>100)||['glazePct','thawPct','trimPct'].some(k=>x[k]!=null&&(!Number.isFinite(x[k])||x[k]<0||x[k]>=100))||x.note!=null&&(typeof x.note!=='string'||x.note.length>500)||x.favorite!=null&&typeof x.favorite!=='boolean')throw Error('Повреждены оценки товаров');
+ if(v.catalog.suppliers!=null&&(typeof v.catalog.suppliers!=='object'||Array.isArray(v.catalog.suppliers)||Object.values(v.catalog.suppliers).some(x=>!x||typeof x!=='object'||['contact','schedule','note'].some(k=>x[k]!=null&&typeof x[k]!=='string')||x.minimum!=null&&(!Number.isFinite(x.minimum)||x.minimum<0))))throw Error('Повреждены карточки поставщиков');
+ if(v.catalog.orders!=null&&(!Array.isArray(v.catalog.orders)||v.catalog.orders.some(x=>!x||typeof x.id!=='string'||typeof x.name!=='string'||typeof x.supplier!=='string'||typeof x.unit!=='string'||!Number.isFinite(x.price)||x.price<=0||!Number.isFinite(x.quantity)||x.quantity<=0)))throw Error('Повреждён список закупок');
  return v;
 }
 async function autoBackup(){
