@@ -1558,3 +1558,44 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  api.parseSimple=t=>{const raw=String(t||'');return recover(raw,prior(raw));};
  api.parseSamePhotoPasses=ts=>[...passes(ts),...ts.flatMap(t=>String(t||'').split(/\r?\n\s*---\s*\r?\n/)).map(api.parseSimple).filter(x=>x.documentVerified)];
 })(globalThis);
+
+;(function(root){
+ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+ // SMART SIMPLE: only the purchase fields, with explicit VAT-inclusive price evidence.
+ // Do not infer gross price from a generic 'Цена' column; do not guess units.
+ const money='(?:\\d{1,3}(?:[ .]\\d{3})+|\\d+)[,.]\\d{2}';
+ const quantity='\\d+(?:[,.]\\d{1,3})?';
+ const unit='(?:шт|уп|кор|кг|г|л|мл)';
+ const n=s=>Number(String(s).replace(/\s/g,'').replace(/\.(?=\d{3}[.,])/g,'').replace(',','.'));
+ const cents=v=>Math.round((v+Number.EPSILON)*100);
+ const stop=/^(?:итого|всего|подпись|руководитель|главный бухгалтер|отпустил|получил|покупатель|ИНН|КПП|адрес|банковские|реквизиты)/i;
+ const explicitGross=/(?:цена|стоимость\s+за\s+ед(?:иницу|\.)?)\s*(?:за\s+(?:ед(?:иницу|\.)?|уп(?:аковку|\.)?)\s*)?(?:[,(]\s*)?с\s*НДС/i;
+ const row=new RegExp('^(.+?)\\s+('+unit+')\\.?\\s+('+quantity+')\\s+('+money+')(?:\\s+('+money+'))?$','i');
+ const reverse=new RegExp('^(.+?)\\s+('+quantity+')\\s*('+unit+')\\.?\\s+('+money+')(?:\\s+('+money+'))?$','i');
+ const sumRow=new RegExp('^(?:итого|всего(?:\\s+к\\s+оплате)?)\\s*[:=]?\\s*('+money+')\\s*(?:руб\\.?|₽)?$','i');
+ function parsePurchaseFields(raw){
+  const lines=String(raw||'').split(/\r?\n/).map(x=>x.replace(/[|│]/g,' ').replace(/[\u00a0\u202f]/g,' ').replace(/[ \t]+/g,' ').trim()).filter(Boolean);
+  const header=lines.findIndex(x=>/(?:наименование|товар)/i.test(x)&&/(?:кол-?во|количество)/i.test(x)&&explicitGross.test(x)&&!/(?:без\s*НДС|ставка|сумма\s+НДС|акциз)/i.test(x));
+  if(header<0)return null;
+  const items=[];let printedTotal=null,unparsed=0,ended=false,conflict=false;
+  for(const s of lines.slice(header+1)){
+   const total=s.match(sumRow);
+   if(total){const v=n(total[1]);if(printedTotal!=null&&cents(v)!==cents(printedTotal))conflict=true;printedTotal=v;ended=true;continue;}
+   if(stop.test(s)){ended=true;continue;}
+   if(ended)continue;
+   const m=s.match(row),r=m?null:s.match(reverse);
+   if(!m&&!r){unparsed++;continue;}
+   const name=(m||r)[1].replace(/^\d{1,4}[.)]?\s+(?=[а-яёa-z])/i,'').trim();
+   const u=(m?m[2]:r[3]).toLowerCase(),q=n(m?m[3]:r[2]),p=n((m||r)[4]),actual=(m||r)[5]?n((m||r)[5]):null;
+   if(!/[а-яёa-z]/i.test(name)||!(q>0)||!(p>0)||actual!=null&&Math.abs(cents(q*p)-cents(actual))>Math.max(1,Math.ceil(q*.5))){unparsed++;continue;}
+   const packKg=api.packWeight(name),packL=api.packVolume(name);
+   items.push({name,quantity:q,price:p,unit:u,packKg,packL,invoiceTotal:actual??cents(q*p)/100,uncertain:true});
+  }
+  if(!items.length||conflict)return null;
+  const sum=items.reduce((s,x)=>s+cents(x.invoiceTotal),0);
+  const documentVerified=printedTotal!=null&&sum===cents(printedTotal)&&unparsed===0;
+  const supplier=api.parseSimple(raw).supplier||'';
+  return {supplier,items,printedTotal,unparsed,documentVerified,pageVerified:false,smartSimple:true};
+ }
+ api.parsePurchaseFields=parsePurchaseFields;
+})(globalThis);
