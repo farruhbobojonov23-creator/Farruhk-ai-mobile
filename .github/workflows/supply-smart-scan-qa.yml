@@ -24,6 +24,7 @@ jobs:
           npx playwright install chromium
       - name: Test separate verified model downloads, offline cache and browser inference
         run: |
+          cp supply/smart-scan-models.mjs supply/smart-scan-layout.mjs supply/smart-scan-engine.mjs "$RUNNER_TEMP/smart-scan-check/"
           cp supply/smart-scan-models.mjs "$RUNNER_TEMP/smart-scan-check/models.mjs"
           cd "$RUNNER_TEMP/smart-scan-check"
           cat > probe.mjs <<'EOF'
@@ -34,7 +35,7 @@ jobs:
           import {MODEL_PACK} from './models.mjs';
           import {parse} from 'yaml';
           const server=http.createServer((req,res)=>{
-            if(req.url==='/models.mjs'){res.setHeader('content-type','text/javascript');return res.end(fs.readFileSync('models.mjs'))}
+            if(['/models.mjs','/smart-scan-models.mjs','/smart-scan-layout.mjs','/smart-scan-engine.mjs'].includes(req.url)){res.setHeader('content-type','text/javascript');return res.end(fs.readFileSync(req.url.slice(1)))}
             res.setHeader('content-type','text/html');res.end('<!doctype html><meta charset="utf-8"><title>Smart Scan test</title>');
           });
           await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
@@ -75,6 +76,19 @@ jobs:
             assert.equal(outside,before,'Offline inference must not use the network');
             assert.ok(output.text.replace(/\s/g,'').includes('2700,00'),'Numeric text not recognized');
             assert.ok(output.detShape[2]>0&&output.detShape[3]>0);
+            const complete=await page.evaluate(async()=>{
+              const engine=await import('/smart-scan-engine.mjs');
+              const c=document.createElement('canvas');c.width=1280;c.height=480;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='black';ctx.font='36px Arial';
+              const values=['Поставщик: Тестовая компания','Рис круглозёрный 25 кг','Количество 3','Цена 124,50','Сумма 373,50'];
+              values.forEach((v,i)=>ctx.fillText(v,60,65+i*85));
+              const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+              const result=await engine.scanPhoto(blob,{offline:true});return {values,...result};
+            });
+            console.log('Complete photo engine:',JSON.stringify(complete));
+            const normalized=s=>s.toLowerCase().replace(/\s/g,'').replace(/ё/g,'е');
+            const recognized=normalized(complete.items.map(x=>x.text).join(' '));
+            for(const line of complete.values)assert.ok(recognized.includes(normalized(line)),'Full engine did not read '+line);
+            assert.equal(outside,before,'Full photo engine must not use network when cached');
           }finally{await browser.close();server.close();}
           EOF
           node probe.mjs
