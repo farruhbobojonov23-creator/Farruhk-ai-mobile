@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
@@ -115,6 +115,10 @@ jobs:
             if(scanNextPass(1,wrong,true,[full,wrong])!=='rescan')throw Error('Conflicting verified totals must not skip retry');
             if(scanNextPass(2,weak,false,[weak])!==null)throw Error('Retry bound');
             if(scanNextPass(0,full,true,[full])!==null)throw Error('Verified initial result must not retry');
+            const plausible={...full,documentVerified:false};
+            if(scanNextPass(0,plausible,true,[plausible])!=='paddle-scan')throw Error('Unverified complete-looking rows must retry');
+            if(scanNextPass(1,plausible,true,[plausible])!=='rescan')throw Error('Unverified Paddle result must retry');
+            if(scanNextPass(2,plausible,true,[plausible])!==null)throw Error('Bounded retries');
           });
 
           async function invoice(supplier,price,id,withPhoto){
