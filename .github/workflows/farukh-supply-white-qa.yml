@@ -87,6 +87,7 @@ jobs:
             if(!invoiceIntegrity(items.map((r,i)=>i?r:{...r,quantity:null}),[],raw,'2026-11-09').error)throw Error('Missing quantity accepted');
             if(!invoiceIntegrity(items,[],raw+'\n---\n'+pass2.replace('3419.10 x 341.90 3761,00','3419.10 x 342.90 3762,00'),'2026-11-09').error)throw Error('Conflicting totals accepted');
           });
+          await page.evaluate(()=>{const p=window.supplyInvoiceParser,a=p.parseSimple("АКТ ПРИЕМА-ПЕРЕДАЧИ по УПД № 100/1 от 09.11.2026 г.\nПродавец: ООО «АЛИДИ ПРОФ»\nНаименование товара Количество Стоимость с НДС Отгружено Сроки годности\n1 4620749684390 АНАНАСЫ кольца 850 мл SUNFEEL [1] ШТ 12 0 5 22 278.66 1393.30 5 10.10.2028\n2 8887293103319 УГОРЬ филе 17-23 унц 5 кг [5] КГ 0 0 10 1444.50 7222.50 5 09.06.2028"),m=p.parseSimple("Официальное наименование: \"МАРР РУССИЯ\" ООО\n1 0903309716 Креветки 1 кг упак 2 2,000 1183,96 2367,92\n2 0903309716 Креветки 1 кг упак 18 18,000 1183,96 21311,28\nИтого : 20 20,000 23679,20");if(!a.pageVerified||a.items.length!==2||a.items[1].quantity!==5||a.items[1].invoiceTotal!==7222.5)throw Error('Act weight row');if(!m.documentVerified||m.items.length!==2||m.items[0].sourceRow===m.items[1].sourceRow)throw Error('MARR repeated article');});
           assert.equal(await page.locator('#productCount').textContent(),'0');
           assert.equal(await page.locator('#supplierCount').textContent(),'0');
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
