@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
+      - 'supply/**'
 permissions:
   contents: read
 jobs:
