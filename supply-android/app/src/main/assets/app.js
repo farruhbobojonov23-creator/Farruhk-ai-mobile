@@ -27,7 +27,7 @@ function lineSummary(l){
 function addLine(data={}){
  const f=node('div',null,'line');if(data.uncertain)f.classList.add('uncertain');
  function field(key,title,value,placeholder){const wrap=node('label',title),i=node('input');i.dataset.field=key;i.placeholder=placeholder||'';i.value=value==null?'':String(value);if(key!=='name')i.inputMode='decimal';i.setAttribute('aria-label',title);wrap.append(i);return {wrap,i}}
- const a=field('name','Товар / наименование',data.name,'Сыр творожный'),p=field('price','Цена за единицу, ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг/уп.',data.packKg,'—');
+ const a=field('name','Товар / наименование',data.name,'Название товара'),p=field('price','Цена за единицу, ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг/уп.',data.packKg,'—');
  a.i.value=data.name||'';a.i.required=p.i.required=true;
  const u=node('select');u.dataset.field='unit';u.setAttribute('aria-label','Единица накладной');
  for(const k of ['','шт','уп','кор','кг','г','л','мл']){const o=node('option',k||'Не указана');o.value=k;u.append(o)}u.value=data.unit||((data.name||'').match(/\s*\/\s*(кг|г|л|мл|шт|уп|кор)(?:\s+\(без НДС\))?$/i)?.[1]||'');
@@ -62,7 +62,7 @@ $('search').oninput=render;
 function edit(d){reset();editing=d.id;$('supplier').value=d.supplierId;$('lines').replaceChildren();for(const l of d.lines)addLine(l);showPreview(d.original);go('entry')}
 $('form').onsubmit=async e=>{e.preventDefault();if(scanBusy)return;try{const supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!['шт','уп','кор'].includes(l.unit))l.packKg=null;return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены');if(new Set(lines.map(l=>norm(l.name))).size!==lines.length)throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:$('file').files[0]||prior?.original||null};if(!editing&&docs.some(d=>d.simpleVersion===1&&norm(d.supplierId)===norm(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;await refresh();go('invoices');status('✓ Накладная сохранена',true)}catch(err){status(err.message)}};
 window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId=id;scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent='Распознаём фото…'};
-function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';d.append(p);$('retry').after(d)}
+function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
  return priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
@@ -90,6 +90,8 @@ window.supplyOcrFinish=(id,text,error)=>{
   if(native&&scanPass<2&&!complete){
    scanPass++;nextScan(scanPass===1?'rescan':'paddle-scan',scanPass===1?'Повторная проверка товарной таблицы…':'Проверка другим OCR-модулем…');return;
   }
+  const rescored=window.supplyInvoiceParser.parseSamePhotoPasses(scanCandidates.map(x=>x.text||''));
+  for(const parsed of rescored)if(parsed.items.some(x=>x.price!=null))scanCandidates.push({r:parsed,text:'',error:''});
   const ranked=scanCandidates.slice().sort((a,b)=>scanScore(b.r)-scanScore(a.r)),best=ranked[0];
   let r=best.r;const suppliers=[...new Set(ranked.map(x=>x.r.supplier).filter(Boolean))];
   if(!r.supplier&&suppliers.length===1)r={...r,supplier:suppliers[0]};

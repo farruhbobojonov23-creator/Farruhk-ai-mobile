@@ -373,3 +373,65 @@ api.parseSimple=function(text){
  return {supplier:'Восток-Запад',items:recovered};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSimple;
+const cash='(?:\\d{1,3}(?:[, .]\\d{3})+[.,]\\d{2}|\\d+[.,]\\d{2})',dec='\\d+(?:[.,]\\d{1,3})?';
+const num=s=>{s=String(s).replace(/\s/g,'');if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf('.')>s.lastIndexOf(',')?s.replace(/,/g,''):s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+const tail=new RegExp('^(.+?)\\s+(\\d{7,12})\\s+(кг|шт|уп|кор)(?:\\s+(166|796|778))?\\s+('+dec+')\\s*%?\\s+('+cash+')\\s+('+dec+')\\s+('+dec+')(?:\\s+[A-ZА-Я]-\\d+)?\\s*$','i');
+const anchor=/^(.+?)\s+(\d{7,12})\s+(кг|шт|уп|кор)(?:\s+(166|796|778))?\s*$/i;
+const values=new RegExp('^('+dec+')\\s*%?\\s+('+cash+')\\s+('+dec+')\\s+('+dec+')(?:\\s+[A-ZА-Я]-\\d+)?\\s*$','i');
+const vat=new RegExp('^в\\s+том\\s+числе\\s+ндс\\s*[:=]?\\s+('+cash+')\\s*$','i'),total=new RegExp('^всего\\s+к\\s+оплате\\s*[:=]?\\s+('+cash+')\\s*$','i');
+const round=x=>Math.round((x+Number.EPSILON)*100)/100;
+const clean=s=>String(s).split(/\r?\n/).map(x=>x.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+const stop=/^(?:поставщик|плательщик|грузо|товарная|товарно|накладная|наименование|количество|итого|всего|в том числе|подпись|масса|код|ставка|основание|покупатель)/i;
+const collect=(lines,re)=>[...new Set(lines.map(l=>l.match(re)).filter(Boolean).map(m=>num(m[1])))];
+function recover(text,context){
+ const b=previous(text);if(b.supplier!=='Восток-Запад')return b;
+ const lines=clean(text),items=[];
+ for(let i=0;i<lines.length;i++){
+  let m=lines[i].match(tail),last=i;
+  if(!m){const x=lines[i].match(anchor),y=(lines[i+1]||'').match(values);if(x&&y){m=[lines[i]+' '+lines[i+1],...x.slice(1),...y.slice(1)];last=i+1;}}
+  if(!m)continue;
+  let name=m[1].replace(/^\d{1,3}[.)]?\s+/,'').trim();
+  const prev=lines[i-1]||'',next=lines[last+1]||'';
+  if(prev&&!stop.test(prev)&&b.items.some(x=>x.name===prev||x.name.startsWith(prev+' /'))&&!name.toLowerCase().startsWith(prev.toLowerCase()))name=prev+' '+name;
+  if(/^сол[её]ная пищевая рыбная продукция$/i.test(next))name+=' '+next;
+  else if(/^\d+(?:[.,]\d+)?\s*к[гт]\s*\/\s*[0-9ОоO]+\s*л$/i.test(next)&&!api.packWeight(name))name+=' '+next.replace(/кт/ig,'кг').replace(/[ОоO](?=л)/g,'0');
+  if(stop.test(name)||!/[а-яёa-z]{3}/i.test(name))continue;
+  const unit=m[3].toLowerCase(),code=m[4],rate=num(m[5]),amount=num(m[6]),quantity=num(m[7]),gross=num(m[8]);
+  if(code&&({кг:'166',шт:'796',уп:'778'})[unit]!==code)continue;
+  if(![0,5,7,10,20,22].includes(rate)||!(amount>0&&quantity>0&&gross>0))continue;
+  const packKg=unit==='кг'?null:api.packWeight(name);
+  if(unit==='кг'&&gross+.001<quantity||unit!=='кг'&&!Number.isInteger(quantity)||packKg&&gross+.001<packKg*quantity)continue;
+  if(items.some(z=>z.x.article===m[2]))continue;
+  const x={name:name+' / '+unit+' (с НДС)',unit,quantity,packKg,price:round(amount/quantity),invoiceTotal:amount,priceDerived:true,uncertain:true,article:m[2],source:lines.slice(i,last+1).join('\n')};
+  Object.assign(x,api.lineMetrics(x));x.totalPrice=amount;items.push({x,tax:round(amount*rate/(100+rate))});
+  i=last;
+ }
+ if(!items.length)return b;
+ const gross=items.reduce((s,z)=>s+z.x.invoiceTotal,0),tax=items.reduce((s,z)=>s+z.tax,0);
+ const vs=collect(lines,vat),ts=collect(lines,total);
+ // A footer read by another pass of this same image can independently verify a row.
+ const cv=context?.vat||[],ct=context?.total||[];
+ const vv=vs.length?vs:cv,tt=ts.length?ts:ct;
+ const vok=vv.length===1&&Math.abs(vv[0]-tax)<=.02,tok=tt.length===1&&Math.abs(tt[0]-gross)<=.02;
+ if((vv.length&&!vok)||(tt.length&&!tok)||(!vok&&!tok))return b;
+ const recovered=items.map(z=>z.x);
+ if(b.items.filter(x=>x.price!=null).length>=recovered.length)return b;
+ return {supplier:b.supplier,items:recovered};
+}
+api.parseSimple=text=>recover(text,null);
+api.parseSamePhotoPasses=function(texts){
+ const originals=texts.filter(x=>typeof x==='string'&&x.trim());
+ const suppliers=[...new Set(originals.map(x=>previous(x).supplier).filter(Boolean))];
+ const all=originals.flatMap(clean);
+ const context={vat:collect(all,vat),total:collect(all,total)};
+ return originals.map(text=>{
+  let raw=text;
+  if(suppliers.length===1&&!previous(text).supplier)raw='Поставщик: '+suppliers[0]+'\n'+text;
+  return recover(raw,suppliers.length===1?context:null);
+ });
+};
+})(globalThis);
