@@ -112,6 +112,8 @@ jobs:
             const product={name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт'};
             if(knownPack(product,'Поставщик тест',history)!==9.4)throw Error('Saved pack not found');
             if(knownPack(product,'Другой поставщик',history)!==null)throw Error('Supplier isolation failed');
+            if(knownPack({...product,name:'Майонез тест 10 кг / шт (с НДС)'},'Поставщик тест',history)!==null)throw Error('Explicit new pack must not reuse old pack');
+            if(knownPack(product,'Поставщик тест',history)!==9.4)throw Error('Indexed repeat lookup failed');
             if(knownPack({...product,article:'999999999'},'Поставщик тест',history)!==null)throw Error('Article isolation failed');
             const conflict=[...history,{...history[0],lines:[{...history[0].lines[0],packKg:10}]}];
             if(knownPack(product,'Поставщик тест',conflict)!==null)throw Error('Conflicting weights must not be guessed');

@@ -1267,3 +1267,38 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
   return texts.map(t=>api.parseSimple(matchSupplier(t)?t:'Поставщик: '+supplier+'\n'+t));
  };
 })(globalThis);
+
+;(function(root){
+ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+ const parse=api.parseSimple,passes=api.parseSamePhotoPasses;
+ // Explicit legal seller heading only; buyer details and free text are not supplier evidence.
+ function legalSeller(text){
+  const names=new Map();
+  for(const m of String(text||'').matchAll(/(?:^|\n)\s*(?:официальное\s+наименование|продавец|поставщик)\s*:\s*(?:\n\s*)?(?:([оo0]{3})\s*["«]([^"\n»]{2,90})["»]|["«]([^"\n»]{2,90})["»]\s*([оo0]{3}))(?=\s|$)/giu)){
+   const name=(m[2]||m[3]).trim();
+   names.set(name.toLowerCase().replace(/\s+/g,' '),'ООО «'+name+'»');
+  }
+  return names.size===1?[...names.values()][0]:'';
+ }
+ function withSeller(text){
+  const name=legalSeller(text);
+  if(!name||/[мm][аa][рp][рp]\s+[рp]усси[яa]/iu.test(name)||/^\s*(?:поставщик|продавец)\s*:\s*.+/im.test(text))return text;
+  return 'Поставщик: '+name+'\n'+text;
+ }
+ // Cache only within a single same-photo batch, never across documents or on disk.
+ // Return fresh objects because downstream enrichment can mutate parsed rows.
+ let cache=null;
+ const copy=r=>JSON.parse(JSON.stringify(r));
+ api.parseSimple=text=>{
+  const raw=String(text||'');
+  if(cache?.has(raw))return copy(cache.get(raw));
+  const result=parse(withSeller(raw));
+  if(cache&&cache.size<32)cache.set(raw,copy(result));
+  return result;
+ };
+ api.parseSamePhotoPasses=texts=>{
+  const previous=cache;cache=new Map();
+  try{return passes([...new Set(texts.filter(t=>typeof t==='string'&&t.trim()))].map(withSeller))}
+  finally{cache=previous;}
+ };
+})(globalThis);
