@@ -109,6 +109,7 @@ jobs:
           script: |
             gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.paddle.ocr.benchmark.SupplyInvoiceSmokeTest --no-daemon
             gradle -p supply-android :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ai.farukh.supply.InvoiceOrientationTest --no-daemon
+            gradle -p supply-android :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ai.farukh.supply.ReportExportTest --no-daemon
       - name: Build signed test APK if signing is configured
         shell: bash
         env:

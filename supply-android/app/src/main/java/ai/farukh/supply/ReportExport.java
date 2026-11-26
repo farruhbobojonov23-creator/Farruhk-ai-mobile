@@ -76,7 +76,7 @@ final class ReportExport {
  }
  static byte[] pdf(String summary)throws IOException{
   if(summary.length()>100000)throw new IOException("length");
-  try(PdfDocument doc=new PdfDocument();ByteArrayOutputStream out=new ByteArrayOutputStream()){
+  PdfDocument doc=new PdfDocument();try(ByteArrayOutputStream out=new ByteArrayOutputStream()){
    Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));paint.setTextSize(12);
    java.util.List<String> lines=new java.util.ArrayList<>();for(String text:summary.split("\\n",-1)){
     if(text.isEmpty()){lines.add("");continue;}while(!text.isEmpty()){int take=paint.breakText(text,true,515,null);if(take<1)take=1;lines.add(text.substring(0,take));text=text.substring(take);}
@@ -85,6 +85,6 @@ final class ReportExport {
     PdfDocument.Page page=doc.startPage(new PdfDocument.PageInfo.Builder(595,842,++pageNo).create());Canvas c=page.getCanvas();paint.setColor(Color.rgb(50,46,145));paint.setTextSize(19);paint.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));c.drawText("FARUKH SUPPLY",40,48,paint);paint.setStrokeWidth(2);c.drawLine(40,62,555,62,paint);
     paint.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));paint.setTextSize(12);paint.setColor(Color.rgb(28,34,56));int y=92;for(int i=start;i<Math.min(lines.size(),start+39);i++){c.drawText(lines.get(i),40,y,paint);y+=18;}paint.setColor(Color.GRAY);c.drawText("Страница "+pageNo,40,810,paint);doc.finishPage(page);
    }doc.writeTo(out);return out.toByteArray();
-  }
+  }finally{doc.close();}
  }
 }
