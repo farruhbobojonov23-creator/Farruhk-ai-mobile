@@ -131,7 +131,18 @@ api.parseSimple=function(text){
  .replace(/(?:^|\s)(?:упак(?:овка)?|пач(?:ка)?|пак(?:ет)?)\.?(?=\s+\d)/gi,' уп')
  .replace(/(?:^|\s)(?:короб(?:ка)?|ящик)\.?(?=\s+\d)/gi,' кор')
  .replace(/(?:^|\s)(?:штук(?:а)?|ед(?:иница)?)\.?(?=\s+\d)/gi,' шт');
- const base=previous(normalized), lines=normalized.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+ // Correct OCR unit aliases and a possible table-border digit only with independent arithmetic checks.
+ const corrected=normalized.replace(/(^|[ \t])(?:[kк][rгg]|[kк][tт])\.?(?=[ \t]+\d+(?:[,.]\d{1,5})?[ \t])/giu,'$1кг');
+ const vatLine=new RegExp('^(.*?\\s(?:кг|мл|г|л|шт|уп|кор)\\.?\\s+)(\\d+(?:[,.]\\d{1,5})?)\\s+(1\\d+[,.]\\d{2})\\s+('+money+')\\s+(?:(?:без акциза|[-–]|х|x)\\s+)?(\\d{1,2})\\s*%\\s+('+money+')\\s+('+money+')\\s*$','i');
+ const repaired=corrected.split(/\r?\n/).map(row=>{
+  const l=row.replace(/[|│]/g,' ').replace(/[ \t]+/g,' ').trim(),m=l.match(vatLine);
+  if(!m)return row;
+  const q=n(m[2]),p=n(m[3]),candidate=n(m[3].slice(1)),net=n(m[4]),rate=Number(m[5]),tax=n(m[6]),gross=n(m[7]);
+  const tol=Math.max(.02,q*.005+.01);
+  if(q>0&&candidate>0&&rate>0&&rate<=30&&Math.abs(q*p-net)>tol&&Math.abs(q*candidate-net)<=tol&&Math.abs(net*rate/100-tax)<=.02&&Math.abs(net+tax-gross)<=.02)return l.replace(m[1]+m[2]+' '+m[3],m[1]+m[2]+' '+m[3].slice(1));
+  return row;
+ }).join('\n');
+ const base=previous(repaired), lines=repaired.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
  const items=base.items.slice();
  const head=lines.findIndex((l,i)=>/(?:наименование|товар)/i.test(l)&&/цен[аы]/i.test(lines.slice(i,i+5).join(' ')));
  if(head<0)return base;
