@@ -129,8 +129,9 @@ export function verifiedNumbers(readings){
 export async function verifyGridCells(im,grid,assigned,s){
  const rows=assigned.rows.map(r=>r.slice()),review=[];
  const head=rows[0].map(v=>v.toLowerCase());
+ const unit=head.findIndex(v=>/^ед\.?|единиц/.test(v));
  const name=head.findIndex(v=>/наименован|товар/.test(v)),qty=head.findIndex(v=>/кол.?во|количество/.test(v)),price=head.findIndex(v=>/цен[аы].*ндс/.test(v)&&!v.includes('без')),amount=head.findIndex(v=>/сумма/.test(v)&&!v.includes('ндс'));
- if([name,qty,price,amount].some(v=>v<0)||new Set([name,qty,price,amount]).size!==4)return {rows,review:['Не подтверждены колонки'],verified:false};
+ if([name,qty,price,amount,unit].some(v=>v<0)||new Set([name,qty,price,amount,unit]).size!==5)return {rows,review:['Не подтверждены колонки'],verified:false};
  for(let i=1;i<rows.length;i++){
   if(rows[i].some(v=>/^итого|^всего/i.test(v)))continue;
   const cols=[qty,price,amount],readings=[];
@@ -140,11 +141,13 @@ export async function verifyGridCells(im,grid,assigned,s){
   const verified=verifiedNumbers(readings);
   if(!verified){review.push('Строка '+i+': цифры не подтверждены');continue;}
   cols.forEach((j,k)=>rows[i][j]=String(verified[k]).replace('.',','));
+  const units=new Set([rows[i][unit],await readCell(im,grid,i,unit,s),await readCell(im,grid,i,unit,s,{contrast:true})].map(v=>v.toLowerCase().replace(/\s|\./g,'')).filter(v=>/^(шт|уп|кор|кг|г|л|мл)$/.test(v)));
+  if(units.size===1)rows[i][unit]=[...units][0];else review.push('Строка '+i+': единица требует сверки');
   const a=await readCell(im,grid,i,name,s),b=await readCell(im,grid,i,name,s,{contrast:true});
   if(a&&a===b)rows[i][name]=a;else if(!a||a!==rows[i][name])review.push('Строка '+i+': название требует сверки');
  }
  const totals=rows.filter(r=>r.some(v=>/^итого|^всего/i.test(v)));
  const sum=rows.slice(1).filter(r=>!r.some(v=>/^итого|^всего/i.test(v))).reduce((s,r)=>s+Math.round(num(r[amount])*100),0);
  if(totals.length!==1||!Number.isFinite(sum)||sum!==Math.round(num(totals[0]?.[amount])*100))review.push('Итог не подтверждён');
- return {rows,review,verified:review.length===0&&assigned.ambiguous===0};
+ return {rows,review,columns:{name,qty,price,amount,unit},verified:review.length===0&&assigned.ambiguous===0};
 }
