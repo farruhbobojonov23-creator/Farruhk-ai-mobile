@@ -1228,8 +1228,9 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
   const partial=rows.items.length?rows.items:b.items.filter(x=>/[а-яёa-z]{3}/i.test(x.name.replace(/\s*\/\s*(?:кг|шт|уп|кор).*$/i,'')));
   return {...b,supplier,items:partial,documentVerified:false,pageVerified:false};
  }
- api.parseSimple=t=>recover(t,prior(t));
+ api.parseSimple=t=>{const parts=String(t||'').split(/\r?\n\s*---\s*\r?\n/);if(parts.length>1&&parts.some(matchSupplier)){const rs=api.parseSamePhotoPasses(parts);return rs.sort((a,b)=>Number(!!b.documentVerified)-Number(!!a.documentVerified)||b.items.filter(x=>x.price!=null).length-a.items.filter(x=>x.price!=null).length||b.items.length-a.items.length)[0];}return recover(t,prior(t));};
  api.parseSamePhotoPasses=texts=>{
+  texts=texts.flatMap(t=>String(t||'').split(/\r?\n\s*---\s*\r?\n/));
   if(!texts.some(matchSupplier))return priorPasses(texts).map(r=>r.supplier?r:{...r,supplier:[...new Set(texts.map(officialName).filter(Boolean))].length===1?texts.map(officialName).find(Boolean):r.supplier});
   return texts.map(t=>api.parseSimple(matchSupplier(t)?t:'Поставщик: '+supplier+'\n'+t));
  };
