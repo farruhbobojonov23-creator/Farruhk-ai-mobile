@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76', 'experiment/supply-local-vision-benchmark', 'experiment/supply-smart-simple-v78']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76', 'experiment/supply-local-vision-benchmark', 'experiment/supply-smart-simple-v78', 'experiment/supply-ppstructure-v3']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
@@ -145,23 +145,23 @@ jobs:
           await page.locator('#file').setInputFiles({name:'smart.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB1sAAAAASUVORK5CYII=','base64')});
           await page.evaluate(()=>{
             window.supplyOcrStart(901);window.supplyOcrFinish(901,'Поставщик: Тестовый поставщик\nТовар Цена\n1 Рис 110,00','');
-            window.__originalSmartScan=window.supplySmartScan.scanPhoto;
-            window.supplySmartScan.scanPhoto=async()=>({items:[],result:{rows:[],error:'Таблица не распознана'}});
+            window.__originalSmartScan=window.supplySmartScan.scanCompact;
+            window.supplySmartScan.scanCompact=async()=>({items:[],result:{rows:[],error:'Таблица не распознана'}});
           });
           assert.equal(await page.locator('#smartScan').isVisible(),true);
           await page.locator('#smartScan').click();
           await page.waitForFunction(()=>document.querySelector('#ocrState').textContent.includes('Старое распознавание доступно'));
           assert.equal(await page.locator('[data-field=price]').first().inputValue(),'110');
           await page.evaluate(()=>{
-            window.supplySmartScan.scanPhoto=async()=>({items:[],result:{rows:[{name:'Рис новый',quantity:2,price:150,total:300,arithmeticOK:true}],sum:300,totalOK:true,printedTotal:300}});
+            window.supplySmartScan.scanCompact=async()=>({items:[],result:{rows:[{name:'Рис новый',quantity:2,price:150,total:300,unit:'шт',arithmeticOK:true}],sum:300,totalOK:true,printedTotal:300,compactVerified:true}});
           });
           await page.locator('#smartScan').click();
           await page.waitForFunction(()=>document.querySelector('#ocrState').textContent.includes('SMART SCAN (тест)'));
           assert.equal(await page.locator('[data-field=name]').first().inputValue(),'Рис новый');
           assert.equal(await page.locator('[data-field=quantity]').first().inputValue(),'2');
           assert.equal(await page.locator('[data-field=price]').first().inputValue(),'150');
-          assert.equal(await page.locator('[data-field=unit]').first().inputValue(),'');
-          await page.evaluate(()=>{window.supplySmartScan.scanPhoto=window.__originalSmartScan;reset()});
+          assert.equal(await page.locator('[data-field=unit]').first().inputValue(),'шт');
+          await page.evaluate(()=>{window.supplySmartScan.scanCompact=window.__originalSmartScan;reset()});
           await page.locator('nav button[data-go=home]').click();
 
           // Check purchase-only photo entry, live sum and independently verified duplicate rows.
