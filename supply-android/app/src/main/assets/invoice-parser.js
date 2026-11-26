@@ -957,7 +957,7 @@ api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)]
 ;(function(root){
 const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
 const earlier=api.parseSamePhotoPasses;
-const clean=s=>String(s||'').normalize('NFKC').replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+const clean=s=>String(s||'').normalize('NFKC').replace(/[|│\[\]]/g,' ').replace(/\s+/g,' ').trim();
 const money=/(?:^|\s)((?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2})(?=\s|$)/g;
 const number=s=>Number(s.replace(/\s/g,'').replace(',','.'));
 const amounts=s=>[...s.matchAll(money)].map(m=>number(m[1]));
