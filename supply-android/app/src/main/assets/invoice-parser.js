@@ -899,3 +899,56 @@ api.purchaseMetrics=row=>{
  piecesPerPack:piece?per:null,totalPieces:piece&&q&&factor&&Number.isSafeInteger(q*factor)?q*factor:null,pricePerPiece:piece&&p&&factor?round(p/factor):null};
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const prior=api.parseSimple,passes=api.parseSamePhotoPasses;
+const money='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}',qty='\\d+[.,]\\d{3}';
+const n=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+const near=(a,b,t=.021)=>Math.abs(a-b)<=t;
+const round=x=>Math.round((x+Number.EPSILON)*100)/100;
+const units={778:'уп',796:'шт',990:'уп',166:'кг',163:'г',112:'л',111:'мл'};
+const row=new RegExp('^(.+?)\\s+(778|796|990|166|163|112|111)\\s+(?:(упак|уп|шт|меш|кг|г|л|мл|ynak|ynаk|упaк)\\.?\\s+)?('+qty+')\\s+('+money+')\\s+(.+?)\\s+(0|5|7|10|20|22)\\s*%\\s+(.+?)\\s+('+money+')$','i');
+const footer=new RegExp('^всего\\s+к\\s+оплате\\s*(?:\\(9\\))?\\s*('+money+')\\s+(?:[xх×]\\s+)?('+money+')\\s+('+money+')\\s*$','i');
+const cashToken=new RegExp('(?:^|\\s)'+money+'(?=\\s|$)');
+const normalizeName=s=>s.replace(/(?:^|\s)(?:yn|yп|уп)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(?:kr|kг|кr|кг)(?=$|[\s()])/ig,' уп/$1 кг').replace(/(\d+)\s*[шШ][tTтТ](?=$|[\s)])/g,'$1 шт').replace(/\s+/g,' ').trim();
+// Damaged net/tax cells are not treated as prices. Validate each readable
+// quantity, unit price, rate and gross against all document footer totals.
+function recover(text,b){
+ if(b.documentVerified||b.pageVerified||!b.supplier)return b;
+ const lines=String(text||'').split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+ const doc=lines.findIndex(l=>/сч[её]т[- ]фактура|универсальный\s+передаточный\s+документ/i.test(l));
+ if(doc<0)return b;
+ const end=lines.findIndex((l,i)=>i>doc&&footer.test(l));
+ if(end<0)return b;
+ const [netTotal,taxTotal,grossTotal]=lines[end].match(footer).slice(1).map(n);
+ if(!near(netTotal+taxTotal,grossTotal))return b;
+ const items=[],nets=[],taxes=[];
+ for(let i=doc+1;i<end;i++){
+  const m=lines[i].match(row);if(!m)continue;
+  const [,label,code,printedUnit,q,p,netCell,rate,vatCell,grossCell]=m;
+  const quantity=n(q),price=n(p),gross=n(grossCell),taxRate=Number(rate),unit=units[code];
+  if(!/[а-яё]{3}/i.test(label)||!/\d/.test(netCell)||!/\d/.test(vatCell)||!(quantity>0&&price>0&&gross>0))return b;
+  const alias=printedUnit&&(/^(?:уп|yn|меш)/i.test(printedUnit)?'уп':printedUnit.toLowerCase());
+  if(alias&&alias!==unit)return b;
+  const net=round(gross/(1+taxRate/100)),tax=round(gross-net);
+  if(!near(quantity*price,net,Math.max(.021,quantity*.005+.011)))return b;
+  let name=label.replace(/^\d{1,3}[.)]?\s+/,'');let j=i+1;
+  for(;j<end&&!row.test(lines[j]);j++){
+   const l=lines[j];
+   if(!/[а-яёa-z]{2}/i.test(l)||cashToken.test(l)||/%/.test(l)||/^(?:всего|итого|документ|продавец|покупатель)/i.test(l))return b;
+   name+=' '+l;
+  }
+  name=normalizeName(name);
+  const pack=['шт','уп','кор'].includes(unit),packKg=pack?api.packWeight(name):null;
+  const x={name:name+' / '+unit+' (без НДС)',unit,quantity,price,invoiceTotal:gross,packKg,packL:pack&&!packKg?api.packVolume(name):null,uncertain:true,source:lines.slice(i,j).join('\n')};
+  Object.assign(x,api.lineMetrics(x));items.push(x);nets.push(net);taxes.push(tax);i=j-1;
+ }
+ if(!items.length||items.length<b.items.filter(x=>x.price!=null).length)return b;
+ const sum=a=>a.reduce((s,x)=>s+x,0);
+ if(!near(sum(items.map(x=>x.invoiceTotal)),grossTotal)||!near(sum(nets),netTotal,.021+items.length*.011)||!near(sum(taxes),taxTotal,.021+items.length*.011))return b;
+ return {...b,items,documentVerified:true};
+}
+api.parseSimple=text=>recover(text,prior(text));
+api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
+})(globalThis);
