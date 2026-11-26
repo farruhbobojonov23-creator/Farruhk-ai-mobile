@@ -491,7 +491,7 @@ $('supplier').addEventListener('change',()=>{for(const f of $('lines').children)
 $('addLine').onclick=()=>{addLine(pages.length===1?{pageKey:pages[0].key}:{});dirty=true;showInvoiceIntegrity()};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';scanStartedAt=performance.now();scanTrace=[];document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
 
 function pageStatus(){
- const label=$('fileLabel');if(label)label.textContent=pages.length?'＋ Добавить страницу':'▣ Выбрать фото или PDF';
+ const label=$('fileLabel');if(label)label.textContent=pages.length?'＋ Добавить страницу':'▣ Выбрать фото накладной';
  const numbers=[...new Set(pages.map(p=>p.number).filter(Boolean))],expected=Math.max(0,...pages.map(p=>p.expected||0));
  const complete=expected>0&&numbers.length===expected&&numbers.every(n=>n>=1&&n<=expected);
  partialPage=expected&&!complete?{pages:expected,page:numbers.length}:null;
@@ -971,6 +971,11 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\n')){acceptPdf(text,parseStarted);return;}
   if(pendingPhoto?.type==='application/pdf'||/\.pdf$/i.test(pendingPhoto?.name||'')){throw Error(error||'PDF не прочитан. Выберите файл повторно.');}
   let current=window.supplyInvoiceParser.parseSimple(text||'');
+  // SMART SIMPLE: prefer the direct purchase-only interpretation when it is
+  // independently reconciled, or when legacy found no complete rows.
+  const simple=window.supplyInvoiceParser.parsePurchaseFields(text||'');
+  if(simple&&(simple.documentVerified||(!simple.unparsed&&simple.printedTotal==null&&!current.items.some(x=>x.price!=null&&x.quantity!=null))))current=simple;
+
   // A focused table crop can omit the header. Carry forward a unique supplier
   // already read from the same photo; never fill one from a preset or a previous invoice.
   const continuationSupplier=pages.length&&!invoiceHeader(text).documentNumber?$('supplier').value.trim():'';const earlierSuppliers=[...new Set([photoSupplier,continuationSupplier,...scanCandidates.map(x=>x.r.supplier)].filter(Boolean))];
