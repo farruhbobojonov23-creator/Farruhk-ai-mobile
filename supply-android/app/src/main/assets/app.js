@@ -204,7 +204,10 @@ window.supplyOcrFinish=(id,text,error)=>{
   if(native&&scanPass<2&&!complete){
    scanPass++;nextScan(scanPass===1?'rescan':'paddle-scan',scanPass===1?'Повторная проверка товарной таблицы…':'Проверка другим OCR-модулем…');return;
   }
-  const rescored=window.supplyInvoiceParser.parseSamePhotoPasses(scanCandidates.map(x=>x.text||''));
+  // A single complete, reconciled document needs no second parsing of identical input.
+  // Preserve multi-pass recovery whenever any evidence is incomplete or conflicting.
+  const rescored=scanCandidates.length===1&&complete&&current.documentVerified&&current.supplier
+   ? [] : window.supplyInvoiceParser.parseSamePhotoPasses(scanCandidates.map(x=>x.text||''));
   for(const parsed of rescored)if(parsed.items.some(x=>x.price!=null))scanCandidates.push({r:parsed,text:'',error:''});
   const ranked=scanCandidates.slice().sort((a,b)=>scanScore(b.r)-scanScore(a.r)),best=ranked[0];
   let r=best.r;const suppliers=[...new Set(ranked.map(x=>x.r.supplier).filter(Boolean))];
