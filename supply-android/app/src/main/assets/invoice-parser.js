@@ -229,3 +229,53 @@ api.parseSimple=function(text){
  return original(normalized);
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const original=api.parseSimple;
+const num=s=>{s=String(s||'').replace(/\s/g,'');if(/,\d{3}\.\d{2}$/.test(s))s=s.replace(/,/g,'');else if(/\.\d{3},\d{2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return Number(s)};
+const cash='(?:\\d{1,3}(?:[, .]\\d{3})+[.,]\\d{2}|\\d+[.,]\\d{2})';
+const dec='\\d+(?:[.,]\\d{1,3})?';
+const round=x=>Math.round((x+Number.EPSILON)*100)/100;
+api.parseSimple=function(text){
+ const raw=String(text||''),flat=raw.replace(/[|│]/g,' ').replace(/\s+/g,' ');
+ const isTtn=/товарно[-–\s]*транспортная\s+накладная/i.test(flat)||/товарный\s+раздел/i.test(flat);
+ const layout=/сумма\s*с\s*ндс/i.test(flat)&&/количество\s+мест/i.test(flat)&&/масс[аы]\s+брутто/i.test(flat);
+ if(!isTtn||!layout)return original(text);
+ const b=original(text),supplier=/восток\s*[-–]?\s*запад/i.test(flat)?'Восток-Запад':b.supplier;
+ const items=[];
+ // TTN column order: product, article, shipping unit, OKEI, VAT rate, gross amount,
+ // shipping quantity, gross mass. The gross mass is never used as net product weight.
+ const row=new RegExp('^(?:\\d{1,3}[.)]?\\s+)?(.{3,260}?)\\s+(\\d{7,12})\\s+(шт|кг|уп|кор|[kк][rгg])\\.?\\s+(796|166|778)\\s+('+dec+')\\s*%?\\s+('+cash+')\\s+('+dec+')\\s+('+dec+')(?:\\s|$)','i');
+ const lines=raw.split(/\r?\n/).map(l=>l.replace(/[|│]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+ const stop=/^(?:итого|всего|подпись|руководитель|бухгалтер|масса груза|в том числе)/i;
+ const names=[];
+ for(let i=0;i<lines.length;i++){
+  if(stop.test(lines[i]))continue;
+  if(/^(?:наименование товара|товарный раздел|поставщик|грузо|покупатель|плательщик|основание|товарно[-–])/i.test(lines[i]))continue;
+  for(let end=i;end<Math.min(i+5,lines.length);end++){
+   if(end>i&&stop.test(lines[end]))break;
+   const s=lines.slice(i,end+1).join(' ');
+   if(s.length>420)break;
+   const m=s.match(row);if(!m)continue;
+   let name=m[1].trim().replace(/^\d{1,3}[.)]?\s*/,'');
+   if(!/[а-яёa-z]{3}/i.test(name)||/наименование товара|порядковый|сумма с ндс|ставка ндс|количество мест|код окей/i.test(name))break;
+   const unit=/^(?:кг|[kк][rгg])$/i.test(m[3])?'кг':m[3].toLowerCase(),code=m[4],rate=num(m[5]),total=num(m[6]),quantity=num(m[7]),grossMass=num(m[8]);
+   if((unit==='кг'&&code!=='166')||(unit==='шт'&&code!=='796')||![0,5,7,10,20,22].includes(rate)||!(total>0&&quantity>0&&grossMass>0))break;
+   // Names can wrap below the numeric cells; preserve a short plausible continuation.
+   if(end+1<lines.length&&/^(?:\d+[,.]?\d*\s*к[гт]\s*\/\s*\d+\s*л|соленая\s+пищевая\s+рыбная\s+продукция)$/i.test(lines[end+1])){name+=' '+lines[++end]}
+   name=name.replace(/(\d+(?:[,.]\d+)?)\s*кт(?=\s*\/\s*\d+\s*л)/gi,'$1кг');
+   const packKg=['шт','уп','кор'].includes(unit)?api.packWeight(name):null;
+   if(unit==='кг'&&grossMass+0.001<quantity||packKg&&grossMass+0.001<packKg*quantity)break;
+   const price=round(total/quantity),item={name:name+' / '+unit+' (с НДС)',price,quantity,unit,packKg,uncertain:true,source:s,invoiceTotal:total,priceDerived:true};
+   Object.assign(item,api.lineMetrics(item));item.totalPrice=total;
+   if(!names.includes(m[2])){names.push(m[2]);items.push(item)}
+   i=end;break;
+  }
+ }
+ // A printed document total independently verifies all parsed rows when present.
+ const totalMatch=flat.match(new RegExp('всего\\s+к\\s+оплате\\s*[:=]?\\s*('+cash+')','i'));
+ if(totalMatch&&items.length&&Math.abs(items.reduce((sum,x)=>sum+x.invoiceTotal,0)-num(totalMatch[1]))>.02){for(const x of items){x.price=null;x.pricePerKg=null;x.totalPrice=null;}}
+ return {supplier,items};
+};
+})(globalThis);
