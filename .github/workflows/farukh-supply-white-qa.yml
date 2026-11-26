@@ -107,3 +107,86 @@ jobs:
         with:
           name: FARUKH-SUPPLY-functional-QA
           path: qa-results
+
+  publish-web:
+    needs: mobile-ui
+    if: github.ref == 'refs/heads/feature/farukh-supply-simple-white'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: farukh-supply-web-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify all regression tests
+        run: |
+          node --test supply/analytics.test.js supply/invoice-parser.test.js
+          node --check supply-android/app/src/main/assets/app.js
+          node --check supply-android/app/src/main/assets/invoice-parser.js
+      - name: Sign and publish small web update, preserve installed Android version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_BUNDLE: ${{ secrets.FARUKH_SUPPLY_SIGNING_BUNDLE }}
+          STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # Do not publish superseded commits.
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          if [ "$latest" != "$GITHUB_SHA" ]; then echo "Superseded commit; skipping publication."; exit 0; fi
+          if [ -n "$SIGNING_BUNDLE" ]; then
+            STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
+            STORE_PASS=$(jq -er .password <<< "$SIGNING_BUNDLE")
+            KEY_ALIAS=$(jq -er .alias <<< "$SIGNING_BUNDLE")
+            KEY_PASS="$STORE_PASS"
+            echo "::add-mask::$STORE_PASS"
+            echo "::add-mask::$STORE_B64"
+            export STORE_PASS KEY_PASS
+            unset SIGNING_BUNDLE
+          fi
+          test -n "$STORE_B64" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS"
+          out=$(mktemp -d)
+          trap 'rm -rf "$out"' EXIT
+          umask 077
+          printf '%s' "$STORE_B64" | base64 --decode > "$out/key.jks"
+          tag=farukh-supply-current
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --dir "$out"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --dir "$out"
+          code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
+          test "$(jq -er .package "$out/update.json")" = ai.farukh.supply
+          test "$(jq -er .versionCode "$out/update.json")" = "$code"
+          cert=$(jq -er .cert "$out/update.json")
+          webroot=supply-android/app/src/main/assets
+          revision=$(tr -d '[:space:]' < "$webroot/web-version.txt")
+          [[ "$revision" =~ ^[1-9][0-9]*$ ]]
+          jq -er .payload "$out/web-current.json" | base64 -d > "$out/previous-payload.json"
+          test "$(jq -er .nativeVersion "$out/previous-payload.json")" = "$code"
+          previous=$(jq -er .revision "$out/previous-payload.json")
+          if [ "$previous" -ge "$revision" ]; then echo "Already published or revision not increased"; exit 0; fi
+          python3 - "$webroot" "$code" "$revision" "$out/payload.json" <<'PY'
+          import base64,json,pathlib,sys
+          root,code,rev,out=sys.argv[1:]
+          names=['index.html','app.js','analytics.js','invoice-parser.js']
+          files={n:base64.b64encode((pathlib.Path(root)/n).read_bytes()).decode('ascii') for n in names}
+          pathlib.Path(out).write_text(json.dumps({'package':'ai.farukh.supply','nativeVersion':int(code),'revision':int(rev),'files':files},separators=(',',':')),encoding='utf-8')
+          PY
+          mkdir "$out/new"
+          java supply-android/SignWeb.java "$out/key.jks" "$KEY_ALIAS" "$out/payload.json" "$out/new/web-current.json" "$cert" "$revision"
+          test "$(wc -c < "$out/new/web-current.json")" -lt 1048576
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
+          test "$latest" = "$GITHUB_SHA"
+          gh release upload "$tag" "$out/new/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified.json"
+          cmp "$out/new/web-current.json" "$out/verified.json"
+          echo "Published and verified web revision $revision, Android version $code unchanged."
