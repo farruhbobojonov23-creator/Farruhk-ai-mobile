@@ -89,3 +89,62 @@ export function assignGridText(grid,items){
  return{rows:out.map(row=>row.map(cell=>cell.sort((a,b)=>Math.abs(a.y-b.y)>8?a.y-b.y:a.x-b.x).map(i=>i.text).join(' '))),ambiguous};
 }
 
+
+// Re-read every required cell directly from its pixels, not from page OCR text.
+// A second contrast rendering is used when the independent readings disagree.
+export async function readCell(im,grid,row,col,s,{contrast=false}={}){
+ const l=grid.xs[col]+3,t=grid.ys[row]+3,r=grid.xs[col+1]-3,b=grid.ys[row+1]-3;
+ let x0=r,y0=b,x1=l,y1=t;
+ for(let y=t;y<b;y++)for(let x=l;x<r;x++){
+  const p=(y*im.width+x)*4;
+  if((im.data[p]+im.data[p+1]+im.data[p+2])/3<150){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+ }
+ if(x1<x0||y1<y0)return '';
+ x0=Math.max(l,x0-3);y0=Math.max(t,y0-3);x1=Math.min(r-1,x1+3);y1=Math.min(b-1,y1+3);
+ const w=x1-x0+1,h=y1-y0+1,c=document.createElement('canvas');
+ const cw=Math.min(960,Math.max(12,Math.round(w*48/h)));c.width=cw;c.height=48;
+ const raw=document.createElement('canvas');raw.width=w;raw.height=h;const rc=raw.getContext('2d'),pixels=rc.createImageData(w,h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const p=((y+y0)*im.width+x+x0)*4,k=(y*w+x)*4;
+  for(let j=0;j<3;j++){const a=im.data[p+j];pixels.data[k+j]=contrast?Math.max(0,Math.min(255,(a-100)*1.8+100)):a;}
+  pixels.data[k+3]=255;
+ }
+ rc.putImageData(pixels,0,0);const ctx=c.getContext('2d');ctx.drawImage(raw,0,0,cw,48);
+ const d=ctx.getImageData(0,0,cw,48).data,width=Math.ceil((cw+16)/64)*64,n=48*width,buf=new Float32Array(3*n);
+ for(let y=0;y<48;y++)for(let x=0;x<cw;x++)for(let k=0;k<3;k++)buf[k*n+y*width+x]=d[(y*cw+x)*4+2-k]/127.5-1;
+ const out=Object.values(await s.rec.run({[s.rec.inputNames[0]]:new s.ort.Tensor('float32',buf,[1,3,48,width])}))[0];
+ try{const T=out.dims[1],C=out.dims[2];if(C!==s.chars.length)throw Error('Model dictionary mismatch');let prev=-1,value='';
+ for(let t=0;t<T;t++){let k=0;for(let j=1;j<C;j++)if(out.data[t*C+j]>out.data[t*C+k])k=j;if(k&&k!==prev)value+=s.chars[k];prev=k;}return value.trim();
+ }finally{out.dispose?.();}
+}
+const num=s=>/^\d+(?:[,.]\d+)?$/.test(String(s).replace(/\s/g,''))?Number(String(s).replace(/\s/g,'').replace(',','.')):NaN;
+export function verifiedNumbers(readings){
+ // Independent OCR candidates only; arithmetic is a filter, never a generator.
+ const choices=readings.map(a=>[...new Set(a.map(num).filter(v=>Number.isFinite(v)&&v>0))]);
+ const candidates=[];for(const q of choices[0])for(const p of choices[1])for(const a of choices[2]){
+  if(Math.abs(Math.round(q*p*100)-Math.round(a*100))<=1)candidates.push([q,p,a]);
+ }
+ return candidates.length===1?candidates[0]:null;
+}
+export async function verifyGridCells(im,grid,assigned,s){
+ const rows=assigned.rows.map(r=>r.slice()),review=[];
+ const head=rows[0].map(v=>v.toLowerCase());
+ const name=head.findIndex(v=>/наименован|товар/.test(v)),qty=head.findIndex(v=>/кол.?во|количество/.test(v)),price=head.findIndex(v=>/цен[аы].*ндс/.test(v)&&!v.includes('без')),amount=head.findIndex(v=>/сумма/.test(v)&&!v.includes('ндс'));
+ if([name,qty,price,amount].some(v=>v<0)||new Set([name,qty,price,amount]).size!==4)return {rows,review:['Не подтверждены колонки'],verified:false};
+ for(let i=1;i<rows.length;i++){
+  if(rows[i].some(v=>/^итого|^всего/i.test(v)))continue;
+  const cols=[qty,price,amount],readings=[];
+  for(const j of cols){
+   const a=await readCell(im,grid,i,j,s),b=await readCell(im,grid,i,j,s,{contrast:true});readings.push([rows[i][j],a,b]);
+  }
+  const verified=verifiedNumbers(readings);
+  if(!verified){review.push('Строка '+i+': цифры не подтверждены');continue;}
+  cols.forEach((j,k)=>rows[i][j]=String(verified[k]).replace('.',','));
+  const a=await readCell(im,grid,i,name,s),b=await readCell(im,grid,i,name,s,{contrast:true});
+  if(a&&a===b)rows[i][name]=a;else if(!a||a!==rows[i][name])review.push('Строка '+i+': название требует сверки');
+ }
+ const totals=rows.filter(r=>r.some(v=>/^итого|^всего/i.test(v)));
+ const sum=rows.slice(1).filter(r=>!r.some(v=>/^итого|^всего/i.test(v))).reduce((s,r)=>s+Math.round(num(r[amount])*100),0);
+ if(totals.length!==1||!Number.isFinite(sum)||sum!==Math.round(num(totals[0]?.[amount])*100))review.push('Итог не подтверждён');
+ return {rows,review,verified:review.length===0&&assigned.ambiguous===0};
+}
