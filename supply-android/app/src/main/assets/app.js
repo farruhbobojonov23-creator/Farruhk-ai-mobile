@@ -65,7 +65,7 @@ window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';d.append(p);$('retry').after(d)}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
- return priced.length*1000+complete.length*100+r.items.length*10+(r.supplier?1:0);
+ return priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
 }
 function nextScan(path,message){
  scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent=message;
@@ -75,7 +75,15 @@ window.supplyOcrFinish=(id,text,error)=>{
  if(id!==ocrId||$('entry').classList.contains('hide'))return;
  scanBusy=false;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');
  try{
-  const current=window.supplyInvoiceParser.parseSimple(text||'');scanCandidates.push({r:current,text,error});
+  let current=window.supplyInvoiceParser.parseSimple(text||'');
+  // A focused table crop can omit the header. Carry forward a unique supplier
+  // already read from the same photo; never fill one from a preset or a previous invoice.
+  const earlierSuppliers=[...new Set(scanCandidates.map(x=>x.r.supplier).filter(Boolean))];
+  if(!current.supplier&&earlierSuppliers.length===1&&text){
+   const contextual=window.supplyInvoiceParser.parseSimple('Поставщик: '+earlierSuppliers[0]+'\n'+text);
+   if(scanScore(contextual)>scanScore(current))current=contextual;
+  }
+  scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)&&!current.items.some(x=>x.priceDerived&&['шт','уп','кор'].includes(x.unit)&&!x.packKg);
   if(native&&scanPass<2&&!complete){
