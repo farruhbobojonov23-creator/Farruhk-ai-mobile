@@ -12,4 +12,11 @@ r=extractTable([...first.filter(x=>x.text!=='3'),box('3',95,120,12,20)],cols,ban
 r=extractTable(first.map(x=>x.text==='8 100,00'?{...x,text:'8101,00'}:x),cols,bands.slice(0,1));assert.equal(r.verified,false);
 r=extractTable(first.map(x=>x.text==='3'?{...x,confidence:.2}:x),cols,bands.slice(0,1));assert.equal(r.verified,false);
 assert.throws(()=>extractTable(first,[...cols,{role:'total',left:270,right:290}],bands));
-console.log('6 spatial layout scenarios passed');
+// Independent totals must match all rows; never carry a previous invoice's state.
+r=extractTable([...first,...second],cols,bands,10000);assert.equal(r.documentVerified,true);assert.equal(r.total,10000);
+r=extractTable(first,cols,bands.slice(0,1),10000);assert.equal(r.documentVerified,false);
+r=extractTable(second,cols,bands.slice(1),1900);assert.equal(r.documentVerified,true);assert.equal(r.items.length,1);assert.equal(r.items[0].name,'Другой товар');assert.equal(r.total,1900);
+r=extractTable(first,cols,bands.slice(0,1),8100);assert.equal(r.documentVerified,true);
+r=extractTable(first,cols,bands.slice(0,1));assert.equal(r.documentVerified,false);
+r=extractTable(first,cols,bands.slice(0,1),NaN);assert.equal(r.documentVerified,false);
+console.log('12 spatial layout scenarios passed');
