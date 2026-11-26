@@ -726,3 +726,64 @@ api.parseSimple=text=>{
 };
 api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
 })(globalThis);
+
+;(function(root){
+'use strict';
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const prior=api.parseSimple,passes=api.parseSamePhotoPasses;
+const tidy=s=>String(s||'').replace(/[\u00a0\u202f]/g,' ').trim();
+const money='(?:\\d{1,3}(?:[ .]\\d{3})+[,.]\\d{2}|\\d+[,.]\\d{2})';
+const number=s=>Number(s.replace(/\s/g,'').replace(/\.(?=\d{3}[,.])/g,'').replace(',','.'));
+const qty='\\d+(?:[,.]\\d{1,5})?';
+const unit='(?:кг|г|л|мл|шт\\.?|уп\\.?|упак\\.?|упаковка|кор\\.?|коробка|мешок|меш\\.?)';
+const aliases={'упак':'уп','упаковка':'уп','коробка':'кор','мешок':'уп','меш':'уп'};
+const asUnit=s=>aliases[s.toLowerCase().replace(/\.$/,'')]||s.toLowerCase().replace(/\.$/,'');
+const fields=[
+ ['name','(?:наименование(?:\\s+(?:товара|продукции))?|товар|продукция|номенклатура)'],
+ ['qty','(?:количество|кол[- ]?во|кол\\.)'],
+ ['unit','(?:единица(?:\\s+измерения)?|ед\\.?\\s*изм\\.?|ед\\.?)'],
+ ['price','(?:цена(?:\\s+за\\s+(?:единицу|ед\\.?|упаковку|уп\\.?))?)'],
+ ['total','(?:сумма|стоимость)'],
+ ['index','(?:№(?:\\s*п\\/п)?|номер)']
+];
+const headerPattern=new RegExp(fields.map(([k,v])=>'(?<'+k+'>'+v+')').join('|'),'giu');
+const colPattern={name:'(.+?)',qty:'('+qty+')',unit:'('+unit+')',price:'('+money+')',total:'('+money+')',index:'(\\d+[.)]?)'};
+const close=(x,y,t=.021)=>Math.abs(x-y)<=t;
+function generic(text,base){
+ const lines=String(text||'').split(/\r?\n/).map(tidy).filter(Boolean);
+ // Simple trade documents only; VAT and TTN layouts retain the specialized parsers.
+ if(lines.some(l=>/сч[её]т[- ]фактура|универсальный\s+передаточный|товарно[- ]транспортная/i.test(l)))return base;
+ let head=-1,cols=[],sep='';
+ for(let i=0;i<Math.min(lines.length,80);i++){
+  const l=lines[i],tokens=[...l.matchAll(headerPattern)];
+  const keys=tokens.map(m=>Object.keys(m.groups).find(k=>m.groups[k]!==undefined));
+  const left=l.replace(headerPattern,'').replace(/[\s|;:\t,.]/g,'');
+  if(left||new Set(keys).size!==keys.length||!['name','qty','unit','price','total'].every(k=>keys.includes(k)))continue;
+  head=i;cols=keys;sep=l.includes('|')?'|':l.includes(';')?';':l.includes('\t')?'\t':'';break;
+ }
+ if(head<0)return base;
+ const totalPattern=new RegExp('^(?:итого|всего(?:\\s+к\\s+оплате|\\s+по\\s+накладной)?)\\s*[:|;]?\\s*('+money+')\\s*(?:₽|руб\\.?)?$','i');
+ const footer=lines.findIndex((l,i)=>i>head&&totalPattern.test(l));
+ if(footer<0||footer-head>250)return base;
+ const expected=number(lines[footer].match(totalPattern)[1]);
+ const expr=new RegExp('^'+cols.map(k=>colPattern[k]).join('\\s+')+'$','i');
+ const items=[];
+ const incomplete=()=>({...base,items:base.items.map(x=>({...x,price:null,invoiceTotal:null,totalPrice:null,pricePerKg:null})),documentVerified:false});
+ for(let i=head+1;i<footer;i++){
+  const l=lines[i],row=sep?l.split(sep).map(s=>s.trim()).filter((s,j,a)=>s||j>0&&j<a.length-1):l.match(expr)?.slice(1);
+  if(!row||row.length!==cols.length)return incomplete();
+  const cells=Object.fromEntries(cols.map((k,j)=>[k,row[j]]));
+  if(!/[\p{L}]{2}/u.test(cells.name)||!new RegExp('^'+unit+'$','i').test(cells.unit)||!new RegExp('^'+qty+'$').test(cells.qty)||!['price','total'].every(k=>new RegExp('^'+money+'$').test(cells[k])))return incomplete();
+  const q=number(cells.qty),price=number(cells.price),total=number(cells.total),u=asUnit(cells.unit);
+  if(!(q>0&&price>0&&total>0)||!close(q*price,total,Math.max(.02,q*.005+.011)))return incomplete();
+  if(['шт','уп','кор'].includes(u)&&!Number.isInteger(q))return incomplete();
+  const name=cells.name.trim(),x={name:name+' / '+u,unit:u,quantity:q,price,invoiceTotal:total,packKg:['шт','уп','кор'].includes(u)?api.packWeight(name):null,source:l,uncertain:true};
+  Object.assign(x,api.lineMetrics(x));items.push(x);
+ }
+ if(!items.length||!close(items.reduce((s,x)=>s+x.invoiceTotal,0),expected))return incomplete();
+ if(!base.supplier)return base;
+ return {supplier:base.supplier,items,documentVerified:true};
+}
+api.parseSimple=text=>{const b=prior(text);return b.documentVerified?b:generic(text,b)};
+api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
+})(globalThis);
