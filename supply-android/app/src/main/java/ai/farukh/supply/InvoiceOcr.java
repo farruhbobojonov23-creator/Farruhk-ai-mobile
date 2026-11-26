@@ -72,6 +72,12 @@ final class InvoiceOcr {
   try{
    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
    if("application/pdf".equals(context.getContentResolver().getType(uri)))return pdf(context,uri,tess);
+   // On the final pass, try the original EXIF-upright photo, independently of a bad orientation probe.
+   if(focused){
+    Bitmap original=decode(context,uri);
+    try{String cells=UpdCellOcr.read(original,tess);if(!cells.isEmpty())return cells;}
+    finally{original.recycle();}
+   }
    Bitmap oriented=session.get(context,uri,token,tess);
    if(focused&&session.weakLayout){
     // A low-quality full read can mean the orientation probe selected a
