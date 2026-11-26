@@ -154,7 +154,7 @@ jobs:
         run: |
           set -euo pipefail
           code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
-          test "$code" = 12 || { echo "No approved native upgrade"; exit 0; }
+          test "$code" = 13 || { echo "No approved native upgrade"; exit 0; }
           latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-simple-white" --jq .object.sha)
           test "$latest" = "$GITHUB_SHA" || { echo "Superseded native build"; exit 0; }
           out=$(mktemp -d)
@@ -163,7 +163,7 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
           old=$(jq -er .versionCode "$out/previous.json")
           if [ "$old" -ge "$code" ]; then echo "Native upgrade already published"; exit 0; fi
-          test "$old" = 11
+          test "$old" = 12
           test "$(jq -er .package "$out/previous.json")" = ai.farukh.supply
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/previous-web.json"
           jq -er .payload "$out/previous-web.json" | base64 -d > "$out/previous-payload.json"
@@ -177,7 +177,7 @@ jobs:
           cert=$("$signer" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
           test "$cert" = "$(jq -er .cert "$out/previous.json")"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$out/$apk" > "$out/badging.txt"
-          grep -F "package: name='ai.farukh.supply' versionCode='12'" "$out/badging.txt"
+          grep -F "package: name='ai.farukh.supply' versionCode='13'" "$out/badging.txt"
           hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
           jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
           if [ -n "$SIGNING_BUNDLE" ]; then

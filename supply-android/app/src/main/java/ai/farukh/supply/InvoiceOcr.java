@@ -32,6 +32,7 @@ final class InvoiceOcr {
   private Uri uri;
   private long token=Long.MIN_VALUE;
   private int preparations;
+  private boolean weakLayout;
   int preparations(){return preparations;}
   void select(Uri next,long nextToken){
    if(nextToken!=token||!java.util.Objects.equals(next,uri)){close();uri=next;token=nextToken;}
@@ -44,7 +45,7 @@ final class InvoiceOcr {
    try{oriented=orient(tess,image);preparations++;android.util.Log.i("SupplyOCR","Photo preparation ms="+(android.os.SystemClock.elapsedRealtime()-started));return oriented;}
    finally{if(oriented!=image)image.recycle();}
   }
-  @Override public void close(){if(oriented!=null){oriented.recycle();oriented=null;}uri=null;token=Long.MIN_VALUE;}
+  @Override public void close(){if(oriented!=null){oriented.recycle();oriented=null;}uri=null;token=Long.MIN_VALUE;weakLayout=false;}
  }
  private static Bitmap decode(Context context,Uri uri)throws IOException{
    Bitmap image;
@@ -70,6 +71,28 @@ final class InvoiceOcr {
    if(!tess.init(prepare(context).getAbsolutePath(),"rus+eng"))throw new IOException("OCR init");
    if("application/pdf".equals(context.getContentResolver().getType(uri)))return pdf(context,uri,tess);
    Bitmap oriented=session.get(context,uri,token,tess);
+   if(focused&&session.weakLayout){
+    // A low-quality full read can mean the orientation probe selected a
+    // sideways document. Re-evaluate cardinal alternatives at full size.
+    // Keep the best candidate for the following Paddle pass.
+    String best="";int bestScore=Integer.MIN_VALUE;Bitmap chosen=oriented;
+    try{
+     for(int degrees:new int[]{0,90,180,270}){
+      Bitmap candidate=rotate(oriented,degrees);
+      try{
+       Bitmap prepared=prepareImage(candidate,false);
+       String recognized;
+       try{tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);recognized=text(tess,prepared);}
+       finally{if(prepared!=candidate)prepared.recycle();}
+       int score=orientationScore(recognized,tess.meanConfidence());
+       if(score>bestScore){if(chosen!=oriented)chosen.recycle();chosen=candidate;candidate=null;bestScore=score;best=recognized;}
+      }finally{if(candidate!=null&&candidate!=oriented)candidate.recycle();}
+     }
+     if(chosen!=oriented){session.oriented=chosen;oriented.recycle();oriented=chosen;}
+     session.weakLayout=false;
+     if(layoutScore(best)>0)return best;
+    }finally{if(chosen!=session.oriented&&chosen!=oriented&&!chosen.isRecycled())chosen.recycle();}
+   }
    if(focused){
     Bitmap improved=null;
     try{
@@ -84,7 +107,7 @@ final class InvoiceOcr {
    }
    tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
    Bitmap prepared=prepareImage(oriented,focused);
-   try{return text(tess,prepared);}finally{if(prepared!=oriented)prepared.recycle();}
+   try{String result=text(tess,prepared);if(!focused)session.weakLayout=layoutScore(result)<=0;return result;}finally{if(prepared!=oriented)prepared.recycle();}
   }finally{tess.recycle();}
  }
  static String readPaddle(Context context,Uri uri,PhotoSession session,long token)throws IOException{
@@ -149,7 +172,27 @@ final class InvoiceOcr {
   int words=0;while(matcher.find())words++;
   java.util.regex.Matcher amounts=java.util.regex.Pattern.compile("\\d+[,.]\\d{2}(?!\\d)").matcher(s);
   int numbers=0;while(amounts.find())numbers++;
-  return hits*80+Math.min(words,180)*2+Math.min(numbers,60)*3+Math.max(0,confidence)*3;
+  return hits*80+Math.min(words,180)*2+Math.min(numbers,60)*3+Math.max(0,confidence)*3+layoutScore(s);
+ }
+ // Auto segmentation may recognize a sideways document column by column.
+ // Reward header -> table -> totals order and names with numeric cells on
+ // the same line; penalize reversed header/footer and long numeric columns.
+ static int layoutScore(String text){
+  String s=text.toLowerCase(Locale.ROOT);
+  java.util.regex.Matcher head=java.util.regex.Pattern.compile("сч[её]т[- ]фактура|товарная накладная|поставщик\\s*:|универсальный передаточный документ").matcher(s);
+  java.util.regex.Matcher foot=java.util.regex.Pattern.compile("всего\\s+к\\s+оплате|итого\\s+к\\s+оплате|итого\\s+по\\s+накладной").matcher(s);
+  int score=0;
+  if(head.find()&&foot.find())score+=head.start()<foot.start()?700:-1100;
+  java.util.regex.Pattern cash=java.util.regex.Pattern.compile("\\d+[.,]\\d{2}(?!\\d)");
+  java.util.regex.Pattern qty=java.util.regex.Pattern.compile("\\d+[.,]\\d{3}(?!\\d)");
+  int rows=0,columns=0;
+  for(String line:s.split("\\r?\\n")){
+   java.util.regex.Matcher m=cash.matcher(line);int amounts=0;while(m.find())amounts++;
+   boolean letters=line.matches(".*[а-яё]{3,}.*");
+   if(letters&&amounts>=1&&qty.matcher(line).find())rows++;
+   if(!letters&&amounts>=3)columns++;
+  }
+  return score+Math.min(rows,12)*180-Math.min(columns,8)*150;
  }
  // Probe a reduced image in all cardinal directions; full OCR uses the winning orientation.
  static Bitmap orient(TessBaseAPI tess,Bitmap image){

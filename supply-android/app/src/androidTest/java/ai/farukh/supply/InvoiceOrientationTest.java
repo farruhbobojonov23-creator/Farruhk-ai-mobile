@@ -49,4 +49,11 @@ public class InvoiceOrientationTest {
    }
   }finally{image.recycle();file.delete();}
  }
+
+ @Test public void ranksRowOrderAboveSidewaysColumns(){
+  String upright="Счет-фактура № 123\nНаименование товара Количество Цена\nРис учебный 3,000 100,00 300,00\nСоус учебный 1,000 200,00 200,00\nВсего к оплате 500,00";
+  String sideways="Всего к оплате Счет-фактура № 123\nРис учебный Соус учебный Наименование товара\n1,000 3,000\n200,00 100,00 300,00\n500,00 200,00 300,00";
+  assertTrue(InvoiceOcr.layoutScore(upright)>InvoiceOcr.layoutScore(sideways));
+  assertTrue(InvoiceOcr.layoutScore(sideways)<0);
+ }
 }
