@@ -399,6 +399,8 @@ function reportDialog(){
  dlg.append(node('h2','Отчёт по закупкам'));const area=node('textarea');area.readOnly=true;area.value=summary;area.rows=12;area.style.cssText='width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px';dlg.append(area,button('Выделить текст',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);}));
  if(location.origin!=='https://appassets.androidplatform.net'){
   dlg.append(button('Скачать CSV для Excel',()=>{const url=URL.createObjectURL(new Blob([reportCsv(rows)],{type:'text/csv;charset=utf-8'})),a=node('a');a.href=url;a.download='FARUKH-SUPPLY-report.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}));
+  }else if(window.SupplyReports&&typeof window.SupplyReports.postMessage==='function'){
+  dlg.append(button('Сохранить Excel (.xlsx)',()=>window.SupplyReports.postMessage(JSON.stringify({kind:'xlsx',rows}))),button('Сохранить PDF',()=>window.SupplyReports.postMessage(JSON.stringify({kind:'pdf',summary}))));
  }else dlg.append(node('small','Текст можно скопировать. Сохранение файлов и системная печать PDF на Android требуют обновления встроенного модуля.','muted'));
  dlg.append(button('Закрыть',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
 }

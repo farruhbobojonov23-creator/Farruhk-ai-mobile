@@ -35,7 +35,7 @@ final class SupplyUpdater {
   if(busy)return;
   busy=true;progress=new android.app.ProgressDialog(activity);progress.setMessage("Проверяем обновление…");progress.setCancelable(false);progress.show();
   worker.execute(()->{
-   try{downloadAndCheck();}
+   try{for(int attempt=0;;attempt++){try{downloadAndCheck();break;}catch(IOException e){if(attempt>=2||e instanceof FileNotFoundException||"APK too large".equals(e.getMessage())||"Not enough space".equals(e.getMessage()))throw e;Thread.sleep(750L*(attempt+1));}}}
    catch(FileNotFoundException e){notice("Стабильная версия для обновления пока не опубликована.");}
    catch(SecurityException e){notice("Обновление отклонено: подпись или контрольная сумма не совпадает.");}
    catch(IOException e){if("APK too large".equals(e.getMessage()))notice("Размер APK превышает допустимый лимит. Требуется ручное обновление.");else if("Not enough space".equals(e.getMessage()))notice("Недостаточно свободного места для обновления.");else notice("Не удалось скачать обновление. Проверьте соединение и свободное место.");}
@@ -44,7 +44,7 @@ final class SupplyUpdater {
   });
  }
  private static HttpsURLConnection connect(String name)throws IOException{
-  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name+(name.endsWith(".json")?"?check="+System.currentTimeMillis():"")).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setRequestProperty("Cache-Control","no-cache, no-store, max-age=0");c.setRequestProperty("Pragma","no-cache");c.setInstanceFollowRedirects(true);
+  HttpsURLConnection c=(HttpsURLConnection)new URL(BASE+name+(name.endsWith(".json")?"?check="+System.currentTimeMillis():"")).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setUseCaches(false);c.setRequestProperty("Cache-Control","no-cache, no-store, max-age=0");c.setRequestProperty("Pragma","no-cache");c.setRequestProperty("User-Agent","FARUKH-SUPPLY-Android");c.setInstanceFollowRedirects(true);
   int code=c.getResponseCode();if(code==404){c.disconnect();throw new FileNotFoundException(name);}if(code!=200){c.disconnect();throw new IOException("HTTP "+code);}return c;
  }
  private static byte[] manifest()throws IOException{

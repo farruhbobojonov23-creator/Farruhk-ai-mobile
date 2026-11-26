@@ -17,12 +17,13 @@ public class MainActivity extends Activity {
  private final InvoiceOcr.PhotoSession photoSession=new InvoiceOcr.PhotoSession();
  private Uri lastScan;
  private SupplyUpdater updater;
+ private ReportExport reports;
  private WebUpdates webUpdates;
  @Override public void onCreate(Bundle saved) {
  super.onCreate(saved);
  webUpdates=new WebUpdates(this);
  updater=new SupplyUpdater(this,webUpdates,()->{scanSequence++;photoSequence++;lastScan=null;ocrExecutor.execute(photoSession::close);web.clearCache(false);web.loadUrl("https://appassets.androidplatform.net/assets/index.html");});
- web=new WebView(this); web.setBackgroundColor(Color.rgb(7,24,44));
+ web=new WebView(this); reports=new ReportExport(this);reports.attach(web); web.setBackgroundColor(Color.rgb(7,24,44));
  android.widget.FrameLayout root=new android.widget.FrameLayout(this);
  root.setBackgroundColor(Color.rgb(6,22,36));
  if(android.os.Build.VERSION.SDK_INT>=30){
@@ -67,6 +68,7 @@ public class MainActivity extends Activity {
  }
  @Override protected void onActivityResult(int request,int result,Intent data){
  super.onActivityResult(request,result,data);
+ if(reports!=null&&reports.onResult(request,result,data))return;
  if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1){photoSequence++;lastScan=chosen[0];scan(lastScan,false);}}
  }
  private void scan(Uri uri,boolean focused){scan(uri,focused,false);}
@@ -75,5 +77,5 @@ public class MainActivity extends Activity {
  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
  ocrExecutor.execute(()->{if(id!=scanSequence)return;long started=android.os.SystemClock.elapsedRealtime();String result="",error="";try{result=paddle?InvoiceOcr.readPaddle(this,uri,photoSession,token):InvoiceOcr.read(this,uri,focused,photoSession,token);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error=paddle?"Новый OCR не смог обработать фото. Используйте обычное распознавание или выберите фото заново.":"Не удалось распознать документ. Проверьте формат и качество снимка.";} android.util.Log.i("SupplyOCR",(paddle?"paddle":focused?"focused":"full")+" ms="+(android.os.SystemClock.elapsedRealtime()-started));final String txt=result,msg=error;runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+")",null);});});
  }
- @Override protected void onDestroy(){scanSequence++;ocrExecutor.execute(photoSession::close);ocrExecutor.shutdown();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
+ @Override protected void onDestroy(){scanSequence++;ocrExecutor.execute(photoSession::close);ocrExecutor.shutdown();if(updater!=null)updater.close();if(reports!=null)reports.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }
