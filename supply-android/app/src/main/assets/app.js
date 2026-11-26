@@ -206,7 +206,7 @@ function spatialInvoiceTable(boxes,raw,base,parser){
  }
  const total=rows.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0);
  const foot=(k,fn)=>fn((footer?.boxes||[]).filter(b=>role(b)===k).map(b=>b.text).join(' '));
- let verified=false;
+ let verified=false,marrControl=null;
  if(kind==='upd'){
   if(!footer)return null;
   const n=foot('net',amount),tax=foot('tax',amount),g=foot('total',amount);
@@ -215,11 +215,12 @@ function spatialInvoiceTable(boxes,raw,base,parser){
  }else if(kind==='marr'&&footer){
   const g=foot('total',amount),q=foot('quantity',quantity),w=foot('weight',quantity);
   if(g===null||q===null||w===null)return null;
+  marrControl={total:g/100,quantity:q,weightKg:w};
   verified=total===g&&Math.abs(rows.reduce((s,x)=>s+x.quantity,0)-q)<.00001&&rows.reduce((s,x)=>s+Math.round(x.invoiceWeightKg*1000),0)===Math.round(w*1000);
   if(!verified&&(total>=g||rows.reduce((s,x)=>s+x.quantity,0)>=q))return null;
  }
  const items=rows.map(({_net,_tax,...x})=>x);
- return {...base,supplier,items,documentVerified:verified,pageVerified:verified,spatialVerified:verified,spatialRecovered:true};
+ return {...base,supplier,items,documentVerified:verified,pageVerified:verified,spatialVerified:verified,spatialRecovered:true,marrControl};
 }
 
 function candidate(boxes,raw,base,parser,upd){
@@ -532,7 +533,32 @@ function updEvidence(raw){
  }
  return {structured,printedTotal:totals.size===1?[...totals][0]/100:null,conflictingTotals:totals.size>1};
 }
+function marrDocumentEvidence(raw){
+ const text=String(raw||'').replace(/[\u00a0\u202f|│]/g,' ');
+ const values=[];
+ for(const l of text.split(/\r?\n/)){
+  const m=l.match(/^\s*итого\s*:\s*(\d+)\s+(\d+[.,]\d{3})\s+((?:\d{1,3}(?: \d{3})+|\d+)[.,]\d{2})\s*$/i);
+  if(m)values.push({quantity:Number(m[1]),weightKg:Number(m[2].replace(',','.')),total:Number(m[3].replace(/\s/g,'').replace(',','.'))});
+ }
+ const distinct=new Map(values.map(x=>[JSON.stringify(x),x]));
+ return {control:distinct.size===1?[...distinct.values()][0]:null,conflict:distinct.size>1};
+}
+function marrIntegrity(lines,records,raw){
+ const ev=marrDocumentEvidence(raw);
+ const controls=[...records.map(p=>p.marrControl).filter(Boolean),...(ev.control?[ev.control]:[])];
+ const unique=new Map(controls.map(x=>[JSON.stringify([x.total,x.quantity,x.weightKg]),x]));
+ if(ev.conflict||records.some(p=>p.marrConflict)||unique.size>1)return {message:'МАРР: разные итоги документа. Проверьте страницы.',error:true};
+ if(!unique.size)return {message:'МАРР: итог документа не прочитан. Добавьте последнюю страницу или сверьте оригинал.',error:true};
+ const c=[...unique.values()][0];
+ if(lines.some(l=>!(l.quantity>0)||!(l.price>0)||!(l.invoiceWeightKg>0)))return {message:'МАРР: количество, цена или вес строки не прочитаны.',error:true};
+ const total=lines.reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0);
+ const q=lines.reduce((s,l)=>s+Number(l.quantity),0);
+ const w=lines.reduce((s,l)=>s+Math.round(l.invoiceWeightKg*1000),0);
+ if(total!==Math.round(c.total*100)||Math.abs(q-c.quantity)>.00001||w!==Math.round(c.weightKg*1000))return {message:'МАРР: сумма, количество или вес не совпадают с итогом. Добавьте недостающие страницы или проверьте строки.',error:true};
+ return {message:'✓ МАРР: сумма, количество и вес совпадают с итогом документа.',error:false,verified:true};
+}
 function invoiceIntegrity(lines,records,raw,date){
+ if(records.some(p=>p.marr)||/марр\s+руссия/i.test(raw||''))return marrIntegrity(lines,records,raw);
  const pending=updEvidence(raw);
  const structured=records.some(p=>p.structured)||pending.structured;
  if(!structured)return {message:'',error:false};
@@ -556,7 +582,8 @@ function pageMeta(r,raw){
  const page=text.match(/(?:стр\.|страница|cmp\.)\s*([1-9]\d*|I)\s*(?:из|u3)\s*(\d+)/i);
  const number=r.pageInfo?.page|| (page?(page[1].toUpperCase()==='I'?1:Number(page[1])):null);
  const expected=r.pageInfo?.pages|| (page?Number(page[2]):null);
- return {...header,...updEvidence(text),number,expected};
+ const marr=/марр\s+руссия/i.test(r.supplier||'');const ev=marr?marrDocumentEvidence(text):{};
+ return {...header,...updEvidence(text),number,expected,marr,marrControl:r.marrControl||ev.control||null,marrConflict:!!ev.conflict};
 }
 function pageFingerprint(items){
  return JSON.stringify(items.map(l=>[norm(l.name),l.quantity??null,l.price??null,l.invoiceTotal??null]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
