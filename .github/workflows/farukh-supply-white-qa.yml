@@ -1,0 +1,109 @@
+name: FARUKH SUPPLY White Premium functional QA
+on:
+  push:
+    branches: ['feature/farukh-supply-simple-white']
+    paths:
+      - '.github/workflows/farukh-supply-white-qa.yml'
+      - 'supply-android/app/src/main/assets/**'
+permissions:
+  contents: read
+jobs:
+  mobile-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test tools
+        run: |
+          mkdir -p /tmp/supply-qa
+          npm install --prefix /tmp/supply-qa playwright@1.56.1
+          /tmp/supply-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run mobile UI and persistence QA
+        run: |
+          set -e
+          mkdir -p qa-results
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory supply-android/app/src/main/assets >/tmp/supply-http.log 2>&1 &
+          cat > /tmp/supply-qa/check.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const assert=require('node:assert/strict');
+          const fs=require('node:fs');
+          (async()=>{
+          const browser=await chromium.launch({headless:true});
+          try{
+          const page=await browser.newPage({viewport:{width:393,height:873},isMobile:true,deviceScaleFactor:2,hasTouch:true});
+          const errors=[];
+          page.on('pageerror',e=>errors.push(e.message));
+          page.on('dialog',d=>d.accept());
+          const started=Date.now();
+          await page.goto('http://127.0.0.1:8765/index.html');
+          await page.waitForFunction(()=>document.querySelector('#changes').textContent.includes('Изменения'));
+          const startupMs=Date.now()-started;
+          assert.equal(await page.locator('#productCount').textContent(),'0');
+          assert.equal(await page.locator('#supplierCount').textContent(),'0');
+          assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+          assert.equal(await page.locator('header').evaluate(e=>getComputedStyle(e).position),'sticky');
+          assert.equal(await page.locator('nav').evaluate(e=>getComputedStyle(e).position),'fixed');
+          assert.ok(await page.locator('a.update').getAttribute('href')==='https://appassets.androidplatform.net/update');
+          await page.screenshot({path:'qa-results/01-home.png',fullPage:true});
+          async function invoice(supplier,price,id,withPhoto){
+            await page.locator('button[data-go=entry]:visible').first().click();
+            if(withPhoto){
+              await page.locator('#file').setInputFiles({name:'sample.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB1sAAAAASUVORK5CYII=','base64')});
+              await page.locator('#preview').waitFor({state:'visible'});
+            }
+            await page.evaluate(({supplier,price,id})=>{
+              window.supplyOcrStart(id);
+              window.supplyOcrFinish(id,'Поставщик: '+supplier+'\nТовар Цена\n1 Рис Tamaki '+price+',00\n2 Нори Gold 850,00','');
+            },{supplier,price,id});
+            assert.equal(await page.locator('#supplier').inputValue(),supplier);
+            assert.equal(await page.locator('[data-field=name]').first().inputValue(),'Рис Tamaki');
+            assert.equal(Number((await page.locator('[data-field=price]').first().inputValue()).replace(',','.')),price);
+            assert.equal(await page.locator('#lines .line').count(),2);
+            await page.screenshot({path:'qa-results/02-invoice.png',fullPage:true});
+            await page.locator('#save').click();
+            await page.locator('#archive').waitFor({state:'visible'});
+            await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('сохранена'));
+          }
+          await invoice('Поставщик А',135,1,true);
+          await invoice('Поставщик Б',150,2,false);
+          await invoice('Поставщик А',125,3,false);
+          await page.locator('nav button[data-go=compare]').click();
+          assert.ok((await page.locator('#offers').innerText()).includes('Лучшая цена'));
+          assert.ok((await page.locator('#offers').innerText()).includes('125'));
+          await page.screenshot({path:'qa-results/03-compare.png',fullPage:true});
+          await page.locator('nav button[data-go=home]').click();
+          assert.equal(await page.locator('#productCount').textContent(),'2');
+          assert.equal(await page.locator('#supplierCount').textContent(),'2');
+          assert.ok((await page.locator('#changes').innerText()).includes('10'));
+          await page.reload();
+          await page.waitForFunction(()=>document.querySelector('#productCount').textContent==='2');
+          assert.equal(await page.locator('#supplierCount').textContent(),'2');
+          await page.locator('nav button[data-go=products]').click();
+          await page.locator('#search').fill('Нори');
+          assert.ok((await page.locator('#productList').innerText()).includes('Нори Gold'));
+          assert.ok(!(await page.locator('#productList').innerText()).includes('Рис Tamaki'));
+          await page.locator('nav button[data-go=suppliers]').click();
+          assert.ok((await page.locator('#supplierList').innerText()).includes('Поставщик Б'));
+          await page.locator('nav button[data-go=invoices]').click();
+          assert.equal(await page.locator('#archive .card').count(),3);
+          await page.locator('#archive button').filter({hasText:'Редактировать'}).first().click();
+          await page.locator('[data-field=price]').first().fill('120');
+          await page.locator('#save').click();
+          await page.locator('#archive').waitFor({state:'visible'});
+          await page.locator('#archive button').filter({hasText:'Удалить'}).first().click();
+          await page.waitForFunction(()=>document.querySelectorAll('#archive .card').length===2);
+          assert.deepEqual(errors,[]);
+          fs.writeFileSync('qa-results/report.json',JSON.stringify({passed:true,startupMs,scope:'Chromium mobile layout, simulated native OCR callback, upload preview, save/reload, comparison, price changes, search, supplier view, edit/delete, updater link only',limitations:'Not physical Android, no real invoice OCR, no signed update install'},null,2));
+          console.log('PASS mobile functional QA; startup '+startupMs+' ms');
+          }finally{await browser.close()}
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node /tmp/supply-qa/check.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: FARUKH-SUPPLY-functional-QA
+          path: qa-results
