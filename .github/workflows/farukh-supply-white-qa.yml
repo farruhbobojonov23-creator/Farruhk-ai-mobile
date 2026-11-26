@@ -239,7 +239,11 @@ jobs:
           const marrRows=await page.evaluate(()=>[...document.querySelectorAll('#lines .line')].map(lineData));
           assert.equal(marrRows.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0),4202544);
           assert.equal(marrRows.reduce((s,x)=>s+x.quantity,0),54);
-          assert.equal(marrRows.reduce((s,x)=>s+Math.round(x.packKg*x.quantity*1000),0),43430);
+          assert.equal(marrRows.reduce((s,x)=>s+Math.round(x.invoiceWeightKg*1000),0),43430);
+          assert.equal(marrRows.reduce((s,x)=>s+Math.round(x.packKg*x.quantity*1000),0),43360);
+          const fries=marrRows.find(x=>x.article==='2520140121');assert.equal(fries.packKg,2.5);assert.equal(fries.invoiceWeightKg,2.57);
+          assert.ok((await page.locator('#lines .line').nth(2).locator('.kg-price').innerText()).includes('264,15'));
+          assert.ok((await page.locator('#lines .line').nth(2).locator('.line-summary').innerText()).includes('2,57 кг (отдельно)'));
           assert.equal(marrRows.filter(x=>x.article==='0903309716').length,2);
           await page.locator('#save').click();
           await page.waitForFunction(()=>docs.length===1);
@@ -247,6 +251,8 @@ jobs:
           await page.waitForFunction(()=>docs.length===1);
           assert.equal(await page.evaluate(()=>docs[0].lines.length),11);
           assert.equal(await page.evaluate(()=>docs[0].lines.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0)),4202544);
+          assert.equal(await page.evaluate(()=>docs[0].lines.find(x=>x.article==='2520140121').packKg),2.5);
+          assert.equal(await page.evaluate(()=>docs[0].lines.find(x=>x.article==='2520140121').invoiceWeightKg),2.57);
           await page.locator('nav button[data-go=invoices]').click();
           await page.locator('#archive button').filter({hasText:'Удалить'}).click();
           await page.waitForFunction(()=>docs.length===0);

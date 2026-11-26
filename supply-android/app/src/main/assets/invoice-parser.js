@@ -1154,8 +1154,9 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
  const category=/^\s*[0()]+\s*\([^)]{2,100}\)\s*/;
  const totalLine=/^итого\s*[:=]?\s+(\d+)\s+(\d+[.,]\d{3})\s+(.+)$/iu;
  function make(article,name,unit,q,w,p,t,source,nominal){
-  const packKg=unit==='кг'?null:w/q;
-  const r={article,name:name+' / '+unit,unit,quantity:q,price:p,invoiceTotal:t,packKg,nominalPackKg:nominal||null,uncertain:true,source};
+  // The separate invoice weight column is not proof of manufacturer net pack size.
+  const packKg=['шт','уп','кор'].includes(unit)?(api.packWeight(name)||nominal||null):null;
+  const r={article,name:name+' / '+unit,unit,quantity:q,price:p,invoiceTotal:t,packKg,nominalPackKg:packKg,invoiceWeightKg:w,uncertain:true,source};
   return {...r,...api.lineMetrics(r)};
  }
  function readRows(lines){
@@ -1175,7 +1176,7 @@ api.parseSamePhotoPasses=texts=>passes(texts).map(r=>recoverName(r,texts));
     items.push(make(article,name,unit,q,w,p,t,s,api.packWeight(name)));
    pending=null;
   }
-  const verified=!!footer&&items.length>0&&same(items.reduce((s,x)=>s+x.quantity,0),footer[0])&&items.reduce((s,x)=>s+grams(x.totalKg),0)===grams(footer[1])&&items.reduce((s,x)=>s+cents(x.invoiceTotal),0)===cents(footer[2]);
+  const verified=!!footer&&items.length>0&&same(items.reduce((s,x)=>s+x.quantity,0),footer[0])&&items.reduce((s,x)=>s+grams(x.invoiceWeightKg),0)===grams(footer[1])&&items.reduce((s,x)=>s+cents(x.invoiceTotal),0)===cents(footer[2]);
   return {items,verified};
  }
  const rotations=a=>[...new Map(a.map((_,i)=>{const b=[...a.slice(i),...a.slice(0,i)];return [b.join('|'),b]})).values()];
