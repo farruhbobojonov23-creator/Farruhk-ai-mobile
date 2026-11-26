@@ -143,11 +143,16 @@ final class InvoiceOcr {
    matrix=org.opencv.imgproc.Imgproc.getRotationMatrix2D(new org.opencv.core.Point(w/2.0,h/2.0),angle,1);
    org.opencv.imgproc.Imgproc.warpAffine(gray,rotated,matrix,new org.opencv.core.Size(w,h),org.opencv.imgproc.Imgproc.INTER_CUBIC,org.opencv.core.Core.BORDER_CONSTANT,new org.opencv.core.Scalar(255));
    // Keep the header, all columns and the total on TTN-style documents. Full original is a separate OCR pass.
-   roi=rotated.submat(0,Math.max(1,(int)(h*.65)),0,w);
+   org.opencv.core.Rect table=findTable(rotated);
+   if(table!=null){
+    int left=Math.max(0,table.x-w/60),right=Math.min(w,table.x+table.width+w/60);
+    int top=Math.max(0,table.y-h/45),bottom=Math.min(h,table.y+table.height+h/35);
+    roi=rotated.submat(top,bottom,left,right);
+   }else roi=rotated.submat(0,Math.max(1,(int)(h*.65)),0,w);
    double sigma=Math.max(12,w/70.0);
    org.opencv.imgproc.Imgproc.GaussianBlur(roi,background,new org.opencv.core.Size(0,0),sigma);
    org.opencv.core.Core.divide(roi,background,normalized,235);
-   double scale=Math.max(1,Math.min(2,3000.0/w));
+   double scale=Math.max(1,Math.min(3,3000.0/roi.cols()));
    org.opencv.imgproc.Imgproc.resize(normalized,up,new org.opencv.core.Size(),scale,scale,org.opencv.imgproc.Imgproc.INTER_CUBIC);
    Bitmap out=Bitmap.createBitmap(up.cols(),up.rows(),Bitmap.Config.ARGB_8888);
    org.opencv.android.Utils.matToBitmap(up,out);return out;
@@ -155,6 +160,29 @@ final class InvoiceOcr {
    if(roi!=null)roi.release();if(matrix!=null)matrix.release();
    for(org.opencv.core.Mat m:new org.opencv.core.Mat[]{rgba,gray,edges,segments,rotated,background,normalized,up})m.release();
   }
+ }
+
+ // Detect the connected ruled table instead of enlarging the whole page.
+ // Reject narrow barcodes, page borders and isolated decorative lines.
+ private static org.opencv.core.Rect findTable(org.opencv.core.Mat gray){
+  int w=gray.cols(),h=gray.rows(),top=(int)(h*.12),bottom=(int)(h*.70);
+  org.opencv.core.Mat band=gray.submat(top,bottom,0,w),binary=new org.opencv.core.Mat(),closed=new org.opencv.core.Mat(),hierarchy=new org.opencv.core.Mat(),kernel=null;
+  java.util.ArrayList<org.opencv.core.MatOfPoint> contours=new java.util.ArrayList<>();
+  try{
+   int block=Math.max(35,((w/35)|1));
+   org.opencv.imgproc.Imgproc.adaptiveThreshold(band,binary,255,org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,org.opencv.imgproc.Imgproc.THRESH_BINARY_INV,block,9);
+   kernel=org.opencv.imgproc.Imgproc.getStructuringElement(org.opencv.imgproc.Imgproc.MORPH_RECT,new org.opencv.core.Size(3,3));
+   org.opencv.imgproc.Imgproc.morphologyEx(binary,closed,org.opencv.imgproc.Imgproc.MORPH_CLOSE,kernel);
+   org.opencv.imgproc.Imgproc.findContours(closed,contours,hierarchy,org.opencv.imgproc.Imgproc.RETR_EXTERNAL,org.opencv.imgproc.Imgproc.CHAIN_APPROX_SIMPLE);
+   org.opencv.core.Rect best=null;double score=0;
+   for(org.opencv.core.MatOfPoint contour:contours){
+    org.opencv.core.Rect b=org.opencv.imgproc.Imgproc.boundingRect(contour);
+    double area=org.opencv.imgproc.Imgproc.contourArea(contour);
+    if(b.width<w*.56||b.height<h*.055||b.height>h*.45||b.width>4.0*b.height*3||area<b.area()*.30)continue;
+    if(area>score){score=area;best=new org.opencv.core.Rect(b.x,b.y+top,b.width,b.height);}
+   }
+   return best;
+  }finally{for(org.opencv.core.MatOfPoint contour:contours)contour.release();if(kernel!=null)kernel.release();band.release();binary.release();closed.release();hierarchy.release();}
  }
  private static String pdf(Context context,Uri uri,TessBaseAPI tess)throws IOException{
   ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,"r");if(fd==null)throw new IOException("PDF");
