@@ -15,7 +15,7 @@ on:
       - 'ocr-mobile-lab/**'
       - '.github/workflows/farukh-supply-white-test.yml'
 concurrency:
-  group: ${{ github.ref_name == 'feature/supply-offline-layout-core' && 'supply-offline-layout-test' || 'farukh-supply-white-test' }}
+  group: ${{ (github.ref_name == 'feature/supply-offline-layout-core' || github.ref_name == 'fix/supply-cell-ocr') && 'supply-offline-layout-test' || 'farukh-supply-white-test' }}
   cancel-in-progress: false
 jobs:
   build:

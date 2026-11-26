@@ -146,6 +146,8 @@ final class UpdCellOcr {
    for(Grid g:candidates){
     if(g.rows()<1||g.rows()>28||g.h.get(0).pos!=top)continue;
     int foot=g.h.size()-2;
+    String footer=recognize(tess,cell(small,g,foot,0,8),false);
+    if(!Pattern.compile("всего\\s+к\\s+оплате",Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE).matcher(footer).find())continue;
     long fn=cents(readCell(tess,small,g,foot,8,true)),ft=cents(readCell(tess,small,g,foot,11,true)),fg=cents(readCell(tess,small,g,foot,12,true));
     if(fn<=0||ft<0||fn+ft!=fg)continue;
     StringBuilder out=new StringBuilder(head).append("\nНаименование товара Количество Цена Стоимость\n");

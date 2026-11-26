@@ -77,4 +77,22 @@ public class InvoiceOrientationTest {
   assertFalse(InvoiceOcr.canSkipOtherOrientations("Всего к оплате 300,00\n"+good.replace("Всего к оплате 300,00",""),95));
   assertFalse(InvoiceOcr.canSkipOtherOrientations(good.replace("Поставщик: ООО Учебный",""),95));
  }
+
+ @Test public void findsRuledUpdRowsAndColumnsWithoutProductNames(){
+  assertTrue(org.opencv.android.OpenCVLoader.initLocal());
+  org.opencv.core.Mat gray=new org.opencv.core.Mat(1536,1085,org.opencv.core.CvType.CV_8UC1,new org.opencv.core.Scalar(255));
+  try{
+   int[] xs={71,128,152,349,394,415,460,506,570,641,674,724,783,854,881,939,1027};
+   int[] ys={320,395,407,453,498,544,589,620,651,667};
+   org.opencv.core.Scalar black=new org.opencv.core.Scalar(0);
+   for(int x:xs)org.opencv.imgproc.Imgproc.line(gray,new org.opencv.core.Point(x,320),new org.opencv.core.Point(x,667),black,2);
+   for(int y:ys)org.opencv.imgproc.Imgproc.line(gray,new org.opencv.core.Point(71,y),new org.opencv.core.Point(1027,y),black,2);
+   java.util.List<UpdCellOcr.Grid> grids=UpdCellOcr.grids(gray);
+   assertTrue("Six-row UPD grid not found",grids.stream().anyMatch(g->g.rows()==6&&g.v.size()==17));
+   assertEquals(52727,UpdCellOcr.cents("527,27"));
+   assertEquals(-1,UpdCellOcr.cents("52727"));
+   assertTrue(UpdCellOcr.vat(52727,5273));
+   assertFalse(UpdCellOcr.vat(52727,1000));
+  }finally{gray.release();}
+ }
 }

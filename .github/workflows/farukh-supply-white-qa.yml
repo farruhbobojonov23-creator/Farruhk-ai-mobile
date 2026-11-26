@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-cell-ocr']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
