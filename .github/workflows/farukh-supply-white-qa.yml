@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'feature/supply-offline-layout-core']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
@@ -36,7 +36,9 @@ jobs:
             /tmp/supply-qa/node_modules/.bin/playwright install --with-deps chromium
           fi
       - name: Verify parser and catalog regression tests
-        run: node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
+        run: |
+          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
+          if [ -f supply/layout-core.test.js ]; then node --test supply/layout-core.test.js; elif [ "${GITHUB_REF_NAME}" = "feature/supply-offline-layout-core" ]; then exit 1; fi
       - name: Run mobile UI and persistence QA
         run: |
           set -e
