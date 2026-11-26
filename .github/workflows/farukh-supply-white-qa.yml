@@ -67,6 +67,13 @@ jobs:
             if(!r.documentVerified||r.items.length!==2||r.items[0].quantity!==3||r.items[1].quantity!==4||r.items[0].invoiceTotal!==2733||r.items[1].invoiceTotal!==1028||!r.items[0].name.includes('HOCHLAND'))throw Error('UPD multiline reconciliation failed: '+JSON.stringify(r));
             if(window.supplyInvoiceParser.parseSimple(source.replace('3 761,00','3 761,10')).documentVerified)throw Error('UPD accepted inconsistent total');
           });
+          await page.evaluate(()=>{
+            const source='Уаверсальный Счет-фактура № 123 or 09 ноября 2026 г.(1)\nПоставщик: ООО «Веста»\nНаименование товара (описание выполненных\nСыр плавленый ломтевой 778 ynak 3,000 828.18 2484,55 5е3 10% 248.45 2733,00\n3кциза\nБистро Чеддер уп/1,107 кг(уп\n90 ШT) HOCHLAND\n2Сухари панировочные Панко 796 WT 4000 233.64 934.55 5e3 10% 93.45 1028,00\nакциза\nГолд NНАО PremИИm 1кг\nВсего к оплате (9) 3419.10 x 341.90 3761,00';
+            const p=window.supplyInvoiceParser,r=p.parseSimple(source);
+            if(!r.documentVerified||r.items.length!==2||r.items[0].quantity!==3||r.items[1].quantity!==4||r.items[0].invoiceTotal!==2733||r.items[1].invoiceTotal!==1028||!r.items[0].name.includes('HOCHLAND')||Math.abs(r.items[0].packKg-1.107)>0.00001)throw Error('Actual noisy UPD regression: '+JSON.stringify(r));
+            if(invoiceHeader(source).documentDate!=='2026-11-09')throw Error('OCR Latin header date failed');
+            if(p.parseSimple(source.replace('3761,00','3761,10')).documentVerified)throw Error('Unbalanced OCR accepted');
+          });
           assert.equal(await page.locator('#productCount').textContent(),'0');
           assert.equal(await page.locator('#supplierCount').textContent(),'0');
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

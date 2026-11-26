@@ -248,13 +248,13 @@ function invoiceHeader(raw){
  const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
  const dates=new Set(),ids=new Set();
  const add=(y,m,d)=>{if(!m)return;const iso=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(Number.isFinite(Date.parse(iso))&&new Date(iso).toISOString().slice(0,10)===iso)dates.add(iso);};
- const heads=/(?:реализация|универсальный\s+передаточный\s+документ|по\s+УПД|УПД|сч[её]т\s*[-– ]?\s*фактура|накладная|накладной)\s*(?:№|No|N[еe]|N°|N)\s*([a-zа-яё0-9][a-zа-яё0-9/.-]*(?:[ \t]+\d{3,})?)/gi;
+ const heads=/(?:реализация|универсальный\s+передаточный\s+документ|по\s+УПД|УПД|сч[её]т\s*[-– ]?\s*фактура|накладная|накладной)\s*(?:№|No|N[еe]|N°|N)\s*:?\s*([a-zа-яё0-9][a-zа-яё0-9/.-]*(?:[ \t]+\d{3,})?)/gi;
  for(const match of text.matchAll(heads)){
   ids.add(norm(match[1]).replace(/\s+/g,''));
   const tail=text.slice(match.index+match[0].length,match.index+match[0].length+65);
-  const numeric=tail.match(/^\s*(?:от\s*)?(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})(?!\d)/i);
+  const numeric=tail.match(/^\s*(?:(?:[оo][тtrг]|[оo])\s*)?(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})(?!\d)/i);
   if(numeric){add(numeric[3],Number(numeric[2]),Number(numeric[1]));continue;}
-  const named=tail.match(/^\s*(?:от\s*)?(\d{1,2})\s+([а-яё]+)\.?\s+(\d{4})(?!\d)/i);
+  const named=tail.match(/^\s*(?:(?:[оo][тtrг]|[оo])\s*)?(\d{1,2})\s+([а-яё]+)\.?\s+(\d{4})(?!\d)/i);
   if(named){const month=months.indexOf(named[2].toLowerCase());if(month>=0)add(named[3],month+1,Number(named[1]));}
  }
  return {documentNumber:ids.size===1?[...ids][0]:null,documentDate:dates.size===1?[...dates][0]:null};
