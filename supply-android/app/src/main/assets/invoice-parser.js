@@ -787,3 +787,22 @@ function generic(text,base){
 api.parseSimple=text=>{const b=prior(text);return b.documentVerified?b:generic(text,b)};
 api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.lineMetrics,positive=v=>{const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null};
+function packVolume(name){
+ const product=String(name||'').replace(/\s*\/\s*(?:кг|г|л|мл|шт|уп|кор)(?:\s+\((?:с|без)\s+НДС\))?$/i,'');
+ if(/\d\s*[xх×*]\s*\d/i.test(product))return null;
+ const matches=[...product.matchAll(/(?:^|[^\d.,])(\d+(?:[,.]\d+)?)\s*(мл|л)(?=$|[^а-яёa-z0-9])/gi)];
+ if(matches.length!==1)return null;
+ const v=positive(matches[0][1]);return v?v/(matches[0][2].toLowerCase()==='мл'?1000:1):null;
+}
+api.packVolume=packVolume;
+api.lineMetrics=row=>{
+ const base=previous(row),u=row.unit||'';
+ const per=u==='л'?1:u==='мл'?.001:['шт','уп','кор'].includes(u)&&!positive(row.packKg)?positive(row.packL):null;
+ const q=positive(row.quantity),p=positive(row.price);
+ return {...base,totalL:q&&per?Math.round(q*per*1e6)/1e6:null,pricePerL:p&&per?Math.round((p/per+Number.EPSILON)*100)/100:null};
+};
+})(globalThis);

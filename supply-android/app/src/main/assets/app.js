@@ -13,43 +13,48 @@ async function refresh(){docs=await tx('readonly',s=>s.getAll());render()}
 // Only reuse a unique, previously confirmed weight for the same supplier and product.
 const packUnits=['шт','уп','кор'];
 const productIdentity=s=>norm(s).replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+ндс\))?$/i,'').trim();
-function knownPack(data,supplier,history=docs){
+function knownPack(data,supplier,history=docs,field='packKg'){
  if(!packUnits.includes(data.unit)||!norm(supplier)||!data.name)return null;
  const matches=history.filter(d=>d.simpleVersion===1&&norm(d.supplierId)===norm(supplier)).flatMap(d=>d.lines||[]).filter(l=>{
   if(l.unit!==data.unit)return false;
   if(data.article&&l.article)return String(data.article)===String(l.article);
   return productIdentity(l.name)===productIdentity(data.name);
  });
- const weights=[...new Set(matches.map(l=>numeric(l.packKg)).filter(Boolean))];
+ const weights=[...new Set(matches.map(l=>numeric(l[field])).filter(Boolean))];
  return weights.length===1?weights[0]:null;
 }
 function lineData(f){
  const value=k=>f.querySelector('[data-field='+k+']').value;
- return {name:value('name').trim(),price:numeric(value('price')),quantity:numeric(value('quantity')),unit:value('unit'),packKg:numeric(value('packKg')),article:f.dataset.article||undefined,invoiceTotal:numeric(f.dataset.invoiceTotal)};
+ return {name:value('name').trim(),price:numeric(value('price')),quantity:numeric(value('quantity')),unit:value('unit'),packKg:value('packMeasure')==='кг'?numeric(value('packKg')):null,packL:value('packMeasure')==='л'?numeric(value('packKg')):null,article:f.dataset.article||undefined,invoiceTotal:numeric(f.dataset.invoiceTotal)};
 }
 const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:6});
 function lineSummary(l){
  const m=window.supplyInvoiceParser.lineMetrics(l),parts=[];
- if(l.packKg&&['шт','уп','кор'].includes(l.unit))parts.push('Фасовка '+fmt(l.packKg)+' кг');
+ if(l.packKg&&packUnits.includes(l.unit))parts.push('Фасовка '+fmt(l.packKg)+' кг');
+ if(l.packL&&packUnits.includes(l.unit))parts.push('Фасовка '+fmt(l.packL)+' л');
  if(l.quantity)parts.push(fmt(l.quantity)+' '+(l.unit||'ед.'));
  if(m.totalKg!==null&&l.unit!=='кг')parts.push('Всего '+fmt(m.totalKg)+' кг');
  if(m.pricePerKg!==null&&l.unit!=='кг')parts.push(rub(m.pricePerKg)+'/кг');
+ if(m.totalL!=null&&l.unit!=='л')parts.push('Всего '+fmt(m.totalL)+' л');
+ if(m.pricePerL!=null&&l.unit!=='л')parts.push(rub(m.pricePerL)+'/л');
  if(m.totalPrice!==null)parts.push('Сумма '+rub(m.totalPrice));
  return parts.join(' · ');
 }
 function addLine(data={}){
  const f=node('div',null,'line');if(data.uncertain)f.classList.add('uncertain');if(data.article)f.dataset.article=String(data.article);if(numeric(data.invoiceTotal))f.dataset.invoiceTotal=String(numeric(data.invoiceTotal));
  function field(key,title,value,placeholder){const wrap=node('label',title),i=node('input');i.dataset.field=key;i.placeholder=placeholder||'';i.value=value==null?'':String(value);if(key!=='name')i.inputMode='decimal';i.setAttribute('aria-label',title);wrap.append(i);return {wrap,i}}
- const a=field('name','Название товара',data.name,'Название товара'),p=field('price','Цена за уп., ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг',data.packKg,'—');
+ const a=field('name','Название товара',data.name,'Название товара'),p=field('price','Цена за уп., ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг',data.packKg??data.packL,'—');
  a.i.value=data.name||'';a.i.required=p.i.required=true;
+ const measure=node('select');measure.dataset.field='packMeasure';measure.setAttribute('aria-label','Единица фасовки');for(const k of ['кг','л']){const o=node('option',k);o.value=k;measure.append(o)}measure.value=data.packL&&!data.packKg?'л':'кг';const packControls=node('div',null,'qty-controls');packControls.append(w.i,measure);w.wrap.append(packControls);w.wrap.firstChild.nodeValue='Фасовка';
  const u=node('select');u.dataset.field='unit';u.setAttribute('aria-label','Единица накладной');
  for(const k of ['','шт','уп','кор','кг','г','л','мл']){const o=node('option',k||'Не указана');o.value=k;u.append(o)}u.value=data.unit||((data.name||'').match(/\s*\/\s*(кг|г|л|мл|шт|уп|кор)(?:\s+\(без НДС\))?$/i)?.[1]||'');
  q.wrap.classList.add('quantity-cell');const qtyControls=node('div',null,'qty-controls');qtyControls.append(q.i,u);q.wrap.append(qtyControls);
  const del=button('×',()=>{f.remove();dirty=true});del.setAttribute('aria-label','Удалить товар');del.classList.add('line-delete');
  function computed(title,cls){const box=node('div',null,'computed-cell '+cls),out=node('output','—');box.append(node('span',title,'cell-caption'),out);return {box,out}}
  const weight=computed('Общий вес','line-summary'),kgPrice=computed('Цена за кг','kg-price'),total=computed('Общая стоимость','line-total');
- function recalc(){const l=lineData(f),m=window.supplyInvoiceParser.lineMetrics(l),pack=['шт','уп','кор'].includes(l.unit);w.i.disabled=!pack;w.wrap.style.background=pack&&!l.packKg?'#fff1b8':'';p.wrap.firstChild.nodeValue=pack?'Цена за уп., ₽':l.unit==='кг'?'Цена за кг, ₽':'Цена за ед., ₽';p.i.setAttribute('aria-label',p.wrap.firstChild.nodeValue);weight.out.textContent=m.totalKg==null?'—':fmt(m.totalKg)+' кг';kgPrice.out.textContent=m.pricePerKg==null?'—':rub(m.pricePerKg);total.out.textContent=m.totalPrice==null?'—':rub(m.totalPrice);total.out.title=l.invoiceTotal?'Сумма из накладной, не пересчитывается':'Расчёт по количеству и цене';}
- function fillMissingPack(){if(!packUnits.includes(u.value)||numeric(w.i.value))return;const direct=window.supplyInvoiceParser.packWeight(a.i.value),saved=knownPack(lineData(f),$('supplier').value);if(direct||saved){w.i.value=direct||saved;w.i.title=direct?'Из названия товара':'Из ранее подтверждённой накладной';}}
+ function recalc(){const l=lineData(f),m=window.supplyInvoiceParser.lineMetrics(l),pack=packUnits.includes(l.unit),volume=['л','мл'].includes(l.unit)||(pack&&measure.value==='л');w.i.disabled=measure.disabled=!pack;w.wrap.style.background=pack&&!l.packKg&&!l.packL?'#fff1b8':'';const basis=/\(без НДС\)/i.test(l.name)?' без НДС':/\(с НДС\)/i.test(l.name)?' с НДС':'';p.wrap.firstChild.nodeValue=(pack?'Цена за уп.':l.unit==='кг'?'Цена за кг':l.unit==='л'?'Цена за л':'Цена за ед.')+basis+', ₽';p.i.setAttribute('aria-label',p.wrap.firstChild.nodeValue);weight.box.firstChild.textContent=volume?'Общий объём':'Общий вес';kgPrice.box.firstChild.textContent=(volume?'Цена за л':'Цена за кг')+basis;weight.out.textContent=volume?(m.totalL==null?'—':fmt(m.totalL)+' л'):(m.totalKg==null?'—':fmt(m.totalKg)+' кг');kgPrice.out.textContent=(volume?m.pricePerL:m.pricePerKg)==null?'—':rub(volume?m.pricePerL:m.pricePerKg);total.out.textContent=m.totalPrice==null?'—':rub(m.totalPrice);total.out.title=l.invoiceTotal?'Сумма из накладной, не пересчитывается':'Расчёт по количеству и цене';}
+ function fillMissingPack(){if(!packUnits.includes(u.value)||numeric(w.i.value))return;const parser=window.supplyInvoiceParser,mass=parser.packWeight(a.i.value),volume=parser.packVolume(a.i.value),savedMass=knownPack(lineData(f),$('supplier').value),savedVolume=knownPack(lineData(f),$('supplier').value,docs,'packL');if(mass||volume||savedMass&&!savedVolume||savedVolume&&!savedMass){measure.value=mass||!volume&&savedMass?'кг':'л';w.i.value=mass||volume||savedMass||savedVolume;w.i.title=mass||volume?'Из названия товара':'Из ранее подтверждённой накладной';}}
+ measure.addEventListener('change',()=>{w.i.value='';w.i.title='';recalc()});
  a.i.addEventListener('change',()=>{delete f.dataset.article;fillMissingPack();recalc()});
  u.addEventListener('change',()=>{fillMissingPack();recalc()});
  w.i.addEventListener('input',()=>{w.i.title='';});
@@ -63,11 +68,11 @@ $('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('inpu
 function numeric(s){const n=Number(String(s).replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null}
 function dateLabel(d){const v=new Date(d);return Number.isFinite(v.getTime())?v.toLocaleDateString('ru-RU'):''}
 function linesOf(d){if(d.simpleVersion===1)return Array.isArray(d.lines)?d.lines:[];if(d.status!=='confirmed')return [];return (d.lines||[]).flatMap(l=>{try{const p=window.supplyAnalytics.linePrice(l);return [{name:l.productId+' / '+p.unit+' (с НДС)',price:p.price}]}catch{return []}})}
-function observations(){return docs.flatMap(d=>linesOf(d).filter(l=>l.name&&numeric(l.price)).map(l=>({name:l.name,price:Number(l.price),unit:l.unit||'',packKg:l.packKg||null,supplier:d.supplierId,date:d.savedAt||d.date||'',docId:d.id}))).sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
-function productKey(r){return JSON.stringify([norm(r.name),r.unit||'',r.packKg||null]);}
+function observations(){return docs.flatMap(d=>linesOf(d).filter(l=>l.name&&numeric(l.price)).map(l=>({name:l.name,price:Number(l.price),unit:l.unit||'',packKg:l.packKg||null,packL:l.packL||null,supplier:d.supplierId,date:d.savedAt||d.date||'',docId:d.id}))).sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
+function productKey(r){return JSON.stringify([norm(r.name),r.unit||'',r.packKg||null,r.packL||null]);}
 function grouped(obs,key){const m=new Map();for(const r of obs){const k=key(r);if(!m.has(k))m.set(k,[]);m.get(k).push(r)}return m}
 function latest(obs){return [...grouped(obs,r=>JSON.stringify([productKey(r),norm(r.supplier)])).values()].map(s=>s[s.length-1])}
-function offerDetail(r){const m=window.supplyInvoiceParser.lineMetrics(r);return [dateLabel(r.date),r.packKg?'Фасовка '+fmt(r.packKg)+' кг':'',m.pricePerKg!==null&&r.unit!=='кг'?rub(m.pricePerKg)+'/кг':''].filter(Boolean).join(' · ')}
+function offerDetail(r){const m=window.supplyInvoiceParser.lineMetrics(r);return [dateLabel(r.date),r.packKg?'Фасовка '+fmt(r.packKg)+' кг':r.packL?'Фасовка '+fmt(r.packL)+' л':'',m.pricePerKg!==null&&r.unit!=='кг'?rub(m.pricePerKg)+'/кг':'',m.pricePerL!=null&&r.unit!=='л'?rub(m.pricePerL)+'/л':''].filter(Boolean).join(' · ')}
 function render(){const obs=observations(),last=latest(obs),products=grouped(last,productKey),suppliers=grouped(last,r=>norm(r.supplier));$('productCount').textContent=products.size;$('supplierCount').textContent=suppliers.size;
 $('changes').replaceChildren();const trends=[...grouped(obs,r=>JSON.stringify([productKey(r),norm(r.supplier)])).values()].filter(s=>s.length>1).map(s=>[s[s.length-2],s[s.length-1]]).filter(([a,b])=>a.price!==b.price).slice(-6).reverse();for(const [a,b] of trends){const delta=b.price-a.price;row($('changes'),b.name,b.supplier+' · '+rub(a.price)+' → '+rub(b.price),node('strong',(delta>0?'+':'−')+rub(Math.abs(delta)),'price '+(delta>0?'up':'down')))}if(!trends.length)empty($('changes'),'Изменения появятся после повторной закупки.');
 const ordered=[...docs].sort((a,b)=>String(b.savedAt||b.date||'').localeCompare(String(a.savedAt||a.date||'')));$('recent').replaceChildren();for(const d of ordered.slice(0,3))row($('recent'),d.supplierId||'Без поставщика',dateLabel(d.savedAt||d.date),button('Открыть',()=>{go('invoices')}));if(!ordered.length)empty($('recent'),'Нет накладных');
@@ -78,7 +83,7 @@ $('offers').replaceChildren();for(const list of products.values()){const c=node(
 }
 $('search').oninput=render;
 function edit(d){reset();editing=d.id;$('supplier').value=d.supplierId;$('lines').replaceChildren();for(const l of d.lines)addLine(l);showPreview(d.original);go('entry')}
-$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy)return;try{const supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!['шт','уп','кор'].includes(l.unit))l.packKg=null;return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены');if(new Set(lines.map(l=>norm(l.name))).size!==lines.length)throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:$('file').files[0]||prior?.original||null};if(!editing&&docs.some(d=>d.simpleVersion===1&&norm(d.supplierId)===norm(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;await refresh();go('invoices');status('✓ Накладная сохранена',true)}catch(err){status(err.message)}};
+$('form').onsubmit=async e=>{e.preventDefault();if(scanBusy)return;try{const supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены');if(new Set(lines.map(l=>norm(l.name))).size!==lines.length)throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:$('file').files[0]||prior?.original||null};if(!editing&&docs.some(d=>d.simpleVersion===1&&norm(d.supplierId)===norm(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;await refresh();go('invoices');status('✓ Накладная сохранена',true)}catch(err){status(err.message)}};
 window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId=id;scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent='Распознаём фото…'};
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
@@ -104,7 +109,7 @@ window.supplyOcrFinish=(id,text,error)=>{
   if(current.supplier&&!photoSupplier)photoSupplier=current.supplier;
   scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
-  const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)&&!current.items.some(x=>packUnits.includes(x.unit)&&!x.packKg&&!window.supplyInvoiceParser.packWeight(x.name)&&!knownPack(x,current.supplier||photoSupplier));
+  const complete=current.items.length>0&&current.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)&&!current.items.some(x=>packUnits.includes(x.unit)&&!x.packKg&&!x.packL&&!window.supplyInvoiceParser.packWeight(x.name)&&!window.supplyInvoiceParser.packVolume(x.name)&&!knownPack(x,current.supplier||photoSupplier)&&!knownPack(x,current.supplier||photoSupplier,docs,'packL'));
   if(native&&scanPass<2&&!complete){
    scanPass++;nextScan(scanPass===1?'rescan':'paddle-scan',scanPass===1?'Повторная проверка товарной таблицы…':'Проверка другим OCR-модулем…');return;
   }
@@ -125,8 +130,8 @@ window.supplyOcrFinish=(id,text,error)=>{
   }
   dirty=true;const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(best.error||'Товарная таблица не прочитана. Выберите более чёткое фото или крупный снимок таблицы.');
-  const missingPack=[...$('lines').children].map(lineData).some(x=>packUnits.includes(x.unit)&&!x.packKg);
-  if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана. Укажите вес нетто одной упаковки — он сохранится для следующих накладных.';
+  const missingPack=[...$('lines').children].map(lineData).some(x=>packUnits.includes(x.unit)&&!x.packKg&&!x.packL);
+  if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана. Укажите вес нетто или объём одной упаковки — он сохранится для следующих накладных.';
   if(!priced||ambiguous||priced<r.items.length||missingPack)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
  }catch(e){scanCandidates=[];scanPass=0;$('ocrState').textContent='Не удалось обработать текст. Проверьте фото.';scanDiagnostic(text);}
 };
