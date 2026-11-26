@@ -77,6 +77,23 @@ jobs:
           assert.ok((await page.locator('.line-summary').innerText()).includes('40 кг'));
           assert.ok((await page.locator('.kg-price').innerText()).includes('450,00'));
           assert.ok((await page.locator('.line-total').innerText()).replace(/\s/g,'').includes('18000,00'));
+          await page.evaluate(()=>{
+            const history=[{simpleVersion:1,supplierId:'Поставщик тест',lines:[{name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт',packKg:9.4}]}];
+            const product={name:'Майонез тест / шт (с НДС)',article:'123456789',unit:'шт'};
+            if(knownPack(product,'Поставщик тест',history)!==9.4)throw Error('Saved pack not found');
+            if(knownPack(product,'Другой поставщик',history)!==null)throw Error('Supplier isolation failed');
+            if(knownPack({...product,article:'999999999'},'Поставщик тест',history)!==null)throw Error('Article isolation failed');
+            const conflict=[...history,{...history[0],lines:[{...history[0].lines[0],packKg:10}]}];
+            if(knownPack(product,'Поставщик тест',conflict)!==null)throw Error('Conflicting weights must not be guessed');
+            const m=window.supplyInvoiceParser.lineMetrics({...product,packKg:9.4,quantity:4,price:1906.86});
+            if(m.totalKg!==37.6||m.pricePerKg!==202.86||m.totalPrice!==7627.44)throw Error('Incorrect calculation');
+            const original=docs;
+            try{docs=history;$('supplier').value='Поставщик тест';addLine({...product,quantity:4,price:1906.86});
+             const last=$('lines').lastElementChild;
+             if(last.querySelector('[data-field=packKg]').value!=='9.4'||!last.querySelector('.kg-price').textContent.includes('202,86'))throw Error('Automatic field completion failed');
+             last.remove();
+            }finally{docs=original;$('supplier').value='Восток-Запад';}
+          });
           await page.setViewportSize({width:320,height:740});
           for(let i=0;i<29;i++)await page.locator('#addLine').click();
           assert.equal(await page.locator('#lines .line').count(),30);
