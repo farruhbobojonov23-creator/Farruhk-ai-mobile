@@ -470,4 +470,179 @@ window.supplyOcrFinish=(id,text,error)=>{
 };
 $('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите документ');return}scanCandidates=photoPassTexts.map(text=>({r:window.supplyInvoiceParser.parseSimple(text),text,error:''}));scanStartedAt=performance.now();scanTrace=[];scanPass=2;nextScan('rescan','Углублённая проверка таблицы…')};
 document.querySelector('a.update').addEventListener('click',e=>{if(dirty&&!confirm('Обновление закроет несохранённую форму. Продолжить?'))e.preventDefault()});
-reset();const req=indexedDB.open('farukh-supply-preview',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('invoices'))req.result.createObjectStore('invoices',{keyPath:'id'})};req.onsuccess=()=>{db=req.result;refresh().catch(e=>status(e.message))};req.onerror=()=>status('Не удалось открыть локальную базу');
+
+// Local recovery copies and portable, checksummed backups. No network calls.
+const BACKUP_FORMAT='farukh-supply-backup-v1',BACKUP_LIMIT=64*1024*1024;
+let backupDbPromise=null,backupBusy=false,backupReady=false;
+function openBackupDb(){
+ if(!backupDbPromise)backupDbPromise=new Promise((resolve,reject)=>{
+  const r=indexedDB.open('farukh-supply-backups-v1',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('copies');
+  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Закройте другие окна приложения'));
+ }).catch(e=>{backupDbPromise=null;throw e;});
+ return backupDbPromise;
+}
+async function backupOp(mode,fn){
+ const b=await openBackupDb();
+ return new Promise((resolve,reject)=>{
+  const t=b.transaction('copies',mode),r=fn(t.objectStore('copies'));
+  t.oncomplete=()=>resolve(r.result);t.onerror=()=>reject(t.error||r.error);t.onabort=()=>reject(t.error||Error('Операция отменена'));
+ });
+}
+const getCopy=k=>backupOp('readonly',s=>s.get(k)),putCopy=(k,v)=>backupOp('readwrite',s=>s.put(v,k)),deleteCopy=k=>backupOp('readwrite',s=>s.delete(k));
+function validateBackup(v){
+ if(!v||v.format!==BACKUP_FORMAT||!Number.isFinite(Date.parse(v.createdAt))||!Array.isArray(v.invoices)||!v.catalog||!Array.isArray(v.catalog.products)||!v.catalog.aliases||!v.catalog.quality)throw Error('Неверный формат резервной копии');
+ const ids=new Set(),products=new Set();
+ for(const d of v.invoices){
+  if(!d||typeof d.id!=='string'||!d.id||ids.has(d.id)||!Array.isArray(d.lines)||d.simpleVersion===1&&typeof d.supplierId!=='string'||d.lines.some(l=>!l||typeof l!=='object'||Array.isArray(l)))throw Error('Повреждена запись накладной');
+  ids.add(d.id);
+  if(d.original!=null&&!(d.original instanceof Blob))throw Error('Повреждён оригинал накладной');
+  if(d.pages!=null&&(!Array.isArray(d.pages)||d.pages.some(p=>!p||typeof p!=='object'||p.file!=null&&!(p.file instanceof Blob))))throw Error('Повреждены фотографии страниц');
+ }
+ for(const p of v.catalog.products){if(!p||typeof p.id!=='string'||!p.id||products.has(p.id)||typeof p.name!=='string')throw Error('Повреждён справочник');products.add(p.id);}
+ for(const [k,x] of Object.entries(v.catalog.aliases))if(!k||!x||!products.has(x.productId)||typeof x.variantId!=='string')throw Error('Повреждены связи товаров');
+ for(const x of Object.values(v.catalog.quality))if(!x||typeof x!=='object'||x.rating!=null&&(!Number.isFinite(x.rating)||x.rating<1||x.rating>10)||x.yieldPct!=null&&(!Number.isFinite(x.yieldPct)||x.yieldPct<=0||x.yieldPct>100))throw Error('Повреждены оценки товаров');
+ return v;
+}
+async function captureBackup(){
+ if(catalogStorageError)throw Error(catalogStorageError);
+ return validateBackup({format:BACKUP_FORMAT,createdAt:new Date().toISOString(),invoices:await tx('readonly',s=>s.getAll()),catalog:JSON.parse(JSON.stringify(catalogState))});
+}
+function replaceInvoices(records){
+ return new Promise((resolve,reject)=>{
+  const t=db.transaction('invoices','readwrite'),s=t.objectStore('invoices');
+  t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Восстановление отменено'));
+  try{s.clear();for(const d of records)s.put(d);}catch(e){try{t.abort()}catch{}reject(e);}
+ });
+}
+function setBackupCatalog(catalog){
+ localStorage.setItem(CATALOG_KEY,JSON.stringify(catalog));catalogState=catalog;catalogStorageError='';catalogCache=null;packIndexCache=null;
+}
+async function recoverInterruptedRestore(){
+ const journal=await getCopy('restore-journal');
+ if(!journal)return false;
+ validateBackup(journal);
+ await replaceInvoices(journal.invoices);
+ setBackupCatalog(journal.catalog);
+ await deleteCopy('restore-journal');
+ return true;
+}
+async function restoreBackup(snapshot){
+ validateBackup(snapshot);
+ if(await getCopy('restore-journal'))throw Error('Сначала завершите восстановление после сбоя');
+ const old=await captureBackup();
+ // Both the pre-restore recovery point and journal are durable before any changes.
+ await backupOp('readwrite',s=>{s.put(old,'before-restore');return s.put(old,'restore-journal')});
+ try{
+  setBackupCatalog(snapshot.catalog);
+  await replaceInvoices(snapshot.invoices);
+  await deleteCopy('restore-journal');
+ }catch(e){
+  try{await recoverInterruptedRestore()}catch(rollback){backupReady=false;throw Error('Восстановление прервано. Не удаляйте приложение. Перезапустите его для восстановления прежней базы.')}
+  throw Error('Восстановление отменено, прежняя база сохранена: '+(e.message||'ошибка записи'));
+ }
+ await refresh();
+}
+// File bytes, names, MIME types, and modification times survive portable export.
+// A tagged array representation avoids reserved-key collisions in source data.
+async function packBackup(value,budget,depth=0){
+ if(depth>60)throw Error('Слишком сложная структура копии');
+ if(value===undefined)return ['u'];
+ if(value===null||typeof value==='string'||typeof value==='boolean'||typeof value==='number')return ['v',value];
+ if(value instanceof Blob){
+  budget.bytes+=value.size;if(budget.bytes>BACKUP_LIMIT)throw Error('Копия слишком большая для переноса через браузер (64 МБ файлов). Локальная копия доступна.');
+  const bytes=new Uint8Array(await value.arrayBuffer());let binary='';
+  for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
+  return ['f',value instanceof File?value.name:null,value.type,value instanceof File?value.lastModified:null,btoa(binary)];
+ }
+ if(value instanceof Date)return ['d',value.toISOString()];
+ if(Array.isArray(value))return ['a',await Promise.all(value.map(x=>packBackup(x,budget,depth+1)))];
+ if(Object.getPrototypeOf(value)!==Object.prototype&&Object.getPrototypeOf(value)!==null)throw Error('Неподдерживаемые данные в копии');
+ return ['o',await Promise.all(Object.entries(value).map(async ([k,v])=>[k,await packBackup(v,budget,depth+1)]))];
+}
+function unpackBackup(x,budget,depth=0){
+ if(depth>60||!Array.isArray(x)||++budget.nodes>2000000)throw Error('Повреждена структура копии');
+ switch(x[0]){
+  case 'u':if(x.length===1)return undefined;break;
+  case 'v':if(x.length===2&&(x[1]===null||['string','boolean','number'].includes(typeof x[1])))return x[1];break;
+  case 'd':if(x.length===2&&typeof x[1]==='string'&&Number.isFinite(Date.parse(x[1])))return new Date(x[1]);break;
+  case 'a':if(x.length===2&&Array.isArray(x[1]))return x[1].map(v=>unpackBackup(v,budget,depth+1));break;
+  case 'o':if(x.length===2&&Array.isArray(x[1])){
+   const out=Object.create(null);
+   for(const entry of x[1]){
+    if(!Array.isArray(entry)||entry.length!==2||typeof entry[0]!=='string'||['__proto__','constructor','prototype'].includes(entry[0])||Object.hasOwn(out,entry[0]))throw Error('Недопустимое поле копии');
+    out[entry[0]]=unpackBackup(entry[1],budget,depth+1);
+   }
+   return out;
+  }break;
+  case 'f':if(x.length===5&&(x[1]===null||typeof x[1]==='string')&&typeof x[2]==='string'&&typeof x[4]==='string'){
+   budget.bytes+=Math.ceil(x[4].length*3/4);if(budget.bytes>BACKUP_LIMIT+4096)throw Error('Превышен лимит копии');
+   const b=Uint8Array.from(atob(x[4]),c=>c.charCodeAt(0));
+   return x[1]===null?new Blob([b],{type:x[2]}):new File([b],x[1],{type:x[2],lastModified:Number(x[3])||0});
+  }break;
+ }
+ throw Error('Повреждены данные копии');
+}
+async function backupDigest(text){
+ const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+ return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function encodeBackup(snapshot){
+ validateBackup(snapshot);
+ const payload=JSON.stringify(await packBackup(snapshot,{bytes:0}));
+ if(payload.length>96*1024*1024)throw Error('Копия слишком большая для переноса через браузер');
+ return JSON.stringify({format:BACKUP_FORMAT,sha256:await backupDigest(payload),payload});
+}
+async function decodeBackup(text){
+ if(typeof text!=='string'||text.length>110*1024*1024)throw Error('Файл слишком большой');
+ const envelope=JSON.parse(text);
+ if(envelope?.format!==BACKUP_FORMAT||typeof envelope.payload!=='string'||typeof envelope.sha256!=='string'||await backupDigest(envelope.payload)!==envelope.sha256)throw Error('Контрольная сумма не совпадает. Файл повреждён.');
+ return validateBackup(unpackBackup(JSON.parse(envelope.payload),{bytes:0,nodes:0}));
+}
+function backupDialog(){
+ if(!backupReady||savingInvoice||scanBusy||dirty||backupBusy){status('Сначала завершите сохранение и открытие базы');return;}
+ const dlg=node('dialog',null,'catalog-dialog'),msg=node('p','Проверка резервных копий…','muted'),info=node('p','','muted');
+ dlg.append(node('h2','Резервная копия'),node('p','Накладные, оригиналы фото/PDF, товары, связи и оценки.'),info,msg);
+ const native=location.origin==='https://appassets.androidplatform.net';
+ let controls=[];
+ const run=async(fn)=>{
+  if(backupBusy)return;backupBusy=true;controls.forEach(b=>b.disabled=true);msg.textContent='Выполняется…';
+  try{await fn()}catch(e){msg.textContent=e.message||'Не удалось выполнить операцию';}
+  finally{backupBusy=false;controls.forEach(b=>b.disabled=false);}
+ };
+ const describe=v=>dateLabel(v.createdAt)+' · '+new Date(v.createdAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+' · '+v.invoices.length+' накладных';
+ async function showCopies(){
+  const local=await getCopy('manual'),undo=await getCopy('before-restore');
+  info.textContent='Локальная копия: '+(local?describe(local):'нет')+'. До восстановления: '+(undo?describe(undo):'нет')+'.';
+ }
+ async function recover(key){const copy=await getCopy(key);if(!copy)throw Error('Копия не найдена');if(!confirm('Восстановить '+describe(copy)+'? Текущая база будет сохранена отдельно перед заменой.')){msg.textContent='Отменено';return;}await restoreBackup(copy);await showCopies();msg.textContent='✓ База восстановлена';}
+ const local=button('Создать локальную копию',()=>run(async()=>{
+  const old=await getCopy('manual');if(old&&!confirm('Заменить предыдущую локальную копию?')){msg.textContent='Отменено';return;}
+  const v=await captureBackup();await putCopy('manual',v);await showCopies();msg.textContent='✓ Локальная копия создана';
+ }));local.classList.add('primary');
+ controls=[local,button('Восстановить локальную копию',()=>run(()=>recover('manual'))),button('Вернуть базу до восстановления',()=>run(()=>recover('before-restore')))];
+ if(!native){
+  controls.push(button('Скачать файл копии',()=>run(async()=>{
+   const json=await encodeBackup(await captureBackup()),url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+   const link=node('a');link.href=url;link.download='FARUKH-SUPPLY-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);msg.textContent='Файл передан браузеру для скачивания. Проверьте папку загрузок.';
+  })));
+ }else dlg.append(node('p','Локальная копия не защищает от удаления приложения или очистки данных. Экспорт файла на Android требует отдельного обновления модуля.','muted'));
+ const file=node('input');file.type='file';file.accept='.json,application/json';file.setAttribute('aria-label','Файл резервной копии');
+ const importLabel=node('label','Восстановить из файла JSON');importLabel.append(file);
+ file.onchange=()=>run(async()=>{
+  const f=file.files[0];if(!f)return;try{
+   if(f.size>110*1024*1024)throw Error('Файл слишком большой');
+   const v=await decodeBackup(await f.text());
+   if(!confirm('Восстановить '+describe(v)+'? Перед заменой будет создана копия текущей базы.')){msg.textContent='Отменено';return;}
+   await restoreBackup(v);await showCopies();msg.textContent='✓ Файл проверен, база восстановлена';
+  }finally{file.value='';}
+ });
+ const close=button('Закрыть',()=>dlg.close());
+ for(const b of controls)dlg.append(b);dlg.append(importLabel,close);controls.push(file,close);
+ dlg.addEventListener('cancel',e=>{if(backupBusy)e.preventDefault()});
+ dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
+ run(async()=>{await showCopies();msg.textContent='Копия хранится только на устройстве. Файл содержит данные закупок — храните его в безопасном месте.';});
+}
+$('backupOpen').onclick=backupDialog;
+
+reset();const req=indexedDB.open('farukh-supply-preview',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('invoices'))req.result.createObjectStore('invoices',{keyPath:'id'})};req.onsuccess=async()=>{db=req.result;try{const recovered=await recoverInterruptedRestore();backupReady=true;await refresh();if(recovered)status('✓ Прежняя база восстановлена после прерывания',true)}catch(e){status('Резервное хранилище недоступно: '+e.message);if(!backupReady)await refresh().catch(err=>status(err.message));}};req.onerror=()=>status('Не удалось открыть локальную базу');

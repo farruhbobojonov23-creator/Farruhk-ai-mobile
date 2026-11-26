@@ -349,6 +349,49 @@ jobs:
           assert.ok(await legacy.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
           await legacy.screenshot({path:'qa-results/04-premium-migrated.png',fullPage:true});
           await legacy.close();
+          // Backups preserve originals and catalog, reject damaged files, and undo a restore.
+          const bp=await browser.newPage({viewport:{width:393,height:873},isMobile:true,acceptDownloads:true});
+          bp.on('dialog',d=>d.accept());
+          await bp.goto('http://127.0.0.1:8765/index.html');
+          await bp.waitForFunction(()=>backupReady);
+          await bp.evaluate(async()=>{
+            const f=new File(['original-image-bytes'],'receipt.png',{type:'image/png',lastModified:1234});
+            const pdf=new File(['pdf-bytes'],'receipt.pdf',{type:'application/pdf',lastModified:2345});
+            await tx('readwrite',s=>s.put({id:'backup-test',simpleVersion:1,supplierId:'Учебный',savedAt:'2026-11-01T10:00:00Z',lines:[{name:'Рис 25 кг',quantity:2,price:2500,unit:'уп',packKg:25,invoiceTotal:5000}],original:f,pages:[{key:'1',file:f},{key:'2',file:pdf}]}));
+            saveCatalog({products:[{id:'rice',name:'Рис'}],aliases:{sample:{productId:'rice',variantId:'rice-1'}},quality:{'rice-1':{rating:9,yieldPct:80}}});
+            await refresh();
+          });
+          await bp.locator('nav button[data-go=invoices]').click();
+          await bp.locator('#backupOpen').click();
+          await bp.getByRole('button',{name:'Создать локальную копию'}).click();
+          await bp.getByText('✓ Локальная копия создана',{exact:true}).waitFor();
+          const downloaded=bp.waitForEvent('download');
+          await bp.getByRole('button',{name:'Скачать файл копии'}).click();
+          const download=await downloaded;
+          const portable=fs.readFileSync(await download.path(),'utf8');
+          assert.equal(JSON.parse(portable).format,'farukh-supply-backup-v1');
+          await bp.evaluate(async()=>{await replaceInvoices([]);saveCatalog({products:[],aliases:{},quality:{}});await refresh()});
+          await bp.getByRole('button',{name:'Восстановить локальную копию'}).click();
+          await bp.getByText('✓ База восстановлена',{exact:true}).waitFor();
+          assert.equal(await bp.evaluate(async()=>await docs[0].pages[1].file.text()),'pdf-bytes');
+          assert.equal(await bp.evaluate(()=>catalogState.quality['rice-1'].yieldPct),80);
+          await bp.getByRole('button',{name:'Вернуть базу до восстановления'}).click();
+          await bp.waitForFunction(()=>docs.length===0);
+          await bp.getByLabel('Файл резервной копии').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(portable)});
+          await bp.getByText('✓ Файл проверен, база восстановлена',{exact:true}).waitFor();
+          const restored=await bp.evaluate(async()=>({name:docs[0].original.name,bytes:await docs[0].original.text(),modified:docs[0].original.lastModified,pdf:await docs[0].pages[1].file.text(),total:docs[0].lines[0].invoiceTotal,rating:catalogState.quality['rice-1'].rating}));
+          assert.deepEqual(restored,{name:'receipt.png',bytes:'original-image-bytes',modified:1234,pdf:'pdf-bytes',total:5000,rating:9});
+          await bp.getByLabel('Файл резервной копии').setInputFiles({name:'damaged.json',mimeType:'application/json',buffer:Buffer.from(portable.replace(/"sha256":"./,'"sha256":"X'))});
+          await bp.getByText('Контрольная сумма не совпадает. Файл повреждён.',{exact:true}).waitFor();
+          assert.equal(await bp.evaluate(()=>docs.length),1);
+          await bp.getByRole('button',{name:'Закрыть',exact:true}).click();
+          // Simulate interruption between catalog write and invoice replacement.
+          await bp.evaluate(async()=>{await putCopy('restore-journal',await captureBackup());await replaceInvoices([]);setBackupCatalog({products:[],aliases:{},quality:{}})});
+          await bp.reload();
+          await bp.waitForFunction(()=>backupReady&&docs.length===1);
+          assert.equal(await bp.evaluate(()=>catalogState.quality['rice-1'].rating),9);
+          assert.equal(await bp.evaluate(async()=>await getCopy('restore-journal')),undefined);
+          await bp.close();
 
           fs.writeFileSync('qa-results/report.json',JSON.stringify({passed:true,startupMs,scope:'Chromium mobile layout, simulated native OCR callback, upload preview, save/reload, comparison, price changes, search, supplier view, edit/delete, updater link only',limitations:'Not physical Android, no real invoice OCR, no signed update install'},null,2));
           console.log('PASS mobile functional QA; startup '+startupMs+' ms');
