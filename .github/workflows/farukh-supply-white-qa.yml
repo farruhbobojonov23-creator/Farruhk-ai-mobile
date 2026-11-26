@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium functional QA
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76', 'experiment/supply-local-vision-benchmark']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76', 'experiment/supply-local-vision-benchmark', 'experiment/supply-smart-simple-v78']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
       - 'supply-android/app/src/main/assets/**'
@@ -162,6 +162,22 @@ jobs:
           assert.equal(await page.locator('[data-field=price]').first().inputValue(),'150');
           assert.equal(await page.locator('[data-field=unit]').first().inputValue(),'');
           await page.evaluate(()=>{window.supplySmartScan.scanPhoto=window.__originalSmartScan;reset()});
+          await page.locator('nav button[data-go=home]').click();
+
+          // Check purchase-only photo entry, live sum and independently verified duplicate rows.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          assert.equal(await page.locator('#file').getAttribute('accept'),'image/*');
+          await page.evaluate(()=>{
+            window.supplyOcrStart(902);window.supplyOcrFinish(902,'Поставщик: Тестовый поставщик\nНакладная № Т-902 от 09.11.2026\nНаименование товара Количество Цена с НДС Сумма\n1 Рис 25 кг шт 3 2700,00\n2 Рис 25 кг шт 1 2700,00\nИтого: 10800,00','');
+          });
+          assert.equal(await page.locator('#lines .line').count(),2);
+          assert.equal(await page.locator('[data-field=packKg]').first().inputValue(),'25');
+          assert.ok((await page.locator('#simpleTotal').innerText()).replace(/\s/g,'').includes('10800,00'));
+          assert.ok((await page.locator('#invoiceCheck').innerText()).includes('совпадает'));
+          await page.locator('[data-field=quantity]').first().fill('4');
+          assert.ok((await page.locator('#simpleTotal').innerText()).replace(/\s/g,'').includes('13500,00'));
+          assert.ok((await page.locator('#invoiceCheck').innerText()).includes('не совпадает'));
+          await page.evaluate(()=>reset());
           await page.locator('nav button[data-go=home]').click();
 
           async function invoice(supplier,price,id,withPhoto){
