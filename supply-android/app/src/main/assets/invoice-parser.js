@@ -1026,3 +1026,60 @@ api.parseSamePhotoPasses=texts=>{
  return unique.length===1?[unique[0],...original]:original;
 };
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const prior=api.parseSimple,passes=api.parseSamePhotoPasses;
+const cash='(?:\\d{1,3}(?: \\d{3})+|\\d+)[.,]\\d{2}';
+const num=s=>Number(s.replace(/\s/g,'').replace(',','.'));
+const near=(a,b,t=.021)=>Math.abs(a-b)<=t;
+const clean=s=>String(s).replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();
+const places=/\s*\d+\s*\(\+\s*\d+\s*\)?/g;
+const row=new RegExp('^([A-ZА-Я]?\\d{4,6})\\s*(.*?)\\s+796\\s+(?:шт|[wш][iі]?t|wт|шt)\\s+(\\d+[.,]\\d{3})\\s+(?:\\d+\\(\\+\\d+\\)\\s+)?('+cash+')\\s+('+cash+')\\s+('+cash+')\\s+.{0,24}?(\\d{1,2})\\s*%\\s+('+cash+')\\s+('+cash+')(?:\\s+.*)?$','i');
+const stop=/^(?:всего|итого|подпись|руководитель|бухгалтер|сч[её]т[- ]фактура|расходная накладная)/i;
+const isHeader=s=>/наиме\s*нование товара|цена с ндс|количество мест|прослежи|прослежива|измерения|налога\s*-\s*всего|^(?:[aа]|\d+[aа]?)\s+(?:\d+[aа]?\s*)+$/i.test(s);
+function recover(text,b){
+ const raw=String(text||''),lines=raw.split(/\r?\n/).map(clean).filter(Boolean);
+ if(!/сч[её]т[- ]фактура/i.test(raw))return b;
+ const seller=raw.match(/(?:^|\n)\s*продавец\s*:?\s*(?:ООО|000)\s*["«]([^"»\n]{2,80})["»]/i);
+ if(!seller||!/^ША[NН]ХАЙ[-– ]ТОРГ$/i.test(seller[1].trim()))return b;
+ const supplier='ООО «ШАНХАЙ-ТОРГ»';
+ // This supplier prints net and gross unit prices and a separate place count.
+ if(!/цена\s+с\s+ндс/i.test(raw)||!/количество\s+количество|количество\s+мест/i.test(raw))return {...b,supplier};
+ const head=lines.findIndex(l=>/наиме\s*нование товара/i.test(l));
+ if(head<0)return {...b,supplier};
+ const items=[];let previous=head;
+ const incomplete=()=>({...b,supplier,documentVerified:false,pageVerified:false,items:b.items.filter(x=>!/^([A-ZА-Я]?\d{4,6})(?:\s|$)/i.test(x.name)).map(x=>({...x,price:null,invoiceTotal:null,totalPrice:null,pricePerKg:null}))});
+ for(let i=head+1;i<lines.length;i++){
+  if(stop.test(lines[i]))break;
+  const line=lines[i],m=line.match(row);
+  if(!m){if(/^[A-ZА-Я]?\d{4,6}\s+.*\b796\b/i.test(line)||/(?:^|\s)796\s+(?:шт|[wш][iі]?t|wт|шt)\s+\d/i.test(line))return incomplete();continue;}
+  const [,article,ending,q,netUnit,grossUnit,netValue,rateToken,taxValue,grossValue]=m;
+  const quantity=num(q),netPrice=num(netUnit),price=num(grossUnit),net=num(netValue),tax=num(taxValue),total=num(grossValue);
+  if(!(Number.isSafeInteger(quantity)&&quantity>0&&netPrice>0&&price>0&&net>0&&tax>=0&&total>0))return incomplete();
+  const rate=[0,5,7,10,20,22].find(r=>near(net*r/100,tax));
+  const printedRate=Number(rateToken);
+  // A clipped rate glyph is accepted only if both price columns and all
+  // monetary amounts reconcile. No rate or amount is invented.
+  if(rate===undefined||!(printedRate===rate||String(rate).length===2&&String(rate)[0]===rateToken)||!near(quantity*netPrice,net,Math.max(.021,quantity*.005+.011))||!near(quantity*price,total,Math.max(.021,quantity*.005+.011))||!near(net+tax,total))return incomplete();
+  const parts=[];
+  for(let j=i-1;j>previous&&j>=i-3;j--){
+   const s=lines[j].replace(places,'').trim();
+   if(!s)continue;
+   if(isHeader(s)||stop.test(s)||!/[а-яёa-z]{2}/i.test(s)||new RegExp(cash).test(s))break;
+   parts.unshift(s);
+  }
+  const name=[...parts,ending.replace(places,'')].join(' ').replace(/\s+/g,' ').trim()
+   .replace(/(?:^|\s)[kк][rгg](?=$|[\s)])/giu,' кг').replace(/(\d)\s*n(?=$|[\s)])/ig,'$1 л');
+  if(!/[а-яё]{3}/i.test(name)||isHeader(name)||items.some(x=>x.article===article))return incomplete();
+  const packKg=api.packWeight(name),packL=packKg?null:api.packVolume(name);
+  const x={name:name+' / шт (с НДС)',article,unit:'шт',quantity,price,netPrice,invoiceTotal:total,packKg,packL,uncertain:true,source:line};
+  Object.assign(x,api.lineMetrics(x));items.push(x);previous=i;
+ }
+ if(!items.length)return incomplete();
+ // Prefer reconciled visible rows, but do not assert the full document total.
+ return {...b,supplier,items,pageVerified:true,documentVerified:false};
+}
+api.parseSimple=text=>recover(text,prior(text));
+api.parseSamePhotoPasses=texts=>[...texts.map(api.parseSimple),...passes(texts)];
+})(globalThis);
