@@ -125,3 +125,24 @@ test('MARR unknown package must not use separate invoice weight as net mass',()=
 test('MARR two-column OCR, carton quantity from amounts and separate net weight',()=>{const raw="Официальное наименование: \"МАРР РУССИЯ\" 000\nАвтор: Итого сумма: 800,00 Итого количество: 6 Всего мест: 0 0903309716 37085102 Телефоны: Фактический адрес:\nМесто хранения: Глубокая заморозка Код Юридическое лицо:\nкг/кор.\n16/20 (Вьетнам) 1 кг Креветки Десерт Тарталетка Лимонная\nИТОГО:1\n5,820\n4,000 1,820 M Bec\n150,00 100,00 Цена Реализация № TEST0001 от 01.01.2025\n800,00\nCуMма 01.01.2025 0:00:00\n600,00 200,00";const r=browserParser.parseSimple(raw);a.equal(r.documentVerified,true);a.deepEqual(r.items.map(x=>[x.article,x.unit,x.quantity,x.packKg,x.invoiceWeightKg,x.price,x.invoiceTotal]),[['37085102','кор',2,.81,1.82,100,200],['0903309716','уп',4,1,4,150,600]]);a.ok(!browserParser.parseSimple(raw.replace('600,00 200,00','600,01 200,00')).documentVerified);const rows=browserParser.parseSimple("Официальное наименование: \"МАРР РУССИЯ\" ООО\n1 37085102 Десерт Тарталетка 0,81 кг/кор. кор. 2 1,820 100,00 200,00\n2 0903309716 Креветки 1 кг упак 4 4,000 150,00 600,00\nИтого: 6 5,820 800,00");a.equal(rows.documentVerified,true);a.equal(rows.items[0].unit,'кор');});
 
 test('new legal supplier without preset, exact totals and duplicate OCR passes',()=>{const raw="Официальное наименование: \"НОВЫЙ ПОСТАВЩИК\" ООО\nНаименование | Количество | Ед. | Цена | Сумма\nРис 25 кг | 2 | уп | 2500,00 | 5000,00\nСоус 1 л | 3 | уп | 200,00 | 600,00\nИтого 5600,00";const r=browserParser.parseSimple(raw);a.equal(r.supplier,'ООО «НОВЫЙ ПОСТАВЩИК»');a.equal(r.documentVerified,true);a.deepEqual(r.items.map(x=>[x.quantity,x.price,x.invoiceTotal]),[[2,2500,5000],[3,200,600]]);a.ok(!browserParser.parseSimple(raw.replace('5600,00','5601,00')).documentVerified);a.ok(browserParser.parseSamePhotoPasses([raw,raw]).some(x=>x.documentVerified&&x.items.length===2));const revised=raw.replace('2500,00','2600,00').replace('5000,00','5200,00').replace('5600,00','5800,00');a.equal(browserParser.parseSimple(revised).items[0].price,2600);});
+
+test('MARR unfamiliar article on next invoice uses explicit OCR name rather than fixed catalogue',()=>{
+ const s="Официальное наименование: \"МАРР РУССИЯ\" 000\nАвтор: Итого сумма: 900,00 Итого количество: 6 Всего мест: 0 0903309716 37085199 Телефоны: Фактический адрес:\nМесто хранения: Глубокая заморозка Код Юридическое лицо:\nИТОГО:1\n5,820\n4,000 1,820 M Bec\n175,00 100,00 Цена Реализация № TEST0002 от 02.01.2025\n900,00\nCуMма 02.01.2025 0:00:00\n700,00 200,00";
+ const detail="1 37085199 Десерт Тарталетка Ягодная 0,81 кг кор.\n2 0903309716 Креветки очищенные 1 кг упак";
+ const read=(...p)=>browserParser.parseSamePhotoPasses(p).find(r=>r.columnRecovered&&r.documentVerified);
+ const r=read(s,detail);a.ok(r);a.deepEqual(r.items.map(x=>[x.article,x.quantity,x.price,x.invoiceTotal]),[['37085199',2,100,200],['0903309716',4,175,700]]);
+ const next=s.replaceAll('900,00','1100,00').replace('175,00 100,00','225,00 100,00').replace('700,00 200,00','900,00 200,00').replaceAll('02.01.2025','03.01.2025').replace('TEST0002','TEST0003');
+ a.deepEqual(read(next,detail).items.map(x=>x.price),[100,225]);
+ a.ok(!read(s.replace('700,00 200,00','701,00 200,00'),detail));
+ a.ok(!read(s,detail.replace('37085199','37085200')));
+ a.ok(!read(s,detail,detail.replace('Ягодная','Лимонная')));
+});
+test('ALIDI unseen product names and changed units are read from barcodes and pack delimiters',()=>{
+ const s="АКТ ПРИЕМА-ПЕРЕДАЧИ по УПД № TEST от 10.11.2026\nООО \"АЛИДИ ПРОФ\"\n1234567890123 Мука рисовая 1 кг [1] 1234567890124 Лимонад 1 л [1] Наименование товара\nШТ ШТ Единица измерения\n200.00 150.00 за ЕИ\n400.00 450.00 Общая";
+ const cross="150.00 450.00\n200.00 400.00",read=(...p)=>browserParser.parseSamePhotoPasses(p).find(r=>r.columnRecovered&&r.items.some(x=>x.article==='1234567890124'));
+ const r=read(s,cross);a.ok(r);a.deepEqual(r.items.map(x=>[x.article,x.quantity,x.price,x.invoiceTotal]),[['1234567890124',3,150,450],['1234567890123',2,200,400]]);
+ const next=s.replace('Мука рисовая 1 кг','Семена льна').replace('ШТ ШТ','КГ ШТ').replace('400.00 450.00','500.00 450.00');
+ const n=read(next,cross.replace('200.00 400.00','200.00 500.00'));a.ok(n);a.equal(n.items[1].quantity,2.5);a.equal(n.items[1].unit,'кг');
+ a.ok(!read(s,cross.replace('450.00','451.00')));
+ a.ok(!read(s.replace('ШТ ШТ','ШТ'),cross));
+});
