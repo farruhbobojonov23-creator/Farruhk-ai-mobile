@@ -86,3 +86,36 @@ function parseSimple(text){
 }
 api.parseSimple=parseSimple;
 })(globalThis);
+
+;(function(root){
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const original=api.parseSimple;
+api.parseSimple=function(text){
+ const raw=String(text||'');
+ const normalized=raw.replace(/[\u00a0\u202f]/g,' ').replace(/[|│]/g,' ')
+ .replace(/(\d)[ ]*,[ ]*(\d{2,5})(?!\d)/g,'$1,$2')
+ .replace(/(?:^|\s)(?:796|166|112|113|163|111)\s+(шт|кг|л|г|мл|уп|кор)\.?(?=\s|$)/gi,' $1')
+ .replace(/(шт|кг|л|г|мл|уп|кор)\.?\s+(?:796|166|112|113|163|111)(?=\s|$)/gi,'$1')
+ .replace(/(без\s+акциза|без\s+ндс)/gi,m=>m.toLowerCase());
+ const base=original(normalized);
+ const lines=normalized.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+ const unit=/(?:^|\s)(?:кг|мл|г|л|шт|уп|кор)\.?(?=\s|$)/i;
+ const stop=/^(?:итого|всего|ндс|сумма|цена|количество|поставщик|продавец|покупатель|грузо|накладная|адрес|инн|кпп|основание)/i;
+ const all=base.items.slice();
+ // Join adjacent numeric fragments only where a complete row passes quantity/price/total checks.
+ for(let i=0;i<lines.length;i++){
+  const first=lines[i];
+  if(stop.test(first)||!/[а-яёa-z]/i.test(first)||first.length>180)continue;
+  for(let j=i+1;j<=Math.min(i+3,lines.length-1);j++){
+   const part=lines[j];
+   if(stop.test(part)||!/^[\d\s,.%:|xх–—-]+$|^(?:(?:796|166|112|113|163|111)\s+)?(?:кг|мл|г|л|шт|уп|кор)\.?(?:\s|$)|^без акциза(?:\s|$)/i.test(part))break;
+   const joined=lines.slice(i,j+1).join(' ');
+   if(!unit.test(joined))continue;
+   const parsed=original(joined).items.filter(x=>x.price!=null);
+   if(parsed.length===1){const item=parsed[0];if(!all.some(x=>x.price!=null&&x.name.toLowerCase()===item.name.toLowerCase()))all.push(item);i=j;break;}
+  }
+ }
+ const priced=all.filter(x=>x.price!=null);
+ return {supplier:base.supplier,items:all.filter(x=>x.price!=null||!priced.some(y=>y.name.toLowerCase().startsWith(x.name.toLowerCase())))};
+};
+})(globalThis);
