@@ -142,6 +142,39 @@ jobs:
           assert.equal(await page.locator('[data-field=price]').inputValue(),'1800');
           assert.equal(await page.locator('[data-field=unit]').inputValue(),'кг');
           await page.locator('nav button[data-go=home]').click();
+          // Same invoice, sequential native-style photo callbacks, persistence and duplicate rejection.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          async function scanPage(n,supplier,product,id){
+            await page.locator('#file').setInputFiles({name:'page-'+n+'-'+id+'.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB1sAAAAASUVORK5CYII=','base64')});
+            await page.evaluate(({n,supplier,product,id})=>{
+              window.supplyOcrStart(id);
+              window.supplyOcrFinish(id,'Накладная № 123\nПоставщик: '+supplier+'\nТовар Цена\n1 '+product+' 100,00\nстр. '+n+' из 3','');
+            },{n,supplier,product,id});
+          }
+          await scanPage(1,'Поставщик тест','Рис тест',201);
+          await scanPage(2,'Поставщик тест','Нори тест',202);
+          assert.equal(await page.locator('#lines .line').count(),2);
+          await scanPage(2,'Поставщик тест','Нори тест',203);
+          assert.equal(await page.locator('#lines .line').count(),2);
+          assert.ok((await page.locator('#ocrState').innerText()).includes('уже добавлена'));
+          await scanPage(3,'Другой поставщик','Сыр тест',204);
+          assert.equal(await page.locator('#lines .line').count(),2);
+          assert.ok((await page.locator('#ocrState').innerText()).includes('Другой поставщик'));
+          await scanPage(3,'Поставщик тест','Сыр тест',205);
+          assert.equal(await page.locator('#lines .line').count(),3);
+          assert.ok((await page.locator('#pageState').innerText()).includes('3 из 3'));
+          await page.locator('#save').click();
+          await page.locator('#archive').waitFor({state:'visible'});
+          await page.reload();
+          await page.waitForFunction(()=>docs.length===1);
+          await page.locator('nav button[data-go=invoices]').click();
+          assert.ok((await page.locator('#archive').innerText()).includes('Фото (3)'));
+          await page.locator('#archive button').filter({hasText:'Редактировать'}).click();
+          assert.equal(await page.locator('#lines .line').count(),3);
+          assert.ok((await page.locator('#pageState').innerText()).includes('3 из 3'));
+          await page.locator('nav button[data-go=invoices]').click();
+          await page.locator('#archive button').filter({hasText:'Удалить'}).click();
+          await page.waitForFunction(()=>docs.length===0);
           await invoice('Поставщик А',135,1,true);
           await invoice('Поставщик Б',150,2,false);
           await invoice('Поставщик А',125,3,false);
