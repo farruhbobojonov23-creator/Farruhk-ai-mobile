@@ -35,7 +35,7 @@ def normalize_photo(img):
 def engine():
     from paddleocr import PPStructureV3
     return PPStructureV3(
-        device="cpu", use_doc_orientation_classify=True,
+        device="cpu", enable_mkldnn=False, cpu_threads=4, use_doc_orientation_classify=True,
         use_doc_unwarping=False, use_textline_orientation=True,
         text_detection_model_name="PP-OCRv5_server_det",
         text_recognition_model_name="cyrillic_PP-OCRv5_mobile_rec",
