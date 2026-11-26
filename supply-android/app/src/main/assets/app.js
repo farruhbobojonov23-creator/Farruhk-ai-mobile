@@ -707,6 +707,11 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
    const raw=typeof spatialJson==='string'?JSON.parse(spatialJson):[];
    if(Array.isArray(raw)&&raw.length<=12000&&raw.every(b=>b&&typeof b.text==='string'&&[b.left,b.top,b.right,b.bottom,b.confidence].every(Number.isFinite)&&b.right>b.left&&b.bottom>b.top&&b.confidence>=0&&b.confidence<=1))layoutBoxes=raw;
   }catch{}
+  // Only accept spatial results independently reconciled with the printed total.
+  // A failed geometry attempt must not erase the existing parser's result.
+  if(layoutBoxes.length&&window.supplySpatial){
+   try{const spatial=window.supplySpatial.candidate(layoutBoxes,text||'',current,window.supplyInvoiceParser,updEvidence(text));if(spatial)current=spatial;}catch{}
+  }
   scanCandidates.push({r:current,text,error,layoutBoxes});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   // A missing pack weight alone is not a reason to scan a reconciled invoice again.
