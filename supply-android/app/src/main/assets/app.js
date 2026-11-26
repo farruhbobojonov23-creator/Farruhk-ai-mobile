@@ -1,6 +1,114 @@
 'use strict';
+(function(root){
+'use strict';
+// Separate product family, supplier-specific variant and alias. Never infer
+// the brand, processing state, glaze or current price from a similar name.
+const normalize=s=>String(s??'').normalize('NFKC').toLowerCase().replace(/ё/g,'е').replace(/[«»"“”]/g,'').replace(/\s+/g,' ').trim();
+const supplierKey=s=>normalize(s).replace(/^общество с ограниченной ответственностью\s+/,'ооо ');
+const nameKey=s=>normalize(s).replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+ндс\))?$/i,'').trim();
+const tokens=s=>new Set(nameKey(s).match(/[а-яa-z0-9]+(?:[\/,.-][0-9]+)*/gi)||[]);
+const aliasKey=(supplier,row)=>{
+ const s=supplierKey(supplier),n=nameKey(row.name),article=normalize(row.article);
+ return s&&n?JSON.stringify([s,article,n,row.unit||'',Number(row.packKg)||null,Number(row.packL)||null]):null;
+};
+function suggest(name,catalog){
+ const query=tokens(name);if(!query.size)return [];
+ return catalog.map(p=>{
+  const target=tokens(p.name),shared=[...query].filter(x=>target.has(x)).length;
+  return {productId:p.id,name:p.name,score:shared/Math.max(query.size,target.size,1)};
+ }).filter(x=>x.score>=.35).sort((a,b)=>b.score-a.score||String(a.name).localeCompare(String(b.name),'ru')).slice(0,5);
+}
+function resolve(row,supplier,catalog,aliases){
+ const key=aliasKey(supplier,row);
+ const exact=key&&Object.prototype.hasOwnProperty.call(aliases,key)?aliases[key]:null;
+ if(exact&&catalog.some(p=>p.id===exact.productId))return {status:'known',productId:exact.productId,variantId:exact.variantId};
+ const suggestions=suggest(row.name,catalog);
+ return {status:suggestions.length?'review':'new',suggestions};
+}
+function confirm(row,supplier,productId,variantId,catalog,aliases){
+ const key=aliasKey(supplier,row);
+ if(!key||!variantId||!catalog.some(p=>p.id===productId))throw Error('Нужно подтвердить поставщика, товар и вариант');
+ return {...aliases,[key]:{productId,variantId}};
+}
+function unlink(row,supplier,aliases){
+ const next={...aliases},key=aliasKey(supplier,row);if(key)delete next[key];return next;
+}
+const api={normalize,aliasKey,resolve,confirm,unlink,suggest};
+if(typeof module==='object'&&module.exports)module.exports=api;else root.supplyProductCatalog=api;
+})(globalThis);
+
 const $=id=>document.getElementById(id),norm=s=>String(s||'').normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' '),rub=n=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽',sections=['home','entry','invoices','products','suppliers','compare'];
-let scanPass=0,scanCandidates=[],photoSupplier='',partialPage=null,pages=[],activePage=null,pendingPhoto=null;let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false,supplierFilter=null;
+let scanStartedAt=0,scanPass=0,scanCandidates=[],photoSupplier='',partialPage=null,pages=[],activePage=null,pendingPhoto=null;let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false,supplierFilter=null;
+
+const catalogAPI=window.supplyProductCatalog;
+const CATALOG_KEY='farukh-supply-catalog-v1';
+let catalogState={products:[],aliases:{},quality:{}},catalogCache=null,catalogStorageError='';
+try{const raw=localStorage.getItem(CATALOG_KEY);if(raw){const saved=JSON.parse(raw);if(!Array.isArray(saved.products)||!saved.aliases||!saved.quality)throw Error('Неверный формат справочника');catalogState=saved;}}catch(e){catalogStorageError='Справочник недоступен: '+e.message;}
+function saveCatalog(next){if(catalogStorageError)throw Error(catalogStorageError);localStorage.setItem(CATALOG_KEY,JSON.stringify(next));catalogState=next;catalogCache=null;}
+function originalProductKey(r){return JSON.stringify([productIdentity(r.name),r.unit||'',r.packKg||null,r.packL||null]);}
+function catalogSnapshot(){
+ if(catalogCache?.docs===docs&&catalogCache?.state===catalogState)return catalogCache.value;
+ const products=new Map(catalogState.products.map(p=>[p.id,p])),aliases={...catalogState.aliases};
+ for(const d of docs)for(const r of linesOf(d)){
+  const key=catalogAPI.aliasKey(d.supplierId,r);if(!key)continue;
+  if(aliases[key]&&products.has(aliases[key].productId))continue;
+  const id='legacy:'+originalProductKey(r);
+  if(!products.has(id))products.set(id,{id,name:productIdentity(r.name)?r.name.replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+ндс\))?$/i,'').trim():r.name});
+  aliases[key]={productId:id,variantId:'variant:'+key};
+ }
+ const value={products:[...products.values()],aliases};
+ catalogCache={docs,state:catalogState,value};return value;
+}
+function catalogMatch(r,supplier=r.supplier){
+ const c=catalogSnapshot();return catalogAPI.resolve(r,supplier,c.products,c.aliases);
+}
+function catalogTitle(r){const c=catalogSnapshot(),m=catalogMatch(r);return c.products.find(p=>p.id===m.productId)?.name||r.name;}
+function variantKey(r){const m=catalogMatch(r);return m.variantId||catalogAPI.aliasKey(r.supplier,r)||originalProductKey(r);}
+function productLinkDialog(getRow,getSupplier,onSaved=()=>{}){
+ if(catalogStorageError)throw Error(catalogStorageError);
+ const r=getRow(),supplier=getSupplier();if(!r.name||!supplier)throw Error('Сначала укажите товар и поставщика');
+ const c=catalogSnapshot(),m=catalogMatch(r,supplier),dlg=node('dialog',null,'catalog-dialog');
+ dlg.append(node('h2','Связать с ингредиентом'),node('p',r.name,'muted'),node('small',supplier));
+ const choice=node('select');choice.setAttribute('aria-label','Ингредиент');
+ const fresh=node('option','Создать отдельный ингредиент');fresh.value='';choice.append(fresh);
+ const preferred=new Set((m.suggestions||[]).map(s=>s.productId));
+ const sorted=c.products.slice().sort((a,b)=>Number(preferred.has(b.id))-Number(preferred.has(a.id))||a.name.localeCompare(b.name,'ru'));
+ for(const p of sorted){const opt=node('option',(preferred.has(p.id)?'★ ':'')+p.name);opt.value=p.id;choice.append(opt);}
+ choice.value=m.status==='known'?m.productId:'';
+ const label=node('label','Ингредиент');label.append(choice);dlg.append(label);
+ const title=node('input');title.value=r.name.replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+ндс\))?$/i,'').trim();
+ title.setAttribute('aria-label','Название нового ингредиента');const newLabel=node('label','Название новой карточки');newLabel.append(title);dlg.append(newLabel);
+ const key=catalogAPI.aliasKey(supplier,r),vid=m.variantId||'variant:'+key;
+ const existing=catalogState.quality[vid]||{};
+ const quality=node('input'),yieldInput=node('input');quality.type=yieldInput.type='number';quality.min='1';quality.max='10';quality.step='.1';yieldInput.min='.1';yieldInput.max='100';yieldInput.step='.1';quality.value=existing.rating??'';yieldInput.value=existing.yieldPct??'';
+ for(const [caption,control] of [['Качество (1–10, необязательно)',quality],['Фактический выход, % (необязательно)',yieldInput]]){const lab=node('label',caption);lab.append(control);dlg.append(lab);}
+ function sync(){newLabel.classList.toggle('hide',!!choice.value);}choice.onchange=sync;sync();
+ const error=node('p','','up');dlg.append(error);
+ const save=button('Подтвердить',()=>{
+  try{const current=getRow();if(catalogAPI.aliasKey(getSupplier(),current)!==key)throw Error('Товар изменился. Откройте карточку снова.');
+   let id=choice.value,products=catalogState.products.slice();
+   if(!id){if(!title.value.trim())throw Error('Введите название');id=crypto.randomUUID();products.push({id,name:title.value.trim()});}
+   else if(!products.some(p=>p.id===id)){const selected=c.products.find(p=>p.id===id);if(!selected)throw Error('Товар не найден');products.push(selected);}
+   const rating=quality.value===''?null:Number(quality.value),yieldPct=yieldInput.value===''?null:Number(yieldInput.value);
+   if(rating!==null&&(!Number.isFinite(rating)||rating<1||rating>10)||yieldPct!==null&&(!Number.isFinite(yieldPct)||yieldPct<=0||yieldPct>100))throw Error('Проверьте оценку и выход');
+   const aliases=catalogAPI.confirm(r,supplier,id,vid,products,catalogState.aliases);
+   saveCatalog({products,aliases,quality:{...catalogState.quality,[vid]:{rating,yieldPct}}});dlg.close();onSaved();
+  }catch(e){error.textContent=e.message;}
+ });save.classList.add('primary');dlg.append(save,button('Отмена',()=>dlg.close()));dlg.addEventListener('close',()=>dlg.remove(),{once:true});document.body.append(dlg);dlg.showModal();
+}
+function catalogBadge(f){
+ const r=lineData(f),supplier=$('supplier').value.trim(),badge=f.querySelector('.catalog-badge');
+ if(!badge)return;if(!r.name||!supplier){badge.classList.add('hide');return;}
+ const match=catalogMatch(r,supplier);badge.classList.remove('hide','known','review','new');badge.classList.add(match.status);
+ badge.textContent=match.status==='known'?'✓ В справочнике':match.status==='review'?'! Сопоставить ингредиент':'＋ Новый ингредиент';
+}
+function qualityDetail(r){
+ const quality=catalogState.quality[variantKey(r)]||{},parts=[];
+ if(quality.rating!=null)parts.push('★ '+fmt(quality.rating)+'/10');
+ if(quality.yieldPct!=null){parts.push('Выход '+fmt(quality.yieldPct)+'%');const p=quotePrice(r);if(p!=null&&quoteUnit(r)==='кг')parts.push('После обработки '+rub(p/(quality.yieldPct/100))+'/кг');}
+ return parts.join(' · ');
+}
+
 function node(tag,txt,cls){const n=document.createElement(tag);if(txt!=null)n.textContent=txt;if(cls)n.className=cls;return n}
 function status(s,ok=false){$('status').textContent=s;$('status').classList.toggle('ok',ok)}
 function button(txt,fn){const n=node('button',txt);n.type='button';n.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));return n}
@@ -82,11 +190,13 @@ function addLine(data={}){
  for(const input of [p.i,q.i])input.addEventListener('input',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;});
  f.addEventListener('input',recalc);u.addEventListener('change',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;recalc()});
  if(data.source)f.title=data.source;
- f.append(a.wrap,del,w.wrap,q.wrap,weight.box,p.wrap,kgPrice.box,total.box);$('lines').append(f);fillMissingPack();recalc();
+ const badge=button('',()=>productLinkDialog(()=>lineData(f),()=>$('supplier').value,()=>catalogBadge(f)));badge.className='catalog-badge hide';
+ f.append(a.wrap,del,w.wrap,q.wrap,weight.box,p.wrap,kgPrice.box,total.box,badge);$('lines').append(f);fillMissingPack();recalc();catalogBadge(f);f.addEventListener('change',()=>catalogBadge(f));
 }
 function showPreview(file){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('preview').classList.add('hide');if(file&&file.type?.startsWith('image/')){previewUrl=URL.createObjectURL(file);$('preview').src=previewUrl;$('preview').classList.remove('hide')}}
-function reset(){pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();status('')}
-$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
+function reset(){scanStartedAt=0;pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();status('')}
+$('supplier').addEventListener('change',()=>{for(const f of $('lines').children)catalogBadge(f)});
+$('addLine').onclick=()=>{addLine();dirty=true};$('form').addEventListener('input',()=>dirty=true);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoSupplier='';scanStartedAt=performance.now();document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
 
 function pageStatus(){
  const label=$('fileLabel');if(label)label.textContent=pages.length?'＋ Добавить страницу':'▣ Выбрать фото накладной';
@@ -151,31 +261,73 @@ function supplierHistory(parent,history){
  }
  parent.append(h);
 }
-function productKey(r){return JSON.stringify([productIdentity(r.name),r.unit||'',r.packKg||null,r.packL||null]);}
+function productKey(r){const m=catalogMatch(r);return m.productId?JSON.stringify([m.productId,quoteUnit(r)]):originalProductKey(r);}
 function grouped(obs,key){const m=new Map();for(const r of obs){const k=key(r);if(!m.has(k))m.set(k,[]);m.get(k).push(r)}return m}
-function latest(obs){return [...grouped(obs,r=>JSON.stringify([productKey(r),supplierKey(r.supplier)])).values()].map(s=>s[s.length-1])}
+function latest(obs){return [...grouped(obs,r=>JSON.stringify([variantKey(r),supplierKey(r.supplier)])).values()].map(s=>s[s.length-1])}
 function offerDetail(r){const m=grossMetrics(r);return [dateLabel(r.date),r.packKg?'Фасовка '+fmt(r.packKg)+' кг':r.packL?'Фасовка '+fmt(r.packL)+' л':'',m.basis==='шт'&&m.pricePerPiece!=null?rub(m.pricePerPiece)+'/шт':'',m.basis==='кг'&&m.pricePerKg!=null&&r.unit!=='кг'?rub(m.pricePerKg)+'/кг':'',m.basis==='л'&&m.pricePerL!=null&&r.unit!=='л'?rub(m.pricePerL)+'/л':''].filter(Boolean).join(' · ')}
+
+function renderDashboard(obs,last){
+ const select=$('period'),days=Number(select.value)||0,now=new Date(),cutoff=days?new Date(now.getTime()-days*86400000):null;
+ const history=docs.filter(d=>!cutoff||new Date(d.savedAt||d.date)>=cutoff),ids=new Set(history.map(d=>d.id));
+ const period=obs.filter(r=>ids.has(r.docId));
+ const totals=history.flatMap(d=>linesOf(d)).map(r=>grossMetrics(r).totalPrice).filter(x=>x!=null);
+ const total=totals.reduce((s,x)=>s+x,0);
+ $('spend').textContent=totals.length?rub(total):'—';
+ $('periodPositions').textContent=period.length;
+ $('productCount').textContent=new Set(period.map(productKey)).size;
+ $('supplierCount').textContent=new Set(history.map(d=>supplierKey(d.supplierId)).filter(Boolean)).size;
+ const by=grouped(last,productKey),offers=[...by.values()].filter(x=>new Set(x.map(r=>supplierKey(r.supplier))).size>1&&x.every(r=>quotePrice(r)>0&&quoteUnit(r)));
+ const trends=[...grouped(obs,r=>variantKey(r)).values()].filter(x=>x.length>1).map(x=>[x.at(-2),x.at(-1)]).filter(x=>ids.has(x[1].docId));
+ $('upCount').textContent=trends.filter(([a,b])=>quotePrice(b)>quotePrice(a)).length;
+ $('downCount').textContent=trends.filter(([a,b])=>quotePrice(b)<quotePrice(a)).length;
+ const recommendations=offers.map(rows=>{const sorted=rows.slice().sort((a,b)=>quotePrice(a)-quotePrice(b));return {best:sorted[0],worst:sorted.at(-1),gap:quotePrice(sorted.at(-1))-quotePrice(sorted[0])};}).filter(x=>x.gap>0).sort((a,b)=>b.gap-a.gap);
+ const comparable=new Map(offers.map(rows=>[productKey(rows[0]),Math.min(...rows.map(quotePrice))]));
+ let saving=0,covered=0;
+ for(const r of period){const min=comparable.get(productKey(r)),m=grossMetrics(r),unit=quoteUnit(r),qty=unit==='кг'?m.totalKg:unit==='л'?m.totalL:unit==='шт'?m.totalPieces:null;if(min!=null&&qty>0){saving+=Math.max(0,quotePrice(r)-min)*qty;covered++;}}
+ $('saving').textContent=covered?rub(saving):'—';
+ $('savingNote').textContent=covered?'Оценка по последним известным сопоставимым ценам':'Недостаточно сопоставимых цен';
+ const tips=$('recommendations');tips.replaceChildren();
+ if(!recommendations.length)empty(tips,'Нужны сопоставимые предложения минимум двух поставщиков.');
+ for(const x of recommendations.slice(0,4)){const card=node('div',null,'tip');card.append(node('strong',catalogTitle(x.best)),node('p','Дешевле: '+x.best.supplier+' · '+historyPrice(x.best),'down'),node('p','Дороже: '+x.worst.supplier+' · '+historyPrice(x.worst),'up'),node('small','Разница '+rub(x.gap)+'/'+quoteUnit(x.best)));tips.append(card);}
+ const spendBySupplier=new Map();for(const d of history){const key=supplierKey(d.supplierId),value=linesOf(d).map(r=>grossMetrics(r).totalPrice||0).reduce((s,n)=>s+n,0);const prior=spendBySupplier.get(key)||{name:d.supplierId||'Без поставщика',value:0};prior.value+=value;spendBySupplier.set(key,prior);}
+ const parts=[...spendBySupplier.values()].filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+ const dist=$('spendChart');dist.replaceChildren();if(!parts.length)empty(dist,'Нет сохранённых закупок с суммами.');
+ else{const colors=['#632bdc','#9b63f4','#7258e8','#4793dc','#aeabc9'],segments=[];let pct=0;parts.forEach((x,i)=>{const next=pct+100*x.value/total;segments.push(colors[i%colors.length]+' '+pct+'% '+next+'%');pct=next;});const ring=node('div',null,'donut');ring.style.background='conic-gradient('+segments.join(',')+')';ring.append(node('strong',rub(total)));dist.append(ring);parts.forEach((x,i)=>{const line=row(dist,x.name,fmt(Math.round(1000*x.value/total)/10)+'%',node('strong',rub(x.value),'price'));line.style.borderLeft='3px solid '+colors[i%colors.length];line.style.paddingLeft='7px';});}
+ const ranking=$('qualityRank');ranking.replaceChildren();
+ const rated=last.filter(r=>catalogState.quality[variantKey(r)]?.rating!=null).sort((a,b)=>catalogState.quality[variantKey(b)].rating-catalogState.quality[variantKey(a)].rating);
+ if(!rated.length)empty(ranking,'Оцените качество и выход в карточке товара. Рейтинг не придумывается.');
+ for(const r of rated.slice(0,5))row(ranking,catalogTitle(r),r.supplier+' · '+qualityDetail(r),node('strong','★ '+fmt(catalogState.quality[variantKey(r)].rating),'down'));
+ const products=$('topPurchases');products.replaceChildren();
+ const spending=[...grouped(period,productKey).values()].map(rows=>({name:catalogTitle(rows[0]),total:rows.reduce((s,r)=>s+(grossMetrics(r).totalPrice||0),0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+ for(const x of spending.slice(0,5)){row(products,x.name,'Расход за период',node('strong',rub(x.total),'price'));const bar=node('div',null,'offer-bar'),fill=node('i');fill.style.width=(100*x.total/spending[0].total)+'%';bar.append(fill);products.append(bar);}if(!spending.length)empty(products,'Нет данных за период.');
+ const trend=$('trendChart');trend.replaceChildren();
+ const series=[...grouped(obs,variantKey).values()].filter(x=>x.length>1&&x.every(r=>quotePrice(r)>0&&quoteUnit(r)===quoteUnit(x[0]))).sort((a,b)=>String(b.at(-1).date).localeCompare(String(a.at(-1).date)));
+ if(!series.length)empty(trend,'График появится после повторной закупки.');
+ else{const x=series[0].slice(-10),vals=x.map(quotePrice),min=Math.min(...vals),max=Math.max(...vals),points=vals.map((v,i)=>[12+i*276/(vals.length-1),92-(v-min)*72/(max-min||1)]);trend.append(node('strong',catalogTitle(x[0])),node('small',x[0].supplier+' · '+historyPrice(x.at(-1))));const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 300 108');svg.setAttribute('role','img');svg.setAttribute('aria-label','Динамика цены от '+rub(vals[0])+' до '+rub(vals.at(-1)));const line=document.createElementNS(ns,'polyline');line.setAttribute('points',points.map(p=>p.join(',')).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke','#6935de');line.setAttribute('stroke-width','3');svg.append(line);points.forEach(([x,y])=>{const dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r','4');dot.setAttribute('fill','#6935de');svg.append(dot);});trend.append(svg,node('small',dateLabel(x[0].date)+' — '+dateLabel(x.at(-1).date)+' · '+rub(vals[0])+' → '+rub(vals.at(-1))));}
+}
+
 function render(){const obs=observations(),last=latest(obs),products=grouped(last,productKey),suppliers=grouped(last,r=>supplierKey(r.supplier));$('productCount').textContent=products.size;$('supplierCount').textContent=suppliers.size;
-$('changes').replaceChildren();const trends=[...grouped(obs,r=>JSON.stringify([productKey(r),supplierKey(r.supplier)])).values()].filter(s=>s.length>1).map(s=>[s[s.length-2],s[s.length-1]]).filter(([a,b])=>quotePrice(a)!==quotePrice(b)).slice(-6).reverse();for(const [a,b] of trends){const delta=quotePrice(b)-quotePrice(a);row($('changes'),b.name,b.supplier+' · '+historyPrice(a)+' → '+historyPrice(b),node('strong',(delta>0?'+':'−')+rub(Math.abs(delta)),'price '+(delta>0?'up':'down')))}if(!trends.length)empty($('changes'),'Изменения появятся после повторной закупки.');
+$('changes').replaceChildren();const trends=[...grouped(obs,r=>JSON.stringify([variantKey(r),supplierKey(r.supplier)])).values()].filter(s=>s.length>1).map(s=>[s[s.length-2],s[s.length-1]]).filter(([a,b])=>quotePrice(a)!==quotePrice(b)).slice(-6).reverse();for(const [a,b] of trends){const delta=quotePrice(b)-quotePrice(a);row($('changes'),b.name,b.supplier+' · '+historyPrice(a)+' → '+historyPrice(b),node('strong',(delta>0?'+':'−')+rub(Math.abs(delta)),'price '+(delta>0?'up':'down')))}if(!trends.length)empty($('changes'),'Изменения появятся после повторной закупки.');
 const ordered=[...docs].sort((a,b)=>String(b.savedAt||b.date||'').localeCompare(String(a.savedAt||a.date||'')));$('recent').replaceChildren();for(const d of ordered.slice(0,3))row($('recent'),d.supplierId||'Без поставщика',dateLabel(d.savedAt||d.date),button('Открыть',()=>{supplierFilter=null;go('invoices')}));if(!ordered.length)empty($('recent'),'Нет накладных');
 $('archive').replaceChildren();const archiveDocs=supplierFilter===null?ordered:ordered.filter(d=>supplierKey(d.supplierId)===supplierFilter);if(supplierFilter!==null)$('archive').append(button('Все накладные',()=>{supplierFilter=null;render()}));for(const d of archiveDocs){const c=node('div',null,'card');c.append(node('h2',d.supplierId||'Без поставщика'),node('small',dateLabel(d.savedAt||d.date)));const ls=linesOf(d);if(d.simpleVersion!==1)c.append(node('p','Архив старой версии. Оригинальные данные сохранены.','muted'));for(const l of ls)row(c,l.name,lineSummary(l),node('strong',historyPrice(l),'price'));const ctl=node('div',null,'controls');const photos=(d.pages||[]).map(p=>p.file).filter(f=>f?.type?.startsWith('image/'));if(!photos.length&&d.original?.type?.startsWith('image/'))photos.push(d.original);if(photos.length)ctl.append(button(photos.length>1?'Фото ('+photos.length+')':'Фото',()=>{const dlg=node('dialog'),urls=[];for(let i=0;i<photos.length;i++){const url=URL.createObjectURL(photos[i]),img=node('img');urls.push(url);img.src=url;img.style.cssText='max-width:85vw;max-height:70vh;object-fit:contain;display:block';dlg.append(node('p','Фото '+(i+1)+' из '+photos.length),img)}dlg.append(button('Закрыть',()=>dlg.close()));dlg.addEventListener('close',()=>{urls.forEach(u=>URL.revokeObjectURL(u));dlg.remove()},{once:true});document.body.append(dlg);dlg.showModal()}));if(d.simpleVersion===1){ctl.append(button('Редактировать',()=>edit(d)),button('Удалить',async()=>{if(confirm('Удалить накладную?')){await tx('readwrite',s=>s.delete(d.id));await refresh();status('Удалено',true)}}))}c.append(ctl);$('archive').append(c)}if(!archiveDocs.length)empty($('archive'),'Нет накладных');
-$('productList').replaceChildren();for(const offers of [...products.values()].sort((a,b)=>a[0].name.localeCompare(b[0].name,'ru'))){if(!norm(offers[0].name).includes(norm($('search').value)))continue;const c=node('div',null,'card');c.append(node('h2',offers[0].name));for(const r of offers.sort((a,b)=>quotePrice(a)-quotePrice(b)))row(c,r.supplier,offerDetail(r),node('strong',historyPrice(r),'price'));$('productList').append(c)}if(!$('productList').children.length)empty($('productList'),'Товары не найдены');
+$('productList').replaceChildren();for(const offers of [...products.values()].sort((a,b)=>a[0].name.localeCompare(b[0].name,'ru'))){if(!norm(catalogTitle(offers[0])).includes(norm($('search').value))&&!offers.some(r=>norm(r.name).includes(norm($('search').value))))continue;const c=node('div',null,'card');c.append(node('h2',catalogTitle(offers[0])));for(const r of offers.sort((a,b)=>quotePrice(a)-quotePrice(b))){row(c,r.supplier,[r.name,offerDetail(r),qualityDetail(r)].filter(Boolean).join(' · '),node('strong',historyPrice(r),'price'));const link=button('Связать / разделить · качество',()=>productLinkDialog(()=>r,()=>r.supplier,render));link.classList.add('catalog-action');c.append(link);}$('productList').append(c)}if(!$('productList').children.length)empty($('productList'),'Товары не найдены');
 $('supplierList').replaceChildren();
 for(const [key,list] of [...suppliers.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ru'))){
- const c=node('div',null,'card'),purchases=ordered.filter(d=>supplierKey(d.supplierId)===key),all=obs.filter(r=>supplierKey(r.supplier)===key),histories=grouped(all,productKey);
+ const c=node('div',null,'card'),purchases=ordered.filter(d=>supplierKey(d.supplierId)===key),all=obs.filter(r=>supplierKey(r.supplier)===key),histories=grouped(all,variantKey);
  c.append(node('h2',purchases[0]?.supplierId||list[0].supplier),node('p',list.length+' товаров · '+purchases.length+' накладных','muted'),button('Накладные поставщика',()=>{supplierFilter=key;go('invoices')}));
  for(const r of list.sort((a,b)=>a.name.localeCompare(b.name,'ru'))){
   row(c,r.name,offerDetail(r),node('strong',historyPrice(r),'price'));
-  supplierHistory(c,histories.get(productKey(r))||[r]);
+  supplierHistory(c,histories.get(variantKey(r))||[r]);
  }
  $('supplierList').append(c);
 }if(!suppliers.size)empty($('supplierList'),'Нет поставщиков');
-$('offers').replaceChildren();for(const list of products.values()){const c=node('div',null,'card');c.append(node('h2',list[0].name));const sorted=list.slice().sort((a,b)=>quotePrice(a)-quotePrice(b));for(const r of sorted)row(c,r.supplier,offerDetail(r)+(sorted.length>1&&quotePrice(r)===quotePrice(sorted[0])?' · Лучшая цена':''),node('strong',historyPrice(r),'price '+(sorted.length>1&&quotePrice(r)===quotePrice(sorted[0])?'down':'')));$('offers').append(c)}if(!products.size)empty($('offers'),'Загрузите накладные для сравнения.');
+$('offers').replaceChildren();for(const list of products.values()){const c=node('div',null,'card');c.append(node('h2',catalogTitle(list[0])));const sorted=list.slice().sort((a,b)=>quotePrice(a)-quotePrice(b)),best=sorted[0];for(const r of sorted){const good=sorted.length>1&&quotePrice(r)===quotePrice(best);row(c,r.supplier,[r.name,offerDetail(r),qualityDetail(r),good?'Лучшая цена':''].filter(Boolean).join(' · '),node('strong',historyPrice(r),'price '+(good?'down':'')));const bar=node('div',null,'offer-bar');const fill=node('i');fill.style.width=(100*quotePrice(r)/Math.max(...sorted.map(quotePrice)))+'%';fill.className=good?'best':r===sorted.at(-1)&&sorted.length>1?'worst':'';bar.append(fill);c.append(bar);}$('offers').append(c)}if(!products.size)empty($('offers'),'Загрузите накладные для сравнения.');
+ renderDashboard(obs,last);
 }
-$('search').oninput=render;
+$('search').oninput=render;$('period').onchange=render;
 function edit(d){reset();editing=d.id;pages=Array.isArray(d.pages)?d.pages.slice():d.original?[{key:'legacy',file:d.original,identity:photoFingerprint(d.original),fingerprint:pageFingerprint(d.lines)}]:[];$('supplier').value=d.supplierId;$('lines').replaceChildren();for(const l of d.lines)addLine({...l,pageKey:l.pageKey||(pages.length===1?pages[0].key:undefined)});showPreview(pages.at(-1)?.file||d.original);pageStatus();go('entry')}
 $('form').onsubmit=async e=>{e.preventDefault();if(scanBusy)return;try{const supplier=$('supplier').value.trim(),lines=[...$('lines').children].map(f=>{const l=lineData(f);if(!packUnits.includes(l.unit)){l.packKg=null;l.packL=null;}return l});if(!supplier||!lines.length||lines.some(l=>!l.name||l.price===null))throw Error('Проверьте поставщика, названия и цены с НДС');if(new Set(lines.map(l=>JSON.stringify([norm(l.name),l.pageKey||'']))).size!==lines.length)throw Error('Есть одинаковые названия. Уточните фасовку или удалите дубль.');if(pendingPhoto&&!confirm('Последнее фото ещё не добавлено. Сохранить только обработанные товары?'))return;if(partialPage&&!confirm('Документ содержит '+partialPage.pages+' страниц. Добавлено '+partialPage.page+'. Сохранить только эту часть?'))return;if(!confirm('Названия, фасовки и цены сверены с оригиналом?'))return;const prior=docs.find(d=>d.id===editing);const doc={id:editing||crypto.randomUUID(),simpleVersion:1,supplierId:supplier,savedAt:prior?.savedAt||new Date().toISOString(),lines,original:pages[0]?.file||(!pendingPhoto?$('file').files[0]:null)||prior?.original||null,pages:pages.slice()};if(!editing&&docs.some(d=>d.simpleVersion===1&&supplierKey(d.supplierId)===supplierKey(supplier)&&JSON.stringify(d.lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())===JSON.stringify(lines.map(l=>[norm(l.name),l.price,l.quantity||null,l.unit||'',l.packKg||null,l.packL||null]).sort())&&String(d.savedAt).slice(0,10)===doc.savedAt.slice(0,10))&&!confirm('Такие товары и цены уже сохранены сегодня. Добавить ещё раз?'))return;await tx('readwrite',s=>s.put(doc));dirty=false;supplierFilter=null;await refresh();go('invoices');status('✓ Накладная сохранена',true)}catch(err){status(err.message)}};
-window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId=id;scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent='Распознаём фото…'};
+window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId=id;if(!scanStartedAt)scanStartedAt=performance.now();scanBusy=true;$('save').disabled=true;$('file').disabled=true;$('retry').classList.add('hide');$('ocrState').textContent='Распознаём фото…'};
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
@@ -214,17 +366,18 @@ window.supplyOcrFinish=(id,text,error)=>{
   if(!r.supplier&&suppliers.length===1)r={...r,supplier:suppliers[0]};
   const comparable=r.documentVerified?ranked.filter(x=>x.r.documentVerified):ranked;
   const ambiguous=new Set(comparable.map(x=>x.r.supplier).filter(Boolean)).size>1||comparable.some(other=>other!==best&&other.r.items.some(x=>x.price!=null&&r.items.some(y=>norm(y.name)===norm(x.name)&&y.price!=null&&(Math.abs(y.price-x.price)>.01||(x.quantity!=null&&y.quantity!=null&&Math.abs(x.quantity-y.quantity)>.00001)))));
-  const diagnostic=ranked.map(x=>x.text).filter(Boolean).join('\n---\n');scanCandidates=[];scanPass=0;
+  const diagnostic=ranked.map(x=>x.text).filter(Boolean).join('\n---\n');const elapsed=(performance.now()-scanStartedAt)/1000;scanStartedAt=0;scanCandidates=[];scanPass=0;
   if(r.items.length&&r.items.some(x=>x.price!=null)){try{if(!acceptPage(r,diagnostic))return;}catch(err){$('ocrState').textContent=err.message;scanDiagnostic(diagnostic);return;}}
   else if(!pages.length){if(r.supplier)$('supplier').value=r.supplier;if(r.items.length){$('lines').replaceChildren();for(const l of r.items)addLine(l)}}
   dirty=true;const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(best.error||'Товарная таблица не прочитана. Выберите более чёткое фото или крупный снимок таблицы.');
   const missingPack=[...$('lines').children].map(lineData).some(x=>packUnits.includes(x.unit)&&window.supplyInvoiceParser.purchaseMetrics(x).basis!=='шт'&&!x.packKg&&!x.packL);
+  if(Number.isFinite(elapsed))$('ocrState').textContent+=' · '+fmt(Math.round(elapsed*10)/10)+' с';
   if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана. Укажите вес нетто или объём одной упаковки — он сохранится для следующих накладных.';
   if(partialPage)$('ocrState').textContent+=' Добавлено страниц: '+partialPage.page+' из '+partialPage.pages+'. Загрузите остальные фото.';
   if(!priced||ambiguous||priced<r.items.length||missingPack)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
  }catch(e){scanCandidates=[];scanPass=0;$('ocrState').textContent='Не удалось обработать текст. Проверьте фото.';scanDiagnostic(text);}
 };
-$('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите фото');return}scanCandidates=[];scanPass=1;nextScan('rescan','Повторная проверка товарной таблицы…')};
+$('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите фото');return}scanCandidates=[];scanStartedAt=performance.now();scanPass=1;nextScan('rescan','Повторная проверка товарной таблицы…')};
 document.querySelector('a.update').addEventListener('click',e=>{if(dirty&&!confirm('Обновление закроет несохранённую форму. Продолжить?'))e.preventDefault()});
 reset();const req=indexedDB.open('farukh-supply-preview',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('invoices'))req.result.createObjectStore('invoices',{keyPath:'id'})};req.onsuccess=()=>{db=req.result;refresh().catch(e=>status(e.message))};req.onerror=()=>status('Не удалось открыть локальную базу');

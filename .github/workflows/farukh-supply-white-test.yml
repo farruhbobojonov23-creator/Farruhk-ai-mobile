@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium test APK
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white']
+    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro']
     paths:
       # Web-only updates are signed and published by farukh-supply-white-qa.yml.
       # Keep the native OCR APK/version unchanged for these changes.
@@ -59,7 +59,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/supply-android-user"
           echo "ANDROID_USER_HOME=$RUNNER_TEMP/supply-android-user" >> "$GITHUB_ENV"
       - name: Test price analytics
-        run: node --test supply/analytics.test.js supply/invoice-parser.test.js
+        run: node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
       - name: Check preview JavaScript
         run: |
           node --check supply-android/app/src/main/assets/app.js
@@ -150,6 +150,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Publish tested native OCR speed upgrade
+        if: github.ref == 'refs/heads/feature/farukh-supply-simple-white'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

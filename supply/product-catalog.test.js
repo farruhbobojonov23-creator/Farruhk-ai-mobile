@@ -18,3 +18,5 @@ test('cannot confirm unknown product or missing variant',()=>{
  a.throws(()=>m.confirm(row,'ООО Тест','unknown','v',catalog,{}));
  a.throws(()=>m.confirm(row,'ООО Тест','shrimp','',catalog,{}));
 });
+
+test('packaging change cannot silently reuse an alias',()=>{const r={...row,unit:'уп',packKg:1.8};const aliases=m.confirm(r,'ООО Тест','shrimp','brand1',catalog,{});a.equal(m.resolve({...r,packKg:2},'ООО Тест',catalog,aliases).status,'review');a.equal(m.resolve({...r,unit:'кг'},'ООО Тест',catalog,aliases).status,'review');});

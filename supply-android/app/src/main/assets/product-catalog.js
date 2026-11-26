@@ -8,7 +8,7 @@ const nameKey=s=>normalize(s).replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|м
 const tokens=s=>new Set(nameKey(s).match(/[а-яa-z0-9]+(?:[\/,.-][0-9]+)*/gi)||[]);
 const aliasKey=(supplier,row)=>{
  const s=supplierKey(supplier),n=nameKey(row.name),article=normalize(row.article);
- return s&&n?JSON.stringify([s,article,n]):null;
+ return s&&n?JSON.stringify([s,article,n,row.unit||'',Number(row.packKg)||null,Number(row.packL)||null]):null;
 };
 function suggest(name,catalog){
  const query=tokens(name);if(!query.size)return [];
