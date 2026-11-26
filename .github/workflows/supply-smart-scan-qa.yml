@@ -1,0 +1,80 @@
+name: Smart Scan secure model pack and layout QA (experiment only)
+on:
+  push:
+    branches: ['experiment/supply-local-vision-benchmark']
+    paths: ['supply/smart-scan-*.mjs', '.github/workflows/supply-smart-scan-qa.yml']
+permissions:
+  contents: read
+jobs:
+  layout-and-models:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node supply/smart-scan-layout.test.mjs
+      - name: Install browser test runner
+        run: |
+          cd "$RUNNER_TEMP"
+          mkdir -p smart-scan-check && cd smart-scan-check
+          npm init -y
+          npm install --no-audit --no-fund playwright yaml
+          npx playwright install chromium
+      - name: Test separate verified model downloads, offline cache and browser inference
+        run: |
+          cp supply/smart-scan-models.mjs "$RUNNER_TEMP/smart-scan-check/models.mjs"
+          cd "$RUNNER_TEMP/smart-scan-check"
+          cat > probe.mjs <<'EOF'
+          import http from 'node:http';
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {chromium} from 'playwright';
+          import {MODEL_PACK} from './models.mjs';
+          import {parse} from 'yaml';
+          const server=http.createServer((req,res)=>{
+            if(req.url==='/models.mjs'){res.setHeader('content-type','text/javascript');return res.end(fs.readFileSync('models.mjs'))}
+            res.setHeader('content-type','text/html');res.end('<!doctype html><meta charset="utf-8"><title>Smart Scan test</title>');
+          });
+          await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          try{
+            const page=await browser.newPage();let outside=0,offline=false;
+            await page.route('**/*',route=>{
+              const url=new URL(route.request().url());
+              if(url.origin==='http://127.0.0.1:4173')return route.continue();
+              outside++;
+              if(offline)return route.abort();
+              if(!['cdn.jsdelivr.net','huggingface.co'].includes(url.hostname)&&!url.hostname.endsWith('.hf.co')&&!url.hostname.endsWith('.huggingface.co'))return route.abort();
+              return route.continue();
+            });
+            page.on('pageerror',e=>console.error(e));await page.goto('http://127.0.0.1:4173/');
+            const initial=await page.evaluate(async()=>{
+              const m=await import('/models.mjs');let progress=0;
+              const p=await m.readModelPack({progress:v=>progress=v.loaded});
+              let rejected=false;try{await m.verifyAsset('rec.onnx',new Uint8Array(1))}catch{rejected=true}
+              return{progress,expected:m.MODEL_PACK_BYTES,rejected,yaml:new TextDecoder().decode(p['rec.yml'])};
+            });
+            assert.equal(initial.progress,initial.expected);assert.ok(initial.rejected);
+            const chars=['',...parse(initial.yaml).PostProcess.character_dict,' '];
+            offline=true;const before=outside;
+            const output=await page.evaluate(async(chars)=>{
+              const m=await import('/models.mjs');const p=await m.readModelPack({offline:true});
+              const {ort,det,rec,dispose}=await m.openModelSessions(p);
+              try{
+                const c=document.createElement('canvas');c.width=640;c.height=48;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,640,48);ctx.fillStyle='#000';ctx.font='32px Arial';ctx.fillText('Рис 25 кг 2700,00',5,35);
+                const px=ctx.getImageData(0,0,640,48).data,n=640*48,inp=new Float32Array(3*n);for(let i=0;i<n;i++)for(let j=0;j<3;j++)inp[j*n+i]=px[i*4+2-j]/127.5-1;
+                const recOut=Object.values(await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',inp,[1,3,48,640])}))[0];const steps=recOut.dims[1],classes=recOut.dims[2];let last=-1,text='';
+                for(let t=0;t<steps;t++){let best=0;for(let i=1;i<classes;i++)if(recOut.data[t*classes+i]>recOut.data[t*classes+best])best=i;if(best!==last&&best!==0)text+=chars[best]||'?';last=best;}
+                const detOut=Object.values(await det.run({[det.inputNames[0]]:new ort.Tensor('float32',new Float32Array(3*64*320),[1,3,64,320])}))[0];
+                return{text,detShape:detOut.dims,recShape:recOut.dims};
+              }finally{await dispose();}
+            },chars);
+            console.log(JSON.stringify({bytes:initial.expected,output,outsideDownloads:before,offlineRequests:outside-before}));
+            assert.equal(outside,before,'Offline inference must not use the network');
+            assert.ok(output.text.replace(/\s/g,'').includes('2700,00'),'Numeric text not recognized');
+            assert.ok(output.detShape[2]>0&&output.detShape[3]>0);
+          }finally{await browser.close();server.close();}
+          EOF
+          node probe.mjs
