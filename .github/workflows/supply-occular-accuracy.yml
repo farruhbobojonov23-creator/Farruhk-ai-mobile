@@ -1,0 +1,69 @@
+name: Occular invoice accuracy and integration gate (no release)
+on:
+  push:
+    branches: ['experiment/supply-local-vision-benchmark']
+    paths: ['.github/workflows/supply-occular-accuracy.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  accuracy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: OCR-report-occular
+          run-id: 45952820043
+          github-token: ${{ github.token }}
+          path: results
+      - name: Validate actual table cells against independent expected values
+        run: |
+          python3 - <<'PY'
+          import json,re,unicodedata
+          from pathlib import Path
+          from decimal import Decimal,InvalidOperation
+          root=Path('results')
+          expected=json.loads((root/'expected.json').read_text())
+          timing=json.loads((root/'report.json').read_text())
+          def norm(s):return re.sub(r'\s+','',unicodedata.normalize('NFKC',str(s))).casefold()
+          def num(s):
+              try:return Decimal(re.sub(r'\s+','',str(s)).replace(',','.'))
+              except InvalidOperation:return None
+          report={'engine':'occular-ocr 0.5.2','scope':'synthetic invoices; not Android','pages':[]}
+          for page,exp in expected.items():
+              raw=json.loads((root/page/'output.json').read_text())
+              tables=raw.get('tables',[])
+              grids=[]
+              for t in tables:
+                  grid=[['']*t['n_cols'] for _ in range(t['n_rows'])]
+                  for c in t['cells']:
+                      grid[c['r']][c['c']]=c.get('text','')
+                  grids.append(grid)
+              rows=[r for g in grids for r in g if len(r)==5 and num(r[2]) is not None and num(r[3]) is not None and num(r[4]) is not None]
+              used=set(); exact=0; numeric=0; names=0
+              for e in exp['rows']:
+                  matched=[(i,r) for i,r in enumerate(rows) if i not in used and norm(r[0])==norm(e[0])]
+                  if not matched:continue
+                  i,r=matched[0];used.add(i);names+=1
+                  if all(num(r[j])==num(e[j]) for j in (2,3,4)):
+                      numeric+=1
+                      if norm(r[1])==norm(e[1]):exact+=1
+              printed=[num(r[4]) for g in grids for r in g if len(r)==5 and norm(r[0]).startswith('итого')]
+              total_ok=len(printed)==1 and printed[0]==num(exp['total'])
+              math_ok=all(num(r[2])*num(r[3])==num(r[4]) for r in rows)
+              sum_ok=sum((num(r[4]) for r in rows),Decimal(0))==num(exp['total'])
+              text=' '.join(x.get('text','') for x in raw.get('results',[]))
+              entry={'page':page,'expected':len(exp['rows']),'detected_numeric_rows':len(rows),'correct_names':names,'correct_names_and_numbers':numeric,'exact_rows':exact,'printed_total_ok':total_ok,'line_math_ok':math_ok,'sum_ok':sum_ok,'supplier_seen':norm('ООО Учебный') in norm(text),'number_seen':'8049' in text,'date_seen':'09.11.2026' in text,'seconds':next((x['seconds'] for x in timing['pages'] if x['page']==page),None),'grids':grids}
+              report['pages'].append(entry)
+              print(json.dumps({k:v for k,v in entry.items() if k!='grids'},ensure_ascii=False))
+          report['passed']=all(p['exact_rows']==p['expected']==p['detected_numeric_rows'] and p['printed_total_ok'] and p['line_math_ok'] and p['sum_ok'] and p['supplier_seen'] and p['number_seen'] and p['date_seen'] for p in report['pages'])
+          Path('accuracy.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          print('ACCURACY_GATE',report['passed'])
+          if not report['passed']:raise SystemExit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: occular-accuracy-report
+          path: accuracy.json
