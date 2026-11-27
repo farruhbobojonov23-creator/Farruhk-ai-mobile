@@ -43,6 +43,7 @@ class MainActivity : Activity() {
             val base = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "image/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             var launched = false
@@ -69,7 +70,7 @@ class MainActivity : Activity() {
             root.addView(qa, 3)
             qa.setOnClickListener {
                 if (engine == null) status.text = "Сканер ещё загружается."
-                else if (!running) recognize(ImageDecoder.createSource(qaFile))
+                else if (!running) recognizeMany(listOf(ImageDecoder.createSource(qaFile)))
             }
         }
         export.setOnClickListener {
@@ -111,7 +112,7 @@ class MainActivity : Activity() {
             if (requestCode == 101 && !running && engine != null) status.text = "Выбор фотографии отменён. Выбери фото."
             return
         }
-        val uri = data?.data ?: run {
+        val uri = data?.data ?: data?.clipData?.getItemAt(0)?.uri ?: run {
             if (requestCode == 101) status.text = "Фотография не получена. Выбери файл повторно."
             return
         }
@@ -131,43 +132,64 @@ class MainActivity : Activity() {
         }
         if (requestCode != 101 || running) return
         try {
-            recognize(ImageDecoder.createSource(contentResolver, uri))
+            val uris = mutableListOf<android.net.Uri>()
+            data?.clipData?.let { clip ->
+                for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri)
+            }
+            if (uris.isEmpty()) uris.add(uri)
+            if (uris.size > 20) { status.text = "Максимум 20 страниц за раз"; return }
+            recognizeMany(uris.map { ImageDecoder.createSource(contentResolver, it) })
         } catch (e: Exception) {
             status.text = "Не удалось открыть фото: " + e.message
         }
     }
 
-    private fun recognize(source: ImageDecoder.Source) {
-        if (running) return
+    private fun recognizeMany(sources: List<ImageDecoder.Source>) {
+        if (running || sources.isEmpty()) return
         val ocr = engine ?: return
-        android.util.Log.i("FarukhOffline", "OCR_INPUT_RECEIVED")
+        android.util.Log.i("FarukhOffline", "OCR_INPUT_RECEIVED pages=${sources.size}")
         running = true; pick.isEnabled = false; export.isEnabled = false; scan = null
         status.text = "Распознавание на устройстве…"; results.text = ""
         scope.launch {
             try {
-                val bmp = withContext(Dispatchers.IO) {
-                    ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                        val w = info.size.width; val h = info.size.height
-                        val ratio = minOf(1.0, 3200.0 / maxOf(w, h))
-                        decoder.setTargetSize(maxOf(1, (w * ratio).toInt()), maxOf(1, (h * ratio).toInt()))
+                val pages = JSONArray()
+                val display = StringBuilder()
+                for ((index, source) in sources.withIndex()) {
+                    status.text = "Распознавание страницы ${index + 1} из ${sources.size}…"
+                    val bmp = withContext(Dispatchers.IO) {
+                        ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                            val w = info.size.width; val h = info.size.height
+                            val ratio = minOf(1.0, 3200.0 / maxOf(w, h))
+                            decoder.setTargetSize(maxOf(1, (w * ratio).toInt()), maxOf(1, (h * ratio).toInt()))
+                        }
                     }
+                    val width = bmp.width; val height = bmp.height
+                    android.util.Log.i("FarukhOffline", "OCR_IMAGE_DECODED page=${index + 1} ${width}x${height}")
+                    val res = try { ocr.recognize(bmp) } finally { bmp.recycle() }
+                    android.util.Log.i("FarukhOffline", "OCR_INFERENCE_COMPLETE page=${index + 1} blocks=${res.results.size} ms=${res.totalTimeMs}")
+                    val regions = JSONArray()
+                    res.results.forEach { item ->
+                        val box = JSONArray()
+                        item.box.points.forEach { pt ->
+                            box.put(JSONArray().put(pt.x.toDouble()).put(pt.y.toDouble()))
+                        }
+                        regions.put(JSONObject().put("text", item.text).put("score", item.confidence.toDouble()).put("box", box))
+                    }
+                    pages.put(JSONObject().put("schema", "farukh-ocr-regions-v1")
+                        .put("width", width).put("height", height).put("regions", regions)
+                        .put("requires_review", true).put("elapsed_ms", res.totalTimeMs))
+                    display.append("--- Страница ${index + 1} ---\\n")
+                    display.append(res.results.joinToString("\\n") { it.text + if (it.confidence < 0.85f) " ⚠" else "" })
+                    display.append("\\n")
                 }
-                val width = bmp.width; val height = bmp.height
-                android.util.Log.i("FarukhOffline", "OCR_IMAGE_DECODED ${width}x${height}")
-                val res = try { ocr.recognize(bmp) } finally { bmp.recycle() }
-                android.util.Log.i("FarukhOffline", "OCR_INFERENCE_COMPLETE blocks=${res.results.size} ms=${res.totalTimeMs}")
-                val regions = JSONArray()
-                res.results.forEach { item ->
-                    val box = JSONArray()
-                    item.box.points.forEach { pt -> box.put(JSONArray().put(pt.x.toDouble()).put(pt.y.toDouble())) }
-                    regions.put(JSONObject().put("text", item.text).put("score", item.confidence.toDouble()).put("box", box))
-                }
-                scan = JSONObject().put("schema", "farukh-ocr-regions-v1").put("width", width).put("height", height)
-                    .put("regions", regions).put("requires_review", true).put("elapsed_ms", res.totalTimeMs)
-                results.text = res.results.joinToString("\n") { it.text + if (it.confidence < 0.85f) "  ⚠" else "" }
-                status.text = "Найдено блоков: " + res.results.size + " · " + res.totalTimeMs + " мс\nЧерновик требует проверки"
-                export.isEnabled = res.results.isNotEmpty()
+                scan = if (pages.length() == 1) pages.getJSONObject(0)
+                    else JSONObject().put("schema", "farukh-ocr-batch-v1").put("pages", pages).put("requires_review", true)
+                results.text = display.toString()
+                status.text = if (pages.length() == 1)
+                    "Найдено блоков: " + pages.getJSONObject(0).getJSONArray("regions").length() + " · Черновик требует проверки"
+                    else "Распознано страниц: ${pages.length()} · Черновик требует проверки"
+                export.isEnabled = pages.length() > 0
             } catch (e: CancellationException) { throw e }
               catch (e: Exception) { status.text = "Ошибка распознавания: " + e.message }
             finally { running = false; pick.isEnabled = true }
