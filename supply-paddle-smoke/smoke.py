@@ -115,7 +115,31 @@ def test():
         ocr=None
         state.update(status="error",error=type(e).__name__,detail=str(e)[:300])
         print("TABLE_SMOKE",json.dumps(state),flush=True)
-PAGE=r"""<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:17px system-ui;margin:24px auto;padding:0 16px;max-width:650px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}</style><h1>FARUKH SUPPLY</h1><p>Закрытый тест OCR. Не бухгалтерская система. Данные не сохраняются сервером.</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png"><button id="send">Распознать фотографию</button><button id="save" disabled>Скачать результат JSON</button><pre id="out">Выберите фото. Максимум 4 МБ.</pre><script>let result=null;const el=id=>document.getElementById(id);el('send').onclick=async()=>{const f=el('photo').files[0];if(!f||!el('token').value){el('out').textContent='Нужны пароль и фото';return}if(f.size>4194304){el('out').textContent='Файл больше 4 МБ';return}el('send').disabled=true;el('save').disabled=true;result=null;el('out').textContent='Обработка…';try{const r=await fetch('/ocr',{method:'POST',headers:{Authorization:'Bearer '+el('token').value,'Content-Type':f.type},body:f,cache:'no-store'});const d=await r.json();el('out').textContent=r.ok?d.rows.map(x=>x.text+'  ['+x.confidence+']'+(x.needs_review?' — проверить':'')+(x.quantity_suggestion?' | единица: '+x.quantity_suggestion:'')+(x.retry_candidates?.length?' | варианты: '+x.retry_candidates.map(a=>a.text).join(', '):'')).join('\n')+'\nВремя: '+d.seconds+' сек.':(d.error||'Ошибка');if(r.ok){result=d;el('save').disabled=false}}catch(e){el('out').textContent='Ошибка соединения. Повторите позже.'}finally{el('send').disabled=false}};el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='ocr-result.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}</script></html>"""
+PAGE=r"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:16px system-ui;margin:24px auto;padding:0 16px;max-width:700px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}button:disabled{opacity:.5}article,pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}article{margin:12px 0}progress{width:100%}.warning{color:#ffd279}</style></head><body><h1>FARUKH SUPPLY</h1><p>Закрытый тест сканера. Выберите до 7 фотографий. Они обрабатываются по очереди; сервер не сохраняет документы.</p><p id="health">Проверяем готовность сервера…</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png" multiple><button id="send">Распознать накладные</button><progress id="progress" max="7" value="0"></progress><button id="save" disabled>Скачать общий отчёт JSON</button><p id="out">JPEG/PNG, до 4 МБ каждый.</p><section id="results"></section><script>
+let result=null;const el=id=>document.getElementById(id);
+async function health(){try{const r=await fetch('/health',{cache:'no-store'});const d=await r.json();el('health').textContent=!d.upload_enabled?'Загрузка пока закрыта':(['passed','recognition mismatch'].includes(d.status)?'Сканер доступен для теста':'Состояние: '+d.status)}catch(e){el('health').textContent='Сервер запускается или недоступен';}}
+health();
+function show(item){const a=document.createElement('article');const title=document.createElement('strong');title.textContent=item.file;a.append(title);const p=document.createElement('pre');p.textContent=item.ok?item.rows.map(x=>x.text+' ['+x.confidence+']'+(x.needs_review?' — проверить':'')+(x.quantity_suggestion?' | вариант: '+x.quantity_suggestion:'')).join('\n')+'\nВремя: '+item.seconds+' сек.':item.error;a.append(p);el('results').append(a);}
+el('send').onclick=async()=>{
+ const files=Array.from(el('photo').files),token=el('token').value;
+ if(!files.length||files.length>7||!token){el('out').textContent='Выберите 1–7 фото и введите пароль.';return}
+ if(files.some(f=>f.size>4194304||!['image/jpeg','image/png'].includes(f.type))){el('out').textContent='Допустимы JPEG/PNG до 4 МБ.';return}
+ el('send').disabled=true;el('save').disabled=true;el('photo').disabled=true;el('token').disabled=true;el('results').replaceChildren();el('progress').max=files.length;el('progress').value=0;
+ result={schema:'farukh-ocr-batch-v1',verified:false,documents:[]};
+ try{for(let i=0;i<files.length;i++){
+  const f=files[i];el('out').textContent='Обработка '+(i+1)+' из '+files.length+' — '+f.name;
+  let item;
+  try{const r=await fetch('/ocr',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':f.type},body:f,cache:'no-store'});let d;try{d=await r.json()}catch(e){d={error:'Сервер вернул HTTP '+r.status}}
+  item={...d,file:f.name,ok:r.ok,http_status:r.status};if(!r.ok&&!item.error)item.error='Ошибка HTTP '+r.status;
+  }catch(e){item={file:f.name,ok:false,error:'Соединение прервано'};}
+  result.documents.push(item);show(item);el('progress').value=i+1;
+  if(!item.ok){el('out').textContent='Пакет остановлен на файле '+(i+1)+'. Скачайте отчёт; неотправленные файлы сохранены на телефоне.';return}
+ }
+ el('out').textContent='Обработано '+result.documents.length+' из '+files.length+'. Данные требуют сверки с оригиналами.';
+ }finally{el('send').disabled=false;el('photo').disabled=false;el('token').disabled=false;el('save').disabled=!result.documents.length;}
+};
+el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='farukh-ocr-batch.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+</script></body></html>"""
 class Handler(BaseHTTPRequestHandler):
     def setup(self):
         super().setup()
