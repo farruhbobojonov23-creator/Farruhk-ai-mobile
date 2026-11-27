@@ -1736,3 +1736,80 @@ api.parseSamePhotoPasses=function(texts){
  return output;
 };
 })(globalThis);
+
+
+;(function(root){
+'use strict';
+// UPD text can have product names and quantities wrapped onto later OCR lines.
+// A supplier-specific rescue may reassemble rows only if the independent net,
+// VAT and gross checksums all reconcile. It never learns product-specific prices.
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const oldSimple=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
+const cent=s=>Math.round(Number(String(s).replace(/[ \u00a0\u202f]/g,'').replace(',','.'))*100);
+const money=/(?<![\d.,])(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)[,.]\d{2}(?![\d.,])/g;
+const cyrl=s=>(String(s).match(/[а-яё]/gi)||[]).length;
+function recoverWrappedUpd(text){
+ const raw=String(text||'');
+ if(!/вирго/i.test(raw)||!/сч[её]т[- ]?фактура|универсальный/i.test(raw))return null;
+ const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const start=lines.findIndex(s=>/^A\s+1a\s+16\s+2\s+2a\s+3\b/i.test(s));
+ const end=lines.findIndex((s,i)=>i>start&&/^всег[оo]\s+к\s+оплате/i.test(s));
+ if(start<0||end<0)return null;
+ const footer=[...lines[end].matchAll(money)].map(x=>cent(x[0]));
+ if(footer.length!==3||footer[2]<=0||footer[0]+footer[1]!==footer[2])return null;
+ const body=lines.slice(start+1,end),anchors=[];
+ for(let i=0;i<body.length;i++){
+  const s=body[i],m=[...s.matchAll(money)],rate=s.match(/\b(5|7|10|20|22)\s*%/);
+  if(m.length!==4||!rate)continue;
+  const [price,net,tax,gross]=m.map(x=>cent(x[0])),q=Math.round(net/price);
+  if(!(price>0&&net>0&&gross>0&&tax>=0)||net+tax!==gross||
+    Math.abs(Math.round(net*Number(rate[1])/100)-tax)>1||
+    !(q>0&&q<100000)||Math.abs(price*q-net)>Math.ceil(q/2))return null;
+  const rawPrefix=s.slice(0,m[0].index),qInPrefix=rawPrefix.match(/(\d{1,6})[,.]000\s*$/);
+  const cleaned=rawPrefix.replace(/\b\d{1,6}[,.]000\s*$/,'').trim();
+  // Numeric OKEI code 796/778/990 resolves ambiguous Cyrillic OCR glyphs.
+  const code=cleaned.match(/\b(796|778|990)\s+([A-Za-zА-Яа-я.]+)\s*$/);
+  if(!code)return null;
+  const unit=code[1]==='796'?'шт':'уп',first=cleaned.slice(0,code.index).trim();
+  anchors.push({i,first,unit,q,price,net,tax,gross,qOcr:qInPrefix?Number(qInPrefix[1]):null});
+ }
+ if(anchors.length<2||anchors.length>150)return null;
+ const rows=[],warnings=[];
+ for(let j=0;j<anchors.length;j++){
+  const a=anchors[j],stop=anchors[j+1]?.i??body.length,parts=a.first?[a.first]:[];
+  let qOcr=a.qOcr;
+  for(let k=a.i+1;k<stop;k++){
+   let s=body[k];
+   const qMatch=s.match(/(?:^|\s)(\d{1,6})[,.]000(?=\s+акциза(?:\s|$))/i);
+   if(qMatch){qOcr=Number(qMatch[1]);s=s.replace(qMatch[0],' ');}
+   s=s.replace(/акциза/gi,'').trim();
+   if(s)parts.push(s);
+  }
+  const name=parts.join(' ').replace(/\s+/g,' ').trim();
+  if(cyrl(name)<5||name.length>350||/^(документ|руководитель|итого)/i.test(name))return null;
+  const corrected=qOcr!==null&&qOcr!==a.q;
+  const row={name:name+' / '+a.unit+' (без НДС)',unit:a.unit,quantity:a.q,
+   price:a.price/100,netPrice:a.price/100,invoiceTotal:a.gross/100,
+   uncertain:true,quantityCorrected:corrected,sourceRow:String(j+1),
+   source:body.slice(a.i,stop).join('\n'),packKg:api.packWeight(name),packL:api.packVolume(name)};
+  rows.push({...row,...api.lineMetrics(row),_net:a.net,_tax:a.tax,_gross:a.gross});
+  if(corrected)warnings.push('Строка '+(j+1)+': OCR прочитал количество '+qOcr+', но арифметика даёт '+a.q+'. Сверьте по оригиналу.');
+ }
+ if(rows.reduce((s,x)=>s+x._net,0)!==footer[0]||
+   rows.reduce((s,x)=>s+x._tax,0)!==footer[1]||
+   rows.reduce((s,x)=>s+x._gross,0)!==footer[2])return null;
+ return {supplier:'ООО «ВИРГО»',items:rows.map(({_net,_tax,_gross,...x})=>x),
+   balancedInvoice:true,documentVerified:false,pageVerified:false,
+   quantityCorrections:warnings.length,fragmentedOcrRecovered:true,
+   warnings:['Строки восстановлены из повреждённого OCR-текста УПД; сверьте оригинал.',...warnings]};
+}
+api.parseSimple=function(raw){
+ const original=oldSimple(raw),recovered=recoverWrappedUpd(raw);
+ const priced=r=>r?.items?.filter(x=>x.name&&x.price>0&&x.quantity>0&&x.unit&&x.invoiceTotal>0).length||0;
+ return recovered&&priced(recovered)>priced(original)?recovered:original;
+};
+api.parseSamePhotoPasses=function(texts){
+ const original=oldPasses(texts),recovered=texts.map(t=>api.parseSimple(t)).filter(x=>x.fragmentedOcrRecovered);
+ return [...original,...recovered];
+};
+})(globalThis);

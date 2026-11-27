@@ -191,3 +191,55 @@ test('VIRGO only joins complementary rows of the SAME photo, no conflicts',()=>{
  a.ok(browserParser.parseSamePhotoPasses([first,second]).some(x=>x.items.length===6&&x.balancedInvoice));
  a.equal(browserParser.parseSamePhotoPasses([first,second.replace('26 024,00','26 025,00')]).some(x=>x.items.length===6&&x.balancedInvoice),false);
 });
+
+
+// Regression on the actual Android OCR second pass (line wraps, WT/ET glyphs,
+// quantity 12 instead of 2, and the shrimp name after its monetary cells).
+const virgoUserAndroidOCR=[
+ 'Универсальный Счет-фактура № 9632 16 ноября 2026 г.(1)',
+ 'Продавец: "ВИРГО" (2)',
+ 'A 1a 16 2 2a 3 5 6 7 8 9 10 10a 11',
+ 'Рис шлифованный Гост в/с, 990 меш. 2454,55 7 363,64 5e3 10% 736,36 8 100,00',
+ '3,000 акциза',
+ 'ЛЕБЕДИ СУШИ мЕш/25кг',
+ 'Уксус рисовый ДУНКАН уп/20л 796 WT 1,000 1337.70 1337,70 5е3 22% 294.30 1632,00',
+ 'акциза',
+ 'Лапша "Удон"0,3 796 ET 10,000 77.27 772,73 5е3 10% 77.27 850.00',
+ 'акциза',
+ 'Сыр плавленый ломтевой 778 ynак 12,000 828,18 1656,36 503 10% 165.64 1822,00',
+ 'акциза',
+ 'Бистро Чеддер уп/1,107 кг(уп',
+ '90 ШT) HOCHLAND',
+ '796 WT 1954,55 11 727,27 5е3 10% 1172,73 12 900,00',
+ 'Креветка тигровая 16/20, с/м 6,000 акциза',
+ 'во льду блок 1.8 кг',
+ 'Мидии 1/2 рак 30/40, уп/1кг 778 yПак 2,000 327.28 654.55 5е3 10% 65,45 720,00',
+ 'акциза',
+ 'Всегo к оплате (9) 23 512,25 x 2511,75 26024,00'
+].join('\n');
+test('actual VIRGO Android OCR: wrapped monetary columns yield all six totals',()=>{
+ const r=browserParser.parseSimple(virgoUserAndroidOCR);
+ a.equal(r.fragmentedOcrRecovered,true);
+ a.equal(r.balancedInvoice,true);
+ a.equal(r.documentVerified,false);
+ a.equal(r.items.length,6);
+ a.deepEqual(Array.from(r.items,x=>x.quantity),[3,1,10,2,6,2]);
+ a.deepEqual(Array.from(r.items,x=>x.invoiceTotal),[8100,1632,850,1822,12900,720]);
+ a.equal(r.items.reduce((s,x)=>s+x.invoiceTotal,0),26024);
+ a.ok(r.items.every(x=>x.name&&x.price>0&&x.unit&&!/акциза|\d+,000/.test(x.name)));
+ a.match(r.items[0].name,/ЛЕБЕДИ СУШИ/);
+ a.match(r.items[3].name,/HOCHLAND/);
+ a.match(r.items[4].name,/Креветка тигровая/);
+ a.equal(r.quantityCorrections,1);
+ a.equal(r.items[3].quantityCorrected,true);
+ a.equal(browserParser.parseSamePhotoPasses(['Счет-фактура OCR SHUFFLE',virgoUserAndroidOCR,'<garbled rotated OCR>']).some(x=>x.fragmentedOcrRecovered&&x.items.length===6),true);
+});
+test('damaged OCR rescue rejects mismatched footer, VAT, OKEI and supplier',()=>{
+ for(const broken of [
+  virgoUserAndroidOCR.replace('26024,00','26025,00'),
+  virgoUserAndroidOCR.replace('294.30 1632,00','294.30 1633,00'),
+  virgoUserAndroidOCR.replace('796 ET','777 ET'),
+  virgoUserAndroidOCR.replace('Продавец: "ВИРГО"','Продавец: "ДРУГОЙ"'),
+  virgoUserAndroidOCR.replace('11 727,27','11 727,37')
+ ])a.notEqual(browserParser.parseSimple(broken).fragmentedOcrRecovered,true);
+});
