@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const app=fs.readFileSync('supply-android/app/src/main/assets/app.js','utf8');
+const f=new Function(app.split('/* PP_STRUCTURE_IMPORT_BEGIN */')[1].split('/* PP_STRUCTURE_IMPORT_END */')[0]+'\nreturn structureImport;')();
+const report=(rows,headers=['Наименование товара','Ед.','Количество','Цена с НДС','Сумма с НДС'])=>JSON.stringify([{file:'test.jpg',page:1,text:['Поставщик: ООО Учебный'],tables:[[headers,...rows]]}]);
+test('100 distinct rows, exact amounts',()=>{const rows=Array.from({length:100},(_,i)=>['Tamaki '+i,'кг','2','150,50','301,00']);const r=f(report([...rows,['Итого','','','','30100,00']]));assert.equal(r.items.length,100);assert.equal(r.items.reduce((s,x)=>s+x.invoiceTotal,0),30100);assert.equal(r.warnings.length,0);});
+test('no invented units; mark skipped and inconsistent',()=>{const r=f(report([['Rice','???','2','10','30'],['Lost','кг','','5','10']]));assert.equal(r.items[0].unit,'');assert.equal(r.items.length,1);assert.equal(r.warnings.length,3);});
+test('reject unknown tax, broken or multiple invoices',()=>{assert.throws(()=>f(report([['Rice','кг','2','10','20']],['Товар','Ед.','Количество','Цена','Сумма'])));const p=JSON.parse(report([['Rice','кг','2','10','20']]))[0];assert.throws(()=>f(JSON.stringify([p,{...p,file:'other.jpg'}])));assert.throws(()=>f(JSON.stringify([{...p,error:'bad'}])));});
