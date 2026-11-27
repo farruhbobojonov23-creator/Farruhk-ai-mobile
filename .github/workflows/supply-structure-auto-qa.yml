@@ -1,0 +1,21 @@
+name: Automatic PP-StructureV3 private service QA
+on:
+  push:
+    branches: ['experiment/supply-structure-auto']
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'flask>=3.1,<4' 'pillow>=11,<13'
+      - run: cd ocr-service && python -m unittest -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check supply-android/app/src/main/assets/app.js
+      - run: node --test supply/structure-import.test.cjs supply/invoice-parser.test.js supply/analytics.test.js supply/product-catalog.test.js supply/table-core.test.js
