@@ -70,7 +70,57 @@ public class MainActivity extends Activity {
  }
  @Override protected void onActivityResult(int request,int result,Intent data){
  super.onActivityResult(request,result,data);
- if(request==41&&pending!=null){Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);pending.onReceiveValue(chosen);pending=null;if(chosen!=null&&chosen.length==1){photoSequence++;lastScan=chosen[0];scan(lastScan,false);}}
+ if(request==41&&pending!=null){
+  Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
+  if(chosen!=null&&chosen.length>20){
+   pending.onReceiveValue(null);pending=null;
+   android.widget.Toast.makeText(this,"Выберите не более 20 страниц одной накладной",android.widget.Toast.LENGTH_LONG).show();return;
+  }
+  pending.onReceiveValue(chosen);pending=null;
+  if(chosen!=null&&chosen.length>0){
+   photoSequence++;
+   if(chosen.length==1){lastScan=chosen[0];scan(lastScan,false);}
+   else{lastScan=null;scanBatch(chosen);}
+  }
+ }
+ }
+ // Several supplier photos are passed to the existing multi-page invoice review,
+ // never auto-saved or sent off-device. Each photo has a separate OCR cache token.
+ private void scanBatch(Uri[] uris){
+  final long id=++scanSequence,token=photoSequence;
+  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
+  ocrExecutor.execute(()->{
+   org.json.JSONArray pages=new org.json.JSONArray();
+   int failed=0;
+   for(int i=0;i<uris.length;i++){
+    if(id!=scanSequence||Thread.currentThread().isInterrupted())return;
+    final int pageNumber=i+1;
+    runOnUiThread(()->{
+     if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript(
+      "(function(){var e=document.getElementById('ocrState');if(e)e.textContent="
+       +org.json.JSONObject.quote("Читаем страницу "+pageNumber+" из "+uris.length+"…")+"})()",null);
+    });
+    try{
+     String text=InvoiceOcr.read(this,uris[i],false,photoSession,token+i);
+     if(text.trim().isEmpty()||text.length()>1000000){failed++;pages.put("");}
+     else pages.put(text);
+    }catch(Exception|LinkageError e){
+     failed++;pages.put("");
+     android.util.Log.w("SupplyOCR","Batch page "+pageNumber+" requires manual review",e);
+    }
+   }
+   if(id!=scanSequence)return;
+   final int failures=failed;
+   final String joined="FARUKH_PDF_PAGES_V1\\n"+pages.toString();
+   runOnUiThread(()->{
+    if(isDestroyed()||id!=scanSequence)return;
+    String error=failures>0
+     ?"Не удалось распознать страниц: "+failures+". Проверьте оригиналы и добавьте страницы вручную.":"";
+    web.evaluateJavascript(
+     "window.supplyOcrFinish && window.supplyOcrFinish("+id+","
+      +org.json.JSONObject.quote(joined)+","+org.json.JSONObject.quote(error)+",\"[]\")",null);
+   });
+  });
  }
  private void scan(Uri uri,boolean focused){scan(uri,focused,false);}
  private void scan(Uri uri,boolean focused,boolean paddle){
