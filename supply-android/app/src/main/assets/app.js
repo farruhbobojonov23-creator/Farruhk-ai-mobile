@@ -937,32 +937,45 @@ function nextScan(path,message){
  location.href='https://appassets.androidplatform.net/'+path;
 }
 
-function acceptPdf(text,parseStarted){
- const file=pendingPhoto||$('file').files[0]||pages.find(p=>p.file?.type==='application/pdf')?.file;
+function acceptPdf(text,parseStarted,scanError=''){
+ const selected=[...$('file').files],photos=selected.length>1&&selected.every(f=>f.type?.startsWith('image/'));
+ const file=pendingPhoto||selected[0]||pages.find(p=>p.file?.type==='application/pdf')?.file;
  if(!file||pages.some(p=>p.file!==file)&&pages.length)throw Error('Откройте новую накладную для PDF');
  const source=JSON.parse(text.slice('FARUKH_PDF_PAGES_V1\n'.length));
- if(!Array.isArray(source)||!source.length||!source.every(x=>typeof x==='string'))throw Error('Не удалось прочитать страницы PDF');
+ if(!Array.isArray(source)||!source.length||source.length>20||!source.every(x=>typeof x==='string'))throw Error('Не удалось прочитать страницы документа');
+ if(photos&&source.length!==selected.length)throw Error('Число фотографий не совпадает с числом страниц OCR');
  const parser=window.supplyInvoiceParser,parsed=source.map(s=>parser.parseSimple(s));
  const suppliers=[...new Map(parsed.filter(x=>x.supplier).map(x=>[supplierKey(x.supplier),x.supplier])).values()];
  const ids=[...new Set(source.map((s,i)=>pageMeta(parsed[i],s).documentNumber).filter(Boolean))];
- if(suppliers.length!==1||ids.length>1)throw Error('В PDF не подтверждён единый поставщик или номер накладной. Разделите документы.');
+ if(suppliers.length!==1||ids.length>1)throw Error('Не подтверждён единый поставщик или номер накладной. Не объединяйте разные документы.');
  const supplier=suppliers[0],records=[],rows=[];let review=0,missing=0;
  for(let i=0;i<source.length;i++){
   let r=parsed[i];
   if(!r.supplier){const withHeader=parser.parseSimple('Поставщик: '+supplier+'\n'+source[i]);if(scanScore(withHeader)>scanScore(r))r=withHeader;}
-  const key=crypto.randomUUID();
-  if(!r.items.length){missing++;continue;}
+  const key=crypto.randomUUID(),pageFile=photos?selected[i]:(i===0?file:null);
+  if(!r.items.length){
+   // A final receipt/acceptance page often has only signatures and the grand total.
+   // Preserve its page evidence, but never fabricate item rows or auto-approve totals.
+   if(source[i].trim()&&/(?:всего\\s+передано|всего\\s+к\\s+оплате|итого\\s+по\\s+документу)/i.test(source[i])){
+    records.push({...updEvidence(source[i]),key,number:i+1,expected:source.length,
+     documentNumber:ids[0]||null,documentDate:invoiceHeader(source[i]).documentDate,
+     file:pageFile,identity:photoFingerprint(pageFile||file)+'#'+(i+1),
+     fingerprint:'footer-only:'+i,footerOnly:true,reviewRequired:true});
+    review++;
+   }else missing++;
+   continue;
+  }
   if(!r.documentVerified&&!r.pageVerified||r.items.some(x=>x.price==null||x.quantity==null))review++;
-  records.push({...updEvidence(source[i]),documentDate:invoiceHeader(source[i]).documentDate,key,number:i+1,expected:source.length,documentNumber:ids[0]||null,file:i===0?file:null,identity:photoFingerprint(file)+'#'+(i+1),fingerprint:pageFingerprint(r.items)});
+  records.push({...updEvidence(source[i]),documentDate:invoiceHeader(source[i]).documentDate,key,number:i+1,expected:source.length,documentNumber:ids[0]||null,file:pageFile,identity:photoFingerprint(pageFile||file)+'#'+(i+1),fingerprint:pageFingerprint(r.items),reviewRequired:!r.documentVerified&&!r.pageVerified});
   for(const item of r.items)rows.push({...item,pageKey:key});
  }
  if(!rows.length)throw Error('В PDF не найдены товарные строки');
  if(!records.some(p=>p.file))records[0].file=file;
- if(pages.length&&!confirm('Заменить результаты этого PDF?'))return;
+ if(pages.length&&!confirm('Заменить результаты текущей накладной выбранными страницами?'))return;
  $('lines').replaceChildren();$('supplier').value=supplier;$('documentNumber').value=ids[0]||'';$('documentDate').value=source.map(s=>invoiceHeader(s).documentDate).find(Boolean)||'';pages=records;activePage=null;pendingPhoto=null;
  for(const row of rows)addLine(row);pageStatus();showInvoiceIntegrity();dirty=true;
  scanTrace.push({label:'Распределение товаров и сверка',seconds:Math.round((performance.now()-parseStarted)/100)/10});scanStartedAt=0;showScanProgress();
- $('ocrState').textContent='PDF: '+source.length+' стр. · '+rows.length+' позиций. '+(missing?'Не прочитано страниц: '+missing+'. ':'')+(review?'Требуют сверки: '+review+' стр. ':'')+'Сверьте с оригиналом.';
+ $('ocrState').textContent=(photos?'Фото: ':'PDF: ')+source.length+' стр. · '+rows.length+' позиций. '+(missing?'Не прочитано страниц: '+missing+'. ':'')+(review?'Требуют сверки: '+review+' стр. ':'')+(scanError?scanError+' ':'')+'Сверьте с оригиналом.';
  if(missing||review)scanDiagnostic(source.map((s,i)=>'Страница '+(i+1)+'\n'+s).join('\n---\n'));
 }
 
@@ -970,7 +983,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
  if(id!==ocrId||$('entry').classList.contains('hide'))return;
  if(stageStartedAt)scanTrace.push({label:scanLabel()+' (получение текста)',seconds:Math.round((performance.now()-stageStartedAt)/100)/10,failed:!!error||!String(text||'').trim()});stageStartedAt=0;const parseStarted=performance.now();scanBusy=false;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');
  try{
-  if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\n')){acceptPdf(text,parseStarted);return;}
+  if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\n')){acceptPdf(text,parseStarted,error);return;}
   if(pendingPhoto?.type==='application/pdf'||/\.pdf$/i.test(pendingPhoto?.name||'')){throw Error(error||'PDF не прочитан. Выберите файл повторно.');}
   let current=window.supplyInvoiceParser.parseSimple(text||'');
   // SMART SIMPLE: prefer the direct purchase-only interpretation when it is
