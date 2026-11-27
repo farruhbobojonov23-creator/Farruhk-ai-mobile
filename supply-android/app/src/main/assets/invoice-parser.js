@@ -2029,3 +2029,143 @@ api.parseSamePhotoPasses=function(texts){
  return out;
 };
 })(globalThis);
+
+
+/* Supplier photo-grid bridge. Only accept coordinates when the original photo
+   yields distinct printed column headers and independent arithmetic evidence.
+   Without those columns, retain the established OCR candidate for manual review. */
+;(function(root){
+'use strict';
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const clean=s=>String(s??'').normalize('NFKC').replace(/[\u00a0\u202f]/g,' ').trim();
+const k=s=>clean(s).toLowerCase().replace(/ё/g,'е').replace(/[^а-яa-z0-9]+/g,'');
+const number=s=>{
+ const t=clean(s).replace(/\s+/g,'').replace(',','.');
+ return /^\d+(?:\.\d{1,4})?$/.test(t)&&Number(t)>0?Number(t):null;
+};
+function headerRole(value,profile){
+ const t=k(value);
+ if(/^(наименование|номенклатура|товар|название|наименованиетовара|продукция)$/.test(t))return ['name','Наименование товара'];
+ if(/^(ед|едизм|единица|единицаизмерения)$/.test(t))return ['unit','Единица измерения'];
+ if(/^(количество|колво|кол)$/.test(t))return ['quantity','Количество'];
+ if(/^(океикод|кодокеи|океи)$/.test(t))return ['code','Код ОКЕИ'];
+ if(/^(код|артикул|кодтовара)$/.test(t))return ['article','Артикул'];
+ if(/^(вескг|массанетто|веснетто)$/.test(t))return ['weight','Вес кг'];
+ if(/^(ценасндс|ценасучетомндс)$/.test(t))return ['price','Цена с НДС'];
+ if(/^(цена|ценатариф)$/.test(t))return ['price',/^(chistyakova|virgo|vesta|alidi)$/.test(profile.id)?'Цена':'Цена с НДС'];
+ if(/^(суммасндс|стоимостьсндс|стоимостьтоваровсналогом)$/.test(t))return ['sum','Сумма с НДС'];
+ if(/^(сумма|стоимость|итогосндс)$/.test(t))return ['sum','Сумма с НДС'];
+ return null;
+}
+function pictureRows(boxes){
+ if(!Array.isArray(boxes)||boxes.length<8||boxes.length>12000)return [];
+ const good=boxes.filter(b=>b&&typeof b.text==='string'&&clean(b.text)&&[b.left,b.right,b.top,b.bottom,b.confidence].every(Number.isFinite)&&b.right>b.left&&b.bottom>b.top&&b.confidence>=.65&&b.confidence<=1);
+ if(good.length<8)return [];
+ const heights=good.map(b=>b.bottom-b.top).sort((a,b)=>a-b),h=heights[Math.floor(heights.length/2)];
+ const center=b=>(b.top+b.bottom)/2,rows=[];
+ for(const box of good.sort((a,b)=>center(a)-center(b)||a.left-b.left)){
+  const prev=rows[rows.length-1];
+  if(prev&&Math.abs(center(box)-prev.y)<=h*.42){
+   prev.boxes.push(box);
+   prev.y=prev.boxes.reduce((v,b)=>v+center(b),0)/prev.boxes.length;
+  }else rows.push({y:center(box),boxes:[box]});
+ }
+ return rows.map(r=>({y:r.y,boxes:r.boxes.sort((a,b)=>a.left-b.left),
+  text:r.boxes.map(b=>clean(b.text)).join(' ')}));
+}
+function printedFooter(text){
+ const totals=new Set();
+ for(const line of String(text??'').split(/\r?\n/)){
+  const m=line.match(/^\s*(?:итого|всего(?:\s+к\s+оплате)?)\s*:?\s*(.*)$/iu);
+  if(!m)continue;
+  const tokens=[...m[1].matchAll(/(?<![\d,.])(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)[,.]\d{2}(?![\d,.])/g)];
+  if(tokens.length===1){const n=number(tokens[0][0]);if(n!=null)totals.add(Math.round(n*100));}
+ }
+ return totals.size===1?[...totals][0]/100:null;
+}
+function spatialMap(raw,spatial,profile){
+ let boxes=spatial;
+ if(typeof boxes==='string'){try{boxes=JSON.parse(boxes);}catch{return null;}}
+ const lines=pictureRows(boxes);
+ if(!lines.length)return null;
+ let header=null,hi=-1;
+ for(let i=0;i<lines.length;i++){
+  const labels=lines[i].boxes.map(b=>({box:b,tag:headerRole(b.text,profile)})).filter(x=>x.tag);
+  const roles=labels.map(x=>x.tag[0]);
+  if(new Set(roles).size!==roles.length||!['name','quantity','sum'].every(x=>roles.includes(x))||!['unit','code'].some(x=>roles.includes(x)))continue;
+  if(labels.length<4||labels.length>15)continue;
+  // Each labelled column must have its own center. Repeated money columns
+  // (e.g. net, VAT and gross in UPD) require a more explicit layout.
+  header=labels;hi=i;break;
+ }
+ if(!header)return null;
+ const anchors=header.map(x=>({role:x.tag[0],label:x.tag[1],x:(x.box.left+x.box.right)/2})).sort((a,b)=>a.x-b.x);
+ if(anchors.some((a,i)=>i&&a.x<=anchors[i-1].x))return null;
+ const edges=anchors.slice(1).map((a,i)=>(a.x+anchors[i].x)/2);
+ const fieldOf=x=>{const index=edges.findIndex(edge=>x<edge);return index<0?anchors.length-1:index;};
+ const names=anchors.map(a=>a.label),rows=[],warnings=[];
+ let started=false,possiblyLost=0;
+ for(const line of lines.slice(hi+1)){
+  if(/^(?:итого|всего(?:\s+к\s+оплате)?)(?:\s|:|$)/iu.test(line.text))break;
+  const cells=Array.from({length:anchors.length},()=>[]);
+  for(const b of line.boxes)cells[fieldOf((b.left+b.right)/2)].push(clean(b.text));
+  const row=cells.map(a=>a.join(' ')),nameIndex=anchors.findIndex(a=>a.role==='name'),qi=anchors.findIndex(a=>a.role==='quantity'),si=anchors.findIndex(a=>a.role==='sum');
+  const originalName=row[nameIndex];
+  row[nameIndex]=row[nameIndex].replace(/^\d{1,3}\s+(?=[\p{L}])/u,'').trim();
+  const hasName=/[\p{L}]{2}/u.test(row[nameIndex]);
+  const q=number(row[qi]),sum=number(row[si]);
+  if(hasName&&q!=null&&sum!=null){rows.push(row);started=true;}
+  else if(hasName&&started&&!q&&!sum&&row.every((s,j)=>j===nameIndex||!s)){
+   // A wrapped description belongs to the preceding printed row, but it
+   // cannot supply a missing quantity or price.
+   rows[rows.length-1][nameIndex]+=' '+row[nameIndex];
+  }else if(hasName&&started){possiblyLost++;}
+ }
+ if(!rows.length)return null;
+ const mapped=api.parseSupplierTable(profile,names,rows,{printedTotal:printedFooter(raw)});
+ if(!mapped)return null;
+ if(possiblyLost||mapped.warnings.some(w=>/^Пропущено строк:/u.test(w))){
+  mapped.documentVerified=false;
+  mapped.needsReview=true;
+  warnings.push('В таблице есть неполные строки. Сверьте число товаров с фото.');
+ }
+ return {...mapped,warnings:[...new Set([...mapped.warnings,...warnings])],supplierPhotoGrid:true};
+}
+function reviewPackagingPrefix(result,profile){
+ if(!profile||!Array.isArray(result?.items))return result;
+ let changed=false;
+ const items=result.items.map(item=>{
+  const original=String(item?.name??'');
+  // A distinct "100пар/уп, 1/50, упак" prefix belongs to the packing
+  // description, not the ingredient name. Preserve the complete OCR source
+  // and require a human name review instead of silently deleting evidence.
+  const match=original.match(/^\s*\d{2,4}\s*пар\s*\/\s*уп\s*[,;\s]+(?:\d+\s*\/\s*\d+\s*[,;\s]+)?упак(?:овка)?\s+(?=[\p{L}])/iu);
+  if(!match)return item;
+  const name=original.slice(match[0].length).trim();
+  if(name.length<5||!/\p{L}/u.test(name))return item;
+  changed=true;
+  return {...item,name,ocrOriginalName:item.ocrOriginalName||original,nameNeedsReview:true,uncertain:true};
+ });
+ return changed?{...result,items,documentVerified:false,pageVerified:false,needsReview:true,
+  reviewIssues:[...new Set([...(result.reviewIssues||[]),'Убрана пометка фасовки из начала названия — проверьте по фото.'])]}:result;
+}
+api.parsePhoto=function(raw,spatialJson){
+ const text=String(raw??''),p=api.detectSupplierTemplate(text),base=reviewPackagingPrefix(api.parseSimple(text),p);
+ if(base.documentVerified||base.pageVerified)return base;
+ if(!p)return base;
+ const proposed=spatialMap(text,spatialJson,p);
+ if(!proposed||!proposed.items.length)return base;
+ const checked=api.auditCandidate?api.auditCandidate(proposed):proposed;
+ if(!checked.items?.length||!checked.items.every(x=>x.name&&x.price>0&&x.quantity>0&&x.invoiceTotal>0))return base;
+ // A partial spatial table must not silently discard rows already read.
+ if(checked.items.length<base.items.filter(x=>x.price>0&&x.quantity>0).length)return base;
+ return checked;
+};
+const previousPasses=api.parseSamePhotoPasses;
+api.parseSamePhotoPasses=function(texts){
+ const profiles=[...new Set((texts||[]).map(t=>api.detectSupplierTemplate(t)?.id).filter(Boolean))];
+ if(profiles.length!==1)return previousPasses(texts);
+ const p=api.supplierTemplates.find(x=>x.id===profiles[0]);
+ return previousPasses(texts).map(r=>reviewPackagingPrefix(r,p));
+};
+})(globalThis);
