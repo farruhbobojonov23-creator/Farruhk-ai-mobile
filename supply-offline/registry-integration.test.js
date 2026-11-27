@@ -20,8 +20,8 @@ assert.equal(draft.rows.length,2);assert.equal(draft.total,835);
 assert.deepEqual(draft.rows.map(r=>[r.unit,r.factor]),[['кг',25],['шт',1]]);
 assert.equal(draft.number,'12345');assert.equal(draft.date,'2026-11-27');
 const html=fs.readFileSync(path.join(__dirname,'android/registry.html'),'utf8').replace('/*SUPPLY_DRAFT_MODULE*/',fs.readFileSync(path.join(__dirname,'invoice-draft.js'),'utf8'));
-let exports=[],scans=0;
-function open(stored){return new JSDOM(html,{url:'https://farukh.local/registry/',runScripts:'dangerously',beforeParse(w){w.structuredClone=structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.NativeSupply={scan(){scans++},importBackup(){},exportFile(...a){exports.push(a)}};if(stored)w.localStorage.setItem('farukh-supply-local-v1',stored);}});}
+let savedExports=[],scans=0;
+function open(stored){return new JSDOM(html,{url:'https://farukh.local/registry/',runScripts:'dangerously',beforeParse(w){w.structuredClone=structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.NativeSupply={scan(){scans++},importBackup(){},exportFile(...a){savedExports.push(a)}};if(stored)w.localStorage.setItem('farukh-supply-local-v1',stored);}});}
 const dom=open(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
 const stored=()=>JSON.parse(w.localStorage.getItem('farukh-supply-local-v1'));
 assert.equal(stored().length,0);
@@ -38,7 +38,7 @@ assert.equal($('total').value,'835');
 w.confirm=()=>false;$('save').click();assert.equal(stored().length,1);
 w.confirm=()=>true;$('tax').value='included';$('complete').value='true';$('save').click();
 assert.equal(stored().length,2);assert.equal(stored()[1].source,'offline_ocr_reviewed');
-$('export').click();assert.equal(JSON.parse(exports[0][1]).docs.length,2);
+$('export').click();assert.equal(JSON.parse(savedExports[0][1]).docs.length,2);
 const reopened=open(w.localStorage.getItem('farukh-supply-local-v1'));assert.equal(JSON.parse(reopened.window.localStorage.getItem('farukh-supply-local-v1')).length,2);
 assert.ok(reopened.window.document.getElementById('list').textContent.includes('12345'));
 assert.throws(()=>extract({schema:'bad'},[]));
