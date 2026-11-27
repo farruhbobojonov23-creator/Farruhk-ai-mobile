@@ -100,13 +100,14 @@ public class MainActivity extends Activity {
  super.onActivityResult(request,result,data);
  if(request!=41||pending==null)return;
  Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
- // Some Android gallery providers return ClipData but no data Uri.
- if((chosen==null||chosen.length==0)&&result==RESULT_OK&&data!=null){
+ // Different Android/Xiaomi gallery apps can return both data and ClipData.
+ // Preserve *all* selected photos instead of silently using only the first.
+ if(result==RESULT_OK&&data!=null){
   android.content.ClipData clip=data.getClipData();
-  if(clip!=null&&clip.getItemCount()>0&&clip.getItemCount()<=20){
+  if(clip!=null&&clip.getItemCount()>1&&clip.getItemCount()<=20){
    chosen=new Uri[clip.getItemCount()];
    for(int i=0;i<clip.getItemCount();i++)chosen[i]=clip.getItemAt(i).getUri();
-  }else if(data.getData()!=null)chosen=new Uri[]{data.getData()};
+  }else if((chosen==null||chosen.length==0)&&data.getData()!=null)chosen=new Uri[]{data.getData()};
  }
  if(chosen!=null&&chosen.length>20){
   pending.onReceiveValue(null);pending=null;
