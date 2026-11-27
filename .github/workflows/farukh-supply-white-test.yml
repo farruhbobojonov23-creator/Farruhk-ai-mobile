@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium test APK
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core']
+    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core', 'release/supply-multipage-v19']
     paths:
       # Web-only updates are signed and published by farukh-supply-white-qa.yml.
       # Keep the native OCR APK/version unchanged for these changes.
