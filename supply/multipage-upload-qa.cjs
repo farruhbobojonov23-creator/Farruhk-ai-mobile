@@ -8,12 +8,18 @@ const {chromium}=require('/tmp/supply-qa/node_modules/playwright');
   page.on('dialog',d=>d.accept());
   const exceptions=[];page.on('pageerror',e=>exceptions.push(e.message));
   await page.goto('http://127.0.0.1:8766/index.html');
+  await page.evaluate(()=>localStorage.setItem('supplyStructureEndpoint',JSON.stringify({
+   url:'https://ocr-test.invalid/v1/ocr',token:'synthetic-test-token-12345678901234567890'
+  })));
+  await page.reload();
   await page.waitForFunction(()=>typeof window.supplyOcrFinish==='function');
+  const external=[];page.on('request',r=>{if(r.url().includes('ocr-test.invalid'))external.push(r.url())});
   await page.locator('[data-go="entry"]').first().click();
   await page.locator('#file').setInputFiles([
    {name:'synthetic-page-1.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5EAX0AAAAASUVORK5CYII=','base64')},
    {name:'synthetic-page-2.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5EAX0AAAAASUVORK5CYII=','base64')}
   ]);
+  assert.equal(await page.locator('#ocrState').textContent(),'Выбрано фотографий: 2. Подготавливаем распознавание…');
   const raw=[
    'Счет-фактура № 123 от 09 ноября 2026 г.\nПоставщик: ООО «Тестовый поставщик»\nНаименование товара Стоимость товаров\n1 Сыр учебный 778 упак 3,000 828,18 2 484,55 без акциза 10% 248,45 2 733,00\n2 Панировка учебная 796 шт 4,000 233,64 934,55 без акциза 10% 93,45 1 028,00\nВсего к оплате (9) 3419.10 341.90 3761,00',
    'Страница 2 из 2\nВСЕГО ПЕРЕДАНО 3 761,00\nАкт приёма-передачи'
@@ -43,6 +49,7 @@ const {chromium}=require('/tmp/supply-qa/node_modules/playwright');
   assert.ok(result.status.includes('2 стр.'),result.status);
   assert.ok(result.count>=2,'Recognized item rows remain visible for review');
   assert.ok(!result.saveDisabled,'Reviewed draft may be corrected and saved explicitly');
+  assert.equal(external.length,0,'Multi-photo OCR must not send images to optional external OCR server');
   assert.ok(!exceptions.length,'Browser JS errors: '+exceptions.join('; '));
   console.log('SUPPLY_NATIVE_MULTIPAGE_BROWSER_REVIEW_PASS (synthetic text and image placeholders; NOT real photo OCR)');
  } finally {await browser.close();}
