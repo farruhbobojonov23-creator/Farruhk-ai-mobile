@@ -40,9 +40,37 @@ class MainActivity : Activity() {
         root.addView(ScrollView(this).apply { addView(results) }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
         pick.setOnClickListener {
-            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE); type = "image/*"
-            }, 101)
+            val base = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            var launched = false
+            for (pkg in listOf("com.google.android.documentsui", "com.android.documentsui")) {
+                try {
+                    startActivityForResult(Intent(base).setPackage(pkg), 101)
+                    launched = true
+                    break
+                } catch (_: android.content.ActivityNotFoundException) {}
+                catch (_: SecurityException) {}
+            }
+            if (!launched) {
+                try {
+                    startActivityForResult(base, 101)
+                    launched = true
+                } catch (_: android.content.ActivityNotFoundException) {}
+                catch (_: SecurityException) {}
+            }
+            status.text = if (launched) "Выбор файла накладной…" else "Не удалось открыть системный выбор файлов."
+        }
+        val qaFile = java.io.File(filesDir, "qa-invoice.png")
+        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 && qaFile.isFile) {
+            val qa = Button(this).apply { text = "Диагностика OCR" }
+            root.addView(qa, 3)
+            qa.setOnClickListener {
+                if (engine == null) status.text = "Сканер ещё загружается."
+                else if (!running) recognize(ImageDecoder.createSource(qaFile))
+            }
         }
         export.setOnClickListener {
             startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -70,8 +98,14 @@ class MainActivity : Activity() {
     @Deprecated("Activity result API for isolated test app")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != RESULT_OK) return
-        val uri = data?.data ?: return
+        if (resultCode != RESULT_OK) {
+            if (requestCode == 101 && !running && engine != null) status.text = "Выбор фотографии отменён. Выбери фото."
+            return
+        }
+        val uri = data?.data ?: run {
+            if (requestCode == 101) status.text = "Фотография не получена. Выбери файл повторно."
+            return
+        }
         if (requestCode == 102) {
             val payload = scan?.toString(2) ?: return
             scope.launch {
@@ -87,13 +121,23 @@ class MainActivity : Activity() {
             return
         }
         if (requestCode != 101 || running) return
+        try {
+            recognize(ImageDecoder.createSource(contentResolver, uri))
+        } catch (e: Exception) {
+            status.text = "Не удалось открыть фото: " + e.message
+        }
+    }
+
+    private fun recognize(source: ImageDecoder.Source) {
+        if (running) return
         val ocr = engine ?: return
+        android.util.Log.i("FarukhOffline", "OCR_INPUT_RECEIVED")
         running = true; pick.isEnabled = false; export.isEnabled = false; scan = null
         status.text = "Распознавание на устройстве…"; results.text = ""
         scope.launch {
             try {
                 val bmp = withContext(Dispatchers.IO) {
-                    ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri)) { decoder, info, _ ->
+                    ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
                         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                         val w = info.size.width; val h = info.size.height
                         val ratio = minOf(1.0, 3200.0 / maxOf(w, h))
@@ -101,7 +145,9 @@ class MainActivity : Activity() {
                     }
                 }
                 val width = bmp.width; val height = bmp.height
+                android.util.Log.i("FarukhOffline", "OCR_IMAGE_DECODED ${width}x${height}")
                 val res = try { ocr.recognize(bmp) } finally { bmp.recycle() }
+                android.util.Log.i("FarukhOffline", "OCR_INFERENCE_COMPLETE blocks=${res.results.size} ms=${res.totalTimeMs}")
                 val regions = JSONArray()
                 res.results.forEach { item ->
                     val box = JSONArray()
