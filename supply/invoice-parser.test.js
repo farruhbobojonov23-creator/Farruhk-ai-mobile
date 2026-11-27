@@ -516,3 +516,15 @@ test('Android ordinary photo OCR feeds vendor parser instead of only JSON import
  const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');
  a.ok(app.includes("parsePhoto(text||'',spatialJson)"));
 });
+
+test('photo OCR packaging prefix is separated from ingredient name and flagged',()=>{
+ const text='Продавец: ООО «ШАНХАЙ-ТОРГ»\n100пар/уп, 1/50, упак Майонез Профи Печагин 78% 10 л (9,3 кг) шт 10 78,00 780,00';
+ const r=vendorApi.parsePhoto(text,'[]');
+ a.equal(r.items.length,1);
+ a.equal(r.items[0].name.startsWith('Майонез Профи Печагин'),true);
+ a.equal(r.items[0].ocrOriginalName.includes('100пар/уп'),true);
+ a.equal(r.items[0].nameNeedsReview,true);
+ a.equal(r.documentVerified,false);
+ a.equal(r.items[0].quantity,10);
+ a.equal(r.items[0].invoiceTotal,780);
+});
