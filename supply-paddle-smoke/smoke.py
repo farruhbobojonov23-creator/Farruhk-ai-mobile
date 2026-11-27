@@ -6,10 +6,26 @@ ocr=None
 MAX_BYTES=4*1024*1024
 def rss():
     return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024,1)
+def clean_grid(img):
+    import cv2, numpy as np
+    a=np.array(img)
+    gray=cv2.cvtColor(a,cv2.COLOR_RGB2GRAY)
+    ink=cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)[1]
+    h,w=gray.shape
+    horizontal=cv2.morphologyEx(ink,cv2.MORPH_OPEN,cv2.getStructuringElement(cv2.MORPH_RECT,(max(45,w//7),1)))
+    vertical=cv2.morphologyEx(ink,cv2.MORPH_OPEN,cv2.getStructuringElement(cv2.MORPH_RECT,(1,max(45,h//5))))
+    grid=cv2.bitwise_or(horizontal,vertical)
+    return cv2.inpaint(a,grid,2,cv2.INPAINT_TELEA)
+def memory_cgroup():
+    out={}
+    for key in ("current","peak","max"):
+        try:
+            with open("/sys/fs/cgroup/memory."+key) as f: out[key+"_mb"]=round(int(f.read().strip())/1048576,1)
+        except (OSError,ValueError): pass
+    return out
 def recognize(img):
-    import numpy as np
     rows=[]
-    for result in ocr.predict(np.array(img)):
+    for result in ocr.predict(clean_grid(img)):
         d=result.json
         d=d.get("res",d)
         texts=d.get("rec_texts",[])
@@ -25,7 +41,7 @@ def test():
         from PIL import Image, ImageDraw, ImageFont
         from paddleocr import PaddleOCR
         state["status"]="loading models"
-        ocr=PaddleOCR(text_detection_model_name="PP-OCRv5_mobile_det",text_recognition_model_name="eslav_PP-OCRv5_mobile_rec",use_doc_orientation_classify=False,use_doc_unwarping=False,use_textline_orientation=False,device="cpu",enable_mkldnn=False,cpu_threads=1,text_det_limit_side_len=1600,text_det_limit_type="max",text_recognition_batch_size=1)
+        ocr=PaddleOCR(text_detection_model_name="PP-OCRv5_mobile_det",text_recognition_model_name="eslav_PP-OCRv5_mobile_rec",use_doc_orientation_classify=False,use_doc_unwarping=False,use_textline_orientation=False,device="cpu",enable_mkldnn=False,cpu_threads=1,text_det_limit_side_len=960,text_det_limit_type="max",text_recognition_batch_size=1)
         state["status"]="recognizing"
         img=Image.new("RGB",(1100,400),"white")
         draw=ImageDraw.Draw(img)
@@ -36,10 +52,19 @@ def test():
         for y,values in [(90,("Товар","Кол-во","Цена","Сумма")),(155,("Рис","5 кг","250.00","1250.00")),(220,("Васаби","40 шт","6.50","260.00")),(285,("Итого","","","1510.00"))]:
             for x,t in zip((20,380,580,800),values): draw.text((x,y),t,font=font,fill="black")
         with lock: rows=recognize(img)
-        joined=" ".join(r["text"] for r in rows).lower().replace(",",".")
-        expected=("123","рис","васаби","1250","260","1510","6.50")
-        missing=[x for x in expected if x not in joined]
-        state.update(status="passed" if not missing else "recognition mismatch",missing=missing,rows=rows,seconds=round(time.monotonic()-start,1),peak_rss_mb=rss())
+        expected=[("Тестовая накладная 123",(0,0,1100,75)),("Рис",(10,140,370,205)),("5 кг",(370,140,570,205)),("250.00",(570,140,790,205)),("1250.00",(790,140,1100,205)),("Васаби",(10,205,370,270)),("40 шт",(370,205,570,270)),("6.50",(570,205,790,270)),("260.00",(790,205,1100,270)),("1510.00",(790,270,1100,335))]
+        checks=[]
+        for target,(x1,y1,x2,y2) in expected:
+            observed=[]
+            for row in rows:
+                if not row["box"]: continue
+                a,b,c,d=row["box"]
+                if x1<=(a+c)/2<x2 and y1<=(b+d)/2<y2: observed.append(row["text"])
+            actual=" ".join(observed)
+            ok=actual.casefold().replace(",",".").strip()==target.casefold()
+            checks.append({"expected":target,"actual":actual,"pass":ok})
+        missing=[x for x in checks if not x["pass"]]
+        state.update(status="passed" if not missing else "recognition mismatch",checks=checks,matched=len(checks)-len(missing),total=len(checks),rows=rows,seconds=round(time.monotonic()-start,1),peak_rss_mb=rss(),cgroup=memory_cgroup())
         print("TABLE_SMOKE",json.dumps(state,ensure_ascii=False),flush=True)
     except Exception as e:
         ocr=None
@@ -77,7 +102,7 @@ class Handler(BaseHTTPRequestHandler):
                 with Image.open(io.BytesIO(self.rfile.read(n))) as source:
                     if source.format not in ("JPEG","PNG"): raise ValueError("format")
                     img=ImageOps.exif_transpose(source).convert("RGB")
-            img.thumbnail((2200,2200))
+            img.thumbnail((1800,1800))
             rows=recognize(img)
             self.respond(200,{"rows":rows,"width":img.width,"height":img.height,"seconds":round(time.monotonic()-start,1),"peak_rss_mb":rss(),"verified":False})
             print("OCR_REQUEST completed",flush=True)
