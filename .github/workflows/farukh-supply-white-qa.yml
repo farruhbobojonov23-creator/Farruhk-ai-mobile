@@ -4,6 +4,7 @@ on:
     branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'fix/supply-unseen-products-v71', 'fix/supply-web-ocr-v74', 'fix/supply-table-core-v75', 'fix/supply-restore-v47-flow-v76', 'experiment/supply-local-vision-benchmark', 'experiment/supply-smart-simple-v78']
     paths:
       - '.github/workflows/farukh-supply-white-qa.yml'
+      - '.github/workflows/farukh-supply-white-test.yml'
       - 'supply-android/app/src/main/assets/**'
       - 'supply/**'
 permissions:

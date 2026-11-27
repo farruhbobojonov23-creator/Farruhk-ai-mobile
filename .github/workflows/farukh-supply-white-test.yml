@@ -228,7 +228,7 @@ jobs:
           cmp "$out/update.json" "$out/verified-manifest.json"
           echo "Published and verified native upgrade $code with embedded web revision $revision."
 
-      - name: Publish approved spatial OCR Android 15 upgrade
+      - name: Publish approved compact Android 18 upgrade
         if: github.ref == 'refs/heads/feature/farukh-supply-premium-pro'
         shell: bash
         env:
@@ -241,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
-          test "$code" = 15 || { echo "No approved native upgrade"; exit 0; }
+          test "$code" = 18 || { echo "No approved native upgrade"; exit 0; }
           latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)
           test "$latest" = "$GITHUB_SHA" || { echo "Superseded native build"; exit 0; }
           # Require successful mobile UI QA for this exact commit before publishing.
@@ -259,7 +259,7 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
           old=$(jq -er .versionCode "$out/previous.json")
           if [ "$old" -ge "$code" ]; then echo "Native upgrade already published"; exit 0; fi
-          test "$old" = 14
+          test "$old" = 15
           test "$(jq -er .package "$out/previous.json")" = ai.farukh.supply
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/previous-web.json"
           jq -er .payload "$out/previous-web.json" | base64 -d > "$out/previous-payload.json"
@@ -273,7 +273,12 @@ jobs:
           cert=$("$signer" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
           test "$cert" = "$(jq -er .cert "$out/previous.json")"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$out/$apk" > "$out/badging.txt"
-          grep -F "package: name='ai.farukh.supply' versionCode='15'" "$out/badging.txt"
+          grep -F "package: name='ai.farukh.supply' versionCode='18'" "$out/badging.txt"
+          # Reject oversized or incorrect ABI packages before changing live release.
+          size=$(wc -c < "$out/$apk")
+          echo "Signed APK size: $size bytes"
+          test "$size" -ge 30000000 && test "$size" -le 60000000
+          grep -F "native-code: 'arm64-v8a'" "$out/badging.txt"
           hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
           jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/update.json"
           if [ -n "$SIGNING_BUNDLE" ]; then
