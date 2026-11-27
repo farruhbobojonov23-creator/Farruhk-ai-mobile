@@ -458,12 +458,20 @@ function lineSummary(l){
  if(m.basis==='шт'){if(m.totalPieces!=null&&l.unit!=='шт')parts.push('Всего '+fmt(m.totalPieces)+' шт');if(m.pricePerPiece!=null)parts.push(rub(m.pricePerPiece)+'/шт');}if(l.invoiceWeightKg&&(!m.totalKg||Math.abs(l.invoiceWeightKg-m.totalKg)>.000001))parts.push('Вес по накладной '+fmt(l.invoiceWeightKg)+' кг');if(m.totalPrice!==null)parts.push('Сумма '+rub(m.totalPrice));
  return parts.join(' · ');
 }
+function cleanInvoiceName(name){
+ return String(name||'').replace(/\s*\/\s*(?:кг|г|л|мл|шт|уп|кор)(?:\s*\((?:с|без)\s+НДС\))?\s*$/i,'')
+ .replace(/\s*\((?:с|без)\s+НДС\)\s*$/i,'').replace(/\s+/g,' ').trim();
+}
 function addLine(data={}){
  data=grossRow(data);
+ data={...data,name:cleanInvoiceName(data.name)};
  const f=node('div',null,'line');if(data.ocrOriginalName){f.dataset.ocrOriginalName=data.ocrOriginalName;if(data.ocrOriginalArticle)f.dataset.ocrOriginalArticle=data.ocrOriginalArticle;}if(data.uncertain)f.classList.add('uncertain');if(data.article)f.dataset.article=String(data.article);if(data.pageKey)f.dataset.pageKey=data.pageKey;if(data.sourceRow)f.dataset.sourceRow=String(data.sourceRow);if(numeric(data.invoiceWeightKg))f.dataset.invoiceWeightKg=String(data.invoiceWeightKg);if(numeric(data.invoiceTotal))f.dataset.invoiceTotal=String(numeric(data.invoiceTotal));if(numeric(data.netPrice))f.dataset.netPrice=String(data.netPrice);
  function field(key,title,value,placeholder){const wrap=node('label',title),i=node('input');i.dataset.field=key;i.placeholder=placeholder||'';i.value=value==null?'':String(value);if(key!=='name')i.inputMode='decimal';i.setAttribute('aria-label',title);wrap.append(i);return {wrap,i}}
  const a=field('name','Название товара',data.name,'Название товара'),p=field('price','Цена за уп., ₽',data.price,'0,00'),q=field('quantity','Количество',data.quantity,'—'),w=field('packKg','Фасовка, кг',data.packKg??data.packL,'—');
  a.i.value=data.name||'';a.i.required=p.i.required=true;
+ const fullName=node('small','','full-product-name');a.wrap.append(fullName);
+ const showFullName=()=>{fullName.textContent=a.i.value.length>43?a.i.value:'';a.i.title=a.i.value;};
+ a.i.addEventListener('input',showFullName);showFullName();
  const measure=node('select');measure.dataset.field='packMeasure';measure.setAttribute('aria-label','Единица фасовки');for(const k of ['кг','л']){const o=node('option',k);o.value=k;measure.append(o)}measure.value=data.packL&&!data.packKg?'л':'кг';const packControls=node('div',null,'qty-controls');packControls.append(w.i,measure);w.wrap.append(packControls);w.wrap.firstChild.nodeValue='Фасовка';
  const u=node('select');u.dataset.field='unit';u.setAttribute('aria-label','Единица накладной');
  for(const k of ['','шт','уп','кор','кг','г','л','мл']){const o=node('option',k||'Не указана');o.value=k;u.append(o)}u.value=data.unit||((data.name||'').match(/\s*\/\s*(кг|г|л|мл|шт|уп|кор)(?:\s+\(без НДС\))?$/i)?.[1]||'');
@@ -647,8 +655,10 @@ function showInvoiceIntegrity(){
  const el=$('invoiceCheck');if(!el)return;
  const rows=[...$('lines').children].map(lineData);const result=invoiceIntegrity(rows,pages,pendingPhoto?photoPassTexts.join('\n---\n'):'',$('documentDate').value);
  const summary=$('simpleTotal');if(summary){const priced=rows.filter(l=>l.name&&l.quantity>0&&l.price>0);const total=priced.reduce((sum,l)=>sum+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;summary.textContent=priced.length?'Товаров: '+priced.length+' · Итого: '+rub(total):'Итого: —';}
- const direct=pages.filter(p=>p.smartSimple&&p.expectedTotal!=null);const mismatch=direct.some(p=>Math.abs(rows.filter(l=>l.pageKey===p.key).reduce((sum,l)=>sum+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100-p.expectedTotal)>.01);
- const msg=mismatch?'Итог товаров не совпадает с накладной.':result.message||(direct.length?'✓ Итог товаров совпадает с накладной.':'');el.textContent=msg;el.className=msg?(mismatch||result.error?'up':result.verified||direct.length?'down':'warn'):'hide';
+ const direct=pages.filter(p=>(p.smartSimple||p.balancedInvoice)&&p.expectedTotal!=null);const mismatch=direct.some(p=>Math.abs(rows.filter(l=>l.pageKey===p.key).reduce((sum,l)=>sum+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100-p.expectedTotal)>.01);
+ const corrected=pages.some(p=>p.quantityCorrections>0);
+ const msg=mismatch?'Итог товаров не совпадает с накладной.':corrected?'✓ Сумма строк совпадает. ⚠ Количество восстановлено расчётом — проверьте по фото.':result.message||(direct.length?'✓ Итог товаров совпадает с накладной.':'');
+ el.textContent=msg;el.className=msg?(mismatch||result.error?'up':corrected?'warn':result.verified||direct.length?'down':'warn'):'hide';
 }
 function pageMeta(r,raw){
  const text=String(raw||'');
@@ -687,7 +697,7 @@ function acceptPage(r,raw){
  if(meta.documentNumber&&!$('documentNumber').value)$('documentNumber').value=meta.documentNumber.toUpperCase();
  if(meta.documentDate&&!$('documentDate').value)$('documentDate').value=meta.documentDate;
  for(const [i,l] of r.items.entries())addLine({...l,ocrOriginalName:l.name,ocrOriginalArticle:l.article||undefined,pageKey:key,sourceRow:r.smartSimple&&r.documentVerified?String(i+1):l.article?(l.sourceRow||(r.documentVerified?String(i+1):undefined)):undefined});
- const record={...meta,key,file,identity,fingerprint,smartSimple:!!r.smartSimple,expectedTotal:r.documentVerified&&r.items.every(l=>numeric(l.invoiceTotal))?r.items.reduce((s,l)=>s+Math.round(l.invoiceTotal*100),0)/100:null,reviewRequired:!r.documentVerified&&!r.pageVerified};
+ const record={...meta,key,file,identity,fingerprint,balancedInvoice:!!r.balancedInvoice,quantityCorrections:r.quantityCorrections||0,smartSimple:!!r.smartSimple,expectedTotal:(r.documentVerified||r.balancedInvoice)&&r.items.every(l=>numeric(l.invoiceTotal))?r.items.reduce((s,l)=>s+Math.round(l.invoiceTotal*100),0)/100:null,reviewRequired:!r.documentVerified&&!r.pageVerified};
  if(previous)pages=pages.map(p=>p.key===key?record:p);else pages.push(record);
  activePage=key;pendingPhoto=null;pageStatus();showInvoiceIntegrity();return true;
 }
@@ -981,7 +991,7 @@ window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
- return (r.documentVerified?1000000:r.pageVerified?500000:0)+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
+ return (r.documentVerified?1000000:r.balancedInvoice?750000:r.pageVerified?500000:0)+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
 }
 function needsPack(x){const p=window.supplyInvoiceParser;return packUnits.includes(x.unit)&&!x.packKg&&!x.packL&&!p.packWeight(x.name)&&!p.packVolume(x.name)&&(!!x.invoiceWeightKg||p.purchaseMetrics(x).basis!=='шт'||/майонез|запекания с массовой долей|сыр(?:\s|$)|сливки|масло(?:\s|$)|рис(?:\s|$)|мука|форель|лосось|креветк/i.test(x.name));}
 function scanFieldsComplete(r){return !!r.supplier&&r.items.length>0&&r.items.every(x=>x.price!=null&&x.quantity!=null&&x.unit)}
@@ -997,10 +1007,15 @@ function scanNextPass(pass,current,complete,evidence){
  const verified=evidence.filter(x=>x.documentVerified&&scanFieldsComplete(x));
  const agree=verified.length>0&&verified.every(x=>!scanConflicts(x,verified[0])&&x.items.length===verified[0].items.length&&pageFingerprint(x.items)===pageFingerprint(verified[0].items));
  if(agree)return null;
+ // Do not repeat expensive OCR solely for absent packaging on a VAT-balanced UPD.
+ if(current.balancedInvoice&&scanFieldsComplete(current)&&!evidence.some(x=>x!==current&&x.documentVerified&&scanConflicts(current,x)))return null;
+ const footer=updEvidence(photoPassTexts.join('\n---\n')).printedTotal;
+ const gross=current.items.reduce((s,x)=>s+Math.round((Number(x.invoiceTotal)||0)*100),0)/100;
+ const footerMismatch=footer!=null&&Math.abs(footer-gross)>.01;
  if(evidence.some(x=>supplierKey(x.supplier)==='ооо марр руссия'))return pass===0?'paddle-scan':'rescan';
  // Re-use the existing on-device Paddle route before the costly focused Tesseract retry.
- if(pass===0)return complete&&!evidence.some(x=>scanConflicts(x,current))?null:'paddle-scan';
- if(complete&&!evidence.some(x=>scanConflicts(x,current)))return null;
+ if(pass===0)return complete&&!footerMismatch&&!evidence.some(x=>scanConflicts(x,current))?null:'paddle-scan';
+ if(complete&&!footerMismatch&&!evidence.some(x=>scanConflicts(x,current)))return null;
  return 'rescan';
 }
 
@@ -1114,7 +1129,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   // A missing pack weight alone is not a reason to scan a reconciled invoice again.
   // Preserve the original amount and request an explicit pack weight if unknown.
-  const complete=scanFieldsComplete(current)&&!current.items.some(x=>needsPack(x)&&!knownPack(x,current.supplier||photoSupplier)&&!knownPack(x,current.supplier||photoSupplier,docs,'packL'));
+  const complete=scanFieldsComplete(current); // Missing pack is a review warning, not a reason for OCR retry.
   const rescored=scanCandidates.length===1&&complete&&current.documentVerified&&current.supplier
    ? [] : (scanPass>0||!complete?window.supplyInvoiceParser.parseSamePhotoPasses(photoPassTexts):[]);
   const evidence=[...scanCandidates.map(x=>x.r),...rescored];
@@ -1133,7 +1148,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(r.items.length&&r.items.some(x=>x.price!=null)){try{if(!acceptPage(r,diagnostic))return;}catch(err){$('ocrState').textContent=err.message;scanDiagnostic(diagnostic);return;}}
   else if(!pages.length){if(r.supplier)$('supplier').value=r.supplier;const header=invoiceHeader(diagnostic);if(header.documentNumber&&!$('documentNumber').value)$('documentNumber').value=header.documentNumber.toUpperCase();if(header.documentDate&&!$('documentDate').value)$('documentDate').value=header.documentDate;if(r.items.length){$('lines').replaceChildren();for(const l of r.items)addLine(l)}}
   dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
-  $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. Откройте «Распознанный текст» для диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
+  $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.balancedInvoice&&priced===r.items.length?'Арифметика строк совпадает: '+priced+' из '+r.items.length+' · '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Проверьте количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. Откройте «Распознанный текст» для диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
   if(r.quantityCorrections)$('ocrState').textContent+=' ⚠ В '+r.quantityCorrections+' строках количество восстановлено по сумме и цене. Проверьте с накладной.';
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);

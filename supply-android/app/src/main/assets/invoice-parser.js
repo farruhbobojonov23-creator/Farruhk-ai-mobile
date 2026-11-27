@@ -810,7 +810,18 @@ api.lineMetrics=row=>{
 ;(function(root){
 const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
 const prior=api.parseSimple,passes=api.parseSamePhotoPasses,weight=api.packWeight;
-api.packWeight=name=>weight(String(name||'').replace(/(\d)\s*гр\.?(?=$|[\s,;()[\]])/gi,'$1 г'));
+api.packWeight=name=>{
+ const original=String(name||'');
+ const explicit=weight(original.replace(/(\d)\s*гр\.?(?=$|[\s,;()[\]])/gi,'$1 г'));
+ if(explicit!=null)return explicit;
+ // Noodle suppliers sometimes omit 'кг' in 'Лапша "Удон"0,3'.
+ const product=original.replace(/\s*\/\s*(?:кг|г|л|мл|шт|уп|кор)(?:\s*\((?:с|без)\s+НДС\))?\s*$/i,'').trim();
+ const m=product.match(/0[,.]([1-9]\d?)\s*$/);
+ if(m&&/(?:^|[^а-яё])(?:лапша|удон|соба)(?=$|[^а-яё])/i.test(product)&&
+ !/\d+\s*(?:кг|г|л|мл)/i.test(product)&&
+ !/\d+\s*(?:x|х|×|\*)\s*\d+/i.test(product))return Number('0.'+m[1]);
+ return null;
+};
 
 const isAct=s=>/(?:акт|akt)\s+при[её]ма\s*[-–]\s*передачи\s+по\s+упд/i.test(s);
 const clean=s=>String(s||'').replace(/[|│]/g,' ').replace(/\s+/g,' ').trim();

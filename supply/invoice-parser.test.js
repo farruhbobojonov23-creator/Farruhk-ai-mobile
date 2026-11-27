@@ -243,3 +243,15 @@ test('damaged OCR rescue rejects mismatched footer, VAT, OKEI and supplier',()=>
   virgoUserAndroidOCR.replace('11 727,27','11 727,37')
  ])a.notEqual(browserParser.parseSimple(broken).fragmentedOcrRecovered,true);
 });
+
+// Regression for shorthand packaging and independent piece price basis.
+test('SUPPLY OTA: UDON 0,3 kg without invented seafood packaging',()=>{
+ const fs=require('node:fs'),vm=require('node:vm');
+ const code=fs.readFileSync(require.resolve('../supply-android/app/src/main/assets/invoice-parser.js'),'utf8');
+ const context={module:{exports:{}}};vm.runInNewContext(code,context,{filename:'invoice-parser.js'});
+ const p=context.module.exports;
+ a.equal(p.packWeight('Лапша "Удон"0,3 / шт (без НДС)'),0.3);
+ a.equal(p.packWeight('Лапша "Удон"0,3 / шт (с НДС)'),0.3);
+ a.equal(p.packWeight('Креветка тигровая 16/20 / шт (без НДС)'),null);
+ a.equal(p.packWeight('Мидии 1/2 рак 30/40 / уп (с НДС)'),null);
+});
