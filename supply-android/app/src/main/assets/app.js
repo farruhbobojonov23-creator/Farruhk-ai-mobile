@@ -1133,7 +1133,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   // already read from the same photo; never fill one from a preset or a previous invoice.
   const continuationSupplier=pages.length&&!invoiceHeader(text).documentNumber?$('supplier').value.trim():'';const earlierSuppliers=[...new Set([photoSupplier,continuationSupplier,...scanCandidates.map(x=>x.r.supplier)].filter(Boolean))];
   if(!current.supplier&&earlierSuppliers.length===1&&text){
-   const contextual=window.supplyInvoiceParser.parseSimple('Поставщик: '+earlierSuppliers[0]+'\n'+text);
+   const contextual=window.supplyInvoiceParser.parsePhoto('Поставщик: '+earlierSuppliers[0]+'\n'+text,spatialJson);
    if(scanScore(contextual)>scanScore(current))current=contextual;
   }
   if(current.supplier&&!photoSupplier)photoSupplier=current.supplier;
