@@ -15,12 +15,12 @@ const {chromium}=require('/tmp/supply-qa/node_modules/playwright');
    {name:'synthetic-page-2.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5EAX0AAAAASUVORK5CYII=','base64')}
   ]);
   const raw=[
-   'Счет-фактура № 123 от 09 ноября 2026 г.\\nПоставщик: ООО «Тестовый поставщик»\\nНаименование товара Стоимость товаров\\n1 Сыр учебный 778 упак 3,000 828,18 2 484,55 без акциза 10% 248,45 2 733,00\\n2 Панировка учебная 796 шт 4,000 233,64 934,55 без акциза 10% 93,45 1 028,00\\nВсего к оплате (9) 3419.10 341.90 3761,00',
-   'Страница 2 из 2\\nВСЕГО ПЕРЕДАНО 3 761,00\\nАкт приёма-передачи'
+   'Счет-фактура № 123 от 09 ноября 2026 г.\nПоставщик: ООО «Тестовый поставщик»\nНаименование товара Стоимость товаров\n1 Сыр учебный 778 упак 3,000 828,18 2 484,55 без акциза 10% 248,45 2 733,00\n2 Панировка учебная 796 шт 4,000 233,64 934,55 без акциза 10% 93,45 1 028,00\nВсего к оплате (9) 3419.10 341.90 3761,00',
+   'Страница 2 из 2\nВСЕГО ПЕРЕДАНО 3 761,00\nАкт приёма-передачи'
   ];
   const result=await page.evaluate(raw=>{
    window.supplyOcrStart(9001);
-   window.supplyOcrFinish(9001,'FARUKH_PDF_PAGES_V1\\n'+JSON.stringify(raw),'','[]');
+   window.supplyOcrFinish(9001,'FARUKH_PDF_PAGES_V1\n'+JSON.stringify(raw),'','[]');
    return {
     status:document.querySelector('#ocrState').textContent,
     count:document.querySelector('#lines').children.length,
