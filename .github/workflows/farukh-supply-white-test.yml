@@ -2,7 +2,7 @@ name: FARUKH SUPPLY White Premium test APK
 # Signed candidate for Android v19; preserve production signature and installed app data.
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core', 'release/supply-multipage-v19']
+    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core', 'release/supply-multipage-v19', 'fix/supply-photo-picker-v20']
     paths:
       # Web-only updates are signed and published by farukh-supply-white-qa.yml.
       # Keep the native OCR APK/version unchanged for these changes.
@@ -115,6 +115,7 @@ jobs:
           script: |
             gradle -p upstream-paddle/deploy/ppocr-android :ppocr-sdk:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.paddle.ocr.benchmark.SupplyInvoiceSmokeTest --no-daemon
             gradle -p supply-android :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ai.farukh.supply.InvoiceOrientationTest --no-daemon
+            gradle -p supply-android :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ai.farukh.supply.SupplyPhotoPickerTest --no-daemon
       - name: Build signed test APK if signing is configured
         shell: bash
         env:
