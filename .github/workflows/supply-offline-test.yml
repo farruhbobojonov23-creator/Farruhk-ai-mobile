@@ -1,0 +1,26 @@
+name: Supply offline OCR test build
+on:
+  push:
+    branches: [test/supply-offline-ocr]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - run: node supply-offline/ocr-draft-parser.test.js
+      - run: bash supply-offline/build-android-test.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-SUPPLY-OFFLINE-TEST
+          path: supply-offline/build-output/*.apk
+          if-no-files-found: error
