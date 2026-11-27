@@ -1,4 +1,5 @@
 'use strict';
+// v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
 // Experimental offline spatial table extraction. Column and row boundaries must be verified by the native layout detector. Prices and totals must use the same tax basis. Never infer missing cells.
