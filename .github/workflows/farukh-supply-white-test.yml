@@ -1,4 +1,5 @@
 name: FARUKH SUPPLY White Premium test APK
+# v20 photo-picker candidate: test original package ID and multi-select ClipData on Android.
 # Signed candidate for Android v19; preserve production signature and installed app data.
 on:
   push:
