@@ -1,4 +1,4 @@
-import json, os, threading, time, io, hmac, resource, warnings, secrets, gc
+import json, os, threading, time, io, hmac, resource, warnings, secrets, gc, hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 state={"status":"starting","test":"synthetic table only"}
 lock=threading.Lock()
@@ -11,6 +11,24 @@ def prune_jobs():
     now=time.monotonic()
     for key in list(jobs):
         if jobs[key].get('finished',now)+600<now: jobs.pop(key,None)
+def benchmark_amounts(payload, rows, width):
+    from collections import Counter
+    from decimal import Decimal, InvalidOperation
+    import re
+    reference=json.loads(os.environ.get("OCR_REFERENCE","{}")).get(hashlib.sha256(payload).hexdigest())
+    if not reference: return {"status":"unknown_photo"}
+    def amount(s):
+        s=re.sub(r"[\s\u00a0\u202f]","",str(s)).replace(",",".")
+        if not re.fullmatch(r"\d+(?:\.\d{1,2})?",s): return None
+        try: return int(Decimal(s)*100)
+        except InvalidOperation: return None
+    seen=Counter(amount(r["text"]) for r in rows if r.get("box") and (r["box"][0]+r["box"][2])/2 >= width*reference.get("min_x",0.66))
+    expected=Counter(amount(a) for a in reference["amounts"])
+    matched=sum((seen & expected).values())
+    total=reference.get("total")
+    result={"status":"numeric_presence_only","sample":reference["id"],"matched_amounts":matched,"expected_amounts":sum(expected.values()),"total_found":None if total is None else seen[amount(total)]>0,"verified":False}
+    print("REAL_BENCHMARK",json.dumps(result),flush=True)
+    return result
 def process_job(key, payload):
     start=time.monotonic()
     try:
@@ -22,9 +40,10 @@ def process_job(key, payload):
                 if source.format not in ('JPEG','PNG'): raise ValueError('format')
                 source.thumbnail((1400,1400))
                 img=ImageOps.exif_transpose(source).convert('RGB')
-        del payload
         rows=recognize_page(img)
-        result={'status':'done','rows':rows,'width':img.width,'height':img.height,'seconds':round(time.monotonic()-start,1),'verified':False,'memory':memory_cgroup()}
+        benchmark=benchmark_amounts(payload,rows,img.width)
+        del payload
+        result={'status':'done','rows':rows,'width':img.width,'height':img.height,'seconds':round(time.monotonic()-start,1),'verified':False,'memory':memory_cgroup(),'benchmark':benchmark}
         del img
         print('OCR_REQUEST completed',json.dumps({'seconds':result['seconds'],'cells':len(rows),'memory':result['memory']}),flush=True)
     except Exception as e:
@@ -244,7 +263,7 @@ el('send').onclick=async()=>{
   result.documents.push(item);show(item);el('progress').value=i+1;
   if(!item.ok){el('out').textContent='Пакет остановлен на файле '+(i+1)+'. Скачайте отчёт; неотправленные файлы сохранены на телефоне.';return}
  }
- el('out').textContent='Обработано '+result.documents.length+' из '+files.length+'. Данные требуют сверки с оригиналами.';
+ el('out').textContent='Обработано '+result.documents.length+' из '+files.length+'. Данные требуют сверки с оригиналами. Для контрольных фото числовая сверка выполняется автоматически.';
  }finally{running=false;health();el('photo').disabled=false;el('token').disabled=false;el('save').disabled=!result.documents.length;}
 };
 el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='farukh-ocr-batch.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
