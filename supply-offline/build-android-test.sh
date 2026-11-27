@@ -23,6 +23,13 @@ cp "$here/android/MainActivity.kt" "$project/app/src/main/java/com/paddle/ocr/de
 python3 - "$project" <<'PY'
 import pathlib,sys
 p=pathlib.Path(sys.argv[1])
+catalog=p/'gradle/libs.versions.toml'
+v=catalog.read_text().replace('opencv = "4.5.3"','opencv = "4.10.0"').replace('group = "com.quickbirdstudios", name = "opencv"','group = "org.opencv", name = "opencv"')
+assert 'group = "org.opencv"' in v and 'opencv = "4.10.0"' in v
+catalog.write_text(v)
+utils=p/'ppocr-sdk/src/main/java/com/paddle/ocr/util/OpenCVUtils.kt'
+s=utils.read_text().replace('Log.e("OpenCVUtils", "Failed to initialize OpenCV: ${e.message}")','throw IllegalStateException("OpenCV native load: ${e.message}", e)')
+utils.write_text(s)
 g=p/'app/build.gradle.kts'
 s=g.read_text().replace('applicationId = "com.paddle.ocr.demo"','applicationId = "ai.farukh.supply.offline.test"').replace('minSdk = 26','minSdk = 28')
 s=s.replace('implementation(project(":ppocr-sdk"))','implementation(project(":ppocr-sdk"))\n    implementation(libs.kotlinx.coroutines.android)')
