@@ -2309,7 +2309,7 @@ function parseShanghaiUpdRaw(raw){
  const printed=[...lines.slice(Math.max(last+1,foot-2),foot+2).flatMap(x=>[...x.matchAll(moneyRx)].map(m=>cents(m[0])))];
  const summed=items.reduce((a,x)=>a+Math.round(x.invoiceTotal*100),0);
  if(!printed.includes(summed)){issues.push('Не совпадает итог документа');return null;}
- return {supplier:'ООО «ШАНХАЙ-ТОРГ»',items,templateId:'shanghai',supplierPhotoGrid:true,
+ return {supplier:'ООО «ШАНХАЙ-ТОРГ»',items,templateId:'shanghai',ocrLayout:'upd-row-anchored',supplierPhotoGrid:true,
   printedTotal:summed/100,documentVerified:true,pageVerified:true,balancedInvoice:true,
   safeToAutoAccept:false,needsReview:true,
   reviewIssues:['Таблица восстановлена из OCR по товарным строкам. Сверьте наименования с фото перед сохранением.']};
