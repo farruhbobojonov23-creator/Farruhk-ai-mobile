@@ -371,7 +371,7 @@ test('signed HTML revision is displayed without reading an outdated APK version 
 
 /* Seven supplier templates: values below represent independent photographed
  * example rows, never catalog defaults used by the application. */
-const vendorApi=require('../supply-android/app/src/main/assets/invoice-parser.js');
+const vendorApi=(()=>{const m={exports:{}};new Function('module','exports',require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/invoice-parser.js'),'utf8'))(m,m.exports);return m.exports;})();
 const vendorHeaders={
  marr:['№','Код','Наименование','Ед. изм.','Мест','Кол-во','Вес кг','Цена','Сумма'],
  upd:['Наименование товара','Код ОКЕИ','Единица измерения','Количество','Цена (тариф) за единицу измерения','Стоимость товаров без налога','Сумма налога','Стоимость товаров с налогом'],
