@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=97; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=98; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -1551,6 +1551,26 @@ function structureImport(raw){
  const key=s=>String(s??'').toLowerCase().replace(/ё/g,'е').replace(/[\s.,:;()]/g,'');
  const number=s=>{const x=String(s??'').trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');return /^\d+(?:\.\d+)?$/.test(x)&&Number.isFinite(+x)&&+x>0?+x:null};
  const unit=s=>({кг:'кг',г:'г',л:'л',мл:'мл',шт:'шт',штука:'шт',штук:'шт',уп:'уп',упак:'уп',упаковка:'уп',кор:'кор',коробка:'кор'})[key(s)]||'';
+
+ // Vendor-specific grid mapping for PP-StructureV3, using printed cells.
+ // A template never carries a fixed count or historical price.
+ if(typeof window!=='undefined'&&window.supplyInvoiceParser?.parseSupplierTable){
+  const parser=window.supplyInvoiceParser,profile=parser.detectSupplierTemplate(entries.map(p=>p.text.join('\n')).join('\n'));
+  if(profile){
+   const mapped=[],warnings=[];
+   for(const page of entries){
+    for(const table of page.tables){
+     let best=null;
+     for(let i=0;i<table.length;i++){
+      const candidate=parser.parseSupplierTable(profile,table[i],table.slice(i+1),{sourcePage:page.page});
+      if(candidate&&(!best||candidate.items.length>best.items.length))best=candidate;
+     }
+     if(best){mapped.push(...best.items);warnings.push(...best.warnings);}
+    }
+   }
+   if(mapped.length)return {items:mapped,warnings:[...new Set(warnings)],text:entries.map(p=>p.text.join('\n')).join('\n---\n')};
+  }
+ }
  const items=[],warnings=[];let missing=0;
  for(const p of entries){
   let recognized=0;

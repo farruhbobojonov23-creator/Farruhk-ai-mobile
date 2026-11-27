@@ -366,3 +366,104 @@ test('signed HTML revision is displayed without reading an outdated APK version 
  a.ok(html.includes('id="supplyWebNumber">'+ver+'</span>'));
  a.ok(!app.includes("fetch('web-version.txt'"));
 });
+
+
+
+/* Seven supplier templates: values below represent independent photographed
+ * example rows, never catalog defaults used by the application. */
+const vendorApi=require('./invoice-parser.js');
+const vendorHeaders={
+ marr:['№','Код','Наименование','Ед. изм.','Мест','Кол-во','Вес кг','Цена','Сумма'],
+ upd:['Наименование товара','Код ОКЕИ','Единица измерения','Количество','Цена (тариф) за единицу измерения','Стоимость товаров без налога','Сумма налога','Стоимость товаров с налогом'],
+ simple:['Наименование товара','Единица измерения','Количество','Цена с НДС','Стоимость с НДС']
+};
+test('all seven supplier layouts registered; missing supplier never guessed',()=>{
+ const p=vendorApi.supplierTemplates;
+ a.equal(p.length,7);
+ a.deepEqual(p.map(x=>x.id),['chistyakova','virgo','vesta','vostok_zapad','marr','shanghai','alidi']);
+ for(const x of p)a.equal(vendorApi.detectSupplierTemplate('Продавец: '+x.name+'\nНакладная № 12'),x);
+ a.equal(vendorApi.detectSupplierTemplate('Покупатель: ИП Мамедова'),null);
+});
+test('MARR 11 independent positions, including two separate shrimp lines',()=>{
+ const raw=[
+ ['1','0945053074','Масаго красная Путина 500 г','упак','','12','6,000','594,34','7132,08'],
+ ['2','0945053071','Масаго оранжевая Путина 500 г','упак','','6','3,000','594,34','3566,04'],
+ ['3','2520140121','Картофель фри Expert We Fry 2,5 кг','шт','','1','2,570','660,38','660,38'],
+ ['4','0903309716','Креветки Vannamei 16/20 1 кг','упак','','2','2,000','1183,96','2367,92'],
+ ['5','0903309716','Креветки Vannamei 16/20 1 кг','упак','','18','18,000','1183,96','21311,28'],
+ ['7','4166000120','Мороженое Contadino 1 кг','шт','','2','2,000','281,13','562,26'],
+ ['6','2934502625','Лук жареный Планета вкуса 1 кг','шт','','2','2,000','712,26','1424,52'],
+ ['10','12401000','Редька маринованная 500 г','упак','','6','3,000','141,51','849,06'],
+ ['11','2934401710','Чеснок Kotanyi 860 г','шт','','1','0,860','1610,38','1610,38'],
+ ['8','1420050355','Моцарелла Le Plaisir 1 кг','шт','','2','2,000','440,57','881,14'],
+ ['9','1420043011','Пармезан Parmesan Primo 1 кг','шт','','2','2,000','830,19','1660,38']
+ ];
+ const r=vendorApi.parseSupplierTable('marr',vendorHeaders.marr,raw,{printedTotal:'42025,44'});
+ a.equal(r.items.length,11);a.equal(r.documentVerified,true);
+ a.equal(r.items.reduce((s,x)=>s+x.invoiceWeightKg,0).toFixed(3),'43.430');
+ a.equal(r.items.reduce((s,x)=>s+x.quantity,0),54);
+ a.equal(r.items.filter(x=>x.article==='0903309716').length,2);
+ const smaller=vendorApi.parseSupplierTable('marr',vendorHeaders.marr,[raw[2]],{printedTotal:'660,38'});
+ a.equal(smaller.items.length,1);a.equal(smaller.documentVerified,true);
+});
+test('Chistyakova UPD distinguishes 2 rows and gross prices, not net VAT price',()=>{
+ const rows=[
+ ['Сыр плавленый Бистро Чеддер 1,107 кг','778','упак','2,000','828,18','1656,36','165,64','1822,00'],
+ ['Творожный сыр Креметте 10 кг','796','шт','2,000','4237,28','8474,55','847,45','9322,00']
+ ];
+ const r=vendorApi.parseSupplierTable('chistyakova',vendorHeaders.upd,rows,{printedTotal:'11144,00'});
+ a.equal(r.items.length,2);a.equal(r.items[1].unit,'шт');
+ a.equal(r.items[1].price,4661);a.equal(r.documentVerified,true);
+ const invalid=[...rows[1]];invalid[6]='800,00';
+ a.equal(vendorApi.parseSupplierTable('chistyakova',vendorHeaders.upd,[invalid]),null);
+});
+test('VIRGO and VESTA UPD preserve different line counts',()=>{
+ const h=['Наименование товара','Код ОКЕИ','Единица измерения','Количество','Стоимость товаров с налогом'];
+ const virgo=vendorApi.parseSupplierTable('virgo',h,[
+  ['Рис Лебеди Суши 25 кг','796','шт','3','8100,00'],
+  ['Уксус рисовый 20 л','796','шт','1','1632,00'],
+  ['Лапша Удон','796','шт','10','850,00']
+ ],{printedTotal:'10582,00'});
+ const vesta=vendorApi.parseSupplierTable('vesta',h,[
+  ['Масло VOLFOOD 5л','796','шт','2','1640,00'],
+  ['Майонез Pechagin 10л','796','шт','4','7220,00'],
+  ['Соус чили Tamaki','796','шт','3','1895,67'],
+  ['Соус Терияки Tamaki','796','шт','2','1211,76']
+ ],{printedTotal:'11967,43'});
+ a.equal(virgo.items.length,3);a.equal(virgo.documentVerified,true);
+ a.equal(vesta.items.length,4);a.equal(vesta.documentVerified,true);
+});
+test('EastWest TTN uses quantity kilograms not shipping gross weight',()=>{
+ const h=['Наименование товара','Код','Единица измерения','Количество мест (в ЕИ отгрузки)','Масса брутто','Сумма с НДС'];
+ const r=vendorApi.parseSupplierTable('vostok_zapad',h,[['Форель радужная Trim C','500005219','кг','32,858','36,058','61444,46']],{printedTotal:'61444,46'});
+ a.equal(r.items[0].quantity,32.858);a.equal(r.items[0].price,1870);
+ a.equal(r.items[0].invoiceWeightKg,undefined);a.equal(r.documentVerified,true);
+});
+test('Shanghai gross price and Alidi incomplete multipage do not share rules',()=>{
+ const s=vendorApi.parseSupplierTable('shanghai',vendorHeaders.simple,[
+  ['Сыр Бабушкин Продукт','шт','5','4450,00','22250,00'],
+  ['Кунжут белый','шт','4','355,00','1420,00'],
+  ['Нори KAMINARY','шт','10','800,00','8000,00'],
+  ['Палочки KAMINARY','шт','10','78,00','780,00'],
+  ['Майонез Профи','шт','4','1815,00','7260,00'],
+  ['Крабовые палочки Санта Бремор','шт','36','216,00','7776,00']
+ ],{printedTotal:'47486,00'});
+ const a1=vendorApi.parseSupplierTable('alidi',vendorHeaders.simple,[
+  ['Масаго красная 500 г','шт','8','599,37','4794,96'],
+  ['Масаго оранжевая 500 г','шт','8','599,37','4794,96']
+ ]);
+ a.equal(s.items.length,6);a.equal(s.documentVerified,true);
+ a.equal(a1.items.length,2);a.equal(a1.documentVerified,false);
+});
+test('Conflicting OKEI/unit requires manual review',()=>{
+ const h=['Наименование товара','Код ОКЕИ','Единица измерения','Количество','Сумма с НДС'];
+ const r=vendorApi.parseSupplierTable('virgo',h,[['Творожный сыр','796','кг','2','1822,00']],{printedTotal:'1822,00'});
+ a.equal(r.items[0].unit,'');a.equal(r.documentVerified,false);
+ a.ok(r.warnings.some(x=>x.includes('конфликт')));
+});
+test('Delimited OCR automatically applies vendor layout without fixing assortment',()=>{
+ const text='Продавец: ООО «ВЕСТА»\nНаименование товара | Единица измерения | Количество | Сумма с НДС\nМасло VOLFOOD | шт | 2 | 1640,00\nМайонез Pechagin | шт | 4 | 7220,00\nИтого | | | 8860,00';
+ const r=vendorApi.parseSupplierDelimited(text);
+ a.equal(r.items.length,2);a.equal(r.documentVerified,true);
+ a.equal(vendorApi.parseSimple(text).items.length,2);
+});
