@@ -1842,6 +1842,13 @@ function unitFromEvidence(row){
  const forward=[...source.matchAll(/(?:^|\s)(796|778|990|166|163|112|111)\s+([A-Za-zА-Яа-я.]{1,12})\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)]
   .map(m=>[m[1],m[2]]);
  const reverse=[...source.matchAll(/(?:^|\s)([A-Za-zА-Яа-я.]{1,12})\s+(796|778|990|166|163|112|111)\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)]
+  .filter(m=>{
+   // A packaging fragment "1,8 л 796" is NOT "л" as the invoice unit:
+   // 796 means pieces. Ignore that conflicting reverse token, then require
+   // separate quantity/price/total evidence for the code-only recovery.
+   const token=m[1].replace(/\.$/,'').toLowerCase(),code=codes[m[2]]?.[0];
+   return !(code!==token&&/^(?:кг|г|л|мл)$/.test(token)&&/\d+(?:[,.]\d+)?\s*$/.test(source.slice(0,m.index)));
+  })
   .map(m=>[m[2],m[1]]);
  const matches=[...forward,...reverse];
  if(matches.length){
