@@ -12,13 +12,13 @@ function decimal(s){
 }
 function unit(s){
   s=String(s??'').toLowerCase().trim().replace(/\s|\./g,'');
-  return ({'кг':'кг','kg':'кг','kг':'кг','кg':'кг','шт':'шт','шt':'шт','л':'л','l':'л'})[s]??null;
+  return ({'кг':'кг','kg':'кг','kг':'кг','кg':'кг','шт':'шт','шt':'шт','упак':'шт','уп':'шт','меш':'шт','л':'л','l':'л'})[s]??null;
 }
 function moneyOK(q,p,a){return [q,p,a].every(Number.isFinite)&&q>0&&p>=0&&a>=0&&Math.abs(Math.round(q*p*100)-Math.round(a*100))<=1;}
 function parsePage(regions,template){
   if(!template||!Number.isFinite(template.width)||template.width<=0||!Number.isFinite(template.height)||template.height<=0)throw Error('Image dimensions required');
   const keys=['name','qty','unit','price','amount'];
-  let last=0;for(const k of keys){const v=template.columns?.[k];if(!Array.isArray(v)||v.length!==2||!v.every(Number.isFinite)||v[0]<last||v[1]<=v[0]||v[1]>1)throw Error('Invalid or overlapping columns: '+k);last=v[1];}
+  for(const k of keys){const v=template.columns?.[k];if(!Array.isArray(v)||v.length!==2||!v.every(Number.isFinite)||v[0]<0||v[1]<=v[0]||v[1]>1)throw Error('Invalid column: '+k);} const sorted=keys.slice().sort((a,b)=>template.columns[a][0]-template.columns[b][0]); for(let i=1;i<sorted.length;i++){if(template.columns[sorted[i]][0]<template.columns[sorted[i-1]][1])throw Error('Overlapping columns: '+sorted[i]);}
   const top=template.top??0,bottom=template.bottom??1,tol=template.rowTolerance??0.009;
   if(!(top>=0&&bottom<=1&&top<bottom&&tol>0&&tol<0.05))throw Error('Invalid page bounds');
   const rows=[];const unassigned=[];const ignored=[];
