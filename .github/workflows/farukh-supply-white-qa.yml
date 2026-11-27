@@ -137,6 +137,35 @@ jobs:
             if(scanNextPass(2,plausible,true,[plausible])!==null)throw Error('Bounded retries');
           });
 
+          // Opt-in auto OCR: no network by default, mock private endpoint, fallback unchanged.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate(()=>{
+            if($('structureAuto').checked||localStorage.getItem('supplyStructureEndpoint'))throw Error('OCR must be opt-in');
+            $('structureAuto').checked=true;$('structureEndpoint').value='http://invalid.example/v1/ocr';$('structureToken').value='a'.repeat(32);$('structureAutoSave').click();
+            if(localStorage.getItem('supplyStructureEndpoint'))throw Error('Insecure endpoint accepted');
+            $('structureEndpoint').value='https://ocr-test.example/v1/ocr';$('structureAutoSave').click();
+            if(!localStorage.getItem('supplyStructureEndpoint'))throw Error('Valid opt-in failed');
+          });
+          await page.evaluate(async()=>{
+            const original=window.fetch;
+            try {
+              const file=new File(['fake-image'],'test.jpg',{type:'image/jpeg'});
+              pendingPhoto=file;
+              window.fetch=async(url,opts)=>{
+                if(url!=='https://ocr-test.example/v1/ocr'||opts.headers.Authorization!=='Bearer '+'a'.repeat(32)||opts.body.get('image').size!==file.size)throw Error('Incorrect private request');
+                return {ok:true,text:async()=>JSON.stringify([{file:'invoice.png',page:1,text:['Накладная № 8049 от 09.11.2026','Поставщик: ООО Учебный'],tables:[[['Наименование товара','Ед.','Количество','Цена с НДС','Сумма с НДС'],['Рис','кг','2','100','200'],['Итого','','','','200']]]}])};
+              };
+              const count=docs.length;window.supplyOcrStart(981);await window.supplyOcrFinish(981,'','', '[]');
+              if($('lines').children.length!==1||!$('ocrState').textContent.includes('PP-StructureV3: 1 строк')||docs.length!==count)throw Error('Automatic draft failed: '+$('ocrState').textContent+' '+$('structureWarnings').textContent);
+              reset();
+              pendingPhoto=new File(['fake-image2'],'test2.jpg',{type:'image/jpeg'});
+              window.fetch=async()=>{throw Error('offline')};window.supplyOcrStart(982);await window.supplyOcrFinish(982,'Поставщик: ООО Учебный\nТовар Цена\n1 Рис 110,00','', '[]');
+              if(!$('structureWarnings').textContent.includes('резервный OCR'))throw Error('Missing fallback warning');
+              $('structureAuto').checked=false;$('structureAutoSave').click();if(localStorage.getItem('supplyStructureEndpoint'))throw Error('Opt-out failed');
+            } finally {window.fetch=original;reset();}
+          });
+          await page.locator('nav button[data-go=home]').click();
+
           // PP-StructureV3 beta import: 100 rows; no auto-save or corruption of existing data.
           await page.locator('button[data-go=entry]:visible').first().click();
           await page.evaluate(()=>{

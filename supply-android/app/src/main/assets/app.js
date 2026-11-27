@@ -1410,3 +1410,47 @@ $('structureImportButton').onclick=()=>{
   scanDiagnostic(r.text);
  }catch(e){$('structureWarnings').textContent=e.message||'Не удалось импортировать отчёт';}
 };
+
+// Optional automatic PP-StructureV3 endpoint. Native OCR remains the fallback.
+// No photo is transmitted until the user explicitly enables their private server.
+(function(){
+ const nativeFinish=window.supplyOcrFinish, nativeStart=window.supplyOcrStart;
+ let cfg=null, attempted=null, busy=false;
+ const set=$('structureAutoSave'), url=$('structureEndpoint'), token=$('structureToken'), enabled=$('structureAuto');
+ try{const old=JSON.parse(localStorage.getItem('supplyStructureEndpoint')||'null');if(old){url.value=old.url;token.value=old.token;enabled.checked=true;cfg=old;}}catch{}
+ set.onclick=()=>{
+  try{
+   if(!enabled.checked){cfg=null;localStorage.removeItem('supplyStructureEndpoint');url.value='';token.value='';$('structureWarnings').textContent='Автоматический PP-StructureV3 отключён.';return;}
+   const endpoint=new URL(url.value.trim());
+   if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.search||endpoint.hash||endpoint.pathname!=='/v1/ocr'||token.value.trim().length<32)throw Error('Укажите HTTPS-адрес /v1/ocr и ключ доступа (от 32 символов).');
+   if(!confirm('Фотографии накладных будут автоматически отправляться на указанный вами сервер. Включить?'))return;
+   cfg={url:endpoint.href,token:token.value.trim()};localStorage.setItem('supplyStructureEndpoint',JSON.stringify(cfg));$('structureWarnings').textContent='Автоматический PP-StructureV3 включён.';
+  }catch(e){$('structureWarnings').textContent=e.message;}
+ };
+ window.supplyOcrStart=id=>{nativeStart(id);};
+ window.supplyOcrFinish=async(id,text,error,spatialJson)=>{
+  const file=pendingPhoto||$('file').files[0];
+  if(!cfg||busy||id!==ocrId||!file?.type?.startsWith('image/')||attempted===file||$('entry').classList.contains('hide'))return nativeFinish(id,text,error,spatialJson);
+  attempted=file;busy=true;const settings={...cfg};$('saveNext').disabled=true;
+  const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),180000);
+  $('ocrState').textContent='PP-StructureV3: распознавание таблицы…';
+  try{
+   const body=new FormData();body.append('image',file,'invoice');
+   const response=await fetch(settings.url,{method:'POST',headers:{Authorization:'Bearer '+settings.token},body,signal:controller.signal,redirect:'error',cache:'no-store'});
+   if(!response.ok)throw Error('Сервер OCR: '+response.status);
+   const raw=await response.text();if(raw.length>4000000)throw Error('Слишком большой результат');
+   const r=structureImport(raw);
+   if(id!==ocrId||$('entry').classList.contains('hide')||pendingPhoto!==file)return;
+   // Do not auto-accept incomplete or contradictory monetary rows.
+   if(r.warnings.some(w=>/итог не совпадает|сумма строки не совпадает|не импортировано|не найдены однозначные/i.test(w)))throw Error('Таблица требует сверки');
+   const parsed=window.supplyInvoiceParser.parseSimple(r.text);
+   if(!parsed.supplier)throw Error('Поставщик не распознан');
+   if(!acceptPage({supplier:parsed.supplier,items:r.items,documentVerified:false,pageVerified:false},r.text))throw Error('Страница не принята');
+   scanBusy=false;dirty=true;$('save').disabled=false;$('file').disabled=false;$('retry').classList.remove('hide');stageStartedAt=0;scanStartedAt=0;showScanProgress();
+   $('ocrState').textContent='PP-StructureV3: '+r.items.length+' строк. Сверьте названия, единицы и суммы с оригиналом.';
+   $('structureWarnings').textContent=r.warnings.join('\n');scanDiagnostic(r.text);
+  }catch(e){
+   if(id===ocrId&&!$('entry').classList.contains('hide')){nativeFinish(id,text,error,spatialJson);$('structureWarnings').textContent='PP-StructureV3 недоступен или результат неполный. Использован резервный OCR.';}
+  }finally{clearTimeout(timer);busy=false;$('saveNext').disabled=false;}
+ };
+})();
