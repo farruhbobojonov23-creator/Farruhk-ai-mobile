@@ -23,6 +23,7 @@ jobs:
         run: |
           node supply-offline/ocr-draft-parser.test.js
           node supply-offline/supplier-formats-smoke.test.js
+          node supply-offline/multipage-transfer-act.test.js
           npm install --prefix /tmp/supply-qa --no-save jsdom@26.1.0
           NODE_PATH=/tmp/supply-qa/node_modules node supply-offline/registry-integration.test.js
       - name: Build integrated APK
