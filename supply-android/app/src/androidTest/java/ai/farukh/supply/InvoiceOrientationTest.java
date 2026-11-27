@@ -7,6 +7,30 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class InvoiceOrientationTest {
+ @Test public void startsLauncherAndLoadsHome() throws Exception {
+  android.app.Instrumentation inst=InstrumentationRegistry.getInstrumentation();
+  android.content.Context context=inst.getTargetContext();
+  android.content.Intent intent=new android.content.Intent(context,MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+  android.app.Activity activity=inst.startActivitySync(intent);
+  try {
+   long deadline=android.os.SystemClock.elapsedRealtime()+20000;
+   boolean loaded=false;
+   while(android.os.SystemClock.elapsedRealtime()<deadline&&!loaded){
+    java.util.concurrent.CountDownLatch latch=new java.util.concurrent.CountDownLatch(1);
+    java.util.concurrent.atomic.AtomicReference<String> result=new java.util.concurrent.atomic.AtomicReference<>("");
+    inst.runOnMainSync(()->{
+     android.view.View content=activity.findViewById(android.R.id.content);
+     android.view.View root=((android.view.ViewGroup)content).getChildAt(0);
+     android.webkit.WebView web=(android.webkit.WebView)((android.view.ViewGroup)root).getChildAt(0);
+     web.evaluateJavascript("document.readyState==='complete' && !!document.querySelector('#changes') && document.querySelector('#changes').textContent.includes('Изменения')",value->{result.set(value);latch.countDown();});
+    });
+    loaded=latch.await(2,java.util.concurrent.TimeUnit.SECONDS)&&"true".equals(result.get());
+    if(!loaded)Thread.sleep(250);
+   }
+   assertTrue("Launcher must open and render the home screen",loaded);
+  }finally{inst.runOnMainSync(activity::finish);}
+ }
+
  @Test public void readsAllRotations() throws Exception {
   Bitmap source=Bitmap.createBitmap(1500,900,Bitmap.Config.ARGB_8888);
   Canvas c=new Canvas(source);c.drawColor(Color.WHITE);
