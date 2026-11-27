@@ -698,7 +698,8 @@ jobs:
 
   publish-web:
     needs: mobile-ui
-    if: github.ref == 'refs/heads/feature/farukh-supply-premium-pro'
+    # FARUKH SUPPLY AI retired at owner request; do not publish updates.
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
