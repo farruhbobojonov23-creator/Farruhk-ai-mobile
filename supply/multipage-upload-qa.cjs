@@ -24,7 +24,8 @@ const {chromium}=require('/tmp/supply-qa/node_modules/playwright');
    return {
     status:document.querySelector('#ocrState').textContent,
     count:document.querySelector('#lines').children.length,
-    pages:eval('pages.map(p=>({name:p.file?.name,footerOnly:p.footerOnly,number:p.number,expected:p.expected,review:p.reviewRequired}))'),
+    pages:eval('pages.map(p=>({name:p.file?.name,footerOnly:p.footerOnly,footerTotal:p.footerTotal,number:p.number,expected:p.expected,review:p.reviewRequired}))'),
+    integrity:eval('invoiceIntegrity([...document.querySelectorAll(\'#lines .line\')].map(lineData),pages,\'\',document.querySelector(\'#documentDate\').value)'),
     inputFiles:document.querySelector('#file').files.length,
     supplier:document.querySelector('#supplier').value,
     saveDisabled:document.querySelector('#save').disabled
@@ -35,6 +36,9 @@ const {chromium}=require('/tmp/supply-qa/node_modules/playwright');
   assert.equal(result.pages[0].name,'synthetic-page-1.png');
   assert.equal(result.pages[1].name,'synthetic-page-2.png');
   assert.equal(result.pages[1].footerOnly,true);
+  assert.equal(result.pages[1].footerTotal,3761,'Correctly parse acceptance footer total');
+  assert.equal(result.integrity.error,false,'Correctly balanced acceptance footer');
+  assert.equal(result.integrity.verified,true,'Footer total independently reconciled');
   assert.equal(result.pages[1].review,true,'Footer-only page requires human review');
   assert.ok(result.status.includes('2 стр.'),result.status);
   assert.ok(result.count>=2,'Recognized item rows remain visible for review');
