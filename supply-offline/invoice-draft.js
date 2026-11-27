@@ -77,6 +77,18 @@ function extract(scan,catalog=[]){
  rows.push({name,qty,factor:factor??'',unit:compare,amount,product_key,flags});
  }
  }
+ if(rows.length){
+ const sums=points.filter(p=>/^(итого|всего к оплате|всего по накладной)/i.test(p.text)).flatMap(p=>{
+ const inline=p.text.match(/(?:итого|всего к оплате|всего по накладной)\s*[:=]?\s*([\d\s,.]+)$/i);
+ if(inline){const v=number(inline[1]);if(v!=null)return [v];}
+ const candidates=points.filter(q=>q.x>p.x&&Math.abs(q.y-p.y)<.008&&number(q.text)!=null);
+ return candidates.length===1?[number(candidates[0].text)]:[];
+ });
+ const sum=rows.reduce((n,r)=>n+Math.round(r.amount*100),0);
+ const exact=[...new Set(sums)].filter(v=>Math.abs(Math.round(v*100)-sum)<=1);
+ if(exact.length===1)total=exact[0];
+ else warnings.push('Итог документа не подтверждён распознаванием.');
+ }
  if(!rows.length)warnings.push('Структура таблицы не определена. Автоматически строки не внесены.');
  else warnings.push('Найдено строк: '+rows.length+'. Сверить число строк с документом.');
  return {supplier,number:match?.[1]||'',date:match?[match[4],match[3],match[2]].join('-'):'',total,tax_status:tax,complete:false,source:'offline_ocr_draft',warnings,rows,rawText:full};
