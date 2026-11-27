@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=100; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=101; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -700,7 +700,8 @@ function showInvoiceIntegrity(){
  const direct=pages.filter(p=>(p.smartSimple||p.balancedInvoice)&&p.expectedTotal!=null);const mismatch=direct.some(p=>Math.abs(rows.filter(l=>l.pageKey===p.key).reduce((sum,l)=>sum+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100-p.expectedTotal)>.01);
  const corrected=pages.some(p=>p.quantityCorrections>0);
  const incomplete=rows.some(l=>!l.name||!(l.quantity>0)||!(l.price>0)||!l.unit);
- const msg=incomplete?'⚠ Не все позиции заполнены: проверьте количество, единицы и цены.':mismatch?'Итог товаров не совпадает с накладной.':corrected?'✓ Сумма строк совпадает. ⚠ Количество восстановлено расчётом — проверьте по фото.':result.message||(direct.length?'✓ Итог товаров совпадает с накладной.':'');
+ const alignment=[...$('lines').children].some(f=>f.dataset.nameNeedsReview);
+ const msg=alignment?'⚠ Распознавание смешало названия соседних товаров с ценами. Проверьте все позиции по оригиналу перед сохранением.':incomplete?'⚠ Не все позиции заполнены: проверьте количество, единицы и цены.':mismatch?'Итог товаров не совпадает с накладной.':corrected?'✓ Сумма строк совпадает. ⚠ Количество восстановлено расчётом — проверьте по фото.':result.message||(direct.length?'✓ Итог товаров совпадает с накладной.':'');
  el.textContent=msg;el.className=msg?(mismatch||result.error?'up':incomplete||corrected?'warn':result.verified||direct.length?'down':'warn'):'hide';
 }
 function pageMeta(r,raw){
@@ -1036,7 +1037,7 @@ window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));d.title='Только просмотр исходного текста; нажимать для запуска разбора не требуется';const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
- return (r.documentVerified?1000000:r.balancedInvoice?750000:r.pageVerified?500000:0)+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
+ return (r.documentVerified?1000000:r.balancedInvoice?750000:r.pageVerified?500000:0)-(r.ocrNameAlignmentSuspect?100000:0)-r.items.filter(x=>x.nameNeedsReview).length*100+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
 }
 function needsPack(x){const p=window.supplyInvoiceParser;return packUnits.includes(x.unit)&&!x.packKg&&!x.packL&&!p.packWeight(x.name)&&!p.packVolume(x.name)&&(!!x.invoiceWeightKg||p.purchaseMetrics(x).basis!=='шт'||/майонез|запекания с массовой долей|сыр(?:\s|$)|сливки|масло(?:\s|$)|рис(?:\s|$)|мука|форель|лосось|креветк/i.test(x.name));}
 function scanFieldsComplete(r){return !!r.supplier&&r.items.length>0&&r.items.every(x=>x.name&&x.price>0&&x.quantity>0&&x.unit&&!x.nameNeedsReview)}
@@ -1146,10 +1147,10 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
    try{
     const boxes=JSON.parse(spatialJson);
     if(Array.isArray(boxes)&&boxes.length>=8&&boxes.length<=12000){
-     const coordinateResult=window.supplySpatial?.candidate(boxes,String(text),current,window.supplyInvoiceParser,updEvidence(String(text)));
+     const coordinateResult=window.supplyInvoiceParser.auditCandidate(window.supplySpatial?.candidate(boxes,String(text),current,window.supplyInvoiceParser,updEvidence(String(text))));
      const previousComplete=current.items.filter(x=>x.price>0&&x.quantity>0&&x.unit).length;
      const coordinateComplete=coordinateResult?.items?.filter(x=>x.name&&x.price>0&&x.quantity>0&&x.invoiceTotal>0&&x.unit).length||0;
-     const reliable=coordinateResult?.items?.length===coordinateComplete&&!scanConflicts(current,coordinateResult);
+     const reliable=coordinateResult?.items?.length===coordinateComplete&&!coordinateResult.ocrNameAlignmentSuspect&&!scanConflicts(current,coordinateResult);
      if(!current.documentVerified&&!current.pageVerified&&reliable&&
         (coordinateResult.documentVerified||coordinateResult.pageVerified||coordinateComplete>previousComplete)){
       current=coordinateResult;
@@ -1203,6 +1204,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
   if(r.supplierPhotoGrid)$('ocrState').textContent+=' 7 шаблонов: строки распределены по колонкам фото. '+(r.documentVerified?'Сумма совпала.':'Требуется сверка количества и итога.') ;
   if(r.quantityCorrections)$('ocrState').textContent+=' ⚠ В '+r.quantityCorrections+' строках количество восстановлено по сумме и цене. Проверьте с накладной.';
+  if(r.ocrNameAlignmentSuspect)$('ocrState').textContent+=' ⚠ Похоже, текст соседних товарных строк смешался. Сумма по накладной не подтверждает правильность названий. Сверьте каждую позицию по оригиналу.';
   if(r.reviewIssues?.length)$('ocrState').textContent+=' ⚠ Контроль качества: '+r.reviewIssues.slice(0,3).join(' · ')+(r.reviewIssues.length>3?' · и ещё '+(r.reviewIssues.length-3):'')+'.';
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);
   if(Number.isFinite(elapsed))$('ocrState').textContent+=' · '+fmt(Math.round(elapsed*10)/10)+' с';

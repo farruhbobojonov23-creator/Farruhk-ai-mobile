@@ -528,3 +528,51 @@ test('photo OCR packaging prefix is separated from ingredient name and flagged',
  a.equal(r.items[0].quantity,10);
  a.equal(r.items[0].invoiceTotal,780);
 });
+
+
+test('v101: Shanghai OCR shifted names are NOT auto-accepted despite exactly balanced total',()=>{
+ const bad={
+  supplier:'ООО «ШАНХАЙ-ТОРГ»',printedTotal:47486,documentVerified:true,
+  items:[
+   {name:'Кунжут белый',unit:'кг',quantity:5,price:4450,invoiceTotal:22250},
+   {name:'жареный 1 кг Водоросли НОРИ 100 ЛИСТОВ KAMINARY',unit:'шт',quantity:4,price:355,invoiceTotal:1420},
+   {name:'Палочки бамбуковые круглые 100 пар',unit:'шт',quantity:10,price:800,invoiceTotal:8000},
+   {name:'100пар/уп, 1/50, упак Майонез Профи Печагин 78% 10 л (9,3',unit:'',quantity:10,price:78,invoiceTotal:780},
+   {name:'Kr) Крабовые палочки снежный краб Санта',unit:'кг',quantity:4,price:1815,invoiceTotal:7260},
+   {name:'Бремор 0,5 кг, 1/12',unit:'шт',quantity:36,price:216,invoiceTotal:7776}
+  ]
+ };
+ const r=browserParser.auditCandidate(bad);
+ a.equal(r.items.reduce((s,x)=>s+x.invoiceTotal,0),47486);
+ a.equal(r.ocrNameAlignmentSuspect,true);
+ a.equal(r.safeToAutoAccept,false);
+ a.equal(r.documentVerified,false);
+ a.ok(r.items.every(x=>x.nameNeedsReview));
+ a.equal(r.items[3].name,'Майонез Профи Печагин 78% 10 л (9,3');
+ a.equal(r.items[3].ocrOriginalName,bad.items[3].name);
+ a.ok(r.reviewIssues.some(x=>x.includes('смещение названий')));
+});
+test('v101: clean Shanghai layout remains valid, arbitrary assortment not hardcoded',()=>{
+ const rows=[
+  {name:'Сыр творожный 65% 10,5 кг',quantity:5,unit:'шт',packKg:10.5,price:4450,invoiceTotal:22250},
+  {name:'Кунжут белый жареный 1 кг',quantity:4,unit:'шт',packKg:1,price:355,invoiceTotal:1420},
+  {name:'Нори KAMINARY 100 листов',quantity:10,unit:'шт',price:800,invoiceTotal:8000},
+  {name:'Палочки круглые 100 пар',quantity:10,unit:'шт',price:78,invoiceTotal:780},
+  {name:'Майонез Печагин 10 л (9,3 кг)',quantity:4,unit:'шт',packKg:9.3,price:1815,invoiceTotal:7260},
+  {name:'Крабовые палочки Санта Бремор 0,5 кг',quantity:36,unit:'шт',packKg:.5,price:216,invoiceTotal:7776}
+ ];
+ const r=browserParser.auditCandidate({supplier:'ООО «ШАНХАЙ-ТОРГ»',documentVerified:true,printedTotal:47486,items:rows});
+ a.equal(r.ocrNameAlignmentSuspect,undefined);
+ a.equal(r.documentVerified,true);
+ a.equal(r.safeToAutoAccept,true);
+ const v=browserParser.auditCandidate({supplier:'ООО Новый поставщик',documentVerified:true,printedTotal:900,items:[{name:'Новый продукт 1 кг',unit:'шт',quantity:3,price:300,invoiceTotal:900}]});
+ a.equal(v.safeToAutoAccept,true);
+});
+test('v101: displayed and script build revisions must agree',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'101');
+ a.ok(html.includes('id="supplyWebNumber">101</span>'));
+ a.ok(app.includes('window.SUPPLY_WEB_BUILD=101;'));
+ a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
+});

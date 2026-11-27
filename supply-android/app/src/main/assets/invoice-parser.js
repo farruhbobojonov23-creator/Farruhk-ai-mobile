@@ -2169,3 +2169,52 @@ api.parseSamePhotoPasses=function(texts){
  return previousPasses(texts).map(r=>reviewPackagingPrefix(r,p));
 };
 })(globalThis);
+
+
+/* v101: OCR line-binding safety gate. A reconciled sum does NOT establish
+ * that a name and a price belong to the same photographed product row.
+ * Suspicious boundary spillovers block automatic acceptance on ALL affected
+ * rows. Never reassign prices using a fixed product/price catalogue. */
+;(function(root){
+'use strict';
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const oldAudit=api.auditCandidate,oldPhoto=api.parsePhoto,oldSimple=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
+function spillover(name){
+ const s=String(name||'').trim();
+ if(/^\d{2,4}\s*пар\s*\/\s*уп\s*[,;\s]+(?:\d+\s*\/\s*\d+\s*[,;\s]+)?упак(?:овка)?\s+(?=[\p{L}])/iu.test(s))return 'packing-prefix';
+ if(/^(?:[kк][rgг]|[kк][gг])\)\s*[\p{L}]/iu.test(s))return 'unit-fragment';
+ if(/^(?:жарен(?:ый|ая|ое)|сушен(?:ый|ая|ое)|сушён(?:ый|ая|ое))\s+\d+(?:[,.]\d+)?\s*(?:кг|г|л)\s+(?=[А-ЯЁ])/u.test(s))return 'previous-item-fragment';
+ if(/^[\p{L}]{3,32}\s+\d+(?:[,.]\d+)?\s*(?:кг|г|л|мл)\s*[,;]\s*\d+\s*\/\s*\d+\s*$/iu.test(s))return 'continuation-fragment';
+ return '';
+}
+function protect(result){
+ if(!result||!Array.isArray(result.items)||!result.items.length)return result;
+ const marked=result.items.map(item=>{
+  const original=String(item.name||'');
+  const reason=spillover(original)||spillover(item.ocrOriginalName||'');
+  if(!reason)return item;
+  let name=original;
+  if(reason==='packing-prefix'){
+   name=name.replace(/^\d{2,4}\s*пар\s*\/\s*уп\s*[,;\s]+(?:\d+\s*\/\s*\d+\s*[,;\s]+)?упак(?:овка)?\s+/iu,'').trim();
+  }
+  return {...item,name,ocrOriginalName:item.ocrOriginalName||original,nameNeedsReview:true,uncertain:true,ocrSpillover:reason};
+ });
+ const count=marked.filter(x=>x.ocrSpillover).length;
+ if(!count)return result;
+ // Two or more damaged boundaries in one page mean the whole name/price
+ // pairing is suspect, including names that look individually plausible.
+ const shifted=count>=2&&marked.length>=3;
+ const items=shifted?marked.map(x=>({...x,nameNeedsReview:true,uncertain:true})):marked;
+ const issue=shifted?
+  'Подозрение на смещение названий относительно цен: проверьте каждую позицию по оригиналу.':
+  'Фрагмент соседней строки попал в название: проверьте по фото.';
+ return {...result,items,documentVerified:false,pageVerified:false,needsReview:true,
+  safeToAutoAccept:false,ocrNameAlignmentSuspect:shifted,
+  reviewIssues:[...new Set([...(result.reviewIssues||[]),issue])]};
+}
+api.flagPhotoNameSpillover=spillover;
+api.auditCandidate=result=>protect(oldAudit(result));
+api.parseSimple=raw=>api.auditCandidate(oldSimple(raw));
+api.parsePhoto=(raw,spatial)=>api.auditCandidate(oldPhoto(raw,spatial));
+api.parseSamePhotoPasses=texts=>oldPasses(texts).map(api.auditCandidate);
+})(globalThis);
