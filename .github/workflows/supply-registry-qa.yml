@@ -1,0 +1,111 @@
+name: Supply integrated registry QA
+on:
+  push:
+    branches: [test/supply-offline-ocr]
+    paths: ['.github/workflows/supply-registry-qa.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  registry-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Validate registry and draft integration
+        run: |
+          node supply-offline/ocr-draft-parser.test.js
+          npm install --prefix /tmp/supply-qa --no-save jsdom@26.1.0
+          NODE_PATH=/tmp/supply-qa/node_modules node supply-offline/registry-integration.test.js
+      - name: Build integrated APK
+        run: SUPPLY_REGISTRY=1 bash supply-offline/build-android-test.sh
+      - name: Generate synthetic invoice
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFont
+          im=Image.new("RGB",(1600,1050),"white")
+          d=ImageDraw.Draw(im)
+          f=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",42)
+          d.text((65,65),"НАКЛАДНАЯ 12345 от 27.11.2026",font=f,fill="black")
+          d.text((65,155),"ТЕСТОВЫЙ ДОКУМЕНТ",font=f,fill="black")
+          xs=(70,530,740,940,1240)
+          for x,t in zip(xs,("Товар","Кол-во","Ед.","Цена","Сумма")):
+              d.text((x,280),t,font=f,fill="black")
+          for y,row in [(395,("Рис","3","кг","125,00","375,00")),(515,("Сыр","2","кг","230,00","460,00"))]:
+              for x,t in zip(xs,row): d.text((x,y),t,font=f,fill="black")
+          d.text((940,660),"ИТОГО 835,00",font=f,fill="black")
+          im.save("farukh-test-invoice.png")
+          PY
+          cat > ui.py <<'PY'
+          import re, time, subprocess, xml.etree.ElementTree as ET
+          def adb(*args): return subprocess.check_output(["adb",*args],stderr=subprocess.STDOUT).decode(errors="replace")
+          def dump():
+              adb("shell","uiautomator","dump","/sdcard/ui.xml")
+              s=adb("shell","cat","/sdcard/ui.xml")
+              open("last-screen.xml","w").write(s)
+              return ET.fromstring(s)
+          def wait(pattern,click=False,timeout=100):
+              end=time.monotonic()+timeout
+              while time.monotonic()<end:
+                  try:
+                      for n in dump().iter("node"):
+                          label=" ".join([n.get("text",""),n.get("content-desc","")])
+                          if re.search(pattern,label,re.I) and n.get("enabled")!="false":
+                              if click:
+                                  x1,y1,x2,y2=map(int,re.findall(r"\d+",n.get("bounds","")))
+                                  if x2<=x1 or y2<=y1: continue
+                                  adb("shell","input","tap",str((x1+x2)//2),str((y1+y2)//2))
+                              return
+                  except (ValueError,ET.ParseError,subprocess.CalledProcessError): pass
+                  time.sleep(2)
+              raise RuntimeError("UI missing: "+pattern)
+          try:
+              wait("Сканировать накладную",True)
+              wait("Сканер загружен")
+              wait("Диагностика OCR",True)
+              wait("Найдено блоков",timeout=180)
+              wait("Перенести в накладную",True)
+              wait("Проверка распознанной накладной")
+              wait("Сверьте черновик с фото|Найдено строк: 2")
+              print("ANDROID_OCR_REGISTRY_TRANSFER_PASS")
+          finally:
+              try: open("image-log.txt","w").write(adb("logcat","-d","-s","FarukhOffline:I","AndroidRuntime:E","chromium:E","*:S"))
+              except Exception: pass
+          PY
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            adb install supply-offline/build-output/FARUKH-SUPPLY-OFFLINE-TEST.apk
+            adb shell run-as ai.farukh.supply.offline.test mkdir -p files
+            adb shell -T "run-as ai.farukh.supply.offline.test sh -c 'cat > files/qa-invoice.png'" < farukh-test-invoice.png
+            adb shell am start -W -n ai.farukh.supply.offline.test/com.paddle.ocr.demo.RegistryActivity
+            python ui.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FARUKH-SUPPLY-INTEGRATED-QA
+          path: supply-offline/build-output/*.apk
+          if-no-files-found: error
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registry-qa-evidence
+          path: |
+            last-screen.xml
+            image-log.txt
+            farukh-test-invoice.png
+          if-no-files-found: ignore
