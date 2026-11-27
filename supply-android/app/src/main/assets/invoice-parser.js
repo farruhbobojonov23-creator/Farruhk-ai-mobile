@@ -2283,7 +2283,9 @@ function parseShanghaiUpdRaw(raw){
   const pref=fragment(prefix,rate);if(pref)pieces.push(pref);
   const suf=fragment(suffix,rate);if(suf)pieces.push(suf);
   // A split OCR cell for kilograms can appear after the row number.
-  const name=pieces.join(' ').replace(/\(\s*(\d+(?:[,.]\d+)?)\s+кг\)/iu,'($1 кг)').replace(/\s+/gu,' ').trim();
+  let name=pieces.join(' ').replace(/\(\s*(\d+(?:[,.]\d+)?)\s+кг\)/iu,'($1 кг)').replace(/\s+/gu,' ').trim();
+  // The printed pack unit can continue on the SKU line in native OCR.
+  if(/\d+[,.]\d+$/u.test(name)&&/^[KК][rгГΓ](?:\b|\s|$)/iu.test(suffix))name+=' кг';
   if(!name||name.length>350||!/\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
   const q=anchor.q,price=anchor.gross,invoiceTotal=subtotal/100;
   const row={name,quantity:q,unit:'шт',unitCode:'796',price,invoiceTotal,
@@ -2315,5 +2317,41 @@ api.parsePhoto=function(raw,spatial){
      !audited.ocrNameAlignmentSuspect)return {...audited,safeToAutoAccept:false,needsReview:true};
  }
  return prev(raw,spatial);
+};
+})(globalThis);
+
+/* v103: across-pass UPD row binding: prefer verified OCR cell anchors over
+ * legacy price-balanced but name-shifted text, without inferring products. */
+;(function(root){
+'use strict';
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const previous=api.parseSamePhotoPasses;
+api.parseSamePhotoPasses=function(texts){
+ const originals=previous(texts);
+ const parts=(texts||[]).filter(t=>typeof t==='string'&&t.trim())
+   .flatMap(t=>t.split(/\r?\n\s*---\s*\r?\n/gu)).filter(Boolean);
+ const profiles=new Set(parts.map(t=>api.detectSupplierTemplate(t)?.id).filter(Boolean));
+ if(profiles.size!==1||!profiles.has('shanghai'))return originals;
+ const recovered=[],keys=new Set();
+ for(const part of parts){
+  // Supplier was explicitly read in another pass of the SAME photo. No
+  // supplier, names, prices or quantities are fetched from other invoices.
+  const headed=api.detectSupplierTemplate(part)?.id==='shanghai'?part:
+      'ООО «ШАНХАЙ-ТОРГ»\n'+part;
+  const strict=api.parseShanghaiUpdRaw(headed);
+  if(!strict||!strict.items?.length||strict.items.length>200)continue;
+  const r=api.auditCandidate(strict);
+  const reliable=r.documentVerified&&r.balancedInvoice&&
+      r.items.every(x=>x.name&&x.quantity>0&&x.price>0&&x.invoiceTotal>0&&x.unit==='шт'&&!x.nameNeedsReview);
+  if(!reliable)continue;
+  const checksum=r.items.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0);
+  if(Math.abs(checksum-Math.round(r.printedTotal*100))>1)continue;
+  const key=JSON.stringify(r.items.map(x=>[x.article||'',x.name,x.quantity,x.price,x.invoiceTotal]));
+  if(keys.has(key))continue;
+  keys.add(key);
+  recovered.push({...r,needsReview:true,safeToAutoAccept:false,ocrLayout:'upd-row-anchored',
+    reviewIssues:[...(r.reviewIssues||[]),'Проверьте восстановленные названия по фотографии.']});
+ }
+ return [...recovered,...originals];
 };
 })(globalThis);

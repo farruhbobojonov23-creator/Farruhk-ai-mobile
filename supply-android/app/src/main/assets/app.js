@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=102; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=103; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -528,7 +528,7 @@ function addLine(data={}){
  for(const input of [p.i,q.i])input.addEventListener('input',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;if(input===q.i)delete f.dataset.invoiceWeightKg;});
  f.addEventListener('input',recalc);u.addEventListener('change',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;delete f.dataset.invoiceWeightKg;recalc()});
  if(data.source)f.title=data.source;
-  if(data.nameNeedsReview){const warning=node('small','⚠ Название повреждено распознаванием. Исправьте по оригиналу.','muted');warning.style.cssText='display:block;color:#f6c96b;margin:4px 0';f.append(warning);a.i.addEventListener('input',()=>{delete f.dataset.nameNeedsReview;warning.remove();});}
+  if(data.nameNeedsReview){const warning=node('small','⚠ Название повреждено распознаванием. Исправьте по оригиналу.','muted');warning.style.cssText='grid-column:1/-1;display:block;color:#f6c96b;margin:4px 0;font-size:11px';f.append(warning);a.i.addEventListener('input',()=>{delete f.dataset.nameNeedsReview;warning.remove();});}
  if(data.unitEvidence){const hint=node('small',data.unitEvidence==='ОКЕИ'?'⚠ Единица распознана по ОКЕИ. Сверьте с накладной.':'⚠ Единица взята из подтверждённой накладной этого поставщика. Проверьте.','muted');hint.style.cssText='display:block;color:#f6c96b;margin:4px 0';f.append(hint);u.addEventListener('change',()=>hint.remove());}
  if(data.quantityCorrected){const warning=node('small','⚠ OCR неверно прочитал количество. Проверьте с оригиналом.','muted');warning.style.cssText='display:block;color:#f6c96b;margin:4px 0';f.append(warning);q.i.addEventListener('input',()=>warning.remove());}
  const badge=button('',()=>productLinkDialog(()=>lineData(f),()=>$('supplier').value,()=>catalogBadge(f)));badge.className='catalog-badge hide';
@@ -1038,7 +1038,7 @@ window.supplyOcrStart=id=>{if($('entry').classList.contains('hide'))return;ocrId
 function scanDiagnostic(text){document.getElementById('ocrDiagnostic')?.remove();if(!text)return;const d=node('details');d.id='ocrDiagnostic';d.append(node('summary','Распознанный текст'));d.title='Только просмотр исходного текста; нажимать для запуска разбора не требуется';const p=node('textarea');p.readOnly=true;p.value=text;p.style.cssText='width:100%;height:150px;font:12px monospace';const copy=button('Копировать весь текст',async()=>{try{await navigator.clipboard.writeText(p.value);status('Текст скопирован',true)}catch{p.focus();p.select();if(document.execCommand('copy'))status('Текст скопирован',true);else status('Текст выделен — скопируйте его через меню телефона')}});d.append(p,copy);$('retry').after(d);p.scrollTop=0}
 function scanScore(r){
  const priced=r.items.filter(x=>x.price!=null),complete=priced.filter(x=>x.quantity!=null&&x.unit);
- return (r.documentVerified?1000000:r.balancedInvoice?750000:r.pageVerified?500000:0)-(r.ocrNameAlignmentSuspect?100000:0)-r.items.filter(x=>x.nameNeedsReview).length*100+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
+ return (r.documentVerified?1000000:r.balancedInvoice?750000:r.pageVerified?500000:0)+(r.ocrLayout==='upd-row-anchored'&&r.documentVerified&&!r.ocrNameAlignmentSuspect?50000:0)-(r.ocrNameAlignmentSuspect?100000:0)-r.items.filter(x=>x.nameNeedsReview).length*100+priced.length*1000+complete.length*100+priced.filter(x=>x.packKg!=null).length*20+r.items.length*10+(r.supplier?1:0);
 }
 function needsPack(x){const p=window.supplyInvoiceParser;return packUnits.includes(x.unit)&&!x.packKg&&!x.packL&&!p.packWeight(x.name)&&!p.packVolume(x.name)&&(!!x.invoiceWeightKg||p.purchaseMetrics(x).basis!=='шт'||/майонез|запекания с массовой долей|сыр(?:\s|$)|сливки|масло(?:\s|$)|рис(?:\s|$)|мука|форель|лосось|креветк/i.test(x.name));}
 function scanFieldsComplete(r){return !!r.supplier&&r.items.length>0&&r.items.every(x=>x.name&&x.price>0&&x.quantity>0&&x.unit&&!x.nameNeedsReview)}

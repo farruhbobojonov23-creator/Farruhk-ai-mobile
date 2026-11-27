@@ -571,7 +571,7 @@ test('v101: clean Shanghai layout remains valid, arbitrary assortment not hardco
 test('v102: displayed and script build revisions must agree',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),app=fs.readFileSync(path.join(root,'app.js'),'utf8');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'102');
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'103');
  a.ok(html.includes('id="supplyWebNumber">102</span>'));
  a.ok(app.includes('window.SUPPLY_WEB_BUILD=102;'));
  a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
@@ -609,9 +609,41 @@ test('v102: reject footer mismatch or missing subtotal, no fabricated cells',()=
  a.equal(browserParser.parseShanghaiUpdRaw(s),null);
  a.equal(browserParser.parseShanghaiUpdRaw(s.replace('200,00','190,00')),null);
 });
-test('v102: signed web build consistency',()=>{
+test('v103: signed web build consistency',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
  a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'102');
- a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">102</span>'));
- a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=102;'));
+ a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">103</span>'));
+ a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=103;'));
+});
+
+test('v103: a fully reconciled row-bound OCR pass survives the multi-pass selector',()=>{
+ // Synthetic UPD: invented goods, totals, document number, and no customer data.
+ const pass=[
+  'Счет-фактура № ТЕСТ00001 от 12.10.2026',
+  'Продавец ООО "ШАНХАЙ-ТОРГ"', 'УПД № ТЕСТ00001',
+  'A 1',
+  'Товар для проверки','Пример фасовки 1,5',
+  '6e3 % 33,66 370,35','796 ШТ 3,000 112,23 123,45 336,69 акциза',
+  'X1001 1 КГ -',
+  'Картонные коробки 10','6e3 % 12,18 134,00',
+  '796 WT 2,000 60,91 67,00 121,82 акциза',
+  'U1002 2 прочные 50 шт. WT акциза',
+  'Всего к оплате',
+  'Остальное 458,51 x 45,84 504,35'
+ ].join('\n');
+ const broken='ООО "ШАНХАЙ-ТОРГ"\nУПД\nКартонные коробки 3 123,45';
+ const results=browserParser.parseSamePhotoPasses([broken,pass]);
+ const exact=results.find(x=>x.ocrLayout==='upd-row-anchored');
+ a.ok(exact,'Recovery must be included after retry, not only direct parsePhoto');
+ a.equal(exact.items.length,2);
+ a.equal(exact.printedTotal,504.35);
+ a.deepEqual(exact.items.map(x=>[x.quantity,x.price,x.invoiceTotal,x.unit]),[[3,123.45,370.35,'шт'],[2,67,134,'шт']]);
+ a.match(exact.items[0].name,/1,5 кг$/);
+ a.match(exact.items[1].name,/Картонные коробки прочные 50 шт/);
+ a.equal(exact.safeToAutoAccept,false);
+});
+test('v103: corrupted fragments do not get a synthetic supplier total or auto approval',()=>{
+ const untrusted='ООО "ШАНХАЙ-ТОРГ"\nУПД\n796 ШТ 2,000 123,45 143,45\nВсего к оплате 286,90';
+ const recovered=browserParser.parseSamePhotoPasses([untrusted]);
+ a.ok(!recovered.some(x=>x.ocrLayout==='upd-row-anchored'));
 });
