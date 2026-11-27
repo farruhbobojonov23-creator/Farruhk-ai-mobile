@@ -467,3 +467,52 @@ test('Delimited OCR automatically applies vendor layout without fixing assortmen
  a.equal(r.items.length,2);a.equal(r.documentVerified,true);
  a.equal(vendorApi.parseSimple(text).items.length,2);
 });
+
+
+// Supplier templates must run on the ordinary Android photo OCR path, not
+// just on pasted PP-StructureV3 JSON and delimited regression fixtures.
+test('seven supplier photo grid: 1, 6, 10, 20 and 25 lines',()=>{
+ const ids=vendorApi.supplierTemplates,counts=[1,6,10,20,25];
+ const columns=[['Наименование',75],['Артикул',245],['Ед',330],['Количество',425],['Цена',520],['Сумма',615]];
+ const boxesFor=(items,total)=>{
+  const out=[],add=(text,x,y)=>out.push({text,left:x-4,right:x+4,top:y,bottom:y+14,confidence:.99});
+  columns.forEach(([s,x])=>add(s,x,100));
+  items.forEach((cells,i)=>cells.forEach((s,j)=>{if(s)add(s,columns[j][1],125+i*24)}));
+  add('Итого:',75,151+items.length*24);add(total.toFixed(2).replace('.',','),615,151+items.length*24);
+  return out;
+ };
+ for(const p of ids)for(const count of counts){
+  const items=Array.from({length:count},(_,i)=>['Товар '+(i+1),'A'+i,'шт','1','12,00','12,00']);
+  const r=vendorApi.parsePhoto('Продавец: '+p.name+'\nИтого: '+(count*12)+',00',JSON.stringify(boxesFor(items,count*12)));
+  a.equal(r.items.length,count,p.id+': '+count);
+  a.equal(r.supplierPhotoGrid,true,p.id+': '+count);
+  // UPD has a net-price column: the sum is still the authoritative gross.
+  a.equal(r.items.every(x=>x.quantity===1&&x.invoiceTotal===12),true,p.id+': '+count);
+ }
+});
+test('photo spatial columns keep packaging codes out of product name',()=>{
+ const photo=[
+  {text:'Наименование',x:80,y:20},{text:'Артикул',x:230,y:20},{text:'Ед',x:320,y:20},{text:'Количество',x:410,y:20},{text:'Цена',x:505,y:20},{text:'Сумма',x:615,y:20},
+  {text:'Майонез Профи Печагин 78% 10 л',x:80,y:50},{text:'100пар/уп 1/50',x:230,y:50},{text:'шт',x:320,y:50},{text:'10',x:410,y:50},{text:'78,00',x:505,y:50},{text:'780,00',x:615,y:50}
+ ].map(b=>({text:b.text,left:b.x-4,right:b.x+4,top:b.y,bottom:b.y+14,confidence:.99}));
+ const raw='Продавец: ООО «ШАНХАЙ-ТОРГ»\nИтого: 780,00';
+ const r=vendorApi.parsePhoto(raw,photo);
+ a.equal(r.supplierPhotoGrid,true);
+ a.equal(r.items[0].name,'Майонез Профи Печагин 78% 10 л');
+ a.equal(r.items[0].unit,'шт');
+ a.equal(r.items[0].packL,10);
+ a.equal(r.items[0].quantity*r.items[0].price,r.items[0].invoiceTotal);
+});
+test('damaged or ambiguous photo grid falls back without creating verified data',()=>{
+ const r=vendorApi.parsePhoto('Продавец: ООО «ШАНХАЙ-ТОРГ»\nКунжут белый кг 5 4450,00 22250,00','[]');
+ a.equal(!!r.supplierPhotoGrid,false);
+ const wrong=vendorApi.parsePhoto('Продавец: ООО «ШАНХАЙ-ТОРГ»\nИтого: 100,00',[
+  ['Наименование',75,10],['Ед',330,10],['Количество',420,10],['Цена',515,10],['Сумма',615,10],
+  ['Кунжут белый',75,40],['шт',330,40],['4',420,40],['100,00',515,40],['999,00',615,40]
+ ].map(([text,x,y])=>({text,left:x-4,right:x+4,top:y,bottom:y+14,confidence:.99})));
+ a.equal(!!wrong.supplierPhotoGrid,false);
+});
+test('Android ordinary photo OCR feeds vendor parser instead of only JSON importer',()=>{
+ const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');
+ a.ok(app.includes("parsePhoto(text||'',spatialJson)"));
+});
