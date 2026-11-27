@@ -37,7 +37,7 @@ jobs:
             /tmp/supply-qa/node_modules/.bin/playwright install --with-deps chromium
           fi
       - name: Verify parser and catalog regression tests
-        run: node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js supply/table-core.test.js
+        run: node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js supply/table-core.test.js supply/structure-import.test.cjs
       - name: Run mobile UI and persistence QA
         run: |
           set -e
@@ -136,6 +136,21 @@ jobs:
             if(scanNextPass(0,marr,true,[marr])!=='paddle-scan'||scanNextPass(1,marr,true,[marr])!=='rescan')throw Error('MARR review retries must remain');
             if(scanNextPass(2,plausible,true,[plausible])!==null)throw Error('Bounded retries');
           });
+
+          // PP-StructureV3 beta import: 100 rows; no auto-save or corruption of existing data.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate(()=>{
+            const before=docs.length;
+            const rows=Array.from({length:100},(_,i)=>['Рис Tamaki '+i,'кг','2','150,50','301,00']);
+            $('structureJson').value=JSON.stringify([{file:'test.jpg',page:1,text:['Накладная № 8049 от 09.11.2026','Поставщик: ООО Учебный'],tables:[[['Наименование товара','Ед.','Количество','Цена с НДС','Сумма с НДС'],...rows,['Итого','','','','30100,00']]]}]);
+            $('structureImportButton').click();
+            if($('lines').children.length!==100||!$('ocrState').textContent.includes('100 строк')||docs.length!==before)throw Error('PP-StructureV3 import UI failed: '+$('structureWarnings').textContent);
+            if($('documentNumber').value!=='8049'||$('documentDate').value!=='2026-11-09')throw Error('Import document header failed');
+            $('structureJson').value='[]';$('structureImportButton').click();
+            if($('lines').children.length!==100)throw Error('Import replaced unsaved draft');
+            reset();
+          });
+          await page.locator('nav button[data-go=home]').click();
 
           // Simulated native callbacks: never let an earlier empty OCR hide a later nonempty diagnostic.
           await page.locator('button[data-go=entry]:visible').first().click();
@@ -653,7 +668,7 @@ jobs:
           java-version: '17'
       - name: Verify all regression tests
         run: |
-          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js supply/table-core.test.js
+          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js supply/table-core.test.js supply/structure-import.test.cjs
           node --test supply/layout-core.test.js supply/layout-detector.test.js
           node --check supply-android/app/src/main/assets/app.js
           node --check supply-android/app/src/main/assets/invoice-parser.js
