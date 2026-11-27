@@ -1839,14 +1839,22 @@ const codes={'796':['шт',/^(?:шт|ш[тt]|[wеe][тt])$/iu],
  '163':['г',/^г$/iu],'112':['л',/^[лl]$/iu],'111':['мл',/^мл$/iu]};
 function unitFromEvidence(row){
  const source=String(row?.source||'').replace(/[|│]/g,' ').replace(/[\u00a0\u202f]/g,' ');
- const matches=[...source.matchAll(/(?:^|\s)(796|778|990|166|163|112|111)\s+([A-Za-zА-Яа-я.]{1,12})\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)];
+ const forward=[...source.matchAll(/(?:^|\s)(796|778|990|166|163|112|111)\s+([A-Za-zА-Яа-я.]{1,12})\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)]
+  .map(m=>[m[1],m[2]]);
+ const reverse=[...source.matchAll(/(?:^|\s)([A-Za-zА-Яа-я.]{1,12})\s+(796|778|990|166|163|112|111)\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)]
+  .map(m=>[m[2],m[1]]);
+ const matches=[...forward,...reverse];
  if(!matches.length)return null;
- const valid=matches.map(m=>{const pair=codes[m[1]];return pair&&pair[1].test(m[2].replace(/\.$/,''))?pair[0]:null;});
+ const valid=matches.map(m=>{const pair=codes[m[0]];return pair&&pair[1].test(m[1].replace(/\.$/,''))?pair[0]:null;});
  return valid.every(Boolean)&&new Set(valid).size===1?valid[0]:null;
 }
 function brokenName(value){
  const name=String(value||'').replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+НДС\))?\s*$/iu,'').trim();
  if(!name||/[\uFFFD\u25A1\u25AF]/u.test(name))return true;
+ // Neither an orphan packing label nor two OCR-merged branded products
+ // may be accepted as a confirmed ingredient without photo review.
+ if(/^(?:уп(?:ак(?:овка)?)?|кор(?:об(?:ка)?)?|меш(?:ок)?)\s*\/\s*\d+(?:[,.]\d+)?\s*(?:кг|г|л|мл|шт)\s*$/iu.test(name))return true;
+ if(/(?:^|\s)(?:уп|упак|кор|меш)\s*\/\s*\d+(?:[,.]\d+)?\s*(?:кг|г|л|мл)(?:\s*\([^)]{0,25}\))?\s+[A-ZА-ЯЁ]{4,}\s+[А-Яа-яё]/u.test(name))return true;
  // A mixed-script, unseparated alphanumeric OCR token is not a reliable SKU.
  return name.length>=12&&!/\s/.test(name)&&/[а-яё]/iu.test(name)&&/[a-z]/iu.test(name)&&/\d/u.test(name);
 }

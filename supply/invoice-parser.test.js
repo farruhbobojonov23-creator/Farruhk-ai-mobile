@@ -296,3 +296,45 @@ test('bad OCR names and document total mismatches cannot become auto-approved',(
  a.equal(damaged.items[0].nameNeedsReview,true);
  a.ok(damaged.reviewIssues.some(v=>/итогом/.test(v)));
 });
+
+test('do not accept a bare package as an item or two OCR-merged brands',()=>{
+ const p=browserParser;
+ const make=name=>({items:[{name,quantity:2,price:911,unit:'шт',invoiceTotal:1822}],supplier:'ИП Чистякова'});
+ a.equal(p.auditCandidate(make('уп/10кг')).items[0].nameNeedsReview,true);
+ a.equal(p.auditCandidate(make('Бистро Чеддер уп/1,107 кг(уп 90 WT) HOCHLAND Творожный сыр')).items[0].nameNeedsReview,true);
+ a.equal(p.auditCandidate(make('Сыр творожный Креметте 1,107 кг')).items[0].nameNeedsReview,undefined);
+});
+test('allow both OKEI orders but do not derive units from a package label',()=>{
+ const unit=source=>browserParser.unitFromEvidence({source});
+ a.equal(unit('Сыр творожный 796 шт 2 911,00 1 822,00'),'шт');
+ a.equal(unit('Сыр творожный шт 796 2 911,00 1 822,00'),'шт');
+ a.equal(unit('Сыр творожный 166 кг 2 911,00 1 822,00'),'кг');
+ a.equal(unit('Сыр творожный уп/1,107 кг(уп 90 WT) 2 911,00'),null);
+ a.equal(unit('Сыр творожный 796 шт 2 166 кг 2'),null);
+});
+test('unit correction preserves only a unique exact existing supplier alias',()=>{
+ const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');
+ const source=app.slice(app.indexOf('function catalogMatch('),app.indexOf('function catalogTitle('));
+ const aliasKey=(s,r)=>JSON.stringify([s,r.article||'',r.name,r.unit||'',r.packKg||null,r.packL||null]);
+ const api={aliasKey,resolve:()=>({status:'review'})};
+ const old={name:'Сыр творожный 1,107 кг',article:'A1',unit:'',packKg:1.107};
+ const aliases={[aliasKey('Чистякова',old)]:{productId:'cheese',variantId:'item'}};
+ const get=()=>({aliases,byId:new Map([['cheese',{}]]),products:[{id:'cheese'}]});
+ const match=new Function('catalogAPI','catalogSnapshot',source+'\\nreturn catalogMatch;'.replace('\\n','\n'))(api,get);
+ a.equal(match({...old,unit:'шт'},'Чистякова').status,'known');
+ a.equal(match({...old,unit:'шт',packKg:2},'Чистякова').status,'review');
+ a.equal(match({...old,unit:'шт'},'Другой поставщик').status,'review');
+ a.equal(match({...old,unit:'шт',article:'B2'},'Чистякова').status,'review');
+});
+test('a unique confirmed unit may be reused only for the same supplier, name, and pack',()=>{
+ const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');
+ const source=app.slice(app.indexOf('function confirmedUnitFromHistory('),app.indexOf('function knownPack('));
+ const fn=new Function('norm','supplierKey','productIdentity','numeric','window','docs',source+'\\nreturn confirmedUnitFromHistory;'.replace('\\n','\n'))(
+  x=>String(x||'').toLowerCase(),x=>String(x||'').toLowerCase(),x=>String(x||'').toLowerCase(),x=>Number(x)||null,
+  {supplyInvoiceParser:{packWeight:()=>null,packVolume:()=>null}},[]);
+ const sample={simpleVersion:1,supplierId:'ИП Чистякова',lines:[{name:'Сыр творожный',unit:'шт',packKg:1.107}]};
+ a.equal(fn({name:'Сыр творожный',packKg:1.107},'ИП Чистякова',[sample]),'шт');
+ a.equal(fn({name:'Сыр творожный',packKg:2},'ИП Чистякова',[sample]),'');
+ a.equal(fn({name:'Сыр творожный',packKg:1.107},'Другой',[sample]),'');
+ a.equal(fn({name:'Сыр творожный',packKg:1.107},'ИП Чистякова',[sample,{...sample,lines:[{name:'Сыр творожный',unit:'кг',packKg:1.107}]}]),'');
+});
