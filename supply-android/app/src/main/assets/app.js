@@ -1501,7 +1501,7 @@ $('structureImportButton').onclick=()=>{
  window.supplyOcrStart=id=>{nativeStart(id);};
  window.supplyOcrFinish=async(id,text,error,spatialJson)=>{
   const file=pendingPhoto||$('file').files[0];
-  if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\\n'))return nativeFinish(id,text,error,spatialJson);
+  if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\n'))return nativeFinish(id,text,error,spatialJson);
   if(!cfg||busy||id!==ocrId||!file?.type?.startsWith('image/')||attempted===file||$('entry').classList.contains('hide'))return nativeFinish(id,text,error,spatialJson);
   attempted=file;busy=true;const settings={...cfg};$('saveNext').disabled=true;
   const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),15000);
