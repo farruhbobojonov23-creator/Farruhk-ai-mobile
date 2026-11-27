@@ -20,9 +20,17 @@ download "$rec/inference.yml" "$models/rec/inference.yml"
 test "$(wc -c < "$models/rec/inference.onnx")" -gt 1000000
 grep -q 'character_dict:' "$models/rec/inference.yml"
 cp "$here/android/MainActivity.kt" "$project/app/src/main/java/com/paddle/ocr/demo/MainActivity.kt"
-python3 - "$project" <<'PY'
-import pathlib,sys
+cp "$here/android/RegistryActivity.kt" "$project/app/src/main/java/com/paddle/ocr/demo/RegistryActivity.kt"
+mkdir -p "$project/app/src/main/assets"
+python3 - "$project" "$here" <<'PY'
+import pathlib,sys,os
 p=pathlib.Path(sys.argv[1])
+here=pathlib.Path(sys.argv[2])
+html=(here/'android/registry.html').read_text()
+assert 'const SEED=[];' in html and '/*SUPPLY_DRAFT_MODULE*/' in html
+module=(here/'invoice-draft.js').read_text()
+assert '</script' not in module.lower()
+(p/'app/src/main/assets/registry.html').write_text(html.replace('/*SUPPLY_DRAFT_MODULE*/',module))
 catalog=p/'gradle/libs.versions.toml'
 v=catalog.read_text().replace('opencv = "4.5.3"','opencv = "4.10.0"').replace('group = "com.quickbirdstudios", name = "opencv"','group = "org.opencv", name = "opencv"')
 assert 'group = "org.opencv"' in v and 'opencv = "4.10.0"' in v
@@ -36,12 +44,16 @@ s=s.replace('implementation(project(":ppocr-sdk"))','implementation(project(":pp
 g.write_text(s)
 (p/'app/src/main/AndroidManifest.xml').write_text('''<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <application android:allowBackup="false" android:label="FARUKH SUPPLY Offline Test" android:theme="@android:style/Theme.Material.Light.NoActionBar">
-<activity android:name="com.paddle.ocr.demo.MainActivity" android:exported="true">
+<activity android:name="com.paddle.ocr.demo.MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
 <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
-</activity></application></manifest>''')
+</activity><activity android:name="com.paddle.ocr.demo.RegistryActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden"/></application></manifest>''')
 # Remove unused demo UI to avoid coupling to its original activity.
 for file in (p/'app/src/main/java/com/paddle/ocr/demo').rglob('*.kt'):
-    if file.name!='MainActivity.kt': file.unlink()
+    if file.name not in ('MainActivity.kt','RegistryActivity.kt'): file.unlink()
+if os.getenv('SUPPLY_REGISTRY')=='1':
+    manifest=p/'app/src/main/AndroidManifest.xml'
+    m=manifest.read_text().replace('com.paddle.ocr.demo.MainActivity','com.paddle.ocr.demo.SWAP').replace('com.paddle.ocr.demo.RegistryActivity','com.paddle.ocr.demo.MainActivity').replace('com.paddle.ocr.demo.SWAP','com.paddle.ocr.demo.RegistryActivity').replace('FARUKH SUPPLY Offline Test','FARUKH SUPPLY AI')
+    manifest.write_text(m)
 # Use standard Maven repositories, rather than regional mirrors.
 settings=p/'settings.gradle.kts'
 settings.write_text('\n'.join(line for line in settings.read_text().splitlines() if 'maven.aliyun.com' not in line)+'\n')
