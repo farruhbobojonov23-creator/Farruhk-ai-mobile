@@ -1,0 +1,118 @@
+name: FARUKH SUPPLY signed web-only hotfix 21
+# Builds and publishes ONLY the signed HTML/JS payload (< 1 MiB).
+# Native changes must use the separate Android QA and signed APK release.
+on:
+  push:
+    branches: ['fix/supply-photo-picker-v21']
+    paths:
+      - 'supply-android/app/src/main/assets/index.html'
+      - 'supply-android/app/src/main/assets/app.js'
+      - 'supply-android/app/src/main/assets/analytics.js'
+      - 'supply-android/app/src/main/assets/invoice-parser.js'
+      - 'supply-android/app/src/main/assets/web-version.txt'
+      - '.github/workflows/farukh-supply-web-ota-v21.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: farukh-supply-signed-web-ota
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Require web-only diff and successful same-commit mobile browser QA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git diff --name-only HEAD^ HEAD > "$RUNNER_TEMP/changed-files.txt"
+          if grep -Ev '^(supply-android/app/src/main/assets/(index.html|app.js|analytics.js|invoice-parser.js|web-version.txt)|.github/workflows/farukh-supply-web-ota-v21.yml)$' "$RUNNER_TEMP/changed-files.txt"; then
+            echo "Refusing native file changes in web-only update"
+            exit 1
+          fi
+          node --check supply-android/app/src/main/assets/app.js
+          node --check supply-android/app/src/main/assets/analytics.js
+          node --check supply-android/app/src/main/assets/invoice-parser.js
+          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
+          result=""
+          for attempt in $(seq 1 70); do
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/farukh-supply-white-qa.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=10" --jq '.workflow_runs[0].id // empty')
+            if [ -n "$run" ]; then
+              state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .status)
+              if [ "$state" = completed ]; then
+                result=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .conclusion)
+                break
+              fi
+            fi
+            sleep 15
+          done
+          test "$result" = success
+      - name: Sign and publish only incremental web-current.json for installed APK 21
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_BUNDLE: ${{ secrets.FARUKH_SUPPLY_SIGNING_BUNDLE }}
+          STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/fix/supply-photo-picker-v21" --jq .object.sha)" = "$GITHUB_SHA"
+          dest="$RUNNER_TEMP/supply-web-ota"
+          mkdir -p "$dest"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$dest/update.json"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$dest/previous-web.json"
+          test "$(jq -er .package "$dest/update.json")" = ai.farukh.supply
+          test "$(jq -er .versionCode "$dest/update.json")" = 21
+          cert=$(jq -er .cert "$dest/update.json")
+          jq -er .payload "$dest/previous-web.json" | base64 --decode > "$dest/previous-payload.json"
+          test "$(jq -er .nativeVersion "$dest/previous-payload.json")" = 21
+          old=$(jq -er .revision "$dest/previous-payload.json")
+          rev=$(tr -d '[:space:]' < supply-android/app/src/main/assets/web-version.txt)
+          [[ "$rev" =~ ^[1-9][0-9]*$ ]]
+          test "$rev" -gt "$old"
+          if [ -n "$SIGNING_BUNDLE" ]; then
+            STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
+            STORE_PASS=$(jq -er .password <<< "$SIGNING_BUNDLE")
+            KEY_ALIAS=$(jq -er .alias <<< "$SIGNING_BUNDLE")
+            KEY_PASS="$STORE_PASS"
+            echo "::add-mask::$STORE_PASS"
+            echo "::add-mask::$STORE_B64"
+            export STORE_PASS KEY_PASS
+            unset SIGNING_BUNDLE
+          fi
+          test -n "$STORE_B64" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS"
+          umask 077
+          printf '%s' "$STORE_B64" | base64 --decode > "$dest/signing.jks"
+          trap 'rm -f "$dest/signing.jks"' EXIT
+          python3 - supply-android/app/src/main/assets "$dest/payload.json" "$rev" <<'PY'
+          import base64,json,pathlib,sys
+          root,out,rev=sys.argv[1:]
+          names=['index.html','app.js','analytics.js','invoice-parser.js']
+          files={n:base64.b64encode((pathlib.Path(root)/n).read_bytes()).decode('ascii') for n in names}
+          pathlib.Path(out).write_text(json.dumps({'package':'ai.farukh.supply','nativeVersion':21,'revision':int(rev),'files':files},separators=(',',':')),encoding='utf-8')
+          PY
+          java supply-android/SignWeb.java "$dest/signing.jks" "$KEY_ALIAS" "$dest/payload.json" "$dest/web-current.json" "$cert" "$rev"
+          test "$(wc -c < "$dest/web-current.json")" -lt 1048576
+          test "$(jq -er .payload "$dest/web-current.json" | base64 --decode | jq -er .revision)" = "$rev"
+          test "$(jq -er .payload "$dest/web-current.json" | base64 --decode | jq -er .nativeVersion)" = 21
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/fix/supply-photo-picker-v21" --jq .object.sha)" = "$GITHUB_SHA"
+          gh release upload farukh-supply-current "$dest/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$dest/verified-web.json"
+          cmp "$dest/web-current.json" "$dest/verified-web.json"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$dest/verified-update.json"
+          cmp "$dest/update.json" "$dest/verified-update.json"
+          echo "PUBLISHED_SIGNED_WEB_ONLY_SUPPLY_21_REVISION_$rev"
