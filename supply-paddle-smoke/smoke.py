@@ -34,6 +34,20 @@ def recognize_array(array):
         for i,t in enumerate(texts):
             rows.append({"text":str(t),"confidence":round(float(scores[i]),4) if i<len(scores) else None,"box":[int(x) for x in boxes[i]] if i<len(boxes) else None})
     return rows
+def parse_quantity(value):
+    import re
+    m=re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*([A-Za-zА-Яа-яΓ.]+)\s*",value)
+    if not m: return None
+    number,unit=m.groups()
+    unit=unit.casefold().rstrip(".")
+    aliases={"кг":"кг","kг":"кг","kg":"кг","kγ":"кг","шт":"шт","шt":"шт","шт.":"шт","л":"л","l":"л"}
+    if unit not in aliases: return None
+    return number.replace(",",".")+" "+aliases[unit]
+def quantity_suggestion(row):
+    raw=row["text"]
+    retry=" ".join(a["text"] for a in row.get("retry_candidates",[]))
+    suggestions={s for s in (parse_quantity(raw),parse_quantity(retry)) if s}
+    return next(iter(suggestions)) if len(suggestions)==1 else None
 def recognize(img):
     import cv2, re
     clean=clean_grid(img)
@@ -41,7 +55,7 @@ def recognize(img):
     h,w=clean.shape[:2]
     retries=0
     for row in rows:
-        if row["confidence"] is None or row["confidence"]>=0.85 or not row["box"] or retries>=6: continue
+        if row["confidence"] is None or row["confidence"]>=0.85 or not row["box"] or retries>=2: continue
         if not re.search(r"\d",row["text"]) or not re.search(r"[A-Za-zА-Яа-яΓ]",row["text"]): continue
         x1,y1,x2,y2=row["box"]
         crop=clean[max(0,y1-3):min(h,y2+3),max(0,x1-3):min(w,x2+3)]
@@ -55,6 +69,10 @@ def recognize(img):
         row["needs_review"]=True
     for row in rows:
         row.setdefault("needs_review",row["confidence"] is None or row["confidence"]<0.85)
+        suggestion=quantity_suggestion(row)
+        if suggestion and suggestion!=row["text"]:
+            row["quantity_suggestion"]=suggestion
+            row["needs_review"]=True
     return rows
 def test():
     global ocr
@@ -79,23 +97,25 @@ def test():
         for target,(x1,y1,x2,y2) in expected:
             observed=[]
             candidates=[]
+            suggestions=[]
             for row in rows:
                 if not row["box"]: continue
                 a,b,c,d=row["box"]
                 if x1<=(a+c)/2<x2 and y1<=(b+d)/2<y2:
                     observed.append(row["text"])
                     candidates.extend(a["text"] for a in row.get("retry_candidates",[]))
+                    if row.get("quantity_suggestion"): suggestions.append(row["quantity_suggestion"])
             actual=" ".join(observed)
             ok=actual.casefold().replace(",",".").strip()==target.casefold()
-            checks.append({"expected":target,"actual":actual,"pass":ok,"retry_candidates":candidates,"retry_match":any(a.casefold().strip()==target.casefold() for a in candidates)})
+            checks.append({"expected":target,"actual":actual,"pass":ok,"retry_candidates":candidates,"retry_match":any(a.casefold().strip()==target.casefold() for a in candidates),"suggestion_match":len(suggestions)==1 and suggestions[0]==target})
         missing=[x for x in checks if not x["pass"]]
-        state.update(status="passed" if not missing else "recognition mismatch",checks=checks,matched=len(checks)-len(missing),total=len(checks),rows=rows,seconds=round(time.monotonic()-start,1),peak_rss_mb=rss(),cgroup=memory_cgroup())
+        state.update(status="passed" if not missing else "recognition mismatch",checks=checks,matched=len(checks)-len(missing),with_review_candidates=sum(x["pass"] or x["suggestion_match"] for x in checks),total=len(checks),rows=rows,seconds=round(time.monotonic()-start,1),peak_rss_mb=rss(),cgroup=memory_cgroup())
         print("TABLE_SMOKE",json.dumps(state,ensure_ascii=False),flush=True)
     except Exception as e:
         ocr=None
         state.update(status="error",error=type(e).__name__,detail=str(e)[:300])
         print("TABLE_SMOKE",json.dumps(state),flush=True)
-PAGE=r"""<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:17px system-ui;margin:24px auto;padding:0 16px;max-width:650px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}</style><h1>FARUKH SUPPLY</h1><p>Закрытый тест OCR. Не бухгалтерская система. Данные не сохраняются сервером.</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png"><button id="send">Распознать фотографию</button><button id="save" disabled>Скачать результат JSON</button><pre id="out">Выберите фото. Максимум 4 МБ.</pre><script>let result=null;const el=id=>document.getElementById(id);el('send').onclick=async()=>{const f=el('photo').files[0];if(!f||!el('token').value){el('out').textContent='Нужны пароль и фото';return}if(f.size>4194304){el('out').textContent='Файл больше 4 МБ';return}el('send').disabled=true;el('save').disabled=true;result=null;el('out').textContent='Обработка…';try{const r=await fetch('/ocr',{method:'POST',headers:{Authorization:'Bearer '+el('token').value,'Content-Type':f.type},body:f,cache:'no-store'});const d=await r.json();el('out').textContent=r.ok?d.rows.map(x=>x.text+'  ['+x.confidence+']'+(x.needs_review?' — проверить':'')+(x.retry_candidates?.length?' | варианты: '+x.retry_candidates.map(a=>a.text).join(', '):'')).join('\n')+'\nВремя: '+d.seconds+' сек.':(d.error||'Ошибка');if(r.ok){result=d;el('save').disabled=false}}catch(e){el('out').textContent='Ошибка соединения. Повторите позже.'}finally{el('send').disabled=false}};el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='ocr-result.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}</script></html>"""
+PAGE=r"""<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:17px system-ui;margin:24px auto;padding:0 16px;max-width:650px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}</style><h1>FARUKH SUPPLY</h1><p>Закрытый тест OCR. Не бухгалтерская система. Данные не сохраняются сервером.</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png"><button id="send">Распознать фотографию</button><button id="save" disabled>Скачать результат JSON</button><pre id="out">Выберите фото. Максимум 4 МБ.</pre><script>let result=null;const el=id=>document.getElementById(id);el('send').onclick=async()=>{const f=el('photo').files[0];if(!f||!el('token').value){el('out').textContent='Нужны пароль и фото';return}if(f.size>4194304){el('out').textContent='Файл больше 4 МБ';return}el('send').disabled=true;el('save').disabled=true;result=null;el('out').textContent='Обработка…';try{const r=await fetch('/ocr',{method:'POST',headers:{Authorization:'Bearer '+el('token').value,'Content-Type':f.type},body:f,cache:'no-store'});const d=await r.json();el('out').textContent=r.ok?d.rows.map(x=>x.text+'  ['+x.confidence+']'+(x.needs_review?' — проверить':'')+(x.quantity_suggestion?' | единица: '+x.quantity_suggestion:'')+(x.retry_candidates?.length?' | варианты: '+x.retry_candidates.map(a=>a.text).join(', '):'')).join('\n')+'\nВремя: '+d.seconds+' сек.':(d.error||'Ошибка');if(r.ok){result=d;el('save').disabled=false}}catch(e){el('out').textContent='Ошибка соединения. Повторите позже.'}finally{el('send').disabled=false}};el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='ocr-result.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}</script></html>"""
 class Handler(BaseHTTPRequestHandler):
     def setup(self):
         super().setup()
