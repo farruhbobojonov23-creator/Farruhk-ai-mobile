@@ -1,0 +1,121 @@
+name: Supply offline OCR image QA
+on:
+  push:
+    branches: [test/supply-offline-ocr]
+    paths: ['.github/workflows/supply-offline-image-qa.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  image-ocr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: FARUKH-SUPPLY-OFFLINE-TEST
+          run-id: 45986639711
+          github-token: ${{ github.token }}
+          path: apk
+      - name: Verify exact built APK
+        run: echo "ba6bda35f66eb9b2e00143fb9d315f797bbd07be921d20ac155549c191ba69b3  apk/FARUKH-SUPPLY-OFFLINE-TEST.apk" | sha256sum -c -
+      - name: Generate synthetic Russian invoice and UI test
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFont
+          im=Image.new("RGB",(1600,1050),"white")
+          d=ImageDraw.Draw(im)
+          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",42)
+          bold=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",48)
+          d.text((65,65),"НАКЛАДНАЯ 12345",font=bold,fill="black")
+          d.text((65,155),"ТЕСТОВЫЙ ДОКУМЕНТ",font=font,fill="black")
+          for x,t in zip((70,530,740,940,1240),("Товар","Кол-во","Ед.","Цена","Сумма")):
+              d.text((x,280),t,font=font,fill="black")
+          for y,row in [(395,("Рис","3","кг","125,00","375,00")),(515,("Сыр","2","кг","230,00","460,00"))]:
+              for x,t in zip((70,530,740,940,1240),row):
+                  d.text((x,y),t,font=font,fill="black")
+          d.text((940,660),"ИТОГО 835,00",font=font,fill="black")
+          im.save("farukh-test-invoice.png")
+          PY
+          cat > ui.py <<'PY'
+          import re,sys,time,subprocess,xml.etree.ElementTree as ET
+          def adb(*args):
+              return subprocess.check_output(["adb",*args],stderr=subprocess.STDOUT).decode(errors="replace")
+          def dump():
+              adb("shell","uiautomator","dump","/sdcard/ui.xml")
+              s=adb("shell","cat","/sdcard/ui.xml")
+              open("last-screen.xml","w").write(s)
+              return ET.fromstring(s)
+          def click(pattern,timeout=45):
+              end=time.monotonic()+timeout
+              while time.monotonic()<end:
+                  try:
+                      for n in dump().iter("node"):
+                          label=" ".join([n.get("text",""),n.get("content-desc","")])
+                          if re.search(pattern,label,re.I):
+                              x1,y1,x2,y2=map(int,re.findall(r"\d+",n.get("bounds","")))
+                              adb("shell","input","tap",str((x1+x2)//2),str((y1+y2)//2))
+                              return
+                  except (ValueError,ET.ParseError,subprocess.CalledProcessError): pass
+                  time.sleep(2)
+              raise RuntimeError("UI element not found: "+pattern)
+          try:
+              click("Выбрать фото накладной",90)
+              try:
+                  click("farukh-test-invoice",12)
+              except RuntimeError:
+                  click("Show roots|Open navigation drawer|Показать корневые|Открыть меню")
+                  click("^Downloads|^Загрузки")
+                  click("farukh-test-invoice")
+              end=time.monotonic()+180
+              while time.monotonic()<end:
+                  try:
+                      root=dump()
+                      s=" ".join(n.get("text","") for n in root.iter("node"))
+                      if "Найдено блоков" in s:
+                          print(s)
+                          digits=s.replace(" ","").replace(".",",")
+                          for expected in ("125,00","375,00","230,00","460,00","835,00"):
+                              assert expected in digits, "Missing OCR amount: "+expected
+                          assert re.search("рис",s,re.I), "Missing Russian product name: рис"
+                          assert re.search("сыр",s,re.I), "Missing Russian product name: сыр"
+                          print("OFFLINE_IMAGE_OCR_PASS")
+                          sys.exit(0)
+                      if "Ошибка распознавания" in s: raise RuntimeError(s)
+                  except (ET.ParseError,subprocess.CalledProcessError): pass
+                  time.sleep(3)
+              raise RuntimeError("No completed OCR result")
+          finally:
+              try:
+                  open("image-log.txt","w").write(adb("logcat","-d","-t","1500"))
+              except Exception: pass
+          PY
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            adb install apk/FARUKH-SUPPLY-OFFLINE-TEST.apk
+            adb push farukh-test-invoice.png /sdcard/Download/farukh-test-invoice.png
+            adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Download/farukh-test-invoice.png
+            adb shell am start -W -n ai.farukh.supply.offline.test/com.paddle.ocr.demo.MainActivity
+            python ui.py
+      - name: Preserve synthetic test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-image-qa-evidence
+          path: |
+            last-screen.xml
+            image-log.txt
+            farukh-test-invoice.png
+          if-no-files-found: ignore
