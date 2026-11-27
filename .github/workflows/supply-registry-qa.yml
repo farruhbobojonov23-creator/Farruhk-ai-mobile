@@ -2,7 +2,7 @@ name: Supply integrated registry QA
 on:
   push:
     branches: [test/supply-offline-ocr]
-    paths: ['.github/workflows/supply-registry-qa.yml']
+    paths: ['.github/workflows/supply-registry-qa.yml', 'supply-offline/**']
   workflow_dispatch:
 concurrency:
   group: supply-registry-qa
