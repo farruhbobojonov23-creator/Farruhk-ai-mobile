@@ -956,7 +956,7 @@ function acceptPdf(text,parseStarted,scanError=''){
   if(!r.items.length){
    // A final receipt/acceptance page often has only signatures and the grand total.
    // Preserve its page evidence, but never fabricate item rows or auto-approve totals.
-   if(source[i].trim()&&/(?:всего\\s+передано|всего\\s+к\\s+оплате|итого\\s+по\\s+документу)/i.test(source[i])){
+   if(source[i].trim()&&/(?:всего\s+передано|всего\s+к\s+оплате|итого\s+по\s+документу)/i.test(source[i])){
     records.push({...updEvidence(source[i]),key,number:i+1,expected:source.length,
      documentNumber:ids[0]||null,documentDate:invoiceHeader(source[i]).documentDate,
      file:pageFile,identity:photoFingerprint(pageFile||file)+'#'+(i+1),
