@@ -1824,3 +1824,59 @@ api.parseSamePhotoPasses=function(texts){
  return [...original,...recovered];
 };
 })(globalThis);
+
+;(function(root){
+'use strict';
+// Supplier-independent safeguards: never promote missing invoice cells to
+// confirmed data. Infer a unit only from an independently printed OKEI code
+// paired with a legible unit token, not from the product packaging size.
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const original=api.parseSimple,previousPasses=api.parseSamePhotoPasses;
+const codes={'796':['шт',/^(?:шт|ш[тt]|[wеe][тt])$/iu],
+ '778':['уп',/^(?:уп|упак|упаковка|[уy]п[аa]к|ynak)$/iu],
+ '990':['уп',/^(?:меш|мешок|уп|упак)$/iu],
+ '166':['кг',/^(?:кг|[kк][гgr])$/iu],
+ '163':['г',/^г$/iu],'112':['л',/^[лl]$/iu],'111':['мл',/^мл$/iu]};
+function unitFromEvidence(row){
+ const source=String(row?.source||'').replace(/[|│]/g,' ').replace(/[\u00a0\u202f]/g,' ');
+ const matches=[...source.matchAll(/(?:^|\s)(796|778|990|166|163|112|111)\s+([A-Za-zА-Яа-я.]{1,12})\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)];
+ if(!matches.length)return null;
+ const valid=matches.map(m=>{const pair=codes[m[1]];return pair&&pair[1].test(m[2].replace(/\.$/,''))?pair[0]:null;});
+ return valid.every(Boolean)&&new Set(valid).size===1?valid[0]:null;
+}
+function brokenName(value){
+ const name=String(value||'').replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+НДС\))?\s*$/iu,'').trim();
+ if(!name||/[\uFFFD\u25A1\u25AF]/u.test(name))return true;
+ // A mixed-script, unseparated alphanumeric OCR token is not a reliable SKU.
+ return name.length>=12&&!/\s/.test(name)&&/[а-яё]/iu.test(name)&&/[a-z]/iu.test(name)&&/\d/u.test(name);
+}
+function auditCandidate(result){
+ if(!result||!Array.isArray(result.items))return result;
+ const issues=[],items=result.items.map((x,i)=>{
+  const row={...x},index=row.sourceRow||String(i+1);
+  if(!row.unit&&row.quantity>0){const evidence=unitFromEvidence(row);if(evidence){row.unit=evidence;row.unitEvidence='ОКЕИ';}}
+  if(!String(row.name||'').trim())issues.push('Строка '+index+': название не прочитано');
+  else if(brokenName(row.name)){row.nameNeedsReview=true;issues.push('Строка '+index+': проверьте искажённое название');}
+  if(!(Number(row.quantity)>0))issues.push('Строка '+index+': не распознано количество');
+  if(!(Number(row.price)>0))issues.push('Строка '+index+': не распознана цена');
+  if(!row.unit)issues.push('Строка '+index+': отсутствует единица измерения');
+  if(row.invoiceTotal!=null&&!(Number(row.invoiceTotal)>0))issues.push('Строка '+index+': неверная сумма');
+  if(row.quantityCorrected)issues.push('Строка '+index+': количество восстановлено расчётом');
+  if(row.unitEvidence)issues.push('Строка '+index+': единица восстановлена по ОКЕИ, проверьте по фото');
+  return row;
+ });
+ if(!items.length)issues.push('Ни одна товарная строка не подтверждена');
+ const expected=Number(result.printedTotal);
+ if(result.printedTotal!=null&&Number.isFinite(expected)&&expected>0&&items.every(x=>Number(x.invoiceTotal)>0)){
+  const actual=items.reduce((s,x)=>s+Math.round(Number(x.invoiceTotal)*100),0);
+  if(Math.abs(actual-Math.round(expected*100))>1)issues.push('Сумма позиций не совпадает с печатным итогом');
+ }
+ return {...result,items,reviewIssues:[...new Set([...(result.reviewIssues||[]),...issues])],
+  needsReview:issues.length>0||!!result.needsReview,
+  safeToAutoAccept:!issues.length&&!!(result.documentVerified||result.pageVerified||result.balancedInvoice)};
+}
+api.unitFromEvidence=unitFromEvidence;
+api.auditCandidate=auditCandidate;
+api.parseSimple=raw=>auditCandidate(original(raw));
+api.parseSamePhotoPasses=texts=>previousPasses(texts).map(auditCandidate);
+})(globalThis);

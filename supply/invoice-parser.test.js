@@ -255,3 +255,44 @@ test('SUPPLY OTA: UDON 0,3 kg without invented seafood packaging',()=>{
  a.equal(p.packWeight('Креветка тигровая 16/20 / шт (без НДС)'),null);
  a.equal(p.packWeight('Мидии 1/2 рак 30/40 / уп (с НДС)'),null);
 });
+
+test('multi-supplier guard never silently accepts unreadable Chistyakova rows',()=>{
+ const candidate=browserParser.auditCandidate({supplier:'ИП Чистякова Ирина Юрьевна',
+  items:[{name:'Сыр плавленый ломтевой 778 упак',quantity:null,unit:'',price:0,invoiceTotal:null}]});
+ a.equal(candidate.safeToAutoAccept,false);
+ a.equal(candidate.needsReview,true);
+ a.equal(candidate.items[0].quantity,null);
+ a.equal(candidate.items[0].price,0);
+ a.ok(candidate.reviewIssues.some(v=>/количество/.test(v)));
+ a.ok(candidate.reviewIssues.some(v=>/цен/.test(v)));
+ a.ok(candidate.reviewIssues.some(v=>/единица/.test(v)));
+});
+test('supplier-independent OKEI units require real source evidence and are unambiguous',()=>{
+ const source={name:'Соус Унаги 1,8 л. Тамаки',source:'Соус Унаги 1,8 л. Тамаки 796 WT 4,000 593,54 2 374,16',quantity:4,price:593.54,invoiceTotal:2374.16};
+ const detected=browserParser.auditCandidate({supplier:'Тестовый поставщик',items:[source]});
+ a.equal(detected.items[0].unit,'шт');
+ a.equal(detected.items[0].unitEvidence,'ОКЕИ');
+ a.equal(browserParser.packVolume(source.name),1.8);
+ const noEvidence=browserParser.auditCandidate({items:[{...source,source:'Соус Унаги 1,8 л. Тамаки 4 593,54 2 374,16'}]});
+ a.equal(noEvidence.items[0].unit,undefined);
+ const conflict=browserParser.auditCandidate({items:[{...source,source:source.source+' 166 кг 4,000 593,54 2 374,16'}]});
+ a.equal(conflict.items[0].unit,undefined);
+});
+test('portions compare by piece even with readable gram packaging',()=>{
+ const row={name:'Соус соевый порционный Black 30 гр. [168]',unit:'шт',quantity:840,price:8.45,invoiceTotal:7098};
+ const m=browserParser.purchaseMetrics(row);
+ a.equal(m.basis,'шт');a.equal(m.pricePerPiece,8.45);a.equal(m.totalPieces,840);
+ a.equal(browserParser.packWeight(row.name),.03);
+ const ginger={name:'Имбирь порционный маринованный белый 25г.[1]',unit:'шт',quantity:504,price:10.43,invoiceTotal:5256.72};
+ a.equal(browserParser.purchaseMetrics(ginger).basis,'шт');
+ const una={name:'Соус Унаги 1,8 л. Тамаки',unit:'шт',packL:1.8,quantity:4,price:593.54,invoiceTotal:2374.16};
+ const p=browserParser.purchaseMetrics(una);
+ a.equal(p.basis,'л');a.equal(p.totalL,7.2);a.equal(p.pricePerL,329.74);
+});
+test('bad OCR names and document total mismatches cannot become auto-approved',()=>{
+ const damaged=browserParser.auditCandidate({documentVerified:true,printedTotal:820,
+  items:[{name:'ВДОРИ ЛДЛяОГИ100.TDO□',unit:'шт',quantity:1,price:818.38,invoiceTotal:818.38}]});
+ a.equal(damaged.safeToAutoAccept,false);
+ a.equal(damaged.items[0].nameNeedsReview,true);
+ a.ok(damaged.reviewIssues.some(v=>/итогом/.test(v)));
+});
