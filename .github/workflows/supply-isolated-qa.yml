@@ -1,0 +1,21 @@
+name: FARUKH SUPPLY isolated OCR QA — synthetic only
+on:
+  push:
+    branches:
+      - 'experiment/supply-seven-invoices-proof-20261128'
+    paths:
+      - 'supply/isolated-qa/**'
+      - '.github/workflows/supply-isolated-qa.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Offline synthetic tests — no customer documents
+        run: node --test supply/isolated-qa/recognizer.test.cjs
