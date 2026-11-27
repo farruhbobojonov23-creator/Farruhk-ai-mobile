@@ -6,9 +6,9 @@
 Verify the workflow **photo → raw OCR → supplier-specific document layout → correctly bound name / packaging / quantity / unit / VAT-inclusive unit price / line sum → human validation** before any app integration. No live deployment is authorized by this branch.
 
 ## Current evidence (2026-11-28)
-- Real invoice 1 / 7: SHANGHAI-TORG (user-supplied OCR text). In a separate local lab: 6/6 SKU/quantity/price/line-total mappings and 47,486 RUB footer reconciled. Status: **OCR-text trial only; human review required**. No real image-to-form Android pass is proven.
+- Real invoice 1 / 7: SHANGHAI-TORG (user-supplied OCR text). In a separate local lab: 6/6 SKU/quantity/price/line-total mappings reconciled to a private reference. No customer amounts are committed. Status: **OCR-text trial only; human review required**. No real image-to-form Android pass is proven.
 - Synthetic tests: 9/9 categories passed, including 1, 2, 6, 20 variable rows, changing quantities, incompatible totals, missing amounts and unsupported vendor.
-- Real invoices 2–7: **not tested** in this environment.
+- Seven original supplier photographs have now been located in the user's private Library and visually inspected. They include multiple UPD variants, a multi-page document, a freight/transport form lacking a per-unit price column, and a grouped-by-storage item table with non-sequential printed row numbers. **No automated image-to-form results for invoices 2–7 yet.**
 - Live Android photo → OCR → filled form → saved invoice: **not tested**.
 
 ## Rules
