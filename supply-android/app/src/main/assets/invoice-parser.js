@@ -1920,8 +1920,8 @@ const api=typeof module==='object'&&module.exports?module.exports:root.supplyInv
 const old=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
 const profiles=Object.freeze([
  {id:'chistyakova',name:'ИП Чистякова Ирина Юрьевна',form:'УПД',re:/чистяков[а-яё]*\s+ирин[а-яё]*\s+юрьевн[а-яё]*/iu},
- {id:'virgo',name:'ООО «ВИРГО»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*вирго\b/iu},
- {id:'vesta',name:'ООО «ВЕСТА»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*веста\b/iu},
+ {id:'virgo',name:'ООО «ВИРГО»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*вирго(?=$|[^а-яё])/iu},
+ {id:'vesta',name:'ООО «ВЕСТА»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*веста(?=$|[^а-яё])/iu},
  {id:'vostok_zapad',name:'ООО «ВОСТОК-ЗАПАД»',form:'ТТН',re:/восток\s*[-–—]?\s*запад/iu},
  {id:'marr',name:'ООО «МАРР РУССИЯ»',form:'Реализация',re:/марр\s+руссия/iu},
  {id:'shanghai',name:'ООО «ШАНХАЙ-ТОРГ»',form:'УПД, цена с НДС',re:/шанхай\s*[-–—]?\s*торг/iu},
