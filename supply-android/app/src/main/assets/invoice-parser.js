@@ -1844,9 +1844,24 @@ function unitFromEvidence(row){
  const reverse=[...source.matchAll(/(?:^|\s)([A-Za-zА-Яа-я.]{1,12})\s+(796|778|990|166|163|112|111)\s+(\d{1,7}(?:[,.]\d{3})?)(?=\s|$)/giu)]
   .map(m=>[m[2],m[1]]);
  const matches=[...forward,...reverse];
- if(!matches.length)return null;
- const valid=matches.map(m=>{const pair=codes[m[0]];return pair&&pair[1].test(m[1].replace(/\.$/,''))?pair[0]:null;});
- return valid.every(Boolean)&&new Set(valid).size===1?valid[0]:null;
+ if(matches.length){
+  const valid=matches.map(m=>{const pair=codes[m[0]];return pair&&pair[1].test(m[1].replace(/\.$/,''))?pair[0]:null;});
+  return valid.every(Boolean)&&new Set(valid).size===1?valid[0]:null;
+ }
+ // When the unit glyph is unreadable, a printed OKEI code can recover it
+ // ONLY if the same OCR line independently contains the exact quantity,
+ // unit price, and line total. Package size alone is never unit evidence.
+ const num=s=>Number(String(s).replace(/\s/g,'').replace(',','.'));
+ const qty=Number(row?.quantity),price=Number(row?.price),gross=Number(row?.invoiceTotal);
+ if(!(qty>0&&price>0&&gross>0))return null;
+ const cash='(?:\\d{1,3}(?: \\d{3})+|\\d+)[,.]\\d{2}';
+ const expr=new RegExp('(?:^|\\s)(796|778|990|166|163|112|111)\\s+(\\d+(?:[,.]\\d{1,3})?)\\s+('+cash+')\\s+('+cash+')(?=\\s|$)','giu');
+ const recovered=[];
+ for(const m of source.matchAll(expr)){
+  const [,,q,p,t]=m,unit=codes[m[1]]?.[0];
+  if(unit&&Math.abs(num(q)-qty)<.00001&&Math.abs(num(p)-price)<.021&&Math.abs(num(t)-gross)<.021)recovered.push(unit);
+ }
+ return recovered.length&&new Set(recovered).size===1?recovered[0]:null;
 }
 function brokenName(value){
  const name=String(value||'').replace(/\s*\/\s*(?:шт|уп|кор|кг|г|л|мл)(?:\s*\((?:с|без)\s+НДС\))?\s*$/iu,'').trim();

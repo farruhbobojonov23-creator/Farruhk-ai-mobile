@@ -304,6 +304,25 @@ test('do not accept a bare package as an item or two OCR-merged brands',()=>{
  a.equal(p.auditCandidate(make('Бистро Чеддер уп/1,107 кг(уп 90 WT) HOCHLAND Творожный сыр')).items[0].nameNeedsReview,true);
  a.equal(p.auditCandidate(make('Сыр творожный Креметте 1,107 кг')).items[0].nameNeedsReview,undefined);
 });
+test('recover missing document unit from OKEI + reconciled numeric cells, never from packaging alone',()=>{
+ const unit=(source,extra={})=>browserParser.unitFromEvidence({source,quantity:4,price:576,invoiceTotal:2304,...extra});
+ a.equal(unit('Соус унаги 1,8 л 796 4,000 576,00 2 304,00'),'шт');
+ a.equal(unit('Соус унаги 1,8 л 112 4,000 576,00 2 304,00'),'л');
+ a.equal(unit('Соус унаги 1,8 л 796 4,000 576,00 2 303,00'),null);
+ a.equal(unit('Соус унаги 1,8 л 796 4,000 576,00 2 304,00',{quantity:8}),null);
+ a.equal(unit('Соус унаги 1,8 л 4 576,00 2 304,00'),null);
+ a.equal(unit('Соус унаги 1,8 л 796 4,000 576,00 2 304,00 166 4,000 576,00 2 304,00'),null);
+});
+test('version guard is bundled with exact signed HTML/JS revision',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const js=fs.readFileSync(path.join(root,'app.js'),'utf8');
+ const rev=Number(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim());
+ a.ok(html.includes('id="supplyWebNumber">'+rev+'</span>'));
+ a.ok(js.includes('window.SUPPLY_WEB_BUILD='+rev+';'));
+ a.ok(html.includes('farukh-supply-last-good-web-revision'));
+ a.ok(js.includes('const historical=evidence||data.nameNeedsReview?'));
+});
 test('allow both OKEI orders but do not derive units from a package label',()=>{
  const unit=source=>browserParser.unitFromEvidence({source});
  a.equal(unit('Сыр творожный 796 шт 2 911,00 1 822,00'),'шт');

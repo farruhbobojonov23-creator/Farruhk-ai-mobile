@@ -1,4 +1,5 @@
 'use strict';
+window.SUPPLY_WEB_BUILD=97; // Signed HTML and JS must carry the same web revision.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -497,9 +498,11 @@ function cleanInvoiceName(name){
 function addLine(data={}){
  data=grossRow(data);
  data={...data,name:cleanInvoiceName(data.name)};
- if(!data.unit&&!data.nameNeedsReview){
+ if(!data.unit){
+  // Damaged product names must not prevent valid document-unit evidence.
+  // Historical name matching is still forbidden until the name is reviewed.
   const evidence=window.supplyInvoiceParser.unitFromEvidence?.(data);
-  const historical=evidence?'':confirmedUnitFromHistory(data,$('supplier').value);
+  const historical=evidence||data.nameNeedsReview?'':confirmedUnitFromHistory(data,$('supplier').value);
   if(evidence||historical)data={...data,unit:evidence||historical,unitEvidence:evidence?'ОКЕИ':'истории'};
  }
  const f=node('div',null,'line');if(data.ocrOriginalName){f.dataset.ocrOriginalName=data.ocrOriginalName;if(data.ocrOriginalArticle)f.dataset.ocrOriginalArticle=data.ocrOriginalArticle;}if(data.uncertain)f.classList.add('uncertain');if(data.nameNeedsReview)f.dataset.nameNeedsReview='1';if(data.article)f.dataset.article=String(data.article);if(data.pageKey)f.dataset.pageKey=data.pageKey;if(data.sourceRow)f.dataset.sourceRow=String(data.sourceRow);if(numeric(data.invoiceWeightKg))f.dataset.invoiceWeightKg=String(data.invoiceWeightKg);if(numeric(data.invoiceTotal))f.dataset.invoiceTotal=String(numeric(data.invoiceTotal));if(numeric(data.netPrice))f.dataset.netPrice=String(data.netPrice);
