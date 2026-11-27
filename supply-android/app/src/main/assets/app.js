@@ -292,8 +292,8 @@ const api={normalize,aliasKey,resolve,confirm,unlink,suggest};
 if(typeof module==='object'&&module.exports)module.exports=api;else root.supplyProductCatalog=api;
 })(globalThis);
 
-// Resolve the shown revision from the signed web asset bundle, not a stale label.
-fetch('web-version.txt',{cache:'no-store'}).then(r=>r.ok?r.text():'').then(value=>{const v=value.trim(),el=document.getElementById('supplyWebNumber');if(el&&/^[1-9]\d*$/.test(v))el.textContent=v;}).catch(()=>{});
+// The revision is embedded in the signed HTML. The APK's old web-version.txt
+// is intentionally NOT fetched because the web-only updater replaces four assets.
 const $=id=>document.getElementById(id),norm=s=>String(s||'').normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' '),rub=n=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽',sections=['home','entry','invoices','products','suppliers','compare'];
 let scanStartedAt=0,stageStartedAt=0,scanTrace=[],scanPass=0,scanCandidates=[],photoPassTexts=[],photoSupplier='',partialPage=null,pages=[],activePage=null,pendingPhoto=null;let db,docs=[],editing=null,ocrId=null,scanBusy=false,previewUrl='',dirty=false,supplierFilter=null;
 

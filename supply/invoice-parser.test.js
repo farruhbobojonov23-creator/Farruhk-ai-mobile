@@ -338,3 +338,12 @@ test('a unique confirmed unit may be reused only for the same supplier, name, an
  a.equal(fn({name:'Сыр творожный',packKg:1.107},'Другой',[sample]),'');
  a.equal(fn({name:'Сыр творожный',packKg:1.107},'ИП Чистякова',[sample,{...sample,lines:[{name:'Сыр творожный',unit:'кг',packKg:1.107}]}]),'');
 });
+
+test('signed HTML revision is displayed without reading an outdated APK version file',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
+ const ver=fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim();
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+ a.ok(html.includes('id="supplyWebNumber">'+ver+'</span>'));
+ a.ok(!app.includes("fetch('web-version.txt'"));
+});
