@@ -1,0 +1,16 @@
+name: Supply invoice regression tests
+on:
+  push:
+    branches:
+      - feature/supply-seven-templates-20261127
+  workflow_dispatch:
+jobs:
+  supplier-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Shanghai-Torg structured invoice regression
+        run: node supply/shanghai-torg-reference.test.js
