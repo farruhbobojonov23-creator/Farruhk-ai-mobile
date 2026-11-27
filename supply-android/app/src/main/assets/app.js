@@ -1188,7 +1188,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   // stronger anchored layout before deciding whether another OCR pass is needed.
   const complete=scanFieldsComplete(current);
   const shanghaiFromCurrentPhoto=[current.supplier,photoSupplier,...scanCandidates.map(c=>c.r.supplier)]
-   .some(x=>/шанхай\\s*[-–—]?\\s*торг/iu.test(String(x||'')));
+   .some(x=>/шанхай\s*[-–—]?\s*торг/iu.test(String(x||'')));
   const evaluateStructured=shanghaiFromCurrentPhoto||scanPass>0||!complete;
   const rescored=evaluateStructured?window.supplyInvoiceParser.parseSamePhotoPasses(photoPassTexts):[];
   const strictRows=rescored.filter(x=>x.ocrLayout==='upd-row-anchored'&&x.documentVerified&&
@@ -1214,7 +1214,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
   if(r.ocrLayout==='upd-row-anchored'){
     $('ocrState').textContent+=' Метод: построчная сверка УПД по артикулу, количеству ОКЕИ и цене с НДС. Названия и фасовку проверьте по оригиналу.';
-  }else if(/шанхай\\s*[-–—]?\\s*торг/iu.test(r.supplier||'')){
+  }else if(/шанхай\s*[-–—]?\s*торг/iu.test(r.supplier||'')){
     $('ocrState').textContent+=' ⚠ Не удалось связать все названия и цены по оригинальным товарным строкам. Это черновик OCR, а не подтверждённая накладная.';
   }
   if(r.supplierPhotoGrid)$('ocrState').textContent+=' 7 шаблонов: строки распределены по колонкам фото. '+(r.documentVerified?'Сумма совпала.':'Требуется сверка количества и итога.') ;

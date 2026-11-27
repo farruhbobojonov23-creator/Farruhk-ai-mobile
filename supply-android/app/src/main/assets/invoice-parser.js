@@ -2290,10 +2290,10 @@ function parseShanghaiUpdRaw(raw){
   let name=pieces.join(' ').replace(/\(\s*(\d+(?:[,.]\d+)?)\s+кг\)/iu,'($1 кг)').replace(/\s+/gu,' ').trim();
   // The printed pack unit can continue on the SKU line in native OCR.
   if(/\d+[,.]\d+$/u.test(name)&&/^[KК][rгГΓ](?:\b|\s|$)/iu.test(suffix))name+=' кг';
-  if(!name||name.length>350||!/\\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
+  if(!name||name.length>350||!/\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
   // Reject table-header fragments before the first product: a correct
   // grand total does not validate the name column.
-  if(idx===0&&/^(?:наименование товаров?|код товара|цена|стоимость|количество|артикул)(?:\\s|$)/iu.test(name))return null;
+  if(idx===0&&/^(?:наименование товаров?|код товара|цена|стоимость|количество|артикул)(?:\s|$)/iu.test(name))return null;
   const q=anchor.q,price=anchor.gross,invoiceTotal=subtotal/100;
   const row={name,quantity:q,unit:'шт',unitCode:'796',price,invoiceTotal,
    article:article||undefined,sourceRow:String(idx+1),source:name,uncertain:true,
