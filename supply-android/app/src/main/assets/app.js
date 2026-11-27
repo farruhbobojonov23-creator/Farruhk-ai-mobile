@@ -480,6 +480,7 @@ function addLine(data={}){
  for(const input of [p.i,q.i])input.addEventListener('input',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;if(input===q.i)delete f.dataset.invoiceWeightKg;});
  f.addEventListener('input',recalc);u.addEventListener('change',()=>{delete f.dataset.invoiceTotal;delete f.dataset.netPrice;delete f.dataset.invoiceWeightKg;recalc()});
  if(data.source)f.title=data.source;
+  if(data.quantityCorrected){const warning=node('small','⚠ OCR неверно прочитал количество. Проверьте с оригиналом.','muted');warning.style.cssText='display:block;color:#f6c96b;margin:4px 0';f.append(warning);q.i.addEventListener('input',()=>warning.remove());}
  const badge=button('',()=>productLinkDialog(()=>lineData(f),()=>$('supplier').value,()=>catalogBadge(f)));badge.className='catalog-badge hide';
  const learned=f.dataset.ocrOriginalName&&norm(a.i.value)===norm(f.dataset.ocrOriginalName)?correctionFor(f.dataset.ocrOriginalName,$('supplier').value,f.dataset.ocrOriginalArticle):null;
  const suggestion=learned?button('Подсказка: '+learned,()=>{a.i.value=learned;delete f.dataset.article;suggestion.remove();recalc();catalogBadge(f);dirty=true;}):null;
@@ -1091,6 +1092,24 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
     }
    }catch(e){console.warn('Supply OCR: unsupported spatial table evidence',e?.message||'invalid coordinates');}
   }
+  // The native word positions can reflow a rotated UPD into readable rows.
+  // Reconciliation still requires each row's VAT and independent document total.
+  if(spatialJson&&!current.documentVerified&&!current.balancedInvoice&&/вирго/i.test(current.supplier||'')){
+   try{
+    const boxes=JSON.parse(spatialJson);
+    if(Array.isArray(boxes)&&boxes.length>=8&&boxes.length<=12000){
+     const reflow=window.supplySpatial?.spatialLines(boxes)?.map(l=>l.text).join('\n');
+     if(reflow){
+      const parsed=window.supplyInvoiceParser.parseSimple('Поставщик: ООО «ВИРГО»\n'+reflow);
+      const expected=updEvidence(String(text)).printedTotal;
+      if(parsed.balancedInvoice&&parsed.items.length&&(!expected||Math.abs(parsed.items.reduce((s,x)=>s+x.invoiceTotal,0)-expected)<.02)&&!scanConflicts(current,parsed)){
+       current=parsed;recoveredByColumns=true;
+       if(!photoPassTexts.includes(reflow))photoPassTexts.push(reflow);
+      }
+     }
+    }
+   }catch(e){console.warn('Supply UPD reflow:',e?.message||'bad coordinates');}
+  }
   scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   // A missing pack weight alone is not a reason to scan a reconciled invoice again.
@@ -1116,6 +1135,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. Откройте «Распознанный текст» для диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
+  if(r.quantityCorrections)$('ocrState').textContent+=' ⚠ В '+r.quantityCorrections+' строках количество восстановлено по сумме и цене. Проверьте с накладной.';
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);
   if(Number.isFinite(elapsed))$('ocrState').textContent+=' · '+fmt(Math.round(elapsed*10)/10)+' с';
   if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана. Укажите вес нетто или объём одной упаковки — он сохранится для следующих накладных.';

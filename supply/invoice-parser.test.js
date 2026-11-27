@@ -148,3 +148,46 @@ test('ALIDI unseen product names and changed units are read from barcodes and pa
 });
 
 test('UPD actual noisy table: missing quantity, glued net, displaced legal seller and full arithmetic',()=>{const raw="Универсальный Счет-фактура № 9357 09 ноября 2026 г.(1)\nОбщество с ограниченной ответственностью\nПродавец: \"ВИРГО\" ИП Покупатель\nНаименование товара (описание выполненных Код вида условное за товаров\nA 1a 16 2 2a 3 4 5 8 9 10 10a 11\nРис шлифованный Гост в/с, 990 меш. 1000 2 454,55 7363,64 86 10% 736.36 8 100,00\nЛЕБЕДИ СУШИ мЕШ/25кг\n²Уксус рисовый ДУНКАН уп/20л 796 ET 000 1337.70 1337.70 294.30 1632,00\nСОУС рисоВЫЙ МИРИН ФУ 20 796 ET 2131,97 2131.97 22% 469.03 2601,00\nл, ДУНКАН\nКреветка тигровая 16/20, с/м 796 6,000 1954.55 1172727 5е3 10% 1172.73 12900,00\nакциза\nво льду блок 1.8 кг\nВсего к оплате (9) 22 560.58 x 2672.42 25 233,00";const r=browserParser.parseSimple(raw);a.equal(r.supplier,'ООО «ВИРГО»');a.equal(r.documentVerified,true);a.deepEqual(r.items.map(x=>[x.quantity,x.price,x.invoiceTotal,x.packKg,x.packL]),[[3,2454.55,8100,25,null],[1,1337.7,1632,null,20],[1,2131.97,2601,null,20],[6,1954.55,12900,1.8,null]]);a.ok(browserParser.parseSamePhotoPasses([raw]).some(x=>x.documentVerified&&x.items.length===4));for(const bad of [raw.replace('25 233,00','25 234,00'),raw.replace('469.03','468.03'),raw.replace('6,000','5,000')])a.ok(!browserParser.parseSimple(bad).documentVerified);});
+
+// Regression from a photographed supplier UPD: no private buyer details.
+
+const virgoPhotoOCR=[
+ 'Универсальный счет-фактура № 9632 от 16 ноября 2026 г.',
+ 'Общество с ограниченной ответственностью',
+ 'Продавец: "ВИРГО" (2) Покупатель: ИП Учебный покупатель',
+ 'Наименование товара (описание выполненных) Количество Цена Стоимость НДС',
+ '1 Рис шлифованный ГОСТ в/с, ЛЕБЕДИ СУШИ меш/25кг 990 меш 2,000 2 454,55 7 363,64 без акциза 10% 736,36 8 100,00',
+ '2 Уксус рисовый ДУНКАН уп/20л 796 шт 1,000 1 337,70 1 337,70 без акциза 22% 294,30 1 632,00',
+ '3 Лапша "Удон" 0,3 796 шт 10,000 77,27 772,73 без акциза 10% 77,27 850,00',
+ '4 Сыр плавленый ломтевой Бистро Чеддер уп/1,107 кг HOCHLAND 778 упак 12,000 828,18 1 656,36 без акциза 10% 165,64 1 822,00',
+ '5 Креветка тигровая 16/20, с/м во льду блок 1,8 кг 796 шт 6,000 1 954,55 11 727,27 без акциза 10% 1 172,73 12 900,00',
+ '6 Мидии 1/2 рак 30/40, уп/1кг 778 упак 2,000 327,28 654,55 без акциза 10% 65,45 720,00',
+ 'Всего к оплате (9) 23 512,25 x 2 511,75 26 024,00'
+].join('\n');
+
+test('VIRGO UПД: 6 products recovered, damaged quantities flagged',()=>{
+ const r=browserParser.parseSimple(virgoPhotoOCR);
+ a.equal(r.supplier,'ООО «ВИРГО»');
+ a.equal(r.balancedInvoice,true);
+ a.equal(r.documentVerified,false);
+ a.equal(r.quantityCorrections,2);
+ a.deepEqual(r.items.map(x=>x.quantity),[3,1,10,2,6,2]);
+ a.deepEqual(r.items.map(x=>x.invoiceTotal),[8100,1632,850,1822,12900,720]);
+ a.equal(r.items.reduce((s,x)=>s+x.invoiceTotal,0),26024);
+ a.equal(r.items[0].packKg,25);
+ a.equal(r.items[1].packL,20);
+ a.equal(r.items[4].packKg,1.8);
+});
+test('VIRGO correct OCR may verify, corrupted VAT/totals never verify',()=>{
+ const clean=virgoPhotoOCR.replace('990 меш 2,000','990 меш 3,000').replace('778 упак 12,000','778 упак 2,000');
+ a.equal(browserParser.parseSimple(clean).documentVerified,true);
+ for(const bad of [virgoPhotoOCR.replace('26 024,00','26 025,00'),virgoPhotoOCR.replace('294,30','294,40'),virgoPhotoOCR.replace('Продавец: "ВИРГО"','Продавец: "ВЕСТА"')])
+  a.notEqual(browserParser.parseSimple(bad).balancedInvoice,true);
+});
+test('VIRGO only joins complementary rows of the SAME photo, no conflicts',()=>{
+ const ls=virgoPhotoOCR.split('\n');
+ const first=[...ls.slice(0,4),...ls.slice(4,7),ls.at(-1)].join('\n');
+ const second=[...ls.slice(0,4),...ls.slice(7,10),ls.at(-1)].join('\n');
+ a.ok(browserParser.parseSamePhotoPasses([first,second]).some(x=>x.items.length===6&&x.balancedInvoice));
+ a.equal(browserParser.parseSamePhotoPasses([first,second.replace('26 024,00','26 025,00')]).some(x=>x.items.length===6&&x.balancedInvoice),false);
+});

@@ -10,6 +10,7 @@ on:
       - 'supply-android/app/src/main/assets/analytics.js'
       - 'supply-android/app/src/main/assets/invoice-parser.js'
       - 'supply-android/app/src/main/assets/web-version.txt'
+      - 'supply/invoice-parser.test.js'
       - '.github/workflows/farukh-supply-web-ota-v21.yml'
 permissions:
   contents: read
@@ -39,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only HEAD^ HEAD > "$RUNNER_TEMP/changed-files.txt"
-          if grep -Ev '^(supply-android/app/src/main/assets/(index.html|app.js|analytics.js|invoice-parser.js|web-version.txt)|.github/workflows/farukh-supply-web-ota-v21.yml)$' "$RUNNER_TEMP/changed-files.txt"; then
+          if grep -Ev '^(supply-android/app/src/main/assets/(index.html|app.js|analytics.js|invoice-parser.js|web-version.txt)|supply/invoice-parser.test.js|.github/workflows/farukh-supply-web-ota-v21.yml)$' "$RUNNER_TEMP/changed-files.txt"; then
             echo "Refusing native file changes in web-only update"
             exit 1
           fi
