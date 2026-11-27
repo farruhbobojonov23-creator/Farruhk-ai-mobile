@@ -39,7 +39,7 @@ public class SupplyPhotoPickerTest {
      Uri second=Uri.parse("content://photo-test.local/page-two.jpg");
      ClipData selected=new ClipData("Photos",new String[]{"image/jpeg"},new ClipData.Item(first));
      selected.addItem(new ClipData.Item(second));
-     Intent result=new Intent().setData(first).setClipData(selected);
+     Intent result=new Intent();result.setData(first);result.setClipData(selected);
      activity.onActivityResult(41,Activity.RESULT_OK,result);
      assertNotNull("Multi-select callback not invoked",received.get());
      assertEquals("Both selected photos must reach WebView",2,received.get().length);
