@@ -1,0 +1,134 @@
+name: FARUKH SUPPLY 20 signed gated release
+on:
+  push:
+    branches: ['fix/supply-photo-picker-v20']
+    paths: ['.github/workflows/farukh-supply-v20-publish.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: farukh-supply-v19-publish
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Require exact source and passed UI plus signed Android tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha=9c369f517fd5053f6d7aa0bd2c17034c222b4155
+          test "$(git rev-parse HEAD^)" = "$sha"
+          test "$(git diff --name-only HEAD^ HEAD)" = ".github/workflows/farukh-supply-v20-publish.yml"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/fix/supply-photo-picker-v20" --jq .object.sha)" = "$GITHUB_SHA"
+          for id in 46005287143 46005287136; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .head_sha)" = "$sha"
+            gh run watch "$id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 20
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .conclusion)" = success
+          done
+          mkdir -p "$RUNNER_TEMP/supply-signed"
+          gh run download 46005287136 --repo "$GITHUB_REPOSITORY" --name FARUKH-SUPPLY-WHITE-signed-test --dir "$RUNNER_TEMP/supply-signed"
+          test -s "$RUNNER_TEMP/supply-signed/FARUKH-SUPPLY-WHITE-TEST.apk"
+      - name: Verify version 19 and original signature before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -x "$SDK_ROOT/build-tools/35.0.0/apksigner" ]; then
+            SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -1)
+            test -n "$SDKMANAGER"
+            sudo "$SDKMANAGER" --sdk_root="$SDK_ROOT" 'build-tools;35.0.0'
+          fi
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/supply-publish"
+          out="$RUNNER_TEMP/supply-publish"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/previous.json"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/previous-web.json"
+          test "$(jq -er .package "$out/previous.json")" = ai.farukh.supply
+          test "$(jq -er .versionCode "$out/previous.json")" = 19
+          test "$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)" = 20
+          test "$(tr -d '[:space:]' < supply-android/app/src/main/assets/web-version.txt)" = 84
+          old_rev=$(jq -er .payload "$out/previous-web.json" | base64 --decode | jq -er .revision)
+          test "$old_rev" -lt 84
+          signed="$RUNNER_TEMP/supply-signed/FARUKH-SUPPLY-WHITE-TEST.apk"
+          "$SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$signed"
+          cert=$("$SDK_ROOT/build-tools/35.0.0/apksigner" verify --print-certs "$signed" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
+          test "$cert" = "$(jq -er .cert "$out/previous.json")"
+          "$SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$signed" > "$out/badging.txt"
+          grep -F "package: name='ai.farukh.supply' versionCode='20'" "$out/badging.txt"
+          grep -F "native-code: 'arm64-v8a'" "$out/badging.txt"
+          size=$(wc -c < "$signed")
+          test "$size" -ge 20000000 && test "$size" -le 120000000
+          cp "$signed" "$out/FARUKH-SUPPLY-20.apk"
+          echo "SIGNATURE_AND_VERSION_19_VERIFIED"
+      - name: Sign web payload and publish verified update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_BUNDLE: ${{ secrets.FARUKH_SUPPLY_SIGNING_BUNDLE }}
+          STORE_B64: ${{ secrets.FARUKH_SUPPLY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FARUKH_SUPPLY_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/supply-publish"
+          key="$out/key.jks"
+          trap 'rm -f "$key"' EXIT
+          if [ -n "$SIGNING_BUNDLE" ]; then
+            STORE_B64=$(jq -er .keystore <<< "$SIGNING_BUNDLE")
+            STORE_PASS=$(jq -er .password <<< "$SIGNING_BUNDLE")
+            KEY_ALIAS=$(jq -er .alias <<< "$SIGNING_BUNDLE")
+            KEY_PASS="$STORE_PASS"
+            echo "::add-mask::$STORE_PASS"
+            echo "::add-mask::$STORE_B64"
+            export STORE_PASS KEY_PASS
+            unset SIGNING_BUNDLE
+          fi
+          test -n "$STORE_B64" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS"
+          umask 077
+          printf '%s' "$STORE_B64" | base64 --decode > "$key"
+          signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          apk="$out/FARUKH-SUPPLY-20.apk"
+          cert=$("$signer" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
+          test "$cert" = "$(jq -er .cert "$out/previous.json")"
+          python3 - supply-android/app/src/main/assets "$out/payload.json" <<'PY'
+          import base64,json,pathlib,sys
+          root,out=map(pathlib.Path,sys.argv[1:])
+          names=['index.html','app.js','analytics.js','invoice-parser.js']
+          files={n:base64.b64encode((root/n).read_bytes()).decode('ascii') for n in names}
+          out.write_text(json.dumps({'package':'ai.farukh.supply','nativeVersion':20,'revision':84,'files':files},separators=(',',':')),encoding='utf-8')
+          PY
+          java supply-android/SignWeb.java "$key" "$KEY_ALIAS" "$out/payload.json" "$out/web-current.json" "$cert" 84
+          test "$(wc -c < "$out/web-current.json")" -lt 1048576
+          test "$(jq -er .payload "$out/web-current.json" | base64 --decode | jq -er .nativeVersion)" = 20
+          test "$(jq -er .payload "$out/web-current.json" | base64 --decode | jq -er .revision)" = 84
+          hash=$(sha256sum "$apk" | cut -d' ' -f1)
+          jq -n --arg file FARUKH-SUPPLY-20.apk --arg sha256 "$hash" --arg cert "$cert" \
+             '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:20}' > "$out/update.json"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/fix/supply-photo-picker-v20" --jq .object.sha)" = "$GITHUB_SHA"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/confirm-previous.json"
+          test "$(jq -er .versionCode "$out/confirm-previous.json")" = 19
+          gh release upload farukh-supply-current "$apk" --repo "$GITHUB_REPOSITORY"
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern FARUKH-SUPPLY-20.apk --output "$out/verified.apk"
+          test "$(sha256sum "$out/verified.apk" | cut -d' ' -f1)" = "$hash"
+          gh release upload farukh-supply-current "$out/update.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/verified-manifest.json"
+          cmp "$out/update.json" "$out/verified-manifest.json"
+          gh release upload farukh-supply-current "$out/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release download farukh-supply-current --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified-web.json"
+          cmp "$out/web-current.json" "$out/verified-web.json"
+          echo "PUBLISHED_FARUKH_SUPPLY_20_SIGNED_AND_VERIFIED"
