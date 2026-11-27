@@ -2234,12 +2234,12 @@ const amount=s=>Number(String(s).replace(/[ \u00a0]/g,'').replace(',','.'));
 const cents=s=>Math.round(amount(s)*100);
 function fragment(text,rate){
  let s=String(text).trim();
- if(!s||/^((?:\d+|\W+)\s*)+$/u.test(s))return '';
+ if(!s||!/\p{L}/u.test(s))return '';
  if(/^(?:6[еeэ]3|без\s+акциза|акциза)(?:\s|$)/iu.test(s))return '';
  if([...s.matchAll(moneyRx)].length>=2)return '';
  s=s.replace(/\b(?:\d+)\(\+\d+\).*$/u,'');
  s=s.replace(/\s+(?:БЕЛАРУС\w*|КОРЕЯ|КИТАЙ|РЕСПУБЛ\w*|США)(?:[,\s].*)?$/iu,'');
- s=s.replace(/\b(?:K[rгГΓ]|К[rгГΓ])\)/gu,'кг)');
+ s=s.replace(/\b(?:K[rгГΓ]|К[rгГΓ])\)/gu,'кг)').replace(/(?<!\p{L})[KК][rгГΓ](?=\s|$)/gu,'кг');
  s=s.replace(/(?:\s+|^)(?:WT|ШТ)\s+акциза\s*$/iu,'').replace(/\s+акциза\s*$/iu,'');
  if(rate>0)s=s.replace(new RegExp('\\s+'+rate+'\\s*$','u'),'');
  s=s.replace(/^\d{1,3}\s+(?=[\p{L}])/u,'');
@@ -2312,7 +2312,7 @@ api.parsePhoto=function(raw,spatial){
   const audited=api.auditCandidate(structured);
   // Ambiguous OCR must not silently become a trusted invoice.
   if(audited?.items?.length&&audited.items.every(x=>x.price>0&&x.quantity>0)&&
-     !audited.ocrNameAlignmentSuspect)return audited;
+     !audited.ocrNameAlignmentSuspect)return {...audited,safeToAutoAccept:false,needsReview:true};
  }
  return prev(raw,spatial);
 };
