@@ -1019,7 +1019,7 @@ function scanNextPass(pass,current,complete,evidence){
  if(pass===0)return complete&&!footerMismatch&&!evidence.some(x=>scanConflicts(x,current))?null:'paddle-scan';
  // If two OCR passes found no complete price/quantity/unit row, a third full-image
  // pass usually repeats the same failure. Keep manual re-scan available.
- if(pass===1&&!evidence.some(r=>r.items?.some(x=>x.name&&x.quantity>0&&x.price>0&&x.unit)))return null;
+ if(pass===1&&!evidence.some(r=>r.items?.some(x=>x.name&&x.price>0)))return null;
  if(complete&&!footerMismatch&&!evidence.some(x=>scanConflicts(x,current)))return null;
  return 'rescan';
 }
