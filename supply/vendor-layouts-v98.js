@@ -3,7 +3,7 @@
    Never infer numbers from sample invoices or another supplier's catalog. */
 ;(function(root){
 'use strict';
-const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const api=typeof module==='object'&&module.exports?require('./invoice-parser.js'):root.supplyInvoiceParser;
 const old=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
 const profiles=Object.freeze([
  {id:'chistyakova',name:'ИП Чистякова Ирина Юрьевна',form:'УПД',re:/чистяков[а-яё]*\s+ирин[а-яё]*\s+юрьевн[а-яё]*/iu},
