@@ -1,10 +1,40 @@
-import json, os, threading, time, io, hmac, resource, warnings
+import json, os, threading, time, io, hmac, resource, warnings, secrets, gc
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 state={"status":"starting","test":"synthetic table only"}
 lock=threading.Lock()
 ocr=None
 MAX_BYTES=4*1024*1024
 public_remaining=14
+jobs={}
+job_lock=threading.Lock()
+def prune_jobs():
+    now=time.monotonic()
+    for key in list(jobs):
+        if jobs[key].get('finished',now)+600<now: jobs.pop(key,None)
+def process_job(key, payload):
+    start=time.monotonic()
+    try:
+        from PIL import Image, ImageOps
+        Image.MAX_IMAGE_PIXELS=12_000_000
+        with warnings.catch_warnings():
+            warnings.simplefilter('error',Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(payload)) as source:
+                if source.format not in ('JPEG','PNG'): raise ValueError('format')
+                source.thumbnail((1400,1400))
+                img=ImageOps.exif_transpose(source).convert('RGB')
+        del payload
+        rows=recognize(img,retry_limit=0)
+        result={'status':'done','rows':rows,'width':img.width,'height':img.height,'seconds':round(time.monotonic()-start,1),'verified':False,'memory':memory_cgroup()}
+        del img
+        print('OCR_REQUEST completed',json.dumps({'seconds':result['seconds'],'cells':len(rows),'memory':result['memory']}),flush=True)
+    except Exception as e:
+        result={'status':'error','error':'Не удалось обработать фотографию'}
+        print('OCR_REQUEST error',type(e).__name__,flush=True)
+    finally:
+        gc.collect()
+        with job_lock:
+            jobs[key]={**result,'finished':time.monotonic()}
+        lock.release()
 def public_test_open():
     return time.time()<1795778400 and public_remaining>0
 def rss():
@@ -51,14 +81,14 @@ def quantity_suggestion(row):
     retry=" ".join(a["text"] for a in row.get("retry_candidates",[]))
     suggestions={s for s in (parse_quantity(raw),parse_quantity(retry)) if s}
     return next(iter(suggestions)) if len(suggestions)==1 else None
-def recognize(img):
+def recognize(img, retry_limit=2):
     import cv2, re
     clean=clean_grid(img)
     rows=recognize_array(clean)
     h,w=clean.shape[:2]
     retries=0
     for row in rows:
-        if row["confidence"] is None or row["confidence"]>=0.85 or not row["box"] or retries>=2: continue
+        if row["confidence"] is None or row["confidence"]>=0.85 or not row["box"] or retries>=retry_limit: continue
         if not re.search(r"\d",row["text"]) or not re.search(r"[A-Za-zА-Яа-яΓ]",row["text"]): continue
         x1,y1,x2,y2=row["box"]
         crop=clean[max(0,y1-3):min(h,y2+3),max(0,x1-3):min(w,x2+3)]
@@ -118,28 +148,32 @@ def test():
         ocr=None
         state.update(status="error",error=type(e).__name__,detail=str(e)[:300])
         print("TABLE_SMOKE",json.dumps(state),flush=True)
-PAGE=r"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:16px system-ui;margin:24px auto;padding:0 16px;max-width:700px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}button:disabled{opacity:.5}article,pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}article{margin:12px 0}progress{width:100%}.warning{color:#ffd279}</style></head><body><h1>FARUKH SUPPLY</h1><p>Закрытый тест сканера. Выберите до 7 фотографий. Они обрабатываются по очереди; сервер не сохраняет документы.</p><p id="health">Проверяем готовность сервера…</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png" multiple><button id="send">Распознать накладные</button><progress id="progress" max="7" value="0"></progress><button id="save" disabled>Скачать общий отчёт JSON</button><p id="out">JPEG/PNG, до 4 МБ каждый.</p><section id="results"></section><script>
-let result=null,openTest=false;const el=id=>document.getElementById(id);
-async function health(){try{const r=await fetch('/health',{cache:'no-store'});const d=await r.json();openTest=d.public_test===true;el('token').hidden=openTest;el('health').textContent=!d.upload_enabled?'Загрузка пока закрыта':(['passed','recognition mismatch'].includes(d.status)?'Сканер доступен для теста':'Состояние: '+d.status)}catch(e){el('health').textContent='Сервер запускается или недоступен';}}
-health();
+PAGE=r"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FARUKH SUPPLY • OCR тест</title><style>body{background:#10172b;color:#eef2ff;font:16px system-ui;margin:24px auto;padding:0 16px;max-width:700px}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px}button{background:#7167e8;color:white;border:0;font-weight:bold}button:disabled{opacity:.5}article,pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e2945;padding:16px;border-radius:10px}article{margin:12px 0}progress{width:100%}.warning{color:#ffd279}</style></head><body><h1>FARUKH SUPPLY</h1><p>Закрытый тест сканера. Выберите до 7 фотографий. Они обрабатываются по очереди; фото не записываются на диск; результат временно хранится в памяти до 10 минут.</p><p id="health">Проверяем готовность сервера…</p><input id="token" type="password" autocomplete="off" placeholder="Тестовый пароль"><input id="photo" type="file" accept="image/jpeg,image/png" multiple><button id="send">Распознать накладные</button><progress id="progress" max="7" value="0"></progress><button id="save" disabled>Скачать общий отчёт JSON</button><p id="out">JPEG/PNG, до 4 МБ каждый.</p><section id="results"></section><script>
+let result=null,openTest=false,ready=false,running=false;const el=id=>document.getElementById(id);
+async function health(){try{const r=await fetch('/health',{cache:'no-store'});const d=await r.json();openTest=d.public_test===true;ready=['passed','recognition mismatch'].includes(d.status)&&d.upload_enabled&&!d.busy;el('send').disabled=running||!ready;el('token').hidden=openTest;el('health').textContent=!d.upload_enabled?'Загрузка пока закрыта':(['passed','recognition mismatch'].includes(d.status)?(d.busy?'Сканер обрабатывает документ':'Сканер доступен для теста'):'Загрузка моделей…')}catch(e){ready=false;el('send').disabled=true;el('health').textContent='Сервер запускается или недоступен';}}
+el('send').disabled=true;health();setInterval(health,5000);
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+async function waitJob(key){for(let k=0;k<120;k++){await delay(2500);let r;try{r=await fetch('/job',{headers:{'X-Job-Key':key},cache:'no-store'});}catch(e){continue;}let d;try{d=await r.json()}catch(e){continue;}if(r.status===404)throw Error('Сервер перезапустился или результат истёк');if(d.status==='done')return d;if(d.status==='error')throw Error(d.error); }throw Error('Превышено время ожидания обработки');}
 function show(item){const a=document.createElement('article');const title=document.createElement('strong');title.textContent=item.file;a.append(title);const p=document.createElement('pre');p.textContent=item.ok?item.rows.map(x=>x.text+' ['+x.confidence+']'+(x.needs_review?' — проверить':'')+(x.quantity_suggestion?' | вариант: '+x.quantity_suggestion:'')).join('\n')+'\nВремя: '+item.seconds+' сек.':item.error;a.append(p);el('results').append(a);}
 el('send').onclick=async()=>{
+ if(!ready||running)return;
  const files=Array.from(el('photo').files),token=el('token').value;
  if(!files.length||files.length>7||(!token&&!openTest)){el('out').textContent='Выберите 1–7 фото; если тест закрыт, введите пароль.';return}
  if(files.some(f=>f.size>4194304||!['image/jpeg','image/png'].includes(f.type))){el('out').textContent='Допустимы JPEG/PNG до 4 МБ.';return}
- el('send').disabled=true;el('save').disabled=true;el('photo').disabled=true;el('token').disabled=true;el('results').replaceChildren();el('progress').max=files.length;el('progress').value=0;
+ running=true;el('send').disabled=true;el('save').disabled=true;el('photo').disabled=true;el('token').disabled=true;el('results').replaceChildren();el('progress').max=files.length;el('progress').value=0;
  result={schema:'farukh-ocr-batch-v1',verified:false,documents:[]};
  try{for(let i=0;i<files.length;i++){
   const f=files[i];el('out').textContent='Обработка '+(i+1)+' из '+files.length+' — '+f.name;
   let item;
   try{const r=await fetch('/ocr',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':f.type},body:f,cache:'no-store'});let d;try{d=await r.json()}catch(e){d={error:'Сервер вернул HTTP '+r.status}}
-  item={...d,file:f.name,ok:r.ok,http_status:r.status};if(!r.ok&&!item.error)item.error='Ошибка HTTP '+r.status;
-  }catch(e){item={file:f.name,ok:false,error:'Соединение прервано'};}
+  if(r.status===202&&d.key){el('out').textContent='Распознавание '+(i+1)+' из '+files.length+' — ожидаем результат';d=await waitJob(d.key);}
+  item={...d,file:f.name,ok:r.ok&&d.status==='done',http_status:r.status};if(!r.ok&&!item.error)item.error='Ошибка HTTP '+r.status;
+  }catch(e){item={file:f.name,ok:false,error:e.message||'Соединение прервано'};}
   result.documents.push(item);show(item);el('progress').value=i+1;
   if(!item.ok){el('out').textContent='Пакет остановлен на файле '+(i+1)+'. Скачайте отчёт; неотправленные файлы сохранены на телефоне.';return}
  }
  el('out').textContent='Обработано '+result.documents.length+' из '+files.length+'. Данные требуют сверки с оригиналами.';
- }finally{el('send').disabled=false;el('photo').disabled=false;el('token').disabled=false;el('save').disabled=!result.documents.length;}
+ }finally{running=false;health();el('photo').disabled=false;el('token').disabled=false;el('save').disabled=!result.documents.length;}
 };
 el('save').onclick=()=>{if(!result)return;const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));a.href=u;a.download='farukh-ocr-batch.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
 </script></body></html>"""
@@ -152,8 +186,17 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status);self.send_header("Content-Type",kind);self.send_header("Cache-Control","no-store");self.send_header("X-Content-Type-Options","nosniff");self.send_header("Referrer-Policy","no-referrer");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b)
     def do_GET(self):
         if self.path=="/": self.respond(200,PAGE,"text/html; charset=utf-8")
-        elif self.path=="/health": self.respond(200,{**state,"upload_enabled":public_test_open() or len(os.environ.get("OCR_TEST_TOKEN",""))>=24,"public_test":public_test_open()})
+        elif self.path=="/health": self.respond(200,{**state,"upload_enabled":public_test_open() or len(os.environ.get("OCR_TEST_TOKEN",""))>=24,"public_test":public_test_open(),"busy":lock.locked()})
+        elif self.path=="/job":
+            key=self.headers.get("X-Job-Key","")
+            with job_lock:
+                prune_jobs()
+                job=jobs.get(key)
+                data={k:v for k,v in job.items() if k!="finished"} if job else None
+            self.respond(200,data) if data else self.respond(404,{"error":"Задача не найдена"})
         else: self.respond(404,{"error":"Not found"})
+    def do_HEAD(self):
+        self.send_response(200 if self.path in ("/","/health") else 404);self.end_headers()
     def do_POST(self):
         global public_remaining
         if self.path!="/ocr": return self.respond(404,{"error":"Not found"})
@@ -166,26 +209,28 @@ class Handler(BaseHTTPRequestHandler):
         if not 0<n<=MAX_BYTES: return self.respond(413,{"error":"Максимум 4 МБ"})
         if self.headers.get("Content-Type") not in ("image/jpeg","image/png"): return self.respond(415,{"error":"Только JPEG или PNG"})
         if not lock.acquire(blocking=False): return self.respond(429,{"error":"Сканер занят, повторите позже"})
+        handed_off=False
         try:
             if not authorized:
                 if not public_test_open(): return self.respond(401,{"error":"Лимит теста исчерпан"})
                 public_remaining-=1
-            from PIL import Image, ImageOps
-            start=time.monotonic()
-            Image.MAX_IMAGE_PIXELS=12_000_000
-            with warnings.catch_warnings():
-                warnings.simplefilter("error",Image.DecompressionBombWarning)
-                with Image.open(io.BytesIO(self.rfile.read(n))) as source:
-                    if source.format not in ("JPEG","PNG"): raise ValueError("format")
-                    img=ImageOps.exif_transpose(source).convert("RGB")
-            img.thumbnail((1800,1800))
-            rows=recognize(img)
-            self.respond(200,{"rows":rows,"width":img.width,"height":img.height,"seconds":round(time.monotonic()-start,1),"peak_rss_mb":rss(),"verified":False})
-            print("OCR_REQUEST completed",flush=True)
+            payload=self.rfile.read(n)
+            if len(payload)!=n: return self.respond(400,{"error":"Неполная загрузка"})
+            key=secrets.token_urlsafe(32)
+            with job_lock:
+                prune_jobs()
+                if len(jobs)>=20: return self.respond(429,{"error":"Слишком много результатов, повторите позже"})
+                jobs[key]={"status":"processing"}
+            threading.Thread(target=process_job,args=(key,payload),daemon=True).start()
+            handed_off=True
+            self.respond(202,{"status":"processing","key":key})
+        except (BrokenPipeError,ConnectionResetError):
+            print("OCR upload connection closed",flush=True)
         except Exception as e:
-            print("OCR_REQUEST error",type(e).__name__,flush=True)
-            self.respond(422,{"error":"Не удалось обработать фотографию"})
-        finally: lock.release()
+            print("OCR upload error",type(e).__name__,flush=True)
+            self.respond(422,{"error":"Ошибка загрузки"})
+        finally:
+            if not handed_off: lock.release()
 if __name__=="__main__":
     threading.Thread(target=test,daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0",int(os.environ.get("PORT","10000"))),Handler).serve_forever()
