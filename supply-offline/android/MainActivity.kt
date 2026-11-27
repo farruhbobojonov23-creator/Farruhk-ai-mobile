@@ -175,7 +175,7 @@ class MainActivity : Activity() {
                     }
                     val width = bmp.width; val height = bmp.height
                     android.util.Log.i("FarukhOffline", "OCR_IMAGE_DECODED page=${index + 1} ${width}x${height}")
-                    val res = try { ocr.recognize(bmp) } finally { bmp.recycle() }
+                    val res = withContext(Dispatchers.Default) { try { ocr.recognize(bmp) } finally { bmp.recycle() } }
                     android.util.Log.i("FarukhOffline", "OCR_INFERENCE_COMPLETE page=${index + 1} blocks=${res.results.size} ms=${res.totalTimeMs}")
                     val regions = JSONArray()
                     res.results.forEach { item ->
@@ -188,7 +188,7 @@ class MainActivity : Activity() {
                     pages.put(JSONObject().put("schema", "farukh-ocr-regions-v1")
                         .put("width", width).put("height", height).put("regions", regions)
                         .put("requires_review", true).put("elapsed_ms", res.totalTimeMs))
-                    display.append("--- Страница ${index + 1} ---\\n")
+                    display.append("--- Страница ${index + 1} ---\n")
                     display.append(res.results.joinToString("\\n") { it.text + if (it.confidence < 0.85f) " ⚠" else "" })
                     display.append("\\n")
                 }
