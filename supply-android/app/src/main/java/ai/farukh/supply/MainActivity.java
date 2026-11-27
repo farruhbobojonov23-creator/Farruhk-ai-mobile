@@ -11,6 +11,8 @@ import androidx.webkit.WebViewAssetLoader;
 public class MainActivity extends Activity {
  private WebView web;
  private ValueCallback<Uri[]> pending;
+ private Uri[] queuedPhotos;
+ private final android.os.Handler uiHandler=new android.os.Handler(android.os.Looper.getMainLooper());
  private final java.util.concurrent.ExecutorService ocrExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
  private volatile long scanSequence=0;
  private long photoSequence=0;
@@ -57,12 +59,38 @@ public class MainActivity extends Activity {
  @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){if(r.isForMainFrame() && "https://appassets.androidplatform.net/update".equals(r.getUrl().toString())){updater.check();return true;}
  if(r.isForMainFrame()&&"https://appassets.androidplatform.net/paddle-scan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,false,true);return true;}
  if(r.isForMainFrame()&&"https://appassets.androidplatform.net/rescan".equals(r.getUrl().toString())){if(lastScan!=null)scan(lastScan,true);return true;}
+ if(r.isForMainFrame()&&"https://appassets.androidplatform.net".equals(r.getUrl().getScheme()+"://"+r.getUrl().getHost())
+  &&"/ocr-selected".equals(r.getUrl().getPath())){
+   String count=r.getUrl().getQueryParameter("count");
+   try { startQueuedScan(Integer.parseInt(count),false); }
+   catch(Exception e){android.util.Log.w("SupplyOCR","Picker change signal error",e);}
+   return true;
+ }
  return !"appassets.androidplatform.net".equals(r.getUrl().getHost());}
  });
  web.setWebChromeClient(new WebChromeClient(){
  @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> cb,FileChooserParams p){
- if(pending!=null)pending.onReceiveValue(null);pending=cb;
- try {startActivityForResult(p.createIntent(),41);return true;}catch(Exception e){pending=null;cb.onReceiveValue(null);return true;}
+ if(pending!=null)pending.onReceiveValue(null);
+ pending=cb;queuedPhotos=null;
+ try {
+  Intent open=p.createIntent();
+  open.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+  if(p.getMode()==FileChooserParams.MODE_OPEN_MULTIPLE)open.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+  startActivityForResult(open,41);
+ }catch(Exception primary){
+  try {
+   Intent fallback=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+   fallback.addCategory(Intent.CATEGORY_OPENABLE);
+   fallback.setType("image/*");
+   fallback.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+   fallback.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+   startActivityForResult(fallback,41);
+  }catch(Exception secondary){
+   pending=null;cb.onReceiveValue(null);
+   android.widget.Toast.makeText(MainActivity.this,"Не удалось открыть галерею. Попробуйте через Файлы.",android.widget.Toast.LENGTH_LONG).show();
+  }
+ }
+ return true;
  }
  });
  web.clearCache(false);
@@ -70,19 +98,47 @@ public class MainActivity extends Activity {
  }
  @Override protected void onActivityResult(int request,int result,Intent data){
  super.onActivityResult(request,result,data);
- if(request==41&&pending!=null){
-  Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
-  if(chosen!=null&&chosen.length>20){
-   pending.onReceiveValue(null);pending=null;
-   android.widget.Toast.makeText(this,"Выберите не более 20 страниц одной накладной",android.widget.Toast.LENGTH_LONG).show();return;
-  }
-  pending.onReceiveValue(chosen);pending=null;
-  if(chosen!=null&&chosen.length>0){
-   photoSequence++;
-   if(chosen.length==1){lastScan=chosen[0];scan(lastScan,false);}
-   else{lastScan=null;scanBatch(chosen);}
-  }
+ if(request!=41||pending==null)return;
+ Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
+ // Some Android gallery providers return ClipData but no data Uri.
+ if((chosen==null||chosen.length==0)&&result==RESULT_OK&&data!=null){
+  android.content.ClipData clip=data.getClipData();
+  if(clip!=null&&clip.getItemCount()>0&&clip.getItemCount()<=20){
+   chosen=new Uri[clip.getItemCount()];
+   for(int i=0;i<clip.getItemCount();i++)chosen[i]=clip.getItemAt(i).getUri();
+  }else if(data.getData()!=null)chosen=new Uri[]{data.getData()};
  }
+ if(chosen!=null&&chosen.length>20){
+  pending.onReceiveValue(null);pending=null;
+  android.widget.Toast.makeText(this,"Выберите не более 20 страниц одной накладной",android.widget.Toast.LENGTH_LONG).show();return;
+ }
+ if(chosen!=null&&chosen.length>0){
+  // Queue before callback: the WebView file-change event may fire synchronously.
+  queuedPhotos=chosen.clone();
+  photoSequence++;
+  lastScan=null;
+ }
+ pending.onReceiveValue(chosen);
+ pending=null;
+ if(chosen!=null&&chosen.length>0){
+  final Uri[] selected=queuedPhotos;
+  uiHandler.postDelayed(()->{
+   if(!isDestroyed()&&queuedPhotos==selected){
+    android.util.Log.w("SupplyOCR","File change delayed; using picker fallback");
+    startQueuedScan(selected.length,true);
+   }
+  },1800);
+ }
+ }
+ private void startQueuedScan(int selectedCount,boolean fallback){
+  if(queuedPhotos==null||selectedCount!=queuedPhotos.length)return;
+  Uri[] chosen=queuedPhotos;
+  queuedPhotos=null;
+  if(fallback)web.evaluateJavascript(
+   "(function(){var f=document.getElementById('file'),s=document.getElementById('ocrState');"
+   +"if(s&&(!f||!f.files||!f.files.length))s.textContent='Android не передал фото в форму. Откройте галерею повторно.';})()",null);
+  if(chosen.length==1){lastScan=chosen[0];scan(lastScan,false);}
+  else{lastScan=null;scanBatch(chosen);}
  }
  // Several supplier photos are passed to the existing multi-page invoice review,
  // never auto-saved or sent off-device. Each photo has a separate OCR cache token.
@@ -128,5 +184,5 @@ public class MainActivity extends Activity {
  web.evaluateJavascript("window.supplyOcrStart && window.supplyOcrStart("+id+")",null);
  ocrExecutor.execute(()->{if(id!=scanSequence)return;long started=android.os.SystemClock.elapsedRealtime();String result="",error="";try{result=paddle?InvoiceOcr.readPaddle(this,uri,photoSession,token):InvoiceOcr.read(this,uri,focused,photoSession,token);if(result.trim().isEmpty())error="Текст не найден. Выберите более чёткий снимок.";}catch(Exception|LinkageError e){error=paddle?"Новый OCR не смог обработать фото. Используйте обычное распознавание или выберите фото заново.":"Не удалось распознать документ. Проверьте формат и качество снимка.";} android.util.Log.i("SupplyOCR",(paddle?"paddle":focused?"focused":"full")+" ms="+(android.os.SystemClock.elapsedRealtime()-started));final String txt=result,msg=error,boxes=error.isEmpty()?photoSession.wordBoxes:"[]";runOnUiThread(()->{if(!isDestroyed()&&id==scanSequence)web.evaluateJavascript("window.supplyOcrFinish && window.supplyOcrFinish("+id+","+org.json.JSONObject.quote(txt)+","+org.json.JSONObject.quote(msg)+","+org.json.JSONObject.quote(boxes)+")",null);});});
  }
- @Override protected void onDestroy(){scanSequence++;ocrExecutor.execute(photoSession::close);ocrExecutor.shutdown();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
+ @Override protected void onDestroy(){queuedPhotos=null;scanSequence++;ocrExecutor.execute(photoSession::close);ocrExecutor.shutdown();if(updater!=null)updater.close();if(pending!=null){pending.onReceiveValue(null);pending=null;}if(web!=null)web.destroy();super.onDestroy();}
 }
