@@ -68,7 +68,7 @@ function spatialLines(boxes){
 }
 const roleOf=s=>{
  const t=s.toLowerCase().replace(/[.:]$/g,'');
- if(/^(наименование|товар|номенклатура|продукция)$/.test(t))return 'name';
+ if(/^(наименование(?:\s+(?:товара|товаров|продукции))?|товар|номенклатура|продукция)$/.test(t))return 'name';
  if(/^(количество|кол[- ]?во|кол)$/.test(t))return 'quantity';
  if(/^(ед|единица|ед\.изм|ед\. изм)$/.test(t))return 'unit';
  if(/^цена$/.test(t))return 'price';
@@ -1071,8 +1071,26 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   }
   if(current.supplier&&!photoSupplier)photoSupplier=current.supplier;
   if(text&&String(text).trim()&&!photoPassTexts.includes(text))photoPassTexts.push(text);
-  // Recovery mode: use the version 47 text-only scan pipeline with the
-  // version 72 parser. Native coordinates are deliberately not consumed.
+  // Recover complete table rows from native OCR word coordinates. The text
+  // fallback remains untouched for invoices whose layout is not verified.
+  // Never guess missing quantities, prices or packing from similar products.
+  let recoveredByColumns=false;
+  if(spatialJson&&spatialJson!=='[]'&&String(text||'').trim()){
+   try{
+    const boxes=JSON.parse(spatialJson);
+    if(Array.isArray(boxes)&&boxes.length&&boxes.length<=12000){
+     const coordinateResult=window.supplySpatial?.candidate(boxes,String(text),current,window.supplyInvoiceParser,updEvidence(String(text)));
+     const previousComplete=current.items.filter(x=>x.price>0&&x.quantity>0&&x.unit).length;
+     const coordinateComplete=coordinateResult?.items?.filter(x=>x.name&&x.price>0&&x.quantity>0&&x.invoiceTotal>0&&x.unit).length||0;
+     const reliable=coordinateResult?.items?.length===coordinateComplete&&!scanConflicts(current,coordinateResult);
+     if(!current.documentVerified&&!current.pageVerified&&reliable&&
+        (coordinateResult.documentVerified||coordinateResult.pageVerified||coordinateComplete>previousComplete)){
+      current=coordinateResult;
+      recoveredByColumns=true;
+     }
+    }
+   }catch(e){console.warn('Supply OCR: unsupported spatial table evidence',e?.message||'invalid coordinates');}
+  }
   scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
   // A missing pack weight alone is not a reason to scan a reconciled invoice again.
@@ -1097,6 +1115,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   else if(!pages.length){if(r.supplier)$('supplier').value=r.supplier;const header=invoiceHeader(diagnostic);if(header.documentNumber&&!$('documentNumber').value)$('documentNumber').value=header.documentNumber.toUpperCase();if(header.documentDate&&!$('documentDate').value)$('documentDate').value=header.documentDate;if(r.items.length){$('lines').replaceChildren();for(const l of r.items)addLine(l)}}
   dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. Откройте «Распознанный текст» для диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
+  if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);
   if(Number.isFinite(elapsed))$('ocrState').textContent+=' · '+fmt(Math.round(elapsed*10)/10)+' с';
   if(missingPack&&priced&&!ambiguous)$('ocrState').textContent+=' Фасовка не прочитана. Укажите вес нетто или объём одной упаковки — он сохранится для следующих накладных.';
