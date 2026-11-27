@@ -485,10 +485,40 @@ function addLine(data={}){
  if(suggestion){suggestion.className='catalog-badge review';suggestion.setAttribute('aria-label','Применить сохранённое исправление: '+learned);}
  f.append(a.wrap,del,w.wrap,q.wrap,weight.box,p.wrap,kgPrice.box,total.box,badge);if(suggestion)f.append(suggestion);$('lines').append(f);fillMissingPack();recalc();catalogBadge(f);f.addEventListener('change',()=>catalogBadge(f));
 }
-function showPreview(file){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('preview').classList.add('hide');if(file&&file.type?.startsWith('image/')){previewUrl=URL.createObjectURL(file);$('preview').src=previewUrl;$('preview').classList.remove('hide')}}
+function showPreview(file){
+ if(previewUrl)URL.revokeObjectURL(previewUrl);
+ previewUrl='';
+ const img=$('preview');
+ img.classList.add('hide');
+ img.removeAttribute('src');
+ if(!file||file.type==='application/pdf')return;
+ try {
+  previewUrl=URL.createObjectURL(file);
+  img.onload=()=>{img.classList.remove('hide')};
+  img.onerror=()=>{
+   img.classList.add('hide');
+   if(!scanBusy)$('ocrState').textContent='Предпросмотр этого формата недоступен, но проверяем фото встроенным распознаванием.';
+  };
+  img.src=previewUrl;
+ }catch(e){
+  $('ocrState').textContent='Не удалось показать превью; попробуйте другой формат JPG или PNG.';
+ }
+}
 function reset(){if($('structureJson'))$('structureJson').value='';if($('structureWarnings'))$('structureWarnings').textContent='';scanStartedAt=0;stageStartedAt=0;scanTrace=[];$('scanProgress').replaceChildren();pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();showInvoiceIntegrity();status('')}
 $('supplier').addEventListener('change',()=>{for(const f of $('lines').children)catalogBadge(f)});
-$('addLine').onclick=()=>{addLine(pages.length===1?{pageKey:pages[0].key}:{});dirty=true;showInvoiceIntegrity()};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('change',()=>{const file=$('file').files[0];if(!file)return;activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';scanStartedAt=performance.now();scanTrace=[];document.getElementById('ocrDiagnostic')?.remove();showPreview(file);pageStatus();dirty=true});
+$('addLine').onclick=()=>{addLine(pages.length===1?{pageKey:pages[0].key}:{});dirty=true;showInvoiceIntegrity()};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('change',()=>{
+ const selected=[...$('file').files],file=selected[0];
+ if(!file)return;
+ activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';
+ scanStartedAt=performance.now();scanTrace=[];
+ document.getElementById('ocrDiagnostic')?.remove();
+ showPreview(file);pageStatus();dirty=true;
+ $('ocrState').textContent=selected.length>1?'Выбрано фотографий: '+selected.length+'. Подготавливаем распознавание…':'Фотография выбрана. Подготавливаем распознавание…';
+ // Synchronize the native OCR start with WebView's FileList/change event.
+ // Prevents Android picker results arriving before the selected File is visible in JS.
+ if(location.origin==='https://appassets.androidplatform.net')
+  location.href='https://appassets.androidplatform.net/ocr-selected?count='+selected.length;
+});
 
 function pageStatus(){
  const label=$('fileLabel');if(label)label.textContent=pages.length?'＋ Добавить страницу':'▣ Выбрать фото накладной';
@@ -964,9 +994,9 @@ function nextScan(path,message){
 }
 
 function acceptPdf(text,parseStarted,scanError=''){
- const selected=[...$('file').files],photos=selected.length>1&&selected.every(f=>f.type?.startsWith('image/'));
+ const selected=[...$('file').files],photos=selected.length>1&&selected.every(f=>f.type!=='application/pdf');
  const file=pendingPhoto||selected[0]||pages.find(p=>p.file?.type==='application/pdf')?.file;
- if(!file||pages.some(p=>p.file!==file)&&pages.length)throw Error('Откройте новую накладную для PDF');
+ if(!file)throw Error('Android не передал выбранное фото в форму. Выберите его ещё раз.');
  const source=JSON.parse(text.slice('FARUKH_PDF_PAGES_V1\n'.length));
  if(!Array.isArray(source)||!source.length||source.length>20||!source.every(x=>typeof x==='string'))throw Error('Не удалось прочитать страницы документа');
  if(photos&&source.length!==selected.length)throw Error('Число фотографий не совпадает с числом страниц OCR');
@@ -1471,9 +1501,10 @@ $('structureImportButton').onclick=()=>{
  window.supplyOcrStart=id=>{nativeStart(id);};
  window.supplyOcrFinish=async(id,text,error,spatialJson)=>{
   const file=pendingPhoto||$('file').files[0];
+  if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\\n'))return nativeFinish(id,text,error,spatialJson);
   if(!cfg||busy||id!==ocrId||!file?.type?.startsWith('image/')||attempted===file||$('entry').classList.contains('hide'))return nativeFinish(id,text,error,spatialJson);
   attempted=file;busy=true;const settings={...cfg};$('saveNext').disabled=true;
-  const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),180000);
+  const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),15000);
   $('ocrState').textContent='PP-StructureV3: распознавание таблицы…';
   try{
    const body=new FormData();body.append('image',file,'invoice');
