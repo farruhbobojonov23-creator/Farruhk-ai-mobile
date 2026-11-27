@@ -35,7 +35,7 @@ function extract(scan,catalog=[]){
  const up=!!get('1а')&&!!get('2а')&&!!get('3')&&!!get('4')&&!!get('9')&&!!get('5')&&!!get('8');
  const act=/акт приема-передачи|акт приемки|акт приема передачи/i.test(upper)&&['3','4','9','10','11'].every(k=>get(k));
  const ttn=/товарно-транспортная накладная/i.test(upper)&&['2','4','7','8','9'].every(k=>get(k));
- let map=up?{name:'1а',unit:'2а',qty:'3',price:'4',amount:'9'}:act?{name:'3',unit:'4',qty:'11',price:'9',amount:'10'}:ttn?{name:'2',unit:'4',qty:'8',amount:'7'}:null;
+ let map=up?{name:'1а',unit:'2',qty:'3',price:'4',amount:'9'}:act?{name:'3',unit:'4',qty:'11',price:'9',amount:'10'}:ttn?{name:'2',unit:'4',qty:'8',amount:'7'}:null;
  if(!map)continue;
  const pairs=Object.entries(map).map(([k,c])=>[k,get(c)?.x]);if(pairs.some(([,x])=>!Number.isFinite(x)))continue;
  // Use all numeric column centers, including columns that are not imported.
