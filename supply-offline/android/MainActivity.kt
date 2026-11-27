@@ -64,6 +64,7 @@ class MainActivity : Activity() {
             }
             status.text = if (launched) "Выбор файла накладной…" else "Не удалось открыть системный выбор файлов."
         }
+        val qaPage2 = java.io.File(filesDir, "qa-invoice-page2.png")
         val qaFile = java.io.File(filesDir, "qa-invoice.png")
         if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 && qaFile.isFile) {
             val qa = Button(this).apply { text = "Диагностика OCR" }
@@ -71,6 +72,14 @@ class MainActivity : Activity() {
             qa.setOnClickListener {
                 if (engine == null) status.text = "Сканер ещё загружается."
                 else if (!running) recognizeMany(listOf(ImageDecoder.createSource(qaFile)))
+            }
+            if (qaPage2.isFile) {
+                val twoPages = Button(this).apply { text = "Диагностика OCR · 2 страницы" }
+                root.addView(twoPages, 4)
+                twoPages.setOnClickListener {
+                    if (engine == null) status.text = "Сканер ещё загружается."
+                    else if (!running) recognizeMany(listOf(ImageDecoder.createSource(qaFile), ImageDecoder.createSource(qaPage2)))
+                }
             }
         }
         export.setOnClickListener {
