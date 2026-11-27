@@ -1,4 +1,5 @@
 name: FARUKH SUPPLY 21 signed gated release
+# Retry after correcting Android test fixture: Intent.setClipData returns void.
 on:
   push:
     branches: ['fix/supply-photo-picker-v21']

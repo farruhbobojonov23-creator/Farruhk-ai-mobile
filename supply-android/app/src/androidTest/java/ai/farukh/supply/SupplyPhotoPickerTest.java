@@ -61,7 +61,8 @@ public class SupplyPhotoPickerTest {
     try {
      setPending(activity,received::set);
      Uri photo=Uri.parse("content://xiaomi-gallery.local/single.jpg");
-     Intent result=new Intent().setClipData(new ClipData("Photo",new String[]{"image/jpeg"},new ClipData.Item(photo)));
+     Intent result=new Intent();
+     result.setClipData(new ClipData("Photo",new String[]{"image/jpeg"},new ClipData.Item(photo)));
      assertNull(result.getData());
      activity.onActivityResult(41,Activity.RESULT_OK,result);
      assertNotNull("Single ClipData image must reach WebView",received.get());
