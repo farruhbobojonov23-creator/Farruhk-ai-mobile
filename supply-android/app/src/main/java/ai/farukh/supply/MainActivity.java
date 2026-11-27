@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
    }
    if(id!=scanSequence)return;
    final int failures=failed;
-   final String joined="FARUKH_PDF_PAGES_V1\\n"+pages.toString();
+   final String joined="FARUKH_PDF_PAGES_V1\n"+pages.toString();
    runOnUiThread(()->{
     if(isDestroyed()||id!=scanSequence)return;
     String error=failures>0
