@@ -1,0 +1,192 @@
+name: PP-StructureV3 deskew and exact accuracy retry (isolated)
+on:
+  push:
+    branches: ['experiment/supply-local-vision-benchmark']
+    paths: ['.github/workflows/supply-structure-deskew.yml']
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [structure]
+    env:
+      ENGINE: ${{ matrix.engine }}
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
+      OMP_NUM_THREADS: '4'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate identical fictional invoices and exact ground truth
+        run: |
+          mkdir -p inputs results
+          pip install pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFont, ImageFilter
+          import json
+          font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',27)
+          products=['Рис для суши','Сыр Hochland','Масло для фритюра','Соус Tamaki','Креветка очищенная']
+          expected={}
+          for page,n in [('short',5)]+[(f'long-{i}',20) for i in range(5)]:
+              offset=0 if page=='short' else int(page[-1])*20
+              im=Image.new('RGB',(1700,310+64*(n+2)),'white')
+              d=ImageDraw.Draw(im); xs=[35,690,835,1060,1335,1665]; y=160; h=64
+              d.text((35,25),'УПД № 8049 от 09.11.2026',font=font,fill='black')
+              d.text((35,75),'Поставщик: ООО Учебный',font=font,fill='black')
+              rows=[]
+              for i in range(n):
+                  k=offset+i
+                  q=k%7+1; p=10000+k*113
+                  cash=lambda v:f'{v//100},{v%100:02d}'
+                  rows.append([products[k%5]+f' {k+1:03d} / 1 кг','уп',str(q)+',000',cash(p),cash(q*p)])
+              total=sum((offset+i)%7+1 for i in []) # integer cents below
+              total=sum(((offset+i)%7+1)*(10000+(offset+i)*113) for i in range(n))
+              grid=[['Наименование товара','Ед.','Количество','Цена с НДС','Сумма с НДС']]+rows+[['Итого','','','',cash(total)]]
+              for r,row in enumerate(grid):
+                  for j,s in enumerate(row):d.text((xs[j]+8,y+r*h+15),s,font=font,fill='black')
+              for x in xs:d.line((x,y,x,y+h*len(grid)),fill='black',width=2)
+              for r in range(len(grid)+1):d.line((xs[0],y+r*h,xs[-1],y+r*h),fill='black',width=2)
+              im.save(f'inputs/{page}.png')
+              expected[page]={'rows':rows,'total':cash(total)}
+              if page=='short':
+                  im.rotate(90,expand=True,fillcolor='white').save('inputs/rotated.png')
+                  im.rotate(5,expand=True,fillcolor='white').filter(ImageFilter.GaussianBlur(.65)).save('inputs/skewed.png')
+                  expected['rotated']=expected['skewed']=expected[page]
+          open('results/expected.json','w').write(json.dumps(expected,ensure_ascii=False,indent=2))
+          PY
+      - name: Install engine locally on CPU (no OCR API)
+        run: |
+          if [ "$ENGINE" = occular ]; then
+            pip install occular-ocr
+          else
+            pip install 'paddlepaddle==3.2.2'
+            if [ "$ENGINE" = vl ]; then pip install 'paddleocr[doc-parser]>=3.5,<4'; else pip install 'paddleocr[doc-parser]==3.3.1'; fi
+          fi
+          pip freeze > results/versions.txt
+      - name: Run OCR on each image and capture time, output, and errors
+        run: |
+          cat > /tmp/compare.py <<'PY'
+          import os,time,json,subprocess,traceback,resource,statistics
+          import cv2, numpy as np
+          from pathlib import Path
+          engine=os.environ['ENGINE']; out=Path('results')
+          report={'engine':engine,'scope':'synthetic images only, local CPU, not Android','pages':[]}
+          def save():
+              (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          def deskew(path):
+              im=cv2.imread(str(path)); gray=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+              edges=cv2.Canny(gray,60,180)
+              lines=cv2.HoughLinesP(edges,1,np.pi/1800,threshold=100,minLineLength=int(min(im.shape[:2])*.25),maxLineGap=20)
+              angles=[]
+              if lines is not None:
+                  for x1,y1,x2,y2 in lines[:,0]:
+                      a=float(np.degrees(np.arctan2(y2-y1,x2-x1)))
+                      a=(a+45)%90-45
+                      if abs(a)<=15:angles.append(a)
+              angle=statistics.median(angles) if angles else 0
+              if abs(angle)<.4:return str(path)
+              h,w=im.shape[:2]; m=cv2.getRotationMatrix2D((w/2,h/2),angle,1)
+              outpath=Path('/tmp')/('corrected-'+path.name)
+              cv2.imwrite(str(outpath),cv2.warpAffine(im,m,(w,h),borderValue=(255,255,255),flags=cv2.INTER_CUBIC))
+              print('deskew',path.name,angle,flush=True)
+              return str(outpath)
+          start=time.monotonic()
+          try:
+              if engine=='structure':
+                  from paddleocr import PPStructureV3
+                  pipe=PPStructureV3(device='cpu',enable_mkldnn=False,cpu_threads=4,text_detection_model_name='PP-OCRv5_mobile_det',text_recognition_model_name='cyrillic_PP-OCRv5_mobile_rec',use_doc_orientation_classify=True,use_doc_unwarping=False,use_textline_orientation=True,use_formula_recognition=False,use_chart_recognition=False,use_seal_recognition=False,use_table_recognition=True)
+              elif engine=='vl':
+                  from paddleocr import PaddleOCRVL
+                  pipe=PaddleOCRVL(device='cpu',use_doc_orientation_classify=True,use_doc_unwarping=False)
+              report['init_s']=round(time.monotonic()-start,2);save()
+              for path in sorted(Path('inputs').glob('*.png'),key=lambda p: (p.stem!='short',p.stem not in ('short','rotated','skewed'),p.stem)):
+                  target=out/path.stem;target.mkdir(exist_ok=True)
+                  t=time.monotonic(); row={'page':path.stem}
+                  try:
+                      if engine=='occular':
+                          p=subprocess.run(['python','-m','occular',str(path),'--orientation','--tables','--out',str(target/'output.json')],capture_output=True,text=True,timeout=240)
+                          (target/'stdout.txt').write_text(p.stdout)
+                          (target/'stderr.txt').write_text(p.stderr)
+                          if p.returncode:raise RuntimeError(f'CLI exit {p.returncode}')
+                      else:
+                          for r in pipe.predict(input=deskew(path),use_chart_recognition=False):
+                              r.save_to_json(save_path=str(target))
+                              r.save_to_markdown(save_path=str(target))
+                      row['status']='ok'
+                  except Exception as e:
+                      row['status']='error';row['error']=str(e)
+                  row['seconds']=round(time.monotonic()-t,2);row['peak_rss_kib']=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                  report['pages'].append(row);save();print(json.dumps(row,ensure_ascii=False),flush=True)
+          except Exception:
+              report['initialization_error']=traceback.format_exc();save();raise
+          if not report['pages'] or any(p['status']!='ok' for p in report['pages']):raise SystemExit(1)
+          PY
+          python /tmp/compare.py
+      - name: Compare actual recognized cells and totals with ground truth
+        run: |
+          python3 - <<'PY'
+          import json,re,unicodedata
+          from pathlib import Path
+          from decimal import Decimal,InvalidOperation
+          from html.parser import HTMLParser
+          class Cells(HTMLParser):
+              def __init__(self):
+                  super().__init__();self.rows=[];self.row=None;self.cell=None
+              def handle_starttag(self,tag,attrs):
+                  if tag=='tr':self.row=[]
+                  if tag in ('td','th'):self.cell=[]
+              def handle_data(self,data):
+                  if self.cell is not None:self.cell.append(data)
+              def handle_endtag(self,tag):
+                  if tag in ('td','th') and self.cell is not None:
+                      if self.row is not None:self.row.append(' '.join(''.join(self.cell).split()))
+                      self.cell=None
+                  if tag=='tr' and self.row is not None:self.rows.append(self.row);self.row=None
+          root=Path('results'); expected=json.loads((root/'expected.json').read_text()); timing=json.loads((root/'report.json').read_text())
+          def norm(s):return re.sub(r'\s+','',unicodedata.normalize('NFKC',str(s))).casefold()
+          def num(s):
+              try:
+                  n=Decimal(re.sub(r'\s+','',str(s)).replace(',','.'))
+                  return n if n.is_finite() else None
+              except InvalidOperation:return None
+          report={'engine':'PP-StructureV3 / Cyrillic PP-OCRv5','scope':'synthetic invoices, CPU, not Android','pages':[]}
+          for page,exp in expected.items():
+              grids=[];texts=[]
+              for f in sorted((root/page).rglob('*.json')):
+                  raw=json.loads(f.read_text());raw=raw.get('res',raw)
+                  for t in raw.get('table_res_list',[]):
+                      parser=Cells();parser.feed(t.get('pred_html',''));grids.append(parser.rows)
+                  texts.extend(raw.get('overall_ocr_res',{}).get('rec_texts',[]))
+              rows=[r for g in grids for r in g if len(r)==5 and all(num(r[j]) is not None for j in (2,3,4))]
+              used=set();names=numeric=exact=0
+              for e in exp['rows']:
+                  found=[(i,r) for i,r in enumerate(rows) if i not in used and norm(r[0])==norm(e[0])]
+                  if not found:continue
+                  i,r=found[0];used.add(i);names+=1
+                  if all(num(r[j])==num(e[j]) for j in (2,3,4)):
+                      numeric+=1
+                      if norm(r[1])==norm(e[1]):exact+=1
+              printed=[num(r[-1]) for g in grids for r in g if len(r)>=2 and norm(r[0]).startswith('итого')]
+              text=' '.join(texts)
+              entry={'page':page,'expected':len(exp['rows']),'detected_numeric_rows':len(rows),'correct_names':names,'correct_names_and_numbers':numeric,'exact_rows':exact,'printed_total_ok':len(printed)==1 and printed[0]==num(exp['total']),'line_math_ok':bool(rows) and all(num(r[2])*num(r[3])==num(r[4]) for r in rows),'sum_ok':sum((num(r[4]) for r in rows),Decimal(0))==num(exp['total']),'supplier_seen':norm('ООО Учебный') in norm(text),'number_seen':'8049' in text,'date_seen':'09.11.2026' in text,'seconds':next((x['seconds'] for x in timing['pages'] if x['page']==page),None),'grids':grids}
+              report['pages'].append(entry)
+              print(json.dumps({k:v for k,v in entry.items() if k!='grids'},ensure_ascii=False))
+          for p in report['pages']:
+              print('RAW CELLS',p['page'],json.dumps(p['grids'][:1],ensure_ascii=False))
+          report['passed']=all(p['exact_rows']==p['expected']==p['detected_numeric_rows'] and p['printed_total_ok'] and p['line_math_ok'] and p['sum_ok'] and p['supplier_seen'] and p['number_seen'] and p['date_seen'] for p in report['pages'])
+          Path('accuracy.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          print('ACCURACY_GATE',report['passed'])
+          if not report['passed']:raise SystemExit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OCR-report-${{ matrix.engine }}
+          path: |
+            results
+            accuracy.json
+          retention-days: 14
