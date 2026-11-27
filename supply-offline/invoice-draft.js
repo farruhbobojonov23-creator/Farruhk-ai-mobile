@@ -67,7 +67,7 @@ function extract(scan,catalog=[]){
  if(distinct.size===1){const r=[...distinct.values()][0];factor=r.factor;compare=r.unit;product_key=r.product_key||'';}
  else if(u==='шт'){
  if(/порцион/i.test(name))factor=1;
- else {const pack=name.match(/(\d+(?:[.,]\d+)?)\s*(кг|гр\.?|г|л|мл|лист(?:ов|а)?|пар|шт)\b/iu);
+ else {const pack=name.match(/(\d+(?:[.,]\d+)?)\s*(кг|гр\.?|г|л|мл|лист(?:ов|а)?|пар|шт)(?=$|[\s,;.)\]])/iu);
  if(pack){const n=number(pack[1]),p=norm(pack[2]);if(n>0){factor=/^(г|гр|мл)/.test(p)?n/1000:n;compare=/^(кг|г)/.test(p)?'кг':/^(л|мл)/.test(p)?'л':'шт';}}}
  }
  const flags=[];
