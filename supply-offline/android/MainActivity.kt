@@ -34,7 +34,7 @@ class MainActivity : Activity() {
         }
         status = TextView(this).apply { textSize = 18f; text = "FARUKH SUPPLY · Offline\nЗагрузка моделей..." }
         pick = Button(this).apply { text = "Выбрать фото накладной"; isEnabled = false }
-        export = Button(this).apply { text = "Сохранить черновик OCR (JSON)"; isEnabled = false }
+        export = Button(this).apply { text = if (intent.getBooleanExtra("registry_mode", false)) "Перенести в накладную" else "Сохранить черновик OCR (JSON)"; isEnabled = false }
         results = TextView(this).apply { textSize = 15f; setTextIsSelectable(true) }
         root.addView(status); root.addView(pick); root.addView(export)
         root.addView(ScrollView(this).apply { addView(results) }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
@@ -73,6 +73,15 @@ class MainActivity : Activity() {
             }
         }
         export.setOnClickListener {
+            if (intent.getBooleanExtra("registry_mode", false)) {
+                val payload = scan?.toString() ?: return@setOnClickListener
+                try {
+                    java.io.File(filesDir, "registry-scan.json").writeText(payload, Charsets.UTF_8)
+                    setResult(RESULT_OK)
+                    finish()
+                } catch (e: Exception) { status.text = "Ошибка передачи: " + e.message }
+                return@setOnClickListener
+            }
             startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE); type = "application/json"
                 putExtra(Intent.EXTRA_TITLE, "farukh-ocr-draft.json")
