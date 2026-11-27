@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=103; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=104; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -1180,13 +1180,22 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   }
   scanCandidates.push({r:current,text,error});
   const native=location.origin==='https://appassets.androidplatform.net'&&$('file').files.length>0;
-  // A missing pack weight alone is not a reason to scan a reconciled invoice again.
-  // Preserve the original amount and request an explicit pack weight if unknown.
-  const complete=scanFieldsComplete(current); // Missing pack is a review warning, not a reason for OCR retry.
-  const rescored=scanCandidates.length===1&&complete&&current.documentVerified&&current.supplier
-   ? [] : (scanPass>0||!complete?window.supplyInvoiceParser.parseSamePhotoPasses(photoPassTexts):[]);
+  // FARUKH SUPPLY structured-reading stage. For a photographed UPD,
+  // inspect the original OCR lines as name + row/article + OKEI quantity
+  // + VAT-inclusive price + per-line total, NOT as a flattened text stream.
+  // Even if legacy returns six mathematically balanced lines, that alone
+  // cannot prove that each name belongs to its price. Always consider the
+  // stronger anchored layout before deciding whether another OCR pass is needed.
+  const complete=scanFieldsComplete(current);
+  const shanghaiFromCurrentPhoto=[current.supplier,photoSupplier,...scanCandidates.map(c=>c.r.supplier)]
+   .some(x=>/шанхай\\s*[-–—]?\\s*торг/iu.test(String(x||'')));
+  const evaluateStructured=shanghaiFromCurrentPhoto||scanPass>0||!complete;
+  const rescored=evaluateStructured?window.supplyInvoiceParser.parseSamePhotoPasses(photoPassTexts):[];
+  const strictRows=rescored.filter(x=>x.ocrLayout==='upd-row-anchored'&&x.documentVerified&&
+    x.balancedInvoice&&!x.ocrNameAlignmentSuspect&&scanFieldsComplete(x));
+  const strongest=strictRows.sort((x,y)=>scanScore(y)-scanScore(x))[0]||current;
   const evidence=[...scanCandidates.map(x=>x.r),...rescored];
-  const action=scanNextPass(scanPass,current,complete,evidence);
+  const action=scanNextPass(scanPass,strongest,scanFieldsComplete(strongest),evidence);
   if(native&&action){
    scanPass=action==='paddle-scan'?1:2;
    nextScan(action,scanPass===1?'Быстрая проверка Paddle OCR…':'Углублённая проверка таблицы…');return;
@@ -1203,6 +1212,11 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.balancedInvoice&&priced===r.items.length?'Арифметика строк совпадает: '+priced+' из '+r.items.length+' · '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Проверьте количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. «Распознанный текст» — только просмотр диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
+  if(r.ocrLayout==='upd-row-anchored'){
+    $('ocrState').textContent+=' Метод: построчная сверка УПД по артикулу, количеству ОКЕИ и цене с НДС. Названия и фасовку проверьте по оригиналу.';
+  }else if(/шанхай\\s*[-–—]?\\s*торг/iu.test(r.supplier||'')){
+    $('ocrState').textContent+=' ⚠ Не удалось связать все названия и цены по оригинальным товарным строкам. Это черновик OCR, а не подтверждённая накладная.';
+  }
   if(r.supplierPhotoGrid)$('ocrState').textContent+=' 7 шаблонов: строки распределены по колонкам фото. '+(r.documentVerified?'Сумма совпала.':'Требуется сверка количества и итога.') ;
   if(r.quantityCorrections)$('ocrState').textContent+=' ⚠ В '+r.quantityCorrections+' строках количество восстановлено по сумме и цене. Проверьте с накладной.';
   if(r.ocrNameAlignmentSuspect)$('ocrState').textContent+=' ⚠ Похоже, текст соседних товарных строк смешался. Сумма по накладной не подтверждает правильность названий. Сверьте каждую позицию по оригиналу.';

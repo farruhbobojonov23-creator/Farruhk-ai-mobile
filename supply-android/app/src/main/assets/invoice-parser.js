@@ -2259,8 +2259,12 @@ function parseShanghaiUpdRaw(raw){
   if(m){const q=amount(m[1]),net=amount(m[2]),gross=amount(m[3]);if(q>0&&net>0&&gross>0&&gross>=net&&q<1e7)anchors.push({i,m,q,net,gross});}
  }
  if(!anchors.length||anchors.length>1000)return null;
- const first=anchors[0].i,marker=lines.slice(Math.max(0,first-60),first).findLastIndex(s=>/^[AА]\s+1(?:\s|$)/iu.test(s));
- let start=marker>=0?Math.max(0,first-60)+marker+1:Math.max(0,first-9);
+ const first=anchors[0].i,headStart=Math.max(0,first-60);
+ // Printed row-header can be read as "A 1" or as two separate lines.
+ const pre=lines.slice(headStart,first);
+ let marker=pre.findLastIndex(s=>/^[AА]\s+1(?:\s|$)/iu.test(s));
+ if(marker<0)marker=pre.findLastIndex((s,i)=>/^1$/u.test(s)&&i>0&&/^[АA]$/u.test(pre[i-1]));
+ let start=marker>=0?headStart+marker+1:Math.max(0,first-6);
  const items=[],issues=[],usedCodes=new Set();
  for(const [idx,anchor] of anchors.entries()){
   const end=anchor.i,subtotal=Math.round(anchor.q*anchor.gross*100);
@@ -2286,7 +2290,10 @@ function parseShanghaiUpdRaw(raw){
   let name=pieces.join(' ').replace(/\(\s*(\d+(?:[,.]\d+)?)\s+кг\)/iu,'($1 кг)').replace(/\s+/gu,' ').trim();
   // The printed pack unit can continue on the SKU line in native OCR.
   if(/\d+[,.]\d+$/u.test(name)&&/^[KК][rгГΓ](?:\b|\s|$)/iu.test(suffix))name+=' кг';
-  if(!name||name.length>350||!/\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
+  if(!name||name.length>350||!/\\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
+  // Reject table-header fragments before the first product: a correct
+  // grand total does not validate the name column.
+  if(idx===0&&/^(?:наименование товаров?|код товара|цена|стоимость|количество|артикул)(?:\\s|$)/iu.test(name))return null;
   const q=anchor.q,price=anchor.gross,invoiceTotal=subtotal/100;
   const row={name,quantity:q,unit:'шт',unitCode:'796',price,invoiceTotal,
    article:article||undefined,sourceRow:String(idx+1),source:name,uncertain:true,

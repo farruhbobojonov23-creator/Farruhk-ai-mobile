@@ -568,12 +568,12 @@ test('v101: clean Shanghai layout remains valid, arbitrary assortment not hardco
  const v=browserParser.auditCandidate({supplier:'ООО Новый поставщик',documentVerified:true,printedTotal:900,items:[{name:'Новый продукт 1 кг',unit:'шт',quantity:3,price:300,invoiceTotal:900}]});
  a.equal(v.safeToAutoAccept,true);
 });
-test('v103: displayed and script build revisions must agree',()=>{
+test('v104: displayed and script build revisions must agree',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),app=fs.readFileSync(path.join(root,'app.js'),'utf8');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'103');
- a.ok(html.includes('id="supplyWebNumber">103</span>'));
- a.ok(app.includes('window.SUPPLY_WEB_BUILD=103;'));
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'104');
+ a.ok(html.includes('id="supplyWebNumber">104</span>'));
+ a.ok(app.includes('window.SUPPLY_WEB_BUILD=104;'));
  a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
 });
 
@@ -609,11 +609,11 @@ test('v102: reject footer mismatch or missing subtotal, no fabricated cells',()=
  a.equal(browserParser.parseShanghaiUpdRaw(s),null);
  a.equal(browserParser.parseShanghaiUpdRaw(s.replace('200,00','190,00')),null);
 });
-test('v103: signed web build consistency',()=>{
+test('v104: signed web build consistency',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'103');
- a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">103</span>'));
- a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=103;'));
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'104');
+ a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">104</span>'));
+ a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=104;'));
 });
 
 test('v103: a fully reconciled row-bound OCR pass survives the multi-pass selector',()=>{
@@ -646,4 +646,35 @@ test('v103: corrupted fragments do not get a synthetic supplier total or auto ap
  const untrusted='ООО "ШАНХАЙ-ТОРГ"\nУПД\n796 ШТ 2,000 123,45 143,45\nВсего к оплате 286,90';
  const recovered=browserParser.parseSamePhotoPasses([untrusted]);
  a.ok(!recovered.some(x=>x.ocrLayout==='upd-row-anchored'));
+});
+
+test('v104: original OCR structural analysis is selected even when old parser has six priced rows',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const app=fs.readFileSync(path.join(__dirname,'../supply-android/app/src/main/assets/app.js'),'utf8');
+ a.ok(app.includes('const evaluateStructured=shanghaiFromCurrentPhoto||scanPass>0||!complete;'));
+ a.ok(app.includes('const strongest=strictRows.sort((x,y)=>scanScore(y)-scanScore(x))[0]||current;'));
+ a.ok(app.includes('scanNextPass(scanPass,strongest,scanFieldsComplete(strongest),evidence)'));
+ a.ok(app.includes('Не удалось связать все названия и цены по оригинальным товарным строкам.'));
+});
+test('v104: split A / 1 header and new product names preserve true OCR row values',()=>{
+ const raw=[
+  'Универсальный передаточный документ',
+  'Продавец ООО "ШАНХАЙ-ТОРГ"',
+  'Счет-фактура № SAMPLE01',
+  'Наименование товара', 'А', '1',
+  'Тренировочный продукт новый', '6e3 % 17,27 190,00',
+  '796 ШТ 2,000 86,36 95,00 172,72',
+  'N9001 1',
+  'Второй неизвестный товар 10 шт', '6e3 25,45 280,00',
+  '796 ШТ 4,000 63,64 70,00 254,56',
+  'M9002 2',
+  'Всего к оплате 470,00'
+ ].join('\n');
+ const got=browserParser.parsePhoto(raw);
+ a.equal(got.ocrLayout,'upd-row-anchored');
+ a.equal(got.items.length,2);
+ a.deepEqual(got.items.map(x=>[x.quantity,x.price,x.invoiceTotal]),[[2,95,190],[4,70,280]]);
+ a.deepEqual(got.items.map(x=>x.name),['Тренировочный продукт новый','Второй неизвестный товар 10 шт']);
+ a.equal(got.printedTotal,470);
+ a.equal(got.documentVerified,true);
 });
