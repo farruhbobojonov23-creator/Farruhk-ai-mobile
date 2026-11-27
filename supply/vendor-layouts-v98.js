@@ -11,7 +11,7 @@ const profiles=Object.freeze([
  {id:'vesta',name:'ООО «ВЕСТА»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*веста\b/iu},
  {id:'vostok_zapad',name:'ООО «ВОСТОК-ЗАПАД»',form:'ТТН',re:/восток\s*[-–—]?\s*запад/iu},
  {id:'marr',name:'ООО «МАРР РУССИЯ»',form:'Реализация',re:/марр\s+руссия/iu},
- {id:'shanghai',name:'ООО «ШАНХАЙ-ТОРГ»',form:'УПД, цена с НДС',re:/шанхай\s*[-–—]?\s*торг/iu},
+ {id:'shanghai',name:'ООО «ШАНХАЙ-ТОРГ»',form:'УПД, цена с НДС',re:/шанхай\s*[-–—]?\s*торг|6319241516/iu},
  {id:'alidi',name:'ООО «АЛИДИ ПРОФ»',form:'УПД, несколько страниц',re:/алиди\s+проф/iu}
 ]);
 const norm=s=>String(s??'').normalize('NFKC').toLowerCase().replace(/ё/g,'е').replace(/[\u00a0\u202f]/g,' ').replace(/[ \t]+/g,' ').trim();
