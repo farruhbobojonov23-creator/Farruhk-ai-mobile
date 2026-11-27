@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=101; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=102; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -600,7 +600,8 @@ function invoiceHeader(raw){
  const add=(y,m,d)=>{if(!m)return;const iso=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(Number.isFinite(Date.parse(iso))&&new Date(iso).toISOString().slice(0,10)===iso)dates.add(iso);};
  const heads=/(?:реализация|универсальный\s+передаточный\s+документ|по\s+УПД|УПД|сч[её]т\s*[-– ]?\s*фактура|накладная|накладной)\s*(?:№|No|N[еe]|N°|N)\s*:?\s*([a-zа-яё0-9][a-zа-яё0-9/.-]*(?:[ \t]+\d{3,})?)/gi;
  for(const match of text.matchAll(heads)){
-  ids.add(norm(match[1]).replace(/\s+/g,''));
+  const number=norm(match[1]).replace(/\s+/g,'');
+  ids.add(/шанхай\s*[-–—]?\s*торг/i.test(text)?number.replace(/[оo]/gi,'0'):number);
   const tail=text.slice(match.index+match[0].length,match.index+match[0].length+65);
   const numeric=tail.match(/^\s*(?:(?:[оo][тtrг]|[оo])\s*)?(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})(?!\d)/i);
   if(numeric){add(numeric[3],Number(numeric[2]),Number(numeric[1]));continue;}

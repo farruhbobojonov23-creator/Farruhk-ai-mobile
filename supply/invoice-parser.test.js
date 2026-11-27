@@ -576,3 +576,42 @@ test('v101: displayed and script build revisions must agree',()=>{
  a.ok(app.includes('window.SUPPLY_WEB_BUILD=101;'));
  a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
 });
+
+test('v102: noisy Russian UPD binds multi-line products to their own quantity/price/total',()=>{
+ // Synthetic document: public layout, invented products, prices and identifier.
+ const raw=[
+ 'Счет-фактура № ШТП0123000 от 11.10.2026',
+ 'ООО "ШАНХАЙ-ТОРГ"', 'УПД №ШТПO123000 от 11.10.2026',
+ 'A 1',
+ 'Рис для суши', 'Товар тренировочный', '3(+0)',
+ '1 кг 10 БЕЛАРУС', '6e3 % 33,66 370,35',
+ '796 ШТ 3,000 112,23 123,45 336,69 акциза',
+ 'X1001 1 КГ -',
+ 'Листы бумаги 10', '0(+2) 6е3 12,18 134,00',
+ '796 WT 2,000 60,91 67,00 121,82 акциза',
+ 'U1002 2 плотные 50 шт . WT акциза',
+ 'Всего к оплате',
+ 'Остальное 458,51 x 45,84 504,35'
+ ].join('\n');
+ const result=browserParser.parsePhoto(raw);
+ a.equal(result.supplier,'ООО «ШАНХАЙ-ТОРГ»');
+ a.equal(result.items.length,2);
+ a.deepEqual(result.items.map(x=>[x.quantity,x.price,x.invoiceTotal,x.unit]),
+  [[3,123.45,370.35,'шт'],[2,67,134,'шт']]);
+ a.match(result.items[0].name,/Рис для суши Товар тренировочный/);
+ a.match(result.items[1].name,/Листы бумаги плотные 50 шт/);
+ a.equal(result.printedTotal,504.35);
+ a.equal(result.documentVerified,true);
+ a.equal(result.safeToAutoAccept,false);
+});
+test('v102: reject footer mismatch or missing subtotal, no fabricated cells',()=>{
+ const s='Счет-фактура № ТЕСТ001\nООО "ШАНХАЙ-ТОРГ"\nA 1\nТовар пробный\n6e3 200,00\n796 WT 2,000 90,00 100,00 180,00\nX1001 1\nВсего к оплате\n300,00';
+ a.equal(browserParser.parseShanghaiUpdRaw(s),null);
+ a.equal(browserParser.parseShanghaiUpdRaw(s.replace('200,00','190,00')),null);
+});
+test('v102: signed web build consistency',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'102');
+ a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">102</span>'));
+ a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=102;'));
+});

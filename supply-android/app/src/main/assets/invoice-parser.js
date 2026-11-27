@@ -2218,3 +2218,102 @@ api.parseSimple=raw=>api.auditCandidate(oldSimple(raw));
 api.parsePhoto=(raw,spatial)=>api.auditCandidate(oldPhoto(raw,spatial));
 api.parseSamePhotoPasses=texts=>oldPasses(texts).map(api.auditCandidate);
 })(globalThis);
+
+
+/* v102: dynamic Russian UPD row reconstruction from noisy multi-line OCR.
+ * The supplier is used only to select the layout, NEVER to look up products,
+ * amounts, quantities, or prices. No captured customer invoices in source. */
+;(function(root){
+'use strict';
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const prev=api.parsePhoto;
+const moneyRx=/(?<![\d,.])(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d+)[,.]\d{2}(?!\d)/gu;
+const rowRx=/\b796\s+(?:[ШW][ТT]\s+)?(\d+[,.]\d{3})\s+((?:\d{1,3}(?:\s\d{3})+|\d+)[,.]\d{2})\s+((?:\d{1,3}(?:\s\d{3})+|\d+)[,.]\d{2})(?=\s|$)/iu;
+const skuRx=/^\s*([A-ZА-ЯЁ]\d{3,8})(?:\s+(\d{1,3}))?(?:\s+(.*))?$/u;
+const amount=s=>Number(String(s).replace(/[ \u00a0]/g,'').replace(',','.'));
+const cents=s=>Math.round(amount(s)*100);
+function fragment(text,rate){
+ let s=String(text).trim();
+ if(!s||/^((?:\d+|\W+)\s*)+$/u.test(s))return '';
+ if(/^(?:6[еeэ]3|без\s+акциза|акциза)(?:\s|$)/iu.test(s))return '';
+ if([...s.matchAll(moneyRx)].length>=2)return '';
+ s=s.replace(/\b(?:\d+)\(\+\d+\).*$/u,'');
+ s=s.replace(/\s+(?:БЕЛАРУС\w*|КОРЕЯ|КИТАЙ|РЕСПУБЛ\w*|США)(?:[,\s].*)?$/iu,'');
+ s=s.replace(/\b(?:K[rгГΓ]|К[rгГΓ])\)/gu,'кг)');
+ s=s.replace(/(?:\s+|^)(?:WT|ШТ)\s+акциза\s*$/iu,'').replace(/\s+акциза\s*$/iu,'');
+ if(rate>0)s=s.replace(new RegExp('\\s+'+rate+'\\s*$','u'),'');
+ s=s.replace(/^\d{1,3}\s+(?=[\p{L}])/u,'');
+ s=s.replace(/^[\s.,—–-]+|[\s.,—–-]+$/gu,'').replace(/\s+/gu,' ').trim();
+ if(!s||!/\p{L}/u.test(s))return '';
+ if(/^(?:акциза|беларус|корея|китай|республ|шт|wt|кг)$/iu.test(s))return '';
+ return s;
+}
+function parseShanghaiUpdRaw(raw){
+ const text=String(raw??'');
+ if(api.detectSupplierTemplate(text)?.id!=='shanghai'||!/796\s+(?:[ШW][ТT]\s+)?\d+[,.]\d{3}/iu.test(text))return null;
+ if(!/(?:сч[её]т\s*[-–]?\s*фактура|УПД|универсальн)/iu.test(text))return null;
+ const lines=text.split(/\r?\n/u).map(s=>s.replace(/[\u00a0\u202f]/gu,' ').trim()).filter(Boolean);
+ const anchors=[];
+ for(let i=0;i<lines.length;i++){
+  const m=rowRx.exec(lines[i]);
+  if(m){const q=amount(m[1]),net=amount(m[2]),gross=amount(m[3]);if(q>0&&net>0&&gross>0&&gross>=net&&q<1e7)anchors.push({i,m,q,net,gross});}
+ }
+ if(!anchors.length||anchors.length>1000)return null;
+ const first=anchors[0].i,marker=lines.slice(Math.max(0,first-60),first).findLastIndex(s=>/^[AА]\s+1(?:\s|$)/iu.test(s));
+ let start=marker>=0?Math.max(0,first-60)+marker+1:Math.max(0,first-9);
+ const items=[],issues=[],usedCodes=new Set();
+ for(const [idx,anchor] of anchors.entries()){
+  const end=anchor.i,subtotal=Math.round(anchor.q*anchor.gross*100);
+  const before=lines.slice(start,end);
+  const amounts=before.flatMap(s=>[...s.matchAll(moneyRx)].map(x=>cents(x[0])));
+  if(!amounts.includes(subtotal)){issues.push('Строка '+(idx+1)+': сумма не привязана к той же строке');return null;}
+  let prefix=lines[end].slice(0,anchor.m.index).trim();
+  let article=null,sequence=null;
+  const prefixSku=prefix.match(/(?:^|\s)([A-ZА-ЯЁ]\d{3,8})\s+(\d{1,3})\s*(.*)$/u);
+  if(prefixSku){article=prefixSku[1];sequence=Number(prefixSku[2]);prefix=prefixSku[3]||'';}
+  let suffix='',consumed=0;
+  if(!article&&end+1<lines.length){
+   const candidate=lines[end+1].match(skuRx);
+   if(candidate){article=candidate[1];sequence=candidate[2]?Number(candidate[2]):null;suffix=candidate[3]||'';consumed=1;}
+  }
+  if(sequence&&sequence!==idx+1){issues.push('Нарушен порядок номеров товарных строк');return null;}
+  if(article){if(usedCodes.has(article)){issues.push('Повторяющийся артикул в соседних строках');return null;}usedCodes.add(article);}
+  const rate=[0,10,20,22].find(r=>Math.abs(anchor.gross-anchor.net*(1+r/100))<=Math.max(.03,anchor.gross*.00005))||0;
+  let pieces=before.map(s=>fragment(s,rate)).filter(Boolean);
+  const pref=fragment(prefix,rate);if(pref)pieces.push(pref);
+  const suf=fragment(suffix,rate);if(suf)pieces.push(suf);
+  // A split OCR cell for kilograms can appear after the row number.
+  const name=pieces.join(' ').replace(/\(\s*(\d+(?:[,.]\d+)?)\s+кг\)/iu,'($1 кг)').replace(/\s+/gu,' ').trim();
+  if(!name||name.length>350||!/\p{L}{3}/u.test(name)){issues.push('Строка '+(idx+1)+': неполное название');return null;}
+  const q=anchor.q,price=anchor.gross,invoiceTotal=subtotal/100;
+  const row={name,quantity:q,unit:'шт',unitCode:'796',price,invoiceTotal,
+   article:article||undefined,sourceRow:String(idx+1),source:name,uncertain:true,
+   packKg:api.packWeight(name)||null,packL:api.packVolume(name)||null,
+   templateId:'shanghai',ocrLayout:'upd-row-anchored',ocrOriginalName:name};
+  items.push(row);
+  start=end+1+consumed;
+ }
+ // An independently printed document gross total is mandatory.
+ const last=anchors[anchors.length-1].i;
+ const foot=lines.findIndex((s,i)=>i>last&&i<=last+16&&/вс[еe]го\s+к\s+оплате/iu.test(s));
+ if(foot<0)return null;
+ const printed=[...lines.slice(Math.max(last+1,foot-2),foot+2).flatMap(x=>[...x.matchAll(moneyRx)].map(m=>cents(m[0])))];
+ const summed=items.reduce((a,x)=>a+Math.round(x.invoiceTotal*100),0);
+ if(!printed.includes(summed)){issues.push('Не совпадает итог документа');return null;}
+ return {supplier:'ООО «ШАНХАЙ-ТОРГ»',items,templateId:'shanghai',supplierPhotoGrid:true,
+  printedTotal:summed/100,documentVerified:true,pageVerified:true,balancedInvoice:true,
+  safeToAutoAccept:false,needsReview:true,
+  reviewIssues:['Таблица восстановлена из OCR по товарным строкам. Сверьте наименования с фото перед сохранением.']};
+}
+api.parseShanghaiUpdRaw=parseShanghaiUpdRaw;
+api.parsePhoto=function(raw,spatial){
+ const structured=parseShanghaiUpdRaw(raw);
+ if(structured){
+  const audited=api.auditCandidate(structured);
+  // Ambiguous OCR must not silently become a trusted invoice.
+  if(audited?.items?.length&&audited.items.every(x=>x.price>0&&x.quantity>0)&&
+     !audited.ocrNameAlignmentSuspect)return audited;
+ }
+ return prev(raw,spatial);
+};
+})(globalThis);
