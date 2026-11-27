@@ -1,0 +1,46 @@
+name: Supply offline APK startup QA
+on:
+  push:
+    branches: [test/supply-offline-ocr]
+    paths: ['.github/workflows/supply-offline-startup.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  emulator-startup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: FARUKH-SUPPLY-OFFLINE-TEST
+          run-id: 45985473738
+          github-token: ${{ github.token }}
+          path: apk
+      - name: Verify exact APK
+        run: echo "512d5e607ccb31e56aee648fb8a8f8d11ba33cd9451380ac826fc812fa9c414c  apk/FARUKH-SUPPLY-OFFLINE-TEST.apk" | sha256sum -c -
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            adb install apk/FARUKH-SUPPLY-OFFLINE-TEST.apk
+            adb shell am start -W -n ai.farukh.supply.offline.test/com.paddle.ocr.demo.MainActivity
+            for i in $(seq 1 30); do adb shell uiautomator dump /sdcard/window.xml >/dev/null && adb shell cat /sdcard/window.xml > window.xml; if grep -q 'Сканер загружен' window.xml; then echo 'OFFLINE_MODEL_STARTUP_PASS'; break; fi; sleep 2; done
+            grep -q 'Сканер загружен' window.xml
+            adb shell pm check-permission android.permission.INTERNET ai.farukh.supply.offline.test
+      - name: Upload screen dump
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-startup-screen
+          path: window.xml
+          if-no-files-found: ignore
