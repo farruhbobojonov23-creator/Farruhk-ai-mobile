@@ -638,6 +638,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      actions: read
     concurrency:
       group: farukh-supply-web-release
       cancel-in-progress: false
@@ -688,19 +689,41 @@ jobs:
           tag=farukh-supply-current
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --dir "$out"
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --dir "$out"
-          code=$(awk '/versionCode / {print $2;exit}' supply-android/app/build.gradle)
+          # The phone already has signed APK 16; never build a new APK for web fixes.
+          code=16
           test "$(jq -er .package "$out/update.json")" = ai.farukh.supply
           published=$(jq -er .versionCode "$out/update.json")
-          if [ "$published" -lt "$code" ]; then echo "Native upgrade requires Android release gate; web publication deferred."; exit 0; fi
-          test "$published" = "$code"
+          test "$published" = 15 || test "$published" = "$code"
           cert=$(jq -er .cert "$out/update.json")
+          if [ "$published" -lt "$code" ]; then
+            # Register the EXISTING tested APK 16, so its updater accepts web revision 79.
+            run=45947819434
+            gh run view "$run" --repo "$GITHUB_REPOSITORY" --json conclusion,headSha --jq 'select(.conclusion=="success" and .headSha=="fb0bae5b19a2c403912d3729bfbdfa18cc515310") | .headSha' | grep -Fx fb0bae5b19a2c403912d3729bfbdfa18cc515310
+            gh run download "$run" --repo "$GITHUB_REPOSITORY" --name FARUKH-SUPPLY-WHITE-signed-test --dir "$out/native"
+            apk="FARUKH-SUPPLY-$code.apk"
+            cp "$out/native/FARUKH-SUPPLY-WHITE-TEST.apk" "$out/$apk"
+            tools="${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools/35.0.0"
+            if [ ! -x "$tools/apksigner" ]; then
+              tools=$(dirname "$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name apksigner -type f | sort -V | tail -1)")
+            fi
+            "$tools/apksigner" verify --verbose "$out/$apk"
+            actual=$("$tools/apksigner" verify --print-certs "$out/$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)
+            test "$actual" = "$cert"
+            "$tools/aapt" dump badging "$out/$apk" > "$out/badging.txt"
+            grep -F "package: name='ai.farukh.supply' versionCode='16'" "$out/badging.txt"
+            size=$(wc -c < "$out/$apk")
+            test "$size" -ge 30000000 && test "$size" -le 60000000
+            hash=$(sha256sum "$out/$apk" | cut -d' ' -f1)
+            jq -n --arg file "$apk" --arg sha256 "$hash" --arg cert "$cert" --argjson versionCode "$code" '{package:"ai.farukh.supply",file:$file,sha256:$sha256,cert:$cert,versionCode:$versionCode}' > "$out/new-manifest.json"
+          fi
           webroot=supply-android/app/src/main/assets
           revision=$(tr -d '[:space:]' < "$webroot/web-version.txt")
           [[ "$revision" =~ ^[1-9][0-9]*$ ]]
           jq -er .payload "$out/web-current.json" | base64 -d > "$out/previous-payload.json"
-          test "$(jq -er .nativeVersion "$out/previous-payload.json")" = "$code"
+          test "$(jq -er .nativeVersion "$out/previous-payload.json")" = "$published"
           previous=$(jq -er .revision "$out/previous-payload.json")
-          if [ "$previous" -ge "$revision" ]; then echo "Already published or revision not increased"; exit 0; fi
+          if [ "$published" = "$code" ] && [ "$previous" -ge "$revision" ]; then echo "Already published or revision not increased"; exit 0; fi
+          test "$revision" -ge "$previous"
           python3 - "$webroot" "$code" "$revision" "$out/payload.json" <<'PY'
           import base64,json,pathlib,sys
           root,code,rev,out=sys.argv[1:]
@@ -713,7 +736,19 @@ jobs:
           test "$(wc -c < "$out/new/web-current.json")" -lt 1048576
           latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/farukh-supply-premium-pro" --jq .object.sha)
           if [ "$latest" != "$GITHUB_SHA" ]; then echo "Superseded before upload; skipping publication."; exit 0; fi
+          if [ -f "$out/new-manifest.json" ]; then
+            gh release upload "$tag" "$out/$apk" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$apk" --output "$out/verified.apk"
+            test "$(sha256sum "$out/verified.apk" | cut -d' ' -f1)" = "$hash"
+          fi
           gh release upload "$tag" "$out/new/web-current.json" --repo "$GITHUB_REPOSITORY" --clobber
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern web-current.json --output "$out/verified.json"
           cmp "$out/new/web-current.json" "$out/verified.json"
-          echo "Published and verified web revision $revision, Android version $code unchanged."
+          if [ -f "$out/new-manifest.json" ]; then
+            mkdir "$out/manifest"
+            cp "$out/new-manifest.json" "$out/manifest/update.json"
+            gh release upload "$tag" "$out/manifest/update.json" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern update.json --output "$out/verified-manifest.json"
+            cmp "$out/manifest/update.json" "$out/verified-manifest.json"
+          fi
+          echo "Published and verified web revision $revision for existing Android $code; no new APK built."

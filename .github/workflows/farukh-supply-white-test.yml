@@ -1,7 +1,7 @@
 name: FARUKH SUPPLY White Premium test APK
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/farukh-supply-premium-pro', 'feature/supply-offline-layout-core']
+    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core']
     paths:
       # Web-only updates are signed and published by farukh-supply-white-qa.yml.
       # Keep the native OCR APK/version unchanged for these changes.
@@ -228,8 +228,8 @@ jobs:
           cmp "$out/update.json" "$out/verified-manifest.json"
           echo "Published and verified native upgrade $code with embedded web revision $revision."
 
-      - name: Publish approved compact Android 18 upgrade
-        if: github.ref == 'refs/heads/feature/farukh-supply-premium-pro'
+      - name: Publish approved compact Android 18 upgrade (disabled for web-only releases)
+        if: false
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
