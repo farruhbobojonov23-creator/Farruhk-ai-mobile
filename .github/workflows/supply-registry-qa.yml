@@ -45,6 +45,12 @@ jobs:
               for x,t in zip(xs,row): d.text((x,y),t,font=f,fill="black")
           d.text((940,660),"ИТОГО 835,00",font=f,fill="black")
           im.save("farukh-test-invoice.png")
+          p2=Image.new("RGB",(1600,1050),"white")
+          dd=ImageDraw.Draw(p2)
+          dd.text((65,65),"СТРАНИЦА 2 ИЗ 2",font=f,fill="black")
+          dd.text((65,320),"ВСЕГО ПЕРЕДАНО",font=f,fill="black")
+          dd.text((950,320),"835,00",font=f,fill="black")
+          p2.save("farukh-test-invoice-page2.png")
           PY
           cat > ui.py <<'PY'
           import re, time, subprocess, xml.etree.ElementTree as ET
@@ -72,10 +78,10 @@ jobs:
           try:
               wait("Сканировать накладную",True)
               wait("Сканер загружен")
-              wait("Диагностика OCR",True)
-              wait("Найдено блоков",timeout=180)
+              wait("Диагностика OCR · 2 страницы",True)
+              wait("Распознано страниц: 2",timeout=240)
               wait("Перенести в накладную",True)
-              wait("Проверка распознанной накладной")
+              wait("Проверка распознанной накладной · 2 стр.")
               wait("Сверьте черновик с фото|Найдено строк: 2")
               print("ANDROID_OCR_REGISTRY_TRANSFER_PASS")
           finally:
@@ -97,6 +103,7 @@ jobs:
             adb install supply-offline/build-output/FARUKH-SUPPLY-OFFLINE-TEST.apk
             adb shell run-as ai.farukh.supply.offline.test mkdir -p files
             adb shell -T "run-as ai.farukh.supply.offline.test sh -c 'cat > files/qa-invoice.png'" < farukh-test-invoice.png
+            adb shell -T "run-as ai.farukh.supply.offline.test sh -c 'cat > files/qa-invoice-page2.png'" < farukh-test-invoice-page2.png
             adb shell am start -W -n ai.farukh.supply.offline.test/com.paddle.ocr.demo.RegistryActivity
             python ui.py
       - uses: actions/upload-artifact@v4
