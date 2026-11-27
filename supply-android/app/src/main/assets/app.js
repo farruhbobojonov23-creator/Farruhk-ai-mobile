@@ -507,9 +507,15 @@ function showPreview(file){
 }
 function reset(){if($('structureJson'))$('structureJson').value='';if($('structureWarnings'))$('structureWarnings').textContent='';scanStartedAt=0;stageStartedAt=0;scanTrace=[];$('scanProgress').replaceChildren();pages=[];activePage=null;pendingPhoto=null;partialPage=null;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';document.getElementById('ocrDiagnostic')?.remove();ocrId=null;scanBusy=false;editing=null;$('form').reset();$('lines').replaceChildren();addLine();showPreview(null);$('ocrState').textContent='';$('retry').classList.add('hide');$('save').disabled=false;$('file').disabled=false;dirty=false;pageStatus();showInvoiceIntegrity();status('')}
 $('supplier').addEventListener('change',()=>{for(const f of $('lines').children)catalogBadge(f)});
-$('addLine').onclick=()=>{addLine(pages.length===1?{pageKey:pages[0].key}:{});dirty=true;showInvoiceIntegrity()};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('change',()=>{
+$('addLine').onclick=()=>{addLine(pages.length===1?{pageKey:pages[0].key}:{});dirty=true;showInvoiceIntegrity()};$('form').addEventListener('input',()=>{dirty=true;showInvoiceIntegrity()});$('form').addEventListener('change',showInvoiceIntegrity);$('file').addEventListener('click',()=>{
+ if(!$('entry').classList.contains('hide'))$('ocrState').textContent='Открываем выбор фотографий…';
+});
+$('file').addEventListener('change',()=>{
  const selected=[...$('file').files],file=selected[0];
- if(!file)return;
+ if(!file){
+  $('ocrState').textContent='Галерея не передала выбранный файл. Попробуйте выбрать через «Файлы».';
+  return;
+ }
  activePage=null;pendingPhoto=file;scanPass=0;scanCandidates=[];photoPassTexts=[];photoSupplier='';
  scanStartedAt=performance.now();scanTrace=[];
  document.getElementById('ocrDiagnostic')?.remove();

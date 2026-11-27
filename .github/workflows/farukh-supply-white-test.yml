@@ -3,7 +3,7 @@ name: FARUKH SUPPLY White Premium test APK
 # Signed candidate for Android v19; preserve production signature and installed app data.
 on:
   push:
-    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core', 'release/supply-multipage-v19', 'fix/supply-photo-picker-v20']
+    branches: ['feature/farukh-supply-simple-white', 'feature/supply-offline-layout-core', 'release/supply-multipage-v19', 'fix/supply-photo-picker-v20', 'fix/supply-photo-picker-v21']
     paths:
       # Web-only updates are signed and published by farukh-supply-white-qa.yml.
       # Keep the native OCR APK/version unchanged for these changes.

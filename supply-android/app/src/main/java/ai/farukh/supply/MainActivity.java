@@ -100,14 +100,28 @@ public class MainActivity extends Activity {
  super.onActivityResult(request,result,data);
  if(request!=41||pending==null)return;
  Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
- // Different Android/Xiaomi gallery apps can return both data and ClipData.
- // Preserve *all* selected photos instead of silently using only the first.
+ // Xiaomi Gallery can deliver exactly one image as ClipData without Intent.data.
+ // Use ClipData for one or multiple pages; never rely only on parseResult().
  if(result==RESULT_OK&&data!=null){
+  java.util.LinkedHashSet<Uri> picked=new java.util.LinkedHashSet<>();
   android.content.ClipData clip=data.getClipData();
-  if(clip!=null&&clip.getItemCount()>1&&clip.getItemCount()<=20){
-   chosen=new Uri[clip.getItemCount()];
-   for(int i=0;i<clip.getItemCount();i++)chosen[i]=clip.getItemAt(i).getUri();
-  }else if((chosen==null||chosen.length==0)&&data.getData()!=null)chosen=new Uri[]{data.getData()};
+  if(clip!=null)for(int i=0;i<clip.getItemCount()&&i<21;i++){
+   Uri u=clip.getItemAt(i).getUri();
+   if(u!=null)picked.add(u);
+  }
+  if(picked.isEmpty()&&data.getData()!=null)picked.add(data.getData());
+  if(picked.isEmpty())try{
+   Object stream=data.getParcelableExtra(Intent.EXTRA_STREAM);
+   if(stream instanceof Uri)picked.add((Uri)stream);
+  }catch(Exception ignored){}
+  if(!picked.isEmpty())chosen=picked.toArray(new Uri[0]);
+ }
+ if(result==RESULT_OK&&(chosen==null||chosen.length==0)){
+  pending.onReceiveValue(null);pending=null;
+  android.util.Log.w("SupplyOCR","Picker returned RESULT_OK with no image Uri");
+  android.widget.Toast.makeText(this,"Галерея не передала фото. Выберите снимок через «Файлы».",android.widget.Toast.LENGTH_LONG).show();
+  web.evaluateJavascript("(function(){var s=document.getElementById('ocrState');if(s)s.textContent='Галерея не передала фото. Повторите выбор через Файлы.';})()",null);
+  return;
  }
  if(chosen!=null&&chosen.length>20){
   pending.onReceiveValue(null);pending=null;

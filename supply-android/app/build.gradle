@@ -6,8 +6,8 @@ android {
  applicationId 'ai.farukh.supply'
  minSdk 26
  targetSdk 35
- versionCode 20
- versionName '1.0.2'
+ versionCode 21
+ versionName '1.0.3'
  testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
  }
  // Test-only ARM64 release: keep x86_64 available in debug for emulator OCR tests.

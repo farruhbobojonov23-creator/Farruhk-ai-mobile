@@ -50,6 +50,28 @@ public class SupplyPhotoPickerTest {
    });
   }finally{inst.runOnMainSync(activity::finish);}
  }
+ @Test public void handlesSingleImageInXiaomiClipData() throws Exception {
+  android.app.Instrumentation inst=InstrumentationRegistry.getInstrumentation();
+  android.content.Context context=inst.getTargetContext();
+  MainActivity activity=(MainActivity)inst.startActivitySync(
+    new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+  try {
+   final AtomicReference<Uri[]> received=new AtomicReference<>();
+   inst.runOnMainSync(()->{
+    try {
+     setPending(activity,received::set);
+     Uri photo=Uri.parse("content://xiaomi-gallery.local/single.jpg");
+     Intent result=new Intent().setClipData(new ClipData("Photo",new String[]{"image/jpeg"},new ClipData.Item(photo)));
+     assertNull(result.getData());
+     activity.onActivityResult(41,Activity.RESULT_OK,result);
+     assertNotNull("Single ClipData image must reach WebView",received.get());
+     assertEquals(1,received.get().length);
+     assertEquals(photo,received.get()[0]);
+     assertEquals(photo,queued(activity)[0]);
+    }catch(Exception e){throw new RuntimeException(e);}
+   });
+  }finally{inst.runOnMainSync(activity::finish);}
+ }
  @Test public void handlesOnePhotoWithoutClipData() throws Exception {
   android.app.Instrumentation inst=InstrumentationRegistry.getInstrumentation();
   android.content.Context context=inst.getTargetContext();
