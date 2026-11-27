@@ -4,7 +4,7 @@
 ;(function(root){
 'use strict';
 const api=typeof module==='object'&&module.exports?require('./invoice-parser.js'):root.supplyInvoiceParser;
-const old=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
+const old=api.parseSimple||api.parse,oldPasses=api.parseSamePhotoPasses||(()=>[]);
 const profiles=Object.freeze([
  {id:'chistyakova',name:'ИП Чистякова Ирина Юрьевна',form:'УПД',re:/чистяков[а-яё]*\s+ирин[а-яё]*\s+юрьевн[а-яё]*/iu},
  {id:'virgo',name:'ООО «ВИРГО»',form:'УПД',re:/(?:ооо|общество\s+с\s+ограниченной\s+ответственностью)\s*["«]?\s*вирго\b/iu},
@@ -115,4 +115,5 @@ api.parseSamePhotoPasses=function(texts){
  for(const text of texts){const mapped=parseDelimited(text);if(mapped)out.push(api.auditCandidate?api.auditCandidate(mapped):mapped);}
  return out;
 };
+if(typeof module==='object'&&module.exports)module.exports=api;
 })(globalThis);
