@@ -6,6 +6,41 @@ const number=s=>{s=String(s??'').replace(/[\s\u00a0\u202f]/g,'');return /^\d+(?:
 const unit=s=>({кг:'кг',kg:'кг',шт:'шт',упак:'шт',уп:'шт',меш:'шт',л:'л',l:'л'})[norm(s).replace(/\./g,'')]||null;
 const textOf=r=>String(r.text??'').trim();
 function extract(scan,catalog=[]){
+ // Multiple photos of one paper document: combine only into an unverified draft.
+ // The original photos never leave the Android device or get auto-saved.
+ if(scan?.schema==='farukh-ocr-batch-v1'){
+   if(!Array.isArray(scan.pages)||scan.pages.length<2||scan.pages.length>20)throw Error('Нужно от 2 до 20 страниц OCR');
+   const drafts=scan.pages.map(p=>extract(p,catalog)), rows=drafts.flatMap(d=>d.rows);
+   const sums=rows.reduce((n,r)=>n+Math.round(r.amount*100),0);
+   const candidates=[];
+   for(const page of scan.pages){
+     const pts=page.regions.map(r=>{
+       const xs=r.box?.map(p=>p[0]/page.width)||[],ys=r.box?.map(p=>p[1]/page.height)||[];
+       return {text:String(r.text??''),x:xs.length?(Math.min(...xs)+Math.max(...xs))/2:0,
+         y:ys.length?(Math.min(...ys)+Math.max(...ys))/2:0};
+     });
+     for(const p of pts.filter(p=>/^(всего передано|всего к оплате|итого|всего по накладной)/i.test(p.text.trim()))){
+       const tail=p.text.match(/(?:всего передано|всего к оплате|итого)\s*[:=]?\s*([\d\s,.]+)$/i);
+       if(tail){const n=number(tail[1]);if(n!=null)candidates.push(n);}
+       for(const q of pts.filter(q=>q.x>p.x&&Math.abs(q.y-p.y)<.018)){
+         const n=number(q.text);if(n!=null)candidates.push(n);
+       }
+     }
+   }
+   const matching=[...new Set(candidates)].filter(v=>Math.abs(Math.round(v*100)-sums)<=1);
+   const numbers=[...new Set(drafts.map(d=>d.number).filter(Boolean))];
+   const dates=[...new Set(drafts.map(d=>d.date).filter(Boolean))];
+   const warnings=['Многостраничный OCR: сверьте каждую строку и страницы с оригиналом; без проверки не сохранять как полный.'];
+   if(numbers.length>1||dates.length>1)warnings.push('ВНИМАНИЕ: номера или даты страниц различаются. Нельзя считать их одним документом без проверки.');
+   if(matching.length!==1)warnings.push('Итог на дополнительных страницах не подтверждён суммой товарных строк.');
+   if(!rows.length)warnings.push('Товарные строки не распознаны.');
+   return {supplier:drafts.find(d=>d.supplier)?.supplier||'',number:numbers.length===1?numbers[0]:'',
+     date:dates.length===1?dates[0]:'',total:matching.length===1?matching[0]:null,
+     tax_status:drafts.find(d=>d.tax_status==='included')?'included':'unknown',complete:false,
+     source:'offline_ocr_draft',warnings:[...warnings,...drafts.flatMap((d,i)=>d.warnings.map(w=>'Стр. '+(i+1)+': '+w))],
+     rows,rawText:drafts.map((d,i)=>'--- Страница '+(i+1)+' ---\n'+d.rawText).join('\n'),
+     page_count:scan.pages.length,pages_seen:scan.pages.map((_,i)=>i+1)};
+ }
  if(scan?.schema!=='farukh-ocr-regions-v1'||!Array.isArray(scan.regions)||!(scan.width>0&&scan.height>0))throw Error('Неверный формат OCR');
  const points=scan.regions.filter(r=>Array.isArray(r.box)&&r.box.length>=4&&r.box.every(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1]))).map(r=>{
  const xs=r.box.map(p=>p[0]/scan.width),ys=r.box.map(p=>p[1]/scan.height);
@@ -13,7 +48,7 @@ function extract(scan,catalog=[]){
  const full=points.map(p=>p.text).join(' '), upper=points.filter(p=>p.y<.4).map(p=>p.text).join(' ');
  const suppliers=[...new Set(catalog.map(d=>d.supplier).filter(Boolean))].filter(s=>norm(upper).includes(norm(s)));
  const supplier=suppliers.length===1?suppliers[0]:'';
- const match=upper.match(/(?:накладная|счет[- ]фактура|счёт[- ]фактура|реализация|упд)\s*(?:№|n|no)?\s*([A-Za-zА-Яа-я0-9/.-]*\d[A-Za-zА-Яа-я0-9/.-]*)\s*(?:от)?\s*(\d{2})[./](\d{2})[./](\d{4})/i);
+ const match=upper.match(/(?:накладная|счет[- ]фактура|счёт[- ]фактура|реализация|акт\s+при[её]ма[- ]передачи(?:\s+по\s+упд)?|упд)\s*(?:№|n|no)?\s*([A-Za-zА-Яа-я0-9/.-]*\d[A-Za-zА-Яа-я0-9/.-]*)\s*(?:от)?\s*(\d{2})[./](\d{2})[./](\d{4})/i);
  const warnings=['OCR: сверить с оригиналом все строки, фасовку, НДС, номер и дату; полнота не подтверждена.'];
  let rows=[],tax='unknown',total=null;
  const lineGroups=[];
