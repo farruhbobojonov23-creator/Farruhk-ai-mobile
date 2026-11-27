@@ -1019,6 +1019,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(partialPage)$('ocrState').textContent+=' Добавлено страниц: '+partialPage.page+' из '+partialPage.pages+'. Загрузите остальные фото.';
   if(!priced&&activePage){$('ocrState').textContent='Повторная проверка не улучшила результат. Предыдущие строки сохранены.';}
   if(!priced||ambiguous||priced<r.items.length||missingPack||!r.documentVerified&&!r.pageVerified)scanDiagnostic(diagnostic);else document.getElementById('ocrDiagnostic')?.remove();
+  if(native&&!priced&&pendingPhoto&&!activePage){const file=pendingPhoto;queueMicrotask(()=>window.supplyTryLocalAuto?.(id,file));}
  }catch(e){scanCandidates=[];scanPass=0;scanStartedAt=0;stageStartedAt=0;showScanProgress();$('ocrState').textContent=e.message||'Не удалось обработать документ.';scanDiagnostic(text);}
 };
 $('rescan').onclick=()=>{if(!$('file').files.length){status('Выберите документ');return}scanCandidates=photoPassTexts.map(text=>({r:window.supplyInvoiceParser.parseSimple(text),text,error:''}));scanStartedAt=performance.now();scanTrace=[];scanPass=2;nextScan('rescan','Углублённая проверка таблицы…')};
@@ -1304,9 +1305,9 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
 })();
 
 (function(){
- const retry=$('retry'),smart=button('SMART SCAN · тест',()=>runSmart());
+ const retry=$('retry'),smart=button('Проверить таблицу (PaddleOCR)',()=>runSmart());
  smart.type='button';smart.id='smartScan';retry.append(smart);
- let running=false;
+ let running=false,autoAttempted=null;
  function rawText(items){
   const words=items.map(x=>({t:x.text,x:x.poly.reduce((s,p)=>s+p[0],0)/4,y:x.poly.reduce((s,p)=>s+p[1],0)/4})).sort((a,b)=>a.y-b.y||a.x-b.x);
   const lines=[];for(const w of words){const a=lines.at(-1);if(a&&Math.abs(a.y-w.y)<7)a.words.push(w);else lines.push({y:w.y,words:[w]});}
@@ -1324,28 +1325,29 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
   });
   return {supplier,items:rows,documentVerified:false,pageVerified:false};
  }
- async function runSmart(){
+ async function runSmart(automatic=false){
   if(running||scanBusy)return;
   const file=pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0];
   if(!file?.type?.startsWith('image/')){status('Выберите фотографию');return;}
-  if(!confirm('SMART SCAN — экспериментальное распознавание. При первом запуске загрузятся модели (около 28 МБ). Фото остаётся на устройстве. Результат нужно сверить. Продолжить?'))return;
+  if(!automatic&&!confirm('Дополнительная проверка PaddleOCR. При первом запуске загрузятся модели (около 28 МБ). Фото остаётся на устройстве. Результат нужно сверить. Продолжить?'))return;
   running=true;scanBusy=true;smart.disabled=true;$('rescan').disabled=true;$('save').disabled=true;$('saveNext').disabled=true;$('file').disabled=true;
-  const original=file,started=performance.now();let message='';
+  const original=file,started=performance.now(),requestId=ocrId,previousMessage=$('ocrState').textContent;let message='';
   try{
-   const output=await window.supplySmartScan.scanPhoto(file,{progress:v=>{$('ocrState').textContent='SMART SCAN: '+v;}});
-   if((pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0])!==original||$('entry').classList.contains('hide'))return;
+   const output=await window.supplySmartScan.scanPhoto(file,{progress:v=>{if(ocrId===requestId&&!$('entry').classList.contains('hide'))$('ocrState').textContent='PaddleOCR · проверка таблицы: '+v;}});
+   if(ocrId!==requestId||(pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0])!==original||$('entry').classList.contains('hide'))return;
    const r=output.result,raw=rawText(output.items);
    if(!r.rows.length)throw Error(r.error||'Таблица не распознана');
    if(r.rows.some(x=>!x.name||!(x.quantity>0)||!(x.price>0)||!(x.total>0)||!x.arithmeticOK||x.conflicts?.length)||r.expectedRows&&r.expectedRows!==r.rows.length||r.printedTotal!=null&&!r.totalOK)throw Error('Не все строки прошли проверку; старые данные сохранены.');
    const candidate=propose(r,raw);if(!candidate.supplier)throw Error('Поставщик не подтверждён; старые данные сохранены.');
    const preview=r.rows.map((x,i)=>(i+1)+'. '+x.name+' — '+x.quantity+' × '+rub(x.price)+' = '+rub(x.total)).join('\n');
    scanDiagnostic(raw);
-   if(!confirm('SMART SCAN: '+candidate.supplier+' · '+r.rows.length+' строк, сумма '+rub(r.sum)+'. '+(r.totalOK?'Итог совпал.':'Итог документа не подтверждён.')+'\nНазвания и единицы требуют проверки. Заменить строки на этой странице?\n\n'+preview.slice(0,1500)))return;
+   if(!automatic&&!confirm('SMART SCAN: '+candidate.supplier+' · '+r.rows.length+' строк, сумма '+rub(r.sum)+'. '+(r.totalOK?'Итог совпал.':'Итог документа не подтверждён.')+'\nНазвания и единицы требуют проверки. Заменить строки на этой странице?\n\n'+preview.slice(0,1500)))return;
    if(!acceptPage(candidate,raw))return;
-   dirty=true;showInvoiceIntegrity();message='SMART SCAN (тест): '+r.rows.length+' строк · '+rub(r.sum)+' · '+fmt(Math.round((performance.now()-started)/100)/10)+' с. Сверьте поставщика, названия, единицы и суммы с фото.';
-  }catch(e){message='SMART SCAN: '+(e.message||'Ошибка распознавания')+' Старое распознавание доступно.';}
-  finally{running=false;scanBusy=false;smart.disabled=false;$('rescan').disabled=false;$('save').disabled=false;$('saveNext').disabled=false;$('file').disabled=false;if(message)$('ocrState').textContent=message;}
+   dirty=true;showInvoiceIntegrity();message=(automatic?'PaddleOCR · автоматически: ':'SMART SCAN (тест): ')+r.rows.length+' строк · '+rub(r.sum)+' · '+fmt(Math.round((performance.now()-started)/100)/10)+' с. Сверьте поставщика, названия, единицы и суммы с фото.';
+  }catch(e){message=automatic?previousMessage+' · Дополнительная проверка не помогла.':'SMART SCAN: '+(e.message||'Ошибка распознавания')+' Старое распознавание доступно.';}
+  finally{running=false;smart.disabled=false;$('rescan').disabled=false;if(ocrId===requestId&&!$('entry').classList.contains('hide')){scanBusy=false;$('save').disabled=false;$('saveNext').disabled=false;$('file').disabled=false;if(message)$('ocrState').textContent=message;}}
  }
+ window.supplyTryLocalAuto=(id,file)=>{if(id!==ocrId||!file||file!==pendingPhoto||autoAttempted===file||running||scanBusy||activePage||$('entry').classList.contains('hide')||[...$('lines').children].some(f=>{const l=lineData(f);return l.price!=null||l.quantity!=null;}))return;autoAttempted=file;return runSmart(true);};
 })();
 
 /* PP_STRUCTURE_IMPORT_BEGIN */

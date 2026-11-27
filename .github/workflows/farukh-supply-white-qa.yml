@@ -166,6 +166,26 @@ jobs:
           });
           await page.locator('nav button[data-go=home]').click();
 
+          // Local fallback automatically fills a new draft without manual confirmation.
+          await page.locator('button[data-go=entry]:visible').first().click();
+          await page.evaluate(async()=>{
+            const previous=window.supplySmartScan.scanPhoto;let calls=0;
+            try{
+              const file=new File(['fake-image'],'local.jpg',{type:'image/jpeg'});
+              pendingPhoto=file;ocrId=983;photoPassTexts=['Поставщик: ООО Учебный'];
+              window.supplySmartScan.scanPhoto=async()=>{calls++;return {items:[],result:{rows:[{name:'Рис новый',quantity:2,price:150,total:300,arithmeticOK:true}],sum:300,printedTotal:300,totalOK:true}};};
+              await window.supplyTryLocalAuto(983,file);
+              if(calls!==1||$('lines').children.length!==1||!$('ocrState').textContent.includes('автоматически')||lineData($('lines').firstElementChild).price!==150)throw Error('Automatic local fallback failed: '+$('ocrState').textContent);
+              await window.supplyTryLocalAuto(983,file);
+              if(calls!==1)throw Error('Repeated automatic scan');
+              reset();pendingPhoto=new File(['fake'],'local2.jpg',{type:'image/jpeg'});ocrId=984;
+              addLine({name:'Existing',price:100,quantity:1,unit:'кг'});
+              await window.supplyTryLocalAuto(984,pendingPhoto);
+              if(calls!==1)throw Error('Auto scan overwrote valid draft');
+            }finally{window.supplySmartScan.scanPhoto=previous;reset();}
+          });
+          await page.locator('nav button[data-go=home]').click();
+
           // PP-StructureV3 beta import: 100 rows; no auto-save or corruption of existing data.
           await page.locator('button[data-go=entry]:visible').first().click();
           await page.evaluate(()=>{
