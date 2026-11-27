@@ -7,7 +7,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: farukh-supply-v19-publish
+  group: farukh-supply-v20-publish
   cancel-in-progress: false
 jobs:
   release:
@@ -30,17 +30,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          sha=9c369f517fd5053f6d7aa0bd2c17034c222b4155
+          sha=53e0ee809f6e5d56ca4b7e3c087cba1d781f8112
+          browser_sha=9c369f517fd5053f6d7aa0bd2c17034c222b4155
           test "$(git rev-parse HEAD^)" = "$sha"
           test "$(git diff --name-only HEAD^ HEAD)" = ".github/workflows/farukh-supply-v20-publish.yml"
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/fix/supply-photo-picker-v20" --jq .object.sha)" = "$GITHUB_SHA"
-          for id in 46005287143 46005287136; do
-            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .head_sha)" = "$sha"
+          # The only change since the successful browser QA is the added publication workflow
+          # and the Java test-only correction; application and Android source are unchanged.
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/46005287143" --jq .head_sha)" = "$browser_sha"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/46008668965" --jq .head_sha)" = "$sha"
+          for id in 46005287143 46008668965; do
             gh run watch "$id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 20
             test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .conclusion)" = success
           done
           mkdir -p "$RUNNER_TEMP/supply-signed"
-          gh run download 46005287136 --repo "$GITHUB_REPOSITORY" --name FARUKH-SUPPLY-WHITE-signed-test --dir "$RUNNER_TEMP/supply-signed"
+          gh run download 46008668965 --repo "$GITHUB_REPOSITORY" --name FARUKH-SUPPLY-WHITE-signed-test --dir "$RUNNER_TEMP/supply-signed"
           test -s "$RUNNER_TEMP/supply-signed/FARUKH-SUPPLY-WHITE-TEST.apk"
       - name: Verify version 19 and original signature before publication
         env:
