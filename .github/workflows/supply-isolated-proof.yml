@@ -1,0 +1,27 @@
+# ISOLATED PROOF — no production publication
+# Only operates on synthetic fixtures; no supplier images or user OCR in this repository.
+name: FARUKH SUPPLY isolated proof
+on:
+  push:
+    branches: ['experiment/supply-seven-invoices-proof-20261128']
+    paths: ['supply-proof/**', '.github/workflows/supply-isolated-proof.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check supply-proof/server.cjs
+          node --check supply-proof/recognizer.cjs
+          node --check supply-proof/public/app.js
+          node --check supply-proof/public/recognizer.js
+      - name: Synthetic tests only - not real image QA
+        run: node --test supply-proof/tests/*.test.cjs
