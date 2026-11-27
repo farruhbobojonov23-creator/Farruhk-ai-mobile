@@ -568,12 +568,12 @@ test('v101: clean Shanghai layout remains valid, arbitrary assortment not hardco
  const v=browserParser.auditCandidate({supplier:'ООО Новый поставщик',documentVerified:true,printedTotal:900,items:[{name:'Новый продукт 1 кг',unit:'шт',quantity:3,price:300,invoiceTotal:900}]});
  a.equal(v.safeToAutoAccept,true);
 });
-test('v102: displayed and script build revisions must agree',()=>{
+test('v103: displayed and script build revisions must agree',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),app=fs.readFileSync(path.join(root,'app.js'),'utf8');
  a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'103');
- a.ok(html.includes('id="supplyWebNumber">102</span>'));
- a.ok(app.includes('window.SUPPLY_WEB_BUILD=102;'));
+ a.ok(html.includes('id="supplyWebNumber">103</span>'));
+ a.ok(app.includes('window.SUPPLY_WEB_BUILD=103;'));
  a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
 });
 
@@ -611,7 +611,7 @@ test('v102: reject footer mismatch or missing subtotal, no fabricated cells',()=
 });
 test('v103: signed web build consistency',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'102');
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'103');
  a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">103</span>'));
  a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=103;'));
 });
