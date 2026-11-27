@@ -2,8 +2,7 @@
 // Regression fixture: SHANGHAI-TORG invoice ШТП0143860, 11.11.2026.
 // Independent expected values; do not use this fixture as a production product catalog.
 const assert=require('node:assert/strict');
-const parser=require('./invoice-parser.js');
-require('./vendor-layouts-v98.js');
+const parser=require('./vendor-layouts-v98.js');
 const header=['Наименование','Количество','Ед. изм.','Цена с НДС','Сумма с НДС'];
 const rows=[
  ['Сыр Савушкин 65% 10,5 кг','5','шт','4450','22250'],
