@@ -1123,11 +1123,11 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
  try{
   if(String(text||'').startsWith('FARUKH_PDF_PAGES_V1\n')){acceptPdf(text,parseStarted,error);return;}
   if(pendingPhoto?.type==='application/pdf'||/\.pdf$/i.test(pendingPhoto?.name||'')){throw Error(error||'PDF не прочитан. Выберите файл повторно.');}
-  let current=window.supplyInvoiceParser.parseSimple(text||'');
+  let current=window.supplyInvoiceParser.parsePhoto(text||'',spatialJson);
   // SMART SIMPLE: prefer the direct purchase-only interpretation when it is
   // independently reconciled, or when legacy found no complete rows.
   const simple=window.supplyInvoiceParser.parsePurchaseFields(text||'');
-  if(simple&&(simple.documentVerified||(!simple.unparsed&&simple.printedTotal==null&&!current.items.some(x=>x.price!=null&&x.quantity!=null))))current=simple;
+  if(simple&&(!current.documentVerified&&simple.documentVerified||!current.supplierPhotoGrid&&!simple.unparsed&&simple.printedTotal==null&&!current.items.some(x=>x.price!=null&&x.quantity!=null)))current=simple;
 
   // A focused table crop can omit the header. Carry forward a unique supplier
   // already read from the same photo; never fill one from a preset or a previous invoice.
@@ -1201,6 +1201,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   dirty=true;showInvoiceIntegrity();const priced=r.items.filter(x=>x.price!=null).length;
   $('ocrState').textContent=ambiguous?'Разные результаты OCR. Сверьте цены и количество с фото.':r.balancedInvoice&&priced===r.items.length?'Арифметика строк совпадает: '+priced+' из '+r.items.length+' · '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Проверьте количество с фото.':r.documentVerified&&priced===r.items.length?'Сверено строк: '+priced+' из '+r.items.length+'. Итог: '+rub(r.items.reduce((s,l)=>s+(grossMetrics(l).totalPrice||0),0))+'. Сверьте с фото.':priced?'Найдено цен: '+priced+' из '+r.items.length+'. Сверьте строки с фото.':(diagnostic.trim()?'Текст прочитан, но товары и цены не извлечены. «Распознанный текст» — только просмотр диагностики.':(scanCandidatesError||'Текст не найден ни на одном этапе. Выберите более чёткое фото.'));
   if(recoveredByColumns)$('ocrState').textContent+=' Колонки восстановлены по расположению на фото; сверьте итог.';
+  if(r.supplierPhotoGrid)$('ocrState').textContent+=' 7 шаблонов: строки распределены по колонкам фото. '+(r.documentVerified?'Сумма совпала.':'Требуется сверка количества и итога.') ;
   if(r.quantityCorrections)$('ocrState').textContent+=' ⚠ В '+r.quantityCorrections+' строках количество восстановлено по сумме и цене. Проверьте с накладной.';
   if(r.reviewIssues?.length)$('ocrState').textContent+=' ⚠ Контроль качества: '+r.reviewIssues.slice(0,3).join(' · ')+(r.reviewIssues.length>3?' · и ещё '+(r.reviewIssues.length-3):'')+'.';
   const missingPack=[...$('lines').children].map(lineData).some(needsPack);
