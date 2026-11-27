@@ -557,11 +557,37 @@ function marrIntegrity(lines,records,raw){
  if(total!==Math.round(c.total*100)||Math.abs(q-c.quantity)>.00001||w!==Math.round(c.weightKg*1000))return {message:'МАРР: сумма, количество или вес не совпадают с итогом. Добавьте недостающие страницы или проверьте строки.',error:true};
  return {message:'✓ МАРР: сумма, количество и вес совпадают с итогом документа.',error:false,verified:true};
 }
+function acceptanceFooterTotal(raw){
+ const values=[];
+ const moneyPattern=/(?<![\d.,])(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)[,.]\d{2}(?![\d.,])/g;
+ const lines=String(raw||'').split(/\r?\n/);
+ for(let i=0;i<lines.length;i++){
+  const m=lines[i].match(/^\s*всего\s+передано\s*[:=]?\s*(.*)$/i);
+  if(!m)continue;
+  const tail=m[1].trim()||String(lines[i+1]||'').trim();
+  const sums=[...tail.matchAll(moneyPattern)].map(x=>Number(x[0].replace(/[\s\u00a0\u202f]/g,'').replace(',','.')));
+  if(sums.length===1&&Number.isFinite(sums[0]))values.push(Math.round(sums[0]*100));
+ }
+ const distinct=[...new Set(values)];
+ return distinct.length===1?distinct[0]/100:null;
+}
 function invoiceIntegrity(lines,records,raw,date){
  if(records.some(p=>p.marr)||/марр\s+руссия/i.test(raw||''))return marrIntegrity(lines,records,raw);
  const pending=updEvidence(raw);
+ const receiptControls=records.filter(p=>p.footerOnly&&Number.isFinite(p.footerTotal));
+ let receiptVerified=false;
+ if(receiptControls.length){
+  const totals=[...new Set(receiptControls.map(p=>Math.round(p.footerTotal*100)))];
+  if(totals.length!==1)return {message:'В документе противоречивые итоги приёмки.',error:true};
+  if(lines.some(l=>!l.name||!(l.quantity>0)||!(l.price>0)))
+   return {message:'Не все строки прочитаны — нельзя сверить итог приёмки.',error:true};
+  const actual=lines.reduce((sum,l)=>sum+Math.round((grossMetrics(l).totalPrice||0)*100),0);
+  if(Math.abs(actual-totals[0])>1)
+   return {message:'Сумма распознанных товаров '+rub(actual/100)+' не совпадает с итогом приёмки '+rub(totals[0]/100)+'. Проверьте все страницы.',error:true};
+  receiptVerified=true;
+ }
  const structured=records.some(p=>p.structured)||pending.structured;
- if(!structured)return {message:'',error:false};
+ if(!structured)return {message:receiptVerified?'✓ Итог приёмки совпадает с суммой строк.':'',error:false,verified:receiptVerified};
  if(!date)return {message:'Укажите дату накладной по оригиналу.',error:true};
  if(lines.some(l=>!l.name||!(l.quantity>0)||!(l.price>0)||!l.unit))return {message:'УПД: заполните количество, единицу и цену каждой строки.',error:true};
  if(pending.conflictingTotals||records.some(p=>p.conflictingTotals))return {message:'OCR прочитал разные итоги. Сверьте оригинал и загрузите чёткое фото.',error:true};
@@ -569,7 +595,7 @@ function invoiceIntegrity(lines,records,raw,date){
  if(pending.structured&&pending.printedTotal!=null&&!records.length)checks.push({expected:pending.printedTotal,lines});
  for(const c of checks){const actual=c.lines.reduce((s,l)=>s+Math.round((grossMetrics(l).totalPrice||0)*100),0)/100;
   if(Math.abs(actual-c.expected)>.01)return {message:'Итог строк '+rub(actual)+' ≠ итогу УПД '+rub(c.expected)+'. Проверьте все товары.',error:true};}
- return {message:checks.length?'✓ Итог строк совпадает с УПД.':'Итог УПД не распознан — сверка по оригиналу обязательна.',error:false,verified:checks.length>0};
+ return {message:receiptVerified?'✓ Итог приёмки совпадает с суммой строк.':checks.length?'✓ Итог строк совпадает с УПД.':'Итог УПД не распознан — сверка по оригиналу обязательна.',error:false,verified:checks.length>0||receiptVerified};
 }
 function showInvoiceIntegrity(){
  const el=$('invoiceCheck');if(!el)return;
@@ -960,7 +986,7 @@ function acceptPdf(text,parseStarted,scanError=''){
     records.push({...updEvidence(source[i]),key,number:i+1,expected:source.length,
      documentNumber:ids[0]||null,documentDate:invoiceHeader(source[i]).documentDate,
      file:pageFile,identity:photoFingerprint(pageFile||file)+'#'+(i+1),
-     fingerprint:'footer-only:'+i,footerOnly:true,reviewRequired:true});
+     fingerprint:'footer-only:'+i,footerOnly:true,footerTotal:acceptanceFooterTotal(source[i]),reviewRequired:true});
     review++;
    }else missing++;
    continue;
