@@ -2131,10 +2131,27 @@ function spatialMap(raw,spatial,profile){
  }
  return {...mapped,warnings:[...new Set([...mapped.warnings,...warnings])],supplierPhotoGrid:true};
 }
+function reviewPackagingPrefix(result,profile){
+ if(!profile||!Array.isArray(result?.items))return result;
+ let changed=false;
+ const items=result.items.map(item=>{
+  const original=String(item?.name??'');
+  // A distinct "100пар/уп, 1/50, упак" prefix belongs to the packing
+  // description, not the ingredient name. Preserve the complete OCR source
+  // and require a human name review instead of silently deleting evidence.
+  const match=original.match(/^\s*\d{2,4}\s*пар\s*\/\s*уп\s*[,;\s]+(?:\d+\s*\/\s*\d+\s*[,;\s]+)?упак(?:овка)?\s+(?=[\p{L}])/iu);
+  if(!match)return item;
+  const name=original.slice(match[0].length).trim();
+  if(name.length<5||!/\p{L}/u.test(name))return item;
+  changed=true;
+  return {...item,name,ocrOriginalName:item.ocrOriginalName||original,nameNeedsReview:true,uncertain:true};
+ });
+ return changed?{...result,items,documentVerified:false,pageVerified:false,needsReview:true,
+  reviewIssues:[...new Set([...(result.reviewIssues||[]),'Убрана пометка фасовки из начала названия — проверьте по фото.'])]}:result;
+}
 api.parsePhoto=function(raw,spatialJson){
- const text=String(raw??''),base=api.parseSimple(text);
+ const text=String(raw??''),p=api.detectSupplierTemplate(text),base=reviewPackagingPrefix(api.parseSimple(text),p);
  if(base.documentVerified||base.pageVerified)return base;
- const p=api.detectSupplierTemplate(text);
  if(!p)return base;
  const proposed=spatialMap(text,spatialJson,p);
  if(!proposed||!proposed.items.length)return base;
@@ -2143,5 +2160,12 @@ api.parsePhoto=function(raw,spatialJson){
  // A partial spatial table must not silently discard rows already read.
  if(checked.items.length<base.items.filter(x=>x.price>0&&x.quantity>0).length)return base;
  return checked;
+};
+const previousPasses=api.parseSamePhotoPasses;
+api.parseSamePhotoPasses=function(texts){
+ const profiles=[...new Set((texts||[]).map(t=>api.detectSupplierTemplate(t)?.id).filter(Boolean))];
+ if(profiles.length!==1)return previousPasses(texts);
+ const p=api.supplierTemplates.find(x=>x.id===profiles[0]);
+ return previousPasses(texts).map(r=>reviewPackagingPrefix(r,p));
 };
 })(globalThis);
