@@ -1676,7 +1676,13 @@ function reconcile(items,triple,base){
 }
 function recover(raw,base){
  if(!identified(raw))return base;
- return reconcile(extract(raw),footer(raw),base)||{...base,supplier:seller};
+ const verified=reconcile(extract(raw),footer(raw),base);
+ if(verified)return verified;
+ // Preserve a trustworthy existing supplier from earlier OCR passes. Changing
+ // its capitalization here broke cross-pass matching of rotated invoices.
+ if(base.supplier&&/вирго/i.test(base.supplier)&&!/покупатель/i.test(base.supplier))return base;
+ if(base.supplier&&!/вирго/i.test(base.supplier))return base;
+ return {...base,supplier:seller};
 }
 api.parseSimple=text=>{const s=String(text||'');return recover(s,previous(s));};
 api.parseSamePhotoPasses=texts=>{
