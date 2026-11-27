@@ -1078,7 +1078,7 @@ window.supplyOcrFinish=(id,text,error,spatialJson)=>{
   if(spatialJson&&spatialJson!=='[]'&&String(text||'').trim()){
    try{
     const boxes=JSON.parse(spatialJson);
-    if(Array.isArray(boxes)&&boxes.length&&boxes.length<=12000){
+    if(Array.isArray(boxes)&&boxes.length>=8&&boxes.length<=12000){
      const coordinateResult=window.supplySpatial?.candidate(boxes,String(text),current,window.supplyInvoiceParser,updEvidence(String(text)));
      const previousComplete=current.items.filter(x=>x.price>0&&x.quantity>0&&x.unit).length;
      const coordinateComplete=coordinateResult?.items?.filter(x=>x.name&&x.price>0&&x.quantity>0&&x.invoiceTotal>0&&x.unit).length||0;
