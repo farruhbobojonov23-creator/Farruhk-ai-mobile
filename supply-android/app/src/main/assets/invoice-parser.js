@@ -1705,3 +1705,34 @@ api.parseSamePhotoPasses=texts=>{
  return [...fallback,...out];
 };
 })(globalThis);
+
+;(function(root){
+'use strict';
+// OCR regression: OKEI 796 is "шт"; photographed UPD sometimes reads "ET"/"ЕТ".
+// Retry just code-bound units, and only trust fully reconciled VAT/gross totals.
+const api=typeof module==='object'&&module.exports?module.exports:root.supplyInvoiceParser;
+const oldSimple=api.parseSimple,oldPasses=api.parseSamePhotoPasses;
+const fixUnit=text=>String(text??'').replace(/(\b796[ \t\u00a0\u202f]+)[ЕеEe][ТтTt](?=[ \t\u00a0\u202f]+\d{1,6}(?:[,.]\d{3})?(?:\s|$))/gu,'$1шт');
+const priced=r=>r?.items?.filter(x=>x.name&&x.quantity>0&&x.price>0&&x.unit&&x.invoiceTotal>0).length||0;
+const safe=r=>!!(r?.balancedInvoice&&r.items.length&&priced(r)===r.items.length);
+api.parseSimple=function(raw){
+ const original=oldSimple(raw),correctedText=fixUnit(raw);
+ if(correctedText===String(raw??''))return original;
+ const recovered=oldSimple(correctedText);
+ if(!safe(recovered)||priced(recovered)<=priced(original))return original;
+ return {...recovered,unitOcrCorrected:true,warnings:[...new Set([...(recovered.warnings||[]),'ОКЕИ 796: OCR «ЕТ» прочитано как «шт». Проверьте единицы по фото.'])]};
+};
+api.parseSamePhotoPasses=function(texts){
+ const originals=oldPasses(texts);
+ const normalized=texts.map(fixUnit);
+ if(normalized.every((v,i)=>v===String(texts[i]??'')))return originals;
+ const corrected=oldPasses(normalized).filter(safe);
+ const direct=normalized.map(x=>api.parseSimple(x)).filter(safe);
+ const seen=new Set(),output=[];
+ for(const x of [...originals,...corrected,...direct]){
+  const key=JSON.stringify([x.supplier||'',x.items.map(v=>[v.name,v.quantity,v.price,v.invoiceTotal])]);
+  if(!seen.has(key)){seen.add(key);output.push(x);}
+ }
+ return output;
+};
+})(globalThis);
