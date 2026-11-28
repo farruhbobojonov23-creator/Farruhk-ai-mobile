@@ -3,7 +3,7 @@
 name: FARUKH SUPPLY isolated proof
 on:
   push:
-    branches: ['experiment/supply-seven-invoices-proof-20261128']
+    branches: ['experiment/supply-seven-invoices-proof-20261128','experiment/supply-proof-seven-vendors-v2-20261128']
     paths: ['supply-proof/**', '.github/workflows/supply-isolated-proof.yml']
   workflow_dispatch:
 permissions:
@@ -23,5 +23,6 @@ jobs:
           node --check supply-proof/recognizer.cjs
           node --check supply-proof/public/app.js
           node --check supply-proof/public/recognizer.js
+          node --check supply-proof/public/vendor-layouts-v2.js
       - name: Synthetic tests only - not real image QA
         run: node --test supply-proof/tests/*.test.cjs
