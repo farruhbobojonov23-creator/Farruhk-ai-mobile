@@ -571,9 +571,9 @@ test('v101: clean Shanghai layout remains valid, arbitrary assortment not hardco
 test('v104: displayed and script build revisions must agree',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),app=fs.readFileSync(path.join(root,'app.js'),'utf8');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'104');
- a.ok(html.includes('id="supplyWebNumber">104</span>'));
- a.ok(app.includes('window.SUPPLY_WEB_BUILD=104;'));
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'105');
+ a.ok(html.includes('id="supplyWebNumber">105</span>'));
+ a.ok(app.includes('window.SUPPLY_WEB_BUILD=105;'));
  a.ok(app.includes('if(r.ocrNameAlignmentSuspect)'));
 });
 
@@ -611,9 +611,9 @@ test('v102: reject footer mismatch or missing subtotal, no fabricated cells',()=
 });
 test('v104: signed web build consistency',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'../supply-android/app/src/main/assets');
- a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'104');
- a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">104</span>'));
- a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=104;'));
+ a.equal(fs.readFileSync(path.join(root,'web-version.txt'),'utf8').trim(),'105');
+ a.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('id="supplyWebNumber">105</span>'));
+ a.ok(fs.readFileSync(path.join(root,'app.js'),'utf8').includes('window.SUPPLY_WEB_BUILD=105;'));
 });
 
 test('v103: a fully reconciled row-bound OCR pass survives the multi-pass selector',()=>{

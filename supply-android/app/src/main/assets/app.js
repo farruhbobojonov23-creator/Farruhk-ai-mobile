@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=104; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=105; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -1506,8 +1506,20 @@ function imageTensor(im,w,h,normalize){const n=w*h,a=new Float32Array(3*n);for(l
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 function crop(im,p){let [tl,tr,br,bl]=p;let w=Math.max(2,Math.floor(Math.max(dist(tl,tr),dist(bl,br)))),h=Math.max(2,Math.floor(Math.max(dist(tl,bl),dist(tr,br))));if(h>w*1.5){[tl,tr,br,bl]=[tr,br,bl,tl];[w,h]=[h,w];}const actual=Math.min(640,Math.ceil(48*w/h)),width=Math.min(640,Math.max(64,Math.ceil((48*w/h+16)/64)*64));const n=48*width,buf=new Float32Array(n*3);for(let y=0;y<48;y++)for(let x=0;x<Math.min(actual,width);x++){const u=Math.max(0,Math.min(w-1,(x+.5)*w/actual-.5))/(w-1),v=Math.max(0,Math.min(h-1,(y+.5)*h/48-.5))/(h-1),sx=(tl[0]*(1-u)+tr[0]*u)*(1-v)+(bl[0]*(1-u)+br[0]*u)*v,sy=(tl[1]*(1-u)+tr[1]*u)*(1-v)+(bl[1]*(1-u)+br[1]*u)*v;for(let j=0;j<3;j++)buf[j*n+y*width+x]=Math.round(sample(im,sx,sy,j))/127.5-1;}return{buf,width};}
 let busy=false;
-async function scanPhoto(file,options={}){if(!file||!file.type?.startsWith('image/'))throw Error('Выберите фотографию');const im=await createImageBitmap(file);try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);return await scanRaster(ctx.getImageData(0,0,im.width,im.height),options);}finally{im.close();}}
-async function scanRaster(im,{progress=()=>{},continuationLayout=null,offline=false,sessions=null}={}){if(busy)throw Error('Дождитесь окончания распознавания');busy=true;try{const t=performance.now();progress('Загрузка моделей');const {ort,det,rec,chars}=sessions||await load(progress,offline);const ow=im.width,oh=im.height,scale=Math.min(1,3200/Math.max(ow,oh)),w=Math.max(32,Math.round(ow*scale/32)*32),h=Math.max(32,Math.round(oh*scale/32)*32),mean=[.485,.456,.406],std=[.229,.224,.225];progress('Распознавание областей');const x=imageTensor(im,w,h,(v,j)=>(v/255-mean[j])/std[j]);const ds=await det.run({[det.inputNames[0]]:new ort.Tensor('float32',x,[1,3,h,w])}),o=Object.values(ds)[0];const boxes=polys(o.data,o.dims.at(-1),o.dims.at(-2),ow,oh);o.dispose?.();const groups={};for(const p of boxes){const c=crop(im,p);if(c)(groups[c.width]??=[]).push({...c,p});}const items=[];let done=0;for(const [widthStr,g] of Object.entries(groups)){const width=Number(widthStr);for(let i=0;i<g.length;i+=8){const batch=g.slice(i,i+8),n=3*48*width,v=new Float32Array(batch.length*n);batch.forEach((c,j)=>v.set(c.buf,j*n));const r=await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',v,[batch.length,3,48,width])}),y=Object.values(r)[0],T=y.dims[1],C=y.dims[2];if(C!==chars.length)throw Error('Model dictionary mismatch');for(let j=0;j<batch.length;j++){let text='',prev=-1,conf=[];for(let k=0;k<T;k++){let off=(j*T+k)*C,max=-Infinity,best=-1;for(let c=0;c<C;c++){const a=y.data[off+c];if(a>max){max=a;best=c;}}if(best!==prev&&best!==0){text+=chars[best]||'?';conf.push(max);}prev=best;}if(text.trim())items.push({text,score:conf.length?conf.reduce((a,b)=>a+b)/conf.length:0,poly:batch[j].p});}y.dispose?.();done+=batch.length;progress('Текст: '+done+' / '+boxes.length);}}const result=extractLayout(items,{continuationLayout});return {items,result,seconds:(performance.now()-t)/1000};}finally{busy=false;}}
+async function scanPhoto(file,options={}){if(!file||!file.type?.startsWith('image/'))throw Error('Выберите фотографию');const im=await createImageBitmap(file);try{const c=document.createElement('canvas');
+ if(options.frontpadCrop&&im.height>im.width*1.55){
+  // Mobile screenshots show a huge blank page below the tiny table.
+  // Zoom ONLY the top invoice form to read numerals rather than pixels of whitespace.
+  const top=Math.round(im.height*.055),cropH=Math.min(Math.round(im.height*.365),im.height-top);
+  const zoom=Math.min(2.6,2200/im.width);
+  c.width=Math.round(im.width*zoom);c.height=Math.round(cropH*zoom);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(im,0,top,im.width,cropH,0,0,c.width,c.height);
+ }else{c.width=im.width;c.height=im.height;c.getContext('2d',{willReadFrequently:true}).drawImage(im,0,0);}
+ const ctx=c.getContext('2d',{willReadFrequently:true});
+ return await scanRaster(ctx.getImageData(0,0,c.width,c.height),options);}finally{im.close();}}
+async function scanRaster(im,{progress=()=>{},continuationLayout=null,offline=false,sessions=null}={}){if(busy)throw Error('Дождитесь окончания распознавания');busy=true;try{const t=performance.now();progress('Загрузка моделей');const {ort,det,rec,chars}=sessions||await load(progress,offline);const ow=im.width,oh=im.height,scale=Math.min(1,3200/Math.max(ow,oh)),w=Math.max(32,Math.round(ow*scale/32)*32),h=Math.max(32,Math.round(oh*scale/32)*32),mean=[.485,.456,.406],std=[.229,.224,.225];progress('Распознавание областей');const x=imageTensor(im,w,h,(v,j)=>(v/255-mean[j])/std[j]);const ds=await det.run({[det.inputNames[0]]:new ort.Tensor('float32',x,[1,3,h,w])}),o=Object.values(ds)[0];const boxes=polys(o.data,o.dims.at(-1),o.dims.at(-2),ow,oh);o.dispose?.();const groups={};for(const p of boxes){const c=crop(im,p);if(c)(groups[c.width]??=[]).push({...c,p});}const items=[];let done=0;for(const [widthStr,g] of Object.entries(groups)){const width=Number(widthStr);for(let i=0;i<g.length;i+=8){const batch=g.slice(i,i+8),n=3*48*width,v=new Float32Array(batch.length*n);batch.forEach((c,j)=>v.set(c.buf,j*n));const r=await rec.run({[rec.inputNames[0]]:new ort.Tensor('float32',v,[batch.length,3,48,width])}),y=Object.values(r)[0],T=y.dims[1],C=y.dims[2];if(C!==chars.length)throw Error('Model dictionary mismatch');for(let j=0;j<batch.length;j++){let text='',prev=-1,conf=[];for(let k=0;k<T;k++){let off=(j*T+k)*C,max=-Infinity,best=-1;for(let c=0;c<C;c++){const a=y.data[off+c];if(a>max){max=a;best=c;}}if(best!==prev&&best!==0){text+=chars[best]||'?';conf.push(max);}prev=best;}if(text.trim())items.push({text,score:conf.length?conf.reduce((a,b)=>a+b)/conf.length:0,poly:batch[j].p});}y.dispose?.();done+=batch.length;progress('Текст: '+done+' / '+boxes.length);}}const result=extractLayout(items,{continuationLayout});return {items,result,width:ow,height:oh,seconds:(performance.now()-t)/1000};}finally{busy=false;}}
 
 window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
 })();
@@ -1541,9 +1553,28 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
   running=true;scanBusy=true;smart.disabled=true;$('rescan').disabled=true;$('save').disabled=true;$('saveNext').disabled=true;$('file').disabled=true;
   const original=file,started=performance.now(),requestId=ocrId,previousMessage=$('ocrState').textContent;let message='';
   try{
-   const output=await window.supplySmartScan.scanPhoto(file,{progress:v=>{if(ocrId===requestId&&!$('entry').classList.contains('hide'))$('ocrState').textContent='PaddleOCR · проверка таблицы: '+v;}});
+   const screenshotHeader=photoPassTexts.join('\n');
+   const isFrontpad=/frontpad|(?:справочники[\s\S]{0,200}склад)|(?:добавить\s+сырь[её])|(?:новый\s+заказ[\s\S]{0,200}справочники)/iu.test(screenshotHeader);
+   const output=await window.supplySmartScan.scanPhoto(file,{frontpadCrop:isFrontpad,progress:v=>{if(ocrId===requestId&&!$('entry').classList.contains('hide'))$('ocrState').textContent='PaddleOCR · проверка таблицы: '+v;}});
    if(ocrId!==requestId||(pendingPhoto||pages.find(p=>p.key===activePage)?.file||$('file').files[0])!==original||$('entry').classList.contains('hide'))return;
    const r=output.result,raw=rawText(output.items);
+   if(isFrontpad&&window.supplyFrontpadScan){
+    const fp=window.supplyFrontpadScan.parseWords(output.items,{width:output.width,supplier:$('supplier').value.trim()});
+    if(fp?.balanced&&fp.items.length&&fp.supplier){
+     const draft={supplier:fp.supplier,printedTotal:fp.printedTotal,items:fp.items,
+      documentVerified:false,pageVerified:false,needsReview:true};
+     const preview=fp.items.map((x,i)=>(i+1)+'. '+x.name+' · '+x.quantity+' '+x.unit+
+      ' × '+rub(x.price)+' = '+rub(x.invoiceTotal)+(x.quantityCorrected?' ⚠ количество предложено по расчёту':'')).join('\n');
+     if(!automatic&&!confirm('FRONTPAD: '+fp.items.length+' строк, итог '+rub(fp.printedTotal)+
+       '. Все данные требуют проверки по скриншоту. Заменить строки?\n\n'+preview.slice(0,1500)))return;
+     scanDiagnostic(raw);
+     if(!acceptPage(draft,raw))return;
+     dirty=true;showInvoiceIntegrity();
+     message='Frontpad · '+fp.items.length+' строк · '+rub(fp.printedTotal)+
+       ' · сверка количества, цен и сумм с оригиналом обязательна.';
+     return;
+    }
+   }
    if(!r.rows.length)throw Error(r.error||'Таблица не распознана');
    if(r.rows.some(x=>!x.name||!(x.quantity>0)||!(x.price>0)||!(x.total>0)||!x.arithmeticOK||x.conflicts?.length)||r.expectedRows&&r.expectedRows!==r.rows.length||r.printedTotal!=null&&!r.totalOK)throw Error('Не все строки прошли проверку; старые данные сохранены.');
    const candidate=propose(r,raw);if(!candidate.supplier)throw Error('Поставщик не подтверждён; старые данные сохранены.');
