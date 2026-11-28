@@ -9,8 +9,10 @@ on:
       - 'supply-android/app/src/main/assets/app.js'
       - 'supply-android/app/src/main/assets/analytics.js'
       - 'supply-android/app/src/main/assets/invoice-parser.js'
+      - 'supply-android/app/src/main/assets/frontpad-scan.js'
       - 'supply-android/app/src/main/assets/web-version.txt'
       - 'supply/invoice-parser.test.js'
+      - 'supply/frontpad-scan.test.js'
       - '.github/workflows/farukh-supply-web-ota-v21.yml'
 permissions:
   contents: read
@@ -40,14 +42,14 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only HEAD^ HEAD > "$RUNNER_TEMP/changed-files.txt"
-          if grep -Ev '^(supply-android/app/src/main/assets/(index.html|app.js|analytics.js|invoice-parser.js|web-version.txt)|supply/invoice-parser.test.js|.github/workflows/farukh-supply-web-ota-v21.yml)$' "$RUNNER_TEMP/changed-files.txt"; then
+          if grep -Ev '^(supply-android/app/src/main/assets/(index.html|app.js|analytics.js|invoice-parser.js|frontpad-scan.js|web-version.txt)|supply/(invoice-parser.test.js|frontpad-scan.test.js)|.github/workflows/farukh-supply-web-ota-v21.yml)$' "$RUNNER_TEMP/changed-files.txt"; then
             echo "Refusing native file changes in web-only update"
             exit 1
           fi
           node --check supply-android/app/src/main/assets/app.js
           node --check supply-android/app/src/main/assets/analytics.js
           node --check supply-android/app/src/main/assets/invoice-parser.js
-          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/product-catalog.test.js
+          node --test supply/analytics.test.js supply/invoice-parser.test.js supply/frontpad-scan.test.js supply/product-catalog.test.js
           result=""
           for attempt in $(seq 1 70); do
             run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/farukh-supply-white-qa.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=10" --jq '.workflow_runs[0].id // empty')
