@@ -2438,7 +2438,26 @@ function parseText(raw){
  const sum=found.reduce((s,x)=>s+cent(x.invoiceTotal),0)/100;
  return {items:found,printedTotal,issues,balanced:found.length>0&&printedTotal!=null&&!issues.length&&Math.abs(sum-printedTotal)<=.02};
 }
-const api={parseWords,parseText};
+function parseHeader(raw){
+ const s=String(raw??'').normalize('NFKC').replace(/[\u00a0\u202f]/gu,' ').replace(/[ \t]+/gu,' ');
+ // This helper is called ONLY after screenshot identity was established as
+ // Frontpad. An unrelated number or date is never used as an invoice header.
+ const ns=[...s.matchAll(/(?:^|\n)\s*(?:номер|№)\s*[:№]?\s*(\d{1,8})(?!\d)/giu)].map(x=>x[1]);
+ const nums=[...new Set(ns)],number=nums.length===1?nums[0]:null;
+ const dates=[...s.matchAll(/\b([0-3]?\d)[.\/]([01]?\d)[.\/](20\d\d)\b/gu)].map(x=>{
+  const d=[x[3],x[2].padStart(2,'0'),x[1].padStart(2,'0')].join('-');
+  return /^\d{4}-\d\d-\d\d$/u.test(d) &&
+   !Number.isNaN(Date.parse(d))&&new Date(d).toISOString().slice(0,10)===d?d:null;
+ }).filter(Boolean);
+ const uniqueDates=[...new Set(dates)],date=uniqueDates.length===1?uniqueDates[0]:null;
+ let pointId=null;
+ if(/полярн(?:ые|ых)\s+зори/iu.test(s))pointId='polyar';
+ else if(/\bбаумана(?:\s+18)?\b/iu.test(s))pointId='baumana';
+ else if(/\bплазма\b/iu.test(s))pointId='plasma';
+ else if(/героев\s+североморцев/iu.test(s))pointId='heroes';
+ return {number,date,pointId};
+}
+const api={parseWords,parseText,parseHeader};
 root.supplyFrontpadScan=api;
 if(typeof module==='object'&&module.exports)module.exports.frontpad=api;
 })(globalThis);

@@ -1,5 +1,5 @@
 'use strict';
-if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=105; // Browser only; parser VM tests have no window.
+if(typeof window!=='undefined')window.SUPPLY_WEB_BUILD=106; // Browser only; parser VM tests have no window.
 // v20: wait for Android gallery FileList before OCR; batch remains entirely on device.
 ;(function(){
 'use strict';
@@ -1561,6 +1561,8 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
    if(isFrontpad&&window.supplyFrontpadScan){
     const fp=window.supplyFrontpadScan.parseWords(output.items,{width:output.width,supplier:$('supplier').value.trim()});
     if(fp?.balanced&&fp.items.length&&fp.supplier){
+     const hdr=window.supplyFrontpadScan.parseHeader(raw);
+     const invoicePrefix=hdr.number&&hdr.date?'Накладная № '+hdr.number+' от '+hdr.date.slice(8,10)+'.'+hdr.date.slice(5,7)+'.'+hdr.date.slice(0,4)+'\n':'';
      const draft={supplier:fp.supplier,printedTotal:fp.printedTotal,items:fp.items,
       documentVerified:false,pageVerified:false,needsReview:true};
      const preview=fp.items.map((x,i)=>(i+1)+'. '+x.name+' · '+x.quantity+' '+x.unit+
@@ -1568,9 +1570,15 @@ window.supplySmartScan={scanPhoto,modelBytes:MODEL_PACK_BYTES};
      if(!automatic&&!confirm('FRONTPAD: '+fp.items.length+' строк, итог '+rub(fp.printedTotal)+
        '. Все данные требуют проверки по скриншоту. Заменить строки?\n\n'+preview.slice(0,1500)))return;
      scanDiagnostic(raw);
-     if(!acceptPage(draft,raw))return;
+     if(!acceptPage(draft,invoicePrefix+raw))return;
+     if(hdr.number&&!$('documentNumber').value)$('documentNumber').value=hdr.number;
+     if(hdr.date&&!$('documentDate').value)$('documentDate').value=hdr.date;
+     if(hdr.pointId&&!$('invoicePoint').value)$('invoicePoint').value=hdr.pointId;
      dirty=true;showInvoiceIntegrity();
+     const centsDifference=Math.round(fp.printedTotal*100)-
+       fp.items.reduce((s,x)=>s+Math.round(x.invoiceTotal*100),0);
      message='Frontpad · '+fp.items.length+' строк · '+rub(fp.printedTotal)+
+       (centsDifference?' · ⚠ Итог Frontpad отличается от суммы строк на '+rub(Math.abs(centsDifference)/100)+'. Исходные суммы не изменены.':'')+
        ' · сверка количества, цен и сумм с оригиналом обязательна.';
      return;
     }

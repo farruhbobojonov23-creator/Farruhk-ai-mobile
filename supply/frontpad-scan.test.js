@@ -33,3 +33,15 @@ test('synthetic word geometry must produce three rows and same invoice total',()
  const r=parseWords(words,{width:709,supplier:'Поставщик'});assert.equal(r.balanced,true);
  assert.equal(r.items.length,3);
 });
+
+test('Frontpad number and date are from visible document header only',()=>{
+ const raw=['Накладная','Номер 1377','От 26.11.2026 12:27:28','Филиал Полярные зори 43/1',
+ 'Поставщик Восток-Запад'].join('\n');
+ const p=require('../supply-android/app/src/main/assets/invoice-parser.js').frontpad.parseHeader(raw);
+ assert.deepEqual(p,{number:'1377',date:'2026-11-26',pointId:'polyar'});
+});
+test('Frontpad unrelated orphan numbers cannot become document number',()=>{
+ const raw='Накладная\nМайонез 20 кг 190.69 руб.\nВсего 61675.33';
+ const p=require('../supply-android/app/src/main/assets/invoice-parser.js').frontpad.parseHeader(raw);
+ assert.equal(p.number,null);assert.equal(p.date,null);
+});
