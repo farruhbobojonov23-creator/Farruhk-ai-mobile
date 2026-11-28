@@ -3,7 +3,7 @@
  const $=id=>document.getElementById(id);
  const fmt=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
  const state={rows:[],invoice:null,ocrSource:'manual',scans:0};
- for(let n=1;n<=20;n++){const o=document.createElement('option');o.value=String(n);o.textContent=String(n);$('expected').append(o)}
+ for(let n=1;n<=250;n++){const o=document.createElement('option');o.value=String(n);o.textContent=String(n);$('expected').append(o)}
  const escape=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>{const n=Number(String(v??'').replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)?n:NaN};
  const money=n=>fmt.format(n);
@@ -29,7 +29,7 @@
    el.querySelector('[data-rate]').value=(pack>0&&price>0?(price/pack).toLocaleString('ru-RU',{maximumFractionDigits:3})+' ₽/'+row.packUnit:'—');
   }
   $('sum').textContent=money(total);
-  if(boxes.length>20)problems.push('Больше 20 товарных позиций');
+  if(boxes.length>250)problems.push('Больше 250 товарных позиций');
   if(boxes.length===0)problems.push('Нет товарных строк');
   const expected=num($('expected').value);if(expected>0&&boxes.length!==expected)problems.push(`Ожидается ${expected} строк, найдено ${boxes.length}`);
   const printed=state.invoice?.printedTotalRub;
@@ -46,7 +46,26 @@
   return {total,problems,ready,checked};
  }
  function render(){ $('rows').innerHTML=state.display.map(rowHTML).join('');$('rows').querySelectorAll('[data-remove]').forEach(btn=>btn.addEventListener('click',()=>{state.display.splice(Number(btn.dataset.remove),1);$('reviewed').checked=false;render()}));$('rows').querySelectorAll('input:not([readonly]),select').forEach(el=>el.addEventListener('input',()=>{$('reviewed').checked=false;update()}));update(); }
- function apply(text){$('reviewed').checked=false;const result=window.FARUKH_RECOGNIZER.recognizeOcrText(text);state.invoice=result;state.display=(result.items||[]).map(adapt);$('supplier').value=result.supplier||detect(text)||'';$('number').value=result.number||'';$('date').value=result.date||'';$('expected').value=String(result.items?.length||0);render();
+ function apply(text){$('reviewed').checked=false;
+  const legacy=window.FARUKH_RECOGNIZER.recognizeOcrText(text);
+  const structured=window.FARUKH_LAYOUT?.parseSupplierDelimited(text);
+  let result=legacy;
+  if(structured?.documentVerified && structured.items?.length){
+   const heading=String(text).slice(0,2500);
+   const doc=heading.match(/(?:накладная|сч[её]т[- ]фактура|упд|реализация)\s*№\s*([A-Za-zА-Яа-яЁё0-9\/-]{3,35})\s+от\s+(\d{1,2})[.\/](\d{1,2})[.\/](20\d{2})/iu);
+   const iso=doc?doc[4]+'-'+doc[3].padStart(2,'0')+'-'+doc[2].padStart(2,'0'):null;
+   const parsedDate=iso&&new Date(iso).toISOString().slice(0,10)===iso?iso:null;
+   result={...legacy,supplier:structured.supplier||legacy.supplier,number:legacy.number||doc?.[1]||null,date:legacy.date||parsedDate,
+    status:'review',verified:false,printedTotalRub:structured.printedTotal,
+    calculatedTotalRub:structured.items.reduce((a,x)=>a+Math.round(x.invoiceTotal*100),0)/100,
+    warnings:[...(structured.warnings||[]),'Сверьте каждую строку с оригиналом перед экспортом.'],
+    items:structured.items.map((x,i)=>({index:i+1,article:x.article||'',
+     name:x.name,quantity:x.quantity,unit:x.unit,unitPriceRub:x.price,lineTotalRub:x.invoiceTotal,
+     pack:window.FARUKH_RECOGNIZER.parsePack?.(x.name)||null,
+     issues:x.unit?[]:['Неопределённая единица измерения'],
+     sourceLines:['Товарная строка '+x.sourceRow+' распознанного текста']}))};
+  }
+  state.invoice=result;state.display=(result.items||[]).map(adapt);$('supplier').value=result.supplier||detect(text)||'';$('number').value=result.number||'';$('date').value=result.date||'';$('expected').value=String(result.items?.length||0);render();
   const issues=[...(result.warnings||[])];
   if(result.status==='unsupported')warning('OCR получен, но структура этого поставщика пока не поддерживается. Ничего не подставляю наугад. Добавьте строки для ручной проверки.');
   else if(result.status==='incomplete')warning('Таблица распознана частично. '+(issues.join('; ')||'Проверьте исходные строки')); 
@@ -56,7 +75,7 @@
  $('parse').onclick=()=>{state.ocrSource='manual-paste';apply($('raw').value)};
  $('demo').onclick=()=>{const sample=['Счет-фактура № DEMO1234 от 17.11.2026','ООО «ШАНХАЙ-ТОРГ»','A 1','Тестовый продукт 1 кг','6e3 % 18,18 200,00','796 ШТ 2,000 90,91 100,00 181,82','X1001 1','Новый продукт 2 л','6e3 % 36,36 400,00','796 ШТ 2,000 181,82 200,00 363,64','X1002 2','Всего к оплате 600,00'].join('\n');$('raw').value=sample;apply(sample);warning('СИНТЕТИЧЕСКИЙ пример — не результат реальной накладной.',false)};
  $('clear').onclick=()=>{state.display=[];state.invoice=null;$('raw').value='';$('supplier').value='';$('number').value='';$('date').value='';$('expected').value='0';$('reviewed').checked=false;render();warning('Очищено. Ранее введённые данные не загружались в облако.',true)};
- $('add').onclick=()=>{if(state.display.length>=20)return warning('Ограничение 20 позиций на одной странице; добавьте другую страницу.');state.display.push({name:'',article:'',qty:'',unit:'шт',price:'',packSize:1,packUnit:'шт',source:[],issues:['Ручной ввод']});$('reviewed').checked=false;render()};
+ $('add').onclick=()=>{if(state.display.length>=250)return warning('Ограничение 250 позиций на одной странице; добавьте другую страницу.');state.display.push({name:'',article:'',qty:'',unit:'шт',price:'',packSize:1,packUnit:'шт',source:[],issues:['Ручной ввод']});$('reviewed').checked=false;render()};
  ['supplier','number','date','expected'].forEach(id=>$(id).addEventListener('input',()=>{$('reviewed').checked=false;update()}));$('reviewed').onchange=()=>update();
  $('photo').onchange=()=>{const images=[...$('photo').files].slice(0,20);$('previews').innerHTML='';for(const f of images){const el=new Image();el.src=URL.createObjectURL(f);el.onload=()=>URL.revokeObjectURL(el.src);el.alt='Исходная страница';$('previews').append(el)};warning('Выбрано страниц: '+images.length+'. Фото остаются локально. Нажмите «Распознать фото».',true)};
  $('runOcr').onclick=async()=>{const images=[...$('photo').files];if(!images.length)return warning('Сначала выберите фотографию.');const out=[];$('runOcr').disabled=true;try{for(let i=0;i<images.length;i++){warning(`Распознавание страницы ${i+1}/${images.length}. Для сложных фотографий может потребоваться около минуты.`);const r=await fetch('/ocr',{method:'POST',headers:{'Content-Type':images[i].type},body:images[i]});const payload=await r.json();if(!r.ok)throw Error(payload.error||'OCR недоступен');out.push(payload.text)}$('raw').value=out.join('\n---\n');state.scans=images.length;state.ocrSource='local-tesseract';apply($('raw').value); }catch(e){warning('Автоматическое OCR не завершилось: '+e.message+'. Можно вставить распознанный текст вручную.');}finally{$('runOcr').disabled=false}};
