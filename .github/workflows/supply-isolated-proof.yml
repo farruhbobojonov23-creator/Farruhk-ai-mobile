@@ -24,5 +24,6 @@ jobs:
           node --check supply-proof/public/app.js
           node --check supply-proof/public/recognizer.js
           node --check supply-proof/public/vendor-layouts-v2.js
+          node --check supply-proof/public/marr-block-layout.js
       - name: Synthetic tests only - not real image QA
         run: node --test supply-proof/tests/*.test.cjs

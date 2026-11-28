@@ -68,6 +68,13 @@
   const candidate=state.boxPages.length===1?window.FARUKH_SPATIAL.parse(state.boxPages[0],
  {supplier:result.supplier||detect(text),number:result.number,date:result.date,printedTotalRub:result.printedTotalRub}):null;
   if(candidate&&candidate.items.length>result.items.length)result=candidate;
+  // Use article-bounded OCR geometry for the explicitly identified supplier.
+  // A partial match stays marked INCOMPLETE: it is never silently exported.
+  if(state.boxPages.length===1&&window.FARUKH_MARR_BLOCK){
+   const marr=window.FARUKH_MARR_BLOCK.parse(state.boxPages[0],
+    {supplier:result.supplier||detect(text),number:result.number,date:result.date,printedTotalRub:result.printedTotalRub});
+   if(marr.items.length>result.items.length)result=marr;
+  }
   state.invoice=result;state.display=(result.items||[]).map(adapt);$('supplier').value=result.supplier||detect(text)||'';$('number').value=result.number||'';$('date').value=result.date||'';$('expected').value=String(result.items?.length||0);render();
   const issues=[...(result.warnings||[])];
   if(result.status==='unsupported')warning('OCR получен, но структура этого поставщика пока не поддерживается. Ничего не подставляю наугад. Добавьте строки для ручной проверки.');
