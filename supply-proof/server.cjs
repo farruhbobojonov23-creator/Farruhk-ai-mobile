@@ -27,7 +27,7 @@ function ocr(file){
   cmd.on('close',code=>{clearTimeout(timeout);if(code!==0||timed)reject(new Error(timed?'Локальный OCR превысил лимит 55 секунд. Используйте распознанный текст.':'OCR не выполнился: '+err.slice(0,140)));else resolve(out);});
  });
 }
-const types={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/recognizer.js':'recognizer.js','/styles.css':'styles.css'};
+const types={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/recognizer.js':'recognizer.js','/vendor-layouts-v2.js':'vendor-layouts-v2.js','/styles.css':'styles.css'};
 const mimes={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
 const server=http.createServer(async(req,res)=>{
  try{
