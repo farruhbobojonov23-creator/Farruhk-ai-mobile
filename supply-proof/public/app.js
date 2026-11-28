@@ -2,7 +2,7 @@
 (()=>{
  const $=id=>document.getElementById(id);
  const fmt=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
- const state={rows:[],invoice:null,ocrSource:'manual',scans:0};
+ const state={rows:[],invoice:null,ocrSource:'manual',scans:0,boxPages:[]};
  for(let n=1;n<=250;n++){const o=document.createElement('option');o.value=String(n);o.textContent=String(n);$('expected').append(o)}
  const escape=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>{const n=Number(String(v??'').replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)?n:NaN};
@@ -10,7 +10,7 @@
  const safe=val=>Number.isFinite(val)?val:0;
  const warning=(msg,ok=false)=>{const n=$('state');n.textContent=msg;n.className='message '+(ok?'ok':'warning')};
  function chooseUnit(item){if(item.pack?.volumeL)return ['л',item.pack.volumeL];if(item.pack?.weightKg)return ['кг',item.pack.weightKg];return ['шт',1]}
- function adapt(item){const [packUnit,packSize]=chooseUnit(item);return {name:item.name||'',article:item.article||'',qty:item.quantity||'',unit:item.unit||'шт',price:item.unitPriceRub??'',packUnit,packSize,source:item.sourceLines||[],issues:item.issues||[],marked:false}}
+ function adapt(item){const [packUnit,packSize]=chooseUnit(item);return {name:item.name||'',article:item.article||'',qty:item.quantity||'',unit:item.unit||'',price:item.unitPriceRub??'',packUnit,packSize,source:item.sourceLines||[],issues:item.issues||[],marked:false}}
  function rowHTML(r,i){const invalid=(r.issues||[]).length>0;
   return `<div class="item ${invalid?'invalid':''}" data-ix="${i}"><div class="item-header"><span>${i+1}</span><input aria-label="Наименование товара ${i+1}" data-k="name" value="${escape(r.name)}" placeholder="Полное название из накладной"><button data-remove="${i}" type="button" aria-label="Удалить товар">×</button></div><div class="fields"><label>Артикул<input data-k="article" value="${escape(r.article)}" placeholder="По документу"></label><label>Количество<input type="number" inputmode="decimal" step="any" min="0.001" data-k="qty" value="${escape(r.qty)}"></label><label>Ед. из накладной<select data-k="unit">${['шт','кг','л','уп','пар'].map(s=>`<option ${r.unit===s?'selected':''}>${s}</option>`).join('')}</select></label><label>Цена за ед., ₽<input type="number" inputmode="decimal" step="0.01" min="0" data-k="price" value="${escape(r.price)}"></label><label>Фасовка<input type="number" inputmode="decimal" step="any" min="0" data-k="packSize" value="${escape(r.packSize)}"></label><label>Фасовка, ед.<select data-k="packUnit">${['шт','кг','л','уп','пар'].map(s=>`<option ${r.packUnit===s?'selected':''}>${s}</option>`).join('')}</select></label><label>Общий объём / масса<input data-total-measure readonly></label><label>Цена за кг/л/шт<input data-rate readonly></label></div><div class="rowfooter"><small>${invalid?'⚠ Требует проверки: '+escape(r.issues.join('; ')):'ℹ Сверьте название с фотографией'}</small><strong data-rowtotal>—</strong></div>${r.source.length?`<details><summary class="tab">Показать исходные строки OCR</summary><pre>${escape(r.source.join('\n'))}</pre></details>`:''}</div>`}
  function update(){state.rows=[];let total=0,problems=[];
@@ -21,7 +21,7 @@
    const row={name:read('name').trim(),article:read('article').trim(),quantity:q,unit:read('unit'),unitPriceRub:price,packSize:pack,packUnit:read('packUnit')};
    state.rows.push(row);
    if(!row.name)problems.push(`Товар ${i+1}: название пустое`);
-   if(!(q>0&&price>0))problems.push(`Товар ${i+1}: проверьте количество и цену`);
+   if(!row.unit)problems.push(`Товар ${i+1}: выберите единицу измерения`);if(!(q>0&&price>0))problems.push(`Товар ${i+1}: проверьте количество и цену`);
    if(!(pack>0))problems.push(`Товар ${i+1}: укажите фасовку`);
    const line=q*price;total+=safe(line);
    el.querySelector('[data-rowtotal]').textContent=money(safe(line));
@@ -65,6 +65,9 @@
      issues:x.unit?[]:['Неопределённая единица измерения'],
      sourceLines:['Товарная строка '+x.sourceRow+' распознанного текста']}))};
   }
+  const candidate=state.boxPages.length===1?window.FARUKH_SPATIAL.parse(state.boxPages[0],
+ {supplier:result.supplier||detect(text),number:result.number,date:result.date,printedTotalRub:result.printedTotalRub}):null;
+  if(candidate&&candidate.items.length>result.items.length)result=candidate;
   state.invoice=result;state.display=(result.items||[]).map(adapt);$('supplier').value=result.supplier||detect(text)||'';$('number').value=result.number||'';$('date').value=result.date||'';$('expected').value=String(result.items?.length||0);render();
   const issues=[...(result.warnings||[])];
   if(result.status==='unsupported')warning('OCR получен, но структура этого поставщика пока не поддерживается. Ничего не подставляю наугад. Добавьте строки для ручной проверки.');
@@ -72,13 +75,13 @@
   else warning(`Выделено ${result.items.length} позиций, сумма по строкам ${money(result.calculatedTotalRub)}. ${issues.length?issues.join('; '):'Сверьте с фото до экспорта.'}`,false);
  }
  function detect(t){const m=String(t).toUpperCase();const profiles=[['ШАНХАЙ-ТОРГ',/ШАНХАЙ\s*[-–—]?\s*ТОРГ/u],['АЛИДИ',/АЛИДИ/u],['ВЕСТА',/ВЕСТА/u],['ВИРГО',/ВИРГО/u],['ЧИСТЯКОВА',/ЧИСТЯКОВ/u],['ВОСТОК-ЗАПАД',/ВОСТОК\s*[-–—]?\s*ЗАПАД/u],['МАРР РУССИЯ',/МАРР\s*РУСС/u]];return profiles.find(x=>x[1].test(m))?.[0]||''}
- $('parse').onclick=()=>{state.ocrSource='manual-paste';apply($('raw').value)};
+ $('parse').onclick=()=>{state.ocrSource='manual-paste';state.boxPages=[];apply($('raw').value)};
  $('demo').onclick=()=>{const sample=['Счет-фактура № DEMO1234 от 17.11.2026','ООО «ШАНХАЙ-ТОРГ»','A 1','Тестовый продукт 1 кг','6e3 % 18,18 200,00','796 ШТ 2,000 90,91 100,00 181,82','X1001 1','Новый продукт 2 л','6e3 % 36,36 400,00','796 ШТ 2,000 181,82 200,00 363,64','X1002 2','Всего к оплате 600,00'].join('\n');$('raw').value=sample;apply(sample);warning('СИНТЕТИЧЕСКИЙ пример — не результат реальной накладной.',false)};
- $('clear').onclick=()=>{state.display=[];state.invoice=null;$('raw').value='';$('supplier').value='';$('number').value='';$('date').value='';$('expected').value='0';$('reviewed').checked=false;render();warning('Очищено. Ранее введённые данные не загружались в облако.',true)};
+ $('clear').onclick=()=>{state.display=[];state.invoice=null;state.boxPages=[];$('raw').value='';$('supplier').value='';$('number').value='';$('date').value='';$('expected').value='0';$('reviewed').checked=false;render();warning('Очищено. Ранее введённые данные не загружались в облако.',true)};
  $('add').onclick=()=>{if(state.display.length>=250)return warning('Ограничение 250 позиций на одной странице; добавьте другую страницу.');state.display.push({name:'',article:'',qty:'',unit:'шт',price:'',packSize:1,packUnit:'шт',source:[],issues:['Ручной ввод']});$('reviewed').checked=false;render()};
  ['supplier','number','date','expected'].forEach(id=>$(id).addEventListener('input',()=>{$('reviewed').checked=false;update()}));$('reviewed').onchange=()=>update();
  $('photo').onchange=()=>{const images=[...$('photo').files].slice(0,20);$('previews').innerHTML='';for(const f of images){const el=new Image();el.src=URL.createObjectURL(f);el.onload=()=>URL.revokeObjectURL(el.src);el.alt='Исходная страница';$('previews').append(el)};warning('Выбрано страниц: '+images.length+'. Фото остаются локально. Нажмите «Распознать фото».',true)};
- $('runOcr').onclick=async()=>{const images=[...$('photo').files];if(!images.length)return warning('Сначала выберите фотографию.');const out=[];$('runOcr').disabled=true;try{for(let i=0;i<images.length;i++){warning(`Распознавание страницы ${i+1}/${images.length}. Для сложных фотографий может потребоваться около минуты.`);const r=await fetch('/ocr',{method:'POST',headers:{'Content-Type':images[i].type},body:images[i]});const payload=await r.json();if(!r.ok)throw Error(payload.error||'OCR недоступен');out.push(payload.text)}$('raw').value=out.join('\n---\n');state.scans=images.length;state.ocrSource='local-tesseract';apply($('raw').value); }catch(e){warning('Автоматическое OCR не завершилось: '+e.message+'. Можно вставить распознанный текст вручную.');}finally{$('runOcr').disabled=false}};
+ $('runOcr').onclick=async()=>{const images=[...$('photo').files];if(!images.length)return warning('Сначала выберите фотографию.');const out=[],boxPages=[];$('runOcr').disabled=true;try{for(let i=0;i<images.length;i++){warning(`Распознавание страницы ${i+1}/${images.length}. Для сложных фотографий может потребоваться около минуты.`);const r=await fetch('/ocr',{method:'POST',headers:{'Content-Type':images[i].type},body:images[i]});const payload=await r.json();if(!r.ok)throw Error(payload.error||'OCR недоступен');out.push(payload.text);boxPages.push(payload.boxes||[])}state.boxPages=boxPages;$('raw').value=out.join('\n---\n');state.scans=images.length;state.ocrSource='local-tesseract';apply($('raw').value); }catch(e){warning('Автоматическое OCR не завершилось: '+e.message+'. Можно вставить распознанный текст вручную.');}finally{$('runOcr').disabled=false}};
  function doc(){const x=update();if(!x.ready||!x.checked)return null;return {schema:'farukh-supply-isolated-review-v1',checkedByOperator:true,source:state.ocrSource,supplier:$('supplier').value.trim(),number:$('number').value.trim(),date:$('date').value,items:state.rows.map(x=>({...x,lineTotalRub:Math.round(x.quantity*x.unitPriceRub*100)/100,totalMeasure:x.quantity*x.packSize,comparisonRateRub:x.unitPriceRub/x.packSize,comparisonUnit:x.packUnit})),totalRub:Math.round(x.total*100)/100};}
  function download(filename,body,type){const blob=new Blob([body],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
  $('exportJson').onclick=()=>{const value=doc();if(value)download('farukh-supply-verified.json',JSON.stringify(value,null,2),'application/json;charset=utf-8')};
