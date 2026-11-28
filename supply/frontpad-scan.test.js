@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {parseText,parseWords}=require('../supply-android/app/src/main/assets/invoice-parser.js').frontpad;
+require('../supply-android/app/src/main/assets/invoice-parser.js');
+const {parseText,parseWords}=globalThis.supplyFrontpadScan;
 const sample=['Накладная','Наименование Кол-во Цена Сумма',
  '1 Продукт один 20 кг. 190.69 руб. 3813.72 руб.',
  '2 Другой продукт 30.044 кг. 1911.47 руб. 57428.2 руб.',
