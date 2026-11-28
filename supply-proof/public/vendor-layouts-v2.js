@@ -37,6 +37,7 @@ function columns(header,p){
   sumNet:find(/^(стоимостьтоваров.*безналога|стоимостьбезндс|суммабезндс)$/),
   tax:find(/^(сумманалога|сумманалогапредъявляемаяпокупателю|суммандс|ндссумма)$/),
   weight:find(/^(вескг|веснеттокг|веснетто|массанетто)$/),
+  grossMass:find(/^(массабрутто|весбрутто|массабруттокг)$/),
   article:find(/^(артикул|кодтовара|кодпродукции|код)$/)
  };
  if(p.id==='marr'&&c.priceGross<0)c.priceGross=find(/^цена$/);
@@ -67,13 +68,18 @@ function parseTable(profileId,header,rows,{printedTotal=null,sourcePage=1}={}){
    priceSource:grossPrice!=null?'напечатанная цена с НДС':'цена с НДС = сумма / количество'};
   const w=num(field('weight'));if(w!=null)item.invoiceWeightKg=w;
   if(unit&&unit!=='кг'){const kg=api.packWeight?.(name),litres=api.packVolume?.(name);if(kg>0)item.packKg=kg;if(litres>0)item.packL=litres;}
+  const grossKg=num(field('grossMass'));
+  if(grossKg!=null)item.invoiceGrossKg=grossKg;
+  if(p.id==='vostok_zapad'&&grossKg!=null&&unit==='кг'&&grossKg+0.01<q){skipped++;warnings.push('Строка '+(i+1)+': масса брутто меньше количества товара');continue;}
   if(!unit)warnings.push('Строка '+(i+1)+': единица требует подтверждения');
-  if(grossPrice==null)warnings.push('Строка '+(i+1)+': цена с НДС вычислена из суммы');
+  item.unitPriceDerived=grossPrice==null;
+  if(grossPrice==null)warnings.push('Строка '+(i+1)+': цена с НДС вычислена из суммы — нужна сверка');
   items.push(item);
  }
  if(!items.length)return null;
  const exp=num(printedTotal),actual=items.reduce((s,x)=>s+cents(x.invoiceTotal),0);
- const verified=exp!=null&&actual===cents(exp)&&!skipped&&items.every(x=>x.unit);
+ // A calculated unit price is useful for review, but never OCR-verified.
+ const verified=exp!=null&&actual===cents(exp)&&!skipped&&items.every(x=>x.unit&&x.priceSource==='напечатанная цена с НДС');
  if(exp!=null&&actual!==cents(exp))warnings.push('Итог строк не совпадает с накладной');
  if(skipped)warnings.push('Пропущено строк: '+skipped);
  return {supplier:p.name,templateId:p.id,items,printedTotal:exp,warnings:[...new Set(warnings)],
