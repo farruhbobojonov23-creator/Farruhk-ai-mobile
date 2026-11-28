@@ -45,3 +45,25 @@ test('ambiguous supplier is unsupported',()=>{
  assert.equal(api.detectSupplierTemplate('ООО ИНОЙ ПОСТАВЩИК'),null);
  assert.equal(api.parseSupplierDelimited('ООО ИНОЙ ПОСТАВЩИК\nНаименование\tКоличество\tЕд. изм.\tЦена с НДС\tСумма с НДС'),null);
 });
+
+test('TTN keeps goods quantity distinct from gross mass and labels derived price',()=>{
+ const headers=['Наименование','Количество мест','Ед. изм.','Масса брутто','Сумма с НДС'];
+ const rows=[['Синтетический продукт','5,000','кг','5,500','100,00']];
+ const got=api.parseSupplierTable('vostok_zapad',headers,rows,{printedTotal:'100,00'});
+ assert.equal(got?.items?.length,1);
+ assert.equal(got.items[0].quantity,5);
+ assert.equal(got.items[0].invoiceGrossKg,5.5);
+ assert.equal(got.items[0].price,20);
+ assert.equal(got.items[0].unitPriceDerived,true);
+ assert.equal(got.documentVerified,false);
+});
+test('VAT excluded printed unit price is not compared to VAT included total',()=>{
+ const headers=['Наименование','Количество','Ед. изм.','Цена','Стоимость без НДС','Сумма НДС','Стоимость с НДС'];
+ const rows=[['Синтетический продукт','2','шт','100,00','200,00','20,00','220,00']];
+ const got=api.parseSupplierTable('vesta',headers,rows,{printedTotal:'220,00'});
+ assert.equal(got?.items?.length,1);
+ assert.equal(got.items[0].quantity,2);
+ assert.equal(got.items[0].price,110);
+ assert.equal(got.items[0].unitPriceDerived,true);
+ assert.equal(got.documentVerified,false);
+});
