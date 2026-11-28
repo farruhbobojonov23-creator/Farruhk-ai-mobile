@@ -54,7 +54,7 @@
    const heading=String(text).slice(0,2500);
    const doc=heading.match(/(?:накладная|сч[её]т[- ]фактура|упд|реализация)\s*№\s*([A-Za-zА-Яа-яЁё0-9\/-]{3,35})\s+от\s+(\d{1,2})[.\/](\d{1,2})[.\/](20\d{2})/iu);
    const iso=doc?doc[4]+'-'+doc[3].padStart(2,'0')+'-'+doc[2].padStart(2,'0'):null;
-   const parsedDate=iso&&new Date(iso).toISOString().slice(0,10)===iso?iso:null;
+   const dt=iso?new Date(iso):null;const parsedDate=dt&&!Number.isNaN(dt.getTime())&&dt.toISOString().slice(0,10)===iso?iso:null;
    result={...legacy,supplier:structured.supplier||legacy.supplier,number:legacy.number||doc?.[1]||null,date:legacy.date||parsedDate,
     status:'review',verified:false,printedTotalRub:structured.printedTotal,
     calculatedTotalRub:structured.items.reduce((a,x)=>a+Math.round(x.invoiceTotal*100),0)/100,
